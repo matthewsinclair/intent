@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 09:47Z
+heartbeat_at: 2026-09-11 10:06Z
 status: active
-focus: "BOUNCED 2026-09-11. DOING #2 0260, held on vc's ruling: A1 (a content compare) breaks two tested D01 properties; REC P1 (provenance hash on the write path). 0133 closed by vc. Skip 0111 and 0100 (vc re-driving). hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
+focus: "BOUNCED 2026-09-11. DOING #6 0082. 0260 re-driven by vc at 86071c36; 0133 closed. 0111 was closed by vc; 0100 is back in my lane. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,15 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#2 `0260` (critical), claimed 2026-09-11 09:33Z. vc ruled half A via A1. A1 BUILT, RED THEN GREEN, THEN WITHDRAWN: it breaks two tested D01 properties. HELD UNTIL vc RULES ON P1 (provenance, size M) vs P2 (name-only, size S); sent 09:47Z.**
+**#6 `0082` (high), claimed 2026-09-11 10:06Z.** An attachment authored canon-first (`st attach`) never reaches disk on `sync --to-disk`, which still reports ok. **Reproduced at HEAD** (`scratchpad/r0082`). The issue's own narrowed remedy: route `--to-disk` through the canon-to-disk attachment writer that `st hydrate` already uses (`realise`/`organize`), not a new emitter.
 
-- **Why A1 fails:** content cannot tell a store AHEAD of the files (a projection refused after the DB committed, `ViewsNotWritten`, whose designed repair is `--to-disk`: `sync_direction.rs:88`) from files AHEAD of the store (a pull). It also reads a deleted file as a disagreement, which breaks re-creatability (5 `egest_estate` tests). 9 of the suite's 10 reds were mine; the tenth is `mutation_completeness`, hv's decision 5.
-- **P1, my REC:** record a canon file's sha256 into `file_index` when a `WriteSet` commit lands it (ingest already records on read). `--to-disk` then refuses only for a PRESENT canon file whose bytes moved since the store last touched it.
-- **The A1 work is banked, not lost:** `scratchpad/0260-a1-content-compare.patch` plus `-test.rs`, and it forward-applies to HEAD. Its `store::against_canon` home and the proving test carry into P1. **The Rust tree is at HEAD; nothing of mine is uncommitted there.**
+**RE-DRIVEN BY vc, CLOSE PENDING ITS COMMIT: #2 `0260` at `86071c36`.** `sync --to-disk` refuses to overwrite a canon file whose bytes moved since the store last READ OR WROTE it. Provenance lives in `file_index`, through one recorder, `ingest::record_canon_files`, called on every load of canon into a store and after every projection that lands canon. Driven end to end: A (a pull) refuses; B (store ahead) repairs at rc 0; C (files removed) re-creates them; D (no recorded bytes) writes as before, then records. vc re-drives, then closes it or sends it back. **Half B (326/358) was ruled not a defect**, and its disposition is in the commit message.
 
-- **HALF A, THE ORIGINAL REPORT, IS LIVE DATA LOSS AT HEAD.** With no intentd running, a committed canon edit the store has not seen is reverted by `sync --to-disk` at rc 0. It reverts the canon JSON itself, not only the extract, and prints _prose ... unchanged_. `doctor.rs:1052` `db_checks` detects the condition; `facade.rs:3455` `sync_to_disk` never consults it. The comparison is controlled both ways: 0 on a healthy hop, 0 after a `--to-disk`, 1 after an out-of-band edit. **My REC (A1, size S):** move the comparison to one home, have `sync_to_disk` refuse on it, and name the remedy.
-- **HALF B, THE 326/358 FIGURE, REPRODUCES EXACTLY AND IS NOT A LOSS.** Lamplight canon: 326 of 358 bodies carry `## Related Steel Threads`, 313 of them beside a populated `related[]`. Intent: 52 bodies, 0 with `related[]`. A HEAD hop still writes both copies, and the view renders the `body` copy. That is the deliberate design in `legacy.rs` `related_links`. Its cost is two homes plus no `related` edit verb, which is P4/P5 in shape. A blanket strip is UNSAFE (ST0342).
-- Fixtures: `scratchpad/r0133` (half A, after the 0133 hop) and `scratchpad/r0260m` (half B).
+**BACK IN MY LANE, IN LIST ORDER: #64 `0100`.** `4479264f` was option 1 only. The remaining fix is the `status_legacy` mirror that `scope` already has (`scope_legacy`); 22 of 23 still default to not-started with only a finding.
 
 **ON THE BOUNCE, hv's WORDS VIA vc: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._** The work is the numbered list in `intent/wip.md`: the 92 open defects in 3.0.1 priority order. **That list is the authority; this board only points at it.** hv cuts from the bottom.
 
@@ -75,7 +71,7 @@ claims: [ST0056/06, ST0056/10]
 
 **W4. ONE NAME, TWO ARTEFACTS.** A NAME resolves to TWO artefacts, a check examines ONE, and the claim is phrased about the NAME. **NOT AN INSTANCE:** a verdict that names the artefact it examined.
 
-**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop.
+**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop. **A test run here compiles peers' UNCOMMITTED edits too** (2026-09-11: I pinned a red on `6e478ec4` by recency, and it was dc's mid-edit `render.rs`; the wrong sha now stands in `86071c36`'s message). Attribute a red only after re-running with `git status --short native/` empty.
 
 **W6. A CLAIM THAT DOES NOT FEEL LIKE A CLAIM IS THE ONE TO DRIVE.** **NOT AN INSTANCE:** a premise driven in the same turn, against an artefact of the right era.
 
