@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:29Z
+heartbeat_at: 2026-09-11 10:35Z
 status: active
-focus: "0079 IN DOING: THE PIN LANDS BEFORE THE WRITE'S PROJECTION FOR AN ADD (vc's option c). THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0079, then 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0079 FIXED AT f91e4235, WITH vc TO CLOSE. 0149 NEXT, ON vc'S CLOSE OR SEND-BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0079, then 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0079` -- CLAIMED 2026-09-11 10:29Z on vc's go (`0209` closed by vc at `53997d34`).** Live through `st new --start` and `st start`/`st resume` in general: the `.intentfiles` pin landed after the write's own projection, so the thread was listed exactly like a realised one with no files until the next write by anyone. **vc chose (c): an ADD pins BEFORE `apply` inside the same verb, a REMOVE still pins after, and a refused `apply` restores the manifest.** No hydrate, no scan, no new realiser. The one test is seen red on the old order. Suites are running under an isolated `HOME`.
+**`0079` -- FIXED AT `f91e4235`, WITH vc TO RE-DRIVE AND CLOSE.** vc's option (c): an ADD pins before `apply` inside the same verb, a REMOVE still pins after, and a refused `apply` restores the manifest. So `st new --start` and `st start`/`st resume`/`st reopen` leave the thread's views on disk. The three `organize` fixtures that relied on `st start` writing nothing are repaired in the same commit. **`0149` waits for vc's close.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
