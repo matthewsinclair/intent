@@ -19,11 +19,6 @@ intent_version: 3.0.0
 
 ## The list
 
-### P1 -- data loss or corruption. These decide whether 3.0.1 ships.
-
-| #   | id  | sev | lane | defect |
-| --- | --- | --- | ---- | ------ |
-
 ### P3 -- commands that report success or state while wrong.
 
 | #   | id     | sev    | lane | defect                                                                         |
@@ -41,7 +36,6 @@ intent_version: 3.0.0
 | 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                     |
 | 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                 |
 | 50  | `0139` | medium | ic   | `at lint --fix` is advertised and refuses.                                       |
-| 51  | `0180` | medium | dc   | `agents init --template` is accepted and nothing reads it.                       |
 | 52  | `0177` | medium | dc   | `ext new` exists; `ext remove` does not.                                         |
 | 53  | `0143` | medium | dc   | No v3 equivalent of `claude upgrade --skip-settings`.                            |
 | 54  | `0140` | medium | ic   | An unsatisfied note is writable only by migration.                               |
