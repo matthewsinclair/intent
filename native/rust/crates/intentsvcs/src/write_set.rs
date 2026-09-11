@@ -303,13 +303,22 @@ fn record(path: &Path) -> Result<Prior, WriteError> {
 /// Write via a sibling temp file and a rename, so a reader never observes a
 /// half-written file. The temp file sits in the destination directory because
 /// a rename across filesystems is not atomic and may not even be a rename.
+///
+/// **The temp name is this write's own (0226).** One fixed name per path was
+/// shared by every writer of that path -- the daemon's render and a verb's, or
+/// two threads -- so one writer's rename took the other's file and the other's
+/// failed `NotFound`, reported against the view. The pid separates processes,
+/// as the daemon's address publish already does; the counter separates writes
+/// within one.
 pub(crate) fn write_atomically(path: &Path, content: &str) -> Result<(), WriteError> {
+  static WRITES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
   let dir = path.parent().unwrap_or(Path::new("."));
   let name = path
     .file_name()
     .map(|n| n.to_string_lossy().into_owned())
     .unwrap_or_else(|| "intent".to_string());
-  let temp = dir.join(format!(".{name}.intent-tmp"));
+  let seq = WRITES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+  let temp = dir.join(format!(".{name}.{}.{seq}.intent-tmp", std::process::id()));
 
   std::fs::write(&temp, content).map_err(|e| io_err(&temp, e))?;
   if let Err(e) = std::fs::rename(&temp, path) {
@@ -386,5 +395,39 @@ mod tests {
       .filter(|n| n.contains("intent-tmp"))
       .collect();
     assert!(strays.is_empty(), "temp files left behind: {strays:?}");
+  }
+
+  /// **0226: two writers of one view both land.** The daemon's render and a
+  /// verb's render both write `steel_threads.md`, outside any lock. On one
+  /// temp name, one writer's rename took the file the other had just written,
+  /// and the other's rename failed `NotFound` -- reported against the view
+  /// itself, as `ViewsNotWritten`.
+  #[test]
+  fn two_writers_of_one_path_both_land() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = dir.path().join("steel_threads.md");
+    let writer = |tag: &'static str| {
+      let path = path.clone();
+      std::thread::spawn(move || {
+        (0..500)
+          .filter_map(|n| {
+            let mut set = WriteSet::new();
+            set.add(path.clone(), format!("{tag} {n}\n"));
+            set.commit().map(Applied::keep).err().map(|e| e.to_string())
+          })
+          .collect::<Vec<_>>()
+      })
+    };
+    let (a, b) = (writer("a"), writer("b"));
+    let failed: Vec<String> = [a, b]
+      .into_iter()
+      .flat_map(|h| h.join().expect("the writer ran"))
+      .collect();
+    assert!(
+      failed.is_empty(),
+      "{} of 1000 concurrent writes failed, first: {:?}",
+      failed.len(),
+      failed.first()
+    );
   }
 }
