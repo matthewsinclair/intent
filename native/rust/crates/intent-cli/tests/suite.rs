@@ -34,6 +34,8 @@ mod common;
 
 #[path = "a_narrowed_render_names_its_scope.rs"]
 mod a_narrowed_render_names_its_scope;
+#[path = "a_skewed_views_printed_remedy_clears_it.rs"]
+mod a_skewed_views_printed_remedy_clears_it;
 #[path = "ac_new_refuses_what_it_used_to_replace.rs"]
 mod ac_new_refuses_what_it_used_to_replace;
 #[path = "acceptance_surface.rs"]

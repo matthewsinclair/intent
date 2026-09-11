@@ -260,10 +260,21 @@ impl Plan {
 /// description of one, and the refusals here are the entire point of the verb.
 #[derive(Debug, Error)]
 pub enum OrganizeError {
-  /// The dehydration gate (AC-04.2). Disk holds something the store does not,
-  /// and removing the file destroys it.
+  /// The dehydration gate (AC-04.2). The file on disk differs from what the
+  /// store renders, and removing it would lose a hand edit if that is what
+  /// the difference is.
+  ///
+  /// **A DIFFERENCE IS NOT A DIRECTION** (issue `0283`). This said removing
+  /// the file "would destroy N byte(s) the store does not carry", which is
+  /// false whenever the STORE is ahead -- until 0283's half B, a change to a
+  /// thread `.intentfiles` no longer lists left its views behind, so the disk
+  /// copy is a stale render with nothing authored in it. Half B stops new ones
+  /// forming; an estate can still carry one from before. Nothing here can
+  /// tell the two apart after the fact, so the gate still refuses; what
+  /// changed is that it no longer tells the operator their file holds work it
+  /// may not.
   #[error(
-    "refusing to dehydrate {path}: the file on disk differs from what the store renders, so removing it would destroy {bytes} byte(s) the store does not carry. Reconcile it first -- `intent doctor` names the difference, and if the disk copy is the one you want, the edit belongs in canon."
+    "refusing to dehydrate {path}: the file on disk ({bytes} byte(s)) differs from what the store renders -- either a hand edit the store never took in, or a render the store has since moved past (before v3.0.1, a change to a thread `.intentfiles` no longer lists left its views behind). Removing it would destroy the hand edit if there is one -- a wanted edit belongs in canon, made through the CLI -- so organize does not guess."
   )]
   HandEdited { path: PathBuf, bytes: usize },
 
@@ -344,8 +355,12 @@ impl crate::remedy::Remedy for OrganizeError {
   /// fix at all.
   fn remedy(&self) -> String {
     match self {
+      // `sync --to-store` was named here for the keep-the-file case, and it
+      // does not take a hand edit to a generated view into the model -- only
+      // canon and the info covers are read back -- so that remedy did nothing
+      // for most of the files this refusal is about (issue `0283`).
       Self::HandEdited { path, .. } => format!(
-        "decide which copy is right. `intent doctor` names the difference; if the file at {} is the one you want, take it into canon with `intent sync --to-store` before re-running, and if the store is right, delete the file and re-run.",
+        "decide which copy is right. `intent doctor` names the difference and the command that regenerates it. If nobody edited the file at {}, the store is right: delete it and re-run. If it holds an edit you want, make the change through the CLI so it lands in the model, then re-run.",
         path.display()
       ),
       // **The action is to run it again, and saying so is only honest because

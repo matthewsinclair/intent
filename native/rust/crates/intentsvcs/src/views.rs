@@ -1520,15 +1520,41 @@ pub fn skew(
     let rel = project.relative(&view.path);
     match std::fs::read_to_string(&view.path) {
       Ok(on_disk) if on_disk == view.content => {}
-      Ok(on_disk) => findings.push(Finding::new(
-        &rel,
-        FindingClass::ViewSkew,
-        format!(
-          "generated view differs from the model ({} bytes on disk, {} rendered); the file was edited by hand or written by an older version -- regenerate to discard the edit, or make the change through the CLI so it lands in the model",
-          on_disk.len(),
-          view.content.len()
-        ),
-      )),
+      // **TWO CAUSES, AND THE REMEDY THAT CLEARS THIS FINDING DEPENDS ON THE
+      // THREAD** (issue `0283`). A hand edit is one; the other is the store
+      // moving on after the view was last rendered -- until 0283's half B, a
+      // change to a thread `.intentfiles` does not list left its views behind,
+      // and that was reported as a hand edit to someone who made none. Half B
+      // stops new ones forming; an estate can still carry one from before, and
+      // no check here can tell it from a hand edit without the prior render,
+      // so both causes are named. `sync --to-disk`
+      // does not rewrite an unlisted thread's views (driven: extract written,
+      // view unchanged, finding standing), so for one of those the verb named
+      // is `st hydrate`, which does -- and which pins the thread, so it says
+      // so.
+      Ok(on_disk) => {
+        let unlisted = owning_thread(project, &view.path, canon).filter(|o| !realised.declares(o));
+        let remedy = match &unlisted {
+          Some(id) => format!(
+            "`intent st hydrate {id}` regenerates it from the store and pins {id} in `.intentfiles`"
+          ),
+          None => "`intent sync --to-disk` regenerates it from the store".to_string(),
+        };
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::ViewSkew,
+          format!(
+            "generated view differs from the model ({} bytes on disk, {} rendered): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model",
+            on_disk.len(),
+            view.content.len(),
+            if unlisted.is_some() {
+              " (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind)"
+            } else {
+              ""
+            }
+          ),
+        ));
+      }
       // **ABSENT IS SILENCE ONLY WHERE THE MANIFEST SAYS THE ARTEFACT IS NOT
       // REALISED, and that silence is bounded rather than blanket.** Under
       // `.intentfiles` a dehydrated thread's views are legitimately gone -- that
@@ -1550,13 +1576,13 @@ pub fn skew(
       // -- a prediction of this exact defect by the author of the sibling path.
       // The two paths now answer the same question the same way.
       Err(_) => {
-        let dehydrated = owning_thread(project, &view.path, canon)
-          .is_some_and(|owner| !realised.declares(&owner));
+        let dehydrated =
+          owning_thread(project, &view.path, canon).is_some_and(|owner| !realised.declares(&owner));
         if !dehydrated {
           findings.push(Finding::new(
             &rel,
             FindingClass::ViewSkew,
-            "generated view is missing; regenerate it",
+            "generated view is missing -- `intent sync --to-disk` regenerates it from the store",
           ));
         }
       }

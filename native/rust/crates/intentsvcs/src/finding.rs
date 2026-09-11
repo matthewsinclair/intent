@@ -409,15 +409,17 @@ impl FindingClass {
         "duplicate-id",
         "two artefacts claim one id; rename or remove one of them",
       ),
-      // The one remedy that is a command, and it is bounded on purpose: it
-      // rewrites artefacts that are re-creatable from the store by
-      // definition, so nothing authored is at risk. It says what it costs
-      // anyway, because the finding exists BECAUSE someone hand-edited the
-      // view, and regenerating is precisely what discards that edit.
+      // **THE COMMAND IS ON EACH FINDING'S LINE, NOT HERE** (issue `0283`).
+      // This named `intent sync --to-disk` for every view, and that verb does
+      // not rewrite the views of a thread `.intentfiles` does not list -- the
+      // closed-thread case, where the store moved on and nobody edited
+      // anything. Each finding knows its thread and names the verb that
+      // clears it. Regenerating still discards a hand edit, so it still says
+      // what it costs.
       Self::ViewSkew => (
         6,
         "view-skew",
-        "`intent sync --to-disk` regenerates the views from the store, DISCARDING the hand edit -- copy anything you meant to keep out first",
+        "each finding's line names what clears it -- regenerating a view DISCARDS a hand edit, so copy anything you meant to keep out first",
       ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:
