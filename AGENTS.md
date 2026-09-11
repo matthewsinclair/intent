@@ -54,7 +54,7 @@ swift test
 ```
 
 ```bash
-bats tests/
+bats -r tests/
 ```
 
 ### Building

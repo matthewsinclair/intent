@@ -90,7 +90,7 @@ swift test
 [[#lang shell]]
 
 ```bash
-bats tests/
+bats -r tests/
 ```
 
 [[/lang]]
