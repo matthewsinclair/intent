@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 13:16Z
+heartbeat_at: 2026-09-11 14:29Z
 status: active
-focus: "FOLDED FOR A COMPACT (hv's pause, 2026-09-11 13:16Z); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: 0150, then 0259 half 2 -- vc's column, in list order, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "ON THE BOUNCE after the compact, 2026-09-11 14:29Z. DOING: #75 0150 (skills list cannot see an orphaned skill directory). NEXT: 0259 half 2. vc's column, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,7 +39,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open.** Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**`0150` (#75), claimed 2026-09-11 14:29Z:** `claude skills list` cannot see an orphaned skill directory. Worktree off HEAD, one proving test red first, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
 **With vc, for its re-drive and close:**
 
