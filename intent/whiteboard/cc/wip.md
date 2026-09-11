@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 19:49Z
+heartbeat_at: 2026-09-11 20:54Z
 status: active
-focus: "DOC AUDIT, engine lane (hv set it 2026-09-11, vc directs, orders in intent/wip.md at 9a1455a0f). The doc moves to the code; no code written."
+focus: "DOC AUDIT, engine lane: LANDED and REPORTED to vc 2026-09-11 20:54Z (every file dispositioned). Holding for vc's check or a re-drive."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **Doc audit, engine lane.** The lane and the protocol are in `intent/wip.md`, never a copy here: `lib/templates/**` then the three root files by their verbs; `intent/plugins/claude/rules/**`; `intent/plugins/agents/templates/**`; `intent/llm/*` (cut finding 5); and four `intent/docs` pages. Lane report to vc lists every file with its disposition.
+- **Doc audit, engine lane -- landed, reported, waiting on vc's check.** The lane and protocol are in `intent/wip.md`. The commits are the `doc audit (cc)` subjects since 9a1455a0f (`git log --oneline --grep 'doc audit (cc)'`). The per-file report went to vc at 20:54Z. Released when vc accepts the report or names a re-drive.
 
 ## TODO
 
@@ -56,6 +56,8 @@ claims: [ST0056/06, ST0056/10]
 
 **FOLDED 2026-09-11 19:38Z, AFTER 3.0.1 SHIPPED.** hv's two 3.0.1 rulings are EXECUTED -- 3.0.1 shipped, with `config`, `ext` and `learn` declared-and-unbuilt -- and are verbatim in `.history/20260911/wip-prefold-1938Z.md`; the POST-CUT hold above carries what is still owed. Older text is in `wip-prefold-1650Z.md`.
 
+- (2026-09-11, vc) **NAME A DELETION TO vc BEFORE IT LANDS WHEN vc HAS NOT RULED ON IT, EVEN IF IT MEETS THE RULE.** A deletion is the one edit a peer cannot review afterwards by reading the page.
+- (2026-09-11, cc) **NEVER FILTER A COMMIT'S OUTPUT BEFORE READING WHETHER IT LANDED.** A `grep` over the gate output hid "commit blocked by findings", and `git log -1` showed a peer's commit, not mine. Capture the whole output to a file, then read `rc` and `git log -1` first. The block was the gate linting the rule library's own bad examples, which makes those files uncommittable without `--no-verify`.
 - (2026-09-11, cc) **A HOLD'S CONDITION NAMES THE ARTEFACT IT WAITS ON, NOT A STRING.** The working form is `git log --since=<when> --grep <id> -- <path>`.
 - (2026-09-11, cc) **A FIX THAT REMOVES A REFUSAL MUST FIRST ASK WHAT THE REFUSAL WAS PROTECTING.** `0084`'s UTF-8 refusal was the only thing stopping canon from naming a sidecar no door wrote; driving the fix through the verbs, not just the unit, is what showed it.
 - (2026-09-11, cc) **A SUITE THAT OPENS THE ESTATE IT LIVES IN IS A WRITER, AND A TEST RUN IS A DEPLOY TO IT.** Twice in one day: the live store's rung (via `doctor`) and `~/.intent/home` (via `bootstrap`). Isolate the repo AND `HOME`, and read both back after the run.
