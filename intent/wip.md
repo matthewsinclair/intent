@@ -85,7 +85,7 @@ intent_version: 3.0.0
 
 ## hv's decisions that unblock the cut
 
-Unchanged from the cull, and not work items. Each is one word.
+Not work items. Each is one word. 1-10 are from the cull; 11 was added on 2026-09-11.
 
 1. **Push.** `git rev-list --count @{u}..HEAD`.
 2. **The 13 -> 17 store migration is irreversible and nothing shipped says so.** Recommend a CHANGELOG line plus a backup sentence in the migration docs. **ADDED 2026-09-11 (vc): does 3.0.1 take a 17 -> 18 rung?** `0100` (your option 3, the `status_legacy` mirror) needs one column on `wps`, the first schema change since 3.0.0 shipped, so every 3.0.0 store takes it. vc ruled the shape (carry the v2 spelling, `status` unchanged) and held the build on your word. Recommend yes, under the same CHANGELOG and backup line.
@@ -96,7 +96,8 @@ Unchanged from the cull, and not work items. Each is one word.
 7. **ST0064 AC-01.7: sign and notarise the menubar app** with your credentials, or drop the app.
 8. **ST0057 WP-12/13.** Recommend descope to ST0069.
 9. **ST0068 AC-03.1/03.2 (the Laksa site).** Recommend descope to ST0069.
-10. **Where the line falls in the list above.** Recommend: P1 and P2 in 3.0.1.
+10. **Where the line falls in the list above.** Recommend: P1 and P2 in 3.0.1. **(vc, 2026-09-11: both are now empty, every item closed on re-drive, so the question is how far into P3-P5 the cut reaches.)**
+11. **ADDED 2026-09-11 (vc): does 3.0.1 build the byte write for opaque attachments (`0084`)?** The issue leaves the behaviour call to you. A non-UTF-8 `.md`/`.txt`/`.sh` in a thread refuses `sync --to-store` for the whole thread. cc found that lifting the refusal alone makes canon name a sidecar nothing writes, because no door writes an opaque attachment's bytes into canon. **vc drove the same hole on the migrator: a v2 estate with one Latin-1 `notes.txt` migrates at rc=0 with canon naming `notes.txt` and no sidecar, and the next `sync --to-store` refuses `broken-reference` with a remedy that says "under v2 tooling".** (a) Build it (cc, M, store write path): byte writes in `WriteSet`, the projection emits the blobs, and the proving test is a restore-then-restore round trip. It closes `0084` and the migrator hole together. (b) Hold `0084` open. Recommend (a).
 
 ## What ships 3.0.1
 
