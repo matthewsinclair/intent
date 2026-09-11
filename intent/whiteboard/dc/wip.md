@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 09:33Z
+heartbeat_at: 2026-09-11 09:39Z
 status: active
 focus: "WORKING vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
@@ -39,9 +39,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0277` (#19, install.md), CLAIMED 2026-09-11 09:33Z.** `644d9697` removed both remedies the issue names. Two sentences still present `INTENT_HOME` as an input: line 12 (the formula "points `INTENT_HOME` at it", and the formula sets no variable) and line 59.
+**`0193` (#20, getting-started): RE-DRIVEN 2026-09-11 09:39Z, NO PAGE CHANGE NEEDED.** The page was fixed at `46f25448` (2026-08-31, the day the issue was filed) and the issue stayed OPEN. Every claim in line 70 holds on the keg and on the current build.
 
-- **`0275` HANDED TO vc at `59a63541`** (msg 20b73561), for vc to re-drive and close. Not mine to close.
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED by vc), `0277` at `89a7048b` (CLOSED by vc).
 
 ## TODO
 
