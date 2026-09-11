@@ -9,6 +9,26 @@
   "context": "",
   "body": "",
   "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Issues get a realised form and a sigil, then join the default declaration",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    }
+  ],
   "criteria": [
     {
       "id": "AC-13.1",

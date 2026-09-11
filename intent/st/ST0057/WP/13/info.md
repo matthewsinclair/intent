@@ -2,7 +2,8 @@
 wp_id: WP-13
 title: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
 scope: S
-status: Not Started
+status: Cancelled
+status_reason: Descoped to ST0069/02 by hv, 2026-09-11 (decision 8): not in 3.0.1
 ---
 
 # WP-13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket

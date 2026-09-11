@@ -35,8 +35,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 09: The event log records the model and not the disk
   - [x] 10: doctor reports a dehydrated view as missing
   - [x] 11: Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function
-  - [ ] 12: Issues get a realised form and a sigil, then join the default declaration
-  - [ ] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
+  - [~] 12: Issues get a realised form and a sigil, then join the default declaration
+  - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
   - [x] 01: One path to the native CLI: int cli carries the coherence guard
@@ -54,6 +54,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
+  - [ ] 01: Issues get a realised form and a sigil, then join the default declaration
+  - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
 ## DONE:2026-09-10T00:00:51Z

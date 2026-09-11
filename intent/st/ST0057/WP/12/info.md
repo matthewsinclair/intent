@@ -2,7 +2,8 @@
 wp_id: WP-12
 title: Issues get a realised form and a sigil, then join the default declaration
 scope: S
-status: Not Started
+status: Cancelled
+status_reason: Descoped to ST0069/01 by hv, 2026-09-11 (decision 8): not in 3.0.1
 ---
 
 # WP-12: Issues get a realised form and a sigil, then join the default declaration

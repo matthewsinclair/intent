@@ -46,8 +46,8 @@ title: Update Intent's docs for v3
 
 ### Group 03
 
-- AC-03.1 (non-test) The site design system specifies one page Laksa can build without asking a question this thread could have answered -- satisfied: no
-- AC-03.2 (non-test) Every unresolved design decision reaches the Laksa design agent carrying the decision, the constraint it must respect, and what breaks if it goes the other way -- satisfied: no
+- AC-03.1 (non-test) The site design system specifies one page Laksa can build without asking a question this thread could have answered -- DESCOPED to ST0069 by hv
+- AC-03.2 (non-test) Every unresolved design decision reaches the Laksa design agent carrying the decision, the constraint it must respect, and what breaks if it goes the other way -- DESCOPED to ST0069 by hv
 
 ### Group 04
 

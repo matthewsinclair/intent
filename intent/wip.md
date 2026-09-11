@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-11:v1.40: vc - THE WORK LIST. hv, 2026-09-11 09:14Z: the open defects, in 3.0.1 priority order, ARE the work. No new work is added. A row leaves this table when vc has driven its fix and closed the issue; the numbers do not shift. Pre-list verbatim at intent/.history/20260911/wip-prelist-0914Z.md."
+verblock: "2026-09-11:v1.41: vc - THE WORK LIST. hv, 2026-09-11 09:14Z: the open defects, in 3.0.1 priority order, ARE the work. No new work is added. A row leaves this table when vc has driven its fix and closed the issue; the numbers do not shift. Pre-list verbatim at intent/.history/20260911/wip-prelist-0914Z.md."
 intent_version: 3.0.0
 ---
 
@@ -55,22 +55,17 @@ intent_version: 3.0.0
 
 ## hv's decisions that unblock the cut
 
-Not work items. Each is one word. hv ruled 1-5 and 10-14 on 2026-09-11 (15:0xZ-15:2xZ). The work those rulings created is listed under "Ruled, now work". The closes they ordered are done and are in the register.
-
-### Still open
-
-6. **The v2 bats suite dies with the trunk at the cut, EXCEPT TWO v3 FILES INSIDE IT.** 186 of CI's 216 `Intent Tests` failures are v2 tests of pruned v2 doors: prune, no port. **15 more are v3 tests** (`daemon_commands.bats`, `config_undefined.bats`, both written 2026-09-01 for v3's surface) that `test_helper.bash:21` points at v2's dispatcher; they are 15/15 green against v3. They are the only bats coverage of v3's `daemon` and `config`. Keep them by pointing them at v3 when the trunk goes, or delete them knowingly. Recommend keep. (dc, driven against both binaries.)
-7. **ST0064 AC-01.7: sign and notarise the menubar app** with your credentials, or drop the app.
-8. **ST0057 WP-12/13.** Recommend descope to ST0069.
-9. **ST0068 AC-03.1/03.2 (the Laksa site).** Recommend descope to ST0069.
+All fourteen are ruled (hv, 2026-09-11). Only the work they created is listed below. The closes and descopes they ordered are done and are in the register.
 
 ### Ruled, now work
 
 - **1. Push (hv).** Push to `local` (Dropbox) now. Push to `upstream` (GitHub) at the 3.0.1 cut.
 - **2. Store migration notice (hv: go). Lane dc.** One CHANGELOG line and one backup sentence in the migration docs, saying that neither 13 -> 17 nor 17 -> 18 can be undone. The 17 -> 18 rung (`0100`) is in at 9046156b.
 - **3. Three doors that answer "not implemented" (hv: strike). Lane ic.** Remove `st bootstrap`, `agents template` and `claude prime` from the dispatch table and from the templates that mandate them (ST0058 AC-00.3).
-- **4. The 16 `collapsible_if` lints in intentsvcs (hv: go). Lane cc.** A mechanical fix, so that CI reaches `test`.
-- **5. The red test `no_service_call_can_set_an_edgeless_field` in `mutation_completeness.rs` (hv: delete). Lane cc.**
+- **4. The 16 `collapsible_if` lints in intentsvcs (hv: go). Lane cc.** A mechanical fix, so that CI reaches `test`. LANDED at 7d3ffe61; vc to drive.
+- **5. The red test `no_service_call_can_set_an_edgeless_field` in `mutation_completeness.rs` (hv: delete). Lane cc.** LANDED at 32958364; vc to drive.
+- **6. The two v3 bats files (hv: keep). Lane dc, at the cut.** When the v2 trunk goes, point `test_helper.bash` at the v3 binary. That keeps `daemon_commands.bats` and `config_undefined.bats`, the only bats coverage of `daemon` and `config`.
+- **7. The menubar app SHIPS in 3.0.1 (hv), signed and notarised (ST0064 AC-01.7). Lane cc.** `int macos` signs and notarises the CLI pair already. The app pipeline built `app-build/run/test/install/verify` and declared `app-sign` and `app-notarize` as its chunk 2, but never built them. Build them by porting Lamplight's Wrighter.app flow (same Geodica ADC, team 76BQL8L47U). Then rewrite the header lines that still say Intent ships no .app bundle.
 - **10. The cut (hv).** 3.0.1 ships every workable row. It cuts when every row not marked NOT WORKABLE is closed.
 
 ## What ships 3.0.1

@@ -60,7 +60,9 @@
       "text": "The site design system specifies one page Laksa can build without asking a question this thread could have answered",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "descoped",
+        "to": "ST0069",
+        "by": "hv"
       }
     },
     {
@@ -68,7 +70,9 @@
       "text": "Every unresolved design decision reaches the Laksa design agent carrying the decision, the constraint it must respect, and what breaks if it goes the other way",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "descoped",
+        "to": "ST0069",
+        "by": "hv"
       }
     },
     {
