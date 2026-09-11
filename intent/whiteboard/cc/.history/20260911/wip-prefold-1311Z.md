@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 13:11Z
+heartbeat_at: 2026-09-11 13:08Z
 status: active
-focus: "FOLDED 2026-09-11 13:11Z FOR hv'S PAUSE -- not a release. ON THE BOUNCE: #77 0176 (routed by vc, not started). 0283 half B verified at fe8775ed. Held on hv: 0100 (decision 2, rung 17->18; shape (b) ruled), 0084 (decision 11, byte write; patch banked). hv: no new work, these items ONLY; intent/wip.md is the authority. The 16 clippy lints are hv's decision 4."
+focus: "2026-09-11 13:08Z: nothing in flight; 0283 half B with vc at fe8775ed (half A is dc's). Held on hv: 0100 (decision 2, rung 17->18; shape (b) ruled), 0084 (decision 11, byte write). Next is what vc routes. hv: no new work, these items ONLY; intent/wip.md is the authority. The 16 clippy lints are hv's decision 4."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**FOLDED 2026-09-11 13:11Z FOR hv'S PAUSE -- not a release. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY.** `0283` half B is VERIFIED by vc at `fe8775ed` (the row closes when dc's half A lands). **ON THE BOUNCE: #77 `0176`** (`todo notdone`/`toggle` mutate around the Facade), routed by vc at the fold and NOT STARTED, with no code yet. Claim it, drive the issue's own repro first, and check both holds below at pickup. The board before this fold is verbatim at `.history/20260911/wip-prefold-1311Z.md`, and every close since the compact is in `git log`, not here.
+**NOTHING IN FLIGHT (2026-09-11 13:08Z).** `0283` half B is with vc at `fe8775ed`; half A is dc's, and the row closes when both land. vc closed `0168`. Next is whatever vc routes, or a hold's condition coming true.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
@@ -30,13 +30,14 @@ claims: [ST0056/06, ST0056/10]
 
 - **#64 `0100` -- RELEASED WHEN hv answers decision 2's added question** (`intent/wip.md`): does 3.0.1 take a store rung 17 -> 18? The shape is ruled (option (b): `status_legacy: Option<Legacy>` carrying the raw v2 spelling beside the substituted status). Tell dc before touching `store.rs`.
 - **#65 `0084` -- RELEASED WHEN hv answers decision 11**: does 3.0.1 build the byte write for opaque attachments? The fix is banked at scratchpad `0084-banked.patch` (sha256 `74679d6cee74fe2a`) and NOT committed. Lifting the refusal alone makes canon name a sidecar no door writes (`export::canon_blobs` has no non-test caller, and `WriteSet` is text-only), so the second `--to-store` refuses `broken-reference`. With a go: WriteSet byte writes + projection emits `canon_blobs` + `record_landed`, then the inspect change, proved by a double restore.
+- **`0114` -- lane `--`, held on hv decision 12** (cap a thread's inline attachment total, or close as by-design). Not mine unless routed back.
+- **`0141` -- lane `--`, NOT WORKABLE IN 3.0.1 (vc)**: both wildcard self-loops are load-bearing under rulings, and the only fix is a new guard. It stays open as the constraint on either field gaining a payload.
+- **A hold's condition names the artefact it waits on** (eg `git log --since=... --grep <id> -- native/rust`), not a string that any mention of the id matches. `git log --grep 0216` matched `69ebc932`, a 2026-09-03 issue-body edit, and I told vc the `0226` hold was released a minute before it was (2026-09-11 11:37Z).
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
 - **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN hv says go on hv's decision 4 (NOT a list item) AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
 
 ## Decisions
 
-- (2026-09-11, cc) **A HOLD'S CONDITION NAMES THE ARTEFACT IT WAITS ON, NOT A STRING.** `git log --grep 0216` matched `69ebc932`, an issue-body edit from 2026-09-03, and I told vc the `0226` hold was released a minute before `0216`'s code landed. The working form is `git log --since=<when> --grep <id> -- <path>`.
-- (2026-09-11, cc) **A FIX THAT REMOVES A REFUSAL MUST FIRST ASK WHAT THE REFUSAL WAS PROTECTING.** `0084`'s UTF-8 refusal looked like a survivor to delete, and it was the only thing stopping canon from naming a sidecar that no door writes. Driving the fix through the verbs, not just the unit, is what showed it.
 - (2026-09-09) **A ROUTE RECORDED IS NOT A ROUTE TAKEN.** ic's board read _`0218` released to cc ... Routed, not taken_, while `cc/inbox.ic.md` was `_(empty)_`. **A pickup reads your own board and your own inboxes, so under the protocol that release was invisible to me at every step of my boot** -- I have it only because I grepped a peer's board for my own moniker, which is not a procedure.
 - (2026-09-09) **EVERYTHING SHIPS AS 3.0.1. SETTLED BY hv, NOT OWED, NOT MINE TO RE-OPEN.** Ruled twice and restated a fourth time in hv's own words. The new-surface argument is DEAD, not deferred. **I do not raise it again.**
 
