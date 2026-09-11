@@ -20,30 +20,18 @@
 # THE PART TO READ BEFORE CHANGING WHAT THIS EMITS
 # ==========================================================================
 #
-# **`observed` IS v2's BEHAVIOUR, NOT v3's, AND ON 28 ROWS IT IS v2's DEFECT.**
-# This is the trap the whole generator is shaped around. A row carries
-# `observed.exit` -- a measured list of v2's exit codes -- and separately a
-# `target.state` saying what v3 does about it. Publishing `observed.exit` as
-# "the exit codes" would document a defect the rewrite exists to fix, on 28
-# rows, in the voice of a reference manual.
-#
-# So exit codes are emitted ONLY where the register supports the claim:
-#
-#   as-observed  51 rows, all with `observed.exit`. The state means "v3
-#                reproduces what v2 was measured doing", so the measured list IS
-#                v3's contract. Emitted.
-#   corrected    28 rows. All 28 carry v2's `observed.exit`; only 10 carry a
-#                `target.behaviour` saying what v3 does instead. The 10 emit the
-#                prose; **the other 18 emit an honest gap and no exit codes.**
-#   new-surface  32 rows, 31 with no exit data at all. Nothing to emit.
-#   pending-hv   5 rows. The scope call is open; a guess here would read as a
-#                decision, which is the honest-blank convention this table
-#                already declares in its own about block.
-#
-# **THE HEADLINE MEASUREMENT, AND IT IS OWED UPWARDS RATHER THAN HIDDEN HERE:
-# of 118 shipped rows the register can support an exit contract for 61.** That
-# is not a flaw in this generator; it is the register's coverage, made visible
-# by asking it a question a reader would ask. Each page carries its own tally.
+# **NO PAGE PUBLISHES AN EXIT TABLE, BECAUSE THE REGISTER'S ARE v2's.** A row
+# carries `observed.exit` -- a measured list of v2's exit codes -- and a
+# `target.state` saying what v3 does about it. This generator used to publish
+# `observed.exit` as v3's contract on every `as-observed` row, on the reading
+# that the state means "v3 reproduces v2". Sampled against the 3.0.1 binary on
+# 2026-09-11 (ic, doc audit), five of six such claims were false: `--help` that
+# v2 answered with an error exits 0 in v3, a bare verb v2 answered with usage
+# is unimplemented, and every byte size differed. vc ruled that the tables come
+# off the pages: each verb points at INV-04, stated once on the index from the
+# register's own text, and at `intent <verb> --help`. The register keeps
+# `observed.exit` as its record of v2. Whether its `as-observed` rows are true
+# of v3 is a register question, filed rather than answered here.
 #
 # **REFUSALS HAVE NO DECLARED HOME IN THE REGISTER (issue 0142's structural
 # half).** A row declares path, args, flags, target, disposition,
@@ -258,32 +246,7 @@ def flag_rows:
 # **THE HONEST-EXIT RULE.** See the header. `observed` is v2 and on 28 rows it is
 # v2's defect, so it is published only where `target.state` warrants it.
 def exit_block:
-  (.target.state // "none") as $s
-  | if $s == "as-observed" and ((.observed.exit // []) | length) > 0 then
-      ["**Exit codes.** v3 reproduces the behaviour measured on v2 for this verb.", "",
-       "| Code | When |", "| --- | --- |"]
-      + [ (.observed.exit)[] | "| " + (.code | tostring) + " | " + (.when | cell) + " |" ]
-    elif $s == "corrected" and ((.target.behaviour // "") != "") then
-      ["**v3 corrects v2 here.** " + (.target.behaviour)]
-    elif $s == "corrected" then
-      ["**The register records that v3 corrects v2 on this verb and does not record what it corrects it TO.** The measured exit codes it carries are v2's, and v2's are what the correction exists to change, so they are not reproduced here. `intent " + .path + " --help`, and your own binary, are the authority."]
-    elif $s == "new-surface" then
-      ["**New in v3**, so there is no measured antecedent and the register carries no exit contract for it."]
-    elif $s == "pending-hv" then
-      ["**The scope call on this verb is open.** The register records an honest blank rather than a guess, and so does this page."]
-    elif $s == "undefined" then
-      ["**v2 exhibited no defined behaviour here**, so there is nothing for v3 to be faithful to and no measured contract to quote."]
-    elif $s == "deviate" and ((.target.behaviour // "") != "") then
-      ["**v3 deliberately diverges from v2 here.** " + (.target.behaviour)]
-    else
-      ["The register carries no v3 exit contract for this verb."]
-    end;
-
-def has_exit_contract:
-  (.target.state // "none") as $s
-  | ($s == "as-observed" and ((.observed.exit // []) | length) > 0)
-    or ($s == "corrected" and ((.target.behaviour // "") != ""))
-    or ($s == "deviate" and ((.target.behaviour // "") != ""));
+  ["**Exit codes** follow the surface-wide contract on the [index](index.md#exit-codes) (INV-04). `intent " + .path + " --help`, and your own binary, are the authority on this verb."];
 
 def verb_section($base; $has_base):
   ["## " + ("intent " + .path | bt), ""]
@@ -322,7 +285,6 @@ JQEOF
 read -r -d '' JQ_PAGE <<'JQEOF' || true
   ($rows | map(select(.disposition != "retire"))) as $live
   | ($rows | map(select(.disposition == "retire"))) as $dead
-  | ($live | map(select(has_exit_contract)) | length) as $with_exit
   | ($live | map(select(asserts_precondition)) | length) as $preconditions
   | ([ "# " + $title, "",
        "**Generated by " + ($gen | bt) + " at " + $when + ". Do not edit -- re-run it.**", "",
@@ -334,9 +296,7 @@ read -r -d '' JQ_PAGE <<'JQEOF' || true
        "",
        "**The register is a declaration, not a behaviour claim.** The command surface is built from `surface/dispatch-table.json`, so the register at a revision states what that revision exposes. It does not state that any of it works. Where this page and your binary disagree, **your binary is right**.",
        "" ]
-     + (if $with_exit < ($live | length) then
-          [ "**Exit codes are stated only where the register gives a command an exit contract, and not every command on this page has one -- that is the register's coverage rather than an omission here.** A row carries the exit codes measured on _v2_; whether v3 reproduces them is a separate field. Where the register says v3 corrects v2 without recording what it corrects it to, this page says so instead of reprinting the behaviour the rewrite exists to remove.", "" ]
-        else [] end)
+     + [ "**No exit codes are listed per command.** The register's per-command exit tables are measurements of _v2_, and v3 does not reproduce them everywhere, so they are not published here as v3's contract. Every command follows the one surface-wide contract on the [index](index.md#exit-codes).", "" ]
      + (if $preconditions > 0 then
           [ "**Descriptions on this page that assert a precondition are flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it. Issue `0142`.", "" ]
         else [] end)
@@ -358,7 +318,7 @@ read -r -d '' JQ_PAGE <<'JQEOF' || true
         else [] end)
      + ($live | map(verb_section($base; $has_base)) | add)
      + [ "## Refusals", "",
-         "**There is no per-command refusal list, because the register does not carry one.** A row declares its path, arguments, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing structural about what it refuses. Where a command's exit codes appear above, those _are_ its refusal contract; where they do not, the register has nothing to publish.",
+         "**There is no per-command refusal list, because the register does not carry one.** A row declares its path, arguments, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing structural about what it refuses.",
          "",
          "The estate-wide roster of refusal variants is in [what Intent ships at this revision](cut-surface.md), taken from a roster that declares itself exhaustive and is checked as one. **It is not attributed to commands anywhere**, and attributing it by reading the variant names would be a guess dressed as a reference." ])
   | .[]
@@ -470,6 +430,14 @@ The register is a claim about a source tree. Your binary is the authority on its
 \`\`\`
 
 Where this reference and your binary disagree, **your binary is right** and the disagreement is worth reporting.
+
+## Exit codes
+
+HDR
+    # INV-04 IS READ FROM THE REGISTER AT THE PAGE'S REVISION, NEVER RE-TYPED:
+    # one statement of the contract, and every verb section links here.
+    jq -r '.invariants[] | select(.id == "INV-04") | "**" + .title + "** (INV-04). " + .rule' "$TMP/rev.json"
+    cat <<HDR
 
 ## The surface, by family
 
