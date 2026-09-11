@@ -115,36 +115,44 @@ The docs now describe each as built. None is worked until hv rules.
       - `schema_faces_drift.rs:6,39` name a test target that is now a module of `suite`;
       - `rules_path_guard.bats:20-21` grep paths that are gone, so they pass vacuously;
       - organize.rs, tui.rs, mcp_stdio.rs, plugins.rs and the Cargo.toml descriptions.
-12. **`intent claude skills uninstall <name>` WITHOUT `--force` deletes a skill the user edited after install** (dc, re-driven by vc under an isolated HOME). It prints `removed (1 file(s))` at rc 0 and leaves an empty directory, and `--force`'s own help says it is the flag for "a skill that was changed here". **High: it loses user data.**
-13. **Driven by dc on the keg:**
+    - `intent/plugins/claude/subagents/.manifest/global-agents.json` (ic): no v3 code reads it, it has drifted, and its checksums are empty. But three bats tests assert it (critic_prose, rule_pack_shell, highlander_audit), so deleting it removes their assertions.
+12. **The interface, from ic's lane:**
+    - `claude skills|subagents|rules|ws --help` show blank subcommand descriptions: `values` is a bare `Vec<String>` (`dispatch.rs:345`), and `spine.rs:530` sets no `.about()`.
+    - `spine.rs:532` hangs family flags on every leaf, so `skills uninstall --help` advertises a `-f` it ignores.
+    - `guide.rs:156` renders a hardcoded count into the agent guide, and its module doc pins more.
+    - `st show` doesn't display the objective.
+    - `intent init` wrote a hardcoded 2025 verblock into wip.md; cc's template-token fix is in `f5a861e17`, verified through a private build.
+    - `cost-metrics.sh` uses `--` as Elixir's comment prefix, and `tca-report.sh` has an unemitted `DEDUP_RATE` beside its dead checkbox guard.
+13. **`intent claude skills uninstall <name>` WITHOUT `--force` deletes a skill the user edited after install** (dc, re-driven by vc under an isolated HOME). It prints `removed (1 file(s))` at rc 0 and leaves an empty directory, and `--force`'s own help says it is the flag for "a skill that was changed here". **High: it loses user data.**
+14. **Driven by dc on the keg:**
     - `at new` fails in the argument order its usage prints, because the `--covers` variadic swallows the ids.
     - A project stamped below v2.19.0 is told to `install intent@2`, which no tap has.
     - A pre-v2.10 project (a top-level `.intent/`) is told "no Intent project found" (`project.rs:866`).
-14. **Reported by dc's agents, not yet re-driven:**
+15. **Reported by dc's agents, not yet re-driven:**
     - `intent edit <ac address> --path` returns info.md, but the criterion renders in acceptance.md.
     - The `edit wp` remedy names `intent wp`, which has no body writer.
     - The `edit` kind refusal offers `issue`, then refuses it.
     - `intent set ... acceptance exempt` succeeds, though `transitions.rs` declares the field Immutable.
     - A losing concurrent write surfaces a raw `sqlite: database is locked`.
     - The generated info.md Acceptance paragraph routes readers to hand-edit canon plus `sync --to-store`, as if the verbs did not exist.
-15. **CI, Swift and skill scripts** (dc):
+16. **CI, Swift and skill scripts** (dc):
     - `tests.yml` puts `bin/` on PATH, never the built `intent`, and its shellcheck selector `find bin -name "intent*"` matches nothing. `pr-checks.yml` watches `bin/` for source changes.
     - `IntentCLI.swift:192-194` reads stdout to EOF before stderr, so it can deadlock. `DaemonService.swift:69` sequences a restart that `daemon restart` ships.
     - `tail-orphan-probe.sh:135,182` reports a false LEAKED in its guarded arm.
     - `in-tca-init/scripts/tca-init.sh` makes WP directories the store never registers, and `tca-report.sh:128-144`'s guard can never fire.
-16. **`.intent_critic.yml`'s `disabled:` list disables nothing in its documented form** (cc, driven). `critic.rs:579-593` `parse_disabled` enters block mode only when nothing follows `disabled:`. The form every doc showed, `disabled:  # comment` followed by `- ID`, yields `"disabled": []` with the rule still armed. The docs now put the comment on its own line.
-17. **A seeded `usage-rules.md` carries a literal `[[PROJECT_NAME]]`** (cc). `canon.rs:350-364` copies `_usage-rules.md` raw, with no token substitution.
-18. **The acceptance verbs enforce less than the docs promised** (vc's working-with-llms audit, driven):
+17. **`.intent_critic.yml`'s `disabled:` list disables nothing in its documented form** (cc, driven). `critic.rs:579-593` `parse_disabled` enters block mode only when nothing follows `disabled:`. The form every doc showed, `disabled:  # comment` followed by `- ID`, yields `"disabled": []` with the rule still armed. The docs now put the comment on its own line.
+18. **A seeded `usage-rules.md` carries a literal `[[PROJECT_NAME]]`** (cc). `canon.rs:350-364` copies `_usage-rules.md` raw, with no token substitution.
+19. **The acceptance verbs enforce less than the docs promised** (vc's working-with-llms audit, driven):
     - `at green` from `to-write` succeeds. Red-first is an owed guard (`transitions.rs:666`).
     - `at na` accepts a test-backed row, and `at red|green` accept a non-test one.
     - `st done` and `wp done` close silently on a placeholder objective, though `model.rs:497` computes the condition and `/in-finish` promises the warning.
     - `.intent_critic.yml`'s `show_all` is read only by the subagent prompts.
-19. **ST0057's projection, found auditing its design** (vc):
+20. **ST0057's projection, found auditing its design** (vc):
     - `organize --apply` and `st hydrate` report `hydrated:` for an opaque attachment and write nothing, because they pass only inline `text` (`organize.rs:577`, `:589`, `:1075`). The dehydration gate then fails on the working copy with a UTF-8 error and a misleading remedy.
     - D57-9's two-region manifest code is not removed (`intentfiles.rs:52`, `:135`, `:164`), and the parser still accepts a BEGIN/END pair.
     - Cross-project addresses parse but are refused by every door (`facade.rs:7235`, `:7385`, `:8071`, `:3072`), **while AC-07.6 reads green**. AC-03.1 likewise claims a working-copy round trip that fails for opaque attachments. **These are contract findings: a satisfied row the as-built does not meet.**
     - **ST0057 cannot close.** Its gate is BLOCKED only on AC-12.x and AC-13.x, whose WPs are both cancelled.
-20. **ST0056, found auditing its design docs** (vc, `120c8b2ae`):
+21. **ST0056, found auditing its design docs** (vc, `120c8b2ae`):
     - `todo.window_hours` is validated by doctor and applied by nothing (`doctor.rs:369`, `facade.rs:2289`).
     - The export bundle claims schema `intent/export@3.0`, which nothing publishes (`export.rs:42`).
     - The migrator's last line tells the user to commit, while AC-00.8 promises one visible commit (`render.rs:3558`).
@@ -152,4 +160,4 @@ The docs now describe each as built. None is worked until hv rules.
     - The shim's absent-pointer remedy says "reinstall Intent", but only `intent bootstrap` writes the pointer, and the formula has no `post_install`. So after a fresh install, every commit is refused with the wrong fix.
     - `at new --status red|green|n-a` creates a row at a non-initial state; `st list --status tbc` is accepted; `AcceptanceTest.kind` is still marked Unbuilt.
     - `st/ST0056` is documented as an address and refused by the resolver; `intentd`'s `shell.html` carries its own palette.
-21. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
+22. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
