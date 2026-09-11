@@ -54,12 +54,13 @@ jobs:
           rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
           cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
       - name: shellcheck (an armed tool, not an optional extra)
-        # `exit_codes.rs` drives the SHIPPED pre-commit gate, which invokes
-        # `intent critic shell`. This project arms IN-SH-CODE-001 and
-        # IN-SH-CODE-002 on shellcheck, and the critic refuses -- fails CLOSED,
-        # by design -- when an armed rule cannot be enforced. `ubuntu-latest`
-        # ships shellcheck; `macos-latest` does not, which is why this job has
-        # been green on Linux and red on macOS with identical code.
+        # `exit_codes.rs` drives the SHIPPED pre-commit gate in a fixture that
+        # declares `shell`, so the gate invokes `intent critic shell`. The shell
+        # rule pack arms IN-SH-CODE-001 and IN-SH-CODE-002 on shellcheck, and
+        # the critic refuses -- fails CLOSED, by design -- when an armed rule
+        # cannot be enforced. `ubuntu-latest` ships shellcheck; `macos-latest`
+        # does not, so without this step identical code passes on Linux and
+        # fails on macOS.
         if: runner.os == 'macOS'
         run: brew install shellcheck
       - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
@@ -71,10 +72,9 @@ jobs:
         #
         # NEITHER RUNNER SHIPS PRETTIER, so unlike the shellcheck step above
         # this needs no `if:` -- that one is macOS-only because ubuntu-latest
-        # ships shellcheck. Five arms have failed on BOTH legs since
-        # 2026-08-29, which is every run since, and the local greens were real:
-        # the primary dev machine has prettier from Homebrew, so the arms
-        # measured there and only there.
+        # ships shellcheck. Without this step the prettier arms fail on BOTH
+        # legs while passing locally: the primary dev machine has prettier from
+        # Homebrew, so a local green does not show the runners lack it.
         #
         # PINNED TO THE MAJOR, NOT THE PATCH, AND THE REASON IS THIS FILE'S OWN.
         # The rustc step ABOVE records rather than pins, because a pin that
@@ -90,8 +90,8 @@ jobs:
         # `prettier --version` AND NOT `npm ls`. If the global install does not
         # put the binary on PATH -- a real risk, since the two runners lay out
         # their npm prefix differently -- this STEP fails, loudly, naming the
-        # tool. Without it the install would appear to succeed and five arms
-        # would fail forty lines later with `prettier is not on PATH`, which
+        # tool. Without it the install would appear to succeed and the prettier
+        # arms would fail later in the job with `prettier is not on PATH`, which
         # reads as the defect being fixed here rather than as a broken fix.
         run: |
           npm install -g prettier@3

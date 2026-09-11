@@ -2,7 +2,7 @@
 
 **Copy/paste this into any Claude session doing Rust work on matts's Mac.**
 
-Measured 2026-08-19 on Intent (`native/rust`, 2 crates, 88 test suites), twice, while the symptom was live.
+Measured 2026-08-19 on Intent's `native/rust`, twice, while the symptom was live. Every figure below is from that run, on the workspace as it stood before its test targets were consolidated.
 
 ## The finding
 
@@ -30,17 +30,11 @@ session_hook_lockout    10,949 ms  ->  23 ms     (476x)
 
 ## Why it costs so much here specifically
 
-**Cargo builds ONE TEST BINARY PER `.rs` FILE directly under `tests/`.** That is Cargo's rule, not a project decision.
+**Under cargo's default `autotests = true`, every `.rs` file directly under a crate's `tests/` becomes its own test binary.** At the measurement no Intent crate had opted out, so every test file was a separate binary and each one paid first-exec validation, adding up to minutes of validation around seconds of actual testing. Every rebuild produces new binaries with new signatures, so the validation cache resets every time.
 
-```
-intent-cli     25 files  ->  25 binaries
-intentsvcs     56 files  ->  56 binaries
-               81 binaries per build
-```
+Intent has since consolidated: every crate sets `autotests = false` and declares its test targets (see `intent/docs/notes/tn001-one-test-target-per-crate.md`; `bin/devbin check autotests` reports each crate's declared targets). That cuts how many binaries pay the tax. It does not change what each binary pays on its first run after a rebuild.
 
-81 binaries x ~17 s of first-exec validation is **~23 minutes**, wrapped around under 30 seconds of actual testing. Every rebuild produces new binaries with new signatures, so the validation cache resets every time.
-
-Side effects of the same cause: `target/debug/deps` holds **291 executables** (81 current plus up to 5 stale hash-suffixed generations each, which cargo never garbage-collects) and **778,425 files**; `target/debug` is 15 GB, ~25 GB across the per-node target dirs.
+Side effects of the same cause: stale hash-suffixed generations of every test binary accumulate in `target/debug/deps`, because cargo never garbage-collects them, and the target tree grows large enough to matter to Spotlight.
 
 ## What this invalidates
 
@@ -49,17 +43,17 @@ Side effects of the same cause: `target/debug/deps` holds **291 executables** (8
 Two concrete casualties, both mine:
 
 - A "6x timing noise floor" (identical warm suite: 16.12 s then 100.10 s) was not noise. It was warm-after-compile versus warm-after-run.
-- A Lamplight-vs-Intent control group (19 binaries vs 80) that concluded "we are the faster project" was comparing two cache states, not two binary counts. It killed a correct piece of work for a full day.
+- A Lamplight-vs-Intent control group that compared the two projects' binary counts and concluded "we are the faster project" was comparing two cache states, not two binary counts. It killed a correct piece of work for a full day.
 
 ## What actually helps
 
-1. **Reduce the binary count.** Consolidating the 81 `tests/*.rs` into 2-3 binaries cuts validation from ~23 min to under a minute and is correct regardless of any OS setting.
+1. **Reduce the binary count.** Done in Intent (see above), and correct regardless of any OS setting: validation cost scales with the number of test binaries, not the number of tests.
 2. **System Settings -> Privacy & Security -> Developer Tools**, add the app that spawns the build (iTerm, VSCode, Terminal, Emacs). **UNVERIFIED AS OF THIS NOTE.** The exemption is evaluated against the responsible process, so an already-running app will not pick it up -- the app must be restarted before any measurement means anything. It also governs whether unsigned code is BLOCKED, which is not obviously the same as whether it is ASSESSED, and only a measurement settles that.
-3. Prune stale generations (`cargo clean`) and mark target dirs `.noindex` -- 778k files also feeds Spotlight.
+3. Prune stale generations (`cargo clean`) and mark target dirs `.noindex` -- a large target tree also feeds Spotlight.
 
 ## The instrument, if you need to re-measure
 
-Do not measure elapsed time. **Elapsed time cannot distinguish blocked from busy**, which is why this survived four wrong explanations over two days. Measure these instead:
+Do not measure elapsed time. **Elapsed time cannot distinguish blocked from busy**, which is why this survived several wrong explanations before it was measured. Measure these instead:
 
 ```bash
 # 1. actual test time vs wall clock -- the whole finding in one line
@@ -77,4 +71,4 @@ ps -Ao time,comm | grep -E 'syspolicyd|XProtect|amfid|trustd'   # before and aft
 
 ## Not measured, not claimed
 
-**The COMPILE phase.** All evidence above is from the run phase. `build.rs` outputs are executables that get run, and proc-macro dylibs get loaded, so the same tax plausibly applies -- but there is no measurement, and two probes during this investigation returned exactly what was expected while being structurally incapable of returning anything else.
+**The COMPILE phase.** All evidence above is from the run phase. `build.rs` outputs are executables that get run, and proc-macro dylibs get loaded, so the same tax plausibly applies -- but there is no measurement, and the probes tried during this investigation returned exactly what was expected while being structurally incapable of returning anything else.

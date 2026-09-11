@@ -9,14 +9,13 @@ on:
     # false-green class this project keeps closing. Only ever add here what has
     # been measured to be inert.
     #
-    # Why this one is inert, measured 2026-08-15 rather than assumed: no test in
-    # the estate reads the real `intent/whiteboard/**`. The two suites that name
-    # those paths build their own fixture first (`whiteboard_protocol_3_guard`
-    # and `whiteboard_clock_guard` both `create_test_project` and cd into it),
-    # and `docs_completeness` reads `usage-rules.md`, not a board. A board edit
-    # therefore cannot change a test outcome.
+    # Why this one is inert: no bats file reads the real `intent/whiteboard/**`.
+    # Every suite that names those paths builds its own fixture in a temp
+    # directory first, and `docs_completeness` reads `usage-rules.md`, not a
+    # board. A board edit therefore cannot change a test outcome. Re-check with
+    # `grep -n whiteboard tests/unit/*.bats` before relying on it.
     #
-    # Why it is worth having: Intent dogfoods a five-node whiteboard, so four
+    # Why it is worth having: Intent dogfoods a multi-node whiteboard, so
     # concurrent sessions commit coordination markdown continuously. Every one
     # of those was starting the full matrix -- Ubuntu plus macOS, whole BATS
     # suite -- and the queue reached eleven minutes on 2026-08-15, which is the
@@ -40,18 +39,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for proper testing
-
-    # **THE `v2-maintenance` FETCH WAS HERE AND IT IS GONE (2026-08-30).** It
-    # existed for `tests/unit/shipped_surface_drift.bats`, which compared the v3
-    # shipped surface against the frozen v2 tree. hv ruled that test EXPIRED --
-    # *we do not care about gates for v2 any more* -- and it was deleted; this
-    # step and its rationale were the half of the removal that did not happen.
-    #
-    # **IT WAS NOT INERT: `git rev-parse --verify` FAILS THE JOB.** So CI was
-    # fetching a branch nothing read, and would have failed for the absence of a
-    # ref supporting a guard that no longer exists. Measured before removing:
-    # `v2-maintenance` appears nowhere else in the repo except one comment in
-    # `artefact_currency_verdict.bats`, which reads it and does not need it.
 
     - name: Install bats-core
       run: |
@@ -86,25 +73,21 @@ jobs:
     - name: Add Intent bin to PATH
       run: |
         # ST0035/WP-06's pre_commit_hook.bats invokes `intent critic` via
-        # the project's pre-commit hook. The hook fail-opens when `intent`
-        # is not on PATH, which makes the bad-fixture test pass-through
-        # instead of blocking. Put the project's bin/ on PATH so the
+        # the project's pre-commit hook. The hook refuses the commit when
+        # `intent` is not runnable in an Intent project, so the fixture
+        # tests would fail on that refusal instead of on the critic's
+        # verdict. Put the project's bin/ on PATH so the
         # critic gate is exercisable in CI.
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
     - name: Configure git identity
       run: |
-        # Ten bats files call `git commit` in scratch repos to establish a
-        # baseline. Stock CI runners have no global git user.email/user.name;
-        # without these, git commit fails with exit 128.
-        #
-        # THIS NAMED ONE FILE AND THAT FILE IS NOW DELETED (2026-08-30). It
-        # read "WP-15's intent_claude_upgrade.bats NORMALIZE_GITIGNORE
-        # scenarios", which was true and was never the whole population -- so
-        # a reader checking whether this step was still needed would have
-        # followed it to nothing and had to re-derive the answer. The step
-        # SURVIVES its stated reason by nine files; naming the population
-        # rather than one member is what makes it survive the next delete too.
+        # Bats files call `git commit` in scratch repos to establish a
+        # baseline (`grep -l 'git commit' tests/unit/*.bats` names them).
+        # Stock CI runners have no global git user.email/user.name; a
+        # scratch repo that sets none of its own fails git commit with
+        # exit 128. The population is named by the grep rather than by a
+        # member, so the step's reason survives any one file's deletion.
         git config --global user.email "ci@intent.local"
         git config --global user.name "Intent CI"
 
@@ -142,26 +125,13 @@ jobs:
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
-        # `run_tests.sh` with no argument runs EVERY .bats under tests/ --
-        # unit and integration alike -- and exits with bats's status, so a
-        # failing test fails the job. It is also the only thing that exports
-        # INTENT_HOME, which the suites need; raw bats finds the files and
-        # then fails them.
+        # `run_tests.sh` with no argument runs EVERY .bats under tests/
+        # (excluding tests/lib/) and exits with bats's status, so a failing
+        # test fails the job. It also unsets an inherited PROJECT_ROOT,
+        # INTENT_ROOT and BIN_DIR before the suites run.
         #
-        # Two silent-success paths were deleted here rather than repaired
-        # (IN-AG-NO-SILENT-001):
-        #
-        #   1. A separate "Run integration tests" step ran
-        #      `bats integration/end_to_end.bats || echo "...status: $?"`.
-        #      The `||` meant the step could not fail the job. It was also
-        #      redundant -- this step already covers integration/ -- and it
-        #      named one of the two files there, so core_functionality.bats
-        #      was never in it. Measured before deleting: the suite passes,
-        #      so the swallow was hiding nothing at the time it was removed.
-        #   2. A `bats "$test_file" || true` fallback for a missing
-        #      run_tests.sh, which would have reported green over an
-        #      arbitrary number of failures. A missing runner now fails
-        #      loudly, which is the correct signal.
+        # No `|| true` and no fallback runner (IN-AG-NO-SILENT-001): a
+        # failing test or a missing run_tests.sh fails the job loudly.
         cd tests
         ./run_tests.sh
 
@@ -173,18 +143,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for proper testing
-
-    # **THE `v2-maintenance` FETCH WAS HERE AND IT IS GONE (2026-08-30).** It
-    # existed for `tests/unit/shipped_surface_drift.bats`, which compared the v3
-    # shipped surface against the frozen v2 tree. hv ruled that test EXPIRED --
-    # *we do not care about gates for v2 any more* -- and it was deleted; this
-    # step and its rationale were the half of the removal that did not happen.
-    #
-    # **IT WAS NOT INERT: `git rev-parse --verify` FAILS THE JOB.** So CI was
-    # fetching a branch nothing read, and would have failed for the absence of a
-    # ref supporting a guard that no longer exists. Measured before removing:
-    # `v2-maintenance` appears nowhere else in the repo except one comment in
-    # `artefact_currency_verdict.bats`, which reads it and does not need it.
 
     - name: Install bats-core
       run: |
@@ -200,12 +158,12 @@ jobs:
         # Install jq
         brew install jq
         # shellcheck IS AN ARMED TOOL FOR THIS PROJECT, not an optional extra.
-        # `.intent_critic.yml` arms IN-SH-CODE-001 and IN-SH-CODE-002 on it, and
+        # This project declares `shell`, the shell rule pack arms IN-SH-CODE-001
+        # and IN-SH-CODE-002 on shellcheck (`critic_tool` in each RULE.md), and
         # the critic REFUSES rather than passing quietly when an armed rule
         # cannot be enforced -- correctly. `ubuntu-latest` ships shellcheck
-        # preinstalled and `macos-latest` does not, which is the whole of the
-        # macOS/Linux split in this suite: four census arms need the tool
-        # present, and the shipped pre-commit gate fails closed without it.
+        # preinstalled and `macos-latest` does not; the census arms need the
+        # tool present, and the shipped pre-commit gate fails closed without it.
         brew install shellcheck
     
     - name: Set up test environment
@@ -241,8 +199,8 @@ jobs:
 
     - name: Configure git identity
       run: |
-        # See ubuntu job for rationale -- intent_claude_upgrade.bats
-        # NORMALIZE_GITIGNORE scenarios call git commit; needs identity.
+        # See ubuntu job for rationale -- bats files call git commit in
+        # scratch repos; needs identity.
         git config --global user.email "ci@intent.local"
         git config --global user.name "Intent CI"
 
@@ -261,12 +219,9 @@ jobs:
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
-        # See the Ubuntu leg for the full rationale. The `|| true` fallback
-        # that sat here could not fail the job and is deleted rather than
-        # repaired; the `chmod +x` it carried is dropped as a duplicate of
-        # the "Make scripts executable" step above (Highlander). If that
-        # chmod ever fails, this line now fails loudly instead of being
-        # silently papered over.
+        # See the Ubuntu leg for the rationale: no `|| true`, no fallback,
+        # and the runner is made executable by the "Make scripts executable"
+        # step above rather than here (Highlander).
         cd tests
         ./run_tests.sh
 

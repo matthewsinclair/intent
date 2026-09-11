@@ -9,7 +9,6 @@ This directory contains the test suite for Intent. The tests are written using [
 ```
 tests/
 ├── unit/                          # One .bats file per subject
-├── conformance/                   # BASELINE.md: the recorded v2-conformance baseline
 ├── fixtures/                      # Test fixtures (sample files, etc.)
 ├── lib/                           # Test libraries
 │   └── test_helper.bash           # Common test functions
@@ -17,7 +16,7 @@ tests/
 └── README.md                      # This file
 ```
 
-The suite drives the v3 binary at `native/rust/target/release/intent`, so build it first (`cargo build --release` under `native/rust`), or set `INTENT_BIN` to another binary. The v2 shell implementation and the bats files that tested its commands were removed at the 3.0.1 cut.
+The suite drives the v3 binary at `native/rust/target/release/intent`, so build it first (`cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd`, as CI does), or set `INTENT_BIN` to another binary. Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH: the hook refuses a commit in an Intent project when it cannot run `intent`.
 
 ## Prerequisites
 
@@ -78,12 +77,17 @@ load "../lib/test_helper.bash"
 
 ### Available Helper Functions
 
-- `create_test_project "name"` - Creates a test Intent project
-- `run_intent <args>` - Runs the intent command
+- `create_test_project "name" [dir]` - Creates a test Intent project whose `intent_version` is `INTENT_FIXTURE_VERSION`, or `VERSION` when that is unset
+- `run_intent <args>` - Runs `$INTENT_BIN` with the arguments
+- `setup_fake_home` / `teardown_fake_home` - Points `HOME` at a per-test sandbox under `TEST_TEMP_DIR`, and restores it
+- `write_exempt_acceptance "st_dir"` - Writes an `acceptance.md` the close gate treats as exempt
 - `assert_success` - Asserts command succeeded (exit 0)
 - `assert_failure` - Asserts command failed (exit non-zero)
+- `assert_output "text"` - Checks output matches exactly
 - `assert_output_contains "text"` - Checks if output contains text
+- `refute_output_contains "text"` - Checks output does not contain text
 - `assert_file_exists "path"` - Checks if file exists
+- `assert_file_not_exists "path"` - Checks a file does not exist
 - `assert_directory_exists "path"` - Checks if directory exists
 - `assert_file_contains "file" "text"` - Checks if file contains text
 
@@ -93,37 +97,19 @@ load "../lib/test_helper.bash"
 
 Each file under `unit/` names its subject in its header comment; read that rather than a list here, which goes stale the first time a file is added or removed.
 
-## Key Test Scenarios
-
-1. **Global vs Project Commands**
-   - Global commands work anywhere
-   - Project commands show helpful error outside projects
-
-2. **Configuration**
-   - PROJECT_ROOT detected from subdirectories
-   - Config files loaded correctly
-   - Legacy projects detected
-
-3. **Error Handling**
-   - No silent failures
-   - Clear error messages
-   - Helpful suggestions
-
-4. **Migration**
-   - Backup directories use `.backup_*` prefix
-   - Version fields use `intent_version`
-   - Legacy projects can be upgraded
-
 ## Debugging Tests
 
 To see more output when debugging:
 
 ```bash
-# Run with verbose output
-bats -v tests/unit/config.bats
+# Print each `run`'s output
+bats --verbose-run tests/unit/pre_commit_hook.bats
 
-# Run with tap output
-bats -t tests/unit/config.bats
+# Trace test commands as they execute
+bats -x tests/unit/pre_commit_hook.bats
+
+# Run with TAP output
+bats -t tests/unit/pre_commit_hook.bats
 ```
 
 ## CI/CD
@@ -134,4 +120,4 @@ Tests run automatically via GitHub Actions on:
 - Every pull request targeting `main`
 - Both Ubuntu and macOS environments
 
-See `.github/workflows/tests.yml` for the CI configuration.
+A push or pull request whose changed paths are all under `intent/whiteboard/**` does not trigger the suite. Each leg builds the release binaries before running `tests/run_tests.sh`. See `.github/workflows/tests.yml` for the CI configuration.
