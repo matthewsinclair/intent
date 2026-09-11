@@ -21,23 +21,23 @@ intent_version: 3.0.0
 
 ### P1 -- data loss or corruption. These decide whether 3.0.1 ships.
 
-| #   | id     | sev      | lane | defect                                                                                                                                         |
-| --- | ------ | -------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2   | `0260` | critical | cc   | The v3 migration froze generated sections into authored body on 326 of 358 threads. Re-examine first: the original report is partly withdrawn. |
-| 4   | `0207` | high     | ic   | `at green/red/na --note` replaces the whole note, destroying the row's history.                                                                |
-| 5   | `0209` | high     | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.                                                          |
-| 6   | `0082` | high     | cc   | A new attachment authored in canon never reaches disk (`sync --to-disk`).                                                                      |
-| 7   | `0276` | high     | cc   | A committed attachment whose bytes differ from canon enters canon with no warning.                                                             |
-| 8   | `0124` | high     | cc   | v2 ingest drops prose between two recognised fields; the survivor reads complete.                                                              |
-| 9   | `0126` | high     | cc   | v2 ingest can splice a row so the length delta nets to zero and reports clean.                                                                 |
-| 10  | `0138` | high     | cc   | v2 ingest has two behaviours for one input shape; only the destructive one is detectable.                                                      |
-| 11  | `0129` | medium   | cc   | v2 ingest rewrites an authored full stop into its own field delimiter.                                                                         |
-| 12  | `0216` | high     | cc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).                                                   |
-| 13  | `0212` | high     | cc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                                                                 |
-| 14  | `0206` | high     | cc   | Canon verbs are read-modify-write with no compare-and-swap; concurrent sessions lose a write.                                                  |
-| 15  | `0131` | high     | cc   | Two concurrent `issues add` both report created; one silently replaces the other.                                                              |
-| 16  | `0135` | medium   | cc   | Two facades can both take one child id.                                                                                                        |
-| 17  | `0226` | high     | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).                                                    |
+| #   | id     | sev      | lane | defect                                                                                                                                       |
+| --- | ------ | -------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2   | `0260` | critical | cc   | `sync --to-disk` writes a stale store over committed canon at rc 0, while doctor already reports they differ. The 326/358 half is by design. |
+| 4   | `0207` | high     | ic   | `at green/red/na --note` replaces the whole note, destroying the row's history.                                                              |
+| 5   | `0209` | high     | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.                                                        |
+| 6   | `0082` | high     | cc   | A new attachment authored in canon never reaches disk (`sync --to-disk`).                                                                    |
+| 7   | `0276` | high     | cc   | A committed attachment whose bytes differ from canon enters canon with no warning.                                                           |
+| 8   | `0124` | high     | cc   | v2 ingest drops prose between two recognised fields; the survivor reads complete.                                                            |
+| 9   | `0126` | high     | cc   | v2 ingest can splice a row so the length delta nets to zero and reports clean.                                                               |
+| 10  | `0138` | high     | cc   | v2 ingest has two behaviours for one input shape; only the destructive one is detectable.                                                    |
+| 11  | `0129` | medium   | cc   | v2 ingest rewrites an authored full stop into its own field delimiter.                                                                       |
+| 12  | `0216` | high     | cc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).                                                 |
+| 13  | `0212` | high     | cc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                                                               |
+| 14  | `0206` | high     | cc   | Canon verbs are read-modify-write with no compare-and-swap; concurrent sessions lose a write.                                                |
+| 15  | `0131` | high     | cc   | Two concurrent `issues add` both report created; one silently replaces the other.                                                            |
+| 16  | `0135` | medium   | cc   | Two facades can both take one child id.                                                                                                      |
+| 17  | `0226` | high     | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).                                                  |
 
 ### P2 -- docs that are wrong. They ship in the tag; no code.
 
