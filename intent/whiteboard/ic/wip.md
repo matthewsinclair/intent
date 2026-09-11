@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 14:19Z
+heartbeat_at: 2026-09-11 15:30Z
 status: active
-focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then 0140 (0066, 0145, 0146, 0153 and 0231 moved to cc) -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then 0140, then hv decision 3 (strike three not-implemented doors; 0066, 0145, 0146, 0153 and 0231 moved to cc) -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -23,10 +23,11 @@ claims: [ST0064]
 
 **Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
 
-| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)             |
-| --- | ------ | ------ | -------------------------------------------------- |
-| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.         |
-| 54  | `0140` | medium | An unsatisfied note is writable only by migration. |
+| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                                                                                                                                                 |
+| --- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                                                                                                                                             |
+| 54  | `0140` | medium | An unsatisfied note is writable only by migration.                                                                                                                                                     |
+| d3  | hv 3   | --     | Three doors that answer "not implemented" (hv: strike). Remove `st bootstrap`, `agents template` and `claude prime` from the dispatch table and from the templates that mandate them (ST0058 AC-00.3). |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
@@ -60,6 +61,7 @@ Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the 
 - **A STATUS FIELD IS A CLAIM BY WHOEVER LAST DROVE A VERB; A COMPUTED RESULT IS DERIVED (W129).** When the two disagree, believe the derived one. That includes an issue reading `open` against a commit that delivered it (`0218`, 2026-09-11).
 - **MEASURE BEFORE SPEAKING. The ordering is the whole rule:** three of four wrong claims on 2026-09-10 went out before the evidence existed. Name the observable and stop, because a mechanism nobody drove is a story.
 - **EVERY `cargo test` AND BUILD RUNS UNDER AN ISOLATED `HOME`** (`CARGO_HOME`/`RUSTUP_HOME` pointed at the real toolchain). `dual_path_conformance` runs `intent bootstrap` IN-PROCESS under the real `HOME`, and `publish_home()` resolves the install from the TEST BINARY's location. From a scratch worktree it repointed `~/.intent/home` at 09:58:55Z, and deleting the worktree then made the pre-commit shim refuse EVERY commit in the repo. Restored with `~/.local/bin/intent bootstrap` (no `--force`).
+- **AN ISOLATED `HOME` DOES NOT PROTECT THE LIVE STORE; ONLY A PRIVATE WORKTREE DOES.** `attachment_drift_detected.rs` runs doctor on `repo_root()`, and on 2026-09-11 a run from the shared tree migrated the live `intent/.cache/intent.db` 17 -> 18 while cc's rung sat uncommitted, so every PATH binary refused the project until vc rebuilt at `9046156b`. Run the intentsvcs suites from a private worktree, never from the shared checkout.
 - **DEVELOP IN A PRIVATE DETACHED WORKTREE; LAND BY PATCH.** cc keeps `facade.rs` dirty, and `commit --only` is whole-file, so wait for the peer's commit, rebase the worktree onto `HEAD`, rerun, `git apply --check`, apply, commit exactly my paths, and `diff` the commit against the tested patch.
 - **AN EXISTING FIXTURE CAN ENCODE THE DEFECT** (three for `0079`, one for `0291`). Repair the fixture so it reaches its state honestly; never touch the assertion.
 - **`intent fc` IS THE HUMAN'S VERB EVEN IN A SANDBOX.** To drive a fiat state, hand-set `{"is":"fiat",...}` in canon and `sync --to-store`.
