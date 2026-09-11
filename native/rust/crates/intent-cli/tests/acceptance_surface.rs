@@ -368,9 +368,20 @@ fn an_id_on_a_line_naming_another_thread_is_not_coverage() {
   };
 
   let (borrowed, code) = cite("// ST0002 AT-01.1 -- witnesses thread B and nothing else\n");
+  // **AND THE REFUSAL SAYS WHICH RULE FAILED** (issue `0299`). This asserted
+  // `does not carry the literal id` until the message was split -- a sentence
+  // that is false about this file, which carries the id on line 1.
   assert!(
-    borrowed.contains("t/a.rs does not carry the literal id AT-01.1"),
-    "a borrowed id must not read as coverage; got: {borrowed}"
+    borrowed.contains("t/a.rs carries AT-01.1 only on lines naming another thread (ST0002)"),
+    "a borrowed id must not read as coverage, and must say it was found under another thread; got: {borrowed}"
+  );
+  assert!(!borrowed.contains("does not carry"), "got: {borrowed}");
+  assert_eq!(code, Some(1));
+
+  let (absent, code) = cite("// nothing here names any row\n");
+  assert!(
+    absent.contains("t/a.rs does not carry the literal id AT-01.1"),
+    "a file without the id keeps the absent sentence; got: {absent}"
   );
   assert_eq!(code, Some(1));
 

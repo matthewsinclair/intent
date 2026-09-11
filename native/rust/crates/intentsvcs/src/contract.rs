@@ -260,21 +260,45 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
 /// asymmetry is the whole reason this tightening costs nothing: the unqualified
 /// mention is the ordinary form and stays green.
 fn names_another_thread(line: &str, thread: &str) -> bool {
-  let mut named_any = false;
+  let named = threads_named(line);
+  !named.is_empty() && !named.contains(&thread)
+}
+
+/// Every `STnnnn` a line names, in order. The one scanner behind
+/// [`names_another_thread`] and behind the refusal that says WHICH thread a
+/// borrowed id was found under (issue `0299`).
+fn threads_named(line: &str) -> Vec<&str> {
   let bytes = line.as_bytes();
+  let mut named = Vec::new();
   for (i, w) in bytes.windows(2).enumerate() {
     if w != b"ST" {
       continue;
     }
     let digits = &line[i + 2..];
     if digits.len() >= 4 && digits.as_bytes()[..4].iter().all(u8::is_ascii_digit) {
-      named_any = true;
-      if line[i..i + 6] == *thread {
-        return false;
-      }
+      named.push(&line[i..i + 6]);
     }
   }
-  named_any
+  named
+}
+
+/// What v2's L3 found in a cited file.
+///
+/// **TWO WAYS TO FAIL, AND THE REFUSAL HAS TO SAY WHICH** (issue `0299`). A
+/// bool made them one: a file whose only mention of the id sits on a line
+/// naming another thread was refused with *does not carry the literal id* --
+/// false about that file, which does carry it -- so the user greps, finds the
+/// id on line 1, and concludes the tool is broken. The verdict was right; the
+/// stated reason described a different test from the one that ran.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Carries {
+  /// A line carries the id and names no other thread.
+  Yes,
+  /// No line carries the id, or the file could not be read.
+  Absent,
+  /// The id is present, but every line carrying it names another thread --
+  /// these, sorted and without repeats.
+  OnlyUnder(Vec<String>),
 }
 
 pub trait References {
@@ -293,7 +317,7 @@ pub trait References {
   /// match accepts a file whose only mention of the id belongs to a different
   /// thread. The thread asking is part of the question, and the signature says
   /// so rather than leaving the caller to know it.
-  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> bool;
+  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> Carries;
 }
 
 /// Resolve references against a real repository root.
@@ -317,13 +341,29 @@ impl References for RepoFiles<'_> {
   /// before the shape was chosen: this form reddens ZERO rows here, and it is a
   /// zero worth having because the predicate was driven on 0267's own exhibit
   /// first -- the exhibit reddens, three legitimate shapes stay green.
-  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> bool {
-    std::fs::read_to_string(self.0.join(path)).is_ok_and(|text| {
-      text
-        .lines()
-        .filter(|line| line.contains(at_id))
-        .any(|line| !names_another_thread(line, thread))
-    })
+  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> Carries {
+    let Ok(text) = std::fs::read_to_string(self.0.join(path)) else {
+      return Carries::Absent;
+    };
+    let carrying: Vec<&str> = text.lines().filter(|line| line.contains(at_id)).collect();
+    if carrying.is_empty() {
+      return Carries::Absent;
+    }
+    if carrying
+      .iter()
+      .any(|line| !names_another_thread(line, thread))
+    {
+      return Carries::Yes;
+    }
+    let mut others: Vec<String> = carrying
+      .iter()
+      .flat_map(|line| threads_named(line))
+      .filter(|named| *named != thread)
+      .map(str::to_string)
+      .collect();
+    others.sort();
+    others.dedup();
+    Carries::OnlyUnder(others)
   }
 }
 
@@ -336,8 +376,8 @@ impl References for AllResolve {
     true
   }
 
-  fn carries_id(&self, _path: &str, _at_id: &str, _thread: &str) -> bool {
-    true
+  fn carries_id(&self, _path: &str, _at_id: &str, _thread: &str) -> Carries {
+    Carries::Yes
   }
 }
 
@@ -747,8 +787,16 @@ pub fn contract_report(
       examined += 1;
       if !refs.resolves(path) {
         out.push(format!("{} cites a file that does not exist: {path}", t.id));
-      } else if !completed && !refs.carries_id(path, &t.id, &thread.id) {
-        out.push(format!("{path} does not carry the literal id {}", t.id));
+      } else if !completed {
+        match refs.carries_id(path, &t.id, &thread.id) {
+          Carries::Yes => {}
+          Carries::Absent => out.push(format!("{path} does not carry the literal id {}", t.id)),
+          Carries::OnlyUnder(others) => out.push(format!(
+            "{path} carries {} only on lines naming another thread ({}); at least one line carrying the id must not name a different thread, and a line naming no thread at all counts",
+            t.id,
+            others.join(", ")
+          )),
+        }
       }
     } else {
       un.no_readable_citation += 1;

@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 10:40Z
+heartbeat_at: 2026-09-11 10:46Z
 status: active
-focus: "MY LANE ON vc's LIST IS DONE (2026-09-11 10:40Z); HOLDING FOR vc. The rules were: ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FIRST LANE DONE; NOW vc's SECOND ASSIGNMENT: 0299, then 0216, then 0212. ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,9 +39,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0162` (#44): RE-DRIVEN 2026-09-11 10:39Z, NO CODE CHANGE.** Fixed at `e6444940` (2026-08-30), and the issue stayed OPEN. That was the last id in my lane on vc's list; every one has now been fixed or re-driven and handed to vc.
+**`0299` (#34, `at lint` cross-thread message), CLAIMED 2026-09-11 10:42Z.** vc moved `0299`, `0216` and `0212` to dc once my first lane was done; they are taken in that order. `carries_id` returns a bare bool, so the refusal cannot say which of its two conditions failed.
 
-- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (CLOSED), `0301` at `6e478ec4` (CLOSED), `0187` at `827e4686` (CLOSED), `0285` at `2994bae3` (CLOSED), `0078` at `cdb41e97` (CLOSED), `0302` re-driven at `e8a4ef19` (CLOSED), `0235` at `56dc8b9f` (msg ae65eaad).
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (CLOSED), `0301` at `6e478ec4` (CLOSED), `0187` at `827e4686` (CLOSED), `0285` at `2994bae3` (CLOSED), `0078` at `cdb41e97` (CLOSED), `0302` re-driven at `e8a4ef19` (CLOSED), `0235` at `56dc8b9f` (CLOSED), `0162` re-driven at `12434fb3` (CLOSED), `0299` committed with this board line.
 
 ## TODO
 
@@ -66,7 +66,6 @@ The work is the numbered defect list in `intent/wip.md`, in 3.0.1 priority order
 
 ## Holds
 
-- **HOLDING FOR vc's NEXT INSTRUCTION, since 2026-09-11 10:40Z.** Every id in my lane on vc's list is fixed or re-driven and handed over (msg 137a3483). Condition: vc sends the next item, or hv places `0299`. hv's rule stands: no new work.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
