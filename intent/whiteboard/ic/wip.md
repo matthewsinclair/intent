@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 19:49Z
+heartbeat_at: 2026-09-11 20:58Z
 status: active
-focus: "THE DOC AUDIT, ic LANE (hv set it 2026-09-11; vc directs; orders in intent/wip.md at 9a1455a0f). docs/reference, surface, lib/help, canon skills + subagents. As-built is the truth; no code; nothing pushed."
+focus: "THE DOC AUDIT, ic LANE: DONE AND REPORTED to vc (2026-09-11 20:58Z) -- 84 files, every one dispositioned. Waiting on vc's check; nothing pushed."
 claims: []
 ---
 
@@ -13,14 +13,12 @@ claims: []
 
 ## DOING
 
-**THE DOC AUDIT, ic's LANE** (hv, 2026-09-11; vc directs; the full protocol is in `intent/wip.md` at `9a1455a0f`). Size XL overall. The lane:
+**THE DOC AUDIT, ic's LANE -- DONE, REPORTED, WAITING ON vc's CHECK.** (hv set it 2026-09-11; vc directs; the protocol is in `intent/wip.md`.) The coverage report went to vc at 20:58Z: 84 files -- 50 edited, 12 deleted, 22 unchanged, each with its disposition. Every edit in the lane is ic's. Nothing is pushed, and no skills sync was run (vc resyncs at the end).
 
-- `docs/reference/**`, measured against the dispatch table and each verb's `--help`.
-- `surface/*.md`, including `agent-guide.spec.md`.
-- `lib/help/*.help.md`: which ones `guide.rs`/`render.rs` still serve. Orphans are DEAD.
-- `intent/plugins/claude/skills/**` and `intent/plugins/claude/subagents/**`: every verb, flag, path and output they cite. cc owns the tree; the job is mine (vc).
-
-**The rules that bite:** the doc moves to the code, and a CODE-WRONG goes to vc with `file:line`, unfixed. Measure every claim, read-only or under an isolated HOME in a scratch project. Generated files are fixed at their source. Commit my lane's paths only. **No `skills sync`: vc resyncs at the end.** Nothing is pushed. The report to vc lists EVERY file with its disposition; the inventory is in the scratchpad at `audit/`.
+- **Left for vc:** `subagents/.manifest/global-agents.json` (dead to v3, but asserted by 3 bats tests), and `in-detrope/data/trope-catalog.md` (vendored; the fix is upstream in llm-tropes first).
+- **Filed:** issue `0303` -- the register's `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. It waits for hv.
+- **Routed:** cc gets the thin-coordinator RULE.md `handle_params/2`. vc gets the CODE findings for hv's list. dc gets known-defects (subagents uninstall) and total-codebase-audit.md:305.
+- **The ST0056 window is returned** ("ST0056 clean" at 2c3a7d2d). Ask vc before any further ST0056 attach.
 
 ## TODO
 
