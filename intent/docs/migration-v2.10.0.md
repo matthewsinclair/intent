@@ -1,3 +1,5 @@
+> **Historical record of a v2 release.** Everything below runs under a v2 `intent upgrade`; Intent v3 does not read a top-level `.intent/`. To move a v2 project to v3, see [Migrating from v2](../../docs/migrating-from-v2.md).
+
 # Intent v2.9.0 → v2.10.0 Migration Guide
 
 This guide covers the upgrade from Intent v2.9.0 to v2.10.0 — what changes for projects on the ground, and what to do if anything goes wrong.

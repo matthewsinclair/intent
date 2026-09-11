@@ -11,7 +11,7 @@ author: "Intent Project"
 
 - An Intent project with steel thread infrastructure
 - Claude Code with the `critic-<lang>` family installed (`intent claude subagents install critic-elixir`, etc.)
-- The rule packs that match the audited project's languages (canon ships agnostic + elixir + rust + swift + lua + shell)
+- The rule packs that match the audited project's languages (the code packs canon ships are agnostic, elixir, rust, swift, lua and shell; `intent claude rules list` enumerates the whole library, including the prose packs a codebase audit does not use)
 - Optionally: a project-level `.intent_critic.yml` to disable rules or adjust severity thresholds (see `intent/docs/critics.md`)
 - Project-level MODULES.md and DECISION_TREE.md, where the project keeps them (`intent init` creates neither)
 
@@ -21,7 +21,7 @@ See also: ST0026 (Steel Thread Zero) for the prevention framework that stops the
 
 A reproducible, language-agnostic process for performing a **total forensic audit** of an entire codebase against a defined set of coding rules. Designed to be executed by Claude Code with Socrates-style sub-agents, producing a prioritized remediation backlog.
 
-This process has been validated across 3 runs (~1,238 total files): a single-app Elixir project (~258 files), an umbrella Elixir project (~724 files), and a polyglot Elixir+Rust+Swift+Lua project (~256 files). It can be reproduced on:
+It has been run on a single-app Elixir project, an umbrella Elixir project, and a polyglot Elixir+Rust+Swift+Lua project (Appendix D). It can be reproduced on:
 
 - **Elixir/Phoenix/Ash** web and backend applications
 - **Rust** systems and CLI applications
@@ -45,8 +45,6 @@ Phase 3: Review          -> Human review + priority agreement
 Phase 4: Remediation     -> Batched fixes with compile/test gates
 ```
 
-Total effort for a ~260-file Elixir project: ~14 sub-agent runs, ~4 hours wall clock, ~400 violations found. For a ~724-file umbrella: ~18 WPs, ~6 hours. For a ~256-file polyglot: ~14 WPs, ~5 hours.
-
 # Phase 0: Provisioning
 
 ## 0.0 Provisioning Invariants
@@ -62,19 +60,20 @@ Why it matters — four failure modes that manifest together:
 - **Close-out deadlock**: the audited steel thread cannot finish until the audit WP finishes, which creates pressure to declare the audit complete prematurely.
 - **Template mismatch**: the TCA phase structure (0, 0.5, 1, 2, 3, 4) does not fit feature-WP templates, producing hybrid docs with mixed vocabularies.
 - **False peer relationship**: treating the audit as a peer WP implies a dependency graph that does not exist — the audit does not depend on the feature WPs and vice versa.
-- **Acceptance-criteria collision**: the feedback report becomes a single checkbox that blocks the entire steel thread's close-out.
+- **Acceptance-criteria collision**: the feedback report becomes a single acceptance criterion that blocks the entire steel thread's close-out.
 
 Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2026-04-08). A 24-hour window existed where every top-level session doc lied about the steel thread state — `wip.md`, `intent/restart.md`, `.claude/restart.md`, and `impl.md` all claimed ST0121 was complete before `feedback-report.md` existed. A full doc-reconciliation commit was required to repair the damage.
 
 ### Invariant 2: Work packages are flat
 
-Every component audit is a top-level `WP/NN` directly under the TCA steel thread. **Never** nest WPs inside WPs. Intent's WP model does not support nested specifiers (`ST/WP/NN/WP/MM`) and the `intent wp` CLI will reject them. Sub-WP structures trap their `info.md` files in a state where they cannot be closed via `intent wp done`.
+Every component audit is a top-level `WP/NN` directly under the TCA steel thread, created with `intent wp new`. **Never** nest WPs inside WPs. Intent's WP model does not support nested specifiers (`ST/WP/NN/WP/MM`) and the `intent wp` CLI rejects them. A directory nested inside a WP is not a work package: `intent wp` cannot address it, so it can never be started or closed.
 
 Correct layout for a fresh TCA:
 
 ```
 intent/st/STXXXX/               <- the TCA as its own dedicated steel thread
-├── info.md                     <- TCA scope + acceptance criteria
+├── info.md                     <- TCA objective and context (generated view)
+├── acceptance.md               <- TCA acceptance criteria (generated view)
 ├── design.md                   <- rule set + FP Guidance + component map
 ├── tasks.md                    <- phase checklist
 ├── feedback-report.md          <- final artifact, top-level
@@ -90,11 +89,11 @@ The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered 
 
 ### Invariant 3: The last work package is the synthesis WP
 
-`tca-init.sh` enforces this by convention (`SYNTHESIS_WP="$WP_COUNT"`). Stating it as an invariant gives the provisioning guards something explicit to check for and makes the expected layout unambiguous for operators reviewing the structure mid-audit.
+Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number. Stating it as an invariant gives the provisioning guards something explicit to check for and makes the expected layout unambiguous for operators reviewing the structure mid-audit.
 
 ### Invariant 4: Rank components by later-pain impact, not raw violation count
 
-When reviewing component audits in Phase 2, sort by "findings that would have caused later pain" rather than by raw violation count. Lamplight ST0121 Component 03 had the lowest raw count (2 violations) but the highest per-finding impact — one of those findings was a latent circular dependency between modules that would have silently degraded the compile topology. A component with 2 high-impact findings is more valuable than a component with 9 mechanical findings. Use the 5-tier priority (Phase 2.4) when ranking in post-mortems.
+When reviewing component audits in Phase 2, sort by "findings that would have caused later pain" rather than by raw violation count. Lamplight ST0121 Component 03 had the lowest raw count but the highest per-finding impact — one of its findings was a latent circular dependency between modules that would have silently degraded the compile topology. A component with a few high-impact findings is more valuable than a component with many mechanical findings. Use the 5-tier priority (Phase 2.4) when ranking in post-mortems.
 
 ## 0.1 Select the Rule Packs
 
@@ -121,26 +120,26 @@ intent claude rules show IN-EX-CODE-006
 
 ### Customising the rule set for a project
 
-The audit's rule set is the canonical IN-\* IDs from the loaded packs, minus any rules suppressed by the audited project's `.intent_critic.yml`, plus any user-extension rules at `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md`.
+The audit's rule set is the canonical IN-\* IDs from the loaded packs, minus any rules suppressed by the audited project's `.intent_critic.yml`.
 
 Project-level customisation lives in `.intent_critic.yml` at the audited project root:
 
 ```yaml
 disabled:
-  - IN-EX-CODE-007 # reason: moduledoc noise not valued in this project
+  - IN-EX-TEST-003 # reason: suite shares global state, async is unsafe here
 
 severity_min: warning # default — body shows critical + warning, summary shows all
 ```
 
-See `intent/docs/critics.md` §`.intent_critic.yml` schema for the full reference.
+The critic subagents honour both keys. The headless runner (`intent critic <lang>`) reads only `disabled:` from this file and takes its threshold from `--severity-min`; the pre-commit gate passes the file's `severity_min` to it through that flag. See `intent/docs/critics.md` §`.intent_critic.yml` schema for the full reference.
 
-Project-specific rules belong in a user extension. Do **not** invent ad-hoc R-numbering for one project's needs — it forks the rule space and breaks every cross-audit comparison. Author the rule under `~/.intent/ext/<project>-rules/rules/<lang>/<category>/<slug>/RULE.md` per `intent/docs/writing-extensions.md`. Extension rules participate in critic discovery automatically.
+Project-specific rules have no home in the rule library: Intent v3 reads no user-extension rules (`intent ext` is not implemented in this build, and `intent claude rules list` shows only canon). Do **not** invent ad-hoc R-numbering for one project's needs — it forks the rule space and breaks every cross-audit comparison. Record a project-specific check as an architectural boundary check in the relevant WP (§0.3), or as a carve-out in the False Positive Guidance below.
 
 ### False Positive Guidance: still load-bearing
 
 Even with stable IN-* rules and `.intent_critic.yml`, codebase-specific carve-outs exist. The `design.md` **False Positive Guidance** section (REQUIRED — see Phase 0.1 and the `in-tca-init` skill) documents the conditions under which a flagged rule is a known non-violation in *this\* codebase, distinct from a project-wide disable.
 
-**Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Lamplight ST0121 (2026-04-08): the `Map.get`-on-defstruct rule (which would be `IN-EX-CODE-002` carve-out territory in the v2.9.0 schema) achieved a 0% false-positive rate _with_ pre-classification. Without it, FP rate would have been ~82% — roughly 18 additional `Map.get` calls flagged on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all legitimate uses that don't touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not synthesis-time triage. An auditor drowning in synthesis FPs loses signal on real findings.
+**Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Lamplight ST0121 (2026-04-08): the `Map.get`-on-defstruct rule (which would be `IN-EX-CODE-002` carve-out territory in the v2.9.0 schema) achieved a 0% false-positive rate _with_ pre-classification. Without it, FP rate would have been ~82% — `Map.get` calls flagged on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all legitimate uses that don't touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not synthesis-time triage. An auditor drowning in synthesis FPs loses signal on real findings.
 
 For each IN-\* rule with known non-violations in the codebase, document the carve-out in `design.md`:
 
@@ -165,7 +164,7 @@ If a carve-out is project-wide rather than WP-local, lift it into `.intent_criti
 
 Frameworks like Ash and Phoenix LiveView ship as subdirectories of the language pack: `intent/plugins/claude/rules/elixir/ash/`, `intent/plugins/claude/rules/elixir/phoenix/`, `intent/plugins/claude/rules/elixir/lv/`. The `critic-elixir` subagent auto-loads these when `code` mode is requested, so a Phoenix-on-Ash project's TCA gets all framework rules without explicit configuration.
 
-For Ash-on-Elixir specifically, the `IN-EX-ASH-*` rules cover the same ground as the historical "A1-A5" supplemental rules — code-interface access only, ash.codegen for migrations, actor authorisation, code-interface options, cross-domain access. They are first-class audit rules, not afterthoughts.
+For Ash-on-Elixir specifically, the `IN-EX-ASH-*` rules carry part of the historical "A1-A5" supplemental concerns: `IN-EX-ASH-001` (all database access through Ash domain code interfaces) and `IN-EX-ASH-002` (set the actor on the query or changeset, not on the action call); `intent claude rules list --lang elixir` lists the `ash` category as it stands. The other historical concerns (ash.codegen for migrations, code-interface options, cross-domain access) have no rule; carry them as architectural boundary checks where the audited project needs them.
 
 **Key**: `IN-AG-HIGHLANDER-001` (concretised as `IN-EX-CODE-006`, `IN-RS-CODE-002`, etc.) is universal. Every ecosystem benefits from deduplication auditing.
 
@@ -270,8 +269,8 @@ For each WP, identify 3-4 rules that are most likely to surface violations. This
 Example:
 
 ```
-WP-03 (Controllers): R2 (thin controllers), R3 (no helpers), R6 (Highlander)
-WP-04 (LiveViews):   R2 (thin LiveViews), R11 (@impl), R4 (component extraction)
+WP-03 (Controllers): IN-EX-PHX-001 (thin controllers), IN-AG-THIN-COORD-001, IN-EX-CODE-006 (Highlander)
+WP-04 (LiveViews):   IN-EX-LV-003 (thin LiveViews), IN-EX-CODE-003 (@impl), IN-EX-LV-002 (streams)
 ```
 
 ## 0.5 Pre-Filter Mechanical Rules
@@ -295,18 +294,27 @@ Record pre-filter results in `design.md` for cross-reference during synthesis.
 
 ## 0.3 Create the Steel Thread
 
-Create the steel thread directory structure:
+Create the thread and its work packages through the CLI, one WP per component and the synthesis WP last:
+
+```bash
+intent st new "TCA: <project and scope>" --start   # writes info.md and acceptance.md
+intent wp new ST{NNNN} "<Component name>"          # once per component, in order
+intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
+```
+
+`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent wp done` and `intent st done` refuse while the contract is empty or unsatisfied. The audit's own documents are files you write into the thread directory:
 
 ```
 intent/st/ST{NNNN}/
-├── info.md          # Metadata, objective, context
+├── info.md          # Generated: objective, context, WP table
+├── acceptance.md    # Generated: acceptance criteria
 ├── design.md        # Rule set, component map, parallelization plan
 ├── tasks.md         # Phase checklist with all WPs
 ├── impl.md          # Implementation notes (optional)
 └── WP/
     ├── 01/
-    │   ├── info.md      # Scope, file list, applicable rules
-    │   └── socrates.md  # Audit output (initially empty)
+    │   ├── info.md      # Generated: the WP's objective and body
+    │   └── socrates.md  # Audit output
     ├── 02/
     │   ├── info.md
     │   └── socrates.md
@@ -316,22 +324,18 @@ intent/st/ST{NNNN}/
         └── socrates.md
 ```
 
-### WP info.md Template
+### WP body template
+
+Write each WP's objective and body with `intent set`, addressing the WP as `intent:///threads/ST{NNNN}/wp/{NN}`; both render into that WP's `info.md`. Set its T-shirt size with `intent wp rescope ST{NNNN}/{NN} <size>`.
+
+```bash
+intent set intent:///threads/ST{NNNN}/wp/{NN} objective "{1-2 sentence description of what this component covers}"
+intent set intent:///threads/ST{NNNN}/wp/{NN} body --from wp-{NN}-body.md
+```
+
+With `wp-{NN}-body.md` carrying:
 
 ```markdown
----
-wp_id: WP-{NN}
-title: "{Component Name}"
-scope: Small | Medium | Large
-status: Not Started
----
-
-# WP-{NN}: {Component Name}
-
-## Scope
-
-{1-2 sentence description of what this component covers}
-
 ## Files
 
 - `path/to/file1.ex`
@@ -352,11 +356,11 @@ Special focus: `IN-<LANG>-<CAT>-NNN` ({reason}), `IN-<LANG>-<CAT>-MMM` ({reason}
 
 ### Cross-WP Highlander Dependency Encoding
 
-> **Lesson from umbrella audit**: Don't wait until synthesis (Phase 2) to think about cross-WP duplication. Encode suspected cross-WP Highlander dependencies at provisioning time in each WP's `info.md` and `socrates.md`.
+> **Lesson from umbrella audit**: Don't wait until synthesis (Phase 2) to think about cross-WP duplication. Encode suspected cross-WP Highlander dependencies at provisioning time in each WP's body and `socrates.md`.
 
 For each WP, identify 2-4 other WPs that might contain overlapping logic. Record these as:
 
-1. **In `info.md`**: A "Cross-WP Highlander Dependencies" section listing which WPs and what logic might overlap
+1. **In the WP body** (rendered into its `info.md`): A "Cross-WP Highlander Dependencies" section listing which WPs and what logic might overlap
 2. **In `socrates.md`**: A "Cross-WP Highlander Check" section in the prompt, instructing the auditor to flag "cross-WP Highlander suspects" even if the duplicate isn't confirmed yet
 
 This way, the per-WP auditor records suspects that the synthesis WP can cross-reference. Without this, cross-WP violations are invisible until Phase 2 and much harder to find retroactively.
@@ -441,7 +445,7 @@ The critic report itself owns the rule IDs (IN-\*), severities (CRITICAL/WARNING
 
 ### Why critic dispatch beats a custom prompt template
 
-Pre-v2.9.0, every TCA invented a per-audit R-numbered rule list and embedded a 100-line custom prompt template that named the rule format, output schema, and anti-hallucination guardrails. With the rule library and critic family:
+Pre-v2.9.0, every TCA invented a per-audit R-numbered rule list and embedded a long custom prompt template that named the rule format, output schema, and anti-hallucination guardrails. With the rule library and critic family:
 
 - Rule IDs are stable across audits — `IN-EX-CODE-006` means the same thing on every project.
 - The output format is the critic contract (parse-stable, severity-grouped); synthesis reads it without per-audit parsing.
@@ -453,15 +457,15 @@ The lesson from prior audits — "include a 'What to check' description, not jus
 
 ## 1.2 Critic Selection
 
-Critic dispatch is mechanical — match the project's language signal to the right critic.
+Critic dispatch is mechanical — match each language the audited project declares to its critic. Languages are declared in `intent/.config/config.json`, not detected from files present: `jq -r '(.languages // []) | .[]' intent/.config/config.json` lists them, and `intent lang init <lang>` declares one.
 
-| Project signal                              | Critic to dispatch | Rule packs auto-loaded                                           |
-| ------------------------------------------- | ------------------ | ---------------------------------------------------------------- |
-| `mix.exs`                                   | `critic-elixir`    | agnostic + elixir/code + elixir/test (+ ash/phoenix/lv per deps) |
-| `Cargo.toml`                                | `critic-rust`      | agnostic + rust/code + rust/test                                 |
-| `Package.swift`                             | `critic-swift`     | agnostic + swift/code + swift/test                               |
-| `.luarc.json` or .lua-dominant tree         | `critic-lua`       | agnostic + lua/code + lua/test                                   |
-| `bin/` or `scripts/` with bash/zsh shebangs | `critic-shell`     | agnostic + shell/code                                            |
+| Declared language | Critic to dispatch | Rule packs auto-loaded                                           |
+| ----------------- | ------------------ | ---------------------------------------------------------------- |
+| `elixir`          | `critic-elixir`    | agnostic + elixir/code + elixir/test (+ ash/phoenix/lv per deps) |
+| `rust`            | `critic-rust`      | agnostic + rust/code + rust/test                                 |
+| `swift`           | `critic-swift`     | agnostic + swift/code + swift/test                               |
+| `lua`             | `critic-lua`       | agnostic + lua/code + lua/test                                   |
+| `shell`           | `critic-shell`     | agnostic + shell/code                                            |
 
 Polyglot projects dispatch one critic per language per WP. For pre-audit reconnaissance (component boundary discovery), `Explore` agent is still the right tool — but the audit itself goes through critics, not free-form sub-agents.
 
@@ -542,7 +546,7 @@ Count findings per IN-\* rule ID across all WPs:
 ```markdown
 | Rule ID              | Slug                 | Count | Dominant WPs |
 | -------------------- | -------------------- | ----: | ------------ |
-| IN-AG-HIGHLANDER-001 | highlander           |  ~130 | All          |
+| IN-AG-HIGHLANDER-001 | highlander           |    XX | All          |
 | IN-EX-CODE-002       | tagged-tuple-returns |    XX | WP-04, WP-07 |
 
 ...
@@ -573,12 +577,12 @@ These are all one issue: extract `verify_ownership/2` to a shared module.
 Cluster violations by **root cause and fix**, not by rule number:
 
 - Same function duplicated across WPs -> one Highlander fix
-- Same pattern with different data types -> **separate clusters** (e.g., Map.get on a struct vs Map.get on a plain map are different fixes)
+- Same pattern with different data types -> **separate clusters** (eg Map.get on a struct vs Map.get on a plain map are different fixes)
 - Same remedy recommended -> one fix batch entry
 
-**Benchmarks**: Expect 40-60% dedup rate on large projects. Conflab achieved 59% (118 raw -> 49 unique). Lamplight achieved 45% (389 raw -> ~215 unique). Projects with strong existing architecture have lower dedup rates (fewer systemic issues).
+**Benchmarks**: Expect 40-60% dedup rate on large projects. Past runs measured 59% on Conflab and 45% on Lamplight. Projects with strong existing architecture have lower dedup rates (fewer systemic issues).
 
-**Low dedup rate on newly-authored code is a positive signal**: On greenfield or recently-rewritten code, a low dedup rate means the code was written with rule awareness from the start, not that the audit is broken or the rules are wrong. Lamplight ST0121 (Gen 3.0 Architecture Rollout, 2026-04-09) achieved 12% (17 raw -> 15 unique, 10 actionable after FP filtering) — read that as evidence that the Gen 3.0 code was authored rule-aware throughout, not as an unexpectedly thin audit. Track dedup rate as a codebase-quality KPI: high dedup on old code signals accumulated duplication that needs attention; low dedup on new code signals disciplined authorship.
+**Low dedup rate on newly-authored code is a positive signal**: On greenfield or recently-rewritten code, a low dedup rate means the code was written with rule awareness from the start, not that the audit is broken or the rules are wrong. Lamplight ST0121 (Gen 3.0 Architecture Rollout, 2026-04-09) measured 12% — read that as evidence that the Gen 3.0 code was authored rule-aware throughout, not as an unexpectedly thin audit. Track dedup rate as a codebase-quality KPI: high dedup on old code signals accumulated duplication that needs attention; low dedup on new code signals disciplined authorship.
 
 ## 2.4 Priority Classification (5-Tier)
 
@@ -592,9 +596,9 @@ Violations that cause incorrect behavior or crashes in production:
 - Wrong key type on struct access (silent no-op)
 - Missing serving_mode dispatch (wrong data source)
 - `String.to_atom` on user input (atom exhaustion)
-- Non-exhaustive `with` clauses on fallible calls (R9)
-- Missing error returns from fallible functions (R12)
-- Debug artifacts (`IO.inspect`, `dbg`) in production paths (R15)
+- Non-exhaustive `with` clauses on fallible calls (`IN-EX-CODE-004`)
+- Missing error returns from fallible functions (`IN-EX-CODE-002`)
+- Debug artifacts (`IO.inspect`, `dbg`) in production paths (Phase 0.5 pre-filter; no rule)
 
 ### P1: Highlander -- Cross-Cutting Duplications
 
@@ -608,27 +612,27 @@ Code duplicated across multiple files/modules. Ranked by:
 
 Bulk-fixable quality issues that don't require design decisions:
 
-- Missing `@impl true` annotations (R11)
-- Missing SAFETY comments on unsafe blocks (R4 Rust)
+- Missing `@impl true` annotations (`IN-EX-CODE-003`)
+- Missing SAFETY comments on unsafe blocks (Rust)
 - Missing `@doc`/`@spec` on public functions
-- Debug artifacts (R15)
+- Debug artifacts
 
 ### P2b: Minor Refactoring
 
 Requires design decisions but scoped to single modules:
 
-- Thick coordinator extraction (R2)
-- Multi-head function conversion (R5)
-- Component extraction (R4)
-- Builder pattern introduction (R7 Rust)
+- Thick coordinator extraction (`IN-AG-THIN-COORD-001`, `IN-EX-PHX-001`, `IN-EX-LV-003`)
+- Multi-head function conversion (`IN-EX-CODE-001`)
+- Component extraction
+- Builder pattern introduction (Rust)
 
 ### P3: Style & Convention
 
 Lowest-impact mechanical fixes:
 
-- Naming convention alignment (R14)
-- Pipe operator adoption (R13)
-- Access control tightening (R8 Swift)
+- Naming convention alignment
+- Pipe operator adoption
+- Access control tightening (`IN-SW-CODE-004`)
 
 ## 2.5 Fix Batches
 
@@ -698,7 +702,7 @@ cargo test --failed  # (if using nextest)
 cargo check && cargo test && cargo clippy -- -D warnings
 ```
 
-**Handle false positives**: If a fix breaks tests, investigate the data type. `Map.get` on a plain map is correct -- only flag on known defstructs (R7). Revert and mark as false positive rather than forcing a broken fix.
+**Handle false positives**: If a fix breaks tests, investigate the data type. `Map.get` on a plain map is correct -- only flag on known defstructs (the `IN-EX-CODE-002` carve-out in §0.1). Revert and mark as false positive rather than forcing a broken fix.
 
 ## 4.3 Verification Gates
 
@@ -758,22 +762,22 @@ After remediation, add enforcement:
 - Treat each app/package as a top-level component group
 - Create WPs within each group -- decompose by **domain** within apps, not just per-app
 - Add a cross-app synthesis WP that looks for inter-app duplications
-- Use batch ordering to audit foundational/leaf apps first (e.g., shared UI libraries, core domain) before apps that depend on them
-- Encode cross-app dependency constraints as architectural boundary checks (e.g., "shared UI library must NOT reference core domain structs")
+- Use batch ordering to audit foundational/leaf apps first (eg shared UI libraries, core domain) before apps that depend on them
+- Encode cross-app dependency constraints as architectural boundary checks (eg "shared UI library must NOT reference core domain structs")
 
-> **Lesson from umbrella audit**: A 5-app umbrella with ~734 files required 17 component WPs + 1 synthesis, organized into 6 dependency-ordered batches. The largest app (~500 files) was split into 13 domain-based WPs. Without domain decomposition within that app, WPs would have been >60 files and exceeded context limits.
+> **Lesson from umbrella audit**: The umbrella audit organised its component WPs and the synthesis WP into dependency-ordered batches, and split its largest app into domain-based WPs. Without domain decomposition within that app, WPs would have been >60 files and exceeded context limits.
 
 ## Polyglot Projects
 
-- Separate rule sets per language
+- Separate rule packs per language
 - Group WPs by language first, then by domain
-- Cross-language synthesis focuses on R6 (Highlander) and API consistency
+- Cross-language synthesis focuses on `IN-AG-HIGHLANDER-001` and API consistency
 
 ### Polyglot Considerations
 
-- **X-rules**: Cross-ecosystem rules (e.g., "API contracts match between Rust backend and Swift client"). Define these as X1, X2, etc. alongside per-ecosystem R-rules.
-- **Two-pass synthesis**: First synthesize within each ecosystem, then run a cross-ecosystem pass focusing on X-rules and shared patterns.
-- **Effective file count**: Apply ecosystem-specific weights (Rust 1.5x, Swift AppKit 1.3x) when sizing WPs. A 256-file polyglot project with Rust and Swift code may have 300+ effective files.
+- **Cross-ecosystem checks** (eg "API contracts match between Rust backend and Swift client") have no rule in the library. Carry them as architectural boundary checks (§0.3) in the WPs they span, not as invented rule numbers.
+- **Two-pass synthesis**: First synthesize within each ecosystem, then run a cross-ecosystem pass focusing on those boundary checks and shared patterns.
+- **Effective file count**: Apply ecosystem-specific weights (Rust 1.5x, Swift AppKit 1.3x) when sizing WPs. A polyglot project heavy in Rust and Swift has an effective file count well above its raw count.
 
 # Appendix B: Per-Language Detection Lives in the Rule Library (v2.9.0)
 
@@ -786,7 +790,7 @@ intent claude rules list --lang rust
 intent claude rules show IN-RS-CODE-001            # for a specific rule
 ```
 
-Or read the rule files directly:
+Or read the rule files directly at the Intent install (`intent claude rules show <id>` prints each rule's source path):
 
 - Rust: `intent/plugins/claude/rules/rust/code/<slug>/RULE.md`
 - Swift: `intent/plugins/claude/rules/swift/<category>/<slug>/RULE.md`
@@ -798,7 +802,7 @@ Or read the rule files directly:
 
 Each rule's `## Detection` section captures the language-specific signal the critic uses, including severity-context and exemption guidance that previously had to be smuggled into per-audit prompts. New per-language nuance gets added by editing the rule's RULE.md (validated by `intent claude rules validate`), not by amending this doc.
 
-TypeScript / React rules are a future-work item — no `typescript/` or `react/` rule pack exists in v2.9.0. When that pack lands, this appendix can be deleted or repurposed.
+TypeScript / React rules are a future-work item — no `typescript/` or `react/` rule pack exists. When that pack lands, this appendix can be deleted or repurposed.
 
 # Appendix C: Quick-Start Checklist
 
@@ -806,14 +810,14 @@ For a new project audit, use `/in-tca-init` or follow this manual checklist:
 
 - [ ] Select rule packs per ecosystem (`agnostic` + `<lang>/code` + `<lang>/test`; framework subdirs auto-load via critic)
 - [ ] Author project `.intent_critic.yml` if any IN-\* rules need to be disabled or thresholds adjusted
-- [ ] Author project-specific rules as a user extension at `~/.intent/ext/<name>/rules/`, not as ad-hoc R-numbering
+- [ ] Record project-specific checks as architectural boundary checks, not as ad-hoc R-numbering (the rule library has no project-specific home)
 - [ ] Document FP carve-outs per IN-\* rule in `design.md` (load-bearing — see §0.1)
 - [ ] Enumerate all source files (`find . -name "*.{ext}" | wc -l`)
 - [ ] Calculate effective file counts using weight table
 - [ ] Identify Ash DSL resources, emission/struct files, dead stubs
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
-- [ ] Create steel thread with info.md, design.md, tasks.md
-- [ ] Create WP directories with info.md and empty socrates.md
+- [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`
+- [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3)
 - [ ] Run Phase 0.5 pre-filtering (grep for IN-EX-CODE-002 / -003 / debug artifacts)
 - [ ] Verify file manifests (all listed files exist)
 - [ ] Confirm critics are registered (restart session if any installed mid-session)
@@ -835,30 +839,29 @@ For a new project audit, use `/in-tca-init` or follow this manual checklist:
 
 ```
 intent/st/STNNNN/                # Steel thread root
-├── design.md               # 15 rules, 14 components, parallelization plan
+├── design.md               # R-numbered rule set, component map, parallelization plan
 ├── tasks.md                # Phase checklist with violation counts
-├── WP/01-14/socrates.md   # Individual component audits
-└── WP/15/socrates.md      # Cross-component synthesis
+├── WP/NN/socrates.md      # Individual component audits
+└── WP/<last>/socrates.md  # Cross-component synthesis
 ```
 
-Project: Single-app Elixir/Phoenix/Ash (~258 .ex files)
-Rules: 15 (R1-R15)
-Total violations: 408 (50 High, 150 Medium, 208 Low)
+Project: Single-app Elixir/Phoenix/Ash
+Rules: R1-R15
 Dominant rule: R6 (Highlander) at 32% of all violations
 
-## Example B -- Umbrella Elixir (5 apps)
+## Example B -- Umbrella Elixir
 
 ```
 intent/st/STNNNN/                # Steel thread root
-├── design.md                # 15 rules, 17+1 components, 6 batches, execution protocol
+├── design.md                # R-numbered rule set, component map, batches, execution protocol
 ├── tasks.md                 # 5-phase checklist (incl. regression prevention)
-├── WP/01-17/info.md         # Component scope with cross-WP Highlander dependencies
-├── WP/01-17/socrates.md     # Audit prompts with V{N} format + anti-hallucination
-└── WP/18/socrates.md        # Cross-component synthesis (4-tier P0-P3 priority)
+├── WP/NN/info.md            # Component scope with cross-WP Highlander dependencies
+├── WP/NN/socrates.md        # Audit prompts with V{N} format + anti-hallucination
+└── WP/<last>/socrates.md    # Cross-component synthesis (4-tier P0-P3 priority)
 ```
 
-Project: Elixir/Phoenix/Ash umbrella (~724 .ex files across 5 apps)
-Rules: 15 (R1-R15) + architectural boundary checks
+Project: Elixir/Phoenix/Ash umbrella
+Rules: R1-R15 + architectural boundary checks
 Innovations over Example A:
 
 - Cross-WP Highlander dependency encoding at provisioning time
@@ -872,16 +875,15 @@ Innovations over Example A:
 
 ```
 intent/st/STNNNN/                # Steel thread root
-├── design.md               # 3 ecosystem rule sets + X-rules, 14 components
+├── design.md               # Per-ecosystem rule sets + X-rules, component map
 ├── tasks.md                # Phase checklist with per-ecosystem tracking
-├── WP/01-13/socrates.md   # Component audits (grouped by ecosystem)
-└── WP/14/socrates.md      # Cross-ecosystem synthesis
+├── WP/NN/socrates.md      # Component audits (grouped by ecosystem)
+└── WP/<last>/socrates.md  # Cross-ecosystem synthesis
 ```
 
-Project: Polyglot application (~256 files: Elixir, Rust, Swift, Lua)
-Rules: 3 rule sets (Elixir R1-R15, Rust R1-R12, Swift R1-R10) + X-rules
-Total raw violations: 118
-Unique after dedup: 49 (59% dedup rate)
+Project: Polyglot application (Elixir, Rust, Swift, Lua)
+Rules: per-ecosystem R-numbered sets (Elixir, Rust, Swift) + X-rules
+Dedup rate: 59%
 Innovations over Examples A and B:
 
 - Per-ecosystem rule sets with ecosystem-specific severity contexts
@@ -898,7 +900,7 @@ Innovations over Examples A and B:
 
 ### Parallel sub-agent execution
 
-Running 4-9 extraction agents in parallel dramatically reduced wall-clock time. Each agent worked in the same repo (no worktree isolation needed since they touched different files). Total extraction of 14 thick coordinators completed in ~30 minutes wall clock.
+Running extraction agents in parallel dramatically reduced wall-clock time. Each agent worked in the same repo (no worktree isolation needed since they touched different files).
 
 ### Batched remediation with verification gates
 
@@ -920,7 +922,7 @@ Including "Do NOT invent violations -- only report what you actually see in the 
 
 ### R5 over-reporting in polyglot audits
 
-When R5 (Multi-Head Functions) lacks the "matchable values only" boundary, sub-agents flag every `if` statement as a potential multi-head conversion. In one polyglot audit, R5 was the most-reported rule (23 raw violations) but had the highest false positive rate (>60%) because agents flagged conditional logic on computed booleans and string parsing.
+When R5 (Multi-Head Functions) lacks the "matchable values only" boundary, sub-agents flag every `if` statement as a potential multi-head conversion. In one polyglot audit, R5 was the most-reported rule but had the highest false positive rate (>60%) because agents flagged conditional logic on computed booleans and string parsing.
 
 **Lesson**: Rule precision boundaries are not optional refinements -- they are load-bearing constraints that determine whether a rule produces signal or noise.
 
@@ -944,33 +946,15 @@ The most insidious bug: file-path code used the `date` frontmatter field (date g
 
 ### Context exhaustion across sessions
 
-The full audit + remediation spanned 3+ sessions. Knowledge was lost at each boundary. The plan file (fluttering-wondering-journal.md) was essential for continuity but required manual re-reading. **Lesson**: This is exactly why Steel Thread Zero's memory injection (D8) is needed -- learnings should persist automatically.
+The full audit + remediation spanned several sessions. Knowledge was lost at each boundary. The plan file (fluttering-wondering-journal.md) was essential for continuity but required manual re-reading. **Lesson**: This is exactly why Steel Thread Zero's memory injection (D8) is needed -- learnings should persist automatically.
 
-## Metrics
+## Remaining Violations
 
-### Single-App Audit Phase
-
-- 14 component WPs + 1 synthesis WP
-- ~258 .ex files audited
-- 408 violations found (7 P0, 14 P1, ~50 P2, ~337 P3)
-- Wall clock: ~4 hours for audit, ~2 hours for remediation batches A-D,F,G
-
-### Single-App Extraction Phase
-
-- 14 work packages (+ 1 production bug fix)
-- 12 new service modules created
-- Net coordinator reduction: ~2,100 lines removed from thick coordinators
-- Net new service code: ~2,300 lines (slightly more due to @doc/@spec additions)
-- Highlander violations fixed as bonus: 6 (display_site_host, create_preview_recipient, subscription status, blog post fetching, param preparation, test email builder)
-- Wall clock: ~1 hour (9 agents in parallel)
-
-### Remaining Violations
-
-After the single-app audit + extraction, 3 P1 Highlander violations remained unfixed:
+After the single-app audit + extraction, these P1 Highlander violations remained unfixed:
 
 - P1-3: `build_file_path`/`build_file_content` duplication (FileWriter vs SyncService)
-- P1-4: `parse_status/1` in 3 modules with incompatible behavior
-- P1-10: `content_type == "blog.post"` filter scattered across 8+ files
+- P1-4: `parse_status/1` in several modules with incompatible behavior
+- P1-10: `content_type == "blog.post"` filter scattered across many files
 
 ## Prevention Recommendations
 
@@ -988,7 +972,7 @@ The violations found in both audits were preventable. See **Intent ST0026 (Steel
 
 > **Historical context**: As with Appendix E, this appendix is from a pre-v2.9.0 audit. R-rule citations map to the IN-\* rule library per the note at the top of Appendix D.
 
-The umbrella audit covered a 5-app Elixir umbrella (~734 files, ~126k LOC) and remediated 389 violations across Phases A-E. This was 3x the scale of the single-app audit and revealed additional failure modes.
+The umbrella audit covered a multi-app Elixir umbrella and remediated its violations across Phases A-E. It was several times the scale of the single-app audit and revealed additional failure modes.
 
 ## What Worked Well
 
@@ -998,15 +982,15 @@ Strict ordering by priority (P0 bugs -> P1 Highlander -> P2 thick coordinators -
 
 ### Parallel sub-agents for remediation (not just audit)
 
-Launched 4 `elixir` sub-agents simultaneously for extraction work, each touching different files. Phase B batch 2 completed 5 extraction items in ~10 minutes wall clock. Phase C ran 5 coordinators in parallel. Phase D ran 4 style fix agents in parallel. Total remediation wall clock for 389 violations: ~2 hours.
+Launched `elixir` sub-agents simultaneously for extraction work, each touching different files. Phases B, C and D each ran their extraction, coordinator and style-fix items as parallel agents.
 
 ### `defdelegate` as Highlander consolidation pattern
 
-For functions duplicated across many files (e.g., `truncate/2` in 9 files, `get_action/1` in 3 files), the pattern was: extract to a canonical module (`MyApp.Helpers`), then replace each copy with `defdelegate truncate(str, max), to: MyApp.Helpers`. This is the lowest-risk consolidation -- callers don't change their API, just their implementation source.
+For functions duplicated across many files (eg `truncate/2`, `get_action/1`), the pattern was: extract to a canonical module (`MyApp.Helpers`), then replace each copy with `defdelegate truncate(str, max), to: MyApp.Helpers`. This is the lowest-risk consolidation -- callers don't change their API, just their implementation source.
 
 ### Cross-WP Highlander dependency encoding at provisioning time
 
-Each WP's `socrates.md` included a "Cross-WP Highlander Check" section listing suspected overlaps with other WPs. This meant the per-WP auditor flagged suspects that the synthesis WP could cross-reference. Without this, 13 cross-component patterns would have been invisible.
+Each WP's `socrates.md` included a "Cross-WP Highlander Check" section listing suspected overlaps with other WPs. This meant the per-WP auditor flagged suspects that the synthesis WP could cross-reference. Without this, the cross-component patterns it surfaced would have been invisible.
 
 ### Compile-after-every-batch discipline
 
@@ -1026,7 +1010,7 @@ The project's code formatting hook (linter) ran automatically after every file e
 
 ### `String.to_existing_atom` is not always the right fix
 
-Phase A changed `String.to_atom` -> `String.to_existing_atom` across the board as a P0 safety fix. This broke 10 tests because:
+Phase A changed `String.to_atom` -> `String.to_existing_atom` across the board as a P0 safety fix. This broke tests because:
 
 - `parse_character_id` in the markdown importer tried to convert tags like `"@ASIDE"` to existing atoms -- but these atoms are created by the parser itself, they don't pre-exist
 - `collect_mentions` in the input parser tried to convert user-typed character names -- these may be new atoms that don't exist yet
@@ -1071,45 +1055,14 @@ R7 (Assertive Struct Access) without the "known defstructs only" boundary causes
 
 **Lesson**: R7 must specify that it only applies to known `defstruct` types. `Map.get(plain_map, :key)` is correct code, not a violation.
 
-## Metrics
+## Violation Distribution by Rule
 
-### Umbrella Audit Phase
+- R6 (Highlander) -- dominant issue
+- R9 (Missing else) -- highest-risk systemic pattern
+- R3 (Helpers in controllers) -- web app hygiene
+- R11 (Missing @impl) -- mechanical
+- R5 (Multi-head) -- refactoring opportunities
 
-- 17 component WPs + 1 synthesis WP (18 total)
-- ~724 .ex files audited across 5 umbrella apps
-- 389 violations found across all priority levels
-- Wall clock: ~6 hours for audit (5 batches, 3 sessions)
-
-### Umbrella Remediation Phase
-
-- 6 commits across Phases A-E
-- ~30 new modules created (shared helpers, action modules, service modules, LiveView helpers)
-- 22 files modified for style/convention fixes
-- All 3,912 tests passing, zero warnings, credo clean
-- Wall clock: ~2 hours for remediation (heavily parallelized)
-
-### Violation Distribution by Rule
-
-- R6 (Highlander): 88 -- dominant issue (23%)
-- R9 (Missing else): 45 -- highest-risk systemic pattern
-- R3 (Helpers in controllers): 35 -- web app hygiene
-- R11 (Missing @impl): 28 -- mechanical
-- R5 (Multi-head): 25 -- refactoring opportunities
-- Remaining rules: 168 combined
-
-### Scale Comparison
-
-| Metric              | Example A (single-app) | Example B (umbrella) | Example C (polyglot) |
-| ------------------- | ---------------------- | -------------------- | -------------------- |
-| Files audited       | ~258                   | ~724                 | ~256                 |
-| Violations found    | 408                    | 389                  | 118 (49 unique)      |
-| WPs                 | 14 + 1                 | 17 + 1               | 13 + 1               |
-| New modules created | 12                     | ~30                  | N/A (audit only)     |
-| Test suite size     | ~600                   | 3,912                | ~400                 |
-| Wall clock (audit)  | ~4 hrs                 | ~6 hrs               | ~5 hrs               |
-| Wall clock (fix)    | ~3 hrs                 | ~2 hrs               | TBD                  |
-| Dedup rate          | N/A                    | ~45%                 | 59%                  |
-
-**Notable**: The umbrella project had FEWER violations despite being 2.8x larger, because it already had stronger architectural patterns (Ash resources, domain modules, shared helper layers). The violations it did have were more deeply embedded in LiveView and REPL layers -- areas that grew organically with feature work.
+**Notable**: The umbrella project had FEWER violations than the single-app project despite being far larger, because it already had stronger architectural patterns (Ash resources, domain modules, shared helper layers). The violations it did have were more deeply embedded in LiveView and REPL layers -- areas that grew organically with feature work.
 
 **Also notable**: Remediation was FASTER on the larger project because the parallel agent pattern was refined from the single-app audit's experience. More agents, better scoping, fewer conflicts.
