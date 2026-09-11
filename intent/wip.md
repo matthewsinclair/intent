@@ -21,10 +21,9 @@ intent_version: 3.0.0
 
 ### P3 -- commands that report success or state while wrong.
 
-| #   | id     | sev    | lane | defect                                                  |
-| --- | ------ | ------ | ---- | ------------------------------------------------------- |
-| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.            |
-| 43  | `0083` | low    | cc   | `st hydrate` reports exists for a file it just created. |
+| #   | id     | sev    | lane | defect                                       |
+| --- | ------ | ------ | ---- | -------------------------------------------- |
+| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0. |
 
 ### P4 -- advertised but not built.
 
@@ -32,7 +31,7 @@ intent_version: 3.0.0
 | --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 47  | `0154` | high   | ic   | No door to edit a WP body after creation (issue bodies and titles now have one).                                                                                                           |
 | 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                                                                                                                               |
-| 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                                                                                                                           |
+| 49  | `0168` | medium | cc   | `ac list` never shows criterion text, and there is no `ac show`.                                                                                                                           |
 | 50  | `0139` | medium | ic   | `at lint --fix` is advertised and refuses.                                                                                                                                                 |
 | 52  | `0177` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
 | 54  | `0140` | medium | ic   | An unsatisfied note is writable only by migration.                                                                                                                                         |
