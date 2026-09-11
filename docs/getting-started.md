@@ -104,7 +104,7 @@ A criterion is one of two kinds, and **the kind decides what satisfies it**:
 
 **`--kind` defaults to `non-test`, so pass `--kind test` deliberately.** A criterion you meant to be test-backed and left to the default will sit unsatisfied no matter how green its tests are, because greenness is not what satisfies a non-test criterion. The third line above takes the default on purpose — it is satisfied in §5 by evidence rather than by a test.
 
-Ids are caller-assigned. The convention `AC-<wp>.<n>` ties a criterion to the work package that satisfies it, and Intent does not enforce it — it is a convention that reads well, not a rule.
+Ids are caller-assigned, and **the id's shape is how a criterion belongs to a work package**: `AC-01.1` is WP 01's, and `wp done ST0001/01` is gated on the `AC-01.*` criteria alone. `AC-00.*` belong to the thread as a whole. `st done` is gated on every criterion, whatever its id. A work package with no criteria of its own closes without a contract check.
 
 ## 5. Back each criterion with a test
 

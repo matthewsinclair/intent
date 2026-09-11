@@ -8,19 +8,19 @@ Intent v2 kept everything in Markdown files and derived what it needed by parsin
 
 v3 inverts it. Objects live in a store with a real schema, and the Markdown you read is generated from them.
 
-| Layer              | What it is                                        | Who writes it           |
-| ------------------ | ------------------------------------------------- | ----------------------- |
-| **The store**      | `intent/.cache/intent.db` — the source of truth   | The tool, via its verbs |
-| **Canon extracts** | `intent/.canon/st/ST####.json` — tracked in git   | `intent sync`           |
-| **Views**          | `intent/st/<ID>/*.md` — generated, human-readable | `intent sync`           |
+| Layer              | What it is                                        | Who writes it                                                                          |
+| ------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **The store**      | `intent/.cache/intent.db` — the source of truth   | The tool, via its verbs                                                                |
+| **Canon extracts** | `intent/.canon/st/ST####.json` — tracked in git   | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
+| **Views**          | `intent/st/<ID>/*.md` — generated, human-readable | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
 
-**The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is a local cache that can always be rebuilt, and what your colleagues review in a pull request is the JSON extract, which has a schema and diffs sensibly.
+**The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is a local cache that can always be rebuilt, and what your colleagues review in a pull request is the JSON extract, which has a schema and diffs sensibly. **`intent init` does not add the store to `.gitignore`**, so add `intent/.cache/` yourself.
 
 ## The generated views carry a banner and it means what it says
 
-Files under `intent/st/<ID>/` are **generated**. Editing one is not an error the tool will report — it is an edit that the next sync overwrites.
+Files under `intent/st/<ID>/` are **generated**. A hand edit is lost at the next render, and `intent doctor` reports it as view skew until then. **The one exception is the thread cover, `info.md`:** its `## Objective` and `## Context` sections are carried back into the store. Everything else in it is rendered.
 
-If you want to change a thread, use a verb. If you want to change something no verb reaches, edit the canon extract and sync it back:
+If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back:
 
 ```
   $ $EDITOR intent/.canon/st/ST0001.json
@@ -42,7 +42,7 @@ The compliant order is:
 2. `intent sync --to-store <ID>`, then `intent sync --to-disk <ID>`.
 3. Commit the file **and** the canon together, in one commit.
 
-The pre-commit gate enforces this by refusing a commit whose canon names bytes the commit does not carry. It is a backstop on the commit path rather than a detector of the underlying divergence — canon on disk can be wrong between a sync and a commit, and nothing says so.
+**The pre-commit gate Intent installs does not check this**, so the order is your discipline. Canon on disk can be wrong between a sync and a commit, and nothing says so.
 
 ## What lives only in the store
 

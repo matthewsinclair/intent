@@ -6,7 +6,7 @@ Not a ticket, not an epic, not a task. **A steel thread names something you are 
 
 The name comes from the engineering sense: the thinnest complete path through a system that actually works end to end. A steel thread in Intent is the same idea applied to intention — one thing you meant to achieve, followed from the reason it mattered through to the evidence it was done.
 
-Each thread lives at `intent/st/<ID>/` and carries:
+Each thread lives in the store, is realised on disk at `intent/st/<ID>/` while it is declared in `intent/.intentfiles`, and carries:
 
 |                         |                                                                |
 | ----------------------- | -------------------------------------------------------------- |
@@ -45,7 +45,7 @@ Six states, and the transitions between them are the only way to move.
                 +------------+-> cancelled
 ```
 
-**Every transition out of the happy path records a reason.** `st hold`, `st cancel`, `st reopen` and `st reinstate` all require one — because a thread that stopped, restarted, or came back from cancelled is exactly the case where a future reader most needs to know why, and it is exactly the case where nobody remembers.
+**Every transition out of the happy path records a reason.** `st hold`, `st cancel`, `st reopen` and `st reinstate` all require one, as do `wp cancel` and `wp reinstate` — because a thread that stopped, restarted, or came back from cancelled is exactly the case where a future reader most needs to know why, and it is exactly the case where nobody remembers.
 
 **`st done` is guarded by `ac gate`.** A thread cannot be completed while a criterion in scope is unsatisfied. This is the single most important constraint in the model: **there is no way to make a thread look done that does not involve making it done.**
 
@@ -72,7 +72,9 @@ A cancelled thread reinstates to `not-started`, not to whatever it was before. C
              cancelled <-- (from any of not-started, wip, done)
 ```
 
-**`wp done` is guarded by `ac gate` in the same way `st done` is.** A work package closes when what it owed is satisfied, not when someone decides it feels finished.
+**`wp done` is guarded by `ac gate` in the same way `st done` is, over the work package's own criteria:** `wp done ST0001/01` is gated on the `AC-01.*` criteria. A work package closes when what it owed is satisfied, not when someone decides it feels finished. One with no criteria of its own closes without a contract check, and one whose criteria were all descoped or withdrawn refuses until it is cancelled instead, because an exemption is never inferred from an emptied contract.
+
+**`st done` does not look at work-package status.** A thread whose criteria all pass closes even with a work package still `not-started`, so close or cancel the work packages first.
 
 `wp unstart` exists because starting a work package by mistake is common and should not require cancelling it. It is not a state change with meaning; it is an undo.
 

@@ -29,4 +29,4 @@ Where a second copy is genuinely unavoidable, Intent's answer is to put a check 
 
 **It does not manage your tests.** Intent records which test backs which criterion and what state that test is in. It does not run your suite, does not parse its output, and does not pretend to know whether your assertions are any good.
 
-**It does not stop you doing the wrong thing.** The gates refuse specific, mechanical contradictions — a criterion claimed satisfied with nothing behind it, canon that names bytes the commit does not carry. They are backstops on narrow failures, not a review.
+**It does not stop you doing the wrong thing.** The verbs refuse specific, mechanical contradictions — a test covering a criterion that does not exist, a non-test criterion satisfied without evidence, a transition the state machine does not have — and the commit gate refuses a short list of known-bad commits. They are backstops on narrow failures, not a review.
