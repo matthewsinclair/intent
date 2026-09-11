@@ -30,16 +30,16 @@ intent_version: 3.0.0
 
 ### P4 -- advertised but not built.
 
-| #   | id     | sev    | lane | defect                                                                           |
-| --- | ------ | ------ | ---- | -------------------------------------------------------------------------------- |
-| 47  | `0154` | high   | ic   | No door to edit a WP body after creation (issue bodies and titles now have one). |
-| 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                     |
-| 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                 |
-| 50  | `0139` | medium | ic   | `at lint --fix` is advertised and refuses.                                       |
-| 52  | `0177` | medium | dc   | `ext new` exists; `ext remove` does not.                                         |
-| 53  | `0143` | medium | dc   | No v3 equivalent of `claude upgrade --skip-settings`.                            |
-| 54  | `0140` | medium | ic   | An unsatisfied note is writable only by migration.                               |
-| 55  | `0067` | low    | dc   | `modules find` works in v2, not v3.                                              |
+| #   | id     | sev    | lane | defect                                                                                                                                                                                     |
+| --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 47  | `0154` | high   | ic   | No door to edit a WP body after creation (issue bodies and titles now have one).                                                                                                           |
+| 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                                                                                                                               |
+| 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                                                                                                                           |
+| 50  | `0139` | medium | ic   | `at lint --fix` is advertised and refuses.                                                                                                                                                 |
+| 52  | `0177` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
+| 53  | `0143` | medium | dc   | No v3 equivalent of `claude upgrade --skip-settings`.                                                                                                                                      |
+| 54  | `0140` | medium | ic   | An unsatisfied note is writable only by migration.                                                                                                                                         |
+| 55  | `0067` | low    | dc   | `modules find` works in v2, not v3.                                                                                                                                                        |
 
 ### P5 -- rough edges: defaults, doctor, internals.
 
