@@ -24,7 +24,6 @@ intent_version: 3.0.0
 | #   | id     | sev      | lane | defect                                                                                                                                       |
 | --- | ------ | -------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2   | `0260` | critical | cc   | `sync --to-disk` writes a stale store over committed canon at rc 0, while doctor already reports they differ. The 326/358 half is by design. |
-| 4   | `0207` | high     | ic   | `at green/red/na --note` replaces the whole note, destroying the row's history.                                                              |
 | 5   | `0209` | high     | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.                                                        |
 | 6   | `0082` | high     | cc   | A new attachment authored in canon never reaches disk (`sync --to-disk`).                                                                    |
 | 7   | `0276` | high     | cc   | A committed attachment whose bytes differ from canon enters canon with no warning.                                                           |
