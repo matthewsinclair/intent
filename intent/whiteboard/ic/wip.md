@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 12:49Z
+heartbeat_at: 2026-09-11 12:57Z
 status: active
-focus: "ON THE BOUNCE. #42 0195 FIXED at 3917f47c under vc's ruling (C) and WITH vc for the re-drive of both halves. Next: #47 0154 then #48 0185, the two body doors out of ONE design (vc). 0168 moved to cc. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. 0195 CLOSED by vc at 8d3b13ae. #47 0154 + #48 0185 CLAIMED TOGETHER under vc's ruling (1): ONE scriptable door, `intent set`, over Facade::set, one commit naming both. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,30 +13,26 @@ claims: [ST0064]
 
 ## DOING
 
-**`0195` FIXED AT `3917f47c` AND WITH vc FOR THE RE-DRIVE OF BOTH HALVES. vc closes it, not me.** Under vc's ruling (C), a hit prints `path:N` only where N is a line in that file. FTS5's own `highlight()` locates the match in the body, and `Facade::search` turns that into a line only when the file on disk is byte-identical to the indexed body. So canon-JSON hits and stale attachments print the file alone.
+**`0154` + `0185` CLAIMED 2026-09-11 12:57Z, TOGETHER, ON vc's RULING (1). ONE COMMIT NAMING BOTH.** `intent set <address> <field> (<value> | --from <file>)` is one scriptable door over the existing `Facade::set`. The spelling is `set`, ruled by vc under the pen and reported to hv, because the door already carries that name in `Facade::set` and `Op::Set`.
 
-- On this tree: `intent search 'official SDK'` prints `intent/st/ST0056/design.md:91` (the real line), and the canon hits print no `:N`.
-- The one test, `a_hit_names_the_line_it_is_on_or_no_line_at_all`, is red on the unfixed tree (`design.md:0` for line 7). It pins one row per once-occurring phrase. With the disk comparison removed it reds at the canon arm.
-- intent-cli is green (546 suite, 277 lib). intentsvcs is green except the known red. Rebased onto 8388b089 after cc's 0083. The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
-
-**NEXT, ON vc's CLOSE:** `0154` (the WP-body door) and then `0185` (the thread title/objective/context/body door), kept together so the two body doors come out of one design.
+- Condition 3, the scope check, PASSES ON SOURCE. `title`, `objective`, `context`, `body` and `preamble` are plain `Thread` fields, and `body` is a plain `WorkPackage` field. None is in `unsettable()` or `CHILD_COLLECTIONS`. The drive has to prove it.
+- The conditions: no new facade code (a render arm and a table row, with every refusal `set`'s own); exactly one of the value or `--from`; the address parsed by `address_of`, the parser `edit` and `browse` use; one test, seen red first, read back from the STORE; and a drive that reads back past a daemon ingest.
+- The table row copies `issues edit`'s MCP disposition: withheld, with an authorship anomaly, because it replaces human-authored prose.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
 **Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
 
-| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
-| --- | ------ | ------ | -------------------------------------------------------------------------------- |
-| 47  | `0154` | high   | No door to edit a WP body after creation (issue bodies and titles now have one). |
-| 48  | `0185` | medium | No verb writes a thread's title, objective, context or body.                     |
-| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                       |
-| 54  | `0140` | medium | An unsatisfied note is writable only by migration.                               |
-| 66  | `0066` | medium | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.                  |
-| 72  | `0145` | medium | `st edit` writes on its refusal, and the remedy names an empty list.             |
-| 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge.         |
-| 74  | `0153` | medium | `intent edit` refuses the address form its own remedy recommends.                |
-| 77  | `0176` | high   | `todo notdone`/`toggle` mutate around the Facade.                                |
-| 84  | `0231` | medium | TUI repaints can tear on real terminals.                                         |
+| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                   |
+| --- | ------ | ------ | ------------------------------------------------------------------------ |
+| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                               |
+| 54  | `0140` | medium | An unsatisfied note is writable only by migration.                       |
+| 66  | `0066` | medium | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.          |
+| 72  | `0145` | medium | `st edit` writes on its refusal, and the remedy names an empty list.     |
+| 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge. |
+| 74  | `0153` | medium | `intent edit` refuses the address form its own remedy recommends.        |
+| 77  | `0176` | high   | `todo notdone`/`toggle` mutate around the Facade.                        |
+| 84  | `0231` | medium | TUI repaints can tear on real terminals.                                 |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
