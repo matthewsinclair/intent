@@ -242,6 +242,62 @@ fn a_thread_with_no_work_packages_at_all_is_exempt_while_one_that_uses_them_is_n
   );
 }
 
+/// **A WORK PACKAGE DESCOPED TOGETHER WITH ITS CRITERIA IS NOT RESIDUE**
+/// (issue `0256`).
+///
+/// The check infers a criterion's work package from its id and used to consult
+/// no state, so a human who removed a WP and withdrew its criteria -- hv, on
+/// Lamplight ST0356, 61 rows -- was told to repair their own decision on every
+/// run. Withdrawn and descoped criteria are no longer being asked for, so a WP
+/// they name being absent is not an inconsistency.
+///
+/// **THE CONTROL IS IN THE SAME RUN AND THE SAME GROUP.** Three criteria name
+/// the absent WP-07; only their state differs. The in-scope one must still be
+/// flagged, or "no finding" for the other two could come from a check that
+/// never ran.
+#[test]
+fn a_criterion_no_longer_asked_for_is_not_orphaned_by_its_absent_work_package() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  let criterion = |id: &str, state: AcState| Criterion {
+    id: id.to_string(),
+    text: "a requirement in a work package that was removed".to_string(),
+    kind: AcKind::NonTest,
+    state,
+  };
+  thread.criteria.push(criterion(
+    "AC-07.1",
+    AcState::Withdrawn {
+      reason: "WP-07 was descoped with its criteria".to_string(),
+      by: None,
+    },
+  ));
+  thread.criteria.push(criterion(
+    "AC-07.2",
+    AcState::Descoped {
+      to: "ST0001".to_string(),
+      by: None,
+      reason: None,
+    },
+  ));
+  thread
+    .criteria
+    .push(criterion("AC-07.3", AcState::Unsatisfied { note: None }));
+  seed(&fx, &thread);
+
+  let found = details(&run(&fx));
+  assert!(
+    found.contains("AC-07.3 belongs to WP-07"),
+    "the in-scope criterion must still be held to its work package: {found}"
+  );
+  for quiet in ["AC-07.1", "AC-07.2"] {
+    assert!(
+      !found.contains(&format!("{quiet} belongs to WP-07")),
+      "{quiet} is no longer asked for, so its absent work package is a decision, not residue: {found}"
+    );
+  }
+}
+
 #[test]
 fn a_thread_level_group_is_not_mistaken_for_a_missing_work_package() {
   let fx = Fixture::new();
