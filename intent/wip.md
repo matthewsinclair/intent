@@ -47,7 +47,6 @@ intent_version: 3.0.0
 | 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                            |
 | 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.              |
 | 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
-| 28  | `0301` | high   | dc   | `daemon status` prints the same ok whether many daemons hold the store or none.     |
 | 29  | `0285` | high   | dc   | `--version` can name the wrong commit on a clean build.                             |
 | 30  | `0187` | high   | dc   | `init --lang` refuses saying `lang init` is unimplemented; it is implemented.       |
 | 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
