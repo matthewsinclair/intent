@@ -25,17 +25,17 @@ use std::net::TcpStream;
 
 use crate::common::{RealDaemon, get, http, published, token};
 
-/// The loopback address this daemon published.
-///
-/// **READ FROM THE PUBLISHED FILE, NEVER ASSUMED**, and least of all assumed to
-/// be `Published::PREFERRED`. These tests run in parallel: the first daemon to
-/// start takes 51737 and every one after it falls back to a kernel-chosen port
-/// -- so a test that hardcoded the memorable number would pass alone, fail in
-/// the suite, and be blamed on flakiness. **That is the preference-not-a-promise
-/// rule meeting its first consumer**, and the consumer obeys it.
-///
-/// `RealDaemon::endpoint` is deliberately not used: it returns the first
-/// candidate, which is the unix socket, and no browser can reach one.
+// The loopback address this daemon published.
+//
+// **READ FROM THE PUBLISHED FILE, NEVER ASSUMED**, and least of all assumed to
+// be `Published::PREFERRED`. These tests run in parallel: the first daemon to
+// start takes 51737 and every one after it falls back to a kernel-chosen port
+// -- so a test that hardcoded the memorable number would pass alone, fail in
+// the suite, and be blamed on flakiness. **That is the preference-not-a-promise
+// rule meeting its first consumer**, and the consumer obeys it.
+//
+// `RealDaemon::endpoint` is deliberately not used: it returns the first
+// candidate, which is the unix socket, and no browser can reach one.
 
 // ---------------------------------------------------------------------------
 // Condition 1, first side: an HTTP request is answered as HTTP.

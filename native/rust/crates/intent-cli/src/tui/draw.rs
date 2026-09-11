@@ -214,7 +214,7 @@ mod tests {
     let painted_lines = painted(&s, 0, H);
     let h = H as usize;
     let rule: String = std::iter::repeat_n(RULE, W as usize).collect();
-    let framed = (W as usize) > 4 && h >= CHROME + layout::FRAME_COST + 1;
+    let framed = (W as usize) > 4 && h > CHROME + layout::FRAME_COST;
     assert!(framed, "this fixture is meant to exercise the FRAMED foot");
     let foot = layout::FOOT + layout::FRAME_COST;
     assert_eq!(painted_lines[0], s.app, "the APP row must be painted first");

@@ -810,15 +810,15 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
   // variants that carry no payload, which is a property of the enum and not
   // something the table could declare about itself without repeating it.
   for entry in table.families.iter().flat_map(|f| f.entries.iter()) {
-    if let Some(name) = entry.serving_op.as_deref() {
-      if crate::render::serving_op_from_name(name).is_none() {
-        unknown.push(format!(
-          "`{}` declares serving_op `{name}`, which is not a payload-free Op. A daemon roster \
+    if let Some(name) = entry.serving_op.as_deref()
+      && crate::render::serving_op_from_name(name).is_none()
+    {
+      unknown.push(format!(
+        "`{}` declares serving_op `{name}`, which is not a payload-free Op. A daemon roster \
            projected from this table can only name ops it can construct with no arguments; a \
            payload-carrying op here would be unservable and silently skipped.",
-          entry.path
-        ));
-      }
+        entry.path
+      ));
     }
   }
   if !unknown.is_empty() {

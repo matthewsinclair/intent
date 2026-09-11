@@ -1224,7 +1224,6 @@ mod tests {
     );
 
     // And Esc to NAV clears it.
-    let mut app = app;
     app.on_key(esc(), &[]);
     let screen = screen_for(&app, &[], 80);
     assert!(

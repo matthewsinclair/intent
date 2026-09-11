@@ -34,6 +34,7 @@ fn hold(path: &std::path::Path) -> std::fs::File {
   std::fs::create_dir_all(path.parent().expect("a parent")).expect("state dir");
   let lock = std::fs::File::options()
     .create(true)
+    .truncate(false)
     .read(true)
     .write(true)
     .open(path)

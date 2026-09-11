@@ -214,9 +214,7 @@ fn answer_message(
 
   // A message with no id is a notification: acted on where one means
   // something, answered with silence ALWAYS.
-  let Some(id) = id else {
-    return None;
-  };
+  let id = id?;
 
   let answered = match method {
     "initialize" => Ok(initialize_result(&params)),

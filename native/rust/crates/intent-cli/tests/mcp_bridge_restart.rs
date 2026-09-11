@@ -118,8 +118,8 @@ fn a_bridge_call_after_a_daemon_restart_reaches_the_new_daemon() {
     {
       // Re-derive the endpoint the same way the client does; it must be
       // unchanged, which is why the pid is the witness and not this.
-      let same = daemon.endpoint();
-      same
+
+      daemon.endpoint()
     },
     "sanity: the endpoint is read the same way twice"
   );

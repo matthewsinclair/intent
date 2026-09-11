@@ -77,7 +77,7 @@ fn project() -> tempfile::TempDir {
   dir
 }
 
-/// **THE PAIR. Either arm alone passes on a wrong fix.**
+// **THE PAIR. Either arm alone passes on a wrong fix.**
 
 /// The heading `st list` now puts in its first column: this project's directory
 /// name, clipped the way `render::clamp_heading` clips it.

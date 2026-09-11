@@ -525,10 +525,11 @@ fn every_emitted_remedy_names_a_verb_this_build_has_wired() {
         if !verbs.is_empty() && !any_wired {
           unreachable.insert(r.clone());
         }
-      } else if declared.contains(&r) && refusal_for(r.as_str()).is_none() {
-        if wiredness(&fx, &r) == Wired::No {
-          unreachable.insert(r.clone());
-        }
+      } else if declared.contains(&r)
+        && refusal_for(r.as_str()).is_none()
+        && wiredness(&fx, &r) == Wired::No
+      {
+        unreachable.insert(r.clone());
       }
     }
   }
@@ -827,7 +828,6 @@ fn remedy_bodies() -> Vec<(String, String)> {
         .split("Remedy for")
         .nth(1)
         .unwrap_or("")
-        .trim()
         .split_whitespace()
         .next()
         .unwrap_or("")

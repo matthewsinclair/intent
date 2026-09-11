@@ -20,7 +20,7 @@
 //! home while proving it would be the guard-that-hangs-proving-it-detects-hangs
 //! shape, which this estate has already met once today.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU32, Ordering};
 
@@ -68,7 +68,7 @@ fn run(home: &PathBuf, arg: &str) -> (Option<i32>, String, String) {
 /// served and was then killed by the deadline exits non-zero, which is
 /// indistinguishable from a clean refusal by rc alone. Publishing an address is
 /// something only a serving daemon does.
-fn published(home: &PathBuf) -> bool {
+fn published(home: &Path) -> bool {
   home.join(".local/share/intent/intentd.addr").exists()
 }
 

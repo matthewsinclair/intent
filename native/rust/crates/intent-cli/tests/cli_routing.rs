@@ -363,7 +363,10 @@ fn a_live_unix_endpoint_is_routed_to() {
   let dir = tempfile::tempdir().expect("tempdir");
   let (endpoint, _responder) = live_unix(dir.path());
 
-  assert_eq!(route_of(&[endpoint.clone()]), Route::Daemon(endpoint));
+  assert_eq!(
+    route_of(std::slice::from_ref(&endpoint)),
+    Route::Daemon(endpoint)
+  );
 }
 
 /// The case the criterion names: the file is there and nobody is listening.
@@ -591,7 +594,10 @@ fn an_endpoint_that_accepts_and_closes_runs_in_process() {
 fn a_live_tcp_endpoint_is_routed_to() {
   let (endpoint, _responder) = live_tcp();
 
-  assert_eq!(route_of(&[endpoint.clone()]), Route::Daemon(endpoint));
+  assert_eq!(
+    route_of(std::slice::from_ref(&endpoint)),
+    Route::Daemon(endpoint)
+  );
 }
 
 #[test]

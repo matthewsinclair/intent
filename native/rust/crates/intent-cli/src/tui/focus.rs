@@ -118,6 +118,12 @@ impl Focus {
     self.n
   }
 
+  /// Always false: [`Focus::first`] refuses a form with no rows, so a `Focus`
+  /// never has zero. Present because `len_without_is_empty` asks for the pair.
+  pub fn is_empty(self) -> bool {
+    self.n == 0
+  }
+
   /// The same form, with the cursor on row `at`.
   ///
   /// **`None` RATHER THAN A CLAMP FOR A ROW THIS FORM DOES NOT HAVE.** The

@@ -456,6 +456,8 @@ fn commands_in(remedy: &str) -> Vec<String> {
 
 /// Run one `intent at ...` command as a remedy spells it, through the facade
 /// call that verb makes.
+// Returns the facade call's own error, as the verb it drives does.
+#[allow(clippy::result_large_err)]
 fn run_verbatim(facade: &mut Facade, command: &str) -> Result<Outcome, FacadeError> {
   let words: Vec<&str> = command.split_whitespace().collect();
   match words.as_slice() {

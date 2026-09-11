@@ -518,17 +518,15 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
       // `Answer`: a clap parse failure writes straight to the process stderr,
       // which the in-process route never sees, and an empty-vs-present
       // comparison there would be measuring capture rather than conformance.
-      if answers.iter().all(|(_, a)| !a.message.is_empty()) {
-        if answer.message != first.message {
-          divergences.push(format!(
-            "`intent {}`: {} said {:?}, {} said {:?}",
-            argv.join(" "),
-            first_route.name(),
-            first.message,
-            route.name(),
-            answer.message
-          ));
-        }
+      if answers.iter().all(|(_, a)| !a.message.is_empty()) && answer.message != first.message {
+        divergences.push(format!(
+          "`intent {}`: {} said {:?}, {} said {:?}",
+          argv.join(" "),
+          first_route.name(),
+          first.message,
+          route.name(),
+          answer.message
+        ));
       }
     }
 

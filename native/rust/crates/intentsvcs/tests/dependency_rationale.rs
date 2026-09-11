@@ -94,12 +94,12 @@ fn declared_dependencies(manifest: &str) -> Vec<Declared> {
       let header = line.trim_start_matches('[').trim_end_matches(']');
       // `[dependencies.foo]` declares `foo` and then opens a table of ITS keys,
       // none of which are declarations, so the section flag closes behind it.
-      if let Some((head, sub)) = header.split_once('.') {
-        if DEPENDENCY_SECTIONS.contains(&head) {
-          push_unique(&mut found, sub, false);
-          in_section = false;
-          continue;
-        }
+      if let Some((head, sub)) = header.split_once('.')
+        && DEPENDENCY_SECTIONS.contains(&head)
+      {
+        push_unique(&mut found, sub, false);
+        in_section = false;
+        continue;
       }
       in_section = DEPENDENCY_SECTIONS.contains(&header);
       continue;

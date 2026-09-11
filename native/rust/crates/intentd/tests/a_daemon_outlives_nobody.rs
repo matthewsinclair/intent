@@ -281,8 +281,8 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
       "THE DAEMON OUTLIVED ITS OWNER by more than {}s of sleeping (and by more wall time than that, on a machine that is slow enough to matter). Its owner was SIGKILLed and it is still running under HOME={}.\n\nAND HERE IS WHICH OF THE TWO IT IS: it {} begin to stop -- its published address {}.\n\n  address GONE  -> the lifeline WORKED and this budget is too short for this machine. That is a flake, not the defect.\n  address STILL THERE -> the lifeline is not reaching the serve loop, which is the leak this thread exists to remove: 64 processes on one machine by 2026-09-10, 64.9 CPU-hours between them.",
       u64::from(EXIT_ATTEMPTS) * PAUSE.as_millis() as u64 / 1000,
       home.display(),
-      if began {{ "DID" }} else {{ "did NOT" }},
-      if began {{ "is gone" }} else {{ "is still published" }}
+      if began {"DID"} else {"did NOT"},
+      if began {"is gone"} else {"is still published"}
     )
   });
   assert!(

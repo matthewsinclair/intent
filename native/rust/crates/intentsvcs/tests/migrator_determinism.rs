@@ -197,7 +197,7 @@ fn the_comparison_names_a_file_the_estate_actually_changed() {
 
   let canon = fx.canon_rel("ST0001");
   let mut bytes = fx.read(&canon);
-  bytes.push_str("\n");
+  bytes.push('\n');
   fx.write_file(&canon, &bytes);
 
   let after = tree(fx.root());

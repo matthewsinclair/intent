@@ -1691,6 +1691,9 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
 /// it: its rows come from `arg_values(table, "edit", "file")`, the same source
 /// that check validates against, asserted by
 /// `every_file_the_edit_surface_offers_is_a_row_on_the_entity`.
+// The facade's own error, unboxed: all three callers consume a `FacadeError`
+// (`fail`, the TUI's remedy-carrying map, MCP's `From`), so a box ripples.
+#[allow(clippy::result_large_err)]
 pub(crate) fn artefact_path(
   facade: &mut Facade,
   address: &intentsvcs::address::Address,
@@ -1837,7 +1840,8 @@ fn open_in_browser(address: &intentsvcs::address::Address) -> Result<(), Failure
 /// shape in `nav.rs` -- is a change to the ratified contract and is vc's, not
 /// this function's.**
 fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure> {
-  let view = match &address.entity {
+  let other = &address.entity;
+  let view = {
     // **THE WORK-PACKAGE REFUSAL THAT STOOD HERE IS GONE, AND THE COMMENT IT
     // REPLACES NAMED ITS OWN DISCHARGE CONDITION.** It refused `Entity::Wp` by
     // name because `nav.rs` would not produce a view for one, in two separate
@@ -1858,13 +1862,13 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
     // page nothing populates, and percent-encoding the id into one segment
     // would still be constructing a view the contract does not declare. What
     // changed is that the contract now declares one.
-    other => intentsvcs::nav::view_for(other).ok_or_else(|| {
+    intentsvcs::nav::view_for(other).ok_or_else(|| {
       Failure::Error(format!(
         "error: `{}` is not something this build opens in a browser\n  \
          remedy: `browse` opens a steel thread or an issue",
         other.form()
       ))
-    })?,
+    })?
   };
 
   // **THE ENTITY IS CHECKED BEFORE A URL IS COMPOSED, AND THIS IS THE BROWSE
@@ -5304,18 +5308,15 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     // found" over one it read completely, and `Report`'s own doc comment says
     // the counts exist to tell those apart. `--quiet` is for less noise, not
     // for a verdict you cannot check.
-    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}",
+    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}{}{}",
     report.actionable(),
     report.threads_checked,
     report.issues_checked,
     report.views_checked,
     report.files_checked,
-    format!(
-      "{}{}{}",
-      advisory_suffix(&report),
-      acknowledged_suffix(&report),
-      scope_suffix(&report)
-    )
+    advisory_suffix(&report),
+    acknowledged_suffix(&report),
+    scope_suffix(&report)
   );
   if report.is_healthy() {
     Ok(())
@@ -7324,12 +7325,11 @@ fn resolve_intentd() -> Result<std::path::PathBuf, Failure> {
 /// build where only one of the two was rebuilt.
 fn intentd_candidates() -> Vec<std::path::PathBuf> {
   let mut found: Vec<std::path::PathBuf> = Vec::new();
-  if let Ok(exe) = std::env::current_exe() {
-    if let Some(candidate) = exe.parent().map(|dir| dir.join("intentd")) {
-      if candidate.is_file() {
-        found.push(candidate);
-      }
-    }
+  if let Ok(exe) = std::env::current_exe()
+    && let Some(candidate) = exe.parent().map(|dir| dir.join("intentd"))
+    && candidate.is_file()
+  {
+    found.push(candidate);
   }
   found
 }

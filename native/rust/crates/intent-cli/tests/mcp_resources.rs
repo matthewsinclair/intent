@@ -99,7 +99,7 @@ fn session(root: &Path, frames: &[&str]) -> Vec<Value> {
   parsed
 }
 
-fn response<'a>(frames: &'a [Value], id: i64) -> &'a Value {
+fn response(frames: &[Value], id: i64) -> &Value {
   frames
     .iter()
     .find(|f| f["id"] == json!(id))

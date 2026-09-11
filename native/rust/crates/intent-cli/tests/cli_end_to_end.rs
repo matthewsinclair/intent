@@ -910,13 +910,13 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   );
 }
 
-/// `intent st list` renders v2's table, and renders it even when empty.
-///
-/// The empty case is the point. v2 prints a 161-byte header for an estate with
-/// no threads; v3 printed ZERO BYTES, which is the same shape as the AC-10.7
-/// defect one level down -- a command that answers a question by saying
-/// nothing at all, so a script cannot tell "ran and found none" from "did not
-/// run". The answer here was honest and the silence still was not.
+// `intent st list` renders v2's table, and renders it even when empty.
+//
+// The empty case is the point. v2 prints a 161-byte header for an estate with
+// no threads; v3 printed ZERO BYTES, which is the same shape as the AC-10.7
+// defect one level down -- a command that answers a question by saying
+// nothing at all, so a script cannot tell "ran and found none" from "did not
+// run". The answer here was honest and the silence still was not.
 
 /// The heading `st list` now puts in its first column: this project's directory
 /// name, clipped the way `render::clamp_heading` clips it.

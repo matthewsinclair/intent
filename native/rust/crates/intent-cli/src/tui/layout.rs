@@ -649,7 +649,7 @@ impl Screen {
     // SURVIVES IT.** A screen that spent its last two lines on a border would
     // have traded the content for the decoration, which is the opposite of the
     // degradation order this module already declares.
-    let framed = w > 4 && height >= CHROME + FRAME_COST + 1;
+    let framed = w > 4 && height > CHROME + FRAME_COST;
     let frame_cost = if framed { FRAME_COST } else { 0 };
 
     let rule: String = std::iter::repeat_n(RULE, w).collect();
@@ -1223,7 +1223,7 @@ mod tests {
       // a test that hardcodes `height - 3` has to be rewritten on each of
       // those, and rewriting an assertion to match what the code now does is
       // how a check stops being one.
-      let framed = NARROW > 4 && height >= CHROME + FRAME_COST + 1;
+      let framed = NARROW > 4 && height > CHROME + FRAME_COST;
       let foot = if framed { FOOT + FRAME_COST } else { FOOT };
       assert_eq!(
         lines[height - foot],

@@ -51,10 +51,10 @@ fn catalogue(skills_dir: &Path) -> BTreeSet<String> {
     return out;
   };
   for e in entries.flatten() {
-    if e.path().join("SKILL.md").is_file() {
-      if let Some(name) = e.file_name().to_str() {
-        out.insert(name.to_string());
-      }
+    if e.path().join("SKILL.md").is_file()
+      && let Some(name) = e.file_name().to_str()
+    {
+      out.insert(name.to_string());
     }
   }
   out

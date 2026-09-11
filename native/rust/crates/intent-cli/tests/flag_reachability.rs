@@ -491,11 +491,11 @@ fn invocations_for(entry: &dispatch::Entry) -> Vec<Vec<String>> {
       }
     }
     for flag in &entry.flags {
-      if flag.required {
-        if let Some(spelling) = flag.spellings.first() {
-          argv.push(spelling.clone());
-          argv.push(PROBE_SENTINEL.to_string());
-        }
+      if flag.required
+        && let Some(spelling) = flag.spellings.first()
+      {
+        argv.push(spelling.clone());
+        argv.push(PROBE_SENTINEL.to_string());
       }
     }
   };

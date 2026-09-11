@@ -219,6 +219,127 @@ pub fn hand_off(
   Ok(Landed::Written)
 }
 
+/// **A `&mut Session` IS A `Session`.** Without this a decorator has to own its
+/// inner session, which would mean the loop handing its session away on the
+/// first handoff and having none for the second.
+impl<S: Session + ?Sized> Session for &mut S {
+  fn scratch(&mut self, h: &Handoff, value: &str) -> Result<PathBuf, Refused> {
+    (**self).scratch(h, value)
+  }
+  fn launch(&mut self, path: &Path) -> Result<(), Refused> {
+    (**self).launch(path)
+  }
+  fn read_back(&mut self, path: &Path) -> Result<String, Refused> {
+    (**self).read_back(path)
+  }
+  fn discard(&mut self, path: &Path) {
+    (**self).discard(path);
+  }
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+    (**self).run_command(argv)
+  }
+  fn wait_for_operator(&mut self) {
+    (**self).wait_for_operator();
+  }
+}
+
+/// The shipped [`Session`]: a scratch file on disk and an INJECTED launcher.
+///
+/// **THE LAUNCHER IS A PARAMETER AND THAT IS `AC-17.10`'s FIRST CLAUSE.** The
+/// criterion names `launch_editor` by symbol and calls a second resolver *the
+/// Highlander defect in the one place this estate can least afford it*. Taking
+/// the launcher in means this module has nowhere for one to grow: it cannot
+/// read `$VISUAL`, it cannot fall back, and it cannot decide that `vi` will do.
+pub struct Files<L> {
+  dir: PathBuf,
+  launch: L,
+}
+
+impl<L> Files<L> {
+  /// A session whose scratch files live under `dir`.
+  pub fn under(dir: PathBuf, launch: L) -> Self {
+    Self { dir, launch }
+  }
+
+  /// The default scratch directory: one per process, so two TUIs open on the
+  /// same field do not write each other's file.
+  pub fn scratch_dir() -> PathBuf {
+    std::env::temp_dir().join(format!("intent-edit-{}", std::process::id()))
+  }
+}
+
+/// The scratch file's name.
+///
+/// **IT NAMES WHAT IS IN IT, BECAUSE IT IS WHAT SURVIVES A FAILURE.** An
+/// operator recovering work from `/tmp` after a refused write needs to know
+/// which field of which thread they are looking at; `edit-1.tmp` tells them
+/// nothing at the one moment it is the only copy. The `.md` suffix is what
+/// makes an editor open it in the mode the content is actually in.
+pub fn scratch_name(h: &Handoff) -> String {
+  let safe = |s: &str| {
+    s.chars()
+      .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+      .collect::<String>()
+  };
+  format!("{}-{}-{}.md", safe(&h.kind), safe(&h.id), safe(&h.field))
+}
+
+impl<L: FnMut(&Path) -> Result<(), Refused>> Session for Files<L> {
+  fn scratch(&mut self, h: &Handoff, value: &str) -> Result<PathBuf, Refused> {
+    std::fs::create_dir_all(&self.dir).map_err(|e| {
+      Refused::new(format!(
+        "error: cannot make a scratch directory at {} -- {e}",
+        self.dir.display()
+      ))
+    })?;
+    let path = self.dir.join(scratch_name(h));
+    std::fs::write(&path, value)
+      .map_err(|e| Refused::new(format!("error: cannot write {} -- {e}", path.display())))?;
+    Ok(path)
+  }
+
+  fn launch(&mut self, path: &Path) -> Result<(), Refused> {
+    (self.launch)(path)
+  }
+
+  fn read_back(&mut self, path: &Path) -> Result<String, Refused> {
+    std::fs::read_to_string(path)
+      .map_err(|e| Refused::new(format!("error: cannot read {} back -- {e}", path.display())))
+  }
+
+  fn discard(&mut self, path: &Path) {
+    // **A FAILED REMOVAL IS LITTER, NEVER AN ERROR.** This is only ever called
+    // where the bytes are already somewhere else, so there is nothing to
+    // report and nothing the operator would do about it.
+    let _ = std::fs::remove_file(path);
+  }
+
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+    // **THE CLI's OWN DISPATCH, WHICH IS THE WHOLE OF `AC-17.15`'s FIRST
+    // HALF.** No second argv parser and no second dispatch table -- this is
+    // the same function `main` calls, so a command run from the palette IS the
+    // command a shell would have run.
+    crate::dispatch(argv)
+  }
+
+  fn wait_for_operator(&mut self) {
+    // **A LINE READ RATHER THAN A KEY EVENT.** `Borrowed::lend` has already
+    // left raw mode by the time this runs, so `crossterm::event::read` would
+    // be reading through a discipline nobody set.
+    //
+    // **THIS LOOKS LIKE DEBUG SCAFFOLDING AND IT IS THE CRITERION.** A
+    // `read_line` under a `println!` is exactly the shape somebody deletes
+    // while tidying, which is why `AC-17.17` contracts the ORDER rather than
+    // leaving it to a demonstration nobody re-runs: a demonstration protects a
+    // property against being wrong, and only a test protects it against being
+    // removed.
+    println!();
+    println!("-- press enter to return to explore --");
+    let mut sink = String::new();
+    let _ = std::io::stdin().read_line(&mut sink);
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -514,126 +635,5 @@ mod tests {
     let mut rig = Rig::new("one\n\ntwo\n").edited_to("one\ntwo\n");
     assert_eq!(rig.run(), Ok(Landed::Written));
     assert_eq!(rig.model.stored, "one\ntwo\n");
-  }
-}
-
-/// **A `&mut Session` IS A `Session`.** Without this a decorator has to own its
-/// inner session, which would mean the loop handing its session away on the
-/// first handoff and having none for the second.
-impl<S: Session + ?Sized> Session for &mut S {
-  fn scratch(&mut self, h: &Handoff, value: &str) -> Result<PathBuf, Refused> {
-    (**self).scratch(h, value)
-  }
-  fn launch(&mut self, path: &Path) -> Result<(), Refused> {
-    (**self).launch(path)
-  }
-  fn read_back(&mut self, path: &Path) -> Result<String, Refused> {
-    (**self).read_back(path)
-  }
-  fn discard(&mut self, path: &Path) {
-    (**self).discard(path);
-  }
-  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
-    (**self).run_command(argv)
-  }
-  fn wait_for_operator(&mut self) {
-    (**self).wait_for_operator();
-  }
-}
-
-/// The shipped [`Session`]: a scratch file on disk and an INJECTED launcher.
-///
-/// **THE LAUNCHER IS A PARAMETER AND THAT IS `AC-17.10`'s FIRST CLAUSE.** The
-/// criterion names `launch_editor` by symbol and calls a second resolver *the
-/// Highlander defect in the one place this estate can least afford it*. Taking
-/// the launcher in means this module has nowhere for one to grow: it cannot
-/// read `$VISUAL`, it cannot fall back, and it cannot decide that `vi` will do.
-pub struct Files<L> {
-  dir: PathBuf,
-  launch: L,
-}
-
-impl<L> Files<L> {
-  /// A session whose scratch files live under `dir`.
-  pub fn under(dir: PathBuf, launch: L) -> Self {
-    Self { dir, launch }
-  }
-
-  /// The default scratch directory: one per process, so two TUIs open on the
-  /// same field do not write each other's file.
-  pub fn scratch_dir() -> PathBuf {
-    std::env::temp_dir().join(format!("intent-edit-{}", std::process::id()))
-  }
-}
-
-/// The scratch file's name.
-///
-/// **IT NAMES WHAT IS IN IT, BECAUSE IT IS WHAT SURVIVES A FAILURE.** An
-/// operator recovering work from `/tmp` after a refused write needs to know
-/// which field of which thread they are looking at; `edit-1.tmp` tells them
-/// nothing at the one moment it is the only copy. The `.md` suffix is what
-/// makes an editor open it in the mode the content is actually in.
-pub fn scratch_name(h: &Handoff) -> String {
-  let safe = |s: &str| {
-    s.chars()
-      .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-      .collect::<String>()
-  };
-  format!("{}-{}-{}.md", safe(&h.kind), safe(&h.id), safe(&h.field))
-}
-
-impl<L: FnMut(&Path) -> Result<(), Refused>> Session for Files<L> {
-  fn scratch(&mut self, h: &Handoff, value: &str) -> Result<PathBuf, Refused> {
-    std::fs::create_dir_all(&self.dir).map_err(|e| {
-      Refused::new(format!(
-        "error: cannot make a scratch directory at {} -- {e}",
-        self.dir.display()
-      ))
-    })?;
-    let path = self.dir.join(scratch_name(h));
-    std::fs::write(&path, value)
-      .map_err(|e| Refused::new(format!("error: cannot write {} -- {e}", path.display())))?;
-    Ok(path)
-  }
-
-  fn launch(&mut self, path: &Path) -> Result<(), Refused> {
-    (self.launch)(path)
-  }
-
-  fn read_back(&mut self, path: &Path) -> Result<String, Refused> {
-    std::fs::read_to_string(path)
-      .map_err(|e| Refused::new(format!("error: cannot read {} back -- {e}", path.display())))
-  }
-
-  fn discard(&mut self, path: &Path) {
-    // **A FAILED REMOVAL IS LITTER, NEVER AN ERROR.** This is only ever called
-    // where the bytes are already somewhere else, so there is nothing to
-    // report and nothing the operator would do about it.
-    let _ = std::fs::remove_file(path);
-  }
-
-  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
-    // **THE CLI's OWN DISPATCH, WHICH IS THE WHOLE OF `AC-17.15`'s FIRST
-    // HALF.** No second argv parser and no second dispatch table -- this is
-    // the same function `main` calls, so a command run from the palette IS the
-    // command a shell would have run.
-    crate::dispatch(argv)
-  }
-
-  fn wait_for_operator(&mut self) {
-    // **A LINE READ RATHER THAN A KEY EVENT.** `Borrowed::lend` has already
-    // left raw mode by the time this runs, so `crossterm::event::read` would
-    // be reading through a discipline nobody set.
-    //
-    // **THIS LOOKS LIKE DEBUG SCAFFOLDING AND IT IS THE CRITERION.** A
-    // `read_line` under a `println!` is exactly the shape somebody deletes
-    // while tidying, which is why `AC-17.17` contracts the ORDER rather than
-    // leaving it to a demonstration nobody re-runs: a demonstration protects a
-    // property against being wrong, and only a test protects it against being
-    // removed.
-    println!();
-    println!("-- press enter to return to explore --");
-    let mut sink = String::new();
-    let _ = std::io::stdin().read_line(&mut sink);
   }
 }

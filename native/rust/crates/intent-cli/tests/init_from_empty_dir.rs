@@ -152,7 +152,8 @@ fn init_refuses_an_existing_project() {
 /// firing on the expired premise. It is covered by the two tests below.
 #[test]
 fn a_flag_whose_subsystem_is_unimplemented_refuses_rather_than_ignoring() {
-  for (flag, args) in [("--with-st0000", vec!["init", "p", "--with-st0000"])] {
+  {
+    let (flag, args) = ("--with-st0000", vec!["init", "p", "--with-st0000"]);
     let dir = empty_dir();
     let (_, err, code) = run(&args, dir.path());
     assert_ne!(code, 0, "`{flag}` was accepted with nothing behind it");

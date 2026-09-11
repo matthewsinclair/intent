@@ -593,10 +593,10 @@ fn real_thread_ids() -> BTreeSet<String> {
   let mut ids = BTreeSet::new();
   for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
     let path = entry.expect("a readable dir entry").path();
-    if path.extension().and_then(|e| e.to_str()) == Some("json") {
-      if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-        ids.insert(stem.to_string());
-      }
+    if path.extension().and_then(|e| e.to_str()) == Some("json")
+      && let Some(stem) = path.file_stem().and_then(|s| s.to_str())
+    {
+      ids.insert(stem.to_string());
     }
   }
   ids
@@ -974,7 +974,7 @@ fn home_paths_in(text: &str) -> Vec<String> {
       if rest.chars().next().is_some_and(|c| c.is_ascii_lowercase()) {
         let end = rest
           .find(|c: char| c.is_whitespace() || c == '"' || c == '\'')
-          .map_or(rest.len(), |i| i);
+          .unwrap_or(rest.len());
         out.push(format!("{prefix}{}", &rest[..end]));
       }
       from = start + prefix.len();

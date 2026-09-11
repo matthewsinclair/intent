@@ -361,13 +361,21 @@ pub enum ServeError {
   UnknownTool { path: String },
   #[error("`{path}`: {why}")]
   Args { path: String, why: String },
+  /// Boxed because [`FacadeError`] is large, and every `Result` on this surface
+  /// would otherwise carry its size on the success path too.
   #[error(transparent)]
-  Refused(#[from] FacadeError),
+  Refused(Box<FacadeError>),
   /// The escape hatch could not reach, or was refused by, the daemon that
   /// executes it. Rendered by `hatch` with its own remedies -- the one tool on
   /// this surface whose refusal can name `intent daemon start`.
   #[error(transparent)]
   Bridge(#[from] crate::hatch::HatchError),
+}
+
+impl From<FacadeError> for ServeError {
+  fn from(e: FacadeError) -> Self {
+    Self::Refused(Box::new(e))
+  }
 }
 
 impl ServeError {
@@ -1399,8 +1407,15 @@ pub struct Resource {
 pub enum ResourceError {
   #[error("`{uri}`: {why}")]
   BadUri { uri: String, why: String },
+  /// Boxed for the reason [`ServeError::Refused`] is.
   #[error(transparent)]
-  NotFound(#[from] FacadeError),
+  NotFound(Box<FacadeError>),
+}
+
+impl From<FacadeError> for ResourceError {
+  fn from(e: FacadeError) -> Self {
+    Self::NotFound(Box::new(e))
+  }
 }
 
 impl ResourceError {
@@ -1902,10 +1917,9 @@ mod tests {
     let unknown = serve(&mut facade, &ctx, "schema", &json!({"face": "not-a-face"}));
     assert!(
       matches!(
-        unknown,
-        Err(ServeError::Refused(
-          intentsvcs::facade::FacadeError::NoSuchFace { .. }
-        ))
+        &unknown,
+        Err(ServeError::Refused(e))
+          if matches!(**e, intentsvcs::facade::FacadeError::NoSuchFace { .. })
       ),
       "{unknown:?}"
     );
