@@ -2589,7 +2589,7 @@ Claude Code integration
 
 - **v2:** bin/intent (explicit `claude` arm)
 - **Arguments:**
-  - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `prime`, `ws`, `start`
+  - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `ws`, `start`
 - **Exit codes:**
   - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical 189B `error: Unknown claude subcommand. Try: ...`
 - **stdout:** --
