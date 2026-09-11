@@ -23,11 +23,12 @@ You need a repository to work in. Intent does not create one:
   intent/.intentfiles            which threads are realised on disk
   intent/wip.md                  current work in progress
   intent/llm/                    ARCHITECTURE.md, DECISION_TREE.md, RULES.md
+  AGENTS.md                      the agent contract, generated from project state
   CLAUDE.md                      the Claude-specific overlay
   .prettierignore                keeps the formatter off generated views
 ```
 
-**Nothing else is there yet, and two directories you will expect are among the things that are not.** `intent/st/` arrives with your first `intent st new` in §2. `AGENTS.md` arrives at the root when you first run `intent agents sync` -- **`intent init` does not write it**, so a tree showing it here would be describing a project several steps older than the one you have.
+**Nothing else is there yet, and the directory you will most expect is not among them.** `intent/st/` arrives with your first `intent st new` in §2, so a tree showing it here would be describing a project one step older than the one you have. **The published v3.0.0 build writes less:** its `intent init` writes neither `AGENTS.md` nor `.prettierignore` nor `intent/.intentfiles`. Whichever build you are on, the list it prints is the tree.
 
 Then declare which languages the project is in:
 
@@ -42,7 +43,7 @@ Then declare which languages the project is in:
 
 **And do not believe the second half of that refusal.** It says _the project is created either way_ -- it is not. Driven on v3.0.0 in an empty directory, `intent init --lang rust` exits 2 and leaves no `intent/` at all, so a reader who takes the reassurance at face value carries on without a project. Run `intent init` on its own first, confirm `intent/.config/config.json` exists, and declare the language afterwards.
 
-`AGENTS.md` is **generated from project state** by `intent agents sync`. Do not hand-edit it; the next sync will overwrite you.
+`AGENTS.md` is **generated from project state**: `intent init` generates the first one and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you.
 
 ## 2. Open a steel thread
 

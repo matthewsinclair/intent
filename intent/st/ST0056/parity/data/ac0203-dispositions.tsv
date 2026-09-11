@@ -226,7 +226,7 @@
 0271	stated	docs/known-defects.md	intent#0271
 0272	stated	docs/known-defects.md	intent#0272
 0273	stated	docs/known-defects.md	intent#0273
-0274	stated	docs/getting-started.md	**`intent init` does not write it**
+0274	stated	docs/getting-started.md	Whichever build you are on, the list it prints is the tree.
 0275	stated	docs/install.md	you must read its COUNT rather than its exit code
 0276	stated	docs/known-defects.md	intent#0276
 0277	stated	docs/install.md	`INTENT_HOME` is v2's variable and v3 does not read it
