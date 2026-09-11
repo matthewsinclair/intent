@@ -23,7 +23,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                                        |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------------------------- |
-| 5   | `0209` | high   | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.         |
 | 8   | `0124` | high   | cc   | v2 ingest drops prose between two recognised fields; the survivor reads complete.             |
 | 9   | `0126` | high   | cc   | v2 ingest can splice a row so the length delta nets to zero and reports clean.                |
 | 10  | `0138` | high   | cc   | v2 ingest has two behaviours for one input shape; only the destructive one is detectable.     |
