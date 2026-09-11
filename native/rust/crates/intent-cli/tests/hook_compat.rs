@@ -14,46 +14,34 @@
 //! `lib/templates/.claude/settings.json` wires. A name in either is in the
 //! population, and every failure names which source put it there.
 //!
-//! **WHY A LIVE DIFFERENTIAL AND NOT A GOLDEN FIXTURE.** Three of the four
-//! hooks print values read from the environment they run in -- the git branch
-//! and short SHA (`session-context.sh:55`), the project directory name
-//! (`:53`), the uncommitted-path count (`session-finish.sh:63`). A recorded
-//! expectation is wrong the moment HEAD moves, and pinning it would test the
-//! fixture rather than the port. **Those fields vary between RUNS and not
-//! between SUBJECTS**: drive both binaries against one fixture at one HEAD and
-//! whatever they print, they must print the same bytes. That is the property
-//! the criterion actually names, and it is measurable without a baseline.
+//! **THE v2 DIFFERENTIAL RAN UNTIL THE CUT AND WENT WITH v2.** This file drove
+//! `bin/intent` and v3 against one fixture at one HEAD and required the same
+//! bytes, exit code and streams from both for every shipped hook -- AC-07.2's
+//! own sentence, and green with `bin/intent` present at `b9fdf0f4` (workspace
+//! 2353/0, vc). `d5998ac3` deleted `bin/intent`, after which that arm could only
+//! print SKIPPED and pass, so it was deleted rather than left as a green that
+//! can never fail again (hv: "prune the v2 remnants before the tag"). What
+//! remains measures v3 alone: every shipped hook is reachable, an unshipped name
+//! is refused, the gate's block code is the script's own, stdin reaches the
+//! script unread, and the consumer's `settings.json` is untouched.
 //!
-//! **THE FIXTURE IS A DISPOSABLE TREE, NOT THIS CHECKOUT, AND THAT IS A
-//! CORRECTNESS REQUIREMENT RATHER THAN TIDINESS.** `session-finish` counts
-//! uncommitted paths; run against this repository, two adjacent invocations
-//! straddling a peer's commit disagree, and the differential would report a
-//! port defect for a board edit. Five nodes share this checkout and ~100
-//! commits a day land in it.
-//!
-//! **`INTENT_HOME` IS UNSET FOR BOTH, AND THE DIFFERENTIAL IS INVALID
-//! WITHOUT IT.** v2's door resolves its scripts through `${INTENT_HOME:=<own
-//! location>}` (`intent_claude_hook:27`) while v3 resolves from
-//! `current_exe()`, ignoring the variable entirely. On a developer machine
-//! that variable points at the FROZEN v2 install -- so left alone, v2 reads one
-//! tree's scripts and v3 reads another's, and the two agree only because the
-//! bodies happen to be byte-identical across the trees today. That is agreement
-//! by luck wearing the shape of a measurement. Unset, v2 falls back to its own
-//! location and both doors read `<repo>/lib/templates/.claude/scripts/`.
+//! **THE FIXTURE IS A DISPOSABLE TREE, NOT THIS CHECKOUT.** `session-finish`
+//! counts uncommitted paths, so run against this repository two adjacent
+//! invocations straddling a peer's commit disagree. `INTENT_HOME` is unset
+//! because v3 resolves its scripts from `current_exe()` and must be shown to need
+//! nothing else.
 //!
 //! The `GIT_*` variables are removed for the same reason one step down:
 //! `git -C <dir>` changes the working directory and does NOT override `GIT_DIR`,
 //! `GIT_INDEX_FILE` or `GIT_WORK_TREE`, so an inherited one would point both
 //! hooks' git calls at a tree that is not the fixture.
 //!
-//! **A KNOWN DIVERGENCE THAT IS DELIBERATELY NOT ASSERTED HERE.** v2 forwards
-//! trailing arguments to the script (`shift; exec bash "$script" "$@"`); v3
-//! runs `Command::new("bash").arg(&script)` and drops them. No shipped hook
-//! reads a positional argument -- measured, all four -- so the divergence
-//! cannot change any shipped hook's output, which puts it outside this
-//! criterion's population. It is recorded here rather than tested because the
-//! first hook that takes an argument makes it live, and this is where whoever
-//! adds one will be reading.
+//! **A PROPERTY DELIBERATELY NOT ASSERTED HERE.** v3 runs
+//! `Command::new("bash").arg(&script)` and drops trailing arguments, where v2
+//! forwarded them. No shipped hook reads a positional argument -- measured, all
+//! four -- so it cannot change any shipped hook's output. It is recorded here
+//! because the first hook that takes an argument makes it live, and this is
+//! where whoever adds one will be reading.
 
 use std::collections::BTreeMap;
 use std::io::Write;
@@ -76,7 +64,6 @@ const UNKNOWN: &str = "error: unknown hook:";
 
 struct Run {
   code: Option<i32>,
-  stdout: Vec<u8>,
   stderr: Vec<u8>,
 }
 
@@ -245,7 +232,6 @@ fn run_door(bin: &Path, name: &str, fx: &Path, stdin: &[u8]) -> Run {
   let out = child.wait_with_output().expect("wait for the door");
   Run {
     code: out.status.code(),
-    stdout: out.stdout,
     stderr: out.stderr,
   }
 }
@@ -254,16 +240,10 @@ fn v3() -> PathBuf {
   PathBuf::from(env!("CARGO_BIN_EXE_intent"))
 }
 
-/// v2's shell CLI, tracked in THIS repository (not the frozen install).
-fn v2() -> Option<PathBuf> {
-  let p = repo_root().join("bin/intent");
-  p.is_file().then_some(p)
-}
-
 /// **Every hook the canon ships must be reachable through v3's door.**
 ///
 /// The assertion is that the door did not refuse the NAME. What the script then
-/// does is the differential's business; this arm is about whether v3 serves the
+/// does is the other arms' business; this one is about whether v3 serves the
 /// hook at all, which is the failure a consumer meets first and the one that
 /// cannot be worked around from inside a session.
 #[test]
@@ -288,7 +268,7 @@ fn every_hook_the_canon_ships_is_reachable_through_the_door() {
   assert!(
     refused.is_empty(),
     "v3's door refuses the name of a hook this canon ships:\n  {}\n\nAC-07.2 says byte-compatible \"for every shipped hook\", and a name the door \
-     does not serve has no output to compare. A hook wired in settings.json is invoked by a consumer's Claude Code on a real event: v2 runs it, v3 answers \
+     does not serve has no output to compare. A hook wired in settings.json is invoked by a consumer's Claude Code on a real event: the door answers \
      `unknown hook`, and the consumer sees the refusal on every occurrence of that event. This is issue 0043's shape one hook over -- there the command was \
      unimplemented, here the command is implemented and its roster is short -- and it is invisible to `session_hook_lockout.rs`, whose needle is the \
      unimplemented marker, which a wrong-name refusal does not print.",
@@ -327,46 +307,6 @@ fn a_name_the_canon_does_not_ship_is_refused() {
     run.code,
     Some(2),
     "the door answered an unknown name in the caller's refusal code; a settings typo would block every prompt. stderr: {stderr}"
-  );
-}
-
-/// **The live differential: both binaries, one fixture, one HEAD, byte for
-/// byte.**
-///
-/// This is AC-07.2's own sentence, and it is the only arm that can catch a
-/// misremembered format, because it never states what the output should be.
-#[test]
-fn the_two_binaries_agree_byte_for_byte_on_every_shipped_hook() {
-  let Some(v2) = v2() else {
-    eprintln!("SKIPPED the live differential: bin/intent is absent (post-cutover tree?)");
-    return;
-  };
-  let root = repo_root();
-  let fx = fixture();
-
-  let mut diverged = Vec::new();
-  for (name, _) in population(&root) {
-    let a = run_door(&v2, &name, fx.path(), b"");
-    let b = run_door(&v3(), &name, fx.path(), b"");
-    if a.code != b.code || a.stdout != b.stdout || a.stderr != b.stderr {
-      diverged.push(format!(
-        "{name}:\n      v2 exit {:?} stdout {:?} stderr {:?}\n      v3 exit {:?} stdout {:?} stderr {:?}",
-        a.code,
-        String::from_utf8_lossy(&a.stdout),
-        String::from_utf8_lossy(&a.stderr),
-        b.code,
-        String::from_utf8_lossy(&b.stdout),
-        String::from_utf8_lossy(&b.stderr),
-      ));
-    }
-  }
-
-  assert!(
-    diverged.is_empty(),
-    "the two doors disagree on a shipped hook:\n  {}\n\nBoth are thin: each resolves a name and `exec`s `bash <script>`, and with INTENT_HOME unset both \
-     resolve to <repo>/lib/templates/.claude/scripts/. So a divergence here is the DOOR's, never the hook's -- the same script produced both columns, or one \
-     door never reached it.",
-    diverged.join("\n  ")
   );
 }
 
