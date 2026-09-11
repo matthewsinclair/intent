@@ -107,7 +107,19 @@ const DESTINATIONS: &[(&str, Destination)] = &[
     "llm/_MODULES.md",
     NotByInit("a hand-maintained index of a tree the store already indexes"),
   ),
-  ("llm/_DECISION_TREE.md", At("intent/llm/DECISION_TREE.md")),
+  // **NOT SEEDED, FOR THE OPPOSITE REASON TO THE PAIR BELOW** (issue `0224`,
+  // vc ruling (a), 2026-09-11). The body is Elixir/Phoenix placement advice --
+  // its first section is `## Elixir/Phoenix Decision Tree` -- and `init` wrote
+  // it into every project whatever its language, so a Rust or Swift project
+  // carried a file that looked chosen and was not. A `[[#lang elixir]]` wrap
+  // through `Generated` was ruled out: it still lands a file in every other
+  // project, and `init` renders once, so a later `lang init elixir` would never
+  // see it. The template stays EMBEDDED, as `MODULES.md`'s does, for when a
+  // language pack can lay it down. Existing copies are not pruned.
+  (
+    "llm/_DECISION_TREE.md",
+    NotByInit("Elixir/Phoenix-specific, and init cannot tell whether the project is"),
+  ),
   // **SEEDED, AND THE OPPOSITE CALL TO THE TEN PER-LANGUAGE FILES ABOVE.**
   //
   // Measured 2026-08-24 across four estates: every one had AUTHORED its

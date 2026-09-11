@@ -22,7 +22,7 @@ You need a repository to work in. Intent does not create one:
   intent/.config/config.json     project metadata, the declared languages
   intent/.intentfiles            which threads are realised on disk
   intent/wip.md                  current work in progress
-  intent/llm/                    ARCHITECTURE.md, DECISION_TREE.md, RULES.md
+  intent/llm/                    ARCHITECTURE.md, RULES.md
   AGENTS.md                      the agent contract, generated from project state
   CLAUDE.md                      the Claude-specific overlay
   .prettierignore                keeps the formatter off generated views

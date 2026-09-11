@@ -249,7 +249,7 @@ At the Intent install (not this project):
 
 In this project:
 
-- `intent/llm/MODULES.md` -- module registry (Highlander enforcement).
+- `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). `intent init` does not create one; where it exists, search it with `intent modules find <name>`.
 - `CLAUDE.md` -- Claude-specific overlay.
 - `usage-rules.md` -- DO / NEVER contract for this project.
 

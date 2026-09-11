@@ -104,10 +104,11 @@ fn the_templates_come_out_of_the_binary() {
   let (_, err, code) = run_isolated(&bin, &["init", "offline"], proj.path());
   assert_eq!(code, 0, "init failed: {err}");
 
-  // DECISION_TREE.md rather than MODULES.md: the latter is deliberately
-  // NotByInit as of 2026-08-24, so it is no longer evidence that the embed
-  // reached the operator. Three exemplars kept -- one root, one prj, one llm.
-  for template in ["CLAUDE.md", "intent/wip.md", "intent/llm/DECISION_TREE.md"] {
+  // RULES.md as the llm exemplar: MODULES.md is NotByInit as of 2026-08-24,
+  // and DECISION_TREE.md joined it for issue 0224, so neither is evidence that
+  // the embed reached the operator. Three exemplars kept -- one root, one prj,
+  // one llm.
+  for template in ["CLAUDE.md", "intent/wip.md", "intent/llm/RULES.md"] {
     let path = proj.path().join(template);
     assert!(
       path.is_file(),
@@ -126,6 +127,29 @@ fn the_templates_come_out_of_the_binary() {
       "`{template}` still carries an unsubstituted placeholder"
     );
   }
+}
+
+/// **`init` LAYS NO ELIXIR DECISION TREE** (issue `0224`).
+///
+/// The template is Elixir/Phoenix placement advice, and `init` wrote it into
+/// every project whatever its language -- a file that looked chosen and was
+/// not. Its disposition is now `NotByInit`, as `MODULES.md`'s is; the template
+/// stays in the install for when a language pack can lay it down.
+#[test]
+fn init_lays_no_elixir_decision_tree() {
+  let (_bin_dir, bin) = isolated_binary();
+  let proj = tempfile::tempdir().expect("tempdir");
+
+  let (_, err, code) = run_isolated(&bin, &["init", "offline"], proj.path());
+  assert_eq!(code, 0, "init failed: {err}");
+  assert!(
+    proj.path().join("intent/llm/RULES.md").is_file(),
+    "init wrote nothing under intent/llm/, so an absent decision tree proves nothing"
+  );
+  assert!(
+    !proj.path().join("intent/llm/DECISION_TREE.md").exists(),
+    "init wrote intent/llm/DECISION_TREE.md into a project that declared no language"
+  );
 }
 
 /// **THE PROJECT IT MAKES OFFLINE IS A REAL ONE.** AC-07.1 says a fresh init

@@ -13,7 +13,7 @@ author: "Intent Project"
 - Claude Code with the `critic-<lang>` family installed (`intent claude subagents install critic-elixir`, etc.)
 - The rule packs that match the audited project's languages (canon ships agnostic + elixir + rust + swift + lua + shell)
 - Optionally: a project-level `.intent_critic.yml` to disable rules or adjust severity thresholds (see `intent/docs/critics.md`)
-- Project-level MODULES.md and DECISION_TREE.md (created by `intent init` or `intent claude prime`)
+- Project-level MODULES.md and DECISION_TREE.md, where the project keeps them (`intent init` creates neither)
 
 See also: ST0026 (Steel Thread Zero) for the prevention framework that stops these violations from recurring.
 
