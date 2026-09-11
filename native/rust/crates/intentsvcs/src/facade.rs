@@ -5729,16 +5729,15 @@ impl Facade {
   /// that replaces is the defect hv ruled on. Putting the check inside `put`
   /// would close this door by breaking the other one.
   ///
-  /// **THE WINDOW THIS DOES NOT CLOSE, STATED RATHER THAN LEFT TO BE FOUND.**
-  /// The check reads `self.canon`, which was loaded when the facade opened, so
-  /// two facades opened before either writes can both find `AC-01.1` free and
-  /// both write it -- and because a thread's children are replaced wholesale,
-  /// the second write wins with no constraint to stop it. `store::Door::Create`
-  /// cannot help: there is no per-child UNIQUE key for it to fire on. Closing
-  /// it needs the THREAD write to be conditional on the row set it was derived
-  /// from, which is a larger change than this one and is filed rather than
-  /// attempted here. **What this does close is the whole single-writer
-  /// population, which is every operator at a terminal.**
+  /// **THE WINDOW THIS CHECK CANNOT CLOSE IS CLOSED BY THE THREAD WRITE**
+  /// (0135). The check reads `self.canon`, loaded when the facade opened, so
+  /// two facades opened before either writes both find `AC-01.1` free -- and
+  /// `store::Door::Create` cannot help, with no per-child UNIQUE key to fire
+  /// on. What refuses the second is `commit_mutation`'s compare-and-swap
+  /// (`5ef0667c`): the thread it derived from has changed, so the write is
+  /// `RecordMovedUnderTheWrite`. This check still earns its place: it names
+  /// the taken key for the whole single-writer population, which is every
+  /// operator at a terminal.
   ///
   /// The state is DERIVED FROM THE KIND rather than taken as an argument,
   /// because the two are not independent: a test-backed criterion in scope

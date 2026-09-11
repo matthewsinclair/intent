@@ -38,12 +38,12 @@
 //! drives the survivor by value -- because "closed by construction" in a commit
 //! message is what stops the next reader looking.
 //!
-//! **And the cross-facade window stays open.** Criteria and tests are CHILD
-//! rows; `write_thread` replaces the child set wholesale, so there is no
-//! per-child UNIQUE constraint for `store::Door::Create` to fire on and the
-//! check reads canon loaded when the facade opened. Two facades opened before
-//! either writes can still both add `AC-01.1`. Filed on vc's word rather than
-//! left in a comment.
+//! **The cross-facade window this commit left open is closed, by the thread
+//! write rather than by this check** (0135). Criteria and tests are CHILD rows
+//! with no per-child UNIQUE key, and the check reads canon loaded at open -- so
+//! two facades opened before either writes both pass it. What stops the second
+//! is the compare-and-swap `5ef0667c` put on the thread write: its thread has
+//! changed since it loaded, so it is refused. Pinned by the last test below.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
@@ -666,5 +666,46 @@ fn at_edit_repairs_a_mis_migrated_kind_and_refuses_to_create_the_disagreement() 
       .kind,
     AtKind::Test,
     "a refused re-kind writes nothing"
+  );
+}
+
+/// **0135: the cross-facade window is closed, and this pins it.** Two facades
+/// open before either writes, so both find `AC-09.1` free in canon loaded at
+/// open. The first create lands; the second is derived from a thread the first
+/// has since changed, and the thread write's compare-and-swap (`5ef0667c`,
+/// filed for 0206 after 0135 was) refuses it -- so the first writer's text is
+/// what the store holds, and nobody was told `created` over it.
+#[test]
+fn two_facades_opened_before_either_writes_cannot_both_create_one_child_id() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut first = fx.facade_on_disk();
+  let mut second = fx.facade_on_disk();
+
+  first
+    .ac_new(
+      "ST0001",
+      "AC-09.1",
+      "the first writer's text",
+      AcKind::NonTest,
+    )
+    .expect("the first create lands");
+  let err = second
+    .ac_new(
+      "ST0001",
+      "AC-09.1",
+      "the second writer's text",
+      AcKind::NonTest,
+    )
+    .expect_err("a create derived from a thread that has since changed must refuse");
+
+  assert!(
+    matches!(&err, FacadeError::RecordMovedUnderTheWrite { .. }),
+    "the second create must be refused by the thread write, not land: {err}"
+  );
+  assert_eq!(
+    criterion(&fx.facade_on_disk(), "AC-09.1").text,
+    "the first writer's text",
+    "the store does not hold the first writer's criterion"
   );
 }
