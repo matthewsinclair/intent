@@ -322,6 +322,16 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "set",
+    "mutation_every_writable_field.rs -- `every_settable_thread_field_moves_and_takes_nothing_with_it`, \
+     `every_settable_work_package_field_moves_and_takes_nothing_with_it` and \
+     `setting_one_work_package_leaves_its_siblings_and_its_thread_alone` drive `Facade::set`, the one \
+     door this verb calls, field by field across every settable field. That is this file's property \
+     stated per field rather than per verb, and `set` also REFUSES any write that moves a key other \
+     than the addressed one, so the property is an invariant of the door. The verb adds no facade \
+     code (issues 0154 + 0185)",
+  ),
+  (
     "ac new",
     "mutation_creates_criteria_and_tests.rs -- AT-08.6 / AC-08.6. It is driven THERE rather than here \
      because the whole-row diff this file is built around cannot express the claim: the criterion asks \

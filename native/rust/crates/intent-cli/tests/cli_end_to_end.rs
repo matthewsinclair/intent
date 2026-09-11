@@ -218,6 +218,93 @@ fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
   );
 }
 
+/// **Issues 0154 and 0185: `intent set` writes one field through
+/// `Facade::set`, and the model holds it.**
+///
+/// A work package's body and a thread's title had no scriptable door: the
+/// facade could write them, and only the TUI and the daemon called it. Each
+/// write is read back from the STORE through a fresh facade, never from a
+/// rendered view, which would say what the last render saw. An unsettable
+/// field is refused by `set`'s own refusal, and the whole project tree,
+/// store included, is byte-identical across it.
+#[test]
+fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
+  fn tree(dir: &Path, into: &mut std::collections::BTreeMap<std::path::PathBuf, Vec<u8>>) {
+    for entry in std::fs::read_dir(dir).expect("read the project tree") {
+      let path = entry.expect("a tree entry").path();
+      if path.is_dir() {
+        tree(&path, into);
+      } else {
+        into.insert(
+          path.clone(),
+          std::fs::read(&path).expect("read a tree file"),
+        );
+      }
+    }
+  }
+  let snapshot = |root: &Path| {
+    let mut files = std::collections::BTreeMap::new();
+    tree(root, &mut files);
+    files
+  };
+
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "A thread"]);
+  ok(root, &["wp", "new", "ST0001", "A package"]);
+
+  let body = "The package's real body.\n\nIt spans lines, which is why it comes from a file.\n";
+  let file = root.join("wp-body.md");
+  std::fs::write(&file, body).expect("write the body file");
+  ok(
+    root,
+    &[
+      "set",
+      "intent:///threads/ST0001/wp/01",
+      "body",
+      "--from",
+      file.to_str().expect("a utf-8 path"),
+    ],
+  );
+  ok(root, &["set", "ST0001", "title", "Retitled by set"]);
+
+  let before = snapshot(root);
+  let out = run(root, &["set", "intent:///threads/ST0001", "status", "done"]);
+  let stderr = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(
+    out.status.code(),
+    Some(EXIT_ERROR),
+    "an unsettable field is refused\nstdout: {}\nstderr: {stderr}",
+    stdout(&out)
+  );
+  assert!(
+    stderr.contains("intent st start|done"),
+    "the refusal is set's own, naming the verbs that do move a status: {stderr}"
+  );
+  assert!(
+    snapshot(root) == before,
+    "the refused set wrote to the project"
+  );
+
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext {
+    principal: "test".to_string(),
+    project_id: String::new(),
+    version: env!("CARGO_PKG_VERSION").to_string(),
+  };
+  let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
+  assert_eq!(
+    facade.wp_show("ST0001", 1).expect("the work package").body,
+    body,
+    "the store holds the body set wrote"
+  );
+  assert_eq!(
+    facade.st_show("ST0001").expect("the thread").title,
+    "Retitled by set",
+    "the store holds the title set wrote"
+  );
+}
+
 /// **`st new` then `st start` lands at WIP, without `st triage` in between.**
 ///
 /// The ratified machine made `Triage -> NotStarted -> Wip` the only route, and

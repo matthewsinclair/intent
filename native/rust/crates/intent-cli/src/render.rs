@@ -103,6 +103,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("browse", m)) => browse_verb(m),
     Some(("events", m)) => events(m),
     Some(("fc", m)) => fc(m),
+    Some(("set", m)) => set_verb(m),
     Some(("surface", m)) => surface(m),
     Some(("daemon", m)) => daemon(m),
     Some(("app", m)) => app(m),
@@ -3256,6 +3257,56 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
     Some((verb, _)) => unwired("at", verb),
     None => Err("error: an acceptance test command is required".into()),
   }
+}
+
+/// `intent set <address> <field> (<value> | --from <file>)`: one field of an
+/// addressed entity, written through [`intentsvcs::facade::Facade::set`]
+/// (issues 0154 and 0185).
+///
+/// **THE DOOR ALREADY EXISTED AND NOTHING SCRIPTABLE CALLED IT.** `Facade::set`
+/// is the generic single-field setter that intentd's `Op::Set` and the TUI's
+/// edit handoff both reach. So a work package's body and a thread's title,
+/// objective and context were writable from a terminal session or a browser,
+/// and from no command an agent or a script could run. This arm adds the
+/// scriptable face and nothing else: which fields may be written, what a value
+/// must re-parse as, and every refusal are `set`'s own, so the three faces
+/// cannot disagree about any of them.
+///
+/// The address goes through [`address_of`], the parser `edit` and `browse`
+/// use, so no new address form exists for this verb.
+fn set_verb(m: &ArgMatches) -> Result<(), Failure> {
+  let raw = arg(m, "address")?;
+  let field = arg(m, "field")?;
+  let value = match (opt(m, "value"), opt(m, "from")) {
+    (Some(_), Some(_)) => {
+      return Err(Failure::Error(
+        "error: a value and --from both give the field its new value, so passing both says nothing about which one you meant\n  remedy: pass one of them"
+          .to_string(),
+      ));
+    }
+    (Some(value), None) => value,
+    (None, Some(path)) => std::fs::read_to_string(&path).map_err(|e| {
+      Failure::Error(format!(
+        "error: --from could not read {path}\n  caused by: {e}\n  remedy: name a readable file, or pass the value inline"
+      ))
+    })?,
+    (None, None) => {
+      return Err(Failure::Error(
+        "error: `set` needs the field's new value\n  remedy: pass it inline, or name a file with --from"
+          .to_string(),
+      ));
+    }
+  };
+  let address = address_of(None, &raw)?;
+  let subject = address.to_url();
+  reported(
+    &open()?
+      .set(&address, &field, serde_json::Value::String(value))
+      .map_err(fail)?,
+    &subject,
+    &format!("{field} written"),
+  );
+  Ok(())
 }
 
 /// AC-06.4: full-text search across ST prose, issue bodies and WP text.

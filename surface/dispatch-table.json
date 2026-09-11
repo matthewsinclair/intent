@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 16 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 17 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -8879,6 +8879,64 @@
         }
       ],
       "facade": "graphql"
+    },
+    {
+      "path": "set",
+      "help": "Write one field of an addressed entity -- a thread's title or prose, a work package's body -- from a value or a file",
+      "args": [
+        {
+          "name": "address",
+          "type": "address-or-id",
+          "arity": "1",
+          "note": "Resolved by `address_of`, the parser `edit` and `browse` already use: an `intent://` address, or an id the project's ladder resolves. No new address form is minted for this verb."
+        },
+        {
+          "name": "field",
+          "type": "string",
+          "arity": "1",
+          "note": "A field of the addressed entity's schema. Which fields may be written is `Facade::set`'s answer and is not restated here: an unknown or unsettable one is refused by name, with the verb that does write it."
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "arity": "0..1",
+          "required_unless": "from",
+          "note": "The new value, inline. Exactly one of this or `--from` -- passing both is refused, because it says nothing about which one was meant."
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--from"
+          ],
+          "type": "string",
+          "help": "Read the value from a file, for prose that spans lines",
+          "value": "<file>",
+          "disposition": "keep"
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "Issues 0154 (a work package's body has no door) and 0185 (no verb writes a thread's title, objective, context or body), ruled together by vc on 2026-09-11 as ONE door over the existing `Facade::set` -- the generic single-field setter that intentd's `Op::Set` and the TUI's edit handoff already reach, and that no scriptable surface called. The spelling is the name the door already has in both of those layers, so it adds no vocabulary.",
+      "owner_wp": "WP-05",
+      "acceptance": null,
+      "target": {
+        "state": "new-surface",
+        "ratification": "vc, 2026-09-11, ruling option (1) of ic's design for 0154 + 0185 together: one scriptable door over `Facade::set` rather than per-family flags, because `intent edit` prints or opens a PATH, a different concern from writing a model field, and per-family flags would be two surfaces for one model door. Spelled `set` under vc's pen and reported to hv; a rename before the cut is this one row.",
+        "behaviour": "Writes one field through `Facade::set` and reports what moved. Every refusal is the facade's own: an unknown field names the fields the entity will set, an unsettable one names the verb that writes it, and a value that does not re-parse is refused by name. Writing the value the field already holds reports `already` and writes nothing.",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "vc",
+            "date": "2026-09-11",
+            "record": "intent/whiteboard/ic/wip.md"
+          }
+        ]
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "recoverability": "reversible",
+      "recoverability_anomaly": "REVERSIBLE AND WITHHELD FROM MCP, FOR THE REASON `issues edit` IS: AUTHORSHIP, NOT RECOVERABILITY. The verb can write any value back, including the previous one, but it cannot TELL you the previous one -- the prior prose survives only in the event log -- and what it REPLACES is prose a human wrote: a thread's objective, a work package's body. An agent rewriting a human's authored prose is a different act from an agent moving a status, and no ruling grants it on the machine face. Withholding is the recoverable error: if it is wrong, a flag flips."
     }
   ],
   "provenance": {
@@ -9016,8 +9074,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 50,
-      "census_note": "50 since 2026-09-11: `ac show` (issue 0168, vc's option (a)).",
+      "n": 51,
+      "census_note": "51 since 2026-09-11: `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -9373,7 +9431,8 @@
       "browse",
       "explore",
       "help",
-      "graphql"
+      "graphql",
+      "set"
     ],
     "shipped": [
       "st",
@@ -9510,7 +9569,8 @@
       "browse",
       "explore",
       "help",
-      "graphql"
+      "graphql",
+      "set"
     ],
     "retired": [
       "st repair",
@@ -9650,7 +9710,8 @@
       "browse",
       "explore",
       "help",
-      "graphql"
+      "graphql",
+      "set"
     ],
     "self_loop": [
       "ac descope",
