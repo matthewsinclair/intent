@@ -33,7 +33,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                              |
 | --- | ------ | ------ | ---- | ----------------------------------------------------------------------------------- |
-| 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                            |
 | 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.              |
 | 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
 | 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
