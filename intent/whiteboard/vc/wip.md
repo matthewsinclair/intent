@@ -33,7 +33,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
    - run_tests.sh self-contained, test_helper on v3 (decision 6), tests.yml and pr-checks.yml on v3 (86 paths).
      The gate blocked it ONLY on step 1's rows. dc re-applies, re-gates, runs the release dry-run and lands.
 3. **cc, then ic: the 16 mixed bats files, rebased onto dc's prune.**
-   - cc: FIX `critic --rules <dir>` (declared, silently reads canon). Its own commit, S, and stop if it is bigger. Then the surgery on its eight (rulings A-G).
+   - cc: FIX `critic --rules <dir>` (declared, silently reads canon). Its own commit, S, and stop if it is bigger. Then the surgery on its eight (rulings A-G). BANKED: fix at S in `wt-cut` (patch ac006-critic-rules.patch, sha256 d208f18fc63598ea). critic_config 6 ruled: the critic WARNS on an unreadable project config (never refuses: the gate runs in every estate), and the fixture gets a valid config.
    - ic: its eight, rulings R1-R12. R3 FIXES the release script's second SIDECAR_FILES home, with a mandatory dry-run diff. rule_pack_rust is ruled (A): a fence column.
 4. **vc: the full suite, green, in a private worktree with an in-tree target** (an out-of-tree CARGO_TARGET_DIR fakes 36 failures). Rust was 2353/0 at b9fdf0f4. Shell: run_tests.sh must be green. Then dc regenerates the WHOLE docs/reference at that sha (ST0068 AC-04.2).
 5. **hv runs `! bin/devbin build release --patch`.** Its confirm gate stays human; never --no-confirm. It stamps 3.0.1, commits, tags, pushes both remotes and creates the GitHub release. The CHANGELOG reads `## [3.0.1] - in progress`, and the script dates it.
