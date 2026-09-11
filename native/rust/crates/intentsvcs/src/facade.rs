@@ -3741,7 +3741,17 @@ impl Facade {
 
   pub fn sync_overwrite(&self, scope: &SyncScope) -> Result<Vec<String>, FacadeError> {
     let (stored_threads, stored_issues) = self.store.load_canon().map_err(FacadeError::Store)?;
-    let on_disk = ingest::read(&self.project)?;
+    let mut on_disk = ingest::read(&self.project)?;
+    // **THE WRITE CARRIES DISK ATTACHMENTS INTO CANON, SO THE PREVIEW MUST SEE
+    // WHAT IT WILL CARRY** (0276). `ingest::read` never reads them, so a
+    // committed attachment whose bytes had moved was ingested under "nothing
+    // the store already held was overwritten". This is the write's own
+    // function, so the preview and the act cannot disagree about what changes.
+    //
+    // Its refusals are not reported here: the write refuses on exactly these
+    // findings and names them itself, so a run that proceeds never carries
+    // them. This preview answers what a run that PROCEEDS would change.
+    let _refused_by_the_write = ingest::collect_attachments_into(&self.project, &mut on_disk);
     let stored_threads: Vec<Thread> = stored_threads
       .into_iter()
       .filter(|t| scope.selects(&t.id))
@@ -3756,7 +3766,30 @@ impl Facade {
     for thread in &stored_threads {
       match on_disk.threads.iter().find(|t| t.id == thread.id) {
         Some(same) if same == thread => {}
-        Some(_) => out.push(format!("{}: differs on disk", thread.id)),
+        Some(same) => {
+          // Named per attachment, the way a thread is named, because a reader
+          // told only "differs" goes looking in the JSON, and the change is in
+          // a markdown file beside it.
+          let diverged: Vec<&str> = thread
+            .attachments
+            .iter()
+            .filter(|held| {
+              same
+                .attachments
+                .iter()
+                .any(|disk| disk.path == held.path && disk != *held)
+            })
+            .map(|held| held.path.as_str())
+            .collect();
+          let mut rest = same.clone();
+          rest.attachments = thread.attachments.clone();
+          if rest != *thread || diverged.is_empty() {
+            out.push(format!("{}: differs on disk", thread.id));
+          }
+          for path in diverged {
+            out.push(format!("{}: attachment {path} differs on disk", thread.id));
+          }
+        }
         None => out.push(format!("{}: absent from disk, would be DELETED", thread.id)),
       }
     }

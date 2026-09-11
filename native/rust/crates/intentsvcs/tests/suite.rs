@@ -344,6 +344,8 @@ mod store_schema_version;
 mod subagents_payload;
 #[path = "sync_direction.rs"]
 mod sync_direction;
+#[path = "sync_overwrite_names_a_diverged_attachment.rs"]
+mod sync_overwrite_names_a_diverged_attachment;
 #[path = "sync_reports_uncommitted_attachment.rs"]
 mod sync_reports_uncommitted_attachment;
 #[path = "sync_scan.rs"]
