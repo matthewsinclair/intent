@@ -170,6 +170,22 @@ pub struct Report {
   /// Silence and a clean bill of health are indistinguishable to a reader; a
   /// list is neither.
   pub unattached: Vec<String>,
+  /// The classes this project acknowledges, each with its reason and the
+  /// findings it would otherwise have counted (issue 0065, hv decision 14).
+  ///
+  /// **MOVED HERE OUT OF `findings`, WHICH IS HOW THEY LEAVE THE COUNT AND THE
+  /// EXIT CODE WITHOUT LEAVING THE REPORT.** Every acknowledged class appears,
+  /// including one with no findings this run, so a decision to keep something
+  /// is visible on every run that honours it.
+  pub acknowledged: Vec<Acknowledged>,
+}
+
+/// One acknowledged class: why it is kept, and what it found this run.
+#[derive(Debug, Clone)]
+pub struct Acknowledged {
+  pub class: FindingClass,
+  pub reason: String,
+  pub findings: Vec<Finding>,
 }
 
 impl Report {
@@ -256,7 +272,61 @@ impl Report {
 /// simply not answerable without one, and reporting "no backup" because the
 /// store could not be read would be a confident wrong answer at the moment a
 /// user is least able to check it.
+///
+/// **The project's acknowledgements are applied LAST, to whatever report the
+/// checks produced** -- including the early returns below -- so no path out
+/// of the checks can skip them.
 pub fn diagnose(
+  project: &Project,
+  ctx: &RenderContext<'_>,
+  store: Option<&crate::store::Store>,
+  scope: Scope,
+) -> Report {
+  let mut report = examine(project, ctx, store, scope);
+  let config = project.relative(&Project::config_path(project.root()));
+  acknowledge(&mut report, &project.config().doctor, &config);
+  report
+}
+
+/// Move each acknowledged class's findings out of the verdict and into
+/// [`Report::acknowledged`] (issue 0065, hv decision 14).
+///
+/// **The key must be a name `doctor` prints**, so it is read back through the
+/// class's wire spelling and nothing looser. One that names no class
+/// acknowledges nothing and is reported as a setting nothing can honour -- a
+/// typo must not silence a check. **Those findings join the verdict AFTER the
+/// loop**, so acknowledging `unhonourable-setting` cannot hide them.
+fn acknowledge(report: &mut Report, doctor: &crate::project::DoctorConfig, config: &str) {
+  let mut unknown = Vec::new();
+  for (name, reason) in &doctor.acknowledged {
+    let class = serde_json::from_value::<FindingClass>(serde_json::Value::String(name.clone()))
+      .ok()
+      .filter(|class| class.as_str() == name);
+    let Some(class) = class else {
+      unknown.push(Finding::new(
+        config,
+        FindingClass::UnhonourableSetting,
+        format!(
+          "`doctor.acknowledged` names `{name}`, which is not a class `doctor` reports, so it acknowledges nothing -- use the class name exactly as `doctor` prints it, eg `backup-stale`"
+        ),
+      ));
+      continue;
+    };
+    let (findings, kept) = std::mem::take(&mut report.findings)
+      .into_iter()
+      .partition(|f| f.class == class);
+    report.findings = kept;
+    report.acknowledged.push(Acknowledged {
+      class,
+      reason: reason.clone(),
+      findings,
+    });
+  }
+  report.findings.extend(unknown);
+}
+
+/// Every check, before the project's acknowledgements are applied.
+fn examine(
   project: &Project,
   ctx: &RenderContext<'_>,
   store: Option<&crate::store::Store>,

@@ -4961,6 +4961,21 @@ fn advisory_suffix(report: &intentsvcs::doctor::Report) -> String {
   }
 }
 
+/// What the project's acknowledgements took out of the count, on the summary
+/// line, which survives `--quiet` (issue 0065). Silent at zero: nothing left
+/// the count, so there is nothing to announce.
+fn acknowledged_suffix(report: &intentsvcs::doctor::Report) -> String {
+  match report
+    .acknowledged
+    .iter()
+    .map(|a| a.findings.len())
+    .sum::<usize>()
+  {
+    0 => String::new(),
+    n => format!(" -- {n} acknowledged, not counted"),
+  }
+}
+
 /// What the run's `--scope` took away, on the summary line.
 ///
 /// **IT RIDES THE SUMMARY BECAUSE THE SUMMARY IS THE ONE LINE THAT SURVIVES
@@ -5176,6 +5191,25 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // member of a group headed by that class is the same duplication one field
   // over.
   print_grouped(report.findings.iter().filter(|f| f.class.is_actionable()));
+  // **AN ACKNOWLEDGED CLASS STILL PRINTS, AS ITS NAME, ITS REASON AND ITS
+  // COUNT** (issue 0065, hv decision 14). It has left the verdict, not the
+  // report; its members are behind `--verbose` like any other uncounted line,
+  // and under `--quiet` the summary's suffix still says it is there.
+  if !quiet {
+    for ack in &report.acknowledged {
+      println!(
+        "acknowledged: {} -- {} ({} finding(s))",
+        ack.class.as_str(),
+        ack.reason,
+        ack.findings.len()
+      );
+      if verbose {
+        for finding in &ack.findings {
+          println!("  {}", finding.where_and_what());
+        }
+      }
+    }
+  }
   // **THE UNCOUNTED NOTES ARE GROUPED BY CLASS, AND THE REMEDY PRINTS ONCE PER
   // CLASS RATHER THAN ONCE PER NOTE.**
   //
@@ -5270,7 +5304,12 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     report.issues_checked,
     report.views_checked,
     report.files_checked,
-    format!("{}{}", advisory_suffix(&report), scope_suffix(&report))
+    format!(
+      "{}{}{}",
+      advisory_suffix(&report),
+      acknowledged_suffix(&report),
+      scope_suffix(&report)
+    )
   );
   if report.is_healthy() {
     Ok(())
@@ -10536,6 +10575,18 @@ pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Va
     // of an estate hiding nothing and one hiding five hundred.
     "scope": report.scope.wire(),
     "out_of_scope": report.out_of_scope,
+    // Out of `findings` and out of `healthy`, never out of the document
+    // (issue 0065): each acknowledged class with its reason and its findings.
+    "acknowledged": report
+      .acknowledged
+      .iter()
+      .map(|a| serde_json::json!({
+        "class": a.class.as_str(),
+        "acknowledged": true,
+        "reason": a.reason,
+        "findings": a.findings,
+      }))
+      .collect::<Vec<_>>(),
   })
 }
 

@@ -32,6 +32,8 @@ mod all_flag_reaches_every_unit;
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
+mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_narrowed_render_names_its_scope.rs"]
 mod a_narrowed_render_names_its_scope;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]

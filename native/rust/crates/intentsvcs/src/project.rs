@@ -416,6 +416,10 @@ pub struct Config {
   /// schedule became a key, hence the default.
   #[serde(default)]
   pub backup: BackupConfig,
+  /// The `doctor` block (issue 0065, hv decision 14). Absent unless a project
+  /// has acknowledged something, and never written when empty.
+  #[serde(default, skip_serializing_if = "DoctorConfig::is_empty")]
+  pub doctor: DoctorConfig,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
   ///
@@ -690,6 +694,30 @@ fn changed_members(
     }
   }
   Members(out)
+}
+
+/// The `doctor` block: finding classes this project has decided to keep.
+///
+/// **An acknowledgement moves a class OUT OF THE VERDICT AND NEVER OUT OF THE
+/// REPORT** (hv, decision 14, on issue 0065). The class still runs and still
+/// prints, as its name, this reason and its count; what it stops doing is
+/// counting and failing the run. A check that disappears is worse than one
+/// that shouts, so there is no form of this that hides one.
+///
+/// **In config because it is committed, per-project and read in a diff** --
+/// the place a reader can see and audit a decision to keep something.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DoctorConfig {
+  /// Finding class -> why it is kept. The key is the class's name as `doctor`
+  /// prints it (eg `backup-stale`); one naming no class is itself reported.
+  #[serde(default)]
+  pub acknowledged: std::collections::BTreeMap<String, String>,
+}
+
+impl DoctorConfig {
+  fn is_empty(&self) -> bool {
+    self.acknowledged.is_empty()
+  }
 }
 
 /// The `todo` block: how much of the DONE bucket a TERMINAL render shows.
@@ -2085,6 +2113,7 @@ mod tests {
       languages: vec!["rust".to_string(), "elixir".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };
 
@@ -2117,6 +2146,7 @@ mod tests {
       languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };
 
