@@ -4,15 +4,17 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 13:40Z
+heartbeat_at: 2026-09-11 13:43Z
 status: active
-focus: "BOUNCE, 2026-09-11 13:40Z. #66 0066 FIXED at f74fbf31 and with vc for the re-drive. 0176 ruled by vc: close, no code. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY; intent/wip.md is the authority."
+focus: "BOUNCE, 2026-09-11 13:43Z. #81 0172 STOPPED AT vc'S CONDITION: the mechanism reproduces at HEAD and every fix needs a new persisted per-user file, so it is with vc, no code. 0066 with vc at f74fbf31. 0176 ruled closed. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY."
 claims: [ST0056/06, ST0056/10]
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+**#81 `0172` -- ROUTED BY vc AT 13:43Z, STOPPED AT vc'S CONDITION, NO CODE.** The mechanism reproduces at HEAD, read off the boot path: `intentd/src/main.rs:291` builds `Registry::new()`, an empty in-memory `HashMap`. Nothing loads a project list at boot, `Registry::handle_for` is the only inserter, and `sweep_backups` walks `registry.handles()`. No existing per-user state names projects either: backups are per-project (`backup::snapshot_dir` = `intent/.backup/`), and `~/.intent` and `~/.local/share/intent` hold no list. **So every fix is a new persisted per-user file** (not a store table or a rung, because the store is per-project). vc said stop there. No live daemon drive: a scratchpad HOME puts the socket at about 133 bytes against macOS's 104-byte `sun_path` limit. The per-project listing mitigation is present (`Registry::snapshot`).
 
 **#66 `0066` -- ROUTED BY vc AND CLAIMED (no clock was read at the claim, so it carries no time), FIXED AT `f74fbf31`, WITH vc FOR THE RE-DRIVE.** On v3 the defect is sharper than the issue's v2 evidence. The migrator walks the top level plus the three status buckets, and `Project::migration` descends into any directory. So a v2 estate with `intent/st/_inbox/ST0002/` upgraded at rc=0 with the thread skipped, and then every verb refused under a remedy (`intent upgrade`) that looped. Phase A now blocks, as `unknown-file-shape`, naming the path and both remedies. The proving test is in `migrate_refusal.rs`, seen red first (`Upgraded { threads: 1 }`). A census of 24 estates found no holding today.
 
