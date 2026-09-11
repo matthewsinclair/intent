@@ -98,7 +98,7 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 v2 sources read as though a missing-argument error prints the usage block. It never does.
 
 - **v2:** `error()` ends in `exit 1`, so every `error "..."; usage` pair has a dead `usage`. Seven sites in bin/intent_st alone (311, 450, 540, 603, 1048, 1105, 1620).
-- **Evidence:** `intent st` bare measured at exit 1, stdout 0B, stderr 40B -- no usage block reached stdout.
+- **Evidence:** `intent st` bare measured at exit 1, output on both streams -- no usage block reached stdout.
 - **Target:** `pending-hv`
 - **Open question for hv:** v3 renders help from this table, so printing usage on a usage error is nearly free. Do we (a) reproduce v2 -- terse `error:` line only, or (b) `corrected` -- error line plus the command's usage? (b) is what the dead code shows v2 INTENDED. Either way the exit code stays 1 per INV-02.
 
@@ -210,8 +210,8 @@ Manage steel threads for the project
   - `1` -- bare -- `error: Steel thread command is required`
   - `1` -- --help / -h / help -- usage block printed, exit 1
   - `1` -- unknown verb -- `error: Unknown command: <verb>`
-- **stdout:** usage block (2330B) on the --help path only
-- **stderr:** `error: ...` on the bare and unknown-verb paths (40B / 41B)
+- **stdout:** usage block on the --help path only
+- **stderr:** `error: ...` on the bare and unknown-verb paths
 - **Defects observed in v2:**
   - INV-05 at bare invocation (bin/intent_st:1620)
   - INV-07 at `st --help` / `-h` / `help`
@@ -670,11 +670,11 @@ Organize ST files in directories by status
 - **Exit codes:**
   - `0` -- swept
   - `1` -- `error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`
-- **stdout:** `Already organized: <ID> in intent/st/<STATUS>` per thread (73B for one thread in a fresh project)
+- **stdout:** `Already organized: <ID> in intent/st/<STATUS>` per thread
 - **stderr:** `error: ...`; a move collision also prints mv's raw stderr
 - **Observed notes:** `organise` is an alias ONLY here, one level down. `intent organise` at top level is `error: Unknown command 'organise'` -- measured both.
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
-- **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output).
+- **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (different output, nothing shared).
 - **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 
@@ -1024,11 +1024,11 @@ Acceptance criteria commands
 - **Arguments:**
   - `command` (subcommand, arity `1`)
 - **Exit codes:**
-  - `1` -- bare -- prints the 1341B shared usage block to STDOUT and exits 1
+  - `1` -- bare -- prints the shared usage block to STDOUT and exits 1
   - `1` -- `--help` parsed as an unknown verb
   - `1` -- unknown verb -- names the valid set
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the shared ac/at usage block (1341B), on STDOUT
+- **stdout:** the shared ac/at usage block, on STDOUT
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - INV-06 at usage to STDOUT on a failing invocation
@@ -1373,7 +1373,7 @@ Acceptance test commands
   - `1` -- `--help` parsed as an unknown verb
   - `1` -- unknown verb -- names the valid set
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the shared ac/at usage block (1341B), on STDOUT
+- **stdout:** the shared ac/at usage block, on STDOUT
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - INV-06 at usage to STDOUT on a failing invocation
@@ -1629,7 +1629,7 @@ Track issues without the ceremony of a steel thread
     - **disposition basis:** Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.
 - **Exit codes:**
   - `0` -- bare -- defaults to `list`, prints `no open issues` and exits 0
-  - `0` -- `--help` -- 577B usage to STDOUT, exit 0
+  - `0` -- `--help` -- usage to STDOUT, exit 0
   - `1` -- unknown verb -- `error: Unknown issues command '<v>'. Run 'intent issues help' for usage.`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** the issue list, or the usage block
@@ -1888,7 +1888,7 @@ Show intent/todo.md (generates it if absent)
     - **exposed on mcp:** false
 - **Exit codes:**
   - `0` -- bare -- prints the view, generating the file if absent
-  - `1` -- `--help` prints 1077B usage to STDOUT and exits 1
+  - `1` -- `--help` prints usage to STDOUT and exits 1
   - `1` -- unknown verb -- `error: Unknown todo command: <v>. Run 'intent todo help' for usage.`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** the DOING / TODO / DONE view
@@ -2042,15 +2042,15 @@ Show the Intent process overview and project status
 
 - **v2:** bin/intent_info
 - **Exit codes:**
-  - `0` -- bare -- 595B to stdout
-  - `0` -- `--help` -- IDENTICAL 595B output; the flag is not parsed, merely ignored
-  - `0` -- unknown flag -- also 595B, exit 0
-  - `0` -- outside a project -- 374B, exit 0; this command does NOT gate
-- **stdout:** the overview (595B in a project, 374B outside one)
+  - `0` -- bare -- to stdout
+  - `0` -- `--help` -- IDENTICAL output; the flag is not parsed, merely ignored
+  - `0` -- unknown flag -- also exit 0
+  - `0` -- outside a project -- exit 0; this command does NOT gate
+- **stdout:** the overview (different in a project and outside one)
 - **stderr:** --
 - **Defects observed in v2:**
   - INV-08 at `intent info --zzz` succeeds silently at exit 0
-- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown FLAGS and unknown POSITIONALS both refused, exit 1 per INV-02 -- clap rejects unrecognised arguments by default, which is what the ratification calls forced rather than chosen. HISTORY, kept because the mechanism recurs and this row is the only place it is written down: the row shipped the flag half ONLY, because its own `args[0]` declared a catch-all `ignored` slot (`type: any`, `arity: 0..n`) which instructed clap to accept every positional -- and clap then rendered that slot into the USER-FACING HELP as `Usage: intent info [IGNORED]...` with an empty description, so the slot was not merely inert, it was documented. The correction was defeated by a declaration on the same row. That slot had been carried forward from the v2 measurement in `observed` (where it is correct, and where it stays) into a v3 declaration (where it was the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. Measured 2026-08-17 BEFORE the change: `info --zzz` exit 1 at 41B, `info NOSUCHTHING` byte-identical to bare at exit 0 (606B both), `info --help` 149B rendering the `[IGNORED]...` slot. AFTER: `info NOSUCHTHING` exit 1 with `unexpected argument`, bare output byte-identical to before, help down to 107B with the slot gone. THE BOUND: vc's corrected differential sweep -- the sweep at commit `e7dbfd3e`, its denominator corrected at `6dd041c1` -- probed 104 commands three ways each, **of which 103 was the population that should have run**: the exclusion list was short by one and `claude upgrade` was probed three times, inert (exit 2, writes nothing, verified under a sandboxed HOME), so the finding is untouched and only the denominator was wrong. It and found the unknown-positional arm swallowed by exactly ONE -- this row -- with the unknown-flag arm refused by all 104. So this is the last member of INV-08's positional half and the fix completes the class rather than chipping at it. **DO NOT CITE `flag refused: 103, pos refused: 103` FOR THIS.** That pair is 0044's RETRACTED first run, whose hash included `intent info`'s own `Location: <cwd>` line so no two runs could ever compare equal; the issue prints it as an example of what a dead instrument looks like, and ic cited it here as the bound for several hours before checking it at source. It also collides numerically with the corrected `populations.probeable` of 103, which is a different quantity again. Slot dropped 2026-08-17 by ic under vc's 03:48Z ruling.
+- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown FLAGS and unknown POSITIONALS both refused, exit 1 per INV-02 -- clap rejects unrecognised arguments by default, which is what the ratification calls forced rather than chosen. HISTORY, kept because the mechanism recurs and this row is the only place it is written down: the row shipped the flag half ONLY, because its own `args[0]` declared a catch-all `ignored` slot (`type: any`, `arity: 0..n`) which instructed clap to accept every positional -- and clap then rendered that slot into the USER-FACING HELP as `Usage: intent info [IGNORED]...` with an empty description, so the slot was not merely inert, it was documented. The correction was defeated by a declaration on the same row. That slot had been carried forward from the v2 measurement in `observed` (where it is correct, and where it stays) into a v3 declaration (where it was the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. Measured 2026-08-17 BEFORE the change: `info --zzz` exit 1, `info NOSUCHTHING` byte-identical to bare at exit 0, `info --help` rendering the `[IGNORED]...` slot. AFTER: `info NOSUCHTHING` exit 1 with `unexpected argument`, bare output byte-identical to before, help down to with the slot gone. THE BOUND: vc's corrected differential sweep -- the sweep at commit `e7dbfd3e`, its denominator corrected at `6dd041c1` -- probed 104 commands three ways each, **of which 103 was the population that should have run**: the exclusion list was short by one and `claude upgrade` was probed three times, inert (exit 2, writes nothing, verified under a sandboxed HOME), so the finding is untouched and only the denominator was wrong. It and found the unknown-positional arm swallowed by exactly ONE -- this row -- with the unknown-flag arm refused by all 104. So this is the last member of INV-08's positional half and the fix completes the class rather than chipping at it. **DO NOT CITE `flag refused: 103, pos refused: 103` FOR THIS.** That pair is 0044's RETRACTED first run, whose hash included `intent info`'s own `Location: <cwd>` line so no two runs could ever compare equal; the issue prints it as an example of what a dead instrument looks like, and ic cited it here as the bound for several hours before checking it at source. It also collides numerically with the corrected `populations.probeable` of 103, which is a different quantity again. Slot dropped 2026-08-17 by ic under vc's 03:48Z ruling.
 - **rulings:**
   - `0.state`: ratified
   - `0.authority`: hv
@@ -2091,13 +2091,13 @@ Display the resolved project configuration
   - `0` -- `--help` -- also zero bytes
   - `0` -- unknown flag -- also zero bytes, exit 0
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** nothing (0B)
-- **stderr:** nothing (0B), except the project gate outside a project
+- **stdout:** nothing
+- **stderr:** nothing, except the project gate outside a project
 - **Defects observed in v2:**
   - INV-08 at `intent config --zzz` succeeds silently at exit 0
   - Produces no output whatsoever in a project. A user cannot distinguish 'ran and printed the empty config' from 'did nothing'.
 - **Target:** `undefined` -- ratified: vc ruling, 2026-08-14 -- the fifth parity class, opened on this entry; `config` is its first member -- behaviour: v3 prints the resolved project configuration. This is DESIGNED, not ported and not corrected.
-- **Note:** v2 exhibits no behaviour here at all (0B on both streams, exit 0), so there is nothing to be faithful to and nothing to correct. Recording it as `corrected` would have hidden a design decision inside a bug-fix class, and design decisions need a different reviewer.
+- **Note:** v2 exhibits no behaviour here at all (no output on either stream, exit 0), so there is nothing to be faithful to and nothing to correct. Recording it as `corrected` would have hidden a design decision inside a bug-fix class, and design decisions need a different reviewer.
 - **keys backup:**
   - `ratification`: D35 (hv, 2026-08-15) puts the backup schedule and retention in `intent/.config/config.json`, read through `intent config`. Key names are SURFACE, so ic names them and cc implements against these; cc was told not to invent them. Named 2026-08-15 to unblock AC-03.10.
   - `shape`: A nested `backup` object, on the existing `plugins` precedent -- config.json already groups a subsystem's settings under one object rather than flattening them behind a prefix. Single-word snake_case keys are the file's convention throughout (`intent_version`, `project_name`, `st_prefix`, `dft_width`, `intent_dir`).
@@ -2232,7 +2232,7 @@ First-time setup: create global Intent configuration
 - **Owning work package:** WP-06
 - **BATS coverage:** 16 burning test(s) across 2 file(s) -- **covered**
 
-- Runs OUTSIDE a project by design (measured: exit 0, 982B). It is one of the global commands.
+- Runs OUTSIDE a project by design (measured: exit 0). It is one of the global commands.
 - Its own usage block says `Usage: intent_bootstrap [OPTIONS]` and `Initial setup for Intent v2.0.0` -- it names the underlying script rather than the `intent bootstrap` the user typed, and the version is nine minors stale. Both retire when help is generated from this table.
 
 | command     | args | flags                             | help                                                 | disposition |
@@ -2254,8 +2254,8 @@ First-time setup: create global Intent configuration
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `0` -- bare -- 1161B in a project, 982B outside one
-  - `0` -- `--help` -- 399B usage, exit 0
+  - `0` -- bare -- different output in a project and outside one
+  - `0` -- `--help` -- usage, exit 0
   - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
 - **stdout:** setup progress and instructions
 - **stderr:** the unknown-option message
@@ -2276,7 +2276,7 @@ Diagnose common Intent configuration issues
 - **Owning work package:** WP-06
 - **BATS coverage:** 11 burning test(s) across 1 file(s) -- **covered**
 
-- Runs outside a project (measured: exit 0, 397B), so it is a global command.
+- Runs outside a project (measured: exit 0), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
 
 | command  | args | flags                                                                                      | help                                        | disposition |
@@ -2314,8 +2314,8 @@ Diagnose common Intent configuration issues
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `0` -- bare -- 563B, exit 0 whether or not findings exist
-  - `0` -- `--help` -- 384B, exit 0
+  - `0` -- bare -- exit 0 whether or not findings exist
+  - `0` -- `--help` -- exit 0
   - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
 - **stdout:** check results (checks 1..4e)
 - **stderr:** the unknown-option message
@@ -2359,8 +2359,8 @@ Upgrade an Intent project to the current version
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `0` -- bare -- 78B, `Current version: 2.19.0`
-  - `0` -- `--help` -- 593B, exit 0
+  - `0` -- bare -- `Current version: 2.19.0`
+  - `0` -- `--help` -- exit 0
   - `1` -- unknown flag -- `error: Unknown option: ...`
   - `1` -- outside a project -- supplies its OWN message, not the standard gate (INV-03 exception)
 - **stdout:** the convergent ledger walk
@@ -2383,7 +2383,7 @@ Organize steel threads into status directories based on their metadata
 - **Owning work package:** --
 - **BATS coverage:** 3 burning test(s) across 1 file(s) -- **covered**
 
-- **A live Highlander violation, registered in the very file that exists to prevent it.** MODULES.md gives `bin/intent_organize` this job AND gives `bin/intent_st` an `organize` verb. Measured against one thread in a fresh project the two share no output: the top-level form prints `ok: moved 0, kept 0` plus per-directory counts (117B), the `st` form prints `Already organized: ST0001 in intent/st/NOT-STARTED` (73B).
+- **A live Highlander violation, registered in the very file that exists to prevent it.** MODULES.md gives `bin/intent_organize` this job AND gives `bin/intent_st` an `organize` verb. Measured against one thread in a fresh project the two share no output: the top-level form prints `ok: moved 0, kept 0` plus per-directory counts, the `st` form prints `Already organized: ST0001 in intent/st/NOT-STARTED`.
 - **`intent organise` is NOT a top-level alias** -- it answers `error: Unknown command 'organise'`. The alias exists only one level down, at `intent st organise` (normalised at bin/intent_st:289-292). Both measured.
 - The flags differ between the two faces too: this one takes `--dry-run` (dry by request), `st organize` takes `--write` (dry by default). Opposite polarity for the same operation.
 
@@ -2405,8 +2405,8 @@ Organize steel threads into status directories based on their metadata
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `0` -- bare -- 117B
-  - `0` -- `--help` -- 575B, exit 0
+  - `0` -- bare
+  - `0` -- `--help` -- exit 0
   - `1` -- unknown flag
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** `ok: moved N, kept M` plus per-directory counts
@@ -2427,7 +2427,7 @@ Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 - **BATS coverage:** 86 burning test(s) across 4 file(s), plus 1 file(s) that name it but never reach the CLI -- **covered**
 
 - **parity.md's table said this family was just `sync`. Measured: five verbs** -- init, generate, sync, validate, template.
-- A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0, 984B) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
+- A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
 
 | command           | args                | flags             | help                                            | disposition |
 | ----------------- | ------------------- | ----------------- | ----------------------------------------------- | ----------- |
@@ -2446,9 +2446,9 @@ Manage AGENTS.md for Intent projects
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
 - **Exit codes:**
-  - `0` -- bare -- prints 984B usage, exit 0
-  - `0` -- `--help` -- same 984B, exit 0
-  - `1` -- unknown verb -- 1018B on STDOUT, `Unknown command: ...`, exit 1
+  - `0` -- bare -- prints usage, exit 0
+  - `0` -- `--help` -- the same, exit 0
+  - `1` -- unknown verb -- output on STDOUT, `Unknown command: ...`, exit 1
 - **stdout:** the usage block
 - **stderr:** --
 - **Defects observed in v2:**
@@ -2567,7 +2567,7 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **BATS coverage:** 296 burning test(s) across 30 file(s), plus 2 file(s) that name it but never reach the CLI -- **covered**
 
 - The largest family in the surface and the only one needing an explicit arm in `bin/intent` -- every other `bin/intent_<name>` auto-dispatches via the `*)` default case.
-- **`intent claude` bare, `--help`, an unknown flag and outside-a-project all produce the SAME 189B error** (`error: Unknown claude subcommand. Try: ...`). Four distinct conditions, one message: a user who typed `--help` is told they used an unknown subcommand. It also means the family never reaches the project gate (INV-03's first exception).
+- **`intent claude` bare, `--help`, an unknown flag and outside-a-project all produce the SAME error** (`error: Unknown claude subcommand. Try: ...`). Four distinct conditions, one message: a user who typed `--help` is told they used an unknown subcommand. It also means the family never reaches the project gate (INV-03's first exception).
 - **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
 - `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
 
@@ -2591,9 +2591,9 @@ Claude Code integration
 - **Arguments:**
   - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `ws`, `start`
 - **Exit codes:**
-  - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical 189B `error: Unknown claude subcommand. Try: ...`
+  - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical `error: Unknown claude subcommand. Try: ...`
 - **stdout:** --
-- **stderr:** the 189B subcommand list (INV-01 voice, correct stream)
+- **stderr:** the subcommand list (INV-01 voice, correct stream)
 - **Defects observed in v2:**
   - INV-07 at `claude --help` answered as an unknown subcommand
   - Four distinct conditions collapse to one message, so the error cannot tell the user which mistake they made. This is the same-text-for-different-causes collapse AC-04.4 forbids in v3.
@@ -2858,7 +2858,7 @@ Run Intent rule-library critics against source files
 - **Exit codes:**
   - `0` -- clean scan, or `--languages` / `--help`
   - `1` -- findings present at or above --severity-min -- THE MEANINGFUL ONE (INV-04). `bin/intent_critic:348`, immediately after the findings are printed.
-  - `2` -- USAGE ERROR, and the three observed spellings are one thing: bare invocation (1588B usage printed to STDOUT, `:95`), unknown flag (657B of grep's own error on stderr), and a bad positional after a valid lang. All reach `error_out` at `:89` or the no-args help at `:95`.
+  - `2` -- USAGE ERROR, and the three observed spellings are one thing: bare invocation (usage printed to STDOUT, `:95`), unknown flag (grep's own error on stderr), and a bad positional after a valid lang. All reach `error_out` at `:89` or the no-args help at `:95`.
   - `3` -- REFUSED -- a rule could not be armed. `bin/intent_critic:334` and `:347`. Refusal OUTRANKS findings: both codes block, so precedence changes no gate decision, it changes what the caller is TOLD.
 - **stdout:** the findings report, grouped by severity
 - **stderr:** `error: ...` on stderr (INV-01)
@@ -2869,7 +2869,7 @@ Run Intent rule-library critics against source files
 - **Target:** `pending-hv`
 - **Open question for hv:** **WITHDRAWN 2026-08-20, AND THIS ROW IS THE SHARPEST ARTEFACT OF THE INVERSION: IT PROPOSED TO RATIFY THE BUG.** It read _Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02_. **Had hv granted it, usage errors would have moved to exit 1 and findings would have been pinned to exit 2 -- and `lib/templates/hooks/pre-commit.sh:350-369` fails OPEN on 2 and BLOCKS on 1.** Every finding would have sailed through the gate and every typo would have blocked the commit: the gate inverted, in this repo and in every consumer through one symlink, with a ratification behind it. **The row correctly identified that it had a LIVE CONSUMER and correctly called it the highest priority of the 19 -- and both of those were reasons its wrongness would have propagated fastest.** Nothing is owed here now: v2's behaviour is already coherent (0 clean, 1 findings, 2 usage, 3 refused) and v3 reproduces it, so the `corrected` change this row asked for is not merely unnecessary but harmful. See INV-04's `corrected_2026_08_20`.
 - **Note:** Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle.
-- **wp07 owes:** MEASURED DIVERGENCE, RECORDED NOT RULED (cc measured it building 0038; ic recorded it 2026-08-16). **`intent critic` with NO language exits 2 in v2 and 1 in v3.** v2's 2 comes from `critic`'s OWN argument parsing -- it is already in `observed.exit` above as `bare invocation -- 1588B usage printed to STDOUT`. v3's 1 comes from clap under INV-02, which is correct for a usage error everywhere else in the surface. **So this is not a defect in either binary: it is the one place v2 used 2 for a usage error, and WP-07 has to decide whether to reproduce it.** Recorded here because the decision is invisible at the moment it gets made -- whoever wires `critic`'s language validation will be looking at clap's behaviour, which is already right by the general rule, and nothing on the path will mention that this command is the exception. `target.state` stays `pending-hv`: a divergence that needs a ruling is not settled by writing it down. **The wider point 0038 established, and the reason this matters more than one exit code: an exit code is a property of the CALLER's contract, not of the tool.** `critic`'s 2 has a live consumer -- the pre-commit gate reads it today as findings-present -- which is why it is the only unit in this register whose exit code is load-bearing before v3 ships.
+- **wp07 owes:** MEASURED DIVERGENCE, RECORDED NOT RULED (cc measured it building 0038; ic recorded it 2026-08-16). **`intent critic` with NO language exits 2 in v2 and 1 in v3.** v2's 2 comes from `critic`'s OWN argument parsing -- it is already in `observed.exit` above as `bare invocation -- usage printed to STDOUT`. v3's 1 comes from clap under INV-02, which is correct for a usage error everywhere else in the surface. **So this is not a defect in either binary: it is the one place v2 used 2 for a usage error, and WP-07 has to decide whether to reproduce it.** Recorded here because the decision is invisible at the moment it gets made -- whoever wires `critic`'s language validation will be looking at clap's behaviour, which is already right by the general rule, and nothing on the path will mention that this command is the exception. `target.state` stays `pending-hv`: a divergence that needs a ruling is not settled by writing it down. **The wider point 0038 established, and the reason this matters more than one exit code: an exit code is a property of the CALLER's contract, not of the tool.** `critic`'s 2 has a live consumer -- the pre-commit gate reads it today as findings-present -- which is why it is the only unit in this register whose exit code is load-bearing before v3 ships.
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_critic -- no write primitive in the file; it reports and sets an exit code
 
@@ -2903,7 +2903,7 @@ Declared-language management
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
 - **Exit codes:**
-  - `0` -- bare -- 1149B usage, exit 0
+  - `0` -- bare -- usage, exit 0
   - `0` -- `--help` -- same, exit 0
   - `1` -- unknown verb -- `error: unknown lang subcommand '<v>'`
   - `0` -- outside a project -- usage, exit 0
@@ -3044,7 +3044,7 @@ LLM-related commands
 - **Arguments:**
   - `subcommand` (subcommand, arity `0..1`)
 - **Exit codes:**
-  - `0` -- bare -- 596B usage, exit 0
+  - `0` -- bare -- usage, exit 0
   - `0` -- `--help` -- same
   - `1` -- unknown subcommand -- `error: Unknown subcommand: <v>`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
@@ -3120,7 +3120,7 @@ Capture project-specific learnings for future LLM sessions
     - **disposition:** keep
 - **Exit codes:**
   - `0` -- captured, or listed
-  - `0` -- bare -- 904B usage, exit 0
+  - `0` -- bare -- usage, exit 0
   - `1` -- unknown flag -- `error: Unknown option: <f>. Run 'intent learn help' for usage.`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** confirmation, or the learnings list
@@ -3157,7 +3157,7 @@ Module registry guardrails
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
 - **Exit codes:**
-  - `0` -- bare -- 673B usage, exit 0
+  - `0` -- bare -- usage, exit 0
   - `0` -- `--help` -- same
   - `1` -- unknown verb -- `error: Unknown modules command: <v>. Run 'intent modules help' for usage.`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
@@ -3219,7 +3219,7 @@ Discover installed Intent plugins and their commands
 - **Owning work package:** WP-06
 - **BATS coverage:** 35 burning test(s) across 3 file(s) -- **covered**
 
-- Runs outside a project (measured: exit 0, 1076B).
+- Runs outside a project (measured: exit 0).
 
 | command       | args      | flags | help                                                 | disposition |
 | ------------- | --------- | ----- | ---------------------------------------------------- | ----------- |
@@ -3235,8 +3235,8 @@ Discover installed Intent plugins and their commands
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
 - **Exit codes:**
-  - `0` -- bare -- defaults to `list`, 1076B
-  - `0` -- `--help` -- 371B, exit 0
+  - `0` -- bare -- defaults to `list`
+  - `0` -- `--help` -- exit 0
   - `1` -- unknown verb -- `error: Unknown plugin subcommand '<v>'. Run 'intent plugin help' for usage.`
   - `0` -- outside a project -- lists, exit 0
 - **stdout:** the plugin list
@@ -3302,7 +3302,7 @@ Manage Intent user extensions
   - `command` (subcommand, arity `0..1`), default `list`
 - **Exit codes:**
   - `0` -- bare -- defaults to `list`; `ok: no extensions installed (<path> does not exist)`
-  - `0` -- `--help` -- 672B, exit 0
+  - `0` -- `--help` -- exit 0
   - `1` -- unknown verb -- `error: unknown ext subcommand '<v>'`
   - `0` -- outside a project -- lists, exit 0
 - **stdout:** the extension list
@@ -3437,9 +3437,9 @@ Generate LLM-oriented directory summaries
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `1` -- bare -- prints 1548B usage to STDOUT and exits 1
+  - `1` -- bare -- prints usage to STDOUT and exits 1
   - `1` -- `--help` -- identical, exit 1
-  - `1` -- unknown flag -- 1548B on stdout AND 33B on stderr, exit 1
+  - `1` -- unknown flag -- output on stdout AND on stderr, exit 1
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
 - **stdout:** the usage block, or per-directory progress
 - **stderr:** the unknown-option note
@@ -3512,9 +3512,9 @@ Maintain checkbox file indexes
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
-  - `0` -- bare -- prints `[ ]`, 5B, exit 0
-  - `1` -- `--help` -- 1518B usage to STDOUT, exit 1
-  - `1` -- unknown flag -- 1551B on STDOUT, `Unknown option: ...`, exit 1
+  - `0` -- bare -- prints `[ ]`, exit 0
+  - `1` -- `--help` -- usage to STDOUT, exit 1
+  - `1` -- unknown flag -- output on STDOUT, `Unknown option: ...`, exit 1
   - `0` -- outside a project -- prints `[ ]`, exit 0
 - **stdout:** the checkbox line, or the usage block
 - **stderr:** --
@@ -3561,7 +3561,7 @@ Show usage for Intent or one of its commands
 - **Arguments:**
   - `command` (string, arity `0..1`)
 - **Exit codes:**
-  - `0` -- bare -- 2320B command list, exit 0
+  - `0` -- bare -- command list, exit 0
   - `1` -- `--help` -- `error: Unknown command '--help'`, exit 1
   - `1` -- unknown argument -- `error: Unknown command '<arg>'`
   - `0` -- outside a project -- lists, exit 0
@@ -3611,7 +3611,7 @@ Retrofit ST0000 deliverables into brownfield projects
     - **disposition:** retire
     - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
 - **Exit codes:**
-  - `0` -- bare -- prints `Usage: intent st zero install [options]`, 879B, exit 0
+  - `0` -- bare -- prints `Usage: intent st zero install [options]`, exit 0
   - `0` -- `--help` -- same, exit 0
   - `1` -- unknown verb -- `error: Unknown st zero command: <v>. Run 'intent st zero help' for usage.`
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
@@ -3953,7 +3953,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 ### `config` -- HOLE
 
 - **Finding:** NOTHING in the BATS estate invokes `intent config`. Zero files, zero tests.
-- **Why it matters:** This family already has no v2 behaviour to be faithful to (0B on both streams, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.
+- **Why it matters:** This family already has no v2 behaviour to be faithful to (no output on either stream, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.
 - **The trap:** `tests/unit/config.bats` EXISTS and burns 5 of 7, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.
 - **Action:** WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction.
 
