@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 19:38Z
+heartbeat_at: 2026-09-11 19:49Z
 status: active
-focus: "LOCALFOLD 2026-09-11 19:38Z for hv's compact -- not a release. 3.0.1 shipped and globalfolded (c6bdf3c8). Lane empty; HOLD, start nothing until hv sets work."
+focus: "DOC AUDIT, engine lane (hv set it 2026-09-11, vc directs, orders in intent/wip.md at 9a1455a0f). The doc moves to the code; no code written."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **Empty.** 3.0.1 is shipped and nothing of mine is in flight.
+- **Doc audit, engine lane.** The lane and the protocol are in `intent/wip.md`, never a copy here: `lib/templates/**` then the three root files by their verbs; `intent/plugins/claude/rules/**`; `intent/plugins/agents/templates/**`; `intent/llm/*` (cut finding 5); and four `intent/docs` pages. Lane report to vc lists every file with its disposition.
 
 ## TODO
 
@@ -22,7 +22,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work.
+- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work. **Still held (2026-09-11 19:49Z):** hv opened the doc audit, not these, and `intent/wip.md` lists `0177` as post-cut with no owner.
 
 ## Watch-outs
 
