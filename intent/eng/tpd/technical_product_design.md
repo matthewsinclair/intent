@@ -3,6 +3,8 @@ verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Update for Intent v2.4.0 as-bu
 intent_version: 2.4.0
 ---
 
+> Historical: part of the Intent v2.4.0 technical product design, which describes the v2 Bash implementation; its paths, commands and figures are v2.4.0's. Current documentation: [`docs/index.md`](../../../docs/index.md).
+
 # Intent Technical Product Design v2.4.0 (As-Built)
 
 ## Preamble to Claude

@@ -1,3 +1,5 @@
+> Historical: an example project in the Intent v2.4.0 layout. For the current project layout, see [`docs/getting-started.md`](../../docs/getting-started.md).
+
 # Hello World - Intent v2.4.0 Example
 
 This is an example project demonstrating the Intent v2.4.0 structure.

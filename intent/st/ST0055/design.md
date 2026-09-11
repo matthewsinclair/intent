@@ -1,3 +1,5 @@
+> Historical: the design of the v2 Bash `intent issues`. Current reference: [`docs/reference/intent-issues.md`](../../../docs/reference/intent-issues.md).
+
 # Design - ST0055: Add `intent issues` command
 
 ## Approach

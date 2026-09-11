@@ -1,3 +1,5 @@
+> Historical: the as-built record of the v2 Bash `intent issues`. Current reference: [`docs/reference/intent-issues.md`](../../../docs/reference/intent-issues.md).
+
 # Implementation - ST0055: Add `intent issues` command
 
 ## Implementation
