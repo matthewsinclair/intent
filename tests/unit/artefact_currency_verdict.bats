@@ -239,7 +239,7 @@ touch_test_only() {
 @test "_build_inputs_changed returns rc=0 on a TEST-ONLY range -- grep's no-match is not a verdict" {
   touch_test_only
   # THIS SUBSHELL SOURCED `currency.lib` ALONE AND THE ARM CAUGHT IT. After the
-  # 2026-09-05 widening the function needs `SHARED_TARGET_DIRT_SCOPES`, so a
+  # 2026-09-05 widening the function needs the scope sharedtarget.lib loads, so a
   # lone source returns the `noscope` refusal rather than a count -- which is the
   # designed behaviour and exactly why it must not silently default. Sourcing
   # both here matches what every consumer does.
@@ -276,6 +276,22 @@ touch_test_only() {
   [[ "$output" == *"surface"* ]] || fail "the refusal must name the scope it measured, got: $output"
 }
 
+@test "a commit touching only lib/templates/hooks leaves the pair current -- hooks are read live and compiled into nothing" {
+  # The currency range is taken over the MARKER's scope, not the dirt check's
+  # wider one. Over the wider one, a hooks-only commit called a correct pair
+  # behind HEAD and `int cli` refused it (2026-09-11). The companion control is
+  # the surface-only arm above: a compiled-in input outside native/rust still
+  # refuses.
+  plant "$BASE"
+  mkdir -p "$REPO/lib/templates/hooks"
+  echo "# a hook comment" > "$REPO/lib/templates/hooks/pre-commit.sh"
+  git -C "$REPO" add -A
+  git -C "$REPO" commit -qm "hook comment, compiled into nothing"
+  run artefact_currency_verdict "$REL" "$REPO"
+  assert_success
+  [ "$output" = "ok" ] || fail "a hooks-only range must leave the pair current, got: $output"
+}
+
 @test "the scope in the message is DERIVED from the array, not typed beside it" {
   plant "$BASE"
   touch_source
@@ -285,20 +301,20 @@ touch_test_only() {
   [[ "$output" == *"$phrase"* ]] || fail "message does not carry the derived phrase '$phrase': $output"
   # AND THE PHRASE IS NOT A CONSTANT: strip the array and it must change, or this
   # arm passes for a hardcoded string that happens to match.
-  local saved=("${SHARED_TARGET_DIRT_SCOPES[@]}")
-  SHARED_TARGET_DIRT_SCOPES=()
+  local saved=("${SHARED_TARGET_MARKER_SCOPES[@]}")
+  SHARED_TARGET_MARKER_SCOPES=()
   local empty; empty="$(artefact_currency_scope_phrase)"
-  SHARED_TARGET_DIRT_SCOPES=("${saved[@]}")
+  SHARED_TARGET_MARKER_SCOPES=("${saved[@]}")
   [ "$empty" != "$phrase" ] || fail "the phrase did not move when the array was emptied -- it is not derived"
 }
 
 @test "an UNDECLARED scope REFUSES rather than falling back to a narrower default" {
   plant "$BASE"
   touch_source
-  local saved=("${SHARED_TARGET_DIRT_SCOPES[@]}")
-  SHARED_TARGET_DIRT_SCOPES=()
+  local saved=("${SHARED_TARGET_MARKER_SCOPES[@]}")
+  SHARED_TARGET_MARKER_SCOPES=()
   run artefact_currency_verdict "$REL" "$REPO"
-  SHARED_TARGET_DIRT_SCOPES=("${saved[@]}")
+  SHARED_TARGET_MARKER_SCOPES=("${saved[@]}")
   assert_success
   [[ "$output" == refuse:* ]] || fail "an undeclared scope must refuse, got: $output"
   [[ "$output" == *"undeclared"* ]] || fail "the refusal must say WHY, got: $output"

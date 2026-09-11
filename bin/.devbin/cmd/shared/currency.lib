@@ -127,19 +127,20 @@ artefact_pair_marker() {
 
 # artefact_currency_scope_phrase
 #
-# The build-input scope as prose, DERIVED from `SHARED_TARGET_DIRT_SCOPES` and
-# never typed. It exists so the sentence a reader sees and the pathspec the diff
+# The build-input scope as prose, DERIVED from `SHARED_TARGET_MARKER_SCOPES`
+# (the marker's own DIRT_SCOPE, which is what the count is taken over) and never
+# typed. It exists so the sentence a reader sees and the pathspec the diff
 # uses cannot drift: the messages that used to say "under native/rust" said it
 # because a human wrote it there, and one of them stayed right only because
 # the scope had not been widened yet. Prints `an UNDECLARED scope` when the array
 # is missing, which is the honest phrase for the case the verdict refuses on.
 artefact_currency_scope_phrase() {
   local sc out=""
-  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+  if [ -z "${SHARED_TARGET_MARKER_SCOPES+x}" ] || [ "${#SHARED_TARGET_MARKER_SCOPES[@]}" -eq 0 ]; then
     printf 'an UNDECLARED scope'
     return 0
   fi
-  for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+  for sc in "${SHARED_TARGET_MARKER_SCOPES[@]}"; do
     out="$out, ${sc#:(top)}"
   done
   printf '%s' "${out#, }"
@@ -154,7 +155,10 @@ artefact_currency_scope_phrase() {
 # repo and a defaulted one silently restores the defect this rename records.
 _build_inputs_changed() {
   local repo="$1" base="$2" changed kept
-  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+  # OVER THE MARKER'S SCOPE, NOT THE DIRT CHECK'S WIDER ONE: "changed since the
+  # pair's commit" is a question about what the build compiles in, and a commit
+  # touching only lib/templates/hooks changes no byte of the binary.
+  if [ -z "${SHARED_TARGET_MARKER_SCOPES+x}" ] || [ "${#SHARED_TARGET_MARKER_SCOPES[@]}" -eq 0 ]; then
     printf 'noscope'; return 0
   fi
   $GIT_ISOLATED -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
@@ -164,7 +168,7 @@ _build_inputs_changed() {
   # sentinel, and this line used to break that pattern. A swallowed failure left
   # `changed` empty, the count 0 and the verdict `ok` -- THE GUARD FAILING OPEN,
   # which is the one direction an ACTOR on PATH must never fail.
-  if ! changed="$($GIT_ISOLATED -C "$repo" diff --name-only "$base..HEAD" -- "${SHARED_TARGET_DIRT_SCOPES[@]}" 2>/dev/null)"; then
+  if ! changed="$($GIT_ISOLATED -C "$repo" diff --name-only "$base..HEAD" -- "${SHARED_TARGET_MARKER_SCOPES[@]}" 2>/dev/null)"; then
     printf 'nodiff'
     return 0
   fi
@@ -203,7 +207,7 @@ artefact_currency_verdict() {
   n="$(_build_inputs_changed "$repo" "$base")"
   case "$n" in
     noscope)
-      printf 'refuse:the build-input scope is undeclared -- SHARED_TARGET_DIRT_SCOPES is unset or empty, so currency cannot be decided. This is a REFUSAL rather than a narrower default: an empty pathspec means the whole repository and a defaulted one silently restores the single-path comparand this check was widened away from'
+      printf 'refuse:the build-input scope is undeclared -- SHARED_TARGET_MARKER_SCOPES (read from DIRT_SCOPE in source_commit.rs) is unset or empty, so currency cannot be decided. This is a REFUSAL rather than a narrower default: an empty pathspec means the whole repository and a defaulted one silently restores the single-path comparand this check was widened away from'
       return 0 ;;
     unknown)
       printf 'warn:cannot reach git, so currency is undecidable here -- the artefact is not at fault'

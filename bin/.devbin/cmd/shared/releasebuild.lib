@@ -198,20 +198,21 @@ verify_pair() {
   local dir="${1:-$RELEASE_DIR}" mode="${2:-shared}"
   local head sc b bad=0
 
-  # **THE COMPARAND IS READ OVER THE SAME SCOPE THE MARKER USES, AND THE SCOPE
-  # IS NOT COPIED HERE.** `sharedtarget.lib` already declares it once as
-  # `SHARED_TARGET_DIRT_SCOPES`, and this file already sources that lib for
-  # `shared_target_verdict`. A third hand-held copy is exactly the defect found
-  # in `quiet.sh` on 2026-08-26 -- a gate holding its own narrower transcription
-  # of a scope, already drifted, checked by nothing.
+  # **THE COMPARAND IS READ OVER THE SCOPE THE MARKER USES, AND THE SCOPE IS
+  # NOT COPIED HERE.** `sharedtarget.lib` loads it once, as
+  # `SHARED_TARGET_MARKER_SCOPES`, from source_commit.rs's own `DIRT_SCOPE`.
+  # Not over `SHARED_TARGET_DIRT_SCOPES`: that list CONTAINS the marker's scope
+  # for the dirt check, and used here it let a commit touching only
+  # lib/templates/hooks, compiled into nothing, stand in for the pair's commit
+  # and refuse a correct build (2026-09-11). See shared_target_marker_scopes.
   #
   # THE UNSET GUARD IS NOT DEFENSIVE PADDING. `git rev-list -1 HEAD --` with no
   # pathspec means THE WHOLE REPO, which is silently the unscoped behaviour this
-  # change exists to remove -- a refusal that reads as a pass.
-  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
-    die "SHARED_TARGET_DIRT_SCOPES is unset or empty -- an empty pathspec means the WHOLE repo, so this would silently restore the unscoped comparand"
+  # comparison exists to avoid -- a refusal that reads as a pass.
+  if [ -z "${SHARED_TARGET_MARKER_SCOPES+x}" ] || [ "${#SHARED_TARGET_MARKER_SCOPES[@]}" -eq 0 ]; then
+    die "the marker's scope (DIRT_SCOPE in source_commit.rs) is unread or empty -- an empty pathspec means the WHOLE repo, so this would silently restore the unscoped comparand"
   fi
-  head="$(git -C "$PROJECT_ROOT" rev-list -1 HEAD -- "${SHARED_TARGET_DIRT_SCOPES[@]}")" ||
+  head="$(git -C "$PROJECT_ROOT" rev-list -1 HEAD -- "${SHARED_TARGET_MARKER_SCOPES[@]}")" ||
     die "cannot read the build subject's last commit"
   # `rev-list` answers rc 0 with EMPTY output when nothing in scope was ever
   # committed. An empty comparand would make every stamp mismatch, or match an

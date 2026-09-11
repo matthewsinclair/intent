@@ -137,6 +137,45 @@ GIT_ISOLATED="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DI
 # keeps the containment arm able to see that.
 SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design' ':(top)lib/templates' ':(top)lib/templates/llm' ':(top)lib/templates/prj')
 
+# shared_target_marker_scopes <source_commit.rs>
+#
+# Prints the embedded marker's own scope, one pathspec per line, parsed out of
+# `const DIRT_SCOPE` in native/rust/build-support/source_commit.rs. Returns 1 and
+# prints nothing when the constant cannot be read.
+#
+# THE IDENTITY QUESTIONS ARE ASKED OVER THIS, NOT OVER SHARED_TARGET_DIRT_SCOPES.
+# That list CONTAINS the marker's scope on purpose: stricter is the safe
+# direction for DIRT. But "which commit does this pair describe" (verify_pair)
+# and "has a build input changed since it" (currency.lib) must be asked over
+# exactly the paths the build stamps, or a commit touching only the rest of
+# `lib/templates` -- read live out of the install, compiled into nothing --
+# becomes the comparand. A correct pair is then refused as not describing the
+# tree, and called behind HEAD by the currency reader. That refused the delivery
+# rebuild of 2026-09-11: the marker named 2c3a7d2d4, the containment scope's
+# last commit was 469edff77, hook comments only.
+#
+# PARSED, NOT COPIED: the Rust constant stays the one home of the list, and arm
+# 6 of shared_artefact_build_guard.sh reads it through this same function.
+shared_target_marker_scopes() {
+  local src="$1" scopes
+  [ -r "$src" ] || return 1
+  scopes="$(sed -n 's/^const DIRT_SCOPE: &\[&str\] = &\[\(.*\)\];$/\1/p' "$src" |
+    tr ',' '\n' | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//' | grep . || true)"
+  [ -n "$scopes" ] || return 1
+  printf '%s\n' "$scopes"
+}
+
+# The marker scope as an array, loaded once when this lib is sourced, from the
+# source tree this lib belongs to. A parse failure leaves it EMPTY, and every
+# consumer refuses an empty scope by name, because an empty pathspec means the
+# whole repository. So a moved or renamed constant fails closed, in the light.
+SHARED_TARGET_MARKER_SCOPES=()
+_st_marker_src="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)/native/rust/build-support/source_commit.rs"
+if _st_scopes="$(shared_target_marker_scopes "$_st_marker_src")"; then
+  while IFS= read -r _st_s; do SHARED_TARGET_MARKER_SCOPES+=("$_st_s"); done <<< "$_st_scopes"
+fi
+unset _st_marker_src _st_scopes _st_s
+
 # shared_target_dirt <repo>
 #
 # Prints the porcelain status lines for uncommitted paths under the dirt scope,

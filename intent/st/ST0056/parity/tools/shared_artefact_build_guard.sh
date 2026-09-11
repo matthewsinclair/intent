@@ -206,8 +206,9 @@ else
   # DIRT_SCOPE BECAME A LIST ON 2026-08-26 and this parser moved with it, in the
   # same commit, because a reader left behind reports "the constant moved or was
   # renamed" -- a true sentence about the wrong thing.
-  marker_scopes="$(sed -n 's/^const DIRT_SCOPE: &\[&str\] = &\[\(.*\)\];$/\1/p' "$MARKER_SRC" |
-    tr ',' '\n' | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//' | grep .)"
+  # Read through sharedtarget.lib's parser, the one the build and the currency
+  # reader use, so this arm checks the list they actually compare over.
+  marker_scopes="$(shared_target_marker_scopes "$MARKER_SRC" || true)"
   if [ -z "$marker_scopes" ]; then
     fail "arm 6 -- could not read DIRT_SCOPE from $MARKER_SRC; the constant moved, was renamed or changed shape, and an unread scope is not a contained one"
   else
