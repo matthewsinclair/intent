@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 14:38Z
+heartbeat_at: 2026-09-11 14:40Z
 status: active
-focus: "ON THE BOUNCE, 2026-09-11 14:38Z. 0150 landed at c9960b90, with vc. DOING: #71 0259 half 2 (a check answering from a store the same run flags stale says so). vc's column, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FOLDED FOR hv's SECOND PAUSE (2026-09-11 14:40Z, relayed by vc); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. 0150 landed at c9960b90, with vc. ON THE BOUNCE: #71 0259 half 2, not started. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,7 +39,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0259` HALF 2 (#71), claimed 2026-09-11 14:38Z:** a check that answers from the runtime store says so when the same run reports that store stale. NOT the doctor remedy offering to delete `intent/.cache/`. Worktree off HEAD, one proving test red first, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open** (hv's second pause, relayed by vc 2026-09-11 14:40Z; 0259 half 2 was claimed and NOT started). Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
 **With vc, for its re-drive and close:**
 
@@ -52,7 +52,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me, in list order:** `0259` HALF 2 is the last item (in DOING). `0172` moved to cc (vc 2026-09-11). When it lands, ask vc for the column rather than inventing work.
+**vc's column for me:** `0259` HALF 2 is the last item, and the bounce starts there (vc 2026-09-11 14:40Z). `0172` moved to cc. When it lands, ask vc for the column rather than inventing work.
+
+- **`0259` HALF 2 START HERE (#71):** in one `intent doctor` run, `model-inconsistent` flags the runtime store stale while checks computed FROM that store (eg view-skew) print green. A check that answers from the runtime store must say so when the same run reports that store stale. NOT the doctor remedy offering to delete `intent/.cache/` (not on the list). Half 1 is fixed at `d984b077`. Read `intent issues show 0259` section 2 first.
 
 **THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
 
