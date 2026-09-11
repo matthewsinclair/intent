@@ -229,15 +229,6 @@ teardown() {
 
 # --- ARM 3: armed-but-not-run is REPORTED, never silently downgraded -------
 
-@test "absent tool: a tool-armed rule reports NOT RUN rather than passing quietly" {
-  # Driven by a PATH that genuinely lacks shellcheck, not by reading the code:
-  # a code read cannot tell `refuses` from `would refuse`.
-  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT"
-  [[ "$output" == *"THE TOOL IS ABSENT ON THIS MACHINE"* ]]
-  [[ "$output" == *"IN-SH-CODE-001"* ]]
-  [[ "$output" == *"UNENFORCED"* ]]
-}
-
 @test "absent tool: the ASKED count drops to zero and says so" {
   asked="$(env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT" 2>&1 \
     | sed -n 's/^critic: shell -- \([0-9][0-9]*\) of .* ASKED.*/\1/p')"

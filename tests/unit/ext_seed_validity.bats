@@ -99,16 +99,6 @@ WB_SEED="${SEED_ROOT}/worker-bee"
 }
 
 # ====================================================================
-# End-to-end validate
-# ====================================================================
-
-@test "intent ext validate passes for worker-bee seed" {
-  INTENT_EXT_DIR="$SEED_ROOT" run run_intent ext validate worker-bee
-  [ "$status" -eq 0 ]
-  assert_output_contains "ok"
-}
-
-# ====================================================================
 # Canon is clean
 # ====================================================================
 

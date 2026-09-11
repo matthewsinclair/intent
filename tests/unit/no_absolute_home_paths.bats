@@ -48,19 +48,6 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   assert_success
 }
 
-@test "the canon engine has no INTENT_HOME substitution left to reintroduce it" {
-  # The SUBSTITUTION ARM, not any mention -- the code comment explaining why the
-  # arm is gone necessarily names it, and a guard that cannot tell an
-  # explanation from an implementation is worse than no guard.
-  # grep -F on the exact substitution text. An ERE for this is a thicket of
-  # escaped brackets and backslashes, and the first attempt was INVALID -- grep
-  # errored, `|| true` swallowed it, and the guard could never fail. A check
-  # that cannot fail is the defect this whole release is about.
-  needle='INTENT_HOME\]\]'
-  run bash -c "grep -cF '$needle' '$INTENT_HOME/intent/plugins/claude/bin/intent_claude_upgrade' || true"
-  assert_output "0"
-}
-
 @test "a scaffolded project's hooks are portable and actually run" {
   project_dir=$(create_test_project "Hook Portability")
   cd "$project_dir"

@@ -15,9 +15,12 @@ _co_rule() {
     "$VALID_FIXTURE" > "$dest"
 }
 
+# The id is one no canon rule declares: v3 validates a file against canon's ids,
+# and IN-CO-STYLE-001 is a real rule, so it is refused as a duplicate before its
+# shape is ever the question.
 @test "rules validate accepts a well-formed IN-CO content id" {
   local rule="$TEST_TEMP_DIR/co-valid.md"
-  _co_rule "IN-CO-STYLE-001" "content" "$rule"
+  _co_rule "IN-CO-STYLE-901" "content" "$rule"
   run run_intent claude rules validate "$rule"
   assert_success
   assert_output_contains "1 ok"

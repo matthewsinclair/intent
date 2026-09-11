@@ -216,7 +216,9 @@ ledger_with() { # ledger_with <ledger> [rc label seal]...
   run grep -cE '^  elif \[ -n "\$disagreed" \]' "${DEVBIN_LIB}/resolve"
   assert_failure
 
-  run grep -cE '^  if \[ -z "\$failed" \] && \[ -z "\$disagreed" \]; then' "${DEVBIN_LIB}/resolve"
+  # The all-passed line also refuses a run that executed nothing, so the guard
+  # carries `executed` first; the property is still one `if`, never an `elif`.
+  run grep -cE '^  if \[ "\$executed" -gt 0 \] && \[ -z "\$failed" \] && \[ -z "\$disagreed" \]; then' "${DEVBIN_LIB}/resolve"
   assert_success
   assert_output "1"
 }

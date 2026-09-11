@@ -67,7 +67,7 @@ teardown() {
 make_runner_fixture() {
   PROJ="$TEST_TEMP_DIR/proj"
   mkdir -p "$PROJ/intent/.config"
-  printf '{"languages":["shell"]}\n' > "$PROJ/intent/.config/config.json"
+  printf '{"intent_version":"3.0.1","languages":["shell"]}\n' > "$PROJ/intent/.config/config.json"
 
   printf '#!/bin/bash\necho x # CFG_MARKER\n' > "$PROJ/target.sh"
 

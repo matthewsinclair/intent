@@ -162,21 +162,22 @@ run_critic_stdout() {
 # JSON format
 # ====================================================================
 
-@test "json report: emits valid JSON with severity/rule_id/file/line/excerpt" {
+@test "json report: emits valid JSON whose findings carry severity/rule/file/line/text" {
   run_critic_stdout --files "$TARGET" --severity-min warning --format json
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | jq -e . > /dev/null \
     || fail "output is not valid JSON: $output"
-  [ "$(printf '%s\n' "$output" | jq -r 'length')" = "2" ]
-  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-901") | .severity')" = "warning" ]
-  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-901") | .line')" = "2" ]
-  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-902") | .file')" = "$TARGET" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.findings | length')" = "2" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.findings[] | select(.rule == "IN-SH-TEST-901") | .severity')" = "warning" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.findings[] | select(.rule == "IN-SH-TEST-901") | .line')" = "2" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.findings[] | select(.rule == "IN-SH-TEST-902") | .file')" = "$TARGET" ]
 }
 
-@test "json report: clean run emits an empty array and exits 0" {
+@test "json report: clean run emits an empty findings array and exits 0" {
   run_critic_stdout --files "$CLEAN_TARGET" --severity-min warning --format json
   [ "$status" -eq 0 ]
-  [ "$(printf '%s\n' "$output" | jq -r 'length')" = "0" ]
+  printf '%s\n' "$output" | jq -e '.findings == []' > /dev/null \
+    || fail "findings is not an empty array: $output"
 }
 
 # ====================================================================

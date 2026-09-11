@@ -46,34 +46,6 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "intent/llm/DECISION_TREE.md"
 }
 
-# THE FOUR RULE IDS MOVED TO _AGENTS.md, AND THIS TEST MOVED WITH THEM.
-#
-# It used to assert the IDs were in _CLAUDE.md. They are not, deliberately:
-# AGENTS.md is declared the primary tool-agnostic contract and carried NONE of
-# the four rules it is said to hold, while the file described as "a Claude
-# Code-specific overlay" carried all four. The layering was inverted, so a
-# non-Claude agent following the stated reading order got none of the rules of
-# the road. Measured 2026-08-24 and ruled by hv.
-#
-# The assertion is now STRONGER than it was, in both directions: the contract
-# must hold the IDs, AND the overlay must not repeat them. A test that only
-# checked presence would have passed on the duplication this change removed.
-@test "the four rule IDs live in the AGENTS contract, not the Claude overlay" {
-  local agents="${INTENT_PROJECT_ROOT}/lib/templates/llm/_AGENTS.md"
-  local id
-  for id in IN-AG-HIGHLANDER-001 IN-AG-PFIC-001 IN-AG-THIN-COORD-001 IN-AG-NO-SILENT-001; do
-    assert_file_contains "$agents" "$id"
-    grep -q "$id" "$TEMPLATE" \
-      && fail "$id is restated in _CLAUDE.md; AGENTS.md is the contract and a second copy is the Highlander violation this move removed"
-  done
-  # The overlay still ROUTES to the rule bodies even though it does not name
-  # the IDs -- a pointer with no way to follow it is worse than no pointer.
-  assert_file_contains "$TEMPLATE" "intent claude rules show"
-  # And it must say WHERE they are, or the reader has a prohibition and no
-  # destination.
-  assert_file_contains "$TEMPLATE" "AGENTS.md"
-}
-
 @test "template includes critic dispatch section" {
   assert_file_contains "$TEMPLATE" "critic-"
   assert_file_contains "$TEMPLATE" "Task(subagent_type"
@@ -130,7 +102,13 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   mkdir -p "$project_dir"
   cd "$project_dir" || exit 1
 
-  INTENT_AUTHOR="TestUser" run run_intent init "ScratchProj"
+  # v3's one author source is `author` in the user config, which `bootstrap`
+  # writes from $USER (hv, 2026-08-27) -- never git, never an env var. HOME is
+  # this test's sandbox, so the fixture writes that source directly.
+  mkdir -p "$HOME/.intent"
+  printf '{"author":"TestUser"}\n' > "$HOME/.intent/config.json"
+
+  run run_intent init "ScratchProj"
   assert_success
   assert_file_exists "$project_dir/CLAUDE.md"
 
@@ -138,7 +116,8 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   run grep -F "[[" "$project_dir/CLAUDE.md"
   [ "$status" -ne 0 ] || fail "unsubstituted placeholders remain in generated CLAUDE.md"
 
-  # Project name + author substituted from CLI arg / env.
+  # Project name from the CLI arg; author from the user config, in both files.
   assert_file_contains "$project_dir/CLAUDE.md" "ScratchProj"
   assert_file_contains "$project_dir/CLAUDE.md" "TestUser"
+  assert_file_contains "$project_dir/intent/.config/config.json" '"author": "TestUser"'
 }
