@@ -23,7 +23,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                                        |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------------------------- |
-| 10  | `0138` | high   | cc   | v2 ingest has two behaviours for one input shape; only the destructive one is detectable.     |
 | 11  | `0129` | medium | cc   | v2 ingest rewrites an authored full stop into its own field delimiter.                        |
 | 12  | `0216` | high   | dc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).  |
 | 13  | `0212` | high   | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                |
