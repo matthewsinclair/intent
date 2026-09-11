@@ -26,16 +26,14 @@ intent_version: 3.0.0
 
 ### P4 -- advertised but not built.
 
-| #   | id     | sev    | lane | defect                                                                                                                                                                                     |
-| --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 52  | `0177` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
+| #   | id     | sev    | lane | defect                                                                                                                                                                                       |
+| --- | ------ | ------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 52  | `0177` | medium | --   | OPEN POST-CUT, NO OWNER (hv, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
 
 ### P5 -- rough edges: defaults, doctor, internals.
 
-| #   | id     | sev    | lane | defect                                                                                                                                                                                                                                                                 |
-| --- | ------ | ------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 79  | `0141` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): no instance today, because both wildcard fields (AT status, WP scope) carry no payload and both self-loops are needed by rulings. The only fix is a new guard. Stays open as the constraint on either field gaining a payload. |
-| 81  | `0172` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): hv ruled it NARROW, DO NOT BUILD on 2026-08-30. The reopen condition (a user reporting missed backups while intentd ran the whole time) is unmet, and a fix needs a new per-user registry file. Stays open.                    |
+| #   | id  | sev | lane | defect |
+| --- | --- | --- | ---- | ------ |
 
 ## hv's decisions that unblock the cut
 
