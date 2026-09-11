@@ -24,7 +24,6 @@ intent_version: 3.0.0
 | #   | id     | sev    | lane | defect                                                                         |
 | --- | ------ | ------ | ---- | ------------------------------------------------------------------------------ |
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist. |
-| 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                      |
 | 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                   |
 | 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                        |
 
