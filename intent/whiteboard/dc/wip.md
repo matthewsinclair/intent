@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 09:17Z
-status: paused
-focus: "FOLDED FOR A COMPACT. ON RETURN, WORK vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+heartbeat_at: 2026-09-11 09:33Z
+status: active
+focus: "WORKING vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,7 +39,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Folded 2026-09-11 09:15Z for a compact. Pre-fold board verbatim: `.history/20260911/wip-prefold-0914Z.md`.
+**`0277` (#19, install.md), CLAIMED 2026-09-11 09:33Z.** `644d9697` removed both remedies the issue names. Two sentences still present `INTENT_HOME` as an input: line 12 (the formula "points `INTENT_HOME` at it", and the formula sets no variable) and line 59.
+
+- **`0275` HANDED TO vc at `59a63541`** (msg 20b73561), for vc to re-drive and close. Not mine to close.
 
 ## TODO
 
@@ -64,7 +66,6 @@ The work is the numbered defect list in `intent/wip.md`, in 3.0.1 priority order
 
 ## Holds
 
-- **HOLDING UNTIL THE COMPACT IS DONE.** The order has arrived (see TODO). Condition: the session is back from the compact, and then the work starts at `0275`.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs

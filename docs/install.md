@@ -9,7 +9,7 @@ Intent is a single binary plus a support tree. The support tree is not optional 
   $ intent --version
 ```
 
-This is the supported path. The formula installs the binary, the daemon, and the full support tree into the keg, and points `INTENT_HOME` at it.
+This is the supported path. The formula installs the binary, the daemon, and the full support tree into the keg, and sets no environment variable: the binary finds the tree from its own location, as a source build does (below).
 
 ## From source
 
@@ -56,7 +56,7 @@ Intent resolves five paths against its install root. **A binary on its own is no
 | `intent/plugins/`                             | `plugins.rs:108` | Parent of the two above; ships via its children                                    |
 | `intent/plugins/claude/bin/intent_claude_cwi` | `install.rs:361` | `intent claude start`, `intent claude ws new` / `list` / `archive` / `hygiene`     |
 
-On a Homebrew install these root at `$KEG/libexec`, which is what `INTENT_HOME` resolves to. The staged archive strips its own wrapper directory, so the tree roots directly on the install root:
+On a Homebrew install these root at `$KEG/libexec`, which is what `intent info` reports on its `INTENT_HOME` line. That line is output: v3 resolves the root and prints it, and does not read the variable. The staged archive strips its own wrapper directory, so the tree roots directly on the install root:
 
 ```
   $KEG/bin/intent, intentd                          symlinks into libexec
