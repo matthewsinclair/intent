@@ -130,4 +130,9 @@ The docs now describe each as built. None is worked until hv rules.
     - `at na` accepts a test-backed row, and `at red|green` accept a non-test one.
     - `st done` and `wp done` close silently on a placeholder objective, though `model.rs:497` computes the condition and `/in-finish` promises the warning.
     - `.intent_critic.yml`'s `show_all` is read only by the subagent prompts.
-19. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
+19. **ST0057's projection, found auditing its design** (vc):
+    - `organize --apply` and `st hydrate` report `hydrated:` for an opaque attachment and write nothing, because they pass only inline `text` (`organize.rs:577`, `:589`, `:1075`). The dehydration gate then fails on the working copy with a UTF-8 error and a misleading remedy.
+    - D57-9's two-region manifest code is not removed (`intentfiles.rs:52`, `:135`, `:164`), and the parser still accepts a BEGIN/END pair.
+    - Cross-project addresses parse but are refused by every door (`facade.rs:7235`, `:7385`, `:8071`, `:3072`), **while AC-07.6 reads green**. AC-03.1 likewise claims a working-copy round trip that fails for opaque attachments. **These are contract findings: a satisfied row the as-built does not meet.**
+    - **ST0057 cannot close.** Its gate is BLOCKED only on AC-12.x and AC-13.x, whose WPs are both cancelled.
+20. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
