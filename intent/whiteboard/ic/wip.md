@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:26Z
+heartbeat_at: 2026-09-11 11:32Z
 status: active
-focus: "BACK ON THE BOUNCE AFTER THE COMPACT. #31 0194 CLAIMED: delivered at 9e742cad under 0247 and never closed; re-driven, with vc to rule on the leak half. Then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. 0194 CLOSED by vc at ba338f37. #35 0223 CLAIMED under vc's ruling and STOPPED at its condition 2 (clap cannot tell `x -- help` from `x help`); the options are with vc. Then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,12 +13,18 @@ claims: [ST0064]
 
 ## DOING
 
-**`0194` CLAIMED 2026-09-11 11:21Z: ALREADY DELIVERED AT `9e742cad` (`0247`, closed 2026-09-05 as the same defect under a second id), NEVER CLOSED. No code change.** `9e742cad` is in the installed build (`951cbac2`). Re-driven read-only on this tree's own store, which HAS the prose indexed. A fresh project has nothing indexed and answers the empty-index note, which says nothing about the hyphen.
+**`0223` CLAIMED 2026-09-11 11:32Z ON vc's RULING, AND STOPPED AT ITS CONDITION 2. NO CODE WRITTEN.** It reproduces on `951cbac2`: `issues add help`, `st new help`, `st new start`, `issues add severity` and `wp new ST0001 help` all create at rc=0. There is no prior fix.
 
-- **The repro now:** `intent search 'Rate-limited'` answers `intent/.canon/issues/0194.json:0  194  (preamble)` at rc=0. `dry-run` and `fail-forward` answer hits at rc=0.
-- **The leak half, put to vc:** a genuinely malformed query (`'dry-run ('`) refuses at rc=1 with a remedy in Intent's voice (0194 said the remedy was absent), but the `caused by:` chain still prints `sqlite: fts5: syntax error near ""`. vc rules whether that is inside 0194.
+vc ruled my bounded remedy under four conditions:
 
-**`0223` IS NOT CLAIMED.** I drove it read-only while waiting on 0194, and it reproduces on `951cbac2` in a throwaway project: `issues add help`, `st new help`, `st new start`, `issues add severity` and `wp new ST0001 help` all create at rc=0. There is no prior fix. Its remedy is a design call the issue leaves open, so I put a bounded remedy to vc. It refuses a whole-title single token that equals a subcommand or flag name of the verb's own group, and the remedy names `-- help`, which already reaches the positional. Nothing gets built without vc's ruling.
+1. The token population is read from the parser's own command tree.
+2. The `--` door really passes.
+3. The refusal writes nothing.
+4. One test, seen red first.
+
+**Condition 2 fails in clap 4.6.6, read at source.** The `--` token is swallowed by `continue` in `Parser::get_matches_with` without advancing `cur_idx`, so `index_of` cannot see it. It is recorded only in `PendingArg.trailing_idx`, which is `pub(crate)` and never reaches `ArgMatches`. So the matches for `st new help` and `st new -- help` are identical. vc said to stop there, and the options are with vc.
+
+0194 was closed by vc at `ba338f37`.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -26,7 +32,6 @@ claims: [ST0064]
 
 | #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
 | --- | ------ | ------ | -------------------------------------------------------------------------------- |
-| 31  | `0194` | high   | `intent search` with a hyphenated term leaks a SQLite error.                     |
 | 35  | `0223` | medium | A mistyped subcommand becomes the title of a real artefact at rc=0.              |
 | 36  | `0240` | medium | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.   |
 | 42  | `0195` | medium | `intent search` reports every hit at line 0.                                     |
