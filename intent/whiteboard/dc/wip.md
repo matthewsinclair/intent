@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 11:50Z
+heartbeat_at: 2026-09-11 12:15Z
 status: active
-focus: "0216 LANDED at be0422d9 and 0212 DELIVERED by it (re-driven in its update shape) -- both with vc to re-drive and close. WAITING on vc for my next id; I do not pick one. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "vc's P4/P5 column, in list order, one id at a time. DOING 0101. With vc to close: 0212 (vc re-drives), 0143 (430a47a5), 0067 (delivered at e2e975ce), 0091 (d70f3042). 0177 ruled not workable in 3.0.1 and out of my column. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,14 +39,21 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Both with vc, waiting on its re-drive and close. Nothing of mine is uncommitted in the shared checkout.**
+**`0101`: `converge_gitignore` omits the `events.jsonl` rule Intent applies to itself.** Claimed 2026-09-11 12:15Z. `0120` (`intent/.backup/`) is the same function and comes next, as its own commit.
 
-- **`0216`: LANDED at `be0422d9`** (msg `d140e90d`). cc was told its 0226 hold condition is met. Worktree `scratchpad/wt0216b` is kept until vc closes.
-- **`0212`: DELIVERED by `be0422d9`, no code commit** (msg `81a33f92`). It was re-driven in its own update shape (`ac satisfy` on existing threads) by a scratch drive, `scratchpad/drive0212.rs`, which is not committed. vc chooses whether it becomes a fenced pin under 0212. The counts are in the message and in no instrument, so re-drive them rather than quote them from here.
+**With vc, for its re-drive and close.** Nothing of mine is uncommitted in the shared checkout.
+
+- **`0212`**: delivered by `be0422d9`. vc re-drives it through its own CLI drive; my scratch drive is not committed (vc: no pin).
+- **`0143`**: `430a47a5`, `claude upgrade --skip-settings` restored.
+- **`0067`**: delivered at `e2e975ce` (2026-08-26), re-driven on a HEAD build, no commit.
+- **`0091`**: `d70f3042`, `write_config` writes only what the caller changed.
+- **Closed by vc today:** `0216` (`bff3a6a3`), `0180` (`08ea2d02`). **`0177`** was ruled not workable in 3.0.1 and is out of my column.
 
 ## TODO
 
-**vc's second assignment is done from my side:** `0216` and `0212`, both above. **The next id comes from vc.** I asked in msg `81a33f92`. Do not pick one. My first lane (twelve ids) and `0299` are done: vc CLOSED `0275` `0277` `0193` `0274` `0122` `0301` `0187` `0285` `0078` `0302` `0235` `0162` `0299` on 2026-09-11. The commits are in `git log`, and the pre-fold board lists each one.
+**vc's column for me, in list order:** `0101` (DOING), `0120`, `0115`, `0220`, `0224`, `0065`, `0256`, `0283`, `0150`, `0172`. My first lane (twelve ids) and `0299` are done: vc CLOSED `0275` `0277` `0193` `0274` `0122` `0301` `0187` `0285` `0078` `0302` `0235` `0162` `0299` on 2026-09-11.
+
+**THE PATH BINARY IS STALE:** it is built from `951cbac2`, 32 build-input commits behind HEAD at 12:07Z. A drive of anything changed since then needs a tree build. Re-check with `bash intent/st/ST0056/parity/tools/self_provenance_check.sh` rather than trusting this line.
 
 **RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.** **A docs item is the page edit, one commit with the id and the drive in the message, and nothing else** (vc, 2026-09-11): do not maintain AC-02.3 manifest rows or run the disposition check, and leave a stale manifest quote for the cut. **If a fix needs a file cc has dirty, stop and tell vc** rather than committing around it. **Build in a detached worktree off HEAD with a private or in-tree target, and run every test under an isolated HOME**: a test run from a worktree once rewrote `~/.intent/home`.
 
