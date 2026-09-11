@@ -1,6 +1,6 @@
 ---
-verblock: "23 Apr 2026:v1.1: Canon vs extension subagents (v2.9.0)"
-intent_version: 2.9.0
+verblock: "11 Sep 2026:v1.2: synced to Intent 3.0.1 as built (doc audit)"
+intent_version: 3.0.1
 ---
 
 # Creating Custom Intent Agents
@@ -18,21 +18,16 @@ Intent agents are specialized AI assistants with domain-specific knowledge and f
 
 ## Canon vs extension subagents
 
-As of Intent v2.9.0, subagents come in two flavours:
-
-- **Canon subagents** ship with Intent itself, in `intent/plugins/claude/subagents/<name>/`. They are part of the Intent codebase and benefit every Intent user. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family.
-- **Extension subagents** live in user-local extensions at `~/.intent/ext/<name>/subagents/<name>/`. They are not part of canon — they belong to one user, one team, or one domain.
+Subagents ship in canon, in `intent/plugins/claude/subagents/<name>/` of the Intent install. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family. The extension layout `~/.intent/ext/<name>/subagents/` is declared and not built: nothing in this build reads it (see `intent/docs/writing-extensions.md`).
 
 The choice between them is one question: **is this useful to every Intent user, or only to some?**
 
 - Useful to every Intent user → canon. The remainder of this guide applies.
-- Useful only to some users → extension. See `intent/docs/writing-extensions.md` for the authoring guide. The agent definition (the `agent.md` shape) is identical to canon; the difference is where it lives and how it is distributed.
-
-A subagent that started as canon can be promoted to an extension, and vice versa. The agent.md shape is the same either way, so the move is mostly a directory rename plus a manifest.
+- Useful only to some users → keep it outside canon in your own `~/.claude/agents/`, where `intent claude subagents list` reports it as `unlisted`; Intent's extension route is declared and not built (`intent/docs/writing-extensions.md`).
 
 ## Prerequisites
 
-- Intent v2.9.0 or later installed
+- Intent v3 installed (`intent --version` reports it)
 - Claude Code CLI installed and configured
 - Basic understanding of YAML frontmatter and JSON
 
@@ -42,9 +37,7 @@ Each Intent canon subagent consists of:
 
 - **Directory**: `intent/plugins/claude/subagents/<name>/`
 - **Agent Definition**: `agent.md` with YAML frontmatter and system prompt
-- **Metadata**: `metadata.json` with version and configuration details
-
-(For extension subagents, the directory is `~/.intent/ext/<ext-name>/subagents/<name>/` and the manifest declares the contribution. Otherwise the file shape is identical.)
+- **Metadata** (optional): `metadata.json`. Intent does not read it: only `agent.md` makes a directory a subagent, and install copies `agent.md` alone to `~/.claude/agents/<name>.md`.
 
 ## Step-by-Step Creation Process (Canon Subagent)
 
@@ -56,6 +49,8 @@ Create a new directory under `intent/plugins/claude/subagents/` for your agent:
 mkdir -p intent/plugins/claude/subagents/your-agent-name/
 cd intent/plugins/claude/subagents/your-agent-name/
 ```
+
+`intent claude subagents install` reads canon from the Intent INSTALL -- the ancestor of the running `intent` binary that holds `lib/templates/` -- at `<install>/intent/plugins/claude/subagents/`, not from the current project; create the directory there (for a source checkout, the checkout root).
 
 **Naming Convention:**
 
@@ -174,7 +169,7 @@ Create the metadata configuration:
 }
 ```
 
-**Required Fields:**
+**Conventional fields** (Intent does not read `metadata.json`; the canon subagents that carry one use these):
 
 - `name`: Must match directory name and agent.md frontmatter
 - `version`: Semantic version (start with 1.0.0)
@@ -188,30 +183,24 @@ Create the metadata configuration:
 Install your custom agent to make it available in Claude Code:
 
 ```bash
-intent agents install your-agent-name
+intent claude subagents install your-agent-name
 ```
 
-This copies the agent to `~/.claude/agents/` where Claude Code can access it.
+This copies `agent.md` to `~/.claude/agents/your-agent-name.md` and records the install in `~/.intent/subagents/installed-subagents.v3.json`.
 
 **Installation Options:**
 
-- `intent agents install your-agent-name` - Install specific agent
-- `intent agents install --force` - Skip confirmation prompts
-- `intent agents install --all` - Install all available agents
+- `intent claude subagents install your-agent-name` - Install one or more by name
+- `intent claude subagents install --all` - Every subagent this install carries
+- `-f, --force` - Overwrite an agent manifest that already exists
 
 ### 5. Verify Installation
 
 Check that your agent is properly installed:
 
 ```bash
-# List all agents to see your new agent
-intent agents list
-
-# Show detailed information about your agent
-intent agents show your-agent-name
-
-# Check agent health and integrity
-intent agents status
+intent claude subagents list            # name, installed state, provenance; -v adds the source path
+intent claude subagents show your-agent-name   # prints its agent.md
 ```
 
 ### 6. Test the Agent
@@ -230,7 +219,7 @@ Task(
 
 Here's a complete example for a security-focused agent:
 
-**Directory:** `intent/agents/security-reviewer/`
+**Directory:** `intent/plugins/claude/subagents/security-reviewer/`
 
 **agent.md:**
 
@@ -329,7 +318,7 @@ Always evaluate:
 
 **Agent Not Listed**
 
-- Check directory structure matches `intent/agents/agent-name/`
+- Check directory structure matches `intent/plugins/claude/subagents/<agent-name>/` in the Intent install
 - Verify `agent.md` and `metadata.json` exist
 - Ensure JSON syntax is valid
 
@@ -355,13 +344,13 @@ Always evaluate:
 
 ```bash
 # Check agent configuration
-intent agents show your-agent-name
+intent claude subagents show your-agent-name
 
 # Verify installation status
-intent agents status --verbose
+intent claude subagents list -v
 
 # Reinstall agent
-intent agents install your-agent-name --force
+intent claude subagents install your-agent-name --force
 
 # Check Intent configuration
 intent doctor
@@ -373,14 +362,14 @@ To update an existing agent:
 
 1. Modify `agent.md` and/or `metadata.json`
 2. Update version number in `metadata.json`
-3. Reinstall: `intent agents install your-agent-name --force`
+3. Reinstall: `intent claude subagents install your-agent-name --force`
 4. Test updated functionality
 
 ## Sharing Agents
 
 To share agents with others:
 
-1. **Package Directory**: Include entire `intent/agents/agent-name/` directory
+1. **Package Directory**: Include the entire `intent/plugins/claude/subagents/<agent-name>/` directory
 2. **Document Dependencies**: List any required tools or configurations
 3. **Provide Examples**: Include usage examples and test cases
 4. **Version Control**: Use semantic versioning for updates
@@ -425,15 +414,14 @@ This agent works well with:
 
 ## References
 
-- [Intent Agent System Documentation](../llm/llm_preamble.md)
 - [Claude Code Sub-Agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
 - [Intent Commands Reference](../../README.md#commands)
-- [Agent Examples](../../agents/)
+- [Agent Examples](../plugins/claude/subagents/)
 
 ---
 
 **Need Help?**
 
-- Run `intent help agents` for command reference
+- Run `intent claude subagents --help` for command reference
 - Use `intent doctor` to check configuration
-- Check existing agents in `agents/` directory for examples
+- Check existing agents in `intent/plugins/claude/subagents/` for examples
