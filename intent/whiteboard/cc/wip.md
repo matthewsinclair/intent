@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 09:33Z
+heartbeat_at: 2026-09-11 09:47Z
 status: active
-focus: "BOUNCED 2026-09-11. DOING #2 0260 (re-examine first); 0133 is with vc for re-drive. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
+focus: "BOUNCED 2026-09-11. DOING #2 0260, held on vc's ruling: A1 (a content compare) breaks two tested D01 properties; REC P1 (provenance hash on the write path). 0133 closed by vc. Skip 0111 and 0100 (vc re-driving). hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,9 +14,15 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#2 `0260` (critical), claimed 2026-09-11 09:33Z. RE-EXAMINING FIRST, as the list says.** The title's surviving claim is _the v3 migration froze generated sections into authored body on 326 of 358 threads_. The body carries neither that figure nor the withdrawal, so the first step is to find the measurement behind the title.
+**#2 `0260` (critical), claimed 2026-09-11 09:33Z. vc ruled half A via A1. A1 BUILT, RED THEN GREEN, THEN WITHDRAWN: it breaks two tested D01 properties. HELD UNTIL vc RULES ON P1 (provenance, size M) vs P2 (name-only, size S); sent 09:47Z.**
 
-**WITH vc FOR RE-DRIVE, NOT IN FLIGHT: #1 `0133`.** It was already fixed at `04cf6f18` (2026-08-29) and had been left open in the register. I re-drove the issue's two-arm repro through `intent upgrade` at HEAD's upgrade path: the `no` arm's text now lands as `{"is":"unsatisfied","note":...}` in canon, and the 18 proof tests are green. vc rebuilds, re-drives, and closes it or sends it back.
+- **Why A1 fails:** content cannot tell a store AHEAD of the files (a projection refused after the DB committed, `ViewsNotWritten`, whose designed repair is `--to-disk`: `sync_direction.rs:88`) from files AHEAD of the store (a pull). It also reads a deleted file as a disagreement, which breaks re-creatability (5 `egest_estate` tests). 9 of the suite's 10 reds were mine; the tenth is `mutation_completeness`, hv's decision 5.
+- **P1, my REC:** record a canon file's sha256 into `file_index` when a `WriteSet` commit lands it (ingest already records on read). `--to-disk` then refuses only for a PRESENT canon file whose bytes moved since the store last touched it.
+- **The A1 work is banked, not lost:** `scratchpad/0260-a1-content-compare.patch` plus `-test.rs`, and it forward-applies to HEAD. Its `store::against_canon` home and the proving test carry into P1. **The Rust tree is at HEAD; nothing of mine is uncommitted there.**
+
+- **HALF A, THE ORIGINAL REPORT, IS LIVE DATA LOSS AT HEAD.** With no intentd running, a committed canon edit the store has not seen is reverted by `sync --to-disk` at rc 0. It reverts the canon JSON itself, not only the extract, and prints _prose ... unchanged_. `doctor.rs:1052` `db_checks` detects the condition; `facade.rs:3455` `sync_to_disk` never consults it. The comparison is controlled both ways: 0 on a healthy hop, 0 after a `--to-disk`, 1 after an out-of-band edit. **My REC (A1, size S):** move the comparison to one home, have `sync_to_disk` refuse on it, and name the remedy.
+- **HALF B, THE 326/358 FIGURE, REPRODUCES EXACTLY AND IS NOT A LOSS.** Lamplight canon: 326 of 358 bodies carry `## Related Steel Threads`, 313 of them beside a populated `related[]`. Intent: 52 bodies, 0 with `related[]`. A HEAD hop still writes both copies, and the view renders the `body` copy. That is the deliberate design in `legacy.rs` `related_links`. Its cost is two homes plus no `related` edit verb, which is P4/P5 in shape. A blanket strip is UNSAFE (ST0342).
+- Fixtures: `scratchpad/r0133` (half A, after the 0133 hop) and `scratchpad/r0260m` (half B).
 
 **ON THE BOUNCE, hv's WORDS VIA vc: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._** The work is the numbered list in `intent/wip.md`: the 92 open defects in 3.0.1 priority order. **That list is the authority; this board only points at it.** hv cuts from the bottom.
 
