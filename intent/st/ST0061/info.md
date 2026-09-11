@@ -1,9 +1,9 @@
 ---
 st_id: ST0061
 title: dehydrate
-status: WIP
+status: Completed
 created: 2026-08-26
-completed:
+completed: 2026-09-11
 ---
 
 # ST0061: dehydrate

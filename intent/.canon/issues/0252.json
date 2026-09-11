@@ -3,9 +3,10 @@
   "number": 252,
   "slug": "dispatch-table-json-declares-help-h-as-an-intrin",
   "title": "dispatch-table.json declares --help/-h as an intrinsic row on 10 rows and declares no row for --version/-V",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-05",
+  "closed": "2026-09-11",
   "reporter": "Matthew Sinclair",
   "body": "`surface/dispatch-table.json` declares `--help`/`-h` as a flag row with `disposition: intrinsic` on 10 rows, and declares no row anywhere for `--version`/`-V`.\n\nMEASURED, not inferred:\n\n- `intent --version` answers `intent 3.0.0 (...)` at rc=0 on a HEAD build.\n- `tests/unit/global_commands.bats:57` asserts it green: `run run_intent --version` then `assert_success`.\n- The table's own prose discusses `--version` at length -- the `--versions` row records that `-V, --version` is a clap intrinsic on the root command, MEASURED 2026-08-15, and that it does not propagate to subcommands. So the fact was known and written down beside the gap.\n\nWHY THIS IS A DEFECT AND NOT A STYLE CHOICE. The table is the command-surface SSOT (AC-05.1): the clap surface, the help text, the MCP tool list and `intent llm` all render from it. Two clap intrinsics reach the root command; one is declared with a disposition that says so and one is invisible. A reader of the table cannot tell whether `--version` is undeclared because it does not exist, because it was forgotten, or because intrinsics are conventionally omitted -- and the `--help` rows prove the convention is the opposite.\n\nFOUND BY `intent/st/ST0056/parity/tools/suite_vs_table_flags_check.sh` (the suite-versus-table flag seam), landed at `32c7ad52`, and independently re-driven by vc.\n\nREMEDY: mirror the existing `--help` intrinsic row shape for `--version`/`-V`. Size XS.\n"
 }

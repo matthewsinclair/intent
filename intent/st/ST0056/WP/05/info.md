@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: CLI in-process mode and BATS conformance harness
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-05: CLI in-process mode and BATS conformance harness

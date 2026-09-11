@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: CLI parity long tail
 scope: XL
-status: WIP
+status: Done
 ---
 
 # WP-06: CLI parity long tail

@@ -1,9 +1,10 @@
 ---
 st_id: ST0046
 title: Add modules (properly) to the intent cli
-status: Not Started
+status: Cancelled
+status_reason: culled 2026-09-11: v2-era modules thread, never started; the v3 gap it would have covered is issue 0067 and hv ruled modules out of 3.0.1
 created: 2026-06-15
-completed:
+completed: 2026-09-11
 ---
 
 # ST0046: Add modules (properly) to the intent cli

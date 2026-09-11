@@ -2,7 +2,7 @@
 wp_id: WP-10
 title: Migration and fleet ingest harness
 scope: XL
-status: WIP
+status: Done
 ---
 
 # WP-10: Migration and fleet ingest harness

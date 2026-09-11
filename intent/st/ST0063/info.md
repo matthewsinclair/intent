@@ -1,9 +1,10 @@
 ---
 st_id: ST0063
 title: start
-status: Triage
+status: Cancelled
+status_reason: culled 2026-09-11: empty (0 criteria, no body), created uncommitted at the v3.0.0 cut and claimed by nobody
 created: 2026-08-26
-completed:
+completed: 2026-09-11
 ---
 
 # ST0063: start

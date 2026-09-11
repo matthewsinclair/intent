@@ -8,20 +8,20 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Design canon: architecture, data model, migration and parity specs
   - [x] 02: Workspace and reified model: intentsvcs types, schema faces, store
   - [x] 03: Ingest, views and sync engine
-  - [-] 04: intentsvcs facade: core command families
-  - [-] 05: CLI in-process mode and BATS conformance harness
-  - [-] 06: CLI parity long tail
+  - [x] 04: intentsvcs facade: core command families
+  - [x] 05: CLI in-process mode and BATS conformance harness
+  - [x] 06: CLI parity long tail
   - [-] 07: Canon and claude subsystem
   - [x] 08: intentd daemon
   - [x] 09: MCP server and agent guide
-  - [-] 10: Migration and fleet ingest harness
+  - [x] 10: Migration and fleet ingest harness
   - [-] 11: Distribution: Homebrew tap, signing, notarisation
   - [-] 12: Cutover and v3.0.0 release
-  - [ ] 13: Project search: full-text, structural, and the agent search surface
-  - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
-  - [-] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
-  - [ ] 16: Contract drift: a shipped field with no model row is refused
-  - [-] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
+  - [~] 13: Project search: full-text, structural, and the agent search surface
+  - [~] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
+  - [x] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+  - [~] 16: Contract drift: a shipped field with no model row is refused
+  - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
 - [-] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
@@ -39,8 +39,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
-  - [-] 01: One path to the native CLI: int cli carries the coherence guard
-- [-] ST0061: dehydrate
+  - [x] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
   - [-] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
   - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
@@ -49,24 +48,24 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 05: The intent:// URL handler as a client of the one resolver (AC-01.5)
   - [~] 06: The int macos build, run, test, install and notarise pipeline (AC-01.7)
   - [~] 07: The app shell: menubar menu, settings window, and app entry
-- [-] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
-  - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
-  - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0068: Update Intent's docs for v3
 
 ## TODO
 
-- [ ] ST0046: Add modules (properly) to the intent cli
-- [!] ST0059: Rebuild all Intent docs for v3
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-- [?] ST0062: help
-- [?] ST0063: start
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
 ## DONE:2026-09-10T00:00:51Z
 
-_(none)_
+- [~] ST0046: Add modules (properly) to the intent cli
+- [~] ST0059: Rebuild all Intent docs for v3
+- [x] ST0061: dehydrate
+- [~] ST0062: help
+- [~] ST0063: start
+- [x] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
+  - [x] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
+  - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 
 ---
 

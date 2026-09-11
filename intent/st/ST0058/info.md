@@ -20,7 +20,7 @@ _(not yet written)_
 
 | WP    | Title                                                           | Size | Status |
 | ----- | --------------------------------------------------------------- | ---- | ------ |
-| WP-01 | One path to the native CLI: int cli carries the coherence guard | S    | WIP    |
+| WP-01 | One path to the native CLI: int cli carries the coherence guard | S    | Done   |
 
 ## Acceptance
 

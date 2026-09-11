@@ -2,7 +2,7 @@
 wp_id: WP-15
 title: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill

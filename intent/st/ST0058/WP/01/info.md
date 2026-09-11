@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: One path to the native CLI: int cli carries the coherence guard
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: One path to the native CLI: int cli carries the coherence guard

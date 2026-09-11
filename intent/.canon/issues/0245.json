@@ -3,9 +3,10 @@
   "number": 245,
   "slug": "wp-show-prints-a-four-line-header-while-the-disp",
   "title": "wp show prints a four-line header while the dispatch table declares it shows the work package info.md",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-04",
+  "closed": "2026-09-11",
   "reporter": "Matthew Sinclair",
   "body": "**THE SSOT DECLARES A BEHAVIOUR THE IMPLEMENTATION DOES NOT HAVE.**\n\n`surface/dispatch-table.json:1904` declares `\"help\": \"Show work package info.md\"`. `intent wp --help` renders that string. **`intent wp show` prints a four-line header and no `info.md`.**\n\n## Driven 2026-09-04 on `92e4d914a`\n\n    $ intent wp show ST0056/15   -> rc=0, 115 bytes:\n        ST0056/WP-15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill\n        status: Not Started\n        scope: L\n\n    CONTROL: intent wp show ST0056/01 -> rc=0, 103 bytes, same four-line shape.\n\n**The control is what makes this the VERB and not the work package.** WP-15's `info.md` is several kilobytes; nothing of it appears.\n\n## Why it matters beyond tidiness\n\n**A reader following `wp --help` asks for a document and receives a status line, at rc=0, with nothing saying a substitution occurred.** No refusal, no remedy, no note. Same family as a remedy that names a wired verb which changes nothing: **the tool answers successfully, about something other than what was asked.**\n\nIt is also how it was found: vc ran `wp show` to verify a canon write had reached the store, got a clean rc=0 with none of the edited prose in it, and briefly read that as the write having failed. **A verb that silently answers a narrower question corrupts every use of it as an instrument.**\n\n## What is NOT decided here\n\n**Whether the fix is the HELP or the CODE.** Either is coherent -- `wp show` may be intended as a status verb, in which case the declaration is wrong; or it may be intended as a document verb, in which case the arm is. **That choice belongs to whoever owns the surface, and filing it as `wp show is broken` would presuppose it.** The defect is the disagreement, not either side.\n\nAdjacent, not the same: `intent ac list` prints ids, coverage and satisfied but never criterion text (`0168`).\n\nFiled by vc, found while driving WP-15."
 }

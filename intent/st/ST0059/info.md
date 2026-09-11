@@ -1,10 +1,10 @@
 ---
 st_id: ST0059
 title: Rebuild all Intent docs for v3
-status: On Hold
-status_reason: Parked on hv's instruction 2026-08-25: the v3 doc rebuild cannot start until v3 is released. Created at Triage, moved to WIP by cc's positive control, and Triage cannot be re-entered -- st.triage is declared only FROM triage. Hold is the reachable parked state and is a more honest one.
+status: Cancelled
+status_reason: culled 2026-09-11: empty (0 criteria) and superseded by ST0068, which carries the v3 docs work
 created: 2026-08-25
-completed:
+completed: 2026-09-11
 ---
 
 # ST0059: Rebuild all Intent docs for v3

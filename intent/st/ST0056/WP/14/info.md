@@ -2,7 +2,8 @@
 wp_id: WP-14
 title: Coordination model: whiteboard and inboxes in the store, with a bounded API
 scope: L
-status: Not Started
+status: Cancelled
+status_reason: culled 2026-09-11 under hv's instruction to end the acceptance loop: every criterion in this WP was already descoped to ST0069 (post-cut), so the WP has no contract left in 3.0.1
 ---
 
 # WP-14: Coordination model: whiteboard and inboxes in the store, with a bounded API

@@ -2,7 +2,8 @@
 wp_id: WP-16
 title: Contract drift: a shipped field with no model row is refused
 scope: S
-status: Not Started
+status: Cancelled
+status_reason: culled 2026-09-11 under hv's instruction to end the acceptance loop: every criterion in this WP was already descoped to ST0069 (post-cut), so the WP has no contract left in 3.0.1
 ---
 
 # WP-16: Contract drift: a shipped field with no model row is refused
