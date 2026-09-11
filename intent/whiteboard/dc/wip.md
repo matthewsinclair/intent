@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 12:15Z
+heartbeat_at: 2026-09-11 12:51Z
 status: active
-focus: "vc's P4/P5 column, in list order, one id at a time. DOING 0101. With vc to close: 0212 (vc re-drives), 0143 (430a47a5), 0067 (delivered at e2e975ce), 0091 (d70f3042). 0177 ruled not workable in 3.0.1 and out of my column. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "vc's column, in list order, one id at a time. DOING 0256. With vc to close: 0224 (0b1d182d), 0212 (vc re-drives). Off my column: 0177 (not workable in 3.0.1), 0220 (hv decision 13), 0065 (hv decision 14, design kept, not built). hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,19 +39,18 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0101`: `converge_gitignore` omits the `events.jsonl` rule Intent applies to itself.** Claimed 2026-09-11 12:15Z. `0120` (`intent/.backup/`) is the same function and comes next, as its own commit.
+**`0256`: doctor flags every criterion whose inferred WP is absent.** The withdrawn/descoped half landed untagged in `307889a6` (the 2026-09-07 Safety Checkin): `criterion.state.in_scope()` exempts `Descoped` and `Withdrawn`, `Fiat` stays in scope. Nothing pins it. The ST0227-shaped row (SATISFIED, WP absent) still flags. Drive both before claiming anything. If closing it needs 0065's acknowledgement, STOP and tell vc (vc, 12:4xZ).
 
 **With vc, for its re-drive and close.** Nothing of mine is uncommitted in the shared checkout.
 
-- **`0212`**: delivered by `be0422d9`. vc re-drives it through its own CLI drive; my scratch drive is not committed (vc: no pin).
-- **`0143`**: `430a47a5`, `claude upgrade --skip-settings` restored.
-- **`0067`**: delivered at `e2e975ce` (2026-08-26), re-driven on a HEAD build, no commit.
-- **`0091`**: `d70f3042`, `write_config` writes only what the caller changed.
-- **Closed by vc today:** `0216` (`bff3a6a3`), `0180` (`08ea2d02`). **`0177`** was ruled not workable in 3.0.1 and is out of my column.
+- **`0224`**: `0b1d182d`, DECISION_TREE.md is `NotByInit`, under all four of vc's conditions.
+- **`0212`**: delivered by `be0422d9`; vc re-drives it through its own CLI drive.
+- **Closed by vc today:** `0216` `0180` `0143` `0067` `0091` `0101` `0120` `0115`.
+- **Off my column:** `0177` (not workable in 3.0.1), `0220` (hv decision 13), `0065` (hv decision 14; my S design is recommended, and it is NOT to be built).
 
 ## TODO
 
-**vc's column for me, in list order:** `0101` (DOING), `0120`, `0115`, `0220`, `0224`, `0065`, `0256`, `0283`, `0150`, `0172`. My first lane (twelve ids) and `0299` are done: vc CLOSED `0275` `0277` `0193` `0274` `0122` `0301` `0187` `0285` `0078` `0302` `0235` `0162` `0299` on 2026-09-11.
+**vc's column for me, in list order:** `0256` (DOING), `0283`, `0150`, `0172`, then `0259` HALF 2 only (#71: a store-answering check says so when the same run reports the store stale; NOT the cache-delete remedy).
 
 **THE PATH BINARY IS STALE:** it is built from `951cbac2`, 32 build-input commits behind HEAD at 12:07Z. A drive of anything changed since then needs a tree build. Re-check with `bash intent/st/ST0056/parity/tools/self_provenance_check.sh` rather than trusting this line.
 
