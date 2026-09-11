@@ -3002,6 +3002,34 @@ impl Facade {
     self.hydration(address).map(|h| h.paths)
   }
 
+  /// Every file a thread carries, whether or not it is on disk, sorted.
+  ///
+  /// Asked of the two owners of the answer: `views::render_all` is THE
+  /// renderer and says which views exist for this artefact; canon's
+  /// `attachments` is THE store's own list. Neither is a restatement of what an
+  /// artefact owns -- both are the authority for their half, filtered to this
+  /// artefact's directory. A pure read, so `edit` can refuse on it before
+  /// `hydrate` writes anything (0145).
+  fn carried(&self, id: &str) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+    let home = self.project.thread_dir(id);
+    let mut owned: Vec<std::path::PathBuf> = {
+      let ctx = self.render_ctx()?;
+      views::render_all(&self.project, &self.canon, &ctx)
+        .into_iter()
+        .map(|v| v.path)
+        .filter(|p| p.starts_with(&home))
+        .collect()
+    };
+    if let Some(thread) = self.canon.threads.iter().find(|t| t.id == id) {
+      for attachment in &thread.attachments {
+        owned.push(home.join(&attachment.path));
+      }
+    }
+    owned.sort();
+    owned.dedup();
+    Ok(owned)
+  }
+
   /// [`Facade::hydrate`], with which of its paths THIS CALL WROTE (0083).
   ///
   /// `hydrate`'s answer is the paths that now exist, and it is idempotent, so
@@ -3176,27 +3204,10 @@ impl Facade {
     // two different answers. A caller asking "does my file exist now" would have
     // been told no on the run where nothing needed doing.
     //
-    // **So the set is asked of the two owners rather than reconstructed.**
-    // `views::render_all` is THE renderer and says which views exist for this
-    // artefact; canon's `attachments` is THE store's own list. Neither is a
-    // restatement of what an artefact owns -- both are the authority for their
-    // half, filtered to this artefact's directory.
-    let mut owned: Vec<std::path::PathBuf> = {
-      let ctx = self.render_ctx()?;
-      views::render_all(&self.project, &self.canon, &ctx)
-        .into_iter()
-        .map(|v| v.path)
-        .filter(|p| p.starts_with(&home))
-        .collect()
-    };
-    if let Some(thread) = self.canon.threads.iter().find(|t| t.id == id) {
-      for attachment in &thread.attachments {
-        owned.push(self.project.thread_dir(&id).join(&attachment.path));
-      }
-    }
+    // **So the set is asked of the two owners rather than reconstructed** --
+    // see [`Facade::carried`].
+    let mut owned = self.carried(&id)?;
     owned.retain(|p| p.exists());
-    owned.sort();
-    owned.dedup();
     // **WHAT THIS RUN CHANGED, NOT WHAT NOW EXISTS -- and the two differ on the
     // ordinary path, which is what makes it worth guarding.** `owned` is
     // deliberately *paths that now exist* so a caller can ask "is my file
@@ -4545,12 +4556,10 @@ impl Facade {
     // did nothing and appends to a tracked file is not.
     //
     // **THIS SCOPES THE NO-ROLLBACK RULING RATHER THAN OVERTURNING IT** (vc,
-    // 2026-08-22). `a_refused_view_is_still_realised_because_the_refusal_is_
-    // about_authoring` argues that a refusal must not roll back a completed
-    // act, and it is right; **a ruling about rollback cannot reach an act that
-    // was never performed.** That test is AMENDED onto the `NoSuchEditable`
-    // arm below -- a real refusal after a real hydrate -- where its argument
-    // still bites. It was moved, never deleted.
+    // 2026-08-22): a refusal must not roll back a completed act, and **a ruling
+    // about rollback cannot reach an act that was never performed.** Its test
+    // moved onto the `NoSuchEditable` arm then, and was deleted with 0145, when
+    // that refusal moved ahead of `hydrate` too and left it no act to govern.
     //
     // `Project::edit_disposition` is a pure function of the FILENAME: it
     // consults no disk and no store, so nothing was ever gained by deciding it
@@ -4659,6 +4668,24 @@ impl Facade {
       });
     }
 
+    // **MEMBERSHIP IS DECIDED BEFORE `hydrate` TOO, ON THE SAME GROUNDS AS THE
+    // FILENAME ABOVE** (0145). It sat below `hydrate`, so `st edit ST0001 impl`
+    // on a known thread realised its views and grew the TRACKED `.intentfiles`,
+    // then exited 1 -- and the remedy was built from what that realisation
+    // happened to write, so on a thread with nothing to write it named nothing.
+    // `carried` is a pure read of the model, so the refusal names what the
+    // thread carries whether or not any of it is on disk.
+    if let Some((_, id)) = address.entity.artefact() {
+      let carried = self.carried(id)?;
+      let wanted = self.project.thread_dir(id).join(&rel);
+      if !carried.contains(&wanted) {
+        return Err(FacadeError::NoSuchEditable {
+          path: self.project.relative(&wanted),
+          present: self.carried_names(id, &carried),
+        });
+      }
+    }
+
     let realised = self.hydrate(address)?;
     // `hydrate` refuses every non-artefact form before this point, so the
     // address is known to name one.
@@ -4671,31 +4698,34 @@ impl Facade {
     if !realised.contains(&wanted) {
       return Err(FacadeError::NoSuchEditable {
         path: self.project.relative(&wanted),
-        // **WHAT IS THERE, NOT MERELY THAT THIS IS NOT.** The operator asked
-        // for a file this artefact does not carry, and the set that answers
-        // the follow-up question is the one already in hand.
-        //
-        // **THREAD-RELATIVE AND DEDUPED, BECAUSE THE BASENAME IS NOT THE
-        // ANSWER.** Taking `file_name()` printed `info.md` ten times on a
-        // thread with nine work packages -- every `WP/<NN>/info.md` collapsing
-        // onto the cover's name. A remedy that repeats one word ten times is
-        // read as a rendering fault and stops being read at all, and it also
-        // told the operator that `info` was available when `info` is the one
-        // thing this verb refuses.
-        present: {
-          let dir = self.project.thread_dir(id);
-          let mut names: Vec<String> = realised
-            .iter()
-            .filter_map(|p| p.strip_prefix(&dir).ok())
-            .map(|p| p.to_string_lossy().into_owned())
-            .collect();
-          names.sort();
-          names.dedup();
-          names
-        },
+        present: self.carried_names(id, &realised),
       });
     }
     Ok(wanted)
+  }
+
+  /// The remedy's list for [`FacadeError::NoSuchEditable`].
+  ///
+  /// **WHAT IS THERE, NOT MERELY THAT THIS IS NOT.** The operator asked for a
+  /// file this artefact does not carry, and the set that answers the follow-up
+  /// question is the one already in hand.
+  ///
+  /// **THREAD-RELATIVE AND DEDUPED, BECAUSE THE BASENAME IS NOT THE ANSWER.**
+  /// Taking `file_name()` printed `info.md` ten times on a thread with nine
+  /// work packages -- every `WP/<NN>/info.md` collapsing onto the cover's name.
+  /// A remedy that repeats one word ten times is read as a rendering fault and
+  /// stops being read at all, and it also told the operator that `info` was
+  /// available when `info` is the one thing this verb refuses.
+  fn carried_names(&self, id: &str, paths: &[std::path::PathBuf]) -> Vec<String> {
+    let dir = self.project.thread_dir(id);
+    let mut names: Vec<String> = paths
+      .iter()
+      .filter_map(|p| p.strip_prefix(&dir).ok())
+      .map(|p| p.to_string_lossy().into_owned())
+      .collect();
+    names.sort();
+    names.dedup();
+    names
   }
 
   /// Run the close gate. A read: it changes nothing and refuses nothing.

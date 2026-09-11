@@ -194,37 +194,6 @@ fn a_generated_view_is_refused_and_names_the_surface_that_authors_it() {
     .expect("hv ruled the thread cover open on 2026-08-29");
 }
 
-/// **AND THE REFUSAL WRITES NOTHING TO THE PATH IT REFUSED.** A refusal that
-/// realised the view anyway would leave the operator with a file they were just
-/// told not to edit.
-#[test]
-fn a_refusal_does_not_roll_back_a_hydrate_that_already_happened() {
-  // **THIS IS NOT THE OBVIOUS ANSWER AND IT IS THE RIGHT ONE.** `edit` refuses
-  // to hand over the PATH; it does not refuse to realise the artefact, and the
-  // realisation already happened. Asserting the file is ABSENT here would be
-  // asserting that a refusal rolls back an unrelated act.
-  //
-  // **AMENDED 2026-08-22 (vc), MOVED FROM THE `info` ARM AND NOT WEAKENED.**
-  // It used to drive `edit(.., "info")`, whose refusal is a pure function of
-  // the FILENAME and now decides BEFORE `hydrate` runs -- so on that arm there
-  // is no completed act for a rollback to reach, and the proposition became
-  // untestable rather than false. **A ruling about rollback cannot reach an
-  // act that was never performed.**
-  //
-  // `impl` is an AUTHORED name, so it passes the disposition gate, hydrate
-  // runs, and only then does the artefact turn out not to carry it. That is a
-  // real refusal after a real write, which is exactly the shape this test was
-  // written to govern. The argument survives; only its arm moved.
-  let fx = fixture();
-  let mut facade = fx.facade();
-  facade.edit(&thread(), "impl").expect_err("refused");
-  assert!(
-    fx.path("intent/st/ST0001/info.md").exists(),
-    "the thread was realised before the file turned out to be absent, and the \
-     refusal is about what this artefact CARRIES rather than about what may exist"
-  );
-}
-
 /// **THE REFUSAL THAT NEEDS NOTHING FROM DISK DECIDES BEFORE ANYTHING IS
 /// WRITTEN** -- ic's finding, and the one affected project is this one.
 ///
@@ -268,6 +237,48 @@ fn the_filename_refusal_writes_nothing_at_all() {
     .edit(&thread(), "acceptance")
     .expect_err("`acceptance` is a generated view and is refused");
 
+  assert!(
+    !dir.exists(),
+    "the refusal realised the thread: {:?}",
+    std::fs::read_dir(&dir)
+      .map(|d| d.flatten().map(|e| e.file_name()).collect::<Vec<_>>())
+      .unwrap_or_default()
+  );
+  let manifest = fx.read("intent/.intentfiles");
+  assert!(
+    !intentsvcs::intentfiles::realised_from(&manifest).declares("ST0001"),
+    "the refusal pinned the artefact in a TRACKED file while reporting rc=1:\n{manifest}"
+  );
+}
+
+/// **0145: A FILE THE THREAD DOES NOT CARRY IS REFUSED BEFORE ANYTHING IS
+/// WRITTEN, AND THE REFUSAL NAMES WHAT IT DOES CARRY.**
+///
+/// Driven on a known thread before the fix: `intent st edit ST0001 impl`
+/// realised the thread's views and grew the TRACKED `.intentfiles` 1652 ->
+/// 1671 bytes, then exited 1. And the remedy was built from what that
+/// realisation happened to write, so on the filing's binary it read
+/// `this artefact carries: ` with nothing after the colon.
+#[test]
+fn a_file_the_thread_does_not_carry_is_refused_before_anything_is_written() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+  let dir = fx.path("intent/st/ST0001");
+  std::fs::remove_dir_all(&dir).ok();
+  std::fs::write(fx.path("intent/.intentfiles"), MANIFEST).unwrap();
+
+  let err = facade
+    .edit(&thread(), "impl")
+    .expect_err("the fixture carries no impl.md");
+
+  match &err {
+    FacadeError::NoSuchEditable { present, .. } => assert!(
+      present.iter().any(|p| p == "design.md") && present.iter().any(|p| p == "info.md"),
+      "the remedy names what the thread carries, from the model rather than from the disk: \
+       {present:?}"
+    ),
+    other => panic!("expected NoSuchEditable, got: {other:?}"),
+  }
   assert!(
     !dir.exists(),
     "the refusal realised the thread: {:?}",
