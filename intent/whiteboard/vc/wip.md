@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 12:41Z
+heartbeat_at: 2026-09-11 12:49Z
 status: active
 focus: "BACK ON THE BOUNCE after the compact (folded 2026-09-11 11:04Z). hv: no new work; the open defects in intent/wip.md, in 3.0.1 priority order, are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, and holds hv's pen for the ten decisions. Pre-fold board verbatim at .history/20260911/wip-prefold-0914Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
@@ -17,9 +17,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 **NOTHING IN FLIGHT ON vc.** Peers, as last reported (re-read each off its own board):
 
-- `dc` -- P1 is EMPTY: `0216`, `0212`, `0226` all closed on re-drive. dc on #57 `0101`, then its column in list order; `0259` half 2 (doctor green from a stale store) joined it at #71. `0177` left the column as not workable.
-- `cc` -- lane emptied; took #43 `0083` (moved from ic). `0100`, `0084`, `0114` HELD on hv (decisions 2, 11, 12); `0141` ruled not workable.
-- `ic` -- #42 `0195` building under vc's ruling (C), then #47 `0154`. `0146` is back in its column.
+- `dc` -- on #62 `0224` under ruling (a), then #69 `0256`. `0220` and `0065` HELD on hv (decisions 13, 14).
+- `cc` -- `0083` closed; on #49 `0168` (moved from ic) under vc's ruling (a) `ac show`. `0100`, `0084` HELD on hv (decisions 2, 11).
+- `ic` -- #42 `0195` building under ruling (C), then #47 `0154` and #48 `0185` together (both body doors, one design). `0146` is back in its column.
 
 ## TODO -- on the bounce, in this order
 
@@ -72,3 +72,6 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 - (2026-09-11) **A red arm must predate the fix and postdate the defect.** 951cbac2 is 32 build commits behind HEAD and predates the view-skew refusal, so for `0259` it read green for the wrong reason; the fix's parent was the baseline. Check the red arm reproduces BEFORE reading a green.
 - (2026-09-11) **`0195` ruled (C): a real line where the engine's match lands in a body that IS the file, and no `:N` anywhere else.** Not (B): the issue's complaint is navigation. The match is located with FTS5 highlight, not a second matcher; a line is printed only where indexed body == file bytes, proven; one test whose arms are the line checked against the file, a canon hit with no `:N`, and one row for one occurrence.
 - (2026-09-11) **`0141` ruled not workable in 3.0.1**, 0177's reasoning. **`0114` put to hv as decision 12.** When cc's lane emptied, the next unclaimed item (`0083`) moved to cc, per the list's rule.
+- (2026-09-11) **`0224` ruled (a): `init` stops writing `_DECISION_TREE.md`** (NotByInit, the MODULES.md precedent). Every sentence that becomes false changes in the same commit, and the held `_AGENTS.md:252` MODULES.md row goes with it. No pruning of existing projects.
+- (2026-09-11) **`0168` ruled (a): `ac show`, read-only, mirroring `wp show`.** It adds surface, but there is no fix without it: widening `ac list` measured at 302,087 characters for ST0056. `at show` is out. **`0185` stays with ic beside `0154`**, so the two body doors are one design.
+- (2026-09-11) **`0220` and `0065` put to hv as decisions 13 and 14**: each issue reserves its question for hv by its own words.
