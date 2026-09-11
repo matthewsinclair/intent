@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 13:14Z
+heartbeat_at: 2026-09-11 14:28Z
 status: active
-focus: "LOCALFOLD FOR A COMPACT, 2026-09-11 13:14Z, then back on the bounce. hv: no new work; the open defects in intent/wip.md are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, rules fix shapes under the pen, and holds hv's decisions (now 1-14). Pre-fold board verbatim at .history/20260911/wip-prefold-1314Z.md. RUN THE VERBS; every figure here rots."
+focus: "LOCALFOLD FOR A COMPACT, 2026-09-11 13:14Z, refreshed 14:28Z, then back on the bounce. hv: no new work; the open defects in intent/wip.md are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, rules fix shapes under the pen, and holds hv's decisions (now 1-14). Pre-fold board verbatim at .history/20260911/wip-prefold-1314Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
@@ -17,9 +17,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 **NOTHING IN FLIGHT ON vc.** Peers at the fold, each to be re-read off its own board on return:
 
-- `ic` -- `0154` + `0185` FIXED together at `1f2f8f6a` (`intent set`), WITH vc FOR RE-DRIVE. Then #50 `0139` and the rest of its column.
-- `cc` -- `0283` half B verified (fe8775ed); now #77 `0176` (moved from ic). `0100`, `0084` HELD on hv (decisions 2, 11).
-- `dc` -- `0283` half A (doctor/organize messages) in flight, then #75 `0150`, then #81 `0172`. `0259` half 2 is in its column. `0220`, `0065` HELD on hv (decisions 13, 14).
+- `ic` -- `0154` + `0185` FIXED together at `1f2f8f6a` (`intent set`), WITH vc FOR RE-DRIVE. Then #50 `0139`, #54 `0140`. `0145`, `0146`, `0153`, `0231` left its column for cc.
+- `cc` -- ran ahead during the fold: fixed `0066`, `0145`, `0153` and `0146` (all banked below). `0176` ruled close-after-drive; `0172` ruled not workable. Now building #84 `0231` (DEC 2026 synchronized updates, shape approved), uncommitted in `run.rs` at 14:28Z.
+- `dc` -- `0283` half A LANDED at `62f2db60`; next #75 `0150`, then `0259` half 2. `0172` left its column (not workable). `0220`, `0065` HELD on hv (decisions 13, 14).
 
 ## TODO -- on the bounce, in this order
 
