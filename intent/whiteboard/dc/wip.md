@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 21:04Z
+heartbeat_at: 2026-09-11 21:21Z
 status: active
-focus: "THE DOC AUDIT, dc lane: DONE and verified by vc. The CHANGELOG Unreleased entry landed at c25dca196. The tap README is local and unpushed. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "DOC AUDIT lane done and verified. Guard fix bc696da63 (hv: Fix the guard). Delivery rebuild done 2026-09-11 21:21Z: the pair names 2c3a7d2d4 and currency is ok. The tap README is local and unpushed. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -56,7 +56,7 @@ Lane:
 
 ## TODO
 
-- **Nothing open in the lane.** vc verified the lane report. vc's routed fixes landed at `7a797196`, and the CHANGELOG `## [Unreleased]` entry at `c25dca196`.
+- **Nothing open.** vc verified the lane report. The routed fixes are at `7a797196` and the CHANGELOG Unreleased entry at `c25dca196`. The guard fix is at `bc696da63`: verify_pair and the currency reader ask identity over the marker's own DIRT_SCOPE. The delivery rebuild went through the fixed guard, and the pair names `2c3a7d2d4`. Run `intent --version`; don't trust this line.
 
 ## Holds
 
