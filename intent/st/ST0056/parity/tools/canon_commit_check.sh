@@ -514,6 +514,27 @@ fi
 echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $SUBJECT names bytes it does not contain:" >&2
 printf '%s\n' "$new" | sed 's/^/    /' >&2
 echo "    Canon was written from the WORKTREE while these files were uncommitted." >&2
+# **WHOSE BYTES THEY ARE (0210).** A file this commit does not carry, modified
+# in the working tree, is somebody's uncommitted edit that the store took from
+# disk -- and the remedy below, which is for YOUR file, would commit it for
+# them. Naming it here saves the blocked node the three inferences (whose file,
+# held dirty, ingested) it took to reach "wait for the holder".
+if [ "$STAGED" -eq 1 ]; then
+  held=""
+  while read -r a; do
+    [ -n "$a" ] || continue
+    p="intent/st/$a"
+    git diff-index --cached --quiet HEAD -- "$p" 2>/dev/null || continue
+    git diff --quiet -- "$p" 2>/dev/null || held="${held}${a}"$'\n'
+  done <<< "$(printf '%s\n' "$new" | awk '{print $1}')"
+  if [ -n "$held" ]; then
+    echo "    NOT IN THIS COMMIT, AND MODIFIED IN THE WORKING TREE -- somebody holds an uncommitted edit:" >&2
+    printf '%s' "$held" | sed 's/^/      /' >&2
+    echo "    Canon names those bytes because the store took them from disk (a running intentd ingests" >&2
+    echo "    an attachment edit on its own). Wait for whoever holds it to commit it with canon, or" >&2
+    echo "    commit it here with canon if it is yours. The route below is for a file this commit carries." >&2
+  fi
+fi
 # **THE REMEDY NAMED THE WRONG VERB UNTIL 2026-08-31, AND IT WAS WRONG FOR THIS
 # TOOL'S ENTIRE SUBJECT.** It said *sync canon FIRST, it reads the WORKTREE* --
 # but `sync --to-disk` does NOT re-read an attachment from the worktree, and

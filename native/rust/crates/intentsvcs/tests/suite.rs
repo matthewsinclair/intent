@@ -27,6 +27,8 @@
 //! to that, so an undeclared file is silently never compiled. That inverted failure is
 //! the trade, and it is guarded -- see `tests/no_orphan_suite_member.rs`.
 
+#[path = "canon_commit_guard_names_a_held_edit.rs"]
+mod canon_commit_guard_names_a_held_edit;
 #[path = "common/mod.rs"]
 mod common;
 
