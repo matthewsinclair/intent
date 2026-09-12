@@ -21,7 +21,7 @@ hv ruled the release on 2026-09-12: a patch, vc directing. Rules for every item:
 
 ## DOING: ST0069, project search and the LLM boundary (hv's go 2026-09-12, vc directing in specification, coordination and validation mode)
 
-- The design and build plan are `intent/st/ST0069/design.md`; the packages are WP-17 to WP-24 with their criteria. Ships as 3.1.0. Work runs in private worktrees now and lands on main only after the v3.0.2 tag; batch 4 finishes first on every lane. Lanes: cc the engine (WP-18, WP-20 integration, WP-23); dc the daemon and install (WP-22, WP-24 hooks and canon, the grammar-size measurement); ic the surfaces (WP-17, WP-19, WP-21, WP-24 verbs, descriptions and skills). First up: WP-17 (ic) and WP-18 (cc) in parallel. hv rules the design's listed decisions as each comes due.
+- The design and build plan are `intent/st/ST0069/design.md`; the packages are WP-17 to WP-24 with their criteria. Ships in 3.0.2 (hv). Each package lands on main as it closes; the second dry-run rehearsal and the cut follow the last package; batch 4 finishes first on every lane. Lanes: cc the engine (WP-18, WP-20 integration, WP-23); dc the daemon and install (WP-22, WP-24 hooks and canon, the grammar-size measurement); ic the surfaces (WP-17, WP-19, WP-21, WP-24 verbs, descriptions and skills). First up: WP-17 (ic) and WP-18 (cc) in parallel. hv rules the design's listed decisions as each comes due.
 
 ## TODO: waiting on hv
 

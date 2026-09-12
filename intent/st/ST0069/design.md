@@ -1,6 +1,6 @@
 # Design - ST0069: project search, re-elaborated
 
-**Status: reviewed and re-elaborated by vc on 2026-09-12 at hv's instruction. No work has started.** This document is the search leg of ST0069. The thread's other two legs, the coordination model (inherited from ST0056 WP-14) and contract drift (inherited from ST0056 WP-16), keep their inherited designs in ST0056's cancelled work packages until they are elaborated in their turn.
+**Status: reviewed and re-elaborated by vc on 2026-09-12 at hv's instruction; hv gave the go the same day (_"That is the whole point of this work!"_) and ruled it all into 3.0.2. The build plan is the last section.** This document is the search leg of ST0069. The thread's other two legs, the coordination model (inherited from ST0056 WP-14) and contract drift (inherited from ST0056 WP-16), keep their inherited designs in ST0056's cancelled work packages until they are elaborated in their turn.
 
 ## What hv asked for
 
@@ -228,8 +228,9 @@ The umbrella package is cancelled and replaced by packages that each close on th
 | 21  | The explorer's `/search` pane                                                                    | M    | 19         |
 | 22  | Daemon-served search with daemonless parity                                                      | M    | 18, 19     |
 | 23  | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema           | S    | 20         |
+| 24  | The LLM boundary: the harness's own search becomes a door into the index                         | M    | 20         |
 
-WP-17 can land first and alone. WP-18 is the largest single change and the one that makes the daemon load-bearing. WP-20 is where the value is. WP-23 is the whole of T3 that this thread commits to; the Local embedder is a package for after hv's ruling.
+WP-17 can land first and alone. WP-18 is the largest single change and the one that makes the daemon load-bearing. WP-20 is where the value is, and WP-24 is why hv wants it. WP-23 is the whole of T3 that this thread commits to; the Local embedder is a package for after hv's ruling.
 
 ## Risks, named
 
@@ -238,3 +239,24 @@ WP-17 can land first and alone. WP-18 is the largest single change and the one t
 - **The SQL door couples agents to the schema.** Mitigated by the versioned faces and by `schema_version` in every response; not eliminated.
 - **Index size** is the D34 consequence made real. Reported, never estimated.
 - **A grammar's tags query is the extractor.** A grammar whose `tags.scm` is thin gives thin symbols; that is reported per language in `intent index status`, not papered over.
+
+## The LLM boundary
+
+The boundary today is decided by tool descriptions, not by capability. The model's own tools are grep, glob and read: always fresh, always exact, no setup, lines straight into context. Intent's index is reachable through `intent search` in a shell and through the MCP tool `intent mcp` serves, and nothing routes the model to either: no `.mcp.json` ships with a project, the tool describes itself as prose search, and the skills name `intent modules find`. A model picks a tool from three inputs, the description, the instructions in context, and what worked last time in the session, and grep wins all three. An index earns the call only when it answers a question grep cannot, in one round trip, with an answer the model can trust without checking; the first stale hit sends the model back to grep for the session, and it is right to go.
+
+The lift is five join points, in order of leverage, on one contract:
+
+1. **Answers grep cannot give.** Units, not lines: `outline <path>` (a file's symbols with spans), `def <name>` (definitions with spans), `context <name>` (a definition and its name-matched references as source spans, the thing an agent does today with a grep, a glob and several reads). These replace read-the-whole-file with read-this-span, which is where the performance is; racing ripgrep is not.
+2. **Zero-cost reach.** The MCP tool is in-process over SQLite; `.mcp.json` naming `intent mcp` is canon, seeded by `claude upgrade --apply`; the tool descriptions say when to use the tool and when not, in the words a model matches on, generated from the register.
+3. **The canon routes the question.** CLAUDE.md, the skills and the generated guide name the index verbs for finding code and for the Highlander check, with grep as the named fallback when the envelope is not complete.
+4. **The hooks make the harness's own search a door into the index.** A PostToolUse hook on grep, served from the install like the session hooks, appends the index's structural answer for the symbol the pattern named. It never blocks and it never lies, because grep still ran; within a session the model learns the better first call. The PreToolUse redirect of symbol-shaped patterns is the stronger form and is safe only under the contract below; it is specified and not built until hv rules.
+5. **The contract: as fresh as grep at query time, or say so.** The envelope's `complete`, `skipped` and `stale` are what make the tool trustable; the hook appends nothing when they say the index cannot answer.
+
+Next gen, beyond parity: code joined to intent. The store knows which commits reference which threads and which criteria a package carries; a symbol hit that names the thread and criterion that introduced it is traceability no code search has, and it is uniquely Intent's to build. It is WP-24's stretch criterion, specified before it is built.
+
+## Build plan
+
+- **Ships in 3.0.2** (hv, 2026-09-12: _"this is ALL for 3.0.2"_). Each package lands on main as it closes, red before green, its own commits; the release's second dry-run rehearsal and the cut follow the last package. Batch 4 of the release finishes first on every lane.
+- **Lanes.** cc, the engine: WP-18, WP-20's tree-sitter integration, WP-23. dc, the daemon and the install: WP-22, WP-24's hook and canon halves, and WP-20's per-grammar binary-size measurement. ic, the surfaces: WP-17, WP-19, WP-21, WP-24's verbs, descriptions and skills. vc specifies, sequences and verifies every landing; hv rules the decisions listed above as each comes due.
+- **Order.** WP-17 and WP-18 first, in parallel. WP-19 on WP-18. WP-20's pure symbols module against fixtures in parallel with WP-19, its integration on WP-19. WP-21 and WP-22 on WP-19. WP-24 on WP-20. WP-23 last.
+- **Every package:** its own worktree with the worktree's in-tree target dir, an isolated HOME, tests on fixture trees and never on the estate they run in, red before green, no counts anywhere a reader reads, the register row in the same commit as any flag, and every `--help` or output change reported to ic for the reference.
