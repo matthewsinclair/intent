@@ -96,7 +96,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: no (computed)
 
-### WP-16 -- Contract drift: a shipped field with no model row is refused (status: Not Started)
+### WP-16 -- Contract drift: a shipped field with no model row is refused (status: WIP)
 
 - AC-16.1 **A check joins the schema property set to `data-model.md`'s table rows per entity and REFUSES IN BOTH DIRECTIONS**: a property with no row (a field shipped with no contract), and a row with no property (a contract describing something nobody implemented). Both, because they fail differently and the second is the more dangerous half -- it is what made `issue.body` look specified while it was homeless. **It is a SIBLING of `drift_check.sh`, never an arm of it**: that check compares generated faces to the Rust types, this compares a prose document to a schema, and folding them puts two questions behind one exit code.
 
@@ -194,7 +194,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-16 -- Contract drift: a shipped field with no model row is refused (status: Not Started)
+### WP-16 -- Contract drift: a shipped field with no model row is refused (status: WIP)
 
 - AT-16.1 `intent/st/ST0056/parity/tools/contract_check.sh` -- covers AC-16.1 -- status: green -- The check joins the schema property set to data-model.md's per-entity tables and refuses in BOTH directions: a property with no row (SHIPPED WITH NO CONTRACT ROW) and a row with no property (CONTRACT ROW WITH NO SHIPPED PROPERTY). A sibling of drift_check.sh and never an arm of it -- that one compares generated faces to the Rust types, this compares a prose document to a schema, and their remedies are opposite, a regeneration against an author. It found Attachment.blob on its first run: a row describing a property nothing ships, the more dangerous half, since corrected.
 - AT-16.2 `intent/st/ST0056/parity/tools/contract_check.sh` -- covers AC-16.2 -- status: green -- The denominator prints on every run, found and not-found alike. THE POPULATION IS DERIVED AT RUN TIME ON BOTH SIDES and is enumerated nowhere: schema side from the three published faces, document side from every heading whose first following table is a field table. That derivation is why file_index and doc_section are not claimed -- they describe themselves in inline prose and are not entity tables, measured from the document rather than decided in the tool. The criterion's own nine-name list was falsified by derivation; it now yields twelve where the row says eleven.
