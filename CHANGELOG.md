@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.2] - in progress
 
 Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed. **This fixes no behaviour.** The defects the audit found are described on [Known defects](docs/known-defects.md) and are unchanged in the binary.
 
@@ -19,6 +19,8 @@ Every document in the repository was checked against v3.0.1 as built and correct
 
 ### Fixed
 
+- **A Homebrew install carries the subagents.** The v3.0.1 keg shipped without `intent/plugins/claude/subagents`, so `intent claude subagents list` answered `no subagents in this install` at exit 0 and there was nothing for `intent claude subagents install` to install -- the `critic-<lang>` family included. The support archive now carries that tree, and the release refuses to build one that omits a directory the binary resolves by name at run time.
+- **A fresh install says how to finish it.** The pre-commit gate a project installs finds Intent through `~/.intent/home`, which only `intent bootstrap` writes, so every commit was refused after a first install -- and the refusal said to reinstall, which writes no pointer. It now names `intent bootstrap`, and the formula says the same in a caveat. Homebrew cannot do it for you: its `post_install` runs with a throwaway HOME and cannot write yours.
 - **A new project's `intent/wip.md` carries its own date and author.** The template stamped every project's `wip.md` with a fixed 2025 date and one person's name; `intent init` now fills in the date and the project's author.
 
 ### Removed
