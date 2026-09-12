@@ -22,7 +22,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Holds
 
-- None. Both pushes ran on hv's approval: `main` at `1ebd57700` on both remotes, and the tap at `c0e6ed9`.
+- **The view regeneration that clears doctor's refusal** (`intent st hydrate` on the nine threads named in `intent/wip.md`), CONDITION: hv runs it or authorises it. vc's session tooling refused the write as destructive at 2026-09-12 06:36Z, and a refusal in my session is not handed to a peer.
 
 ## Watch-outs (added 2026-09-11)
 
