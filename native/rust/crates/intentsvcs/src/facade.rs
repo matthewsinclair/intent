@@ -4961,7 +4961,37 @@ impl Facade {
   /// effect is on the list. Reported rather than worked around: filtering
   /// `apply` by the manifest is a change to the core write path, not to this
   /// verb.
+  /// [`Facade::st_new_listing`] WITH what its projection had to say.
+  ///
+  /// **A CREATE PROJECTS THE ESTATE EXACTLY AS A TRANSITION DOES**, so it can
+  /// overwrite a generated view somebody had edited -- and it returned an id,
+  /// which is not a channel anything can be said through. Measured before this
+  /// existed: `st new` overwrote a hand-edited `steel_threads.md` and printed
+  /// `created: ST0002` and nothing else.
+  ///
+  /// **THE SIBLING RATHER THAN A CHANGED RETURN TYPE, and the reason is the
+  /// caller set.** `st_new_listing` has callers across three crates and most of
+  /// them want the id and nothing more; widening its return would edit all of
+  /// them to say `.0`, which is churn that hides the one call site that
+  /// actually changed. This is additive: the face that reports takes this one,
+  /// and every other caller stays exactly as it was.
+  pub fn st_new_listing_reported(
+    &mut self,
+    title: &str,
+    list: ListEdit,
+  ) -> Result<(String, Vec<Note>), FacadeError> {
+    self.st_new_inner(title, list)
+  }
+
   pub fn st_new_listing(&mut self, title: &str, list: ListEdit) -> Result<String, FacadeError> {
+    self.st_new_inner(title, list).map(|(id, _)| id)
+  }
+
+  fn st_new_inner(
+    &mut self,
+    title: &str,
+    list: ListEdit,
+  ) -> Result<(String, Vec<Note>), FacadeError> {
     // **THE PRE-CHECK THAT USED TO BE HERE COULD NOT FIRE, AND IT IS GONE**
     // (issue 0131). It asked whether `self.canon` already held the id that
     // `next_thread_id()` had just computed as `max() + 1` over that same canon
@@ -5012,7 +5042,7 @@ impl Facade {
     };
     let mut next = self.canon.clone();
     next.threads.push(thread);
-    self.apply(
+    let foreign = self.apply(
       "st.new",
       Subject {
         kind: "thread".to_string(),
@@ -5022,7 +5052,10 @@ impl Facade {
       next,
     )?;
     self.edit_list("st.new", &id, list)?;
-    Ok(id)
+    // The same fold every transition uses, so a create cannot report its
+    // overwrites in a second spelling.
+    let notes = Outcome::Moved.with_overwrites(foreign).notes().to_vec();
+    Ok((id, notes))
   }
 
   /// Accept a thread out of triage and into the backlog.

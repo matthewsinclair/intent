@@ -34,6 +34,8 @@ mod common;
 
 #[path = "a_close_names_what_the_next_organize_removes.rs"]
 mod a_close_names_what_the_next_organize_removes;
+#[path = "a_creating_verb_names_what_it_overwrote.rs"]
+mod a_creating_verb_names_what_it_overwrote;
 #[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_narrowed_render_names_its_scope.rs"]

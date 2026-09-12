@@ -2292,7 +2292,14 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // `st_new_listing` STAYS, and is not now a test-only door: `st_new`
       // delegates to it, so it is the one body. `--keep` on `st done` and
       // `st cancel` still reach `ListEdit` and still mean what they say.
-      let id = f.st_new(&title).map_err(fail)?;
+      // **THE REPORTED DOOR, because a create projects the estate exactly as a
+      // transition does.** `st_new` returns the id alone and has callers that
+      // want only that; this face is the one that has somewhere to print what
+      // the projection overwrote.
+      let (id, notes) = f
+        .st_new_listing_reported(&title, intentsvcs::facade::ListEdit::AsDeclared)
+        .map_err(fail)?;
+      print_notes(&notes, &id);
       // **`-s|--start` COMPOSES two declared transitions and never constructs
       // the end state** (vc, ruled 2026-08-15). The flag is v2 parity and it
       // never changed; the machine grew a state underneath it. v2's `st new`
@@ -2510,7 +2517,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
         format: None,
       };
       let mut facade = open()?;
-      facade.put_attachment(&address, &bytes).map_err(fail)?;
+      // **THE NOTES ARE READ, NOT DISCARDED.** `put_attachment` returns an
+      // `Outcome` and this arm used to drop it, so an attach that overwrote a
+      // generated view somebody had edited said nothing -- the note existed and
+      // reached nobody, which is worse than not having one.
+      let outcome = facade.put_attachment(&address, &bytes).map_err(fail)?;
+      report_notes(&outcome, &id);
       println!("ok: {path} written to {id}");
       Ok(())
     }
@@ -8215,6 +8227,13 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
 /// `st new --start` prints `created:` for v2 parity, and its `st start` must
 /// not lose what the transition had to say (issue 0209).
 fn report_notes(outcome: &Outcome, subject: &str) {
+  print_notes(outcome.notes(), subject);
+}
+
+/// The notes half, over the notes THEMSELVES -- for a verb that carries them
+/// without carrying an [`Outcome`] (`st new` returns an id, and its projection
+/// still overwrites files).
+fn print_notes(notes: &[Note], subject: &str) {
   // **THE NOTES ARE PRINTED HERE, AND THAT PLACEMENT IS WHAT MAKES THEM
   // UNDROPPABLE.** Adding an `Outcome` variant would not have forced the
   // nineteen arms to handle it -- they all ask `Outcome::already`, a method,
@@ -8227,7 +8246,7 @@ fn report_notes(outcome: &Outcome, subject: &str) {
   // be asked. Two prefixes rather than one because "nothing is uncommitted" and
   // "I could not look" are what an operator most needs to tell apart, and INV-01
   // governs the `ok:`/`error:` result line on stdout rather than this.
-  for note in outcome.notes() {
+  for note in notes {
     match note {
       Note::UnsyncedAttachments(paths) => {
         eprintln!(
