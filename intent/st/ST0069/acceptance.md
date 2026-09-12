@@ -156,7 +156,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: yes (computed)
 - AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: yes (computed)
 - AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
-- AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: no (computed)
+- AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: yes (computed)
 - AC-24.6 (non-test) The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on. -- satisfied: no
 - AC-24.7 (non-test) Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built. -- satisfied: no
 
@@ -223,6 +223,7 @@ _(no tests in this group)_
 
 - AT-24.2 `native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs` -- covers AC-24.2 -- status: green
 - AT-24.3 `native/rust/crates/intent-cli/tests/the_structural_doors_answer_in_the_envelope.rs` -- covers AC-24.3 -- status: green
+- AT-24.5 `tests/unit/prior_art_route.bats` -- covers AC-24.5 -- status: green -- The guard holds four properties over the six authored artefacts and the two roots they generate: the index route, grep as the fallback, the registry kept where it was named, and the superseded wording gone. AC-24.5's agent-guide half is MET BY CONSTRUCTION rather than skipped -- the guide renders from the register on demand, so there is no committed guide to regenerate, and nothing in its authored half named a lookup verb to correct.
 
 ---
 

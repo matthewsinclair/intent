@@ -889,6 +889,16 @@
         "AC-24.3"
       ],
       "status": "green"
+    },
+    {
+      "id": "AT-24.5",
+      "kind": "test",
+      "file": "tests/unit/prior_art_route.bats",
+      "covers": [
+        "AC-24.5"
+      ],
+      "status": "green",
+      "note": "The guard holds four properties over the six authored artefacts and the two roots they generate: the index route, grep as the fallback, the registry kept where it was named, and the superseded wording gone. AC-24.5's agent-guide half is MET BY CONSTRUCTION rather than skipped -- the guide renders from the register on demand, so there is no committed guide to regenerate, and nothing in its authored half named a lookup verb to correct."
     }
   ],
   "attachments": [
