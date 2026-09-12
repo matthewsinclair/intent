@@ -30,8 +30,9 @@
 //! and `st hydrate` writing over a view whose bytes differ -- **which is the
 //! same class and not a second one**: hv's words are *removes or overwrites*,
 //! and a hand edit replaced by a render is as gone as a file deleted.
-//! **Not yet covered, because the fix is not landed yet:** the MCP `organize`
-//! tool with `apply: true` (vc's sweep, item 3). It lands with its arm here.
+//! The MCP `organize` tool is covered too, and its property is different in
+//! shape and the same in kind: a machine caller has no moment of looking, so
+//! `apply: true` must ECHO the digest of a plan a previous call returned.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -362,6 +363,123 @@ fn a_realisation_verb_refuses_to_remove_and_names_what_it_would_have_taken() {
     );
     assert!(stray.is_file(), "and take nothing");
   }
+}
+
+/// **THE MCP TOOL REMOVES NOTHING A CALLER WAS NOT SHOWN** (vc's sweep, item 3).
+///
+/// The terminal face previews, renders the plan, asks a human and pins the act
+/// to what it printed. **This surface had none of that**: one call with
+/// `apply: true` removed files, and the first and only account of which files
+/// was the response that came back after. A machine caller has no moment of
+/// looking, so the moment is made into a protocol -- call once to see the plan,
+/// then echo its `plan` back.
+///
+/// **AND THE ECHO IS CHECKED.** A digest that no longer matches means the estate
+/// moved between the two calls, so the removals about to run are not the ones
+/// that were returned.
+#[test]
+fn the_mcp_organize_tool_refuses_to_apply_a_plan_the_caller_was_not_shown() {
+  let dir = project();
+  let root = dir.path();
+  undeclare_st0002(root);
+
+  // One tool call, answered. **The payload is a JSON document inside the
+  // frame's text**, which is the MCP shape: the frame carries a content block
+  // and the block carries the tool's own answer, so a test that grepped the
+  // frame would be reading a string of escapes.
+  let call = |args: &str| -> (serde_json::Value, String) {
+    let frames = [
+      r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#.to_string(),
+      r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#.to_string(),
+      format!(
+        r#"{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"intent_organize","arguments":{args}}}}}"#
+      ),
+    ];
+    let mut child = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .arg("mcp")
+      .current_dir(root)
+      .env("HOME", testkit::fixture_home())
+      .stdin(std::process::Stdio::piped())
+      .stdout(std::process::Stdio::piped())
+      .stderr(std::process::Stdio::piped())
+      .spawn()
+      .expect("spawn intent mcp");
+    {
+      use std::io::Write as _;
+      let stdin = child.stdin.as_mut().expect("stdin");
+      for frame in &frames {
+        writeln!(stdin, "{frame}").expect("write frame");
+      }
+    }
+    drop(child.stdin.take());
+    let out = child.wait_with_output().expect("wait");
+    let frame: serde_json::Value = String::from_utf8_lossy(&out.stdout)
+      .lines()
+      .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+      .find(|v| v.get("id").and_then(|i| i.as_u64()) == Some(2))
+      .expect("an answer to the tool call");
+    let text = frame
+      .pointer("/result/content/0/text")
+      .and_then(|t| t.as_str())
+      .unwrap_or_default()
+      .to_string();
+    let payload =
+      serde_json::from_str::<serde_json::Value>(&text).unwrap_or(serde_json::Value::Null);
+    (payload, frame.to_string())
+  };
+
+  // **THE REFUSAL, AND NOTHING IS REMOVED BY IT.**
+  let before = tree(root);
+  let (_, refused) = call(r#"{"apply": true}"#);
+  assert!(
+    refused.contains("plan"),
+    "`apply: true` with no plan must be refused and must say what to pass: {refused}"
+  );
+  assert_eq!(
+    tree(root),
+    before,
+    "and it must remove nothing at all: {refused}"
+  );
+
+  // **THE PREVIEW HANDS BACK WHAT AN APPLY MUST ECHO**, or the refusal above is
+  // a wall with no door.
+  let (preview, raw) = call(r#"{"apply": false}"#);
+  let digest = preview
+    .get("plan")
+    .and_then(|p| p.as_str())
+    .unwrap_or_default()
+    .to_string();
+  assert!(
+    digest.len() > 16,
+    "a preview must return the plan a later apply echoes: {raw}"
+  );
+  assert_eq!(tree(root), before, "and a preview removes nothing");
+  assert_eq!(
+    preview.get("applied").and_then(|a| a.as_bool()),
+    Some(false)
+  );
+
+  // A digest that is not this tree's plan is refused, so the echo is CHECKED.
+  let (_, stale) = call(
+    r#"{"apply": true, "plan": "0000000000000000000000000000000000000000000000000000000000000000"}"#,
+  );
+  assert!(
+    stale.contains("not the ones that were printed") || stale.contains("error"),
+    "a plan digest that does not match this tree must refuse: {stale}"
+  );
+  assert_eq!(tree(root), before, "and remove nothing");
+
+  // The echo of the plan it was shown performs the removal it named.
+  let (applied, raw_applied) = call(&format!(r#"{{"apply": true, "plan": "{digest}"}}"#));
+  assert_eq!(
+    applied.get("applied").and_then(|a| a.as_bool()),
+    Some(true),
+    "the echoed plan must be accepted: {raw_applied}"
+  );
+  assert!(
+    !vanished(&before, &tree(root)).is_empty(),
+    "and it must really have reconciled: {raw_applied}"
+  );
 }
 
 /// **THE CONTROL ON THE INSTRUMENT ITSELF.** Everything above rests on `tree`

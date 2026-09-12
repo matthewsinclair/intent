@@ -8463,6 +8463,16 @@
       "flags": [
         {
           "spellings": [
+            "--plan"
+          ],
+          "type": "string",
+          "value": "<digest>",
+          "help": "The digest of a plan you were shown; the run refuses if the tree has moved since",
+          "disposition": "keep",
+          "disposition_basis": "**hv, 2026-09-12, on silent deletion. A PREVIEW AND THE `--apply` THAT FOLLOWS IT ARE TWO RUNS, AND THE SECOND ONE RE-PLANS.** Between them the estate can move -- every read verb materialises the store on access, so a peer running `intent st list` is enough -- and the act would then perform a plan NOBODY WAS SHOWN, with the preview's reassurance standing over it. The terminal face closes that window itself: it previews, renders, asks, and pins the act to the digest it printed. **A NON-INTERACTIVE CALLER HAS NO SUCH MOMENT**, and the MCP tool's `apply: true` removed files with no preview at all -- so on that surface the digest is REQUIRED, and a caller proves it saw a plan by echoing the `plan` a preview returned. On the terminal it is optional, because the interactive flow already pins; given, it pins to the digest the operator names instead."
+        },
+        {
+          "spellings": [
             "--apply"
           ],
           "type": "bool",

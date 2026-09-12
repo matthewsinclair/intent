@@ -4589,8 +4589,17 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
     .map_err(fail)?;
   render_organize_report(&project, &planned, Tense::Planned, verbosity)?;
   confirm_destructive_plan(&planned)?;
+  // **`--plan` PINS TO THE DIGEST THE CALLER NAMES, NOT THE ONE JUST
+  // COMPUTED.** The interactive flow already pins to what it printed; a caller
+  // that was shown a plan earlier -- another process, another session, the MCP
+  // surface -- proves it by naming that digest, and a tree that has moved since
+  // refuses instead of acting on the difference.
+  let shown = m
+    .get_one::<String>("plan")
+    .cloned()
+    .unwrap_or_else(|| planned.digest.clone());
   let report = facade
-    .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&planned.digest))
+    .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&shown))
     .map_err(fail)?;
   render_organize_report(&project, &report, Tense::Performed, verbosity)
 }

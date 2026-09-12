@@ -1146,18 +1146,41 @@ pub fn serve(
       // `--default` / `--force` are narrowed off this surface (the declaration
       // op ends in a terminal confirmation); the unknown-parameter check above
       // is what refuses them by name.
-      let mode = if opt_b(path, map, "apply")? {
+      // **`apply: true` REQUIRES THE DIGEST OF A PLAN THIS CALLER WAS SHOWN**
+      // (hv, 2026-09-12: silent deletion). The terminal face previews, renders
+      // the plan, asks a human and pins the act to what it printed. **THIS
+      // SURFACE HAD NONE OF THAT**: one call removed files, and the first and
+      // only account of which files was the response that came back after. A
+      // machine caller has no moment of looking, so the moment is made into a
+      // protocol -- call once to see the plan, then echo its `plan` back.
+      //
+      // **AND THE ECHO IS CHECKED, NOT MERELY REQUIRED.** A digest that no
+      // longer matches means the estate moved between the two calls, and the
+      // removals about to run are not the ones that were returned.
+      let applying = opt_b(path, map, "apply")?;
+      let shown = opt_s(path, map, "plan")?;
+      if applying && shown.is_none() {
+        return Err(args_err(
+          path,
+          "`apply: true` needs the `plan` of a preview you were shown: call this tool with `apply: false`, read the `plan` in the answer, and pass it back. Removing files that were never named to the caller is the one thing this tool will not do".to_string(),
+        ));
+      }
+      let mode = if applying {
         intentsvcs::organize::Mode::Apply
       } else {
         intentsvcs::organize::Mode::Preview
       };
       let applied = mode == intentsvcs::organize::Mode::Apply;
-      let report = f.organize(mode)?;
+      let report = f.organize_as_shown(mode, shown.as_deref())?;
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
         paths.iter().map(|p| p.display().to_string()).collect()
       };
       Ok(json!({
         "applied": applied,
+        // **THE PREVIEW'S ANSWER CARRIES WHAT AN APPLY MUST ECHO.** Without it
+        // the requirement above would be a wall with no door: a caller told to
+        // pass a digest it was never given.
+        "plan": report.digest,
         "hydrated": rel(&report.hydrated),
         "rewritten": rel(&report.rewritten),
         "unchanged": rel(&report.unchanged),
