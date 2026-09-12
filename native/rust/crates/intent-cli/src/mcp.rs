@@ -139,11 +139,20 @@ fn tool_name(path: &str) -> String {
 /// The D45 projection, through the guide's own renderer -- one home for the
 /// safety sentence, asserted by the guide's tests and reused here verbatim.
 fn description(entry: &Entry) -> String {
-  format!(
+  let head = format!(
     "{} {}",
     entry.help.trim_end_matches('.'),
     crate::guide::safety(entry)
-  )
+  );
+  // **THE WHEN-AND-WHEN-NOT IS READ FROM THE ROW, NEVER WRITTEN HERE**
+  // (AC-24.2). A model picks a tool from its description, and the half that
+  // changes its behaviour is when NOT to reach for it -- so that text belongs
+  // beside the row it describes, where a verb that changes meets it, rather
+  // than in a match arm in this file that nobody re-reads when the verb moves.
+  match &entry.when_to_use {
+    Some(when) => format!("{head} {when}"),
+    None => head,
+  }
 }
 
 /// Does this arg reach the published schema? A `subcommand` slot does not:

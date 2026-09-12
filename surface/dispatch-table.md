@@ -3907,6 +3907,7 @@ Report what the search index holds by corpus, and every path it will not hold wi
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to find out whether a search result can be believed: what the index holds per corpus, and every path it will not hold with the reason, named rather than counted. It is the question to ask when a search came back empty and you need to know whether the phrase is absent or the corpus is. DO NOT USE IT to search: it reports on the index and answers nothing about content. It reads the rows and never walks the tree, so it describes the index rather than the world.
 - **basis:** ST0069 design.md: `intent index status [--json]`. There is no v2 antecedent -- v2 had no index.
 - **owner wp:** WP-19
 - **acceptance:** AC-19.6
@@ -4083,6 +4084,7 @@ Walk the index scope and rewrite what the index holds, then report it
 
 ### `search`
 
+- **when to use:** USE IT when the question is WHERE IS THIS WRITTEN across the whole project at once -- steel threads, work packages, issues, the docs tree and the source, ranked, with the index's own freshness in the answer, in one call instead of a glob plus several reads. DO NOT USE IT when you already know the path: read the file. DO NOT USE IT for every literal occurrence in code: grep is exact, always fresh and needs no index, and this answers from an index that can be behind. AND WHEN THE ANSWER SAYS `complete: false`, TRUST GREP OVER IT FOR THE PATHS IT NAMES -- the envelope names them precisely so that choice can be made rather than guessed.
 - **v2:** new-surface
 - **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that no AC covered search)
 - **disposition:** new-surface

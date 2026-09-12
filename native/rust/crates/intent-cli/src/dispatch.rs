@@ -171,6 +171,22 @@ pub struct Entry {
   pub path: String,
   #[serde(default)]
   pub help: String,
+  /// What a MODEL needs to choose this tool, and to choose something else
+  /// (AC-24.2): when to use it, and when not to.
+  ///
+  /// **A SECOND FIELD RATHER THAN A LONGER `help`, AND THE TWO READERS ARE WHY.**
+  /// `help` is one line in a terminal, where a paragraph is noise; a tool
+  /// description is the whole of what a model has to decide on, and the half
+  /// that changes its behaviour is *when NOT to use this* -- which has no place
+  /// in `--help` at all. Two renderings of one row for two readers is not two
+  /// homes for one fact: the CLI's sentence and the model's paragraph say
+  /// different things, and a row that tried to serve both would serve neither.
+  ///
+  /// **IT LIVES IN THE REGISTER, WHICH IS THE WHOLE POINT** -- the words a model
+  /// matches on sit beside the row they describe, so a verb that changes meets
+  /// its own description, and nothing in `mcp.rs` authors prose.
+  #[serde(default)]
+  pub when_to_use: Option<String>,
   #[serde(default)]
   pub args: Vec<Arg>,
   #[serde(default)]
@@ -1228,6 +1244,7 @@ mod tests {
   #[test]
   fn paths_decompose_into_family_and_verb() {
     let st = Entry {
+      when_to_use: None,
       // Absent here for the same reason the two below are empty: these are
       // fixtures for path decomposition, and declaring a daemon op on one
       // would put a serving claim into a test that no table makes.
@@ -1286,6 +1303,7 @@ mod tests {
       required_unless: None,
     };
     let with = |arg: Arg| Entry {
+      when_to_use: None,
       serving_op: None,
       hidden_aliases: Vec::new(),
       twin_of: String::new(),
