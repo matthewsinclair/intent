@@ -28,7 +28,9 @@ use std::path::PathBuf;
 use crate::contract::{group_of, satisfied_by_tests};
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcState, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
+use crate::model::{
+  AcState, AcceptanceTest, AtKind, Criterion, Issue, Thread, ThreadStatus, WorkPackage,
+};
 use crate::project::{Project, canon_thread_rel};
 use crate::write_set::WriteSet;
 
@@ -1423,6 +1425,45 @@ fn write_row(out: &mut String, row: &TodoItem, depth: usize) {
 /// `None` is a real answer and not a failure: `steel_threads.md` and `todo.md`
 /// are project-level, belong to no artefact, and so are never subject to the
 /// manifest.
+/// Render one issue's `intent/issues/<nnnn>.md` (AC-01.1).
+///
+/// **THE BODY IS EMITTED VERBATIM AND NOTHING PARSES IT.** `Issue::body` is
+/// the authored prose whole -- its own `# <nnnn>: <title>` heading included,
+/// which is CARRIED rather than reconstructed because on this estate three
+/// issues of forty do not reconstruct from `number` + `title`. So this
+/// function does not write a heading: doing so would put a second, sometimes
+/// contradictory, title above the author's own.
+///
+/// **The optional fields are present only when set, which is the same rule the
+/// thread view one level up uses.** An issue migrated from v2 carries no
+/// `closed` and often no `severity`, and rendering `closed:` with an empty
+/// value would assert a field the record does not have.
+pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
+  let mut out = String::new();
+  out.push_str("---\n");
+  out.push_str(&kv("issue", &format!("{:04}", issue.number)));
+  out.push_str(&kv("title", &issue.title));
+  out.push_str(&kv("status", issue.status.display()));
+  if let Some(severity) = &issue.severity {
+    out.push_str(&kv("severity", severity));
+  }
+  out.push_str(&kv("created", &issue.created));
+  if let Some(closed) = &issue.closed {
+    out.push_str(&kv("closed", closed));
+  }
+  if let Some(reporter) = &issue.reporter {
+    out.push_str(&kv("reporter", reporter));
+  }
+  out.push_str("---\n\n");
+
+  if !issue.body.trim().is_empty() {
+    out.push_str(issue.body.trim_end());
+    out.push_str("\n\n");
+  }
+
+  finish(out, ctx, "the issue canon")
+}
+
 pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<String> {
   canon
     .threads
@@ -1449,6 +1490,21 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
         content: wp_info(thread, wp, ctx),
       });
     }
+  }
+  // **EVERY ISSUE RENDERS, OPEN OR CLOSED, AND THE OPEN FILTER LIVES IN THE
+  // DECLARATION** (`intentfiles::default_declaration`). This is exactly how
+  // threads above already work: all of them render, the manifest names the
+  // ones being worked on, and anything undeclared is dehydrated by the path
+  // that already exists. Teaching this loop about status would put the
+  // open/closed rule in two places, and the second copy is the one that goes
+  // stale -- so AC-01.3's "a closed issue is undeclared and its file is
+  // dehydrated on apply" is satisfied without this function knowing what
+  // closed means.
+  for issue in &canon.issues {
+    views.push(View {
+      path: project.issue_view(issue.number),
+      content: self::issue(issue, ctx),
+    });
   }
   views.push(View {
     path: project.steel_threads_view(),
