@@ -735,6 +735,46 @@
   ],
   "tests": [
     {
+      "id": "AT-16.1",
+      "kind": "test",
+      "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+      "covers": [
+        "AC-16.1"
+      ],
+      "status": "green",
+      "note": "The check joins the schema property set to data-model.md's per-entity tables and refuses in BOTH directions: a property with no row (SHIPPED WITH NO CONTRACT ROW) and a row with no property (CONTRACT ROW WITH NO SHIPPED PROPERTY). A sibling of drift_check.sh and never an arm of it -- that one compares generated faces to the Rust types, this compares a prose document to a schema, and their remedies are opposite, a regeneration against an author. It found Attachment.blob on its first run: a row describing a property nothing ships, the more dangerous half, since corrected."
+    },
+    {
+      "id": "AT-16.2",
+      "kind": "test",
+      "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+      "covers": [
+        "AC-16.2"
+      ],
+      "status": "green",
+      "note": "The denominator prints on every run, found and not-found alike. THE POPULATION IS DERIVED AT RUN TIME ON BOTH SIDES and is enumerated nowhere: schema side from the three published faces, document side from every heading whose first following table is a field table. That derivation is why file_index and doc_section are not claimed -- they describe themselves in inline prose and are not entity tables, measured from the document rather than decided in the tool. The criterion's own nine-name list was falsified by derivation; it now yields twelve where the row says eleven."
+    },
+    {
+      "id": "AT-16.3",
+      "kind": "test",
+      "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+      "covers": [
+        "AC-16.3"
+      ],
+      "status": "green",
+      "note": "A mapped table that cannot be FOUND or PARSED refuses loudly and is never skipped, naming the entity and the table. DRIVEN: deleting the field rows from 'related' while leaving its heading produces REFUSED (AC-16.3) naming entity Related and table related at its line. The same arm fired on the real document before the tables were written, refusing FiatRecord, Invoker and Subject by name rather than reporting them checked."
+    },
+    {
+      "id": "AT-16.4",
+      "kind": "test",
+      "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+      "covers": [
+        "AC-16.4"
+      ],
+      "status": "green",
+      "note": "DRIVEN RED IN BOTH DIRECTIONS on planted defects before any green was trusted, in scratch copies through the MODEL override and never on the shared document. Arm 1, steel_thread loses its slug row -> Thread.slug SHIPPED WITH NO CONTRACT ROW. Arm 2, steel_thread gains a row for a property nothing ships -> Thread.phantom_field CONTRACT ROW WITH NO SHIPPED PROPERTY. Arm 3, related keeps its heading and loses its rows -> REFUSED (AC-16.3). The control is the unplanted run, where none of those lines appears. THE EXIT CODE IS NOT THE DISCRIMINATOR while any pending row stands, so an arm is judged by the finding line it adds; the recipe is in the script header so the drive is reproducible without committing a harness that tests the check."
+    },
+    {
       "id": "AT-17.1",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",

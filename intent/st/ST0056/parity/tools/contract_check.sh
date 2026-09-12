@@ -78,6 +78,19 @@
 # if a later run produces only `never:`, this check has stopped working.
 #
 # ==========================================================================
+# WHAT THIS FILE IS THE WITNESS FOR (ST0069 WP-16)
+# ==========================================================================
+#
+#   AT-16.1  covers AC-16.1 -- the join, refusing in BOTH directions: a
+#            property with no row, and a row with no property.
+#   AT-16.2  covers AC-16.2 -- every modelled entity checked, denominator
+#            printed, population DERIVED at run time and enumerated nowhere.
+#   AT-16.3  covers AC-16.3 -- a table the parser cannot read fails loudly,
+#            naming the entity and the table, and is never skipped.
+#   AT-16.4  covers AC-16.4 -- driven RED in both directions on planted
+#            defects before any green was trusted; recipe below.
+#
+# ==========================================================================
 # HOW TO DRIVE IT RED, WHICH IS THE ONLY REASON TO TRUST IT GREEN (AC-16.4)
 # ==========================================================================
 #
@@ -152,7 +165,7 @@ FiatRecord|fiat_record
 Invoker|invoker
 Subject|subject
 -|wb_node|pending:ST0069 WP-14 -- the coordination entities are specified and NOT BUILT; the store has no whiteboard tables and no schema face is published for them. This is RED by construction until those faces land, and it is not an exemption: WP-16 does not close while it stands.
--|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. NOT RATIFIED -- vc is asked to rule this line; until then it is declared here rather than skipped silently.
+-|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. RATIFIED by vc under the pen, 2026-09-12, on this line's own reasoning. Declared here rather than skipped silently: it is reported every run and it never gates.
 EOF
 )"
 

@@ -170,7 +170,8 @@ No verblock: git is the history of structured files. Authored prose files keep t
 | text   | string? | the content when it is TEXT, byte for byte. **Absent means OPAQUE, and that absence is the ONLY marker of which it is** |
 | bytes  | u64     | the content's length                                                                                                    |
 | sha256 | string  | of the content; derived with `bytes` at construction, never set by a caller                                             |
-| blob   | bytes?  | `#[serde(skip)]` -- the opaque body in memory, never inline in the extract; it travels as the sidecar file              |
+
+**`blob` IS NOT IN THIS TABLE, AND ITS ABSENCE IS THE POINT.** `Attachment` carries a `blob: Option<Vec<u8>>` in the Rust model -- the opaque body in memory, which travels as the sidecar file -- and it is `#[serde(skip)]`, so it reaches no published face and is no part of the contract this table states. It sat here as a field row until 2026-09-12, which made the document describe a property nothing ships: the more dangerous half of contract drift, because a reader trusts the document and the document is the only thing that was ever wrong. Found by `contract_check.sh` on its first run. **The field is real and is recorded here in prose rather than deleted from the record** -- what changed is the claim, not the knowledge.
 
 **Why `text` is OPTIONAL rather than paired with an `opaque: true`:** a second field asserting what the first already shows is a way for the two to disagree -- the same argument `Attachment::new` makes about `bytes` and `sha256`. A reader asks whether the text is here, and there is nothing else to consult and nothing to contradict. **The absence is unambiguous rather than merely convenient:** every attachment written before the field became optional carries a `text`, so no existing artefact reads as opaque by omission, and `Some(s)` serialises exactly as the old `String` did -- the canon files do not move a byte.
 
@@ -360,6 +361,34 @@ Merging them would admit members under a key named for another reason, and a mar
 
 **THE POPULATION IS DELIBERATELY NOT SIZED HERE.** The form is minted before the population can be, and sizing it is not a precondition for minting it. A sweep run now would size the remedy to the reach of the probe that ran it, which is how a partial count becomes a total.
 
+### fiat_record (inside the thread canon, on `steel_thread`, `work_package`, `acceptance_criterion` and `acceptance_test`)
+
+**A close made on human authority, against the evidence.** Every other close in Intent asserts that something was done; this one records that someone with authority decided it need not be. It has four parents and one shape, which is why it is tabled once here rather than four times inline.
+
+| Field           | Type    | Notes                                                                                                                                                                                                                                                          |
+| --------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| because         | string  | why the close was made; non-empty -- **a fiat close without one does not execute**                                                                                                                                                                             |
+| by              | string  | who recorded it                                                                                                                                                                                                                                                |
+| at              | string  | RFC 3339 UTC, as the event envelope stamps it                                                                                                                                                                                                                  |
+| invoker         | object  | evidence about the invocation, collected by the service; see `invoker` below                                                                                                                                                                                   |
+| inherited_from  | string? | set on a row closed by CASCADE, naming the ancestor whose fiat close reached it; **its presence is what stops a cascaded row reading as an ordinary one**, so it is recorded rather than derived from the tree                                                 |
+| inherited_event | string? | the id of the event that recorded the ancestor's fiat close. Absent on a directly-ruled close; present with `inherited_from`, which names the ancestor entity -- **this identifies WHICH close**, so repeated closes of the same ancestor stay distinguishable |
+
+**THIS RECORD IS NOT THE HISTORY.** Reinstating a criterion sets its state to `AcState::entry(kind)`, so the record is discarded structurally -- there is nowhere in the entry states for it to go. hv settled the ground on 2026-08-29 in ruling the fiat exit: _renders distinctly forever_ is a claim about RENDERING, not about irreversibility, and **the history is the event log, not this field**. The record lives exactly as long as the fiat close does.
+
+**Enforcement of who may invoke it is DETECTION AND ATTRIBUTION, never prevention.** On a machine where the tool and its operator share a uid there is no boundary to enforce, so the record is built to be permanent and legible instead of unforgeable.
+
+### invoker (inside `fiat_record`)
+
+Evidence about the invocation that recorded a fiat close. **Collected by the service at the moment of the close; no caller supplies any of it** -- which is D42 applied to provenance rather than to time.
+
+| Field | Type    | Notes                                             |
+| ----- | ------- | ------------------------------------------------- |
+| tty   | boolean | whether a terminal was attached to the invocation |
+| env   | string  | the environment the close was recorded from       |
+
+**`tty` NARROWS THE POPULATION; IT DOES NOT IDENTIFY THE ACTOR.** An automated caller can allocate a tty and a human's own close inside a script or an ssh pipe has none, so this is evidence to weigh rather than a verdict.
+
 ### issue (`intent/.canon/issues/<nnnn>.json`, body included)
 
 | Field    | Type    | Notes                                                                                                     |
@@ -385,15 +414,15 @@ The issue is self-contained the way a thread is and round-trips under AC-02.6. *
 
 Written by every mutation (WP-02).
 
-| Field      | Type   | Notes                                                                                                       |
-| ---------- | ------ | ----------------------------------------------------------------------------------------------------------- |
-| id         | ulid   | lexically sortable, globally unique                                                                         |
-| ts         | string | RFC 3339 UTC, MILLISECOND precision: `YYYY-MM-DDTHH:MM:SS.sssZ`                                             |
-| principal  | string | who performed the operation                                                                                 |
-| project_id | string | stamped at migration (D15); never changes                                                                   |
-| op         | string | the FACADE operation, eg `st.done` -- **not** a CLI invocation                                              |
-| subject    | object | `{kind, id}` -- kind eg `thread`, `wp`, `issue`; id eg `ST0000/02`; stored as `subject_type` / `subject_id` |
-| payload    | json   | operation-specific detail, **opaque to the log**                                                            |
+| Field      | Type   | Notes                                                                        |
+| ---------- | ------ | ---------------------------------------------------------------------------- |
+| id         | ulid   | lexically sortable, globally unique                                          |
+| ts         | string | RFC 3339 UTC, MILLISECOND precision: `YYYY-MM-DDTHH:MM:SS.sssZ`              |
+| principal  | string | who performed the operation                                                  |
+| project_id | string | stamped at migration (D15); never changes                                    |
+| op         | string | the FACADE operation, eg `st.done` -- **not** a CLI invocation               |
+| subject    | object | `{type, id}` -- see `subject` below; stored as `subject_type` / `subject_id` |
+| payload    | json   | operation-specific detail, **opaque to the log**                             |
 
 **AND A CASCADE WRITES EVENTS NAMED FOR OPS NOBODY INVOKED, WHICH IS HONEST AND READS AS WRONG.** A fiat close on a thread writes `st.fc` and then one `ac.fc` or `at.fc` per child it reached -- events no invocation of `ac fc` or `at fc` produced. That follows from `op` being the facade operation: the child's state moved through the criterion machine, so `ac.fc` is what happened to it. **It is stated here because a reader who concludes the log is lying about provenance will not check twice**, and the thing that distinguishes a cascaded event from a directly-invoked one is the `inherited_event` in its payload, not the op.
 
@@ -402,6 +431,15 @@ Written by every mutation (WP-02).
 **`ts` IS ABSENT ON A MINTED-BUT-UNWRITTEN ENVELOPE, AND THAT IS D42 IN THE ONE PLACE IT IS EASIEST TO BREAK.** `Envelope::minted` deliberately produces an envelope with NO time, because the clock belongs to the WRITE -- a log entry is the last thing anyone would think to withhold a timestamp from, and it is exactly where a caller-supplied time would become unfalsifiable history. The number of `minted` call sites is deliberately not written here; it is a thing to derive, not to keep a second copy of.
 
 **The DB is the durable SSOT, so the event log in it is durable truth like everything else there** (D01 as reversed). **It has ONE home and it is the store (D53)**: no events file is kept in the working tree. `intent events` queries it (`--op`, `--subject`, `--limit`), and `intent export` produces the lossless `events.jsonl` form on demand. The read-only query door is `intent graphql`, through intentd; there is no SQL surface. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
+
+#### `subject` (inside the event envelope)
+
+| Field | Type   | Notes                                        |
+| ----- | ------ | -------------------------------------------- |
+| type  | string | entity type, eg `thread`, `wp`, `issue`      |
+| id    | string | natural id, eg `ST0000`, `ST0000/02`, `0021` |
+
+**IT IS `type`, NOT `kind`, AND THIS TABLE EXISTS BECAUSE THE PROSE ABOVE SAID `kind` UNTIL 2026-09-12.** The envelope's own row described the shape as `{kind, id}` while the published face has carried `type` and `id` throughout -- a property named in the contract document that has never existed, in the one entity whose table was missing. Found by `contract_check.sh` on the day it was written, which is the whole argument for the check: nothing had ever compared the two, so the error was invisible to every reader who trusted the document and correct to every reader who read the schema.
 
 ### file_index (DB-only -- the sync engine's git-style index)
 
