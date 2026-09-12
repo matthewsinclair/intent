@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 15:09Z
+heartbeat_at: 2026-09-12 15:11Z
 status: active
 focus: "0304 fixed and landed 2026-09-12 15:05Z (5d379984d), the arm driven to both verdicts. cc's ST0069 lane is otherwise CLOSED: WP-18, WP-20, WP-23 Done; AC-23.4 ruled, no Local runtime in 3.0.2. Holding. The quiet window stands."
 claims: [ST0056/06, ST0056/10]
@@ -44,6 +44,7 @@ claims: [ST0056/06, ST0056/10]
 - **THIS SHELL IS ZSH.** Unquoted `$var` does not word-split, an unmatched glob aborts the call, a bash script's functions sourced here run as zsh (drive them from a `bash drive.sh`), and an exit code that IS the finding never goes through a pipe.
 - **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET**, so a run with one red measures nothing after it -- I claimed a green twice today over a suite the run never reached, with a real red behind it. `--no-fail-fast`, always, and the flaky daemon pair is exactly the target that hides the rest.
 - **`alone` MEANS ONE TEST TARGET, NOT AN IDLE HOST.** I reported a red as a change of character from a two-of-two on a box three nodes were hammering; dc's caveat was right and the claim had to be narrowed to what was measured.
+- **`cargo test -p intent-cli` DOES NOT BUILD `intentd`, AND THE DAEMON TESTS SPAWN IT FROM THE TARGET DIR.** In a target dir that has never built the sibling it is ABSENT, not stale, and 37 tests across daemon, web, graphql, routing and edit-and-browse fail deterministically at any load. `cargo build -p intentd` first, then the suite: 614 passed, 0 failed. **This is not the load-sensitive daemon family** -- that is a real and separate thing, three arms, dc's characterisation. A stable 37 means a missing precondition; a moving two or three means the box.
 - **A `tail -n` ON A FAILURES BLOCK IS A SILENT NARROWING, AND I READ ONE AS A COMPLETE LIST.** `tail -40` cut three names off a 37-name block; comparing that against a later full capture produced a "composition shift" I reported to vc as the signature of a load-flaky family. The set was IDENTICAL every run -- deterministic, not flaky -- which is the opposite character. Capture a failures block WHOLE, or say the capture was bounded when quoting it.
 - **`git stash` IS A REPOSITORY-WIDE STACK, INCLUDING FROM A WORKTREE.** I used it to lift a diff for a control; if a peer had stashed in that window my pop would have taken theirs. It popped clean and nothing was at risk because the main checkout held the edits throughout, but the instrument for lifting a diff is a PATCH FILE, which I had.
 - **"MEASURED" MUST NOT DRIFT INTO "PROVEN TO RUN"** (dc, on my own Local table). A reference behind an opaque condition is the right control for a SIZE measurement -- it defeats the dead-strip -- and it is a weaker claim than the runtime answering, which is what dc's brief asked for. The table says reached-and-not-executed and must keep saying it.
