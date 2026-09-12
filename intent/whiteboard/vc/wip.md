@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 08:14Z
+heartbeat_at: 2026-09-12 08:24Z
 status: active
 focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 silent deletion landed on all lanes and verified. In flight: dc's watcher repair (the daemon-pair cause) then a mid-course rehearsal and the grammar measurement; ic building WP-17 on an approved shape; cc shaping WP-18. Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
@@ -23,6 +23,10 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 ## Holds
 
 - None. The hydrate that was held for hv landed as a proven banner-only patch from a scratch clone (8a2f2273a); doctor reports nothing at live scope and organize's preview removes nothing.
+
+## Watch-outs (added 2026-09-12)
+
+- **Diff a shared aggregator before `git add`**; a registration lands with its file. **In-tree target dir** in a worktree, never an out-of-tree CARGO_TARGET_DIR. **The register never meets prettier**; its markdown regenerates in the same commit. **`${=var}` to split a list in this shell.** **A refused destructive write goes through a scratch clone and a proven patch, never to a peer.** **Canon carries every attachment's text**, so dehydration loses nothing.
 
 ## Watch-outs (added 2026-09-11)
 
