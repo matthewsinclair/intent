@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 08:24Z
+heartbeat_at: 2026-09-12 08:32Z
 status: active
-focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 silent deletion landed on all lanes and verified. In flight: dc's watcher repair (the daemon-pair cause) then a mid-course rehearsal and the grammar measurement; ic building WP-17 on an approved shape; cc shaping WP-18. Cut is hv's call after the last search package."
+focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 landed and verified. In flight: dc reshaping the watcher reconcile on my ruling, then the mid-course rehearsal and the grammar measurement; cc landing WP-18 with D29 as tested; ic building WP-19 over the corpus that exists. Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc repairs the watcher defect behind the daemon pair (a directory event is answered by reconciling), then a mid-course `--dry-run` rehearsal, then WP-20's grammar-size measurement; ic builds WP-17 on the shape I approved; cc brings me WP-18's shape before code. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
+- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc reshapes the watcher reconcile on my ruling (a directory event reconciles exactly what `scan` scans, from one shared candidate collection; the store's index is the one baseline), then a mid-course `--dry-run` rehearsal, then WP-20's grammar-size measurement; cc lands WP-18 (D29 as tested; cc owns the facade `index_status` and `index_rebuild`, ic the rows); ic builds WP-19 under (a), the envelope over the corpus that exists, shapes agreed with cc first. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
 
@@ -65,6 +65,8 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 - **A test run can rewrite the machine's install pointer** (`dual_path_conformance` runs `intent bootstrap` under the REAL HOME). Every build and test run goes under an isolated HOME. If commits refuse with "the recorded Intent install root is not an install", read `~/.intent/home` first.
 
 ## Decisions
+
+- (2026-09-12) **D29 amendment WITHDRAWN**: the corpus is the committed `.gitignore` rules; `.git/info/exclude` and the global excludes stay off, and `ignored_paths_corpus.rs` is the record. **`intent index status` and `rebuild`**: cc owns the facade operations, ic the register rows, rendering and MCP arms. **Watcher reconcile**: the store's index is the one baseline; a directory event reconciles the scan's own candidates under the event's path, never a second walk of the root.
 
 - (2026-09-11) **hv's doc audit ran and is DONE**, every lane verified and pushed; its orders are in `intent/history/20260911-doc-audit.md`. **hv then ruled fix batch 1 (release + install) to dc**; the rest of the defect list in `intent/wip.md` is unruled. The 3.0.1 rulings this section carried, all executed in the cut, are in `.history/20260912/`.
 
