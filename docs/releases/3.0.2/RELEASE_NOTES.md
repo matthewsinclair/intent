@@ -10,6 +10,12 @@
 
 **`intent search` answers one envelope, and it says how fresh it is.** A search returns its hits grouped by tier -- lexical text, and structural symbols -- ranked within a tier and never blended across tiers, with both denominators beside them: what matched, and what came back under your limit. **The index's own freshness travels in the same answer.** When the index is behind, or a path was skipped, the answer says so and names the paths, so a result is never a confident subset of a tree it could not read. `--json` and the MCP tool return that same value from the same call, so a script, an agent and a person cannot be told different things about one query.
 
+**A search is answered by a running `intentd` as readily as by the command, and the two cannot answer differently.** `intent search --daemon <text>` asks the daemon; the daemon's handler calls the same function the in-process path calls, and the envelope travels back as the JSON its own crate produced, so there is no second assembly of the answer to drift from the first. **The one difference the two paths can produce is WHEN the index was last reconciled against the tree, and the answer's freshness block already reports that** rather than leaving it to be inferred from which flag you typed.
+
+**Without a daemon, a search reconciles the index before it answers.** Nobody else is keeping this process's index current, so the query is the only moment it can catch up with the tree; with a daemon the watcher does it continuously and no query reconciles. `--no-reconcile` is the opt-out on both paths -- it answers from the index as it stands, which is the right question when you are asking what the index holds rather than what is in the tree, or when a reconcile over a large tree costs more than the staleness does.
+
+**`--daemon` with `--outline`, `--context` or `--sql` refuses, rather than quietly answering here.** Only the text query has something for a daemon to run. The flag is checked against the command's path, and `search` is servable, so all three would otherwise have parsed, passed the check, opened this process's store and printed a normal answer at exit 0 -- having done the opposite of what was asked. **A flag accepted and ignored is worse than one refused, because the exit code agrees with the caller.**
+
 **`intent search --kind def <name>` answers whether a thing with that name already exists**, from the tree rather than from a registry someone remembered to update. Symbols come from each language's own tree-sitter tags query, so a language is a grammar and nothing else -- there is no per-language logic here to fall out of step with the grammar. **References are name-matched occurrences and every surface says so**: nothing in this release resolves a name to what it points at, and a tool that implied otherwise would be making a claim it cannot support.
 
 **`intent search --outline <path>` lists a file's symbols with their spans, and `--context <name>` gives a definition with the places that call it.** These are the answers grep cannot give. They replace reading a whole file with reading one span, which is what an agent asking _what is in here_ actually needs, and what a person asking _who calls this_ has been doing by hand.
@@ -26,6 +32,25 @@
 
 **The canon routes a prior-art check through the index.** Every skill, template and rule that told a model how to check whether something already exists now names `intent search --kind def <name>` first, with grep as the fallback for exactly the case the answer names -- when the index says it is not complete for the paths that matter -- and a project's own module registry searched as well, where it keeps one.
 
+**A Claude Code session can have the index's answer appended after a grep, and it is OFF BY DEFAULT.** `intent claude hook post-tool-symbol-context` ships with the canonical `.claude/` template and is not referenced by the default settings stanza, because turning it on changes what every session in a project sees after every Grep -- that is the project's decision, not one an upgrade takes on its behalf. Opt in the same way as the existing `post-tool-advisory` hook, with a stanza in your own `.claude/settings.local.json`:
+
+```
+  "PostToolUse": [
+    {
+      "matcher": "Grep",
+      "hooks": [
+        { "type": "command",
+          "command": "intent claude hook post-tool-symbol-context",
+          "timeout": 5000 }
+      ]
+    }
+  ]
+```
+
+**It only ever adds.** After a Grep whose pattern is one symbol -- a bare identifier, or one in word anchors -- it appends where that name is defined and where it occurs, as source spans. The grep has already run and its result stands; the hook never blocks, never replaces, and exits 0 whatever happens, so its worst outcome is saying nothing. **A pattern that is not symbol-shaped is never answered**, because grep's job is literal and regex text while the index answers about names, and guessing at a regex would quietly answer a question nobody asked.
+
+**It does not reconcile, and one stale path silences the whole append.** The answer comes from the index as it stands, so a hook on every Grep cannot become a repository walk on every Grep -- and the staleness that follows from that is exactly what it checks before it appends. **The check is per path and about the paths the ANSWER names**, not the paths the grep searched, and it is not the envelope's `complete` field: that is the whole index's claim, and one unreadable file anywhere in the tree would silence a hook that had a perfectly good answer about a healthy subtree. When any hit's path is behind, nothing is appended at all rather than that hit being dropped, because a partial answer that does not say it is partial is a silent subset.
+
 **`intent claude upgrade --apply` declares Intent's MCP server to Claude Code.** A `.mcp.json` naming `intent mcp` is seeded when the project has none, so a session reaches the tools without anyone configuring it. **A project that already has one keeps it untouched, including under `--force`**, and `--skip-settings` now declines this file as well as `.claude/settings.json` -- one flag for the wiring Claude Code reads, because deleting a seeded file is not a way to decline it when the next run seeds it again.
 
 ## Changed
@@ -41,6 +66,8 @@
 **The published schema faces carry 3.0.1.** At the v3.0.1 tag they still said 3.0.0. Their generator re-stamped them and only the version line changed.
 
 ## Fixed
+
+**A document the store carries and the disk holds answers a search once, not once per corpus.** A thread's `design.md` is realised on disk AND carried in the store as an attachment, so one phrase on one line came back twice -- once from the disk prose corpus and once from the store's own doc sections, the same path and the same line, differing only in kind and owner. **The disk corpus already excluded the store's projections, which was right and not wide enough**: a rendered view is produced by the renderer, while `design.md`, `impl.md` and `tasks.md` are authored by a person -- so they are not views, and the store carries them anyway, which is what actually decides whose scope owns a document. The exclusion is now every path the store carries prose for, obtained by asking the renderer and the store's attachment rows rather than kept as a list, so a document attached later is excluded on the day it is attached. The hit that survives is the store's, which answers as `kind: thread` and names the thread the document belongs to -- so a reader filtering with `--kind file` no longer sees a thread's own documents, and a reader filtering with `--kind thread` sees each of them once. Prose the store does not carry is untouched and is still the disk corpus's to answer. **This was reachable before this release only through `intent index rebuild`**; a search that reconciles before it answers is what would have made it the ordinary answer rather than a rare one.
 
 **`intent init` refuses a directory that already holds files it writes, and names every one.** It tested for `intent/.config/config.json` and nothing else, then wrote its starter content with no further check -- so running it where a `CLAUDE.md`, an `AGENTS.md`, an `intent/wip.md`, an `intent/llm/RULES.md` or an `intent/llm/ARCHITECTURE.md` already existed destroyed that file and listed it as created. **The absence of a config makes a directory not a project; it never made it empty.** Every destination is now checked before anything is written, and a collision names all of them at once rather than stopping at the first.
 
@@ -93,10 +120,14 @@
 ```
   $ brew upgrade matthewsinclair/intent/intent
   $ intent --version
-  $ intent index rebuild
+  $ intent search <something you know is in your tree>
 ```
 
-**The third line is the one that is new, and a search before it cannot find anything.** The index is built by `intent index rebuild`, and kept current after that by a running `intentd`, which reindexes what changes under the paths it watches. A search against an index nothing has built returns nothing at exit 0 -- the shape a genuine miss takes -- so the tool says which one it was, on stderr, in its own words: `nothing is indexed, so this search could not have matched`. **Read that line before concluding a name is absent from your tree.**
+**There is no index to build first, and the third line is how you find that out.** A search without `--daemon` reconciles the index against the tree before it answers, so the first search on a project that has never been indexed reads every file in the index scope, indexes it, and answers from what it has just built. **That first one is the expensive one, and it is the only expensive one**: afterwards a reconcile hashes canon, and trusts prose and source whose timestamp and size are unchanged -- it re-reads only what moved.
+
+`intent index rebuild` is still the verb that walks the scope explicitly, and `intent index status` still reads the rows without walking, so the two can be compared. With a running `intentd` neither is needed for currency: the watcher reindexes what changes under the paths it watches, and a query against it reconciles nothing.
+
+**`--no-reconcile` answers from the index as it stands**, and on an index nothing has built that means no hits at exit 0 -- the shape a genuine miss takes. The tool separates the two cases on stderr, in its own words: `nothing is indexed, so this search could not have matched`. **Read that line before concluding a name is absent from your tree.**
 
 **Your runtime store is migrated on first open, and the upgrade is a ONE-WAY DOOR.** v3.0.1 wrote schema version 18 and v3.0.2 speaks 23. The first v3.0.2 command to touch a project migrates its store in place, through every step between, without asking -- and **nothing migrates it back.** A store written by a newer `intent` than the one you are running is refused outright, with the remedy stated as _upgrade intent rather than migrating the store down_. Forward is implemented; backward is not. **So take a snapshot with v3.0.1 first if you might want to go back**: `intent backup` writes the store, still at its old schema, to `intent/.backup/db/`, and copying that file back over `intent/.cache/intent.db` by hand is the only way back that always works -- no restore verb ships, and anything written after the snapshot is lost with it.
 
