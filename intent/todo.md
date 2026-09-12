@@ -43,7 +43,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [~] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
-  - [-] 16: Contract drift: a shipped field with no model row is refused
+  - [x] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: The structured query door: intent search --sql, read-only over the published schema
   - [x] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
   - [x] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index

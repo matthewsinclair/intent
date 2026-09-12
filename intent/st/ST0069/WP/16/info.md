@@ -2,7 +2,7 @@
 wp_id: WP-16
 title: Contract drift: a shipped field with no model row is refused
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-16: Contract drift: a shipped field with no model row is refused
