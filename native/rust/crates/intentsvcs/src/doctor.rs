@@ -216,8 +216,35 @@ impl Report {
     self.findings.len() - self.not_actionable()
   }
 
-  /// v2's exit contract: 0 when healthy, 1 when anything was found.
+  /// **THREE ANSWERS, BECAUSE *I COULD NOT JUDGE THIS ESTATE* AND *I JUDGED IT
+  /// AND IT IS RED* ARE DIFFERENT ANSWERS** (vc, 2026-09-12, on issues `0308`
+  /// and `0309`). 0 is clean, or advisory findings only. 1 is blocking findings
+  /// in a project this run actually read. **4 is an estate this run could not
+  /// judge** -- today that is an unmigrated project, and the CLI answers the
+  /// same 4 for a project it cannot locate or whose config will not parse.
+  ///
+  /// **4 RATHER THAN THE OBVIOUS 2**, because 2 is the CLI's *this build cannot
+  /// answer* and this estate's ST0058 `AC-00.5` records it as already carrying
+  /// four meanings told apart only by prose -- one consumer enumerates the
+  /// not-implemented-yet population by the predicate *refuses at 2*, and a
+  /// fifth meaning would have made `doctor` read as COMING SOON to it.
+  ///
+  /// It was v2's two-code contract until `doctor` joined the pre-commit gate,
+  /// and two codes stopped being enough the moment a consumer had to ACT on the
+  /// difference: a gate refusing on 1 refuses every commit in every estate the
+  /// tool cannot read, which is every v2 project on the fleet on the day it
+  /// installs the gate. The gate now fails OPEN on 2 through the arm it has had
+  /// since issue 0043, and says the estate went unenforced rather than pretending
+  /// it passed. The release preflight aborts on any non-zero, which stays right
+  /// from the other direction: a project the tool cannot judge does not cut.
   pub fn exit_code(&self) -> i32 {
+    if self
+      .findings
+      .iter()
+      .any(|f| f.class == crate::finding::FindingClass::Unmigrated)
+    {
+      return 4;
+    }
     i32::from(!self.is_healthy())
   }
 

@@ -815,6 +815,14 @@ mod tests {
           "a missing invariant is a BUILD DEFECT, not a refusal -- `Refused` says a rule this \
            project armed could not be enforced, and the guide arms nothing: {msg}"
         ),
+        // Added 2026-09-12 when `doctor` introduced `Unjudgeable`, and this
+        // match stopped compiling for the second time. The absence of a `_` arm
+        // is again why anyone was told.
+        Failure::Unjudgeable(msg) => panic!(
+          "a missing invariant is a BUILD DEFECT, not an unreadable estate -- `Unjudgeable` says \
+           a PROJECT could not be judged, and the guide reads the compiled table rather than any \
+           project: {msg}"
+        ),
       };
     assert!(
       err.contains("INV-04") && err.contains("build defect"),

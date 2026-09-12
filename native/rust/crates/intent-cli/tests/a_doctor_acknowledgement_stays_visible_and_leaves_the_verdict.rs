@@ -10,8 +10,15 @@
 //! that shouts -- and an acknowledgement naming no real class must not silence
 //! anything either, so it is reported rather than ignored.
 //!
-//! A fresh project has exactly the finding this needs: no backup has ever been
-//! taken, so `doctor` reports `backup-stale` and exits non-zero.
+//! **THE VEHICLE IS `view-skew`, AND IT USED TO BE `backup-stale`** (vc,
+//! 2026-09-12, issue `0308`). The subject here is the ACKNOWLEDGEMENT
+//! mechanism, not any one class, and it needs a class that is COUNTED and
+//! BLOCKING or every assertion below passes vacuously. `backup-stale` became
+//! advisory when `doctor` joined the pre-commit gate -- a protection being
+//! behind is not a reason to refuse someone's work -- so it stopped being able
+//! to carry this test. A hand-edited generated view is the cheapest blocking
+//! finding a fresh project can be given, and it is one the operator really does
+//! meet.
 
 use std::path::Path;
 use std::process::Command;
@@ -48,20 +55,21 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
   let root = dir.path();
   let (ok, out) = intent(root, &["init", "probe"]);
   assert!(ok, "init failed: {out}");
-  // A fresh project's generated views are not on disk yet; render them so the
-  // backup is the ONLY counted finding and the exit code below has one cause.
+  // A fresh project's generated views are not on disk yet; render them, then
+  // skew exactly one so the exit code below has one cause.
   let (ok, out) = intent(root, &["sync", "--to-disk"]);
   assert!(ok, "sync --to-disk failed: {out}");
+  std::fs::write(root.join("intent/todo.md"), "edited by hand\n").expect("skew one view");
 
   // The fixture must exhibit the finding, or everything below passes vacuously.
   let (ok, before) = intent(root, &["doctor"]);
   assert!(
-    !ok && before.contains("backup-stale") && before.contains("doctor: 1 finding(s)"),
-    "a fresh project should report backup-stale as its one finding and fail:\n{before}"
+    !ok && before.contains("view-skew") && before.contains("doctor: 1 finding(s)"),
+    "a hand-edited view should be the project's one counted finding and should fail:\n{before}"
   );
 
-  let reason = "this probe keeps no backups, by decision";
-  acknowledge(root, serde_json::json!({ "backup-stale": reason }));
+  let reason = "this probe edits that view by hand, by decision";
+  acknowledge(root, serde_json::json!({ "view-skew": reason }));
 
   let (ok, text) = intent(root, &["doctor"]);
   assert!(
@@ -70,7 +78,7 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
   );
   assert!(
     text.contains(&format!(
-      "acknowledged: backup-stale -- {reason} (1 finding(s))"
+      "acknowledged: view-skew -- {reason} (1 finding(s))"
     )),
     "the acknowledged class must still print, with its reason and count:\n{text}"
   );
@@ -84,7 +92,7 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
   let doc: serde_json::Value = serde_json::from_str(&json).expect("doctor json");
   assert_eq!(doc["healthy"], true, "{doc:#}");
   let acked = &doc["acknowledged"][0];
-  assert_eq!(acked["class"], "backup-stale", "{doc:#}");
+  assert_eq!(acked["class"], "view-skew", "{doc:#}");
   assert_eq!(acked["acknowledged"], true, "{doc:#}");
   assert_eq!(acked["reason"], reason, "{doc:#}");
   assert_eq!(
@@ -96,7 +104,7 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
   // A misspelt class acknowledges nothing, and says so rather than silencing.
   acknowledge(
     root,
-    serde_json::json!({ "backup-stale": reason, "backup-stael": "a typo" }),
+    serde_json::json!({ "view-skew": reason, "view-skwe": "a typo" }),
   );
   let (ok, typo) = intent(root, &["doctor"]);
   assert!(
@@ -104,7 +112,7 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
     "an acknowledgement naming no class must not pass:\n{typo}"
   );
   assert!(
-    typo.contains("unhonourable-setting") && typo.contains("backup-stael"),
+    typo.contains("unhonourable-setting") && typo.contains("view-skwe"),
     "the misspelt acknowledgement must be reported by name:\n{typo}"
   );
 }

@@ -173,6 +173,27 @@ pub const EXIT_UNAVAILABLE: i32 = 2;
 /// someone reads when they add the FOURTH.
 pub const EXIT_REFUSED: i32 = 3;
 
+/// **THE ESTATE COULD NOT BE JUDGED, WHICH IS NOT THE SAME AS BEING FOUND
+/// WANTING** (vc, 2026-09-12, issues `0308` and `0309`). `intent doctor`
+/// answers this where there is no project here, where the config will not
+/// parse, and where the project has not migrated to v3: it read nothing, so
+/// nothing it printed is a verdict on anyone's work.
+///
+/// **IT IS 4 AND NOT 2, AND THE REASON IS A MEASUREMENT RATHER THAN A
+/// PREFERENCE.** 2 is [`EXIT_UNAVAILABLE`], which this estate's own ST0058
+/// `AC-00.5` records as already carrying FOUR meanings separated only by
+/// prose -- and `retirement_is_enumerable` enumerates the unbuilt population
+/// by the predicate *refuses at 2*, so a fifth meaning there would have made
+/// `doctor` read as COMING SOON to every caller of that population. A code
+/// already carrying four meanings does not take a fifth.
+///
+/// Consumers: the pre-commit gate fails OPEN on it, through the same `*)` arm
+/// it has had since issue 0043, and says the estate went unenforced rather than
+/// pretending it passed. The release preflight aborts on any non-zero, which is
+/// right from the other direction -- a project the tool cannot judge does not
+/// cut.
+pub const EXIT_UNJUDGEABLE: i32 = 4;
+
 /// How a command failed, and therefore which code reports it.
 ///
 /// The error channel was a bare `String`, which answers "what do I print" and
@@ -203,6 +224,14 @@ pub enum Failure {
   /// them would hand the operator "fix your code" when the honest message is
   /// "we could not check some of it".
   Refused(String),
+  /// The command ran and could not judge the estate at all. Exit 4 -- see
+  /// [`EXIT_UNJUDGEABLE`] for why it is not 2.
+  ///
+  /// **NOT A KIND OF `Unavailable`, THOUGH BOTH FAIL OPEN.** That one says this
+  /// BUILD cannot answer; this says this ESTATE could not be read. A consumer
+  /// enumerating what is not implemented yet keys on the first and must not
+  /// collect the second.
+  Unjudgeable(String),
 }
 
 impl Failure {
@@ -211,6 +240,7 @@ impl Failure {
       Failure::Error(_) | Failure::Verdict => EXIT_ERROR,
       Failure::Unavailable(_) => EXIT_UNAVAILABLE,
       Failure::Refused(_) => EXIT_REFUSED,
+      Failure::Unjudgeable(_) => EXIT_UNJUDGEABLE,
     }
   }
 
@@ -218,7 +248,10 @@ impl Failure {
   /// it is the verdict case, which has already written to stdout.
   pub fn message(&self) -> Option<&str> {
     match self {
-      Failure::Error(m) | Failure::Unavailable(m) | Failure::Refused(m) => Some(m),
+      Failure::Error(m)
+      | Failure::Unavailable(m)
+      | Failure::Refused(m)
+      | Failure::Unjudgeable(m) => Some(m),
       Failure::Verdict => None,
     }
   }

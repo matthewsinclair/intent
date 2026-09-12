@@ -755,6 +755,73 @@ fn declared_version(text: &str) -> Option<&str> {
   Some(version)
 }
 
+/// The banner's own line, given the offset [`BANNER_MARKER`] was found at.
+fn banner_line(text: &str, at: usize) -> &str {
+  let start = at + BANNER_MARKER.len();
+  match text[start..].find('\n') {
+    Some(end) => &text[start..start + end],
+    None => &text[start..],
+  }
+}
+
+/// Byte offset of the first place two renderings differ.
+///
+/// **IT IS WHAT TELLS A HAND EDIT FROM A RENDERER CHANGE WITHOUT A SCRATCH
+/// CLONE** (issue `0309`). The skew detail carried the two LENGTHS, which are
+/// equal whenever an edit substitutes rather than adds, so the commonest shape
+/// of hand edit printed two identical numbers and said nothing. An offset in the
+/// body is somebody's edit; an offset inside the trailing banner is the
+/// renderer, and an operator can see which without rendering the tree
+/// themselves.
+///
+/// Bytes rather than chars: it is an index into the file, and every consumer of
+/// it -- `head -c`, an editor's goto-byte -- counts the same way.
+fn first_difference(a: &str, b: &str) -> usize {
+  a.as_bytes()
+    .iter()
+    .zip(b.as_bytes())
+    .position(|(x, y)| x != y)
+    .unwrap_or_else(|| a.len().min(b.len()))
+}
+
+/// Does this view differ from its render in the footer's VERSION and nowhere
+/// else?
+///
+/// **THE QUESTION IS ASKED BEFORE SKEW IS DECIDED, AND THE ORDER IS THE WHOLE
+/// FIX** (issue `0309`, vc's ruling 2026-09-12). Every view's footer carries the
+/// running binary's version, so one patch release makes every view on disk
+/// differ from what the binary renders. Asked afterwards, this would be a label
+/// on a blocking finding and would change nothing for the operator whose commit
+/// the gate has already refused.
+///
+/// Everything before the banner must match, everything after the banner's line
+/// must match, both sides must actually carry a banner, and the two banner lines
+/// must become identical once the versions are equalised -- so a REWORDED banner
+/// is not this class, and neither is a body edit that happens to sit beside one.
+fn differs_only_in_banner_version(on_disk: &str, rendered: &str) -> bool {
+  let (Some(disk_at), Some(rendered_at)) =
+    (on_disk.rfind(BANNER_MARKER), rendered.rfind(BANNER_MARKER))
+  else {
+    return false;
+  };
+  if on_disk[..disk_at] != rendered[..rendered_at] {
+    return false;
+  }
+  if after_banner(on_disk) != after_banner(rendered) {
+    return false;
+  }
+  let (Some(disk_version), Some(rendered_version)) =
+    (declared_version(on_disk), declared_version(rendered))
+  else {
+    return false;
+  };
+  if disk_version == rendered_version {
+    return false;
+  }
+  banner_line(on_disk, disk_at).replacen(disk_version, rendered_version, 1)
+    == banner_line(rendered, rendered_at)
+}
+
 /// The inverse of [`section_body`], as far as it has one.
 ///
 /// **THE PLACEHOLDER MUST NOT ROUND-TRIP.** `section_body` renders an empty
@@ -1650,6 +1717,23 @@ pub fn skew(
       // view unchanged, finding standing), so for one of those the verb named
       // is `st hydrate`, which does -- and which pins the thread, so it says
       // so.
+      // **THE FOOTER QUESTION IS ASKED FIRST** (issue `0309`). A view that
+      // differs only in the version its banner names was not edited and its
+      // store did not move: an older Intent rendered it. Deciding this after
+      // the skew arm would leave a label on a blocking finding, and with
+      // `doctor` on the pre-commit gate (issue `0308`) that is a commit outage
+      // in every estate on the day it upgrades.
+      Ok(on_disk) if differs_only_in_banner_version(&on_disk, &view.content) => {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::StaleRender,
+          format!(
+            "rendered by Intent v{} and this binary renders v{} -- the footer's version is the only difference",
+            declared_version(&on_disk).unwrap_or("<none>"),
+            declared_version(&view.content).unwrap_or("<none>"),
+          ),
+        ));
+      }
       Ok(on_disk) => {
         // **THE SAME PREDICATE, NOT A SECOND READING OF THE MANIFEST.** This
         // arm additionally needs the id, because `st hydrate` is a thread's
@@ -1677,9 +1761,10 @@ pub fn skew(
           &rel,
           FindingClass::ViewSkew,
           format!(
-            "generated view differs from the model ({} bytes on disk, {} rendered): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model",
+            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model",
             on_disk.len(),
             view.content.len(),
+            first_difference(&on_disk, &view.content),
             if unlisted.is_some() {
               " (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind)"
             } else {

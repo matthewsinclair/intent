@@ -6015,7 +6015,21 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // worst possible place to be right.
   let scope =
     intentsvcs::doctor::Scope::from_wire(&enum_flag(a, "doctor", "--scope")?).unwrap_or_default();
-  let (project, ctx) = context()?;
+  // **A PROJECT THIS COMMAND CANNOT EVEN LOCATE IS `Unavailable`, NOT `Error`**
+  // (vc, 2026-09-12, issue 0308). `no Intent project found` and `config is not
+  // valid Intent config` answered 1 -- the code `doctor` uses for *I read this
+  // estate and it is red* -- so the pre-commit gate, which refuses on 1, refused
+  // every commit in a directory `doctor` could not read at all. Exit 4 is the
+  // same *could not judge* the `Report` answers for an unmigrated project, and
+  // the gate fails OPEN on it through the arm it has had since issue 0043.
+  //
+  // Scoped to `doctor` on purpose: every other command's `no project` really is
+  // an error about the request, and widening this would change codes nobody has
+  // asked for.
+  let (project, ctx) = context().map_err(|failure| match failure.message() {
+    Some(message) => Failure::Unjudgeable(message.to_string()),
+    None => failure,
+  })?;
   // **Opened opportunistically, and a failure to open is not reported here.**
   // `doctor` exists to run on a project that cannot be opened, so the store is
   // a bonus rather than a requirement: with one, the backup half of the report
@@ -6077,11 +6091,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // flag would make every consumer's parse conditional on how it was invoked.
   if format == "json" {
     render_doctor_json(&report);
-    return if report.is_healthy() {
-      Ok(())
-    } else {
-      Err(Failure::Verdict)
-    };
+    return doctor_verdict(&report);
   }
   // **AN ADVISORY IS COUNTED AND POINTED AT, NOT PRINTED** (hv, 2026-08-26,
   // reading Baize: "How is this an improvement?"). Reclassifying them fixed the
@@ -6235,11 +6245,29 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     acknowledged_suffix(&report),
     scope_suffix(&report)
   );
-  if report.is_healthy() {
-    Ok(())
-  } else {
+  doctor_verdict(&report)
+}
+
+/// **ONE HOME FOR DOCTOR'S THREE ANSWERS**, because the two faces -- prose and
+/// JSON -- had a copy each of a two-way decision, and the moment it became a
+/// three-way one a copy would have been left behind answering the old contract
+/// on whichever face nobody tested.
+///
+/// 0 clean or advisory only; 1 blocking findings in an estate this run read; 4
+/// an estate it could not judge. The report itself has already been printed on
+/// both paths, so 1 is silent -- the verdict is on stdout where machines read
+/// it -- and 4 says out loud that nothing here is a verdict on anyone's work,
+/// because a consumer meeting the difference for the first time should not have
+/// to infer it from an exit code.
+fn doctor_verdict(report: &intentsvcs::doctor::Report) -> Result<(), Failure> {
+  match report.exit_code() {
+    0 => Ok(()),
+    4 => Err(Failure::Unjudgeable(
+      "this estate could not be judged, so nothing above is a verdict on your work -- the finding says what to do first"
+        .to_string(),
+    )),
     // The report above IS the message; the exit code is the machine's copy.
-    Err(Failure::Verdict)
+    _ => Err(Failure::Verdict),
   }
 }
 

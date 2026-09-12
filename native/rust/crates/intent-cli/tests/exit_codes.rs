@@ -334,6 +334,36 @@ fn shipped_hook_in(intent_version: &str, language: &str) -> (Option<i32>, String
     shim.display(),
     std::env::var("PATH").unwrap_or_default()
   );
+
+  // **THE FIXTURE RENDERS ITS VIEWS, BECAUSE A REAL PROJECT ARRIVES WITH THEM
+  // RENDERED** (issue 0308). The gate now asks `intent doctor`, and this
+  // fixture is a hand-written `config.json` that has never rendered anything --
+  // so `intent/st/steel_threads.md` and `intent/todo.md` were missing and every
+  // arm below refused for a reason that is about the fixture and not about the
+  // gate. MEASURED before it was fixed rather than assumed: a real `intent
+  // upgrade` on a v2 project writes both aggregate views and leaves `doctor` at
+  // 0 findings, exit 0, so the migration is not the defect and the setup is.
+  // A fixture that cannot reach the state a user is in tests a different
+  // question from the one its name asks.
+  //
+  // **ONLY FOR A MIGRATED FIXTURE, AND THE EXCEPTION IS THE POINT.** A project
+  // still declaring v2 has no store to render from and `sync` refuses it --
+  // correctly -- so rendering here would build a fixture no v2 user can be in.
+  // That arm's estate is legitimately viewless, and `unmigrated` is advisory
+  // precisely so it can still commit.
+  if intent_version.starts_with('3') {
+    let synced = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(["sync", "--to-disk"])
+      .current_dir(root)
+      .output()
+      .expect("render the fixture's views");
+    assert!(
+      synced.status.success(),
+      "the fixture could not render its own views, so every arm below would be measuring that instead: {}",
+      String::from_utf8_lossy(&synced.stderr)
+    );
+  }
+
   let out = Command::new("bash")
     .arg(&hook)
     .current_dir(root)

@@ -104,6 +104,30 @@ pub enum FindingClass {
   /// hand-edit that would otherwise be silently overwritten, or silently
   /// believed.
   ViewSkew,
+  /// A generated view differs from the model IN ITS FOOTER'S VERSION AND
+  /// NOWHERE ELSE -- the file was rendered by an older Intent.
+  ///
+  /// **IT IS A CLASS RATHER THAN A VIEW-SKEW DETAIL BECAUSE THE ESTATE DID
+  /// NOTHING** (issue `0309`). Every view's footer carries the running binary's
+  /// version, so the moment an estate moves one patch release every view on
+  /// disk differs from what the binary renders. Under [`FindingClass::ViewSkew`]
+  /// that is reported as *either it was edited by hand, or the store changed*,
+  /// with a remedy warning about discarding a hand edit -- so an operator is
+  /// told, once per view, that they may be about to lose work they never did.
+  /// Measured on Laksa under 3.0.1: 25 findings across five view kinds, every
+  /// one a footer reading v3.0.0.
+  ///
+  /// **THE DECISION IS TAKEN BEFORE VIEW-SKEW'S, AND THE ORDER IS THE WHOLE
+  /// POINT.** A footer-only difference becomes this class and `ViewSkew` never
+  /// sees it; the other order leaves a label on a blocking finding, which
+  /// changes nothing for the operator whose commit is refused.
+  ///
+  /// **ADVISORY, AND THAT IS WHAT MAKES THE GATE SURVIVABLE.** With `doctor` on
+  /// the pre-commit gate (issue `0308`), a blocking class that fires on every
+  /// view in every estate after every patch release is a commit outage on
+  /// upgrade day in every project Intent ships to. Nothing is at risk here: by
+  /// construction the only bytes that differ are ones the renderer owns.
+  StaleRender,
   /// An ATTACHMENT on disk differs from the bytes canon records for it.
   ///
   /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
@@ -421,6 +445,15 @@ impl FindingClass {
         "view-skew",
         "each finding's line names what clears it -- regenerating a view DISCARDS a hand edit, so copy anything you meant to keep out first",
       ),
+      // Rank 6 beside `ViewSkew`: same subject, same place in the report, and
+      // an operator reading the two together is reading one story about their
+      // views. The remedy is the plain one and carries no warning, because
+      // unlike its neighbour there is nothing here to lose.
+      Self::StaleRender => (
+        6,
+        "stale-render",
+        "these views were rendered by an older Intent and differ in the footer's version alone -- `intent sync --to-disk` brings them up to date, and there is no hand edit to lose",
+      ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:
       // both are authored bytes, and whichever one loses is gone. So the first
@@ -618,10 +651,43 @@ impl FindingClass {
   ///
   /// **NOT A JUDGEMENT ABOUT SEVERITY.** A class can be serious and still owe
   /// nothing; what is being asked is whether an operator has something to DO.
+  /// **THE EXEMPT SET IS A RULING AND NOT A SHAPE** (vc, 2026-09-12, under the
+  /// pen, on issues `0308` and `0309`). It stopped being *classes with nothing
+  /// to fix* on the day `doctor` joined the pre-commit gate, because from then
+  /// on membership decides whether an estate in that state can COMMIT.
+  ///
+  /// `StatusGateDisagreement` and its Fiat sibling: a status decision the human
+  /// owns is never a commit outage. `AttachmentDrift`: the canon-commit guard
+  /// already covers what a commit carries. `BackupStale`: a protection being
+  /// behind is not a reason to refuse work. `StaleRender`: the estate did
+  /// nothing, and a patch release would otherwise refuse every commit in every
+  /// upgraded project.
+  ///
+  /// **`Unmigrated` IS DELIBERATELY NOT HERE, AND IT WOULD HAVE TAKEN THE FLEET
+  /// OUT IF IT HAD BEEN SOLVED AT THIS LAYER** (vc, 2026-09-12). It is a real
+  /// finding about a real state and calling it advisory would change what
+  /// `doctor` SAYS about a v2 project for every consumer in order to fix what
+  /// one consumer DOES about it -- and it would fix only that state, while an
+  /// unreadable config is the same shape and is not a class at all. The answer
+  /// is one rung up, at [`super::doctor::Report::exit_code`]: an estate the tool
+  /// could not judge answers a different code from an estate it judged and
+  /// found red, and a consumer that cannot tell those apart refuses the wrong
+  /// thing.
+  ///
+  /// What is NOT exempt: a canon that does not parse, a schema that does not
+  /// validate, conflict markers, duplicate ids, view skew. Those are estates
+  /// that are broken rather than estates that are early.
   pub fn is_actionable(&self) -> bool {
     !matches!(
       self,
-      Self::Advisory | Self::FieldNotRecorded | Self::ModelledNotBuilt
+      Self::Advisory
+        | Self::FieldNotRecorded
+        | Self::ModelledNotBuilt
+        | Self::StaleRender
+        | Self::StatusGateDisagreement
+        | Self::StatusGateDisagreementOverFiat
+        | Self::AttachmentDrift
+        | Self::BackupStale
     )
   }
 

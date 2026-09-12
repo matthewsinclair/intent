@@ -416,9 +416,24 @@ fn doctor_reports_the_migration_and_nothing_downstream_of_it() {
     finding.detail.contains("2.19.0"),
     "the finding names the declared version: {finding:?}"
   );
-  assert!(
-    !report.is_healthy() && report.exit_code() == 1,
-    "an unmigrated project is not healthy"
+  // **NOT HEALTHY, AND THE CODE IS 2 RATHER THAN 1** (vc, 2026-09-12, issues
+  // 0308 and 0309). This asserted 1 until `doctor` joined the pre-commit gate,
+  // at which point the difference between *I could not judge this estate* and
+  // *I judged it and it is red* became something a consumer has to ACT on: a
+  // gate refusing on 1 refuses every commit in every v2 project on the fleet on
+  // the day it installs the gate. The assertion moves because it is asserting
+  // the contract that changed, not because it was a bystander -- the finding,
+  // its class and its detail are all untouched above.
+  assert!(!report.is_healthy(), "an unmigrated project is not healthy");
+  // 4 rather than 2: 2 is the CLI's *this build cannot answer*, which ST0058
+  // AC-00.5 records as already carrying four meanings, and one consumer
+  // enumerates the not-implemented-yet population by the predicate *refuses at
+  // 2* -- a fifth meaning there would have made `doctor` read as COMING SOON.
+  assert_eq!(
+    report.exit_code(),
+    4,
+    "an estate the tool could not judge answers 4, so a consumer can fail open on it \
+     rather than refusing work it never read"
   );
 }
 
