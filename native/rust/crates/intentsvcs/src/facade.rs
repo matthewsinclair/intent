@@ -1023,6 +1023,31 @@ pub enum FacadeError {
     id: String,
     paths: Vec<std::path::PathBuf>,
   },
+
+  /// A realisation would have REMOVED a file under the artefact it was asked to
+  /// realise (hv, 2026-09-12: silent deletion).
+  ///
+  /// **`hydrate` RUNS A WHOLE-ESTATE PLAN NARROWED TO ONE DIRECTORY, AND THE
+  /// PLAN HAS REMOVALS IN IT.** A view the store no longer carries is a
+  /// `Dehydrate` step, and a scoped run performed it -- so a verb whose entire
+  /// job is to MAKE FILES EXIST could delete one, silently, on its way past.
+  /// `edit` and `st edit` reach the same body, so the same removal arrived
+  /// under a verb that prints a path and nothing else.
+  ///
+  /// **REFUSED RATHER THAN ANNOUNCED, WHICH IS THE ONE DECISION HERE.** The
+  /// verb that reconciles an estate is `organize`, and it now names every
+  /// removal before it makes it and confirms on a terminal. A realisation verb
+  /// performing a removal the operator did not ask for is the wrong ACT, not an
+  /// under-reported one, and announcing it would make it look intended.
+  #[error(
+    "refusing to realise {id}: the plan would REMOVE {} file(s) under it, and realising is not a verb that removes -- {}",
+    paths.len(),
+    paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join(", ")
+  )]
+  RealisationWouldRemove {
+    id: String,
+    paths: Vec<std::path::PathBuf>,
+  },
   /// One or more of an artefact's realised files could not be shown to be in the
   /// store, so NONE of them was removed (ST0061 AC-00.2).
   ///
@@ -1201,6 +1226,14 @@ impl crate::remedy::Remedy for FacadeError {
       // the right one, and a remedy that describes the rule leaves them to
       // derive it. Where no corrected form exists the remedy says what a
       // well-formed path IS rather than restating the fault.
+      // **THE REMEDY NAMES THE VERB THAT REMOVES, AND IT IS NOT THIS ONE.**
+      // `organize` reconciles an estate: it names every removal before making
+      // it and asks on a terminal. Offering a flag here would put a removal
+      // inside a verb whose contract is that files come into existence.
+      Self::RealisationWouldRemove { .. } => (
+        "`intent organize` previews what the estate's declaration implies, and `intent organize --apply` performs it -- naming every file it will remove first. If the file is yours and nothing in the store carries it, move it out of the thread's directory"
+      )
+      .to_string(),
       // **THE REMEDY IS A SEQUENCE, NOT A FLAG.** Naming `--overwrite` alone
       // would hand an operator the destructive route as the answer to a
       // question they have not looked at yet; the copy comes first.
@@ -3398,6 +3431,25 @@ impl Facade {
     // and costs one read per view. **The refusal names every path**, because a
     // verb that refuses without saying which file sends the operator to diff a
     // whole thread against a description of it.
+    // **A REALISATION VERB DOES NOT REMOVE.** The scoped plan is the estate's
+    // plan narrowed to this artefact's directory, so it can carry `Dehydrate`
+    // steps -- and `Plan::run` performs them. Checked before the divergence
+    // below because it is the coarser fault: a run that would remove files is
+    // refused whole, not file by file.
+    {
+      let removing: Vec<std::path::PathBuf> = scoped
+        .with(organize::Action::Dehydrate)
+        .map(|step| self.project.relative(&step.path))
+        .map(std::path::PathBuf::from)
+        .collect();
+      if !removing.is_empty() {
+        return Err(FacadeError::RealisationWouldRemove {
+          id: id.clone(),
+          paths: removing,
+        });
+      }
+    }
+
     {
       let diverged: Vec<std::path::PathBuf> = scoped
         .with(organize::Action::Verify)

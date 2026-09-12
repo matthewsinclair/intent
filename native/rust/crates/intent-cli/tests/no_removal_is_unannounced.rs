@@ -30,9 +30,8 @@
 //! and `st hydrate` writing over a view whose bytes differ -- **which is the
 //! same class and not a second one**: hv's words are *removes or overwrites*,
 //! and a hand edit replaced by a render is as gone as a file deleted.
-//! **Not yet covered, because the fixes are not landed yet:** `edit --path` and
-//! `st edit` realising through `Mode::Apply` (vc's sweep, item 5), and the MCP
-//! `organize` tool with `apply: true` (item 3). Each lands with its arm here.
+//! **Not yet covered, because the fix is not landed yet:** the MCP `organize`
+//! tool with `apply: true` (vc's sweep, item 3). It lands with its arm here.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -316,6 +315,53 @@ fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
     edited,
     "and --overwrite really did discard it"
   );
+}
+
+/// **A REALISATION VERB REMOVES NOTHING, AND THE ONLY THING THAT STOPPED IT
+/// WAS A GATE THAT IS TEMPORARY BY DESIGN** (vc's sweep, item 5).
+///
+/// `hydrate` builds the estate's plan and narrows it to one artefact's
+/// directory, so the narrowed plan can carry `Dehydrate` steps -- and
+/// `Plan::run` performs them. `edit` and `st edit` reach the same body, so a
+/// verb that prints one path could take a file on its way past.
+///
+/// **DRIVEN ON THE PARENT: the removal did not happen, and that is the point.**
+/// The estate-wide ship gate holds every removal until the last precondition
+/// goes green, so the loss is LATENT rather than realised -- the run reported
+/// `hydrated ... 0 written by this run` and said nothing about the file at all.
+/// A defect whose only guard is a gate designed to open is one that arrives on
+/// the day nobody is looking.
+///
+/// **REFUSED RATHER THAN ANNOUNCED.** The verb that reconciles an estate is
+/// `organize`, which now names every removal first and asks on a terminal. A
+/// realisation verb performing a removal nobody asked for is the wrong ACT, and
+/// announcing it would make it look intended.
+#[test]
+fn a_realisation_verb_refuses_to_remove_and_names_what_it_would_have_taken() {
+  let dir = project();
+  let root = dir.path();
+  // A view-shaped file under a realised thread that the store does not carry.
+  let stray = root.join("intent/st/ST0002/WP/99/info.md");
+  std::fs::create_dir_all(stray.parent().expect("parent")).expect("mkdir");
+  std::fs::write(&stray, "not anything the store renders\n").expect("plant");
+
+  for args in [
+    vec!["st", "hydrate", "ST0002"],
+    vec!["edit", "st", "ST0002", "info", "--path"],
+  ] {
+    let out = intent(root, &args);
+    let said = format!("{}{}", stdout(&out), String::from_utf8_lossy(&out.stderr));
+    assert!(
+      !out.status.success(),
+      "`intent {}` must refuse a plan that would remove: {said}",
+      args.join(" ")
+    );
+    assert!(
+      said.contains("WP/99/info.md"),
+      "and it must NAME the file it would have taken: {said}"
+    );
+    assert!(stray.is_file(), "and take nothing");
+  }
 }
 
 /// **THE CONTROL ON THE INSTRUMENT ITSELF.** Everything above rests on `tree`

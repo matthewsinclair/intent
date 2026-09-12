@@ -790,6 +790,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NotHydratable { .. } => "NotHydratable",
     FacadeError::NoManifestToUnlistFrom { .. } => "NoManifestToUnlistFrom",
     FacadeError::HydrationWouldOverwrite { .. } => "HydrationWouldOverwrite",
+    FacadeError::RealisationWouldRemove { .. } => "RealisationWouldRemove",
     FacadeError::DehydrationRefused { .. } => "DehydrationRefused",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
@@ -818,6 +819,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NotHydratable",
   "NoManifestToUnlistFrom",
   "HydrationWouldOverwrite",
+  "RealisationWouldRemove",
   "DehydrationRefused",
   "NotEditable",
   "NoSuchEditable",
@@ -901,6 +903,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // Provoking it here would need a realised estate with a divergent view, which
   // is the CLI fixture's shape rather than this file's.
   "HydrationWouldOverwrite",
+  // Its sibling, and covered in the same file and for the same reason: the
+  // arm plants a view-shaped file the store does not carry under a realised
+  // thread, runs `st hydrate` and `edit --path`, and asserts both refuse and
+  // leave it. The state needs a realised estate with a stray file in it.
+  "RealisationWouldRemove",
   // `RootFile` reaches the facade through `agents_generate` alone, and only
   // when the INSTALL is damaged -- a template under `lib/templates/` unreadable
   // or malformed -- which is a property of the world, not of the call. That

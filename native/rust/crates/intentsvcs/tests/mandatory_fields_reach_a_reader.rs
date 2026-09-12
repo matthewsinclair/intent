@@ -138,6 +138,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A realisation refused because it would write over a difference names
     // the PATHS it would have destroyed; there is no field the caller left out.
     | FacadeError::HydrationWouldOverwrite { .. }
+    // Same shape: it names the PATHS it would have removed, and no field was
+    // left out of the call.
+    | FacadeError::RealisationWouldRemove { .. }
     | FacadeError::DehydrationRefused { .. }
     // `intent edit`'s two refusals. Both are about WHERE a file may be
     // authored, not about a value the caller left out of one -- the argument
