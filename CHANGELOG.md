@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.2] - in progress
 
-Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed. **This fixes no behaviour.** The defects the audit found are described on [Known defects](docs/known-defects.md) and are unchanged in the binary.
+Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed, and the defects that audit found are being fixed. What is fixed is below; [Known defects](docs/known-defects.md) carries what is not, and says which release fixed the rest.
 
 ### Changed
 
@@ -19,6 +19,7 @@ Every document in the repository was checked against v3.0.1 as built and correct
 
 ### Fixed
 
+- **A release cannot be tagged with schema faces stamped for another version.** The v3.0.1 tag carried `schema/*` reading `INTENT_VER: 3.0.0`, because the published faces are generated from the crate's own version at compile time and the release stamped the version without regenerating them -- so five schema tests fail at that tag. The release now regenerates the faces through their own generator, in the release commit, and refuses to tag unless every published face carries the version being cut. It also refuses at pre-flight if a tree's faces disagree with its own `VERSION` before anything moves.
 - **A Homebrew install carries the subagents.** The v3.0.1 keg shipped without `intent/plugins/claude/subagents`, so `intent claude subagents list` answered `no subagents in this install` at exit 0 and there was nothing for `intent claude subagents install` to install -- the `critic-<lang>` family included. The support archive now carries that tree, and the release refuses to build one that omits a directory the binary resolves by name at run time.
 - **A fresh install says how to finish it.** The pre-commit gate a project installs finds Intent through `~/.intent/home`, which only `intent bootstrap` writes, so every commit was refused after a first install -- and the refusal said to reinstall, which writes no pointer. It now names `intent bootstrap`, and the formula says the same in a caveat. Homebrew cannot do it for you: its `post_install` runs with a throwaway HOME and cannot write yours.
 - **A new project's `intent/wip.md` carries its own date and author.** The template stamped every project's `wip.md` with a fixed 2025 date and one person's name; `intent init` now fills in the date and the project's author.
