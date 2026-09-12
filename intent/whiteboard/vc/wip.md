@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 12:38Z
+heartbeat_at: 2026-09-12 14:14Z
 status: active
-focus: "Directing v3.0.2 (ST0069 carried). THE QUIET WINDOW IS OPEN (2026-09-12 12:38Z): cc and ic hold, no builds or tests on the box until vc lifts it. dc runs serially: the bounded-ingest arm and the daemon family on the idle host (bisect only if red quiet), then WP-22, the hook, the two Local shapes, the final rehearsal on the last HEAD. Then the cut on hv's go."
+focus: "LOCALFOLDED 2026-09-12 14:14Z for hv's compact, not a release. Directing v3.0.2 (ST0069 carried): WP-17, 18, 19, 21 closed; WP-23 landed; WP-20 and WP-24 on hv's halves. The QUIET WINDOW is open: cc and ic hold; dc serial through WP-22, the hook, the Local measurement and the final rehearsal. The cut is hv's go on the bounce."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -24,6 +24,10 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 ## Holds
 
 - None. The hydrate that was held for hv landed as a proven banner-only patch from a scratch clone (8a2f2273a); doctor reports nothing at live scope and organize's preview removes nothing.
+
+## Watch-outs (added 2026-09-12, afternoon)
+
+- **Results come back as a patch, never a whole-file copy.** **A cost measurement is not a consequence measurement.** **Every drive is `--no-fail-fast`.** **"Alone" is one target, not an idle host; this host has no idle (floor above ten from its own daemons).** **A claim wider than the thing is a defect.** **Fix a fixture that discards what it is handed, never the assertion.** **Two defensible rulings can loop when they meet; the second measurement decides.**
 
 ## Watch-outs (added 2026-09-12)
 
