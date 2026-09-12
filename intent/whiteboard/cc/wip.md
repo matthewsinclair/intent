@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 06:07Z
+heartbeat_at: 2026-09-12 06:32Z
 status: active
-focus: "LEANED and LOCALFOLDED 2026-09-12 06:07Z for hv's compact -- not a release. Lane empty. HOLD: batch 1 is dc's; cc's defect-list items are unruled. vc has the pen."
+focus: "v3.0.2 batches 2 and 3, ruled by hv 2026-09-12 06:16Z and routed by vc. One commit per item, red before green, private worktree, no release and no push."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,15 +14,16 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **Empty.** The doc audit's engine lane is done, verified by vc and pushed. Nothing of mine is in flight.
+- **BATCH 3, critic truth (`intent/wip.md` items 5, 8 in part, 17).** Four fixes, one commit each, red driven on the fix's parent: no `ok:` line before a refusal; `--format zzz` refused with a remedy; a file shellcheck REFUSED not reported as `ran` clean; `disabled:` parsing the form every doc shows.
 
 ## TODO
 
-- **Empty.** Read the lane column in `intent/wip.md`, never a copy here.
+- **The mixed-proxy silent drop (`critic.rs:841-846`) ONLY IF vc says so.** vc's two briefs disagree -- the first puts it outside batch 3, the second inside. Asked 2026-09-12; not touched until answered.
+- Read the lane column in `intent/wip.md`, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **THE DOC AUDIT'S DEFECT LIST (raised 2026-09-11, `intent/wip.md` item 11):** hv ruled fix batch 1 -- the schema-face release step, the keg's subagents, bootstrap after install -- and routed it to dc. **cc's items are NOT ruled: uninstall data loss, and the critic and gate truth items** (the zsh census that reports `ran`, the elixir proxies that fire on what their rule prescribes, swift and lua UNDECLARED, `--format` accepting anything, a mixed proxy block dropping refused lines). **Released when hv rules them, or vc routes one to me.** The gate-blocked pair (`strong-assertions/bad_test.exs`, `test-highlander-shared-setup/good_test.exs`) waits on the same ruling.
+- **THE DEFECT LIST ITEMS hv DID NOT RULE.** hv ruled batches 2 and 3 to cc on 2026-09-12 06:16Z, so the uninstall data loss and the four critic-truth items are OUT of this hold and in DOING. **Still held, unruled:** the rule proxies that contradict their own rule (item 9) -- the elixir proxies firing on what their Good prescribes, swift and lua UNDECLARED -- and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.** The gate-blocked pair (`strong-assertions/bad_test.exs`, `test-highlander-shared-setup/good_test.exs`) is part of item 9 and waits with it.
 
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work. **Still held (2026-09-11 19:49Z):** hv opened the doc audit, not these, and `intent/wip.md` lists `0177` as post-cut with no owner.
 
