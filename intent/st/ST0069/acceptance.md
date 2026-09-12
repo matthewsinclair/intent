@@ -97,7 +97,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: no (computed)
 
-### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
+### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: Done)
 
 - AC-17.1 `intent search --sql <statement>` runs one read statement on a connection opened read-only and returns rows; a write, a second statement or a state-changing pragma is refused with the remedy naming the read-only contract. -- satisfied: yes (computed)
 - AC-17.2 The rows carry the store's schema version, and `--json` emits the same envelope the MCP tool returns for the same statement. -- satisfied: yes (computed)
@@ -174,7 +174,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
+### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: Done)
 
 - AT-17.1 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.1 -- status: green -- Drives the door against a real store: five write shapes refused with the read-only remedy, a batch refused, ATTACH and PRAGMA refused by name, and the thread count read before and after so a refusal for another reason fails the case. The gate's own directions are unit-tested in intentsvcs::sql_gate, including the over-refusal control.
 - AT-17.2 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.2 -- status: green -- The envelope carries the store's schema version, and the same statement through the MCP tool and through --json is asserted byte-equal as JSON.
