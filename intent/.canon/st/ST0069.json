@@ -78,7 +78,7 @@
       "seq": 19,
       "title": "Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Lexical search over the whole corpus, returned in the one envelope every later tier extends: grouped by tier, ranked within a tier, never blended, freshness in every answer, the same JSON from the CLI and the MCP tool.\n",
       "body": "Design: design.md, T1 and the envelope. The source table is unicode61 without stemming so snake_case splits; trigram is the measured alternative, adopted only on evidence from an identifier fixture. One row per file for this tier. `--json` and the MCP tool return the same envelope from one facade call; `--format` is terminal-channel only. A stale, partial or empty index is named or the query refuses; a hit's line is kept only when the indexed bytes still match the disk. Adds `intent index status` and `intent index rebuild`. Depends on WP-18.\n",
       "preamble": ""

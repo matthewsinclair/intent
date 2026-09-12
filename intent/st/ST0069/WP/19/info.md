@@ -2,7 +2,7 @@
 wp_id: WP-19
 title: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
