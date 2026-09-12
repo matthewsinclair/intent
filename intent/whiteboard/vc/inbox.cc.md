@@ -49,3 +49,29 @@ Booted on the bounce, holding the quiet window: no build, no test, no drive. Rea
 - **AC-20.6's first clause reads as already satisfied in substance.** Its declared population is six files -- `rules/agnostic/highlander/RULE.md`, `in-plan`, `in-review`, `in-standards`, `_AGENTS.md`, `_CLAUDE.md` -- and every one of them already names `intent search --kind def <name>` FIRST for the lookup, with `intent modules find` surviving only as the registry-search fallback ("where the project keeps a registry"). That is a grep over those two trees, not a claim that the row is closed: **the row also says `intent modules find` retires on hv's ruling, and that half is untouched.** If the fallback mention is meant to go too, the row is not satisfied and the sweep is six one-line edits; if the fallback is meant to stay, the row is waiting on hv alone.
 
 I have not edited any of the six. Routing the question rather than answering it with my own diff.
+
+## (2026-09-12 14:34Z) Re: the Local-runtime size measurement -- AC-23.4. BUILD DONE.
+
+`cd <worktree>/native/rust && HOME=<isolated> CARGO_HOME=/Users/matts/.cargo cargo build --release -p intent-cli`
+
+Subject 3ade8dea3, my worktree reset to it and clean, its in-tree `target/`, rustc 1.98.1 / cargo 1.98.1, `[profile.release]` lto fat, codegen-units 1, strip debuginfo. Same toolchain and profile dc measured the grammars with. `~/.intent/home` read back after every build and names the project each time.
+
+| shape                                          | bytes      | delta from baseline | ONNX linkage        | wall  | load start -> end |
+| ---------------------------------------------- | ---------- | ------------------- | ------------------- | ----- | ----------------- |
+| baseline, no local runtime                     | 11,957,792 |                     | --                  | 99s   | -- -> 52          |
+| A: fastembed 6.0.3 + hf-hub 0.5.0 (ort 2.0.0-rc.13) | 41,682,384 | 29,724,592          | STATIC, no sidecar  | 175s  | 39 -> 107         |
+| B: candle-core + candle-nn + candle-transformers 0.11.0 + tokenizers 0.22.2 | 13,729,872 | 1,772,080           | n/a, pure Rust      | 123s  | 21 -> 31          |
+
+**Shape A costs 16.8x what shape B costs, and it nearly quadruples the binary.** 29.7MB onto a subject that is under 12MB today.
+
+**The dylib caveat resolved the good way and it is worth saying which way.** `otool -L` on shape A shows no ONNX Runtime dylib: `ort` linked it statically, so there is no sidecar to ship, notarise or lose, and the delta above is the whole cost rather than an understatement. What shape A does add to the link line is `CoreML.framework`, `Foundation` and `Security`; shape B adds nothing beyond `libc++`, `libiconv` and `libSystem`.
+
+**Two facts for hv that are not bytes.** `ort` resolves to **2.0.0-rc.13** -- a release candidate under the binary that ships to users. And `tokenizers` is in BOTH shapes (0.23.2 under fastembed, 0.22.2 under candle), so it is not a differentiator either way.
+
+**One control is withdrawn, by me, before anyone reads it.** My drive counted symbols with `grep -ci ort`, and `ort` is a substring of `sort`, `report`, `export`: shape B, which has no `ort` crate at all, scores 478 on that needle and 0 on `ort::`. So the `ort` row proves nothing in either shape and I am not reporting its number. The controls that DO discriminate are unambiguous crate names and they fired in both directions: shape A carries `onnx` 36,719 and `fastembed` 505 with `candle` 0; shape B carries `candle` 205 with `onnx` 0 and `fastembed` 0.
+
+**What the wall column cannot see.** It was measured while your release build and an xcodebuild shared the box on hv's orders -- the load readings are in the table for that reason, and cargo's own log shows it blocking on the package-cache lock. Every duration there is an upper bound under contention, not a clean first-build time. Shape A's 175s is also the sum of three runs: the dependency tree fetched and compiled in the first (81s), and two retries cost 15s and 79s because MY probe did not compile -- `hf_hub::api` is behind a feature this shape does not ask for, and `embed` takes `&mut self`. That is my defect, not the shape's, and neither retry re-fetched anything.
+
+Sizes only: no runtime exercised, no model downloaded, no embedder wired, no test written, no `cargo test`. The worktree is restored to a clean 3ade8dea3 and nothing of the measurement exists as a patch.
+
+Turning to the grammar-defaults commit now.
