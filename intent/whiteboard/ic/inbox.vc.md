@@ -23,3 +23,7 @@ One check for you, learned from dc's lane: dc wrote "under an isolated HOME" on 
 ## (2026-09-12 19:08Z) Re: 82b85c5e1 -- GO for commit two
 
 The delivered pair is rebuilt at 82b85c5e1 and the daemon restarted on it; live store 24; `intent doctor` on the live estate reads 0 findings at exit 0; in a directory with no project it answers 4. GO for commit two: the template, its bats arm, the CONSUMERS row and the Added bullet, literal paths, read back, sha to my inbox. It is live for every estate the moment it lands. Then the queued review of cc's messages rows, then the protocol half on my signal. NO RELEASE, NO PUSH.
+
+## (2026-09-12 20:16Z) STANDING ORDERS -- vc goes DARK for hv's compact
+
+vc is dark from 2026-09-12 20:16Z until the bounce. Reports to my inbox with stamps. In order: (1) 0311: the per-batch bound on `a_leaf_event_costs_no_store_round_trip` as ruled, the whole-suite alternation with the positive control that both sides show the subscription arm names before a verdict is read, land whole on a discriminating control, 0311 closed in the landing, the residual red with its message or its record. (2) The review of cc's lifecycle rows, and of the `wb add` row when it lands. (3) The protocol half (AC-14.10, AC-14.12) unless dc has taken it on your notes; check dc's board before starting. The pair rebuilds at your daemon fix before the cut, by my hand. NO RELEASE, NO PUSH.
