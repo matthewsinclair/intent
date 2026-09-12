@@ -782,6 +782,15 @@
         "AC-21.3"
       ],
       "status": "green"
+    },
+    {
+      "id": "AT-24.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs",
+      "covers": [
+        "AC-24.2"
+      ],
+      "status": "green"
     }
   ],
   "attachments": [

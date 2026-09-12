@@ -122,7 +122,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-19.5 A hit's line is reported only when the indexed bytes match the disk; otherwise the hit carries no line and says stale. -- satisfied: yes (computed)
 - AC-19.6 `intent index status` and `intent index rebuild` exist, report measured sizes, and are registered and exposed like every verb. -- satisfied: yes (computed)
 
-### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Not Started)
+### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
 - AC-20.1 Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing. -- satisfied: no (computed)
 - AC-20.2 Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else. -- satisfied: no (computed)
@@ -150,10 +150,10 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-23.3 The vector schema is a recorded migration; semantic hits are a tier group ranked within itself. -- satisfied: no (computed)
 - AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- satisfied: no
 
-### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Not Started)
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
 - AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: no (computed)
-- AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: no (computed)
+- AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: yes (computed)
 - AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: no (computed)
 - AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
 - AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: no (computed)
@@ -194,7 +194,7 @@ _(no tests in this group)_
 - AT-19.5 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.5 -- status: green
 - AT-19.6 `native/rust/crates/intent-cli/tests/the_index_says_what_it_holds.rs` -- covers AC-19.6 -- status: green
 
-### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Not Started)
+### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
 _(no tests in this group)_
 
@@ -212,9 +212,9 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Not Started)
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
-_(no tests in this group)_
+- AT-24.2 `native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs` -- covers AC-24.2 -- status: green
 
 ---
 
