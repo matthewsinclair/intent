@@ -38,7 +38,13 @@ GATE
   assert_failure
   assert_output_contains "cannot locate the Intent install"
   assert_output_contains "is absent"
-  assert_output_contains "never completed, not that Intent is missing"
+  # **THE CLAIM IS THE DIRECTION OF BLAME, NOT THE SENTENCE AROUND IT.** This
+  # asserted "never completed, not that Intent is missing" until 2026-09-12,
+  # and batch 1 rewrote the clause before it so the remedy names `intent
+  # bootstrap` -- the shim now says the machine has not run it. The test went
+  # red on wording it was never about, so it now pins the half that carries the
+  # claim this test is named for.
+  assert_output_contains "not that Intent is missing"
   assert_output_contains "refusing rather than skipping"
 }
 
