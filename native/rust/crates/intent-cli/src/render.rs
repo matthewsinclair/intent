@@ -8091,6 +8091,17 @@ fn report_notes(outcome: &Outcome, subject: &str) {
           "  remedy: `intent sync --to-store {subject}` takes the disk copy into the store -- an attachment is authored ON DISK, so a divergence means the store is stale"
         );
       }
+      // **`rewrote:` NAMES A FILE THE VERB OVERWROTE, and it is a record
+      // rather than a warning.** Rewriting a generated view is the correct act
+      // -- one writer, and the store is the SSOT -- so the operator is being
+      // told what happened, not warned off it. The paths are what actually
+      // changed on disk: a projection over an estate that already agrees
+      // writes nothing and prints nothing.
+      Note::RewroteViews(paths) => {
+        for path in paths {
+          eprintln!("rewrote: {path}");
+        }
+      }
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),

@@ -38,6 +38,8 @@ mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 mod a_narrowed_render_names_its_scope;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]
 mod a_skewed_views_printed_remedy_clears_it;
+#[path = "a_write_names_the_view_it_rewrote.rs"]
+mod a_write_names_the_view_it_rewrote;
 #[path = "ac_new_refuses_what_it_used_to_replace.rs"]
 mod ac_new_refuses_what_it_used_to_replace;
 #[path = "acceptance_surface.rs"]
