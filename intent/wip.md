@@ -19,6 +19,8 @@ hv chose it from vc's proposed batches; the other batches stay unruled. **dc own
 2. The keg's `SUPPORT_PATHS` carries subagents, and the coverage guard sees a non-literal join (item 1).
 3. After a fresh install, the shim's remedy names `intent bootstrap`, and the formula bootstraps in `post_install` or prints a caveat naming it, whichever Homebrew's sandbox allows (item 21).
 
+**Standing:** items 2 and 3 LANDED (`597a9f26f`, `9173bbb63`; tap formula local at `9987a93`, unpushed), verified by vc. Item 1 is not started and is the gate on any release.
+
 **Conditions:**
 
 - Red before green on each item, in private worktrees under an isolated HOME.
@@ -127,4 +129,7 @@ The docs now describe each as built. None is worked until hv rules.
     - The shim's absent-pointer remedy says "reinstall Intent", but only `intent bootstrap` writes the pointer, and the formula has no `post_install`. So after a fresh install, every commit is refused with the wrong fix.
     - `at new --status red|green|n-a` creates a row at a non-initial state; `st list --status tbc` is accepted; `AcceptanceTest.kind` is still marked Unbuilt.
     - `st/ST0056` is documented as an address and refused by the resolver; `intentd`'s `shell.html` carries its own palette.
-22. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
+22. **From batch 1's drives** (dc, not fixed):
+    - `intent plugin list` on the keg answers `No plugins found.` while the dev tree lists `agents` and `claude`: `plugins.rs` reads `plugin.json` through a `read_dir` behind a function return, which no source scan follows, and `intent/plugins/agents/plugin.json` still does not ship.
+    - The shim's other two remedies (a pointer resolving to a non-install; an install missing its gate) still say "reinstall Intent", which rewrites no pointer.
+23. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
