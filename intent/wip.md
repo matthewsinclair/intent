@@ -26,7 +26,7 @@ hv chose it from vc's proposed batches; the other batches stay unruled. **dc own
 - **CHANGELOG** (dc): retitle to `## [3.0.2] - in progress`; one Fixed line per landed item; known-defects entries for fixed items say fixed in 3.0.2.
 - **The cut** is hv's call after dc's end-to-end `--dry-run` of `build release --patch` passes.
 
-**Standing:** items 2 and 3 LANDED (`597a9f26f`, `9173bbb63`; tap formula local at `9987a93`, unpushed), verified by vc. Item 1 is not started and is the gate on any release.
+**Standing:** BATCH 1 LANDED and verified by vc: items 2 and 3 (`597a9f26f`, `9173bbb63`; tap formula local at `9987a93`, unpushed) and item 1 (`2f90fd283`: preflight refuses faces that disagree with VERSION, and the stamp regenerates and reads them back). CHANGELOG retitled at `b9a8deb5e`. Owed: dc's end-to-end `--dry-run` rehearsal with the gates running, once on the bounce and again on the final HEAD before the cut.
 
 **Conditions:**
 
