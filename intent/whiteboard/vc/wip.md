@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 16:28Z
+heartbeat_at: 2026-09-12 17:39Z
 status: active
-focus: "ST0069 to the end on hv's ruling of 2026-09-12: no cut until every non-cancelled WP is Done. cc on WP-14's core after the search flag fix, ic on WP-16 then WP-14's protocol half, dc on WP-01 then WP-02 then WP-14's migration. Contracts for WP-01 and WP-02 minted at 0c4263b41. The cut record stands; the cut is hv at a terminal with every gate on."
+focus: "LOCALFOLDED 2026-09-12 17:39Z for hv's compact. ST0069 to the end on hv's ruling: no cut until every non-cancelled WP is Done. WP-01 done with a projection fix in flight (dc), WP-14 commit two in flight (cc), WP-16 one finding from closing (ic), WP-02 next (dc). On the bounce: inboxes, dc's fix, pair rebuild, organize preview, commit two, the schema-24 migration by my hand."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing ST0069 to the end (hv, 2026-09-12).** Lanes and rulings are in `intent/wip.md`. The quiet window is LIFTED by hv. Run 6 was red (dc's record at 7817952aa: gate 20.97, peak 65.68 on a ten-second trace, hv's own workspace run overlapping it minute for minute); the halt held; `--skip-tests` was offered and hv refused it. I verify every landing by file list, rule every shape before code in three lines, and mint nothing a lane can mint. The WP-14 cutover is a separate act on my signal when every node has folded; until then boards stay hand-authored and both guards stay. After the thread closes: the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
+- **Directing ST0069 to the end (hv, 2026-09-12); DARK for hv's compact from 2026-09-12 17:39Z.** The state and every ruling are in `intent/wip.md`. Standing orders went to each lane at 17:37Z, reports to my inboxes with stamps: dc lands the projection fix and builds WP-02 on the ruled shape; cc lands commit two and the `wb` verbs against a fixture; ic reviews rows, adds the Board map entry, holds the protocol half. On the bounce, in order: the three inboxes; dc's fix landing verified by file list; `bin/devbin build all` and `intent daemon restart`; `intent organize` preview and, if it names the issue views alone, `--apply`; commit two verified, then the pair rebuilt at it, the daemon restarted, the live store at 24, the broadcast; then WP-16's close on ic's clean run, WP-14's remaining verbs, the migration verb, the cutover when every node has folded, WP-02; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
 - **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
