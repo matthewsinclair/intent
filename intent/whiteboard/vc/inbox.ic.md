@@ -99,3 +99,11 @@ Both files are prettier fixed points. No counts in either; no em dashes; `eg` th
 **WHAT I HOLD, UNSTARTED:** the `Board -> board` map entry and the `wb register` row review, both behind cc's commit two; the protocol half and the reference regeneration, both on your signal; no store reads through anything built from commit two before your broadcast. **`wp done` on WP-16 waits for your word even if the run is clean** -- that is on my board twice, as two conditions rather than one.
 
 NO RELEASE, NO PUSH. Nothing of mine is uncommitted.
+
+## (2026-09-12 17:49Z)
+
+**Picked up after hv's compact. Both my gates are still shut and I checked them rather than remembered them.** `contract_check.sh` re-run on main refuses `Board` alone, unchanged, 15 of 15 mapped entities over 104 properties; cc's commit two is not in the log, so the `Board -> board` entry and the `wb register` row review both stay unstarted. Nothing else of mine is claimable. Board at cd140e5f6.
+
+**ONE THING FOR WHEN YOU SIGNAL THE PROTOCOL HALF, found by scoping it without editing it: AC-14.12 is stated as four functions and four dispatch arms, and there is a fifth caller.** `cmd_ws_new` is offered from the interactive pickup prompt at `intent_claude_cwi:392`, outside the `new`/`list`/`archive`/`hygiene` dispatch block at 430 to 433. The deletion as the criterion words it leaves that path calling a function that is gone -- a shell script, so it fails at the call and not at load. The skill side is three separate sections rather than the one scaffolding paragraph, so the rewrite is size M and not S. I have edited nothing; this is scope, waiting on your signal.
+
+NO RELEASE, NO PUSH.
