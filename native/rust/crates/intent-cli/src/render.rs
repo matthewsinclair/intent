@@ -5697,7 +5697,12 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
     intentsvcs::init::init(&cwd, &name, author, env!("CARGO_PKG_VERSION")).map_err(|e| {
       let message = format!("error: {e}");
       match e {
-        intentsvcs::init::InitError::AlreadyAProject(_) => Failure::Error(message),
+        // BOTH REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` is the same
+        // kind of no as `AlreadyAProject` -- a verb declining a job it could
+        // have done -- and `guide.rs` says that is a 1. The variants below are
+        // the tool unable to act at all, which is the 2.
+        intentsvcs::init::InitError::AlreadyAProject(_)
+        | intentsvcs::init::InitError::WouldOverwrite(_) => Failure::Error(message),
         _ => Failure::Unavailable(message),
       }
     })?;

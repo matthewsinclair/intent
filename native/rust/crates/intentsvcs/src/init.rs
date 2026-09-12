@@ -218,6 +218,15 @@ pub enum InitError {
   /// over a live project would overwrite a config someone has tuned, and the
   /// operator almost certainly meant a different directory.
   AlreadyAProject(PathBuf),
+  /// This directory is not a project, but it already holds files `init`
+  /// writes. **The absence of a config makes a directory NOT-A-PROJECT; it
+  /// never made it EMPTY**, and collapsing those two claims is what let
+  /// `init` destroy a `CLAUDE.md` or an `AGENTS.md` somebody wrote, at exit 0,
+  /// under a line reporting the file as created.
+  ///
+  /// Carries EVERY collision rather than the first: an operator told about one
+  /// moves it, re-runs, and loses the next.
+  WouldOverwrite(Vec<PathBuf>),
   /// An embedded template has no entry in [`DESTINATIONS`]. Loud, because the
   /// alternative is writing fewer files than were embedded and saying nothing.
   NoDisposition(&'static str),
@@ -238,6 +247,19 @@ impl std::fmt::Display for InitError {
         "already an Intent project: {} exists\n  remedy: `init` refuses rather than merging -- to start elsewhere, run it in an empty directory",
         p.display()
       ),
+      Self::WouldOverwrite(paths) => {
+        writeln!(
+          f,
+          "this directory is not an Intent project, but it already holds files `init` writes:"
+        )?;
+        for path in paths {
+          writeln!(f, "    {}", path.display())?;
+        }
+        write!(
+          f,
+          "  remedy: `init` refuses rather than overwriting a file it did not write -- move or delete the files above, or run it somewhere else. Nothing has been written."
+        )
+      }
       Self::NoDisposition(t) => write!(
         f,
         "the embedded template `{t}` has no declared destination\n  remedy: this is a defect in the build, not in your project -- every embedded template must declare where it lands or why it does not"
@@ -294,6 +316,45 @@ pub fn init(
       Some((_, NotByInit(why))) => skipped.push((name, why)),
       None => return Err(InitError::NoDisposition(name)),
     }
+  }
+
+  // **EVERY DESTINATION IS TESTED BEFORE THE FIRST BYTE MOVES, AND THE REFUSAL
+  // NAMES ALL OF THEM.** The only thing `init` used to check was the config,
+  // and everything after it was a bare `fs::write` -- so running it in a
+  // directory that already held a `CLAUDE.md`, an `AGENTS.md` or an
+  // `intent/wip.md` destroyed the operator's file and then REPORTED IT AS
+  // CREATED. Not a silent failure: a silent success, which is worse, because
+  // the output is indistinguishable from the run that was meant.
+  //
+  // **THIS SITS ABOVE `Store::open` DELIBERATELY.** Opening the store creates
+  // `intent/.cache/intent.db` and migrates one that is already there, so a
+  // check placed after it has already written to the directory it is deciding
+  // whether to write to. That is also why the store's own path is in the set:
+  // a stray db with no config beside it is somebody's data, and `init` has no
+  // more business migrating it unasked than it has overwriting their
+  // `CLAUDE.md`.
+  //
+  // **`.prettierignore` IS DELIBERATELY ABSENT FROM THE SET, and its writer is
+  // the reason.** `facade::converge_formatter_exclusion` appends the patterns
+  // that are missing and leaves everything already present untouched, so an
+  // operator's file is not at risk from it. Refusing over a file most
+  // repositories already carry would make `init` unusable in exactly the
+  // populated directory this check exists to protect -- a check that fires on
+  // the safe case as readily as the dangerous one teaches people to work
+  // around it.
+  let mut occupied: Vec<PathBuf> = plan
+    .iter()
+    .map(|(_, dest, _)| root.join(dest))
+    .chain(generated.iter().map(|(dest, _)| root.join(dest)))
+    .chain([
+      root.join("intent/.intentfiles"),
+      root.join("intent/.cache/intent.db"),
+    ])
+    .filter(|path| path.exists())
+    .collect();
+  if !occupied.is_empty() {
+    occupied.sort();
+    return Err(InitError::WouldOverwrite(occupied));
   }
 
   let store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;

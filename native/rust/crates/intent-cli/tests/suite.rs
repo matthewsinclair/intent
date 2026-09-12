@@ -122,6 +122,8 @@ mod ingest_command;
 mod init_from_empty_dir;
 #[path = "init_mints_an_identity.rs"]
 mod init_mints_an_identity;
+#[path = "init_over_existing_files.rs"]
+mod init_over_existing_files;
 #[path = "issues_add_body_door.rs"]
 mod issues_add_body_door;
 #[path = "issues_surface.rs"]
