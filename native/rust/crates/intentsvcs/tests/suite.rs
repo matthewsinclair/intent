@@ -46,6 +46,8 @@ mod a_re_cite_keeps_what_it_was_not_given;
 mod a_retire_reaches_the_consumer;
 #[path = "a_scheduled_backup_is_the_same_call.rs"]
 mod a_scheduled_backup_is_the_same_call;
+#[path = "a_search_names_what_it_could_not_answer.rs"]
+mod a_search_names_what_it_could_not_answer;
 #[path = "a_stale_store_does_not_overwrite_committed_canon.rs"]
 mod a_stale_store_does_not_overwrite_committed_canon;
 #[path = "a_write_refuses_a_record_that_moved_under_it.rs"]
@@ -276,6 +278,8 @@ mod nav_is_the_shared_path_contract;
 mod no_function_takes_a_time;
 #[path = "rules_validate_reaches_an_ext_pack.rs"]
 mod rules_validate_reaches_an_ext_pack;
+#[path = "search_answers_one_envelope.rs"]
+mod search_answers_one_envelope;
 #[path = "test_target_topology_guard.rs"]
 mod test_target_topology_guard;
 

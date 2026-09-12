@@ -8212,7 +8212,7 @@
   "new_surface": [
     {
       "path": "search",
-      "help": "Search the indexed prose for text, or run one read-only SQL statement over this store's published schema",
+      "help": "Search the index for text and get hits grouped by tier with the index's freshness, or run one read-only SQL statement over this store's published schema",
       "args": [
         {
           "name": "query",
@@ -8246,6 +8246,23 @@
           "value": "<n>",
           "help": "Return at most n rows; the answer reports both what matched and what came back",
           "disposition": "keep"
+        },
+        {
+          "spellings": ["--kind"],
+          "type": "string",
+          "value": "<kind>",
+          "help": "Keep only hits of this kind (def, ref, file, thread, wp, issue, attachment, project); repeatable",
+          "arity": "1..n",
+          "disposition": "keep",
+          "note": "WP-19 (AC-19.1): a filter is part of the question, so `matched` counts what survives it. An unknown kind is REFUSED and names the set -- a filter that silently kept nothing would answer a typo with a confident empty result."
+        },
+        {
+          "spellings": ["--path"],
+          "type": "string",
+          "value": "<glob>",
+          "help": "Keep only hits whose project-relative path matches this glob (`*` within a segment, `**` across)",
+          "disposition": "keep",
+          "note": "WP-19 (AC-19.1)."
         },
         {
           "spellings": ["--json"],

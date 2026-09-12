@@ -1460,6 +1460,22 @@ fn enum_from<T: serde::de::DeserializeOwned>(wire: &str) -> Result<T, StoreError
   ))?)
 }
 
+/// One row out of [`Store::search_hits`]: the section, where the engine
+/// matched inside its body, and the rank that ordered it.
+///
+/// **NAMED RATHER THAN A TUPLE** because the rank made a third anonymous
+/// position, and `(section, at, rank)` states nothing at a call site about
+/// which is which.
+pub struct SearchRow {
+  pub section: DocSection,
+  /// Byte offset of the first match within `section.body`, when the engine
+  /// located one (issue 0195).
+  pub at: Option<usize>,
+  /// FTS5's own rank for this row. Negative, lower is better, and comparable
+  /// only against other rows of the same query.
+  pub rank: f64,
+}
+
 /// The mark [`Store::search_hits`] asks `highlight()` to put before each
 /// matched token. Private-use, so authored prose does not carry it.
 const MATCH_MARK: char = '\u{E000}';
@@ -3395,6 +3411,21 @@ impl Store {
     Ok(())
   }
 
+  /// How many distinct FILES the prose index holds.
+  ///
+  /// Sections are what the index stores and files are what an operator counts,
+  /// so the freshness block reports files: "3 sections" says nothing about
+  /// whether the tree was read, and one file split six ways is one file.
+  pub fn doc_file_count(&self) -> Result<usize, StoreError> {
+    let n: i64 =
+      self
+        .conn
+        .query_row("SELECT count(DISTINCT file) FROM doc_sections", [], |row| {
+          row.get(0)
+        })?;
+    Ok(n as usize)
+  }
+
   pub fn doc_section_count(&self) -> Result<usize, StoreError> {
     let n: i64 = self
       .conn
@@ -3730,7 +3761,7 @@ impl Store {
       self
         .search_hits(query)?
         .into_iter()
-        .map(|(section, _)| section)
+        .map(|row| row.section)
         .collect(),
     )
   }
@@ -3747,10 +3778,10 @@ impl Store {
   /// `body`'s prefix and its length is the offset. The mark is a
   /// private-use character; a body that already carries one gets no offset
   /// rather than a guessed one.
-  pub fn search_hits(&self, query: &str) -> Result<Vec<(DocSection, Option<usize>)>, StoreError> {
+  pub fn search_hits(&self, query: &str) -> Result<Vec<SearchRow>, StoreError> {
     let mut stmt = self.conn.prepare(
       "SELECT owner_type, owner_id, file, seq, heading, level, body, \
-       highlight(doc_sections, 6, ?2, '') FROM doc_sections WHERE doc_sections MATCH ?1 \
+       highlight(doc_sections, 6, ?2, ''), rank FROM doc_sections WHERE doc_sections MATCH ?1 \
        ORDER BY rank, file, seq",
     )?;
     let rows = stmt.query_map(params![query, MATCH_MARK.to_string()], |row| {
@@ -3759,7 +3790,13 @@ impl Store {
       let at = marked
         .find(MATCH_MARK)
         .filter(|_| !section.body.contains(MATCH_MARK));
-      Ok((section, at))
+      // **FTS5's OWN RANK, CARRIED RATHER THAN RECOMPUTED.** The rows were
+      // already ordered by it; publishing the quantity that did the ordering
+      // is what lets a surface show a score without inventing one. It is
+      // negative and lower is better, and it is comparable only within this
+      // tier -- which is why the envelope never blends tiers (S4).
+      let rank: f64 = row.get(8)?;
+      Ok(SearchRow { section, at, rank })
     })?;
     let mut out = Vec::new();
     for row in rows {

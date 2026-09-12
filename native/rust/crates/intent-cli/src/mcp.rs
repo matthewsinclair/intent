@@ -1131,17 +1131,53 @@ pub fn serve(
         return Ok(crate::render::sql_json(&page, statement));
       }
       let query = need_s(path, map, "query")?;
-      let hits = f.search(query)?;
-      // The AC-06.4 distinction travels: an empty result over an unpopulated
-      // index is NOT a miss, and only this side knows which happened.
-      let note = if hits.is_empty() && f.prose_sections_indexed()? == 0 {
+      // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
+      // envelope, two skins. Nothing is assembled here, so the tool cannot
+      // answer a different shape from `--json` for the same question.
+      let mut ask = intentsvcs::search::SearchQuery::default();
+      if let Some(kinds) = map.get("kind").and_then(|v| v.as_array()) {
+        for word in kinds {
+          let word = word.as_str().unwrap_or_default();
+          match intentsvcs::search::HitKind::parse(word) {
+            Some(kind) => ask.kinds.push(kind),
+            None => {
+              return Err(args_err(
+                path,
+                format!(
+                  "`{word}` is not a kind of thing this index holds -- one of {}",
+                  intentsvcs::search::HitKind::ALL.join(", ")
+                ),
+              ));
+            }
+          }
+        }
+      }
+      ask.path = opt_s(path, map, "path")?.map(str::to_string);
+      ask.limit = match opt_s(path, map, "limit")? {
+        None => None,
+        Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
+          args_err(
+            path,
+            format!("`limit` must be a number of rows, not `{raw}`"),
+          )
+        })?),
+      };
+      let answer = f.search_all(query, &ask)?;
+      // The AC-06.4 distinction travels, and it is now READ OFF THE ENVELOPE
+      // rather than asked as a second question: an empty result over an
+      // unpopulated index is not a miss, and the envelope already says so.
+      let note = if answer.matched == 0 && answer.index.is_empty() {
         Some(
           "nothing is indexed, so this search could not have matched -- an empty result here does NOT mean the phrase is absent",
         )
       } else {
         None
       };
-      Ok(json!({ "hits": val(path, &hits)?, "note": note }))
+      let mut envelope = val(path, &answer)?;
+      if let (Some(object), Some(note)) = (envelope.as_object_mut(), note) {
+        object.insert("note".to_string(), json!(note));
+      }
+      Ok(envelope)
     }
     "export" => {
       let format = opt_s(path, map, "format")?;

@@ -2791,7 +2791,8 @@ impl Facade {
     Ok(
       hits
         .into_iter()
-        .map(|(section, at)| {
+        .map(|row| {
+          let (section, at) = (row.section, row.at);
           let line = at
             .filter(|_| {
               std::fs::read(self.project.root().join(&section.file))
@@ -2802,6 +2803,157 @@ impl Facade {
         })
         .collect(),
     )
+  }
+
+  /// `intent search <query>` -- the whole answer: hits grouped by tier, the
+  /// index's freshness, and both denominators (AC-19.1, AC-19.2, AC-19.3,
+  /// AC-19.5).
+  ///
+  /// **ONE CALL, AND EVERY SURFACE RENDERS WHAT IT RETURNS.** The terminal,
+  /// `--json`, the MCP tool and the explorer's pane differ in how they DRAW
+  /// this value and in nothing else. [`Self::search`] survives beside it as
+  /// the flat section list the TUI's existing pane reads; it is the same rows
+  /// through a narrower door, and it is the one that goes when WP-21 moves the
+  /// pane onto the envelope.
+  ///
+  /// **THE ONLY TIER TODAY IS LEXICAL, AND IT IS STILL A GROUP.** WP-20's
+  /// structural tier is a new group and moves nothing here; cc's source corpus
+  /// is a new ENTRY in `index.corpora` and new rows in this same group. That
+  /// asymmetry is the design's claim, and building the envelope before the
+  /// corpus arrives is what tests it.
+  pub fn search_all(
+    &self,
+    query: &str,
+    ask: &crate::search::SearchQuery,
+  ) -> Result<crate::search::SearchAnswer, FacadeError> {
+    use crate::index::corpus::Corpus;
+    use crate::search::{
+      CANON_POLICY, CorpusState, Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier,
+      TierGroup, corpus_key, snippet,
+    };
+
+    let expression = crate::fts::expression(query);
+    let rows = self.store.search_hits(&expression).map_err(|cause| {
+      if matches!(cause, StoreError::Sqlite(_)) {
+        FacadeError::BadQuery {
+          query: query.to_string(),
+          cause,
+        }
+      } else {
+        FacadeError::Store(cause)
+      }
+    })?;
+
+    let mut index = IndexFreshness::new(std::collections::BTreeMap::from([(
+      corpus_key(&Corpus::Canon).to_string(),
+      CorpusState {
+        policy: CANON_POLICY.to_string(),
+        files: self.store.doc_file_count().map_err(FacadeError::Store)?,
+      },
+    )]));
+
+    let mut hits = Vec::new();
+    for row in rows {
+      let section = row.section;
+      let located = self.locate(&section, row.at);
+      let hit = Hit {
+        kind: HitKind::of_owner(&section.owner_type),
+        name: section
+          .heading
+          .clone()
+          .unwrap_or_else(|| section.file.clone()),
+        owner: Some(section.owner_id.clone()).filter(|id| !id.is_empty()),
+        lang: None,
+        path: section.file.clone(),
+        span: match located {
+          Located::At(line) => Some(Span::line(line)),
+          _ => None,
+        },
+        score: row.rank,
+        snippet: snippet(&section.body, row.at),
+        stale: matches!(located, Located::Moved),
+      };
+      // **FRESHNESS DESCRIBES THE ANSWER, NOT THE WHOLE INDEX.** A stale row
+      // the filters excluded is not part of what was returned, and warning
+      // about it would print a caution about hits the reader cannot see --
+      // `--kind issue` reporting that a thread's file moved.
+      if ask.keeps(&hit) {
+        if hit.stale {
+          index.mark_stale(hit.path.clone());
+        }
+        hits.push(hit);
+      }
+    }
+
+    // **BOTH DENOMINATORS, AND `matched` IS COUNTED AFTER THE FILTERS.** The
+    // filters are part of the question -- `--kind issue` asks how many ISSUES
+    // matched -- while the limit is a cap on the answer. Counting before them
+    // would report a denominator for a question nobody asked.
+    let matched = hits.len();
+    if let Some(limit) = ask.limit {
+      hits.truncate(limit);
+    }
+    let returned = hits.len();
+
+    Ok(SearchAnswer {
+      query: query.to_string(),
+      index,
+      groups: vec![TierGroup {
+        tier: Tier::Lexical,
+        hits,
+      }],
+      matched,
+      returned,
+    })
+  }
+
+  /// Where a section's indexed body sits in the file as it now stands
+  /// (AC-19.5, issue 0195).
+  ///
+  /// **THREE OUTCOMES, AND COLLAPSING ANY TWO OF THEM TELLS A LIE.** A file
+  /// that is not on disk is not stale: canon realises lazily, so an entity
+  /// whose markdown has never been written is exactly as fresh as the store
+  /// says. A file whose bytes no longer carry the indexed section IS stale,
+  /// and that is the one the reader must be told about. A body that is found
+  /// gives a line that is right by construction, because it is found rather
+  /// than computed from an offset recorded when it was indexed.
+  ///
+  /// **WHERE THE INDEXED BYTES OCCUR MORE THAN ONCE, THE FIRST OCCURRENCE IS
+  /// NAMED** (vc, 2026-09-12). Either line contains the matched bytes, so the
+  /// claim is true of both, and the first is the deterministic choice.
+  fn locate(
+    &self,
+    section: &crate::prose::DocSection,
+    at: Option<usize>,
+  ) -> crate::search::Located {
+    use crate::search::{Located, find};
+    if section.body.is_empty() {
+      return Located::NoClaim;
+    }
+    // **A CANON SECTION'S BODY IS A FIELD, NOT A BYTE RANGE**, so the file on
+    // disk never contains it verbatim and its absence says nothing about
+    // freshness. Asking the question at all here would answer it wrongly for
+    // every healthy project.
+    let canon = self
+      .project
+      .relative(&self.project.canon_dir())
+      .replace('\\', "/");
+    if section.file.starts_with(canon.trim_end_matches('/')) {
+      return Located::NoClaim;
+    }
+    let Ok(bytes) = std::fs::read(self.project.root().join(&section.file)) else {
+      return Located::NoClaim;
+    };
+    let Some(found) = find(&bytes, section.body.as_bytes()) else {
+      return Located::Moved;
+    };
+    let upto = found + at.unwrap_or(0);
+    let line = bytes[..upto.min(bytes.len())]
+      .iter()
+      .filter(|byte| **byte == b'\n')
+      .count() as u32
+      + 1;
+    Located::At(line)
   }
 
   /// How many prose sections the index holds -- the question that makes an

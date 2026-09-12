@@ -3492,7 +3492,19 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   }
   let query = text.expect("both-or-neither was checked above");
   let f = open()?;
-  let hits = f.search(&query).map_err(fail)?;
+  let ask = search_ask(m)?;
+  let answer = f.search_all(&query, &ask).map_err(fail)?;
+
+  // **ONE ENVELOPE, AND `--json` IS A RENDERING OF IT** (AC-19.2). The MCP
+  // tool serialises the value this same call returns, so the two surfaces
+  // cannot answer differently: there is no second assembly to drift.
+  if m.get_flag("json") {
+    println!(
+      "{}",
+      serde_json::to_string_pretty(&answer).expect("the envelope is plain data")
+    );
+    return Ok(());
+  }
   // **An unpopulated index answers every query exactly the way a genuine miss
   // does**: exit 0, zero bytes, byte-identical. So a user whose prose has never
   // been indexed is told, in the tool's own voice, that their phrase is not
@@ -3507,7 +3519,7 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   // stdout stays empty in both cases on purpose -- a grep-shaped caller keeps
   // its contract and a miss is still exit 0 -- so the distinction is drawn on
   // stderr, where a diagnosis belongs and where it cannot corrupt a pipe.
-  if hits.is_empty() && f.prose_sections_indexed().map_err(fail)? == 0 {
+  if answer.matched == 0 && answer.index.is_empty() {
     eprintln!(
       "note: nothing is indexed, so this search could not have matched -- an empty result here does NOT mean `{query}` is absent"
     );
@@ -3539,16 +3551,93 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   // hit read `:0` and an editor jumping to it landed at the top of the file.
   // Where there is no line to state, the row is the file alone; the heading
   // and the owner still say which section and which entity.
-  for hit in hits {
-    let s = &hit.section;
-    let heading = s.heading.as_deref().unwrap_or("(preamble)");
-    let place = match hit.line {
-      Some(line) => format!("{}:{line}", s.file),
-      None => s.file.clone(),
-    };
-    println!("{place}  {}  {heading}", s.owner_id);
+  // **THE FRESHNESS LINE GOES TO STDERR, BEFORE THE HITS** (AC-19.3). stdout
+  // stays the result surface, so a grep-shaped caller keeps its contract,
+  // and the one thing a reader cannot derive from the rows -- that the answer
+  // is a subset -- is stated where a diagnosis belongs.
+  if !answer.index.complete() {
+    for stale in &answer.index.stale {
+      eprintln!("warning: {stale} has changed since it was indexed -- its hits carry no line");
+    }
+    for skipped in &answer.index.skipped {
+      eprintln!(
+        "note: {} was not indexed -- {}",
+        skipped.path, skipped.reason
+      );
+    }
+  }
+  // **BOTH DENOMINATORS, AND ONLY WHERE THEY DIFFER.** A capped answer is
+  // never a silent subset; an uncapped one does not need telling.
+  if answer.returned < answer.matched {
+    eprintln!(
+      "note: {} of {} shown -- raise `--limit` for the rest",
+      answer.returned, answer.matched
+    );
+  }
+
+  // **THE ENVELOPE IS GROUPED AND THE TERMINAL PRINTS ROWS** (AC-19.1). A tier
+  // header was written here first and REMOVED after driving it: `intent search`
+  // has a ruled contract that a miss is exit 0 and silent on stdout, and four
+  // tests hold it -- a header printed before an empty group breaks exactly
+  // that, and a header before a full one changes what every row-counting
+  // caller reads. With one tier a label adds nothing a reader does not have.
+  //
+  // **WHEN WP-20 LANDS A SECOND TIER, THE TERMINAL NEEDS A WAY TO SAY WHICH
+  // TIER A ROW IS FROM, AND THAT IS WP-20's TO INTRODUCE** -- with two tiers
+  // in front of it, and with vc ruling on the stdout contract rather than a
+  // renderer deciding it in passing.
+  for group in &answer.groups {
+    // **`path:N` IS PRINTED ONLY WHERE N IS A LINE IN THAT FILE** (issue 0195).
+    // This printed the section's `seq` in the line's place, so every attachment
+    // hit read `:0` and an editor jumping to it landed at the top of the file.
+    // Where there is no line to state, the row is the file alone; the name and
+    // the owner still say which section and which entity.
+    for hit in &group.hits {
+      let place = match &hit.span {
+        Some(span) => format!("{}:{}", hit.path, span.start_line),
+        None => hit.path.clone(),
+      };
+      let owner = hit.owner.as_deref().unwrap_or("-");
+      println!("{place}  {owner}  {}", hit.name);
+    }
   }
   Ok(())
+}
+
+/// The filters `intent search` accepts beside the words.
+///
+/// **AN UNKNOWN `--kind` IS REFUSED AND NAMES THE SET** rather than matching
+/// nothing: a filter that silently keeps no rows answers a typo with a
+/// confident empty result, which is the silent-subset defect in its most
+/// believable form.
+fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure> {
+  use intentsvcs::search::{HitKind, SearchQuery};
+  let mut kinds = Vec::new();
+  if let Some(values) = m.get_many::<String>("kind") {
+    for word in values {
+      match HitKind::parse(word) {
+        Some(kind) => kinds.push(kind),
+        None => {
+          return Err(Failure::Error(format!(
+            "error: `{word}` is not a kind of thing this index holds\n  remedy: one of {}",
+            HitKind::ALL.join(", ")
+          )));
+        }
+      }
+    }
+  }
+  Ok(SearchQuery {
+    kinds,
+    path: m.get_one::<String>("path").cloned(),
+    limit: match m.get_one::<String>("limit") {
+      None => None,
+      Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
+        Failure::Error(format!(
+          "error: `--limit` takes a number of rows, not `{raw}`\n  remedy: `--limit 20`"
+        ))
+      })?),
+    },
+  })
 }
 
 /// AC-06.2: the health report.

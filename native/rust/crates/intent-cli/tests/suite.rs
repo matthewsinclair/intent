@@ -232,6 +232,8 @@ mod the_canon_set_is_derived;
 mod the_daemon_harness_can_restart;
 #[path = "the_daemon_takes_the_backup_itself.rs"]
 mod the_daemon_takes_the_backup_itself;
+#[path = "the_search_tool_and_json_are_one_envelope.rs"]
+mod the_search_tool_and_json_are_one_envelope;
 #[path = "the_sql_door_is_read_only.rs"]
 mod the_sql_door_is_read_only;
 #[path = "the_struck_doors_refuse_as_retired.rs"]

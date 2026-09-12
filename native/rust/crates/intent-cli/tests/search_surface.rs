@@ -511,10 +511,40 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     "a hit inside canon JSON has no prose line, so it prints the file alone: {hits:?}"
   );
 
+  // **AN EDIT ELSEWHERE IN THE FILE LEAVES THE CLAIM TRUE, AND THE LINE MOVES
+  // WITH IT** (vc's ruling, 2026-09-12, WP-19 AC-19.5). This asserted that ANY
+  // edit since the carry withholds the line, which was whole-file equality
+  // answering a broader question than the hit asks: 0195 forbids a line that
+  // cannot be VERIFIED, and prepending two lines to this file does not move the
+  // phrase out of it. The locator finds the indexed section in the file as it
+  // now stands, so the line is re-verified on every search -- which is what
+  // this test's name asks for -- and it is absent exactly when the bytes are
+  // gone.
   std::fs::write(&design, format!("# Moved\n\n{on_disk}")).expect("edit without a carry");
   let hits = ok(root, &["search", "kestrel"]);
+  let moved_line = std::fs::read_to_string(&design)
+    .expect("read the edited file")
+    .lines()
+    .position(|l| l.contains("kestrel"))
+    .expect("the phrase survived the edit")
+    + 1;
   assert!(
-    hits.starts_with("intent/st/ST0001/design.md  "),
-    "an attachment edited since it was carried gets no line, not a stale one: {hits:?}"
+    hits.starts_with(&format!("intent/st/ST0001/design.md:{moved_line}  ")),
+    "an edit elsewhere in the file gets a verified line at the phrase's NEW position: {hits:?}"
+  );
+
+  // The other sign of the same rule: an edit that takes the indexed bytes away
+  // withholds the line. **THE HIT SURVIVES** -- the index still holds the
+  // section and the file is still the answer -- so what changes is the claim,
+  // not the row.
+  std::fs::write(
+    &design,
+    "# Notes\n\nThe kestrel went somewhere else entirely.\n",
+  )
+  .expect("edit the indexed bytes away");
+  let hits = ok(root, &["search", "combinator"]);
+  assert_eq!(
+    hits, "intent/st/ST0001/design.md  ST0001  design.md\n",
+    "the indexed bytes are gone, so the hit keeps its file and loses its line: {hits:?}"
   );
 }
