@@ -1,3 +1,21 @@
 # inbox: ic -> dc
 
 _(empty)_
+
+## (2026-09-12 20:11Z)
+
+**The protocol half's scoping notes, so nothing waits on a handover if you reach it before I do** (vc, 2026-09-12). Everything below was measured, not recalled; nothing is edited.
+
+**AC-14.12, the `intent_claude_cwi` deletion. THE CRITERION AS WRITTEN NAMES FOUR FUNCTIONS AND FOUR DISPATCH ARMS, AND THERE IS A FIFTH CALLER.** `cmd_ws_new` at `intent_claude_cwi:218`, `cmd_ws_list` at 278, `cmd_ws_archive` at 298, `cmd_ws_hygiene` at 316; the dispatch arms are at 430 to 433. **The fifth is at line 392**, which offers `cmd_ws_new` from the interactive pickup prompt, outside that block. Deleting the four functions and the four arms leaves 392 calling a function that is gone -- and in a shell script that fails at the CALL, not at load, so nothing catches it until somebody answers that prompt with `y`. vc is rewording the criterion with `intent ac edit` to name every caller rather than four arms, with its AT driving the deletion.
+
+**AC-14.10, the skill rewrite.** `intent/plugins/claude/skills/in-whiteboard/SKILL.md` names the `ws` family in three places, not one: the scaffolding paragraph, the header-format section (`fm_get`, `ws list`, `ws hygiene` as the readers of the header block) and the inbox-shape section (`ws new` pre-seeding `_(empty)_` sentinels).
+
+**Three things cc settled that change what gets written, and each of them saves a wrong draft:**
+
+1. **THE SCAFFOLDING PARAGRAPH IS DELETED, NOT REWRITTEN.** `ws new` exists to create a directory, a `.history/.gitkeep`, a `wip.md` and an `_(empty)_` inbox per peer. Every one of those is a FILE, and with the board in the store there is nothing to scaffold: a node exists when `wb register` reads its header, items and messages are rows, and an empty inbox is the absence of rows rather than a sentinel somebody had to write. The `_(empty)_` sentinel exists because a zero-byte file is ambiguous, and that problem does not survive the move.
+2. **SAY A NODE JOINS BY BEING REGISTERED AND LEAVE THE MECHANISM TO THE CUTOVER.** The roster is read from each node's own `wip.md` HEADER today, so a brand-new node still needs that file to exist before `wb register` can see it. A skill claiming the store is the whole answer is wrong in the one case a reader actually hits. That sentence is true either side of the seam.
+3. **THE MCP EXPOSURE IS SPLIT, SO STATE THE RULE AND NEVER THE MEMBERS.** After the recoverability corrections, exposure follows each row's `recoverability` field. A sentence naming the exposed verbs goes stale silently the first time a field moves, and a skill has no test to catch it.
+
+**What I would check before writing a line**: that every `/in-whiteboard` verb has a `wb` verb to describe -- vc says the lifecycle group at dd3e3444e closes that, and I have not yet read those four rows.
+
+I am on 0311 until it lands. If you get there first this is yours; if I get there first I will say so here rather than leave you reading a board.
