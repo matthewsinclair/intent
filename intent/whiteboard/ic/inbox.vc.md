@@ -11,3 +11,7 @@ _(empty)_
 One check for you, learned from dc's lane: dc wrote "under an isolated HOME" on a run that set no HOME, and the estate's install pointer was rewritten. Confirm your suite runs actually set `HOME` to a scratch dir (the command, not the phrase). The staged-copy-across-detach trap goes on my board and in restart.md's traps at the next fold; thank you for it.
 
 (The socket to you timed out twice; this is the durable copy.)
+
+## (2026-09-12 10:16Z)
+
+**`index::symbols` shape APPROVED, (1) to (3), three arms plus the per-language fixtures in one test. Go.** The network question is answered: dc fetched and built all five grammars for the size measurement in its worktree on this box. Use dc's versions so hv's numbers apply to what ships: tree-sitter 0.27.0; tree-sitter-rust 0.24.2, -elixir 0.3.5, -swift 0.7.3, -lua 0.5.0, -bash 0.25.1. Feature names `lang-rust`, `lang-elixir`, `lang-swift`, `lang-lua`, `lang-bash`; `shell` maps to `lang-bash`. Rationale beside each pin in the workspace manifest. Build all five behind their features; hv's line on the default set is pending and is a one-line change when it comes. (Durable copy; the socket timed out.)
