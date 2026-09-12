@@ -3,61 +3,62 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 10:14Z
+heartbeat_at: 2026-09-12 14:14Z
 status: active
-focus: "WP-20's grammar measurement is reported and hv sets the line. Now WP-24's AC-24.1, the only half of my WP-24 that depends on nobody. The final rehearsal waits on vc's quiet window and the last search package. NO RELEASE, NO PUSH."
-claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
+focus: "vc's QUIET WINDOW is open and the five steps are serial and mine. Step 1 is measured and answered. DOING is step 2, WP-22, half built and banked as a patch. Then the hook, the Local shapes, the final rehearsal. NO RELEASE, NO PUSH."
+claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
 # DevX Claude (dc)
 
-**The board before this fold is verbatim at `.history/20260912/wip-prefold-0827Z.md`.** Batches 1 and 4 landed and are carried by their commits and the CHANGELOG, not here.
+**The board before this fold is verbatim at `.history/20260912/wip-prefold-1414Z.md`.** Everything landed today is carried by its commits and the CHANGELOG, not here.
 
-## DOING -- WP-24 AC-24.1, the half that waits on nobody
+## DOING -- step 2 of the quiet window: WP-22, HALF BUILT AND NOT COMMITTED
 
-**`.mcp.json` naming `intent mcp`, seeded by `claude upgrade --apply` when ABSENT and never overwritten** -- the same rule as `.claude/settings.json` after `fd4fabd5`, and for the same reason: a project that has hand-edited its own file keeps it. No flag or argument in the file decides what is exposed; the register's `exposed_on_mcp` rows are the answer or the register is not the answer. Agreed with ic, who owns the tool descriptions generated from those rows.
+**THE DIFF IS NOT IN GIT.** It is `scratchpad/wp22-BANKED.patch` (313 lines, four files) and live in the worktree `scratchpad/wt-dc`, which sits at `034bf8f54`. If both are gone, rebuild from this section.
 
-## TODO
+BUILT, compiling: `Op::Search { query, ask }` and `Response::Search { answer }` on the wire; the search envelope's `Deserialize`; the roster CONSTRUCTOR vc ruled; the daemon's handler calling the same `search_all` the daemonless path calls.
 
-- **AC-24.4, the PostToolUse hook**, served from the install, never blocking. It asks ic's facade door -- `structural_for(paths, name) -> Structural::{Answer{symbols}, CannotAnswer{why}}` -- and appends NOTHING on `CannotAnswer`, and nothing on an empty `Answer` either. **The freshness rule lives behind that door and the hook must never grow one**: a hook that appends a stale or partial structural answer to a grep result is worse than one that appends nothing, because the reader cannot tell which they got. BLOCKED: the door rests on cc's WP-20 symbol tables. ic tells me when the signature is real rather than proposed.
-- **AC-24.6, the PreToolUse redirect: SPECIFIED WITH ITS SAFETY CONDITION AND NOT BUILT.** hv rules whether it is built at all.
-- **The FINAL rehearsal**, on the last HEAD, in the quiet window vc announces with cc and ic pausing their suites. Same shape as the mid-course: clone, throwaway remotes, isolated HOME, `intent backup` taken deliberately and the report saying why, every gate line verbatim, `~/.intent/home` read before and after, loads stated.
-- **CHANGELOG lines** from cc for its last two items (fbf3e7f7d, f24053c13) and ic's output lines, as they reach me.
+NOT BUILT: `--no-reconcile` on the search row (register edited BY POSITION, markdown regenerated, never prettier); the daemonless reconcile-then-query through cc's `index_refresh(None)`; the one parity arm -- same tree, daemon and daemonless, byte-identical envelopes.
+
+**Three decisions inside it that are load-bearing and would be re-litigated if they were not written down.** `Response::Search` carries `serde_json::Value` and not the typed envelope, because a hit holds `score: f64`, `Response` derives `Eq`, and a raw float cannot satisfy `Eq` while `serde_json::Number` can -- the same reason `Response::Graphql` already carries a value. `IndexFreshness` has a HAND-WRITTEN `Deserialize` that recomputes `complete` rather than reading it, so a peer cannot send `complete: true` beside a non-empty `stale`. And `Response::search` lives in `wire.rs` rather than the daemon, because `intentd` has no `serde_json` and adding one would buy a new manifest dependency plus a second place deciding how the envelope becomes JSON.
+
+## TODO -- vc's five steps, serial, in this order
+
+- **Step 3: the hook (AC-24.4)**, shape in three lines to vc first. Served from the install, never blocking, reads the symbol a grep pattern named, calls `intent search --context <name> --json`, appends the structural answer, and **appends NOTHING when the envelope's `index.complete` is false**. The freshness rule is the envelope's and the hook grows none of its own. Also: cite AT-24.1 on `canon_seeds_the_mcp_declaration_once.rs`, and review ic's AC-24.6 specification (on main at `7c62a4e6a`) in ONE message saying whether its safety condition is the same one the hook enforces.
+- **Step 4: the two Local shapes measured**, one build each, sizes only, announced first. (a) `fastembed = "4"` on ONNX Runtime with `hf-hub`; (b) `candle-core`/`candle-transformers` `0.9` with `tokenizers = "0.21"`. Same instrument as the grammars, and **the runtime must ANSWER rather than merely compile** or a zero delta reads as a free runtime. Report build-or-not and wall-clock beside the delta; keep the two policy points (a downloads a model on first use; neither gives TLS) OUT of the byte count -- they are hv's.
+- **Step 5: the final rehearsal** on the last HEAD, `--dry-run`, every gate line verbatim, `intent backup` taken deliberately and the report saying why, `~/.intent/home` read before and after, loads stated. **vc's one-re-run rule**: a red confined to `daemon_watch`/`daemon_subscriptions` re-runs the WHOLE rehearsal once and both runs' gate lines are reported; a second consecutive red on that family halts to vc, and any red outside it halts on the first.
+- **CHANGELOG**: ic writes the Added lines for the search packages; my Fixed lines stay mine.
 
 ## Holds
 
+- **vc is DARK (banking and folding).** Every landing and every report goes into `intent/whiteboard/vc/inbox.dc.md` with a same-turn `date -u` stamp as well as being messaged. **Anything needing a ruling WAITS in the inbox and is not guessed.**
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
 
 ## Watch-outs
 
-- **A GRAMMAR -- OR ANY DEPENDENCY -- THAT IS COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it at link time, so a size measurement that only added the dependency reads a real cost as ZERO and reports it as good news. Reference it behind `env::var_os`, which the optimiser cannot fold, and make the control that it ANSWERS rather than that it compiled.
-- **THE ARITHMETIC IS AN INSTRUMENT CHECK, NOT A TIDY-UP.** Five single-grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed the deltas excluded the tree-sitter runtime entirely. Add your numbers up and ask whether the total is possible.
-- **RUN THE WHOLE REHEARSAL, NOT THE STEP YOU EXPECT TO FAIL.** The first rehearsal refused at `intent doctor` and never reached the test gate, so a real committed defect (`rules_path_guard`, five payload artefacts) sat red on main behind an unrelated refusal with no gate reporting it.
-- **A TEMPLATE OR SHELL PAYLOAD EDIT IS DRIVEN WITH THE BATS SUITE.** Its text is asserted there and nowhere in cargo, so a Rust-side drive over a template edit is blind by construction. That is how I broke `pre_commit_shim.bats` in batch 1 and could not have seen it.
-- **A DISCIPLINE ON YOUR BOARD IS NOT A FLAG ON YOUR COMMAND LINE.** I wrote "under an isolated HOME" in a commit message and to vc, and I had set no HOME: the phrase came off this board as a description of how I work. A claim sourced from your own standing practice reads exactly like a checked one. Read the command back before you describe it.
-- **A SETUP STEP THAT FAILS SILENTLY LEAVES AN INSTRUMENT THAT STILL ANSWERS.** `intent init --name X` is not v3's spelling; it refused at rc 1, I did not read the code, and every `intent critic` run after it looked perfectly normal because the rule library resolves from the INSTALL ROOT, not the project. Read the setup's exit code before you trust the measurement.
-- **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE.** `walk(dir)` and `Scanned::includes(file)` answered differently about one file depending on which door the event came through. Enumerate once, decide once; `scan` and `changed_under` now share `candidates`.
-- **SYNTHETIC LOAD SATURATES `fseventsd`, AND A WATCHER TEST THEN TIMES OUT FOR A REASON THAT IS NOT THE CODE.** Read `ps aux | grep fseventsd` beside the load average before attributing a watcher red.
-- **`git stash` IS SHARED ACROSS EVERY WORKTREE OF ONE REPO.** I used it for a control and a peer's WIP was sitting in that stack; push/pop raced against them and only luck kept it straight. Control a diff with `git diff > patch; git checkout -- <paths>; git apply patch` instead, which touches nothing shared.
-- **A NEW DEPENDENCY NEEDS ITS RATIONALE IN THE WORKSPACE MANIFEST, NOT THE CRATE'S.** `dependency_rationale` reds three ways when a dep `intentd` declares has no comment block above its pinned version in `native/rust/Cargo.toml`. Two of the three reds are the check's own controls failing, which reads as a catastrophe.
-- **The test daemon's stderr is `Stdio::null()`.** An `eprintln!` probe inside `intentd` can never reach the test output; write to a file if you need to instrument it, and delete the probe before banking.
-- **`cargo test -p intent-cli` ALONE reds a couple of dozen daemon-dependent tests that `--workspace` passes** (cc): a single-package run does not build the `intentd` binary they need. Match the release gate's own `--workspace` spelling, not a narrower one.
-- **A red that MOVES between tests across runs of the same bytes is timing, not state.** Elimination reaches "setup"; only repetition reaches which.
-- **A red that CHANGES SHAPE after your fix is a new finding, not the old one persisting.** The delivered path went from a directory to a root file; reading that as "still broken" would have hidden that the mechanism had changed.
-- **D42: a clock value goes into a board or a message only from a `date -u` read in the same turn's output, pasted.** `git log`, `stat` and `ls -la` print LOCAL; appending `Z` is an assertion.
-- **A GATE THAT READS A GITIGNORED PATH CANNOT BE REHEARSED IN A CLONE.** `intent doctor` reports `backup-stale` on `intent/.backup/db`, which `.gitignore` excludes, so a fresh clone fails it by construction. Take `intent backup` in the clone deliberately and say so.
-- **A VERSION PINNED INTO A GENERATED FILE ROTS AT EVERY RELEASE.** Equal byte counts on both sides of a skew report are the tell that the difference is a same-width substring, not an edit.
-- **Doctor's refusal is ONE exit code over SEVERAL residues.** Read every residue before attributing the refusal to the one you expected.
-- **`--only` is not ceremony: a peer's work can arrive INSIDE your commit window.** A plain `git commit` sweeps their staged files into yours, silently.
-- **A green at a commit that is no longer the subject is a claim about a tree nobody is releasing.** Re-drive at the new HEAD before committing, however unrelated the intervening commit looks.
-- **NEVER run a formatter over a file you are editing by hand.** `prettier --write` reflowed the whole command register inside a one-line change, hiding the line and landing bytes nothing had tested. Edit the register by position and regenerate only its markdown.
-- **A working-tree deletion under `intent/st/` is not data loss on its own.** The canon carries each attachment's text and hash; check the canon and the event log before calling it one.
-- **Shared checkout: `git add <paths> && git commit --only <paths>` in ONE call.** On a lock refusal re-issue the SAME command.
-- **Every suite and build from a private worktree with its IN-TREE target dir** under an isolated HOME. An out-of-tree `CARGO_TARGET_DIR` puts the binary where no `lib/templates/` sits above it and reds the install-root tests (vc, corrected 2026-09-12).
-- **The Bash tool's shell is zsh: unquoted `$var` does NOT word-split** -- a path list in a variable reaches `git add` as one argument. It caught me again today. Messages go in a file, through `-F`.
-- **Homebrew's `post_install` cannot write the user's HOME** (sandbox temp HOME, EPERM; driven). `~/.intent/home` is written by `intent bootstrap` alone, and bootstrap REPOINTS an existing pointer.
+- **THIS HOST HAS NO IDLE, AND "ALONE" MEANS ONE TARGET RATHER THAN AN IDLE HOST.** Measured in the window: with every Intent node silent, the one-minute load floors around 10 to 15 -- `fileproviderd` at 101%, iTerm, App Tamer, three CoreSimulator processes, none of them ours to pause. The daemon family reds ~3 of 6 alone at load 40 and 0 of 6 alone at load 15, so it is load and not a defect; and no measurement any node took today was on an idle host.
+- **A COST MEASUREMENT IS NOT A CONSEQUENCE MEASUREMENT.** My watch-cost numbers were right about events, cached paths and wakeups, and could not have seen the ingest loop the same registration caused, because they counted paths and never ran an ingest.
+- **A DEPENDENCY COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it, so a size measurement that only adds the crate reads a real cost as ZERO. Reference it behind `env::var_os` and make the control that it ANSWERS, not that it compiled.
+- **THE ARITHMETIC IS AN INSTRUMENT CHECK.** Five grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed they excluded the tree-sitter runtime.
+- **A FILE THAT "NEVER LANDS" STILL HAS TO BE GONE.** My measurement harness sat unregistered in `tests/` and reddened `no_orphan_suite_member` and `one_clock` four runs out of four. The guards run against the TREE, not the commit.
+- **RESULTS COME BACK AS A PATCH, NEVER A WHOLE-FILE COPY** (vc, a rule of the cut). A copy silently reverts whatever landed on main while you were building, and the diff looks exactly like your own work -- mine nearly deleted cc's `suite.rs` registration.
+- **A TEST ASSERTS ITS CLAIM, NOT ITS CONTAINER** (vc, a rule of the cut). Twice in one day: a bats test pinned the sentence around its claim, and `carrier_is_installed_beside_the_block` pinned a LIST's length around its claim.
+- **A SETUP STEP THAT FAILS SILENTLY LEAVES AN INSTRUMENT THAT STILL ANSWERS.** `intent init --name X` is not v3's spelling; it refused at rc 1 and every `intent critic` run after it looked normal, because the rule library resolves from the INSTALL ROOT.
+- **`Op::Registry` LISTS the daemon's projects and does not REGISTER one**, and a watch only starts when a project-scoped op routes there. My arm's first run reported the dispatch broken while the dispatch was fine.
+- **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE**, and this thread paid for it twice. Enumerate once, decide once.
+- **RUN THE WHOLE REHEARSAL, NOT THE STEP YOU EXPECT TO FAIL.** The first rehearsal refused at `intent doctor` and never reached the test gate, so a real committed defect sat red on main behind an unrelated refusal.
+- **A TEMPLATE OR SHELL PAYLOAD EDIT IS DRIVEN WITH THE BATS SUITE**; its text is asserted there and nowhere in cargo.
+- **A DISCIPLINE ON YOUR BOARD IS NOT A FLAG ON YOUR COMMAND LINE.** I wrote "under an isolated HOME" and had set none; the phrase came off this board rather than off the command.
+- **`git stash` IS SHARED ACROSS EVERY WORKTREE OF ONE REPO.** Control a diff with `git diff > patch; git checkout -- <paths>; git apply patch`.
+- **NEVER run a formatter over a file you are editing by hand.** The register is edited BY POSITION and only its markdown regenerated.
+- **Shared checkout: `git add <paths> && git commit --only <paths>` in ONE call**, and on a lock refusal re-issue the SAME command. Peers land often; a retry loop is worth having.
+- **Every suite and build from a private worktree with its IN-TREE target dir** under an isolated HOME, with `CARGO_HOME` pointed at the real one.
+- **D42: a clock value goes into a board or a message only from a `date -u` read in the same turn's output.**
+- **A GATE THAT READS A GITIGNORED PATH CANNOT BE REHEARSED IN A CLONE.** Take `intent backup` in the clone deliberately and say why.
+- **The Bash tool's shell is zsh: unquoted `$var` does NOT word-split.** Messages go in a file, through `-F`.
 
 ## Decisions
 
-- **devbin `0047` (hv, 2026-09-01): option 3, the split.** `fullcycle`'s clean phase forces only the blocked-binaries arm; `_clean_confirm`'s removal prompt stays. Relayed to devbin-vc, who own `bin/.devbin/lib/`; the vendored copy here is overwritten on upgrade, so it is never mine to implement. UNEXECUTED, and not dc's.
+- **devbin `0047` (hv, 2026-09-01): option 3, the split.** Relayed to devbin-vc, who own `bin/.devbin/lib/`; the vendored copy here is overwritten on upgrade, so it is never mine to implement. UNEXECUTED, and not dc's.
