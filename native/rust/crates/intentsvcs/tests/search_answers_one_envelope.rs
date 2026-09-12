@@ -130,3 +130,74 @@ fn a_filter_is_part_of_the_question_so_the_denominator_counts_what_survives_it()
     "an empty ANSWER over a populated index must not read as an empty index"
   );
 }
+
+/// **A TIER FILTER AND A LANGUAGE FILTER EACH NARROW THE QUESTION, AND THE
+/// DENOMINATORS COUNT WHAT SURVIVES.**
+///
+/// **AN UNASKED TIER IS ABSENT RATHER THAN EMPTY**, which is the half worth
+/// asserting: a group with no hits says *this tier ran and found nothing*, and
+/// nobody said that by narrowing to another tier. It is the same rule
+/// `--outline` follows by carrying one group and no lexical one.
+#[test]
+fn a_tier_filter_and_a_language_filter_each_narrow_the_answer() {
+  let fx = estate();
+  let f = fx.facade();
+
+  let all = f
+    .search_all("quokka", &SearchQuery::default())
+    .expect("the unfiltered search answered");
+  assert!(
+    all.groups.len() > 1,
+    "the fixture must have more than one tier, or the filter below narrows nothing: {:?}",
+    all.groups.iter().map(|g| g.tier).collect::<Vec<_>>()
+  );
+
+  let lexical = f
+    .search_all(
+      "quokka",
+      &SearchQuery {
+        tiers: vec![Tier::Lexical],
+        ..SearchQuery::default()
+      },
+    )
+    .expect("the tier-filtered search answered");
+  assert_eq!(
+    lexical.groups.len(),
+    1,
+    "an unasked tier is absent, not present and empty: {:?}",
+    lexical.groups.iter().map(|g| g.tier).collect::<Vec<_>>()
+  );
+  assert_eq!(lexical.groups[0].tier, Tier::Lexical);
+  assert!(
+    lexical.matched <= all.matched,
+    "narrowing the question cannot widen the denominator: {} against {}",
+    lexical.matched,
+    all.matched
+  );
+  assert_eq!(
+    lexical.matched,
+    lexical.groups[0].hits.len(),
+    "`matched` counts what survived the filter, not what the index holds"
+  );
+
+  // **A LANGUAGE FILTER EXCLUDES A HIT WITH NO LANGUAGE**, because prose is not
+  // of any language and a filter that kept it would answer a softer question
+  // than the one asked.
+  let ruby = f
+    .search_all(
+      "quokka",
+      &SearchQuery {
+        langs: vec!["ruby".to_string()],
+        ..SearchQuery::default()
+      },
+    )
+    .expect("the language-filtered search answered");
+  assert_eq!(
+    ruby.matched, 0,
+    "no hit is in a language nothing in the fixture is written in: {ruby:?}"
+  );
+  assert!(
+    !ruby.index.is_empty(),
+    "an empty ANSWER over a populated index must not read as an empty index"
+  );
+}

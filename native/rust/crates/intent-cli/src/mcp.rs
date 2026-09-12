@@ -1193,6 +1193,36 @@ pub fn serve(
           }
         }
       }
+      for word in map
+        .get("tier")
+        .and_then(|v| v.as_array())
+        .map(Vec::as_slice)
+        .unwrap_or_default()
+      {
+        let word = word.as_str().unwrap_or_default();
+        match intentsvcs::search::Tier::parse(word) {
+          Some(tier) => ask.tiers.push(tier),
+          None => {
+            return Err(args_err(
+              path,
+              format!(
+                "`{word}` is not a tier this search has -- one of {}",
+                intentsvcs::search::Tier::ALL.join(", ")
+              ),
+            ));
+          }
+        }
+      }
+      ask.langs = map
+        .get("lang")
+        .and_then(|v| v.as_array())
+        .map(|values| {
+          values
+            .iter()
+            .filter_map(|v| v.as_str().map(str::to_string))
+            .collect()
+        })
+        .unwrap_or_default();
       ask.path = opt_s(path, map, "path")?.map(str::to_string);
       ask.limit = match opt_s(path, map, "limit")? {
         None => None,

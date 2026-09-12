@@ -2778,8 +2778,16 @@ impl Facade {
       Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier, TierGroup, snippet,
     };
 
+    // **AN UNASKED TIER IS NOT QUERIED AT ALL** -- narrowing the question
+    // narrows the work, and a tier whose rows are computed and then discarded
+    // would make `--tier` a rendering filter rather than part of the question.
     let expression = crate::fts::expression(query);
-    let rows = self.store.search_hits(&expression).map_err(|cause| {
+    let rows = if Tier::Lexical.asked(&ask.tiers) {
+      self.store.search_hits(&expression)
+    } else {
+      Ok(Vec::new())
+    }
+    .map_err(|cause| {
       if matches!(cause, StoreError::Sqlite(_)) {
         FacadeError::BadQuery {
           query: query.to_string(),
@@ -2876,11 +2884,15 @@ impl Facade {
     // store can answer structurally -- and an absent group would read as a tier
     // that is not built.
     let mut structural = Vec::new();
-    for symbol in self
-      .store
-      .symbols_named(query)
-      .map_err(FacadeError::Store)?
-    {
+    let symbols = if Tier::Structural.asked(&ask.tiers) {
+      self
+        .store
+        .symbols_named(query)
+        .map_err(FacadeError::Store)?
+    } else {
+      Vec::new()
+    };
+    for symbol in symbols {
       let hit = self.structural_hit(&symbol);
       if ask.keeps(&hit) {
         if hit.stale {
@@ -2895,16 +2907,16 @@ impl Facade {
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
-      groups: vec![
-        TierGroup {
-          tier: Tier::Lexical,
-          hits,
-        },
-        TierGroup {
-          tier: Tier::Structural,
-          hits: structural,
-        },
-      ],
+      // **AN UNASKED TIER IS ABSENT, NOT EMPTY** (`--tier`). A group with no
+      // hits says *this tier ran and found nothing*, which is a claim nobody
+      // made when they narrowed the question -- the same reason `--outline`
+      // carries one group and no lexical one. With no filter, every tier this
+      // build answers is present, hits or not.
+      groups: [(Tier::Lexical, hits), (Tier::Structural, structural)]
+        .into_iter()
+        .filter(|(tier, _)| tier.asked(&ask.tiers))
+        .map(|(tier, hits)| TierGroup { tier, hits })
+        .collect(),
       matched,
       returned,
     })

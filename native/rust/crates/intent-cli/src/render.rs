@@ -3662,6 +3662,24 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
 /// believable form.
 fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure> {
   use intentsvcs::search::{HitKind, SearchQuery};
+  let mut tiers = Vec::new();
+  if let Some(values) = m.get_many::<String>("tier") {
+    for word in values {
+      match intentsvcs::search::Tier::parse(word) {
+        Some(tier) => tiers.push(tier),
+        None => {
+          return Err(Failure::Error(format!(
+            "error: `{word}` is not a tier this search has\n  remedy: one of {}",
+            intentsvcs::search::Tier::ALL.join(", ")
+          )));
+        }
+      }
+    }
+  }
+  let langs: Vec<String> = m
+    .get_many::<String>("lang")
+    .map(|values| values.cloned().collect())
+    .unwrap_or_default();
   let mut kinds = Vec::new();
   if let Some(values) = m.get_many::<String>("kind") {
     for word in values {
@@ -3678,6 +3696,8 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
   }
   Ok(SearchQuery {
     kinds,
+    tiers,
+    langs,
     path: m.get_one::<String>("path").cloned(),
     limit: match m.get_one::<String>("limit") {
       None => None,

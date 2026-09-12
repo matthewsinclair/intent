@@ -8354,6 +8354,24 @@
           "note": "WP-24 (AC-24.3): the thing an agent does today with a grep, a glob and several reads, in one call. THE OCCURRENCES ARE NAME-MATCHED AND THE HELP SAYS SO -- nothing here resolves a name to the definition it points at, so a `ref` is never a CALLER (AC-20.5)."
         },
         {
+          "spellings": ["--tier"],
+          "type": "string",
+          "value": "<tier>",
+          "help": "Ask only these tiers (lexical, structural, semantic); repeatable",
+          "arity": "1..n",
+          "disposition": "keep",
+          "note": "WP-24 (AC-24.3's siblings, wired when the second tier existed): AN UNASKED TIER IS ABSENT FROM THE ANSWER, NOT PRESENT AND EMPTY -- an empty group says the tier ran and found nothing, which is a claim nobody made by narrowing. It is also not queried at all, so narrowing the question narrows the work. `semantic` is accepted and answers nothing: the tier is declared and unbuilt (WP-23), and refusing the word would say it does not exist."
+        },
+        {
+          "spellings": ["--lang"],
+          "type": "string",
+          "value": "<language>",
+          "help": "Keep only hits in this language; repeatable",
+          "arity": "1..n",
+          "disposition": "keep",
+          "note": "WP-24: a hit with no language -- prose, canon -- is excluded by ANY language filter, because it is not of that language. The vocabulary is the project's declared `languages`, which is what the index carries."
+        },
+        {
           "spellings": ["--kind"],
           "type": "string",
           "value": "<kind>",

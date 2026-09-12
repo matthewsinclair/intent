@@ -199,6 +199,28 @@ pub enum Tier {
 }
 
 impl Tier {
+  /// Whether this tier was asked for. An empty filter asks for all of them.
+  pub fn asked(self, filter: &[Tier]) -> bool {
+    filter.is_empty() || filter.contains(&self)
+  }
+
+  /// Parse the spelling a caller gives `--tier`.
+  pub fn parse(word: &str) -> Option<Self> {
+    Some(match word {
+      "lexical" => Tier::Lexical,
+      "structural" => Tier::Structural,
+      "semantic" => Tier::Semantic,
+      _ => return None,
+    })
+  }
+
+  /// Every spelling `--tier` accepts, for the refusal that names them.
+  ///
+  /// **`semantic` IS IN THE VOCABULARY AND NOT IN THE BUILD** (WP-23). A filter
+  /// naming it is accepted and answers nothing, which is honest: the tier is
+  /// declared and unbuilt, and refusing the word would say it does not exist.
+  pub const ALL: &'static [&'static str] = &["lexical", "structural", "semantic"];
+
   pub fn as_str(self) -> &'static str {
     match self {
       Tier::Lexical => "lexical",
@@ -348,6 +370,17 @@ impl Span {
 pub struct SearchQuery {
   /// Empty means every kind.
   pub kinds: Vec<HitKind>,
+  /// Which tiers to ask. Empty means every tier this build answers.
+  ///
+  /// **A TIER FILTER SELECTS WHICH TIERS ARE ASKED, IT DOES NOT EMPTY THEM.**
+  /// An unasked tier is ABSENT from the answer rather than present with no
+  /// hits, because an empty group says *this tier ran and found nothing* -- a
+  /// claim nobody made. It is the same rule `--outline` follows by carrying one
+  /// group and no lexical one.
+  pub tiers: Vec<Tier>,
+  /// Empty means every language. A hit with no language -- prose, canon -- is
+  /// excluded by ANY language filter, because it is not of that language.
+  pub langs: Vec<String>,
   /// A glob over the project-relative path.
   pub path: Option<String>,
   /// The row cap. `None` is the caller's "all of it".
@@ -357,6 +390,14 @@ pub struct SearchQuery {
 impl SearchQuery {
   pub fn keeps(&self, hit: &Hit) -> bool {
     if !self.kinds.is_empty() && !self.kinds.contains(&hit.kind) {
+      return false;
+    }
+    if !self.langs.is_empty()
+      && !hit
+        .lang
+        .as_deref()
+        .is_some_and(|lang| self.langs.iter().any(|asked| asked == lang))
+    {
       return false;
     }
     match &self.path {
