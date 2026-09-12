@@ -5,7 +5,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
 | ST0070 | LLM config rationalisation -- one home per fact                                                                                                 | Not Started | 2026-09-03 |                      |
-| ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | Triage      | 2026-08-30 |                      |
+| ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | WIP         | 2026-08-30 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage      | 2026-08-25 |                      |
 | ST0057 | Disk as a sparse projection of the store                                                                                                        | WIP         | 2026-08-18 |                      |
 | ST0056 | Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent | WIP         | 2026-08-14 |                      |

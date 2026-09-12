@@ -1,7 +1,7 @@
 ---
 st_id: ST0069
 title: v3 post-cut: project search, store-backed coordination, and contract drift
-status: Triage
+status: WIP
 created: 2026-08-30
 completed:
 ---
@@ -36,6 +36,7 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 | WP-21 | The explorer's /search pane                                                                                             | M    | Not Started |
 | WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Not Started |
 | WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Not Started |
+| WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | Not Started |
 
 ## Acceptance
 

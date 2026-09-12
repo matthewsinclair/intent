@@ -3,7 +3,7 @@
   "id": "ST0069",
   "title": "v3 post-cut: project search, store-backed coordination, and contract drift",
   "slug": "v3-post-cut-project-search-store-backed-coordina",
-  "status": "triage",
+  "status": "wip",
   "created": "2026-08-30",
   "objective": "Deliver the post-cut capabilities that ST0056 descoped from 3.0.1, so the shipped v3 line reaches the design it was specified to: project search over the whole repository, with the agent's tool, the CLI and the explorer as three skins of one implementation in intentsvcs; the coordination model moved into the store with a bounded API; and contract drift refused at the schema. Search is elaborated first, in this thread's design.md; the other two legs keep their inherited designs (ST0056 WP-14 and WP-16) until their turn.\n",
   "context": "Three work packages moved here whole from ST0056 on 2026-08-30 (hv's ruling, performed by vc) with their criteria and their ST0056 numbers, so that ST0056's gate measured what 3.0.1 shipped rather than what v3 eventually will. hv's sequencing was the warrant: fully ship v3, intentd first, then tree-sitter and full search.\n\n3.0.1 shipped the first search tier only: `intent search` is FTS5 over the store's authored prose, with a generated MCP tool, an empty-index discriminator and a hardened query escaper. No source file is indexed; nothing structural or semantic exists; the explorer's `/search` shells out to the CLI; the skills still answer the Highlander question with `intent modules find` over a hand-maintained registry.\n\nOn 2026-09-12 hv asked for a full review of the search thread and its requirements, refined against how Intent now works, and a re-elaboration of the design and the work packages, with no work started: the corpus is the whole source tree; full-text and, if it makes sense, vector search; a structured query door beside the text one; one implementation in intentsvcs exposed equally through the CLI and the explorer's `/search`; and the LLM as a first-class consumer. vc's review is design.md. Its outcome: the umbrella search package is cancelled in favour of packages that each close on their own criteria; the inherited criteria are re-keyed to the packages that deliver them, the old rows withdrawn with the reason on the record; the tiers stand, with the semantic tier third and gated on one decision that is hv's; and the decisions that need hv are listed in the design. The thread stays in Triage until hv triages it.\n",
@@ -117,6 +117,15 @@
       "status": "not-started",
       "objective": "Specify the semantic and type-aware tiers as staged additions, prove the seams by the T1 and T2 build, and land the embedder interface with a refusing Null implementation and an HTTP implementation, leaving the local runtime to hv's ruling.\n",
       "body": "Design: design.md, T3 and T4. The embedder is the category change and its runtime is the decision: Null refuses a semantic query with a remedy naming the configuration; HTTP talks to an OpenAI-compatible endpoint from config.json, which covers a local Ollama; Local (a compiled-in runtime and a fetched model) is a package for after hv rules on the runtime and the binary-size line. Storage is a vector column beside the symbol rows with cosine ranking in Rust; sqlite-vec is the recorded upgrade. Depends on WP-20, because symbols are the chunks.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 24,
+      "title": "The LLM boundary: the harness's own search becomes a door into the index",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "Move the boundary between the model's own search tools and Intent's index so that the index is the first call for a code question: the MCP server configured in every project by canon, tool descriptions the model matches on, outline and context verbs that answer in units with spans, the skills and guide routing the question, and a post-tool hook that annotates every grep with the index's structural answer without ever blocking or lying.\n",
+      "body": "Design: design.md, \"The LLM boundary\". hv, 2026-09-12: \"how we get to a point where the LLM is using intent's tree-sitter based index of the source code instead of using grep ... That's the boundary that I want lifted and made high-performant and next gen.\" Five join points, in order of leverage: answers grep cannot give (`outline <path>`, `context <name>`, `def <name>`, each one facade call and one MCP tool call); zero-cost reach (`.mcp.json` naming `intent mcp` seeded by `claude upgrade --apply`, in-process queries, descriptions generated from the register that say when to use the tool and when not); the canon routing the question (CLAUDE.md, the skills, the generated guide); the PostToolUse hook served by the install that appends the index's answer to a grep and appends nothing when the envelope is not complete; and the PreToolUse redirect, specified with its safety condition and not built until hv rules. Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold. Depends on WP-20.\n",
       "preamble": ""
     }
   ],
@@ -590,6 +599,62 @@
     {
       "id": "AC-23.4",
       "text": "The local-runtime decision is put to hv with the measured costs of each shape.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-24.1",
+      "text": "A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-24.2",
+      "text": "The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-24.3",
+      "text": "`intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-24.4",
+      "text": "A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-24.5",
+      "text": "Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-24.6",
+      "text": "The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-24.7",
+      "text": "Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built.",
       "kind": "non-test",
       "state": {
         "is": "unsatisfied"

@@ -19,6 +19,10 @@ hv ruled the release on 2026-09-12: a patch, vc directing. Rules for every item:
 - **dc's second `--dry-run` rehearsal** on the final HEAD, in a clone with `intent backup` taken deliberately and the report saying so (a clone lacks the gitignored `intent/.backup/` by construction, so the first run could never pass doctor's backup gate). It runs after batches 3 and 4, ic's red, and hv's hydrate. Every gate line reported.
 - **The cut** is hv's go, with the release-confirm question (tty, or an explicit `--no-confirm`) asked as its own question at that point. After the tag: ic's one reference regeneration, both halves keyed to v3.0.2, one commit; the tap formula publish as its own action on hv's approval.
 
+## DOING: ST0069, project search and the LLM boundary (hv's go 2026-09-12, vc directing in specification, coordination and validation mode)
+
+- The design and build plan are `intent/st/ST0069/design.md`; the packages are WP-17 to WP-24 with their criteria. Ships as 3.1.0. Work runs in private worktrees now and lands on main only after the v3.0.2 tag; batch 4 finishes first on every lane. Lanes: cc the engine (WP-18, WP-20 integration, WP-23); dc the daemon and install (WP-22, WP-24 hooks and canon, the grammar-size measurement); ic the surfaces (WP-17, WP-19, WP-21, WP-24 verbs, descriptions and skills). First up: WP-17 (ic) and WP-18 (cc) in parallel. hv rules the design's listed decisions as each comes due.
+
 ## TODO: waiting on hv
 
 - **View-skew rot, a structural candidate for the next batch:** doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it, and the next preflight refuses again. Either doctor ignores the version stamp when comparing, or the stamp step re-renders every realised view, the schema-faces shape.
@@ -26,7 +30,7 @@ hv ruled the release on 2026-09-12: a patch, vc directing. Rules for every item:
 - **Surfaced at the 3.0.1 cut, not worked:** a stranger's `brew tap` may refuse our tap as untrusted, seen on Homebrew main with an empty trust store and not measured on stable (the install docs may need `brew trust --tap matthewsinclair/intent`); Linux and Intel macOS binaries are not built (size L); CI did not run for 3.0.1 (waived); `set <ac> kind non-test` leaves state `computed`, illegal for non-test, and only withdraw-then-reinstate moves it.
 - **ST0056 stays open on AC-00.5 and AC-11.1**, WP-11 with it: a `brew install` on a Mac that has never seen this repository, then the `intent` and `intentd` lifecycle, then both satisfied by evidence.
 - **`0177`** (medium): `ext` ships the creating half without the undoing half; `config`, `ext` and `learn` ship declared-and-unbuilt (hv, 2026-08-31).
-- **ST0069, project search:** vc's review and re-elaboration are delivered (`intent/st/ST0069/design.md`, WP-17 to WP-23 with their criteria); hv reads the design's decisions list and rules, and triages the thread; no work starts on it.
+
 - **Out of the 3.0.x line by ruling:** ST0057, ST0060 (vault), ST0070 (LLM config).
 
 ## TODO: defects found by the doc audit, unruled

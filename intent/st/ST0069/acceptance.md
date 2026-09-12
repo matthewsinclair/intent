@@ -150,6 +150,16 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-23.3 The vector schema is a recorded migration; semantic hits are a tier group ranked within itself. -- satisfied: no (computed)
 - AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- satisfied: no
 
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Not Started)
+
+- AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: no (computed)
+- AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: no (computed)
+- AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: no (computed)
+- AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
+- AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: no (computed)
+- AC-24.6 (non-test) The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on. -- satisfied: no
+- AC-24.7 (non-test) Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built. -- satisfied: no
+
 ## Acceptance Tests
 
 ### WP-13 -- Project search: full-text, structural, and the agent search surface (status: Cancelled)
@@ -189,6 +199,10 @@ _(no tests in this group)_
 _(no tests in this group)_
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Not Started)
 
 _(no tests in this group)_
 

@@ -38,11 +38,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 12: Issues get a realised form and a sigil, then join the default declaration
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
-
-## TODO
-
-- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-- [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
+- [-] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
   - [ ] 01: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [~] 13: Project search: full-text, structural, and the agent search surface
@@ -55,6 +51,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 21: The explorer's /search pane
   - [ ] 22: Daemon-served search with daemonless parity
   - [ ] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
+  - [ ] 24: The LLM boundary: the harness's own search becomes a door into the index
+
+## TODO
+
+- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
 ## DONE:2026-09-10T00:00:51Z
