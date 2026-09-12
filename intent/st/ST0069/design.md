@@ -284,7 +284,36 @@ The lift is five join points, in order of leverage, on one contract:
 4. **The hooks make the harness's own search a door into the index.** A PostToolUse hook on grep, served from the install like the session hooks, appends the index's structural answer for the symbol the pattern named. It never blocks and it never lies, because grep still ran; within a session the model learns the better first call. The PreToolUse redirect of symbol-shaped patterns is the stronger form and is safe only under the contract below; it is specified and not built until hv rules.
 5. **The contract: as fresh as grep at query time, or say so.** The envelope's `complete`, `skipped` and `stale` are what make the tool trustable; the hook appends nothing when they say the index cannot answer.
 
-Next gen, beyond parity: code joined to intent. The store knows which commits reference which threads and which criteria a package carries; a symbol hit that names the thread and criterion that introduced it is traceability no code search has, and it is uniquely Intent's to build. It is WP-24's stretch criterion, specified before it is built.
+Next gen, beyond parity: code joined to intent. A symbol hit that names the thread and criterion that introduced it is traceability no code search has, and it is uniquely Intent's to build. It is WP-24's stretch criterion, specified here and not built.
+
+### AC-24.7, specified: a symbol hit that names the thread it came from
+
+**THE SENTENCE ABOVE SAID "the store knows which commits reference which threads", AND IT DOES NOT.** Measured 2026-09-12 before anything was written: there is no commits table in the store, and `event_log` records store WRITES rather than git history. So the data source is two halves that nothing currently joins -- git for WHICH commit introduced a name, and the commit MESSAGE for which thread and criterion that commit belonged to.
+
+**AND THE MESSAGE CONVENTION IS WEAKER THAN THE DESIGN ASSUMED.** Over the 5,932 commits in this repository since 2026-08-01: 1,212 name a steel thread anywhere in the message, and 1,802 name a criterion. **So roughly four commits in five cannot be attributed to a thread at all by this mechanism** -- which does not sink the feature and does decide its shape.
+
+The specification, in four parts:
+
+1. **THE INTRODUCING COMMIT COMES FROM GIT'S PICKAXE**, not from a table: `git log --diff-filter=A -S<name> -- <path>`, which answers the commit that first added that name to that file. It is a per-symbol question asked on demand, never a column, because the answer changes with every rewrite of history and a stored copy would be a second truth that nothing refreshes.
+2. **THE THREAD AND CRITERION ARE PARSED FROM THE MESSAGE AND THEN RESOLVED AGAINST THE STORE.** A parsed `ST0069` or `AC-19.4` is a string somebody typed; it becomes an attribution only when the store has a thread or criterion of that id. **An id that does not resolve is dropped, never shown** -- otherwise a typo in a commit message becomes a confident link to a thread that does not exist, which is the class of wrong answer this estate refuses everywhere else.
+3. **UNATTRIBUTED IS SAID, NEVER GUESSED.** Four hits in five will have no thread, and the field must distinguish _this commit named no thread_ from _this symbol has no introducing commit_ from _the attribution was not asked for_. A single absent field collapses all three into a silence a reader fills in themselves.
+4. **IT IS OFF THE DEFAULT PATH.** The pickaxe is a git process per symbol, which is affordable for one hit and not for a page of them, so attribution is asked for explicitly -- a flag on the row, its own facade call, and never work a plain search pays for.
+
+**THE HONEST LIMIT, STATED SO NOBODY MEASURES IT AGAIN:** raising the four-in-five is a commit-message convention question, not an engineering one, and it belongs to whoever rules on commit conventions rather than to this thread.
+
+### AC-24.6, specified: the PreToolUse redirect of a symbol-shaped grep
+
+**SPECIFIED AND NOT BUILT UNTIL hv RULES IT ON.** The PostToolUse hook (AC-24.4, dc's) appends the index's structural answer after a grep has already run: it never blocks, it never replaces, and the worst it can do is say nothing. The PreToolUse redirect is the stronger form and a different risk -- it changes what the harness DOES with the model's own tool call, before the model sees any result.
+
+The safety condition is one sentence and it is the whole specification: **the redirect fires only when the envelope says the index is COMPLETE for the paths the pattern would have reached, and never otherwise.** Not complete in general -- complete for those paths -- because a redirect that answered from a stale index would hand the model a confident wrong answer in place of a fresh right one, and the model has no way to tell it happened.
+
+Three further conditions, each a way the same rule could be lost:
+
+1. **A PATTERN THAT IS NOT SYMBOL-SHAPED IS NEVER REDIRECTED.** grep's job is literal and regex text; the index answers about names. A redirect that guessed at a regex would silently narrow a search the model wrote deliberately.
+2. **THE MODEL IS TOLD.** A redirected call returns the index's answer AND says that is what happened, because a tool that quietly answers a different question is indistinguishable from one that is wrong.
+3. **IT SHARES ONE FRESHNESS RULE WITH THE HOOK AND OWNS NONE OF ITS OWN** -- `IndexFreshness` behind the facade, reached through the narrow structural door, so neither hook can grow a second reading of _can the index answer this_.
+
+**WHY IT IS WORTH BUILDING AT ALL, AND WHY THAT IS NOT A REASON TO SKIP THE RULING:** the PostToolUse form teaches the model within a session by showing a better answer after the fact, and the PreToolUse form skips the grep entirely. The first is a nudge, the second is a substitution, and only the second can be wrong in a way the model cannot see. So it waits on hv rather than on a measurement.
 
 ## Build plan
 
