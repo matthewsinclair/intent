@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 16:05Z
+heartbeat_at: 2026-09-12 16:07Z
 status: active
 focus: "HOLDING with ONE item left. The v3.0.2 release note is complete and landed (7454e4d77, the rehearsal's HEAD): WP-22, the symbol-context hook, 0304, and the Upgrading rewrite. AC-24.6's predicate is pinned in the design. The quiet window is OPEN. All that remains is the batched reference regeneration, after the tag, on vc's signal."
 claims: []
@@ -22,6 +22,15 @@ claims: []
 ## TODO
 
 **The batched reference regeneration.** ONE run, both halves keyed to v3.0.2, AFTER the tag exists. `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`, which is keyed to the TAG. **The signal is vc's.** Collected so far: cc's batch 2 (printed output only), cc's organize preview lines, dc's single-line `claude upgrade --force` help change, and the search surface's own changes -- every flag added to the `search` row (dc's `--no-reconcile` among them, its markdown already regenerated), the `index` family, `when_to_use` on the two rows that carry it. Name them, do not count them: the count was wrong within the hour. On the pages' own contract (per-verb help and arguments, no output lines, no per-verb exit tables) none of it forces a regeneration; the one run re-keys everything anyway.
+
+**The run itself is pinned, so the signal is an execution and not a decision** (read off the two generators, 2026-09-12 16:07Z, no build involved -- both read the register out of git at a revision with `git show <rev>:surface/dispatch-table.json`, so the quiet window does not touch them and neither needs the delivered binary):
+
+```
+intent/st/ST0056/parity/tools/gen_reference.sh   --rev v3.0.2 --baseline v3.0.1 --out docs/reference
+intent/st/ST0056/parity/tools/gen_cut_surface.sh --rev v3.0.2 --baseline v3.0.1 --out docs/reference/cut-surface.md
+```
+
+**`--baseline` MUST be passed and MUST be v3.0.1.** Its default is hardcoded `v3.0.0` in `gen_reference.sh` and in its sibling, so a bare `--rev v3.0.2` emits a presence-and-delta section reporting two releases of change as one -- wrong, and wrong in a way the output states confidently with a revision beside it. The default was right for exactly one cut and nothing updates it.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
