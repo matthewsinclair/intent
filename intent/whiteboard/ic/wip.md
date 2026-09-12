@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 17:38Z
+heartbeat_at: 2026-09-12 17:47Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 17:38Z. ST0069 to the end on hv's word. WP-16 built and satisfied, ONE finding left (`Board` has no contract row, cc writes its table in WP-14 commit two); the close is vc's word and never a clean run. Then per-landing register review for `intent wb`, then the protocol half. Nothing of mine uncommitted."
+focus: "PICKED UP 2026-09-12 17:47Z after hv's compact, holding. contract_check re-run on main: the `Board` finding stands unchanged and cc's commit two is not landed, so every standing order I hold is gated. The protocol half is scoped and waits on vc's signal. Nothing of mine uncommitted."
 claims: []
 ---
 
@@ -23,7 +23,7 @@ claims: []
 
 **Review every `intent wb` verb landing, one commit per landing, on vc's per-verb signal.** The register order is amended FOR THIS FAMILY ONLY (vc, 2026-09-12): cc writes the row in the commit that BUILDS each verb, starting `wb register` in commit two; I review and correct -- help prose, exit codes, voice, `when_to_use`, MCP exposure. **The order of writing moved; my ownership did not.** The reason is structural: the SSOT cannot precede the arm across two nodes, and a row with no arm fails reachability. **It is a review ON EVERY LANDING, never a pass** -- a review that happens once misses every commit after it. vc signals per verb, so this is not a watch I keep.
 
-**WP-14's protocol half, on vc's signal.** AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
+**WP-14's protocol half, on vc's signal.** AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay. **Scoped 2026-09-12 17:47Z, nothing edited: size M.** The four functions sit at `intent_claude_cwi:218,278,298,316` with their dispatch arms at 430 to 433, and **a fifth call site at 392 offers `cmd_ws_new` from the interactive prompt** -- deleting the four functions and the four arms alone leaves that one calling a function that is gone. `in-whiteboard/SKILL.md` names the `ws` family in its scaffolding paragraph, its header-format section and its inbox-shape section, so the rewrite is not one line.
 
 **The batched reference regeneration, after the tag, on vc's signal.** Unchanged and still pinned as two literal commands below the fold at `.history/20260912/wip-prefold-1738Z.md`: both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed** because both generators hardcode `v3.0.0`. Neither needs a build.
 
