@@ -107,7 +107,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 ### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: WIP)
 
 - AC-18.1 The index scope is the gitignore-aware repository: a tracked source file is indexed, a gitignored file never appears in a result, and `.git`, the store's own directory and the backup directory are outside by rule rather than by path shape. -- satisfied: no (computed)
-- AC-18.2 Every in-scope file the index does not hold has a `file_index` row naming why (binary, over the size cap, unreadable, symlink), and `intent index status` lists them; nothing is skipped silently. -- satisfied: no (computed)
+- AC-18.2 Every in-scope file the index does not hold has an `index_file` row naming why (binary, over the size cap, unreadable, symlink), and `intent index status` lists them; nothing is skipped silently. -- satisfied: no (computed)
 - AC-18.3 Two corpora, two staleness policies: canon hashes always; source is stat-then-hash; each is asserted against its own missed-edit case. -- satisfied: no (computed)
 - AC-18.4 The scanner and the watcher read one scope object: a change under a source directory reaches the index through the daemon without a second statement of scope. -- satisfied: no (computed)
 - AC-18.5 Rendered views under `intent/st/` and the canon extract are not in the disk corpus; an entity's prose is indexed once, from the store. -- satisfied: no (computed)
