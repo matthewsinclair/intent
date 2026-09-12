@@ -10505,6 +10505,34 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     );
   }
 
+  // **ARMED, THE TOOL IS HERE, AND IT DECLINED THE FILE.** Reported beside the
+  // other two not-run lines and NOT as a refusal -- see
+  // `Disposition::ToolDeclined` for why a per-file decline must not take the
+  // exit code an absent tool takes. The FILES are named: a reader told that a
+  // rule did not run on part of a staged set cannot act on it.
+  let mut declined: Vec<String> = report
+    .census
+    .iter()
+    .filter_map(|r| match &r.disposition {
+      Disposition::ToolDeclined { tool, files } => {
+        Some(format!("{}({tool}: {})", r.rule_id, files.join(" ")))
+      }
+      _ => None,
+    })
+    .collect();
+  declined.sort_unstable();
+  if !declined.is_empty() {
+    println!(
+      "critic: {} -- ARMED but NOT RUN on the file(s) named, which the tool DECLINED to read: {}",
+      report.lang,
+      declined.join(" ")
+    );
+    println!(
+      "  those files were examined by nothing here; apply the rule with the `critic-{}` subagent",
+      report.lang
+    );
+  }
+
   let mut absent: Vec<String> = report
     .census
     .iter()

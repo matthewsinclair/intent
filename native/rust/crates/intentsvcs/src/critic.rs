@@ -172,6 +172,30 @@ pub enum Disposition {
   /// Armed on a tool that does not belong in this run -- a whole-workspace
   /// analyser is not a per-file gate.
   OutOfContext(String),
+  /// **THE TOOL IS HERE AND IT DECLINED THE FILE** (`intent/wip.md` item 8, hv
+  /// ruled the fix 2026-09-12).
+  ///
+  /// shellcheck refuses zsh outright (`SC1071`) and stops on a file it cannot
+  /// parse (`SC1072`, `SC1073`). It exits 1 and emits one `error` line, and
+  /// that line carries a code the rule does not claim -- so the finding filter
+  /// dropped it, the rule reported no findings, **and the census said `ran`**.
+  /// A `.zsh` file therefore passed every shellcheck-armed rule at exit 0,
+  /// examined by nothing, and the census -- whose entire job is to say what was
+  /// NOT asked -- said it had been.
+  ///
+  /// **THIS IS NOT `ToolAbsent` AND MUST NOT BECOME IT.** Absence is a property
+  /// of the machine and the same for every file, which is why it refuses: the
+  /// remedy is *install the tool*. This is a property of ONE FILE, the remedy
+  /// is the `critic-shell` subagent or a different linter, and making it exit 3
+  /// would BLOCK every commit carrying a `.zsh` file in every project declaring
+  /// shell -- a gate outage in answer to a reporting defect. It follows the
+  /// unrunnable-proxy ruling instead: reported in the census, never a refusal.
+  ToolDeclined {
+    tool: String,
+    /// The files it declined, named because a reader who is told a rule did not
+    /// run on "some of" a staged set cannot act on it.
+    files: Vec<String>,
+  },
   /// Nothing to run; the arming axis already said why.
   NotApplicable,
 }
@@ -182,6 +206,7 @@ impl Disposition {
       Self::Ran => "ran",
       Self::ToolAbsent(_) => "not-run:tool-absent",
       Self::OutOfContext(_) => "not-run:out-of-context",
+      Self::ToolDeclined { .. } => "not-run:tool-declined",
       Self::NotApplicable => "n-a",
     }
   }
@@ -757,18 +782,25 @@ fn shellcheck_findings(
   rule_id: &str,
   severity: Severity,
   codes: &[String],
-) -> Vec<Finding> {
+) -> (Vec<Finding>, bool) {
   if codes.is_empty() {
-    return Vec::new();
+    return (Vec::new(), false);
   }
   let Ok(out) = std::process::Command::new("shellcheck")
     .arg("--format=gcc")
     .arg(file)
     .output()
   else {
-    return Vec::new();
+    // **A TOOL THAT WILL NOT LAUNCH IS NOT A FILE THE TOOL DECLINED.**
+    // `tool_available` has already answered that question for the whole run and
+    // reports it as `ToolAbsent`; claiming a decline here would name the file
+    // for a fault that has nothing to do with it.
+    return (Vec::new(), false);
   };
   let stdout = String::from_utf8_lossy(&out.stdout);
+  if shellcheck_declined(&stdout) {
+    return (Vec::new(), true);
+  }
   let mut seen: BTreeSet<usize> = BTreeSet::new();
   let mut findings = Vec::new();
   for line in stdout.lines() {
@@ -795,7 +827,32 @@ fn shellcheck_findings(
       line: truncate_content(content),
     });
   }
-  findings
+  (findings, false)
+}
+
+/// Did shellcheck DECLINE to analyse this file, rather than analyse it and find
+/// nothing?
+///
+/// **THE DISCRIMINATOR IS AN `error`-SEVERITY `SC10xx`, WHICH IS THE FAMILY
+/// THAT ABORTS THE ANALYSIS.** `SC1071` is the zsh refusal -- *ShellCheck only
+/// supports sh/bash/dash/ksh* -- and `SC1072`/`SC1073` are *couldn't parse
+/// this*; in every case the tool stopped and the rest of the file was never
+/// read. The other `SC10xx` codes a run meets, `SC1090` and `SC1091` (a sourced
+/// file it will not follow), arrive as `note` or `warning` and are NOT a
+/// decline: the analysis completed, one branch of it unresolved.
+///
+/// **IT IS KEYED ON THE OUTPUT AND NOT ON THE EXIT CODE, DELIBERATELY.**
+/// shellcheck exits 1 both for *here are your findings* and for *I refused
+/// this file*, so the code cannot tell them apart; the severity and the code
+/// can, and they are in the tool's own words.
+fn shellcheck_declined(stdout: &str) -> bool {
+  stdout.lines().any(|line| {
+    line.contains(": error: ")
+      && line
+        .rsplit_once('[')
+        .and_then(|(_, tail)| tail.strip_suffix(']'))
+        .is_some_and(|code| code.starts_with("SC10"))
+  })
 }
 
 /// Is a named critic tool on this machine?
@@ -944,7 +1001,7 @@ pub fn run(
     let Some((_, body)) = lib.show(&rule.id)? else {
       continue;
     };
-    let (arming, disposition, by, patterns) = classify(&body);
+    let (arming, mut disposition, by, patterns) = classify(&body);
 
     if arming == Arming::Unrunnable {
       refused.insert(rule.id.clone());
@@ -997,8 +1054,24 @@ pub fn run(
       match by.as_str() {
         "shellcheck" => {
           if severity.clears(severity_min) {
+            let mut declined = Vec::new();
             for (path, text) in &applicable {
-              findings.extend(shellcheck_findings(path, text, &rule.id, severity, &codes));
+              let (hits, refused_file) =
+                shellcheck_findings(path, text, &rule.id, severity, &codes);
+              findings.extend(hits);
+              if refused_file {
+                declined.push(path.display().to_string());
+              }
+            }
+            // **THE CENSUS ROW IS AMENDED BY WHAT THE RUN ACTUALLY DID.**
+            // `classify` decides a disposition from the RULE alone, before any
+            // file is known, and a decline is a property of the file -- so a
+            // disposition that is never revisited can only report the intent.
+            if !declined.is_empty() {
+              disposition = Disposition::ToolDeclined {
+                tool: by.clone(),
+                files: declined,
+              };
             }
           }
         }
@@ -1316,6 +1389,42 @@ mod tests {
       !got.contains("IN-NOT-A-MEMBER"),
       "a list item after a sibling key belongs to no block this parser reads"
     );
+  }
+
+  /// **A DECLINE IS NOT A CLEAN RUN, AND THE EXIT CODE CANNOT TELL THEM
+  /// APART.** shellcheck exits 1 for *here are your findings* and for *I
+  /// refused this file*, so the discriminator is the severity and the code, in
+  /// the tool's own words.
+  #[test]
+  fn shellcheck_declining_a_file_is_told_apart_from_shellcheck_finding_nothing() {
+    // The zsh refusal, verbatim from `shellcheck --format=gcc` 0.11.0.
+    assert!(shellcheck_declined(
+      "probe.zsh:1:1: error: ShellCheck only supports sh/bash/dash/ksh/'busybox sh' scripts. Sorry! [SC1071]\n"
+    ));
+    // A file it could not parse: it stopped, so the rest was never read.
+    assert!(shellcheck_declined(
+      "x.sh:4:1: error: Couldn't parse this function. Fix to allow more checks. [SC1073]\n"
+    ));
+
+    // Findings are not declines, however many there are.
+    assert!(!shellcheck_declined(
+      "x.sh:2:9: warning: Use find instead of ls. [SC2012]\nx.sh:3:1: note: Double quote. [SC2086]\n"
+    ));
+    // A clean run says nothing at all.
+    assert!(!shellcheck_declined(""));
+    // **THE NEAR MISSES, WHICH ARE THE ONLY REASON THIS FUNCTION IS NOT A
+    // SUBSTRING TEST**: the `SC10xx` codes a normal run meets arrive as note or
+    // warning, and the analysis COMPLETED with one branch unresolved.
+    assert!(!shellcheck_declined(
+      "x.sh:3:1: note: Not following: /etc/thing was not specified as input. [SC1091]\n"
+    ));
+    assert!(!shellcheck_declined(
+      "x.sh:3:1: warning: ShellCheck can't follow non-constant source. [SC1090]\n"
+    ));
+    // An `error` from the finding range is a finding, not a decline.
+    assert!(!shellcheck_declined(
+      "x.sh:3:1: error: Argument mixes string and array. [SC2145]\n"
+    ));
   }
 
   // ---- the proxy block ----------------------------------------------------

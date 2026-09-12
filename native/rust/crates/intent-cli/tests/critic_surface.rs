@@ -462,7 +462,74 @@ fn a_disabled_rule_is_suppressed_and_disabling_another_leaves_it_firing() {
   );
 }
 
-/// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT
+/// **A FILE THE TOOL DECLINED IS NOT A FILE THAT PASSED** (`intent/wip.md`
+/// item 8, ruled by hv 2026-09-12).
+///
+/// shellcheck refuses zsh outright (`SC1071`) and exits 1 with one `error`
+/// line carrying a code no rule claims, so the finding filter dropped it, the
+/// rule reported nothing, **and the census said `ran`.** A `.zsh` file passed
+/// every shellcheck-armed rule at exit 0, examined by nothing, with the census
+/// -- whose whole job is to say what was NOT asked -- asserting it had been.
+///
+/// **THE BASH CONTROL IS THE ARM, NOT DECORATION.** Identical content in a
+/// `.sh` file must still be ASKED, or a fix that simply stopped running
+/// shellcheck everywhere would pass this test.
+///
+/// **AND IT ASSERTS ON BOTH KINDS OF MACHINE.** Where shellcheck is installed
+/// the subject is the decline; where it is not, the same rules are `ToolAbsent`
+/// and the run REFUSES at 3 -- so this never degrades into a skip that reads as
+/// a pass on a machine without the tool.
+#[test]
+fn a_file_shellcheck_declines_is_reported_not_counted_as_asked() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let body = "for f in $(ls *.txt); do\n  echo \"$f\"\ndone\n";
+  let zsh = dir.path().join("probe.zsh");
+  let sh = dir.path().join("control.sh");
+  std::fs::write(&zsh, format!("#!/usr/bin/env zsh\n{body}")).expect("write zsh");
+  std::fs::write(&sh, format!("#!/usr/bin/env bash\n{body}")).expect("write sh");
+
+  let have_shellcheck = Command::new("shellcheck")
+    .arg("--version")
+    .output()
+    .is_ok_and(|o| o.status.success());
+
+  let declined = critic(&["shell", "--files", zsh.to_str().unwrap()]);
+  let control = critic(&["shell", "--files", sh.to_str().unwrap()]);
+
+  if !have_shellcheck {
+    assert_eq!(
+      declined.status.code(),
+      Some(3),
+      "with no shellcheck on this machine both runs are ARMED-but-absent and \
+       must REFUSE, which is the other half of the same contract: {}{}",
+      out(&declined),
+      err(&declined)
+    );
+    assert_eq!(control.status.code(), Some(3));
+    return;
+  }
+
+  assert!(
+    out(&declined).contains("DECLINED to read") && out(&declined).contains("probe.zsh"),
+    "the census must name the rules that did not run and the file they did not \
+     run on: {}",
+    out(&declined)
+  );
+  assert!(
+    out(&declined).contains("0 of "),
+    "a run whose every armed rule declined the file asked NOTHING, and the \
+     headline is where a reader sees it: {}",
+    out(&declined)
+  );
+  assert!(
+    out(&control).contains("DECLINED") == false && !out(&control).contains("0 of "),
+    "THE CONTROL: identical content in a .sh file is still asked, or a fix that \
+     stopped running shellcheck at all would pass the arm above: {}",
+    out(&control)
+  );
+}
+
+/// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT/// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT
 /// ENDORSED, AND THE ONE THAT CLOSED.**
 ///
 /// See this file's header for both in full. The first assertion exists so the
