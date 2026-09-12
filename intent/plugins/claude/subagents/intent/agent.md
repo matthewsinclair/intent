@@ -67,17 +67,17 @@ Intent is a project management framework that captures the "why" behind code thr
 
 ```bash
 intent st new "Add user authentication"
-intent st show ST0001
-intent wp new ST0001 "Core auth logic"
-intent wp new ST0001 "Write tests"
+intent st show ST0000
+intent wp new ST0000 "Core auth logic"
+intent wp new ST0000 "Write tests"
 ```
 
 ### Managing Work Packages
 
 ```bash
-intent wp list ST0001
-intent wp start ST0001/01
-intent wp done ST0001/01
+intent wp list ST0000
+intent wp start ST0000/01
+intent wp done ST0000/01
 ```
 
 ### Checking Project Status
