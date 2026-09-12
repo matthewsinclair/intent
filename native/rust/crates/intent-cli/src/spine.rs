@@ -729,7 +729,27 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     {
       a = match max {
         Some(max) => a.num_args(min..=max),
-        None => a.num_args(min..),
+        // **AN UNBOUNDED FLAG REPEATS; IT DOES NOT TAKE A GREEDY LIST**
+        // (issue 0305). `num_args(min..)` beside `ArgAction::Set` inverted both
+        // halves of what the row declares: the value list had no terminator, so
+        // the next POSITIONAL was read as another value, and `Set` refused the
+        // second occurrence outright. `intent search --kind def <name>` --
+        // the spelling `CLAUDE.md`, `AGENTS.md`, the Highlander rule and three
+        // skills all prescribe as THE prior-art check -- therefore answered
+        // `nothing to search for`, while the `...` in its own help line
+        // promised a repetition the parser rejected.
+        //
+        // **THE SWALLOW IS WORSE AWAY FROM `search`, WHICH IS WHY THIS IS
+        // READ FROM THE ARITY AND NOT PATCHED ON THREE NAMES.** `at new
+        // --covers <acid>... <STID> <ATID>` ate both required positionals and
+        // `critic --files <path>... [LANG]` ate the language. A future seventh
+        // row would inherit the defect in silence under a name-shaped fix, for
+        // the reason `flag_reachability.rs` states about hand-listed
+        // populations: the census is what misses the instance.
+        //
+        // Costs one undocumented spelling, stated rather than discovered:
+        // `--kind def ref` no longer reads as two values. It is the same greed.
+        None => a.action(ArgAction::Append).num_args(1),
       };
       if min == 0 {
         a = a.require_equals(true);

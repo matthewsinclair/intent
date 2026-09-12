@@ -630,8 +630,17 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
         // ellipsis back out of the placeholder would make this test the second
         // reader of a thing the register now states once -- the same duplication
         // whose deletion from spine.rs this file is here to check.
+        //
+        // **AND THE RENDERING NO LONGER CARRIES ONE, BECAUSE `1..n` CHANGED
+        // MEANING** (issue 0305, ruled by vc 2026-09-12). It used to mean a
+        // greedy list of values taken once, which is what clap's `...` says --
+        // and that greed had no terminator, so the flag ate the POSITIONAL
+        // after it and `intent search --kind def <name>` refused. It now means
+        // REPEATABLE, one value per occurrence, which clap renders as a plain
+        // `<kind>`. Asking for the ellipsis here would be asking the surface to
+        // advertise the defect. The repetition is stated in the row's own help
+        // prose instead, where a reader meets it.
         let bounds = dispatch::arity_bounds(&flag.arity);
-        let repeated = matches!(bounds, Some((_, None)));
         let head = value.trim().trim_end_matches("...").trim();
         let inner = head
           .trim_start_matches(['<', '['])
@@ -653,7 +662,7 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
         let want = if optional_value {
           format!("{long}[=<{inner}>]")
         } else {
-          format!("{long} <{inner}>{}", if repeated { "..." } else { "" })
+          format!("{long} <{inner}>")
         };
         if block.contains(&want) {
           placeholders += 1;

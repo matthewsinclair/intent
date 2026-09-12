@@ -704,3 +704,43 @@ fn no_reconcile_answers_from_the_index_as_it_stands_and_names_what_moved() {
     "and `stale` names the path, which is what a per-path freshness rule reads: {json}"
   );
 }
+
+/// Issue 0305: `intent search --kind def <name>` -- the spelling `CLAUDE.md`,
+/// `AGENTS.md`, the Highlander rule and three skills all prescribe as THE
+/// prior-art check -- refused with `nothing to search for`. A flag declaring
+/// `arity: "1..n"` was built greedy, so `def` and the name were read as two
+/// values of `--kind` and the positional query was left empty.
+///
+/// **THE QUERY-FIRST ARM IS A CONTROL RATHER THAN A SECOND ASSERTION.** In a
+/// build carrying no Rust grammar both spellings answer nothing, so an arm
+/// that only compared the two would pass on the defect and on an empty index
+/// alike. It establishes that the fixture really produces the definition; the
+/// flag-first assertion beneath it is then a claim about the PARSER and not
+/// about the index.
+///
+/// **AND IT IS HERE RATHER THAN BESIDE AC-20.3'S OWN TEST FOR THE REASON THE
+/// DEFECT SURVIVED AT ALL.** `intentsvcs/tests/symbols_answer_the_highlander_
+/// question.rs` drives the same question through the facade, which is BELOW the
+/// parser: it builds a `SearchQuery` in Rust and never spells a command line,
+/// so no assertion it could carry would have met this. The claim the canon
+/// makes is about something a person types.
+#[test]
+fn the_documented_kind_filter_may_be_written_before_the_query() {
+  let dir = project();
+  let root = dir.path();
+  std::fs::write(root.join("lib.rs"), "fn assemble_widget() {}\n").expect("write source");
+  restore_from_disk(root);
+
+  let query_first = ok(root, &["search", "assemble_widget", "--kind", "def"]);
+  assert!(
+    query_first.contains("lib.rs") && query_first.contains("def"),
+    "the fixture produces the definition the canon spelling asks for: {query_first:?}"
+  );
+
+  let flag_first = ok(root, &["search", "--kind", "def", "assemble_widget"]);
+  assert_eq!(
+    flag_first, query_first,
+    "a repeatable filter written BEFORE the query does not swallow it, so the \
+     canon's own `intent search --kind def <name>` answers"
+  );
+}
