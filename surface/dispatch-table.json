@@ -300,7 +300,11 @@
           ],
           "flags": [
             {
-              "spellings": ["help", "--help", "-h"],
+              "spellings": [
+                "help",
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "note": "`help` is a bare word arm, not a flag; grouped here because the spellings share one arm (bin/intent_st:1614)",
@@ -368,7 +372,10 @@
           ],
           "flags": [
             {
-              "spellings": ["-s", "--start"],
+              "spellings": [
+                "-s",
+                "--start"
+              ],
               "type": "bool",
               "help": "Mark the new thread in progress immediately",
               "disposition": "keep"
@@ -493,14 +500,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--keep"],
+              "spellings": [
+                "--keep"
+              ],
               "type": "bool",
               "help": "Close the thread but leave its entry in .intentfiles, so its files stay on disk",
               "disposition": "keep",
               "disposition_basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **`st done` now REMOVES the entry, and this opts out. THE OPT-OUT POLARITY IS DEFENSIBLE HERE AND WOULD NOT BE ON `organize`, WHICH IS THE COMPARISON THAT HAD TO BE MADE.** ic ruled `organize` previews by default because safety-by-opt-in fails the operator who does not know to ask. That argument does not carry here for one reason: **the data-loss case is closed by a CONSTRAINT rather than by the operator remembering a flag.** AC requires `st done` to run the unsynced-attachment check first and REFUSE BY NAME when the artefact holds on-disk bytes the store has never seen (`Facade::sync_uncommitted`, cc's AC-03.5). A check is a claim about a reachable state; that refusal removes the state. What `--keep` opts out of is the removal of REPRODUCIBLE files, which the store can rewrite -- so the flag governs convenience, not loss."
             },
             {
-              "spellings": ["--date"],
+              "spellings": [
+                "--date"
+              ],
               "type": "string",
               "value": "<YYYY-MM-DD>",
               "help": "Record this completion date instead of today",
@@ -565,21 +576,27 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being cancelled -- required by the machine's guard",
               "disposition": "keep"
             },
             {
-              "spellings": ["--keep"],
+              "spellings": [
+                "--keep"
+              ],
               "type": "bool",
               "help": "Cancel the thread but leave its entry in .intentfiles, so its files stay on disk",
               "disposition": "keep",
               "disposition_basis": "**hv RULED THE ASYMMETRY OUT, 2026-08-20, ON ic's QUESTION.** AC-05.2 named `st done --keep` and said nothing about `st cancel`, so the surface shipped with the opt-out on one closing verb and not the other. ic asked whether that was deliberate and guessed it was -- reasoning that cancelling is the stronger statement and an operator is less likely to want the files. **hv ruled the opposite: the asymmetry is not wanted.** The guess was worth recording because it was plausible and wrong: **`--keep` is not about how sure you are that the work is over, it is about whether you still need to READ the files** -- and a cancelled thread is at least as likely to be one you are still mining for what it decided. `st done` and `st cancel` both REMOVE the entry, so both need the same override, and a flag on one of two identical acts is a surface that has to be memorised rather than understood. **Same flag, same word, same meaning: suppress this op's declared edit to the list, and never the close itself.**"
             },
             {
-              "spellings": ["--date"],
+              "spellings": [
+                "--date"
+              ],
               "type": "string",
               "value": "<YYYY-MM-DD>",
               "help": "Record this completion date instead of today",
@@ -662,7 +679,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being held -- required by the machine's guard",
@@ -718,7 +737,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard",
@@ -750,7 +771,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reinstated -- required by the machine's guard",
@@ -820,12 +843,14 @@
         },
         {
           "path": "st list",
-          "serving_op": "ThreadList",
+      "serving_op": "ThreadList",
           "help": "List steel threads (default: in progress only)",
           "args": [],
           "flags": [
             {
-              "spellings": ["--status"],
+              "spellings": [
+                "--status"
+              ],
               "type": "string",
               "value": "<status>",
               "help": "`all`, or a comma-separated list rendered in the order given",
@@ -833,7 +858,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
@@ -841,7 +868,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--markdown"],
+              "spellings": [
+                "--markdown"
+              ],
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
               "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table.",
@@ -849,7 +878,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md",
               "default": "terminal",
@@ -859,7 +890,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--slug"],
+              "spellings": [
+                "--slug"
+              ],
               "type": "bool",
               "help": "Show the slug, derived from the title, instead of the title",
               "disposition": "keep",
@@ -931,7 +964,14 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance", "all"]
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance",
+                "all"
+              ]
             }
           ],
           "flags": [],
@@ -984,13 +1024,21 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance"],
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance"
+              ],
               "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
             }
           ],
           "flags": [
             {
-              "spellings": ["--editor"],
+              "spellings": [
+                "--editor"
+              ],
               "type": "bool",
               "help": "Open the file in $VISUAL or $EDITOR, whatever stdout is",
               "disposition": "keep",
@@ -998,7 +1046,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--path"],
+              "spellings": [
+                "--path"
+              ],
               "type": "bool",
               "help": "Print the path and open nothing, whatever stdout is",
               "disposition": "keep",
@@ -1056,7 +1106,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--from"],
+              "spellings": [
+                "--from"
+              ],
               "type": "value",
               "value": "<file>",
               "help": "The local file whose contents become the attachment",
@@ -1093,13 +1145,17 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Write the index; without it the command is a dry run",
               "disposition": "keep"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width",
@@ -1107,7 +1163,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md",
               "default": "terminal",
@@ -1156,7 +1214,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Apply the repairs; without it the command is a dry run",
               "disposition": "retire",
@@ -1198,7 +1258,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output."
           },
           "recoverability": "one-way"
@@ -1206,11 +1268,15 @@
         {
           "path": "st organize",
           "help": "Organize ST files in directories by status",
-          "aliases": ["st organise"],
+          "aliases": [
+            "st organise"
+          ],
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Move the files; without it the command is a dry run",
               "disposition": "retire",
@@ -1249,21 +1315,27 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--audit-only"],
+              "spellings": [
+                "--audit-only"
+              ],
               "type": "bool",
               "help": "Show gap analysis only, no changes",
               "disposition": "retire",
               "disposition_basis": "RETIRED 2026-09-11 with its command, `st bootstrap`, by hv's decision 3 (ST0058 AC-00.3). A retired command never reaches clap, so neither can its flags."
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Show what would change, no writes",
               "disposition": "retire",
               "disposition_basis": "RETIRED 2026-09-11 with its command, `st bootstrap`, by hv's decision 3 (ST0058 AC-00.3). A retired command never reaches clap, so neither can its flags."
             },
             {
-              "spellings": ["--deliverable"],
+              "spellings": [
+                "--deliverable"
+              ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>",
@@ -1315,7 +1387,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for."
           },
           "recoverability": "one-way"
@@ -1351,7 +1425,11 @@
           ],
           "flags": [
             {
-              "spellings": ["help", "--help", "-h"],
+              "spellings": [
+                "help",
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "note": "bare-word arm plus the flag spellings",
@@ -1599,7 +1677,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard",
@@ -1631,7 +1711,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why -- required by the machine's guard",
@@ -1663,7 +1745,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why -- required by the machine's guard",
@@ -1720,7 +1804,14 @@
               "name": "size",
               "type": "enum",
               "arity": "1",
-              "values": ["XS", "S", "M", "L", "XL", "XXL"]
+              "values": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL"
+              ]
             }
           ],
           "flags": [],
@@ -1749,7 +1840,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
@@ -1758,7 +1851,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md",
               "default": "terminal",
@@ -2070,7 +2165,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--evidence"],
+              "spellings": [
+                "--evidence"
+              ],
               "type": "string",
               "help": "The named evidence reference",
               "value": "<ref>",
@@ -2240,7 +2337,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--to"],
+              "spellings": [
+                "--to"
+              ],
               "type": "string",
               "help": "The thread the requirement moved to",
               "value": "<stid>",
@@ -2248,14 +2347,18 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--by"],
+              "spellings": [
+                "--by"
+              ],
               "type": "string",
               "help": "Who decided",
               "value": "<who>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "help": "Why",
               "value": "<text>",
@@ -2291,7 +2394,14 @@
             "no_op": "`error: AC-01.1 is already descoped to ST0002 -- 'intent ac rescope' first if you mean to descope it`, exit 1. **v2 REFUSES, and names the verb that undoes it.** Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
             "stdout_exact": {
               "setup": [],
-              "argv": ["ac", "descope", "ST0001", "AC-01.1", "--to", "ST0002"],
+              "argv": [
+                "ac",
+                "descope",
+                "ST0001",
+                "AC-01.1",
+                "--to",
+                "ST0002"
+              ],
               "template": "ok: AC-01.1 descoped to ST0002",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
             }
@@ -2348,9 +2458,21 @@
             "note": "**CORRECTED 2026-08-17: the parenthesised resulting state was missing.** v2 names the state the criterion lands in, which is the informative half -- `back in scope` alone does not say whether satisfaction survived the round trip. Measured against v2.19.0 on PATH, 2026-08-17 (ic). **RE-DECLARED 2026-08-17 (ic), and the row now carries BOTH templates.** When this row was ratified onto `corrected` its `stdout_exact` was removed, because the guard in `literal_stdout_parity.rs` correctly refuses v2's bytes as an assertion against a row that deliberately does not print them. That left the row UNASSERTED, and the incentive was backwards: the cheapest way to make a red row stop failing was to ratify it. Now `observed.stdout_exact` holds v2's measured bytes as the RECORD and `target.stdout_exact` holds v3's ruled bytes as the REQUIREMENT, the target inheriting the observed invocation so the two describe one command and their difference is the ratified deviation in bytes. **Both are executed; ratifying no longer removes coverage, it changes which template the row is held to.**",
             "stdout_exact": {
               "setup": [
-                ["ac", "descope", "ST0001", "AC-01.2", "--to", "ST0002"]
+                [
+                  "ac",
+                  "descope",
+                  "ST0001",
+                  "AC-01.2",
+                  "--to",
+                  "ST0002"
+                ]
               ],
-              "argv": ["ac", "rescope", "ST0001", "AC-01.2"],
+              "argv": [
+                "ac",
+                "rescope",
+                "ST0001",
+                "AC-01.2"
+              ],
               "template": "ok: AC-01.2 back in scope (unsatisfied)",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic), in a throwaway `intent init` project whose acceptance fixture was validated by v2's OWN `intent at lint` before anything was measured against v2 -- so a malformed fixture could not accuse a correct binary. Driven on the TEST-BACKED criterion deliberately: it is the discriminating invocation. On a non-test criterion v3's ruled output is byte-identical to v2's, so a declaration written there would assert as-observed behaviour under a `corrected` label."
             }
@@ -2395,7 +2517,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "help": "Why it was dropped -- REQUIRED",
               "value": "<text>",
@@ -2403,7 +2527,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--by"],
+              "spellings": [
+                "--by"
+              ],
               "type": "string",
               "help": "Who decided",
               "value": "<who>",
@@ -2504,9 +2630,21 @@
             "note": "**CORRECTED 2026-08-17: as `ac rescope`, and identical to it** -- the two verbs are distinguished by which off-scope state they undo, not by what they print on success. Measured against v2.19.0 on PATH, 2026-08-17 (ic). **RE-DECLARED 2026-08-17 (ic), and the row now carries BOTH templates.** When this row was ratified onto `corrected` its `stdout_exact` was removed, because the guard in `literal_stdout_parity.rs` correctly refuses v2's bytes as an assertion against a row that deliberately does not print them. That left the row UNASSERTED, and the incentive was backwards: the cheapest way to make a red row stop failing was to ratify it. Now `observed.stdout_exact` holds v2's measured bytes as the RECORD and `target.stdout_exact` holds v3's ruled bytes as the REQUIREMENT, the target inheriting the observed invocation so the two describe one command and their difference is the ratified deviation in bytes. **Both are executed; ratifying no longer removes coverage, it changes which template the row is held to.**",
             "stdout_exact": {
               "setup": [
-                ["ac", "withdraw", "ST0001", "AC-01.2", "--reason", "gone"]
+                [
+                  "ac",
+                  "withdraw",
+                  "ST0001",
+                  "AC-01.2",
+                  "--reason",
+                  "gone"
+                ]
               ],
-              "argv": ["ac", "reinstate", "ST0001", "AC-01.2"],
+              "argv": [
+                "ac",
+                "reinstate",
+                "ST0001",
+                "AC-01.2"
+              ],
               "template": "ok: AC-01.2 back in scope (unsatisfied)",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic), in a throwaway `intent init` project whose acceptance fixture was validated by v2's OWN `intent at lint` before anything was measured against v2 -- so a malformed fixture could not accuse a correct binary. Driven on the TEST-BACKED criterion deliberately: it is the discriminating invocation. On a non-test criterion v3's ruled output is byte-identical to v2's, so a declaration written there would assert as-observed behaviour under a `corrected` label."
             }
@@ -2551,7 +2689,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--text"],
+              "spellings": [
+                "--text"
+              ],
               "type": "string",
               "help": "The criterion text",
               "value": "<text>",
@@ -2559,7 +2699,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--kind"],
+              "spellings": [
+                "--kind"
+              ],
               "type": "enum",
               "help": "Test-backed or not",
               "value": "test|non-test",
@@ -2614,14 +2756,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--text"],
+              "spellings": [
+                "--text"
+              ],
               "type": "string",
               "help": "The new criterion text",
               "value": "<text>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Replace an unsatisfied criterion's note outright -- refused on a row whose state keeps its own record",
               "value": "<text>",
@@ -2782,7 +2928,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--fix"],
+              "spellings": [
+                "--fix"
+              ],
               "type": "bool",
               "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss",
               "disposition": "retire",
@@ -2843,7 +2991,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
               "value": "<text>",
@@ -2879,7 +3029,9 @@
             },
             "no_op": "`error: at green: AT-01.1 is 'green'; green is reachable only from red (run 'intent at red ST0001 AT-01.1' first)`, exit 1. **v2 REFUSES**, because its status ladder admits green only from red -- so the no-op is caught by a transition rule rather than by a state check. Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
           },
-          "aliases": ["at done"],
+          "aliases": [
+            "at done"
+          ],
           "target": {
             "state": "corrected",
             "ratification": "ic, 2026-08-15, ruling cc's parity question -- KEEP THE GUARD. v2 refuses green unless the AT is currently red (bin/intent_acceptance:1325). v3's at_set takes any status from any status. This is v3 more OPEN and less faithful, not more closed. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-15, ruling recorded at commit `20e8c4b3` (`st(0056): ac unsatisfy recorded, at green RULED, ...`). **The previous value was `ic, with the `at green` row's own basis` -- the self-citation case, and the precedent I copied when writing my own rows before vc's sweep fixed the grammar's requirement.** A ratification pointing at the row it ratifies is not independent, by exactly the argument that a check is not independent when the same head wrote the needle and the checker: the source has to be something other than the thing under test.",
@@ -2920,7 +3072,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
               "value": "<text>",
@@ -2952,12 +3106,19 @@
             "no_op": "`ok: AT-01.1 -> red`, exit 0 -- the ORDINARY success message; v2 re-writes the row. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
             "stdout_exact": {
               "setup": [],
-              "argv": ["at", "red", "ST0001", "AT-01.1"],
+              "argv": [
+                "at",
+                "red",
+                "ST0001",
+                "AT-01.1"
+              ],
               "template": "ok: AT-01.1 -> red",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
             }
           },
-          "aliases": ["at notdone"],
+          "aliases": [
+            "at notdone"
+          ],
           "target": {
             "state": "as-observed",
             "no_op": "`ok: <AT> already red`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).",
@@ -2987,7 +3148,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
               "value": "<text>",
@@ -3021,7 +3184,12 @@
             "note": "**CORRECTED 2026-08-17, AND THIS ONE IS NOT A TRANSCRIPTION SLIP.** The row said `n-a` -- **v3's token, in the column that records v2** -- and v2 prints `n/a`, which is also the only token its row grammar admits (`bin/intent_acceptance:181`). `target.state` here is `as-observed`, so **a check comparing v3's output to this column would have found agreement and certified issue 0056 as correct parity.** The defect had already propagated into the register that exists to catch it. Measured against v2.19.0 on PATH, 2026-08-17 (ic).",
             "stdout_exact": {
               "setup": [],
-              "argv": ["at", "na", "ST0001", "AT-01.2"],
+              "argv": [
+                "at",
+                "na",
+                "ST0001",
+                "AT-01.2"
+              ],
               "template": "ok: AT-01.2 -> n/a",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
             }
@@ -3055,7 +3223,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--covers"],
+              "spellings": [
+                "--covers"
+              ],
               "type": "string",
               "help": "The criterion id(s) this test covers",
               "value": "<acid>",
@@ -3064,21 +3234,27 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--file"],
+              "spellings": [
+                "--file"
+              ],
               "type": "string",
               "help": "The test file this row cites",
               "value": "<path>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--prose"],
+              "spellings": [
+                "--prose"
+              ],
               "type": "string",
               "help": "What a non-test row asserts instead of a file",
               "value": "<text>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--kind"],
+              "spellings": [
+                "--kind"
+              ],
               "type": "enum",
               "help": "Test-backed or not",
               "value": "test|non-test",
@@ -3087,7 +3263,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--status"],
+              "spellings": [
+                "--status"
+              ],
               "type": "enum",
               "help": "Initial status",
               "value": "to-write|red|green|n-a",
@@ -3096,7 +3274,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept",
               "value": "<text>",
@@ -3149,28 +3329,36 @@
           ],
           "flags": [
             {
-              "spellings": ["--file"],
+              "spellings": [
+                "--file"
+              ],
               "type": "string",
               "help": "The repo-relative test file",
               "value": "<path>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--prose"],
+              "spellings": [
+                "--prose"
+              ],
               "type": "string",
               "help": "What was read or eyeballed (non-test rows)",
               "value": "<text>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--kind"],
+              "spellings": [
+                "--kind"
+              ],
               "type": "string",
               "help": "Re-kind the row: test or non-test -- refused if the row's status cannot hold it",
               "value": "<test|non-test>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--covers"],
+              "spellings": [
+                "--covers"
+              ],
               "type": "string",
               "help": "The AC id(s) this test covers, replacing the current set",
               "value": "<ac-id>",
@@ -3178,7 +3366,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--note"],
+              "spellings": [
+                "--note"
+              ],
               "type": "string",
               "help": "Replace the row's note outright -- the deliberate door; `at green/red/na --note` only EXTENDS",
               "value": "<text>",
@@ -3230,7 +3420,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
@@ -3238,7 +3430,9 @@
               "disposition_basis": "Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path."
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md",
               "default": "terminal",
@@ -3288,7 +3482,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--kind"],
+              "spellings": [
+                "--kind"
+              ],
               "type": "enum",
               "help": "Which bucket to list",
               "value": "open|closed|all",
@@ -3296,7 +3492,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
@@ -3305,7 +3503,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md",
               "default": "terminal",
@@ -3358,7 +3558,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--severity"],
+              "spellings": [
+                "--severity"
+              ],
               "type": "enum",
               "help": "Severity",
               "value": "critical|high|medium|low",
@@ -3366,7 +3568,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--body"],
+              "spellings": [
+                "--body"
+              ],
               "type": "string",
               "help": "The issue's prose, inline",
               "value": "<text>",
@@ -3374,7 +3578,9 @@
               "disposition_basis": "RULED GO BY hv, 2026-08-27, asked at source rather than taken from my own board. cc's board carried `ruled GO` with NO authority and no peer board or inbox corroborated it, and this field requires an authority and a date -- so writing one from an unattributed note would have manufactured exactly the unverifiable ratification the `ratified-in` guard exists to report, in the table that reports it. **THE GAP IS REAL AND MEASURED**: `body` is declared in the model and carried through canon while `issues add` took `<TITLE>` and `--severity` only, so an issue's prose had no create path at all and was authored by editing the file -- a route that stops existing under the disk-optional model. Most issues on this estate carry a non-empty body. **`--body` AND `--from` TOGETHER REFUSE**: both name the same field, so a precedence rule would resolve the ambiguity silently in favour of whichever the implementer tested first."
             },
             {
-              "spellings": ["--from"],
+              "spellings": [
+                "--from"
+              ],
               "type": "string",
               "help": "Read the issue's prose from a file",
               "value": "<file>",
@@ -3408,7 +3614,9 @@
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only -- **PLUS a direct observation of the success path**: `intent issues add --severity medium <title>`, run 2026-08-17 to file issue 0050, which printed the two lines above. **The success path had to be added because the matrix could not have reached it** (cc, 2026-08-17, reading v2 for Machine 4): `add` requires a title, none of the four probes supplies one, and the row nevertheless declared a `stdout`. **An `evidence_class` names a METHOD, and a row can carry a field that method never touched** -- the class was honest and the coverage was assumed. Three rows in this table had that shape; `wp list` and `critic` are the others and both are now measured. See the `METHOD` entry in `coverage_findings`."
             }
           },
-          "aliases": ["issues new"],
+          "aliases": [
+            "issues new"
+          ],
           "target": {
             "state": "corrected",
             "ratification": "ic, 2026-08-17 -- CONSEQUENCE OF AN EXISTING RULING, NOT A NEW ONE. The flat issue canon is already ratified in `data-model.md:258` and built in `store.rs:179`, so line 1's path CANNOT reproduce v2's and the deviation is forced by the model rather than chosen -- the same footing as `ac rescope`. Recording the row as `as-observed` asserted a parity that the data model had already made impossible. **This ratifies the LAYOUT half only.** The absoluteness (0060) is a defect and stays one; when it is fixed, line 1 becomes `created: intent/issues/<NNNN>.json`, the row collapses from two deviations to one, and it becomes expressible in the schema that exists today. Fixing 0060 first is therefore the cheaper order. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, on the flat-canon decision recorded at `data-model.md:258` and built at `store.rs:179` -- NOT parity.md, which does not cite this row. Authority, date and an external record, per vc's `ratified_in` grammar.",
@@ -3440,7 +3648,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--body"],
+              "spellings": [
+                "--body"
+              ],
               "type": "string",
               "help": "The issue's prose, inline",
               "value": "<text>",
@@ -3448,7 +3658,9 @@
               "disposition_basis": "New with the verb. `issues add` carries the same spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today."
             },
             {
-              "spellings": ["--from"],
+              "spellings": [
+                "--from"
+              ],
               "type": "string",
               "help": "Read the issue's prose from a file",
               "value": "<file>",
@@ -3458,7 +3670,9 @@
               "note": "narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body"
             },
             {
-              "spellings": ["--title"],
+              "spellings": [
+                "--title"
+              ],
               "type": "string",
               "help": "The issue's title",
               "value": "<text>",
@@ -3468,7 +3682,9 @@
               "note": "withheld on the same AUTHORSHIP ground as the verb itself: a title is text a human wrote, and an agent replacing it is the act no ruling grants. Deliberately NOT bundled with --severity, which is a classification over an enumerated domain rather than authored prose -- landing them as one pair would settle the authorship question by accident. cc holds the disposition for hv."
             },
             {
-              "spellings": ["--severity"],
+              "spellings": [
+                "--severity"
+              ],
               "type": "enum",
               "help": "Severity",
               "value": "critical|high|medium|low",
@@ -3511,14 +3727,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit as JSON instead of prose",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md|json",
               "default": "terminal",
@@ -3603,7 +3823,11 @@
             "no_op": "`ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **The other of v2's two no-op arms, and the one hv's self-loop ruling cites.** It is also the only one that is a genuine no-op rather than a repeated write.",
             "stdout_exact": {
               "setup": [],
-              "argv": ["issues", "close", "0001"],
+              "argv": [
+                "issues",
+                "close",
+                "0001"
+              ],
               "template": "ok: issue 0001 -> CLOSED",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
             }
@@ -3652,15 +3876,27 @@
             ],
             "stdout": "`ok: issue <ID> -> OPEN` on a move, `ok: issue <ID> already OPEN` on the self-loop",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": ["Moves the issue directory back"],
+            "side_effects": [
+              "Moves the issue directory back"
+            ],
             "evidence_class": {
               "class": "measured",
               "why": "driven against v2.19.0 on PATH 2026-08-17 and the exact stdout recorded in `stdout_exact`, which a test executes"
             },
             "no_op": "`ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283) -- the same `move_issue` arm, mirrored.",
             "stdout_exact": {
-              "setup": [["issues", "close", "0001"]],
-              "argv": ["issues", "open", "0001"],
+              "setup": [
+                [
+                  "issues",
+                  "close",
+                  "0001"
+                ]
+              ],
+              "argv": [
+                "issues",
+                "open",
+                "0001"
+              ],
               "template": "ok: issue 0001 -> OPEN",
               "source": "v2.19.0 on PATH, measured 2026-08-17 (ic)"
             }
@@ -3761,14 +3997,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md|json",
               "default": "terminal",
@@ -3841,14 +4081,18 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|md|json",
               "default": "terminal",
@@ -3910,7 +4154,9 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": ["Rewrites intent/todo.md"],
+            "side_effects": [
+              "Rewrites intent/todo.md"
+            ],
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -3939,14 +4185,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--flush"],
+              "spellings": [
+                "--flush"
+              ],
               "type": "bool",
               "help": "Advance the DONE watermark to now, clearing the DONE view",
               "disposition": "keep",
               "disposition_basis": "**REINSTATED by hv, 2026-08-26, on seeing what D44 produced: a `todo.md` at Lamplight that was mostly completed items.** hv verbatim: _`The whole point of a todo file is that it shows DOING and TODO work. That is it.`_ and _`I WANT PARITY`_. **The D44 reasoning below was not wrong about the mechanism, only about what to do with it -- and its own quoted sentence argues the other way once read forward: the database holding the complete record is exactly why the FILE does not need to.** What went with the flags was the only BOUND on the DONE bucket, and the display window that replaced it was ruled terminal-only, so the committed view was left carrying every completion ever. The watermark returns as an EVENT rather than a line inside the generated file, which keeps the one defect v2 really had: v2 grepped the instant back out of `todo.md`, so deleting a disposable file resurrected everything ever flushed. Superseded reasoning follows verbatim. RETIRED by D44 (hv, 2026-08-16). Not a deprecation: the operation has no referent in v3. Both flags MUTATED the artefact because in v2 the artefact WAS the record; under D01 the db is the SSOT and `todo.md` is a generated view, so there is nothing to prune and nothing to flush -- only a question of how much of the record to SHOW, which is a display window and is a different flag. hv verbatim: `All of the data is in the db so we can (re)generate whatever we need when we need it.` Reclassified from `keep`, which was correct as a v2 observation and wrong as a v3 target the moment D01 landed."
             },
             {
-              "spellings": ["--prune"],
+              "spellings": [
+                "--prune"
+              ],
               "type": "bool",
               "help": "Emit the DONE items for archiving, then flush",
               "disposition": "keep",
@@ -4248,7 +4498,11 @@
                   "key": "backup.schedule",
                   "type": "string",
                   "default": "daily",
-                  "values": ["hourly", "daily", "weekly"],
+                  "values": [
+                    "hourly",
+                    "daily",
+                    "weekly"
+                  ],
                   "meaning": "Base cadence. The daemon takes a snapshot when the newest one is older than this interval.",
                   "note": "ENUMERATED, NOT A CRON EXPRESSION, and that is a decision rather than a simplification. A cron string is a mini-language embedded in a hand-edited config file -- the shape behind the 0012 quoting scar -- and it is SILENTLY wrong when mistyped rather than refused. D35 fixes the retention tiers at day/week/month, so arbitrary cadences have nowhere to land anyway; a schedule coarser than a tier simply leaves that tier unfilled, which needs no special case."
                 },
@@ -4284,7 +4538,10 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp", "read_or_mutate"],
+            "uncertain": [
+              "exposed_on_mcp",
+              "read_or_mutate"
+            ],
             "why_uncertain": "The only row uncertain on BOTH fields, and the only row whose parity class is already `undefined`. `bin/intent_config` is dispatched to AND sourced as a library, and it carries a default-config writer (`mkdir -p` + `cat >` at :100-102) that I did not trace to the display path. Leaning mutate under the safe direction rather than guessing the call graph."
           },
           "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic, on vc's finding while they were independently verifying my withheld-26 measurement). Was `mutate`, and it was the only row in the table contradicted by its own help string: `Display the resolved project configuration`, zero args, zero flags. **The convention is settled by the other roots and it is not `roots are reads`** -- most family roots are `read`, and `todo`'s `mutate` is CORRECT and documented on its own row, because bare `intent todo` inherits `list`'s generate-on-absent write. So a root is marked on its OWN behaviour rather than the union of its children, `todo` is the counter-example that proves the rule has teeth, and `config` was the only row breaking it. Its children are already the correct pair: `config get` is `read`, `config set` is `mutate`, leaving bare `config` no mutating role to play. **The caveat vc raised and could not resolve, resolved here: this row is `disposition: pending` with `target.state: undefined`, so `mutate` MIGHT have been a forward mark for a bare `config` that becomes an editor.** If it was, nobody recorded it -- and `undefined` means v3 is DESIGNING rather than porting, so the help string IS the design statement and the design displays. A field must not carry a forward mark for a decision that exists nowhere; if the design later makes bare `config` an editor, this field changes WITH that decision and cites it. **Worse today than yesterday, which is why it was sent rather than filed: the D45 reorder makes `read_or_mutate` the field an agent reads FIRST, so a zero-arg display command was being announced to agents as a mutation.** It also inflated a denominator I published -- `51 of 65 shipped mutations are exposed` counted a row that does not mutate."
@@ -4344,7 +4601,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off.",
             "narrowed_basis": "NARROWED 2026-08-31 (hv-directed; recommended by vc as ONE flip, on ic's principle that the flag should track the BINARY and not the roadmap). Live-verified on a CURRENT build, not inferred: this path answers `is a known command that is not implemented yet` at rc=2. Exposed-and-unwired is FALSE TODAY whatever anyone intends to build, and it is the same defect as an exemption justified by how a thing will behave once finished. RE-EXPOSE WITH THE ARM -- the wiring commit flips this back, and that is the whole cost. MEASUREMENT NOTE FOR ANYONE RE-CHECKING: clap's ARGUMENT VALIDATION RUNS BEFORE THE UNWIRED DISPATCH, so a bare drive of a path taking a required argument returns rc=1 `required arguments were not provided` and never reaches the refusal. Argument validation is part of the DECLARATION, not part of the implementation; supply the arguments or the check reads backwards."
           },
@@ -4382,14 +4641,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--with-st0000"],
+              "spellings": [
+                "--with-st0000"
+              ],
               "type": "bool",
               "help": "Bootstrap all ST0000 deliverables after init",
               "disposition": "retire",
               "disposition_basis": "RETIRED 2026-09-11 by hv's decision 3 (ST0058 AC-00.3), in the same commit as `st bootstrap`: it is the same door by a second entrance. It shipped as `keep` with an arm that refused it because the ST0000 bootstrap was not implemented, and that refusal promised the step would work `once the command lands` -- false once the command was struck."
             },
             {
-              "spellings": ["--lang"],
+              "spellings": [
+                "--lang"
+              ],
               "type": "string",
               "help": "Comma- or space-separated languages to install canon for",
               "value": "<list>",
@@ -4397,7 +4660,10 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -4448,7 +4714,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Creating a project is a human's decision about a directory, not a task step."
           },
           "recoverability": "one-way"
@@ -4478,20 +4746,29 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--force", "-f"],
+              "spellings": [
+                "--force",
+                "-f"
+              ],
               "type": "bool",
               "help": "Force recreation of config even if it exists",
               "disposition": "keep"
             },
             {
-              "spellings": ["--quiet", "-q"],
+              "spellings": [
+                "--quiet",
+                "-q"
+              ],
               "type": "bool",
               "help": "Suppress informational output",
               "disposition": "keep",
               "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20; vc ruled the VALUE `keep`, 2026-08-20, refusing a fourth value cc proposed. cc's objection was that the family is unimplemented so neither `pending` nor `keep` is true -- and it asks this field about the wrong subject. `disposition` is a claim about a FLAG: under `keep` the table says the flag is kept and the spine keeps it, which is AGREEMENT. What disagrees with reality is the COMMAND, which already has its own honest report (`is a known command that is not implemented yet`). `pending` would be the only one of the two that states something FALSE to a user, asserting a decision is pending after hv has made it. Before extending a vocabulary, check whether the field is being asked about the right subject."
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -4565,14 +4842,20 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--fix", "-f"],
+              "spellings": [
+                "--fix",
+                "-f"
+              ],
               "type": "bool",
               "help": "Attempt to fix issues automatically",
               "disposition": "retire",
               "disposition_basis": "vc measured bin/intent_doctor:66 -- v2 really implements --fix, so this is a genuine v2 behaviour v3 is deliberately not carrying. That is the distinction `retire` exists to draw, and AC-06.9 was missing it."
             },
             {
-              "spellings": ["--verbose", "-v"],
+              "spellings": [
+                "--verbose",
+                "-v"
+              ],
               "type": "bool",
               "help": "Show detailed information",
               "disposition": "keep",
@@ -4580,7 +4863,10 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--quiet", "-q"],
+              "spellings": [
+                "--quiet",
+                "-q"
+              ],
               "type": "bool",
               "help": "Only show errors and warnings",
               "disposition": "keep",
@@ -4588,7 +4874,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "help": "Output format",
               "value": "text|json",
@@ -4598,7 +4886,9 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--scope"],
+              "spellings": [
+                "--scope"
+              ],
               "type": "enum",
               "help": "Which threads to report on",
               "value": "live|all|closed",
@@ -4608,7 +4898,10 @@
               "exposed_on_mcp": false
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -4692,7 +4985,10 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -4766,7 +5062,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Preview changes without making them",
               "note": "OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default",
@@ -4774,7 +5072,10 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -4896,7 +5197,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--template"],
+              "spellings": [
+                "--template"
+              ],
               "type": "string",
               "help": "Initial content from a named template",
               "value": "<name>",
@@ -5043,7 +5346,10 @@
               "type": "subcommand",
               "arity": "0..1",
               "default": "list",
-              "values": ["list", "show"]
+              "values": [
+                "list",
+                "show"
+              ]
             },
             {
               "name": "name",
@@ -5192,7 +5498,13 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["list", "install", "sync", "uninstall", "show"]
+              "values": [
+                "list",
+                "install",
+                "sync",
+                "uninstall",
+                "show"
+              ]
             },
             {
               "name": "name",
@@ -5202,20 +5514,27 @@
           ],
           "flags": [
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Show full descriptions in `list`",
               "disposition": "keep"
             },
             {
-              "spellings": ["--force", "-f"],
+              "spellings": [
+                "--force",
+                "-f"
+              ],
               "type": "bool",
               "help": "Overwrite an agent manifest that already exists",
               "disposition": "keep",
               "measured_late_and_the_reason_is_the_finding": "**ADDED BY ic 2026-08-23 ON cc's REPORT, AND ic's VERIFICATION MOVED IT TO THE OTHER CAUSE.** cc reported this row as the sourced-library case -- `intent_claude_subagents` sources `claude_plugin_helpers.sh`, which parses `--force|-f` at `:273`, `:356` and `:471`. **It does source it, and it ALSO parses `--force` in its own file at `:140`**, so a per-command scan had something to find here and did not find it. **That puts this row with `claude upgrade` rather than with `claude skills`: the obvious explanation does not cover it, which is the case cc called the more worrying one -- and it is more than one of the rows.** The likely discriminator is the IDIOM: `:140` spells it `elif [ \"$arg\" = \"--force\" ] || [ \"$arg\" = \"-f\" ]`, while every row the census DID find uses a `case` arm (`--force|-f)`). **A scan keyed to one parse idiom reports a true answer about the idiom and a false one about the flag.** Stated as the LIKELY cause and not a measured one: ic did not read the census instrument, only the spellings it did and did not catch."
             },
             {
-              "spellings": ["--all"],
+              "spellings": [
+                "--all"
+              ],
               "type": "bool",
               "help": "Every unit this install carries (install) or has installed (uninstall)",
               "disposition": "keep",
@@ -5275,7 +5594,13 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["list", "install", "sync", "uninstall", "show"]
+              "values": [
+                "list",
+                "install",
+                "sync",
+                "uninstall",
+                "show"
+              ]
             },
             {
               "name": "name",
@@ -5285,13 +5610,18 @@
           ],
           "flags": [
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Show full descriptions in `list`",
               "disposition": "keep"
             },
             {
-              "spellings": ["--force", "-f"],
+              "spellings": [
+                "--force",
+                "-f"
+              ],
               "type": "bool",
               "help": "Overwrite a skill that was changed here, and report the checksum of what was discarded",
               "disposition": "keep",
@@ -5299,14 +5629,18 @@
               "not_wired_to_uninstall_and_that_is_a_DECISION": "**v2's `plugin_uninstall --force` skips an interactive confirmation prompt (`:493`) and nothing else.** v3 does not prompt at all -- prompting is a property of the terminal skin rather than of the operation (IN-AG-THIN-COORD-001, recorded on `Outcome::AlreadyInstalled`) -- so there is no prompt for a flag to skip. **Named here rather than left as an omission**, because a flag silently absent from one verb of three reads as an oversight forever."
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Show what would change, no writes",
               "disposition": "keep",
               "measured_late_and_the_reason_is_the_finding": "**ADDED BY dc 2026-09-04 ON hv's COMMISSION** -- hv asked whether `skills sync` had a `--dry-run` and it did not, which gated hv running the sync at all. **THE HELP STRING IS TAKEN VERBATIM FROM `st bootstrap` RATHER THAN AUTHORED** (ic, who drove the precedent): four `--dry-run` rows existed saying three different things, and `st bootstrap` is the only LIVE one -- entry disposition keep, flag disposition keep. A fifth row saying a fourth thing is the drift Highlander is about. **`keep` IS RIGHT ON THE FLAG VOCABULARY'S OWN TERMS AND NOT BY ELIMINATION** (ic): `flag_dispositions` is keep/retire/pending/intrinsic and its axis is DOES-IT-SHIP and WHO-READS-IT, not provenance -- only `retire` mentions v2, and it must, because a retired flag is by definition a v2 artefact. `new-surface` is not a declared flag disposition at all. **DECLARED AT THE FAMILY LEVEL, FOLLOWING `--force`, BECAUSE THERE IS NO `claude skills sync` ENTRY TO HANG IT ON** -- the family has exactly one entry and per-verb applicability would mean minting new entry rows, which is a change to the table's SHAPE and wants its own ruling. The renderer therefore REFUSES it on the verbs that cannot honour it rather than ignoring it: a `--dry-run` silently performing a write is the worst available failure for this flag. **THE ROW AND THE RENDERER ARM LANDED IN ONE COMMIT, DELIBERATELY:** `spine.rs:624` declares table flags onto clap, so a row landing first does not fail -- it PARSES, and the run writes."
             },
             {
-              "spellings": ["--all"],
+              "spellings": [
+                "--all"
+              ],
               "type": "bool",
               "help": "Every unit this install carries (install) or has installed (uninstall)",
               "disposition": "keep",
@@ -5368,7 +5702,12 @@
               "type": "subcommand",
               "arity": "0..1",
               "default": "list",
-              "values": ["list", "show", "validate", "index"]
+              "values": [
+                "list",
+                "show",
+                "validate",
+                "index"
+              ]
             },
             {
               "name": "id",
@@ -5378,7 +5717,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--lang"],
+              "spellings": [
+                "--lang"
+              ],
               "type": "string",
               "help": "Filter to one language",
               "value": "<lang>",
@@ -5419,7 +5760,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["read_or_mutate"],
+            "uncertain": [
+              "read_or_mutate"
+            ],
             "why_uncertain": "Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`."
           },
           "recoverability": "idempotent",
@@ -5467,7 +5810,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate."
           },
           "recoverability": "idempotent",
@@ -5479,20 +5824,26 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--apply"],
+              "spellings": [
+                "--apply"
+              ],
               "type": "bool",
               "help": "Write the canon; without it the command reports only",
               "disposition": "keep"
             },
             {
-              "spellings": ["--force"],
+              "spellings": [
+                "--force"
+              ],
               "type": "bool",
               "help": "Overwrite user-edited canon files (CLAUDE.md without the marker, .claude/settings.json without Intent's hook door, and .intent_critic.yml)",
               "disposition": "keep",
               "measured_late_and_the_reason_is_the_finding": "**ADDED BY ic 2026-08-23 ON cc's REPORT, CITATION VERIFIED EXACTLY.** `intent/plugins/claude/bin/intent_claude_upgrade:116` is the `--force)` parse arm and `:72` is its own `--help` line, both as cc cited them. **This row is the case where the obvious explanation fails: the flag is in the command's OWN file, in the SAME `case` idiom every correctly-declared row uses, and the census still missed it.** So _a flag reached through a sourced library is invisible to a per-command scan_ is true and is not sufficient. **AND ic NEARLY REPORTED cc's CITATION AS FABRICATED: I looked for `bin/intent_claude_upgrade`, found it absent from this repo AND from the frozen v2 checkout, and was one step from saying so. The file is at `intent/plugins/claude/bin/`.** My check was scoped to the wrong directory and produced a confident absence -- the same shape as the scan defect this row records, committed while verifying it, and it would have accused a peer."
             },
             {
-              "spellings": ["--skip-settings"],
+              "spellings": [
+                "--skip-settings"
+              ],
               "type": "bool",
               "help": "Leave .claude/settings.json alone, so no Claude Code session hooks are wired",
               "disposition": "keep",
@@ -5581,7 +5932,12 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["new", "list", "archive", "hygiene"]
+              "values": [
+                "new",
+                "list",
+                "archive",
+                "hygiene"
+              ]
             },
             {
               "name": "wsid",
@@ -5707,7 +6063,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--files"],
+              "spellings": [
+                "--files"
+              ],
               "type": "string",
               "help": "Explicit file list",
               "value": "<path>",
@@ -5716,13 +6074,17 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--staged"],
+              "spellings": [
+                "--staged"
+              ],
               "type": "bool",
               "help": "Scan files in the git staging area (pre-commit mode)",
               "disposition": "keep"
             },
             {
-              "spellings": ["--severity-min"],
+              "spellings": [
+                "--severity-min"
+              ],
               "type": "enum",
               "help": "Minimum severity to report",
               "value": "<lvl>",
@@ -5731,7 +6093,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "help": "Output format",
               "value": "text|json",
@@ -5739,21 +6103,28 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--rules"],
+              "spellings": [
+                "--rules"
+              ],
               "type": "string",
               "help": "Alternative rules root, overriding canon discovery",
               "value": "<dir>",
               "disposition": "keep"
             },
             {
-              "spellings": ["--languages"],
+              "spellings": [
+                "--languages"
+              ],
               "type": "bool",
               "help": "List languages with a headless code critic, one per line, and exit",
               "note": "consumed by the pre-commit gate so the gate and the runner cannot drift",
               "disposition": "keep"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -6043,7 +6414,9 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": ["lang rm"],
+          "aliases": [
+            "lang rm"
+          ],
           "target": {
             "state": "corrected",
             "ratification": "vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across the estates: every one byte-identical to its template, none referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: \"If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`.\"",
@@ -6070,7 +6443,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--check"],
+              "spellings": [
+                "--check"
+              ],
               "type": "bool",
               "help": "Report without writing; exit 1 if any entry is missing or stale",
               "disposition": "retire",
@@ -6181,7 +6556,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--symlink"],
+              "spellings": [
+                "--symlink"
+              ],
               "type": "string",
               "help": "Create a symlink to usage-rules.md in the current or specified directory",
               "value": "[dir]",
@@ -6275,7 +6652,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--category"],
+              "spellings": [
+                "--category"
+              ],
               "type": "enum",
               "help": "Which kind of learning",
               "value": "<cat>",
@@ -6284,7 +6663,9 @@
               "disposition": "keep"
             },
             {
-              "spellings": ["--list"],
+              "spellings": [
+                "--list"
+              ],
               "type": "bool",
               "help": "Show all learnings",
               "disposition": "keep"
@@ -6400,7 +6781,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--register"],
+              "spellings": [
+                "--register"
+              ],
               "type": "bool",
               "help": "Interactively register unregistered modules",
               "note": "**RETIRED, AND THE GROUND IS THAT IT DOES NOTHING -- not that it is interactive.** Driven against the frozen v2.19.0 install on a fixture holding one unregistered file, with stdin CLOSED: `intent modules check --register` RETURNED (it does not block), left `intent/llm/MODULES.md` BYTE-IDENTICAL, and added exactly one line of output -- `hint: add these to intent/llm/MODULES.md in the appropriate section`. `cmd_check`'s register arm is an `echo` and there is no write primitive in the file. **So its own help string -- `Interactively register unregistered modules` -- is false in both words, and THIS NOTE INHERITED THE FALSEHOOD**: it read `INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use`, which was reasoned from the help text rather than measured, and made the surface's only claimed interactive path a thing that never was one. **The retirement was queued on issue 0071's ground (v2 `upgrade` blocking on an interactive read with no TTY, and a headless fleet), and that ground was wrong about THIS flag** -- 0071 is about `upgrade`, which really does block. The conclusion survived its reason, which is the direction that leaves no corpse. v3 ships no flag; `check`'s own output already names every unregistered file, which is the whole of what `--register` added.",
@@ -6513,7 +6896,9 @@
       "v2_source": "bin/intent_plugin",
       "v2_help_file": null,
       "owner_wp": "WP-06",
-      "family_notes": ["Runs outside a project (measured: exit 0)."],
+      "family_notes": [
+        "Runs outside a project (measured: exit 0)."
+      ],
       "entries": [
         {
           "path": "plugin",
@@ -6829,19 +7214,25 @@
           ],
           "flags": [
             {
-              "spellings": ["--skill"],
+              "spellings": [
+                "--skill"
+              ],
               "type": "bool",
               "help": "Scaffold a skill extension",
               "disposition": "keep"
             },
             {
-              "spellings": ["--subagent"],
+              "spellings": [
+                "--subagent"
+              ],
               "type": "bool",
               "help": "Scaffold a subagent extension",
               "disposition": "keep"
             },
             {
-              "spellings": ["--rule-pack"],
+              "spellings": [
+                "--rule-pack"
+              ],
               "type": "bool",
               "help": "Scaffold a rule-pack extension",
               "disposition": "keep"
@@ -6929,7 +7320,10 @@
           ],
           "flags": [
             {
-              "spellings": ["--depth", "-d"],
+              "spellings": [
+                "--depth",
+                "-d"
+              ],
               "type": "integer",
               "help": "How deep to descend",
               "value": "<n>",
@@ -6937,35 +7331,45 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--check"],
+              "spellings": [
+                "--check"
+              ],
               "type": "bool",
               "help": "Report without writing",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Preview",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--force"],
+              "spellings": [
+                "--force"
+              ],
               "type": "bool",
               "help": "Regenerate even if current",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--prune"],
+              "spellings": [
+                "--prune"
+              ],
               "type": "bool",
               "help": "Remove stale index entries",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--model"],
+              "spellings": [
+                "--model"
+              ],
               "type": "string",
               "help": "Model to summarise with",
               "value": "<name>",
@@ -6973,7 +7377,10 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -7065,28 +7472,40 @@
           ],
           "flags": [
             {
-              "spellings": ["--check", "-C"],
+              "spellings": [
+                "--check",
+                "-C"
+              ],
               "type": "bool",
               "help": "Mark checked",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--uncheck", "-U"],
+              "spellings": [
+                "--uncheck",
+                "-U"
+              ],
               "type": "bool",
               "help": "Mark unchecked",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--toggle", "-X"],
+              "spellings": [
+                "--toggle",
+                "-X"
+              ],
               "type": "bool",
               "help": "Flip the mark",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--file", "-f"],
+              "spellings": [
+                "--file",
+                "-f"
+              ],
               "type": "string",
               "help": "Target file",
               "value": "<path>",
@@ -7094,7 +7513,10 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--index", "-i"],
+              "spellings": [
+                "--index",
+                "-i"
+              ],
               "type": "string",
               "help": "Index file",
               "value": "<path>",
@@ -7102,7 +7524,9 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--index-dir"],
+              "spellings": [
+                "--index-dir"
+              ],
               "type": "string",
               "help": "Index directory",
               "value": "<path>",
@@ -7110,7 +7534,9 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--intent-dir"],
+              "spellings": [
+                "--intent-dir"
+              ],
               "type": "string",
               "help": "Intent directory",
               "value": "<path>",
@@ -7118,28 +7544,37 @@
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--no-intent"],
+              "spellings": [
+                "--no-intent"
+              ],
               "type": "bool",
               "help": "Operate without an Intent project",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["-r"],
+              "spellings": [
+                "-r"
+              ],
               "type": "bool",
               "help": "Recurse",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Verbose",
               "disposition": "retire",
               "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
@@ -7205,7 +7640,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work.",
             "narrowed_basis": "NARROWED 2026-08-31 (hv-directed; recommended by vc as ONE flip, on ic's principle that the flag should track the BINARY and not the roadmap). Live-verified on a CURRENT build, not inferred: this path answers `is a known command that is not implemented yet` at rc=2. Exposed-and-unwired is FALSE TODAY whatever anyone intends to build, and it is the same defect as an exemption justified by how a thing will behave once finished. RE-EXPOSE WITH THE ARM -- the wiring commit flips this back, and that is the whole cost. MEASUREMENT NOTE FOR ANYONE RE-CHECKING: clap's ARGUMENT VALIDATION RUNS BEFORE THE UNWIRED DISPATCH, so a bare drive of a path taking a required argument returns rc=1 `required arguments were not provided` and never reaches the refusal. Argument validation is part of the DECLARATION, not part of the implementation; supply the arguments or the check reads backwards."
           },
@@ -7322,26 +7759,34 @@
               "name": "command",
               "type": "subcommand",
               "arity": "0..1",
-              "values": ["install"]
+              "values": [
+                "install"
+              ]
             }
           ],
           "flags": [
             {
-              "spellings": ["--audit-only"],
+              "spellings": [
+                "--audit-only"
+              ],
               "type": "bool",
               "help": "Show gap analysis only, no changes",
               "disposition": "retire",
               "disposition_basis": "The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built."
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Show what would change, no writes",
               "disposition": "retire",
               "disposition_basis": "The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built."
             },
             {
-              "spellings": ["--deliverable"],
+              "spellings": [
+                "--deliverable"
+              ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>",
@@ -7512,7 +7957,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--at-login"],
+              "spellings": [
+                "--at-login"
+              ],
               "type": "bool",
               "help": "Also enrol the daemon to start at login (start) / unenrol it (stop)",
               "disposition": "keep"
@@ -7538,7 +7985,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--at-login"],
+              "spellings": [
+                "--at-login"
+              ],
               "type": "bool",
               "help": "Also enrol the daemon to start at login (start) / unenrol it (stop)",
               "disposition": "keep"
@@ -7558,32 +8007,34 @@
           "recoverability": "reversible",
           "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR SEVERAL VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable."
         },
-        {
-          "path": "daemon restart",
-          "help": "Restart intentd: stop it, then start it",
-          "args": [],
-          "flags": [],
-          "v2": "new-surface",
-          "basis": "hv, 2026-09-08, on hitting `error: unrecognized subcommand 'restart'` while `app restart` shipped. **THE RULING IS `app restart`'s, APPLIED RATHER THAN RE-DECIDED**: a STOPPED daemon restarts rather than refusing, because someone typing `restart` at a daemon that is not running means start, and refusing would be correct about the word and useless about the intent. Two sibling verbs resolving one question two ways is the surface Highlander problem, and there was no reason to open it twice. **IT COMPOSES `stop` THEN `start` RATHER THAN ASKING THE DAEMON TO RELAUNCH ITSELF**: `stop` tries the wire first and falls back to SIGTERM, so a WEDGED daemon is still recovered -- which is the case the verb mostly exists for, and a self-relaunch would need the very process that is not answering. **NEITHER HALF TAKES `--at-login`**: that flag enrols or unenrols the launch agent, which is a different act from bouncing the process, so a restart leaves enrolment exactly as it found it. **THE GAP WAS CONCEALED BY A COMMENT ASSERTING IT DID NOT EXIST** -- `fn app`'s doc read _the two long-running things now have the same four verbs_ while `app` had `restart` and `daemon` did not, and the app's own `DaemonService.swift:67` had documented the stop-then-start workaround for weeks. A comment describing a symmetry is a claim, and nothing tested it.",
-          "target": {
-            "state": "new-surface"
-          },
-          "disposition": "new-surface",
-          "exposed_on_mcp": false,
-          "read_or_mutate": "mutate",
-          "mcp_review": {
-            "note": "Machine-level process control. See `daemon start`."
-          },
-          "recoverability": "reversible",
-          "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, FOR THIS FAMILY'S STATED REASON RATHER THAN A NEW ONE. See `daemon run`'s anomaly, which sets it out in full: the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it, and these are undoable -- each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL. **`restart` is the strongest instance of that in the family**: it is the only verb here whose SUCCESS PATH deliberately kills a process an agent may itself be talking to, and it republishes the loopback address in doing so, so a tool-tier caller could sever its own transport and every other client's mid-call. Undoable does not mean harmless."
+      {
+        "path": "daemon restart",
+        "help": "Restart intentd: stop it, then start it",
+        "args": [],
+        "flags": [],
+        "v2": "new-surface",
+        "basis": "hv, 2026-09-08, on hitting `error: unrecognized subcommand 'restart'` while `app restart` shipped. **THE RULING IS `app restart`'s, APPLIED RATHER THAN RE-DECIDED**: a STOPPED daemon restarts rather than refusing, because someone typing `restart` at a daemon that is not running means start, and refusing would be correct about the word and useless about the intent. Two sibling verbs resolving one question two ways is the surface Highlander problem, and there was no reason to open it twice. **IT COMPOSES `stop` THEN `start` RATHER THAN ASKING THE DAEMON TO RELAUNCH ITSELF**: `stop` tries the wire first and falls back to SIGTERM, so a WEDGED daemon is still recovered -- which is the case the verb mostly exists for, and a self-relaunch would need the very process that is not answering. **NEITHER HALF TAKES `--at-login`**: that flag enrols or unenrols the launch agent, which is a different act from bouncing the process, so a restart leaves enrolment exactly as it found it. **THE GAP WAS CONCEALED BY A COMMENT ASSERTING IT DID NOT EXIST** -- `fn app`'s doc read _the two long-running things now have the same four verbs_ while `app` had `restart` and `daemon` did not, and the app's own `DaemonService.swift:67` had documented the stop-then-start workaround for weeks. A comment describing a symmetry is a claim, and nothing tested it.",
+        "target": {
+          "state": "new-surface"
         },
+        "disposition": "new-surface",
+        "exposed_on_mcp": false,
+        "read_or_mutate": "mutate",
+        "mcp_review": {
+          "note": "Machine-level process control. See `daemon start`."
+        },
+        "recoverability": "reversible",
+      "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, FOR THIS FAMILY'S STATED REASON RATHER THAN A NEW ONE. See `daemon run`'s anomaly, which sets it out in full: the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it, and these are undoable -- each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL. **`restart` is the strongest instance of that in the family**: it is the only verb here whose SUCCESS PATH deliberately kills a process an agent may itself be talking to, and it republishes the loopback address in doing so, so a tool-tier caller could sever its own transport and every other client's mid-call. Undoable does not mean harmless."
+      },
         {
           "path": "daemon status",
           "help": "Report whether intentd is running, and the address it answers on",
           "args": [],
           "flags": [
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "value": "terminal|json",
               "default": "terminal",
@@ -7777,13 +8228,17 @@
       ],
       "flags": [
         {
-          "spellings": ["--to-disk"],
+          "spellings": [
+            "--to-disk"
+          ],
           "type": "bool",
           "help": "Write the store out to the committed extract",
           "disposition": "keep"
         },
         {
-          "spellings": ["--to-store"],
+          "spellings": [
+            "--to-store"
+          ],
           "type": "bool",
           "help": "Read the committed extract into the store, through the API gate",
           "disposition": "keep",
@@ -7806,7 +8261,9 @@
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. **The stated closing condition was TESTED and DID NOT FIRE**: it said _if the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close_, and `boundary_ruled` draws it the other way -- `sync` is routine reconciliation of a self-produced artefact and `ingest` is the recovery path. So the lean STAYS OPEN, and it stays open because a condition was checked rather than because nobody came back to it. Recorded rather than deleted: a closing condition that was evaluated and not met is a different fact from one still pending."
       },
       "recoverability": "idempotent",
@@ -7835,7 +8292,9 @@
       "read_or_mutate": "read",
       "flags": [
         {
-          "spellings": ["--versions"],
+          "spellings": [
+            "--versions"
+          ],
           "type": "bool",
           "help": "Print each face's INTENT_VER and SCHEMA_<TYPE>_VER instead of the face bodies",
           "disposition": "keep",
@@ -7852,7 +8311,9 @@
       "help": "Extract the store into a portable format usable without Intent",
       "flags": [
         {
-          "spellings": ["--format"],
+          "spellings": [
+            "--format"
+          ],
           "type": "string",
           "value": "<fmt>",
           "disposition": "keep"
@@ -7881,7 +8342,9 @@
       "help": "Check that an estate's markdown would migrate, naming each residue line; writes nothing (`upgrade` migrates)",
       "flags": [
         {
-          "spellings": ["--from-md"],
+          "spellings": [
+            "--from-md"
+          ],
           "type": "bool",
           "disposition": "retire",
           "disposition_basis": "RULED `retire` BY vc, 2026-09-09, REVERSING THEIR OWN `keep` OF 2026-08-15 BECAUSE ITS PREMISE IS MEASURABLY GONE. That ruling held that withdrawal would put this table in contradiction with a ratified row, and routed ic's objection to AC-10.2/10.3 where its acceptance lands. Driven 2026-09-09: **AC-10.2 and AC-10.3 contain ZERO occurrences of this flag** -- AC-10.2 ratifies that Phase A residue yields BLOCKED with a per-line classed report, AC-10.3 that a clean estate converts in one commit. **Both ratify the ingest capability's BEHAVIOUR; neither ratifies the flag's EXISTENCE**, which is the same two-fields error this table documents elsewhere: `disposition` asks whether the thing survives, `target.state` asks what v3 does. The five citations across four artefacts that carried the other leg are gone from the live tree. **ic's SUBSTANTIVE OBJECTION WAS RIGHT AND WAS OVERRULED ON A PROCEDURAL GROUND THAT HAS SINCE EVAPORATED**: this is a mode flag with ONE mode, because the other thing bare `ingest` could have meant -- rebuilding the store from committed canon -- is already `sync --from-disk`. Wiring the verb turned that judgement into a measurement and it came out ic's way. **NOT `intrinsic`, EXPLICITLY.** That value glosses as ships-and-clap-supplies-it, which is `--help` and `--version`; clap does not supply a domain flag, and relabelling this one would make the row green by describing the flag as something it is not -- the advertised-and-inert lie AC-06.8 exists to stop. **AND NOT WIRED-THEN-IGNORED**: reading a bool that cannot change behaviour satisfies the check in form and commits the defect in substance. **THE GLOSS FITS IMPERFECTLY AND THAT IS RECORDED RATHER THAN PAPERED OVER.** `retire`'s operative half -- never reaches clap -- is exactly right; its gloss also says recorded from v2, and this flag is new-in-v3. vc declined to mint a fifth vocabulary value, because minting one is a ratification act and would risk legitimising a category for flags that ship and are never read. The gloss wording is with hv as tidy-up, not as a blocker.",
@@ -7911,7 +8374,9 @@
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs."
       },
       "recoverability": "one-way"
@@ -7921,7 +8386,9 @@
       "help": "Snapshot this machine's store -- prunes expired snapshots; one-way, no restore verb ships",
       "flags": [
         {
-          "spellings": ["--list"],
+          "spellings": [
+            "--list"
+          ],
           "type": "bool",
           "help": "List retained snapshots and when each was taken",
           "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed.",
@@ -7944,7 +8411,9 @@
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list."
       },
       "recoverability": "one-way",
@@ -7974,7 +8443,9 @@
       "args": [],
       "flags": [
         {
-          "spellings": ["--apply"],
+          "spellings": [
+            "--apply"
+          ],
           "type": "bool",
           "help": "Perform the reconciliation. Without it, organize previews and touches nothing",
           "disposition": "keep",
@@ -7983,7 +8454,9 @@
           "counter_argument_recorded_unsupported": "`organize` is meant to be routine and idempotent, so a required flag trains reflexive typing. The usual answer -- a settled estate plans EMPTY, so the flag is only typed when there is something to do -- **does not hold on this estate today**, where 544 removals sit planned behind the AC-00.1 ship gate. It will hold once the preconditions land. ic recorded it as UNSUPPORTED rather than dismissing it, and offered to re-open on argument; dc did not take that up, because the three grounds above are about the day the gate opens and the reflex argument is about every other day."
         },
         {
-          "spellings": ["--default"],
+          "spellings": [
+            "--default"
+          ],
           "type": "bool",
           "help": "Write .intentfiles from status when it is absent: one STEELTHREAD line per WIP thread",
           "disposition": "keep",
@@ -7992,7 +8465,9 @@
           "note": "narrowed off MCP as terminal-channel: --default is a different operation (declaration regeneration) whose write half is gated on a terminal confirmation via --force; the MCP tool serves reconciliation only"
         },
         {
-          "spellings": ["--force"],
+          "spellings": [
+            "--force"
+          ],
           "type": "bool",
           "help": "With --default, regenerate an existing .intentfiles from status. Refuses without a tty; asks for confirmation on one",
           "disposition": "keep",
@@ -8000,22 +8475,28 @@
           "exposed_on_mcp": false,
           "note": "narrowed off MCP as terminal-channel: it qualifies --default and its whole meaning is the terminal confirmation step"
         },
-        {
-          "spellings": ["--verbose", "-v"],
-          "type": "bool",
-          "help": "List the unclaimed inventory as well as the summary",
-          "disposition": "keep",
-          "disposition_basis": "**NEW IN v3 WITH NO v2 ANTECEDENT, AND THE ABSENCE IS MEASURED RATHER THAN ASSUMED**: `bin/intent_organize` parses no verbosity flag at all (0 hits for the verbose/quiet pattern, against 43 for the same pattern in `bin/intent_doctor`, which is the positive control that makes the 0 mean something). So nothing is carried across here and the shape is chosen to match the sibling verb rather than to preserve a behaviour. **THE DEFECT IT ANSWERS, MEASURED BY vc across the fleet 2026-09-07**: `organize` prints pages against `doctor`'s screenful, and Lamplight alone is 2100 of which 2072 are `unclaimed:` -- one per directory, already grouped, under a summary line that already carries the file count AND a digest of the membership. **SCOPE OF THE MOVE**: only the unclaimed inventory goes behind `--verbose`. The per-path record of what was hydrated, rewritten, removed or pruned stays at the default, because removals are this verb's subject and `--apply` exists precisely because a build once advertised its destructive half and did not show it. Refusals print at every verbosity. **RATIFICATION**: hv ruled narrow-by-default with a flag to widen for `doctor --scope` on 2026-09-07; this applies that ruled principle to a sibling verb by analogy. It is NOT ruled for `organize` specifically and is reversible in one word.",
-          "exposed_on_mcp": false
-        },
-        {
-          "spellings": ["--quiet", "-q"],
-          "type": "bool",
-          "help": "Only the summary line and refusals",
-          "disposition": "keep",
-          "disposition_basis": "**THE SIBLING HALF OF `--verbose` ON THIS ENTRY; READ ITS BASIS FOR THE MEASUREMENT AND THE RATIFICATION.** Row-specific: **QUIET WINS OVER VERBOSE** when both are given, which is the rule `doctor` already applies (carried there from `bin/intent_doctor:134`). Two sibling verbs answering one question two ways is the surface Highlander problem, so the rule is adopted rather than re-decided. **THE SUMMARY LINE SURVIVES `--quiet`**, deliberately and for `doctor`'s stated reason: a quiet clean run that printed nothing at all would be indistinguishable from the command never having run. **REFUSALS SURVIVE IT TOO** -- they move the exit code on the apply path, and a quiet flag that could hide a refused removal would be hiding the one thing an operator must see.",
-          "exposed_on_mcp": false
-        }
+          {
+            "spellings": [
+              "--verbose",
+              "-v"
+            ],
+            "type": "bool",
+            "help": "List the unclaimed inventory as well as the summary",
+            "disposition": "keep",
+            "disposition_basis": "**NEW IN v3 WITH NO v2 ANTECEDENT, AND THE ABSENCE IS MEASURED RATHER THAN ASSUMED**: `bin/intent_organize` parses no verbosity flag at all (0 hits for the verbose/quiet pattern, against 43 for the same pattern in `bin/intent_doctor`, which is the positive control that makes the 0 mean something). So nothing is carried across here and the shape is chosen to match the sibling verb rather than to preserve a behaviour. **THE DEFECT IT ANSWERS, MEASURED BY vc across the fleet 2026-09-07**: `organize` prints pages against `doctor`'s screenful, and Lamplight alone is 2100 of which 2072 are `unclaimed:` -- one per directory, already grouped, under a summary line that already carries the file count AND a digest of the membership. **SCOPE OF THE MOVE**: only the unclaimed inventory goes behind `--verbose`. The per-path record of what was hydrated, rewritten, removed or pruned stays at the default, because removals are this verb's subject and `--apply` exists precisely because a build once advertised its destructive half and did not show it. Refusals print at every verbosity. **RATIFICATION**: hv ruled narrow-by-default with a flag to widen for `doctor --scope` on 2026-09-07; this applies that ruled principle to a sibling verb by analogy. It is NOT ruled for `organize` specifically and is reversible in one word.",
+            "exposed_on_mcp": false
+          },
+          {
+            "spellings": [
+              "--quiet",
+              "-q"
+            ],
+            "type": "bool",
+            "help": "Only the summary line and refusals",
+            "disposition": "keep",
+            "disposition_basis": "**THE SIBLING HALF OF `--verbose` ON THIS ENTRY; READ ITS BASIS FOR THE MEASUREMENT AND THE RATIFICATION.** Row-specific: **QUIET WINS OVER VERBOSE** when both are given, which is the rule `doctor` already applies (carried there from `bin/intent_doctor:134`). Two sibling verbs answering one question two ways is the surface Highlander problem, so the rule is adopted rather than re-decided. **THE SUMMARY LINE SURVIVES `--quiet`**, deliberately and for `doctor`'s stated reason: a quiet clean run that printed nothing at all would be indistinguishable from the command never having run. **REFUSALS SURVIVE IT TOO** -- they move the exit code on the apply path, and a quiet flag that could hide a refused removal would be hiding the one thing an operator must see.",
+            "exposed_on_mcp": false
+          }
       ],
       "v2": "new-surface",
       "basis": "D57-3 (hv, 2026-08-18): the reconciliation verb of the sparse-projection model -- hydrate, verify, dehydrate, and refuse. Implemented at `intentsvcs::organize`.",
@@ -8033,7 +8514,9 @@
       },
       "recoverability": "idempotent",
       "flag_polarity_ruled_by_ic": "**OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling. **RULED 2026-08-19 -- see the `--apply` flag's `disposition_basis` above.** The row is kept rather than deleted because it records WHY the polarity was left open by whoever wired the entry, and that reasoning is the reason the ruling was available to be made by the node that owns the surface instead of settled silently in a commit about something else.",
-      "hidden_aliases": ["organise"],
+      "hidden_aliases": [
+        "organise"
+      ],
       "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there.",
       "facade": "organize"
     },
@@ -8045,7 +8528,11 @@
           "name": "kind",
           "type": "enum",
           "arity": "0..1",
-          "values": ["st", "wp", "issue"],
+          "values": [
+            "st",
+            "wp",
+            "issue"
+          ],
           "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6. **ARITY 0..1 SINCE 2026-08-31, ON hv's RULING, AND THE COST WAS STATED BEFORE IT WAS TAKEN.** `intent edit intent:///threads/ST0056` names the kind IN the address, so demanding it separately asks the caller for information the argument already carries -- which is what forced `ST0064`'s menubar app to parse the kind out of a URL in Swift, the second resolver `AC-01.5` forbids. **vc recommended an `--address` OPTION instead and hv chose this, having read the trade in as many words: the verb parses its own positionals rather than declaring them.** The rule the verb owns is small and closed: IF THE FIRST POSITIONAL IS AN ADDRESS, IT IS THE WHOLE ADDRESS, and the next positional is the FILE. The risk is the next argument added to this verb, and it is named in `render.rs` beside the parse."
         },
         {
@@ -8059,13 +8546,21 @@
           "type": "enum",
           "arity": "0..1",
           "default": "info",
-          "values": ["info", "design", "impl", "tasks", "acceptance"],
+          "values": [
+            "info",
+            "design",
+            "impl",
+            "tasks",
+            "acceptance"
+          ],
           "note": "**SURVIVES THE SHAPE CHANGE, AND IT IS WHAT `--path` AND `--editor` OPERATE ON.** NO `all` -- there is no single path for it. The TUI and the browser edit the MODEL and never a file, so this argument is meaningful only under the two file-shaped modes; under the other two it is the artefact the pane would open. Carried unchanged from `st edit`, which this verb absorbs."
         }
       ],
       "flags": [
         {
-          "spellings": ["--editor"],
+          "spellings": [
+            "--editor"
+          ],
           "type": "enum",
           "help": "Open the file in $VISUAL or $EDITOR, or in the named program, whatever stdout is",
           "disposition": "keep",
@@ -8074,14 +8569,18 @@
           "value": "<program>"
         },
         {
-          "spellings": ["--path"],
+          "spellings": [
+            "--path"
+          ],
           "type": "bool",
           "help": "Print the path and open nothing, whatever stdout is",
           "disposition": "keep",
           "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be. **INV-10 carries the exclusion and the output contract**: `docs/getting-started.md` has `$EDITOR \"$(intent st edit ST0001 design)\"` under test, and command substitution makes stdout a pipe, so that invocation keeps receiving a path whatever the terminal branch becomes."
         },
         {
-          "spellings": ["--browser"],
+          "spellings": [
+            "--browser"
+          ],
           "type": "bool",
           "help": "Open the entity in the browser, served by intentd",
           "disposition": "keep",
@@ -8107,25 +8606,33 @@
       "help": "Show the history this store holds",
       "flags": [
         {
-          "spellings": ["--op"],
+          "spellings": [
+            "--op"
+          ],
           "type": "string",
           "value": "<op>",
           "disposition": "keep"
         },
         {
-          "spellings": ["--subject"],
+          "spellings": [
+            "--subject"
+          ],
           "type": "string",
           "value": "<id>",
           "disposition": "keep"
         },
         {
-          "spellings": ["--limit"],
+          "spellings": [
+            "--limit"
+          ],
           "type": "string",
           "value": "<n>",
           "disposition": "keep"
         },
         {
-          "spellings": ["--format"],
+          "spellings": [
+            "--format"
+          ],
           "type": "string",
           "value": "<fmt>",
           "disposition": "keep",
@@ -8164,7 +8671,9 @@
       ],
       "flags": [
         {
-          "spellings": ["--because"],
+          "spellings": [
+            "--because"
+          ],
           "type": "string",
           "help": "Why this is being closed on authority rather than met -- REQUIRED",
           "value": "<text>",
@@ -8203,7 +8712,9 @@
       "disposition": "new-surface",
       "exposed_on_mcp": false,
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "**EXPOSED, FOLLOWING THIS TABLE'S OWN DERIVATION, AND THE GROUND UNDERNEATH IT IS OPEN FOR hv.** ic first authored this row `false`: ST0066 AC-00.6 requires the LLM-side contract to FORBID invoking `fc`, so putting the one forbidden verb on the machine face hands it to the agent forbidden to use it. `gen_dispatch_table.sh` REFUSED that row, and correctly -- withholding here is DERIVED from `recoverability` (the face withholds a mutation the surface cannot undo) and `fc` is `reversible`, so withholding it asserts a ground this table does not carry. **`recoverability_anomaly` was the offered escape and ic declined it:** that key is named for recoverability, and admitting a member for a different reason is the defect this estate hit three times on 2026-08-29 alone -- `not_probed`'s `nonreturning` predecessor losing `claude upgrade` to its own name, `FANS_OUT` carrying fan-out and rename under one meaning, and this. **A key named for one reason cannot hold members admitted for another.** **AC-00.6's own text leans the same way as the derivation:** enforcement is `detection plus attribution, never a claimed impossibility`, and withholding a tool the agent can still reach by shelling out claims an impossibility it does not have. What withholding removes is the ACCIDENT, not the capability. **THE QUESTION FOR hv IS NARROWER THAN THIS ROW: does the machine face need a SECOND withholding ground -- `withheld because the loaded contract forbids it` -- distinct from irreversibility?** If yes, it is a vocabulary addition rather than a label change, and `fc` is its first member. Until then this row follows the rule that exists rather than the one ic would have written."
       },
       "read_or_mutate": "mutate",
@@ -8218,12 +8729,16 @@
           "name": "subcommand",
           "type": "subcommand",
           "arity": "1",
-          "values": ["retired"]
+          "values": [
+            "retired"
+          ]
         }
       ],
       "flags": [
         {
-          "spellings": ["--format"],
+          "spellings": [
+            "--format"
+          ],
           "type": "enum",
           "help": "Output format",
           "disposition": "keep",
@@ -8269,7 +8784,11 @@
           "name": "kind",
           "type": "enum",
           "arity": "1",
-          "values": ["st", "wp", "issue"],
+          "values": [
+            "st",
+            "wp",
+            "issue"
+          ],
           "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6."
         },
         {
@@ -8365,7 +8884,9 @@
       "read_or_mutate": "read",
       "flags": [
         {
-          "spellings": ["--variables"],
+          "spellings": [
+            "--variables"
+          ],
           "type": "string",
           "value": "<JSON>",
           "help": "GraphQL variables as a JSON object, given as text",
@@ -8402,7 +8923,9 @@
       ],
       "flags": [
         {
-          "spellings": ["--from"],
+          "spellings": [
+            "--from"
+          ],
           "type": "string",
           "help": "Read the value from a file, for prose that spans lines",
           "value": "<file>",
@@ -8697,7 +9220,11 @@
         "type",
         "values"
       ],
-      "note": ["not_the_flag", "note", "values_note"]
+      "note": [
+        "not_the_flag",
+        "note",
+        "values_note"
+      ]
     },
     "findings": [
       {
@@ -8721,7 +9248,10 @@
     "closes_one_half_only": "**This split does NOT close the declared-but-not-deserialized class, and saying so here rather than letting the next instance discover it.** (vc, from issue 0040.) There are two mechanisms and classification plus a serde check sees only the first. **(a) Declared in JSON, no Rust field** -- serde drops it in silence; a flatten or key-set check catches this, and it is what `aliases` and `Arg.default` were. **(b) Declared in JSON, the Rust field EXISTS and deserializes correctly, and no code CONSUMES the value.** `Config.st_prefix` is the measured instance: declared with a serde default of `ST`, three occurrences in the workspace and all three its own declaration, while `facade.rs` allocates ids with a hardcoded `ST{:04}` and `legacy.rs` recognises threads with a hardcoded `starts_with(ST)` -- and v2 honours the field in six places. **Nothing catches (b): the key never lands in a `rest` map, so a flatten check reports agreement, and `dead_code` does not fire because a `pub` field on a `pub` struct in a lib crate is reachable by definition.** Recorded here because a check's error message is where its readers learn what it does, and nothing verifies that message against its behaviour -- a lesson this register earned the hard way and would otherwise have re-learned. **vc's sharper discriminator, worth adopting if this list is ever reorganised: the question is not `is this key read` but `does a consumer exist and encode the value another way`.** It separates all three of `Config`'s unread fields where count and type separate none -- `st_prefix` is a defect (consumers exist and hardcode), `author` is correct (D02 removed the verblock, the consumer is gone by ruling), `languages` is pending (its consumers are unwired).",
     "target": {
       "why": "No `note` list, deliberately, and its absence is load-bearing rather than an omission -- see `scope`. `Target` is exempt from the totality arm, so its 40 prose keys are not enumerated; that makes `declaration` the entire known set for this type and the read-side arm correspondingly strict. A key this type deserializes that is not listed here is refused, whether it is prose or a contract, because nothing here can tell them apart.",
-      "declaration": ["state", "spelling"]
+      "declaration": [
+        "state",
+        "spelling"
+      ]
     }
   },
   "recoverability_values": [
