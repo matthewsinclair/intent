@@ -387,6 +387,44 @@ impl Default for RetainConfig {
   }
 }
 
+/// The `index` block: what the search index will not read.
+///
+/// **ONE VALUE, AND IT IS A CONFIG VALUE BECAUSE THE DEFAULT IS A MEASUREMENT
+/// OF ONE ESTATE.** `index::corpus::DEFAULT_MAX_FILE_BYTES` was chosen against
+/// this repository's own tree, where the largest file in the disk corpus is
+/// under a megabyte; a project whose documents are larger is not wrong, and a
+/// cap it cannot move would silently drop them with a row saying `too-large`.
+///
+/// The cap is a floor on nothing: it is compared with `>`, so a file exactly at
+/// it is held. A project that wants everything indexed sets it high rather than
+/// to zero, which would skip every file it has.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IndexConfig {
+  /// Files larger than this are in scope and not read. Default:
+  /// [`crate::index::corpus::DEFAULT_MAX_FILE_BYTES`].
+  #[serde(default = "default_max_file_bytes")]
+  pub max_file_bytes: u64,
+}
+
+fn default_max_file_bytes() -> u64 {
+  crate::index::corpus::DEFAULT_MAX_FILE_BYTES
+}
+
+impl Default for IndexConfig {
+  fn default() -> Self {
+    Self {
+      max_file_bytes: default_max_file_bytes(),
+    }
+  }
+}
+
+impl IndexConfig {
+  /// Is this block exactly what an absent block means?
+  fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 /// The per-project config (`intent/.config/config.json`).
 ///
 /// Unknown fields are PERMITTED here, and that is deliberate rather than an
@@ -416,6 +454,22 @@ pub struct Config {
   /// schedule became a key, hence the default.
   #[serde(default)]
   pub backup: BackupConfig,
+  /// The `index` block. Absent in every config written before the search index
+  /// had a value to set, hence the default -- and **NOT WRITTEN BACK WHEN IT IS
+  /// THE DEFAULT**, as `doctor`'s block is not: a block serialised
+  /// unconditionally changes the bytes of every existing project's
+  /// `config.json` on the next rewrite, and `config.json` is in the sync
+  /// corpus, so that rewrite is an edit the watcher sees and the ingest acts
+  /// on. Nobody asked for it and nothing reports it as a change of meaning.
+  ///
+  /// **THIS WAS FIRST WRITTEN AS A MEASUREMENT AND IT WAS NOT ONE.** The
+  /// daemon's subscription arms red while it was being built, the block looked
+  /// like the cause, and four runs with the change against four without put the
+  /// reds on both sides -- that pair is load-sensitive and reds about one run in
+  /// four either way. The reason above stands on its own; the evidence I
+  /// thought I had did not.
+  #[serde(default, skip_serializing_if = "IndexConfig::is_default")]
+  pub index: IndexConfig,
   /// The `doctor` block (issue 0065, hv decision 14). Absent unless a project
   /// has acknowledged something, and never written when empty.
   #[serde(default, skip_serializing_if = "DoctorConfig::is_empty")]
@@ -2113,6 +2167,7 @@ mod tests {
       languages: vec!["rust".to_string(), "elixir".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      index: IndexConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };
@@ -2146,6 +2201,7 @@ mod tests {
       languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      index: IndexConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };

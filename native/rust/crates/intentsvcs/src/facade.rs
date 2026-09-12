@@ -5227,7 +5227,11 @@ impl Facade {
         || self.project.root().join("intent").join(".canon"),
         std::path::Path::to_path_buf,
       ),
-      crate::index::corpus::DEFAULT_MAX_FILE_BYTES,
+      // **THE PROJECT'S CAP, NOT THE CONSTANT.** The default is a measurement
+      // of one estate's own tree; a project whose documents are larger is not
+      // wrong, and a cap it could not move would drop them with a row saying
+      // `too-large` and no way to disagree.
+      self.project.config().index.max_file_bytes,
     )
     // **THE SAME CARRIER `refresh_index` USES FOR THE SAME FAILURE**, two
     // functions over: a walk of the working tree failed at a path, and the

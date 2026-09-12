@@ -216,3 +216,51 @@ fn a_writer_that_does_not_know_what_was_indexed_does_not_say_it_was_nothing() {
      about it"
   );
 }
+
+#[test]
+fn the_cap_is_the_projects_to_set() {
+  // **THE DEFAULT IS A MEASUREMENT OF ONE ESTATE**, so a project whose
+  // documents are larger than this one's has to be able to disagree with it.
+  // The arm drives the disagreement rather than reading the field back: a
+  // config value nothing consults is a claim the tool cannot back.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "notes.md", &vec![b'x'; 4096]);
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild at the default cap");
+  assert_eq!(
+    facade
+      .store()
+      .index_files()
+      .expect("rows")
+      .iter()
+      .find(|r| r.path == "notes.md")
+      .and_then(|r| r.skipped_reason.clone()),
+    None,
+    "precondition: the default cap holds this file, or the arm below proves nothing"
+  );
+
+  std::fs::write(
+    fx.root().join("intent/.config/config.json"),
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"],\n  \"index\": { \"max_file_bytes\": 1024 }\n}\n",
+  )
+  .expect("write config");
+
+  let mut tighter = fx.facade();
+  tighter
+    .index_rebuild()
+    .expect("rebuild at the project's cap");
+  assert_eq!(
+    tighter
+      .store()
+      .index_files()
+      .expect("rows")
+      .iter()
+      .find(|r| r.path == "notes.md")
+      .and_then(|r| r.skipped_reason.clone())
+      .as_deref(),
+    Some("too-large"),
+    "the cap the project set is the cap the index uses"
+  );
+}
