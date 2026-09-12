@@ -1743,24 +1743,26 @@ pub enum Note {
     home: String,
     files: usize,
   },
-  /// The projection OVERWROTE these files: the paths whose bytes on disk
-  /// differed from what this mutation rendered. Project-relative, ready to
-  /// print.
+  /// The projection overwrote bytes that were NOT the store's own render of
+  /// those paths before this mutation: a hand edit, or some other writer's
+  /// work, going under. Project-relative, ready to print.
   ///
-  /// **EVERY MUTATION PROJECTS THE WHOLE DECLARED ESTATE**, and [`WriteSet`]
-  /// skips a path whose bytes already match -- so the paths that survive that
-  /// skip are exactly the ones somebody had edited, plus the subject's own
-  /// views, which the verb was asked to move. The verb's entire output was
-  /// `ok: <id> <moved>`, so an edit to a generated view of a thread nobody
-  /// named disappeared without a word.
+  /// **THE PREDICATE IS SKEW, NOT CHANGE, AND THE DIFFERENCE IS THE WHOLE
+  /// VALUE OF THE NOTE** (vc, 2026-09-12). Every mutation rewrites the
+  /// subject's own views -- that is what a projection is FOR, nobody loses
+  /// anything, and a receipt printed on every mutation is one finding printed
+  /// so many times that the reader learns to skip the line that matters. The
+  /// line that matters is the one where the bytes on disk were not what the
+  /// store would have rendered a moment ago, which is the same question
+  /// `doctor`'s view-skew asks, narrowed to the paths this write is about to
+  /// land on and asked BEFORE it lands.
   ///
-  /// **IT IS A RECORD AND NOT A REFUSAL, AND THAT IS THE RULING RATHER THAN A
-  /// SOFTER OPTION** (hv's silent-deletion gate, 2026-09-12, via vc). A
-  /// generated view has ONE writer and the store is the SSOT (D01, reversed
-  /// 2026-08-15): rewriting it is the correct act. What was missing is the
-  /// record of it, and a refusal would instead make the correct act
-  /// unavailable whenever anyone had typed in a generated file.
-  RewroteViews(Vec<String>),
+  /// **IT IS A RECORD AND NOT A REFUSAL** (hv's silent-deletion gate,
+  /// 2026-09-12, via vc). A generated view has ONE writer and the store is the
+  /// SSOT (D01, reversed 2026-08-15): rewriting it is the correct act. What was
+  /// missing is the record of it, and a refusal would make the correct act
+  /// unavailable to anyone who had ever typed in a generated file.
+  OverwroteForeignBytes(Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1823,7 +1825,7 @@ impl Outcome {
     }
   }
 
-  /// Fold the paths the projection actually OVERWROTE into this outcome.
+  /// Fold the paths whose bytes were not the store's render into this outcome.
   ///
   /// **ONE FOLD RATHER THAN A NOTE BUILT AT EVERY VERB.** Thirteen call sites
   /// turn the projection's result into an `Outcome`, and a note assembled at
@@ -1831,15 +1833,13 @@ impl Outcome {
   /// argument [`Outcome::notes`] makes for printing from one reporter, applied
   /// one layer earlier.
   ///
-  /// **EMPTY IN MEANS UNCHANGED OUT, because a projection that wrote nothing
-  /// has nothing to report.** `WriteSet::commit` skips every path whose bytes
-  /// already match, so an estate that already agrees yields no paths at all --
-  /// and a note printed over that would be a record of an act that did not
-  /// happen, which is the objection the event log already makes to logging a
-  /// no-op.
+  /// **EMPTY IN MEANS UNCHANGED OUT, which is the ordinary case and not an
+  /// edge.** A mutation whose every target held exactly what the store last
+  /// rendered has overwritten nobody's work, so there is nothing to say --
+  /// the same objection the event log makes to recording a no-op.
   #[must_use]
-  pub fn with_rewrites(self, rewrote: Vec<String>) -> Self {
-    if rewrote.is_empty() {
+  pub fn with_overwrites(self, foreign: Vec<String>) -> Self {
+    if foreign.is_empty() {
       return self;
     }
     match self {
@@ -1849,10 +1849,10 @@ impl Outcome {
       // turn a future refactor's harmless case into a panic.
       Self::AlreadyThere { state } => Self::AlreadyThere { state },
       Self::Moved => Self::MovedWith {
-        notes: vec![Note::RewroteViews(rewrote)],
+        notes: vec![Note::OverwroteForeignBytes(foreign)],
       },
       Self::MovedWith { mut notes } => {
-        notes.push(Note::RewroteViews(rewrote));
+        notes.push(Note::OverwroteForeignBytes(foreign));
         Self::MovedWith { notes }
       }
     }
@@ -1886,8 +1886,8 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
         "kind": "fiat-closed-sole-cover", "criteria": acs,
       }),
       Note::UnsyncedUnknown => serde_json::json!({ "kind": "unsynced-unknown" }),
-      Note::RewroteViews(paths) => serde_json::json!({
-        "kind": "rewrote-views", "paths": paths,
+      Note::OverwroteForeignBytes(paths) => serde_json::json!({
+        "kind": "overwrote-foreign-bytes", "paths": paths,
       }),
       Note::HeldByV2Bucket {
         thread,
@@ -5462,9 +5462,9 @@ impl Facade {
     if adds {
       self.edit_list(op, id, list)?;
     }
-    let rewrote =
+    let foreign =
       match self.apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged) {
-        Ok(rewrote) => rewrote,
+        Ok(foreign) => foreign,
         Err(refused) => {
           // The status did not move, so neither may the list it follows.
           if let Some(text) = before
@@ -5503,7 +5503,7 @@ impl Facade {
       } else {
         Outcome::MovedWith { notes }
       }
-      .with_rewrites(rewrote),
+      .with_overwrites(foreign),
     )
   }
 
@@ -5851,7 +5851,7 @@ impl Facade {
         json!({"from": from, "to": crate::model::enum_str(&scope)}),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   fn set_wp_status(
@@ -5993,7 +5993,7 @@ impl Facade {
     }
     self
       .apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   // -------------------------------------------------------------------------
@@ -6390,7 +6390,7 @@ impl Facade {
         Value::Object(payload),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// **RE-CITE AN ACCEPTANCE TEST: CHANGE WHAT YOU NAME, KEEP WHAT YOU DO
@@ -6577,7 +6577,7 @@ impl Facade {
         json!({ "via": "edit" }),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// **A WRITE THAT PUTS A `file` ON A NON-TEST ROW IS REFUSED** (0146), and
@@ -6987,7 +6987,7 @@ impl Facade {
         payload,
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   fn criterion(&self, st: &str, ac: &str) -> Result<&Criterion, FacadeError> {
@@ -7184,7 +7184,7 @@ impl Facade {
         json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status), "note": note.is_some()}),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// **Close an acceptance test on human authority, against the evidence** --
@@ -7294,7 +7294,7 @@ impl Facade {
         json!({"because": because, "by": by}),
         next,
       )
-      .map(|rewrote| {
+      .map(|foreign| {
         if sole.is_empty() {
           Outcome::Moved
         } else {
@@ -7302,7 +7302,7 @@ impl Facade {
             notes: vec![Note::FiatClosedSoleCover(sole)],
           }
         }
-        .with_rewrites(rewrote)
+        .with_overwrites(foreign)
       })
   }
 
@@ -7583,7 +7583,7 @@ impl Facade {
             json!({ "via": "address" }),
             next,
           )
-          .map(|rewrote| outcome.with_rewrites(rewrote))
+          .map(|foreign| outcome.with_overwrites(foreign))
       }
       AddrEntity::Ac { thread, ac } => {
         let row: Criterion =
@@ -7650,7 +7650,7 @@ impl Facade {
             json!({ "via": "address" }),
             next,
           )
-          .map(|rewrote| outcome.with_rewrites(rewrote))
+          .map(|foreign| outcome.with_overwrites(foreign))
       }
       // **CREATE AND UPDATE ARE DIFFERENT OPERATIONS AND THIS ARM USED TO
       // DECLINE BOTH WITH A CREATE-SHAPED REASON** (hv ruling, 2026-08-21,
@@ -7851,7 +7851,7 @@ impl Facade {
             json!({ "via": "address" }),
             next,
           )
-          .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+          .map(|foreign| Outcome::Moved.with_overwrites(foreign))
       }
       // **AN ATTACHMENT IS THE ONE ADDRESS WHERE TEXT-IN IS CORRECT, AND THAT
       // IS A RULING RATHER THAN A CONVENIENCE** (`design.md:271`, hv
@@ -8052,7 +8052,7 @@ impl Facade {
         json!({ "via": "address" }),
         next,
       )
-      .map(|rewrote| outcome.with_rewrites(rewrote))
+      .map(|foreign| outcome.with_overwrites(foreign))
   }
 
   /// Write an attachment's content, carrying **the form the bytes decide**.
@@ -8317,7 +8317,7 @@ impl Facade {
         json!({ "via": "address", "field": field }),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// The seq a `wp` address segment names.
@@ -8746,7 +8746,7 @@ impl Facade {
         }),
         next,
       )
-      .map(|rewrote| Outcome::Moved.with_rewrites(rewrote))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// The next free issue number.
@@ -8958,14 +8958,15 @@ impl Facade {
   ///
   /// The FIRST envelope is the act the caller invoked; the rest are what it
   /// reached, and they share its transaction.
-  /// **Returns the paths the projection actually OVERWROTE**, project-relative
-  /// -- the write set's members whose bytes on disk differed from the render.
+  /// **Returns the paths whose bytes were NOT the store's own render**, project-
+  /// relative -- the write set's members that this mutation overwrote and that
+  /// held somebody else's work when it did.
   ///
   /// It returns them rather than printing or logging them because a library
   /// says what happened and a face decides how to show it; the caller folds
-  /// them into its [`Outcome`] through [`Outcome::with_rewrites`], so the note
-  /// reaches every face rather than only the CLI (issue 0158's argument, one
-  /// note along).
+  /// them into its [`Outcome`] through [`Outcome::with_overwrites`], so the
+  /// note reaches every face rather than only the CLI (issue 0158's argument,
+  /// one note along).
   fn apply_envelopes(
     &mut self,
     envelopes: Vec<Envelope>,
@@ -9334,17 +9335,75 @@ impl Facade {
     // to refuse.
     // In-memory canon follows the STORE, not the files, so the next call in
     // this process builds on what actually happened either way.
+    // **ASKED BEFORE THE WRITE, WHICH IS THE HALF THE OBVIOUS ORDERING GETS
+    // WRONG** -- the same argument `closing_notes` makes, and AC-03.9's before
+    // `that`: once the bytes are gone, the prior contents cannot be compared
+    // against anything. A list assembled afterwards could say WHICH paths were
+    // written and never whose work was on them.
+    let foreign = self.foreign_bytes(&set)?;
     let projected = set.commit();
     self.canon = next;
-    let applied = projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
-    // **READ BEFORE `keep`, BECAUSE ONLY THIS SIDE KNOWS.** `WriteSet::writes`
-    // answers what WOULD be written, which is the right question before a
-    // commit and the wrong one after it; the skip decision is made inside
-    // `commit` and is not recoverable from the inputs.
-    let rewrote = self.estate_paths(&applied);
-    applied.keep();
+    projected
+      .map_err(|cause| FacadeError::ViewsNotWritten { cause })?
+      .keep();
     self.record_landed(&canon_files)?;
-    Ok(rewrote)
+    Ok(foreign)
+  }
+
+  /// The write set's paths that hold bytes the store did not render.
+  ///
+  /// **THE PREDICATE IS SKEW AND NOT CHANGE.** Every mutation re-renders the
+  /// subject's own views, and those files differing from the NEW render is the
+  /// projection working. What matters is a path whose bytes differ from what
+  /// the store would have rendered a MOMENT AGO, because the store is the only
+  /// writer these files have: anything else there was typed by somebody, or
+  /// left by a tool nobody registered, and this write is about to end it.
+  ///
+  /// **THE CANDIDATES ARE FOUND BEFORE THE RENDER, so the ordinary mutation
+  /// pays nothing.** A path that does not exist loses nothing, and a path whose
+  /// bytes already match what is about to be written is not written at all
+  /// (`WriteSet::commit` skips it). Only when something survives both is the
+  /// prior estate rendered to ask what it SHOULD have held.
+  ///
+  /// **WHAT IT CANNOT SPEAK FOR, it says nothing about.** The prior render and
+  /// the prior canon cover views and canon files; a write to a path neither can
+  /// produce -- an attachment's opaque sidecar, a blob -- has no store-side
+  /// "should" to compare against, so it is left out rather than reported on a
+  /// comparison that was never made.
+  fn foreign_bytes(&self, set: &WriteSet) -> Result<Vec<String>, FacadeError> {
+    let candidates: Vec<(std::path::PathBuf, Vec<u8>)> = set
+      .writes()
+      .filter_map(|(path, content)| {
+        let disk = std::fs::read(path).ok()?;
+        (disk != content).then(|| (path.to_path_buf(), disk))
+      })
+      .collect();
+    if candidates.is_empty() {
+      return Ok(Vec::new());
+    }
+    let ctx = self.render_ctx()?;
+    let mut before: std::collections::BTreeMap<std::path::PathBuf, Vec<u8>> =
+      views::render_all(&self.project, &self.canon, &ctx)
+        .into_iter()
+        .map(|view| (view.path, view.content.into_bytes()))
+        .collect();
+    for thread in &self.canon.threads {
+      if let Ok(json) = to_canonical_json(thread) {
+        before.insert(self.project.thread_json(&thread.id), json.into_bytes());
+      }
+    }
+    for issue in &self.canon.issues {
+      if let Ok(json) = to_canonical_json(issue) {
+        before.insert(self.project.issue_json(issue.number), json.into_bytes());
+      }
+    }
+    Ok(
+      candidates
+        .into_iter()
+        .filter(|(path, disk)| before.get(path).is_some_and(|prior| prior != disk))
+        .map(|(path, _)| self.project.relative(&path))
+        .collect(),
+    )
   }
 
   /// What a CLOSING transition has to say before it happens (AC-05.2).

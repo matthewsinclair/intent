@@ -8222,16 +8222,25 @@ fn report_notes(outcome: &Outcome, subject: &str) {
           "  remedy: `intent sync --to-store {subject}` takes the disk copy into the store -- an attachment is authored ON DISK, so a divergence means the store is stale"
         );
       }
-      // **`rewrote:` NAMES A FILE THE VERB OVERWROTE, and it is a record
-      // rather than a warning.** Rewriting a generated view is the correct act
-      // -- one writer, and the store is the SSOT -- so the operator is being
-      // told what happened, not warned off it. The paths are what actually
-      // changed on disk: a projection over an estate that already agrees
-      // writes nothing and prints nothing.
-      Note::RewroteViews(paths) => {
+      // **THE PATHS WHOSE BYTES WERE NOT THE STORE'S OWN RENDER**, which is a
+      // narrower thing than the paths this verb wrote and the only one worth a
+      // line. The subject's views change on every mutation -- that is the
+      // projection working, and a receipt for it on every verb is one finding
+      // printed so often that the reader skips the line that matters.
+      //
+      // The remedy names git rather than a sync verb, because the loss is not
+      // recoverable from the store: the store holds what it rendered, and what
+      // was overwritten is precisely what it did not.
+      Note::OverwroteForeignBytes(paths) => {
+        eprintln!(
+          "warning: overwrote bytes that were not the store's render -- an edit to a generated file is gone:"
+        );
         for path in paths {
-          eprintln!("rewrote: {path}");
+          eprintln!("  {path}");
         }
+        eprintln!(
+          "  remedy: a generated view has one writer, so recover the text with `git diff` / `git checkout` if you need it, and make the change through the verb that owns the field"
+        );
       }
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"

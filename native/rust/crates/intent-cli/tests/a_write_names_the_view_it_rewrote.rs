@@ -95,8 +95,22 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
     "the verb overwrote {edited} and did not name it. stdout: {out:?} stderr: {err:?}"
   );
   assert!(
-    err.contains("rewrote:"),
+    err.contains("were not the store's render"),
     "the overwrite is not reported through the notes channel. stderr: {err:?}"
+  );
+  // **THE DISCRIMINATION IS THE POINT.** The transitioned thread's own views
+  // were rewritten too, and naming them would be a receipt on every mutation --
+  // one finding printed so many times that the reader skips the line that
+  // matters. They held exactly what the store last rendered, so nobody's work
+  // went under with them.
+  assert!(
+    !err.contains("intent/st/ST0001/info.md"),
+    "the note named a view the store itself had last written, which is the \
+     projection working rather than a loss: {err:?}"
+  );
+  assert!(
+    !err.contains("intent/todo.md") && !err.contains("steel_threads.md"),
+    "the note named the estate views every mutation re-renders: {err:?}"
   );
   assert!(
     out.contains("ok: ST0001 started"),
@@ -104,11 +118,11 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
   );
 }
 
-/// **SILENT ON A NO-OP, which is the same contract the event log holds.** A
-/// second `st start` moves nothing, so the projection writes nothing, so there is
-/// nothing to name -- and a note printed anyway would be a record of an act
-/// that did not happen, which is how an operator learns to skim the notes that
-/// are real.
+/// **SILENT WHERE NOBODY'S WORK WENT UNDER, which is the ordinary case.** A
+/// second `st start` moves nothing and writes nothing, and even a first one
+/// over an estate that holds exactly what the store rendered has overwritten
+/// nothing anybody typed. A note printed anyway is a warning about a loss that
+/// did not happen, which is how an operator learns to skim the ones that did.
 #[test]
 fn a_mutation_that_rewrites_nothing_names_nothing() {
   let dir = estate();
@@ -119,7 +133,7 @@ fn a_mutation_that_rewrites_nothing_names_nothing() {
   let (_, err, code) = run(&["st", "start", "ST0001"], root);
   assert_eq!(code, 0, "the repeat start failed: {err}");
   assert!(
-    !err.contains("rewrote:"),
-    "a verb that wrote nothing still announced a rewrite: {err:?}"
+    !err.contains("were not the store's render"),
+    "a verb that overwrote nobody's work still warned about it: {err:?}"
   );
 }
