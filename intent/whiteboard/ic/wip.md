@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 09:37Z
+heartbeat_at: 2026-09-12 10:51Z
 status: active
-focus: "WP-19's envelope is landed (e3ef53aad) with AT-19.1, 19.2, 19.3 and 19.5 green (8f2165a3d); WP-19 stays WIP on AC-19.4 and AC-19.6, both waiting on cc. Next: WP-21's pane, shaped to vc and started on vc's word."
+focus: "WP-21 CLOSED. WP-19 waits on AC-19.4 alone (cc's source FTS table). WP-20's pure half landed. Next: AC-24.2's generated tool descriptions, then `--outline` / `--context` when cc's symbols table lands, then the canon sweep's file list to vc."
 claims: []
 ---
 
@@ -13,9 +13,10 @@ claims: []
 
 ## DOING
 
-- **ST0069 WP-19, the search envelope. LANDED, and the package is OPEN.** `e3ef53aad` (the envelope, the three renderings, the register pair) and `8f2165a3d` (the four AT rows). AC-19.1, 19.2, 19.3 and 19.5 are satisfied and cited.
-  - **WAITING ON cc, not on me:** AC-19.4 needs the source table before its recall fixture can measure anything, and AC-19.6's `index status` / `index rebuild` need cc's facade operations. vc ruled the split: cc owns the operations, I own the rows, the rendering and the MCP arms.
-  - **THE SEAM TO HOLD:** `search::corpus_key` is an exhaustive match over cc's `index::corpus::Corpus`, so the `corpora` map's keys and cc's `corpus` column must be the same words. Nothing holds them together yet except a message to cc; when the column lands, check it.
+- **ST0069 WP-19.** The envelope (e3ef53aad), the AT rows (28de5113d... see canon), and the two index verbs (e839108d2, AT-19.6 at 6440e9348). **CLOSES ON AC-19.4 ALONE** -- the source tokeniser's measured recall, which needs cc's `src_sections` before it can measure anything. cc is building it now; I hold the fixture until the table exists.
+- **ST0069 WP-20, my half: LANDED** (b96a73c2a). `index::symbols` over each grammar's own `tags.scm`, five features all OFF by default until hv rules the size. **`tree-sitter-bash` SHIPS NO TAGS QUERY**, so `shell` names zero symbols for 1,378,576 bytes; vc ruled `lang-bash` stays declared and off until upstream ships one, and nobody writes one here.
+- **ST0069 WP-24, next.** AC-24.2's generated when-and-when-not tool descriptions can land now. AC-24.3's `--outline` / `--context` are FLAGS on the `search` row (vc: no new verbs) and wait on cc's symbols table. AC-24.5's canon sweep: file list to vc BEFORE touching one file, and it KEEPS `intent modules find` -- retiring it is hv's ruling and hv has not given it.
+- **THE NARROW DOOR I OWE dc:** `structural_for(paths, name) -> Structural::{Answer{symbols}, CannotAnswer{why}}`, the freshness rule behind the facade so dc's hook cannot reach it. Signature agreed, built when cc's symbols table lands.
 
 ## TODO
 
@@ -51,3 +52,10 @@ claims: []
 - An AT row citing a file is a citation only if the FILE carries the row's id: the close gate checks the literal string.
 - After editing `intentsvcs`, build `intentd` before the intent-cli suite: `refuse_a_stale_sibling_daemon` fails the whole daemon class in 0.00s, which reads as a broken box (23 failures, all cleared by one `cargo build -p intentd`).
 - A private worktree carries a STAGED copy across a `checkout --detach`: `git checkout -- .` restores from the INDEX, not HEAD, so the old version outlives the rebase and the build fails against names that exist in no commit. `git reset --hard <new head>` is the move.
+- The register's census moves with a row: `populations.{declared,shipped,probeable}`, `legal_pairs`'s `n` and `census_note`, the new-surface family count in `dispatch::tests`, and `flags: []` on a family row. Four guards, each refusing by name.
+- An idempotent mutation withheld from MCP needs `recoverability_anomaly` on the row: the generator refuses the silence and says do not bend the label.
+- **A text edit in a shared aggregator is located by its ROW, never by a pattern**: a replace on two common field lines put this row's anomaly on `st hydrate`. Caught by parsing the file back and asking which row carried it.
+- **Never `git stash` in the shared checkout**: the stash list holds other sessions' entries back to v2.3.0, and a pop can apply a stranger's work. Mutate in place and restore.
+- **Never write the register back through a serialiser**: `json.dumps` reformatted 49 lines nobody touched. Insert as text.
+- `git commit --only <path>` commits the WORKING TREE version of that path, not the staged one -- so a peer's staged edit in a file you are writing lands in YOUR commit under YOUR message. Check `git status` for `MM` before adding.
+- After editing intentsvcs, build intentd before the intent-cli suite (the staleness guard reds the whole daemon class in 0.00s).
