@@ -113,6 +113,6 @@ For each selected id, run `intent claude rules show <id>` and apply its `## Dete
 
 ## Red flags (author violating rules for you)
 
-If the target file sits inside the Intent rule library (`intent/plugins/claude/rules/`): skip Detection entirely and say so in the summary.
+If the target file is a rule file of the Intent rule library itself -- the `rules/<lang>/` tree the installed Intent serves, or Intent's own source for it -- skip Detection entirely and say so in the summary. **The library is named by BEHAVIOUR and not by a path**: an installed payload that pointed at a directory inside the Intent repository would name a place that does not exist in the project it was installed into.
 
 If the target file is under `lib/templates/`: these are seeds for generated content. Apply rules normally -- generated code should still pass -- but note in the summary that findings in templates propagate to generated output.

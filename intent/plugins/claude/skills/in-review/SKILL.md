@@ -81,7 +81,7 @@ Task(subagent_type="critic-prose", prompt="review content/**/*.md")
 
 **Polyglot projects**: when `languages` has more than one entry, the user has explicitly declared a polyglot. Invoke each critic with a target glob narrowed to its own subtree. Array order is the explicit declaration; the first entry is the primary where a primary is needed.
 
-**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. The full contract (`intent/docs/critics.md`) and a worked sample config (`intent/plugins/claude/rules/_schema/sample-intent-critic.yml`) live in the Intent install, not the project.
+**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. The full contract and a worked sample config are served by the INSTALL, not by the project: read the rules the install carries with `intent claude rules list` / `intent claude rules show <id>`, and the sample config ships beside them in the install's own `rules/_schema/` directory. **A path into the Intent repository would be wrong here twice over** -- it does not exist in a project Intent was installed into, and this file IS the installed payload.
 
 ### Stage 3: After both stages
 

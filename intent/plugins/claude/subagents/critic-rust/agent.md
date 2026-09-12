@@ -150,7 +150,7 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 
 ## Red flags (author violating rules for you)
 
-- If the target file sits inside the Intent rule library (`intent/plugins/claude/rules/`, eg when reviewing Intent's own source): skip Detection entirely and note in the summary.
+- If the target file is a rule file of the Intent rule library itself -- the `rules/<lang>/` tree the installed Intent serves, or Intent's own source for it -- skip Detection entirely and note in the summary. **The library is named by BEHAVIOUR and not by a path**: an installed payload that pointed at a directory inside the Intent repository would name a place that does not exist in the project it was installed into.
 - If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
 - If the target file is under `lib/templates/` or a similar seed directory: apply rules normally - generated code should still pass - but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only a lone `fn main() {}`: skip with a note; a one-line program has no behaviour to critique.
