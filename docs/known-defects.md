@@ -6,6 +6,8 @@
 
 **An issue being closed in our register does not mean the defect is gone from your build.** Every issue this page cites except `intent#0177` is closed in the register, and each entry below still reproduces on 3.0.1.
 
+**Where v3.0.2 fixes an entry, the entry says so, and says what the fixed behaviour is.** An entry is not deleted on the day it is fixed: this page is the driven record for v3.0.1, so a reader still on that build needs the defect as it reproduces, and a reader who has upgraded needs to know which of these they have left. What v3.0.2 fixes is listed in `CHANGELOG.md`; what it does not fix is here without such a line.
+
 ## The Homebrew install
 
 **The v3.0.1 keg carries no subagents.** Driven with the keg's own binary under an isolated `HOME`:
@@ -42,7 +44,7 @@ followed by the same line for `intent/st/ST0001/acceptance.md`, `intent/st/steel
   intent/st/ST0001/info.md -- generated view differs from the model (718 bytes on disk, 718 rendered): either it was edited by hand, or the store changed after it was last rendered (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind) -- `intent st hydrate ST0001` regenerates it from the store and pins ST0001 in `.intentfiles`, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model
 ```
 
-`intent st hydrate ST0001` clears it, and, as the line says, it also adds `STEELTHREAD:ST0001` to `intent/.intentfiles`, so the thread is declared realised from then on. Neither cause the finding offers is the one at work. After hydrating, `git diff intent/st/<ID>/` shows what regeneration changed: the version in the banner line and nothing else, when this is the cause.
+`intent st hydrate ST0001` clears it, and, as the line says, it also adds `STEELTHREAD:ST0001` to `intent/.intentfiles`, so the thread is declared realised from then on. Neither cause the finding offers is the one at work. After hydrating, `git diff intent/st/<ID>/` shows what regeneration changed: the version in the banner line and nothing else, when this is the cause. **On 3.0.2 the remedy is `intent st hydrate ST0001 --overwrite`, and the bare verb refuses**: a view whose bytes differ from the render is the exact signature `hydrate` now holds rather than writes over, and `doctor`'s line names the flag, because this finding's own two causes cannot be told apart from here and the regeneration discards whatever is on disk.
 
 ## A stray directory disables the whole project
 
@@ -195,7 +197,7 @@ Documented in `--help`, accepted without complaint, and read by nothing. Passing
 
 **Subagents have the same hole.** Driven with a source build (the keg carries no subagents): `intent claude subagents install critic-shell`, append a line to `~/.claude/agents/critic-shell.md`, then `intent claude subagents uninstall critic-shell` prints `critic-shell removed (1 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0, and the edited file is gone. The output is identical to uninstalling an unedited subagent, so nothing distinguishes the two. **Fixed in 3.0.2 by the same rule**, which is one rule over both payload kinds rather than a second one written for subagents.
 
-For a skill this build did not write, the file is still on disk afterwards, and that is the tool being careful: it will not delete what it has no record of writing, and it says so. **The summary still miscounts one case:** run `uninstall` again on a skill it has already removed and it prints `removed (0 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0, when nothing changed. Read the per-skill line, not the total.
+For a skill this build did not write, the file is still on disk afterwards, and that is the tool being careful: it will not delete what it has no record of writing, and it says so. **The summary still miscounts one case:** run `uninstall` again on a skill it has already removed and it prints `removed (0 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0, when nothing changed. Read the per-skill line, not the total. **On 3.0.2 the detail line reads `removed nothing` and the summary still counts it as changed**, so this one is not fixed: the change above is about naming what was destroyed, and the arithmetic beside it was deliberately left where it was rather than have one commit answer two questions.
 
 ## What this page does not cover
 
