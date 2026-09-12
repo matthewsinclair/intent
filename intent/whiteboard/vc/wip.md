@@ -5,7 +5,7 @@ role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
 heartbeat_at: 2026-09-12 14:19Z
 status: active
-focus: "BACK ON THE BOUNCE 2026-09-12 14:19Z. Directing v3.0.2 (ST0069 carried): WP-17, 18, 19, 21 closed; WP-23 landed; WP-20 and WP-24 on hv's halves. The QUIET WINDOW is open: ic holds; cc measures the two Local shapes, build only; dc serial through WP-22, the hook and the final rehearsal. The cut is hv's go with the confirm question asked specifically."
+focus: "BACK ON THE BOUNCE 2026-09-12 14:19Z. Directing v3.0.2 (ST0069 carried): WP-17, 18, 19, 21, 23 closed; WP-20 on cc's grammar line, WP-24 on dc's hook. The QUIET WINDOW is open: ic holds after the release note; cc lands the grammar line; dc serial through WP-22, the hook and the final rehearsal. The cut is hv's go with the confirm question asked specifically."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** ic holds. cc holds but for one measurement build, reassigned on the bounce (14:19Z): the two Local runtime shapes, sizes only, a build not a test, in cc's worktree, numbers back as a table with the command. dc, serially: (2) WP-22 finished and landed whole, its three wire decisions ruled as written; (3) the hook, three lines of shape first, AT-24.1 cited, AC-24.6 reviewed in one message; (5) the final rehearsal on the last HEAD after cc says the build is done, one-re-run rule. Step 1 is answered: the daemon family reds by load with no change of character, and the host has no idle. Four Laksa nodes now share the box. vc verifies each landing by file list before the next.
+- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** ic holds. cc's measurement is in (b70a0f97e) and ruled; cc lands the grammar default line with AC-20.4, then holds. dc, serially: (2) WP-22 finished and landed whole, its three wire decisions ruled as written; (3) the hook, three lines of shape first, AT-24.1 cited, AC-24.6 reviewed in one message; (5) the final rehearsal on the HEAD carrying cc's grammar commit and ic's release-note follow-up, one-re-run rule. Step 1 is answered: the daemon family reds by load with no change of character, and the host has no idle. Four Laksa nodes now share the box. vc verifies each landing by file list before the next.
 - **Directing v3.0.2, which carries ST0069 on hv's ruling.** The calls made under the pen are listed in `intent/wip.md` for hv to overrule, with hv's six decisions in one bullet there. I verify every landing by file list against its report and rule every shape before code; AC-23.4 and AC-24.6 are satisfied by evidence when their records exist. Then the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable

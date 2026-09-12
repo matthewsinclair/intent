@@ -143,12 +143,12 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-22.2 `--no-reconcile` answers from the index as it stands and names what moved. -- satisfied: no (computed)
 - AC-22.3 `Op::Search` crosses the wire carrying the same envelope. -- satisfied: no (computed)
 
-### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: WIP)
+### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 
 - AC-23.1 (non-test) T3 and T4 are specified as staged additions, and the T1 and T2 build proves the seams: no CLI contract change and no MCP schema change admits a tier. -- evidence: 92df64d19: the semantic tier landed as a staged group with the register untouched (no CLI contract change, no MCP schema change) and the arm semantic_hits_are_a_group_of_their_own_ranked_by_cosine proving a tier is a group through a test-only embedder; T3 and T4 staged in the design -- satisfied: yes
 - AC-23.2 The `Embedder` interface exists with a Null implementation that refuses a semantic query with the remedy naming the configuration, and an HTTP implementation against an OpenAI-compatible endpoint from `config.json`. -- satisfied: yes (computed)
 - AC-23.3 The vector schema is a recorded migration; semantic hits are a tier group ranked within itself. -- satisfied: yes (computed)
-- AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- satisfied: no
+- AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- evidence: ST0069 design.md, T3 section: the Local-runtime record measured by cc on 2026-09-12 at 3ade8dea3 (report b70a0f97e) and the ruling under the pen that no Local runtime ships in 3.0.2 -- satisfied: yes
 
 ### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
@@ -215,7 +215,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: WIP)
+### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 
 - AT-23.2 `native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs` -- covers AC-23.2 -- status: green -- Two halves, two arms. The Null embedder refuses a semantic query and its remedy names the embed block with its endpoint and model -- it refuses rather than returning zeros, because a zero vector has a cosine with every other vector and an unconfigured project would get a confidently ordered list of nothing. The HTTP embedder is driven against a stub TcpListener answering one canned OpenAI-shaped reply, a double at the external boundary, and the arm asserts both what it POSTs (path, model, text) and what it reads back (vectors at the configured width).
 - AT-23.3 `native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs` -- covers AC-23.3 -- status: green -- Planted vectors, a query through the trait with a test-only embedder, one semantic group ranked by cosine with another model's vector correctly absent from the answer, and the tiers already built still present -- the envelope's shape unchanged, which is AC-23.1's seam proof in the same arm. A fourth arm states the half this one rests on: a project with no embedder has no semantic group rather than an empty one. The rung itself is held by the ladder's own pins, not by an arm.

@@ -134,6 +134,16 @@ What T3 needs that nothing else does is an **embedder**, and the 2026-08 design 
 
 **Recommendation: Null and HTTP in this thread, Local after hv rules on the runtime and the binary-size line.** Storage is a vector column beside the symbol rows with cosine ranking in Rust; `sqlite-vec` is the recorded upgrade when a measured corpus outgrows brute force, which the estate's corpora do not.
 
+**Measured 2026-09-12 by cc (AC-23.4)**, subject 3ade8dea3, one private worktree reset clean with its in-tree target dir under an isolated HOME and the shared CARGO_HOME; rustc 1.98.1, cargo 1.98.1; `[profile.release]` lto fat, codegen-units 1, strip debuginfo; `cargo build --release -p intent-cli`, the same toolchain and profile as the grammar table above. Each shape's crates were added to intent-cli's manifest for the measurement only, referenced behind an opaque `std::env::var_os` condition so fat LTO could not drop them, with the probe reaching the code path that would really be used (shape A constructs a `TextEmbedding` and calls `embed`; shape B loads a `BertModel` through a `VarBuilder`) and nothing executed. Versions are what the lockfile resolved. Controls: unambiguous crate names counted in the built binary fired in both directions (shape A carries `onnx` and `fastembed` symbols and no `candle`; shape B carries `candle` and neither of the others); a control on the needle `ort` was withdrawn before reporting because it matches `sort` and `report`. `otool -L` shows shape A linked ONNX Runtime statically, so its delta is the whole cost and there is no sidecar to ship or notarise; it adds CoreML, Foundation and Security to the link line, and shape B adds nothing beyond libc++, libiconv and libSystem. The wall column was measured under contention (a release build and an xcodebuild shared the box and cargo blocked on the package-cache lock), so it is an upper bound; shape A's is the sum of three runs, the two retries being the probe's own compile errors and not the shape's, and no retry re-fetched.
+
+| shape                                                                       | bytes      | delta from baseline | ONNX linkage       | wall |
+| --------------------------------------------------------------------------- | ---------- | ------------------- | ------------------ | ---- |
+| baseline, no local runtime                                                  | 11,957,792 |                     |                    | 99s  |
+| A: fastembed 6.0.3 + hf-hub 0.5.0 (ort 2.0.0-rc.13)                         | 41,682,384 | 29,724,592          | static, no sidecar | 175s |
+| B: candle-core + candle-nn + candle-transformers 0.11.0 + tokenizers 0.22.2 | 13,729,872 | 1,772,080           | pure Rust          | 123s |
+
+**Ruled under the pen on 2026-09-12, hv having handed the pen over without ruling it, and overrulable with a line: no Local runtime ships in 3.0.2.** The seams, the Null embedder and the HTTP embedder ship as built. Shape A is out on the numbers: it nearly quadruples the binary and puts a release candidate, `ort` 2.0.0-rc.13, under a shipping binary. Shape B is the recorded candidate for a later release, at a delta between the elixir and swift grammars and pure Rust, with what this table cannot see still to measure before it ships: inference on the estate's corpora, the model fetch and its policy stamp, and the build time on a clean first build. `tokenizers` is in both shapes and differentiates nothing.
+
 ### T4, type-aware: parked, trigger recorded
 
 A language server adds type resolution at the cost of a stateful process per project per language, version-coupled to the toolchain. Its leverage is refactoring, not search. Revisit when someone wants the refactoring.
@@ -240,11 +250,11 @@ The size consequence (D34: FTS is roughly twice its corpus, and it is already mo
 ## Decisions for hv
 
 1. **Tokeniser for source**: `unicode61` without stemming, with trigram as the measured alternative. Recommendation: build `unicode61`, measure recall on an identifier fixture, switch only on evidence.
-2. **Grammar size line**: the binary-size delta per grammar is measured before shipping; hv sets the line. Swift is the expected outlier.
-3. **T3 runtime**: Null and HTTP embedders now; Local after a ruling on the runtime and the size line. Recommendation as stated.
+2. **Grammar size line**: the binary-size delta per grammar is measured before shipping; hv sets the line. Swift is the expected outlier. Ruled under the pen 2026-09-12: rust, elixir, swift and lua ship on by default; bash is declared and off because its grammar ships no tags query.
+3. **T3 runtime**: Null and HTTP embedders now; Local after a ruling on the runtime and the size line. Recommendation as stated. Ruled under the pen 2026-09-12: no Local runtime in 3.0.2; the record is in T3 above.
 4. **The SQL door beside GraphQL**: two read-only structured faces, one daemonless. Recommendation: ship `--sql`.
-5. **`intent modules find` retires** once `search --kind def` holds. Recommendation: retire, fail-forward, no shim.
-6. **The omnibox as search box**: non-entity input becomes a search. Recommendation: after the pane exists, on use.
+5. **`intent modules find` retires** once `search --kind def` holds. Recommendation: retire, fail-forward, no shim. Ruled under the pen 2026-09-12: it stays in 3.0.2 as the registry fallback, the canon naming the index first; AC-20.6 is withdrawn naming AC-24.5.
+6. **The omnibox as search box**: non-entity input becomes a search. Recommendation: after the pane exists, on use. Ruled under the pen 2026-09-12: out of 3.0.2.
 7. **Cross-estate search** is out of scope; one index per project. A v4 concern.
 
 ## Work packages and sequencing

@@ -35,7 +35,7 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 | WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | WIP         |
 | WP-21 | The explorer's /search pane                                                                                             | M    | Done        |
 | WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Not Started |
-| WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | WIP         |
+| WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Done        |
 | WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | WIP         |
 
 ## Acceptance
