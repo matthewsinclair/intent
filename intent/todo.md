@@ -45,9 +45,16 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
   - [ ] 01: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
-  - [ ] 13: Project search: full-text, structural, and the agent search surface
+  - [~] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
   - [ ] 16: Contract drift: a shipped field with no model row is refused
+  - [ ] 17: The structured query door: intent search --sql, read-only over the published schema
+  - [ ] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
+  - [ ] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
+  - [ ] 20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
+  - [ ] 21: The explorer's /search pane
+  - [ ] 22: Daemon-served search with daemonless parity
+  - [ ] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
 ## DONE:2026-09-10T00:00:51Z
