@@ -1486,6 +1486,39 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
     .map(|t| t.id.clone())
 }
 
+/// Whether the artefact this view realises is one the manifest says is NOT
+/// realised -- so an absent file is the design working rather than a loss.
+///
+/// **ONE PREDICATE OVER BOTH ARTEFACT KINDS, because the question is one
+/// question and the last two spellings of it were each right about threads and
+/// silent about issues.** `owning_thread` answers `None` for
+/// `intent/issues/<nnnn>.md`, and `None` inside an `is_some_and` is `false` --
+/// which reads as *this view's owner is declared*, the one answer that is never
+/// safe to assume. The projection carried the same shape two commits earlier;
+/// this is the sibling reader, found the same way. **Neither was found by a
+/// fixture**: every arm that reaches an issue does so through `issues add`,
+/// which declares it, so no fixture built that way can hold an undeclared
+/// issue -- and all 284 of the estate's were. `doctor` reported every one as a
+/// missing generated view, at rc=1, on a tree `organize` had just made correct.
+///
+/// A path owned by neither is a project-level view -- `todo.md`,
+/// `steel_threads.md` -- which belongs to no artefact, so no manifest entry can
+/// excuse its absence and `false` is the honest answer for it.
+fn dehydrated_owner(
+  project: &Project,
+  path: &std::path::Path,
+  canon: &Canon,
+  realised: &crate::intentfiles::Realised,
+) -> bool {
+  if let Some(id) = owning_thread(project, path, canon) {
+    return !realised.declares(&id);
+  }
+  if let Some(number) = owning_issue(project, path, canon) {
+    return !realised.declares_artefact(crate::intentfiles::Sigil::Issue, &format!("{number:04}"));
+  }
+  false
+}
+
 /// Every view the model implies, in a stable order.
 pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<View> {
   let mut views = Vec::new();
@@ -1654,9 +1687,7 @@ pub fn skew(
       // -- a prediction of this exact defect by the author of the sibling path.
       // The two paths now answer the same question the same way.
       Err(_) => {
-        let dehydrated =
-          owning_thread(project, &view.path, canon).is_some_and(|owner| !realised.declares(&owner));
-        if !dehydrated {
+        if !dehydrated_owner(project, &view.path, canon, realised) {
           findings.push(Finding::new(
             &rel,
             FindingClass::ViewSkew,

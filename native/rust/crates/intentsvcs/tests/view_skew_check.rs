@@ -348,3 +348,64 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
     "a hand-edited view is left for doctor, byte for byte"
   );
 }
+
+/// **ST0069 WP-01's defect, found by the live estate the moment its 284
+/// undeclared issue views were removed: `doctor` reported all 284 as missing.**
+///
+/// The absent-view arm asks [`views::owning_thread`] and nothing else, and that
+/// function answers `None` for `intent/issues/<nnnn>.md` -- so `is_some_and`
+/// made `dehydrated` false for every issue view in the estate and the finding
+/// fired. **The same `None`-makes-the-whole-condition-false shape as the
+/// projection defect two commits earlier**, in the sibling reader, found the
+/// same way: by an estate whose issues are undeclared, which no fixture reaching
+/// an issue through `issues add` can be, because that verb declares it.
+///
+/// The pair is driven together for the reason [AT-10.1's arm] states above:
+/// either half alone passes on a bug. A blanket silence for issue views fails
+/// arm 2; the pre-fix behaviour fails arm 1.
+#[test]
+fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
+  use intentsvcs::intentfiles::{Realised, Sigil, declared_key};
+
+  let fx = Fixture::new();
+  let project = fx.project();
+  let mut canon = canon();
+  canon.issues = vec![crate::common::sample_issue(21)];
+  views::write_all(&project, &canon, &ctx()).expect("write");
+
+  // Dehydrate the issue's view alone. The thread's views stay, and it stays
+  // declared in both arms, so every finding below is about the issue.
+  std::fs::remove_file(project.issue_view(21)).expect("dehydrate the issue view");
+
+  let thread_only = Realised::Declared(
+    [declared_key(Sigil::SteelThread, "ST0056")]
+      .into_iter()
+      .collect(),
+  );
+  let findings = views::skew(&project, &canon, &ctx(), &thread_only);
+  assert!(
+    findings.is_empty(),
+    "an undeclared issue's view is absent by design, exactly as a thread's is: {findings:?}"
+  );
+
+  let with_the_issue = Realised::Declared(
+    [
+      declared_key(Sigil::SteelThread, "ST0056"),
+      declared_key(Sigil::Issue, "0021"),
+    ]
+    .into_iter()
+    .collect(),
+  );
+  let findings = views::skew(&project, &canon, &ctx(), &with_the_issue);
+  assert_eq!(
+    findings.len(),
+    1,
+    "a DECLARED issue's missing view is still a real loss: {findings:?}"
+  );
+  assert_eq!(findings[0].file, "intent/issues/0021.md");
+  assert!(
+    findings[0].detail.contains("missing"),
+    "and it is the absent condition, not the edited one: {}",
+    findings[0].detail
+  );
+}
