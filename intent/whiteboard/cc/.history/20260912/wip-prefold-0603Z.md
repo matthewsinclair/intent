@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 06:03Z
+heartbeat_at: 2026-09-11 21:26Z
 status: active
-focus: "LOCALFOLD 2026-09-12 06:03Z for hv's compact -- not a release. The doc audit is done and pushed; lane empty. HOLD: hv ruled fix batch 1 to dc, and cc's items are unruled. vc has the pen."
+focus: "DOC AUDIT DONE and pushed on hv's approval (main 1ebd57700 on both remotes, per vc). Lane empty; HOLD until hv rules on the defect list in intent/wip.md."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **Empty.** The doc audit's engine lane is done, verified by vc and pushed. Nothing of mine is in flight.
+- **Empty.** vc verified the engine lane of the doc audit on 2026-09-11. The held, blocked and found-while items are recorded for hv in `intent/wip.md`, item 11.
 
 ## TODO
 
@@ -22,7 +22,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **THE DOC AUDIT'S DEFECT LIST (raised 2026-09-11, `intent/wip.md` item 11):** hv ruled fix batch 1 -- the schema-face release step, the keg's subagents, bootstrap after install -- and routed it to dc. **cc's items are NOT ruled: uninstall data loss, and the critic and gate truth items** (the zsh census that reports `ran`, the elixir proxies that fire on what their rule prescribes, swift and lua UNDECLARED, `--format` accepting anything, a mixed proxy block dropping refused lines). **Released when hv rules them, or vc routes one to me.** The gate-blocked pair (`strong-assertions/bad_test.exs`, `test-highlander-shared-setup/good_test.exs`) waits on the same ruling.
+- **AFTER THE DOC AUDIT (verified and pushed 2026-09-11):** nothing further from cc. **Released when hv rules on the defect list in `intent/wip.md`, or sets new work.**
 
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work. **Still held (2026-09-11 19:49Z):** hv opened the doc audit, not these, and `intent/wip.md` lists `0177` as post-cut with no owner.
 
@@ -55,8 +55,6 @@ claims: [ST0056/06, ST0056/10]
 **W12. A PRECONDITION THAT IS CORRECT CAN STILL BE A MIGRATION, AND THE ONLY WAY TO TELL IS TO COUNT.** **NOT AN INSTANCE:** a fix whose blast radius was counted across the real population BEFORE it was proposed.
 
 ## Decisions -- lessons in force
-
-**FOLDED 2026-09-12 06:03Z FOR hv's COMPACT, AFTER THE DOC AUDIT SHIPPED.** The audit's own record is its eleven `doc audit (cc)` commits and the lane report; the pre-fold board is at `.history/20260912/wip-prefold-0603Z.md`. The lessons it produced are the first two bullets below.
 
 **FOLDED 2026-09-11 19:38Z, AFTER 3.0.1 SHIPPED.** hv's two 3.0.1 rulings are EXECUTED -- 3.0.1 shipped, with `config`, `ext` and `learn` declared-and-unbuilt -- and are verbatim in `.history/20260911/wip-prefold-1938Z.md`; the POST-CUT hold above carries what is still owed. Older text is in `wip-prefold-1650Z.md`.
 
