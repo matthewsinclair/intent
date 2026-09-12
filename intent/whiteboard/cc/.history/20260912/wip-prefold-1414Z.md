@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 14:14Z
+heartbeat_at: 2026-09-12 12:39Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 14:14Z for the user's compact -- not a release. The lane is built out and nothing of mine is uncommitted; WP-23 is open on one record that is hv's. The quiet window is OPEN: no builds, tests or drives until vc lifts it, and vc is dark."
+focus: "The lane is complete but for one record: WP-18 and WP-20's integration are closed and cited, WP-23's seams are landed with its two AT rows green, and AC-23.4 waits on hv through vc. Holding after that; vc will say when the quiet window needs suites paused."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,12 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069. Everything in cc's lane is landed and cited; nothing of mine is uncommitted.** WP-18 and WP-23's seams, WP-20's integration half, the AT rows for all of them, and the CHANGELOG's batch-4 entries. What is left in this package is not code.
-  - **OPEN, AND NOT MINE TO WRITE:** AC-23.4, the Local-runtime decision. Two candidate shapes with their crates are with dc to measure (binary delta only; each crate referenced behind an opaque condition, or fat LTO drops it and a zero delta reads as a free runtime) and with vc to put to hv. **`wp done ST0069/23` follows that record and is a store write, so the quiet window does not block it. I do not build Local.**
-  - **ON hv's LIST, NOT A QUIET ADDITION:** TLS. The HTTP embedder speaks `http://` and refuses `https://` by name; a TLS stack is a dependency with a rationale, beside the Local decision.
-  - **QUIET WINDOW, OPEN NOW, AND vc IS DARK.** No `cargo test`, no `cargo build`, no drives of any kind on this box until vc lifts it. Commits of already-built work and store writes are fine. **On the bounce: do not run a suite to "check where things are" -- that is the first instinct and it is the one thing forbidden.** Anything needing a ruling goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp.
-  - **dc's, WITH MY SUSPICION HANDED OVER:** the bounded-ingest arm. Not dc's registration (six runs each way across their commit, 3 of 6 red with, 4 of 6 without). If their bisect implicates the range rather than a commit, **start at `write_doc_sections` in `store.rs`** -- its FTS5 `rebuild` now re-derives a content table holding the repository's prose as well as canon's, which is where an ingest's per-pass cost actually moved. That line is mine.
+- **ST0069. Everything in cc's lane is landed; one record is outstanding and it is not mine to write.**
+  - **WAITING, NOT BLOCKED:** AC-23.4, the Local-runtime decision. Two candidate shapes with their crates are with dc to measure (binary delta only, each crate referenced behind an opaque condition or fat LTO drops it and a zero reads as free) and with vc to put to hv. `wp done ST0069/23` follows the record. **I do not build Local.**
+  - **REPORTED, dc's, AND MY CLAIM ABOUT IT CORRECTED:** the bounded-ingest arm. dc measured six runs each way across their own commit -- 3 of 6 red with it, 4 of 6 without -- so it is not their registration. And dc's caveat cuts my claim too: **`alone` means one test TARGET, not an idle HOST**, and my two-of-two was taken on a box three of us were hammering. What I would defend is narrow: at working load, a single-target run reds where this morning it did not, and nothing yet separates "an ingest got slower" from "the box got busier".
+  - **THE SUSPICION I OWE dc'S BISECT:** not the rungs. An ingest does not write `src_sections`; what moved on the ingest path is `write_doc_sections`, whose FTS5 `rebuild` now re-derives a content table that also holds the repository's prose. If the range rather than a commit is implicated, that line is mine and it is where to look.
+  - **ON hv's LIST, NOT A QUIET ADDITION:** TLS. The HTTP embedder speaks `http://` and refuses `https://` by name; a TLS stack is a dependency with a rationale and it goes to hv beside the Local decision.
+  - **QUIET WINDOW, ACKNOWLEDGED, AND IT IS OPEN NOW** (vc corrected the trigger: not WP-22's landing). Until vc lifts it -- **no `cargo test`, no `cargo build`, no drives of any kind on this box.** Store writes and commits of files already built are fine, so `wp done ST0069/23` on 23.4's record is fine.
 
 ## TODO
 
@@ -41,7 +42,6 @@ claims: [ST0056/06, ST0056/10]
 - **THE GATE.** Never `--no-verify`. Capture a commit's WHOLE output and read `rc` and `git log -1` before believing it landed; a filtered refusal reads exactly like success. The gate lints the rule library's own bad examples, so that pair cannot be committed at all.
 - **THIS SHELL IS ZSH.** Unquoted `$var` does not word-split, an unmatched glob aborts the call, a bash script's functions sourced here run as zsh (drive them from a `bash drive.sh`), and an exit code that IS the finding never goes through a pipe.
 - **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET**, so a run with one red measures nothing after it -- I claimed a green twice today over a suite the run never reached, with a real red behind it. `--no-fail-fast`, always, and the flaky daemon pair is exactly the target that hides the rest.
-- **`alone` MEANS ONE TEST TARGET, NOT AN IDLE HOST.** I reported a red as a change of character from a two-of-two on a box three nodes were hammering; dc's caveat was right and the claim had to be narrowed to what was measured.
 - **A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.
 - **A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.
 - **A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.
