@@ -175,6 +175,49 @@ pub fn mcp_session(
   (out, parsed)
 }
 
+/// The servable verbs that refuse without an argument.
+///
+/// **THE LOOPS OVER [`crate::render::daemon_servable_paths`] SPLIT THE PATH AND
+/// RAN IT**, which was right while every servable verb took no arguments and
+/// stopped being right the moment one required a query. A bare `intent search`
+/// is a usage error, and two usage errors are identical, exit the same way and
+/// prove nothing about routing -- so the comparison would have gone green on a
+/// verb that never ran.
+///
+/// **DECLARED ONCE HERE RATHER THAN IN EACH CALLER**, because two copies of
+/// this list is a second statement of which verbs are special, and the copies
+/// agree on the day they are written. `daemon_and_local_agree.rs` deferred the
+/// move to `common` on the cost of rebuilding ~70 test targets; the suite has
+/// since become ONE target, so that cost is gone and the reason with it.
+const NEEDS_A_QUERY: &[&str] = &["search"];
+
+/// The command line a servable verb is invoked with in a routing test.
+///
+/// `findable` is the text this fixture wants a search to hit -- passed in
+/// rather than declared here, because each caller's fixture mints its own and
+/// the assertions downstream are about THAT text appearing in the answer.
+pub fn servable_argv<'a>(path: &'a str, findable: &'a str) -> Vec<&'a str> {
+  let mut argv: Vec<&str> = path.split(' ').collect();
+  if NEEDS_A_QUERY.contains(&path) {
+    argv.push(findable);
+  }
+  argv
+}
+
+/// Put a fixture's findable text somewhere the file index can reach it.
+///
+/// **`st_new` WRITES THE STORE AND THE TREE IS REALISED LAZILY**, so a thread's
+/// own prose is not a file any reconcile walks. Without this a search for the
+/// minted title returns an honest empty set from both the local and the daemon
+/// path -- identical, exit 0, and vacuous, which is the agreement these
+/// fixtures mint a thread specifically to refuse.
+pub fn seed_findable_text(root: &Path, findable: &str) {
+  let docs = root.join("intent").join("docs");
+  std::fs::create_dir_all(&docs).expect("the project's docs directory");
+  std::fs::write(docs.join("findable.md"), format!("# {findable}\n"))
+    .expect("write the file a search has to find");
+}
+
 pub fn short_dir(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the

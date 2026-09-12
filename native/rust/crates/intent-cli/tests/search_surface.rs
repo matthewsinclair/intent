@@ -250,7 +250,18 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
 
   // Nothing has been indexed yet: the same query a populated project would
   // answer with silence.
-  let unindexed = run(root, &["search", "nothingwhatsoevermatchesthis"]);
+  //
+  // **`--no-reconcile` IS HOW AN UNPOPULATED INDEX IS REACHED SINCE WP-22**, and
+  // it is on BOTH invocations below rather than only this one. A daemonless
+  // query now reconciles before it answers, so a bare `intent search` in a fresh
+  // project populates the very index this arm is about and the state stops
+  // existing. Putting the flag on one side only would leave the two invocations
+  // differing by a flag as well as by the index, and the criterion is about the
+  // index.
+  let unindexed = run(
+    root,
+    &["search", "nothingwhatsoevermatchesthis", "--no-reconcile"],
+  );
   assert_eq!(unindexed.status.code(), Some(0));
   let said = String::from_utf8_lossy(&unindexed.stderr).to_string();
   assert!(
@@ -285,7 +296,10 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
   )
   .expect("author prose");
   restore_from_disk(root);
-  let missed = run(root, &["search", "nothingwhatsoevermatchesthis"]);
+  let missed = run(
+    root,
+    &["search", "nothingwhatsoevermatchesthis", "--no-reconcile"],
+  );
   assert_eq!(missed.status.code(), Some(0), "both are still exit 0");
   assert_eq!(
     String::from_utf8_lossy(&missed.stdout),
@@ -493,7 +507,16 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     .position(|l| l.contains("kestrel"))
     .expect("the phrase is in the file")
     + 1;
-  let hits = ok(root, &["search", "kestrel"]);
+  // **`--no-reconcile`, BECAUSE THIS ARM'S SUBJECT IS 0195 AND NOT 0304.** A
+  // daemonless query reconciles before answering since WP-22, and a reconcile
+  // adds a `file` row for a document the store already carries prose for -- so
+  // the phrase comes back twice, on the same path and the same line, differing
+  // only in kind. That is issue 0304, an overlap between two corpora each of
+  // which is right about its own scope, and the ruling on it is not this test's.
+  // Left un-flagged, this arm would go red for 0304 under a name that says 0195,
+  // and whoever met it would read the count and adjust it -- which is how a
+  // guard quietly becomes the guard for a question nobody asked it.
+  let hits = ok(root, &["search", "kestrel", "--no-reconcile"]);
   let rows: Vec<&str> = hits.lines().collect();
   assert_eq!(
     rows.len(),

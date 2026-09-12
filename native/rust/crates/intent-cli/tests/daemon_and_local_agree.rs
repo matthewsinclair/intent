@@ -46,7 +46,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::common::{RealDaemon, short_dir};
+use crate::common::{RealDaemon, seed_findable_text, servable_argv, short_dir};
 
 /// The title minted into the fixture project.
 ///
@@ -107,6 +107,8 @@ fn project() -> Fixture {
   // listing, which is the vacuous agreement this file exists to refuse.
   facade.st_triage(&id).expect("triage it");
   facade.st_start(&id).expect("start it");
+
+  seed_findable_text(&root, MINTED);
   Fixture(root)
 }
 
@@ -138,9 +140,9 @@ fn every_servable_verb_answers_identically_locally_and_through_a_real_daemon() {
   );
 
   for path in &servable {
-    let argv: Vec<&str> = path.split(' ').collect();
+    let argv = servable_argv(path, MINTED);
     let mut daemon_argv = vec!["--daemon"];
-    daemon_argv.extend(path.split(' '));
+    daemon_argv.extend(argv.iter().copied());
 
     let before = daemon.dispatched(root);
 
@@ -227,7 +229,7 @@ fn the_dispatch_counter_can_tell_the_two_paths_apart() {
     .first()
     .expect("this build declares at least one daemon-servable verb");
   let mut daemon_argv = vec!["--daemon"];
-  daemon_argv.extend(path.split(' '));
+  daemon_argv.extend(servable_argv(path, MINTED));
 
   let start = daemon.dispatched(root);
 

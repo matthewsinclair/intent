@@ -211,12 +211,17 @@ pub struct Entry {
   /// path's serving `Op`, or its absence.*
   ///
   /// **ABSENCE IS THE DECLARATION FOR EVERY PATH A DAEMON CANNOT ANSWER**, and
-  /// the vocabulary is closed by [`crate::render::serving_op_from_name`], which
-  /// admits only the payload-free variants. That is the refusal, and it is why
-  /// the name is checked at LOAD rather than skipped at USE: a payload-carrying
-  /// op named here has nothing to supply its payload, so honouring it would be
-  /// impossible and ignoring it would report a clean table while the verb
-  /// quietly lost daemon coverage.
+  /// the vocabulary is closed by [`crate::render::serving_op_from_name`]. That
+  /// is the refusal, and it is why the name is checked at LOAD rather than
+  /// skipped at USE: an op named here that nothing can build is unservable, so
+  /// honouring it would be impossible and ignoring it would report a clean
+  /// table while the verb quietly lost daemon coverage.
+  ///
+  /// **A ROW MAY NAME A PAYLOAD-CARRYING OP, SINCE 2026-09-12.** The table
+  /// cannot fill a payload, so the rule was *payload-free only*; `search`'s
+  /// payload comes from the command line, and [`crate::render::serving_op_for`]
+  /// builds it there. The table still declares only the NAME, which is the half
+  /// it can state.
   #[serde(default)]
   pub serving_op: Option<String>,
   /// The other spelling of this row's capability, eg `edit --browser`.
@@ -766,10 +771,10 @@ pub fn table() -> Table {
     panic!(
       "the dispatch table carries values no vocabulary declares:\n  {}\n\
        Each is a closed domain: `entry_dispositions`, `target_states` and `flag_dispositions` are \
-       declared in the table itself, and `serving_op`'s vocabulary is the payload-free `Op` \
-       variants, which is a property of the enum rather than something the table could state \
-       about itself. A value outside one is a typo or an undeclared addition, and either is a \
-       build defect.",
+       declared in the table itself, and `serving_op`'s vocabulary is the `Op` variants a verb \
+       path can be answered with, which is a property of the enum rather than something the \
+       table could state about itself. A value outside one is a typo or an undeclared addition, \
+       and either is a build defect.",
       unknown.join("\n  ")
     );
   }
@@ -823,16 +828,19 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
 
   // `serving_op` is a closed domain like the others, but its vocabulary lives in
   // code rather than in the table: the legal values are exactly the `Op`
-  // variants that carry no payload, which is a property of the enum and not
-  // something the table could declare about itself without repeating it.
-  for entry in table.families.iter().flat_map(|f| f.entries.iter()) {
+  // variants a verb path can be answered with, which is a property of the enum
+  // and not something the table could declare about itself without repeating
+  // it. A payload-carrying op is legal here when the code can build it from the
+  // matches; the table declares the name and nothing more.
+  for entry in all_entries(table) {
     if let Some(name) = entry.serving_op.as_deref()
       && crate::render::serving_op_from_name(name).is_none()
     {
       unknown.push(format!(
-        "`{}` declares serving_op `{name}`, which is not a payload-free Op. A daemon roster \
-           projected from this table can only name ops it can construct with no arguments; a \
-           payload-carrying op here would be unservable and silently skipped.",
+        "`{}` declares serving_op `{name}`, which is not an Op a verb path can be answered \
+           with. The roster projected from this table can only name ops `serving_op_from_name` \
+           admits and `serving_op_for` can build; anything else here would be unservable and \
+           silently skipped.",
         entry.path
       ));
     }
@@ -841,12 +849,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
     return Err(unknown);
   }
 
-  for entry in table
-    .families
-    .iter()
-    .flat_map(|f| f.entries.iter())
-    .chain(table.new_surface.iter())
-  {
+  for entry in all_entries(table) {
     if !entry_dispositions.contains(&entry.disposition) {
       unknown.push(format!(
         "`{}` disposition {:?} is not in entry_dispositions",
@@ -1025,7 +1028,25 @@ fn prefix(path: &str) -> &str {
   path.rsplit_once(' ').map(|(head, _)| head).unwrap_or("")
 }
 
-/// Every shipped entry, ported and added alike, in table order.
+/// Every entry in the table, wherever it is declared.
+///
+/// **A ROW IN `new_surface` IS A ROW, AND THE TWO-LIST SPLIT IS PROVENANCE
+/// RATHER THAN KIND.** `families` holds what v2 shipped and `new_surface` holds
+/// what v3 added, which is a fact about where a verb came FROM and not about
+/// what it IS. Any reader asking a question OF THE SURFACE has to ask it of
+/// both, and the enumeration was written out by hand at each site until the
+/// daemon roster asked it of one list only -- so `search`, a `new_surface` row,
+/// would have declared a serving op that nothing read and no load-time check
+/// refused. **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE**;
+/// this is the one statement.
+pub fn all_entries(table: &Table) -> impl Iterator<Item = &Entry> {
+  table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+}
+
 /// The permitted values a table row declares for one of its arguments.
 ///
 /// **THE TABLE IS THE ONE HOME FOR A DECLARED VOCABULARY**, and this is the
@@ -1039,25 +1060,16 @@ fn prefix(path: &str) -> &str {
 /// empty set must permit everything, because refusing everything on a lookup
 /// miss would turn a table typo into a dead command.
 pub fn arg_values(table: &Table, path: &str, arg: &str) -> Vec<String> {
-  table
-    .families
-    .iter()
-    .flat_map(|f| f.entries.iter())
-    .chain(table.new_surface.iter())
+  all_entries(table)
     .find(|e| e.path == path)
     .and_then(|e| e.args.iter().find(|a| a.name == arg))
     .map(|a| a.values.clone())
     .unwrap_or_default()
 }
 
+/// Every shipped entry, ported and added alike, in table order.
 pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
-  table
-    .families
-    .iter()
-    .flat_map(|f| f.entries.iter())
-    .chain(table.new_surface.iter())
-    .filter(|e| e.is_shipped())
-    .collect()
+  all_entries(table).filter(|e| e.is_shipped()).collect()
 }
 
 /// Whether the spine builds out this family's verb surface.

@@ -835,6 +835,28 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
         }
       }
     },
+    // **THE DAEMON CALLS THE SAME `search_all` THE DAEMONLESS PATH CALLS, AND
+    // THAT IS WHAT MAKES PARITY A PROPERTY RATHER THAN A PROMISE** (`AC-22.1`,
+    // `AC-22.3`). There is one query engine and one envelope; the only
+    // difference between the two paths is WHEN the index was last reconciled,
+    // which is what the envelope's freshness block already reports.
+    //
+    // **AND IT DOES NOT RECONCILE HERE, DELIBERATELY.** The daemonless path
+    // reconciles before it queries because nothing else is keeping its index
+    // current; this daemon's watcher does that continuously, so reconciling on
+    // every query would re-walk the repository to discover what the watcher
+    // told it a moment ago.
+    //
+    // The envelope travels as its owner's JSON -- see `Response::Search` for
+    // why the typed value cannot cross a wire whose enum derives `Eq`.
+    Op::Search { query, ask } => match facade.search_all(&query, &ask) {
+      // Serialised by the envelope's own crate -- see `Response::search`.
+      Ok(answer) => Response::search(&answer),
+      Err(cause) => Response::error(
+        format!("the search failed: {cause}"),
+        "run `intent search` without `--daemon` to see whether this process answers it, and `intent index status` to see what the index holds.",
+      ),
+    },
     Op::ThreadList => Response::Threads {
       threads: facade
         .st_list()

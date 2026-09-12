@@ -20,7 +20,7 @@
 //! rather than a patch.
 
 use crate::index::corpus::Corpus;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// The staleness policy the canon corpus is indexed under (D24).
@@ -54,7 +54,7 @@ pub fn corpus_key(corpus: &Corpus) -> &'static str {
 /// **BOTH DENOMINATORS TRAVEL** (`matched`, `returned`), the `events` page
 /// pattern: a capped result that reported only what it returned would be a
 /// silent subset, and a caller cannot tell one from a complete answer.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchAnswer {
   /// The operator's words, not the FTS5 expression they became.
   pub query: String,
@@ -117,6 +117,34 @@ impl Serialize for IndexFreshness {
   }
 }
 
+/// **AND `complete` IS RECOMPUTED ON THE WAY IN, NEVER READ.** The envelope now
+/// crosses a wire (`Op::Search`, WP-22), so it must come back as well as go
+/// out -- and the field that is computed on the way out is exactly the field a
+/// deserialiser must not trust. Reading it would let a peer's `complete: true`
+/// sit beside a non-empty `stale`, which is the one contradiction this type is
+/// shaped to make impossible. Serde ignores an unknown field by default, so
+/// `complete` arrives, is not named here, and is derived again from the two
+/// lists that determine it.
+impl<'de> Deserialize<'de> for IndexFreshness {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    #[derive(Deserialize)]
+    struct Carried {
+      #[serde(default)]
+      reconciled_at: Option<String>,
+      corpora: BTreeMap<String, CorpusState>,
+      skipped: Vec<Skipped>,
+      stale: Vec<String>,
+    }
+    let carried = Carried::deserialize(deserializer)?;
+    Ok(Self {
+      reconciled_at: carried.reconciled_at,
+      corpora: carried.corpora,
+      skipped: carried.skipped,
+      stale: carried.stale,
+    })
+  }
+}
+
 impl IndexFreshness {
   /// The freshness of an index holding the given corpora, with nothing skipped
   /// and nothing stale.
@@ -161,7 +189,7 @@ impl IndexFreshness {
 
 /// One corpus's state: how its freshness is decided, and how much of it there
 /// is.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CorpusState {
   /// The staleness policy, in the index's own words (`hash`,
   /// `stat-then-hash`). Rendered, never parsed.
@@ -173,14 +201,14 @@ pub struct CorpusState {
 }
 
 /// Something in scope that was not indexed, and why.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Skipped {
   pub path: String,
   pub reason: String,
 }
 
 /// The hits of one tier, ranked within it.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TierGroup {
   pub tier: Tier,
   pub hits: Vec<Hit>,
@@ -190,7 +218,7 @@ pub struct TierGroup {
 /// score across tiers is one nobody designed and nobody can debug: lexical
 /// relevance and structural exactness are not the same quantity, and adding
 /// them produces an order that no rule explains.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Tier {
   Lexical,
@@ -237,7 +265,7 @@ impl Tier {
 /// SURFACE.** Without type resolution nothing here can say *caller*, and a
 /// surface that said it would be the confident wrong answer this estate
 /// refuses.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HitKind {
   Def,
@@ -309,7 +337,7 @@ impl HitKind {
 }
 
 /// One hit.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Hit {
   pub kind: HitKind,
   /// What to call it: an entity's heading, a symbol's name, a file's path.
@@ -338,12 +366,20 @@ pub struct Hit {
   /// True exactly when the indexed bytes are no longer on the disk where they
   /// were indexed -- the reason a span is absent, stated rather than left for
   /// the reader to infer from the absence.
-  #[serde(skip_serializing_if = "std::ops::Not::not")]
+  ///
+  /// **`default` PAIRS WITH THE SKIP, AND ITS ABSENCE MADE THE WHOLE ENVELOPE
+  /// WRITE-ONLY** (found by driving `--daemon search`, 2026-09-12). A field
+  /// omitted on the way out has to have a value on the way in; serde supplies
+  /// one for `Option` without being asked and for nothing else, so a `bool`
+  /// that skips `false` cannot be read back at all. Every hit in a normal
+  /// answer is fresh, so every normal answer was unreadable -- and nothing
+  /// noticed for as long as the envelope only ever went outwards.
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub stale: bool,
 }
 
 /// A line range in a file, 1-indexed and inclusive.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Span {
   pub start_line: u32,
   pub end_line: u32,
@@ -366,7 +402,7 @@ impl Span {
 /// the languages until WP-18's source corpus, and the reconcile until WP-18's
 /// walk. A flag accepted and then ignored is the silent-subset defect wearing
 /// a flag's clothes, so each lands with the thing it filters.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchQuery {
   /// Empty means every kind.
   pub kinds: Vec<HitKind>,

@@ -2,7 +2,7 @@
 wp_id: WP-22
 title: Daemon-served search with daemonless parity
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-22: Daemon-served search with daemonless parity

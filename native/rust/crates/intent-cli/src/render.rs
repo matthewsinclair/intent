@@ -243,13 +243,23 @@ pub(crate) enum StoreNeed {
 /// **THE ROSTER IS NOW A PROJECTION AND THIS IS WHAT REPLACED IT.** The set of
 /// SERVED PATHS moved to `surface/dispatch-table.json`, per the discharge
 /// condition recorded on the drift guard below; what stays in code is the only
-/// half the table cannot state about itself -- which ops are constructible with
-/// no arguments. That is a property of the enum, and repeating it as data would
-/// be the second home this change exists to remove.
+/// half the table cannot state about itself -- which ops a verb path may be
+/// answered with at all. That is a property of the enum, and repeating it as
+/// data would be the second home this change exists to remove.
 ///
-/// **ONLY PAYLOAD-FREE VARIANTS ARE ADMISSIBLE, AND THE OMISSIONS ARE BY WHAT
-/// THE VARIANTS ARE.** `Graphql`, `Set` and `Form` carry payloads: a roster
-/// projected from a static table has nothing to fill them with. `Registry` is
+/// **ADMISSION IS ABOUT WHAT A VARIANT IS, NOT ABOUT WHETHER IT CARRIES A
+/// PAYLOAD, AND THAT IS THE 2026-09-12 WIDENING.** The rule was *payload-free
+/// only*, because a roster projected from a static table has nothing to fill a
+/// payload with -- which was true of the TABLE and was read as a rule about the
+/// ENUM. [`Op::Search`]'s payload comes from the parsed command line, so the
+/// table declares the NAME and [`serving_op_for`] builds the op; the value
+/// returned here for `Search` is a placeholder that says *declarable*, and no
+/// caller sends it. **A PAYLOAD-CARRYING OP IS ADMISSIBLE EXACTLY WHEN
+/// [`serving_op_for`] KNOWS HOW TO FILL IT**, and an arm added here without one
+/// there would ship an empty query as a request.
+///
+/// The omissions stand and are still by what the variants are. `Graphql`, `Set`
+/// and `Form` have no call site that builds them from matches; `Registry` is
 /// deliberately not scoped to one project, `Subscribe` changes the connection's
 /// MODE and answers once before streaming, and `Shutdown` acts on the daemon
 /// rather than answering a question about the estate -- so none of the three is
@@ -262,7 +272,49 @@ pub(crate) enum StoreNeed {
 pub fn serving_op_from_name(name: &str) -> Option<Op> {
   match name {
     "ThreadList" => Some(Op::ThreadList),
+    // **`Search` IS DECLARABLE AND NOT CONSTRUCTIBLE HERE, WHICH IS THE WHOLE
+    // OF THE WIDENING.** Its payload comes from the parsed command line, so
+    // this function -- which knows only a name -- cannot build it. It is named
+    // so the load-time refusal of an undeclared `serving_op` still covers it
+    // and `daemon_servable_paths` still lists it; the op itself is built by
+    // [`serving_op_for`] from the matches. See that function for why a private
+    // route for search was rejected.
+    "Search" => Some(Op::Search {
+      query: String::new(),
+      ask: intentsvcs::search::SearchQuery::default(),
+    }),
     _ => None,
+  }
+}
+
+/// The op a verb path becomes at the daemon, built from what was actually
+/// typed.
+///
+/// **THE ROSTER PROJECTS A NAME; ONLY THE CALL SITE HAS THE PAYLOAD** (vc's
+/// ruling, 2026-09-12, choosing this over a private route for search). The
+/// table cannot fill `Op::Search`'s query and flags, and a verb that reached the
+/// daemon outside the roster would be a verb no roster test could see -- which
+/// is the exact narrowing [`serving_op_from_name`] exists to enforce. So the
+/// table still DECLARES, the load-time refusal still covers every declaration,
+/// and this function is the one place that turns a declaration into a request.
+///
+/// A path whose entry declares no `serving_op` returns `None` here as before.
+pub fn serving_op_for(path: &str, m: &ArgMatches) -> Result<Option<Op>, Failure> {
+  let Some(declared) = daemon_op_for(path) else {
+    return Ok(None);
+  };
+  match declared {
+    // **A MALFORMED FLAG REFUSES HERE RATHER THAN FALLING BACK TO THE LOCAL
+    // PATH** (`IN-AG-NO-SILENT-001`). Returning `None` on a bad `--kind` would
+    // run the query in this process instead, which answers the operator's
+    // question correctly and tells them nothing about the flag they got wrong
+    // -- and it would make `--daemon` mean *try the daemon* rather than *ask
+    // the daemon*, silently, in exactly the case where the difference matters.
+    Op::Search { .. } => Ok(Some(Op::Search {
+      query: m.get_one::<String>("query").cloned().unwrap_or_default(),
+      ask: search_ask(m)?,
+    })),
+    payload_free => Ok(Some(payload_free)),
   }
 }
 
@@ -271,10 +323,8 @@ pub fn serving_op_from_name(name: &str) -> Option<Op> {
 /// Reads the table. A path whose entry declares no `serving_op` is a path no
 /// daemon answers, which is the declaration rather than the absence of one.
 pub fn daemon_op_for(path: &str) -> Option<Op> {
-  crate::dispatch::table()
-    .families
-    .iter()
-    .flat_map(|family| family.entries.iter())
+  let table = crate::dispatch::table();
+  crate::dispatch::all_entries(&table)
     .find(|entry| entry.path == path)
     .and_then(|entry| entry.serving_op.as_deref())
     .and_then(serving_op_from_name)
@@ -288,10 +338,8 @@ pub fn daemon_op_for(path: &str) -> Option<Op> {
 /// being a const, and keeping it would have meant leaking the table to preserve
 /// a lifetime nothing needed.
 pub fn daemon_servable_paths() -> Vec<String> {
-  crate::dispatch::table()
-    .families
-    .iter()
-    .flat_map(|family| family.entries.iter())
+  let table = crate::dispatch::table();
+  crate::dispatch::all_entries(&table)
     .filter(|entry| {
       entry
         .serving_op
@@ -404,7 +452,7 @@ fn served<T>(
   // reaching here with no op means an arm called `served` under a path spelling
   // the declaration does not carry -- which is a build defect, not an operator
   // one, and it says so rather than quietly running locally.
-  let op = daemon_op_for(path).ok_or_else(|| refuse_unservable(path))?;
+  let op = serving_op_for(path, a)?.ok_or_else(|| refuse_unservable(path))?;
 
   let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
   let daemon::Route::Daemon(endpoint) = daemon::route(&candidates) else {
@@ -3459,6 +3507,26 @@ fn cell_text(value: &serde_json::Value) -> String {
   }
 }
 
+/// The envelope a daemon's answer to [`Op::Search`] carries.
+///
+/// **READ BACK THROUGH THE ENVELOPE'S OWN `Deserialize`, NOT RENDERED FROM THE
+/// VALUE.** `IndexFreshness` recomputes `complete` on the way in, so a daemon
+/// that sent a `complete: true` contradicting the lists beside it cannot have
+/// that claim reach the operator. Printing the raw value would be a second
+/// renderer and would trust the wire.
+fn search_answer_from(response: Response) -> Result<intentsvcs::search::SearchAnswer, Failure> {
+  match response {
+    Response::Search { answer } => serde_json::from_value(answer).map_err(|cause| {
+      Failure::Error(format!(
+        "error: intentd answered a search with an envelope this build cannot read: {cause}\n  remedy: this is a version skew between `intent` and `intentd`. Run `intent daemon status`; the two must be the same build."
+      ))
+    }),
+    other => Err(Failure::Error(format!(
+      "error: intentd answered a search with something else: {other:?}\n  remedy: this is a version skew between `intent` and `intentd`. Run `intent daemon status`; the two must be the same build."
+    ))),
+  }
+}
+
 fn search(m: &ArgMatches) -> Result<(), Failure> {
   // **THE STRUCTURED DOOR IS THE FLAG, AND NOTHING IS AUTO-DETECTED** (AC-17.3).
   // A query whose first word is `select` is a thing people search for, so a verb
@@ -3498,6 +3566,32 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       named.join(" and ")
     )));
   }
+  // **THREE OF THE FOUR DOORS ANSWER IN THIS PROCESS ONLY, AND `--daemon` ON
+  // ONE OF THEM REFUSES RATHER THAN ANSWERING LOCALLY** (`IN-AG-NO-SILENT-001`).
+  // The `--daemon` guard in [`run`] is keyed on the PATH, and `search` is
+  // servable -- so without this, `intent --daemon search --outline x` would
+  // parse, pass the guard, open this process's store and print a normal answer
+  // at rc 0, having done the opposite of what was asked. Only the text query
+  // has an [`Op`]; `--outline`, `--context` and `--sql` have none, and a flag
+  // accepted and ignored is worse than one refused because the exit code agrees
+  // with the caller.
+  if via_daemon(m)
+    && let Some(door) = [
+      ("`--outline`", outline.is_some()),
+      ("`--context`", context.is_some()),
+      ("`--sql`", statement.is_some()),
+    ]
+    .into_iter()
+    .find(|(_, given)| *given)
+    .map(|(name, _)| name)
+  {
+    return Err(Failure::Unavailable(format!(
+      "error: `--daemon` asks intentd to answer this search, and no daemon answers {door}\n  \
+       remedy: drop `--daemon` to answer it in this process -- intentd answers a text query and \
+       nothing else on this verb"
+    )));
+  }
+
   if let Some(path) = outline {
     let f = open()?;
     let answer = f.outline(&path).map_err(fail)?;
@@ -3531,9 +3625,32 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
     return search_sql(m, &statement);
   }
   let query = text.expect("both-or-neither was checked above");
-  let f = open()?;
   let ask = search_ask(m)?;
-  let answer = f.search_all(&query, &ask).map_err(fail)?;
+
+  // **ONE QUERY ENGINE, TWO PLACES IT CAN RUN, AND THE ENVELOPE IS THE SAME
+  // VALUE EITHER WAY** (`AC-22.1`, `AC-22.3`). Both closures end at
+  // `search_all`: the daemon's handler calls it too, so there is no second
+  // assembly of the answer to drift, and the only difference the two paths can
+  // produce is WHEN the index was last reconciled -- which the envelope's
+  // freshness block already reports rather than leaving to be inferred.
+  let answer = served(
+    "search",
+    m,
+    |response, _project| search_answer_from(response),
+    |mut f| {
+      // **THE IN-PROCESS PATH RECONCILES BEFORE IT ANSWERS, AND THE DAEMON PATH
+      // DOES NOT, FOR THE SAME REASON.** Whoever is keeping the index current
+      // should do it once rather than per query: with a daemon that is the
+      // watcher, continuously; without one there is nobody, so the query is the
+      // only moment the index can catch up with the tree. A search that skipped
+      // it would answer about a tree that has moved and say `complete: true`
+      // beside the answer.
+      if !m.get_flag("no-reconcile") {
+        f.index_refresh(None).map_err(fail)?;
+      }
+      f.search_all(&query, &ask).map_err(fail)
+    },
+  )?;
   report_search(m, &answer)
 }
 
@@ -11583,7 +11700,8 @@ mod tests {
   /// daemon can answer, derivable the moment the second fact exists; and WHICH
   /// `Op` each path becomes, which the table does not carry at all -- checked
   /// rather than assumed, no `new_surface` key names an `Op`.
-  /// The vocabulary admits exactly the payload-free ops, and refuses the rest.
+  /// The vocabulary admits exactly the ops a verb path can be answered with,
+  /// and refuses the rest.
   ///
   /// **THIS IS THE REFUSAL THAT REPLACED A SILENT SKIP.** Before the roster
   /// became a projection there was nowhere to declare a bad op, so there was
@@ -11598,19 +11716,23 @@ mod tests {
   /// not a value any test can hand it. What IS testable is the predicate that
   /// refusal consults, which is this.
   #[test]
-  fn the_serving_vocabulary_admits_only_payload_free_ops() {
-    assert!(
-      serving_op_from_name("ThreadList").is_some(),
-      "the one op a verb path can be answered with is not admitted, so the projection is empty \
-       and every arm keyed on it passes for free"
-    );
+  fn the_serving_vocabulary_admits_only_ops_a_verb_path_answers_with() {
+    for name in ["ThreadList", "Search"] {
+      assert!(
+        serving_op_from_name(name).is_some(),
+        "`{name}` is a verb path's answer and is not admitted, so the projection loses it and \
+         every arm keyed on it passes for free"
+      );
+    }
 
-    // Payload-carrying: a projection from a static table has nothing to fill
-    // these with.
+    // **PAYLOAD-CARRYING IS NO LONGER THE DISCRIMINATOR** -- `Search` carries
+    // one and is admitted, because `serving_op_for` builds it from the matches.
+    // These three have no call site that builds them, so a declaration naming
+    // one would promise daemon coverage nothing could deliver.
     for name in ["Graphql", "Set", "Form"] {
       assert!(
         serving_op_from_name(name).is_none(),
-        "`{name}` carries a payload and a table projection cannot construct it, so admitting it \
+        "`{name}` has no call site that fills it from a parsed command line, so admitting it \
          would declare daemon coverage the roster could never deliver"
       );
     }
@@ -11639,6 +11761,16 @@ mod tests {
   /// Reads the table independently rather than calling the accessor under test,
   /// so this compares two derivations of one fact instead of asserting a
   /// function equals itself.
+  ///
+  /// **BOTH LISTS, SPELLED OUT, AND NOT THROUGH [`dispatch::all_entries`].**
+  /// This derivation and the one it checks both walked `families` alone until
+  /// 2026-09-12, so a `serving_op` on a `new_surface` row -- `search`, when it
+  /// came -- would have been declared, read by nothing, refused by nothing, and
+  /// agreed about perfectly here. **TWO DERIVATIONS THAT SHARE THE MISTAKE ARE
+  /// ONE DERIVATION**, which is the failure this test's own note warns about in
+  /// the other direction. Calling the shared accessor would rebuild exactly
+  /// that, so the enumeration stays written out where a reader can see which
+  /// rows it covers.
   #[test]
   fn the_roster_is_exactly_what_the_table_declares_a_serving_op_for() {
     let table = dispatch::table();
@@ -11646,6 +11778,7 @@ mod tests {
       .families
       .iter()
       .flat_map(|family| family.entries.iter())
+      .chain(table.new_surface.iter())
       .filter(|entry| entry.serving_op.is_some())
       .map(|entry| entry.path.clone())
       .collect();

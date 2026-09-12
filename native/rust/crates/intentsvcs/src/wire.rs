@@ -191,6 +191,26 @@ pub enum Op {
   /// than crash, and something has to be able to ask across projects for that
   /// to be visible at all.
   Registry,
+  /// A text search over this project's index (`AC-22.3`).
+  ///
+  /// **IT CARRIES THE OWNER'S TYPES RATHER THAN A SECOND SPELLING OF THEM.**
+  /// `SearchQuery` and `SearchAnswer` live in `crate::search`, which owns the
+  /// envelope; re-declaring their shape here would mint a second contract that
+  /// agrees today and drifts the first time a tier is added. Same reasoning as
+  /// [`Op::Graphql`] carrying one value rather than two fields.
+  ///
+  /// **AND IT IS WHY THE DAEMON ROSTER GREW A CONSTRUCTOR.**
+  /// `serving_op_from_name` admitted only payload-free variants, because a
+  /// roster projected from a static table has nothing to fill a payload with.
+  /// This op's payload comes from the parsed command line, so the table
+  /// declares the NAME and the code builds the op (vc's ruling, 2026-09-12) --
+  /// which keeps the one roster and the load-time refusal of an undeclared
+  /// `serving_op`, rather than giving search a private route no roster test can
+  /// see.
+  Search {
+    query: String,
+    ask: crate::search::SearchQuery,
+  },
   /// Turn this connection into a live feed of the project's changes (`D20`,
   /// `AC-08.6`).
   ///
@@ -402,6 +422,22 @@ pub enum Response {
   },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
+  /// The envelope an [`Op::Search`] found, exactly as `search_all` built it.
+  ///
+  /// **ONE VALUE, NOT THE TYPED ENVELOPE, AND FOR [`Response::Graphql`]'s OWN
+  /// REASON.** A hit carries `score: f64`, and `Response` derives `Eq` -- which
+  /// a raw `f64` cannot satisfy, because Rust's float admits NaN.
+  /// `serde_json::Value` can, because JSON has no NaN, which is why
+  /// `serde_json::Number` implements `Eq` by hand. So the envelope travels as
+  /// the JSON its owner produced: one serialisation, by `crate::search`, and no
+  /// second spelling of a shape this module does not own.
+  ///
+  /// **`complete` DOES NOT SURVIVE THE JOURNEY AS A VALUE, AND THAT IS THE
+  /// POINT.** `IndexFreshness` computes it from `skipped` and `stale`, and its
+  /// hand-written `Deserialize` recomputes it when the caller reads this back
+  /// into the envelope rather than trusting what arrived -- so a peer cannot
+  /// send a `complete: true` that contradicts the lists beside it.
+  Search { answer: serde_json::Value },
   /// What an [`Op::Build`] asked: this running image's version and commit,
   /// read from what the binary embedded, so `dirty-` and `unknown` survive.
   Build { version: String, commit: String },
@@ -433,6 +469,30 @@ pub enum Response {
 }
 
 impl Response {
+  /// The envelope, serialised by the module that owns it.
+  ///
+  /// **THE DAEMON DOES NOT SERIALISE THIS ITSELF, AND THE REASON IS NOT
+  /// TIDINESS.** `intentd` has no `serde_json` dependency, and adding one so a
+  /// handler could call `to_value` would mean a new third-party crate in the
+  /// daemon's manifest -- with a written rationale under `AC-08.10` -- to do a
+  /// job the envelope's own crate already does. It would also put a second
+  /// place that decides how a `SearchAnswer` becomes JSON, next to
+  /// `report_search`'s `--json`, which is the drift this constructor exists to
+  /// prevent.
+  ///
+  /// A failure here is a fault in the build rather than in the project: the
+  /// envelope is plain data, so this returns the refusal rather than panicking
+  /// on a path a daemon is serving.
+  pub fn search(answer: &crate::search::SearchAnswer) -> Response {
+    match serde_json::to_value(answer) {
+      Ok(value) => Response::Search { answer: value },
+      Err(cause) => Response::error(
+        format!("the search answer could not be serialised: {cause}"),
+        "this is a fault in this build rather than in the project. Run `intent search` without `--daemon` to answer it in your own process.",
+      ),
+    }
+  }
+
   /// Build a refusal, so the two fields are never assembled ad hoc at a call
   /// site and one of them forgotten.
   pub fn error(message: impl Into<String>, remedy: impl Into<String>) -> Response {

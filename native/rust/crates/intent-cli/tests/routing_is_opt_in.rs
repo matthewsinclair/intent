@@ -45,7 +45,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use intentsvcs::daemon;
 
-use crate::common::{RealDaemon, short_dir};
+use crate::common::{RealDaemon, seed_findable_text, servable_argv, short_dir};
 
 /// A listener that answers the liveness probe, stopped when dropped.
 ///
@@ -159,6 +159,9 @@ fn project() -> PathBuf {
   facade
     .st_start(&id)
     .expect("start it, so a default listing names it");
+  // And the same text where the file index can reach it, so the servable verbs
+  // that answer from the index can name it too.
+  seed_findable_text(&root, MINTED);
   root
 }
 
@@ -205,7 +208,7 @@ fn a_verb_a_daemon_could_serve_still_runs_in_this_process_by_default() {
 
   let mut wrong = Vec::new();
   for path in &servable {
-    let argv: Vec<&str> = path.split(' ').collect();
+    let argv = servable_argv(path, MINTED);
     let out = run(daemon.home(), &root, &argv);
     let seen = text(&out);
     if out.status.code() != Some(0) {
@@ -256,7 +259,7 @@ fn every_servable_path_asked_with_daemon_actually_leaves_this_process() {
   let mut wrong = Vec::new();
   for path in &servable {
     let mut argv = vec!["--daemon"];
-    argv.extend(path.split(' '));
+    argv.extend(servable_argv(path, MINTED));
     let out = run(daemon.home(), &root, &argv);
     let seen = text(&out);
     match out.status.code() {
@@ -303,7 +306,7 @@ fn asking_for_a_daemon_that_is_not_there_refuses_rather_than_answering_locally()
 
   for path in &servable() {
     let mut argv = vec!["--daemon"];
-    argv.extend(path.split(' '));
+    argv.extend(servable_argv(path, MINTED));
     let out = run(&home, &root, &argv);
     let seen = text(&out);
 
@@ -498,7 +501,7 @@ fn with_no_daemon_the_answers_are_the_same() {
   let root = project();
 
   for path in &servable() {
-    let argv: Vec<&str> = path.split(' ').collect();
+    let argv = servable_argv(path, MINTED);
     let listed = run(&home, &root, &argv);
     assert_eq!(
       listed.status.code(),

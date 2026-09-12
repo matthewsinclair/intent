@@ -105,7 +105,7 @@
       "seq": 22,
       "title": "Daemon-served search with daemonless parity",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "intentd keeps the index warm incrementally through the widened watcher, an Op::Search crosses the wire with the envelope, and a daemonless query reconciles the source corpus first so its answer is identical to the daemon's for the same tree state.\n",
       "body": "Design: design.md, the daemon. A changed file is re-tokenised, re-parsed and its rows replaced. A daemonless query runs the same reconcile-then-query in intentsvcs; `--no-reconcile` trades that for a named staleness. The MCP face stays in-process and correct without the daemon because it reconciles too. Depends on WP-18 and WP-19.\n",
       "preamble": ""

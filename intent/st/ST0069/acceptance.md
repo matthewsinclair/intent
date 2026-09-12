@@ -137,7 +137,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-21.2 Enter on an entity hit lands on its view; Enter on a file hit opens the file through the lent terminal, and the row names the line. The editor is not positioned at it: editor line flags are not portable (`+N` for some, `-g file:N` for others), and this estate has already refused to sniff editors for a flag on exactly that ground. -- satisfied: yes (computed)
 - AC-21.3 The pane calls the same facade method as the CLI, and the TUI's pure layers stay pure. -- satisfied: yes (computed)
 
-### WP-22 -- Daemon-served search with daemonless parity (status: Not Started)
+### WP-22 -- Daemon-served search with daemonless parity (status: WIP)
 
 - AC-22.1 intentd maintains the index incrementally; a daemonless query reconciles first and returns results identical to a daemon-served one for the same tree state. -- satisfied: no (computed)
 - AC-22.2 `--no-reconcile` answers from the index as it stands and names what moved. -- satisfied: no (computed)
@@ -211,7 +211,7 @@ _(no tests in this group)_
 - AT-21.2 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.2 -- status: green
 - AT-21.3 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.3 -- status: green
 
-### WP-22 -- Daemon-served search with daemonless parity (status: Not Started)
+### WP-22 -- Daemon-served search with daemonless parity (status: WIP)
 
 _(no tests in this group)_
 
