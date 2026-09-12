@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 17:39Z
+heartbeat_at: 2026-09-12 18:12Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 17:37Z for the user's compact. WP-14 commit ONE is landed (b9f2aec74); commit TWO is BUILT and BANKED, not landed -- the patch is the artefact, not this board. vc is dark with three standing orders. The live store stays at 23 and no binary built from commit two reads it. NO RELEASE, NO PUSH."
+focus: "WP-14 commit TWO is LANDED: 87b819abd, on a green workspace suite at peak load 122.14. Next is vc's standing order two -- the rest of the intent wb family, commit per verb group, row landing with its verb. The live store stays at 23 until vc rebuilds and broadcasts. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,21 +14,13 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**LOCALFOLDED 2026-09-12 17:37Z for the user's compact, not a release. The board before this fold is verbatim at `.history/20260912/wip-prefold-1737Z.md`. Everything landed is carried by its commits; the UNLANDED work is carried by a patch named below, never by prose here.**
+- **ST0069 IS REOPENED TO THE END BY hv, AND cc's LANE IS WP-14.** hv, verbatim: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_ vc directs and has the pen.
 
-- **ST0069 IS REOPENED TO THE END BY hv, AND cc's LANE IS WP-14.** hv, verbatim: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_ Four packages were open -- WP-01, WP-02, WP-14 (L, cc's), WP-16 (ic's, now built). vc directs and has the pen.
+- **WP-14 COMMIT ONE `b9f2aec74` AND COMMIT TWO `87b819abd` ARE BOTH LANDED.** Commit two carries the three tables and rung 24, `SCHEMA_VERSION` 24, both pins, the projection, the restore door, `register_nodes`/`register_roster`, the `wb` family and `wb register` register rows, the render arm, the five `intent/whiteboard/<node>/board.json`, and the four data-model.md items. `wp start ST0069/14` ran before it, so the WP reads in flight. The landing report with the file list and the peak is in `vc/inbox.cc.md` at 18:12Z.
 
-- **WP-14 COMMIT ONE IS LANDED: `b9f2aec74`.** The three coordination types, their enums, `Board`, `schema/board.schema.json`, the JSON face version, the D30 rows and the D42 sentence in `data-model.md`. `SCHEMA_VERSION` untouched at 23.
+- **NEXT IS vc's STANDING ORDER TWO: the rest of the `intent wb` family.** One commit per verb group, the register row landing WITH its verb (vc's amendment, for WP-14 only), fixture board only, views NOT switched, both guards untouched, no `cwi` and no skill. ic reviews and corrects the rows in their own commit after each lands.
 
-- **WP-14 COMMIT TWO IS BUILT, GREEN BUT FOR ONE EXPECTED RED, AND BANKED UNLANDED.** The patch is `scratchpad/wp14-commit2.patch`, base `b9f2aec74`, and the worktree is `scratchpad/wt-cc`. It carries: the three tables and rung 24, `SCHEMA_VERSION` 24, both pins re-pinned, the projection writing `intent/whiteboard/<node>/board.json`, the restore reading it back, `register_nodes`/`register_roster`, the `wb` family and `wb register` rows in the register, and the `wb` render arm. **The one red is `openness::every_carried_by_declaration_resolves_to_something_on_disk`, and it is the work that remains rather than a defect:** the declaration resolves against THIS repository and the five board files do not exist here yet.
-
-- **TO FINISH COMMIT TWO, IN THIS ORDER.** (1) Regenerate the `populations` block in `surface/dispatch-table.json` -- the generator refuses a hand edit and compares ORDER, so derive it with the same jq the checker uses (`gen_dispatch_table.sh`, `POPULATIONS_SKEW`) rather than typing it. (2) Run `gen_dispatch_table.sh` until silent. (3) Build the worktree binary and run `intent wb register` THERE, against the worktree's own store, to produce the five `board.json`; they are committed as reproducible canon. (4) The four `data-model.md` items: the full ordering sentence in the notes, line 454's paragraph replaced with the roster-registration sentence, and a `### board` table for the envelope's four rows (ic's finding). (5) `cargo test --workspace --no-fail-fast`, then land and report by file list.
-
-- **THE LANDING REPORT OWES vc ONE ANSWER, AND IT IS ALREADY DETERMINED: a committed `board.json` reaches a store with no wb rows ONLY through an unscoped `sync --to-store`.** The code is `ingest.rs`, `resync_inner`, the gate `if scope.named().is_none() && load == Load::Restore`. **The daemon's ingest deliberately does NOT carry boards** -- `Load::Ingest` runs on every watched change and a wholesale replace there would revert a board write that had landed in the store before its file was projected, which is issue `0216`'s exact shape. Boards have no per-row decision procedure yet, so the store keeps its value and one explicit door replaces it.
-
-- **vc's THREE STANDING ORDERS, GIVEN GOING DARK AT 17:37Z.** (1) Land commit two when green on the rulings held. (2) Then the rest of the `intent wb` family, commit per verb group, row landing WITH its verb, fixture board only, views not switched, both guards untouched, no `cwi` and no skill. (3) **The live store stays at 23 until vc rebuilds the pair and broadcasts; NO binary built from commit two or later reads the live store before that. Worktree only.** Every report goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp as well as the socket.
-
-- **THE REGISTER RULE IS AMENDED FOR `intent wb` ONLY** (vc, 2026-09-12): cc adds the register row in the commit that builds the verb, and ic reviews and corrects in their own commit, because the SSOT cannot precede the arm across two nodes. This is not a general licence and dies with WP-14.
+- **THE LIVE STORE STAYS AT 23 UNTIL vc REBUILDS THE PAIR AND BROADCASTS.** No binary built from commit two or later reads it; vc migrates it to 24 by their own hand. Worktree only. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -60,6 +52,9 @@ claims: [ST0056/06, ST0056/10]
 - **NEVER RESERIALISE `surface/dispatch-table.json`; INSERT TEXTUALLY.** A `json.dumps` round trip to add two rows reformatted unrelated entries, re-escaped `\u0027` back to `'`, and moved a whole `daemon restart` row -- 127 insertions against 60 deletions for a 31-line addition. The register keeps its own formatting and is never run through a reformatter. Its generator also refuses a hand-edited `populations` block and compares ORDER, and it refuses an idempotent verb withheld from MCP unless `recoverability_anomaly` says why.
 - **schemars LIFTS `///` INTO THE PUBLISHED FACE, so a criterion id in a doc comment SHIPS.** `no_pm_state_in_output` caught this twice in one commit -- first in the DDL comments, which are published in `ddl.sql`, then again in `board.schema.json` after I had fixed the first. A consumer holding that face has no AC to look up. Ids belong in `//` comments, which do not ship.
 - **THE GATE REFUSES UNFORMATTED MARKDOWN AND THE DAEMON RE-INGESTS THE FORMATTED BYTES UNDER YOUR STAGE.** A refused commit, `prettier --write`, and the canon went `MM` while my index already held the old bytes. Settle past the ingest, then re-stage; committing the half you had is the failure available here.
+- **A REGISTER THAT VALIDATES IS NOT A SURFACE THAT EXISTS.** Both `wb` rows were inserted textually inside the WRONG family's `entries[]`, and every arm of the generator passed -- the census, the pair count, the populations, the vocabularies -- because each reads ROWS and the rows were well-formed. `families` did not move, so the shape assertion passed too. The binary refused: `intent wb --help` said `unrecognized subcommand 'wb'`, because `spine::build` names a family's clap command from `family.name`. Textual insertion is the rule for that file and is also how a row lands in the wrong parent. **Type the command.**
+- **`cargo test` DOES NOT CHECK FORMATTING, SO A GREEN SUITE IS NOT A COMMITTABLE TREE.** 2530 tests passed and the gate then refused four unformatted Rust files. `rustfmt --edition 2024` on the named files, rebuild, re-run the arms that touch them, re-issue the SAME command.
+- **`git add` LOSES THE LOCK RACE TOO, AND ITS FAILURE SURFACES DOWNSTREAM AS SOMETHING ELSE.** A retry loop that classifies only the COMMIT's output reads the add's silent failure as `pathspec 'x' did not match any file(s) known to git` and stops on what looks like a real refusal. Retry the add and the commit as ONE unit.
 - **A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.
 - **A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.
 - **A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.
