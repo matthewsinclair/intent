@@ -91,3 +91,76 @@ Two guards caught real things and are answered rather than worked around: a ship
 **Suite: the whole workspace green, every target, zero failures, loads 19 to 30.** The daemon family included, on this run.
 
 AC-24.4 and AC-22.1 to AC-22.3 all compute satisfied. AT-24.1 was cited earlier at `23803861b`. **Step 5, the rehearsal, is all that is left of my road, and it waits on the HEAD you name.**
+
+## (2026-09-12 15:38Z) Step 5 -- the rehearsal HALTS to you under your own rule
+
+**SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
+**CMD: `bin/devbin build release --dry-run --patch`**
+
+**HALTED, NOT FAILED, AND THE RULE IS WHY.** Two runs, both red, both confined to the daemon family. A second consecutive red on that family halts to you rather than re-running again, so it stops here.
+
+### Run 1 -- every gate line verbatim
+
+```
+info: current version: 3.0.1
+info: target version: 3.0.2
+info: CHANGELOG section present for 3.0.2
+info: CHANGELOG header still 'in progress' -- will rewrite to 2026-09-12
+
+==> pre-flight
+info: working tree clean
+info: schema faces carry 3.0.1
+info: on main branch
+info: both remotes (local, upstream) configured
+info: no frozen remote in the push set
+info: running intent doctor
+info: intent doctor clean
+info: running test suite (this may take a minute)
+info: test suite green
+info: running cargo test --workspace (this may take several minutes)
+error: cargo test --workspace failed -- fix before releasing
+  what failed:
+    test a_change_outside_the_sync_scope_delivers_nothing ... FAILED
+    test every_subscriber_receives_every_event ... FAILED
+    test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.21s
+```
+
+One target failed: `-p intentd --test daemon_subscriptions`. Loads 20.72 at start, **82.65 at end**.
+
+### Run 2 -- every gate line verbatim
+
+Identical through `info: test suite green`, then:
+
+```
+info: running cargo test --workspace (this may take several minutes)
+error: cargo test --workspace failed -- fix before releasing
+  what failed:
+    test every_subscriber_receives_every_event ... FAILED
+    test a_change_outside_the_sync_scope_delivers_nothing ... FAILED
+    test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.73s
+    test daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests ... FAILED
+    test result: FAILED. 34 passed; 1 failed; 1 ignored; 0 measured; 0 filtered out; finished in 16.45s
+```
+
+Two targets failed: `daemon_subscriptions` and `intentd --test suite`. Loads **84.38 at start**, 54.09 at end.
+
+### What the two runs say, and what they cannot
+
+**Every gate before the cargo gate passed, verbatim and identically, in both runs**: clean tree, schema faces at 3.0.1, main, both remotes, no frozen remote, `intent doctor` clean, and the bats suite green. The cut's whole preflight is sound.
+
+**Every failure in both runs is in the daemon family and nowhere else.** Three distinct tests across the two runs, all of them `daemon_subscriptions` or `daemon_watch`, and no target outside `intentd` failed at any point.
+
+**NEITHER RUN WAS AT A LOAD WHERE THIS FAMILY HAS EVER BEEN GREEN, WHICH IS THE THING THAT MATTERS MOST HERE.** Step 1 characterised it at 3 of 6 red alone at load 40 and 0 of 6 alone at load 15. Run 1 ended at 82.65 and **run 2 STARTED at 84.38** -- the highest reading of the day, above anything step 1 sampled. And the discriminator is on today's record: this identical code ran the WHOLE workspace green, every target, zero failures, in my worktree at loads 19 to 30, an hour before these runs. Same bytes, green at 20, red at 84.
+
+**So the halt is the rule working, not a verdict on the cut.** What these two runs cannot distinguish is *the cut has a defect* from *the box is at 84*. I am not going to claim the tree is clean on evidence that cannot carry it, and I am not going to re-run a third time and call the first green the answer -- that is picking the reading I wanted.
+
+**The load is not mine to clear**: you noted hv started four Laksa nodes in the ten minutes before this, and run 2's own start load includes the tail of run 1's cargo test. A fair reading needs the box nearer the floor than 84, and the floor itself is around 10 to 15 on this host with every Intent node silent.
+
+### Housekeeping
+
+- The clone is at the rehearsal HEAD with `local` and `upstream` configured; the whole rehearsal ran under an isolated HOME.
+- **`~/.intent/home` is UNCHANGED**: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 2026-09-12 10:16:38, identical before and after both runs. The isolation held.
+- **`intent backup` was taken deliberately in the clone**, and the reason is that `.backup/` and `intent/.backup/` are gitignored, so a fresh clone carries none -- a gate that reads a backup cannot be rehearsed in a clone that has never taken one, and a rehearsal that silently skips a gate is not a rehearsal of the cut. It wrote `intent/.backup/db/2026-09-12T15-29-43-632Z.db` inside the clone and nothing in the estate.
+- The gate improvement from batch 4 earned itself here: both failures came back NAMED, with the log path, instead of an exit code. Neither run cost a second clone to diagnose.
+
+**Your call.** The cut is a separate go from hv either way, and NO RELEASE, NO PUSH stands.

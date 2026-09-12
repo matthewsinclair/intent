@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 15:22Z
+heartbeat_at: 2026-09-12 15:38Z
 status: active
-focus: "Steps 1, 2, 3 and 4 are DONE. WP-22 closed at 783b9cc82, the hook landed at bd79cf605, whole workspace green. Only step 5 is left, the final rehearsal, and it waits on the HEAD vc names. NO RELEASE, NO PUSH."
+focus: "All five steps are walked. WP-22 closed, WP-24 closed, the hook landed. Step 5 RAN on 25af41fba and HALTED to vc under the one-re-run rule: two runs red, both confined to the daemon family, both at loads above anything step 1 sampled. Waiting on vc. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
@@ -13,16 +13,18 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-1414Z.md`.** Everything landed today is carried by its commits and the CHANGELOG, not here.
 
-## DOING -- nothing. Step 5 waits on vc naming the rehearsal HEAD.
+## DOING -- nothing. The rehearsal is run and HALTED to vc.
 
-**Steps 1 to 4 are done.** WP-22 landed at `e809eea8f` and CLOSED at `783b9cc82` (AT-22.1 to AT-22.3, CHANGELOG, `wp done`). The hook landed at `bd79cf605`: `post-tool-symbol-context.sh` plus the shared `index-freshness.bash`, eleven bats arms, AT-24.4 green, AC-24.4 satisfied. Step 4 was cc's and already ruled.
+**SHA `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`, `bin/devbin build release --dry-run --patch`, two runs.** Both runs' full gate lines are in `vc/inbox.dc.md` at 2026-09-12 15:38Z. Every preflight gate passed verbatim in both -- clean tree, faces at 3.0.1, main, both remotes, no frozen remote, `intent doctor` clean, bats green. Both reds are in the cargo gate and both are confined to `daemon_subscriptions` and `daemon_watch`; no target outside `intentd` failed at any point.
 
-**Two things a rebuild would need.** The hook ships OFF BY DEFAULT, like `post-tool-advisory`, and a bats arm asserts the shipped `settings.json` does not wire it -- because `no_pm_state_in_output` holds this repository's own `settings.json` byte-identical to the template, so wiring it would switch it on for every session on this box. vc can have it on with two lines. And the freshness predicate is ONE shell function taking the prefix as an argument, so each caller supplies its own subject: for an append the paths involved are the ones the ANSWER names; for a redirect they are the ones the pattern would have reached.
+**THE HALT IS THE RULE, NOT A VERDICT.** Run 1 ended at load 82.65, run 2 STARTED at 84.38 -- above anything step 1 sampled, and step 1 measured this family 3 of 6 red alone at 40 and 0 of 6 alone at 15. The same bytes ran the whole workspace green, every target, at loads 19 to 30 an hour earlier. So these runs cannot tell a defect in the cut from a box at 84, and a third run reported as the answer would be choosing the reading I wanted.
+
+**The clone survives** at `scratchpad/rehearsal`, at the rehearsal HEAD, remotes configured, its own `intent backup` taken. `~/.intent/home` read identical before and after: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 10:16:38.
 
 ## TODO -- vc's five steps, serial, in this order
 
 - **Step 4 is CLOSED and was never mine to run.** cc measured both Local shapes under AC-23.4 at subject `3ade8dea3` (report `b70a0f97e`) -- same toolchain and release profile as my grammar table, controls firing in both directions, wall-clock and ONNX linkage recorded -- and vc ruled under the pen that no Local runtime ships in 3.0.2. Both AC-20.4 and AC-23.4 compute satisfied. **I had announced the load and was one command from running two large dependency builds inside the quiet window to re-measure a settled question**; reading the design first is what stopped it. Two notes stand for whoever revisits shape B: cc measured NEWER versions than the brief named (fastembed 6.0.3 and candle 0.11.0 / tokenizers 0.22.2, against the brief's 4 and 0.9 / 0.21 -- the lockfile's resolution, and better numbers), and cc's note says the probe referenced the code path "and nothing executed", so the table is a SIZE measurement and does not claim the runtime answers.
-- **Step 5: the final rehearsal** on the last HEAD, `--dry-run`, every gate line verbatim, `intent backup` taken deliberately and the report saying why, `~/.intent/home` read before and after, loads stated. **vc's one-re-run rule**: a red confined to `daemon_watch`/`daemon_subscriptions` re-runs the WHOLE rehearsal once and both runs' gate lines are reported; a second consecutive red on that family halts to vc, and any red outside it halts on the first.
+- **Step 5 is RUN and halted to vc** -- see DOING. Nothing is owed on it until vc answers.
 - **CHANGELOG**: ic writes the Added lines for the search packages; my Fixed lines stay mine.
 
 ## Holds
@@ -39,6 +41,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 - **TWO DERIVATIONS THAT SHARE A MISTAKE ARE ONE DERIVATION.** `daemon_op_for`, `daemon_servable_paths` and the load-time `serving_op` check each walked `families` alone, and the test that checks the roster against the table walked one list too -- so a `serving_op` on a `new_surface` row would have been read by nothing, refused by nothing, and agreed about perfectly. A test written to be an independent derivation is only independent of the FUNCTION, not of the assumption.
 - **A SETUP STEP THAT SILENTLY DOES NOTHING IS STILL THE SAME TRAP** -- I ran `intent index refresh` as a control and it does not exist (`rebuild` does); its rc came from a pipe and the control read as informative while running nothing. Second time today's class has bitten.
 - **A GATE'S SUBJECT IS AS EASY TO GET WRONG AS ITS RULE, AND THE RULE BEING RIGHT HIDES IT.** My hook's first build read the correct freshness predicate against the wrong paths -- the ones the GREP searched rather than the ones its own ANSWER named -- so a grep confined to a clean directory passed the gate and appended hits from a file that had moved. Found by driving the case, not by reading the code, which looked right.
+- **A GATE THAT CANNOT SAY _I COULD NOT MEASURE_ WILL SAY SOMETHING FALSE INSTEAD, AND A LOADED BOX IS THAT CASE.** Two rehearsal runs red at loads 82 and 84, the same bytes green across the whole workspace at 19 to 30 an hour before. The runs are real and they answer a question nobody asked: they cannot separate a defect in the cut from the host's load. Report the halt, report both loads, and do NOT re-run until one comes back green.
 - **A COST MEASUREMENT IS NOT A CONSEQUENCE MEASUREMENT.** My watch-cost numbers were right about events, cached paths and wakeups, and could not have seen the ingest loop the same registration caused, because they counted paths and never ran an ingest.
 - **A DEPENDENCY COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it, so a size measurement that only adds the crate reads a real cost as ZERO. Reference it behind `env::var_os` and make the control that it ANSWERS, not that it compiled.
 - **THE ARITHMETIC IS AN INSTRUMENT CHECK.** Five grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed they excluded the tree-sitter runtime.
