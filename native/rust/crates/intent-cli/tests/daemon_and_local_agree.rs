@@ -1,6 +1,19 @@
 //! `AT-08.2` / `AC-08.2`: **the same verb, answered locally and answered by a
 //! real `intentd`, produces identical results.**
 //!
+//! **AT-22.1 and AT-22.3 ALSO REST HERE, because WP-22 made `search` a servable
+//! verb and this file's claim is over EVERY servable verb rather than over a
+//! list it keeps.** AT-22.1 is the identity itself -- a daemonless query
+//! reconciles first and answers what the daemon-served one answers for the same
+//! tree. AT-22.3 is what that identity implies about the wire: the `--daemon`
+//! answer is rendered from an envelope this process DESERIALISED, so byte-equal
+//! renderings mean the envelope crossed intact and `IndexFreshness` recomputed
+//! `complete` from the lists that arrived. That is not a claim taken on trust --
+//! it was demonstrated failing. `Hit::stale` skipped `false` on the way out with
+//! no `default` on the way in, which made every normal answer unreadable, and
+//! this arm is what reddened; reverting that one attribute reddens it again and
+//! nothing else.
+//!
 //! **THE HARD PART IS NOT THE COMPARISON, IT IS PROVING THE TWO RUNS WERE
 //! DIFFERENT RUNS.** A harness that runs a verb twice and diffs the output
 //! agrees with itself by construction the moment the client stops routing:

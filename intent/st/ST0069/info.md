@@ -34,7 +34,7 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 | WP-19 | Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index                                  | M    | Done        |
 | WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | Done        |
 | WP-21 | The explorer's /search pane                                                                                             | M    | Done        |
-| WP-22 | Daemon-served search with daemonless parity                                                                             | M    | WIP         |
+| WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Done        |
 | WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Done        |
 | WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | WIP         |
 

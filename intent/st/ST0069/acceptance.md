@@ -137,11 +137,11 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-21.2 Enter on an entity hit lands on its view; Enter on a file hit opens the file through the lent terminal, and the row names the line. The editor is not positioned at it: editor line flags are not portable (`+N` for some, `-g file:N` for others), and this estate has already refused to sniff editors for a flag on exactly that ground. -- satisfied: yes (computed)
 - AC-21.3 The pane calls the same facade method as the CLI, and the TUI's pure layers stay pure. -- satisfied: yes (computed)
 
-### WP-22 -- Daemon-served search with daemonless parity (status: WIP)
+### WP-22 -- Daemon-served search with daemonless parity (status: Done)
 
-- AC-22.1 intentd maintains the index incrementally; a daemonless query reconciles first and returns results identical to a daemon-served one for the same tree state. -- satisfied: no (computed)
-- AC-22.2 `--no-reconcile` answers from the index as it stands and names what moved. -- satisfied: no (computed)
-- AC-22.3 `Op::Search` crosses the wire carrying the same envelope. -- satisfied: no (computed)
+- AC-22.1 intentd maintains the index incrementally; a daemonless query reconciles first and returns results identical to a daemon-served one for the same tree state. -- satisfied: yes (computed)
+- AC-22.2 `--no-reconcile` answers from the index as it stands and names what moved. -- satisfied: yes (computed)
+- AC-22.3 `Op::Search` crosses the wire carrying the same envelope. -- satisfied: yes (computed)
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 
@@ -211,9 +211,11 @@ _(no tests in this group)_
 - AT-21.2 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.2 -- status: green
 - AT-21.3 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.3 -- status: green
 
-### WP-22 -- Daemon-served search with daemonless parity (status: WIP)
+### WP-22 -- Daemon-served search with daemonless parity (status: Done)
 
-_(no tests in this group)_
+- AT-22.1 `native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs` -- covers AC-22.1 -- status: green -- The identity itself, over EVERY servable verb rather than a list the file keeps, so declaring `search` servable put it under the claim. Each comparison is bracketed by the daemon's own dispatch counter: the local run must move it by 0 and the `--daemon` run by exactly 1, so the two answers are known to have come from two different processes rather than from a client that quietly fell back. Non-vacuity is checked BEFORE identity, because two empty answers are identical.
+- AT-22.2 `native/rust/crates/intent-cli/tests/search_surface.rs` -- covers AC-22.2 -- status: green -- Both clauses. As it stands: the index still holds the old bytes after the file is rewritten underneath it, so the old word is still found -- which is what a query that had reconciled would NOT return. And names what moved: the path is named on stderr while the hit keeps stdout parseable, and the envelope carries the same fact as `complete: false` with the path in `stale`, which is what a per-path freshness rule reads. The second clause was unguarded until this arm; silencing the warning reddens it and nothing else.
+- AT-22.3 `native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs` -- covers AC-22.3 -- status: green -- What the identity implies about the wire. The `--daemon` answer is rendered from an envelope this process DESERIALISED, so byte-equal renderings mean the envelope crossed intact and `IndexFreshness` recomputed `complete` from the lists that arrived rather than trusting the one that was sent. Demonstrated failing rather than assumed: `Hit::stale` skipped `false` on the way out with no `default` on the way in, which made every normal answer unreadable, and this arm is what reddened -- reverting that one attribute reddens it again and nothing else.
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 

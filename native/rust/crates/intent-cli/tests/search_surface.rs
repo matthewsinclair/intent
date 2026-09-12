@@ -1,6 +1,10 @@
 //! AT-06.4 / AC-06.4: `intent search` returns hits across ST prose, issue
 //! bodies and WP text from the FTS index, in the shipped voice and exit codes.
 //!
+//! **AT-22.2 is the `--no-reconcile` arm at the foot of this file**, which
+//! carries both clauses of its criterion: an answer from the index as it stands,
+//! and the paths that have moved underneath it named by path.
+//!
 //! `search` is an ADDITION, not a port: there is no `bin/intent_search` to
 //! deviate from, so the register records it as new surface and this file is
 //! the only thing that says what it must do.
@@ -623,5 +627,80 @@ fn a_document_the_store_carries_is_not_indexed_again_from_the_disk() {
   assert!(
     hits.starts_with("docs/design/note.md:") && hits.contains("  file  "),
     "prose the store does not carry is still the disk corpus's to answer: {hits:?}"
+  );
+}
+
+/// **AT-22.2: `--no-reconcile` answers from the index AS IT STANDS, and names
+/// what moved underneath it.**
+///
+/// Both clauses of the criterion, and the second is the one that makes the
+/// first safe to offer. An answer from a stale index is a useful thing to ask
+/// for -- it is what the index HOLDS, which is a different question from what
+/// is in the tree -- but only if the caller is told which of its paths have
+/// moved since. Without that it is the estate's dominant defect class again:
+/// a confident answer about a file that no longer says what the answer claims.
+///
+/// **THE HIT SURVIVES AND LOSES ITS LINE, AND THE WARNING IS ON STDERR.** A
+/// span is a claim about the disk (issue 0195), so it goes when the bytes move;
+/// the file is still the answer. stdout stays parseable for a pipe and the
+/// diagnosis goes where diagnoses go.
+#[test]
+fn no_reconcile_answers_from_the_index_as_it_stands_and_names_what_moved() {
+  let dir = project();
+  let root = dir.path();
+  let note = root.join("docs/note.md");
+  std::fs::create_dir_all(note.parent().expect("a docs dir")).expect("mkdir");
+  std::fs::write(&note, "# Notes\n\nThe kestrel combinator.\n").expect("author prose");
+
+  // The default path reconciles, so this is what puts the file in the index --
+  // and the control that the query finds it at all before anything moves.
+  let fresh = run(root, &["search", "kestrel", "--json"]);
+  assert_eq!(fresh.status.code(), Some(0), "the fresh query answers");
+  let fresh_json = String::from_utf8_lossy(&fresh.stdout).to_string();
+  assert!(
+    fresh_json.contains("docs/note.md"),
+    "the reconcile indexed the file, or nothing below is about staleness: {fresh_json}"
+  );
+  assert!(
+    fresh_json.contains("\"complete\": true"),
+    "and the index is complete before the file moves: {fresh_json}"
+  );
+
+  // Move the bytes underneath the index without telling it.
+  std::fs::write(&note, "# Notes\n\nThe pelican combinator moved here.\n").expect("rewrite");
+
+  let out = run(root, &["search", "kestrel", "--no-reconcile"]);
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "an answer from a stale index is still an answer, not a refusal"
+  );
+  let hits = String::from_utf8_lossy(&out.stdout).to_string();
+  let said = String::from_utf8_lossy(&out.stderr).to_string();
+
+  // **AS IT STANDS**: the index still holds the old bytes, so the old word is
+  // still found. This is the whole point of the flag, and it is what a query
+  // that had reconciled would NOT return.
+  assert!(
+    hits.contains("docs/note.md"),
+    "`--no-reconcile` answers from the index as it stands: {hits:?} / {said:?}"
+  );
+
+  // **AND NAMES WHAT MOVED**, by path, so the caller can tell which part of the
+  // answer to distrust rather than being told the whole thing is suspect.
+  assert!(
+    said.contains("docs/note.md"),
+    "and names the path that moved underneath it: {said:?}"
+  );
+
+  // The envelope carries the same fact, which is what the hooks read.
+  let json = ok(root, &["search", "kestrel", "--json", "--no-reconcile"]);
+  assert!(
+    json.contains("\"complete\": false"),
+    "the envelope says the index is not complete: {json}"
+  );
+  assert!(
+    json.contains("docs/note.md"),
+    "and `stale` names the path, which is what a per-path freshness rule reads: {json}"
   );
 }
