@@ -46,7 +46,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: The structured query door: intent search --sql, read-only over the published schema
   - [-] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
-  - [-] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
+  - [x] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
   - [ ] 20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
   - [x] 21: The explorer's /search pane
   - [ ] 22: Daemon-served search with daemonless parity

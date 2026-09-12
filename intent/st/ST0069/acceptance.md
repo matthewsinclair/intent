@@ -113,12 +113,12 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-18.5 Rendered views under `intent/st/` and the canon extract are not in the disk corpus; an entity's prose is indexed once, from the store. -- satisfied: no (computed)
 - AC-18.6 (non-test) The watcher's registration strategy is recorded per platform with the measurement that chose it. -- satisfied: no
 
-### WP-19 -- Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index (status: WIP)
+### WP-19 -- Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index (status: Done)
 
 - AC-19.1 Lexical search returns hits across prose and source in one envelope, grouped by tier, ranked within a tier, never blended. -- satisfied: yes (computed)
 - AC-19.2 `--json` on the CLI and the MCP tool return the same envelope from the same facade call; `--format` is terminal-channel only and not exposed on MCP. -- satisfied: yes (computed)
 - AC-19.3 A stale, partial or empty index is named in the envelope and on the terminal, or the query refuses with the remedy; a confident subset is never returned. -- satisfied: yes (computed)
-- AC-19.4 Source text is tokenised without stemming and snake_case splits into its words; the tokeniser decision carries its measured recall on an identifier fixture. -- satisfied: no (computed)
+- AC-19.4 Source text is tokenised without stemming and snake_case splits into its words; the tokeniser decision carries its measured recall on an identifier fixture. -- satisfied: yes (computed)
 - AC-19.5 A hit's line is reported only when the indexed bytes match the disk; otherwise the hit carries no line and says stale. -- satisfied: yes (computed)
 - AC-19.6 `intent index status` and `intent index rebuild` exist, report measured sizes, and are registered and exposed like every verb. -- satisfied: yes (computed)
 
@@ -185,11 +185,12 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-19 -- Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index (status: WIP)
+### WP-19 -- Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index (status: Done)
 
 - AT-19.1 `native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs` -- covers AC-19.1 -- status: green
 - AT-19.2 `native/rust/crates/intent-cli/tests/the_search_tool_and_json_are_one_envelope.rs` -- covers AC-19.2 -- status: green
 - AT-19.3 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.3 -- status: green
+- AT-19.4 `native/rust/crates/intentsvcs/tests/the_source_tokeniser_is_measured.rs` -- covers AC-19.4 -- status: green
 - AT-19.5 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.5 -- status: green
 - AT-19.6 `native/rust/crates/intent-cli/tests/the_index_says_what_it_holds.rs` -- covers AC-19.6 -- status: green
 

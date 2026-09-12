@@ -80,7 +80,24 @@ The scope is the gitignore-aware repository as D29 defines it and as `ignored_pa
 
 The prose table keeps `porter unicode61`. The source table is `unicode61` without stemming: stemming mangles identifiers, and unicode61's default token characters split `snake_case` into its words, so a search for `disabled` finds `parse_disabled`, while `CamelCase` stays one token and is reached by the prefix form `Removal*` that the escaper already preserves. One row per file for T1; T2 adds the symbol rows and a `name_parts` column so the words inside a camel-cased name are searchable too.
 
-**Trigram is the recorded alternative, not the choice.** FTS5's trigram tokeniser matches substrings, which is how people search code, at a larger index and with substring semantics the prose table does not share, so one query would mean two things. The decision is made by measurement: a fixture of identifiers and fragments, recall under each tokeniser, recorded in the package. If unicode61's recall on fragments is poor, trigram replaces it for the source table and the design says so.
+**Trigram is the recorded alternative, not the choice.** FTS5's trigram tokeniser matches substrings, which is how people search code, at a larger index and with substring semantics the prose table does not share, so one query would mean two things.
+
+**MEASURED 2026-09-12 AGAINST THE REAL `src_sections` (ic, ruled by vc), AND THE MEASUREMENT CHANGED THE ALTERNATIVE RATHER THAN CONFIRMING IT.** The fixture is seven Intent source files -- `critic.rs`, `fts.rs`, `prose.rs`, `sql_gate.rs`, `nav.rs`, `form.rs`, `remedy.rs`, 157,538 bytes -- indexed by `intent index rebuild`, with the query set taken FROM the corpus rather than invented: 68 `snake_case` function names and 21 CamelCase types, each with the file that defines it. Recall means the defining file comes back.
+
+| query form              | unicode61 | trigram |
+| ----------------------- | --------- | ------- |
+| whole name              | 68/68     | 68/68   |
+| last snake word         | 68/68     | 64/68   |
+| first snake word        | 68/68     | 47/68   |
+| inner fragment, 5 chars | 10/67     | 67/67   |
+
+CamelCase types: whole name 21/21 under both; inner fragment 0/10 under unicode61 and 10/10 under trigram. The prefix form the escaper preserves works as designed -- `Seve*` finds `Severity`.
+
+**The control, because a mirror is worthless without one:** the in-memory unicode61 table the trigram arm was measured against agrees with the real `src_sections` on all 68 whole-name queries, path set for path set.
+
+**EVERY TRIGRAM MISS IS A QUERY SHORTER THAN THREE CHARACTERS, CHECKED RATHER THAN ASSUMED**: all 21 first-word misses are one or two characters (`as`, `a`, `no`), and all 4 last-word misses are two (`of`, `it`, `on`). FTS5's trigram tokeniser cannot index a term shorter than three, so under trigram **a one- or two-character query returns nothing at all** -- not fewer rows, none -- and that reaches identifiers people really search: `fs`, `os`, `db`, `id`.
+
+**So unicode61 without stemming STAYS, and the trade is stated rather than hidden**: the cost is inner-fragment search, 15% on snake names and 0% on CamelCase, and the remedy for a fragment is the word form or the prefix form, both perfect. The design's original alternative was _trigram if fragment recall is poor_; what the numbers say is _trigram would cost every short query entirely_, which is a different trade from the one anticipated. Fragment search, if it is ever wanted, is a second column or a tier -- a package, and not a migration. `intentsvcs/tests/the_source_tokeniser_is_measured.rs` (AT-19.4) pins the properties the ruling rests on, so a tokeniser change under it reds rather than quietly making these numbers fiction.
 
 ### T2, structural
 

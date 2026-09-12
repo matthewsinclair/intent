@@ -286,6 +286,8 @@ mod search_answers_one_envelope;
 mod symbols_come_from_the_grammars_own_tags;
 #[path = "test_target_topology_guard.rs"]
 mod test_target_topology_guard;
+#[path = "the_source_tokeniser_is_measured.rs"]
+mod the_source_tokeniser_is_measured;
 
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
