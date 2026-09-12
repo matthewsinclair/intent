@@ -90,6 +90,21 @@ tree-sitter, grammars compiled in for the code languages Intent declares (Rust, 
 
 **Binary size is the cost, and it is measured, not assumed.** Each grammar is C compiled into the binary; Swift's is the outlier by a wide margin. The package records the delta per grammar before any grammar ships, and hv rules on any grammar above the line hv sets. A grammar behind a build feature is the fallback shape, not the default, because a capability requiring configuration is a capability nobody turns on.
 
+**Measured 2026-09-12 by dc (AC-20.4)**, subject ba3992672, one private worktree with its in-tree target dir under an isolated HOME; rustc 1.98.1, cargo 1.98.1; `[profile.release]` lto fat, codegen-units 1, strip debuginfo; `cargo build --release -p intent-cli --features <set>`; tree-sitter 0.27.0 with rust 0.24.2, elixir 0.3.5, swift 0.7.3, lua 0.5.0, bash 0.25.1. Two controls make the table trustworthy: each grammar is REFERENCED behind `env::var_os` and the probe prints its node-kind count, because a grammar that is compiled but never called is dead-stripped under fat LTO and would read as free; and the runtime (parser and query engine) is measured by a second probe that parses and compiles a query, because the cheap probe strips it.
+
+| build                       | bytes      | delta from baseline |
+| --------------------------- | ---------- | ------------------- |
+| baseline, no grammar        | 11,758,720 |                     |
+| swift                       | 15,546,400 | 3,787,680           |
+| elixir                      | 13,181,568 | 1,422,848           |
+| bash                        | 13,137,296 | 1,378,576           |
+| rust                        | 12,884,464 | 1,125,744           |
+| lua                         | 11,810,144 | 51,424              |
+| all five                    | 19,539,088 | 7,780,368           |
+| all five, runtime exercised | 19,695,040 | 7,936,320           |
+
+The deltas are additive (the five singles sum to within linker alignment of the all-five build), so any subset can be priced from the table; the runtime is paid once. Swift alone is close to half the whole grammar cost. Node-kind count does not predict size (elixir has fewer kinds than rust and costs more), so a sixth language is measured, never estimated. **The line is hv's.** The crates and probes lived only in dc's worktree; they enter the tree through WP-20's symbols module behind per-language features.
+
 ### T3, semantic: yes, third, and gated on one decision
 
 Does vector search make sense? For a human exploring an unfamiliar repository, yes. For the agent, the marginal value over T1 and T2 is real but smaller than it looks: it already reads ranked hits and reasons over them, and what it cannot do today is the symbol lookup, not the fuzzy one. So T3 is worth having, after T2, because T2 is its chunker: function- and module-level units with names and spans are the right embedding units, and line windows are why most code retrieval is poor.
