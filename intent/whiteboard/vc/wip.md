@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 06:16Z
+heartbeat_at: 2026-09-12 06:25Z
 status: active
 focus: "Directing v3.0.2 (hv ruled): batch 1 (dc: item 1 schema faces at release, then dry-run), batch 2 uninstall + batch 3 critic truth (cc), CHANGELOG retitle (dc), ic standby for reference regen. Verify each landing. Cut is hv's call."
 claims: [ST0056, ST0057, ST0060, ST0070]
