@@ -15,7 +15,7 @@
 use std::collections::BTreeMap;
 
 use super::Row;
-use super::corpus::SkipReason;
+use super::corpus::{Corpus, SkipReason};
 
 /// What the index holds, and what it does not hold and why.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,6 +52,13 @@ impl Status {
 /// mistake available here: the corpus it belongs to is known for a skipped file
 /// too, so adding it to that corpus's tally would report an index holding
 /// content it has never read.
+/// The bucket a `code` row with no language is counted under.
+///
+/// **NOT A CORPUS AND DELIBERATELY NOT SPELLED LIKE ONE.** Nothing in the store
+/// carries this word; it exists so a count a person reads means what the word
+/// says.
+pub const OTHER: &str = "other";
+
 pub fn summarise(rows: &[Row]) -> Status {
   let mut held: BTreeMap<String, usize> = BTreeMap::new();
   let mut skipped: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -61,7 +68,22 @@ pub fn summarise(rows: &[Row]) -> Status {
         .entry(reason.clone())
         .or_default()
         .push(row.path.clone()),
-      None => *held.entry(row.corpus.clone()).or_default() += 1,
+      // **`code` MEANS A FILE WHOSE LANGUAGE THIS BUILD KNOWS, AND EVERYTHING
+      // ELSE IN THAT CORPUS IS REPORTED AS `other`** (vc, 2026-09-12, on ic's
+      // end-to-end drive). The CORPUS is right and its note says why -- a file
+      // the index cannot classify is still a file it must be able to name -- but
+      // the WORD misleads a reader: a project with two source files was told
+      // `code 5`, the other three being `.prettierignore`, a config file and an
+      // `.intentfiles`. The store's column is untouched; this is the summary
+      // saying what it counted.
+      None => {
+        let bucket = if row.corpus == (Corpus::Code { lang: None }).as_str() && row.lang.is_none() {
+          OTHER
+        } else {
+          row.corpus.as_str()
+        };
+        *held.entry(bucket.to_string()).or_default() += 1;
+      }
     }
   }
   for paths in skipped.values_mut() {
@@ -111,7 +133,16 @@ mod tests {
     Row {
       path: path.to_string(),
       corpus: corpus.as_str().to_string(),
-      lang: None,
+      // **THE FIXTURE CARRIES THE LANGUAGE IT WAS HANDED.** It discarded it and
+      // wrote `None` on every row, which was invisible while nothing read the
+      // field -- and the moment `summarise` split `code` from `other` by it, a
+      // row built as `Code { lang: Some("rust") }` counted as a file whose
+      // language nothing knows. A fixture that quietly drops an argument tests
+      // a shape the caller cannot produce.
+      lang: match &corpus {
+        Corpus::Code { lang } => lang.map(str::to_string),
+        _ => None,
+      },
       size: 0,
       mtime: String::new(),
       indexed_sha256: None,
