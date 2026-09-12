@@ -8349,9 +8349,9 @@
           "spellings": ["--context"],
           "type": "string",
           "value": "<name>",
-          "help": "Show where a name is defined and where it occurs, as source spans, instead of searching for text",
+          "help": "Show where a name is defined and where it is called, as source spans, instead of searching for text",
           "disposition": "keep",
-          "note": "WP-24 (AC-24.3): the thing an agent does today with a grep, a glob and several reads, in one call. THE OCCURRENCES ARE NAME-MATCHED AND THE HELP SAYS SO -- nothing here resolves a name to the definition it points at, so a `ref` is never a CALLER (AC-20.5)."
+          "note": "WP-24 (AC-24.3): the thing an agent does today with a grep, a glob and several reads, in one call. **IT SAYS CALLED RATHER THAN OCCURS, AND THE NARROWING WAS FOUND BY DRIVING IT** (ic, 2026-09-12): the extractor is each grammar's own tags query (AC-20.2), and Rust's tags CALLS rather than type mentions -- so a type used in a signature or a `use` path is not a reference here, and a claim of `where it occurs` was wider than the thing. The references it does report are NAME-MATCHED and never callers in the resolution sense (AC-20.5); the two words are about different questions."
         },
         {
           "spellings": ["--tier"],
