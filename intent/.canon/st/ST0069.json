@@ -737,6 +737,33 @@
         "AC-19.5"
       ],
       "status": "green"
+    },
+    {
+      "id": "AT-21.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
+      "covers": [
+        "AC-21.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-21.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
+      "covers": [
+        "AC-21.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-21.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
+      "covers": [
+        "AC-21.3"
+      ],
+      "status": "green"
     }
   ],
   "attachments": [
