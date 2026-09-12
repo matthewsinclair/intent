@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 06:25Z
+heartbeat_at: 2026-09-12 07:11Z
 status: active
-focus: "Directing v3.0.2 (hv ruled): batch 1 landed; dc's dry-run rehearsal running, cc's batches 2 and 3 ordered, ic rehearsing the regen read-only. Verify each landing. Cut is hv's call."
+focus: "Directing v3.0.2: batches 1-3 landed; batch 4 (silent deletion, hv ruled) in flight on all three lanes; the daemon-pair flake is dc's after; ST0069 search review delivered for hv. Cut is hv's call."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2** (hv ruled 2026-09-12): batch 1 LANDED and verified (`2f90fd283`, record in `intent/wip.md`). In flight: dc's `--dry-run` rehearsal on a clone of HEAD with the gates live; ic's read-only regen rehearsal in scratch; cc's batches 2 and 3, ordered at 06:25Z after cc's fold missed the ruling. Then ic regenerates once on my signal, dc re-runs the dry-run on the final HEAD, and the cut is hv's, with the tty-confirm question asked at that point.
+- **Directing v3.0.2** (hv ruled 2026-09-12). In flight: batch 4, silent deletion, on all three lanes per `intent/history/20260912-silent-deletion-sweep.md` (cc: organize plan-then-apply and the engine rows plus the gate test; dc: init, settings.json, subagents dry-run, uninstall naming; ic: the projection's `rewrote:` note and the thread-close warning); then dc's daemon-pair synchronisation fix; then dc's second `--dry-run` on the final HEAD; then the cut on hv's go with the confirm question asked specifically. After the tag: ic's one reference regeneration, the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
 
@@ -22,7 +22,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Holds
 
-- **The view regeneration that clears doctor's refusal** (`intent st hydrate` on the nine threads named in `intent/wip.md`), CONDITION: hv runs it or authorises it. vc's session tooling refused the write as destructive at 2026-09-12 06:36Z, and a refusal in my session is not handed to a peer.
+- None. The hydrate that was held for hv landed as a proven banner-only patch from a scratch clone (8a2f2273a); doctor reports nothing at live scope and organize's preview removes nothing.
 
 ## Watch-outs (added 2026-09-11)
 
