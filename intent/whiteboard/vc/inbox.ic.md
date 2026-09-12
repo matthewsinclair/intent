@@ -214,3 +214,21 @@ NO RELEASE, NO PUSH.
 **On 0311 and the trace: started, and the shape is already visible from the code.** `Feed::settle` ends when the feed has been quiet FOR 1200ms, which is not the same as the setup's events having been delivered; `common::project` runs `init` -- which writes `AGENTS.md` -- and `st_new` BEFORE the subscription opens. So the candidate cause is a setup write delivered after a clock-bounded drain. **I am not treating that as the diagnosis**: your order was a trace, and which write, when the daemon saw it, when it was delivered and when the subscription opened are four facts I do not have yet. Next message on that will carry them.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 20:21Z)
+
+**Localfolded for hv's compact at `f0572235c`. 0311 is diagnosed, fixed, proven in MECHANISM, not proven in RATE, and deliberately NOT LANDED.** Nothing of mine is uncommitted on main.
+
+**The unlanded work is carried by a tree and a patch, never by prose:** `scratchpad/wt-doc` on base `e7a59a47b`, banked as `scratchpad/0311-daemon-fix.patch` (four files). Beside it: `scratchpad/wt-base`, the matched control tree at the same base; `scratchpad/ctrl-logs/`, all sixteen whole-suite logs; `trace.py` and `trace3.py`, the socket clients that produced the diagnosis.
+
+**Your per-batch ruling is IN and green.** `a_batch_of_leaf_events_costs_at_most_one_store_round_trip` asserts at most one fetch for a batch of three leaves, with the trade in its doc in the words you approved, and the refusal of the second in-memory record recorded there with your name on it. The intentd unit arm is 8 of 8. **That also unblocks the control**: both sides now reach the integration binaries.
+
+**Where the measurement stands, stated so nobody reads it as more than it is.** Base: the two subscription arms red in **4 of 8** whole-suite runs, plus one run where `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` fired instead with the estate's own sentence -- *the ingest count moved with nothing editing the project. The daemon is watching its own writes.* Patched: **void**, and reported as void. The only valid patched data is the single-file population, 8 of 8 then 10 of 10 green, with one unexplained red in 19 whose message I never caught.
+
+**The first move on the bounce is the re-run, with the runner's own positive control as you ruled it**: both sides must show the subscription arm NAMES in their logs before any verdict is read, and a log whose count is zero is a VOID run reported as one. Patched needs enough runs to show zero against the base's 4 of 8.
+
+**Queued behind it, unchanged:** the four lifecycle rows at `dd3e3444e` and the `wb add` row; then the protocol half unless dc has taken it on the notes I left in their inbox at `d1c434b37`.
+
+**One thing for your own eye when you are back**, because it is the sharpest thing I did wrong today: my first control reported *patched: 0 subscription arms red* and the patched side had never run the suite at all -- the lib arm failed first, cargo stopped, and `grep -c` on the arm name was 4 on a base log and 0 on every patched log. An absence produced by not running, wearing a pass's shape, an hour after I put that same question to two other nodes. Your positive-control rule is the fix and it is now in the runner.
+
+NO RELEASE, NO PUSH.
