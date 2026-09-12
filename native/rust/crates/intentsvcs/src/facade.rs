@@ -1153,6 +1153,11 @@ pub enum FacadeError {
   /// what is in fact two sessions working the same thread.
   #[error("{subject} changed while this command was running -- nothing was written")]
   RecordMovedUnderTheWrite { subject: String },
+  /// A configured embedder failed. **Carried rather than folded into an empty
+  /// answer**: a semantic query that silently becomes a lexical one tells an
+  /// operator their question was answered.
+  #[error(transparent)]
+  Embed(#[from] crate::embed::EmbedError),
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -1610,6 +1615,9 @@ impl crate::remedy::Remedy for FacadeError {
         "write one first with `intent organize --default`, which declares the open threads; then re-run. Removing a thread's files is a change to a list that has to exist before it can be changed, and {path} does not."
       ),
       Self::DehydrationRefused { .. } => "each line above names a file whose bytes the store cannot be shown to hold. `intent doctor` names the difference; if the copy on disk is the one you want, take it into canon with `intent sync --to-store`, and if the store is right, the file is a hand edit to discard. Nothing was removed, so nothing needs undoing.".to_string(),
+      // The embedder's own remedy, which names the configuration or the
+      // endpoint; restating it here would be a second answer to one question.
+      Self::Embed(cause) => cause.remedy(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -2214,6 +2222,14 @@ pub struct Facade {
   store: Store,
   canon: Canon,
   ctx: FacadeContext,
+  /// What turns a query into a vector.
+  ///
+  /// **BUILT FROM THE PROJECT'S CONFIGURATION AND REPLACEABLE BY THE CALLER**
+  /// ([`Facade::with_embedder`]). A project with no `embed` block gets the one
+  /// that refuses, which is the normal case in this cut; the seam is here so
+  /// that the semantic tier plugs in without the surfaces above it changing,
+  /// which is the claim AC-23.1 makes about staged tiers.
+  embedder: Box<dyn crate::embed::Embedder>,
 }
 
 /// What [`Facade::projection`] builds: the writes, and which of them are canon.
@@ -2367,11 +2383,13 @@ impl Facade {
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
     // The daily-driver path: answer from the store unless the tree moved.
     let canon = ingest::load_fresh(&project, &mut store)?;
+    let embedder = crate::embed::from_config(&project.config().embed);
     Ok(Self {
       project,
       store,
       canon,
       ctx,
+      embedder,
     })
   }
 
@@ -2381,16 +2399,32 @@ impl Facade {
     Self::readable(&project)?;
     let mut store = Store::open_in_memory().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
+    let embedder = crate::embed::from_config(&project.config().embed);
     Ok(Self {
       project,
       store,
       canon,
       ctx,
+      embedder,
     })
   }
 
   pub fn project(&self) -> &Project {
     &self.project
+  }
+
+  /// Answer semantic questions with THIS embedder rather than the one the
+  /// project's configuration names.
+  ///
+  /// **THE SEAM, AND IT IS PRODUCTION CODE RATHER THAN A TEST HOOK.** A caller
+  /// that already holds an embedder -- a daemon with one warm, a tool told to
+  /// use a different model -- supplies it here; a test supplying a fixed one is
+  /// the same caller. What it must never become is a way to reach past the
+  /// configuration silently: the embedder a project configured is what it gets
+  /// unless somebody says otherwise in as many words.
+  pub fn with_embedder(mut self, embedder: Box<dyn crate::embed::Embedder>) -> Self {
+    self.embedder = embedder;
+    self
   }
 
   /// **The migration door, and the one entry point that deliberately does NOT
@@ -2901,25 +2935,102 @@ impl Facade {
         structural.push(hit);
       }
     }
-    let matched = matched + structural.len();
-    let returned = returned + structural.len();
+    let semantic = self.semantic_hits(query, ask)?;
+    let in_semantic = semantic.as_ref().map_or(0, Vec::len);
+    let matched = matched + structural.len() + in_semantic;
+    let returned = returned + structural.len() + in_semantic;
 
+    // **THE SEMANTIC GROUP APPEARS WHEN THE TIER DOES, WHICH IS WHEN THIS
+    // PROJECT HAS AN EMBEDDER AND SOMETHING HAS BEEN EMBEDDED.** The other two
+    // tiers are built into every binary, so their groups are there whenever
+    // they were asked for, hits or not; this one is not built for a project
+    // with no `embed` block, and an empty group would claim a tier answered and
+    // found nothing.
+    //
+    // **THAT IS A DIFFERENT ABSENCE FROM `--tier`'s, AND BOTH APPLY**: a tier
+    // nobody asked about is absent because the question was narrowed, and a
+    // tier this project does not have is absent because there is nothing to
+    // ask. The two compose here rather than one shadowing the other.
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
-      // **AN UNASKED TIER IS ABSENT, NOT EMPTY** (`--tier`). A group with no
-      // hits says *this tier ran and found nothing*, which is a claim nobody
-      // made when they narrowed the question -- the same reason `--outline`
-      // carries one group and no lexical one. With no filter, every tier this
-      // build answers is present, hits or not.
-      groups: [(Tier::Lexical, hits), (Tier::Structural, structural)]
-        .into_iter()
-        .filter(|(tier, _)| tier.asked(&ask.tiers))
-        .map(|(tier, hits)| TierGroup { tier, hits })
-        .collect(),
+      groups: [
+        (Tier::Lexical, Some(hits)),
+        (Tier::Structural, Some(structural)),
+        (Tier::Semantic, semantic),
+      ]
+      .into_iter()
+      .filter_map(|(tier, hits)| hits.map(|hits| (tier, hits)))
+      .filter(|(tier, _)| tier.asked(&ask.tiers))
+      .map(|(tier, hits)| TierGroup { tier, hits })
+      .collect(),
       matched,
       returned,
     })
+  }
+
+  /// The semantic tier's hits, or `None` when this project has no such tier.
+  ///
+  /// **`None` AND AN EMPTY VECTOR ARE DIFFERENT ANSWERS.** `None` is "there is
+  /// no semantic tier here" -- no embedder configured, or nothing embedded --
+  /// and it produces no group at all. An empty vector would be "the tier ran
+  /// and matched nothing", which is a claim this build cannot make yet.
+  ///
+  /// **AND A CONFIGURED EMBEDDER THAT FAILS IS A REFUSAL, NEVER A QUIET
+  /// ABSENCE** (IN-AG-NO-SILENT-001). An operator who configured an endpoint
+  /// and gets a silently lexical answer has been told their semantic query
+  /// found nothing, which is the confident-subset defect AC-19.3 names.
+  fn semantic_hits(
+    &self,
+    query: &str,
+    ask: &crate::search::SearchQuery,
+  ) -> Result<Option<Vec<crate::search::Hit>>, FacadeError> {
+    use crate::embed::{EmbedError, cosine};
+    use crate::search::{Hit, HitKind};
+
+    let asked = match self.embedder.embed(&[query.to_string()]) {
+      Ok(vectors) => vectors,
+      Err(EmbedError::NotConfigured) => return Ok(None),
+      Err(other) => return Err(FacadeError::Embed(other)),
+    };
+    let Some(asked) = asked.first() else {
+      return Ok(None);
+    };
+    let stored = self
+      .store
+      .embeddings_of(self.embedder.model())
+      .map_err(FacadeError::Store)?;
+    if stored.is_empty() {
+      return Ok(None);
+    }
+
+    let mut hits: Vec<Hit> = stored
+      .into_iter()
+      .filter_map(|row| {
+        // **AN INCOMPARABLE VECTOR IS DROPPED, NOT SCORED AT ZERO.** Zero is a
+        // real cosine, so a row of the wrong width would land mid-ranking.
+        let score = f64::from(cosine(asked, &row.vector)?);
+        Some(Hit {
+          kind: HitKind::File,
+          name: row.chunk_id.clone(),
+          owner: None,
+          lang: self.lang_of(&row.chunk_id),
+          path: row.chunk_id,
+          // A vector covers a unit, and nothing chunks yet, so there is no span
+          // to claim and no line to show. Both arrive with the chunker.
+          span: None,
+          score,
+          snippet: String::new(),
+          stale: false,
+        })
+      })
+      .filter(|hit| ask.keeps(hit))
+      .collect();
+    // **RANKED WITHIN THE TIER, HIGH COSINE FIRST**, and comparable only here:
+    // the lexical tier publishes FTS5's rank, where lower is better, which is
+    // why the envelope never blends tiers.
+    hits.sort_by(|a, b| b.score.total_cmp(&a.score));
+    Ok(Some(hits))
   }
 
   /// The language the index recorded for a path.

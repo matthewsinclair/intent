@@ -798,6 +798,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::MigrationOverDirtyTree { .. } => "MigrationOverDirtyTree",
     FacadeError::Write(_) => "Write",
     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
+    FacadeError::Embed(_) => "Embed",
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
@@ -841,6 +842,7 @@ fn variant(err: &FacadeError) -> &'static str {
 /// look like oversights -- an exemption that is announced, never inferred
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
+  "Embed",
   "SqlMoreThanOneStatement",
   "SqlNoStatement",
   "SqlUnterminated",
@@ -914,6 +916,13 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **THE EMBEDDER'S REFUSALS ARE DRIVEN WHERE THE EMBEDDER IS**, in
+  // `the_semantic_tier_is_staged_and_its_seams_hold.rs`: the Null one refuses a
+  // semantic query with the remedy naming the configuration, and the HTTP one
+  // is driven against a listener that answers. Provoking it through a facade
+  // call here would need a project configured with an endpoint and a socket
+  // behind it, which is that file's fixture and not this one's.
+  "Embed",
   // **BOTH LANDED IN HEAD WITHOUT THIS ARM, BY ic, AT db3f947a -- THE SAME
   // CLASS `Realise` BELOW RECORDS AGAINST SOMEONE ELSE.** `agents generate`
   // and `agents validate` moved onto the facade so MCP could reach them, the

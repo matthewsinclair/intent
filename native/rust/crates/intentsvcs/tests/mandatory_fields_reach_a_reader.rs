@@ -63,7 +63,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // The SQL door's refusals are about a STATEMENT, not about a field the
     // caller left out: the remedy is a different statement, never a fuller
     // call.
-    FacadeError::SqlMoreThanOneStatement
+    // A refusal from the embedder is about an endpoint or a configuration
+    // block, not about a field the caller left out of this call.
+    FacadeError::Embed(_)
+    | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated
     | FacadeError::SqlWouldWrite

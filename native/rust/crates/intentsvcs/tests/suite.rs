@@ -386,6 +386,8 @@ mod the_index_is_built_from_the_tree_and_read_from_the_store;
 mod the_index_scope_is_the_repository;
 #[path = "the_migrator_says_what_it_did_not_carry.rs"]
 mod the_migrator_says_what_it_did_not_carry;
+#[path = "the_semantic_tier_is_staged_and_its_seams_hold.rs"]
+mod the_semantic_tier_is_staged_and_its_seams_hold;
 #[path = "the_shell_page_reads_the_fields_the_wire_sends.rs"]
 mod the_shell_page_reads_the_fields_the_wire_sends;
 #[path = "thread_body_conservation.rs"]

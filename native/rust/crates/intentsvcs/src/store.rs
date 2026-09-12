@@ -478,6 +478,32 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- The semantic tier's vectors. One row per indexed unit per model.
+--
+-- **`model` IS PART OF THE KEY BECAUSE TWO MODELS' SPACES ARE UNRELATED.** A
+-- cosine between vectors of different models is a number with no meaning, so a
+-- reader selects one model and never mixes; the same chunk may carry a vector
+-- from each model it has been through.
+--
+-- `dims` is stored beside the vector rather than inferred from its length so
+-- that a truncated BLOB is a refusal rather than a shorter vector that still
+-- scores.
+--
+-- **THE VECTOR IS A BLOB OF LITTLE-ENDIAN f32**, which is the format the
+-- writer and reader in `store.rs` agree on and the only place it is stated.
+-- Nothing in this build writes a row: the tier is staged and its chunker is a
+-- later package, so an empty table is the honest description of every store.
+-- openness: DERIVED -- recomputed by re-embedding the corpus it points at,
+-- which is the user's own files.
+CREATE TABLE IF NOT EXISTS embeddings (
+  chunk_id TEXT NOT NULL,
+  model TEXT NOT NULL,
+  dims INTEGER NOT NULL,
+  vector BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (chunk_id, model)
+);
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
 -- caller that read a clock and then wrote the value would hold it across a
@@ -605,7 +631,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 22;
+pub const SCHEMA_VERSION: i32 = 23;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1428,6 +1454,24 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      );
      CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
      CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);",
+  ),
+  (
+    23,
+    // 22 -> 23: `embeddings`, the semantic tier's vectors.
+    //
+    // A new table, the easy rung. Nothing writes it in this cut -- the tier is
+    // staged and its chunker is a later package -- so an empty table is the
+    // honest description of every store that reaches this version, and there is
+    // nothing to back-fill.
+    "CREATE TABLE IF NOT EXISTS embeddings (
+       chunk_id TEXT NOT NULL,
+       model TEXT NOT NULL,
+       dims INTEGER NOT NULL,
+       vector BLOB NOT NULL,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       PRIMARY KEY (chunk_id, model)
+     );",
   ),
 ];
 
@@ -4262,6 +4306,71 @@ impl Store {
       Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
       Err(e) => Err(e.into()),
     }
+  }
+
+  /// Record vectors, replacing any this chunk and model already had.
+  ///
+  /// **THE WIDTH IS CHECKED AGAINST THE ROW'S OWN `dims`**, because a vector
+  /// stored at the wrong width is not a smaller vector: it scores, at a
+  /// position nobody can account for.
+  pub fn record_embeddings(&mut self, rows: &[crate::embed::Stored]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    for row in rows {
+      let mut bytes = Vec::with_capacity(row.vector.len() * 4);
+      for value in &row.vector {
+        bytes.extend_from_slice(&value.to_le_bytes());
+      }
+      tx.execute(
+        "INSERT INTO embeddings (chunk_id, model, dims, vector) VALUES (?1, ?2, ?3, ?4)
+         ON CONFLICT (chunk_id, model) DO UPDATE SET
+           dims = excluded.dims,
+           vector = excluded.vector,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+        params![row.chunk_id, row.model, row.vector.len() as i64, bytes],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every vector one model produced, in chunk order.
+  ///
+  /// **ONE MODEL AT A TIME, BY THE SIGNATURE.** A reader that could ask for
+  /// "all the vectors" would get a set it must not compare, and the mistake
+  /// would be a ranking rather than an error.
+  pub fn embeddings_of(&self, model: &str) -> Result<Vec<crate::embed::Stored>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT chunk_id, model, dims, vector FROM embeddings WHERE model = ?1 ORDER BY chunk_id",
+    )?;
+    let rows = stmt.query_map(params![model], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, i64>(2)? as usize,
+        row.get::<_, Vec<u8>>(3)?,
+      ))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      let (chunk_id, model, dims, bytes) = row?;
+      // **A BLOB THAT IS NOT A WHOLE NUMBER OF f32s, OR NOT `dims` OF THEM, IS
+      // SKIPPED RATHER THAN TRUNCATED.** A short vector still has a cosine, so
+      // reading one would put a damaged row in the ranking at a plausible
+      // position; leaving it out is the only answer that does not lie.
+      if bytes.len() != dims * 4 {
+        continue;
+      }
+      let vector = bytes
+        .chunks_exact(4)
+        .map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]]))
+        .collect();
+      out.push(crate::embed::Stored {
+        chunk_id,
+        model,
+        vector,
+      });
+    }
+    Ok(out)
   }
 
   /// Every symbol with this exact name, ordered by path then line.

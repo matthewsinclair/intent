@@ -312,7 +312,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     //
     // **18 -> 19 IS `symbols`** and its two indexes, the structural half, and
     // the DDL face alone once more: derived per-machine state has no wire form.
-    ("SCHEMA_DDL_VER", 19, 0x326f_55b9_587c_d9a9),
+    //
+    // **19 -> 20 IS `embeddings`**, the semantic tier's vector table, staged
+    // and written by nothing yet; the DDL face alone again.
+    ("SCHEMA_DDL_VER", 20, 0x66ce_ddc2_54d4_d9d3),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed

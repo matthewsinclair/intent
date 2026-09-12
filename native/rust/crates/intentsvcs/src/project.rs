@@ -425,6 +425,38 @@ impl IndexConfig {
   }
 }
 
+/// The `embed` block: the semantic tier's endpoint, if a project has one.
+///
+/// **ABSENT IS THE NORMAL CASE AND IT IS NOT A GAP.** Without it the semantic
+/// tier is not built for this project and a semantic question is refused with a
+/// remedy naming these keys; the lexical and structural tiers answer as they
+/// always did.
+///
+/// `key` is here because an endpoint may want one, and it is the operator's to
+/// put in their own config; nothing in this build writes it, reads it from an
+/// environment variable, or logs it.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct EmbedConfig {
+  /// An OpenAI-compatible embeddings endpoint.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub endpoint: Option<String>,
+  /// The model name sent with every request and stored beside every vector.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub model: Option<String>,
+  /// The width the model returns. A vector of another width is refused rather
+  /// than stored, because a ranking over mixed widths is a ranking of nothing.
+  #[serde(default)]
+  pub dims: usize,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub key: Option<String>,
+}
+
+impl EmbedConfig {
+  fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+}
+
 /// The per-project config (`intent/.config/config.json`).
 ///
 /// Unknown fields are PERMITTED here, and that is deliberate rather than an
@@ -454,6 +486,10 @@ pub struct Config {
   /// schedule became a key, hence the default.
   #[serde(default)]
   pub backup: BackupConfig,
+  /// The `embed` block. Absent unless a project has an embedder, and not
+  /// written back when it is empty, for the `index` block's reason.
+  #[serde(default, skip_serializing_if = "EmbedConfig::is_default")]
+  pub embed: EmbedConfig,
   /// The `index` block. Absent in every config written before the search index
   /// had a value to set, hence the default -- and **NOT WRITTEN BACK WHEN IT IS
   /// THE DEFAULT**, as `doctor`'s block is not: a block serialised
@@ -2167,6 +2203,7 @@ mod tests {
       languages: vec!["rust".to_string(), "elixir".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      embed: EmbedConfig::default(),
       index: IndexConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
@@ -2201,6 +2238,7 @@ mod tests {
       languages: vec!["rust".to_string(), "shell".to_string(), "rust".to_string()],
       todo: TodoConfig::default(),
       backup: BackupConfig::default(),
+      embed: EmbedConfig::default(),
       index: IndexConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),

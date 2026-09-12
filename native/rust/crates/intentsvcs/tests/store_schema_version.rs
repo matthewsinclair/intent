@@ -302,8 +302,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 22 is `symbols` and its two indexes, the structural half. A new table, so
   // the easy rung; the indexes are part of the shape, so they are part of the
   // rung rather than something a later store would be missing quietly.
-  const PINNED_SCHEMA_HASH: u64 = 0xc9bf_2091_0157_40d9;
-  const PINNED_FOR_VERSION: i32 = 22;
+  // 23 is `embeddings`, the semantic tier's vectors: a new table, the easy
+  // rung, and nothing writes it in this cut -- the tier is staged and its
+  // chunker is a later package, so an empty table is the honest description of
+  // every store that reaches this version.
+  const PINNED_SCHEMA_HASH: u64 = 0x24db_ff0f_39b3_177b;
+  const PINNED_FOR_VERSION: i32 = 23;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

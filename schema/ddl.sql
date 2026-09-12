@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 19
+-- SCHEMA_DDL_VER: 20
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -395,6 +395,32 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- The semantic tier's vectors. One row per indexed unit per model.
+--
+-- **`model` IS PART OF THE KEY BECAUSE TWO MODELS' SPACES ARE UNRELATED.** A
+-- cosine between vectors of different models is a number with no meaning, so a
+-- reader selects one model and never mixes; the same chunk may carry a vector
+-- from each model it has been through.
+--
+-- `dims` is stored beside the vector rather than inferred from its length so
+-- that a truncated BLOB is a refusal rather than a shorter vector that still
+-- scores.
+--
+-- **THE VECTOR IS A BLOB OF LITTLE-ENDIAN f32**, which is the format the
+-- writer and reader in `store.rs` agree on and the only place it is stated.
+-- Nothing in this build writes a row: the tier is staged and its chunker is a
+-- later package, so an empty table is the honest description of every store.
+-- openness: DERIVED -- recomputed by re-embedding the corpus it points at,
+-- which is the user's own files.
+CREATE TABLE IF NOT EXISTS embeddings (
+  chunk_id TEXT NOT NULL,
+  model TEXT NOT NULL,
+  dims INTEGER NOT NULL,
+  vector BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (chunk_id, model)
+);
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
 -- caller that read a clock and then wrote the value would hold it across a

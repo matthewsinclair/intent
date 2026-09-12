@@ -57,6 +57,7 @@ pub mod contract;
 pub mod critic;
 pub mod daemon;
 pub mod doctor;
+pub mod embed;
 pub mod event;
 pub mod export;
 pub mod facade;
