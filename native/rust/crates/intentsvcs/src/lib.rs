@@ -65,6 +65,7 @@ pub mod finding;
 pub mod form;
 pub mod fts;
 pub mod graphql;
+pub mod index;
 pub mod ingest;
 pub mod init;
 pub mod install;

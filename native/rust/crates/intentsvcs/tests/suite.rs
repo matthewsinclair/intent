@@ -368,6 +368,8 @@ mod text_realisation;
 mod the_backup_cycle_has_one_home;
 #[path = "the_editor_gets_the_model_bytes.rs"]
 mod the_editor_gets_the_model_bytes;
+#[path = "the_index_scope_is_the_repository.rs"]
+mod the_index_scope_is_the_repository;
 #[path = "the_migrator_says_what_it_did_not_carry.rs"]
 mod the_migrator_says_what_it_did_not_carry;
 #[path = "the_shell_page_reads_the_fields_the_wire_sends.rs"]

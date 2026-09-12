@@ -501,7 +501,12 @@ impl Scanned {
       .file_name()
       .map(|n| n.to_string_lossy().into_owned())
       .unwrap_or_default();
-    !self.ignored.contains(dir) && !SKIPPED_DIRS.contains(&name.as_str())
+    // **`.git` IS OUT BY RULE AND NOT BY BEING IGNORED**, because git does not
+    // ignore its own directory -- it never walks it. The two-walk difference
+    // never had to say so, because its domain could not reach `.git`; a matcher
+    // asked about any path can, and would answer that the object database is in
+    // the repository.
+    name != ".git" && !self.ignored.contains(dir) && !SKIPPED_DIRS.contains(&name.as_str())
   }
 
   /// Would the walk keep this file?
@@ -540,6 +545,51 @@ impl Scanned {
     ROOT_FILES
       .iter()
       .any(|name| path == self.root.join(name).as_path())
+  }
+
+  /// Is this path in the INDEX's scope -- the gitignore-aware repository?
+  ///
+  /// **ONE SCOPE OBJECT, TWO QUESTIONS, AND THEY ARE DIFFERENT QUESTIONS**
+  /// (ST0069 AC-18.1, AC-18.4). [`Scanned::includes`] answers *would a SYNC
+  /// read this*, whose corpus is the three [`ROOT_FILES`] and `intent/`; this
+  /// answers *is this in the repository the index covers*, which is everything
+  /// git would carry. Both derive from ONE ignore matcher, so there is still
+  /// exactly one statement of what git ignores -- which is what AC-18.4 is
+  /// about -- and neither question is answered by the other's rule.
+  ///
+  /// **`includes` IS DELIBERATELY NOT WIDENED INTO THIS.** The watcher consults
+  /// it to decide what deserves an ingest, so widening it would put every
+  /// source-file edit through a canon ingest the moment this landed -- before
+  /// the index exists to want them, and before the watcher's own repair. The
+  /// watcher is widened as WP-18's last step, on purpose and on its own.
+  ///
+  /// `.git/` is out BY RULE rather than by path shape: it is not gitignored --
+  /// git does not ignore its own directory, it simply never walks it -- so a
+  /// predicate that only asked the ignore matcher would take the object
+  /// database into the corpus.
+  pub fn in_repository(&self, path: &Path) -> bool {
+    let Ok(rest) = path.strip_prefix(&self.root) else {
+      return false;
+    };
+    if rest.as_os_str().is_empty() {
+      return false;
+    }
+    if !self.keeps(path) {
+      return false;
+    }
+    // Every directory between the root and the file must be one the walk would
+    // descend into, for the reason `includes` gives: the walk prunes at
+    // directories, so a file inside a pruned one carries no rule of its own.
+    let mut at = self.root.clone();
+    let mut components: Vec<_> = rest.components().collect();
+    components.pop();
+    for component in components {
+      at = at.join(component);
+      if !self.descends(&at) {
+        return false;
+      }
+    }
+    true
   }
 }
 
@@ -629,82 +679,154 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
 /// per-clone and uncommitted, so a fresh clone of the same repository
 /// disagrees with this one about what the project contains.
 struct Ignored {
-  paths: std::collections::HashSet<PathBuf>,
+  /// Lowest precedence first. See [`Ignored::contains`] for why every one is
+  /// asked rather than the first match taken.
+  matchers: Vec<ignore::gitignore::Gitignore>,
 }
 
 impl Ignored {
-  /// Enumerate the ignored paths under `root` by walking WITH ignore rules off
-  /// and again with them on, and taking the difference.
+  /// Build the matchers for a project root.
   ///
-  /// The walker reports what it keeps, not what it drops, so the set is
-  /// derived rather than read off. Cheap enough here because the tree is the
-  /// project's own and already being scanned.
-  /// **SCOPED TO WHAT [`scan`] ACTUALLY CONSULTS, and that is a correctness
-  /// property before it is a performance one.**
-  ///
-  /// The ignored set is queried in exactly two places -- the three
-  /// [`ROOT_FILES`] by name, and each child during the walk of `intent/`. It is
-  /// never asked about anything else. Rooting the walks at the project root
-  /// therefore enumerated an enormous set of paths that had no consumer.
-  ///
-  /// **Measured on Intent's own tree, 2026-08-18, and this is why `doctor` took
-  /// ten seconds while every other verb took ten milliseconds.** The
-  /// `standard_filters(false)` walk visits paths a gitignore-respecting walk
-  /// skips, so it descended into the cargo build directory:
+  /// **A MATCHER, NOT A SET, AND THE DIFFERENCE IS THE WHOLE OF WP-18's FIRST
+  /// RISK.** This enumerated the ignored paths by walking TWICE -- once with
+  /// ignore rules off, once on -- and taking the difference. That technique
+  /// gets git's answer from git's own rules rather than from a hand-maintained
+  /// list, which is right, and its cost is the size of the UNFILTERED walk.
+  /// Measured on this tree, 2026-08-18:
   ///
   /// ```text
   ///   paths the gitignore-respecting walk sees      1,929
   ///   paths the unfiltered walk visited           613,811
   ///   of which native/rust/target/                601,783
-  ///   paths `scan` can ever ask about              ~1,511
   /// ```
   ///
-  /// **The reason this is not merely slow is that the excess is UNBOUNDED and
-  /// MACHINE-LOCAL.** A build directory is not part of the project; its size
-  /// depends on who has compiled what and how recently. So `doctor`'s runtime
-  /// varied with an artefact the answer does not depend on, and a fresh clone
-  /// and a working machine would disagree about how long the same check takes
-  /// on the same estate.
+  /// **That is why `doctor` took ten seconds while every other verb took ten
+  /// milliseconds**, and why the DOMAIN was narrowed to `intent/` plus the root
+  /// at depth 1. WP-18 widens the scope to the repository, so narrowing the
+  /// domain is no longer available -- and keeping the difference technique at
+  /// the wider domain would rebuild that defect exactly, with an excess that is
+  /// unbounded and machine-local: a build directory's size depends on who has
+  /// compiled what and how recently.
   ///
-  /// The two-walk difference is kept, because it is the technique that gets the
-  /// answer from git's own rules rather than from a hand-maintained list. Only
-  /// its DOMAIN changes, to the union of the two things `scan` looks at.
+  /// So the technique changes and the RULE does not. The `ignore` crate's
+  /// gitignore matchers are built once and answered per path, enumerating
+  /// nothing. The only walk left is the FILTERED one that finds the
+  /// `.gitignore` files themselves -- a handful of paths, and a `.gitignore`
+  /// inside an ignored subtree is irrelevant by construction, because that
+  /// subtree is out.
+  ///
+  /// **THE COMMITTED RULES ONLY, WHICH IS THE RULING AS IT NOW STANDS.** The
+  /// design carried an amendment honouring `.git/info/exclude` and the global
+  /// excludes file; it was withdrawn on 2026-09-12 once the landed test was
+  /// read. `ignored_paths_corpus.rs`'s `a_clone_local_exclude_does_not_shrink_
+  /// the_corpus` derives the opposite from D29 itself -- *the rule is that a
+  /// path git can NEVER commit can never be canon, and one excluded per-clone
+  /// is one `git add` away from being committed by anybody who has not written
+  /// that exclude*. Two operators with the same commit would otherwise
+  /// disagree about what the project contains, and under AC-10.2 about whether
+  /// it migrates. So `git_global(false)` and `git_exclude(false)` stay.
+  ///
+  /// **THE OTHER TWO HALVES OF THE OLD ANSWER ARE RESTORED EXPLICITLY, AND
+  /// THEY DO NOT SURVIVE THE CHANGE OF INSTRUMENT ON THEIR OWN.** The
+  /// difference technique got them free from the walker: `parents(true)` read
+  /// the `.gitignore` files ABOVE a project nested inside a wider repository,
+  /// and `require_git`'s default meant a tree with no repository had no rules
+  /// at all. A matcher built only from the `.gitignore` files found INSIDE the
+  /// root silently loses the first and silently gains the opposite of the
+  /// second -- a project with no git but a `.gitignore` would start losing
+  /// files from its corpus, which is the degradation [`Ignored`]'s own note
+  /// rules out in as many words. Both are conditions on the ancestry rather
+  /// than on anything the walk can see, so both are asked here.
   fn for_root(root: &Path) -> Self {
-    // `intent/`, walked in full, plus the project root at depth 1 so the three
-    // ROOT_FILES are covered. Depth 1 yields the root's immediate children and
-    // does not descend, so a build directory is one entry rather than a tree.
-    let mut visible = std::collections::HashSet::new();
-    let mut all = std::collections::HashSet::new();
-    for (base, depth) in [(root.join("intent"), None), (root.to_path_buf(), Some(1))] {
-      if !base.exists() {
+    // **NO REPOSITORY, NO RULES.** A tree git does not govern has nothing that
+    // can never be committed, so the corpus degrades to everything-in-scope
+    // rather than to nothing -- including when such a tree carries a
+    // `.gitignore` file that no git would ever read.
+    let Some(git_root) = root.ancestors().find(|dir| dir.join(".git").exists()) else {
+      return Self {
+        matchers: Vec::new(),
+      };
+    };
+
+    let mut matchers = Vec::new();
+
+    // The rules ABOVE the project, outermost first, when the project sits
+    // inside a wider repository rather than being one. git reads them and so
+    // does this: a nested project is subject to the repository it is in.
+    let mut above: Vec<PathBuf> = Vec::new();
+    if git_root != root {
+      let mut at = root.parent();
+      while let Some(dir) = at {
+        above.push(dir.join(".gitignore"));
+        if dir == git_root {
+          break;
+        }
+        at = dir.parent();
+      }
+      above.reverse();
+    }
+
+    // The FILTERED walk, which is the cheap one: it visits what a
+    // gitignore-respecting walk visits and nothing else.
+    let mut found: Vec<PathBuf> = Vec::new();
+    let mut vb = ignore::WalkBuilder::new(root);
+    vb.hidden(false)
+      .git_ignore(true)
+      .parents(true)
+      // Machine-local and clone-local respectively. Honouring either makes the
+      // corpus a property of who is running the tool -- see the note above.
+      .git_global(false)
+      .git_exclude(false);
+    for entry in vb.build().filter_map(Result::ok) {
+      if entry.file_name() == ".gitignore" {
+        found.push(entry.into_path());
+      }
+    }
+    // Root-first, so a nested file's rules override the ones above it -- git's
+    // rule that the closest `.gitignore` decides. The ancestors are already in
+    // that order and are all shallower, so they go in front.
+    found.sort_by_key(|p| p.components().count());
+    above.append(&mut found);
+    for file in above {
+      let Some(dir) = file.parent() else {
         continue;
+      };
+      let mut b = ignore::gitignore::GitignoreBuilder::new(dir);
+      b.add(&file);
+      if let Ok(gi) = b.build()
+        && !gi.is_empty()
+      {
+        matchers.push(gi);
       }
-      let mut vb = ignore::WalkBuilder::new(&base);
-      vb.hidden(false)
-        // Committed and shared -- the repository's own statement about what it
-        // will never carry, and the same on every clone and every machine.
-        .git_ignore(true)
-        .parents(true)
-        // Machine-local and clone-local respectively. Honouring either makes
-        // the corpus a property of who is running the tool.
-        .git_global(false)
-        .git_exclude(false);
-      let mut ab = ignore::WalkBuilder::new(&base);
-      ab.hidden(false).standard_filters(false);
-      if let Some(d) = depth {
-        vb.max_depth(Some(d));
-        ab.max_depth(Some(d));
-      }
-      visible.extend(vb.build().filter_map(Result::ok).map(|e| e.into_path()));
-      all.extend(ab.build().filter_map(Result::ok).map(|e| e.into_path()));
     }
-    Self {
-      paths: all.difference(&visible).cloned().collect(),
-    }
+
+    Self { matchers }
   }
 
+  /// Would git ignore this path?
+  ///
+  /// **EVERY MATCHER IS ASKED AND THE LAST DECISIVE ANSWER WINS**, because that
+  /// is how git resolves a negation: a deeper `.gitignore` un-ignoring what a
+  /// shallower one ignored is the shape `!` exists for, and stopping at the
+  /// first match would make the outermost rule permanent.
+  ///
+  /// A matcher whose own directory is not an ancestor of the path is skipped:
+  /// its patterns say nothing about a path outside it, and asking anyway is how
+  /// a matcher built for one subtree comes to judge another.
   fn contains(&self, path: &Path) -> bool {
-    self.paths.contains(path)
+    let is_dir = path.is_dir();
+    let mut ignored = false;
+    for matcher in &self.matchers {
+      if !path.starts_with(matcher.path()) {
+        continue;
+      }
+      match matcher.matched_path_or_any_parents(path, is_dir) {
+        ignore::Match::Ignore(_) => ignored = true,
+        ignore::Match::Whitelist(_) => ignored = false,
+        ignore::Match::None => {}
+      }
+    }
+    ignored
   }
 }
 
