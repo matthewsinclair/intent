@@ -15,7 +15,7 @@
       "title": "Issues get a realised form and a sigil, then join the default declaration",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "**Issues join the default declaration once an issue has a realised form on disk.** hv, 2026-08-26: default means the only things in `.intentfiles` are OPEN, ie threads and issues. Today the manifest has one sigil, `STEELTHREAD`; `ISSUE` was retired on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files, since an issue lived only in the store and had nothing to realise.\n\n**Ruled under the pen on 2026-09-12, with hv's authority and overrulable with a line.** An issue's realised form is ONE FILE PER ISSUE, `intent/issues/<NNNN>.md`: a generated view of the record under D02, frontmatter from the store and the body beneath, rendered by `intentsvcs::views` under the no-clock renderer law, and reported by `doctor` as view skew when hand-edited. The sigil is `ISSUE:<NNNN>`. `organize` hydrates and dehydrates it exactly as it does a thread, lazily, so `issue new` writes the store and the file appears when something realises it. The default declaration is every open thread and every open issue and nothing else; `issue new` adds the id and closing the issue removes it, many writers and one meaning, as threads already do. The single rendered `intent/issues.md` was the alternative and is refused: one sigil per record is what lets the declaration say which issues are realised, which is what the manifest is for.\n\nInherited whole from ST0057 WP-12 on hv's ruling of 2026-09-11 (decision 8). The criteria are minted on this thread on 2026-09-12; there were none before.\n",
       "body": "",
       "preamble": ""
     },
@@ -24,7 +24,7 @@
       "title": "The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket",
       "scope": "S",
       "status": "not-started",
-      "objective": "",
+      "objective": "**The migration leaves the v2 tree in place, and it disagrees with the store.** A migrated estate carries `intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/` beside the flat v3 tree, the two copies of a thread's views drift apart, and the v2 path answers greps first because it is the one that existed for a year. The store does NOT hold the bucket's content: the migrator's reach is a filename allowlist, `info.md` and `acceptance.md`, and every other file in a thread directory is left behind entirely (Devbin, measured 2026-08-26: 34 of 54 bucket files carry content the store does not hold). `organize` already reports these paths as `unclaimed`, deliberately never prunable.\n\n**Ruled under the pen on 2026-09-12, with hv's authority and overrulable with a line: ingest, then prune, in that order, and the prune refuses while the ingest is incomplete.** Three layers. (1) Ingest: every bucket-only file under a v2 thread directory becomes an attachment of its thread, the naming gate permitting, and the v2 `acceptance.md` preamble's authored lines go into `preamble`; verified PER FILE by a content probe, because a thread-level check passes on a half-migrated thread and `ok` at rc 0 has been printed over nothing before (issue 0097). (2) Prune: the buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex` are removed under the fail-forward ruling of 2026-08-19, at migration for a new conversion and under `organize --apply` for an already-migrated estate; a prune that ingested nothing removes nothing, by refusal and not by discipline. (3) Pointers: authored files naming a bucket path are reported as a worklist and never rewritten; the readable form of a closed thread's file is `intent://` or `intent edit <ID> <file>`.\n\n**A tool tree beside the threads is not a thread archive.** The Intent estate's own unclaimed paths are `ST0056/parity/tools/` and the like: a file under a thread directory is an attachment candidate, a tree beside the threads is neither ingested nor pruned.\n\n**This WP ships the mechanism and prunes no estate but the fixtures it drives.** The fleet prune is hv's, per estate, after `at-accounting.sh` has run there, because the v2 bucket is that instrument's only source surface.\n\nInherited whole from ST0057 WP-13 on hv's ruling of 2026-09-11 (decision 8). The criteria are minted on this thread on 2026-09-12; there were none before.\n",
       "body": "",
       "preamble": ""
     },
@@ -130,6 +130,70 @@
     }
   ],
   "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store and a formatter fixed point; `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "`ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "`organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "Migration ingests every bucket-only file under a v2 thread directory (`intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/**`) as an attachment of its thread, the naming gate permitting, with the authored lines of the v2 `acceptance.md` preamble into `preamble`; verified PER FILE by a content probe, a distinctive phrase from each ingested file found in the store afterwards and a phrase never ingested returning nothing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "The prune removes the v2 buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex`, at migration for a new conversion and under `organize --apply` for an already-migrated estate, and REFUSES by name while any bucket file content is not held by the store, so a prune that ingested nothing removes nothing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "A file beside the threads that is not under a thread directory, such as a tool tree like `ST0056/parity/tools/`, is neither an attachment candidate nor pruned; the Intent estate own unclaimed tooling is the discriminating case.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "Migration and `organize` report every authored file that names a bucket path as a worklist and rewrite none of them.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.5",
+      "text": "The fleet prune is per estate on hv word, after `at-accounting.sh` has run there, because the v2 bucket is that instrument only source surface; this WP ships the mechanism and prunes no estate but the fixtures it drives.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
     {
       "id": "AC-13.1",
       "text": "**(hv-RATIFIED 2026-08-15 as D31 -- was vc-specced under standing authorisation, which is what blocked ic's register row)** `treeindex` and the `in-handoff` skill are retired whole -- command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, and every canon reference -- and nothing in the repo references either\n\n**MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.*",

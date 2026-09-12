@@ -9,7 +9,11 @@ status: Not Started
 
 ## Objective
 
-_(not yet written)_
+**Issues join the default declaration once an issue has a realised form on disk.** hv, 2026-08-26: default means the only things in `.intentfiles` are OPEN, ie threads and issues. Today the manifest has one sigil, `STEELTHREAD`; `ISSUE` was retired on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files, since an issue lived only in the store and had nothing to realise.
+
+**Ruled under the pen on 2026-09-12, with hv's authority and overrulable with a line.** An issue's realised form is ONE FILE PER ISSUE, `intent/issues/<NNNN>.md`: a generated view of the record under D02, frontmatter from the store and the body beneath, rendered by `intentsvcs::views` under the no-clock renderer law, and reported by `doctor` as view skew when hand-edited. The sigil is `ISSUE:<NNNN>`. `organize` hydrates and dehydrates it exactly as it does a thread, lazily, so `issue new` writes the store and the file appears when something realises it. The default declaration is every open thread and every open issue and nothing else; `issue new` adds the id and closing the issue removes it, many writers and one meaning, as threads already do. The single rendered `intent/issues.md` was the alternative and is refused: one sigil per record is what lets the declaration say which issues are realised, which is what the manifest is for.
+
+Inherited whole from ST0057 WP-12 on hv's ruling of 2026-09-11 (decision 8). The criteria are minted on this thread on 2026-09-12; there were none before.
 
 ## Acceptance
 

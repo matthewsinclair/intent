@@ -13,6 +13,20 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ## Acceptance Criteria
 
+### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Not Started)
+
+- AC-01.1 An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store and a formatter fixed point; `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case. -- satisfied: no (computed)
+- AC-01.2 `ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm. -- satisfied: no (computed)
+- AC-01.3 `organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply. -- satisfied: no (computed)
+
+### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
+
+- AC-02.1 Migration ingests every bucket-only file under a v2 thread directory (`intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/**`) as an attachment of its thread, the naming gate permitting, with the authored lines of the v2 `acceptance.md` preamble into `preamble`; verified PER FILE by a content probe, a distinctive phrase from each ingested file found in the store afterwards and a phrase never ingested returning nothing. -- satisfied: no (computed)
+- AC-02.2 The prune removes the v2 buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex`, at migration for a new conversion and under `organize --apply` for an already-migrated estate, and REFUSES by name while any bucket file content is not held by the store, so a prune that ingested nothing removes nothing. -- satisfied: no (computed)
+- AC-02.3 A file beside the threads that is not under a thread directory, such as a tool tree like `ST0056/parity/tools/`, is neither an attachment candidate nor pruned; the Intent estate own unclaimed tooling is the discriminating case. -- satisfied: no (computed)
+- AC-02.4 Migration and `organize` report every authored file that names a bucket path as a worklist and rewrite none of them. -- satisfied: no (computed)
+- AC-02.5 (non-test) The fleet prune is per estate on hv word, after `at-accounting.sh` has run there, because the v2 bucket is that instrument only source surface; this WP ships the mechanism and prunes no estate but the fixtures it drives. -- satisfied: no
+
 ### WP-13 -- Project search: full-text, structural, and the agent search surface (status: Cancelled)
 
 - AC-13.1 **(hv-RATIFIED 2026-08-15 as D31 -- was vc-specced under standing authorisation, which is what blocked ic's register row)** `treeindex` and the `in-handoff` skill are retired whole -- command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, and every canon reference -- and nothing in the repo references either
@@ -161,6 +175,14 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-24.7 (non-test) Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built. -- evidence: intent/st/ST0069/design.md, "AC-24.7, specified": the specification with its measured data source (no commit-to-thread link in the store; attribution a claim about some symbols, unattributed said never guessed, ids resolved against the store before shown), landed 7c62a4e6a -- satisfied: yes
 
 ## Acceptance Tests
+
+### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
+
+_(no tests in this group)_
 
 ### WP-13 -- Project search: full-text, structural, and the agent search surface (status: Cancelled)
 
