@@ -103,7 +103,7 @@ tree-sitter, grammars compiled in for the code languages Intent declares (Rust, 
 | all five                    | 19,539,088 | 7,780,368           |
 | all five, runtime exercised | 19,695,040 | 7,936,320           |
 
-The deltas are additive (the five singles sum to within linker alignment of the all-five build), so any subset can be priced from the table; the runtime is paid once. Swift alone is close to half the whole grammar cost. Node-kind count does not predict size (elixir has fewer kinds than rust and costs more), so a sixth language is measured, never estimated. **The line is hv's.** The crates and probes lived only in dc's worktree; they enter the tree through WP-20's symbols module behind per-language features.
+The deltas are additive (the five singles sum to within linker alignment of the all-five build), so any subset can be priced from the table; the runtime is paid once. Swift alone is close to half the whole grammar cost. Node-kind count does not predict size (elixir has fewer kinds than rust and costs more), so a sixth language is measured, never estimated. **The line is hv's.** The crates entered the tree through WP-20's symbols module behind per-language features, all off by default until hv rules. One fact found there bears on the line: **`tree-sitter-bash` 0.25.1 ships no tags query** (a highlight query only), so `shell` parses and names no symbols, and the bash row above buys nothing for its bytes. Ruled 2026-09-12: `lang-bash` stays declared and off until upstream ships a tags query, and nobody writes one here, because a hand-written query is the per-language extractor AC-20.2 exists to avoid. The recommendation to hv is therefore the other four on by default.
 
 ### T3, semantic: yes, third, and gated on one decision
 
