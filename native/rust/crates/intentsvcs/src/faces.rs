@@ -14,7 +14,7 @@
 use schemars::schema_for;
 
 use crate::event::Envelope;
-use crate::model::{Issue, Thread};
+use crate::model::{Board, Issue, Thread};
 
 /// **Which TOOL produced this artefact** (D41). Moves on every release,
 /// including a patch.
@@ -41,7 +41,7 @@ pub const INTENT_VER: &str = env!("CARGO_PKG_VERSION");
 /// content changes and its version does not, which is the same forcing
 /// function `SCHEMA_VERSION` has for the store -- the one that earned its
 /// existence within hours of being written.
-pub const SCHEMA_JSON_VER: u32 = 17;
+pub const SCHEMA_JSON_VER: u32 = 18;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_DDL_VER: u32 = 20;
 /// See [`SCHEMA_JSON_VER`].
@@ -52,6 +52,7 @@ pub fn faces() -> Vec<(&'static str, String)> {
   vec![
     ("thread.schema.json", schema_json::<Thread>()),
     ("issue.schema.json", schema_json::<Issue>()),
+    ("board.schema.json", schema_json::<Board>()),
     ("event.schema.json", schema_json::<Envelope>()),
     ("ddl.sql", versioned_sql(crate::store::DDL)),
     ("schema.graphql", versioned_sdl(&crate::graphql::sdl())),
@@ -72,6 +73,7 @@ pub const SCHEMA_VER_KEYS: &[(&str, &str)] = &[
   ("schema.graphql", "SCHEMA_SDL_VER"),
   ("thread.schema.json", "SCHEMA_JSON_VER"),
   ("issue.schema.json", "SCHEMA_JSON_VER"),
+  ("board.schema.json", "SCHEMA_JSON_VER"),
   ("event.schema.json", "SCHEMA_JSON_VER"),
 ];
 

@@ -69,8 +69,8 @@ fn marker(face: &str, key: &str) -> Option<String> {
 fn every_published_face_carries_both_version_parts() {
   assert_eq!(
     SCHEMA_VER_KEYS.len(),
-    5,
-    "five published faces (AC-06.5); if a face was added or removed, this count is the thing that \
+    6,
+    "six published faces (AC-06.5); if a face was added or removed, this count is the thing that \
      notices"
   );
 
@@ -323,7 +323,14 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 14 -> 15 is `status_legacy`, as above.
     ("SCHEMA_SDL_VER", 15, 0x3760_5121_a8aa_eb12),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
-    ("SCHEMA_JSON_VER", 17, 0xb055_28f1_5a90_b5f6),
+    // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
+    // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
+    // the shared JSON version moves and the DDL and SDL versions must not. The
+    // store is untouched at this commit -- the tables and their rung land with
+    // the code that writes `board.json`, because a `carried by` declaration
+    // naming a file nothing writes is a promise the openness check exists to
+    // refuse.
+    ("SCHEMA_JSON_VER", 18, 0xebb0_a46f_55f2_e878),
   ];
 
   let mut moved = Vec::new();

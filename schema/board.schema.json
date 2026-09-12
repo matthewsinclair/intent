@@ -1,0 +1,237 @@
+{
+  "$defs": {
+    "WbItem": {
+      "additionalProperties": false,
+      "description": "One line of a node's board.",
+      "properties": {
+        "archived_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authored_at": {
+          "description": "The stamp the board's markdown claimed, verbatim. **Untrusted, and\nnon-null only on a migrated row.**",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/WbItemKind"
+        },
+        "node": {
+          "description": "The moniker of the node whose board this is.",
+          "type": "string"
+        },
+        "recorded_at": {
+          "description": "**The item's creation instant**, written by the service from the clock,\nonce, at the write. Not named `created_at`: see the note above this block.",
+          "type": "string"
+        },
+        "seq": {
+          "description": "Position within the node's items of that kind. Ties on `recorded_at` are\nbroken by insertion order, never by this value alone.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "state": {
+          "$ref": "#/$defs/WbItemState"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "node",
+        "kind",
+        "seq",
+        "text",
+        "state",
+        "recorded_at"
+      ],
+      "type": "object"
+    },
+    "WbItemKind": {
+      "enum": [
+        "doing",
+        "todo",
+        "decision",
+        "watchout"
+      ],
+      "type": "string"
+    },
+    "WbItemState": {
+      "enum": [
+        "live",
+        "archived"
+      ],
+      "type": "string"
+    },
+    "WbMessage": {
+      "additionalProperties": false,
+      "description": "One entry in an inbox.",
+      "properties": {
+        "authored_at": {
+          "description": "The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,\nand non-null only on a migrated row** -- this is the field that carries\nthe class of value the clock guard exists to refuse, so it is typed as\ntext and never read as a time.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "fyi": {
+          "description": "Set when the sender expects no reply.",
+          "type": "boolean"
+        },
+        "handled_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "re": {
+          "description": "The timestamp of the entry this one answers, where it answers one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recipient": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "description": "**The message's send instant**, written by the service from the clock,\nonce, at the write. Not named `sent_at`: see the note above this block.",
+          "type": "string"
+        },
+        "sender": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/WbMessageState"
+        }
+      },
+      "required": [
+        "sender",
+        "recipient",
+        "body",
+        "fyi",
+        "state",
+        "recorded_at"
+      ],
+      "type": "object"
+    },
+    "WbMessageState": {
+      "enum": [
+        "live",
+        "handled"
+      ],
+      "type": "string"
+    },
+    "WbNode": {
+      "additionalProperties": false,
+      "description": "A participant: the board's header block, modelled.",
+      "properties": {
+        "authored_at": {
+          "description": "The stamp the board's markdown claimed, verbatim. **Untrusted, and\nnon-null only on a migrated row.**",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claims": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "focus": {
+          "type": "string"
+        },
+        "heartbeat_at": {
+          "description": "When this node last reported itself alive. Service-written; see the note\nabove this block for what a MIGRATED value means.",
+          "type": "string"
+        },
+        "moniker": {
+          "description": "The two-letter moniker: the directory name, the routing key and the\nhandle, all one value.",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "description": "Written by the service from the clock, once, at the write.",
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Absent for a node that runs no session loop, which is how the human's\nnode is represented rather than by a special case.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/WbNodeStatus"
+        }
+      },
+      "required": [
+        "moniker",
+        "name",
+        "role",
+        "heartbeat_at",
+        "status",
+        "focus",
+        "recorded_at"
+      ],
+      "type": "object"
+    },
+    "WbNodeStatus": {
+      "enum": [
+        "active",
+        "paused"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One node's whiteboard: `whiteboard/<node>/board.json`.\n\n**Messages sit with the RECIPIENT, which is the shape the disk already\nhas** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable\nboard and rendering one needs no join across nodes. A sender writing into\nthe recipient's file is exactly what `ask` does today; the single-writer\ninvariant is enforced by the API and is not a property of which file the\nextract lands in.",
+  "properties": {
+    "items": {
+      "default": [],
+      "description": "This node's own items, in `seq` order.",
+      "items": {
+        "$ref": "#/$defs/WbItem"
+      },
+      "type": "array"
+    },
+    "messages": {
+      "default": [],
+      "description": "The messages ADDRESSED TO this node, in insertion order.",
+      "items": {
+        "$ref": "#/$defs/WbMessage"
+      },
+      "type": "array"
+    },
+    "node": {
+      "$ref": "#/$defs/WbNode"
+    },
+    "schema": {
+      "description": "Always [`BOARD_SCHEMA`].",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "node"
+  ],
+  "title": "Board",
+  "type": "object",
+  "x-intent-ver": "3.0.1",
+  "x-schema-json-ver": 18
+}

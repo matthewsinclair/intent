@@ -2111,3 +2111,187 @@ pub fn parse_domain_date(raw: &str) -> Result<String, DateError> {
     .map(|_| raw.to_string())
     .map_err(|_| DateError::NotADay)
 }
+
+// ---------------------------------------------------------------------------
+// Whiteboard: wb_node / wb_item / wb_message (D30, WP-14)
+// ---------------------------------------------------------------------------
+
+// **THE TWO STAMPS ON EVERY ENTITY BELOW ARE ONE RULE, NOT A FIELD PER CASE**
+// (ruled by vc, 2026-09-12, on AC-14.4 and AC-14.9 colliding).
+//
+// `recorded_at` is written by the SERVICE from the clock, once, at the write.
+// `authored_at` is null on every API-born row and non-null only on a MIGRATED
+// one, where it carries the stamp the board's markdown claimed, verbatim, as an
+// untrusted string.
+//
+// **The collision it resolves:** AC-14.4 refuses a caller-supplied timestamp so
+// the fabricated-stamp class closes by construction, and AC-14.9 requires the
+// existing board to migrate with nothing dropped -- and every stamp on that
+// board is hand-authored. Run the migration through the API and every
+// historical stamp becomes `now`, which is the exact failure AC-14.11 names:
+// history rewritten silently and indistinguishably from a correct value. Run it
+// around the API and the refusal has a hole in it on its first day.
+//
+// So on a migrated row the service stamps -- `recorded_at`, and `heartbeat_at`
+// on a node -- take the INGEST instant and not the claimed one, because the
+// claimed one is precisely the value we know may be invented. The claim
+// survives in `authored_at` and a view shows it verbatim and labelled.
+// **Neither criterion takes an exception.**
+//
+// **AND `recorded_at` IS THE CREATION INSTANT OF AN ITEM AND THE SEND INSTANT
+// OF A MESSAGE** (vc, 2026-09-12), rather than sitting beside a `created_at`
+// and a `sent_at` that would hold the same value. The D30 table named those two
+// and they are gone, for a reason that is mechanical rather than tidy:
+// `created_at` is one of the store's RESERVED record-stamp names
+// (`store.rs`'s `RECORD_TIMESTAMPS`), which `derived_dump` OMITS from the
+// extract by name across every table -- so a modelled stamp carrying that name
+// would be invisible to AC-14.1's round-trip assertion, which would then pass
+// whether the value survived the trip or not. `sent_at` goes with it because
+// keeping one and not the other would leave the model inconsistent on the
+// accident of which name a constant happens to list. Each table carries
+// `updated_at` with the strftime default as its AC-02.8 record stamp instead:
+// per-machine, omitted from the extract, re-stamped by a rebuild, all correct.
+//
+// **AND THE ORDERING THAT FALLS OUT OF IT, STATED BECAUSE IT IS NOT OBVIOUS
+// FROM THE FIELDS** (vc, same ruling). Every message migrated in one pass shares
+// one `sent_at`, so `sent_at` cannot order them and the board's only cross-node
+// ordering would be lost at exactly the moment it became queryable. The
+// migration therefore inserts in SOURCE FILE ORDER, ties on `recorded_at` order
+// by insertion, and every view orders that way.
+
+/// The `schema` field value for a node's board canon file.
+pub const BOARD_SCHEMA: &str = "intent/board@3.0";
+
+/// One node's whiteboard: `whiteboard/<node>/board.json`.
+///
+/// **Messages sit with the RECIPIENT, which is the shape the disk already
+/// has** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable
+/// board and rendering one needs no join across nodes. A sender writing into
+/// the recipient's file is exactly what `ask` does today; the single-writer
+/// invariant is enforced by the API and is not a property of which file the
+/// extract lands in.
+// **THE CRITERION ID STAYS OUT OF THE `///`, DELIBERATELY.** schemars lifts doc
+// comments into the published `board.schema.json`, and a consumer holding that
+// face has no AC-14.5 to look up -- the same reason `ddl.sql`'s comments carry
+// their reasoning without thread ids. The invariant above is AC-14.5; this
+// `//` is where saying so belongs, because it does not ship.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct Board {
+  /// Always [`BOARD_SCHEMA`].
+  pub schema: String,
+  pub node: WbNode,
+  /// This node's own items, in `seq` order.
+  #[serde(default)]
+  pub items: Vec<WbItem>,
+  /// The messages ADDRESSED TO this node, in insertion order.
+  #[serde(default)]
+  pub messages: Vec<WbMessage>,
+}
+
+/// A participant: the board's header block, modelled.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbNode {
+  /// The two-letter moniker: the directory name, the routing key and the
+  /// handle, all one value.
+  pub moniker: String,
+  pub name: String,
+  pub role: String,
+  /// Absent for a node that runs no session loop, which is how the human's
+  /// node is represented rather than by a special case.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub session_id: Option<String>,
+  /// When this node last reported itself alive. Service-written; see the note
+  /// above this block for what a MIGRATED value means.
+  pub heartbeat_at: String,
+  pub status: WbNodeStatus,
+  pub focus: String,
+  #[serde(default)]
+  pub claims: Vec<String>,
+  /// Written by the service from the clock, once, at the write.
+  pub recorded_at: String,
+  /// The stamp the board's markdown claimed, verbatim. **Untrusted, and
+  /// non-null only on a migrated row.**
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub authored_at: Option<String>,
+}
+
+/// One line of a node's board.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbItem {
+  /// The moniker of the node whose board this is.
+  pub node: String,
+  pub kind: WbItemKind,
+  /// Position within the node's items of that kind. Ties on `recorded_at` are
+  /// broken by insertion order, never by this value alone.
+  pub seq: u32,
+  pub text: String,
+  pub state: WbItemState,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub archived_at: Option<String>,
+  /// **The item's creation instant**, written by the service from the clock,
+  /// once, at the write. Not named `created_at`: see the note above this block.
+  pub recorded_at: String,
+  /// The stamp the board's markdown claimed, verbatim. **Untrusted, and
+  /// non-null only on a migrated row.**
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub authored_at: Option<String>,
+}
+
+/// One entry in an inbox.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbMessage {
+  pub sender: String,
+  pub recipient: String,
+  pub body: String,
+  /// The timestamp of the entry this one answers, where it answers one.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub re: Option<String>,
+  /// Set when the sender expects no reply.
+  pub fyi: bool,
+  pub state: WbMessageState,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub handled_at: Option<String>,
+  /// **The message's send instant**, written by the service from the clock,
+  /// once, at the write. Not named `sent_at`: see the note above this block.
+  pub recorded_at: String,
+  /// The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,
+  /// and non-null only on a migrated row** -- this is the field that carries
+  /// the class of value the clock guard exists to refuse, so it is typed as
+  /// text and never read as a time.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub authored_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
+#[serde(rename_all = "kebab-case")]
+pub enum WbNodeStatus {
+  Active,
+  Paused,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
+#[serde(rename_all = "kebab-case")]
+pub enum WbItemKind {
+  Doing,
+  Todo,
+  Decision,
+  Watchout,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
+#[serde(rename_all = "kebab-case")]
+pub enum WbItemState {
+  Live,
+  Archived,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
+#[serde(rename_all = "kebab-case")]
+pub enum WbMessageState {
+  Live,
+  Handled,
+}

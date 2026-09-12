@@ -453,15 +453,17 @@ Written by every mutation (WP-02).
 
 The coordination entities, **specified and NOT BUILT in 3.0.1**: WP-14 was cancelled with its criteria descoped to ST0069, so the store has no whiteboard tables and `intent/whiteboard/` stays hand-authored markdown on disk. The migrator reports it as modelled-but-unbuilt and leaves the files untouched. The specification: durable form is committed JSON canon per D01; `wip.md` and `inbox.<sender>.md` become generated views per D02, ending the hand-authored board.
 
-| Entity       | Fields                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`                |
-| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout`), `seq`, `text`, `state` (`live · archived`), `created_at`, `archived_at?` |
-| `wb_message` | `sender`, `recipient`, `sent_at`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`         |
+| Entity       | Fields                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`  |
+| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?` |
+| `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`      |
 
 Three properties are the point of modelling these rather than parsing them (D30):
 
-- **Timestamps are stamped by the database on the write** (D42), never supplied by the caller, so a fabricated stamp stops being constructible rather than being detected after the fact.
+- **No caller supplies a stamp: the SERVICE writes `recorded_at` once, at the write, and a sync in either direction CARRIES it rather than re-deriving it** (D42's intent with AC-14.11's mechanism). A DB-side column default is refused as the mechanism, because with the DB as truth and sync running both ways a disk-to-db resync that re-inserts rows would let it re-stamp them -- rewriting history silently and indistinguishably from a correct value, which is the fabricated-stamp failure reintroduced by its own fix. Each table also carries `updated_at` with the database default as its AC-02.8 record stamp: that one is per-machine, omitted from the extract, and correctly re-stamped by a rebuild.
+- **`recorded_at` is the creation instant of an item and the send instant of a message**, and the D30 `created_at` and `sent_at` are gone rather than sitting beside it holding the same value. A column named `created_at` is a reserved record stamp the extract omits by name, so a modelled stamp cannot carry that name without AC-14.1's round-trip assertion going blind to it; `sent_at` goes with it rather than leave the model inconsistent on the accident of which names a constant happens to list.
+- **`authored_at` carries the stamp a migrated board's markdown CLAIMED, verbatim**, null on every API-born row. It is the one column whose contents are known to include invented values, so it is typed as text and never read as a time, and a view shows it labelled. Ordering for migrated rows comes from insertion order, since a migration pass gives every row it inserts one `recorded_at`.
 - **Bounds are enforced on write and refused by name.** Per-entry body size, live items per node per kind, and live messages per inbox are configured, and an over-bound write is refused with the bound and the remedy stated -- the D05 posture applied to size, never truncation, never a silent accept.
 - **`state` transitions are the API's**, so archival happens on schedule rather than when a node remembers, which is what produced 251KB of `.history`.
 
