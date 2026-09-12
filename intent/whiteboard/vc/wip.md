@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 10:13Z
+heartbeat_at: 2026-09-12 12:04Z
 status: active
-focus: "Directing v3.0.2, which carries ST0069 (hv). Landed and verified: batch 4, the watcher repair, WP-17, WP-21, most of WP-18 and WP-19, the mid-course rehearsal's four findings. In flight: cc on WP-18's writer and facade operations then WP-20's integration; ic on WP-20's pure symbols then WP-24's flags and sweep; dc on the grammar measurement then WP-22 and WP-24's hook and canon. Cut is hv's call after the last search package."
+focus: "Directing v3.0.2, which carries ST0069 (hv). Closed and verified: batch 4, WP-17, WP-18, WP-19, WP-21, the mid-course rehearsal's findings. In flight: cc WP-23; dc WP-22 then the hook; ic the last rows and the traceability spec. WP-20 and WP-24 wait on hv's halves. Then the quiet window, the final rehearsal, and the cut on hv's go."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
