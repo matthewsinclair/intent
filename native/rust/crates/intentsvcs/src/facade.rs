@@ -5630,13 +5630,15 @@ impl Facade {
     // Rendered only when a changed thread is undeclared -- the ordinary
     // mutation on a declared thread pays nothing for this.
     let undeclared_changed = match &realised {
-      Realised::Declared(declared) => {
-        changed
-          .iter()
-          .any(|id| !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, id)))
-          || changed_issues.iter().any(|n| {
-            !declared.contains(&intentfiles::declared_key(Sigil::Issue, &format!("{n:04}")))
-          })
+      // **ASKED THROUGH `Realised`, NOT BY READING ITS SET.** A caller that
+      // reaches into `Declared` and spells the key itself is a second site the
+      // compiler cannot see -- which is how `ISSUE:0001` was dropped on the way
+      // in once already.
+      Realised::Declared(_) => {
+        changed.iter().any(|id| !realised.declares(id))
+          || changed_issues
+            .iter()
+            .any(|n| !realised.declares_artefact(Sigil::Issue, &format!("{n:04}")))
       }
       // Neither skips a view below, so neither needs the prior render.
       Realised::NothingSaid | Realised::Unreadable => false,
@@ -5648,47 +5650,30 @@ impl Facade {
       _ => Vec::new(),
     };
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
-      // **AN UNDECLARED ISSUE'S VIEW IS NOT WRITTEN, AND THIS ARM EXISTS
-      // BECAUSE THE ONE BELOW COULD NOT ANSWER FOR IT.** The thread skip reads
-      // `owning_thread`, which matches a path against `thread_dir` and so
-      // answers `None` for `intent/issues/<nnnn>.md`; `None` makes the whole
-      // `&&` false, so the skip never fired and every issue view was written
-      // whatever the manifest said. **Measured on the live estate the day
-      // WP-01 landed: 284 views materialised against a manifest declaring
-      // none**, which `organize --apply` would then have removed -- the
-      // projection and the plan disagreeing about the same file.
+      // **ONE SKIP FOR BOTH ARTEFACT KINDS, AND IT WAS TWO NEAR-IDENTICAL
+      // BLOCKS UNTIL THE SECOND ONE'S QUESTION WAS FOUND TO BE THE FIRST
+      // ONE'S.** The thread block read `owning_thread`, which answers `None`
+      // for `intent/issues/<nnnn>.md`; `None` makes the whole `&&` false, so
+      // the skip never fired for an issue and every issue view was written
+      // whatever the manifest said -- **284 of them on the live estate the day
+      // WP-01 landed, against a manifest declaring none**, which
+      // `organize --apply` would then remove: the projection and the plan
+      // disagreeing about the same file.
       //
-      // **IT CARRIES THE `store_ahead` COUNTERPART, AND THE PARAGRAPH HERE
-      // ONCE SAID IT DID NOT NEED ONE.** That was wrong and a test said so:
-      // `issues close` moves the record AND undeclares it in the same breath,
-      // so a plain skip leaves the OPEN render on disk while the store holds
-      // the closed one -- and `organize`'s dehydration gate then refuses to
-      // remove the file, correctly, because disk and render differ and it
-      // cannot tell a stale render from a hand edit. The thread arm below has
-      // solved exactly this since 0079; the two now answer alike.
-      if let Realised::Declared(ref declared) = realised
-        && let Some(number) = views::owning_issue(&self.project, &view.path, canon)
-        && !declared.contains(&intentfiles::declared_key(
-          Sigil::Issue,
-          &format!("{number:04}"),
-        ))
+      // **`store_ahead` APPLIES TO BOTH, AND A COMMENT HERE ONCE SAID AN ISSUE
+      // NEEDED NO SUCH THING.** That was wrong within the hour and a test said
+      // so: `issues close` moves the record AND undeclares it in one breath, so
+      // a plain skip leaves the OPEN render on disk while the store holds the
+      // closed one -- and `organize`'s dehydration gate then refuses to remove
+      // it, correctly, because it cannot tell a stale render from a hand edit.
+      // The thread side has solved exactly this since 0079.
+      if let Some(undeclared) = views::undeclared_owner(&self.project, &view.path, canon, &realised)
       {
-        let store_ahead = changed_issues.contains(&number)
-          && rendered_before
-            .iter()
-            .find(|v| v.path == view.path)
-            .is_some_and(|prior| {
-              std::fs::read_to_string(&view.path).is_ok_and(|disk| disk == prior.content)
-            });
-        if !store_ahead {
-          continue;
-        }
-      }
-      if let Realised::Declared(ref declared) = realised
-        && let Some(owner) = self.owning_thread(&view.path, canon)
-        && !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, &owner))
-      {
-        let store_ahead = changed.contains(owner.as_str())
+        let changed_here = match &undeclared {
+          views::Undeclared::Thread(id) => changed.contains(id.as_str()),
+          views::Undeclared::Issue(number) => changed_issues.contains(number),
+        };
+        let store_ahead = changed_here
           && rendered_before
             .iter()
             .find(|v| v.path == view.path)

@@ -530,10 +530,11 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 const DEFAULT_HEADER: &str = "\
 # .intentfiles -- WHICH DATABASE ARTEFACTS ALSO HAVE A REALISED FORM ON DISK.
 #
-# Written by `intent organize --default` from thread status: every WIP thread is
-# declared, and nothing else. Not Started, Triage, Hold, Completed and Cancelled
-# are NOT realised -- they live in the store, in full, and `intent st hydrate`
-# brings any of them back to disk on demand.
+# Written by `intent organize --default` from status: every WIP thread and every
+# OPEN issue is declared, and nothing else. A thread that is Not Started, Triage,
+# Hold, Completed or Cancelled is NOT realised, and neither is a closed issue --
+# they live in the store, in full, and `intent st hydrate` brings a thread back
+# to disk on demand.
 #
 # REALISATION IS DRIVEN FROM THIS FILE. Commands change it; `intent organize`
 # realises it. Nothing recomputes it from status afterwards, so a write here is

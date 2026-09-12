@@ -1486,37 +1486,52 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
     .map(|t| t.id.clone())
 }
 
-/// Whether the artefact this view realises is one the manifest says is NOT
-/// realised -- so an absent file is the design working rather than a loss.
+/// The artefact a view realises, when the manifest says that artefact is NOT
+/// realised.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Undeclared {
+  Thread(String),
+  Issue(u32),
+}
+
+/// The artefact this view realises, WHEN the manifest says it is not realised --
+/// so an absent file is the design working rather than a loss, and a written one
+/// is the projection disobeying the manifest.
 ///
-/// **ONE PREDICATE OVER BOTH ARTEFACT KINDS, because the question is one
-/// question and the last two spellings of it were each right about threads and
-/// silent about issues.** `owning_thread` answers `None` for
-/// `intent/issues/<nnnn>.md`, and `None` inside an `is_some_and` is `false` --
-/// which reads as *this view's owner is declared*, the one answer that is never
-/// safe to assume. The projection carried the same shape two commits earlier;
-/// this is the sibling reader, found the same way. **Neither was found by a
-/// fixture**: every arm that reaches an issue does so through `issues add`,
-/// which declares it, so no fixture built that way can hold an undeclared
-/// issue -- and all 284 of the estate's were. `doctor` reported every one as a
-/// missing generated view, at rc=1, on a tree `organize` had just made correct.
+/// **ONE PREDICATE OVER BOTH ARTEFACT KINDS, AND IT RETURNS THE OWNER RATHER
+/// THAN A BOOLEAN, because every caller needs the id for its own remedy** -- and
+/// a caller that re-derives the id has re-derived the rule with it. Three
+/// callers: this file's skew check, both arms, and the projection in `facade`.
 ///
-/// A path owned by neither is a project-level view -- `todo.md`,
-/// `steel_threads.md` -- which belongs to no artefact, so no manifest entry can
-/// excuse its absence and `false` is the honest answer for it.
-fn dehydrated_owner(
+/// **The question was spelled three ways and two of them were wrong.**
+/// `owning_thread` answers `None` for `intent/issues/<nnnn>.md`, and `None`
+/// inside an `is_some_and` or an `&&` is `false` -- which reads as *this view's
+/// owner is declared*, the one answer that is never safe to assume. The
+/// projection carried that sentence and wrote 284 views against a manifest
+/// declaring none; `skew`'s absent-view arm carried it and reported all 284 as
+/// missing, at rc=1, on a tree `organize` had just made correct. **Neither was
+/// found by a fixture**: every arm that reaches an issue does so through
+/// `issues add`, which declares it, so no fixture built that way can hold an
+/// undeclared issue -- and every one of the estate's was.
+///
+/// `None` here means nothing is undeclared: either the artefact is declared, or
+/// the path is a project-level view -- `todo.md`, `steel_threads.md` -- which
+/// belongs to no artefact, so no manifest entry can excuse its absence.
+pub fn undeclared_owner(
   project: &Project,
   path: &std::path::Path,
   canon: &Canon,
   realised: &crate::intentfiles::Realised,
-) -> bool {
+) -> Option<Undeclared> {
   if let Some(id) = owning_thread(project, path, canon) {
-    return !realised.declares(&id);
+    return (!realised.declares(&id)).then_some(Undeclared::Thread(id));
   }
   if let Some(number) = owning_issue(project, path, canon) {
-    return !realised.declares_artefact(crate::intentfiles::Sigil::Issue, &format!("{number:04}"));
+    return (!realised
+      .declares_artefact(crate::intentfiles::Sigil::Issue, &format!("{number:04}")))
+    .then_some(Undeclared::Issue(number));
   }
-  false
+  None
 }
 
 /// Every view the model implies, in a stable order.
@@ -1636,7 +1651,14 @@ pub fn skew(
       // is `st hydrate`, which does -- and which pins the thread, so it says
       // so.
       Ok(on_disk) => {
-        let unlisted = owning_thread(project, &view.path, canon).filter(|o| !realised.declares(o));
+        // **THE SAME PREDICATE, NOT A SECOND READING OF THE MANIFEST.** This
+        // arm additionally needs the id, because `st hydrate` is a thread's
+        // verb; an undeclared ISSUE's stale view gets the generic remedy, since
+        // there is no thread to pin.
+        let unlisted = match undeclared_owner(project, &view.path, canon, realised) {
+          Some(Undeclared::Thread(id)) => Some(id),
+          Some(Undeclared::Issue(_)) | None => None,
+        };
         let remedy = match &unlisted {
           // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT
           // IT** (hv, 2026-09-12: silent deletion). `st hydrate` will not write
@@ -1687,7 +1709,7 @@ pub fn skew(
       // -- a prediction of this exact defect by the author of the sibling path.
       // The two paths now answer the same question the same way.
       Err(_) => {
-        if !dehydrated_owner(project, &view.path, canon, realised) {
+        if undeclared_owner(project, &view.path, canon, realised).is_none() {
           findings.push(Finding::new(
             &rel,
             FindingClass::ViewSkew,
