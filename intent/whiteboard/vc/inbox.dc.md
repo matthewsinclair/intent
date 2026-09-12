@@ -360,3 +360,29 @@ a source edit never reached the index. The index registration is not watching th
 **WHAT I AM DOING: nothing.** Per your order -- no third run, no diagnosis drives, no fixes to the arms, no loosened bounds. `2239998e3` is NOT cut. Nothing is uncommitted, nothing is pushed, the box is quiet, and the tap formula commit `9987a93` is still local and unpushed pending hv's own approval. My board carries this same record for the pickup.
 
 **THE GATE'S CARGO LOG IS PRESERVED**, because the temp dir it was written to is reaped and the record would have gone with it: `scratchpad/run6-cargo-test.log`, 227787 bytes, sha256 `97bf5d994369bdaddc5efc24ccc0bb5b227b251effa4360259bed58dae910163`, byte-identical to the source under `/var/folders/nn/.../intent-release-gates.QpJimbQPrC/cargo-test.log`. Both failing arms' panic lines above are quoted from it.
+
+## (2026-09-12 17:44Z)
+
+**WP-01 IS DONE AND BANKED. Three commits, and the last one fixes a defect the LIVE ESTATE found that no fixture of mine could contain.**
+
+`1f8c9fc08` -- two files (.prettierignore, views.rs), landed by accident; see the trap below.
+`496d38e99` -- the rest of the landing, 22 files, read back by `git log -1 --stat`.
+`49a00fb80` -- the projection fix, its arm, and the canon `wp done` produced.
+
+AT-01.1 / AT-01.2 / AT-01.3 minted, cited to the two test files, green. `wp start` then `wp done ST0069/01` through: WP-01 reads **Done**.
+
+**FULL RUN, on 496d38e99 with the fix applied, `cargo test --workspace --no-fail-fast`: exit 0, no failures on any target.** intentsvcs 1320 passed, intent-cli 625, intentd suite 35, daemon_subscriptions 5, and the rest. The daemon family was red mid-afternoon at load 58-69 and green here on identical product bytes; I settled that STRUCTURALLY rather than by re-running -- `daemon_watch`'s fixture creates no issues at all, so a change that adds a view per issue cannot reach it.
+
+**THE THREE DEFECTS, IN THE ORDER EACH FOUND THE NEXT.**
+
+1. **The projection wrote every issue view whatever the manifest said.** Its skip reads `owning_thread`, which answers `None` for `intent/issues/<nnnn>.md`, and `None` made the whole `&&` false. A single `wp done` materialised **284 views on the live estate against a manifest declaring none** -- the projection and `organize`'s plan disagreeing about the same file. `views::owning_issue` asks canon the way `owning_thread` does.
+2. **The manifest edit ran AFTER the store write.** `apply` runs the projection, so it asked whether the new issue was declared before the line declaring it existed, decided no, and skipped the view -- and nothing failed, the file simply never appeared. `edit_list`'s own doc had already ruled the order: manifest first for an addition.
+3. **The issue skip needed the `store_ahead` counterpart my first draft said it did not.** `issues close` moves the record and undeclares it in one breath, so a plain skip leaves the OPEN render on disk while the store holds the closed one, and the dehydration gate then refuses to remove it -- correctly, because it cannot tell a stale render from a hand edit. The thread arm has solved this since 0079.
+
+**WHICH TEST NAMES CHANGED MEANING**, as you asked. `intentfiles_names_artefacts_only::the_accepted_set_is_exactly_the_id_set` -- its ISSUE assertion inverted from refused-for-every-id to accepted-iff-`is_issue_id`. `intentfiles_grammar::every_bad_line_is_refused_and_names_its_own_line` -- two ISSUE rows moved from `UnknownSigil` to `MalformedId`; `UnknownSigil` keeps two other cases so no coverage is lost. `facade_hydrate::every_address_form_is_hydratable_or_refused_by_name` -- `issue` left the declared refused set, which is the assertion that MADE the move visible, and the fixture gained the issue the form names. `address_promotes_a_bare_id::a_bare_issue_id_becomes_this_project_s_issue` -- `artefact()` is `Some` not `None`. `address_md_is_the_hydrated_bytes::an_entity_without_a_rendering_is_refused_with_its_reason` -- an issue left the no-rendering list. `view_skew_check::absence_is_silence_only_where_the_manifest_says_undeclared` -- builds its declared set through `declared_key` rather than a bare literal that would silently declare nothing. `no_view_claims_to_be_truth::no_generated_view_names_a_generated_artefact_as_truth` -- issue views joined the partition that exists to catch a view kind going unchecked. `migrate`'s two deliberately-stated counts acknowledged. None deleted.
+
+**THE TRAP, IN ONE LINE FOR MY BOARD, AND IT WAS NEITHER A LOCK RACE NOR A SPLIT TOKEN.** I ran `git commit` three times to READ the pre-commit gate's refusal, and the first one SUCCEEDED -- so `1f8c9fc08` landed the two-file diagnostic pair under a message claiming all three criteria. **A diagnostic that mutates is not a diagnostic.** The refusal I was chasing was `rustfmt`, permanent and deterministic, and my 60-attempt retry loop reported it as if it were lock contention: **a retry loop makes a deterministic refusal look like a race, so cap it and PRINT the last failure rather than the attempt count.**
+
+**THE 284 UNTRACKED VIEWS ARE EXACTLY WHERE THEY WERE.** Nothing of mine has touched the live estate, no `organize --apply` there, and I have not committed one of them. Yours to drive after you rebuild the pair.
+
+**NEXT: WP-02.** Building on the shape you ruled in my lane order, per your release to proceed without waiting; the three lines go into this inbox before code, and any piece departing from that shape holds with its reason. NO RELEASE, NO PUSH.
