@@ -321,3 +321,84 @@ fn the_mcp_tool_and_json_answer_the_same_envelope() {
     "the two faces answer differently for one statement"
   );
 }
+
+/// **THE DOOR READS THE INDEX, WHICH IS HALF THE QUESTION IT EXISTS FOR.**
+///
+/// It did not, from the day it shipped until 2026-09-12: SQLite's fts5 module
+/// issues `PRAGMA data_version` of its own when a virtual table is initialised,
+/// and the authorizer refused pragmas wholesale -- so `select path from
+/// src_sections limit 2` came back `the SQL door refuses PRAGMA`, blaming the
+/// operator for a statement they did not write. The door's stated purpose is a
+/// question that crosses the MODEL and the INDEX, and the index half is exactly
+/// what it could not read.
+#[test]
+fn an_fts_table_can_be_read_through_the_door() {
+  let dir = estate();
+  let root = dir.path();
+  let (_, err, code) = run(&["index", "rebuild"], root);
+  assert_eq!(code, 0, "the fixture index failed: {err}");
+
+  for table in ["doc_sections", "src_sections"] {
+    let (out, err, code) = run(
+      &[
+        "search",
+        "--sql",
+        &format!("select count(*) as n from {table}"),
+        "--json",
+      ],
+      root,
+    );
+    assert_eq!(code, 0, "`{table}` is not readable through the door: {err}");
+    let page: serde_json::Value = serde_json::from_str(&out).expect("the envelope is JSON");
+    assert!(
+      page["rows"][0]["n"].as_i64().is_some(),
+      "`{table}` answered no count: {page}"
+    );
+  }
+
+  // A MATCH, not just a plain select: the match is what an agent joining the
+  // model to the index actually writes, and it initialises the tokenizer too.
+  let (out, err, code) = run(
+    &[
+      "search",
+      "--sql",
+      "select file from doc_sections where doc_sections match 'thread' limit 3",
+    ],
+    root,
+  );
+  assert_eq!(code, 0, "an FTS match is refused: {err}");
+  let _ = out;
+}
+
+/// **THE NARROWING DID NOT OPEN THE DOOR**, and this is the arm that proves it
+/// rather than the one that assumes it: the allowlist is one pragma BY NAME and
+/// only as a read, so a pragma that would change the connection is still
+/// refused -- and the connection is the store's, so one that got through would
+/// outlive the statement that set it.
+#[test]
+fn a_state_changing_pragma_is_still_refused_and_the_store_stays_read_only() {
+  let dir = estate();
+  let root = dir.path();
+  let before = threads(root);
+
+  let (_, err, code) = run(&["search", "--sql", "PRAGMA query_only = 0"], root);
+  assert_eq!(code, 1, "a state-changing pragma must be refused: {err}");
+  assert!(
+    err.contains("PRAGMA"),
+    "the refusal names what it refused: {err:?}"
+  );
+
+  // **AND THE NEXT STATEMENT STILL CANNOT WRITE**, which is the half a refusal
+  // alone does not establish: the refusal could have fired after the pragma
+  // took effect.
+  let (_, err, code) = run(
+    &["search", "--sql", "delete from threads where id = 'ST0001'"],
+    root,
+  );
+  assert_eq!(code, 1, "the write was not refused: {err}");
+  assert_eq!(
+    threads(root),
+    before,
+    "the estate moved -- the door is not read-only"
+  );
+}

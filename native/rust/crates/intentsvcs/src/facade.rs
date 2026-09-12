@@ -3282,6 +3282,29 @@ impl Facade {
           Authorization::Allow
         }
         AuthAction::Recursive => Authorization::Allow,
+        // **ONE PRAGMA, BY NAME, AND ONLY AS A READ** -- the door refused every
+        // FTS5 table until this existed, including a plain `select path from
+        // src_sections limit 2`, with a message blaming the operator for a
+        // PRAGMA they did not write. **SQLite's fts5 module issues
+        // `PRAGMA data_version` itself** when a virtual table is initialised,
+        // so the blanket refusal below shut the door on exactly the tables the
+        // door was built to join against: the whole stated purpose of `--sql`
+        // is a question that crosses the model and the INDEX.
+        //
+        // **THE NAME WAS READ OFF A LOGGING AUTHORIZER AGAINST THE REAL TABLE,
+        // NOT GUESSED** (ic, 2026-09-12, driven on `src_sections`): the set is
+        // `data_version` and nothing else. A CATEGORY -- "allow read pragmas"
+        // -- was the obvious fix and is the wrong one: this connection is the
+        // store's and outlives the statement, so a pragma that CHANGED
+        // something would outlive it too, and the read-only open flag would be
+        // the only thing left standing. Hence a name, and hence
+        // `pragma_value.is_none()`: `PRAGMA data_version` is a read and
+        // `PRAGMA data_version = x` is not the same act, whatever it would do.
+        AuthAction::Pragma {
+          pragma_name: "data_version",
+          pragma_value: None,
+          ..
+        } => Authorization::Allow,
         other => {
           if let Ok(mut slot) = recorder.lock() {
             slot.get_or_insert_with(|| action_name(&other));
