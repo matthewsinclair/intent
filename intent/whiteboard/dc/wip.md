@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 14:14Z
+heartbeat_at: 2026-09-12 14:57Z
 status: active
-focus: "vc's QUIET WINDOW is open and the five steps are serial and mine. Step 1 is measured and answered. DOING is step 2, WP-22, half built and banked as a patch. Then the hook, the Local shapes, the final rehearsal. NO RELEASE, NO PUSH."
+focus: "Steps 1 and 2 are DONE: the quiet window's first answer is measured, and WP-22 landed at e809eea8f with AT-24.1 cited at 23803861b. DOING is step 3, the hook, HELD on two words from vc. Then the Local shapes and the final rehearsal. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
@@ -13,19 +13,14 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-1414Z.md`.** Everything landed today is carried by its commits and the CHANGELOG, not here.
 
-## DOING -- step 2 of the quiet window: WP-22, HALF BUILT AND NOT COMMITTED
+## DOING -- step 3 of the quiet window: the hook, HELD on vc
 
-**THE DIFF IS NOT IN GIT.** It is `scratchpad/wp22-BANKED.patch` (313 lines, four files) and live in the worktree `scratchpad/wt-dc`, which sits at `034bf8f54`. If both are gone, rebuild from this section.
+**The shape went to vc in three lines and nothing is built.** A PostToolUse hook on Grep, served from the install as `intent claude hook <name>` with its body in `lib/templates/.claude/scripts/`; it reads the symbol the pattern named, calls `intent search --context <name> --json` in the project the call ran in, appends the structural answer after the grep's own result, never blocks, never replaces; and it appends NOTHING unless the envelope says the index can answer for the paths involved, owning no freshness reading of its own.
 
-BUILT, compiling: `Op::Search { query, ask }` and `Response::Search { answer }` on the wire; the search envelope's `Deserialize`; the roster CONSTRUCTOR vc ruled; the daemon's handler calling the same `search_all` the daemonless path calls.
-
-NOT BUILT: `--no-reconcile` on the search row (register edited BY POSITION, markdown regenerated, never prettier); the daemonless reconcile-then-query through cc's `index_refresh(None)`; the one parity arm -- same tree, daemon and daemonless, byte-identical envelopes.
-
-**Three decisions inside it that are load-bearing and would be re-litigated if they were not written down.** `Response::Search` carries `serde_json::Value` and not the typed envelope, because a hit holds `score: f64`, `Response` derives `Eq`, and a raw float cannot satisfy `Eq` while `serde_json::Number` can -- the same reason `Response::Graphql` already carries a value. `IndexFreshness` has a HAND-WRITTEN `Deserialize` that recomputes `complete` rather than reading it, so a peer cannot send `complete: true` beside a non-empty `stale`. And `Response::search` lives in `wire.rs` rather than the daemon, because `intentd` has no `serde_json` and adding one would buy a new manifest dependency plus a second place deciding how the envelope becomes JSON.
+**THE HOLD, and its condition: vc's word on the shared freshness predicate.** ic's AC-24.6 safety condition and mine are the SAME condition and BOTH are stricter than the field either of us would reach for. AC-24.6 fires the redirect only when the index is COMPLETE FOR THE PATHS the pattern would have reached; AC-24.4 appends nothing when the index is not complete FOR THE PATHS INVOLVED. **Neither is `index.complete`**, which is `skipped.is_empty() && stale.is_empty()` -- a claim about the WHOLE index, false for a query about one path because of an unreadable file nowhere near it. `skipped` and `stale` are LISTS OF PATHS, so per-path completeness is derivable today with `complete` as the fast path when true. One predicate, behind the facade beside `IndexFreshness`, called by both hooks -- which is where ic's own condition 3 puts it. **Left unnamed, the obvious implementation of both is `complete`, quietly narrower than either row claims, and the narrowing is invisible because a hook that says nothing looks identical to a hook with nothing to say.** Released when vc answers: the predicate as one facade call, and whether it sits in WP-24 or takes its own row.
 
 ## TODO -- vc's five steps, serial, in this order
 
-- **Step 3: the hook (AC-24.4)**, shape in three lines to vc first. Served from the install, never blocking, reads the symbol a grep pattern named, calls `intent search --context <name> --json`, appends the structural answer, and **appends NOTHING when the envelope's `index.complete` is false**. The freshness rule is the envelope's and the hook grows none of its own. Also: cite AT-24.1 on `canon_seeds_the_mcp_declaration_once.rs`, and review ic's AC-24.6 specification (on main at `7c62a4e6a`) in ONE message saying whether its safety condition is the same one the hook enforces.
 - **Step 4: the two Local shapes measured**, one build each, sizes only, announced first. (a) `fastembed = "4"` on ONNX Runtime with `hf-hub`; (b) `candle-core`/`candle-transformers` `0.9` with `tokenizers = "0.21"`. Same instrument as the grammars, and **the runtime must ANSWER rather than merely compile** or a zero delta reads as a free runtime. Report build-or-not and wall-clock beside the delta; keep the two policy points (a downloads a model on first use; neither gives TLS) OUT of the byte count -- they are hv's.
 - **Step 5: the final rehearsal** on the last HEAD, `--dry-run`, every gate line verbatim, `intent backup` taken deliberately and the report saying why, `~/.intent/home` read before and after, loads stated. **vc's one-re-run rule**: a red confined to `daemon_watch`/`daemon_subscriptions` re-runs the WHOLE rehearsal once and both runs' gate lines are reported; a second consecutive red on that family halts to vc, and any red outside it halts on the first.
 - **CHANGELOG**: ic writes the Added lines for the search packages; my Fixed lines stay mine.
@@ -33,12 +28,16 @@ NOT BUILT: `--no-reconcile` on the search row (register edited BY POSITION, mark
 ## Holds
 
 - **vc is DARK (banking and folding).** Every landing and every report goes into `intent/whiteboard/vc/inbox.dc.md` with a same-turn `date -u` stamp as well as being messaged. **Anything needing a ruling WAITS in the inbox and is not guessed.**
+- **Issue 0304 is filed and its ruling is vc's**: reconcile-by-default makes a pre-existing corpus overlap the DEFAULT answer -- a document the store carries AND the disk holds is indexed by both corpora, so one line answers twice (`kind: file` and `kind: thread`, same path, same line). Reachable on 3.0.1 through `index rebuild`, so not new; WP-22 is what makes it the default. Three shapes are on the table and the third is **invert the flag before the tag**, a small edit to one default and one register row. Condition: vc answers.
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
 
 ## Watch-outs
 
 - **THIS HOST HAS NO IDLE, AND "ALONE" MEANS ONE TARGET RATHER THAN AN IDLE HOST.** Measured in the window: with every Intent node silent, the one-minute load floors around 10 to 15 -- `fileproviderd` at 101%, iTerm, App Tamer, three CoreSimulator processes, none of them ours to pause. The daemon family reds ~3 of 6 alone at load 40 and 0 of 6 alone at load 15, so it is load and not a defect; and no measurement any node took today was on an idle host.
+- **A FIELD SKIPPED ON SERIALISATION AND NOT DEFAULTED ON DESERIALISATION MAKES THE WHOLE ENVELOPE WRITE-ONLY.** `Hit::stale` skips `false` and had no `default`; serde supplies one for `Option` unasked and for NOTHING ELSE, so a fresh hit -- every hit in a normal answer -- made the envelope unreadable the first time anything read it back. Invisible for as long as the type only ever went outwards. Found by DRIVING `--daemon search`, not by reading.
+- **TWO DERIVATIONS THAT SHARE A MISTAKE ARE ONE DERIVATION.** `daemon_op_for`, `daemon_servable_paths` and the load-time `serving_op` check each walked `families` alone, and the test that checks the roster against the table walked one list too -- so a `serving_op` on a `new_surface` row would have been read by nothing, refused by nothing, and agreed about perfectly. A test written to be an independent derivation is only independent of the FUNCTION, not of the assumption.
+- **A SETUP STEP THAT SILENTLY DOES NOTHING IS STILL THE SAME TRAP** -- I ran `intent index refresh` as a control and it does not exist (`rebuild` does); its rc came from a pipe and the control read as informative while running nothing. Second time today's class has bitten.
 - **A COST MEASUREMENT IS NOT A CONSEQUENCE MEASUREMENT.** My watch-cost numbers were right about events, cached paths and wakeups, and could not have seen the ingest loop the same registration caused, because they counted paths and never ran an ingest.
 - **A DEPENDENCY COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it, so a size measurement that only adds the crate reads a real cost as ZERO. Reference it behind `env::var_os` and make the control that it ANSWERS, not that it compiled.
 - **THE ARITHMETIC IS AN INSTRUMENT CHECK.** Five grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed they excluded the tree-sitter runtime.

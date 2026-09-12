@@ -27,3 +27,37 @@ STEP 2, WP-22, WHERE IT STANDS. Banked at `scratchpad/wp22-BANKED.patch` (313 li
 THREE DECISIONS INSIDE IT, stated so they are not re-litigated. `Response::Search` carries `serde_json::Value` rather than the typed envelope, because a hit holds `score: f64`, `Response` derives `Eq`, and a raw float cannot satisfy `Eq` while `serde_json::Number` can -- the same reason `Response::Graphql` already carries a value. `IndexFreshness` gains a HAND-WRITTEN `Deserialize` that RECOMPUTES `complete` instead of reading it, so a peer cannot send `complete: true` beside a non-empty `stale`; the wire forced the question and the answer is stronger than what the type had before. And `Response::search` lives in `wire.rs` rather than in the daemon, because `intentd` has no `serde_json` and adding one would buy a new manifest dependency under AC-08.10 plus a second place deciding how the envelope becomes JSON.
 
 NOTHING WAITING ON A RULING FROM YOU. Steps 3, 4 and 5 are as you ordered and I have them on my board with your one-re-run rule for the rehearsal recorded verbatim. NO RELEASE, NO PUSH.
+
+## (2026-09-12 14:53Z)
+
+**WP-22 IS LANDED AT `e809eea8f`, 17 files, and one ruling is yours before the tag.**
+
+Built to your spec: `Op::Search` carrying query and parsed filters, the daemon's handler calling the same `search_all` the in-process path calls, the roster CONSTRUCTOR you ruled, `--no-reconcile` on the search row (edited by position, markdown regenerated, never prettier), the daemonless reconcile-then-query through cc's `index_refresh(None)`, and the parity arm. Driven on one tree: 7 rows byte-identical both ways, and the `--json` envelopes byte-identical at 3159 bytes.
+
+**THE RULING: reconcile-by-default makes a pre-existing corpus overlap visible on every search, and I have not guessed it.** Filed as issue 0304. A document the store carries AND the disk holds is indexed by both corpora, so one line answers twice -- `kind: file` from the disk prose corpus, `kind: thread` from the store's doc sections, same path, same line, differing only in kind and owner. `index::corpus::corpus_of` already excludes the store's PROJECTIONS by rule, and that exclusion is correct; it is not wide enough, because `render_all` produces `info.md`, `acceptance.md`, `WP/NN/info.md`, `steel_threads.md` and `todo.md`, while a thread's `design.md` is an AUTHORED document the store carries as an attachment. Neither corpus is wrong about its own scope. The overlap belongs to neither.
+
+It is reachable on 3.0.1 through the shipped `intent index rebuild`, so it is not new -- but WP-22 is what makes it the default answer. Two shapes, uncosted and not mine to pick: widen the disk-corpus exclusion from projections to every path the store already carries prose for, or let the corpora overlap and dedupe at the ANSWER by path and span. **The third option is yours too: invert the flag before the tag, so a daemonless query answers from the index as it stands unless asked to reconcile.** Say the word and it is a small edit to one default and one register row.
+
+**THE DEFECT WORTH MORE THAN THE FEATURE: the search envelope was WRITE-ONLY and nothing could have noticed.** `Hit::stale` skips `false` on the way out and had no `default` on the way in. Serde supplies one for `Option` unasked and for nothing else, so a fresh hit -- every hit in a normal answer -- made the whole envelope unreadable the first time anything read it back. Found by driving `--daemon search` against a real daemon, not by reading. Reverting that one attribute reddens the parity arm and nothing else, which is the control.
+
+**AND A DECLARATION THAT WOULD HAVE BEEN INERT.** `daemon_op_for`, `daemon_servable_paths` and the load-time `serving_op` check each walked `families` alone, and `search` is a `new_surface` row -- so `serving_op: "Search"` would have been read by nothing and refused by nothing. The test that checks the roster against the table walked one list too, so **the two derivations shared the mistake and agreed perfectly.** One `dispatch::all_entries` now states the enumeration once; the test spells both lists out deliberately, not through that accessor.
+
+`--daemon` on `--outline`, `--context` or `--sql` now refuses at rc 2. The guard is keyed on the PATH and `search` is servable, so all three would have parsed, passed it, opened this process's store and printed a normal answer at rc 0.
+
+Suite: every intent-cli red cleared. The three that remained -- `daemon_subscriptions` x2, `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` -- all ran GREEN on re-run against unchanged code, loads 48 then 39. Same family, same behaviour as this morning's measurement.
+
+Two `search_surface` arms take `--no-reconcile` to stay on their own subjects. `a_hit_names_the_line_it_is_on_or_no_line_at_all` is about issue 0195; left un-flagged it would go red for 0304 under a name that says 0195, and whoever met it would read the row count and adjust it. That is how a guard quietly becomes the guard for a question nobody asked it.
+
+Next on the serial road is step 3, the hook, and its shape comes to you in three lines before anything is built.
+
+## (2026-09-12 14:53Z)
+
+**AT-24.1 is cited at `23803861b` and AC-24.1 now computes satisfied.** The `.mcp.json` seeding landed at `763c47648` with three green arms and no row, so the criterion read `satisfied: no` while the thing it asserts was green. The file gains the literal `AT-24.1` because the acceptance contract refuses a row whose cited file does not carry its id -- which is what stops a citation outliving the test it names.
+
+**Step 3's shape and the AC-24.6 review went to you by message; the part that must survive this session is the finding.** ic's safety condition and mine are the SAME condition, and BOTH are stricter than the field either of us would reach for. AC-24.6 says the redirect fires only when the index is COMPLETE FOR THE PATHS the pattern would have reached; AC-24.4 says my hook appends nothing when the index is not complete FOR THE PATHS INVOLVED. Neither is `index.complete`, which is `skipped.is_empty() && stale.is_empty()` -- a claim about the WHOLE index, false for a query about one path because of an unreadable file nowhere near it.
+
+Reading `complete` errs SAFE in both directions and the two hooks fail differently under it. For a PostToolUse hook that only ever appends, over-strictness costs nothing. For a PreToolUse redirect, over-strictness means it almost never fires, which is the difference between a feature and a feature-shaped no-op. **The envelope already carries what the criteria actually ask for**: `skipped` and `stale` are LISTS OF PATHS, so per-path completeness is derivable today, with `complete` as the fast path when true. One predicate, behind the facade next to `IndexFreshness`, called by both -- which is also where ic's own condition 3 says the freshness rule must live.
+
+**Left unnamed, the obvious implementation of both is `complete`, quietly narrower than either row claims -- and the narrowing would be invisible, because a hook that says nothing looks identical to a hook with nothing to say.**
+
+Waiting on two words before building: the shared predicate as one facade call, and whether it sits in WP-24 with the hook or takes its own row. Issue 0304's ruling is still with you as well.
