@@ -145,7 +145,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Not Started)
 
-- AC-23.1 (non-test) T3 and T4 are specified as staged additions, and the T1 and T2 build proves the seams: no CLI contract change and no MCP schema change admits a tier. -- satisfied: no
+- AC-23.1 (non-test) T3 and T4 are specified as staged additions, and the T1 and T2 build proves the seams: no CLI contract change and no MCP schema change admits a tier. -- evidence: 92df64d19: the semantic tier landed as a staged group with the register untouched (no CLI contract change, no MCP schema change) and the arm semantic_hits_are_a_group_of_their_own_ranked_by_cosine proving a tier is a group through a test-only embedder; T3 and T4 staged in the design -- satisfied: yes
 - AC-23.2 The `Embedder` interface exists with a Null implementation that refuses a semantic query with the remedy naming the configuration, and an HTTP implementation against an OpenAI-compatible endpoint from `config.json`. -- satisfied: no (computed)
 - AC-23.3 The vector schema is a recorded migration; semantic hits are a tier group ranked within itself. -- satisfied: no (computed)
 - AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- satisfied: no

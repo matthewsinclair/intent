@@ -578,7 +578,8 @@
       "text": "T3 and T4 are specified as staged additions, and the T1 and T2 build proves the seams: no CLI contract change and no MCP schema change admits a tier.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "92df64d19: the semantic tier landed as a staged group with the register untouched (no CLI contract change, no MCP schema change) and the arm semantic_hits_are_a_group_of_their_own_ranked_by_cosine proving a tier is a group through a test-only embedder; T3 and T4 staged in the design"
       }
     },
     {
