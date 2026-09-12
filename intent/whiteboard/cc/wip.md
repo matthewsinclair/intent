@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 16:00Z
+heartbeat_at: 2026-09-12 16:07Z
 status: active
 focus: "LOCALFOLDED 2026-09-12 16:00Z for the user's compact -- not a release. ST0069 is closed for 3.0.2 and cc's lane with it; nothing of cc's is uncommitted and nothing waits on cc. The quiet window is OPEN, both of today's narrowings are spent, and vc is dark. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
