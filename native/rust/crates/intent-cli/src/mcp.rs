@@ -396,7 +396,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 61] = [
+pub const SERVED: [&str; 62] = [
   "st new",
   "st start",
   "st done",
@@ -453,6 +453,7 @@ pub const SERVED: [&str; 61] = [
   "agents generate",
   "agents validate",
   "search",
+  "index status",
   "export",
   "organize",
   "events",
@@ -1178,6 +1179,28 @@ pub fn serve(
         object.insert("note".to_string(), json!(note));
       }
       Ok(envelope)
+    }
+    // **THE READ HALF OF THE INDEX FAMILY IS EXPOSED AND THE WRITE HALF IS NOT**
+    // (the register's rows say so; `index rebuild` carries its withhold reason).
+    // The tool answers the same summary the terminal renders, with the SKIPPED
+    // PATHS in it -- an agent deciding whether to trust a search needs to know
+    // which files are not in the index, and a count cannot answer that.
+    "index status" => {
+      let status = f.index_status()?;
+      let mut skipped = serde_json::Map::new();
+      for reason in intentsvcs::index::status::REASONS {
+        let paths = status
+          .skipped
+          .get(reason.as_str())
+          .cloned()
+          .unwrap_or_default();
+        skipped.insert(reason.as_str().to_string(), json!(paths));
+      }
+      Ok(json!({
+        "held": status.held,
+        "skipped": skipped,
+        "empty": status.is_empty(),
+      }))
     }
     "export" => {
       let format = opt_s(path, map, "format")?;

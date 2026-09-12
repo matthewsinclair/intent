@@ -8206,6 +8206,94 @@
           }
         }
       ]
+    },
+    {
+      "name": "index",
+      "help": "The search index: what it holds, and rebuilding it",
+      "v2_source": null,
+      "v2_help_file": null,
+      "owner_wp": "WP-19",
+      "family_notes": [
+        "NEW SURFACE with no v2 antecedent: v2 had no index. Declared as a FAMILY rather than as two root rows, because two root paths sharing a prefix make the prefix itself ambiguous -- `intent index` refused with `index is ambiguous under intent, it matches index rebuild, index status` before this moved (ic, driven, 2026-09-12).",
+        "`status` READS the rows and never walks the tree; `rebuild` walks. A status that surveyed the tree would describe the world rather than the index, which is the question nobody asked (cc, 2972e4df9)."
+      ],
+      "entries": [
+        {
+          "path": "index",
+          "help": "The search index: what it holds, and rebuilding it",
+          "args": [{ "name": "command", "type": "subcommand", "arity": "1" }],
+          "v2": "new-surface",
+          "basis": "ST0069 design.md: `intent index status [--json]` and `intent index rebuild`.",
+          "owner_wp": "WP-19",
+          "acceptance": "AC-19.6",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "flags": []
+        },
+        {
+          "path": "index status",
+          "help": "Report what the search index holds by corpus, and every path it will not hold with the reason",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0069 design.md: `intent index status [--json]`. There is no v2 antecedent -- v2 had no index.",
+          "owner_wp": "WP-19",
+          "acceptance": "AC-19.6",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "flags": [
+            {
+              "spellings": ["--json"],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "note": "terminal-channel, as `search --json` is: the MCP tool always answers the structured form."
+            }
+          ],
+          "facade": "index_status",
+          "note": "WP-19 (AC-19.6). THE SKIPPED PATHS ARE THE ANSWER AND ARE NEVER COLLAPSED TO A COUNT -- AC-18.2 says nothing is skipped silently, and a count is silence with a number on it: an operator reading `3 skipped` still cannot tell whether the file they are looking for is one of them."
+        },
+        {
+          "path": "index rebuild",
+          "help": "Walk the index scope and rewrite what the index holds, then report it",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0069 design.md: `intent index rebuild [--corpus canon|source]`.",
+          "owner_wp": "WP-19",
+          "acceptance": "AC-19.6",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "IDEMPOTENT AND WITHHELD ANYWAY, AND THE WITHHOLD GROUND IS CONTENTION RATHER THAN IRREVERSIBILITY -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is that the surface cannot undo it, and this one needs no undoing: running it twice leaves the same rows, and `index status` reads them back. **What it does is rewrite EVERY row of the index, which is work an agent should not start unasked** -- another surface may be reading those rows in the same moment, and a search answering mid-rebuild is the one case where the freshness block cannot help, because the index is not stale, it is in motion. `index status`, the read half, IS exposed and answers the same summary. A candidate for exposure on a ruling about concurrency, never on the observation that it is safe to repeat -- which is true and is a different question.",
+          "flags": [
+            {
+              "spellings": ["--json"],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": ["--corpus"],
+              "type": "string",
+              "value": "<canon|source>",
+              "help": "Rebuild one corpus instead of all of them",
+              "disposition": "pending",
+              "note": "The design's usage block carries it and the facade door does not take it yet -- cc's `index_rebuild` walks the whole scope. PENDING, so it does not ship: a flag accepted and then ignored answers a narrower question than the operator asked, silently."
+            }
+          ],
+          "facade": "index_rebuild",
+          "mcp_review": {
+            "note": "WITHHELD AND THE QUESTION RECORDED, as `daemon status` records its own. It is idempotent and it is not read-only: it rewrites every row of the index, which is work an agent should not start unasked in a session where another surface is reading it. A candidate for exposure on a ruling rather than on the observation that it is safe to repeat."
+          }
+        }
+      ]
     }
   ],
   "families_outstanding": [],
@@ -9161,8 +9249,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 51,
-      "census_note": "51 since 2026-09-11: `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 54,
+      "census_note": "54 since 2026-09-12: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -9505,6 +9593,9 @@
       "app stop",
       "app restart",
       "app status",
+      "index",
+      "index status",
+      "index rebuild",
       "search",
       "sync",
       "schema",
@@ -9640,6 +9731,9 @@
       "app stop",
       "app restart",
       "app status",
+      "index",
+      "index status",
+      "index rebuild",
       "search",
       "sync",
       "schema",
@@ -9782,6 +9876,9 @@
       "daemon status",
       "app",
       "app status",
+      "index",
+      "index status",
+      "index rebuild",
       "search",
       "sync",
       "schema",

@@ -76,6 +76,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("ac", m)) => ac(m),
     Some(("at", m)) => at(m),
     Some(("search", m)) => search(m),
+    Some(("index", m)) => index(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
@@ -3638,6 +3639,106 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
       })?),
     },
   })
+}
+
+/// `intent index status` and `intent index rebuild` -- AC-19.6.
+///
+/// **THE TWO VERBS DIFFER IN ONE THING AND IT IS WORTH SAYING ONCE: `status`
+/// READS, `rebuild` WALKS.** A status that surveyed the tree would describe the
+/// world rather than the index, and an operator comparing the two is exactly how
+/// a stale index is noticed.
+fn index(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("status", m)) => {
+      let f = open()?;
+      let status = f.index_status().map_err(fail)?;
+      report_index(&status, m.get_flag("json"), false)
+    }
+    Some(("rebuild", m)) => {
+      let mut f = open()?;
+      let status = f.index_rebuild().map_err(fail)?;
+      report_index(&status, m.get_flag("json"), true)
+    }
+    _ => Err(Failure::Error(
+      "error: `intent index` needs a subcommand\n  remedy: `intent index status` reads what the \
+       index holds, `intent index rebuild` rewrites it"
+        .to_string(),
+    )),
+  }
+}
+
+/// One rendering for both verbs.
+///
+/// **THE SKIPPED PATHS ARE THE ANSWER AND ARE NEVER COLLAPSED TO A COUNT**
+/// (AC-18.2, and cc asked for it explicitly). `3 skipped` is silence with a
+/// number on it: the operator looking for one file still cannot tell whether it
+/// is among them, which is the question they came with. A count belongs in a
+/// commit message, not on a surface a person reads to find something.
+///
+/// **A REASON WITH NOTHING UNDER IT IS STILL NAMED.** `index::status::REASONS`
+/// carries the four in report order, and printing only the reasons that fired
+/// would leave an operator unable to tell "no symlinks were skipped" from "this
+/// build does not check for symlinks".
+fn report_index(
+  status: &intentsvcs::index::status::Status,
+  json: bool,
+  rebuilt: bool,
+) -> Result<(), Failure> {
+  if json {
+    let held: serde_json::Map<String, serde_json::Value> = status
+      .held
+      .iter()
+      .map(|(corpus, n)| (corpus.clone(), serde_json::json!(n)))
+      .collect();
+    let skipped: serde_json::Map<String, serde_json::Value> = intentsvcs::index::status::REASONS
+      .iter()
+      .map(|reason| {
+        let paths = status
+          .skipped
+          .get(reason.as_str())
+          .cloned()
+          .unwrap_or_default();
+        (reason.as_str().to_string(), serde_json::json!(paths))
+      })
+      .collect();
+    println!(
+      "{}",
+      serde_json::to_string_pretty(&serde_json::json!({
+        "held": held,
+        "skipped": skipped,
+        "empty": status.is_empty(),
+        "rebuilt": rebuilt,
+      }))
+      .expect("the summary is plain data")
+    );
+    return Ok(());
+  }
+
+  // **EMPTY AND SKIPPED-NOTHING ARE TWO QUESTIONS, AND THE READER NEEDS BOTH**
+  // (cc's own note): nothing held and nothing skipped is a store where no index
+  // was ever built, while nothing held and everything skipped is a project of
+  // binaries. The first gets a line naming the verb that fixes it.
+  if status.is_empty() && !rebuilt {
+    eprintln!(
+      "note: the index holds nothing -- `intent index rebuild` walks the scope and records what is in it"
+    );
+  }
+  for (corpus, n) in &status.held {
+    println!("{corpus}  {n}");
+  }
+  for reason in intentsvcs::index::status::REASONS {
+    let paths = status.skipped.get(reason.as_str());
+    match paths {
+      None => println!("skipped: {}  none", reason.as_str()),
+      Some(paths) => {
+        println!("skipped: {}  {}", reason.as_str(), paths.len());
+        for path in paths {
+          println!("  {path}");
+        }
+      }
+    }
+  }
+  Ok(())
 }
 
 /// AC-06.2: the health report.

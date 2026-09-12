@@ -157,6 +157,11 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/mcp.rs",
+    "index status",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
     "st new",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),

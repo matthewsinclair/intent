@@ -322,6 +322,17 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "index rebuild",
+    "intent-cli/tests/the_index_says_what_it_holds.rs -- `a_status_before_a_rebuild_says_the_index_holds_nothing` \
+     drives the verb against a real estate and holds the property this file exists for, in the form \
+     this verb can have it: **what it writes is DERIVED and per-machine** (D34, D35 -- the index rows \
+     are not canon and never reach the committed extract), so `did the projected estate move` is the \
+     wrong observable, and the right one is that `index status`, which READS those rows and never \
+     walks, renders byte-identically to the rebuild that wrote them. A rebuild that wrote the wrong \
+     rows, or wrote rows a status could not read back, fails there. The skipped-path arm in the same \
+     file drives the other half: a file the walk refuses is NAMED in what it wrote, never counted away.",
+  ),
+  (
     "set",
     "mutation_every_writable_field.rs -- `every_settable_thread_field_moves_and_takes_nothing_with_it`, \
      `every_settable_work_package_field_moves_and_takes_nothing_with_it` and \

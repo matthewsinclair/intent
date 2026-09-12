@@ -3863,6 +3863,79 @@ Report whether the Intent menubar app is running, and where it is installed
 - **MCP note:** **CLOSED CONSERVATIVELY, THE QUESTION RECORDED RATHER THAN SETTLED**, exactly as `daemon status` is: the family's withhold reason is process control and does not name this row, which is a READ. A candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings.
 - **basis:** ST0064. **THE EXIT CODE CARRIES THE STATE AND THERE ARE THREE OF THEM**: 0 running, 1 installed and not running, 2 not installed. The two non-zero answers have DIFFERENT REMEDIES -- start it versus build it -- and a boolean sends half the callers to the wrong one. **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST**: an app launched from a path this resolver would not have guessed is still the app that is running, and printing the guess would name a bundle the operator is not looking at.
 
+## Family: `index`
+
+The search index: what it holds, and rebuilding it
+
+- **v2 source:** `new-surface`
+- **v2 help file:** none
+- **Owning work package:** WP-19
+
+- NEW SURFACE with no v2 antecedent: v2 had no index. Declared as a FAMILY rather than as two root rows, because two root paths sharing a prefix make the prefix itself ambiguous -- `intent index` refused with `index is ambiguous under intent, it matches index rebuild, index status` before this moved (ic, driven, 2026-09-12).
+- `status` READS the rows and never walks the tree; `rebuild` walks. A status that surveyed the tree would describe the world rather than the index, which is the question nobody asked (cc, 2972e4df9).
+
+| command         | args      | flags                           | help                                                                                          | disposition |
+| --------------- | --------- | ------------------------------- | --------------------------------------------------------------------------------------------- | ----------- |
+| `index`         | <command> | --                              | The search index: what it holds, and rebuilding it                                            | new-surface |
+| `index status`  | --        | --json                          | Report what the search index holds by corpus, and every path it will not hold with the reason | new-surface |
+| `index rebuild` | --        | --json, --corpus <canon/source> | Walk the index scope and rewrite what the index holds, then report it                         | new-surface |
+
+### `index`
+
+The search index: what it holds, and rebuilding it
+
+- **v2:** new-surface
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **basis:** ST0069 design.md: `intent index status [--json]` and `intent index rebuild`.
+- **owner wp:** WP-19
+- **acceptance:** AC-19.6
+
+### `index status`
+
+Report what the search index holds by corpus, and every path it will not hold with the reason
+
+- **v2:** new-surface
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - terminal-channel, as `search --json` is: the MCP tool always answers the structured form.
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **basis:** ST0069 design.md: `intent index status [--json]`. There is no v2 antecedent -- v2 had no index.
+- **owner wp:** WP-19
+- **acceptance:** AC-19.6
+- **facade:** index_status
+- **note:** WP-19 (AC-19.6). THE SKIPPED PATHS ARE THE ANSWER AND ARE NEVER COLLAPSED TO A COUNT -- AC-18.2 says nothing is skipped silently, and a count is silence with a number on it: an operator reading `3 skipped` still cannot tell whether the file they are looking for is one of them.
+
+### `index rebuild`
+
+Walk the index scope and rewrite what the index holds, then report it
+
+- **v2:** new-surface
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--corpus` `<canon|source>` (string) -- Rebuild one corpus instead of all of them
+    - The design's usage block carries it and the facade door does not take it yet -- cc's `index_rebuild` walks the whole scope. PENDING, so it does not ship: a flag accepted and then ignored answers a narrower question than the operator asked, silently.
+    - **disposition:** pending
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD AND THE QUESTION RECORDED, as `daemon status` records its own. It is idempotent and it is not read-only: it rewrites every row of the index, which is work an agent should not start unasked in a session where another surface is reading it. A candidate for exposure on a ruling rather than on the observation that it is safe to repeat.
+- **basis:** ST0069 design.md: `intent index rebuild [--corpus canon|source]`.
+- **owner wp:** WP-19
+- **acceptance:** AC-19.6
+- **recoverability:** idempotent
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE WITHHOLD GROUND IS CONTENTION RATHER THAN IRREVERSIBILITY -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is that the surface cannot undo it, and this one needs no undoing: running it twice leaves the same rows, and `index status` reads them back. **What it does is rewrite EVERY row of the index, which is work an agent should not start unasked** -- another surface may be reading those rows in the same moment, and a search answering mid-rebuild is the one case where the freshness block cannot help, because the index is not stale, it is in motion. `index status`, the read half, IS exposed and answers the same summary. A candidate for exposure on a ruling about concurrency, never on the observation that it is safe to repeat -- which is true and is a different question.
+- **facade:** index_rebuild
+
 ## Known exposures -- defects this file does not have, and is not protected against
 
 ### EXP-01 -- The generated view is formatter-stable today by accident, not by design
