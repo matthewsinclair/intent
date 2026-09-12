@@ -5,7 +5,7 @@ role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
 heartbeat_at: 2026-09-12 06:25Z
 status: active
-focus: "Directing v3.0.2 (hv ruled): batch 1 (dc: item 1 schema faces at release, then dry-run), batch 2 uninstall + batch 3 critic truth (cc), CHANGELOG retitle (dc), ic standby for reference regen. Verify each landing. Cut is hv's call."
+focus: "Directing v3.0.2 (hv ruled): batch 1 landed; dc's dry-run rehearsal running, cc's batches 2 and 3 ordered, ic rehearsing the regen read-only. Verify each landing. Cut is hv's call."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2** (hv ruled 2026-09-12): batch 1 (dc; items 2 and 3 verified, item 1 open), batches 2 and 3 (cc), CHANGELOG (dc), ic standby. Verify each landing's red/green; the cut waits on dc's end-to-end dry-run and hv's go.
+- **Directing v3.0.2** (hv ruled 2026-09-12): batch 1 LANDED and verified (`2f90fd283`, record in `intent/wip.md`). In flight: dc's `--dry-run` rehearsal on a clone of HEAD with the gates live; ic's read-only regen rehearsal in scratch; cc's batches 2 and 3, ordered at 06:25Z after cc's fold missed the ruling. Then ic regenerates once on my signal, dc re-runs the dry-run on the final HEAD, and the cut is hv's, with the tty-confirm question asked at that point.
 
 ## TODO -- waiting on hv, nothing claimable
 
