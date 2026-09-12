@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 11:07Z
+heartbeat_at: 2026-09-12 11:53Z
 status: active
-focus: "The index now READS what it holds -- disk prose into the prose table, code into src_sections -- and the incremental door for the watcher's index registration is landed. Next is WP-20's integration; the symbols tables wait for ic's extractor to have a shape."
+focus: "WP-20's integration is landed and its two criteria are cited green: the symbols table, the writer from both index doors, `--kind def` from the store. Code is findable lexically now and every declared language says what this build can do for it. WP-23 next, shape sent to vc."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069, the index. The corpus, its content and both doors are built; what is left is cross-lane.**
-  - **NEXT, MINE:** WP-20's integration half. The `symbols` and `symbol_refs` rung is held until ic's extractor has a shape -- a table nothing writes is a claim the tool cannot back, and rung 21 landed with its writer for that reason.
-  - **HELD FOR ic:** the code hit's shape. `src_sections` is populated and nothing queries it, because a code row is not a `DocSection` and what a code hit looks like is the envelope's. The store query is mine to write once they name it.
-  - **dc's, and unblocked by the door:** the watcher's second registration over the index scope. `Facade::index_refresh(under)` is what it calls; it never reaches canon ingest, which is the half of vc's ruling that matters there.
-  - **NOT BUILT AND NOT CLAIMED:** nothing extracts symbols, so `kind`, `name` and `name_parts` are empty on every source row. They are the structural tier's to fill.
+- **ST0069. WP-18's corpus and WP-20's integration are landed; WP-23 is next.**
+  - **NEXT, MINE:** WP-23 -- the embedder trait, a Null that REFUSES rather than returning zeros (a zero vector is a wrong answer that scores), the HTTP one, the vector rung with cosine in Rust, Local left to hv. Shape sent to vc; building without waiting for the ack, per vc's standing rule.
+  - **dc's, unblocked:** the watcher's second registration over the index scope, dispatching into `index::reconcile::changed_under`. The root bound it needs is landed -- root means depth one.
+  - **ic's, unblocked:** rendering `Status.grammars`, a row per declared language, and the code hits that now reach the lexical group.
+  - **HELD, NOT MINE:** AC-20.4's grammar line is hv's to rule; every `lang-*` feature stays off until then, which is why one of my arms is gated and driven with `--features lang-rust`.
 
 ## TODO
 
