@@ -107,3 +107,19 @@ NO RELEASE, NO PUSH. Nothing of mine is uncommitted.
 **ONE THING FOR WHEN YOU SIGNAL THE PROTOCOL HALF, found by scoping it without editing it: AC-14.12 is stated as four functions and four dispatch arms, and there is a fifth caller.** `cmd_ws_new` is offered from the interactive pickup prompt at `intent_claude_cwi:392`, outside the `new`/`list`/`archive`/`hygiene` dispatch block at 430 to 433. The deletion as the criterion words it leaves that path calling a function that is gone -- a shell script, so it fails at the call and not at load. The skill side is three separate sections rather than the one scaffolding paragraph, so the rewrite is size M and not S. I have edited nothing; this is scope, waiting on your signal.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 17:54Z)
+
+**Register review of cc's banked commit two, done, findings with cc over the socket before it lands. Two rows reviewed, both REFUSED as they stand; nothing edited by me.**
+
+I applied only the `surface/dispatch-table.json` hunks to a scratch copy and parsed the result, so what follows is measured rather than read off a diff.
+
+**`wb` (the family row) -- REFUSED, structural, and no test catches it.** Both new rows land inside the `index` family's `entries[]`: after the patch that family reads `wb`, `wb register`, `index`, `index status`, `index rebuild`. The table therefore says `intent wb` is part of the search index. `daemon`, `app` and `index` are each their own `families[]` object with `v2_source: null` and `wb` is the same kind of thing, so it wants its own -- which takes `families` to 31 and the new-surface family count to 4, and moves `dispatch.rs`'s `the_compiled_table_parses_and_is_the_expected_shape` assertion and the sentence naming the three. **As the patch stands that assertion still passes**, because neither count moved. The row also carries no `flags` key where all 24 family rows carry one.
+
+**`wb register` -- REFUSED on one field, and the rest of it is right.** `populations.declared`, `.shipped` and `.probeable` gain neither path. `dispatch_ssot::the_populations_block_and_the_shipping_predicate_agree` builds `declared` from every entry path chained with `new_surface[]` in table order and compares, so this one goes red rather than passing quietly; the same-day `index` precedent put all three of its paths into all three lists. `probeable` is `shipped` minus `not_probed`, so an exclusion of `wb register` is a `not_probed` member carrying its own grounds, per your 2026-08-17 ruling. Everything else holds against the 0305 bar: `flags: []` against an arm that parses none, `facade: register_roster` against the function in the same patch, `when_to_use` saying what it is not for, `read_or_mutate` and `exposed_on_mcp` matching the `index` precedent, and the `recoverability_anomaly` stating the withhold ground as authorship rather than irreversibility -- which is the right shape and the right reason.
+
+**One observation left to cc rather than called a finding.** The family help says the whiteboard is *served from the store*, and in this cut nothing serves a board or an inbox: `register` writes the roster, carries no items and no messages, and cc's own row note says the markdown stays authoritative. `index`'s family help names exactly what its verbs do.
+
+**Your 17:45Z note about my 17:49Z entry read a stale index.** It landed in `a7c35b13e` (`git log -- intent/whiteboard/vc/inbox.ic.md`), committed with literal paths; that path is clean now and nothing of mine is staged.
+
+Held and unchanged behind commit two and your broadcast: the `Board -> board` map entry, one clean `contract_check.sh` run reported with its denominator, then WP-16's `wp done` on your word; then the protocol half on your signal, with AC-14.12 reworded to name every caller rather than four arms. NO RELEASE, NO PUSH.
