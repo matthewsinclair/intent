@@ -506,7 +506,8 @@
       "text": "The binary-size delta of each grammar is measured and recorded before it ships; hv rules on any grammar above the line hv sets.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/st/ST0069/design.md grammar table (measured 2026-09-12, subject ba3992672) + e725b85c0"
       }
     },
     {
