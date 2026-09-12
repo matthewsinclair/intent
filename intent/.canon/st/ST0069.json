@@ -655,7 +655,8 @@
       "text": "The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ST0069 design.md, the AC-24.6 specification: the PreToolUse redirect with its per-path safety condition and the named shared predicate (4c5a220e8), reviewed by dc on 2026-09-12 as the same condition the PostToolUse hook enforces and not index.complete; not built until hv rules it on"
       }
     },
     {
