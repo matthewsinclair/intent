@@ -67,6 +67,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Decisions
 
+- (2026-09-12) **A watcher event naming the project root reconciles the root's own in-scope files and never descends**; a directory event reconciles the subtree it names; the pre-dating rule holds inside whatever an event names. dc attributed the loop four-of-four with and none without: a coalesced root event answered by a whole-corpus reconcile against a lagging index published everything, ingested, rewrote views and coalesced to the root again. The recursive root registration stands on top of the bound; per-directory registration and a lowered ingest bound were rejected. Applies to both the sync reconcile and the index reconcile.
 - (2026-09-12) **D29 amendment WITHDRAWN**: the corpus is the committed `.gitignore` rules; `.git/info/exclude` and the global excludes stay off, and `ignored_paths_corpus.rs` is the record. **`intent index status` and `rebuild`**: cc owns the facade operations, ic the register rows, rendering and MCP arms. **Watcher reconcile**: the store's index is the one baseline; a directory event reconciles the scan's own candidates under the event's path, never a second walk of the root.
 
 - (2026-09-11) **hv's doc audit ran and is DONE**, every lane verified and pushed; its orders are in `intent/history/20260911-doc-audit.md`. **hv then ruled fix batch 1 (release + install) to dc**; the rest of the defect list in `intent/wip.md` is unruled. The 3.0.1 rulings this section carried, all executed in the cut, are in `.history/20260912/`.
