@@ -62,6 +62,21 @@ path = "src/lib.rs"
 name = "intent"
 path = "src/main.rs"
 
+[features]
+# **PASS-THROUGHS, SO A BUILD CAN SAY WHICH GRAMMARS IT CARRIES AND THIS CRATE'S
+# OWN `cfg` CAN READ IT.** `--features intentsvcs/lang-rust` enables the
+# dependency's feature and leaves `cfg(feature = "lang-rust")` in THIS crate
+# false -- so a test gated on a grammar silently does not compile, which is a
+# test that passes by not existing. The rosters are the same five as
+# `index::symbols::LANGUAGES`, and every one is off by default until hv rules
+# the binary-size line.
+default = []
+lang-rust = ["intentsvcs/lang-rust"]
+lang-elixir = ["intentsvcs/lang-elixir"]
+lang-swift = ["intentsvcs/lang-swift"]
+lang-lua = ["intentsvcs/lang-lua"]
+lang-bash = ["intentsvcs/lang-bash"]
+
 [dev-dependencies]
 testkit = { path = "../testkit" }
 tempfile.workspace = true

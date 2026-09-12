@@ -2881,26 +2881,7 @@ impl Facade {
       .symbols_named(query)
       .map_err(FacadeError::Store)?
     {
-      let (span, stale, snippet_line) = self.symbol_claim(&symbol);
-      let hit = Hit {
-        kind: match symbol.kind {
-          crate::index::symbols::SymbolKind::Def => HitKind::Def,
-          crate::index::symbols::SymbolKind::Ref => HitKind::Ref,
-        },
-        name: symbol.name.clone(),
-        // A symbol belongs to a file, and the file is already in `path`.
-        owner: None,
-        lang: Some(symbol.lang.to_string()).filter(|l| !l.is_empty()),
-        path: symbol.path.clone(),
-        span,
-        // **NOT A RANK, AND SAYING SO.** FTS5 ranks the lexical tier and lower
-        // is better; an exact name match has no gradation to report, so every
-        // structural hit carries the same best score rather than an invented
-        // ordering.
-        score: 0.0,
-        snippet: snippet_line,
-        stale,
-      };
+      let hit = self.structural_hit(&symbol);
       if ask.keeps(&hit) {
         if hit.stale {
           index.mark_stale(hit.path.clone());
@@ -3029,6 +3010,103 @@ impl Facade {
       .trim()
       .to_string();
     (Some(span), false, line)
+  }
+
+  /// One `symbols` row as a hit in the envelope.
+  ///
+  /// **ONE PLACE, THREE CALLERS** -- `search_all`'s structural group,
+  /// `outline` and `context`. It was inline in the first of those until the
+  /// other two arrived; three copies of a mapping that carries decisions (a
+  /// symbol has no owner because its path already says where it is; the score
+  /// is not a rank and says so) is three places for those decisions to drift.
+  fn structural_hit(&self, symbol: &crate::index::symbols::Symbol) -> crate::search::Hit {
+    use crate::search::{Hit, HitKind};
+    let (span, stale, snippet_line) = self.symbol_claim(symbol);
+    Hit {
+      kind: match symbol.kind {
+        crate::index::symbols::SymbolKind::Def => HitKind::Def,
+        crate::index::symbols::SymbolKind::Ref => HitKind::Ref,
+      },
+      name: symbol.name.clone(),
+      // A symbol belongs to a file, and the file is already in `path`.
+      owner: None,
+      lang: Some(symbol.lang.to_string()).filter(|l| !l.is_empty()),
+      path: symbol.path.clone(),
+      span,
+      // **NOT A RANK, AND SAYING SO.** FTS5 ranks the lexical tier and lower is
+      // better; an exact name match has no gradation to report, so every
+      // structural hit carries the same best score rather than an invented
+      // ordering.
+      score: 0.0,
+      snippet: snippet_line,
+      stale,
+    }
+  }
+
+  /// `intent search --outline <path>` -- a file's symbols with their spans
+  /// (AC-24.3).
+  ///
+  /// **THIS IS THE ANSWER GREP CANNOT GIVE, AND IT IS WHY THE TIER EXISTS.** An
+  /// agent asks what is in a file and today reads the whole file to find out;
+  /// this replaces read-the-file with read-this-span, which is where the saving
+  /// is. Racing ripgrep on text was never the point.
+  ///
+  /// **ONE STRUCTURAL GROUP AND NO LEXICAL ONE, DELIBERATELY.** The question
+  /// names a PATH, not words, so there is nothing for the lexical tier to
+  /// answer -- and an empty lexical group here would say that a text search ran
+  /// and found nothing, which is a different and false claim.
+  pub fn outline(&self, path: &str) -> Result<crate::search::SearchAnswer, FacadeError> {
+    let symbols = self.store.symbols_in(path).map_err(FacadeError::Store)?;
+    self.structural_answer(path, symbols)
+  }
+
+  /// `intent search --context <name>` -- a definition and its name-matched
+  /// references, as source spans (AC-24.3).
+  ///
+  /// **IT IS THE THING AN AGENT DOES TODAY WITH A GREP, A GLOB AND SEVERAL
+  /// READS**, in one call: where this is defined, and where the name occurs.
+  ///
+  /// **AND THE REFERENCES ARE NAME-MATCHED, WHICH THIS DOOR SAYS RATHER THAN
+  /// IMPLIES** (AC-20.5). Nothing here resolves a name to the definition it
+  /// points at, so a `ref` is an occurrence of the name and never a CALLER. A
+  /// door that answered "callers" would be the confident wrong answer, and the
+  /// agent asking has no way to check it.
+  pub fn context(&self, name: &str) -> Result<crate::search::SearchAnswer, FacadeError> {
+    let symbols = self.store.symbols_named(name).map_err(FacadeError::Store)?;
+    self.structural_answer(name, symbols)
+  }
+
+  /// The envelope for a question only the structural tier answers.
+  fn structural_answer(
+    &self,
+    query: &str,
+    symbols: Vec<crate::index::symbols::Symbol>,
+  ) -> Result<crate::search::SearchAnswer, FacadeError> {
+    use crate::search::{IndexFreshness, SearchAnswer, Tier, TierGroup};
+    // **cc's `corpora()` IS THE ONE HOME AND IT LANDED FIRST.** I had extracted
+    // the same block as `freshness()` in the same hour; two methods answering
+    // "what does this index hold" is the duplication the extraction was for, so
+    // mine went and this calls theirs.
+    let mut index = IndexFreshness::new(self.corpora()?);
+    let mut hits = Vec::new();
+    for symbol in symbols {
+      let hit = self.structural_hit(&symbol);
+      if hit.stale {
+        index.mark_stale(hit.path.clone());
+      }
+      hits.push(hit);
+    }
+    let matched = hits.len();
+    Ok(SearchAnswer {
+      query: query.to_string(),
+      index,
+      groups: vec![TierGroup {
+        tier: Tier::Structural,
+        hits,
+      }],
+      matched,
+      returned: matched,
+    })
   }
 
   /// Where a section's indexed body sits in the file as it now stands

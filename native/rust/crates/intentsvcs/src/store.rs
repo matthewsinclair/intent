@@ -4271,15 +4271,46 @@ impl Store {
   /// prefix or substring match answers a different and softer question. The
   /// lexical tier beside it is where an approximate search belongs, and it
   /// answers the same query in the same envelope.
+  /// Every symbol in one FILE, in the order a reader meets them (AC-24.3's
+  /// `--outline`).
+  ///
+  /// **THE SIBLING OF [`Self::symbols_named`] AND IT ASKS THE OTHER QUESTION.**
+  /// `symbols_named` asks *where is this name*, exactly, because the Highlander
+  /// question is exact; this asks *what is in this file*, which is the question
+  /// an agent asks INSTEAD of reading the whole file -- and answering it from
+  /// the index is where the saving is, not in racing grep.
+  pub fn symbols_in(&self, path: &str) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    self.symbol_rows(
+      "SELECT path, lang, name, kind, start_line, end_line
+         FROM symbols WHERE path = ?1 ORDER BY start_line, name",
+      path,
+    )
+  }
+
   pub fn symbols_named(
     &self,
     name: &str,
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
-    let mut stmt = self.conn.prepare(
+    self.symbol_rows(
       "SELECT path, lang, name, kind, start_line, end_line
          FROM symbols WHERE name = ?1 ORDER BY path, start_line",
-    )?;
-    let rows = stmt.query_map(params![name], |row| {
+      name,
+    )
+  }
+
+  /// The one place a `symbols` row becomes a [`crate::index::symbols::Symbol`].
+  ///
+  /// **EXTRACTED RATHER THAN COPIED when the second query arrived** -- the
+  /// mapping carries a real decision (an unknown language comes back as the
+  /// empty name rather than being invented), and a second copy of it would hold
+  /// that decision in two places for exactly as long as nobody changed one.
+  fn symbol_rows(
+    &self,
+    sql: &str,
+    bind: &str,
+  ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    let mut stmt = self.conn.prepare(sql)?;
+    let rows = stmt.query_map(params![bind], |row| {
       Ok((
         row.get::<_, String>(0)?,
         row.get::<_, String>(1)?,

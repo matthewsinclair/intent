@@ -8338,6 +8338,22 @@
           "disposition": "keep"
         },
         {
+          "spellings": ["--outline"],
+          "type": "string",
+          "value": "<path>",
+          "help": "List one file's symbols with their spans, instead of searching for text",
+          "disposition": "keep",
+          "note": "WP-24 (AC-24.3): the answer grep cannot give. An agent asks what is in a file and reads the whole file to find out; this replaces read-the-file with read-this-span, which is where the saving is. ONE STRUCTURAL GROUP AND NO LEXICAL ONE: the question names a path rather than words, and an empty lexical group would say a text search ran and found nothing."
+        },
+        {
+          "spellings": ["--context"],
+          "type": "string",
+          "value": "<name>",
+          "help": "Show where a name is defined and where it occurs, as source spans, instead of searching for text",
+          "disposition": "keep",
+          "note": "WP-24 (AC-24.3): the thing an agent does today with a grep, a glob and several reads, in one call. THE OCCURRENCES ARE NAME-MATCHED AND THE HELP SAYS SO -- nothing here resolves a name to the definition it points at, so a `ref` is never a CALLER (AC-20.5)."
+        },
+        {
           "spellings": ["--kind"],
           "type": "string",
           "value": "<kind>",

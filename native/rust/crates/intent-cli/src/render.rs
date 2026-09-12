@@ -3470,6 +3470,45 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   // asked for; given neither, there is no question to answer.
   let statement = m.get_one::<String>("sql").cloned();
   let text = m.get_one::<String>("query").cloned();
+
+  // **FOUR DOORS, EXACTLY ONE QUESTION** (AC-24.3). `--outline` and `--context`
+  // join `--sql` under the rule WP-17 set for it: a door is a FLAG and nothing
+  // is auto-detected, because any precedence between two questions silently
+  // drops half of what was asked. The refusal names the pair it found rather
+  // than listing every door, which is what an operator who typed two needs.
+  let outline = m.get_one::<String>("outline").cloned();
+  let context = m.get_one::<String>("context").cloned();
+  let asked: Vec<(&str, bool)> = vec![
+    ("a text query", text.is_some()),
+    ("`--sql`", statement.is_some()),
+    ("`--outline`", outline.is_some()),
+    ("`--context`", context.is_some()),
+  ];
+  let named: Vec<&str> = asked
+    .iter()
+    .filter(|(_, given)| *given)
+    .map(|(name, _)| *name)
+    .collect();
+  if named.len() > 1 {
+    return Err(Failure::Error(format!(
+      "error: {} are different questions, and this takes one\n  \
+       remedy: drop all but one -- `intent search <text>` searches the index, \
+       `--outline <path>` lists a file's symbols, `--context <name>` shows where a name is \
+       defined and where it occurs, and `--sql <statement>` reads this store",
+      named.join(" and ")
+    )));
+  }
+  if let Some(path) = outline {
+    let f = open()?;
+    let answer = f.outline(&path).map_err(fail)?;
+    return report_search(m, &answer);
+  }
+  if let Some(name) = context {
+    let f = open()?;
+    let answer = f.context(&name).map_err(fail)?;
+    return report_search(m, &answer);
+  }
+
   match (&text, &statement) {
     (Some(_), Some(_)) => {
       return Err(Failure::Error(
@@ -3495,14 +3534,23 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   let f = open()?;
   let ask = search_ask(m)?;
   let answer = f.search_all(&query, &ask).map_err(fail)?;
+  report_search(m, &answer)
+}
 
+/// One rendering for every door that answers the envelope (AC-24.3, AC-19.2).
+///
+/// **`--outline`, `--context` AND A TEXT QUERY DIFFER IN WHAT THEY ASK, NOT IN
+/// WHAT THEY ANSWER.** They return the same value, so they print through the
+/// same function; a second renderer would be a second contract, and the one
+/// that drifts is the one nobody reads by eye.
+fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> Result<(), Failure> {
   // **ONE ENVELOPE, AND `--json` IS A RENDERING OF IT** (AC-19.2). The MCP
   // tool serialises the value this same call returns, so the two surfaces
   // cannot answer differently: there is no second assembly to drift.
   if m.get_flag("json") {
     println!(
       "{}",
-      serde_json::to_string_pretty(&answer).expect("the envelope is plain data")
+      serde_json::to_string_pretty(answer).expect("the envelope is plain data")
     );
     return Ok(());
   }
@@ -3521,6 +3569,7 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   // its contract and a miss is still exit 0 -- so the distinction is drawn on
   // stderr, where a diagnosis belongs and where it cannot corrupt a pipe.
   if answer.matched == 0 && answer.index.is_empty() {
+    let query = &answer.query;
     eprintln!(
       "note: nothing is indexed, so this search could not have matched -- an empty result here does NOT mean `{query}` is absent"
     );

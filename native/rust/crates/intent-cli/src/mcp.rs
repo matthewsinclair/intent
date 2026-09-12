@@ -1140,6 +1140,37 @@ pub fn serve(
         let page = f.search_sql(statement, limit)?;
         return Ok(crate::render::sql_json(&page, statement));
       }
+      // **THE STRUCTURAL DOORS ARE THE SAME FOUR-DOOR RULE THE CLI APPLIES**
+      // (AC-24.3): one question per call, and the tool refuses two rather than
+      // preferring one. An agent that asked for an outline AND a text search
+      // gets told, instead of quietly receiving whichever the arm reached first.
+      let outline = opt_s(path, map, "outline")?;
+      let context = opt_s(path, map, "context")?;
+      let asked = [
+        ("query", opt_s(path, map, "query")?.is_some()),
+        ("outline", outline.is_some()),
+        ("context", context.is_some()),
+      ];
+      let named: Vec<&str> = asked
+        .iter()
+        .filter(|(_, given)| *given)
+        .map(|(name, _)| *name)
+        .collect();
+      if named.len() > 1 {
+        return Err(args_err(
+          path,
+          format!(
+            "`{}` are different questions and this tool takes one",
+            named.join("` and `")
+          ),
+        ));
+      }
+      if let Some(path_arg) = outline {
+        return Ok(val(path, &f.outline(path_arg)?)?);
+      }
+      if let Some(name) = context {
+        return Ok(val(path, &f.context(name)?)?);
+      }
       let query = need_s(path, map, "query")?;
       // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
       // envelope, two skins. Nothing is assembled here, so the tool cannot

@@ -236,13 +236,23 @@ fn a_bare_query_is_text_even_when_it_begins_with_select() {
 
 /// AT-17.3: both doors at once, or neither, is a usage error rather than a
 /// precedence rule -- any order of preference silently drops half of what was asked for.
+///
+/// **THE WORDING GENERALISED WHEN `--outline` AND `--context` JOINED, AND THE
+/// CLAIM DID NOT** (WP-24, AC-24.3). The refusal used to name two doors because
+/// there were two; it now names the PAIR IT FOUND out of four. This assertion
+/// moved from the old sentence to the property it was standing for -- that the
+/// refusal names what it refused -- which is what it should have asserted in the
+/// first place.
 #[test]
 fn a_query_and_sql_together_or_neither_is_a_usage_error() {
   let dir = estate();
   let root = dir.path();
   let (_, err, code) = run(&["search", "anything", "--sql", "select 1"], root);
   assert_eq!(code, 1, "both doors at once was accepted: {err}");
-  assert!(err.contains("two different questions"), "{err:?}");
+  assert!(
+    err.contains("different questions") && err.contains("a text query") && err.contains("`--sql`"),
+    "the refusal must name the pair it found: {err:?}"
+  );
 
   let (_, err, code) = run(&["search"], root);
   assert_eq!(code, 1, "neither door was accepted: {err}");
