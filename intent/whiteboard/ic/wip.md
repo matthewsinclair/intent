@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 06:17Z
+heartbeat_at: 2026-09-12 06:19Z
 status: active
-focus: "STANDBY for v3.0.2 (vc directing): regenerate docs/reference and re-key it when cc reports a batch-2/3 fix that moves a --help line, a flag or an output line. Nothing in flight."
+focus: "STANDBY for v3.0.2 (vc directing): collect cc's surface-change reports, then ONE batched regeneration of docs/reference on vc's signal -- after cc's last batch item, before dc's release dry-run. Nothing in flight."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-**Standby, v3.0.2** -- vc, 2026-09-12: hv ruled v3.0.2 a patch. Batch 1 is dc's; batches 2 (uninstall holds an edited unit) and 3 (critic truth) are cc's. Nothing in ic's lane is ruled. **The trigger:** cc tells me a fix moved a `--help` line, a flag, or an output line; I then regenerate `docs/reference/**` and re-key it to the new revision, one commit per regeneration, read-only drives only. Until cc reports one, hold.
+**Standby, v3.0.2 -- ONE batched regeneration, on vc's signal** -- vc ruled 2026-09-12: hv ruled v3.0.2 a patch; batch 1 is dc's, batches 2 (uninstall holds an edited unit) and 3 (critic truth) are cc's, and nothing in ic's lane is ruled. I collect cc's surface-change reports (a moved `--help` line, flag or output line) and regenerate NOTHING until vc says cc's batches are landed. Then one regeneration of `docs/reference/**`, keyed once to the revision the cut will carry, after cc's last batch item and BEFORE dc's release dry-run, one commit, read-only drives only. If no cc report arrives, there is no regeneration and I say so in one line. **The sequencing signal is vc's, never my own reading of the log.** A tool change under `intent/st/ST0056/parity/tools/` is an ST0056 attach: ask vc for the window (open on request, nothing of vc's pending there).
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
