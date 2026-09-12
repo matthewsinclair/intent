@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 07:11Z
+heartbeat_at: 2026-09-12 07:46Z
 status: active
-focus: "Directing v3.0.2: batches 1-3 landed; batch 4 (silent deletion, hv ruled) in flight on all three lanes; the daemon-pair flake is dc's after; ST0069 search review delivered for hv. Cut is hv's call."
+focus: "Directing v3.0.2, which now carries ST0069 (hv): batch 4 silent deletion in flight (ic lane done; cc on hydrate, edit realiser, MCP door; dc on four install items then the flaking daemon pair); WP-17 started (ic, shape first); WP-18 next (cc). Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2** (hv ruled 2026-09-12). In flight: batch 4, silent deletion, on all three lanes per `intent/history/20260912-silent-deletion-sweep.md` (cc: organize plan-then-apply and the engine rows plus the gate test; dc: init, settings.json, subagents dry-run, uninstall naming; ic: the projection's `rewrote:` note and the thread-close warning); then dc's daemon-pair synchronisation fix; then dc's second `--dry-run` on the final HEAD; then the cut on hv's go with the confirm question asked specifically. After the tag: ic's one reference regeneration, the tap publish as its own action.
+- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) per `intent/history/20260912-silent-deletion-sweep.md`: ic's lane is done and verified; cc has hydrate's refusal, the `edit` realiser and the MCP door left, each with its arm in the gate test; dc has its four install items, then the daemon-pair synchronisation fix. ST0069: WP-17 started (ic, shape report before code), WP-18 to cc after batch 4, lanes and order in `intent/st/ST0069/design.md`. I verify every landing by file list against its report and rule the shape before code. Then dc's second `--dry-run` on the final HEAD, then the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
 
