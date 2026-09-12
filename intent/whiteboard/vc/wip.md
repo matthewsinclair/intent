@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 08:32Z
+heartbeat_at: 2026-09-12 08:39Z
 status: active
 focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 landed and verified. In flight: dc reshaping the watcher reconcile on my ruling, then the mid-course rehearsal and the grammar measurement; cc landing WP-18 with D29 as tested; ic building WP-19 over the corpus that exists. Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
@@ -39,6 +39,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Standing directives from hv
 
+- **NO OVERTESTING, NO YAK-SHAVING** (2026-09-12, on handing vc the pen): build what the STs need; tests are the AC rows; never a test that tests a test. Applies to every lane and to the director.
 - **`0196` RULED BY hv 2026-09-05 15:23Z, TWO RULINGS, `authority: hv`.**
   1. REMEDY: **staging + atomic mv** -- build into a third target dir, `verify_pair` THERE, and rename the verified pair into `target/release/` only on pass.
   2. SEQUENCING: **fix FIRST, then rebuild through it** -- the fix's own first real run IS the rebuild to HEAD, and **there is no separate supervised window.** Assigned to dc as WP-11's precondition.
