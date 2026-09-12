@@ -9,7 +9,8 @@
 use std::io::Read;
 use std::path::Path;
 
-use super::corpus::{BINARY_SAMPLE_BYTES, Corpus, SkipReason, corpus_of, looks_binary};
+use super::Row;
+use super::corpus::{BINARY_SAMPLE_BYTES, SkipReason, corpus_of, looks_binary};
 use super::freshness::Stamp;
 use crate::sync::{Scanned, SyncError, repository_files};
 
@@ -71,24 +72,20 @@ pub fn stamp_of(path: &Path) -> Option<Stamp> {
     .map(|(size, mtime)| Stamp { size, mtime })
 }
 
-/// One in-scope path, as the index sees it before it holds any content.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Surveyed {
-  /// Relative to the project root, as `file_index` stores a path.
-  pub path: String,
-  pub corpus: Corpus,
-  /// `None` when the index will hold this file's content.
-  pub skipped: Option<SkipReason>,
-}
-
-/// Every path in the index's scope, with the corpus it joins and the reason the
-/// index will not hold it, if there is one.
+/// Every path in the index's scope, as a row per path: the corpus it joins, and
+/// the reason the index will not hold it if there is one.
 ///
 /// **THE STORE'S OWN PROJECTIONS ARE NOT IN THE RESULT AT ALL**, which is the
 /// one absence here that is correct: a rendered view and the canon extract are
 /// the store's prose seen twice, so they are not files the index declined --
 /// they are not files the index is about. Everything else in scope gets a row,
 /// skipped ones included.
+///
+/// **A ROW IS NOT PROOF THE FILE WAS READ.** `indexed_sha256` is left `None`
+/// here for every row, skipped or not: a survey walks and stats, and the hash
+/// is the content indexer's to write when it reads the bytes. Filling it in
+/// from a hash taken now would claim the file had been indexed at that content
+/// when nothing had indexed it at all.
 ///
 /// `views` is every path the renderer produces for this project and `canon_dir`
 /// is the extract's directory; both are the caller's to supply, so this can be
@@ -98,17 +95,30 @@ pub fn survey(
   views: &[std::path::PathBuf],
   canon_dir: &Path,
   max_bytes: u64,
-) -> Result<Vec<Surveyed>, SyncError> {
+) -> Result<Vec<Row>, SyncError> {
   let scope = Scanned::for_root(root);
   let mut out = Vec::new();
   for path in repository_files(root, &scope)? {
     let Some(corpus) = corpus_of(&path, views, canon_dir) else {
       continue;
     };
-    out.push(Surveyed {
+    // **A PATH THAT CANNOT BE STAT'D IS STILL A ROW.** It is in scope, so the
+    // report owes the operator a line about it, and `unreadable` is exactly
+    // what happened. Dropping it would make the one file nobody can read the
+    // one file nothing says anything about.
+    let stamp = stamp_of(&path);
+    let skipped = skip_for(&path, max_bytes);
+    out.push(Row {
       path: crate::project::relative(root, &path),
-      corpus,
-      skipped: skip_for(&path, max_bytes),
+      corpus: corpus.as_str().to_string(),
+      lang: match &corpus {
+        super::corpus::Corpus::Code { lang } => lang.map(str::to_string),
+        _ => None,
+      },
+      size: stamp.as_ref().map(|s| s.size).unwrap_or_default(),
+      mtime: stamp.map(|s| s.mtime).unwrap_or_default(),
+      indexed_sha256: None,
+      skipped_reason: skipped.map(|r| r.as_str().to_string()),
     });
   }
   Ok(out)
@@ -298,7 +308,7 @@ mod tests {
     path
   }
 
-  fn surveyed(rows: &[Surveyed], rel: &str) -> Surveyed {
+  fn surveyed(rows: &[Row], rel: &str) -> Row {
     rows
       .iter()
       .find(|r| r.path == rel)
@@ -323,15 +333,18 @@ mod tests {
     )
     .expect("survey");
 
-    assert_eq!(surveyed(&rows, "README.md").corpus, Corpus::Prose);
-    assert_eq!(surveyed(&rows, "README.md").skipped, None);
-    assert_eq!(
-      surveyed(&rows, "src/lib.rs").corpus,
-      Corpus::Code { lang: Some("rust") }
+    assert_eq!(surveyed(&rows, "README.md").corpus, "prose");
+    assert_eq!(surveyed(&rows, "README.md").skipped_reason, None);
+    assert!(
+      surveyed(&rows, "README.md").size > 0,
+      "a row carries the file's stat, which is what the stat-then-hash policy \
+       compares against"
     );
+    assert_eq!(surveyed(&rows, "src/lib.rs").corpus, "code");
+    assert_eq!(surveyed(&rows, "src/lib.rs").lang.as_deref(), Some("rust"));
     assert_eq!(
-      surveyed(&rows, "assets/logo.bin").skipped,
-      Some(SkipReason::Binary),
+      surveyed(&rows, "assets/logo.bin").skipped_reason.as_deref(),
+      Some("binary"),
       "a file the index will not hold is a ROW SAYING WHY, which is the whole \
        of AC-18.2 -- it is not missing from the survey"
     );
@@ -370,11 +383,31 @@ mod tests {
     // The control: the rule is the renderer's answer, not the directory.
     assert_eq!(
       surveyed(&rows, "intent/st/ST0001/notes.md").corpus,
-      Corpus::Prose,
+      "prose",
       "a file the renderer does not produce, in the same directory, stays in \
        the corpus -- or the exclusion would be a path-shape hack"
     );
     assert!(beside.exists());
+  }
+
+  #[test]
+  fn a_survey_claims_nothing_about_content_it_has_not_read() {
+    // The survey walks and stats; the hash belongs to whatever reads the bytes.
+    let dir = repo();
+    write(&dir, "README.md", b"# readme\n");
+    let canon = dir.path().join("intent/.canon");
+    let rows = survey(
+      dir.path(),
+      &[],
+      &canon,
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("survey");
+    assert!(
+      rows.iter().all(|r| r.indexed_sha256.is_none()),
+      "`indexed_sha256` says what this row was last indexed AT, and nothing has \
+       indexed anything yet"
+    );
   }
 
   #[test]

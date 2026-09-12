@@ -5195,6 +5195,69 @@ impl Facade {
     })
   }
 
+  /// Every path the renderer produces for this project.
+  ///
+  /// The index excludes the store's own projections by ASKING THE RENDERER
+  /// rather than by matching a path shape, which is what makes a view kind
+  /// added later excluded on the day it is first rendered, with nothing to
+  /// remember. [`Facade::carried`] asks the same question about one thread.
+  fn view_paths(&self) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+    let ctx = self.render_ctx()?;
+    Ok(
+      views::render_all(&self.project, &self.canon, &ctx)
+        .into_iter()
+        .map(|v| v.path)
+        .collect(),
+    )
+  }
+
+  /// Walk the index's scope and record what it holds and what it does not.
+  ///
+  /// **THE SURVEY IS THE WHOLE WRITE, and it claims nothing about content.**
+  /// Every row lands with `indexed_sha256` unset, because a walk stats files
+  /// and does not read them; the hash is written by whatever reads the bytes.
+  /// So this answers "what is in scope, and what will never be held, and why",
+  /// which is what `intent index status` reports and what AC-18.2 requires.
+  pub fn index_rebuild(&mut self) -> Result<crate::index::status::Status, FacadeError> {
+    let views = self.view_paths()?;
+    let rows = crate::index::reconcile::survey(
+      self.project.root(),
+      &views,
+      &self.project.canon_st_dir().parent().map_or_else(
+        || self.project.root().join("intent").join(".canon"),
+        std::path::Path::to_path_buf,
+      ),
+      crate::index::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    // **THE SAME CARRIER `refresh_index` USES FOR THE SAME FAILURE**, two
+    // functions over: a walk of the working tree failed at a path, and the
+    // remedy for that is the one already written. A variant of its own would
+    // owe a new remedy for a case that is not a new case.
+    .map_err(|e| {
+      FacadeError::Ingest(IngestError::Io {
+        path: self.project.root().display().to_string(),
+        source: std::io::Error::other(e.to_string()),
+      })
+    })?;
+    self
+      .store
+      .replace_index_files(&rows)
+      .map_err(FacadeError::Store)?;
+    Ok(crate::index::status::summarise(&rows))
+  }
+
+  /// What the index holds and what it does not hold, READ FROM THE STORE.
+  ///
+  /// **IT DOES NOT WALK**, and the difference is the whole of the report's
+  /// meaning: a status that surveyed the tree would describe the world, not
+  /// the index, and would say a file was held on the run before anything held
+  /// it. An empty answer is a store nobody has built an index in, which
+  /// [`crate::index::status::Status::is_empty`] states in its own words.
+  pub fn index_status(&self) -> Result<crate::index::status::Status, FacadeError> {
+    let rows = self.store.index_files().map_err(FacadeError::Store)?;
+    Ok(crate::index::status::summarise(&rows))
+  }
+
   pub fn doctor(
     project: &Project,
     ctx: &FacadeContext,

@@ -36,6 +36,17 @@ pub enum Corpus {
   Code { lang: Option<&'static str> },
 }
 
+impl Corpus {
+  /// The stored spelling, which is also how a report names it.
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      Corpus::Canon => "canon",
+      Corpus::Prose => "prose",
+      Corpus::Code { .. } => "code",
+    }
+  }
+}
+
 /// The extension-to-language map.
 ///
 /// **ITS NAMES ARE `critic::HEADLESS_LANGUAGES` AND A TEST PINS THEM THERE.**

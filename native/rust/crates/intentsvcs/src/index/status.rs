@@ -14,17 +14,17 @@
 
 use std::collections::BTreeMap;
 
+use super::Row;
 use super::corpus::SkipReason;
-use super::reconcile::Surveyed;
 
 /// What the index holds, and what it does not hold and why.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Status {
   /// Files the index holds, by corpus, in the corpus's own spelling.
-  pub held: BTreeMap<&'static str, usize>,
+  pub held: BTreeMap<String, usize>,
   /// Files the index does not hold, by reason, each with its paths in path
   /// order. A reason with nothing under it is not carried.
-  pub skipped: BTreeMap<&'static str, Vec<String>>,
+  pub skipped: BTreeMap<String, Vec<String>>,
 }
 
 impl Status {
@@ -38,31 +38,22 @@ impl Status {
   }
 }
 
-/// The corpus's stored spelling, which is also how it is reported.
-fn corpus_name(corpus: &super::corpus::Corpus) -> &'static str {
-  match corpus {
-    super::corpus::Corpus::Canon => "canon",
-    super::corpus::Corpus::Prose => "prose",
-    super::corpus::Corpus::Code { .. } => "code",
-  }
-}
-
 /// Summarise rows into the answer.
 ///
 /// **A SKIPPED FILE IS NOT COUNTED AS HELD**, which is the one arithmetic
 /// mistake available here: the corpus it belongs to is known for a skipped file
 /// too, so adding it to that corpus's tally would report an index holding
 /// content it has never read.
-pub fn summarise(rows: &[Surveyed]) -> Status {
-  let mut held: BTreeMap<&'static str, usize> = BTreeMap::new();
-  let mut skipped: BTreeMap<&'static str, Vec<String>> = BTreeMap::new();
+pub fn summarise(rows: &[Row]) -> Status {
+  let mut held: BTreeMap<String, usize> = BTreeMap::new();
+  let mut skipped: BTreeMap<String, Vec<String>> = BTreeMap::new();
   for row in rows {
-    match row.skipped {
+    match &row.skipped_reason {
       Some(reason) => skipped
-        .entry(reason.as_str())
+        .entry(reason.clone())
         .or_default()
         .push(row.path.clone()),
-      None => *held.entry(corpus_name(&row.corpus)).or_default() += 1,
+      None => *held.entry(row.corpus.clone()).or_default() += 1,
     }
   }
   for paths in skipped.values_mut() {
@@ -85,11 +76,15 @@ mod tests {
   use super::super::corpus::Corpus;
   use super::*;
 
-  fn row(path: &str, corpus: Corpus, skipped: Option<SkipReason>) -> Surveyed {
-    Surveyed {
+  fn row(path: &str, corpus: Corpus, skipped: Option<SkipReason>) -> Row {
+    Row {
       path: path.to_string(),
-      corpus,
-      skipped,
+      corpus: corpus.as_str().to_string(),
+      lang: None,
+      size: 0,
+      mtime: String::new(),
+      indexed_sha256: None,
+      skipped_reason: skipped.map(|r| r.as_str().to_string()),
     }
   }
 

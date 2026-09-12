@@ -3709,6 +3709,76 @@ impl Store {
     Ok(())
   }
 
+  /// Replace the whole index scope table in one transaction.
+  ///
+  /// **DELETE-MISSING THEN UPSERT-PRESENT**, for the reason
+  /// [`Store::replace_file_index`] gives about its own table: a path has
+  /// durable identity across reconciles, so wiping would re-fire `created_at`
+  /// every time and the column would silently mean `updated_at`.
+  ///
+  /// **AND THE DELETE IS UNCONDITIONAL HERE BECAUSE THIS TABLE HAS ONE
+  /// WRITER.** That is the whole of rung 20: the index and the change detector
+  /// each own a table, so neither has to know the other's population to know
+  /// which rows are stale. A row this survey did not produce is a path that has
+  /// left the index's scope, full stop.
+  pub fn replace_index_files(&mut self, rows: &[crate::index::Row]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    let keep = serde_json::to_string(&rows.iter().map(|r| &r.path).collect::<Vec<_>>())?;
+    tx.execute(
+      "DELETE FROM index_file WHERE path NOT IN (SELECT value FROM json_each(?1))",
+      params![keep],
+    )?;
+    for r in rows {
+      tx.execute(
+        "INSERT INTO index_file (path, corpus, lang, size, mtime, indexed_sha256, skipped_reason)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+         ON CONFLICT (path) DO UPDATE SET
+           corpus = excluded.corpus,
+           lang = excluded.lang,
+           size = excluded.size,
+           mtime = excluded.mtime,
+           indexed_sha256 = excluded.indexed_sha256,
+           skipped_reason = excluded.skipped_reason,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+        params![
+          r.path,
+          r.corpus,
+          r.lang,
+          r.size as i64,
+          r.mtime,
+          r.indexed_sha256,
+          r.skipped_reason,
+        ],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every row the index holds, in path order.
+  pub fn index_files(&self) -> Result<Vec<crate::index::Row>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, corpus, lang, size, mtime, indexed_sha256, skipped_reason
+         FROM index_file ORDER BY path",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok(crate::index::Row {
+        path: row.get(0)?,
+        corpus: row.get(1)?,
+        lang: row.get(2)?,
+        size: row.get::<_, i64>(3)? as u64,
+        mtime: row.get(4)?,
+        indexed_sha256: row.get(5)?,
+        skipped_reason: row.get(6)?,
+      })
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
+  }
+
   /// Record the files a projection just LANDED, leaving every other row alone
   /// (0260).
   ///
