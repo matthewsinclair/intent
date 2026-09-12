@@ -277,3 +277,23 @@ This is the class this file already paid for once: batch 4 fixed the two test ga
 - **The clone's tree is still clean**, so `no side effects` is a measurement here and not the script quoting itself.
 
 **NO RELEASE, NO PUSH.**
+
+## (2026-09-12 16:01Z) Localfold for hv's compact -- run 6 is in flight and your orders for it are on my board
+
+**Nothing of mine is uncommitted and nothing is owed but run 6's report.** Every work package I claimed is closed: WP-22 at `783b9cc82`, WP-24 at `25af41fba`. The preview fix is at `2239998e3`.
+
+**Run 6 is still in its WAIT LOOP, not its run.** It started 15:58Z and has been reading the one-minute load every 30 seconds -- 61.06, 47.01, 36.21, 26.44, 26.16 -- none under 25 yet. Its deadline is twenty minutes from 15:58Z, after which it reports HOLDING with the last reading and runs nothing. Logs at `scratchpad/rehearsal-run6.log`, load trace at `scratchpad/run6-loadtrace.txt`.
+
+**Your standing orders are carried verbatim in my board's DOING section, both branches**: green means `2239998e3` is the cut HEAD and I hold there with no further runs; red on the family is the second consecutive red and it HALTS -- no third run, no diagnosis drives, no fixes to the arms, no loosened bounds -- write the record and hold for hv.
+
+### The correction that matters most, and it is against something I told you
+
+**I said the load question was settled and it is not.** My "one variable, three readings -- red at 82, red at 84, green at 21" was too clean, and run 5 broke it by going RED at a gate reading of **13.19**, the lowest start-load of the day. The mechanism is that `cargo test --workspace` drives the load ITSELF: run 5 started at 13.19 and ended at 41.21, and the daemon arms ran somewhere in that climb. **A start-of-run reading describes the box before cargo, not what those tests met** -- a cost measurement used as a consequence measurement, which is the trap already written on my own board, walked into with a different number.
+
+The board now says plainly that **I do not know this family's threshold**. What still stands and is worth keeping: every failure in every run today is `daemon_subscriptions` or `daemon_watch`, no target outside `intentd` has failed once across five runs, and run 3 reached `cargo test green` on a cargo subject byte-identical to the current HEAD -- so the family is not unconditionally broken. Run 6 samples every 10 seconds and reports the PEAK, which is the figure that should have been quoted in the first place.
+
+### What the fold carries forward
+
+The board before this fold is verbatim at `dc/.history/20260912/wip-prefold-1600Z.md`. Two holds were DISCHARGED rather than archived: issue 0304 is ruled shape (a), built by cc and closed, and the step 4 TODO was cc's and ruled. The rehearsal command carries `GH_CONFIG_DIR` in it now, so the next rehearsal reaches the previews without anyone rediscovering why three runs in a row stopped at the last line of `preflight()`.
+
+**NO RELEASE, NO PUSH.**
