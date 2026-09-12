@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 18:04Z
+heartbeat_at: 2026-09-12 18:31Z
 status: active
 focus: "WP-02. vc's doctor order landed first at f70441dc2 -- 49a00fb80's defect in the sibling reader, one predicate over both artefact kinds. WP-02's first ruled line departs from the WP's own premise: the ingest layer is already built. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/01, ST0069/02, ST0069/22, ST0069/24]
@@ -40,6 +40,8 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/01, ST0069/02, ST0069/2
 - **A `None` FROM A THREAD-SHAPED READER, INSIDE AN `&&` OR AN `is_some_and`, IS THE ANSWER "YES, DECLARED" -- TWICE IN TWO DAYS, IN TWO SIBLING READERS.** The projection at 49a00fb80 and doctor at `f70441dc2` carried the identical sentence, and each was found by the ESTATE rather than by a fixture. **Where a question has two artefact kinds, write ONE predicate that answers for both** and make the neither-kind case say so explicitly.
 - **A COMMENT SAYING A COUNTERPART IS NOT NEEDED IS A CLAIM, AND MINE WAS WRONG WITHIN THE HOUR.** I wrote that an issue's single view has no window where the store is ahead of the disk. `issues close` is exactly that window -- it moves the record and undeclares it in one breath -- and the dehydration gate then refused to remove a file whose render had moved. The thread arm had solved it since 0079.
 - **A DIAGNOSTIC THAT MUTATES IS NOT A DIAGNOSTIC.** I ran `git commit` three times to READ the pre-commit gate's refusal; the first one SUCCEEDED, landing `1f8c9fc08` with two files under a message claiming all three criteria. **Read a gate with `--dry-run`, or a throwaway clone, or by reading the hook -- never by running the write and watching what it says.** Second overclaiming commit message today.
+- **THE RETRY LOOP DID IT AGAIN, ON A DIFFERENT GATE, FOUR HOURS AFTER I WROTE THE LINE BELOW.** Fifteen refusals reported as lock contention; the gate was refusing on `IN-RS-CODE-004`, and the loop's "last failure, verbatim" printed EMPTY because the gate writes to a stream the capture did not hold. **A loop that cannot print the refusal it is retrying is not an instrument.** Read a gate by running the write ONCE in the foreground and reading its words -- and a "last failure" that comes back empty is the loop telling you it never saw one.
+- **A CRITIC GREPS TEXT, SO PROSE NAMING A BANNED SHAPE TRIPS IT.** The final `IN-RS-CODE-004` warning was on my DOC COMMENT explaining why the banned shape was not used. Reword; do not argue with the instrument.
 - **AND THE REFUSAL I WAS CHASING WAS `rustfmt`, NOT THE PATH LIST.** The 60-attempt retry loop was reporting a real, permanent refusal as if it were lock contention. **A retry loop makes a deterministic refusal look like a race**: cap it, then PRINT the last failure rather than the attempt count.
 - **`grep -v "0 passed; 0 failed"` ALSO MATCHES "132`0 passed; 0 failed`".** My own totals filter silently deleted the biggest target's line from the report I was about to quote. A filter is an instrument; positive-control it like one.
 - **THE COMPILER IS THE BEST REVIEWER OF A WIDENED ENUM, AND ONLY WHERE THE MATCH IS EXHAUSTIVE.** Adding `Sigil::Issue` reddened two `home` matches by name; the places that hurt were the ones matching on `Realised::Declared` and doing their own `contains(id)`, which the compiler cannot see. **A representation change needs one spelling** -- `declared_key` now -- or every reader is a second site.
