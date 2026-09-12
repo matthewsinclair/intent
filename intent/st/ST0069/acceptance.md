@@ -57,7 +57,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- WITHDRAWN: Re-keyed at the 2026-09-12 re-elaboration to AC-23.1, AC-23.2 and AC-23.4; text carried forward (by vc)
 
-### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: Not Started)
+### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: WIP)
 
 - AC-14.1 `wb_node`, `wb_item` and `wb_message` are model entities with schema faces, held in the DB per the reversed D01, and **sync round-trips them losslessly in both directions**: db-to-disk then disk-to-db reproduces the DB content, and the regenerated files are byte-identical to the committed ones. (Reworded 2026-08-15 for D01's reversal. The original asserted a `rm intent.db` rebuild from committed JSON canon; the property under test is now the round-trip rather than the rebuild, and it is a stronger claim because it binds both directions)
 
@@ -190,7 +190,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: Not Started)
+### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: WIP)
 
 _(no tests in this group)_
 

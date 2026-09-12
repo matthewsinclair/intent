@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 20
+-- SCHEMA_DDL_VER: 21
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -524,3 +524,70 @@ CREATE TABLE IF NOT EXISTS project (
   todo_watermark TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+-- THE COORDINATION ENTITIES. One board per node.
+--
+-- **`recorded_at` CARRIES NO `DEFAULT` AND THAT IS THE REQUIREMENT, NOT AN
+-- OMISSION.** With the database as truth and sync running both ways, a
+-- disk-to-db resync that re-inserts rows would let `DEFAULT CURRENT_TIMESTAMP`
+-- re-stamp them -- rewriting history silently and indistinguishably from a
+-- correct value, which is the fabricated-stamp failure reintroduced by its own
+-- fix. The SERVICE writes it once, at the write, and a sync in either direction
+-- CARRIES it rather than re-deriving it.
+--
+-- `updated_at` is this store's own record stamp and is the opposite kind of
+-- value: per-machine, omitted from the extract, correctly re-stamped by a
+-- rebuild. The two live side by side deliberately; neither can do the other's
+-- job.
+--
+-- `authored_at` is the stamp a migrated board's markdown CLAIMED, verbatim and
+-- untrusted -- the one column in this store whose contents are known to include
+-- invented values, kept as text and never read as a time.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_node (
+  moniker TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  session_id TEXT,
+  heartbeat_at TEXT NOT NULL,
+  status TEXT NOT NULL,
+  focus TEXT NOT NULL,
+  claims TEXT NOT NULL DEFAULT '[]',
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_item (
+  id INTEGER PRIMARY KEY,
+  node TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  seq INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  state TEXT NOT NULL,
+  archived_at TEXT,
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
+-- is not decoration: every row a migration inserts in one pass shares one
+-- `recorded_at`, so that column cannot order them and the board's only
+-- cross-node ordering would be lost at the moment it became queryable. The
+-- migration inserts in SOURCE FILE ORDER, ties on `recorded_at` order by
+-- insertion, and every view orders that way.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_message (
+  id INTEGER PRIMARY KEY,
+  sender TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  body TEXT NOT NULL,
+  re TEXT,
+  fyi INTEGER NOT NULL DEFAULT 0,
+  state TEXT NOT NULL,
+  handled_at TEXT,
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
+CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);

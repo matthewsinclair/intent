@@ -479,6 +479,63 @@ fn populated() -> (Fixture, Vec<String>) {
     .st_hold("ST0056", "waiting on the fleet")
     .expect("the thread is wip, so hold is legal");
 
+  // **THE WHITEBOARD TABLES JOIN THE POPULATION, and an empty one would have
+  // round-tripped through anything.** The roster is registered from the node
+  // headers the way the service does it; the item and the message are then
+  // written through the store's own writer, because their verbs do not exist
+  // yet and a hand-built INSERT here would be testing a second writer rather
+  // than the one that ships.
+  for (node, name, role) in [
+    ("cc", "Control Claude", "control"),
+    ("vc", "Validation Claude", "validation"),
+  ] {
+    let dir = fx.root().join("intent/whiteboard").join(node);
+    std::fs::create_dir_all(&dir).expect("node dir");
+    std::fs::write(
+      dir.join("wip.md"),
+      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
+    )
+    .expect("write the header the roster is read from");
+  }
+  let registered = facade.register_roster().expect("register the roster");
+  assert_eq!(
+    registered, 2,
+    "precondition: the fixture registered the nodes it is about to round-trip"
+  );
+  let mut boards = facade.store().hydrate_boards().expect("boards");
+  let (first, second) = (
+    boards[0].node.moniker.clone(),
+    boards[1].node.moniker.clone(),
+  );
+  let stamp = boards[0].node.recorded_at.clone();
+  boards[0].items.push(intentsvcs::model::WbItem {
+    node: first.clone(),
+    kind: intentsvcs::model::WbItemKind::Doing,
+    seq: 1,
+    text: "carry the quokka invariant".to_string(),
+    state: intentsvcs::model::WbItemState::Live,
+    archived_at: None,
+    recorded_at: stamp.clone(),
+    authored_at: Some("2026-09-12 16:00Z".to_string()),
+  });
+  boards[0].messages.push(intentsvcs::model::WbMessage {
+    sender: second,
+    recipient: first,
+    body: "the kestrel combinator returns its first argument".to_string(),
+    re: None,
+    fyi: true,
+    state: intentsvcs::model::WbMessageState::Live,
+    handled_at: None,
+    recorded_at: stamp,
+    authored_at: None,
+  });
+  {
+    let mut store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("store");
+    store
+      .replace_boards(&boards)
+      .expect("write the board rows the round trip is about");
+  }
+
   let ids: Vec<String> = facade
     .store()
     .events()

@@ -135,6 +135,7 @@ fn rendered_rows(fixture: &Fixture) -> Vec<String> {
     threads: scan.threads,
     issues: Vec::new(),
     sections: Vec::new(),
+    boards: Vec::new(),
   };
   views::render_all(&fixture.project(), &canon, &ctx())
     .into_iter()

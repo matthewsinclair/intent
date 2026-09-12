@@ -449,9 +449,22 @@ Written by every mutation (WP-02).
 
 `{owner_type, owner_id, file, seq, heading, level, body}` -- FTS5-indexed; powers `intent search`. Prose bodies are stored verbatim, never modelled. A text attachment contributes one unsplit section.
 
+### board (`whiteboard/<node>/board.json` -- the file envelope; D30, WP-14)
+
+One file is a whole readable board, so rendering one needs no join across nodes. The envelope carries four fields:
+
+| Field      | Form                                                               |
+| ---------- | ------------------------------------------------------------------ |
+| `schema`   | always `intent/board@3.0`, the published face's own version marker |
+| `node`     | this board's own `wb_node` -- the header block, modelled           |
+| `items`    | this node's `wb_item` rows, in `seq` order                         |
+| `messages` | the `wb_message` rows ADDRESSED TO this node, in insertion order   |
+
+**A message lands in the RECIPIENT's file, which is where the markdown board already puts it** -- `<recipient>/inbox.<sender>.md` (AC-14.5). A sender writing into the recipient's file is exactly what `ask` does today; the single-writer invariant is the API's and is not a property of which file the extract lands in.
+
 ### wb_node / wb_item / wb_message (`whiteboard/<node>/board.json`; D30, WP-14)
 
-The coordination entities, **specified and NOT BUILT in 3.0.1**: WP-14 was cancelled with its criteria descoped to ST0069, so the store has no whiteboard tables and `intent/whiteboard/` stays hand-authored markdown on disk. The migrator reports it as modelled-but-unbuilt and leaves the files untouched. The specification: durable form is committed JSON canon per D01; `wip.md` and `inbox.<sender>.md` become generated views per D02, ending the hand-authored board.
+The coordination entities, **modelled and in the store from ST0069 WP-14**, inside the `board` envelope above. `intent wb register` is how a roster gets there: it reads `moniker`, `name` and `role` from each node's own `wip.md` header and writes one `wb_node` row per participant, idempotent by moniker, with no items and no messages. **Registering is not migrating.** The markdown beside the registered rows stays hand-authored and authoritative, and `wip.md` and `inbox.<sender>.md` are not yet the generated views D02 describes -- switching them is a later package, and until it lands a thin registered board is configuration rather than a half-finished migration. Durable form is committed JSON canon per D01, one `board.json` per node.
 
 | Entity       | Fields                                                                                                                                           |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -459,15 +472,16 @@ The coordination entities, **specified and NOT BUILT in 3.0.1**: WP-14 was cance
 | `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?` |
 | `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`      |
 
-Three properties are the point of modelling these rather than parsing them (D30):
+The properties that are the point of modelling these rather than parsing them (D30):
 
 - **No caller supplies a stamp: the SERVICE writes `recorded_at` once, at the write, and a sync in either direction CARRIES it rather than re-deriving it** (D42's intent with AC-14.11's mechanism). A DB-side column default is refused as the mechanism, because with the DB as truth and sync running both ways a disk-to-db resync that re-inserts rows would let it re-stamp them -- rewriting history silently and indistinguishably from a correct value, which is the fabricated-stamp failure reintroduced by its own fix. Each table also carries `updated_at` with the database default as its AC-02.8 record stamp: that one is per-machine, omitted from the extract, and correctly re-stamped by a rebuild.
 - **`recorded_at` is the creation instant of an item and the send instant of a message**, and the D30 `created_at` and `sent_at` are gone rather than sitting beside it holding the same value. A column named `created_at` is a reserved record stamp the extract omits by name, so a modelled stamp cannot carry that name without AC-14.1's round-trip assertion going blind to it; `sent_at` goes with it rather than leave the model inconsistent on the accident of which names a constant happens to list.
-- **`authored_at` carries the stamp a migrated board's markdown CLAIMED, verbatim**, null on every API-born row. It is the one column whose contents are known to include invented values, so it is typed as text and never read as a time, and a view shows it labelled. Ordering for migrated rows comes from insertion order, since a migration pass gives every row it inserts one `recorded_at`.
+- **`authored_at` carries the stamp a migrated board's markdown CLAIMED, verbatim**, null on every API-born row. It is the one column whose contents are known to include invented values, so it is typed as text and never read as a time, and a view shows it labelled.
+- **`wb_item.id` and `wb_message.id` are `INTEGER PRIMARY KEY` so insertion order stays recoverable, and every read orders by ROWID.** A migration pass gives every row it inserts one `recorded_at`, so that column cannot order them and the board's only cross-node ordering -- who saw what, and in what order -- would be lost at the moment it became queryable. The migration inserts in SOURCE FILE ORDER, ties on `recorded_at` order by insertion, and every view orders that way.
 - **Bounds are enforced on write and refused by name.** Per-entry body size, live items per node per kind, and live messages per inbox are configured, and an over-bound write is refused with the bound and the remedy stated -- the D05 posture applied to size, never truncation, never a silent accept.
 - **`state` transitions are the API's**, so archival happens on schedule rather than when a node remembers, which is what produced 251KB of `.history`.
 
-The header block stays line-oriented `key: value` in the rendered view (D13) -- it is generated from `wb_node` rather than parsed into it.
+The header block is line-oriented `key: value` (D13) and the traffic runs both ways: `wb register` PARSES it to seed `wb_node`, and the rendered view is GENERATED from those rows once the views are switched. Parsing is how an existing hand-authored board gets into the model at all; it is a one-way door taken once per node, not a standing read.
 
 ## Generated views: the renderer has no clock
 

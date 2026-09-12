@@ -306,8 +306,13 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // rung, and nothing writes it in this cut -- the tier is staged and its
   // chunker is a later package, so an empty table is the honest description of
   // every store that reaches this version.
-  const PINNED_SCHEMA_HASH: u64 = 0x24db_ff0f_39b3_177b;
-  const PINNED_FOR_VERSION: i32 = 23;
+  //
+  // 24 is the coordination entities -- `wb_node`, `wb_item`, `wb_message` --
+  // three new tables and the same easy rung, landing in the commit that also
+  // writes their file form and registers the node roster, so no table declares
+  // a carrier that is not there.
+  const PINNED_SCHEMA_HASH: u64 = 0x274a_956e_4239_a827;
+  const PINNED_FOR_VERSION: i32 = 24;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

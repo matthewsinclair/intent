@@ -1456,6 +1456,47 @@ impl Project {
     self.intent_dir().join(".canon")
   }
 
+  /// `intent/whiteboard/` -- the coordination estate, one directory per node.
+  pub fn whiteboard_dir(&self) -> PathBuf {
+    self.intent_dir().join("whiteboard")
+  }
+
+  /// One node's board, `intent/whiteboard/<node>/board.json`.
+  ///
+  /// **NOT under `.canon/`, and that is the D30 table's own choice rather than
+  /// an inconsistency.** A thread's canon sits apart from its rendered views
+  /// because the views are many files in a directory of their own; a board is
+  /// one node's whole state, and it belongs beside the markdown a reader of
+  /// that node already opens. The file is still canon in every other sense:
+  /// tool-written, validated strictly on ingest, and the durable form the
+  /// extract carries.
+  pub fn board_json(&self, node: &str) -> PathBuf {
+    self.whiteboard_dir().join(node).join("board.json")
+  }
+
+  /// Every node directory that holds a `board.json`, sorted.
+  ///
+  /// **A NODE DIRECTORY WITHOUT ONE IS NOT LISTED, AND THAT IS THE WHOLE
+  /// POINT.** Every board on this estate is hand-authored markdown until the
+  /// cutover, so most node directories hold no board file and never have; a
+  /// walk that listed them anyway would hand the reader a path it then had to
+  /// treat as missing. An absent whiteboard directory is the same answer as an
+  /// empty one -- a project that has never run the protocol has no board, which
+  /// is not a defect to report.
+  pub fn board_nodes(&self) -> Result<Vec<String>, ProjectError> {
+    let Ok(entries) = std::fs::read_dir(self.whiteboard_dir()) else {
+      return Ok(Vec::new());
+    };
+    let mut nodes: Vec<String> = entries
+      .filter_map(Result::ok)
+      .map(|e| e.path())
+      .filter(|p| p.join("board.json").is_file())
+      .filter_map(|p| p.file_name().and_then(|s| s.to_str()).map(str::to_string))
+      .collect();
+    nodes.sort();
+    Ok(nodes)
+  }
+
   /// The committed structured canon for one thread, `.canon/st/<ID>.json`.
   ///
   /// **One file per artefact, not one consolidated file** (D57-1 rejects

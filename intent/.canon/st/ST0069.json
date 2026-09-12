@@ -42,7 +42,7 @@
       "seq": 14,
       "title": "Coordination model: whiteboard and inboxes in the store, with a bounded API",
       "scope": "L",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Moved whole from ST0056 WP-14 with its 12 criteria at 3432644cc; the move minted the criteria and not the work package, so they named a WP this thread did not have. The design stays in ST0056/WP/14.",
       "body": "",
       "preamble": ""

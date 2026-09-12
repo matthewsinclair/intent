@@ -4792,14 +4792,83 @@ impl Facade {
     })
   }
 
+  /// Register the node roster from each node's own `wip.md` header.
+  ///
+  /// **THE HEADER IS THE SOURCE, AND THE README ROSTER TABLE IS NOT.** Three
+  /// reasons, and the first is decisive on its own: the table has no `role`
+  /// column -- its third column is a charter sentence -- so two of the three
+  /// fields would have to come from somewhere else anyway. The headers are
+  /// single-writer, one node each, and the README is not: that file says of
+  /// itself that it has no single writer and goes stale, having described one
+  /// node's lane wrongly through an entire reorganisation with nobody owning
+  /// the correction. And its own proposed fix is this one, recorded there
+  /// before this existed -- generate the roster from each node's header so it
+  /// cannot disagree with the boards it describes.
+  ///
+  /// **THIS REGISTERS CONFIGURATION; IT DOES NOT MIGRATE A BOARD.** The rows it
+  /// writes carry no items and no messages, and the markdown beside them stays
+  /// hand-authored and authoritative. Carrying the boards' CONTENT across is a
+  /// separate deliberate act at a cutover, and reading a thin board file as a
+  /// half-finished migration would get both of them wrong.
+  pub fn register_roster(&mut self) -> Result<usize, FacadeError> {
+    let mut nodes = Vec::new();
+    let Ok(entries) = std::fs::read_dir(self.project.whiteboard_dir()) else {
+      return Ok(0);
+    };
+    let mut dirs: Vec<std::path::PathBuf> = entries
+      .filter_map(Result::ok)
+      .map(|e| e.path())
+      .filter(|p| p.join("wip.md").is_file())
+      .collect();
+    dirs.sort();
+    for dir in dirs {
+      // **AN UNREADABLE HEADER REFUSES RATHER THAN SKIPPING THE NODE.** A
+      // silently skipped node is a roster that is quietly short by one, which
+      // is indistinguishable from a node nobody has created yet.
+      let text = std::fs::read_to_string(dir.join("wip.md")).map_err(|e| {
+        FacadeError::Ingest(IngestError::Io {
+          path: dir.join("wip.md").display().to_string(),
+          source: e,
+        })
+      })?;
+      let field = |key: &str| -> Option<String> {
+        // **The header block is line-oriented `key: value`, not YAML**, and it
+        // is read the way it is written: the value is everything after the
+        // first `: ` to the end of the line, with one pair of surrounding
+        // double quotes stripped for display and quotes inside left alone.
+        text
+          .lines()
+          .take_while(|l| l.trim() != "---" || l.trim().is_empty())
+          .chain(text.lines())
+          .find_map(|line| line.strip_prefix(&format!("{key}: ")))
+          .map(|v| {
+            let v = v.trim();
+            v.strip_prefix('"')
+              .and_then(|r| r.strip_suffix('"'))
+              .unwrap_or(v)
+              .to_string()
+          })
+      };
+      if let (Some(node), Some(name), Some(role)) = (field("node"), field("name"), field("role")) {
+        nodes.push((node, name, role));
+      }
+    }
+    self
+      .store
+      .register_nodes(&nodes)
+      .map_err(FacadeError::Store)
+  }
+
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
     self.refuse_if_the_last_ingest_was_refused()?;
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
+    let boards = self.store.hydrate_boards().map_err(FacadeError::Store)?;
     let canon = Canon {
       threads,
       issues,
       sections,
+      boards,
     };
     self.check_scope(scope, &canon.threads)?;
     let all_threads: Vec<&Thread> = canon
@@ -5436,6 +5505,24 @@ impl Facade {
       set.add(
         path,
         to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+      );
+    }
+    // **ONE BOARD FILE PER NODE, AND NOT NARROWED BY A THREAD SCOPE**, for the
+    // reason project state is not: a board is not a thread, so a thread scope
+    // names none of them, and `WriteSet::commit` skips a path whose bytes
+    // already match -- so a sync over an estate that already agrees writes
+    // nothing here at all.
+    //
+    // **THE MARKDOWN BESIDE IT IS NOT TOUCHED.** `wip.md` and
+    // `inbox.<sender>.md` stay hand-authored and authoritative until the
+    // cutover migrates them; this projects only the file the store carries, so
+    // the two can coexist without either overwriting the other.
+    for board in &canon.boards {
+      let path = self.project.board_json(&board.node.moniker);
+      canon_files.push((path.clone(), format!("board {}", board.node.moniker)));
+      set.add(
+        path,
+        to_canonical_json(board).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
     // **PROJECT STATE, WRITTEN ON EVERY SYNC AND NOT NARROWED BY A THREAD

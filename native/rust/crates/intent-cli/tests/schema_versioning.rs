@@ -315,7 +315,13 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     //
     // **19 -> 20 IS `embeddings`**, the semantic tier's vector table, staged
     // and written by nothing yet; the DDL face alone again.
-    ("SCHEMA_DDL_VER", 20, 0x66ce_ddc2_54d4_d9d3),
+    // **THE COORDINATION TABLES LAND (WP-14).** 20 -> 21, and a ONE-face
+    // result again: three new tables move the DDL and nothing else, so the JSON
+    // and SDL versions must not move with it. The tables arrive in the same
+    // commit as the code that writes `board.json`, because a `carried by`
+    // declaration naming a file nothing writes is the promise the openness
+    // check exists to refuse.
+    ("SCHEMA_DDL_VER", 21, 0xc7d1_3b14_aaae_45c7),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed

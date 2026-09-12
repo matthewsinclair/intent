@@ -472,6 +472,7 @@ fn assemble(
     threads,
     issues,
     sections: Vec::new(),
+    boards: Vec::new(),
   };
   // **TWO POPULATIONS, AND CONFLATING THEM IS HOW THE FIRST CUT OF THE UNION
   // TRADED ONE DEFECT FOR ANOTHER.** The STORE and the project-level index must
@@ -552,6 +553,7 @@ fn assemble(
     threads,
     issues,
     sections: _,
+    boards: _,
   } = canon;
 
   // One thread.json per thread, one <n>.json per issue, one event log --

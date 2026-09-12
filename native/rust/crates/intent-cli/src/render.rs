@@ -77,6 +77,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("at", m)) => at(m),
     Some(("search", m)) => search(m),
     Some(("index", m)) => index(m),
+    Some(("wb", m)) => wb(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
@@ -3841,6 +3842,32 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
 /// READS, `rebuild` WALKS.** A status that surveyed the tree would describe the
 /// world rather than the index, and an operator comparing the two is exactly how
 /// a stale index is noticed.
+/// **THE WHITEBOARD FAMILY. `register` IS ALL OF IT IN THIS CUT**, and the rest
+/// of the protocol's verbs land behind it.
+///
+/// Thin by the rule the family is held to: parse, call the facade, render. The
+/// roster it registers is read from each node's own board header by
+/// `Facade::register_roster`, which is where that reasoning lives.
+fn wb(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("register", _)) => {
+      let mut f = open()?;
+      let registered = f.register_roster().map_err(fail)?;
+      // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** The verb is idempotent by
+      // moniker, so a second run over an existing roster registers nothing --
+      // and reporting the roster's SIZE either time would say a write happened
+      // when none did.
+      println!("ok: {registered} node(s) registered");
+      Ok(())
+    }
+    _ => Err(Failure::Error(
+      "error: `intent wb` needs a subcommand\n  remedy: `intent wb register` puts the node roster \
+       into the model"
+        .to_string(),
+    )),
+  }
+}
+
 fn index(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("status", m)) => {

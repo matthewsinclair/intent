@@ -34,6 +34,9 @@ pub struct Canon {
   pub threads: Vec<Thread>,
   pub issues: Vec<Issue>,
   pub sections: Vec<DocSection>,
+  /// One per node, each carrying that node's row, its items, and the messages
+  /// addressed to it.
+  pub boards: Vec<crate::model::Board>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -282,6 +285,25 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
     }
   }
 
+  // **A BOARD FILE IS READ WHERE IT SITS, AND AN ABSENT ONE IS NOT A FINDING.**
+  // Every node directory predates the model by months and most will hold only
+  // markdown until the cutover, so "no board.json here" is the normal case
+  // rather than a defect -- the same reading `.intentfiles`' absence gets.
+  // Bytes that ARE there are parsed strictly, because a malformed board is a
+  // real refusal and silently skipping it is how a restore quietly empties a
+  // table.
+  for node in project.board_nodes()? {
+    let path = project.board_json(&node);
+    match serde_json::from_str::<crate::model::Board>(&read_to_string(&path)?) {
+      Ok(board) => canon.boards.push(board),
+      Err(e) => findings.push(Finding::new(
+        project.relative(&path),
+        FindingClass::SchemaInvalid,
+        format!("not a board: {e}"),
+      )),
+    }
+  }
+
   if findings.is_empty() {
     // **DERIVED FROM THE ASSEMBLED CANON, NOT ACCUMULATED DURING THE WALK.**
     // Attachment bytes arrive with `load_blobs` and a caller may carry more in
@@ -469,6 +491,7 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
       threads,
       issues,
       sections: store.doc_sections()?,
+      boards: Vec::new(),
     });
   }
 
@@ -632,6 +655,7 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
     threads,
     issues: stored_issues,
     sections,
+    boards: Vec::new(),
   })
 }
 
@@ -870,11 +894,37 @@ fn resync_inner(
           threads,
           issues,
           sections: store.doc_sections()?,
+          boards: store.hydrate_boards()?,
         });
       }
     }
   }
   store.replace_doc_sections(&canon.sections)?;
+  // **ONLY AN UNSCOPED `Restore` CARRIES BOARDS FROM DISK INTO THE STORE.**
+  // Two separate narrowings, and they have different reasons.
+  //
+  // A THREAD SCOPE NAMES NO BOARD, so a scoped run leaves the whiteboard tables
+  // as the store holds them -- the rule issues already follow one field over,
+  // and for the same reason: `sync --to-store ST0056` rewriting five nodes'
+  // boards from disk is the estate-wide write a scope exists to prevent.
+  //
+  // **AND THE DAEMON'S PASS MUST NOT OUTVOTE THE STORE** (issue `0216`, whose
+  // shape this would otherwise reproduce exactly). `Load::Ingest` runs on every
+  // watched change; replacing the tables wholesale from disk there would revert
+  // a board write that had landed in the store but whose file had not been
+  // projected yet -- `ok` printed, the row gone a second later, which is the
+  // defect that arm's `decide_estate` exists to prevent for threads. Boards
+  // have no per-row decision procedure yet, so the safe reading is that the
+  // daemon does not carry them at all: the store keeps its value and an
+  // explicit whole-project `sync --to-store` is the one door that replaces it.
+  //
+  // The returned `Canon` therefore describes what the store actually holds,
+  // not what the disk happened to carry past a narrowing that excluded it.
+  if scope.named().is_none() && load == Load::Restore {
+    store.replace_boards(&canon.boards)?;
+  } else {
+    canon.boards = store.hydrate_boards()?;
+  }
   carry_project_state(project, store)?;
   // **The file index is left alone under a scope, deliberately.** It records
   // what was last INGESTED, and a scoped run ingested only part of what the

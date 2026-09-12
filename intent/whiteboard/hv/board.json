@@ -1,0 +1,15 @@
+{
+  "schema": "intent/board@3.0",
+  "node": {
+    "moniker": "hv",
+    "name": "Hypervisor",
+    "role": "hypervisor",
+    "heartbeat_at": "2026-09-12T17:50:38.616Z",
+    "status": "paused",
+    "focus": "",
+    "claims": [],
+    "recorded_at": "2026-09-12T17:50:38.616Z"
+  },
+  "items": [],
+  "messages": []
+}

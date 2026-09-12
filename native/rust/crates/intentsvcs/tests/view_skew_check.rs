@@ -16,6 +16,7 @@ fn canon() -> Canon {
     threads: vec![sample_thread("ST0056")],
     issues: Vec::new(),
     sections: Vec::new(),
+    boards: Vec::new(),
   }
 }
 

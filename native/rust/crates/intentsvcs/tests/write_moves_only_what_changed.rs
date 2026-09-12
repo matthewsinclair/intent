@@ -322,6 +322,17 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wb register",
+    "intentsvcs/tests/openness.rs -- `the_round_trip_carries_every_table_that_claims_a_file_form` and \
+     `re_emitting_the_extract_reproduces_it_byte_for_byte` drive this verb's facade door, \
+     `register_roster`, in their shared fixture and hold the property this file exists for, in the \
+     form this verb can have it. **It writes ROWS AND NO FILE**: the roster lands in `wb_node`, \
+     nothing under the projected estate moves, so `did the estate move` is the wrong observable. The \
+     right one is that the rows it wrote reach their declared file form and come back byte-identical \
+     -- a register that wrote the wrong rows, or rows the extract could not carry, fails there. It is \
+     also the verb's ONLY exercised door: the render arm calls `register_roster` and nothing else.",
+  ),
+  (
     "index rebuild",
     "intent-cli/tests/the_index_says_what_it_holds.rs -- `a_status_before_a_rebuild_says_the_index_holds_nothing` \
      drives the verb against a real estate and holds the property this file exists for, in the form \

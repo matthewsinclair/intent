@@ -3863,6 +3863,54 @@ Report whether the Intent menubar app is running, and where it is installed
 - **MCP note:** **CLOSED CONSERVATIVELY, THE QUESTION RECORDED RATHER THAN SETTLED**, exactly as `daemon status` is: the family's withhold reason is process control and does not name this row, which is a READ. A candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings.
 - **basis:** ST0064. **THE EXIT CODE CARRIES THE STATE AND THERE ARE THREE OF THEM**: 0 running, 1 installed and not running, 2 not installed. The two non-zero answers have DIFFERENT REMEDIES -- start it versus build it -- and a boolean sends half the callers to the wrong one. **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST**: an app launched from a path this resolver would not have guessed is still the app that is running, and printing the guess would name a bundle the operator is not looking at.
 
+## Family: `wb`
+
+The whiteboard: the node roster in the store
+
+- **v2 source:** `new-surface`
+- **v2 help file:** none
+- **Owning work package:** WP-14
+
+- NEW SURFACE with no v2 antecedent: the whiteboard has always been markdown on disk, read and written by hand. ST0069 WP-14 puts the coordination entities in the store, and this family is how a person reaches them.
+- **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It read `node boards and inboxes, served from the store` while the one shipped verb registered monikers, carried no items and no messages, and left the markdown hand-authored and authoritative -- a reader typing `intent wb` would have been told the whiteboard is served and then found a roster registrar. The help moves when something serves a board.
+- DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
+
+| command       | args      | flags | help                                                       | disposition |
+| ------------- | --------- | ----- | ---------------------------------------------------------- | ----------- |
+| `wb`          | <command> | --    | The whiteboard: the node roster in the store               | new-surface |
+| `wb register` | --        | --    | Register the node roster from each node's own board header | new-surface |
+
+### `wb`
+
+The whiteboard: the node roster in the store
+
+- **v2:** new-surface
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **basis:** ST0069 design.md, WP-14: the coordination model in the store. There is no v2 antecedent -- the whiteboard has always been markdown on disk.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+
+### `wb register`
+
+Register the node roster from each node's own board header
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. It is idempotent by moniker, so a second run over an existing roster adds nothing and changes nothing.
+- **basis:** ST0069 design.md, WP-14. The roster is authored configuration a human wrote; this registers it rather than inventing it.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **recoverability:** idempotent
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT IS A PROJECT-SETUP ACT RATHER THAN THAT IT CANNOT BE UNDONE -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is irreversibility, and this one is reversible in the only sense that matters: running it twice writes nothing the first run did not. **What it does is decide WHO the participants of this project are, which is a thing a human declares and an agent should not start unasked** -- every board, every item and every message afterwards hangs off the rows it writes, and a roster registered by a passing tool call is a coordination estate nobody chose. The same reasoning `index rebuild` records, arriving at the same answer from a different direction: that one is withheld for contention, this one for authorship. A candidate for exposure on a ruling about who may declare a roster, never on the observation that it is safe to repeat -- which is true and is a different question.
+- **facade:** register_roster
+- **note:** **THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration.
+
 ## Family: `index`
 
 The search index: what it holds, and rebuilding it

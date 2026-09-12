@@ -122,6 +122,7 @@ fn rendered(thread: Thread) -> String {
     threads: vec![thread],
     issues: Vec::new(),
     sections: Vec::new(),
+    boards: Vec::new(),
   };
   views::render_all(&fx.project(), &canon, &ctx())
     .iter()

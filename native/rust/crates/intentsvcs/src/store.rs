@@ -18,8 +18,8 @@ use serde_json::json;
 
 use crate::event::Envelope;
 use crate::model::{
-  AcceptanceTest, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related, THREAD_SCHEMA, Thread,
-  WorkPackage, enum_str,
+  AcceptanceTest, BOARD_SCHEMA, Board, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related,
+  THREAD_SCHEMA, Thread, WbItem, WbMessage, WbNode, WorkPackage, enum_str,
 };
 use crate::prose::DocSection;
 use crate::sync::FileEntry;
@@ -607,6 +607,73 @@ CREATE TABLE IF NOT EXISTS project (
   todo_watermark TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+-- THE COORDINATION ENTITIES. One board per node.
+--
+-- **`recorded_at` CARRIES NO `DEFAULT` AND THAT IS THE REQUIREMENT, NOT AN
+-- OMISSION.** With the database as truth and sync running both ways, a
+-- disk-to-db resync that re-inserts rows would let `DEFAULT CURRENT_TIMESTAMP`
+-- re-stamp them -- rewriting history silently and indistinguishably from a
+-- correct value, which is the fabricated-stamp failure reintroduced by its own
+-- fix. The SERVICE writes it once, at the write, and a sync in either direction
+-- CARRIES it rather than re-deriving it.
+--
+-- `updated_at` is this store's own record stamp and is the opposite kind of
+-- value: per-machine, omitted from the extract, correctly re-stamped by a
+-- rebuild. The two live side by side deliberately; neither can do the other's
+-- job.
+--
+-- `authored_at` is the stamp a migrated board's markdown CLAIMED, verbatim and
+-- untrusted -- the one column in this store whose contents are known to include
+-- invented values, kept as text and never read as a time.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_node (
+  moniker TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  session_id TEXT,
+  heartbeat_at TEXT NOT NULL,
+  status TEXT NOT NULL,
+  focus TEXT NOT NULL,
+  claims TEXT NOT NULL DEFAULT '[]',
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_item (
+  id INTEGER PRIMARY KEY,
+  node TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  seq INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  state TEXT NOT NULL,
+  archived_at TEXT,
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- **`id` IS AN INTEGER PRIMARY KEY SO INSERTION ORDER IS RECOVERABLE**, which
+-- is not decoration: every row a migration inserts in one pass shares one
+-- `recorded_at`, so that column cannot order them and the board's only
+-- cross-node ordering would be lost at the moment it became queryable. The
+-- migration inserts in SOURCE FILE ORDER, ties on `recorded_at` order by
+-- insertion, and every view orders that way.
+-- openness: carried by intent/whiteboard/<node>/board.json
+CREATE TABLE IF NOT EXISTS wb_message (
+  id INTEGER PRIMARY KEY,
+  sender TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  body TEXT NOT NULL,
+  re TEXT,
+  fyi INTEGER NOT NULL DEFAULT 0,
+  state TEXT NOT NULL,
+  handled_at TEXT,
+  recorded_at TEXT NOT NULL,
+  authored_at TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
+CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);
 ";
 
 /// **The shape of [`DDL`], stamped into every store this binary creates**
@@ -631,7 +698,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 23;
+pub const SCHEMA_VERSION: i32 = 24;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1472,6 +1539,62 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
        PRIMARY KEY (chunk_id, model)
      );",
+  ),
+  (
+    24,
+    // 23 -> 24: the coordination entities (D30, WP-14).
+    //
+    // Three new tables, the easy rung: no existing column changes shape and
+    // there is nothing to back-fill, because the boards are still hand-authored
+    // markdown on disk at this version. **An empty set of tables is the honest
+    // description of every store that reaches 24** -- the live board migrates
+    // as a separate deliberate act (AC-14.9), at a cutover, and not as a side
+    // effect of opening a store.
+    //
+    // `recorded_at` carries no DEFAULT here for the same reason it carries none
+    // in the DDL: AC-14.11 refuses a DB-side default as the mechanism, because
+    // a disk-to-db resync re-inserting rows would re-stamp them and rewrite
+    // history indistinguishably from a correct value.
+    "CREATE TABLE IF NOT EXISTS wb_node (
+       moniker TEXT PRIMARY KEY,
+       name TEXT NOT NULL,
+       role TEXT NOT NULL,
+       session_id TEXT,
+       heartbeat_at TEXT NOT NULL,
+       status TEXT NOT NULL,
+       focus TEXT NOT NULL,
+       claims TEXT NOT NULL DEFAULT '[]',
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE IF NOT EXISTS wb_item (
+       id INTEGER PRIMARY KEY,
+       node TEXT NOT NULL,
+       kind TEXT NOT NULL,
+       seq INTEGER NOT NULL,
+       text TEXT NOT NULL,
+       state TEXT NOT NULL,
+       archived_at TEXT,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE IF NOT EXISTS wb_message (
+       id INTEGER PRIMARY KEY,
+       sender TEXT NOT NULL,
+       recipient TEXT NOT NULL,
+       body TEXT NOT NULL,
+       re TEXT,
+       fyi INTEGER NOT NULL DEFAULT 0,
+       state TEXT NOT NULL,
+       handled_at TEXT,
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
+     CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);",
   ),
 ];
 
@@ -3927,6 +4050,266 @@ impl Store {
   /// properties: it survives a schema change, it cannot be restored from, and
   /// it deliberately omits data. Two referents for one word on one type is how
   /// a reader connects a ratified decision to the wrong method.
+  /// Hydrate every node's board out of the store, one [`Board`] per node.
+  ///
+  /// **Items and messages are ordered by their ROWID, not by a stamp**, because
+  /// every row a migration inserts in one pass shares one `recorded_at` and a
+  /// stamp cannot order them. Insertion order is the board's only cross-node
+  /// ordering for migrated content, so it is what the read preserves and what
+  /// every view then renders.
+  ///
+  /// A message belongs to its RECIPIENT's board: that is the shape the disk
+  /// already has, so one file is a whole readable board.
+  pub fn hydrate_boards(&self) -> Result<Vec<Board>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at, \
+       authored_at FROM wb_node ORDER BY moniker",
+    )?;
+    let nodes = stmt
+      .query_map([], |row| {
+        Ok((
+          row.get::<_, String>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, String>(2)?,
+          row.get::<_, Option<String>>(3)?,
+          row.get::<_, String>(4)?,
+          row.get::<_, String>(5)?,
+          row.get::<_, String>(6)?,
+          row.get::<_, String>(7)?,
+          row.get::<_, String>(8)?,
+          row.get::<_, Option<String>>(9)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+
+    let mut boards = Vec::new();
+    for (
+      moniker,
+      name,
+      role,
+      session_id,
+      heartbeat_at,
+      status,
+      focus,
+      claims,
+      recorded_at,
+      authored_at,
+    ) in nodes
+    {
+      let node = WbNode {
+        moniker: moniker.clone(),
+        name,
+        role,
+        session_id,
+        heartbeat_at,
+        status: enum_from(&status)?,
+        focus,
+        claims: serde_json::from_str(&claims)?,
+        recorded_at,
+        authored_at,
+      };
+      boards.push(Board {
+        schema: BOARD_SCHEMA.to_string(),
+        items: Self::hydrate_items(&self.conn, &moniker)?,
+        messages: Self::hydrate_messages(&self.conn, &moniker)?,
+        node,
+      });
+    }
+    Ok(boards)
+  }
+
+  fn hydrate_items(conn: &rusqlite::Connection, node: &str) -> Result<Vec<WbItem>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT node, kind, seq, text, state, archived_at, recorded_at, authored_at FROM wb_item \
+       WHERE node = ?1 ORDER BY id",
+    )?;
+    let rows = stmt
+      .query_map(params![node], |row| {
+        Ok((
+          row.get::<_, String>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, u32>(2)?,
+          row.get::<_, String>(3)?,
+          row.get::<_, String>(4)?,
+          row.get::<_, Option<String>>(5)?,
+          row.get::<_, String>(6)?,
+          row.get::<_, Option<String>>(7)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+    rows
+      .into_iter()
+      .map(
+        |(node, kind, seq, text, state, archived_at, recorded_at, authored_at)| {
+          Ok(WbItem {
+            node,
+            kind: enum_from(&kind)?,
+            seq,
+            text,
+            state: enum_from(&state)?,
+            archived_at,
+            recorded_at,
+            authored_at,
+          })
+        },
+      )
+      .collect()
+  }
+
+  fn hydrate_messages(
+    conn: &rusqlite::Connection,
+    recipient: &str,
+  ) -> Result<Vec<WbMessage>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at \
+       FROM wb_message WHERE recipient = ?1 ORDER BY id",
+    )?;
+    let rows = stmt
+      .query_map(params![recipient], |row| {
+        Ok((
+          row.get::<_, String>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, String>(2)?,
+          row.get::<_, Option<String>>(3)?,
+          row.get::<_, i64>(4)?,
+          row.get::<_, String>(5)?,
+          row.get::<_, Option<String>>(6)?,
+          row.get::<_, String>(7)?,
+          row.get::<_, Option<String>>(8)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+    rows
+      .into_iter()
+      .map(
+        |(sender, recipient, body, re, fyi, state, handled_at, recorded_at, authored_at)| {
+          Ok(WbMessage {
+            sender,
+            recipient,
+            body,
+            re,
+            fyi: fyi != 0,
+            state: enum_from(&state)?,
+            handled_at,
+            recorded_at,
+            authored_at,
+          })
+        },
+      )
+      .collect()
+  }
+
+  /// Register the node roster: one `wb_node` row per participant, with no
+  /// items and no messages.
+  ///
+  /// **THE CLOCK IS READ BY THE DATABASE AT THE WRITE, AS A VALUE AND NEVER AS
+  /// A COLUMN DEFAULT.** Those are different mechanisms with the same spelling
+  /// and only one of them is safe here: a default fires again on every
+  /// re-insert, and a disk-to-db resync re-inserts every row, so the whole
+  /// board would be re-stamped on each sync -- history rewritten silently and
+  /// indistinguishably from a correct value. Written as a value it fires once,
+  /// here, and [`Store::replace_boards`] carries the result forward verbatim.
+  /// No caller supplies a time, which is the other half of the same rule.
+  ///
+  /// `heartbeat_at` takes the same instant: a registered node has not reported
+  /// itself alive yet, and inventing an earlier time for it would be the
+  /// fabrication this model exists to make impossible.
+  ///
+  /// Idempotent by moniker, so registering twice is not two rows -- but an
+  /// existing row is LEFT ALONE rather than refreshed, because the roster is
+  /// the starting state and everything after it belongs to whoever wrote it.
+  pub fn register_nodes(
+    &mut self,
+    nodes: &[(String, String, String)],
+  ) -> Result<usize, StoreError> {
+    let tx = self.conn.transaction()?;
+    let mut written = 0;
+    for (moniker, name, role) in nodes {
+      written += tx.execute(
+        "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
+         claims, recorded_at, authored_at) \
+         SELECT ?1, ?2, ?3, NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'paused', '', '[]', \
+         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL \
+         WHERE NOT EXISTS (SELECT 1 FROM wb_node WHERE moniker = ?1)",
+        params![moniker, name, role],
+      )?;
+    }
+    tx.commit()?;
+    Ok(written)
+  }
+
+  /// Replace the whiteboard tables from a set of boards.
+  ///
+  /// **DELETE-THEN-INSERT, DELIBERATELY, AND IT IS WHY `recorded_at` MUST NOT
+  /// BE A COLUMN DEFAULT.** A restore re-inserts every row, so a
+  /// `DEFAULT CURRENT_TIMESTAMP` would re-stamp the whole board on each
+  /// disk-to-db sync -- rewriting history silently and indistinguishably from a
+  /// correct value. The value is carried from the board being written, which is
+  /// what makes the round trip lossless in both directions.
+  ///
+  /// Rows are inserted in the order the board holds them, so the ROWIDs that
+  /// order the next read are the order this write was given.
+  pub fn replace_boards(&mut self, boards: &[Board]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    tx.execute("DELETE FROM wb_message", [])?;
+    tx.execute("DELETE FROM wb_item", [])?;
+    tx.execute("DELETE FROM wb_node", [])?;
+    for board in boards {
+      let n = &board.node;
+      tx.execute(
+        "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
+         claims, recorded_at, authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        params![
+          n.moniker,
+          n.name,
+          n.role,
+          n.session_id,
+          n.heartbeat_at,
+          enum_str(&n.status),
+          n.focus,
+          serde_json::to_string(&n.claims)?,
+          n.recorded_at,
+          n.authored_at,
+        ],
+      )?;
+      for item in &board.items {
+        tx.execute(
+          "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, \
+           authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+          params![
+            item.node,
+            enum_str(&item.kind),
+            item.seq,
+            item.text,
+            enum_str(&item.state),
+            item.archived_at,
+            item.recorded_at,
+            item.authored_at,
+          ],
+        )?;
+      }
+      for message in &board.messages {
+        tx.execute(
+          "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, \
+           recorded_at, authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+          params![
+            message.sender,
+            message.recipient,
+            message.body,
+            message.re,
+            i64::from(message.fyi),
+            enum_str(&message.state),
+            message.handled_at,
+            message.recorded_at,
+            message.authored_at,
+          ],
+        )?;
+      }
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
   pub fn derived_dump(&self) -> Result<serde_json::Value, StoreError> {
     let mut out = serde_json::Map::new();
     for table in ["threads", "related", "wps", "criteria", "tests", "issues"] {

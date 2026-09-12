@@ -318,6 +318,7 @@ fn status_lines(fx: &Fixture, thread: intentsvcs::model::Thread) -> Vec<String> 
     threads: vec![thread],
     issues: Vec::new(),
     sections: Vec::new(),
+    boards: Vec::new(),
   };
   let views = views::render_all(&fx.project(), &canon, &ctx());
   assert!(
