@@ -151,7 +151,7 @@ Rules the envelope enforces:
 - **A tier a later package adds is a new group, never a new field** (S3). The CLI contract and the MCP tool schema do not move when T3 lands.
 - **Both denominators travel** (`matched`, `returned`), the `events` page pattern, so a capped result is never a silent subset.
 - **Freshness is part of every answer** (S5). `complete` is false when anything was skipped or is stale, and the terminal rendering prints the reason line before the hits. `--no-reconcile` answers from the index as it stands and names what moved.
-- **A hit's line is a claim about the disk**, kept only when the indexed bytes still match; otherwise the hit carries no line and says stale, the rule issue 0195 established for prose.
+- **A hit's line is a claim about the disk**, kept only when the indexed bytes still match; otherwise the hit carries no line and says stale, the rule issue 0195 established for prose. Three cases, found by driving WP-19: a canon section is a field in `thread.json` and never a byte range of a file, so it is never stale on that ground; an unrealised attachment has no file on disk and is not stale either; only a file whose bytes have moved is stale, and the envelope says so for that case alone. Folding the first two into the third reports a healthy project as stale on every canon hit.
 - **A terminal miss is still discriminated**: empty groups over an empty corpus is not a miss, and the note goes to stderr as it does today.
 
 ## The surfaces
