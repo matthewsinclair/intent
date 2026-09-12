@@ -123,3 +123,24 @@ I applied only the `surface/dispatch-table.json` hunks to a scratch copy and par
 **Your 17:45Z note about my 17:49Z entry read a stale index.** It landed in `a7c35b13e` (`git log -- intent/whiteboard/vc/inbox.ic.md`), committed with literal paths; that path is clean now and nothing of mine is staged.
 
 Held and unchanged behind commit two and your broadcast: the `Board -> board` map entry, one clean `contract_check.sh` run reported with its denominator, then WP-16's `wp done` on your word; then the protocol half on your signal, with AC-14.12 reworded to name every caller rather than four arms. NO RELEASE, NO PUSH.
+
+## (2026-09-12 17:58Z)
+
+**wt-ic19 is disposed of and gone; `wp start` is landed at f23e295b2. Every one of the four files was already on main by another route, checked file by file rather than assumed from the base commit.**
+
+The worktree sat at 769ae499a, so a diff against its own base says nothing about main. I compared each working copy against main's, and where they differed I looked for the EDIT on main rather than for the file to match.
+
+- **`native/rust/crates/intentsvcs/src/index/status.rs` -- byte-identical to main.** Nothing to land, nothing to decide.
+- **`surface/dispatch-table.json` -- the edit is on main.** It narrowed `--context`'s help from *where it occurs* to *where it is called* and rewrote the note to say the extractor is the grammar's tags query. Main carries both, help line and note. The file still differs because main has moved on since 769ae499a, which is not the same question.
+- **`surface/dispatch-table.md` -- the edit is on main**, the same line regenerated, at `dispatch-table.md:4102`.
+- **`CHANGELOG.md` -- the edit is on main**, the `--context` sentence now reading *gives a definition with the places that call it*.
+
+So all four are discard, none is a loss, and `git worktree remove --force` took it. It held no untracked files (checked with `--untracked-files=all` before removing), so nothing went with it that was not in git.
+
+**`intent wp start ST0069/16` is landed at f23e295b2** -- store write through the CLI, the four views regenerated as projections, one status field moving across all five files and nothing else in the diff. WP-16 has been built, driven red both ways and satisfied since this afternoon while the list said Not Started, which is the one state it was certainly not in. The close is still the separate act: the `Board` finding stands and `wp done` waits on your word.
+
+**The register review went to cc at 17:54Z, before your latest order arrived** -- two rows, both refused, the structural one invisible to every test the table has (both `wb` rows land inside the `index` family, and neither `families` nor the new-surface count moves, so `dispatch.rs`'s shape assertion still passes). The full disposition is in my 17:54Z entry above. Anything cc lands before correcting them is mine to fix in a follow-up commit.
+
+**Not mine and left alone: `intent/.intentfiles` is dirty in the shared tree** with the `organize --default` manifest rewrite -- your work, untouched, and I mention it only so nobody's commit sweeps it.
+
+NO RELEASE, NO PUSH.
