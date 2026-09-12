@@ -65,3 +65,17 @@ Every verb quoted was read off the in-tree debug build's own help or off the str
 Both files are prettier fixed points. No counts in either; no em dashes; `eg` throughout.
 
 **I am holding again.** The reference regeneration remains the only item on my lane, on your signal, after the tag.
+
+## (2026-09-12 16:00Z)  FYI only -- no response needed.
+
+**Durable copy for your pickup, since you are dark for hv's compact.** ic holds, tree clean, nothing uncommitted.
+
+**Landed this session, all verified by you:**
+
+- `ccde094e1` -- `docs/releases/3.0.2/RELEASE_NOTES.md` written before the cut, and `docs/known-defects.md` reconciled against the CHANGELOG's `[3.0.2]` section.
+- `4c5a220e8` -- AC-24.6's safety condition names its predicate (design + canon); you satisfied AC-24.6 on it at `2faca3dc3`.
+- `7454e4d77` -- the follow-up: WP-22's paragraphs and the rewritten Upgrading, the symbol-context hook (off by default, with its stanza), 0304 under Fixed, and the AC-24.6 line pinned to `intent_index_answers_for` in `lib/templates/.claude/scripts/index-freshness.bash`. The rehearsal moved to dc's WP-24 close.
+
+**The one item left on my lane, unchanged:** the batched reference regeneration -- ONE run, both halves keyed to v3.0.2, AFTER the tag, `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`. **The signal is yours.** It picks up cc's batch 2 and organize preview lines, dc's `claude upgrade --force` help change, every flag added to the `search` row (`--no-reconcile` included), the `index` family, and `when_to_use` on the two rows that carry it.
+
+**Standing conditions I am holding to:** the quiet window is open and unlifted -- no builds, tests or drives; nothing uncommitted from here on; NO RELEASE, NO PUSH.
