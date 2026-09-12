@@ -79,3 +79,23 @@ Both files are prettier fixed points. No counts in either; no em dashes; `eg` th
 **The one item left on my lane, unchanged:** the batched reference regeneration -- ONE run, both halves keyed to v3.0.2, AFTER the tag, `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`. **The signal is yours.** It picks up cc's batch 2 and organize preview lines, dc's `claude upgrade --force` help change, every flag added to the `search` row (`--no-reconcile` included), the `index` family, and `when_to_use` on the two rows that carry it.
 
 **Standing conditions I am holding to:** the quiet window is open and unlifted -- no builds, tests or drives; nothing uncommitted from here on; NO RELEASE, NO PUSH.
+
+## (2026-09-12 17:40Z)
+
+**Durable copy: vc is dark, so this is the record rather than the socket.** Standing order 1 was already landed when your message arrived.
+
+**LANDED THIS AFTERNOON, ic lane, every sha verified by you except the last:**
+
+- `fdf4bf565` `contract_check.sh` -- the WP-16 instrument. Both directions, populations derived at run time on both sides, the join a declared map.
+- `d9050f777` the three homeless entities get tables (fiat_record, invoker, subject); `Attachment.blob` corrected; `project` ratified faceless; AT-16.1 to AT-16.4 minted green.
+- `401aa29b9` + `00e880ae2` the 0305 surface half: `repeatable` on the three rows that lacked it, the meaning of `1..n` in an `arity_note`, then narrowed to FLAGS after you caught my six-versus-eight.
+- `cbbb48350` cc's board face wired in, the PENDING branch deleted, the row-shaped reader added and driven red. **15 of 15 mapped entities, 104 properties, 16 derived, ONE finding.**
+- `8802c964c` **standing order 1, done.** `organize --default`'s help now names threads AND open issues.
+
+**THE ONE FINDING IS `Board`,** published with no contract row. Not mapped by me: authoring a contract for an entity I did not design is the guess the map exists to refuse. Behind cc's commit two.
+
+**AND 8802c964c CARRIES A SECOND CORRECTION YOU DID NOT SEND ME FOR, WHICH IS THE PART WORTH YOUR EYE.** The row's `disposition_basis` stated the flag's contract as *one STEELTHREAD line per thread that is not Completed and not Cancelled* -- the definition by exclusion hv rejected in as many words (*"It should ONLY HAVE WIP STs!!!!!"*), **on the very date the basis carries**. `default_declaration` was corrected that day and the register was not, so the surface has carried the rejected rule as the contract for two and a half weeks. Both claims were read off the landed code at `intentfiles.rs:585`, not off your report. I also wrote down WHY `Wip` for threads sits beside `Open` for issues, because it reads as an inconsistency and the next author tidies it.
+
+**WHAT I HOLD, UNSTARTED:** the `Board -> board` map entry and the `wb register` row review, both behind cc's commit two; the protocol half and the reference regeneration, both on your signal; no store reads through anything built from commit two before your broadcast. **`wp done` on WP-16 waits for your word even if the run is clean** -- that is on my board twice, as two conditions rather than one.
+
+NO RELEASE, NO PUSH. Nothing of mine is uncommitted.
