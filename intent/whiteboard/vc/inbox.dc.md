@@ -164,3 +164,54 @@ Two targets failed: `daemon_subscriptions` and `intentd --test suite`. Loads **8
 - The gate improvement from batch 4 earned itself here: both failures came back NAMED, with the log path, instead of an exit code. Neither run cost a second clone to diagnose.
 
 **Your call.** The cut is a separate go from hv either way, and NO RELEASE, NO PUSH stands.
+
+## (2026-09-12 15:45Z) Step 5, run 3 -- THE QUIET RUN IS GREEN THROUGH THE CARGO GATE, and stops on my own isolation
+
+**SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
+**CMD: `bin/devbin build release --dry-run --patch`**
+**GATE READING: one-minute load 20.98, read by the same script that then ran it**
+
+**THE QUESTION YOU ASKED IS ANSWERED: `info: cargo test green`.** The daemon family passed. Same bytes, same clone, same command that was red twice at 82 and 84.
+
+```
+info: current version: 3.0.1
+info: target version: 3.0.2
+info: CHANGELOG section present for 3.0.2
+info: CHANGELOG header still 'in progress' -- will rewrite to 2026-09-12
+
+==> pre-flight
+info: working tree clean
+info: schema faces carry 3.0.1
+info: on main branch
+info: both remotes (local, upstream) configured
+info: no frozen remote in the push set
+info: running intent doctor
+info: intent doctor clean
+info: running test suite (this may take a minute)
+info: test suite green
+info: running cargo test --workspace (this may take several minutes)
+info: cargo test green
+error: gh CLI is not authenticated (run: gh auth login)
+```
+
+Loads: **20.98 at start, 24.83 at end**. Three runs, one variable, and it separates cleanly: red at 82, red at 84, green at 21.
+
+### The stop is MY harness, measured rather than asserted
+
+`gh auth status` reads `$HOME`, and I ran the whole rehearsal under an isolated HOME by my own standing rule. Driven both ways just now: under the real HOME `gh auth status` reports logged in to github.com as matthewsinclair over ssh; under `$SP/rehearse-home` it reports not logged into any GitHub hosts. **The gate is correct, the tree is fine, and my isolation is what it caught.**
+
+### AND IT MEANS THE DRY-RUN'S WHOLE POINT HAS NEVER BEEN REACHED, IN ANY OF THE THREE RUNS
+
+The gh check is the LAST line of `preflight()`. Everything `--dry-run` exists to print sits after it and has never executed once today: the version set across VERSION and the declared sidecars, the CHANGELOG date rewrite, the `intent_version` stamp in config, the schema-face re-bless and its refusal, the lockfile refresh refusing any change beyond workspace member versions, `intent agents sync`, `intent claude upgrade --apply` and the refusal if it rewrote anything outside the sidecar list, the `--only` sidecar commit, the tag, both pushes, and the GitHub release with its notes preview. **Fourteen previews, none of them exercised.** A rehearsal that stops at the end of preflight has rehearsed the gates and not the cut.
+
+### What I am NOT doing without your word
+
+The clean decomposition is obvious and I am not taking it on my own: the suite has now been proven green under isolation, so the rest could run as `--dry-run --skip-tests` under the REAL HOME -- which reaches the gh gate and every write-step preview, and runs no test that could write the estate. **I am asking rather than doing it because it means running part of the release path under the real HOME, and "suites and builds only under an isolated HOME" is the discipline that exists because a `cargo test` run once repointed `~/.intent/home` and migrated the live store.** Deviating from it is not mine to decide inside a task, even when I can argue the specific run is safe.
+
+`--skip-tests` skips doctor, bats and cargo -- all three already green in this same clone minutes ago -- and leaves the non-test gates and all fourteen previews.
+
+### Housekeeping
+
+`~/.intent/home` unchanged across all three runs: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 2026-09-12 10:16:38. The clone stands at the rehearsal HEAD with its remotes and its deliberate backup.
+
+**NO RELEASE, NO PUSH.**
