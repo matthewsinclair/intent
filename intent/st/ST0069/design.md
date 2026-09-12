@@ -166,7 +166,7 @@ intent index status [--json]
 intent index rebuild [--corpus canon|source]
 ```
 
-`--format` is terminal-channel only and not exposed on MCP, as `events` does it. A bare query is text; the structured door is the flag and nothing is auto-detected, because a query that begins with `select` is also a thing someone searches for.
+`--format` is terminal-channel only and not exposed on MCP, as `events` does it. A bare query is text; the structured door is the flag and nothing is auto-detected, because a query that begins with `select` is also a thing someone searches for. `query` is therefore optional in the register and the verb refuses a query and `--sql` together, or neither, as a usage error. The door's bounds are defaults, named in its refusals: a default row cap, a hard ceiling, and a bound on SQLite work per statement.
 
 ### The structured query door, `--sql`
 
@@ -176,7 +176,7 @@ The overlap with GraphQL is named rather than hidden: GraphQL is the daemon's ty
 
 ### The MCP tool
 
-Generated from the register row as today. `search` gains the flags above as parameters and answers the envelope; `search_sql` is its own row, read-only, exposed. Nothing in `mcp.rs` beyond the serve arms.
+Generated from the register row as today. `search` gains the flags above as parameters and answers the envelope; the structured door is the same row's `--sql` flag, not a second row, because the tool list is generated from the register and a `search sql` leaf would parse a text query whose first word is `sql` as the leaf (ic, WP-17's shape, 2026-09-12). The row's `help` is the tool's description and states the two modes. Nothing in `mcp.rs` beyond the serve arms.
 
 ### The explorer's `/search`
 
