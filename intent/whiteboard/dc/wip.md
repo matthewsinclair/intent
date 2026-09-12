@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 09:22Z
+heartbeat_at: 2026-09-12 10:14Z
 status: active
-focus: "The watcher repair is LANDED (da08b4a18), reshaped to vc's ruling. Now: the confirming drive under a genuinely isolated HOME, which is also the experiment for whether a test repoints `~/.intent/home` or whether that was my own missing isolation. Then the mid-course rehearsal, then WP-20's grammar measurement. NO RELEASE, NO PUSH."
+focus: "WP-20's grammar measurement is reported and hv sets the line. Now WP-24's AC-24.1, the only half of my WP-24 that depends on nobody. The final rehearsal waits on vc's quiet window and the last search package. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -13,18 +13,15 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-0827Z.md`.** Batches 1 and 4 landed and are carried by their commits and the CHANGELOG, not here.
 
-## DOING -- the confirming drive, and the HOME question it answers
+## DOING -- WP-24 AC-24.1, the half that waits on nobody
 
-**The watcher repair LANDED at `da08b4a18`.** Six files. `candidates` is factored out of `scan` and is the ONE enumeration of the corpus; `changed_under` calls it and filters by the event's path; `includes` refuses a bare directory. vc verified it by file list. cc is told; WP-18 widens it.
-
-**WHAT IS OPEN IS A CLAIM I MADE AND DID NOT CHECK.** I reported those drives as being "under an isolated HOME" and I set no HOME at all -- the phrase came off my own board as a description of how I work rather than off the command I ran. vc found `~/.intent/home` repointed at my worktree and restored it. The drive running now sets `HOME` to a scratch dir and `CARGO_HOME` to the real one, and reads the REAL pointer with its mtime before the run and after each of two runs. **If the real pointer still moves, a test reaches past the isolation and I name it; if it does not, there is no test defect to chase and vc's `dual_path_conformance` suspicion is unproven rather than confirmed.**
-
-**Also on the record and not yet explained:** a confirming run taken while the box was still at load 53 with `fseventsd` pinned near 100% showed two reds -- `an_external_edit_delivers_both_d20_events_in_layer_order` and `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests`. Neither is the scope pair, and both are _no event arrived in time_ rather than _the wrong thing arrived_. Not called environmental until the quiet run says so.
+**`.mcp.json` naming `intent mcp`, seeded by `claude upgrade --apply` when ABSENT and never overwritten** -- the same rule as `.claude/settings.json` after `fd4fabd5`, and for the same reason: a project that has hand-edited its own file keeps it. No flag or argument in the file decides what is exposed; the register's `exposed_on_mcp` rows are the answer or the register is not the answer. Agreed with ic, who owns the tool descriptions generated from those rows.
 
 ## TODO
 
-- **The mid-course rehearsal**, next in vc's order: `--dry-run` of `build release --patch` in a clone with the gates live and `intent backup` taken deliberately first, every gate line reported. Not the run that counts; it proves batch 4 left the release path whole and that preflight is deterministic once the watcher stops answering itself. Drive the daemon suite more than once, load stated.
-- **Then WP-20's grammar measurement, AC-20.4**: one tree-sitter grammar crate at a time (rust, elixir, swift, lua, bash), release pair built with the in-tree target dir, binary-size delta per grammar with the exact command and the toolchain in force. No estimate, no rounding into prose. Swift is the expected outlier. A report to vc and hv, who sets the line; the crates do not land from this step. Read `intent/st/ST0069/design.md` FIRST.
+- **AC-24.4, the PostToolUse hook**, served from the install, never blocking. It asks ic's facade door -- `structural_for(paths, name) -> Structural::{Answer{symbols}, CannotAnswer{why}}` -- and appends NOTHING on `CannotAnswer`, and nothing on an empty `Answer` either. **The freshness rule lives behind that door and the hook must never grow one**: a hook that appends a stale or partial structural answer to a grep result is worse than one that appends nothing, because the reader cannot tell which they got. BLOCKED: the door rests on cc's WP-20 symbol tables. ic tells me when the signature is real rather than proposed.
+- **AC-24.6, the PreToolUse redirect: SPECIFIED WITH ITS SAFETY CONDITION AND NOT BUILT.** hv rules whether it is built at all.
+- **The FINAL rehearsal**, on the last HEAD, in the quiet window vc announces with cc and ic pausing their suites. Same shape as the mid-course: clone, throwaway remotes, isolated HOME, `intent backup` taken deliberately and the report saying why, every gate line verbatim, `~/.intent/home` read before and after, loads stated.
 - **CHANGELOG lines** from cc for its last two items (fbf3e7f7d, f24053c13) and ic's output lines, as they reach me.
 
 ## Holds
@@ -34,6 +31,10 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## Watch-outs
 
+- **A GRAMMAR -- OR ANY DEPENDENCY -- THAT IS COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it at link time, so a size measurement that only added the dependency reads a real cost as ZERO and reports it as good news. Reference it behind `env::var_os`, which the optimiser cannot fold, and make the control that it ANSWERS rather than that it compiled.
+- **THE ARITHMETIC IS AN INSTRUMENT CHECK, NOT A TIDY-UP.** Five single-grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed the deltas excluded the tree-sitter runtime entirely. Add your numbers up and ask whether the total is possible.
+- **RUN THE WHOLE REHEARSAL, NOT THE STEP YOU EXPECT TO FAIL.** The first rehearsal refused at `intent doctor` and never reached the test gate, so a real committed defect (`rules_path_guard`, five payload artefacts) sat red on main behind an unrelated refusal with no gate reporting it.
+- **A TEMPLATE OR SHELL PAYLOAD EDIT IS DRIVEN WITH THE BATS SUITE.** Its text is asserted there and nowhere in cargo, so a Rust-side drive over a template edit is blind by construction. That is how I broke `pre_commit_shim.bats` in batch 1 and could not have seen it.
 - **A DISCIPLINE ON YOUR BOARD IS NOT A FLAG ON YOUR COMMAND LINE.** I wrote "under an isolated HOME" in a commit message and to vc, and I had set no HOME: the phrase came off this board as a description of how I work. A claim sourced from your own standing practice reads exactly like a checked one. Read the command back before you describe it.
 - **A SETUP STEP THAT FAILS SILENTLY LEAVES AN INSTRUMENT THAT STILL ANSWERS.** `intent init --name X` is not v3's spelling; it refused at rc 1, I did not read the code, and every `intent critic` run after it looked perfectly normal because the rule library resolves from the INSTALL ROOT, not the project. Read the setup's exit code before you trust the measurement.
 - **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE.** `walk(dir)` and `Scanned::includes(file)` answered differently about one file depending on which door the event came through. Enumerate once, decide once; `scan` and `changed_under` now share `candidates`.
