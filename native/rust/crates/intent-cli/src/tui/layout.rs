@@ -386,7 +386,8 @@ impl Plan {
   }
 }
 
-/// The tool's name, top-right of the APP row. hv's ask, 2026-09-02.
+/// The tool's name, bottom-right of the FOOT. hv's ask, 2026-09-02; moved off
+/// the APP row on hv's ask, 2026-09-12, and it now travels with [`stamp`].
 ///
 /// **THE TURTLE IS THE SAME MARK THE MENUBAR APP WEARS** (`AC-01.8`), so the
 /// two faces of Intent are recognisable as one thing. It is the only emoji on
@@ -416,8 +417,8 @@ pub fn brand_cols() -> usize {
 /// anything else is two.
 ///
 /// **THE RULE WAS DECLARED FOR ONE STRING AND NOW SERVES TWO**, because the
-/// APP row carries the project's directory name beside the brand and a
-/// directory name is the operator's, not ours. The rule stays a rule rather
+/// APP row carries the project's directory name and a directory name is the
+/// operator's, not ours. The rule stays a rule rather
 /// than becoming a width model: a name in a script this over-counts reserves a
 /// column too many and shifts the group one left, which is the same display
 /// wart [`BRAND`] already documents for a single-width turtle, and it errs
@@ -426,53 +427,92 @@ pub fn cols(s: &str) -> usize {
   s.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum()
 }
 
-/// What separates the project from the brand on the APP row.
-pub const BRAND_SEP: &str = " | ";
+/// The brand as the FOOT wears it -- `\u{1f422} Intent 3.0.1 (2c3a7d2d)`.
+/// hv's ask, 2026-09-12.
+///
+/// **IT IS IN THE FOOT AND NOT ON THE APP ROW, AND THE REASON IS WIDTH.** The
+/// APP row answers two questions the operator is asking right now -- where am
+/// I, and which checkout is this -- and a constrained terminal has to take one
+/// of them away. The foot's right edge is unused at every width, so the tool's
+/// own identity is paid for out of space nothing else wanted.
+///
+/// **THE VERSION ALONE DOES NOT IDENTIFY A BUILD HERE**, which is why the
+/// commit rides with it: `spine.rs` bakes the same pair into `--version` for
+/// the same reason, ratified by hv on 2026-08-14. Between releases every
+/// binary in this estate reports one version, so the version answers WHICH
+/// LINE and only the commit answers WHICH BUILD -- and an operator reporting
+/// what they saw on screen is exactly the reader who needs the second answer.
+pub fn stamp() -> String {
+  format!(
+    "{BRAND} {} ({})",
+    env!("CARGO_PKG_VERSION"),
+    short_commit(crate::SOURCE_COMMIT)
+  )
+}
 
-/// The APP row with the project and [`BRAND`] against its right edge:
-/// `Utilz | \u{1f422} Intent`.
+/// The build id at a width a foot can afford: the first eight of the commit.
 ///
-/// **THE RIGHT GROUP DEGRADES RIGHT-TO-LEFT, AND THE ORDER IS THE WHOLE
-/// POINT** (hv, 2026-09-03). This said the brand *is the least informative
-/// thing on the screen -- the operator knows which program they are running*,
-/// which is true of the brand and FALSE of the project name: that one answers
-/// *which checkout am I in*, and it is the question that bites hardest on a
-/// machine carrying two of them. So the turtle goes first and the project name
-/// is held longest; a narrowing viewport must never silently take away the one
-/// fact this row was widened to carry.
+/// **THE DIRT SURVIVES THE SHORTENING, AND THAT IS THE WHOLE FUNCTION.**
+/// `SOURCE_COMMIT` carries its dirt INSIDE the value -- `dirty-<sha>`, or
+/// `unknown` where git could not answer -- precisely so that a consumer cannot
+/// report a dirty build as a clean one by dropping a second field. A naive
+/// eight-character cut would undo that here and do it in the direction nothing
+/// reports: `dirty-2c` reads as a commit id and is not one. So the prefix is
+/// kept and the SHA BEHIND it is what gets cut.
 ///
-/// **THE TEXT STILL OUTRANKS BOTH.** Where even the project name cannot be
-/// afforded, the row says where you ARE and the group goes entirely -- the
-/// same degradation order this module applies to the composer's frame.
+/// A value that is not a hex sha at all is passed through whole, because
+/// shortening a word is not shortening a hash.
+fn short_commit(c: &str) -> String {
+  let (dirt, sha) = match c.strip_prefix("dirty-") {
+    Some(rest) => ("dirty-", rest),
+    None => ("", c),
+  };
+  if sha.len() >= 8 && sha.chars().all(|ch| ch.is_ascii_hexdigit()) {
+    format!("{dirt}{}", &sha[..8])
+  } else {
+    c.to_string()
+  }
+}
+
+/// A row with `right` held against its right edge, and the char span `right`
+/// occupies so the caller can ink it.
 ///
-/// An empty `project` composes the brand alone, which is what every caller
-/// without a store on the other end gets.
-fn branded(left: &str, project: &str, w: usize) -> (String, Ink) {
+/// **ONE HELPER, TWO ROWS, BECAUSE IT IS ONE RULE.** The APP row carries the
+/// project against its right edge and the FOOT carries [`stamp`] against its
+/// own, and both obey the same three-part contract: the left text outranks the
+/// group, the group is DROPPED rather than clipped, and one column of air
+/// separates them or they read as one string. Two copies of that would be two
+/// places to fix the day the rule changes, and the tell is that the second row
+/// was written by copying the first.
+///
+/// **THE GROUP IS DROPPED, NEVER CLIPPED** (hv, 2026-09-03, ruled of the brand
+/// and true of both groups): half a version string or half a project name is
+/// not a smaller fact, it is a wrong one. The left text says where you ARE,
+/// so it is what a narrowing viewport keeps.
+///
+/// **THE LEFT IS COUNTED IN CHARACTERS AND THE GROUP IN COLUMNS**, which looks
+/// inconsistent and is not. This module counts characters everywhere, which is
+/// right for prose the operator or the model wrote; the group is ours and
+/// contains the one emoji on the screen, whose column cost [`cols`] declares.
+/// The left text pays for that difference only if someone puts an emoji in a
+/// view name, which is a display wart and not a correctness failure -- nothing
+/// is clipped by it.
+fn right_grouped(left: &str, right: &str, w: usize) -> (String, usize, Option<(usize, usize)>) {
   let text = clip(left, w);
   let used = text.chars().count();
-  // One column of air between the text and the group, minimum, or they read as
-  // one string. Right-to-left: the fullest group that still fits wins.
-  let full = format!("{project}{BRAND_SEP}{BRAND}");
-  let Some(right) = [full.as_str(), project, BRAND]
-    .into_iter()
-    .filter(|c| !c.is_empty())
-    .find(|c| used + 1 + cols(c) <= w)
-  else {
-    return (text, vec![(0, used, Role::Title)]);
-  };
+  if right.is_empty() || used + 1 + cols(right) > w {
+    return (text, used, None);
+  }
   let pad = w - used - cols(right);
-  let line = format!("{text}{}{right}", " ".repeat(pad));
-  // **THE INK IS IN CHARACTERS BECAUSE THE PRINTER INDEXES CHARACTERS**, so
-  // the brand's span is its char count and not its column cost. The two differ
-  // by exactly the emoji, and using the wrong one here would colour one
-  // character too many and bleed the brand's role into nothing.
   let start = used + pad;
   (
-    line,
-    vec![
-      (0, used, Role::Title),
-      (start, start + right.chars().count(), Role::Door),
-    ],
+    format!("{text}{}{right}", " ".repeat(pad)),
+    used,
+    // **THE SPAN IS IN CHARACTERS BECAUSE THE PRINTER INDEXES CHARACTERS**, so
+    // it is the group's char count and not its column cost. The two differ by
+    // exactly the emoji, and the wrong one here would colour one character too
+    // many and bleed the group's role into whatever followed it.
+    Some((start, start + right.chars().count())),
   )
 }
 
@@ -656,7 +696,16 @@ impl Screen {
     let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
     let whole = |line: &str, role: Role| -> Ink { vec![(0, line.chars().count(), role)] };
     let mut out: Vec<(String, Ink)> = Vec::with_capacity(height);
-    let (app, app_ink) = branded(&self.app, &self.project, w);
+    // **THE APP ROW CARRIES THE PROJECT AND NOTHING ELSE ON ITS RIGHT** (hv,
+    // 2026-09-12). It shared the edge with the brand until then, and the brand
+    // is the half an operator can infer: they know which program they are
+    // running, and only this row answers WHICH CHECKOUT they are running it in.
+    // The brand went to the foot rather than away -- see [`stamp`].
+    let (app, app_n, project_span) = right_grouped(&self.app, &self.project, w);
+    let mut app_ink: Ink = vec![(0, app_n, Role::Title)];
+    if let Some((from, to)) = project_span {
+      app_ink.push((from, to, Role::Door));
+    }
     out.push((app, app_ink));
     out.push((rule.clone(), rule_ink.clone()));
 
@@ -776,20 +825,30 @@ impl Screen {
     // The mode chip leads the hint line and is coloured PER MODE -- hv's
     // "the state changes between modes are not obvious", answered where the
     // state is written.
-    let hint = clip(&self.hint, w);
+    // **THE FOOT CARRIES THE TOOL'S IDENTITY AGAINST ITS RIGHT EDGE** (hv,
+    // 2026-09-12) -- see [`stamp`] for why here and not on the APP row. The
+    // hints outrank it and it is dropped, never clipped, by the same helper the
+    // APP row uses.
+    let (hint, hint_n, stamp_span) = right_grouped(&self.hint, &stamp(), w);
     // **THE CHIP SPANS THE LAMP, NOT THE MACHINE'S NAME**, because the lamp is
     // what `run::hint_row` actually writes there. They agree for OMNI and MENU
     // and differ for FIELD/EMBED, both of which show `EDIT` -- so measuring the
     // name would have coloured five characters of a four-character word and
     // bled the chip into the hint after it.
-    let chip = self.mode.lamp().chars().count().min(hint.chars().count());
+    let chip = self.mode.lamp().chars().count().min(hint_n);
     let mut hint_ink: Ink = vec![(0, chip, Role::ModeChip(self.mode))];
     let tail_role = if self.noticed {
       Role::Warn
     } else {
       Role::Muted
     };
-    hint_ink.push((chip, hint.chars().count(), tail_role));
+    // **THE TAIL ENDS WHERE THE HINTS END, NOT WHERE THE LINE ENDS.** Inking to
+    // the line's end would paint the stamp in the notice's colour, so a warning
+    // would appear to say something about the build id.
+    hint_ink.push((chip, hint_n, tail_role));
+    if let Some((from, to)) = stamp_span {
+      hint_ink.push((from, to, Role::Door));
+    }
     out.push((hint, hint_ink));
     out
   }
@@ -952,107 +1011,127 @@ mod tests {
     );
   }
 
-  /// hv's ask: the tool names itself, top-right, above the rule.
+  /// hv's ask, 2026-09-12: the APP row answers WHICH CHECKOUT, and nothing
+  /// else sits on its right edge.
   #[test]
-  fn the_app_row_carries_the_brand_against_its_right_edge() {
+  fn the_app_row_carries_the_project_against_its_right_edge() {
     let w = 60;
-    let (line, ink) = branded("thread", "", w);
+    let (line, left_n, span) = right_grouped("thread", "Utilz", w);
     assert!(
-      line.ends_with(BRAND),
-      "the brand is not against the right edge: {line:?}"
+      line.ends_with("Utilz"),
+      "the project is not against the right edge: {line:?}"
     );
     assert!(
       line.starts_with("thread"),
-      "the brand displaced the view name"
+      "the project displaced the view name"
+    );
+    assert_eq!(line.chars().count(), w, "the row does not fill the width");
+    assert_eq!(left_n, "thread".chars().count());
+    assert!(
+      !line.contains('\u{1f422}'),
+      "the brand is back on the APP row, which is the crowding hv moved it off: {line:?}"
     );
     assert_eq!(
-      line.chars().count() + brand_cols() - BRAND.chars().count(),
-      w,
-      "the row does not fill the width once the emoji's second column is counted"
-    );
-    assert!(
-      ink.iter().any(|&(_, _, r)| r == Role::Door),
-      "the brand carries no ink of its own"
+      span,
+      Some((w - "Utilz".chars().count(), w)),
+      "the project's span is not the one the printer would ink"
     );
   }
 
-  /// **THE BRAND IS DROPPED, NEVER CLIPPED**, and never at the cost of the
-  /// text that says where you are.
+  /// **THE GROUP IS DROPPED, NEVER CLIPPED**, and never at the cost of the
+  /// text that says where you are. Half a project name is a WRONG answer to
+  /// *which checkout am I in*, not a shorter one.
   #[test]
-  fn a_viewport_too_narrow_for_both_keeps_the_view_name_and_drops_the_brand() {
-    for w in 1..=(brand_cols() + 6) {
-      let (line, _) = branded("thread", "", w);
+  fn a_viewport_too_narrow_for_both_keeps_the_view_name_and_drops_the_group() {
+    for w in 1..=("thread".len() + cols("Utilz") + 4) {
+      let (line, _, span) = right_grouped("thread", "Utilz", w);
       assert!(
-        !line.contains('\u{1f422}') || line.ends_with(BRAND),
-        "at width {w} the brand was clipped rather than dropped: {line:?}"
+        !line.contains("Utilz") || line.ends_with("Utilz"),
+        "at width {w} the project was clipped rather than dropped: {line:?}"
+      );
+      assert_eq!(
+        span.is_some(),
+        line.ends_with("Utilz") && w > "thread".len(),
+        "at width {w} the ink span and the text disagree about whether the group is there"
       );
       assert!(
         line.chars().count() <= w,
         "at width {w} the row overflowed: {line:?}"
       );
     }
-    let (line, _) = branded("thread", "", 8);
+    let (line, _, _) = right_grouped("thread", "Utilz", 8);
     assert!(
-      line.starts_with("thread") && !line.contains('\u{1f422}'),
-      "a narrow row lost the view name rather than the brand: {line:?}"
+      line.starts_with("thread") && !line.contains("Utilz"),
+      "a narrow row lost the view name rather than the group: {line:?}"
     );
   }
 
-  /// **THE PROJECT SITS LEFT OF THE BRAND AND OUTLIVES IT WHEN SPACE RUNS
-  /// OUT** -- hv's ask, 2026-09-03, and the ORDER is the half worth testing.
-  ///
-  /// Dropping right-to-left is what makes the row worth widening: the brand is
-  /// decoration the operator can infer, and the project name answers *which
-  /// checkout am I in*. A degradation that took them in the other order, or
-  /// together, would remove the new fact first and leave the old decoration --
-  /// and it would look completely fine at full width, which is where a screen
-  /// is always read when it is being checked.
+  /// hv's ask, 2026-09-12: the tool names itself, its line and its build in the
+  /// FOOT, where the room is.
   #[test]
-  fn the_project_sits_beside_the_brand_and_is_the_last_of_the_two_to_go() {
-    let w = 60;
-    let (line, ink) = branded("thread", "Utilz", w);
+  fn the_foot_carries_the_stamp_against_its_right_edge() {
+    let hint = "OMNI  1/73";
+    let brand = stamp();
+    let w = hint.len() + cols(&brand) + 4;
+    let (line, left_n, span) = right_grouped(hint, &brand, w);
     assert!(
-      line.ends_with(&format!("Utilz{BRAND_SEP}{BRAND}")),
-      "the project must sit immediately left of the brand: {line:?}"
+      line.ends_with(&brand),
+      "the stamp is not against the right edge: {line:?}"
     );
-    assert!(
-      line.starts_with("thread"),
-      "the group displaced the view name"
+    assert!(line.starts_with(hint), "the stamp displaced the hints");
+    assert_eq!(
+      left_n,
+      hint.chars().count(),
+      "the hints' span must end where the hints end, or a notice's colour would \
+       run into the build id"
     );
-    assert!(
-      ink.iter().any(|&(_, _, r)| r == Role::Door),
-      "the right-hand group carries no ink of its own"
+    let (from, to) = span.expect("the stamp fits at this width and must carry a span");
+    assert_eq!(
+      line.chars().skip(from).take(to - from).collect::<String>(),
+      brand,
+      "the inked span is not where the stamp actually is"
     );
+  }
 
-    // Narrow until each piece goes, and assert the ORDER rather than the widths
-    // -- the widths are arithmetic, the order is the ruling.
-    let full = cols("Utilz") + cols(BRAND_SEP) + cols(BRAND);
-    let mut seen_project_alone = false;
-    for w in 1..=(full + "thread".len() + 2) {
-      let (line, _) = branded("thread", "Utilz", w);
-      assert!(
-        line.chars().count() <= w,
-        "at width {w} the row overflowed: {line:?}"
-      );
-      let has_brand = line.contains('\u{1f422}');
-      let has_project = line.contains("Utilz");
-      assert!(
-        !has_brand || has_project,
-        "at width {w} the BRAND survived and the project did not -- the drop ran \
-         left-to-right: {line:?}"
-      );
-      if has_project && !has_brand {
-        seen_project_alone = true;
-      }
-      assert!(
-        line.starts_with("thread") || w < "thread".len(),
-        "at width {w} the row lost the view name before the group: {line:?}"
-      );
-    }
+  /// **THE STAMP NAMES THE BUILD, NOT JUST THE LINE**, which is the whole
+  /// reason the commit rides beside the version: between releases every binary
+  /// in this estate reports one version, so an operator reading a version back
+  /// off the screen has told you nothing about WHICH build they ran.
+  #[test]
+  fn the_stamp_names_the_tool_its_version_and_its_build() {
+    let brand = stamp();
     assert!(
-      seen_project_alone,
-      "no width dropped the brand and kept the project, so the ordering this test \
-       exists for was never exercised"
+      brand.starts_with(BRAND),
+      "the stamp does not lead with the brand: {brand:?}"
+    );
+    assert!(
+      brand.contains(env!("CARGO_PKG_VERSION")),
+      "the stamp does not name the version it was built at: {brand:?}"
+    );
+    assert!(
+      brand.ends_with(&format!("({})", short_commit(crate::SOURCE_COMMIT))),
+      "the stamp does not end in the build it was made from: {brand:?}"
+    );
+  }
+
+  /// **SHORTENING A PROVENANCE MARKER MUST NOT LAUNDER IT.** `SOURCE_COMMIT`
+  /// carries its dirt inside the value so a consumer cannot report a dirty
+  /// build as clean by dropping a field; an eight-character cut would do it
+  /// anyway, by printing `dirty-2c` -- which reads as a commit id and is not
+  /// one.
+  #[test]
+  fn shortening_the_commit_keeps_the_dirt_and_leaves_a_non_sha_alone() {
+    let sha = "2c3a7d2d43f0b2675eebd9f7ed98ff3fdab33037";
+    assert_eq!(short_commit(sha), "2c3a7d2d");
+    assert_eq!(
+      short_commit(&format!("dirty-{sha}")),
+      "dirty-2c3a7d2d",
+      "the dirt was cut away with the sha, so a dirty build now reads as a clean one"
+    );
+    assert_eq!(
+      short_commit("unknown"),
+      "unknown",
+      "a value that is not a hash was cut as if it were one"
     );
   }
 
@@ -1253,7 +1332,13 @@ mod tests {
           "unframed, the composer line is second from the bottom"
         );
       }
-      assert_eq!(lines[height - 1], s.hint, "the HINT line is the last line");
+      // The foot is the hints plus [`stamp`] against the right edge, so this
+      // asks what it can still ask of the whole line: the hints lead it.
+      assert!(
+        lines[height - 1].starts_with(&s.hint),
+        "the HINT line is not the last line: {:?}",
+        lines[height - 1]
+      );
       // **STILL EXACTLY TWO FULL-WIDTH RULES.** The box's own horizontals are
       // not rules: they open and close with corners, so they never equal this
       // string. The relaxation `tui-design.md` §2 takes is BORDERS ON THE

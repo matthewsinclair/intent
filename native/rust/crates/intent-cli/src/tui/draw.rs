@@ -242,7 +242,13 @@ mod tests {
       "the composer's box must close above the hint: {:?}",
       painted_lines[h - 2]
     );
-    assert_eq!(painted_lines[h - 1], s.hint);
+    // The foot leads with the hints and ends with `layout::stamp()`, so the
+    // strongest thing this can ask of the whole line is that the hints lead it.
+    assert!(
+      painted_lines[h - 1].starts_with(&s.hint),
+      "the hint line does not lead the foot: {:?}",
+      painted_lines[h - 1]
+    );
   }
 
   /// Scrolling moves the WINDOW and leaves the chrome alone -- the two
