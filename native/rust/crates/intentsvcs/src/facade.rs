@@ -5588,6 +5588,12 @@ impl Facade {
 
   /// Bring the index up to date under one path, touching nothing outside it.
   ///
+  /// **`None` MEANS THE WHOLE SCOPE**, which is the daemonless query's case: it
+  /// reconciles everything before it answers, and under the staleness policies
+  /// that is a stat pass over source and a hash pass over canon rather than a
+  /// re-read of the tree. A path means that path's subtree, except the project
+  /// root, which means depth one -- see `index::reconcile`'s `names`.
+  ///
   /// **THIS IS THE DOOR A WATCHER CALLS, and it is not `index_rebuild` with a
   /// filter.** A rebuild is told the whole scope and deletes every row it was
   /// not told about; a refresh is told about a subtree, so it upserts what
@@ -5600,7 +5606,7 @@ impl Facade {
   /// name.
   pub fn index_refresh(
     &mut self,
-    under: &std::path::Path,
+    under: Option<&std::path::Path>,
   ) -> Result<crate::index::Refreshed, FacadeError> {
     let views = self.view_paths()?;
     let previous = self.store.index_files().map_err(FacadeError::Store)?;
@@ -5614,7 +5620,7 @@ impl Facade {
     )
     .map_err(|e| {
       FacadeError::Ingest(IngestError::Io {
-        path: under.display().to_string(),
+        path: under.unwrap_or(self.project.root()).display().to_string(),
         source: std::io::Error::other(e.to_string()),
       })
     })?;

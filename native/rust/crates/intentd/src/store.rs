@@ -330,7 +330,10 @@ impl ProjectHandle {
             // on every source edit in the repository, which is a behaviour
             // change well past what this package was asked for. Reported to vc
             // as a question rather than decided here.
-            if let Err(error) = facade.index_refresh(&under) {
+            // `Some(&under)` because the door now also takes `None` for the
+            // whole scope, which is the daemonless query's case and not this
+            // one: a watch event always names a path.
+            if let Err(error) = facade.index_refresh(Some(&under)) {
               eprintln!(
                 "intentd: could not refresh the index under `{}`: {error}\n  remedy: source edits under that path may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
                 under.display()

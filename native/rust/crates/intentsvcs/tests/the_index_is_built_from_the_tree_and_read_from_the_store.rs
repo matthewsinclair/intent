@@ -398,7 +398,7 @@ fn a_refresh_touches_its_subtree_and_leaves_the_rest_of_the_index_alone() {
 
   write(&fx, "src/lib.rs", b"fn assemble_gadget() {}\n");
   let refreshed = facade
-    .index_refresh(&fx.root().join("src"))
+    .index_refresh(Some(&fx.root().join("src")))
     .expect("refresh");
 
   assert_eq!(refreshed.updated, vec!["src/lib.rs".to_string()]);
@@ -441,7 +441,7 @@ fn a_refresh_of_an_untouched_subtree_changes_nothing_and_says_so() {
   let mut facade = fx.facade();
   facade.index_rebuild().expect("rebuild");
   let refreshed = facade
-    .index_refresh(&fx.root().join("src"))
+    .index_refresh(Some(&fx.root().join("src")))
     .expect("refresh");
 
   assert!(refreshed.is_empty(), "nothing moved: {refreshed:?}");
@@ -459,7 +459,7 @@ fn a_file_that_has_gone_leaves_the_index_and_takes_its_content_with_it() {
   std::fs::remove_file(fx.root().join("docs/old.md")).expect("remove");
 
   let refreshed = facade
-    .index_refresh(&fx.root().join("docs"))
+    .index_refresh(Some(&fx.root().join("docs")))
     .expect("refresh");
   assert_eq!(refreshed.removed, vec!["docs/old.md".to_string()]);
 
