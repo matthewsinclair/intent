@@ -1,6 +1,6 @@
 # Intent -- traps and conventions
 
-**Current as at 2026-09-11 21:22Z: v3.0.1 is shipped, and hv's estate-wide doc audit is done; its push waits on hv.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`; the DONE ledger is `intent/done.md`.
+**Current as at 2026-09-12 06:06Z: v3.0.1 is shipped; hv's estate-wide doc audit is done and pushed; fix batch 1 (release + install) is ruled to dc, and the rest of the audit's defect list waits on hv.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`; the DONE ledger is `intent/done.md`.
 
 **THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30).** Every completed-work narrative and every incident that produced a rule has moved to `intent/history/202608-restart-prefold.md`, verbatim. **What survives is what nothing else enforces** -- ic's criterion, and it is better than _is it done_: **a decision that survives only as prose is one nobody can fail**, so anything already encoded in a test, a guard or a generator has no prose home here.
 
