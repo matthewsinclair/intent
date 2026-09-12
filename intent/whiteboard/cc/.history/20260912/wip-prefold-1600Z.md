@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 16:00Z
+heartbeat_at: 2026-09-12 15:11Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 16:00Z for the user's compact -- not a release. ST0069 is closed for 3.0.2 and cc's lane with it; nothing of cc's is uncommitted and nothing waits on cc. The quiet window is OPEN, both of today's narrowings are spent, and vc is dark. NO RELEASE, NO PUSH."
+focus: "0304 fixed and landed 2026-09-12 15:05Z (5d379984d), the arm driven to both verdicts. cc's ST0069 lane is otherwise CLOSED: WP-18, WP-20, WP-23 Done; AC-23.4 ruled, no Local runtime in 3.0.2. Holding. The quiet window stands."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,12 +14,13 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**LOCALFOLDED 2026-09-12 16:00Z for the user's compact, not a release. The board before this fold is verbatim at `.history/20260912/wip-prefold-1600Z.md`; everything landed today is carried by its commits and the CHANGELOG, not here.**
-
-- **ST0069 is CLOSED for 3.0.2 and cc's lane with it.** WP-18, WP-20 and WP-23 Done, every criterion satisfied or withdrawn on a record. Nothing of cc's is uncommitted and nothing in this package waits on cc.
-- **NO RELEASE AND NO PUSH.** vc's standing line, and it did not lapse because vc went dark.
-- **QUIET WINDOW, OPEN, AND vc IS DARK (2026-09-12 16:00Z).** No `cargo test`, no `cargo build`, no drives until vc lifts it; commits of already-built work and store writes are fine. vc narrowed it twice today -- once for the Local measurement, once for the absent-sibling check -- and BOTH narrowings ARE SPENT. **On the bounce: do not run a suite to see where things are. That is the first instinct and it is the one thing forbidden.** Anything needing a ruling waits in `vc/inbox.cc.md` with a same-turn `date -u` stamp.
-- **dc's, IN ITS LAST PERMITTED RUN:** the rehearsal on the cut HEAD. **My suspicion is still handed over** for the bounded-ingest arm: if a bisect implicates the range rather than a commit, start at `write_doc_sections` in `store.rs` -- its FTS5 `rebuild` re-derives a content table holding the repository's prose as well as canon's. That line is mine.
+- **ST0069: cc's lane is CLOSED and holding.** WP-18, WP-20 and WP-23 are all Done. Nothing of cc's is uncommitted and nothing in this package is waiting on cc to build.
+  - **AC-20.4 satisfied (2026-09-12 14:43Z) on the measured grammar table plus the commit that ships it.** The four grammars that earn their bytes are on by default in both manifests; bash stays declared and off for what it CANNOT do -- no tags query, so it would name no symbols for its bytes. The two gated `intent-cli` arms compiled for the first time in that check and passed.
+  - **AC-23.4 RULED, and the answer is no.** The Local-runtime table is in the design's T3 section: fastembed on ONNX adds 29,724,592 bytes against candle's 1,772,080 -- 16.8x -- with `ort` at a release candidate. No Local runtime in 3.0.2; shape B is the recorded candidate for a later release. **`wp done ST0069/23` is DONE and off this board; do not run it.**
+  - **THE MEASUREMENT'S OWN LESSON, because it nearly shipped as a control.** `grep -ci ort` matches `sort`, `report`, `export`: the shape with no `ort` crate scored 478 on it. A needle that is a substring of ordinary words is not a control, and I withdrew that row myself before anyone read it. `onnx`, `fastembed` and `candle` are unambiguous and fired both ways.
+  - **0304 FIXED AND LANDED (5d379984d), vc's shape (a).** The disk corpus excludes every path the store carries prose for, asked of the renderer and canon's attachment rows rather than matched on a path shape. `Facade::carried` now reads that one set filtered, which is one line beyond the ruling and flagged to vc as refusable.
+  - **QUIET WINDOW, STILL OPEN.** vc narrowed it once for the Local measurement and that narrowing is SPENT. No `cargo test`, no `cargo build`, no drives until vc lifts it; commits of already-built work and store writes are fine. Anything needing a ruling goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp.
+  - **dc's, WITH MY SUSPICION HANDED OVER:** the bounded-ingest arm. If their bisect implicates the range rather than a commit, **start at `write_doc_sections` in `store.rs`** -- its FTS5 `rebuild` now re-derives a content table holding the repository's prose as well as canon's. That line is mine.
 
 ## TODO
 

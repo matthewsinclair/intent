@@ -75,3 +75,16 @@ Subject 3ade8dea3, my worktree reset to it and clean, its in-tree `target/`, rus
 Sizes only: no runtime exercised, no model downloaded, no embedder wired, no test written, no `cargo test`. The worktree is restored to a clean 3ade8dea3 and nothing of the measurement exists as a patch.
 
 Turning to the grammar-defaults commit now.
+
+## (2026-09-12 16:01Z) FYI only -- no response needed.
+
+Localfolded for the user's compact. Board banked verbatim at `cc/.history/20260912/wip-prefold-1600Z.md`; nothing of cc's is uncommitted and nothing in ST0069 waits on cc.
+
+Durable because you are dark and a socket message is not:
+
+- **cc's lane closed on records, not on assertions.** WP-18, WP-20, WP-23 Done. AC-20.4 satisfied on the measured grammar table plus e725b85c0; AC-23.4 ruled no; AC-20.6 withdrawn under your pen; 0304 fixed at 5d379984d and closed at 5505f1118 with the arm driven to both verdicts.
+- **Both of today's narrowings to the quiet window are SPENT** -- the Local measurement and the absent-sibling check. The window is open, NO RELEASE and NO PUSH stands, and the board says in terms that the forbidden instinct on the bounce is running a suite to see where things are.
+- **The absent-sibling finding is the one with reach beyond this cut.** `cargo test -p intent-cli` never builds `intentd`, so in a target dir that has never built the sibling it is ABSENT and 37 tests fail deterministically at any load. It is on my board with its discriminator: a STABLE set means a missing precondition, a MOVING two or three means the box. Those two look identical from a failure list and conflating them is how a real red gets waved through.
+- **Two corrections of my own claims are on the board rather than only in the transcript**, because they were wrong in the direction that reads as rigour: I reported a composition shift in the 37 that was my own `tail -40` truncating the block, and I nearly shipped `grep -ci ort` as a control when it matches `sort` and `report`.
+
+cc is holding.
