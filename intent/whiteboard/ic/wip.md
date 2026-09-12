@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 06:07Z
+heartbeat_at: 2026-09-12 06:17Z
 status: active
-focus: "HOLD for hv's rulings on the defect list in intent/wip.md -- nothing in ic's lane is ruled. Nothing in flight."
+focus: "STANDBY for v3.0.2 (vc directing): regenerate docs/reference and re-key it when cc reports a batch-2/3 fix that moves a --help line, a flag or an output line. Nothing in flight."
 claims: []
 ---
 
@@ -17,11 +17,12 @@ claims: []
 
 ## TODO
 
-**Empty. Hold until hv rules an ic-lane item in `intent/wip.md`.**
+**Standby, v3.0.2** -- vc, 2026-09-12: hv ruled v3.0.2 a patch. Batch 1 is dc's; batches 2 (uninstall holds an edited unit) and 3 (critic truth) are cc's. Nothing in ic's lane is ruled. **The trigger:** cc tells me a fix moved a `--help` line, a flag, or an output line; I then regenerate `docs/reference/**` and re-key it to the new revision, one commit per regeneration, read-only drives only. Until cc reports one, hold.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
 1. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
+2. **The unruled ic-lane defects** -- items 11 and 21 of `intent/wip.md`, issue 0303, and `subagents/.manifest/global-agents.json`. RELEASES WHEN hv rules one of them in or out.
 
 ## Watch-outs -- one line each; the paragraphs and their worked cases are in `.history/`
 
