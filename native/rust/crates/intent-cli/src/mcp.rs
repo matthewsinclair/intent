@@ -1268,6 +1268,10 @@ pub fn serve(
       }
       Ok(json!({
         "held": status.held,
+        // The per-language readiness travels to the tool too: an agent deciding
+        // whether a structural answer can be empty-for-a-reason needs it more
+        // than a human does, because it cannot ask a follow-up question.
+        "grammars": status.grammars,
         "skipped": skipped,
         "empty": status.is_empty(),
       }))

@@ -3648,7 +3648,15 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
         None => hit.path.clone(),
       };
       let owner = hit.owner.as_deref().unwrap_or("-");
-      println!("{place}  {owner}  {}", hit.name);
+      // **THE KIND IS A COLUMN, FOUND BY DRIVING THE SURFACE AS A USER**
+      // (2026-09-12). Without it `--outline src/parser.rs` listed
+      // `SeverityFilter`, `parse_disabled`, `collect`, `lines` and `map` in one
+      // undifferentiated column -- three of those are CALLS the file makes and
+      // two are what it DEFINES, and the outline's whole value is telling them
+      // apart. It also meant `--kind def` filtered on something the terminal
+      // never showed, so an operator could not see what their own filter had
+      // done.
+      println!("{place}  {}  {owner}  {}", hit.kind.as_str(), hit.name);
     }
   }
   Ok(())
@@ -3774,6 +3782,7 @@ fn report_index(
       "{}",
       serde_json::to_string_pretty(&serde_json::json!({
         "held": held,
+        "grammars": status.grammars,
         "skipped": skipped,
         "empty": status.is_empty(),
         "rebuilt": rebuilt,
@@ -3794,6 +3803,15 @@ fn report_index(
   }
   for (corpus, n) in &status.held {
     println!("{corpus}  {n}");
+  }
+  // **A LANGUAGE THAT NAMES NO SYMBOLS SAYS WHY** (cc's `Status::grammars`).
+  // Three different facts produce an empty structural answer -- no grammar in
+  // this build, a grammar shipping no tags query, a language nothing supports
+  // -- and a reader told none of them concludes the index is broken or that
+  // their code has no definitions in it. `shell` reads `no-tags-query` in every
+  // build, because upstream ships none and no flag here can change that.
+  for (lang, readiness) in &status.grammars {
+    println!("grammar: {lang}  {readiness}");
   }
   for reason in intentsvcs::index::status::REASONS {
     let paths = status.skipped.get(reason.as_str());

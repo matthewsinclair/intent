@@ -544,7 +544,7 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
   .expect("edit the indexed bytes away");
   let hits = ok(root, &["search", "combinator"]);
   assert_eq!(
-    hits, "intent/st/ST0001/design.md  ST0001  design.md\n",
+    hits, "intent/st/ST0001/design.md  thread  ST0001  design.md\n",
     "the indexed bytes are gone, so the hit keeps its file and loses its line: {hits:?}"
   );
 }
