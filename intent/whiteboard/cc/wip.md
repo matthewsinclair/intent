@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 08:25Z
+heartbeat_at: 2026-09-12 10:24Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 08:25Z for the user's compact -- not a release. WP-18 is OPEN and PAUSED on one ruling (D29 and the clone-local exclude); the work in progress is banked as a patch. Batch 4 is done."
+focus: "ST0069 WP-18 is built to its last step: scope, survey, exclusions, staleness, rungs 19 and 20, `index_file`, and the two facade doors, all landed and green. The watcher widening is the only thing left and its engine half is landed; the registration and the dispatch are put to dc."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,16 +14,19 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069 WP-18, the corpus. OPEN, and PAUSED on one ruling.** vc approved the shape and corrected the design at `5c0a4e2e6`; criteria AC-18.1 to AC-18.6.
-  - **THE PAUSE:** vc amended D29 to honour the global excludes file and `.git/info/exclude`. **The opposite is already ratified and under test** -- `ignored_paths_corpus.rs`'s `a_clone_local_exclude_does_not_shrink_the_corpus`, which derives it from D29 itself. The code KEEPS today's behaviour, the conflict is in the function's doc comment and in `vc/inbox.cc.md` with its citation, and nothing else in the package depends on it. **Do not guess it.**
-  - **IN PROGRESS, BANKED, NOT COMMITTED:** `Ignored` is a MATCHER instead of a set derived from two walks (the ten-second `doctor`); `Scanned::in_repository` is the index scope; `.git` is out by rule; `index::corpus` holds the three-corpus assignment and the new extension map, four unit arms green. Patch at `<scratchpad>/wp18-banked.patch` against `5c0a4e2e6`; the worktree `<scratchpad>/wt-cc` still holds it with its own in-tree target dir.
-  - **NEXT, in order:** the scope integration tests (including the arm that the walk never visits an ignored directory, and that `scan` returns exactly what it returned before), then the rung-19 `file_index` migration with the DDL face, then `SkipReason` and the four exclusions, then the two staleness policies with their missed-edit pair, then the minimal `intent index status`, then the watcher LAST and only after dc's repair lands.
+- **ST0069 WP-18, the corpus. Everything but the watcher is built and landed; the last step is cross-lane.**
+  - **OPEN, WAITING ON dc:** the registration and the dispatch in `watch.rs`. I proposed the split rather than edit the file dc has just reworked -- engine side mine and landed, daemon side theirs. AC-18.6 wants the registration strategy recorded per platform WITH the measurement that chose it, and **the inotify leg cannot be measured on this machine**; my read is to state that limit rather than claim a number from a directory count, and it is dc's call.
+  - **OPEN, ic's:** the register row, the rendering and the MCP arm for `index status`. The facade shape is sent. The one thing the rendering must not do is collapse the skipped paths into a count -- a count is silence with a number on it.
+  - **NOT BUILT AND NOT CLAIMED:** nothing indexes content, so `indexed_sha256` is unset on every row. The column is preserved rather than overwritten by a writer that has no opinion about it, so the content indexer can land without the reconcile erasing it.
+  - **NEXT AFTER THE WATCHER:** the AT rows. AC-18.1 and AC-18.4 are not closable until a hit can be asked for, so the rows wait for the surface rather than being minted against arms that prove the scope alone.
 
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
+
+- **RELEASED 2026-09-12:** the D29 pause. vc withdrew the amendment at `2866a40ed`; the corpus is the committed `.gitignore` rules and `ignored_paths_corpus.rs` is the record. The code never moved, so nothing had to be unwound.
 
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** hv ruled batches 2 and 3 to cc on 2026-09-12 06:16Z and both are landed. **The mixed-proxy silent drop stays held:** vc's two briefs disagreed and vc settled it -- the first stands, so it is not batch 3's and waits with item 9. **Still held, unruled:** the rule proxies that contradict their own rule (item 9) -- the elixir proxies firing on what their Good prescribes, swift and lua UNDECLARED -- and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.** The gate-blocked pair (`strong-assertions/bad_test.exs`, `test-highlander-shared-setup/good_test.exs`) is part of item 9 and waits with it.
 
