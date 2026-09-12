@@ -39,12 +39,18 @@ fn one_tier_is_still_a_group_and_carries_its_own_order() {
     .search_all("quokka", &SearchQuery::default())
     .expect("the search answered");
 
+  // **TWO TIERS ARE BUILT NOW, SO THERE ARE TWO GROUPS** -- the structural tier
+  // landed with WP-20's integration, and the claim this arm makes is that a
+  // TIER is a group, not that there is one of them. The group is present
+  // whether or not it has hits, because an absent group reads as a tier that is
+  // not built.
   assert_eq!(
     answer.groups.len(),
-    1,
-    "the lexical tier is the only one built, so there is exactly one group"
+    2,
+    "the lexical and structural tiers are built, so there are two groups"
   );
   assert_eq!(answer.groups[0].tier, Tier::Lexical);
+  assert_eq!(answer.groups[1].tier, Tier::Structural);
   assert!(
     !answer.groups[0].hits.is_empty(),
     "the fixture's word is indexed, so the group is not empty: {answer:?}"
@@ -113,8 +119,12 @@ fn a_filter_is_part_of_the_question_so_the_denominator_counts_what_survives_it()
     filtered.matched, 0,
     "`matched` reports what matched the question that was asked, filter included"
   );
-  assert_eq!(filtered.groups.len(), 1, "the tier is still a group");
-  assert!(filtered.groups[0].hits.is_empty());
+  assert_eq!(
+    filtered.groups.len(),
+    2,
+    "every built tier is still a group, even the ones the filter emptied"
+  );
+  assert!(filtered.groups.iter().all(|g| g.hits.is_empty()));
   assert!(
     !filtered.index.is_empty(),
     "an empty ANSWER over a populated index must not read as an empty index"

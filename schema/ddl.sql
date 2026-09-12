@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 18
+-- SCHEMA_DDL_VER: 19
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -365,6 +365,36 @@ CREATE VIRTUAL TABLE IF NOT EXISTS src_sections USING fts5 (
   body,
   tokenize = 'unicode61'
 );
+-- The structural half of the search index: what each grammar's own tags query
+-- named in a source file. One row per symbol, definitions and name-matched
+-- references alike, told apart by `kind`.
+--
+-- **`kind` IS `def` OR `ref` AND THE SECOND IS A WEAKER CLAIM THAN IT LOOKS.**
+-- A reference row says this identifier occurs here; nothing resolves it to the
+-- definition it names, so no surface may render it as a call or a caller.
+--
+-- NOT an FTS5 table, and not for want of searching: the question this answers
+-- is `does a thing with this name exist`, which is an equality on `name`, and
+-- an inverted index over identifiers would answer a different question less
+-- exactly. The lexical tier beside it is where a substring search belongs.
+--
+-- `lang` is the language whose grammar produced the row, which is not the same
+-- fact as the path's language in `index_file`: this one says what actually
+-- parsed it.
+-- openness: DERIVED -- recomputed by re-parsing the files it points at, which
+-- are the user's own and already on disk.
+CREATE TABLE IF NOT EXISTS symbols (
+  path TEXT NOT NULL,
+  lang TEXT NOT NULL,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  start_line INTEGER NOT NULL,
+  end_line INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
+CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
 -- caller that read a clock and then wrote the value would hold it across a

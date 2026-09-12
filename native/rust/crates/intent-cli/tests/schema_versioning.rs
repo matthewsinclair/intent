@@ -309,7 +309,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     //
     // **17 -> 18 IS `src_sections`**, the source half of the index, and the DDL
     // face alone again: a per-machine derived table has no wire or JSON form.
-    ("SCHEMA_DDL_VER", 18, 0x777f_ff4c_c1ed_c62a),
+    //
+    // **18 -> 19 IS `symbols`** and its two indexes, the structural half, and
+    // the DDL face alone once more: derived per-machine state has no wire form.
+    ("SCHEMA_DDL_VER", 19, 0x326f_55b9_587c_d9a9),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed

@@ -2843,16 +2843,106 @@ impl Facade {
     }
     let returned = hits.len();
 
+    // **THE STRUCTURAL TIER IS A GROUP AND NOT MORE ENTRIES IN THE LEXICAL
+    // ONE** (the design's claim, and ic's on the envelope side): a tier is a
+    // group, a corpus is an entry in `index.corpora`. The group is present
+    // whether or not it has hits, because the tier exists in this build -- the
+    // store can answer structurally -- and an absent group would read as a tier
+    // that is not built.
+    let mut structural = Vec::new();
+    for symbol in self
+      .store
+      .symbols_named(query)
+      .map_err(FacadeError::Store)?
+    {
+      let (span, stale, snippet_line) = self.symbol_claim(&symbol);
+      let hit = Hit {
+        kind: match symbol.kind {
+          crate::index::symbols::SymbolKind::Def => HitKind::Def,
+          crate::index::symbols::SymbolKind::Ref => HitKind::Ref,
+        },
+        name: symbol.name.clone(),
+        // A symbol belongs to a file, and the file is already in `path`.
+        owner: None,
+        lang: Some(symbol.lang.to_string()).filter(|l| !l.is_empty()),
+        path: symbol.path.clone(),
+        span,
+        // **NOT A RANK, AND SAYING SO.** FTS5 ranks the lexical tier and lower
+        // is better; an exact name match has no gradation to report, so every
+        // structural hit carries the same best score rather than an invented
+        // ordering.
+        score: 0.0,
+        snippet: snippet_line,
+        stale,
+      };
+      if ask.keeps(&hit) {
+        if hit.stale {
+          index.mark_stale(hit.path.clone());
+        }
+        structural.push(hit);
+      }
+    }
+    let matched = matched + structural.len();
+    let returned = returned + structural.len();
+
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
-      groups: vec![TierGroup {
-        tier: Tier::Lexical,
-        hits,
-      }],
+      groups: vec![
+        TierGroup {
+          tier: Tier::Lexical,
+          hits,
+        },
+        TierGroup {
+          tier: Tier::Structural,
+          hits: structural,
+        },
+      ],
       matched,
       returned,
     })
+  }
+
+  /// What a symbol row may still claim about the file it came from: its span,
+  /// whether it is stale, and the line to show.
+  ///
+  /// **THE SPAN IS A CLAIM ABOUT THE DISK AND IS KEPT ONLY WHERE THE BYTES ARE
+  /// THE BYTES THAT WERE PARSED** (issue 0195, the same rule the prose tier
+  /// takes). A symbol's line came from a parse; if the file has moved since, the
+  /// line names something else, and a wrong line is worse than none because it
+  /// is believed. The comparison is against the hash the index recorded when it
+  /// read the file, which is what that column is for.
+  ///
+  /// A file that cannot be read makes no claim either way: it is not evidence
+  /// the symbol is stale, and `NoClaim` is what the prose tier returns in the
+  /// same situation.
+  fn symbol_claim(
+    &self,
+    symbol: &crate::index::symbols::Symbol,
+  ) -> (Option<crate::search::Span>, bool, String) {
+    let span = crate::search::Span {
+      start_line: symbol.span.start_line,
+      end_line: symbol.span.end_line,
+    };
+    let Ok(text) = std::fs::read_to_string(self.project.root().join(&symbol.path)) else {
+      return (None, false, String::new());
+    };
+    let recorded = self.store.index_files().ok().and_then(|rows| {
+      rows
+        .into_iter()
+        .find(|r| r.path == symbol.path)
+        .and_then(|r| r.indexed_sha256)
+    });
+    if recorded.is_some_and(|sha| sha != crate::sync::sha256_of(text.as_bytes())) {
+      return (None, true, String::new());
+    }
+    let line = text
+      .lines()
+      .nth(symbol.span.start_line.saturating_sub(1) as usize)
+      .unwrap_or_default()
+      .trim()
+      .to_string();
+    (Some(span), false, line)
   }
 
   /// Where a section's indexed body sits in the file as it now stands
@@ -5280,7 +5370,11 @@ impl Facade {
     // Doing it in one door is deliberate: a rebuild that recorded a corpus and
     // indexed none of it would leave `index status` reporting files as held
     // when nothing could be found in them.
-    let content = crate::index::reconcile::read_content(self.project.root(), &rows);
+    let content = crate::index::reconcile::read_content(
+      self.project.root(),
+      &rows,
+      &self.project.config().languages,
+    );
     let mut rows = rows;
     for (path, sha) in &content.indexed {
       if let Some(row) = rows.iter_mut().find(|r| &r.path == path) {
@@ -5301,6 +5395,13 @@ impl Facade {
     self
       .store
       .replace_src_sections(&content.source)
+      .map_err(FacadeError::Store)?;
+    self
+      .store
+      .replace_symbols_for(
+        &rows.iter().map(|r| r.path.clone()).collect::<Vec<_>>(),
+        &content.symbols,
+      )
       .map_err(FacadeError::Store)?;
     Ok(crate::index::status::summarise(&rows))
   }
@@ -5341,7 +5442,11 @@ impl Facade {
       return Ok(crate::index::Refreshed::default());
     }
 
-    let content = crate::index::reconcile::read_content(self.project.root(), &change.upserts);
+    let content = crate::index::reconcile::read_content(
+      self.project.root(),
+      &change.upserts,
+      &self.project.config().languages,
+    );
     let mut upserts = change.upserts;
     for (path, sha) in &content.indexed {
       if let Some(row) = upserts.iter_mut().find(|r| &r.path == path) {
@@ -5364,6 +5469,10 @@ impl Facade {
     self
       .store
       .replace_sections_for(&touched, &content.prose, &content.source)
+      .map_err(FacadeError::Store)?;
+    self
+      .store
+      .replace_symbols_for(&touched, &content.symbols)
       .map_err(FacadeError::Store)?;
 
     Ok(crate::index::Refreshed {

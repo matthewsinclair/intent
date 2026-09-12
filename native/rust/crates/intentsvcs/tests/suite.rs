@@ -358,6 +358,8 @@ mod store_round_trip;
 mod store_schema_version;
 #[path = "subagents_payload.rs"]
 mod subagents_payload;
+#[path = "symbols_answer_the_highlander_question.rs"]
+mod symbols_answer_the_highlander_question;
 #[path = "sync_direction.rs"]
 mod sync_direction;
 #[path = "sync_overwrite_names_a_diverged_attachment.rs"]

@@ -225,8 +225,24 @@ pub struct Content {
   pub prose: Vec<crate::prose::DocSection>,
   /// Code, one row per file at the lexical tier.
   pub source: Vec<super::source::Section>,
+  /// Definitions and name-matched references, from each grammar's own tags
+  /// query, for the languages this project declares and this build carries.
+  pub symbols: Vec<super::symbols::Symbol>,
   /// `(path, sha256)` for every file actually read.
   pub indexed: Vec<(String, String)>,
+  /// **WHY A SOURCE FILE NAMED NO SYMBOLS, WHERE IT IS NOT BECAUSE IT HAS
+  /// NONE.** A grammar that is not compiled in, bytes that will not parse, and
+  /// a grammar that ships no tags query are three different answers, and all
+  /// three produce an empty vector -- so carrying the reason is the only thing
+  /// that keeps `tree-sitter-bash`, which ships no tags query at all, from
+  /// being recorded as a file that was read and found to contain nothing.
+  ///
+  /// **NOTHING SURFACES THESE YET AND THAT IS DELIBERATE.** They are not
+  /// stored, so a status read back from the store could not report them and
+  /// would disagree with the one a rebuild returns; when an AC asks for them on
+  /// a surface they get a column first. What matters here is that the
+  /// distinction is not thrown away at the point it is known.
+  pub unparsed: Vec<(String, super::symbols::NoSymbols)>,
 }
 
 /// Read every row the index says it holds, and turn the bytes into rows.
@@ -250,7 +266,7 @@ pub struct Content {
 /// reported by `index status` exactly as it was before; making this a refusal
 /// would fail a whole reconcile over one file that changed its permissions
 /// between the walk and the read.
-pub fn read_content(root: &Path, rows: &[Row]) -> Content {
+pub fn read_content(root: &Path, rows: &[Row], declared: &[String]) -> Content {
   let mut out = Content::default();
   for row in rows {
     if row.skipped_reason.is_some() {
@@ -273,6 +289,18 @@ pub fn read_content(root: &Path, rows: &[Row]) -> Content {
       // file carrying that corpus is not this pass's to read. It cannot arise
       // from a survey today and is passed over rather than assumed away.
       _ => continue,
+    }
+    // **SYMBOLS ONLY FOR A LANGUAGE THE PROJECT DECLARES.** A repository
+    // carries files in languages nobody works in, and parsing them costs the
+    // grammar's time for rows no surface of this project asks about. The
+    // declaration is the same one `intent lang` writes and the critics read.
+    if let Some(lang) = row.lang.as_deref()
+      && declared.iter().any(|d| d == lang)
+    {
+      match super::symbols::symbols_of(lang, &row.path, &bytes) {
+        Ok(symbols) => out.symbols.extend(symbols),
+        Err(why) => out.unparsed.push((row.path.clone(), why)),
+      }
     }
     out
       .indexed

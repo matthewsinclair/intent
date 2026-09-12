@@ -299,8 +299,11 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 21 is `src_sections`, the source half of the search index: a new table, so
   // the easy rung -- an empty one is the correct and only representation of a
   // store that has never read a line of source.
-  const PINNED_SCHEMA_HASH: u64 = 0x5472_833a_5942_cd98;
-  const PINNED_FOR_VERSION: i32 = 21;
+  // 22 is `symbols` and its two indexes, the structural half. A new table, so
+  // the easy rung; the indexes are part of the shape, so they are part of the
+  // rung rather than something a later store would be missing quietly.
+  const PINNED_SCHEMA_HASH: u64 = 0xc9bf_2091_0157_40d9;
+  const PINNED_FOR_VERSION: i32 = 22;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

@@ -448,6 +448,36 @@ CREATE VIRTUAL TABLE IF NOT EXISTS src_sections USING fts5 (
   body,
   tokenize = 'unicode61'
 );
+-- The structural half of the search index: what each grammar's own tags query
+-- named in a source file. One row per symbol, definitions and name-matched
+-- references alike, told apart by `kind`.
+--
+-- **`kind` IS `def` OR `ref` AND THE SECOND IS A WEAKER CLAIM THAN IT LOOKS.**
+-- A reference row says this identifier occurs here; nothing resolves it to the
+-- definition it names, so no surface may render it as a call or a caller.
+--
+-- NOT an FTS5 table, and not for want of searching: the question this answers
+-- is `does a thing with this name exist`, which is an equality on `name`, and
+-- an inverted index over identifiers would answer a different question less
+-- exactly. The lexical tier beside it is where a substring search belongs.
+--
+-- `lang` is the language whose grammar produced the row, which is not the same
+-- fact as the path's language in `index_file`: this one says what actually
+-- parsed it.
+-- openness: DERIVED -- recomputed by re-parsing the files it points at, which
+-- are the user's own and already on disk.
+CREATE TABLE IF NOT EXISTS symbols (
+  path TEXT NOT NULL,
+  lang TEXT NOT NULL,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  start_line INTEGER NOT NULL,
+  end_line INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
+CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
 -- caller that read a clock and then wrote the value would hold it across a
@@ -575,7 +605,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 21;
+pub const SCHEMA_VERSION: i32 = 22;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1374,6 +1404,30 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        body,
        tokenize = 'unicode61'
      );",
+  ),
+  (
+    22,
+    // 21 -> 22: `symbols`, the structural half of the search index.
+    //
+    // A new table and its two indexes, which is the easy rung for rung 12's
+    // reason: an empty table is the correct and only representation of a store
+    // that has never parsed a source file.
+    //
+    // **THE INDEXES ARE PART OF THE SHAPE AND SO THEY ARE PART OF THE RUNG.**
+    // A store that reached this version without them would answer the same
+    // questions by scanning, correctly and slowly, and nothing would say why.
+    "CREATE TABLE IF NOT EXISTS symbols (
+       path TEXT NOT NULL,
+       lang TEXT NOT NULL,
+       name TEXT NOT NULL,
+       kind TEXT NOT NULL,
+       start_line INTEGER NOT NULL,
+       end_line INTEGER NOT NULL,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
+     CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);",
   ),
 ];
 
@@ -4142,6 +4196,92 @@ impl Store {
     }
     tx.commit()?;
     Ok(())
+  }
+
+  /// Replace the symbols of NAMED PATHS, in one transaction.
+  ///
+  /// The paths are passed separately from the symbols for
+  /// [`Store::replace_sections_for`]'s reason: a file the parser found nothing
+  /// in, or one that has gone, contributes no rows, so a call deriving its
+  /// scope from its input could never empty anything.
+  pub fn replace_symbols_for(
+    &mut self,
+    paths: &[String],
+    symbols: &[crate::index::symbols::Symbol],
+  ) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    for path in paths {
+      tx.execute("DELETE FROM symbols WHERE path = ?1", params![path])?;
+    }
+    for s in symbols {
+      tx.execute(
+        "INSERT INTO symbols (path, lang, name, kind, start_line, end_line)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+          s.path,
+          s.lang,
+          s.name,
+          s.kind.as_str(),
+          s.span.start_line as i64,
+          s.span.end_line as i64,
+        ],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every symbol with this exact name, ordered by path then line.
+  ///
+  /// **EXACT, BECAUSE THE QUESTION IS EXACT.** `--kind def <name>` asks whether
+  /// a thing with this name already exists -- the Highlander check -- and a
+  /// prefix or substring match answers a different and softer question. The
+  /// lexical tier beside it is where an approximate search belongs, and it
+  /// answers the same query in the same envelope.
+  pub fn symbols_named(
+    &self,
+    name: &str,
+  ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, lang, name, kind, start_line, end_line
+         FROM symbols WHERE name = ?1 ORDER BY path, start_line",
+    )?;
+    let rows = stmt.query_map(params![name], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, String>(2)?,
+        row.get::<_, String>(3)?,
+        row.get::<_, i64>(4)?,
+        row.get::<_, i64>(5)?,
+      ))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      let (path, lang, name, kind, start_line, end_line) = row?;
+      out.push(crate::index::symbols::Symbol {
+        path,
+        // **THE STORED LANGUAGE IS MATCHED TO THE ROSTER RATHER THAN LEAKED AS
+        // A `String`.** `Symbol::lang` is `&'static str` because the roster is
+        // the vocabulary; a row naming a language this build has never heard of
+        // is a row no surface can render, and it comes back as the empty name
+        // rather than being invented.
+        lang: crate::index::symbols::LANGUAGES
+          .iter()
+          .find(|(known, _)| *known == lang)
+          .map_or("", |(known, _)| *known),
+        name,
+        kind: match kind.as_str() {
+          "ref" => crate::index::symbols::SymbolKind::Ref,
+          _ => crate::index::symbols::SymbolKind::Def,
+        },
+        span: crate::index::symbols::Span {
+          start_line: start_line as u32,
+          end_line: end_line as u32,
+        },
+      });
+    }
+    Ok(out)
   }
 
   /// Every source row, ordered by path then position.
