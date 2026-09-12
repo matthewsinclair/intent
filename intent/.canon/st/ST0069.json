@@ -739,6 +739,15 @@
       "status": "green"
     },
     {
+      "id": "AT-19.6",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_index_says_what_it_holds.rs",
+      "covers": [
+        "AC-19.6"
+      ],
+      "status": "green"
+    },
+    {
       "id": "AT-21.1",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",

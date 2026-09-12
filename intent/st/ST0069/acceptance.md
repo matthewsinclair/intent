@@ -120,7 +120,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-19.3 A stale, partial or empty index is named in the envelope and on the terminal, or the query refuses with the remedy; a confident subset is never returned. -- satisfied: yes (computed)
 - AC-19.4 Source text is tokenised without stemming and snake_case splits into its words; the tokeniser decision carries its measured recall on an identifier fixture. -- satisfied: no (computed)
 - AC-19.5 A hit's line is reported only when the indexed bytes match the disk; otherwise the hit carries no line and says stale. -- satisfied: yes (computed)
-- AC-19.6 `intent index status` and `intent index rebuild` exist, report measured sizes, and are registered and exposed like every verb. -- satisfied: no (computed)
+- AC-19.6 `intent index status` and `intent index rebuild` exist, report measured sizes, and are registered and exposed like every verb. -- satisfied: yes (computed)
 
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Not Started)
 
@@ -191,6 +191,7 @@ _(no tests in this group)_
 - AT-19.2 `native/rust/crates/intent-cli/tests/the_search_tool_and_json_are_one_envelope.rs` -- covers AC-19.2 -- status: green
 - AT-19.3 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.3 -- status: green
 - AT-19.5 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.5 -- status: green
+- AT-19.6 `native/rust/crates/intent-cli/tests/the_index_says_what_it_holds.rs` -- covers AC-19.6 -- status: green
 
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Not Started)
 
