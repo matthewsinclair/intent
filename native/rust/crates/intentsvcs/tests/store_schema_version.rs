@@ -288,8 +288,16 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // rung 3. Rows are carried with four NULLs; the table is DERIVED and could
   // have been dropped, but dropping it would make the next scan report every
   // file in the project as changed.
-  const PINNED_SCHEMA_HASH: u64 = 0xdf05_8faf_e18f_234b;
-  const PINNED_FOR_VERSION: i32 = 19;
+  // 20 gives those four columns back and creates `index_file` for them. One
+  // writer per table, measured: `replace_file_index` deletes every row the sync
+  // scan did not produce, so the first row a reconcile wrote for a source file
+  // vanished on the next sync, and the two corpora are not nested either way.
+  // Rung 19 is NOT edited -- a version is a claim about shape, so once a store
+  // has run a rung, changing what it produces needs a new rung. A rebuild
+  // rather than `DROP COLUMN` for the same fixture reason rung 19 gives, and
+  // the new table starts empty because no reconcile has ever run.
+  const PINNED_SCHEMA_HASH: u64 = 0xd48c_2e6f_767d_d1da;
+  const PINNED_FOR_VERSION: i32 = 20;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

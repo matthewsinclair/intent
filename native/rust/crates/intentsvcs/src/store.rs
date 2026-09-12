@@ -351,22 +351,14 @@ CREATE TABLE IF NOT EXISTS issues (
 -- answer different questions: a file untouched since last scan has a moving
 -- `updated_at` and a still `mtime`.
 --
--- THE SEARCH INDEX WIDENS THIS TABLE RATHER THAN OPENING A SECOND ONE.
--- One row per in-scope path, skipped ones included, so that a
--- file the index does not hold is a ROW SAYING WHY and never an absence -- the
--- difference between `intent index status` reporting a skip and a user finding
--- out by not getting a hit.
---
--- The four columns are NULL until a reconcile fills them, and each NULL says
--- something different and true: `corpus` and `lang` are the classification,
--- `indexed_sha256` is the content this row was last indexed AT (NULL = in
--- scope and not yet indexed), and `skipped_reason` names the exclusion (NULL =
--- not skipped). A row written by the sync scanner before any reconcile has run
--- carries four NULLs, which is the honest description of it.
---
--- `size`, `mtime`, `sha256`, `state` and `findings` remain the CHANGE
--- DETECTOR's, over the narrower canon corpus `sync::scan` walks; the four
--- below are the INDEX's, over the repository. Two questions, one row per path.
+-- **THIS TABLE HAS ONE WRITER AND THE SEARCH INDEX IS NOT IT.** It briefly
+-- carried the index's four columns and they moved to `index_file` one rung
+-- later: `replace_file_index` deletes every row the sync scan did not produce,
+-- so a row the index had written for a source file disappeared on the next
+-- sync -- and the two corpora are not nested either way, because the canon
+-- corpus carries the rendered views and the extract that the index corpus
+-- deliberately excludes. Neither writer can be given the other's delete rule,
+-- so neither shares the other's table.
 CREATE TABLE IF NOT EXISTS file_index (
   path TEXT PRIMARY KEY,
   size INTEGER NOT NULL,
@@ -374,8 +366,37 @@ CREATE TABLE IF NOT EXISTS file_index (
   sha256 TEXT NOT NULL,
   state TEXT NOT NULL,
   findings TEXT NOT NULL,
-  corpus TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- The SEARCH INDEX's scope table: one row per in-scope path, skipped ones
+-- included, so that a file the index does not hold is a ROW SAYING WHY rather
+-- than an absence. That is the difference between `intent index status`
+-- reporting a skip and a user finding out by not getting a hit.
+--
+-- The scope is the gitignore-aware repository, which is WIDER than the change
+-- detector's corpus above and excludes things that one carries: the rendered
+-- views and the canon extract are the store's prose seen twice, and indexing
+-- them would return every entity hit beside its own rendering.
+--
+-- `corpus` is `canon`, `prose` or `code`, and a kind the map does not recognise
+-- is `code` with no `lang` rather than absent: a file with no corpus is a file
+-- no surface can report. `indexed_sha256` is the content this row was last
+-- indexed AT -- NULL where the file has not been read, which includes every
+-- skipped row, because nothing hashes a file a skip reason excludes.
+-- `skipped_reason` is NULL for a file the index holds.
+--
+-- `size` and `mtime` are the FILE's, carried so the stat-then-hash policy can
+-- compare them without a second table; `created_at` / `updated_at` are the
+-- row's own.
+-- openness: DERIVED -- rebuilt by re-walking the working tree, and the files it
+-- indexes are the user's own data, already readable without Intent.
+CREATE TABLE IF NOT EXISTS index_file (
+  path TEXT PRIMARY KEY,
+  corpus TEXT NOT NULL,
   lang TEXT,
+  size INTEGER NOT NULL,
+  mtime TEXT NOT NULL,
   indexed_sha256 TEXT,
   skipped_reason TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -525,7 +546,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 19;
+pub const SCHEMA_VERSION: i32 = 20;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1246,6 +1267,59 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        SELECT path, size, mtime, sha256, state, findings FROM file_index;
      DROP TABLE file_index;
      ALTER TABLE file_index_v19 RENAME TO file_index;",
+  ),
+  (
+    20,
+    // 19 -> 20: the index gets its own table and gives back the four columns
+    // rung 19 put on `file_index`.
+    //
+    // **ONE WRITER PER TABLE, MEASURED RATHER THAN PREFERRED.**
+    // `replace_file_index` deletes every row the sync scan did not produce, so
+    // the first row a reconcile wrote for a source file vanished on the next
+    // sync. The two corpora are not nested either way -- the canon corpus
+    // carries the rendered views and the extract, which the index corpus
+    // deliberately excludes -- so neither writer can be handed the other's
+    // delete rule, and the NOT NULL columns made it worse: an index row for a
+    // source file would have had to supply a `sha256` for a file the cap says
+    // not to read, and a `state` from a vocabulary that is about canon ingest.
+    //
+    // **RUNG 19 IS NOT EDITED, AND THAT IS THE LADDER'S OWN RULE.** A version
+    // is a claim about SHAPE, so once a store has run a rung, changing what it
+    // produces needs a NEW rung; 19 shipped, so 20 undoes it in the open.
+    //
+    // A rebuild rather than `DROP COLUMN`, for the reason rung 19 gives about
+    // the fixture that stamps an old version onto the current DDL -- there the
+    // columns are already gone, and `DROP COLUMN` would fail on a table that
+    // never had them. The `SELECT` names only what survives.
+    //
+    // The new table starts EMPTY and that is correct: no reconcile has ever
+    // run, so there is nothing to carry, and an empty index is the honest
+    // description of a store that has never built one.
+    "CREATE TABLE IF NOT EXISTS index_file (
+       path TEXT PRIMARY KEY,
+       corpus TEXT NOT NULL,
+       lang TEXT,
+       size INTEGER NOT NULL,
+       mtime TEXT NOT NULL,
+       indexed_sha256 TEXT,
+       skipped_reason TEXT,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     CREATE TABLE file_index_v20 (
+       path TEXT PRIMARY KEY,
+       size INTEGER NOT NULL,
+       mtime TEXT NOT NULL,
+       sha256 TEXT NOT NULL,
+       state TEXT NOT NULL,
+       findings TEXT NOT NULL,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     INSERT INTO file_index_v20 (path, size, mtime, sha256, state, findings)
+       SELECT path, size, mtime, sha256, state, findings FROM file_index;
+     DROP TABLE file_index;
+     ALTER TABLE file_index_v20 RENAME TO file_index;",
   ),
 ];
 

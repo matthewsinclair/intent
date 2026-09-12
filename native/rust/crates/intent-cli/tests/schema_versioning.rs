@@ -300,7 +300,13 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // moves; none of them reaches the wire or the JSON faces, because the index
     // is per-machine derived state rather than modelled content -- the same
     // one-face reading `threads.revision` produced.
-    ("SCHEMA_DDL_VER", 16, 0xb606_cef8_447b_2573),
+    //
+    // **16 -> 17 MOVES THOSE FOUR COLUMNS INTO A TABLE OF THEIR OWN**,
+    // `index_file`, and still moves the DDL face alone. One writer per table:
+    // the change detector's replace deletes every row its scan did not
+    // produce, and the index's corpus is neither a subset nor a superset of
+    // it.
+    ("SCHEMA_DDL_VER", 17, 0x70d8_d777_ce53_d9e4),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
