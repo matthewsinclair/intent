@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 06:03Z
+heartbeat_at: 2026-09-12 06:10Z
 status: active
-focus: "LOCALFOLD for hv's compact, not a release. Doc audit DONE and pushed (main 3b71d257d both remotes). Directing fix batch 1 (release + install), dc building; cc and ic hold. Other defect batches unruled."
+focus: "On the bounce after hv's compact. Doc audit DONE and pushed. Directing fix batch 1 (release + install): dc has items 2 and 3 landed, item 1 (schema faces at release) not started. cc and ic hold, boards leaned."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
