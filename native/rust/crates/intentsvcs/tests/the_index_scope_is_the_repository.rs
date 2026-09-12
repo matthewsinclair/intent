@@ -1,3 +1,5 @@
+//! AT-18.1, and AC-18.4's first half.
+//!
 //! AC-18.1 / AC-18.4: the index's scope is the gitignore-aware repository, it
 //! is decided by ONE ignore statement shared with the sync scanner, and the
 //! three exclusions that are not gitignored are out by RULE.

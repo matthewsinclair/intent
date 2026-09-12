@@ -1,3 +1,5 @@
+//! AT-18.2.
+//!
 //! AC-18.2, the door half: a rebuild records every in-scope path with the
 //! reason the index does not hold it, and `index status` READS THAT BACK rather
 //! than walking again.

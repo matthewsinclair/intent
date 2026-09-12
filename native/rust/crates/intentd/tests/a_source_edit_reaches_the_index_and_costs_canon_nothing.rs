@@ -1,3 +1,5 @@
+//! AT-18.4.
+//!
 //! `AC-18.4`'s daemon half: **a source edit reaches the index, and the canon
 //! path does not notice.**
 //!

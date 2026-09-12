@@ -1,5 +1,10 @@
 //! The impure rim: what the index has to touch the filesystem to know.
 //!
+//! **AT-18.3** is `a_same_size_same_mtime_rewrite_is_caught_by_one_policy_and_
+//! missed_by_the_other`, the missed-edit case driven on a real file and put to
+//! both policies; the pure decision it exercises, and the arms that drive it on
+//! values, are in `index::freshness`.
+//!
 //! **IT DECIDES NOTHING IT CAN ASK [`super::corpus`] INSTEAD** (IN-AG-PFIC-001).
 //! The rules -- which corpus a path joins, what counts as binary, what the cap
 //! is -- are pure and live one module over, driven on values. What is here is

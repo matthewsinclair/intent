@@ -1,5 +1,10 @@
 //! The scope rule: which paths the index covers, and which corpus each joins.
 //!
+//! **AT-18.5** is `the_stores_own_projections_are_out_by_rule`: a rendered view
+//! and the canon extract are the store's prose seen twice, so they are not in
+//! the disk corpus, and the rule asks the RENDERER rather than a path shape.
+//! `index::reconcile`'s survey arm drives the same rule over a real tree.
+//!
 //! **PURE. IT DECIDES AND READS NOTHING** (IN-AG-PFIC-001). Every function here
 //! answers from a path and the scope object; the walk, the file reads and the
 //! staleness comparison are `reconcile`'s, one module over.
