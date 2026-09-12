@@ -125,10 +125,10 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
 - AC-20.1 Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing. -- satisfied: yes (computed)
-- AC-20.2 Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else. -- satisfied: no (computed)
+- AC-20.2 Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else. -- satisfied: yes (computed)
 - AC-20.3 `intent search --kind def <name>` answers whether a thing with that name already exists, from the tree. -- satisfied: yes (computed)
 - AC-20.4 (non-test) The binary-size delta of each grammar is measured and recorded before it ships; hv rules on any grammar above the line hv sets. -- satisfied: no
-- AC-20.5 References are named as name-matched on every surface and never as callers. -- satisfied: no (computed)
+- AC-20.5 References are named as name-matched on every surface and never as callers. -- satisfied: yes (computed)
 - AC-20.6 Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling. -- satisfied: no (computed)
 
 ### WP-21 -- The explorer's /search pane (status: Done)
@@ -154,7 +154,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 - AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: no (computed)
 - AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: yes (computed)
-- AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: no (computed)
+- AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: yes (computed)
 - AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
 - AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: no (computed)
 - AC-24.6 (non-test) The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on. -- satisfied: no
@@ -197,7 +197,9 @@ _(no tests in this group)_
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
 - AT-20.1 `native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs` -- covers AC-20.1 -- status: green -- The first half: a declared language's file names its symbols through the index, driven end to end with --features lang-rust because every grammar is off until hv rules the size line. The second half -- a language absent from the array parses nothing -- is ic's absent-language arm in index::symbols; one criterion answered in two files is one record or it is neither.
+- AT-20.2 `native/rust/crates/intentsvcs/tests/symbols_come_from_the_grammars_own_tags.rs` -- covers AC-20.2 -- status: green
 - AT-20.3 `native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs` -- covers AC-20.3 -- status: green -- Plants the rows a parse would have written and asks the question, because the store's answer is true of every build while a file naming symbols needs a grammar compiled in. The match is exact: --kind def asks whether a thing with that name already exists, and a prefix would answer a softer question. Reporting a reference as a definition reds it alone.
+- AT-20.5 `native/rust/crates/intentsvcs/tests/symbols_come_from_the_grammars_own_tags.rs` -- covers AC-20.5 -- status: green
 
 ### WP-21 -- The explorer's /search pane (status: Done)
 
@@ -216,6 +218,7 @@ _(no tests in this group)_
 ### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
 - AT-24.2 `native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs` -- covers AC-24.2 -- status: green
+- AT-24.3 `native/rust/crates/intent-cli/tests/the_structural_doors_answer_in_the_envelope.rs` -- covers AC-24.3 -- status: green
 
 ---
 
