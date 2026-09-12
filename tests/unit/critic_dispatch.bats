@@ -62,11 +62,18 @@ HOOK="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh"
   assert_file_contains "$SKILL_FILE" "content"
 }
 
-@test "in-review skill documents the D7 prose/code-critic exclusion" {
-  # prose-only projects run no code critic; mixed projects run both on their
-  # own subtrees. The note names D7 and the prose-only case.
+@test "in-review skill documents the prose/code-critic exclusion" {
+  # prose-only projects run no code critic; mixed projects run both on their own
+  # subtrees. The CLAIM is what this holds, and the prose-only case is where the
+  # skill states it.
+  #
+  # The `D7` assertion that used to sit beside this one is GONE, not moved: an
+  # installed payload names behaviours, never Intent's own decision numbers, and
+  # 59891aec8 took the label out on that ground with `no_pm_state_in_output`
+  # holding it. A test asserting the label outlived the thing it described --
+  # the exclusion is still documented, which is why the assertion below still
+  # passes. (vc ruled the deletion, 2026-09-12, off dc's rehearsal log.)
   assert_file_contains "$SKILL_FILE" "prose-only"
-  assert_file_contains "$SKILL_FILE" "D7"
 }
 
 # ====================================================================
