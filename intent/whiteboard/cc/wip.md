@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 14:19Z
+heartbeat_at: 2026-09-12 14:43Z
 status: active
-focus: "BOOTED ON THE BOUNCE 2026-09-12 14:19Z and HOLDING. The lane is built out and nothing of mine is uncommitted; WP-23 is open on one record that is hv's. The quiet window is OPEN -- no builds, tests or drives -- and vc is dark."
+focus: "cc's ST0069 lane is CLOSED 2026-09-12 14:43Z: WP-18, WP-20 and WP-23 Done, AC-20.4 satisfied on the measured table, AC-23.4 ruled -- no Local runtime in 3.0.2, shape A 16.8x shape B. Holding. The quiet window is still open and the narrowing vc gave me for the measurement is spent."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,12 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069. Everything in cc's lane is landed and cited; nothing of mine is uncommitted.** WP-18 and WP-23's seams, WP-20's integration half, the AT rows for all of them, and the CHANGELOG's batch-4 entries. What is left in this package is not code.
-  - **OPEN, AND NOT MINE TO WRITE:** AC-23.4, the Local-runtime decision. Two candidate shapes with their crates are with dc to measure (binary delta only; each crate referenced behind an opaque condition, or fat LTO drops it and a zero delta reads as a free runtime) and with vc to put to hv. **`wp done ST0069/23` follows that record and is a store write, so the quiet window does not block it. I do not build Local.**
-  - **ON hv's LIST, NOT A QUIET ADDITION:** TLS. The HTTP embedder speaks `http://` and refuses `https://` by name; a TLS stack is a dependency with a rationale, beside the Local decision.
-  - **QUIET WINDOW, OPEN NOW, AND vc IS DARK.** No `cargo test`, no `cargo build`, no drives of any kind on this box until vc lifts it. Commits of already-built work and store writes are fine. **On the bounce: do not run a suite to "check where things are" -- that is the first instinct and it is the one thing forbidden.** Anything needing a ruling goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp.
-  - **dc's, WITH MY SUSPICION HANDED OVER:** the bounded-ingest arm. Not dc's registration (six runs each way across their commit, 3 of 6 red with, 4 of 6 without). If their bisect implicates the range rather than a commit, **start at `write_doc_sections` in `store.rs`** -- its FTS5 `rebuild` now re-derives a content table holding the repository's prose as well as canon's, which is where an ingest's per-pass cost actually moved. That line is mine.
+- **ST0069: cc's lane is CLOSED and holding.** WP-18, WP-20 and WP-23 are all Done. Nothing of cc's is uncommitted and nothing in this package is waiting on cc to build.
+  - **AC-20.4 satisfied (2026-09-12 14:43Z) on the measured grammar table plus the commit that ships it.** The four grammars that earn their bytes are on by default in both manifests; bash stays declared and off for what it CANNOT do -- no tags query, so it would name no symbols for its bytes. The two gated `intent-cli` arms compiled for the first time in that check and passed.
+  - **AC-23.4 RULED, and the answer is no.** The Local-runtime table is in the design's T3 section: fastembed on ONNX adds 29,724,592 bytes against candle's 1,772,080 -- 16.8x -- with `ort` at a release candidate. No Local runtime in 3.0.2; shape B is the recorded candidate for a later release. **`wp done ST0069/23` is DONE and off this board; do not run it.**
+  - **THE MEASUREMENT'S OWN LESSON, because it nearly shipped as a control.** `grep -ci ort` matches `sort`, `report`, `export`: the shape with no `ort` crate scored 478 on it. A needle that is a substring of ordinary words is not a control, and I withdrew that row myself before anyone read it. `onnx`, `fastembed` and `candle` are unambiguous and fired both ways.
+  - **QUIET WINDOW, STILL OPEN.** vc narrowed it once for the Local measurement and that narrowing is SPENT. No `cargo test`, no `cargo build`, no drives until vc lifts it; commits of already-built work and store writes are fine. Anything needing a ruling goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp.
+  - **dc's, WITH MY SUSPICION HANDED OVER:** the bounded-ingest arm. If their bisect implicates the range rather than a commit, **start at `write_doc_sections` in `store.rs`** -- its FTS5 `rebuild` now re-derives a content table holding the repository's prose as well as canon's. That line is mine.
 
 ## TODO
 
