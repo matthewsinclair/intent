@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 17:38Z
+heartbeat_at: 2026-09-12 17:32Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 17:38Z. ST0069 to the end on hv's word. WP-16 built and satisfied, ONE finding left (`Board` has no contract row, cc writes its table in WP-14 commit two); the close is vc's word and never a clean run. Then per-landing register review for `intent wb`, then the protocol half. Nothing of mine uncommitted."
+focus: "ST0069 to the end. WP-16 is built and satisfied with ONE finding left -- `Board` is published and has no contract row; cc writes its table in WP-14 commit two, then I add the map entry, re-run and report, and the close is vc's word. Watch armed. Then WP-14's protocol half on vc's signal."
 claims: []
 ---
 
@@ -13,21 +13,20 @@ claims: []
 
 ## DOING
 
-**WP-16 is BUILT and satisfied; ONE finding stands and it is not mine to clear.** `contract_check.sh` joins four published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. On main at cbbb48350: 15 of 15 mapped entities checked, 104 properties, 16 derived. AT-16.1 to AT-16.4 green on ST0069.
+**WP-16, built and satisfied; ONE finding stands and it is cc's to clear.** `contract_check.sh` joins four published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. On main at cbbb48350: 15 of 15 mapped entities checked, 104 properties, 16 derived. AT-16.1 to AT-16.4 green on ST0069.
 
-- **THE LAST FINDING IS `Board`** -- the file envelope `{schema, node, items, messages}` for `whiteboard/<node>/board.json`, published with no contract row. vc ruled it a modelled form and cc writes its `### board` table in WP-14 commit two. **Then: add the `Board -> board` map entry in my own commit, re-run on main, report.**
-- **A CLEAN RUN IS NOT A CLOSE. DO NOT RUN `wp done` ON WP-16** -- not on a clean run, not on cc's landing, only on vc's word. The two conditions are deliberately separate; the gap between them is where a node closes its own package on its own evidence.
-- Rostered **manual**, dated not permanent. dc wires the preflight when vc signals; the path and exit contract are already with dc.
+- **WAITING ON cc's WP-14 COMMIT TWO, watch armed.** `Board` -- the file envelope `{schema, node, items, messages}` for `whiteboard/<node>/board.json` -- is published and has no contract row. vc ruled it a modelled form and cc writes its `### board` table. **When that lands: add the `Board -> board` map entry in my own commit, re-run on main, report. A clean run over every entity is WP-16's close and the word is vc's.**
+- **DO NOT RUN `wp done` ON WP-16.** Not on a clean run, not on cc's landing -- only on vc's word.
+- The three coordination entities AGREE with their rows property for property; cc's face and vc's reworded rows match, `created_at` and `sent_at` gone from both.
+- Rostered **manual**, dated not permanent; dc wires the preflight when vc signals, not me.
 
 ## TODO
 
-**Review every `intent wb` verb landing, one commit per landing, on vc's per-verb signal.** The register order is amended FOR THIS FAMILY ONLY (vc, 2026-09-12): cc writes the row in the commit that BUILDS each verb, starting `wb register` in commit two; I review and correct -- help prose, exit codes, voice, `when_to_use`, MCP exposure. **The order of writing moved; my ownership did not.** The reason is structural: the SSOT cannot precede the arm across two nodes, and a row with no arm fails reachability. **It is a review ON EVERY LANDING, never a pass** -- a review that happens once misses every commit after it. vc signals per verb, so this is not a watch I keep.
+**WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build.** Mine: AC-14.10's `/in-whiteboard` rewrite onto `intent wb`, AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi` with its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
 
-**WP-14's protocol half, on vc's signal.** AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
+**THE REGISTER ORDER IS AMENDED FOR THIS FAMILY ONLY (vc, 2026-09-12), AND IT IS AN ORDER CHANGE RATHER THAN AN OWNERSHIP ONE.** For `intent wb`, cc writes the row in the commit that BUILDS each verb, starting with `wb register` in commit two; I REVIEW every landing's rows and correct them in my own commit -- help prose, exit codes, voice, `when_to_use`, MCP exposure. **The reason is structural: the SSOT cannot precede the arm across two nodes, because a row with no arm fails reachability.** My ownership of the register does not move and nothing else about it changes. **So the ic job here is a REVIEW ON EVERY LANDING, not a one-time pass** -- a review that happens once is a review that misses every commit after it.
 
-**The batched reference regeneration, after the tag, on vc's signal.** Unchanged and still pinned as two literal commands below the fold at `.history/20260912/wip-prefold-1738Z.md`: both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed** because both generators hardcode `v3.0.0`. Neither needs a build.
-
-**AFTER cc's COMMIT TWO THE LIVE STORE IS AT SCHEMA 24, by vc's hand, and vc rebuilds the shared pair at that commit and broadcasts.** Between the landing and the broadcast: NO store reads through anything. From the broadcast on, PATH `intent` is current and reads and writes through it are fine. **I do not rebuild the shared pair** -- vc does, at every landing that matters.
+**AFTER cc's COMMIT TWO THE LIVE STORE IS AT SCHEMA 24, migrated by vc's hand, and vc broadcasts the moment.** Every store read of mine after that needs a CURRENT binary: the delivered pair is already behind HEAD and the currency arm refuses it. **Build in a private detached worktree with its own IN-TREE target dir under an isolated HOME; do NOT rebuild the shared release pair** -- three other nodes read it and that is dc's to move, not mine.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
@@ -66,15 +65,7 @@ BUILDING AND VERIFYING, once the quiet window lifts:
 - An AT row citing a file is a citation only if the FILE carries the row's literal id.
 - Nothing in this workspace may read a clock; bound work in SQLite instructions, not seconds.
 
-JUDGEMENT, earned 2026-09-12 afternoon:
-
-- **A MEASUREMENT'S POPULATION IS PART OF THE SENTENCE, AND MINE WAS NOT.** I wrote "the six `1..n` rows" into the register off a jq that selected objects carrying `flags` and never looked at `args`. Eight declarations exist; two are positionals. A claim wider than the thing it measured, written into the surface in the commit whose subject was the surface telling the truth. **Say what the query walked, in the sentence, or do not quantify.**
-- **A NAME SEARCH REPORTED AS A CONCLUSION.** I told vc four entities were homeless; `Envelope` had a complete table at `event_log` all along. Two artefacts describing one thing in two naming conventions cannot be joined by name, and the failure LOOKS like a finding rather than like an error.
-- **A NEW CODE PATH HAS NEVER BEEN DRIVEN, WHICH IS THE WHOLE OF AC-16.4.** The row-shaped table reader was a second reader with its own green; I drove it red both ways plus its refusal before trusting it. A reader that has only ever agreed is indistinguishable from one that always agrees.
-- **A REFUSAL MUST NAME WHERE TO GO, NOT WHERE IT LOOKED.** Three entities share one table, so `absent from wb_node` sent a reader to a table holding two others. It names `wb_node#wb_message` now.
-- **THE STALE CLAIM IS USUALLY BESIDE THE ONE YOU WERE SENT FOR.** vc sent me to `organize --default`'s help; the `disposition_basis` under it stated the definition-by-exclusion hv had rejected in as many words, on the very date the basis carries. The code was fixed that day and the register was not. **Read the whole row, not the field you were pointed at.**
-
-JUDGEMENT, earned earlier:
+JUDGEMENT, earned today:
 
 - **READ THE LANDED CODE, NEVER THE ANNOUNCEMENT.** A release-note paragraph said a rebuild was required before a first search; the door's own doc comment said the daemonless query reconciles, and every caller was a daemon or a test. Both readings were defensible and only the call sites settled it.
 - **A PEER'S LANDING SILENTLY FALSIFIES DOCUMENTATION, and nothing reports it.** WP-22 made one Upgrading paragraph wrong; the hydrate refusal made a known-defects remedy send the reader to a refusal. When a verb's behaviour moves, the pages that tell a reader to run it are the defect surface -- go and look, they will not tell you.
