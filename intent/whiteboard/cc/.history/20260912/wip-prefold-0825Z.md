@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 08:25Z
+heartbeat_at: 2026-09-12 08:12Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 08:25Z for the user's compact -- not a release. WP-18 is OPEN and PAUSED on one ruling (D29 and the clone-local exclude); the work in progress is banked as a patch. Batch 4 is done."
+focus: "Batch 4's engine half is LANDED, seven items. Next: ST0069 WP-18, the corpus -- design read before code, own worktree, fixture trees never the estate. No release and no push."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,10 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069 WP-18, the corpus. OPEN, and PAUSED on one ruling.** vc approved the shape and corrected the design at `5c0a4e2e6`; criteria AC-18.1 to AC-18.6.
-  - **THE PAUSE:** vc amended D29 to honour the global excludes file and `.git/info/exclude`. **The opposite is already ratified and under test** -- `ignored_paths_corpus.rs`'s `a_clone_local_exclude_does_not_shrink_the_corpus`, which derives it from D29 itself. The code KEEPS today's behaviour, the conflict is in the function's doc comment and in `vc/inbox.cc.md` with its citation, and nothing else in the package depends on it. **Do not guess it.**
-  - **IN PROGRESS, BANKED, NOT COMMITTED:** `Ignored` is a MATCHER instead of a set derived from two walks (the ten-second `doctor`); `Scanned::in_repository` is the index scope; `.git` is out by rule; `index::corpus` holds the three-corpus assignment and the new extension map, four unit arms green. Patch at `<scratchpad>/wp18-banked.patch` against `5c0a4e2e6`; the worktree `<scratchpad>/wt-cc` still holds it with its own in-tree target dir.
-  - **NEXT, in order:** the scope integration tests (including the arm that the walk never visits an ignored directory, and that `scan` returns exactly what it returned before), then the rung-19 `file_index` migration with the DDL face, then `SkipReason` and the four exclusions, then the two staleness policies with their missed-edit pair, then the minimal `intent index status`, then the watcher LAST and only after dc's repair lands.
+- **ST0069 WP-18, the corpus.** The index scope becomes the gitignore-aware repository: every exclusion a named `file_index` row, two staleness policies, one scope object read by the scanner, the widened watcher. **Read `intent/st/ST0069/design.md` before the code**; criteria AC-18.1 to AC-18.6. Own worktree with its in-tree target dir, isolated HOME, tests on fixture trees and never the estate. **Do not touch `watch.rs` or `Scanned` until dc's watcher fix lands** (vc, 2026-09-12).
 
 ## TODO
 
