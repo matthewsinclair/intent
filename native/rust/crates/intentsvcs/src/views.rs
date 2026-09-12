@@ -1601,6 +1601,140 @@ pub fn undeclared_owner(
   None
 }
 
+/// A stored instant as a board renders it: minute granularity, `Z`-marked.
+///
+/// **IT TRUNCATES A STORED VALUE AND READS NO CLOCK**: no door takes a
+/// timestamp and no view reads one either. The store holds `2026-09-12T19:02:38.616Z` because a
+/// stamp is written once and compared; a board is read by people and has always
+/// carried `2026-09-12 19:02Z`. Converting one to the other is a pure function
+/// of the input, so the view stays byte-identical across renders.
+///
+/// A value it cannot read is emitted VERBATIM rather than repaired. `authored_at`
+/// carries what a migrated board's markdown claimed, including stamps known to
+/// be invented, and a renderer that silently normalised those would be laundering
+/// them into a form indistinguishable from a real reading.
+fn board_stamp(iso: &str) -> String {
+  match (iso.find('T'), iso.len() >= 16) {
+    (Some(t), true) if t == 10 => format!("{} {}Z", &iso[..10], &iso[11..16]),
+    _ => iso.to_string(),
+  }
+}
+
+/// The header block, which is NOT YAML and is written the way it is read: one
+/// line per key, the value everything after the first `: `, no escaping.
+///
+/// **`focus` IS THE ONE VALUE THAT GETS DELIMITERS, and they are display rather
+/// than syntax.** The reader strips one pair of surrounding double quotes; a
+/// quote INSIDE the value is literal and must not be escaped, which is exactly
+/// what a node hand-writing prose does naturally and what a node that knows YAML
+/// gets wrong. The renderer emitting the un-escaped form is what makes the
+/// round trip through `fm_get` byte-identical.
+fn board_header(node: &crate::model::WbNode) -> String {
+  let mut out = String::from("---\n");
+  out.push_str(&kv("node", &node.moniker));
+  out.push_str(&kv("name", &node.name));
+  out.push_str(&kv("role", &node.role));
+  out.push_str(&kv(
+    "session_id",
+    node.session_id.as_deref().unwrap_or("none"),
+  ));
+  out.push_str(&kv("heartbeat_at", &board_stamp(&node.heartbeat_at)));
+  out.push_str(&kv("status", &crate::model::enum_str(&node.status)));
+  out.push_str(&format!("focus: \"{}\"\n", node.focus));
+  out.push_str(&format!("claims: [{}]\n", node.claims.join(", ")));
+  out.push_str("---\n\n");
+  out
+}
+
+/// One node's board as `intent/whiteboard/<node>/wip.md`.
+///
+/// **EVERY SECTION IS EMITTED, INCLUDING THE EMPTY ONES.** A board with no
+/// `## TODO` heading cannot be told from a build that does not carry TODO items,
+/// which is the reason `index status` names its unfired reasons -- and on a
+/// board it is worse, because a reader concludes a peer has nothing queued when
+/// the truth is that nobody can see. Empty sections carry `_(none)_`, the same
+/// sentinel shape the inboxes already use for the same reason.
+///
+/// **ARCHIVED ITEMS DO NOT RENDER.** The extract carries them because the round
+/// trip is lossless, and a board that only ever grew would defeat the bound this
+/// model exists to enforce. What they said stays in the store and in the
+/// extract; the view is the LIVE board.
+pub fn wb_board(board: &crate::model::Board, ctx: &RenderContext<'_>) -> String {
+  let mut out = board_header(&board.node);
+  out.push_str(&format!(
+    "# {} ({})\n\n",
+    board.node.name, board.node.moniker
+  ));
+  for (kind, heading) in [
+    (crate::model::WbItemKind::Doing, "DOING"),
+    (crate::model::WbItemKind::Todo, "TODO"),
+    (crate::model::WbItemKind::Hold, "Holds"),
+    (crate::model::WbItemKind::Watchout, "Watch-outs"),
+    (crate::model::WbItemKind::Decision, "Decisions"),
+  ] {
+    out.push_str(&format!("## {heading}\n\n"));
+    let live: Vec<&crate::model::WbItem> = board
+      .items
+      .iter()
+      .filter(|i| i.kind == kind && i.state == crate::model::WbItemState::Live)
+      .collect();
+    if live.is_empty() {
+      out.push_str("_(none)_\n\n");
+      continue;
+    }
+    for item in live {
+      out.push_str(&format!("- {}\n", item.text));
+    }
+    out.push('\n');
+  }
+  finish(out, ctx, "the whiteboard model")
+}
+
+/// One ordered (sender, recipient) pair as
+/// `intent/whiteboard/<recipient>/inbox.<sender>.md`.
+///
+/// **THE HEADER RESTATES THE ROUTING THE PATH ALREADY ENCODES**, so the file is
+/// self-describing when it is read alone -- which is how a board is usually
+/// read, one file at a time, by somebody who did not open the directory.
+///
+/// **A HANDLED MESSAGE STILL RENDERS, AND THAT IS THE DIFFERENCE FROM AN
+/// ARCHIVED ITEM.** `handled` means acted on, not retired: what a peer said and
+/// what was done about it is the record an inbox exists to be. It leaves the
+/// live COUNT, which is what the bound reads, and it stays on the page, which is
+/// what a reader reads. The marker says which.
+pub fn wb_inbox(
+  sender: &str,
+  recipient: &str,
+  messages: &[crate::model::WbMessage],
+  ctx: &RenderContext<'_>,
+) -> String {
+  let mut out = format!("# inbox: {sender} -> {recipient}\n\n");
+  let mine: Vec<&crate::model::WbMessage> = messages
+    .iter()
+    .filter(|m| m.sender == sender && m.recipient == recipient)
+    .collect();
+  if mine.is_empty() {
+    out.push_str("_(empty)_\n");
+    return finish(out, ctx, "the whiteboard model");
+  }
+  for m in mine {
+    out.push_str(&format!("## ({})", board_stamp(&m.recorded_at)));
+    if let Some(re) = &m.re {
+      out.push_str(&format!(" Re: {re}"));
+    }
+    if m.fyi {
+      out.push_str(" FYI only -- no response needed.");
+    }
+    if m.state == crate::model::WbMessageState::Handled {
+      out.push_str(" (handled)");
+    }
+    out.push_str("\n\n");
+    out.push_str(&m.body);
+    out.push_str("\n\n");
+  }
+  finish(out, ctx, "the whiteboard model")
+}
+
 /// Every view the model implies, in a stable order.
 pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<View> {
   let mut views = Vec::new();
@@ -1885,6 +2019,108 @@ mod tests {
       version: "3.0.0-test",
       todo_watermark: None,
     }
+  }
+
+  /// A board as the store hands it over: a live item of four kinds, one
+  /// archived item, TODO left empty, and messages from two senders.
+  fn board() -> crate::model::Board {
+    let item = |kind: &str, seq: u32, text: &str, state: &str| {
+      serde_json::json!({
+        "node": "cc", "kind": kind, "seq": seq, "text": text, "state": state,
+        "recorded_at": "2026-09-12T20:30:00.000Z",
+      })
+    };
+    let message = |sender: &str, body: &str, fyi: bool, state: &str| {
+      serde_json::json!({
+        "sender": sender, "recipient": "cc", "body": body, "fyi": fyi, "state": state,
+        "recorded_at": "2026-09-12T19:02:38.616Z",
+      })
+    };
+    serde_json::from_value(serde_json::json!({
+      "schema": crate::model::BOARD_SCHEMA,
+      "node": {
+        "moniker": "cc", "name": "Control Claude", "role": "control",
+        "heartbeat_at": "2026-09-12T20:30:12.345Z", "status": "active",
+        "focus": "the \"counted\" body is the sent body",
+        "claims": ["ST0069/14"], "recorded_at": "2026-09-12T20:00:00.000Z",
+      },
+      "items": [
+        item("decision", 1, "the decision", "live"),
+        item("hold", 1, "held until the pair is rebuilt", "live"),
+        item("doing", 1, "the renderers", "live"),
+        item("doing", 2, "the retired line", "archived"),
+        item("watchout", 1, "the watch-out", "live"),
+      ],
+      "messages": [
+        message("vc", "the order", false, "handled"),
+        message("dc", "not this pair", true, "live"),
+      ],
+    }))
+    .expect("board fixture")
+  }
+
+  #[test]
+  fn a_board_renders_five_sections_in_protocol_order_with_live_items_only() {
+    let b = board();
+    let out = wb_board(&b, &ctx());
+    assert_eq!(
+      out,
+      wb_board(&b, &ctx()),
+      "two renders of one board are one set of bytes"
+    );
+    let at = |needle: &str| {
+      out
+        .find(needle)
+        .unwrap_or_else(|| panic!("`{needle}` is missing from:\n{out}"))
+    };
+    let order = [
+      at("## DOING"),
+      at("## TODO"),
+      at("## Holds"),
+      at("## Watch-outs"),
+      at("## Decisions"),
+    ];
+    assert!(
+      order.windows(2).all(|w| w[0] < w[1]),
+      "protocol order:\n{out}"
+    );
+    assert!(
+      out.contains("- held until the pair is rebuilt\n"),
+      "the hold is carried"
+    );
+    assert!(
+      out.contains("## TODO\n\n_(none)_\n"),
+      "an empty section says so"
+    );
+    assert!(
+      !out.contains("the retired line"),
+      "an archived item does not render"
+    );
+    assert!(
+      out.contains("heartbeat_at: 2026-09-12 20:30Z\n")
+        && out.contains("focus: \"the \"counted\" body is the sent body\"\n"),
+      "minute stamps, and a quote inside focus is literal:\n{out}"
+    );
+  }
+
+  #[test]
+  fn an_inbox_renders_only_its_own_pair_and_marks_what_was_handled() {
+    let b = board();
+    let out = wb_inbox("vc", "cc", &b.messages, &ctx());
+    assert_eq!(out, wb_inbox("vc", "cc", &b.messages, &ctx()));
+    assert!(
+      out.starts_with("# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) (handled)\n\nthe order\n"),
+      "{out}"
+    );
+    assert!(
+      !out.contains("not this pair"),
+      "another sender's message is another file"
+    );
+    let empty = wb_inbox("ic", "cc", &b.messages, &ctx());
+    assert!(
+      empty.starts_with("# inbox: ic -> cc\n\n_(empty)_\n"),
+      "{empty}"
+    );
   }
 
   fn ctx_at(mark: &'static str) -> RenderContext<'static> {
