@@ -224,8 +224,13 @@ impl Entity {
       | Self::Ac { thread, .. }
       | Self::At { thread, .. }
       | Self::Attachment { thread, .. } => Some((Sigil::SteelThread, thread)),
-      Self::Issue { .. }
-      | Self::Threads
+      // **AN ISSUE IS AN ARTEFACT AGAIN (ST0069 WP-01).** It answered `None`
+      // here because it had no realised form, so the only sigil this could
+      // have returned resolved into canon. It renders to `intent/issues/`
+      // now, so the sigil it hands back addresses the estate like every
+      // other artefact's does.
+      Self::Issue { id } => Some((Sigil::Issue, id)),
+      Self::Threads
       | Self::Issues
       | Self::Node { .. }
       | Self::NodeInbox { .. }
@@ -716,6 +721,12 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
       .parse::<u32>()
       .ok()
       .map(|seq| project.wp_info_view(thread, seq)),
+    // **`id` IS PARSED RATHER THAN INTERPOLATED**, for the reason
+    // `canon_issue_rel` records: two ends that each format the same number
+    // independently once shipped `issues/46.json` against readers opening
+    // `issues/0046.json`. Going through `Project::issue_view` keeps the
+    // zero-padding in the one place that owns it.
+    Entity::Issue { id } => id.parse::<u32>().ok().map(|n| project.issue_view(n)),
 
     // **EVERY REMAINING VARIANT IS NAMED, AND THE WILDCARD IS GONE ON PURPOSE.**
     //
@@ -729,10 +740,12 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
     // `None` is the honest answer for each of these, and each has its own
     // reason rather than a shared shrug:
     //
-    // A COLLECTION with no index view. `render_all` emits five views --
-    // `info`, `acceptance`, `wp_info`, `steel_threads`, `todo` -- and none of
-    // them is an issues index or a work-package index, so these two have
-    // nothing to serve. They are addressable because D57-8's POST clause needs
+    // A COLLECTION with no index view. `render_all` emits `info`,
+    // `acceptance`, `wp_info`, the per-issue view, `steel_threads` and `todo`
+    // -- and none of them is an issues INDEX or a work-package index, so these
+    // two have nothing to serve. **`Entity::Issues` is the collection and
+    // stays `None` even though `Entity::Issue` now resolves**: one issue has a
+    // rendering, the list of them does not. They are addressable because D57-8's POST clause needs
     // a target for a server-assigned id, which is a different job from being
     // rendered.
     Entity::Issues | Entity::WpCollection { .. } => None,
@@ -746,11 +759,6 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
     // there is no rendering of it to select -- serving one is a different
     // operation from serving a view.
     Entity::Attachment { .. } => None,
-
-    // **An issue lives only in canon and the store, so it has no realised form**
-    // (hv, 2026-08-20) -- the same ruling that made `artefact()` answer `None`
-    // here rather than handing back a sigil that resolved into canon.
-    Entity::Issue { .. } => None,
 
     // The whiteboard is authored by hand and is outside the view system's
     // vocabulary entirely; nothing generates a node's board or its inboxes.

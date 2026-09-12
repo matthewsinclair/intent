@@ -217,6 +217,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // `0270`'s refusal. The caller supplied everything the verb takes; what is
     // missing is a FILE ON DISK, which is not a field of the call and cannot be
     // carried to a reader as one.
+    // ST0069 WP-01's refusal. The caller supplied an id and it is not an issue
+    // number at all; nothing was LEFT OUT, and the remedy is a different value
+    // for the one they gave. Same argument as the two above it.
+    | FacadeError::MalformedIssueId { .. }
     | FacadeError::VerdictCitesAbsentFile { .. } => None,
   }
 }

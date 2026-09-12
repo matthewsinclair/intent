@@ -88,6 +88,14 @@ pub const END_MARKER: &str = "# END INTENT";
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Sigil {
   SteelThread,
+  /// **RESTORED BY ST0069 WP-01, AND ONLY BECAUSE THE REASON IT WENT IS GONE.**
+  /// `ISSUE` was retired on 2026-08-20 because an issue had no realised form,
+  /// so a manifest line naming one could never be about a file and `intent
+  /// issues hydrate 0001` reported `ok` over zero files. An issue now renders
+  /// to `intent/issues/<nnnn>.md` through [`crate::views::issue`], so the line
+  /// names something that exists. **The retirement was right on its facts and
+  /// this is not a reversal of it** -- the facts changed first.
+  Issue,
 }
 
 impl Sigil {
@@ -95,6 +103,7 @@ impl Sigil {
   pub fn as_str(&self) -> &'static str {
     match self {
       Sigil::SteelThread => "STEELTHREAD",
+      Sigil::Issue => "ISSUE",
     }
   }
 
@@ -108,6 +117,7 @@ impl Sigil {
   pub fn parse(s: &str) -> Option<Self> {
     match s {
       "STEELTHREAD" => Some(Sigil::SteelThread),
+      "ISSUE" => Some(Sigil::Issue),
       _ => None,
     }
   }
@@ -123,6 +133,7 @@ impl Sigil {
   pub fn accepts(&self, id: &str) -> bool {
     match self {
       Sigil::SteelThread => model::is_thread_id(id),
+      Sigil::Issue => model::is_issue_id(id),
     }
   }
 }
@@ -209,9 +220,27 @@ impl Realised {
   /// which is the fail-open direction and the only one that cannot delete
   /// anybody's files. Only a manifest that PARSED gets to say no.
   pub fn declares(&self, thread_id: &str) -> bool {
+    self.declares_artefact(Sigil::SteelThread, thread_id)
+  }
+
+  /// Does the manifest declare THIS artefact realised, whatever kind it is?
+  ///
+  /// **THE ONE RULE; [`Self::declares`] IS A THREAD-SHAPED CALLER OF IT AND NOT
+  /// A SECOND SPELLING.** The set was keyed on bare ids and filtered to
+  /// STEELTHREAD at the door, so `ISSUE:0001` parsed, was dropped on the way
+  /// in, and every reader answered `false` for a line the operator had
+  /// written. `declared_set`'s own doc had predicted exactly that -- *a change
+  /// to the sigil space would have to be made twice and the second site would
+  /// be found by a user* -- and the second site was this one.
+  ///
+  /// Keyed on the WIRE FORM rather than the id, so two kinds sharing an id
+  /// cannot be confused for each other. Nothing today can collide (`ST0001`
+  /// against `0001`), which is a fact about the id shapes rather than a
+  /// property of this type.
+  pub fn declares_artefact(&self, sigil: Sigil, id: &str) -> bool {
     match self {
       Realised::NothingSaid | Realised::Unreadable => true,
-      Realised::Declared(set) => set.contains(thread_id),
+      Realised::Declared(set) => set.contains(&declared_key(sigil, id)),
     }
   }
 }
@@ -265,9 +294,21 @@ fn declared_set(manifest: &Manifest) -> std::collections::BTreeSet<String> {
   manifest
     .entries
     .iter()
-    .filter(|e| e.sigil == Sigil::SteelThread)
-    .map(|e| e.id.clone())
+    .map(|e| declared_key(e.sigil, &e.id))
     .collect()
+}
+
+/// How one artefact is KEYED in a [`Realised::Declared`] set: the wire form.
+///
+/// **ONE SPELLING, BECAUSE THE SET IS PUBLIC AND HAS READERS OUTSIDE THIS
+/// MODULE.** The set held bare ids until ST0069 WP-01 and three places in
+/// `facade.rs` matched on `Realised::Declared` and did their own
+/// `contains(id)` -- so widening the key here silently stopped every one of
+/// them from finding a thread, and `st start` quietly stopped realising the
+/// thread it had just declared. A `format!` at each site would have been the
+/// same defect waiting for the next kind.
+pub fn declared_key(sigil: Sigil, id: &str) -> String {
+  format!("{}:{}", sigil.as_str(), id)
 }
 
 /// What an ACTING verb sees in the manifest's text: the same three-state model
@@ -301,7 +342,7 @@ pub fn realised_for_action(text: &str) -> Result<Realised, IntentfilesError> {
 /// operator to search a file for a line the parser already knew.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum IntentfilesError {
-  #[error("line {line}: `{found}` is not a known sigil -- expected STEELTHREAD")]
+  #[error("line {line}: `{found}` is not a known sigil -- expected STEELTHREAD or ISSUE")]
   UnknownSigil { line: usize, found: String },
   #[error("line {line}: `{line_text}` is not `<SIGIL>:<ID>`")]
   NotAnEntry { line: usize, line_text: String },
@@ -340,19 +381,20 @@ impl Remedy for IntentfilesError {
   fn remedy(&self) -> String {
     match self {
       IntentfilesError::UnknownSigil { .. } => {
-        "write STEELTHREAD:<ID>; the manifest names artefacts, never files".into()
+        "write STEELTHREAD:<ID> or ISSUE:<NNNN>; the manifest names artefacts, never files".into()
       }
       IntentfilesError::NotAnEntry { .. } => {
         "each line is blank, a comment, a BEGIN/END marker, or `<SIGIL>:<ID>` with an optional trailing `# comment`".into()
       }
       IntentfilesError::MalformedId { sigil, .. } => match *sigil {
         "STEELTHREAD" => "a steel-thread id is ST followed by four digits, eg ST0000".into(),
-        // **UNREACHABLE WHILE THE GRAMMAR HAS ONE SIGIL, AND IT MUST NOT GUESS.**
-        // This arm read "an issue id is four digits" -- correct while ISSUE was
-        // the only other sigil, and silently wrong for whatever sigil is added
-        // next. A remedy that confidently names the wrong shape is worse than
-        // one that admits it has none, so it names the sigil and asks for its
-        // remedy to be written beside STEELTHREAD's.
+        "ISSUE" => "an issue id is four digits, eg 0001".into(),
+        // **STILL NOT A GUESS, AND THE CATCH-ALL EARNS ITS PLACE AGAIN THE DAY
+        // A THIRD SIGIL ARRIVES.** This arm briefly covered every sigil but
+        // STEELTHREAD, because ISSUE had been retired and the grammar had one
+        // member; ISSUE is back above with the shape it actually has. What the
+        // arm must never do is name a shape for a sigil nobody has written a
+        // remedy for, so it says which sigil it cannot help with.
         other => format!(
           "`{other}` is a sigil this remedy has no id shape for -- add one beside STEELTHREAD's"
         ),
@@ -512,12 +554,13 @@ const DEFAULT_HEADER: &str = "\
 # ABSENT is not EMPTY. A missing file means nobody has said, and everything
 # stays; a file present and declaring nothing means keep nothing.
 #
-# Grammar: `<SIGIL>:<ID>`, sigil STEELTHREAD -- the only one -- optional trailing
+# Grammar: `<SIGIL>:<ID>`, sigil STEELTHREAD or ISSUE, optional trailing
 # `# comment`. Nothing else. A line the parser cannot read ABORTS the run with
 # its line number.
 ";
 
-/// The DEFAULT declaration written from status: every OPEN thread, nothing else.
+/// The DEFAULT declaration written from status: every WIP thread and every
+/// OPEN issue, nothing else (AC-01.3).
 ///
 /// **ONE FUNCTION, FOUR CALLERS** (WP-11): the `organize --default` verb, `intent
 /// init`, the migration's hop 2, and `intent upgrade` when the file is ABSENT.
@@ -539,7 +582,10 @@ const DEFAULT_HEADER: &str = "\
 /// An empty input yields the header and no declarations, which is the correct
 /// content for `intent init`: the file is PRESENT and declares nothing, meaning
 /// keep nothing -- as distinct from ABSENT, which means nobody has said.
-pub fn default_declaration(threads: &[(String, model::ThreadStatus)]) -> String {
+pub fn default_declaration(
+  threads: &[(String, model::ThreadStatus)],
+  issues: &[(u32, model::IssueStatus)],
+) -> String {
   // **WIP ONLY, AND THIS WAS `!is_closed()` UNTIL hv SAW WHAT IT PRODUCED.**
   // hv, 2026-08-26, first-hand on a 57-thread realised set: _"Now it has NOT
   // STARTED STs!??!"_ and _"It should ONLY HAVE WIP STs!!!!!"_
@@ -562,11 +608,33 @@ pub fn default_declaration(threads: &[(String, model::ThreadStatus)]) -> String 
   open.sort_unstable();
   open.dedup();
 
+  // **OPEN ISSUES, AND `open` MEANS A DIFFERENT THING HERE THAN IT DOES ABOVE
+  // -- DELIBERATELY, BECAUSE EACH ENTITY'S OWN STATUS VOCABULARY DEFINES IT.**
+  // A thread has a rich status set of which `Wip` is the subset somebody is
+  // working on; an issue has exactly Open and Closed, so every open issue is
+  // being worked on by definition. Forcing one word to mean one thing across
+  // two vocabularies would either sweep every Triage thread back in -- the
+  // 2026-08-26 defect hv rejected in as many words -- or exclude open issues
+  // for symmetry with a distinction issues do not have.
+  let mut open_issues: Vec<u32> = issues
+    .iter()
+    .filter(|(_, status)| *status == model::IssueStatus::Open)
+    .map(|(number, _)| *number)
+    .collect();
+  open_issues.sort_unstable();
+  open_issues.dedup();
+
   let mut out = String::from(DEFAULT_HEADER);
   for id in open {
     out.push_str(Sigil::SteelThread.as_str());
     out.push(':');
     out.push_str(id);
+    out.push('\n');
+  }
+  for number in open_issues {
+    out.push_str(Sigil::Issue.as_str());
+    out.push(':');
+    out.push_str(&format!("{number:04}"));
     out.push('\n');
   }
   out

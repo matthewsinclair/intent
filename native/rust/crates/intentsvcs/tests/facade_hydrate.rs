@@ -15,7 +15,7 @@
 //! each to be hydratable or refused BY NAME, so a tenth form cannot arrive and
 //! be quietly dropped.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::address::{Address, Entity, Format};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::intentfiles;
@@ -31,6 +31,13 @@ const MANIFEST: &str = "\
 fn fixture() -> Fixture {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
+  // **THE ISSUE THE `Entity::Issue` FORM BELOW NAMES (ST0069 WP-01).** Before
+  // that package an issue had no realised form and `hydrate` refused it on the
+  // FORM, so the fixture never needed to hold one and the id in the form list
+  // named nothing. It is an artefact now, so an absent issue answers
+  // `NoSuchIssue` -- a refusal about the ESTATE rather than about the form,
+  // which is not what this test is measuring.
+  fx.write_issue(&sample_issue(21));
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx
 }
@@ -353,18 +360,25 @@ fn every_address_form_is_hydratable_or_refused_by_name() {
   );
   assert_eq!(
     refused,
-    // **`issue` MOVED FROM HYDRATABLE TO REFUSED ON 2026-08-20, AND THIS LINE
-    // IS WHY ANYONE SAW IT.** hv ruled issues canon-and-store only, so
-    // `Address::artefact` answers `None` for one and `hydrate` refuses at the
-    // door. The declared list is the whole point of the assertion -- a set
-    // computed from the code would have absorbed the move in silence.
+    // **`issue` MOVED FROM HYDRATABLE TO REFUSED ON 2026-08-20, AND BACK TO
+    // HYDRATABLE AT ST0069 WP-01 -- AND THIS LINE IS WHY ANYONE SAW EITHER
+    // MOVE.** hv ruled issues canon-and-store only, so `Address::artefact`
+    // answered `None` and `hydrate` refused at the door; WP-01 gave an issue a
+    // realised form at `intent/issues/<nnnn>.md`, so it is an artefact again
+    // and hydrates. **The declared list is the whole point of the assertion --
+    // a set computed from the code would have absorbed both moves in silence**,
+    // and this one announced the second move by going red on the day it
+    // happened rather than being noticed later.
     //
-    // It was never HYDRATABLE in any useful sense: its realisation home
-    // resolved through `issues_dir()` to `intent/.canon/issues/`, CANON, and
-    // it returned `Ok` over zero files while pinning `ISSUE:` into the live
-    // manifest. So this is a form arriving in the bucket it always belonged
-    // in, not a capability being withdrawn.
-    vec!["threads", "issue", "node", "node-inbox", "event"],
+    // **THE 2026-08-20 RETIREMENT WAS RIGHT ON ITS FACTS AND THIS IS NOT A
+    // REVERSAL OF IT.** Back then an issue was never hydratable in any useful
+    // sense: its realisation home resolved through `issues_dir()` to
+    // `intent/.canon/issues/`, CANON, and it returned `Ok` over zero files
+    // while pinning `ISSUE:` into the live manifest. What changed is the
+    // FACTS -- `Project::issue_view` puts an issue's generated view in the
+    // estate, so the home resolves where a realisation home should and there
+    // is something for `Ok` to be about.
+    vec!["threads", "node", "node-inbox", "event"],
     "the refused set is declared, so a form moving between buckets is visible"
   );
 }

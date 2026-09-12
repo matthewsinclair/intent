@@ -100,8 +100,8 @@ fn a_bare_issue_id_becomes_this_project_s_issue() {
   );
   assert_eq!(
     a.entity.artefact(),
-    None,
-    "an issue lives only in canon and the store, so it is not an artefact `.intentfiles` can \
+    Some((intentsvcs::intentfiles::Sigil::Issue, "0042")),
+    "ST0069 WP-01 gave an issue a realised form, so it IS an artefact `.intentfiles` can \
      name and `hydrate` refuses it by name"
   );
 }

@@ -223,6 +223,23 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
     }
   }
 
+  // **EACH ISSUE'S VIEW, CHECKED AGAINST ITS OWN RECORD (ST0069 WP-01).** It
+  // joins the walk rather than the estate-level pair below because it HAS a
+  // single authoring artefact, exactly as a thread's views do -- and the
+  // partition assertion at the end is what made adding it non-optional: a view
+  // kind the generator renders and this walk does not examine is a view kind
+  // going unchecked, which is the whole thing that assertion exists to catch.
+  for issue in &canon.issues {
+    let authored = serde_json::to_string(issue).expect("issue serialises");
+    examined += 1;
+    for claim in generator_truth_claims(&views::issue(issue, &context), &artefacts, &authored) {
+      findings.push(format!(
+        "{}: {claim}",
+        project.relative(&project.issue_view(issue.number))
+      ));
+    }
+  }
+
   // The two estate-level views have no single authoring thread, so they are
   // checked against the whole canon.
   let estate_authored = serde_json::to_string(&canon.threads).expect("canon serialises");

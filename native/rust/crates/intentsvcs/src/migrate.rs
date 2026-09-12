@@ -530,7 +530,11 @@ fn assemble(
         .iter()
         .map(|t| (t.id.clone(), t.status))
         .collect();
-      crate::intentfiles::realised_from(&crate::intentfiles::default_declaration(&statuses))
+      let issues: Vec<(u32, crate::model::IssueStatus)> =
+        canon.issues.iter().map(|i| (i.number, i.status)).collect();
+      crate::intentfiles::realised_from(&crate::intentfiles::default_declaration(
+        &statuses, &issues,
+      ))
     }
     said => said,
   };
@@ -762,10 +766,11 @@ mod tests {
     .expect("a clean estate plans");
 
     // Canon: two threads, one issue, one event log. Views: info + acceptance
-    // per thread, plus the index and the todo view.
+    // per thread, plus ONE PER ISSUE since ST0069 WP-01, plus the index and the
+    // todo view.
     assert_eq!(planned.threads.len(), 2);
     assert_eq!(planned.issues.len(), 1);
-    assert_eq!(planned.writes.len(), 4 + 6);
+    assert_eq!(planned.writes.len(), 4 + 7);
     // **The equality below is worthless if `tree` sees nothing**, and a
     // before/after comparison of two empty vectors passes for any behaviour.
     // This is what makes the next line an assertion rather than a shape.
@@ -971,10 +976,12 @@ mod tests {
       )
       .expect("plan");
 
-      // Views: info + acceptance per thread (no WPs in these fixtures), plus
-      // the index and the todo view. Stated here rather than derived, so a
-      // change in what the estate renders has to be acknowledged.
-      let views = 2 * threads as usize + 2;
+      // Views: info + acceptance per thread (no WPs in these fixtures), ONE
+      // PER ISSUE since ST0069 WP-01 gave an issue a realised form, plus the
+      // index and the todo view. Stated here rather than derived, so a change
+      // in what the estate renders has to be acknowledged -- and this is that
+      // acknowledgement rather than a number nudged until it passed.
+      let views = 2 * threads as usize + issues as usize + 2;
       let canon = threads as usize + issues as usize + 1;
       assert_eq!(
         planned.writes.len(),

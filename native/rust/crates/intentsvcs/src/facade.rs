@@ -51,7 +51,7 @@ use crate::contract::{self, Scope, Verdict};
 use crate::event::{Envelope, Subject};
 use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
-use crate::intentfiles::Realised;
+use crate::intentfiles::{Realised, Sigil};
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, IssueStatus,
   TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
@@ -146,14 +146,62 @@ pub struct Upgraded {
 ///
 /// **The content is `intentfiles::default_declaration` and nothing else**, so a
 /// change to what "open" means moves this caller, `init` and the verb together.
-fn declare_default_if_absent(project: &Project, threads: &[Thread]) -> Result<(), std::io::Error> {
+/// Since ST0069 WP-01 that content is WIP threads AND open issues, so this
+/// takes both populations rather than growing a second declaration for one.
+/// Where one issue's realised view lives, given the id a manifest line carries.
+///
+/// **THE PARSE CANNOT FAIL THROUGH EITHER DOOR THAT REACHES HERE, AND IT IS
+/// STILL REPORTED RATHER THAN DEFAULTED.** `Sigil::accepts` gates a manifest
+/// line on `model::is_issue_id`, and `Entity::Issue` is minted behind the same
+/// predicate, so a four-digit id is the only thing that arrives today.
+/// "Cannot happen" is a claim about today's callers: an `unwrap_or(0)` here
+/// would quietly resolve a malformed id to issue `0000`'s view and realise or
+/// remove the wrong file, which is the silent-wrong-answer class rather than a
+/// crash.
+/// Prove the artefact an id names exists, whichever kind it is.
+///
+/// **ONE RESOLVER PER KIND, DISPATCHED HERE, SO A THIRD KIND ADDS AN ARM
+/// RATHER THAN A CALL SITE.** The resolution itself still lives once per kind
+/// -- `st_show` and `issue_show` -- and this is a second CALLER of each, not a
+/// second answer, which is the distinction `edit`'s own doc draws about
+/// `st_show`.
+impl Facade {
+  fn resolve_artefact(&self, sigil: Sigil, id: &str) -> Result<(), FacadeError> {
+    match sigil {
+      Sigil::SteelThread => {
+        self.st_show(id)?;
+      }
+      Sigil::Issue => {
+        let number = id
+          .parse::<u32>()
+          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
+        self.issue_show(number)?;
+      }
+    }
+    Ok(())
+  }
+}
+
+fn issue_home(project: &Project, id: &str) -> Result<std::path::PathBuf, FacadeError> {
+  id.parse::<u32>()
+    .map(|number| project.issue_view(number))
+    .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })
+}
+
+fn declare_default_if_absent(
+  project: &Project,
+  threads: &[Thread],
+  issues: &[crate::model::Issue],
+) -> Result<(), std::io::Error> {
   let path = project.intentfiles_path();
   if path.exists() {
     return Ok(());
   }
   let open: Vec<(String, crate::model::ThreadStatus)> =
     threads.iter().map(|t| (t.id.clone(), t.status)).collect();
-  std::fs::write(&path, intentfiles::default_declaration(&open))
+  let open_issues: Vec<(u32, crate::model::IssueStatus)> =
+    issues.iter().map(|i| (i.number, i.status)).collect();
+  std::fs::write(&path, intentfiles::default_declaration(&open, &open_issues))
 }
 
 /// The per-machine artefacts a converged project ignores, each a PATH under the
@@ -796,6 +844,14 @@ pub enum FacadeError {
   NoSuchFace { face: String },
   #[error("no issue {number:04} in this project")]
   NoSuchIssue { number: u32 },
+  /// A manifest or address id that is not an issue number at all.
+  ///
+  /// **Its own variant rather than [`FacadeError::NoSuchIssue`] with a zero**,
+  /// which is an idiom already in this file and reads as "no issue 0000 in
+  /// this project" -- a sentence about a project's contents, for a fault in
+  /// the id's SHAPE. The two send an operator to different places.
+  #[error("`{id}` is not an issue number")]
+  MalformedIssueId { id: String },
   /// An address whose form names no entity a renderer can resolve.
   ///
   /// **THE ADDRESS GRAMMAR IS WIDER THAN THE FORM DECLARATION, AND THAT IS
@@ -1507,6 +1563,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchIssue { .. } => {
         "run `intent issues list --kind all` to see every issue this project has, closed ones included".to_string()
       }
+      Self::MalformedIssueId { .. } => {
+        "an issue id is four digits, eg ISSUE:0001 in intent/.intentfiles".to_string()
+      }
       // The remedy names the three that DO resolve rather than the ten that
       // do not: a caller here asked for something reasonable and needs the
       // set they can ask for, and the refusing set is both longer and less
@@ -2122,7 +2181,14 @@ enum ListAction {
 /// `st.start`, `st.hold` and `st.resume` change what a thread IS and say
 /// nothing about whether it is on disk. **A held thread stays realised** --
 /// that is the whole content of "no function of status".
-fn declared_list_edit(op: &str) -> Option<ListAction> {
+/// **THE SIGIL TRAVELS WITH THE ACTION (ST0069 WP-01), BECAUSE THE TABLE IS
+/// THE ONLY THING THAT KNOWS WHICH ARTEFACT AN OP IS ABOUT.** `edit_list` used
+/// to hardcode `Sigil::SteelThread`, which was true while threads were the
+/// only declarable kind; an issue op reaching that code would have pinned
+/// `STEELTHREAD:0001`. Returning the pair keeps the op -> (kind, action)
+/// mapping in one place instead of pairing this table with a second match on
+/// the op prefix somewhere else.
+fn declared_list_edit(op: &str) -> Option<(Sigil, ListAction)> {
   match op {
     // **`st.new` LEFT THIS SET ON hv's RULING OF 2026-08-27 16:30Z** (hv's
     // board `1d0ce157`, first-hand in vc's session, chosen from options vc
@@ -2184,14 +2250,33 @@ fn declared_list_edit(op: &str) -> Option<ListAction> {
     // `lifecycle_verbs_edit_the_list.rs` and nothing else in the crate. hv has
     // not ruled on the FORM, so a status-keyed rewrite would be an unruled
     // change wearing a refactor.
-    "st.start" | "st.resume" | "st.reopen" => Some(ListAction::Add),
+    "st.start" | "st.resume" | "st.reopen" => Some((Sigil::SteelThread, ListAction::Add)),
     // **`st.fc` REMOVES BECAUSE IT LANDS WHERE `st.done` LANDS.** The membership
     // of this table is a property of the LANDING STATE -- declared iff `wip` --
     // and a fiat close reaches `completed` exactly as an ordinary close does.
     // The difference between the two edges is the guard and the record beside
     // the status, neither of which the manifest has an opinion about: a thread
     // that is finished is off the realised set however it got there.
-    "st.done" | "st.fc" | "st.cancel" | "st.hold" | "st.triage" => Some(ListAction::Remove),
+    "st.done" | "st.fc" | "st.cancel" | "st.hold" | "st.triage" => {
+      Some((Sigil::SteelThread, ListAction::Remove))
+    }
+    // **ISSUES, AND THE MEMBERSHIP IS THE WHOLE OF WHAT WP-01's OBJECTIVE
+    // RULED: _`issue new` adds the id and closing the issue removes it_.**
+    //
+    // `issues.open` IS INFERRED rather than ruled, and it is the one arm here
+    // that nobody wrote down. The objective also says the default declaration
+    // is *every open thread and every open issue*, and `issues.open` is the
+    // only op that makes a closed issue open again -- so leaving it out would
+    // put the mechanism in permanent contradiction with the declaration the
+    // same paragraph specifies. It matches `st.reopen`, which adds.
+    //
+    // **THE OP-KEYING ARGUMENT ABOVE DOES NOT BITE HERE AND THAT IS WORTH
+    // SAYING RATHER THAN LEAVING TO BE NOTICED.** An issue has exactly two
+    // statuses, so op-keyed and status-keyed agree for every issue op; the
+    // table stays op-keyed because threads need it to be, not because issues
+    // prove it.
+    "issues.add" | "issues.open" => Some((Sigil::Issue, ListAction::Add)),
+    "issues.close" => Some((Sigil::Issue, ListAction::Remove)),
     // **THE TWO LEGITIMATE `None`s, NAMED SO THE WILDCARD STOPS ANSWERING FOR
     // THEM** (vc's Highlander finding F1, 2026-08-27). This vocabulary has two
     // consumers and they fail in OPPOSITE directions: an op missing from
@@ -2546,7 +2631,7 @@ impl Facade {
         step: "keeping the formatter off generated views",
         cause,
       })?;
-      declare_default_if_absent(project, &threads).map_err(|cause| {
+      declare_default_if_absent(project, &threads, &issues).map_err(|cause| {
         FacadeError::MigrationHalted {
           step: "writing the realisation manifest",
           cause,
@@ -4072,7 +4157,7 @@ impl Facade {
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
-        why: "only an artefact -- a steel thread -- is named by `.intentfiles`, so it is the smallest thing realisation can address. An ISSUE lives only in canon and the store and has no realised form, so there is nothing to realise it INTO".to_string(),
+        why: "only an artefact -- a steel thread or an issue -- is named by `.intentfiles`, so it is the smallest thing realisation can address".to_string(),
       });
     };
     let id = id.to_string();
@@ -4098,10 +4183,14 @@ impl Facade {
     // describing a FILE in a thread that was never there. `NoSuchThread` names
     // the thing the operator actually got wrong.
     //
-    // Artefact is steel thread today, which is why `st_show` is the resolver;
-    // a second artefact kind would need its own arm here rather than falling
-    // through to this one.
-    self.st_show(&id)?;
+    // **THE SECOND ARTEFACT KIND ARRIVED, AND THIS IS THE ARM THE PARAGRAPH
+    // ABOVE ASKED FOR.** It read *artefact is steel thread today ... a second
+    // artefact kind would need its own arm here rather than falling through to
+    // this one*, and falling through is exactly what an issue did the moment
+    // `Entity::artefact` started answering for one: `st_show("0021")` refused
+    // with `NoSuchThread { id: "0021" }`, naming the wrong KIND of thing in a
+    // message whose whole purpose is telling an operator what they got wrong.
+    self.resolve_artefact(sigil, &id)?;
 
     // STEP ONE: PIN. First, and unconditionally, because it is the step the
     // obvious ordering skips.
@@ -4166,17 +4255,19 @@ impl Facade {
     // must make one artefact's files exist. The plan is whole-estate because
     // classification needs the whole estate as its denominator, and the ACT is
     // narrow.
-    // **ONE ARM, AND IT IS ONE ARM BECAUSE THE OTHER ONE ADDRESSED THE WRONG
-    // LAYER.** This matched `Sigil::Issue` to `issues_dir()`, which is
-    // `intent/.canon/issues/` -- so a realisation verb's home resolved into
-    // CANON for one of its two inputs. It was inert only because
-    // `organize::plan` emits no step under `intent/.canon/`, which is a
-    // property of the plan and not a bound this code stated. hv retired
-    // `ISSUE:` from the grammar on 2026-08-20, and `Address::artefact` now
-    // answers `None` for an issue, so the case is refused above rather than
-    // handled wrongly here.
+    // **TWO ARMS AGAIN, AND THE ISSUE ONE NOW ADDRESSES THE ESTATE RATHER THAN
+    // CANON -- which is the whole of what was wrong with it.** It matched
+    // `Sigil::Issue` to `issues_dir()`, `intent/.canon/issues/`, so a
+    // realisation verb's home resolved into CANON for one of its two inputs.
+    // It was inert only because `organize::plan` emits no step under
+    // `intent/.canon/`, which is a property of the plan and not a bound this
+    // code stated. hv retired `ISSUE:` on 2026-08-20; ST0069 WP-01 gives an
+    // issue a realised form, so the arm returns `issue_view`, which is a FILE
+    // rather than a directory. `starts_with` is still the right filter: a path
+    // starts with itself, so the narrowing selects exactly that one view.
     let home = match sigil {
       intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
+      intentfiles::Sigil::Issue => issue_home(&self.project, &id)?,
     };
     // **A HELD THREAD IS REFUSED HERE, NOT REPORTED** (issue 0209). `run`
     // reports a hold as one refusal among a run's findings, which suits the
@@ -4420,7 +4511,12 @@ impl Facade {
       .iter()
       .map(|t| (t.id.clone(), t.status))
       .collect();
-    let text = intentfiles::default_declaration(&threads);
+    let issues: Vec<(u32, crate::model::IssueStatus)> = self
+      .issue_list()
+      .iter()
+      .map(|i| (i.number, i.status))
+      .collect();
+    let text = intentfiles::default_declaration(&threads, &issues);
     let declares = intentfiles::parse(&text)
       .map_err(FacadeError::Intentfiles)?
       .entries
@@ -4484,7 +4580,7 @@ impl Facade {
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
-        why: "only an artefact -- a steel thread -- is named by `.intentfiles`, so it is the smallest thing realisation can address. An ISSUE lives only in canon and the store and has no realised form, so there is nothing to remove".to_string(),
+        why: "only an artefact -- a steel thread or an issue -- is named by `.intentfiles`, so it is the smallest thing realisation can address".to_string(),
       });
     };
     let id = id.to_string();
@@ -4539,6 +4635,7 @@ impl Facade {
     // handed one id.
     let home = match sigil {
       intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
+      intentfiles::Sigil::Issue => issue_home(&self.project, &id)?,
     };
     let mine: Vec<_> = whole
       .steps
@@ -5397,7 +5494,9 @@ impl Facade {
     // Rendered only when a changed thread is undeclared -- the ordinary
     // mutation on a declared thread pays nothing for this.
     let undeclared_changed = match &realised {
-      Realised::Declared(declared) => changed.iter().any(|id| !declared.contains(*id)),
+      Realised::Declared(declared) => changed
+        .iter()
+        .any(|id| !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, id))),
       // Neither skips a view below, so neither needs the prior render.
       Realised::NothingSaid | Realised::Unreadable => false,
     };
@@ -5410,7 +5509,7 @@ impl Facade {
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
       if let Realised::Declared(ref declared) = realised
         && let Some(owner) = self.owning_thread(&view.path, canon)
-        && !declared.contains(&owner)
+        && !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, &owner))
       {
         let store_ahead = changed.contains(owner.as_str())
           && rendered_before
@@ -5912,6 +6011,26 @@ impl Facade {
     // redundant: it is a public door in its own right, and a rule that only
     // holds when you arrive through `edit` is not a rule. The resolution lives
     // once, in `st_show`; this is a second CALLER, not a second answer.
+    // **AN ISSUE IS REFUSED HERE, BY NAME, AND THE REFUSAL IS THE HONEST
+    // ANSWER RATHER THAN A GAP.** `edit` resolves a file THE ARTEFACT CARRIES
+    // -- `design.md`, an attachment -- and every line below it reaches for
+    // `thread_dir` and `carried`. An issue carries no authored files: the one
+    // file it has is the generated view, which `edit` refuses for a thread too
+    // (`EditDisposition::Refuse`). So there is nothing here for an issue to
+    // name, and falling through would ask the store for a THREAD `0021`.
+    //
+    // **WHAT THIS DELIBERATELY DOES NOT DO IS INVENT `intent edit <issue>`.**
+    // ST0069 AC-01.1 to AC-01.3 give an issue a realised form and put it under
+    // `organize`; none of them says an issue is editable through this door,
+    // and building it here would be scope this package was not given.
+    if let Some((Sigil::Issue, id)) = address.entity.artefact() {
+      return Err(FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: format!(
+          "issue {id}'s only file is its generated view, which is rendered from the store rather than authored -- `intent issues edit {id}` corrects the record it is rendered from"
+        ),
+      });
+    }
     if let Some((_, id)) = address.entity.artefact() {
       self.st_show(id)?;
 
@@ -6678,7 +6797,8 @@ impl Facade {
     // thread was listed with no files until the next write by anyone. Pinned
     // before, this write renders it exactly as every write renders every
     // declared thread -- no second realiser, and attachments stay `organize`'s.
-    let adds = list == ListEdit::AsDeclared && declared_list_edit(op) == Some(ListAction::Add);
+    let adds =
+      list == ListEdit::AsDeclared && matches!(declared_list_edit(op), Some((_, ListAction::Add)));
     let manifest = self.project.intentfiles_path();
     let before = adds
       .then(|| std::fs::read_to_string(&manifest).ok())
@@ -9718,6 +9838,10 @@ impl Facade {
       json!({"title": title, "severity": severity}),
       next,
     )?;
+    // **THE MANIFEST EDIT IS A SECOND WRITE AND IT FOLLOWS THE STORE**, the
+    // order `edit_list`'s own doc argues for: a manifest naming an issue the
+    // store does not carry would have `organize` realise a view of nothing.
+    self.edit_list("issues.add", &format!("{number:04}"), ListEdit::AsDeclared)?;
     Ok(number)
   }
 
@@ -9957,7 +10081,7 @@ impl Facade {
       IssueStatus::Closed => Some(String::new()),
       IssueStatus::Open => None,
     };
-    self
+    let outcome = self
       .apply(
         op,
         Subject {
@@ -9970,7 +10094,13 @@ impl Facade {
         }),
         next,
       )
-      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))?;
+    // Closing removes the declaration and reopening restores it, so an open
+    // issue is declared and a closed one is not -- which is what makes
+    // `organize --apply` dehydrate a closed issue's view without a second rule
+    // anywhere that knows what closed means.
+    self.edit_list(op, &format!("{number:04}"), ListEdit::AsDeclared)?;
+    Ok(outcome)
   }
 
   /// The next free issue number.
@@ -10653,7 +10783,9 @@ impl Facade {
   /// is not a clean bill of health taken on credit; it is the one case where
   /// the answer does not depend on the check.
   fn closing_notes(&self, op: &str, id: &str, list: ListEdit) -> Result<Vec<Note>, FacadeError> {
-    if list == ListEdit::Suppressed || declared_list_edit(op) != Some(ListAction::Remove) {
+    if list == ListEdit::Suppressed
+      || !matches!(declared_list_edit(op), Some((_, ListAction::Remove)))
+    {
       return Ok(Vec::new());
     }
     // **EVERY PATH THE REMOVAL WOULD TAKE, COMMITTED ONES INCLUDED.** The
@@ -10713,7 +10845,7 @@ impl Facade {
     let Realised::Declared(mut declared) = self.realised_threads() else {
       return Ok(Vec::new());
     };
-    if !declared.remove(id) {
+    if !declared.remove(&intentfiles::declared_key(Sigil::SteelThread, id)) {
       return Ok(Vec::new());
     }
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
@@ -10765,7 +10897,7 @@ impl Facade {
     if list == ListEdit::Suppressed {
       return Ok(());
     }
-    let Some(action) = declared_list_edit(op) else {
+    let Some((sigil, action)) = declared_list_edit(op) else {
       return Ok(());
     };
     let path = self.project.intentfiles_path();
@@ -10792,8 +10924,8 @@ impl Facade {
       }
     };
     let after = match action {
-      ListAction::Add => intentfiles::pin(&before, intentfiles::Sigil::SteelThread, id, None),
-      ListAction::Remove => intentfiles::unpin(&before, intentfiles::Sigil::SteelThread, id),
+      ListAction::Add => intentfiles::pin(&before, sigil, id, None),
+      ListAction::Remove => intentfiles::unpin(&before, sigil, id),
     }
     .map_err(FacadeError::Intentfiles)?;
     // Both primitives are idempotent, so an unchanged file is the ordinary

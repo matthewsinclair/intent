@@ -529,6 +529,21 @@ pub fn plan(
       declared_paths.insert(project.wp_info_view(&thread.id, wp.seq));
     }
   }
+  // **ISSUES JOIN BY THE SAME RULE AS THREADS (AC-01.2), WHICH IS WHY THIS IS A
+  // SECOND LOOP AND NOT A SECOND RULE.** A declared issue with no file lands in
+  // the hydrate row below; a realised file whose issue is undeclared falls
+  // through to the dehydrate row, exactly as a closed thread's views do. The
+  // OPEN/CLOSED decision is nowhere near here -- it was made when the verb
+  // edited the manifest -- so this loop only asks what the manifest says.
+  for issue in &canon.issues {
+    if !realised.declares_artefact(
+      crate::intentfiles::Sigil::Issue,
+      &format!("{:04}", issue.number),
+    ) {
+      continue;
+    }
+    declared_paths.insert(project.issue_view(issue.number));
+  }
 
   let present = &tree.present;
   let mut steps = Vec::new();
@@ -628,11 +643,38 @@ pub fn plan(
     // as depth 2 and fall through to `Unattached` -- which would report every
     // generated view in the estate as something a human put there, and dehydrate
     // none of them. Silent, and in the direction that looks safe.
+    // **THE ISSUES ARM THE PARAGRAPH BELOW USED TO DEFER TO (AC-01.2).** A file
+    // under `intent/issues/` that the renderer can produce, and that the
+    // manifest does not declare, is row four for an issue exactly as a
+    // generated view under a thread directory is row four for a thread.
+    //
+    // **MEMBERSHIP IS `renderable`, NOT THE DIRECTORY**, which is the whole
+    // care needed here. `renderable` holds a view for EVERY issue in canon, so
+    // a path in this directory that it does not know is a file no issue
+    // renders -- somebody else's, and this verb removes nothing it cannot
+    // regenerate. That keeps the rule identical to the thread side, where
+    // `classify` answers `Unattached` rather than `GeneratedView` for the same
+    // case.
+    if path.starts_with(project.issues_view_dir()) {
+      if renderable.contains_key(path) {
+        steps.push(Step {
+          path: path.clone(),
+          action: Action::Dehydrate,
+          content: renderable.get(path).cloned(),
+        });
+      } else {
+        steps.push(Step {
+          path: path.clone(),
+          action: Action::Unclaimed,
+          content: None,
+        });
+      }
+      continue;
+    }
     let Some(rel) = thread_relative(project, path) else {
-      // Not under `st_dir` at all. Issues have their own layout and their own
-      // criteria; deciding them with a thread classifier would be a second,
-      // wrong, spelling of that layout. Left for the issues arm rather than
-      // guessed at here.
+      // Not under `st_dir` at all, and not an issue view either -- both of
+      // those are decided above. A thread classifier would be a second, wrong,
+      // spelling of whatever layout this path belongs to.
       continue;
     };
     match Project::classify(&rel) {

@@ -191,7 +191,7 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
   let initialised = Project::open(fresh.path()).expect("open the initialised project");
   assert_eq!(
     manifest(&initialised),
-    default_declaration(&[]),
+    default_declaration(&[], &[]),
     "`init` must write the function's answer for an empty estate -- header \
      present, no declarations. A mismatch here means init spells the header \
      itself, which is a second home for it."
@@ -204,7 +204,7 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
     Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
   assert_eq!(
     manifest(migrated.project()),
-    default_declaration(&statuses(&migrated)),
+    default_declaration(&statuses(&migrated), &[]),
     "the migration must write the function's answer for the corpus it just \
      converted"
   );
@@ -217,7 +217,7 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
     .expect("--default writes an absent manifest");
   assert_eq!(
     manifest(facade.project()),
-    default_declaration(&statuses(&facade)),
+    default_declaration(&statuses(&facade), &[]),
     "the verb must write the function's answer for this estate's statuses"
   );
 }
@@ -237,7 +237,7 @@ fn control_the_corpus_can_tell_the_candidate_definitions_apart() {
     Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
   let corpus = statuses(&migrated);
 
-  let wip_only = default_declaration(&corpus);
+  let wip_only = default_declaration(&corpus, &[]);
   let every_open: Vec<(String, ThreadStatus)> = corpus
     .iter()
     .map(|(id, status)| {
@@ -249,7 +249,7 @@ fn control_the_corpus_can_tell_the_candidate_definitions_apart() {
       (id.clone(), promoted)
     })
     .collect();
-  let open_set = default_declaration(&every_open);
+  let open_set = default_declaration(&every_open, &[]);
 
   assert_ne!(
     wip_only, open_set,
@@ -312,7 +312,7 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
 
   // A declaration no regeneration from status would ever produce: it names a
   // COMPLETED thread, which is what a hand hydration looks like on disk.
-  let by_hand = format!("{}STEELTHREAD:ST0004\n", default_declaration(&[]));
+  let by_hand = format!("{}STEELTHREAD:ST0004\n", default_declaration(&[], &[]));
   std::fs::write(project.intentfiles_path(), &by_hand).expect("write the hand manifest");
 
   Facade::upgrade(&project, &facade_ctx()).expect("a converted estate re-runs");

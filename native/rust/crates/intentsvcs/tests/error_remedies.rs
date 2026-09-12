@@ -805,6 +805,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
+    FacadeError::MalformedIssueId { .. } => "MalformedIssueId",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
@@ -901,6 +902,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
   "ExportRoundTripFailed",
   "NoSuchIssue",
+  "MalformedIssueId",
   "MigrationBlocked",
   "MigrationHalted",
   "EgestFromRefusedIngest",
@@ -916,6 +918,20 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
+  // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
+  // WP-01's `issue_home` turns a manifest id into an issue's view path.
+  // `Sigil::accepts` gates a manifest line on `model::is_issue_id` and
+  // `Entity::Issue` is minted behind the same predicate, so nothing but four
+  // digits reaches the parse -- there is no facade call that provokes this and
+  // constructing one here would assert a path the estate cannot take.
+  //
+  // It exists because the two alternatives were worse. `unwrap_or(0)` resolves
+  // a malformed id to issue `0000`'s view and then realises or removes the
+  // WRONG FILE at exit 0; reusing `NoSuchIssue { number: 0 }` -- an idiom
+  // already in `facade.rs` -- prints "no issue 0000 in this project", which is
+  // a sentence about a project's contents for a fault in an id's shape.
+  "MalformedIssueId",
   // **THE EMBEDDER'S REFUSALS ARE DRIVEN WHERE THE EMBEDDER IS**, in
   // `the_semantic_tier_is_staged_and_its_seams_hold.rs`: the Null one refuses a
   // semantic query with the remedy naming the configuration, and the HTTP one

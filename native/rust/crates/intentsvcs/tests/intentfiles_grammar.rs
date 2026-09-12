@@ -1,7 +1,7 @@
 //! AT-02.1 / AC-02.1: **the `.intentfiles` grammar REFUSES rather than skips.**
 //!
 //! The parser accepts exactly `<SIGIL>:<ID>` with sigil in
-//! `STEELTHREAD` and an optional trailing comment (`ISSUE` was retired by hv
+//! `STEELTHREAD` or `ISSUE` and an optional trailing comment (`ISSUE` was retired by hv
 //! on 2026-08-20). For every rejected
 //! input the run exits non-zero AND the offending line number appears in the
 //! output.
@@ -74,14 +74,18 @@ fn bad_lines() -> Vec<BadLine> {
     ("STEELTHREAD:ST00567", |e| {
       matches!(e, IntentfilesError::MalformedId { .. })
     }),
-    // **A RETIRED SIGIL IS AN UNKNOWN SIGIL, NOT A MALFORMED ID**, and the
-    // variant matters: `MalformedId` sends the operator to fix the number,
-    // which would be an unfixable errand now that no number makes `ISSUE`
-    // legal. Both spellings are kept -- a bad id and a path -- because the
-    // sigil is refused BEFORE either is looked at, and asserting that is what
-    // stops a future reader "restoring" an id rule for a sigil that has none.
+    // **`ISSUE` IS A KNOWN SIGIL AGAIN (ST0069 WP-01), SO THESE TWO MOVE FROM
+    // `UnknownSigil` TO `MalformedId` RATHER THAN LEAVING THE TABLE.** The
+    // paragraph here used to argue the opposite -- *a retired sigil is an
+    // unknown sigil, not a malformed id*, because `MalformedId` would send the
+    // operator to fix a number that no value could fix. That reasoning was
+    // right while the sigil was retired and it inverts cleanly now that it is
+    // not: `42` IS a fixable number, and `MalformedId`'s remedy names the
+    // shape. Both spellings are still kept -- a bad id and a path -- because
+    // the id rule is what refuses them now, and asserting that is what stops a
+    // reader concluding the sigil is unknown.
     ("ISSUE:42", |e| {
-      matches!(e, IntentfilesError::UnknownSigil { .. })
+      matches!(e, IntentfilesError::MalformedId { .. })
     }),
     // AC-02.5 held MECHANICALLY: a path cannot satisfy either id shape, so a
     // file-valued line is unrepresentable rather than separately forbidden.
@@ -89,7 +93,7 @@ fn bad_lines() -> Vec<BadLine> {
       matches!(e, IntentfilesError::MalformedId { .. })
     }),
     ("ISSUE:issues/0042.json", |e| {
-      matches!(e, IntentfilesError::UnknownSigil { .. })
+      matches!(e, IntentfilesError::MalformedId { .. })
     }),
   ]
 }

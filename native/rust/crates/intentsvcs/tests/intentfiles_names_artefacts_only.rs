@@ -87,17 +87,22 @@ fn the_accepted_set_is_exactly_the_id_set() {
       "STEELTHREAD:{c} -- the manifest and `is_thread_id` must agree exactly;\n       \
        a divergence here means the grammar has grown a second id rule"
     );
-    // **`ISSUE:` IS NOW REFUSED FOR EVERY ID, INCLUDING THE VALID ONES**, and
-    // that is the assertion rather than a deletion. hv retired the sigil on
-    // 2026-08-20; `model::is_issue_id` is untouched and still has callers,
-    // because an issue keeps its identity in canon and the store. **What ended
-    // is the manifest's claim on it** -- so the interesting case is precisely
-    // `is_issue_id(c) == true` being refused anyway, which a dropped assertion
-    // would stop covering.
-    assert!(
-      !accepted(&format!("ISSUE:{c}")),
-      "ISSUE:{c} must be refused -- the sigil is retired, and a well-formed issue id does not \
-       make it legal again"
+    // **`ISSUE:` IS ACCEPTED AGAIN, AND ONLY FOR A WELL-FORMED ISSUE ID** --
+    // the same shape as the STEELTHREAD assertion above rather than a second
+    // rule. hv retired the sigil on 2026-08-20 because an issue had no
+    // realised form and a manifest line naming one could never be about a
+    // file; ST0069 WP-01 gives it one, so the line names something that
+    // exists. **The retirement was right on its facts; the facts changed.**
+    //
+    // This assertion was `!accepted(...)` for every id, valid ones included.
+    // It is INVERTED rather than dropped: the interesting case is still that
+    // the manifest and `is_issue_id` agree exactly, so a divergence means the
+    // grammar has grown a second id rule.
+    assert_eq!(
+      accepted(&format!("ISSUE:{c}")),
+      model::is_issue_id(c),
+      "ISSUE:{c} -- the manifest and `is_issue_id` must agree exactly;\n       \
+       a divergence here means the grammar has grown a second id rule"
     );
   }
 }

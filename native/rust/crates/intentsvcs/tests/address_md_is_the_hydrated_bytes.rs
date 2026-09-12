@@ -144,8 +144,12 @@ fn the_serve_path_selects_and_never_renders() {
 #[test]
 fn an_entity_without_a_rendering_is_refused_with_its_reason() {
   let (project, canon) = estate();
+  // **`intent:///issues/<n>` LEFT THIS LIST AT ST0069 WP-01**, which gave an
+  // issue a generated view and so a markdown rendering to serve. It is not
+  // replaced by a near-miss here because the list is about entities with NO
+  // rendering, and an issue no longer qualifies; the served form is covered
+  // where the other rendered entities are.
   for url in [
-    "intent:///issues/0042?format=md",
     "intent:///nodes/ic?format=md",
     "intent:///events/1234?format=md",
     "intent:///threads/ST0056/ac/AC-02.1?format=md",

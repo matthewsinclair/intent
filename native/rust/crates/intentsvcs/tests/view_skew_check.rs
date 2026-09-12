@@ -220,7 +220,19 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
 
   // ARM 2 -- the SAME missing files, with the manifest declaring the thread
   // realised. Now they are a real loss and must be named.
-  let declared_st0056 = Realised::Declared(["ST0056".to_string()].into_iter().collect());
+  // **KEYED THROUGH `declared_key` RATHER THAN SPELLED BY HAND.** The set held
+  // bare ids until ST0069 WP-01 widened it to the wire form so a second sigil
+  // could live in it; a literal "ST0056" here silently declares nothing, and
+  // this arm would then assert that a DECLARED thread's missing views are
+  // silent -- the exact opposite of what it is for.
+  let declared_st0056 = Realised::Declared(
+    [intentsvcs::intentfiles::declared_key(
+      intentsvcs::intentfiles::Sigil::SteelThread,
+      "ST0056",
+    )]
+    .into_iter()
+    .collect(),
+  );
   let findings = views::skew(&project, &canon(), &ctx(), &declared_st0056);
   let files: Vec<&str> = findings.iter().map(|f| f.file.as_str()).collect();
   assert_eq!(

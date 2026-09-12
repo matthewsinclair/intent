@@ -130,6 +130,10 @@ mod init_from_empty_dir;
 mod init_mints_an_identity;
 #[path = "init_over_existing_files.rs"]
 mod init_over_existing_files;
+#[path = "issue_declaration_and_organize.rs"]
+mod issue_declaration_and_organize;
+#[path = "issue_realised_form.rs"]
+mod issue_realised_form;
 #[path = "issues_add_body_door.rs"]
 mod issues_add_body_door;
 #[path = "issues_surface.rs"]

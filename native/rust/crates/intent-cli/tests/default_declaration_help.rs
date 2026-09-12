@@ -117,7 +117,7 @@ fn default_flag_help() -> String {
 /// The predicate half: only WIP is realised, driven over every status.
 #[test]
 fn the_default_declaration_admits_wip_and_nothing_else() {
-  let text = default_declaration(&every_status());
+  let text = default_declaration(&every_status(), &[]);
   let declared: Vec<&str> = text
     .lines()
     .filter_map(|l| l.strip_prefix("STEELTHREAD:"))

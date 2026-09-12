@@ -1478,11 +1478,24 @@ impl Project {
 
   /// `.canon/issues/` -- issue canon.
   ///
-  /// **The whole directory moved, because the whole directory WAS canon.**
-  /// `intent/issues/` held nothing but `<nnnn>.json`; unlike a thread, an
-  /// issue has no realised markdown to leave behind.
+  /// **The whole directory moved, because at the time the whole directory WAS
+  /// canon.** `intent/issues/` held nothing but `<nnnn>.json`.
+  ///
+  /// **THE SECOND HALF OF THAT SENTENCE -- _unlike a thread, an issue has no
+  /// realised markdown to leave behind_ -- WAS TRUE UNTIL ST0069 WP-01 AND IS
+  /// NOT ANY MORE.** An issue now realises to [`Self::issue_view`], so
+  /// `intent/issues/` is populated again, by the renderer this time rather
+  /// than by canon. The two are different directories doing different jobs and
+  /// the names no longer tell them apart on sight, which is why this says so.
   pub fn issues_dir(&self) -> PathBuf {
     self.canon_dir().join("issues")
+  }
+
+  /// `intent/issues/` -- where an issue's generated view is realised.
+  ///
+  /// Deliberately NOT [`Self::issues_dir`], which is canon under `.canon/`.
+  pub fn issues_view_dir(&self) -> PathBuf {
+    self.intent_dir().join("issues")
   }
 
   /// What a file under a thread's directory IS, given its path relative to
@@ -1571,6 +1584,18 @@ impl Project {
     self.thread_dir(id).join("acceptance.md")
   }
 
+  /// One issue's generated view, `issues/<nnnn>.md` (AC-01.1).
+  ///
+  /// **Zero-padded through the same `{:04}` the canon path uses**, and for the
+  /// reason [`canon_issue_rel`] states one directory over: `issues/46.json`
+  /// once shipped where every reader opened `issues/0046.json`, because two
+  /// ends formatted the same number independently. These two spellings are
+  /// still independent `format!` calls and that is the remaining risk, so the
+  /// pair is pinned by a test rather than by this comment.
+  pub fn issue_view(&self, number: u32) -> PathBuf {
+    self.issues_view_dir().join(format!("{number:04}.md"))
+  }
+
   /// The generated views as formatter-ignore GLOBS, relative to the project
   /// root -- what [`crate::facade::converge_formatter_exclusion`] writes into a
   /// consumer's `.prettierignore` (AC-07.6).
@@ -1605,6 +1630,10 @@ impl Project {
       rel(self.info_view("*")),
       rel(self.acceptance_view("*")),
       rel(self.thread_dir("*").join("WP").join("*").join("info.md")),
+      // **Assembled by hand for the reason the work-package one is**:
+      // `issue_view` formats its number as `{:04}` and no wildcard survives
+      // that. Same caveat, same place, so the two sit together.
+      rel(self.issues_view_dir().join("*.md")),
     ]
   }
 

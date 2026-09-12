@@ -450,7 +450,10 @@ pub fn init(
   // manifest tracks the estate from the first commit and its history reads as a
   // diff rather than as a sudden appearance the day somebody runs `--default`.
   let manifest = root.join("intent/.intentfiles");
-  write(&manifest, &crate::intentfiles::default_declaration(&[]))?;
+  write(
+    &manifest,
+    &crate::intentfiles::default_declaration(&[], &[]),
+  )?;
   written.push(manifest);
 
   // **THE SECOND OF AC-07.6'S TWO DOORS.** The migration converges this for a
