@@ -8,6 +8,7 @@ pub mod corpus;
 pub mod freshness;
 pub mod reconcile;
 pub mod status;
+pub mod symbols;
 
 /// One `index_file` row, in the shape the store holds it.
 ///

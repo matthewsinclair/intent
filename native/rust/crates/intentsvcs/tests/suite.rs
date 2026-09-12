@@ -280,6 +280,8 @@ mod no_function_takes_a_time;
 mod rules_validate_reaches_an_ext_pack;
 #[path = "search_answers_one_envelope.rs"]
 mod search_answers_one_envelope;
+#[path = "symbols_come_from_the_grammars_own_tags.rs"]
+mod symbols_come_from_the_grammars_own_tags;
 #[path = "test_target_topology_guard.rs"]
 mod test_target_topology_guard;
 

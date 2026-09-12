@@ -30,6 +30,34 @@ thiserror.workspace = true
 sha2.workspace = true
 ignore.workspace = true
 regex.workspace = true
+# **THE STRUCTURAL TIER, EACH GRAMMAR OPTIONAL AND BEHIND ITS OWN FEATURE**
+# (ST0069 WP-20). The runtime is not optional -- `index::symbols` compiles
+# either way and simply knows no languages -- while each grammar is, so a build
+# carries only the syntaxes it asked for and dc's size measurement prices them
+# one at a time. The rationale and the measured deltas sit beside the pins in
+# the workspace manifest, which is where the version is decided.
+tree-sitter.workspace = true
+tree-sitter-rust = { workspace = true, optional = true }
+tree-sitter-elixir = { workspace = true, optional = true }
+tree-sitter-swift = { workspace = true, optional = true }
+tree-sitter-lua = { workspace = true, optional = true }
+tree-sitter-bash = { workspace = true, optional = true }
+
+[features]
+# **EVERY GRAMMAR OFF BY DEFAULT UNTIL hv RULES THE LINE** (AC-20.4). The
+# default set is this one line, so hv's answer is a one-line change rather than
+# a rework; until then a build that wants a language asks for it by name.
+#
+# **A LANGUAGE THE BINARY WAS NOT BUILT WITH PARSES NOTHING, AND SAYS SO**
+# rather than silently returning no symbols -- see `index::symbols::symbols_of`.
+default = []
+lang-rust = ["dep:tree-sitter-rust"]
+lang-elixir = ["dep:tree-sitter-elixir"]
+lang-swift = ["dep:tree-sitter-swift"]
+lang-lua = ["dep:tree-sitter-lua"]
+# `shell` in a project's `languages` maps here: bash is the syntax the shell
+# rules are written against.
+lang-bash = ["dep:tree-sitter-bash"]
 
 [dev-dependencies]
 testkit = { path = "../testkit" }

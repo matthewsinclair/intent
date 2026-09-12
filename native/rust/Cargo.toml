@@ -35,6 +35,29 @@ ignore = "0.4"
 # through `grep -nE` regardless of the line's own flags, so ERE is the target
 # semantics rather than a convenient approximation of it.
 regex = "1"
+# **THE STRUCTURAL TIER'S PARSER** (ST0069 WP-20, AC-20.2). tree-sitter rather
+# than a hand-written extractor per language because every maintained grammar
+# ships its OWN `tags.scm` -- the tagging query that names definitions and
+# references -- so adding a language is a grammar entry and nothing else. A
+# per-language extractor of ours would be five parsers to keep correct against
+# five evolving syntaxes, and the first one to drift would report symbols that
+# are not there.
+# Pinned at the version dc measured the binary-size deltas against (2026-09-12),
+# so hv's ruling on which grammars ship describes what actually ships.
+tree-sitter = "0.27.0"
+# **ONE GRAMMAR PER LANGUAGE INTENT DECLARES, EACH BEHIND ITS OWN FEATURE**, so
+# the binary carries only what a build asked for and dc's measurement can price
+# each one separately. Deltas measured 2026-09-12: swift +3,787,680 bytes,
+# elixir +1,422,848, bash +1,378,576, rust +1,125,744, lua +51,424, with the
+# runtime a further +155,952 once. Swift is 48.7% of the total on its own,
+# which is why the line hv sets is a real decision rather than a formality.
+# `shell` in a project's `languages` maps to the bash grammar: bash is the
+# syntax the shell rules are written against.
+tree-sitter-rust = "0.24.2"
+tree-sitter-elixir = "0.3.5"
+tree-sitter-swift = "0.7.3"
+tree-sitter-lua = "0.5.0"
+tree-sitter-bash = "0.25.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"
