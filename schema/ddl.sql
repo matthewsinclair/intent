@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 17
+-- SCHEMA_DDL_VER: 18
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -335,6 +335,35 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
   level UNINDEXED,
   body,
   tokenize = 'porter unicode61'
+);
+-- The source half of the search index: code, one row per file at the lexical
+-- tier. FTS5 like the prose table beside it, and with a DIFFERENT TOKENISER on
+-- purpose: `unicode61` WITHOUT stemming, because stemming mangles identifiers,
+-- while unicode61's default token characters already split `snake_case` into
+-- its words, so a search for `disabled` finds `parse_disabled`. `CamelCase`
+-- stays one token and is reached by a prefix search, which is why `name_parts`
+-- exists as a column: the words inside a camel-cased name are searchable
+-- because something puts them there.
+--
+-- `kind`, `name` and `name_parts` are empty for a whole-file row and are filled
+-- by the structural tier, which has a grammar and can say what a span IS. An
+-- empty column a later pass fills is honest; a guessed one is not.
+--
+-- `path` is UNINDEXED for the reason `doc_sections` keeps its addressing
+-- unindexed: searching for a path is a different question from searching for
+-- what is in a file, and one query must not quietly answer both.
+-- openness: DERIVED -- recomputed by re-reading the files it points at, which
+-- are the user's own and already on disk.
+CREATE VIRTUAL TABLE IF NOT EXISTS src_sections USING fts5 (
+  path UNINDEXED,
+  seq UNINDEXED,
+  start_line UNINDEXED,
+  end_line UNINDEXED,
+  kind UNINDEXED,
+  name,
+  name_parts,
+  body,
+  tokenize = 'unicode61'
 );
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A

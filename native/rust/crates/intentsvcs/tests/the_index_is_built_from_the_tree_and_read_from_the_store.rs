@@ -264,3 +264,119 @@ fn the_cap_is_the_projects_to_set() {
     "the cap the project set is the cap the index uses"
   );
 }
+
+#[test]
+fn a_rebuild_reads_what_it_says_it_holds() {
+  // **A REBUILD THAT RECORDED A CORPUS AND INDEXED NONE OF IT** would leave
+  // `index status` reporting files as held while nothing could be found in
+  // them, which is the worst of the three states: worse than an empty index,
+  // because it claims not to be one.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(
+    &fx,
+    "README.md",
+    b"# Readme\n\nA paragraph about widgets.\n",
+  );
+  write(&fx, "src/lib.rs", b"fn assemble_widget() {}\n");
+  write(&fx, "assets/logo.bin", b"\x00\x01binary");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+
+  let prose = facade.store().doc_sections().expect("prose");
+  assert!(
+    prose
+      .iter()
+      .any(|s| s.file == "README.md" && s.body.contains("widgets")),
+    "the repository's own prose joins the prose table, which is what makes one \
+     query answer over canon prose and disk prose alike: {prose:?}"
+  );
+  assert!(
+    prose.iter().all(|s| s.file != "assets/logo.bin"),
+    "and a skipped file is read by nothing"
+  );
+
+  let code = facade.store().src_sections().expect("source");
+  let lib = code
+    .iter()
+    .find(|r| r.path == "src/lib.rs")
+    .expect("code joins the source table: {code:?}");
+  assert!(lib.body.contains("assemble_widget"));
+  assert_eq!(lib.seq, 0, "one row per file at the lexical tier");
+  assert!(
+    !code.iter().any(|r| r.path == "assets/logo.bin"),
+    "and the skipped file is in no table"
+  );
+
+  let rows = facade.store().index_files().expect("rows");
+  let row = |rel: &str| rows.iter().find(|r| r.path == rel).expect("a row");
+  assert!(
+    row("src/lib.rs").indexed_sha256.is_some(),
+    "and the row says what it was read from, which is what a later reconcile \
+     compares against"
+  );
+  assert!(
+    row("assets/logo.bin").indexed_sha256.is_none(),
+    "a skipped file has no indexed content, so it has no hash to record"
+  );
+}
+
+#[test]
+fn the_two_prose_writers_leave_each_other_alone() {
+  // The prose table is the one place two writers share a table, and they can
+  // because `owner_type` says which is which. Driven at the store: the failure
+  // would be one writer's delete-missing taking the other's rows, which is the
+  // shape `file_index` and `index_file` had to be split to avoid.
+  use intentsvcs::prose::{DocSection, FILE_OWNER};
+  use intentsvcs::store::Store;
+
+  let dir = tempfile::tempdir().expect("tempdir");
+  let mut store = Store::open(&dir.path().join("intent.db")).expect("store");
+
+  let section = |owner_type: &str, owner_id: &str, file: &str| DocSection {
+    owner_type: owner_type.to_string(),
+    owner_id: owner_id.to_string(),
+    file: file.to_string(),
+    seq: 0,
+    heading: None,
+    level: 0,
+    body: "a body\n".to_string(),
+  };
+
+  store
+    .replace_doc_sections(&[section("thread", "ST0001", "intent/st/ST0001/info.md")])
+    .expect("canon");
+  store
+    .replace_file_sections(&[section(FILE_OWNER, "README.md", "README.md")])
+    .expect("files");
+
+  let both = store.doc_sections().expect("sections");
+  assert_eq!(both.len(), 2, "both halves are in the table: {both:?}");
+
+  store
+    .replace_doc_sections(&[section("thread", "ST0002", "intent/st/ST0002/info.md")])
+    .expect("canon again");
+  let after = store.doc_sections().expect("sections");
+  assert!(
+    after.iter().any(|s| s.owner_type == FILE_OWNER),
+    "a canon rebuild does not delete the index's prose: {after:?}"
+  );
+  assert!(
+    after.iter().any(|s| s.owner_id == "ST0002") && !after.iter().any(|s| s.owner_id == "ST0001"),
+    "and it still replaces its own half wholesale"
+  );
+
+  store
+    .replace_file_sections(&[])
+    .expect("the index, now empty");
+  let last = store.doc_sections().expect("sections");
+  assert!(
+    last.iter().all(|s| s.owner_type != FILE_OWNER),
+    "the index's half is gone"
+  );
+  assert!(
+    last.iter().any(|s| s.owner_id == "ST0002"),
+    "and canon's is untouched"
+  );
+}

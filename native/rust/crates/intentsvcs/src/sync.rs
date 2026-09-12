@@ -1144,6 +1144,16 @@ pub(crate) fn file_sha256(path: &Path) -> Option<String> {
   std::fs::read(path).ok().map(|bytes| sha256_hex(&bytes))
 }
 
+/// The hash of bytes already in hand.
+///
+/// **ONE HASHER FOR THE ESTATE, WHICH IS WHY THIS IS EXPOSED RATHER THAN
+/// REIMPLEMENTED.** The index reads a file's bytes to turn them into rows and
+/// needs the same answer the change detector would give about the same file;
+/// a second hasher would be a second answer to "what are this file's bytes".
+pub(crate) fn sha256_of(bytes: &[u8]) -> String {
+  sha256_hex(bytes)
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
   hex(Sha256::digest(bytes).as_slice())
 }

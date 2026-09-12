@@ -5243,9 +5243,32 @@ impl Facade {
         source: std::io::Error::other(e.to_string()),
       })
     })?;
+    // **AND THEN IT READS WHAT IT SAID IT WOULD HOLD.** The survey decides the
+    // scope and the skips; this turns the bytes of everything left into rows.
+    // Doing it in one door is deliberate: a rebuild that recorded a corpus and
+    // indexed none of it would leave `index status` reporting files as held
+    // when nothing could be found in them.
+    let content = crate::index::reconcile::read_content(self.project.root(), &rows);
+    let mut rows = rows;
+    for (path, sha) in &content.indexed {
+      if let Some(row) = rows.iter_mut().find(|r| &r.path == path) {
+        // The hash goes in BEFORE the rows are written, so `index_file` and the
+        // section tables land in one pass and the column says what the rows
+        // beside it were read from.
+        row.indexed_sha256 = Some(sha.clone());
+      }
+    }
     self
       .store
       .replace_index_files(&rows)
+      .map_err(FacadeError::Store)?;
+    self
+      .store
+      .replace_file_sections(&content.prose)
+      .map_err(FacadeError::Store)?;
+    self
+      .store
+      .replace_src_sections(&content.source)
       .map_err(FacadeError::Store)?;
     Ok(crate::index::status::summarise(&rows))
   }

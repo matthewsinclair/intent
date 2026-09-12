@@ -296,8 +296,11 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // has run a rung, changing what it produces needs a new rung. A rebuild
   // rather than `DROP COLUMN` for the same fixture reason rung 19 gives, and
   // the new table starts empty because no reconcile has ever run.
-  const PINNED_SCHEMA_HASH: u64 = 0xd48c_2e6f_767d_d1da;
-  const PINNED_FOR_VERSION: i32 = 20;
+  // 21 is `src_sections`, the source half of the search index: a new table, so
+  // the easy rung -- an empty one is the correct and only representation of a
+  // store that has never read a line of source.
+  const PINNED_SCHEMA_HASH: u64 = 0x5472_833a_5942_cd98;
+  const PINNED_FOR_VERSION: i32 = 21;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

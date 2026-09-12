@@ -201,6 +201,74 @@ fn rows_under(
   Ok(out)
 }
 
+/// What the index holds after reading the files it said it would hold.
+///
+/// **`indexed` IS A PAIR PER FILE AND NOT A FLAG**, because the column it fills
+/// records what was read rather than that something was: a later reconcile
+/// compares it with the file's current hash to know whether the rows beside it
+/// are the bytes on disk.
+#[derive(Debug, Clone, Default)]
+pub struct Content {
+  /// Disk prose, split by the same splitter canon prose goes through.
+  pub prose: Vec<crate::prose::DocSection>,
+  /// Code, one row per file at the lexical tier.
+  pub source: Vec<super::source::Section>,
+  /// `(path, sha256)` for every file actually read.
+  pub indexed: Vec<(String, String)>,
+}
+
+/// Read every row the index says it holds, and turn the bytes into rows.
+///
+/// **IT READS ONLY WHAT THE SURVEY ALREADY DECIDED TO HOLD.** A skipped row is
+/// not opened -- that is the whole of what a skip buys -- and a row the survey
+/// did not produce is not in scope, so this never makes a scope decision of its
+/// own.
+///
+/// **A FILE WHOSE BYTES ARE NOT UTF-8 IS INDEXED LOSSILY RATHER THAN DROPPED,
+/// AND THE ESTATE ALREADY HANDLES WHAT THAT COSTS.** A search index is over
+/// text; a Latin-1 `notes.txt` is prose somebody wrote and the corpus rule
+/// keeps it, because binary is a NUL and not a failed decode. The lossy body
+/// differs from the file on disk, and `SearchHit`'s line is `None` unless the
+/// indexed body IS the file byte for byte -- so such a hit is found and carries
+/// no line, which is the honest outcome rather than a line pointing at bytes
+/// that are not there.
+///
+/// **A READ THAT FAILS HERE IS PASSED OVER SILENTLY ON PURPOSE.** The row
+/// already exists and its `indexed_sha256` stays as it was, so the file is
+/// reported by `index status` exactly as it was before; making this a refusal
+/// would fail a whole reconcile over one file that changed its permissions
+/// between the walk and the read.
+pub fn read_content(root: &Path, rows: &[Row]) -> Content {
+  let mut out = Content::default();
+  for row in rows {
+    if row.skipped_reason.is_some() {
+      continue;
+    }
+    let path = root.join(&row.path);
+    let Ok(bytes) = std::fs::read(&path) else {
+      continue;
+    };
+    let text = String::from_utf8_lossy(&bytes);
+    match row.corpus.as_str() {
+      "prose" => out.prose.extend(crate::prose::split(
+        crate::prose::FILE_OWNER,
+        &row.path,
+        &row.path,
+        &text,
+      )),
+      "code" => out.source.push(super::source::whole_file(&row.path, &text)),
+      // `canon` is the store's own prose and is indexed FROM the store, so a
+      // file carrying that corpus is not this pass's to read. It cannot arise
+      // from a survey today and is passed over rather than assumed away.
+      _ => continue,
+    }
+    out
+      .indexed
+      .push((row.path.clone(), crate::sync::sha256_of(&bytes)));
+  }
+  out
+}
+
 #[cfg(test)]
 mod tests {
   use super::super::corpus::DEFAULT_MAX_FILE_BYTES;

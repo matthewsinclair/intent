@@ -419,6 +419,35 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
   body,
   tokenize = 'porter unicode61'
 );
+-- The source half of the search index: code, one row per file at the lexical
+-- tier. FTS5 like the prose table beside it, and with a DIFFERENT TOKENISER on
+-- purpose: `unicode61` WITHOUT stemming, because stemming mangles identifiers,
+-- while unicode61's default token characters already split `snake_case` into
+-- its words, so a search for `disabled` finds `parse_disabled`. `CamelCase`
+-- stays one token and is reached by a prefix search, which is why `name_parts`
+-- exists as a column: the words inside a camel-cased name are searchable
+-- because something puts them there.
+--
+-- `kind`, `name` and `name_parts` are empty for a whole-file row and are filled
+-- by the structural tier, which has a grammar and can say what a span IS. An
+-- empty column a later pass fills is honest; a guessed one is not.
+--
+-- `path` is UNINDEXED for the reason `doc_sections` keeps its addressing
+-- unindexed: searching for a path is a different question from searching for
+-- what is in a file, and one query must not quietly answer both.
+-- openness: DERIVED -- recomputed by re-reading the files it points at, which
+-- are the user's own and already on disk.
+CREATE VIRTUAL TABLE IF NOT EXISTS src_sections USING fts5 (
+  path UNINDEXED,
+  seq UNINDEXED,
+  start_line UNINDEXED,
+  end_line UNINDEXED,
+  kind UNINDEXED,
+  name,
+  name_parts,
+  body,
+  tokenize = 'unicode61'
+);
 -- **THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
 -- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
 -- caller that read a clock and then wrote the value would hold it across a
@@ -546,7 +575,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 20;
+pub const SCHEMA_VERSION: i32 = 21;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1321,6 +1350,31 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      DROP TABLE file_index;
      ALTER TABLE file_index_v20 RENAME TO file_index;",
   ),
+  (
+    21,
+    // 20 -> 21: the source half of the search index, `src_sections`.
+    //
+    // A new table, which is the easy rung for the reason rung 12's note gives:
+    // an empty table is a correct representation of a store that has never
+    // indexed a line of source, and it is the only correct one. There is
+    // nothing to back-fill, because nothing has ever read a source file.
+    //
+    // **THE STATEMENT IS REPEATED FROM THE DDL RATHER THAN SHARED, which the
+    // ladder's shape requires**: a rung is a claim about the shape at a
+    // VERSION, so a rung that read the current DDL would silently change what
+    // it did the next time the DDL moved.
+    "CREATE VIRTUAL TABLE IF NOT EXISTS src_sections USING fts5 (
+       path UNINDEXED,
+       seq UNINDEXED,
+       start_line UNINDEXED,
+       end_line UNINDEXED,
+       kind UNINDEXED,
+       name,
+       name_parts,
+       body,
+       tokenize = 'unicode61'
+     );",
+  ),
 ];
 
 /// Which of the two write acts is happening (D42).
@@ -1553,6 +1607,20 @@ pub struct SearchRow {
 /// The mark [`Store::search_hits`] asks `highlight()` to put before each
 /// matched token. Private-use, so authored prose does not carry it.
 const MATCH_MARK: char = '\u{E000}';
+
+/// Which half of the prose table a write owns.
+///
+/// **THE PROSE TABLE IS THE ONE PLACE TWO WRITERS SHARE A TABLE, and they can
+/// because the row says which is which.** `owner_type` is `file` for the
+/// repository's own prose and an entity kind for canon's, so each writer's
+/// delete-missing names its own half in SQL. See
+/// [`Store::replace_doc_sections`] for why the index's other tables are not
+/// arranged this way.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProseHalf {
+  Canon,
+  Files,
+}
 
 /// One `doc_sections` row, from its first seven columns in declaration order.
 fn section_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<DocSection> {
@@ -2626,7 +2694,9 @@ impl Store {
         closed,
       });
     }
-    Self::write_doc_sections(&tx, change.sections)?;
+    // The canon half: this is the rebuild from canon, and the repository's own
+    // prose is not its to delete.
+    Self::write_doc_sections(&tx, change.sections, ProseHalf::Canon)?;
     // **AND THE PROJECT STATE, IN THIS TRANSACTION, WHICH IS THE WHOLE OF
     // AC-14.7.** The clock is the database's, read inside the statement, so
     // this keeps D42 for the same reason the envelope does: a time read in Rust
@@ -3839,10 +3909,40 @@ impl Store {
     Ok(out)
   }
 
-  /// Replace the whole prose index in one transaction.
+  /// Replace the CANON half of the prose index in one transaction.
+  ///
+  /// **THE PROSE TABLE HAS TWO WRITERS AND THEY DELETE ONLY THEIR OWN ROWS.**
+  /// The canon ingest owns every section that belongs to an entity; the search
+  /// index owns the sections that belong to a FILE on disk
+  /// ([`Store::replace_file_sections`]). Both write here on purpose -- one
+  /// table means one query answers over canon prose and repository prose alike,
+  /// which is the point of widening the corpus at all.
+  ///
+  /// **THAT IS NOT THE ARRANGEMENT `file_index` AND `index_file` REFUSED, and
+  /// the difference is what makes it safe.** There, neither corpus was a subset
+  /// of the other and no row said which writer had produced it, so a
+  /// delete-missing could not be scoped and the writer that ran last deleted
+  /// the other's rows. Here the row carries its own answer in `owner_type`, so
+  /// each writer names its own half in SQL and knows nothing about the other's.
   pub fn replace_doc_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    Self::write_doc_sections(&tx, sections)?;
+    Self::write_doc_sections(&tx, sections, ProseHalf::Canon)?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Replace the FILE half of the prose index: the repository's own prose,
+  /// which the search index owns. See [`Store::replace_doc_sections`].
+  pub fn replace_file_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
+    for s in sections {
+      debug_assert_eq!(
+        s.owner_type,
+        crate::prose::FILE_OWNER,
+        "a file section's owner_type is what tells the two writers apart"
+      );
+    }
+    let tx = self.conn.transaction()?;
+    Self::write_doc_sections(&tx, sections, ProseHalf::Files)?;
     tx.commit()?;
     Ok(())
   }
@@ -3852,8 +3952,18 @@ impl Store {
   fn write_doc_sections(
     conn: &rusqlite::Connection,
     sections: &[DocSection],
+    half: ProseHalf,
   ) -> Result<(), StoreError> {
-    conn.execute("DELETE FROM doc_sections", [])?;
+    match half {
+      ProseHalf::Canon => conn.execute(
+        "DELETE FROM doc_sections WHERE owner_type <> ?1",
+        params![crate::prose::FILE_OWNER],
+      ),
+      ProseHalf::Files => conn.execute(
+        "DELETE FROM doc_sections WHERE owner_type = ?1",
+        params![crate::prose::FILE_OWNER],
+      ),
+    }?;
     // **THE `DELETE` EMPTIES THE ROWS AND LEAVES THE INDEX BEHIND** (issue
     // 0234, second mechanism). Deleting from an FTS5 table does not remove a
     // row's terms from the inverted index; it writes a DELETE MARKER for each
@@ -3875,6 +3985,12 @@ impl Store {
     // at runtime on a path with no test. `rebuild` re-derives the index from
     // the content table, which the line above just emptied, so it costs
     // nothing here and truncates what it replaces.
+    //
+    // **IT STILL CLEARS THEM NOW THAT THE DELETE IS SCOPED TO ONE HALF**, which
+    // is why it is still here rather than left over: `rebuild` re-derives the
+    // index from the content table as it stands, so it takes in the OTHER
+    // writer's rows as well as this one's. A scoped delete leaves tombstones
+    // exactly as a wholesale one does, and this is what clears them either way.
     conn.execute(
       "INSERT INTO doc_sections(doc_sections) VALUES('rebuild')",
       [],
@@ -3894,6 +4010,72 @@ impl Store {
       )?;
     }
     Ok(())
+  }
+
+  /// Replace the source half of the search index in one transaction.
+  ///
+  /// **ONE WRITER, SO THE DELETE IS UNCONDITIONAL**, unlike the prose table it
+  /// sits beside: nothing else writes code rows, so a row this pass did not
+  /// produce is a file that has left the corpus.
+  ///
+  /// The `rebuild` is [`Store::write_doc_sections`]'s, for the reason recorded
+  /// there: a `DELETE` from an FTS5 table leaves a tombstone per row in the
+  /// inverted index, and wholesale replacement is this table's only write
+  /// pattern, so without this they accumulate for the life of the store with
+  /// nothing reporting it.
+  pub fn replace_src_sections(
+    &mut self,
+    sections: &[crate::index::source::Section],
+  ) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    tx.execute("DELETE FROM src_sections", [])?;
+    tx.execute(
+      "INSERT INTO src_sections(src_sections) VALUES('rebuild')",
+      [],
+    )?;
+    for s in sections {
+      tx.execute(
+        "INSERT INTO src_sections (path, seq, start_line, end_line, kind, name, name_parts, body)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![
+          s.path,
+          s.seq as i64,
+          s.start_line as i64,
+          s.end_line as i64,
+          s.kind,
+          s.name,
+          s.name_parts,
+          s.body,
+        ],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every source row, ordered by path then position.
+  pub fn src_sections(&self) -> Result<Vec<crate::index::source::Section>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, seq, start_line, end_line, kind, name, name_parts, body
+         FROM src_sections ORDER BY path, seq",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok(crate::index::source::Section {
+        path: row.get(0)?,
+        seq: row.get::<_, i64>(1)? as u32,
+        start_line: row.get::<_, i64>(2)? as u32,
+        end_line: row.get::<_, i64>(3)? as u32,
+        kind: row.get(4)?,
+        name: row.get(5)?,
+        name_parts: row.get(6)?,
+        body: row.get(7)?,
+      })
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
   }
 
   /// Every section of one file, in document order.

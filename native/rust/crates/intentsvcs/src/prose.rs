@@ -54,6 +54,15 @@ pub struct SearchHit {
   pub line: Option<u32>,
 }
 
+/// The `owner_type` of a section that belongs to a FILE rather than to an
+/// entity.
+///
+/// **ONE SPELLING, BECAUSE TWO WRITERS AND EVERY READER KEY ON IT.** The canon
+/// ingest deletes every section that is not this; the search index deletes
+/// every section that is. A second spelling anywhere would make one of those
+/// deletes miss, and the symptom would be duplicated hits rather than an error.
+pub const FILE_OWNER: &str = "file";
+
 /// Split one markdown document into sections.
 ///
 /// The concatenation law, which the round-trip test pins: rebuilding the file
