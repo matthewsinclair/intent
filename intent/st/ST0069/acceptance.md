@@ -13,11 +13,11 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ## Acceptance Criteria
 
-### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Not Started)
+### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Done)
 
-- AC-01.1 An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store, its one writer the renderer and the formatter excluded from it as from every generated view (ST0056 AC-03.17); `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case. -- satisfied: no (computed)
-- AC-01.2 `ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm. -- satisfied: no (computed)
-- AC-01.3 `organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply. -- satisfied: no (computed)
+- AC-01.1 An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store, its one writer the renderer and the formatter excluded from it as from every generated view (ST0056 AC-03.17); `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case. -- satisfied: yes (computed)
+- AC-01.2 `ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm. -- satisfied: yes (computed)
+- AC-01.3 `organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply. -- satisfied: yes (computed)
 
 ### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
 
@@ -176,9 +176,11 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ## Acceptance Tests
 
-### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Not Started)
+### WP-01 -- Issues get a realised form and a sigil, then join the default declaration (status: Done)
 
-_(no tests in this group)_
+- AT-01.1 `native/rust/crates/intent-cli/tests/issue_realised_form.rs` -- covers AC-01.1 -- status: green
+- AT-01.2 `native/rust/crates/intent-cli/tests/issue_declaration_and_organize.rs` -- covers AC-01.2 -- status: green
+- AT-01.3 `native/rust/crates/intent-cli/tests/issue_declaration_and_organize.rs` -- covers AC-01.3 -- status: green
 
 ### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
 

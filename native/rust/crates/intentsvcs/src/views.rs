@@ -1464,6 +1464,20 @@ pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
   finish(out, ctx, "the issue canon")
 }
 
+/// Which issue a path is the view of, or `None`.
+///
+/// **ASKS CANON, LIKE [`owning_thread`], RATHER THAN PARSING THE PATH.** The
+/// number could be scraped out of `issues/0021.md` in one line and that is the
+/// spelling that does not survive the directory moving. Comparing against
+/// `Project::issue_view` means the layout is owned in exactly one place.
+pub fn owning_issue(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<u32> {
+  canon
+    .issues
+    .iter()
+    .find(|i| project.issue_view(i.number) == path)
+    .map(|i| i.number)
+}
+
 pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<String> {
   canon
     .threads

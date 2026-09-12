@@ -39,7 +39,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
 - [-] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
-  - [ ] 01: Issues get a realised form and a sigil, then join the default declaration
+  - [x] 01: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [~] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API

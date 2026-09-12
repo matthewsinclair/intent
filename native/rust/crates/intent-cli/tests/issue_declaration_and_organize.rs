@@ -282,3 +282,51 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
     declared(root)
   );
 }
+
+// ---------------------------------------------------------------------------
+// AC-01.2 -- THE PROJECTION OBEYS THE MANIFEST, NOT JUST THE PLAN
+// ---------------------------------------------------------------------------
+
+/// **THE LIVE ESTATE'S POPULATION, WHICH NO FIXTURE ABOVE CONTAINS.**
+///
+/// Every arm above reaches an issue through `issues add`, which DECLARES it --
+/// so all of them drive a declared issue and none can see what happens to an
+/// undeclared one when something writes. The estate's own issues all predate
+/// the sigil and none is declared, and on the day WP-01 landed a single
+/// `wp done` materialised a view for every one of them: the projection's
+/// skip-an-undeclared-view test reads `owning_thread`, which answers `None`
+/// for `intent/issues/<nnnn>.md`, and `None` made the whole `&&` false.
+///
+/// **The projection and `organize`'s plan then disagreed about the same file**
+/// -- one writing it, the other listing it to remove -- which is the state this
+/// arm exists to keep out.
+#[test]
+fn an_undeclared_issue_gets_no_view_when_something_writes() {
+  let dir = project();
+  let root = dir.path();
+  assert!(
+    intent(root, &["issues", "add", "A defect"])
+      .status
+      .success()
+  );
+
+  // Undeclare it and remove the view: the estate's shape, reached deliberately
+  // rather than by closing, so the record still says OPEN and only the
+  // MANIFEST says undeclared.
+  std::fs::write(root.join("intent/.intentfiles"), "# nothing declared\n")
+    .expect("undeclare by hand");
+  std::fs::remove_file(view(root, 1)).expect("start from absent");
+
+  // Any write at all runs the projection. `st new` is deliberately about a
+  // DIFFERENT entity: the issue is untouched, so nothing about this command
+  // asks for its view.
+  let out = intent(root, &["st", "new", "An unrelated thread"]);
+  assert!(out.status.success(), "st new: {}", said(&out));
+
+  assert!(
+    !view(root, 1).is_file(),
+    "an undeclared issue's view must not be written by the projection -- the manifest \
+     is what decides which artefacts are on disk, and `organize` would remove this file \
+     immediately after the projection wrote it"
+  );
+}

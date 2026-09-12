@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Issues get a realised form and a sigil, then join the default declaration
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-01: Issues get a realised form and a sigil, then join the default declaration

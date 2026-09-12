@@ -5491,12 +5491,18 @@ impl Facade {
     // cannot tell direction. A missing file stays missing, and the thread is
     // never re-declared -- realising is `st hydrate`'s act, not a mutation's.
     let changed: std::collections::BTreeSet<&str> = threads.iter().map(|t| t.id.as_str()).collect();
+    let changed_issues: std::collections::BTreeSet<u32> = issues.iter().map(|i| i.number).collect();
     // Rendered only when a changed thread is undeclared -- the ordinary
     // mutation on a declared thread pays nothing for this.
     let undeclared_changed = match &realised {
-      Realised::Declared(declared) => changed
-        .iter()
-        .any(|id| !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, id))),
+      Realised::Declared(declared) => {
+        changed
+          .iter()
+          .any(|id| !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, id)))
+          || changed_issues.iter().any(|n| {
+            !declared.contains(&intentfiles::declared_key(Sigil::Issue, &format!("{n:04}")))
+          })
+      }
       // Neither skips a view below, so neither needs the prior render.
       Realised::NothingSaid | Realised::Unreadable => false,
     };
@@ -5507,6 +5513,42 @@ impl Facade {
       _ => Vec::new(),
     };
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
+      // **AN UNDECLARED ISSUE'S VIEW IS NOT WRITTEN, AND THIS ARM EXISTS
+      // BECAUSE THE ONE BELOW COULD NOT ANSWER FOR IT.** The thread skip reads
+      // `owning_thread`, which matches a path against `thread_dir` and so
+      // answers `None` for `intent/issues/<nnnn>.md`; `None` makes the whole
+      // `&&` false, so the skip never fired and every issue view was written
+      // whatever the manifest said. **Measured on the live estate the day
+      // WP-01 landed: 284 views materialised against a manifest declaring
+      // none**, which `organize --apply` would then have removed -- the
+      // projection and the plan disagreeing about the same file.
+      //
+      // **IT CARRIES THE `store_ahead` COUNTERPART, AND THE PARAGRAPH HERE
+      // ONCE SAID IT DID NOT NEED ONE.** That was wrong and a test said so:
+      // `issues close` moves the record AND undeclares it in the same breath,
+      // so a plain skip leaves the OPEN render on disk while the store holds
+      // the closed one -- and `organize`'s dehydration gate then refuses to
+      // remove the file, correctly, because disk and render differ and it
+      // cannot tell a stale render from a hand edit. The thread arm below has
+      // solved exactly this since 0079; the two now answer alike.
+      if let Realised::Declared(ref declared) = realised
+        && let Some(number) = views::owning_issue(&self.project, &view.path, canon)
+        && !declared.contains(&intentfiles::declared_key(
+          Sigil::Issue,
+          &format!("{number:04}"),
+        ))
+      {
+        let store_ahead = changed_issues.contains(&number)
+          && rendered_before
+            .iter()
+            .find(|v| v.path == view.path)
+            .is_some_and(|prior| {
+              std::fs::read_to_string(&view.path).is_ok_and(|disk| disk == prior.content)
+            });
+        if !store_ahead {
+          continue;
+        }
+      }
       if let Realised::Declared(ref declared) = realised
         && let Some(owner) = self.owning_thread(&view.path, canon)
         && !declared.contains(&intentfiles::declared_key(Sigil::SteelThread, &owner))
@@ -9827,6 +9869,14 @@ impl Facade {
       // `Thread.body`.
       body: body.to_string(),
     };
+    // **THE MANIFEST EDIT COMES FIRST, WHICH IS `edit_list`'s OWN DOCUMENTED
+    // ORDER FOR AN ADDITION** -- *manifest first for an addition leaves an
+    // artefact listed whose status did not move ... and one that deletes
+    // nothing*. It was second here, and `apply` runs the projection: so the
+    // projection asked the manifest whether this issue was declared BEFORE the
+    // line declaring it existed, decided no, and skipped the view. Nothing
+    // failed; the file simply never appeared.
+    self.edit_list("issues.add", &format!("{number:04}"), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
     self.apply(
@@ -9838,10 +9888,6 @@ impl Facade {
       json!({"title": title, "severity": severity}),
       next,
     )?;
-    // **THE MANIFEST EDIT IS A SECOND WRITE AND IT FOLLOWS THE STORE**, the
-    // order `edit_list`'s own doc argues for: a manifest naming an issue the
-    // store does not carry would have `organize` realise a view of nothing.
-    self.edit_list("issues.add", &format!("{number:04}"), ListEdit::AsDeclared)?;
     Ok(number)
   }
 
@@ -10081,6 +10127,10 @@ impl Facade {
       IssueStatus::Closed => Some(String::new()),
       IssueStatus::Open => None,
     };
+    // Before `apply` for the reason `issue_add` records: the projection runs
+    // inside it and reads the manifest, so an edit made afterwards is invisible
+    // to the very write it is supposed to govern.
+    self.edit_list(op, &format!("{number:04}"), ListEdit::AsDeclared)?;
     let outcome = self
       .apply(
         op,
@@ -10095,11 +10145,6 @@ impl Facade {
         next,
       )
       .map(|foreign| Outcome::Moved.with_overwrites(foreign))?;
-    // Closing removes the declaration and reopening restores it, so an open
-    // issue is declared and a closed one is not -- which is what makes
-    // `organize --apply` dehydrate a closed issue's view without a second rule
-    // anywhere that knows what closed means.
-    self.edit_list(op, &format!("{number:04}"), ListEdit::AsDeclared)?;
     Ok(outcome)
   }
 
