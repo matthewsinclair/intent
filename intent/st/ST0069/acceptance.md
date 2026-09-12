@@ -134,7 +134,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 ### WP-21 -- The explorer's /search pane (status: Not Started)
 
 - AC-21.1 `/search <query>` in the explorer opens a resident results pane whose rows are the envelope's hits, with the freshness line in the INFO section. -- satisfied: no (computed)
-- AC-21.2 Enter on an entity hit lands on its view; Enter on a file hit opens the file at its line through the lent terminal. -- satisfied: no (computed)
+- AC-21.2 Enter on an entity hit lands on its view; Enter on a file hit opens the file through the lent terminal, and the row names the line. The editor is not positioned at it: editor line flags are not portable (`+N` for some, `-g file:N` for others), and this estate has already refused to sniff editors for a flag on exactly that ground. -- satisfied: no (computed)
 - AC-21.3 The pane calls the same facade method as the CLI, and the TUI's pure layers stay pure. -- satisfied: no (computed)
 
 ### WP-22 -- Daemon-served search with daemonless parity (status: Not Started)

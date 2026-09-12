@@ -180,7 +180,7 @@ Generated from the register row as today. `search` gains the flags above as para
 
 ### The explorer's `/search`
 
-Today `/search` in the palette lends the terminal to the CLI. It becomes a resident pane: a `nav::View::Search` whose rows are the hits (`{name: path:line or entity id, value: snippet, type: kind}`), the freshness line in the INFO section, groups as sections. Enter on an entity hit lands on its view through the existing navigation; Enter on a file hit opens the file at its line through the lent terminal, the way `edit` already borrows it. The pane calls the same facade method as the CLI; the TUI's pure layers stay pure and testable without a terminal. An option for hv: the omnibox treats input that matches no entity as a search, which makes the search box the home screen.
+Today `/search` in the palette lends the terminal to the CLI. It becomes a resident pane: a `nav::View::Search` whose rows are the hits (`{name: path:line or entity id, value: snippet}`, each a `button` row as every navigable row in this estate is, the hit's kind carried in the value; the row's `kind` field is the mode machine's widget discriminator and not a taxonomy, found by ic when a `thread` kind opened an editor over a hit), the freshness line in the INFO section, groups as sections. Enter on an entity hit lands on its view through the existing navigation; Enter on a file hit opens the file at its line through the lent terminal, the way `edit` already borrows it. The pane calls the same facade method as the CLI; the TUI's pure layers stay pure and testable without a terminal. An option for hv: the omnibox treats input that matches no entity as a search, which makes the search box the home screen.
 
 ### The daemon
 
