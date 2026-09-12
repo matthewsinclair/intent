@@ -122,7 +122,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-19.5 A hit's line is reported only when the indexed bytes match the disk; otherwise the hit carries no line and says stale. -- satisfied: yes (computed)
 - AC-19.6 `intent index status` and `intent index rebuild` exist, report measured sizes, and are registered and exposed like every verb. -- satisfied: yes (computed)
 
-### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
+### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Done)
 
 - AC-20.1 Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing. -- satisfied: yes (computed)
 - AC-20.2 Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else. -- satisfied: yes (computed)
@@ -198,7 +198,7 @@ _(no tests in this group)_
 - AT-19.5 `native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs` -- covers AC-19.5 -- status: green
 - AT-19.6 `native/rust/crates/intent-cli/tests/the_index_says_what_it_holds.rs` -- covers AC-19.6 -- status: green
 
-### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
+### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: Done)
 
 - AT-20.1 `native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs` -- covers AC-20.1 -- status: green -- The first half: a declared language's file names its symbols through the index, driven end to end with --features lang-rust because every grammar is off until hv rules the size line. The second half -- a language absent from the array parses nothing -- is ic's absent-language arm in index::symbols; one criterion answered in two files is one record or it is neither.
 - AT-20.2 `native/rust/crates/intentsvcs/tests/symbols_come_from_the_grammars_own_tags.rs` -- covers AC-20.2 -- status: green
