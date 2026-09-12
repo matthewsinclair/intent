@@ -124,9 +124,9 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
-- AC-20.1 Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing. -- satisfied: no (computed)
+- AC-20.1 Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing. -- satisfied: yes (computed)
 - AC-20.2 Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else. -- satisfied: no (computed)
-- AC-20.3 `intent search --kind def <name>` answers whether a thing with that name already exists, from the tree. -- satisfied: no (computed)
+- AC-20.3 `intent search --kind def <name>` answers whether a thing with that name already exists, from the tree. -- satisfied: yes (computed)
 - AC-20.4 (non-test) The binary-size delta of each grammar is measured and recorded before it ships; hv rules on any grammar above the line hv sets. -- satisfied: no
 - AC-20.5 References are named as name-matched on every surface and never as callers. -- satisfied: no (computed)
 - AC-20.6 Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling. -- satisfied: no (computed)
@@ -196,7 +196,8 @@ _(no tests in this group)_
 
 ### WP-20 -- Structural search: tree-sitter symbols per declared language, and the agent canon that uses them (status: WIP)
 
-_(no tests in this group)_
+- AT-20.1 `native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs` -- covers AC-20.1 -- status: green -- The first half: a declared language's file names its symbols through the index, driven end to end with --features lang-rust because every grammar is off until hv rules the size line. The second half -- a language absent from the array parses nothing -- is ic's absent-language arm in index::symbols; one criterion answered in two files is one record or it is neither.
+- AT-20.3 `native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs` -- covers AC-20.3 -- status: green -- Plants the rows a parse would have written and asks the question, because the store's answer is true of every build while a file naming symbols needs a grammar compiled in. The match is exact: --kind def asks whether a thing with that name already exists, and a prefix would answer a softer question. Reporting a reference as a definition reds it alone.
 
 ### WP-21 -- The explorer's /search pane (status: Done)
 

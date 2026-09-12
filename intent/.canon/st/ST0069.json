@@ -757,6 +757,26 @@
       "status": "green"
     },
     {
+      "id": "AT-20.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs",
+      "covers": [
+        "AC-20.1"
+      ],
+      "status": "green",
+      "note": "The first half: a declared language's file names its symbols through the index, driven end to end with --features lang-rust because every grammar is off until hv rules the size line. The second half -- a language absent from the array parses nothing -- is ic's absent-language arm in index::symbols; one criterion answered in two files is one record or it is neither."
+    },
+    {
+      "id": "AT-20.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs",
+      "covers": [
+        "AC-20.3"
+      ],
+      "status": "green",
+      "note": "Plants the rows a parse would have written and asks the question, because the store's answer is true of every build while a file naming symbols needs a grammar compiled in. The match is exact: --kind def asks whether a thing with that name already exists, and a prefix would answer a softer question. Reporting a reference as a definition reds it alone."
+    },
+    {
       "id": "AT-21.1",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
