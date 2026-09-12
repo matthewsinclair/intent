@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 12:29Z
+heartbeat_at: 2026-09-12 12:38Z
 status: active
 focus: "ST0069's ic lane is COMPLETE and HOLDING. WP-19 and WP-21 closed; WP-20's pure half and every ic criterion of WP-24 landed; the surface driven end to end as a user and its four findings closed. Holding for the post-tag reference regeneration on vc's signal."
 claims: []
@@ -26,6 +26,8 @@ claims: []
 **The batched reference regeneration** -- ONE run, both halves keyed to v3.0.2, AFTER the tag exists and after the last search package. `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`, which is keyed to the TAG. The signal is vc's. Collected so far: cc's batch 2 (printed output only), cc's organize preview lines, dc's single-line `claude upgrade --force` help change. On the pages' own contract -- per-verb help and arguments, no output lines, no per-verb exit tables -- none of it is a reason to regenerate; the one run re-keys everything anyway.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
+
+0. **THE QUIET WINDOW (vc, 2026-09-12).** From the moment dc's WP-22 lands on main until vc says it is lifted: **no `cargo test`, no `cargo build`, no drives on this box** -- dc measures the daemon family on an idle host, then runs the final rehearsal. RELEASES WHEN vc says the window is lifted. The post-tag reference regeneration is after the tag and is unaffected by it.
 
 1. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
 2. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
