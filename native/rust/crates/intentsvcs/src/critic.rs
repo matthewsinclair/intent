@@ -578,6 +578,27 @@ pub fn parse_disabled(text: &str) -> BTreeSet<String> {
     let trimmed = line.trim_end();
     if let Some(rest) = trimmed.strip_prefix("disabled:") {
       let rest = rest.trim();
+      // **A COMMENT ON THE KEY LINE IS NOT A VALUE, AND READING IT AS ONE
+      // DISABLED NOTHING IN SILENCE** (`intent/wip.md` item 17, hv ruled the
+      // fix 2026-09-12). `disabled:  # which rules and why` followed by `- ID`
+      // lines is the form every doc showed, and it fell through both arms
+      // below -- not an inline list, not empty -- so the block was never
+      // entered and the project's opt-out yielded `[]` with the rule still
+      // armed. **An empty list is tolerated by design (see above), so there was
+      // nothing to see**: the config read, the commit was refused by rules the
+      // project had opted out of, and no line said why.
+      //
+      // The inline form is cut at its `]` rather than at a `#`, so a `#` inside
+      // a bracketed list cannot truncate it; every other shape is cut at the
+      // first `#`, which cannot appear in a rule id.
+      let rest = if rest.starts_with('[') {
+        match rest.find(']') {
+          Some(end) => rest[..=end].trim(),
+          None => rest,
+        }
+      } else {
+        rest.split('#').next().unwrap_or("").trim()
+      };
       if let Some(inner) = rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
         for item in inner.split(',') {
           let id = item.trim().trim_matches(['"', '\'']).trim();
@@ -1238,6 +1259,35 @@ mod tests {
     assert_eq!(got.len(), 2);
     // An empty list disables nothing -- and must not disable everything.
     assert!(parse_disabled("disabled: []\n").is_empty());
+  }
+
+  /// **A COMMENT ON THE KEY LINE MUST NOT DEFEAT THE PARSE EITHER.**
+  ///
+  /// `disabled:  # which rules, and why` followed by `- ID` lines is the form
+  /// every doc showed, and it disabled nothing: not an inline list and not an
+  /// empty value, so block mode was never entered. **The failure is silent by
+  /// design** -- an empty list is tolerated, deliberately, so the project saw
+  /// its commits refused by rules it had opted out of with nothing saying why.
+  #[test]
+  fn a_comment_on_the_key_line_does_not_defeat_the_block() {
+    let documented = "severity_min: warning\ndisabled:  # the rules this project opts out of, and why\n  - IN-EX-TEST-002 # reason: black-box harness\n  - IN-SH-CODE-002\n";
+    let got = parse_disabled(documented);
+    assert!(
+      got.contains("IN-EX-TEST-002") && got.contains("IN-SH-CODE-002"),
+      "a comment on the key line must not empty the list: {got:?}"
+    );
+    assert_eq!(got.len(), 2);
+
+    // The inline form survives a trailing comment too, and a `#` INSIDE the
+    // brackets does not truncate the list -- the cut is at the `]`.
+    let inline = "disabled: [IN-EX-CODE-001, IN-SH-CODE-002]  # both are legacy\n";
+    let got = parse_disabled(inline);
+    assert!(got.contains("IN-EX-CODE-001") && got.contains("IN-SH-CODE-002"));
+    assert_eq!(got.len(), 2);
+
+    // A key line that is nothing but a comment still opens a block; a key line
+    // with a real value still closes one.
+    assert!(parse_disabled("disabled: []  # nothing, deliberately\n").is_empty());
   }
 
   /// **A COMMENT BETWEEN THE KEY AND ITS ITEMS MUST NOT END THE BLOCK.**
