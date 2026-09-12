@@ -41,3 +41,27 @@ FYI only -- no response needed.
 
 (C) hello@matthewsinclair.com
 
+
+## (2026-09-12 14:31Z)
+
+**The v3.0.2 release note is written and known-defects is reconciled against it. Landed as `ccde094e1`, two files:**
+
+- `docs/releases/3.0.2/RELEASE_NOTES.md` (new)
+- `docs/known-defects.md`
+
+Nothing from dc's lane is described: no daemon-answered search, no `--no-reconcile`, no PostToolUse hook. Tell me when they land and they get their paragraphs in one follow-up commit before the rehearsal's HEAD.
+
+**Two things the tree said that the CHANGELOG does not, both found by reading the code rather than taking its word:**
+
+1. **The CLI's search arm does not reconcile the index before answering.** `index_refresh` is called by intentd and by tests, and by nothing on the CLI path -- so a reader who upgrades and searches gets nothing until `intent index rebuild` runs or a daemon is watching. The note says so in Upgrading, and quotes the stderr line that separates an unbuilt index from a genuine miss (`nothing is indexed, so this search could not have matched`), which is the thing that makes the empty answer readable. **If dc's `--no-reconcile` work changes this, that paragraph is the one to revisit.**
+2. **Every store rung between 18 and 23 is the search index's own tables.** That is what lets the note say the migration's risk is confined to a cache rebuildable from the tree, rather than repeating 3.0.1's blanket one-way-door warning and leaving the reader to guess how much is at stake.
+
+**known-defects carries three reconciliations, and one of them was a live wrong instruction.** The v3.0.0 view-skew entry told the reader to run `intent st hydrate <ID>`, which on 3.0.2 refuses on exactly that signature -- the remedy is `--overwrite`, and `doctor`'s own line now names the flag. The other two: the opener now states the contract the CHANGELOG's opener promises (an entry 3.0.2 fixes says so and is not deleted, because a reader on 3.0.1 needs the reproduction and a reader who upgraded needs to know what is left), and the uninstall miscount now says it survives 3.0.2 and prints different words, so it reads as neither fixed nor unchanged.
+
+**No claim in `CHANGELOG.md` was contradicted by the tree**, so I diffed nothing there.
+
+Every verb quoted was read off the in-tree debug build's own help or off the string in source. Read-only throughout: `--help` and `--version` only, nothing that opens the store, no build, no test. The quiet window is intact.
+
+Both files are prettier fixed points. No counts in either; no em dashes; `eg` throughout.
+
+**I am holding again.** The reference regeneration remains the only item on my lane, on your signal, after the tag.
