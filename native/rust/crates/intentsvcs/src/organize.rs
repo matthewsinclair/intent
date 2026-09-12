@@ -193,6 +193,13 @@ pub struct TreeState {
 #[derive(Debug, Clone)]
 pub struct Plan {
   pub steps: Vec<Step>,
+  /// What the v2 tree left behind, and whether the store holds it (WP-02).
+  ///
+  /// **CARRIED ON THE PLAN, NOT RECOMPUTED INSIDE THE APPLY**, for
+  /// [`Plan::preconditions`]'s reason: a removal an operator cannot see before
+  /// it happens is the one line of this verb nobody can review. It is computed
+  /// once, printed by the preview, and acted on by the same body.
+  pub leftovers: crate::legacy::Leftovers,
   /// The tree digest as measured while planning. Re-computed immediately before
   /// the irreversible step; any difference refuses the run.
   pub digest: String,
@@ -249,7 +256,18 @@ impl Plan {
   /// Whether this plan would remove anything. A plan that removes nothing needs
   /// no digest re-check, because there is no irreversible step to guard.
   pub fn is_destructive(&self) -> bool {
+    // **THE v2 PRUNE COUNTS, AND LEAVING IT OUT MADE THE DOOR UNREACHABLE.**
+    // This predicate decides whether the removal branch runs at all, so a plan
+    // whose only removals were v2 leftovers took no removal path, reported an
+    // empty prune and left the tree exactly as it found it -- a door that
+    // compiles, reports nothing and does nothing. Found by the arm rather than
+    // by review, which is what the arm is for.
+    //
+    // **A REFUSAL IS DESTRUCTIVE-SHAPED TOO**: withheld paths must reach
+    // `refused`, and that also happens inside this branch.
     self.steps.iter().any(|s| s.action.is_destructive())
+      || !self.leftovers.removable.is_empty()
+      || self.leftovers.refuses()
   }
 }
 
@@ -277,6 +295,18 @@ pub enum OrganizeError {
     "refusing to dehydrate {path}: the file on disk ({bytes} byte(s)) differs from what the store renders -- either a hand edit the store never took in, or a render the store has since moved past (before v3.0.1, a change to a thread `.intentfiles` no longer lists left its views behind). Removing it would destroy the hand edit if there is one -- a wanted edit belongs in canon, made through the CLI -- so organize does not guess."
   )]
   HandEdited { path: PathBuf, bytes: usize },
+
+  /// A v2 leftover whose content the store does not hold (WP-02, AC-02.2).
+  ///
+  /// **ONE OF THESE REFUSES THE WHOLE PRUNE**, because the usual cause is the
+  /// INGEST rather than the file: an ingest that failed for one thread is
+  /// evidence about the run, and removing the fifty-three it did carry while
+  /// one is unheld is the half-migrated estate the per-file content probe
+  /// exists to catch.
+  #[error(
+    "refusing to prune {path}: {reason}. The v2 tree is removed only once the store holds every one of its files, so this run removes none of them -- re-run `intent upgrade` to ingest what is missing, or move this file out of the v2 tree by hand if it is not the record of any work."
+  )]
+  LegacyUnheld { path: PathBuf, reason: String },
 
   /// The moment-of-act digest (AC-04.5). Something wrote to the tree between
   /// planning and applying.
@@ -359,6 +389,14 @@ impl crate::remedy::Remedy for OrganizeError {
       // does not take a hand edit to a generated view into the model -- only
       // canon and the info covers are read back -- so that remedy did nothing
       // for most of the files this refusal is about (issue `0283`).
+      // **THE REFUSAL IS ABOUT THE RUN, SO THE REMEDY NAMES THE RUN.** The
+      // usual cause is an ingest that did not carry this file, which
+      // `intent upgrade` re-runs; the other is a file that is nobody's record,
+      // which only a human can say.
+      Self::LegacyUnheld { path, .. } => format!(
+        "run `intent upgrade` to ingest what the v2 tree still holds, then organize again. If {} is not the record of any work -- a scratch file, a build artefact -- move it out of the v2 tree by hand and it stops blocking the prune. Nothing is removed until every one of them is held.",
+        path.display()
+      ),
       Self::HandEdited { path, .. } => format!(
         "decide which copy is right. `intent doctor` names the difference and the command that regenerates it. If nobody edited the file at {}, the store is right: delete it and re-run. If it holds an edit you want, make the change through the CLI so it lands in the model, then re-run.",
         path.display()
@@ -704,6 +742,7 @@ pub fn plan(
   steps.sort_by(|a, b| a.path.cmp(&b.path));
   Plan {
     steps,
+    leftovers: crate::legacy::leftovers(project, canon),
     digest,
     preconditions: preconditions::check(canon),
     estate_root: project.st_dir(),
@@ -922,6 +961,19 @@ pub struct Report {
   /// over one hand-edited file would make every other thread's realisation
   /// hostage to an edit nobody has read yet.
   pub refused: Vec<OrganizeError>,
+  /// v2 leftovers this run removed -- the status buckets, the v2 issue estate
+  /// and the retired `.treeindex` cache, once the store was proved to hold
+  /// every one of their files (WP-02, AC-02.2).
+  ///
+  /// **A SEPARATE FIELD FROM `dehydrated`, because the two are removed on
+  /// different PROOFS.** A view is removed because the renderer reproduced it
+  /// byte for byte; a leftover is removed because canon carries its content at
+  /// its sha. Folding them together would let one proof be reported as the
+  /// other.
+  pub pruned_legacy: Vec<PathBuf>,
+  /// Authored files naming a v2 bucket path (AC-02.4). **Reported, never
+  /// rewritten**, and never a reason to refuse anything.
+  pub legacy_pointers: Vec<crate::legacy::Pointer>,
   /// Directories this run emptied and then removed.
   ///
   /// **REPORTED BECAUSE IT IS DESTRUCTIVE.** Removing a directory is a smaller
@@ -1121,7 +1173,42 @@ impl Plan {
         &mut report.pruned,
         mode,
       );
+
+      // **THE v2 PRUNE, AND ITS PROOF IS THE INGEST RATHER THAN A RE-RENDER.**
+      // `gate` above asks the renderer to reproduce a view; nothing renders a
+      // v2 bucket file, so the question `leftovers` already answered -- does
+      // canon carry this file's content, at its sha -- IS the gate here.
+      //
+      // **ALL OR NOTHING** (AC-02.2): a prune that ingested nothing removes
+      // nothing, so one unheld path refuses every removal and names every one
+      // of them.
+      if self.leftovers.refuses() {
+        for withheld in &self.leftovers.withheld {
+          report.refused.push(OrganizeError::LegacyUnheld {
+            path: withheld.path.clone(),
+            reason: withheld.reason.clone(),
+          });
+        }
+      } else {
+        for path in &self.leftovers.removable {
+          if mode.performs() {
+            std::fs::remove_file(path).map_err(|e| io_err(path, e))?;
+          }
+          report.pruned_legacy.push(path.clone());
+        }
+        prune_emptied(
+          &self.estate_root,
+          &report.pruned_legacy,
+          &mut report.pruned,
+          mode,
+        );
+      }
     }
+    // **REPORTED WHATEVER THE PRUNE DID, INCLUDING WHEN IT REFUSED** (AC-02.4).
+    // A worklist of authored files naming a bucket path is for a human to read
+    // and act on in their own words; it is not a precondition of anything and
+    // nothing here rewrites one.
+    report.legacy_pointers.clone_from(&self.leftovers.pointers);
 
     // Every write goes through ONE `WriteSet`, which is where the
     // skip-when-unchanged already lives. Deciding here which files "need"

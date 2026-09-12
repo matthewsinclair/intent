@@ -268,15 +268,35 @@ fn a_migrated_archive_is_superseded_while_an_unmigrated_one_still_convicts() {
     migrated.thread_json("ST0001").is_file(),
     "premise: the migration wrote canon for the archived thread"
   );
+  // **THIS ASSERTED THE OPPOSITE UNTIL ST0069 WP-02, AND THE WORLD CHANGED
+  // RATHER THAN THE TEST BEING WRONG.** It read "the v2 original is still where
+  // v2 left it -- the migrator relocates nothing", which was the estate every
+  // user ended up with and the whole reason this test exists. WP-02's ruling is
+  // ingest THEN prune: the bucket copy is removed at migration once the store
+  // is proved to hold every one of its files, so the surviving v2 tree this
+  // premise described is exactly what that work package ends.
   assert!(
-    dir
+    !dir
       .path()
       .join("intent/st/NOT-STARTED/ST0001/info.md")
       .is_file(),
-    "premise: the v2 original is still where v2 left it. The migrator \
-     relocates nothing, so this is the estate every user ends up with -- if \
-     this assert ever fails the test below has stopped testing anything"
+    "premise: the migration pruned the v2 original, because the store now holds it (WP-02)"
   );
+
+  // **THE INVARIANT IC FOUND IS STILL THE SUBJECT, so the v2 copy is put BACK
+  // by hand to state it.** `Migration::Done` must follow from canon existing
+  // and not from the bucket being empty -- an estate can still carry a bucket
+  // copy the prune refused, or one restored from a backup, and it must not
+  // re-convict a thread that is migrated. Planting it here keeps that reachable
+  // now that the migrator's own output no longer leaves one behind.
+  let restored = dir.path().join("intent/st/NOT-STARTED/ST0001");
+  std::fs::create_dir_all(&restored).expect("mkdir");
+  std::fs::write(
+    restored.join("info.md"),
+    "---\nstatus: Not Started\n---\n\n# ST0001: a v2 copy that came back\n",
+  )
+  .expect("restore a v2 bucket copy");
+  let migrated = Project::open(dir.path()).expect("re-open");
   assert!(
     matches!(migrated.migration(), Migration::Done),
     "a thread whose canon exists is migrated, wherever its v2 source still sits"

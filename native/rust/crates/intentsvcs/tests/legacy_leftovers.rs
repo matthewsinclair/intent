@@ -233,3 +233,106 @@ fn an_authored_file_naming_a_bucket_path_is_reported_and_left_alone() {
     "and the file is not rewritten, byte for byte"
   );
 }
+
+// ---------------------------------------------------------------------------
+// AC-02.2: the two doors, and the refusal that stands in front of both
+// ---------------------------------------------------------------------------
+
+/// Drive `organize` over a fixture and hand back its report.
+fn organize(
+  fx: &Fixture,
+  canon: &Canon,
+  mode: intentsvcs::organize::Mode,
+) -> intentsvcs::organize::Report {
+  let project = fx.project();
+  let (tree, digest) = intentsvcs::organize::observe(&project, &[]).expect("observes the tree");
+  // Declares nothing, which is somebody saying none -- so no view of the
+  // thread is realised and every row below is about the v2 leftovers.
+  let realised = intentsvcs::intentfiles::realised_for_action("# BEGIN INTENT\n# END INTENT\n")
+    .expect("the manifest parses");
+  let plan = intentsvcs::organize::plan(
+    &project,
+    canon,
+    &realised,
+    &crate::common::ctx(),
+    &tree,
+    digest.clone(),
+  );
+  plan
+    .run(mode, &|| digest.clone())
+    .expect("the run completes")
+}
+
+/// AC-02.2, the `organize --apply` door.
+#[test]
+fn organize_apply_removes_the_v2_tree_the_store_holds() {
+  let fx = Fixture::new();
+  bucketed(&fx);
+  fx.write_file("intent/.treeindex/cache.json", "{}\n");
+  let canon = canon_with(vec![Attachment::new("design.md", DESIGN)]);
+
+  let preview = organize(&fx, &canon, intentsvcs::organize::Mode::Preview);
+  assert_eq!(
+    preview.pruned_legacy.len(),
+    4,
+    "the preview NAMES what an apply would remove, or the apply is a silent deletion: {:?}",
+    preview.pruned_legacy
+  );
+  assert!(
+    fx.path("intent/st/COMPLETED/ST0002/design.md").exists(),
+    "and a preview removes nothing"
+  );
+
+  let done = organize(&fx, &canon, intentsvcs::organize::Mode::Apply);
+  assert!(
+    done.refused.is_empty(),
+    "nothing to refuse: {:?}",
+    done.refused
+  );
+  for rel in [
+    "intent/st/COMPLETED/ST0002/design.md",
+    "intent/st/COMPLETED/ST0002/info.md",
+    "intent/st/COMPLETED/ST0002/acceptance.md",
+    "intent/.treeindex/cache.json",
+  ] {
+    assert!(
+      !fx.path(rel).exists(),
+      "{rel} is still on disk after the prune"
+    );
+  }
+}
+
+/// AC-02.2, the refusal. **A prune that ingested nothing removes nothing.**
+#[test]
+fn one_unheld_file_refuses_the_whole_prune_and_names_it() {
+  let fx = Fixture::new();
+  bucketed(&fx);
+  // In canon at the right path, with the wrong bytes: the half-migrated shape.
+  let canon = canon_with(vec![Attachment::new(
+    "design.md",
+    "# Design\n\nsomething else\n",
+  )]);
+
+  let done = organize(&fx, &canon, intentsvcs::organize::Mode::Apply);
+  assert!(
+    done.pruned_legacy.is_empty(),
+    "one unheld file refuses EVERY removal, not just its own: {:?}",
+    done.pruned_legacy
+  );
+  for rel in [
+    "intent/st/COMPLETED/ST0002/design.md",
+    "intent/st/COMPLETED/ST0002/info.md",
+  ] {
+    assert!(
+      fx.path(rel).exists(),
+      "{rel} was removed despite the refusal"
+    );
+  }
+  let named: Vec<String> = done.refused.iter().map(|r| r.to_string()).collect();
+  assert!(
+    named
+      .iter()
+      .any(|r| r.contains("design.md") && r.contains("differs")),
+    "the refusal names the file and the cause: {named:?}"
+  );
+}

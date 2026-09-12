@@ -3413,7 +3413,7 @@ pub struct Pointer {
 /// `organize --apply` prunes an estate that was converted before this existed.
 /// Two implementations of "may this go?" is how one door removes what the other
 /// would have kept, and the removal is the irreversible direction.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Leftovers {
   /// Paths whose content the store holds, in sorted order.
   pub removable: Vec<std::path::PathBuf>,

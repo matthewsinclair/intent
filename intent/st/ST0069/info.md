@@ -22,21 +22,21 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 
 ## Work Packages
 
-| WP    | Title                                                                                                                   | Size | Status      |
-| ----- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Issues get a realised form and a sigil, then join the default declaration                                               | S    | Done        |
-| WP-02 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket | S    | Not Started |
-| WP-13 | Project search: full-text, structural, and the agent search surface                                                     | XL   | Cancelled   |
-| WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                                             | L    | WIP         |
-| WP-16 | Contract drift: a shipped field with no model row is refused                                                            | S    | Done        |
-| WP-17 | The structured query door: intent search --sql, read-only over the published schema                                     | S    | Done        |
-| WP-18 | The corpus: the gitignore-aware repository, two staleness policies, the widened watcher                                 | L    | Done        |
-| WP-19 | Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index                                  | M    | Done        |
-| WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | Done        |
-| WP-21 | The explorer's /search pane                                                                                             | M    | Done        |
-| WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Done        |
-| WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Done        |
-| WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | Done        |
+| WP    | Title                                                                                                                   | Size | Status    |
+| ----- | ----------------------------------------------------------------------------------------------------------------------- | ---- | --------- |
+| WP-01 | Issues get a realised form and a sigil, then join the default declaration                                               | S    | Done      |
+| WP-02 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket | S    | WIP       |
+| WP-13 | Project search: full-text, structural, and the agent search surface                                                     | XL   | Cancelled |
+| WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                                             | L    | WIP       |
+| WP-16 | Contract drift: a shipped field with no model row is refused                                                            | S    | Done      |
+| WP-17 | The structured query door: intent search --sql, read-only over the published schema                                     | S    | Done      |
+| WP-18 | The corpus: the gitignore-aware repository, two staleness policies, the widened watcher                                 | L    | Done      |
+| WP-19 | Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index                                  | M    | Done      |
+| WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | Done      |
+| WP-21 | The explorer's /search pane                                                                                             | M    | Done      |
+| WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Done      |
+| WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Done      |
+| WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | Done      |
 
 ## Acceptance
 

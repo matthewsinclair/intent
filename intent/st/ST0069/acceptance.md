@@ -19,7 +19,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-01.2 `ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm. -- satisfied: yes (computed)
 - AC-01.3 `organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply. -- satisfied: yes (computed)
 
-### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
+### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: WIP)
 
 - AC-02.1 Migration ingests every bucket-only file under a v2 thread directory (`intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/**`) as an attachment of its thread, the naming gate permitting, with the authored lines of the v2 `acceptance.md` preamble into `preamble`; verified PER FILE by a content probe, a distinctive phrase from each ingested file found in the store afterwards and a phrase never ingested returning nothing. -- satisfied: no (computed)
 - AC-02.2 The prune removes the v2 buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex`, at migration for a new conversion and under `organize --apply` for an already-migrated estate, and REFUSES by name while any bucket file content is not held by the store, so a prune that ingested nothing removes nothing. -- satisfied: no (computed)
@@ -182,7 +182,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AT-01.2 `native/rust/crates/intent-cli/tests/issue_declaration_and_organize.rs` -- covers AC-01.2 -- status: green
 - AT-01.3 `native/rust/crates/intent-cli/tests/issue_declaration_and_organize.rs` -- covers AC-01.3 -- status: green
 
-### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: Not Started)
+### WP-02 -- The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket (status: WIP)
 
 _(no tests in this group)_
 

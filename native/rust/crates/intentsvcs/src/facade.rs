@@ -106,6 +106,19 @@ pub struct Upgraded {
   /// drop can be reconciled against the estate's census rather than inferred
   /// from a total that happens to be short.
   pub dispositions: Vec<crate::legacy::Disposition>,
+  /// The v2 leftovers this conversion removed (WP-02, AC-02.2), named rather
+  /// than counted.
+  ///
+  /// **A DESTRUCTIVE ACT THAT REPORTS ONLY A TOTAL IS ONE NOBODY CAN REVIEW.**
+  /// Empty when the prune refused, and then [`Upgraded::prune_withheld`] says
+  /// which file stopped it.
+  pub pruned: Vec<std::path::PathBuf>,
+  /// Why the prune removed nothing: one entry per file the store does not hold.
+  /// Empty on a conversion that pruned.
+  pub prune_withheld: Vec<crate::legacy::Withheld>,
+  /// Authored files naming a v2 bucket path -- a worklist, never a refusal, and
+  /// never rewritten (AC-02.4).
+  pub pointers: Vec<crate::legacy::Pointer>,
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -2664,7 +2677,9 @@ impl Facade {
     // Everything past here has files on disk, so a failure unwinds them rather
     // than leaving a half-converted estate. `keep()` is reached only once the
     // stamp has landed.
-    let finish = || -> Result<(), FacadeError> {
+    // Returns what the prune did, because the caller reports it and a closure
+    // that swallowed it would make the removal unreviewable.
+    let finish = || -> Result<(Vec<std::path::PathBuf>, crate::legacy::Leftovers), FacadeError> {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
       // The store has just been built from the canon these writes landed, so
@@ -2675,6 +2690,32 @@ impl Facade {
         &mut store,
         &ingest::canon_paths(project, &threads, &issues),
       )?;
+      // **THE v2 PRUNE, AT THE SECOND DOOR** (WP-02, AC-02.2). It runs AFTER
+      // the store rebuild above, deliberately: "does the store hold this file"
+      // is only answerable once the store holds anything, and asking it of the
+      // canon we are about to write would be asking the plan rather than the
+      // estate.
+      //
+      // **ONE DERIVATION, AND `organize --apply` IS THE OTHER DOOR.** A second
+      // implementation of "may this go?" is how one door removes what the other
+      // would have kept, in the direction that cannot be taken back.
+      let converted = Canon {
+        threads: threads.clone(),
+        issues: issues.clone(),
+        sections: Vec::new(),
+        boards: Vec::new(),
+      };
+      let leftovers = crate::legacy::leftovers(project, &converted);
+      let mut pruned = Vec::new();
+      if !leftovers.refuses() {
+        for path in &leftovers.removable {
+          std::fs::remove_file(path).map_err(|cause| FacadeError::MigrationHalted {
+            step: "removing the v2 tree the store now holds",
+            cause,
+          })?;
+          pruned.push(path.clone());
+        }
+      }
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "adding the per-machine artefacts to .gitignore",
         cause,
@@ -2692,12 +2733,16 @@ impl Facade {
       stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
         cause,
-      })
+      })?;
+      Ok((pruned, leftovers))
     };
     match finish() {
-      Ok(()) => {
+      Ok((pruned, leftovers)) => {
         applied.keep();
         Ok(Upgraded {
+          pruned,
+          prune_withheld: leftovers.withheld,
+          pointers: leftovers.pointers,
           threads: threads.len(),
           issues: issues.len(),
           files,
@@ -4343,6 +4388,11 @@ impl Facade {
       .cloned()
       .collect();
     let scoped = organize::Plan {
+      // **A SCOPED PLAN PRUNES NO v2 LEFTOVER.** This narrows an estate-wide
+      // plan to one artefact's paths; the v2 prune is an estate-wide act with
+      // an estate-wide refusal, so it belongs to the whole-tree run and never
+      // rides along with a single thread's realisation.
+      leftovers: crate::legacy::Leftovers::default(),
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
@@ -4741,6 +4791,11 @@ impl Facade {
     }
 
     let scoped = organize::Plan {
+      // **A SCOPED PLAN PRUNES NO v2 LEFTOVER.** This narrows an estate-wide
+      // plan to one artefact's paths; the v2 prune is an estate-wide act with
+      // an estate-wide refusal, so it belongs to the whole-tree run and never
+      // rides along with a single thread's realisation.
+      leftovers: crate::legacy::Leftovers::default(),
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),

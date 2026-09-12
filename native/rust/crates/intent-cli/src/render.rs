@@ -4325,6 +4325,42 @@ fn upgrade() -> Result<(), Failure> {
       done.already_migrated_issues.len()
     );
   }
+  // **THE v2 PRUNE IS NAMED PATH BY PATH, NEVER COUNTED** (WP-02, AC-02.2).
+  // A removal an operator cannot review is the one line of a migration that
+  // matters most, and a total is not a review.
+  for path in &done.pruned {
+    eprintln!("pruned: {}", path.display());
+  }
+  // **AND THE REFUSAL NAMES EVERY FILE, not the first one.** A refusal reporting
+  // one of several trains an operator to fix that one and re-run into the next.
+  if !done.prune_withheld.is_empty() {
+    eprintln!(
+      "prune refused: the v2 tree stays, because the store does not hold every one of its files"
+    );
+    for withheld in &done.prune_withheld {
+      eprintln!(
+        "  withheld: {} -- {}",
+        withheld.path.display(),
+        withheld.reason
+      );
+    }
+  }
+  // **A WORKLIST, NOT A REFUSAL, AND NOTHING REWRITES THESE** (AC-02.4). A path
+  // inside authored prose is a sentence about where something was; rewriting it
+  // would be this tool editing a human's words to match its own filesystem.
+  if !done.pointers.is_empty() {
+    eprintln!(
+      "pointers: authored file(s) naming a v2 bucket path -- read and reword them yourself, nothing here has changed them"
+    );
+    for pointer in &done.pointers {
+      eprintln!(
+        "  {}:{} names {}",
+        pointer.path.display(),
+        pointer.line,
+        pointer.names
+      );
+    }
+  }
   eprintln!(
     "ok: this project is now Intent v{} -- commit the canon and the generated views",
     intentsvcs::faces::INTENT_VER
@@ -5414,7 +5450,11 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
 /// front of it would train the operator to answer without reading -- which
 /// spends the one question this verb gets to ask.
 fn confirm_destructive_plan(planned: &intentsvcs::organize::Report) -> Result<(), Failure> {
-  let removing = planned.dehydrated.len() + planned.pruned.len();
+  // **THE v2 PRUNE COUNTS AS A REMOVAL HERE, because it is one.** A confirm
+  // that omitted it would ask about the views and then remove a bucket tree the
+  // operator was never asked about -- the silent-deletion shape this prompt
+  // exists for.
+  let removing = planned.dehydrated.len() + planned.pruned.len() + planned.pruned_legacy.len();
   if removing == 0 {
     return Ok(());
   }
@@ -5663,7 +5703,7 @@ fn render_organize_report(
     format!(" ({blocked} blocked)")
   };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} unclaimed{}, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} {}, {} unclaimed{}, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
@@ -5686,6 +5726,12 @@ fn render_organize_report(
     // in one evening, same shape, different field.
     report.pruned.len(),
     if previewing { "to prune" } else { "pruned" },
+    report.pruned_legacy.len(),
+    if previewing {
+      "to prune (v2)"
+    } else {
+      "pruned (v2)"
+    },
     report.unclaimed.len(),
     // **THE DIGEST RIDES ON THE SUMMARY LINE, WHICH IS THE ONLY LINE THAT MUST
     // ANSWER `DID ANYTHING CHANGE` WITHOUT A FLAG.** Grouping the 199 paths by
@@ -5709,7 +5755,13 @@ fn render_organize_report(
     }
   }
   if verbosity.shows_removals() {
-    for (label, paths) in [(rem, &report.dehydrated), (prn, &report.pruned)] {
+    for (label, paths) in [
+      (rem, &report.dehydrated),
+      (prn, &report.pruned),
+      // **NAMED UNDER THE SAME PREDICATE AS EVERY OTHER REMOVAL.** `--quiet`
+      // withholds what a run WRITES and never what it removes.
+      ("pruned (v2)", &report.pruned_legacy),
+    ] {
       for path in paths {
         println!("  {label}: {}", show(path));
       }
