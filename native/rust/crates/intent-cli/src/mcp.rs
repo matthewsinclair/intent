@@ -472,9 +472,9 @@ pub const SERVED: [&str; 67] = [
   "index status",
   "wb status",
   "wb show",
-  "wb ask",
-  "wb announce",
   "wb clear",
+  "wb claim",
+  "wb unclaim",
   "export",
   "organize",
   "events",
@@ -1285,33 +1285,31 @@ pub fn serve(
       let node = str_arg(args, "node", path)?;
       Ok(json!(f.board(node)?))
     }
-    "wb ask" => {
-      let node = str_arg(args, "node", path)?;
-      let recipient = str_arg(args, "recipient", path)?;
-      let body = str_arg(args, "body", path)?;
-      f.wb_ask(
-        node,
-        recipient,
-        body,
-        args.get("re").and_then(serde_json::Value::as_str),
-        args
-          .get("fyi")
-          .and_then(serde_json::Value::as_bool)
-          .unwrap_or(false),
-      )?;
-      Ok(json!({ "sender": node, "recipient": recipient }))
-    }
-    "wb announce" => {
-      let node = str_arg(args, "node", path)?;
-      let body = str_arg(args, "body", path)?;
-      let reached = f.wb_announce(node, body)?;
-      Ok(json!({ "sender": node, "reached": reached }))
-    }
     "wb clear" => {
       let node = str_arg(args, "node", path)?;
       let sender = str_arg(args, "sender", path)?;
       let handled = f.wb_clear(node, sender)?;
       Ok(json!({ "recipient": node, "sender": sender, "handled": handled }))
+    }
+    // **`wb ask`, `wb announce` AND `wb decide` ARE NOT SERVED HERE, AND THE
+    // FIELD DECIDES IT RATHER THAN THIS MATCH.** All three are `one-way` in the
+    // register -- nothing on this surface un-sends a message or un-decides a
+    // decision, and `wb clear` PRESERVES rather than deletes -- so the withhold
+    // follows `recoverability` the way `st attach`'s does. The reason it matters
+    // more here than the label suggests: `--node` is the acting-node parameter,
+    // so exposure would let an agent write a permanent entry onto any board AS
+    // any node, on the tier where nobody types the flag by hand. Revisit on the
+    // row if the acting node ever comes from somewhere the caller does not
+    // choose (ic's finding, vc's ruling, 2026-09-12).
+    "wb claim" => {
+      let node = str_arg(args, "node", path)?;
+      let id = str_arg(args, "id", path)?;
+      Ok(json!({ "node": node, "id": id, "moved": f.wb_claim(node, id)? }))
+    }
+    "wb unclaim" => {
+      let node = str_arg(args, "node", path)?;
+      let id = str_arg(args, "id", path)?;
+      Ok(json!({ "node": node, "id": id, "moved": f.wb_unclaim(node, id)? }))
     }
     "index status" => {
       let status = f.index_status()?;

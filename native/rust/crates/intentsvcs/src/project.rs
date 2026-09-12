@@ -457,6 +457,15 @@ pub struct WhiteboardConfig {
   /// (sender, recipient) pair, as the file form already is.
   #[serde(default = "default_wb_live_messages")]
   pub live_messages: usize,
+  /// The most LIVE items one node may hold OF ONE KIND.
+  ///
+  /// **PER KIND RATHER THAN PER BOARD, because the kinds grow at different
+  /// rates and for different reasons.** Watch-outs accumulate and are the
+  /// population this bound is really about; DOING is small by definition and a
+  /// shared bound would let a long watch-out list refuse a node's next piece of
+  /// work, which is the bound punishing the wrong thing.
+  #[serde(default = "default_wb_live_items")]
+  pub live_items: usize,
   /// Nodes the bounds do not apply to.
   ///
   /// **THE HUMAN IS UNBOUNDED BY DEFAULT AND THAT IS NOT AN EXEMPTION FOR
@@ -479,6 +488,11 @@ pub struct WhiteboardConfig {
 /// Forty-five entries, median 2423 bytes, largest 7113. This clears all of them
 /// with headroom.
 ///
+/// **IT GOVERNS ITEMS TOO, AND THERE IT BITES THE TAIL RATHER THAN THE MEDIAN.**
+/// The same read found 138 items across the five boards, median 220 bytes, one
+/// at 11164 -- so this refuses exactly one item that exists today, an 11KB
+/// watch-out, which is the outlier the bound is for.
+///
 /// **THE VALUE IT REPLACED WAS 2000 AND IT WOULD HAVE REFUSED 62% OF THAT
 /// CORPUS**, the median included. That failure is not an error anybody debugs:
 /// it is a node discovering mid-report that its durable escalation will not fit,
@@ -495,6 +509,15 @@ fn default_wb_live_messages() -> usize {
   20
 }
 
+/// Fitted to the corpus it governs, on the rule `body_bytes` records: every
+/// item in every `intent/whiteboard/*/wip.md` on this repository, read
+/// 2026-09-12. The most any one (node, kind) holds is 31 -- one node's
+/// watch-outs -- so a bound at or below that would refuse boards that exist
+/// today, and this leaves room above the observed maximum while still bounding.
+fn default_wb_live_items() -> usize {
+  40
+}
+
 fn default_wb_unbounded() -> Vec<String> {
   vec!["hv".to_string()]
 }
@@ -504,6 +527,7 @@ impl Default for WhiteboardConfig {
     Self {
       body_bytes: default_wb_body_bytes(),
       live_messages: default_wb_live_messages(),
+      live_items: default_wb_live_items(),
       unbounded: default_wb_unbounded(),
     }
   }

@@ -322,6 +322,33 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wb decide",
+    "intentsvcs/tests/error_remedies.rs -- `provoked_errors` fills ONE KIND to the configured \
+     per-kind bound through this verb's facade door, `wb_decide`, and asserts the next one is \
+     REFUSED. **What it writes is ROWS AND NO FILE**, so `did the projected estate move` is the \
+     wrong observable; the property this file exists for, in the form this verb can have it, is \
+     that an over-bound write writes nothing rather than truncating or evicting. Filling one kind \
+     rather than a board's worth of mixed kinds is deliberate: a mixed fixture would pass against \
+     a per-BOARD bound too, and the per-kind reading is what keeps a long watch-out list from \
+     refusing a node's next piece of work.",
+  ),
+  (
+    "wb claim",
+    "intentsvcs/tests/error_remedies.rs -- `provoked_errors` drives `wb_claim` to its address \
+     refusal. What it writes is one column on one row, `wb_node.claims`, replaced whole by the \
+     store rather than appended to, so nothing under the projected estate moves. Its other \
+     property is that it is IDEMPOTENT and reports what moved rather than what is there, which \
+     `wb show` reads back on the same row.",
+  ),
+  (
+    "wb unclaim",
+    "intentsvcs/tests/error_remedies.rs, through the same column: `wb_unclaim` is `wb_claim`'s \
+     removal half over `wb_node.claims` and has no write of its own beyond `wb_set_claims`, the \
+     one door both use. It deliberately does NOT validate the address -- a malformed claim cannot \
+     be in the list, so refusing would refuse a call that is already a no-op -- and it reports \
+     whether anything moved, which is the whole of what it can be wrong about.",
+  ),
+  (
     "wb ask",
     "intentsvcs/tests/error_remedies.rs -- `provoked_errors` registers a roster and drives this \
      verb's facade door, `wb_ask`, to both of its bounds: a body ONE BYTE over the configured \

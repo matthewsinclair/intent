@@ -4279,6 +4279,64 @@ impl Store {
     Ok(n as usize)
   }
 
+  /// How many LIVE items one node holds of one kind.
+  pub fn wb_live_item_count(&self, node: &str, kind: &str) -> Result<usize, StoreError> {
+    let n: i64 = self.conn.query_row(
+      "SELECT count(*) FROM wb_item WHERE node = ?1 AND kind = ?2 AND state = 'live'",
+      params![node, kind],
+      |r| r.get(0),
+    )?;
+    Ok(n as usize)
+  }
+
+  /// Append one item to a node's board, and say which `seq` it was given.
+  ///
+  /// **`seq` IS ASSIGNED BY THE SERVICE AND NEVER BY A CALLER.** It is the
+  /// board's within-kind ordering, and a caller-chosen one collides the moment
+  /// two writes race -- the same reasoning that keeps the clock out of callers'
+  /// hands one function down. It counts LIVE and ARCHIVED alike, so archiving an
+  /// item never frees its number for reuse and a `seq` refers to one item for
+  /// the life of the board.
+  pub fn wb_insert_item(&mut self, node: &str, kind: &str, text: &str) -> Result<u32, StoreError> {
+    let tx = self.conn.transaction()?;
+    let next: i64 = tx.query_row(
+      "SELECT coalesce(max(seq), 0) + 1 FROM wb_item WHERE node = ?1 AND kind = ?2",
+      params![node, kind],
+      |r| r.get(0),
+    )?;
+    tx.execute(
+      "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, authored_at) \
+       VALUES (?1, ?2, ?3, ?4, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL)",
+      params![node, kind, next, text],
+    )?;
+    tx.commit()?;
+    Ok(next as u32)
+  }
+
+  /// Read one node's claims.
+  pub fn wb_claims(&self, node: &str) -> Result<Vec<String>, StoreError> {
+    let raw: String = self.conn.query_row(
+      "SELECT claims FROM wb_node WHERE moniker = ?1",
+      params![node],
+      |r| r.get(0),
+    )?;
+    Ok(serde_json::from_str(&raw)?)
+  }
+
+  /// Replace one node's claims.
+  ///
+  /// **THE CLAIMS LIST IS REPLACED WHOLE RATHER THAN APPENDED TO**, because the
+  /// caller has already read it to decide what it should become: an
+  /// append-and-a-remove pair would be two doors holding one invariant, and the
+  /// ordering between them would be the thing nobody tested.
+  pub fn wb_set_claims(&mut self, node: &str, claims: &[String]) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE wb_node SET claims = ?2 WHERE moniker = ?1",
+      params![node, serde_json::to_string(claims)?],
+    )?;
+    Ok(())
+  }
+
   /// Append one message to the recipient's board.
   ///
   /// **NO CALLER SUPPLIES A STAMP, AND THERE IS NO PARAMETER FOR ONE.** The

@@ -112,6 +112,28 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .wb_ask("cc", "hv", &format!("message {i}"), None, false)
       .expect("inside the bound");
   }
+  // **THE ITEM BOUND IS PER KIND, so the provocation fills ONE kind.** Filling a
+  // board's worth of mixed kinds would pass on a per-board bound too, and the
+  // per-kind reading is the thing that keeps a long watch-out list from refusing
+  // a node's next piece of work.
+  let item_bound = fx.facade().project().config().whiteboard.live_items;
+  for i in 0..item_bound {
+    facade
+      .wb_decide("cc", &format!("decision {i}"))
+      .expect("inside the bound");
+  }
+  out.push((
+    "one kind at its item bound",
+    facade
+      .wb_decide("cc", "one too many")
+      .expect_err("one past the configured per-kind bound is refused"),
+  ));
+  out.push((
+    "a claim that is not an address",
+    facade
+      .wb_claim("cc", "the whole of ST0069")
+      .expect_err("a claim names something the board can point at"),
+  ));
   out.push((
     "an inbox at its bound",
     facade
@@ -888,6 +910,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbNodeNotRegistered { .. } => "WbNodeNotRegistered",
     FacadeError::WbBodyOverBound { .. } => "WbBodyOverBound",
     FacadeError::WbInboxFull { .. } => "WbInboxFull",
+    FacadeError::WbItemsFull { .. } => "WbItemsFull",
+    FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
@@ -972,6 +996,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbNodeNotRegistered",
   "WbBodyOverBound",
   "WbInboxFull",
+  "WbItemsFull",
+  "WbClaimMalformed",
   "WbNoActingNode",
 ];
 

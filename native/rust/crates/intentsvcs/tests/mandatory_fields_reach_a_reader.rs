@@ -230,6 +230,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // remedy is a shorter entry or a cleared inbox rather than a field.
     | FacadeError::WbBodyOverBound { .. }
     | FacadeError::WbInboxFull { .. }
+    // The same reading for the item bound and the claim address: one board holds
+    // its limit of a kind, and one value is not an address. Neither is a field
+    // left out of the call.
+    | FacadeError::WbItemsFull { .. }
+    | FacadeError::WbClaimMalformed { .. }
     // **A CALL PARAMETER IS MISSING AND A MODEL FIELD IS NOT, and this list is
     // about the second.** `WbNoActingNode` does demand something -- `--node` or
     // `INTENT_NODE` -- but no entity carries it, so there is no read face for

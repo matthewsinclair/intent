@@ -3900,6 +3900,39 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       println!("ok: {me} -> {reached} node(s)");
       Ok(())
     }
+    Some(("decide", m)) => {
+      let me = acting_node(m)?;
+      let text = m.get_one::<String>("text").expect("declared required");
+      let mut f = open()?;
+      let seq = f.wb_decide(&me, text).map_err(fail)?;
+      println!("ok: {me} decision {seq}");
+      Ok(())
+    }
+    Some(("claim", m)) => {
+      let me = acting_node(m)?;
+      let what = m.get_one::<String>("id").expect("declared required");
+      let mut f = open()?;
+      // **WHAT MOVED, NOT WHAT IS THERE.** Claiming something already claimed
+      // is the normal case at pickup and is not an error, but saying `claimed`
+      // either way would report a write that did not happen.
+      let moved = f.wb_claim(&me, what).map_err(fail)?;
+      println!(
+        "ok: {me} {} {what}",
+        if moved { "claims" } else { "already claimed" }
+      );
+      Ok(())
+    }
+    Some(("unclaim", m)) => {
+      let me = acting_node(m)?;
+      let what = m.get_one::<String>("id").expect("declared required");
+      let mut f = open()?;
+      let moved = f.wb_unclaim(&me, what).map_err(fail)?;
+      println!(
+        "ok: {me} {} {what}",
+        if moved { "drops" } else { "was not claiming" }
+      );
+      Ok(())
+    }
     Some(("clear", m)) => {
       let me = acting_node(m)?;
       let from = m.get_one::<String>("sender").expect("declared required");
@@ -3910,7 +3943,8 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     _ => Err(Failure::Error(
       "error: `intent wb` needs a subcommand\n  remedy: `intent wb status` lists the roster, \
-       `intent wb show <node>` reads one board, `intent wb register` puts the roster into the model"
+       `intent wb show <node>` reads one board, and `intent wb --help` lists the verbs that write \
+       to one"
         .to_string(),
     )),
   }

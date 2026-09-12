@@ -54,7 +54,7 @@ use crate::ingest::{self, Canon, IngestError};
 use crate::intentfiles::{Realised, Sigil};
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Board, Criterion, Issue,
-  IssueStatus, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  IssueStatus, TShirt, Thread, ThreadStatus, WbItemKind, WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{EditDisposition, Migration, Pending, Project, ThreadFile};
 use crate::realise;
@@ -1360,6 +1360,21 @@ pub enum FacadeError {
     live: usize,
     bound: usize,
   },
+  /// One node already holds as many live items of one kind as it may.
+  ///
+  /// **IT NAMES THE KIND, because the bound is per kind.** A full watch-out list
+  /// says nothing about DOING, and a refusal naming only the node would send a
+  /// reader to archive the wrong section.
+  #[error("`{node}` holds {live} live `{kind}` item(s) and the bound is {bound}")]
+  WbItemsFull {
+    node: String,
+    kind: String,
+    live: usize,
+    bound: usize,
+  },
+  /// A claim that is not a steel thread or work package address.
+  #[error("`{claim}` is not a steel thread or work package address")]
+  WbClaimMalformed { claim: String },
   /// No acting node: nothing said who is writing.
   ///
   /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
@@ -1397,6 +1412,10 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbInboxFull { sender, recipient, .. } => format!(
         "`{recipient}` clears it with `intent wb clear {sender}` once the messages are handled. The bound is per inbox, so this says nothing about anyone else's"
       ),
+      Self::WbItemsFull { node, kind, .. } => format!(
+        "archive what `{node}` is done with -- a `{kind}` item moves to archived by state and is never deleted, so what it said stays readable and stops counting"
+      ),
+      Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
@@ -5016,6 +5035,117 @@ impl Facade {
         known.join(", ")
       },
     })
+  }
+
+  /// Record a decision on the acting node's own board.
+  ///
+  /// **A DECISION IS AN ITEM RATHER THAN A MESSAGE, and the difference is who
+  /// it is FOR.** A message is addressed and expects handling; a decision is
+  /// broadcast by being on a board its peers read at pickup, which is how the
+  /// markdown protocol already works. Giving it a recipient would turn one
+  /// durable statement into four copies that can diverge.
+  pub fn wb_decide(&mut self, node: &str, text: &str) -> Result<u32, FacadeError> {
+    self.wb_add_item(node, WbItemKind::Decision, text)
+  }
+
+  /// Append one item of one kind to the acting node's own board.
+  ///
+  /// **ONE DOOR FOR EVERY KIND, so the bound and the stamp rule are stated
+  /// once.** `wb_decide` is its only caller today; the remaining kinds arrive
+  /// with the verbs that write them, and a second insert path would be the
+  /// place one of them quietly skipped the bound.
+  pub fn wb_add_item(
+    &mut self,
+    node: &str,
+    kind: WbItemKind,
+    text: &str,
+  ) -> Result<u32, FacadeError> {
+    self.require_registered(node)?;
+    self.check_body_bound(node, text)?;
+    let wire = crate::model::enum_str(&kind);
+    let cfg = self.project.config().whiteboard.clone();
+    if cfg.bounds_apply_to(node) {
+      let live = self
+        .store
+        .wb_live_item_count(node, &wire)
+        .map_err(FacadeError::Store)?;
+      if live >= cfg.live_items {
+        return Err(FacadeError::WbItemsFull {
+          node: node.to_string(),
+          kind: wire,
+          live,
+          bound: cfg.live_items,
+        });
+      }
+    }
+    self
+      .store
+      .wb_insert_item(node, &wire, text)
+      .map_err(FacadeError::Store)
+  }
+
+  /// Is this a thing a board can claim: a steel thread, or one of its work
+  /// packages?
+  ///
+  /// **IT DELEGATES THE THREAD HALF RATHER THAN RE-SPELLING IT.**
+  /// [`crate::model::is_thread_id`] is the one answer to what a thread id looks
+  /// like, and a second regex here would be the copy that drifts when the
+  /// prefix changes.
+  fn is_claim_address(claim: &str) -> bool {
+    match claim.split_once('/') {
+      None => crate::model::is_thread_id(claim),
+      Some((thread, seq)) => {
+        crate::model::is_thread_id(thread)
+          && seq.len() == 2
+          && seq.chars().all(|c| c.is_ascii_digit())
+      }
+    }
+  }
+
+  /// Add one claim to the acting node's own board, and say whether it moved.
+  ///
+  /// **IDEMPOTENT, AND IT REPORTS WHAT MOVED RATHER THAN WHAT IS THERE.**
+  /// Claiming something already claimed is not an error -- a node re-asserting
+  /// its own lane is the normal case at pickup -- but reporting success either
+  /// way would say a write happened when none did, which is the rule
+  /// `wb register` and `wb clear` already answer to.
+  pub fn wb_claim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
+    self.require_registered(node)?;
+    if !Self::is_claim_address(claim) {
+      return Err(FacadeError::WbClaimMalformed {
+        claim: claim.to_string(),
+      });
+    }
+    let mut claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
+    if claims.iter().any(|c| c == claim) {
+      return Ok(false);
+    }
+    claims.push(claim.to_string());
+    self
+      .store
+      .wb_set_claims(node, &claims)
+      .map_err(FacadeError::Store)?;
+    Ok(true)
+  }
+
+  /// Drop one claim from the acting node's own board, and say whether it moved.
+  ///
+  /// **AN UNCLAIM OF SOMETHING UNCLAIMED IS NOT A REFUSAL.** The end state the
+  /// caller asked for is the end state they get, and refusing would make the
+  /// obvious cleanup -- unclaim everything, whatever the board says -- a script
+  /// that has to check first.
+  pub fn wb_unclaim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
+    self.require_registered(node)?;
+    let claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
+    let kept: Vec<String> = claims.iter().filter(|c| *c != claim).cloned().collect();
+    if kept.len() == claims.len() {
+      return Ok(false);
+    }
+    self
+      .store
+      .wb_set_claims(node, &kept)
+      .map_err(FacadeError::Store)?;
+    Ok(true)
   }
 
   /// Send one message from `sender` into `recipient`'s board.

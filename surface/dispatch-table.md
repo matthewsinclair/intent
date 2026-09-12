@@ -3882,6 +3882,9 @@ The whiteboard: read the node boards, and send between them
 | `wb show`     | <node>             | --json              | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
 | `wb ask`      | <recipient> <body> | --node, --re, --fyi | Send one message from the acting node into another node's board                      | new-surface |
 | `wb announce` | <body>             | --node              | Send one message to every registered node but the sender                             | new-surface |
+| `wb decide`   | <text>             | --node              | Record a decision on the acting node's own board                                     | new-surface |
+| `wb claim`    | <id>               | --node              | Add a steel thread or work package to the acting node's claims                       | new-surface |
+| `wb unclaim`  | <id>               | --node              | Drop a steel thread or work package from the acting node's claims                    | new-surface |
 | `wb clear`    | <sender>           | --node              | Mark every live message one sender sent the acting node handled                      | new-surface |
 | `wb register` | --                 | --                  | Register the node roster from each node's own board header                           | new-surface |
 
@@ -3953,7 +3956,7 @@ Send one message from the acting node into another node's board
   - `--node` (string) -- The moniker of the node writing
     - **THE ACTING NODE, AND ITS ABSENCE REFUSES RATHER THAN DEFAULTING.** Picking a node would write one node's words under another's name -- the single-writer invariant broken by the mechanism built to serve it, and invisible afterwards. **AN `INTENT_NODE` FALLBACK WAS BUILT AND TAKEN BACK OUT**: the shipped surface reads exactly one environment variable, and a second needs an hv ruling and a row in that guard's allow-list rather than a quiet addition. Every machine in this estate would have had it set, so nothing here would have failed and the binary meeting a machine with no developer environment is the one that would have discovered it.
     - **disposition:** keep
-    - **exposed on mcp:** true
+    - **exposed on mcp:** false
   - `--re` (string) -- The anchor of the message this answers
     - **disposition:** keep
     - **exposed on mcp:** true
@@ -3962,12 +3965,12 @@ Send one message from the acting node into another node's board
     - **exposed on mcp:** true
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT to say something to one node and have it survive the session -- the message lands on the RECIPIENT's board, which is the shape the markdown inboxes already had, so one board is a whole readable conversation. DO NOT USE IT for something every node needs: `wb announce` reaches them all and refuses as a whole rather than half-landing. The sender is the node named by `--node`, so who a message is FROM is a convention this layer trusts rather than a guarantee it makes.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `ask` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
-- **recoverability:** reversible
+- **recoverability:** one-way
 - **facade:** wb_ask
 - **note:** **THE SINGLE-WRITER INVARIANT IS A CONVENTION AT THIS LAYER AND NOT A GUARANTEE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED OTHERWISE** (ic, measured against the surface). `--node` IS the impersonation parameter wearing another name: `intent wb ask --node dc vc ...` lands in vc's board as dc from any session. The markdown form held the rule by the FILESYSTEM -- you wrote your own file -- and moving it into an API moved it to whoever types the flag. Making it structural means taking the acting node from somewhere the caller does not choose, which is a larger design than this cut. What the door does hold is narrower and real: a message reaches only a REGISTERED node and lands on the RECIPIENT's board. **NO PARAMETER TAKES A TIMESTAMP**, so the fabricated-stamp class closes by construction rather than by detection -- nothing to supply, nothing to validate, the store reading the clock at the write. **The migration is the one writer that does take a stamp, by design**: `authored_at` carries verbatim what a board's markdown claimed, a doorway rather than a hole, kept as a claim and never read as a time. The bounds are refusals stating the bound and the remedy, never truncation.
 
@@ -3984,14 +3987,80 @@ Send one message to every registered node but the sender
     - **exposed on mcp:** true
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT when every node needs the same line -- before touching a shared layer, or to broadcast a ruling. It is marked FYI on every board it reaches, because a broadcast that expected a reply would expect one from everybody. DO NOT USE IT to reach one node: `wb ask` is the door and it threads. It reports how many boards it REACHED rather than the roster's size, so a one-node board is honestly reported as reaching nobody.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `announce` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
-- **recoverability:** reversible
+- **recoverability:** one-way
 - **facade:** wb_announce
 - **note:** **IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH**, so the bounds, the roster check and the stamp rule are stated once. **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE**: every recipient is checked before any row is written, because half a broadcast is worse than none -- the nodes that received it and the nodes that did not both believe they know what was said.
+
+### `wb decide`
+
+Record a decision on the acting node's own board
+
+- **v2:** new-surface
+- **Arguments:**
+  - `text` (string, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT for a cross-node decision that has to outlive the session that made it -- it lands as an item on your own board, which peers read at pickup, and that is how the markdown protocol already broadcasts one. DO NOT USE IT to tell one node something: `wb ask` is addressed and expects handling, and turning one durable statement into four copies is how they diverge. The `seq` it prints is assigned by the service and refers to that item for the life of the board.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `decide` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.6
+- **recoverability:** one-way
+- **facade:** wb_decide
+- **note:** **A DECISION IS AN ITEM RATHER THAN A MESSAGE, AND THE DIFFERENCE IS WHO IT IS FOR.** A message is addressed and expects handling; a decision is broadcast by sitting on a board its peers read. **`seq` IS ASSIGNED BY THE SERVICE**, counting live and archived alike, so archiving never frees a number for reuse -- a caller-chosen `seq` collides the moment two writes race, the same reasoning that keeps the clock out of callers' hands. The per-kind item bound and the body bound refuse by name; archival is a state change and never a deletion, so what an item said stays readable after it stops counting.
+
+### `wb claim`
+
+Add a steel thread or work package to the acting node's claims
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id[/NN], arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000` or `ST0000/01` and refuses anything else. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `claim` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **recoverability:** idempotent
+- **facade:** wb_claim
+- **note:** **THE CLAIMS LIST IS REPLACED WHOLE BY THE STORE RATHER THAN APPENDED TO**, because the caller has already read it to decide what it should become; an append door beside a remove door would be two places holding one invariant, with the ordering between them the thing nobody tested. The address check DELEGATES the thread half to `model::is_thread_id` rather than re-spelling it, so the prefix has one home.
+
+### `wb unclaim`
+
+Drop a steel thread or work package from the acting node's claims
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id[/NN], arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT when this node no longer has the pen on that work, so the board stops asserting a lane nobody is in. Dropping something that was not claimed is NOT a refusal -- the end state you asked for is the end state you get -- so a cleanup that drops everything need not check the board first. It reports what MOVED, so a no-op says so.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `unclaim` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **recoverability:** idempotent
+- **facade:** wb_unclaim
+- **note:** **IT DOES NOT VALIDATE THE ADDRESS AND `wb claim` DOES, WHICH IS DELIBERATE.** A malformed claim cannot be in the list, so refusing one here would refuse a call that is already a no-op and tell the caller to fix an input that changes nothing. Removal is by value: whatever is there and matches goes, and the report says whether anything did.
 
 ### `wb clear`
 
@@ -4011,7 +4080,7 @@ Mark every live message one sender sent the acting node handled
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `clear` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
-- **recoverability:** reversible
+- **recoverability:** idempotent
 - **facade:** wb_clear
 - **note:** **ONLY THE RECIPIENT CLEARS, AND THE RECIPIENT IS WHOEVER `--node` NAMES**, so the ownership half of the single-writer invariant stands exactly as far as the sender half does -- see `wb ask` for why that is a convention at this layer. The rows are not deleted: `state` moves live to handled with `handled_at` stamped by the store, so what was said stays readable and stops counting against the bound.
 
