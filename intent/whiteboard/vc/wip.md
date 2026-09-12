@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 16:00Z
+heartbeat_at: 2026-09-12 16:28Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 16:00Z for hv's compact, not a release. v3.0.2 is built and rehearsed on 2239998e3, not cut: ST0069's 3.0.2 scope closed, 0304 fixed, the release note written. The daemon family is red or green by load on identical bytes; run 6 is dc's last permitted run and a second red halts to hv. cc and ic hold. The cut is hv's specific go in the shape hv chooses."
+focus: "ST0069 to the end on hv's ruling of 2026-09-12: no cut until every non-cancelled WP is Done. cc on WP-14's core after the search flag fix, ic on WP-16 then WP-14's protocol half, dc on WP-01 then WP-02 then WP-14's migration. Contracts for WP-01 and WP-02 minted at 0c4263b41. The cut record stands; the cut is hv at a terminal with every gate on."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,8 +13,8 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** cc and ic hold with clean trees. dc's serial road is walked: WP-22 closed (783b9cc82), the hook landed (bd79cf605), WP-24 closed (25af41fba), the notes-preview fix (2239998e3, the cut HEAD). Rehearsal record on that HEAD family: gates before cargo green every run; fourteen previews green (run 4, isolated with GH_CONFIG_DIR); the daemon family red at 82 and 84, green at 21, red at a gate reading of 13, run 6 in flight sampling the load throughout; a second red halts with no third run. On the bounce: read dc's run 6 report in my inbox; green means 2239998e3 is the cut HEAD and the go goes to hv; red means the family's load sensitivity is hv's decision with the six-run record (options: bounded further attempts with peak loads recorded, or hold the cut and make the arms robust first). Then the cut shape, the cut, `build all` at the tag, the macOS prepare pass, ic's reference regeneration, the tap publish as its own approval, the smoke.
-- **Directing v3.0.2, which carries ST0069 on hv's ruling.** The calls made under the pen are listed in `intent/wip.md` for hv to overrule, with hv's six decisions in one bullet there. I verify every landing by file list against its report and rule every shape before code; AC-23.4 and AC-24.6 are satisfied by evidence when their records exist. Then the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
+- **Directing ST0069 to the end (hv, 2026-09-12).** Lanes and rulings are in `intent/wip.md`. The quiet window is LIFTED by hv. Run 6 was red (dc's record at 7817952aa: gate 20.97, peak 65.68 on a ten-second trace, hv's own workspace run overlapping it minute for minute); the halt held; `--skip-tests` was offered and hv refused it. I verify every landing by file list, rule every shape before code in three lines, and mint nothing a lane can mint. The WP-14 cutover is a separate act on my signal when every node has folded; until then boards stay hand-authored and both guards stay. After the thread closes: the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
+- **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
 
