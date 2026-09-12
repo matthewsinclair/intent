@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 11:31Z
+heartbeat_at: 2026-09-12 12:29Z
 status: active
-focus: "WP-19 and WP-21 CLOSED; WP-20 pure half and AC-24.2 landed; the SQL door reads the index. EVERYTHING LEFT ON MY LANE WAITS ON cc's `--kind def`: AC-24.3's flags, AC-24.5's sweep (ruled, unexecuted, recorded below) and dc's structural door. Unblocked: AC-24.7's specification."
+focus: "ST0069's ic lane is COMPLETE and HOLDING. WP-19 and WP-21 closed; WP-20's pure half and every ic criterion of WP-24 landed; the surface driven end to end as a user and its four findings closed. Holding for the post-tag reference regeneration on vc's signal."
 claims: []
 ---
 
@@ -13,16 +13,11 @@ claims: []
 
 ## DOING
 
-- **ST0069 WP-19.** The envelope (e3ef53aad), the AT rows (28de5113d... see canon), and the two index verbs (e839108d2, AT-19.6 at 6440e9348). **CLOSES ON AC-19.4 ALONE** -- the source tokeniser's measured recall, which needs cc's `src_sections` before it can measure anything. cc is building it now; I hold the fixture until the table exists.
-- **ST0069 WP-20, my half: LANDED** (b96a73c2a). `index::symbols` over each grammar's own `tags.scm`, five features all OFF by default until hv rules the size. **`tree-sitter-bash` SHIPS NO TAGS QUERY**, so `shell` names zero symbols for 1,378,576 bytes; vc ruled `lang-bash` stays declared and off until upstream ships one, and nobody writes one here.
-- **ST0069 WP-24, next.** AC-24.2's generated when-and-when-not tool descriptions can land now. AC-24.3's `--outline` / `--context` are FLAGS on the `search` row (vc: no new verbs) and wait on cc's symbols table. AC-24.5's canon sweep: file list to vc BEFORE touching one file, and it KEEPS `intent modules find` -- retiring it is hv's ruling and hv has not given it.
-- **AC-24.5's SWEEP: RULED BY vc AND NOT YET EXECUTED. RELEASES WHEN cc's `intent search --kind def` ANSWERS ON MAIN** -- a canon naming a verb that says not-implemented is the defect the doc audit spent a day removing. The six files: `rules/agnostic/highlander/RULE.md:112` (its "grep for prior art" clause BECOMES the sentence), `skills/in-plan/SKILL.md:37`, `skills/in-review/SKILL.md:52`, `skills/in-standards/SKILL.md:17`, `lib/templates/llm/_AGENTS.md:252` and `_CLAUDE.md:21` (registry pointer keeps its registry-conditional shape and gains the index route BEFORE it), plus the two regenerated roots. One commit; the red arm is the audit's own grep for the old wording. **vc's sentence, verbatim, to place with each local lead-in kept:**
+**Empty. The ic lane of ST0069 is complete and holding.**
 
-  > To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well.
-
-  `intent modules find` STAYS wherever a registry exists -- its retirement is AC-20.6 and hv's, unruled. The exclusions are approved as stated: a critic's detection grep is a mechanism, not advice about finding code; AC-24.5's agent-guide half is met BY CONSTRUCTION and the AT-24.5 row says so in its note rather than skipping it.
-
-- **THE NARROW DOOR I OWE dc:** `structural_for(paths, name) -> Structural::{Answer{symbols}, CannotAnswer{why}}`, the freshness rule behind the facade so dc's hook cannot reach it. Signature agreed, built when cc's symbols table lands.
+- **CLOSED:** WP-19 (all six criteria), WP-21 (all three). **LANDED:** WP-20's pure half (`index::symbols`), and WP-24's ic criteria -- AC-24.2's generated when-and-when-not descriptions, AC-24.3's `--outline` and `--context`, AC-24.5's canon sweep, plus AC-24.6 and AC-24.7 specified.
+- **THE END-TO-END DRIVE IS DONE AND ITS FINDINGS ARE CLOSED** (vc's input to the final rehearsal's go): the kind column, the per-language readiness line, `--context`'s narrowed wording, and `held` splitting code from other. Everything else on the surface matched.
+- **WAITING ON OTHERS, NOT ON ME:** AC-20.4 (the grammar line) and AC-20.6 (`intent modules find`'s retirement) are hv's; AC-24.1 and AC-24.4 are dc's; WP-22 and WP-23 are dc's and cc's.
 
 ## TODO
 
@@ -65,3 +60,6 @@ claims: []
 - **Never write the register back through a serialiser**: `json.dumps` reformatted 49 lines nobody touched. Insert as text.
 - `git commit --only <path>` commits the WORKING TREE version of that path, not the staged one -- so a peer's staged edit in a file you are writing lands in YOUR commit under YOUR message. Check `git status` for `MM` before adding.
 - After editing intentsvcs, build intentd before the intent-cli suite (the staleness guard reds the whole daemon class in 0.00s).
+- Drive a surface as a USER before calling it done: every face was internally consistent and passing, and two still withheld what the reader came for (a hit's kind, the per-language line). No test inside the envelope can see that.
+- A fixture that drops an argument it was handed tests a shape its caller cannot produce -- `status.rs`'s helper wrote `lang: None` over the language it was given, and every green it gave was about a different row from the one the test said it built.
+- A claim wider than the thing is not a bug and still has to be narrowed: `--context` said "where it occurs" and a grammar's tags query reports calls.
