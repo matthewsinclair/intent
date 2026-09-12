@@ -87,7 +87,7 @@
       "seq": 20,
       "title": "Structural search: tree-sitter symbols per declared language, and the agent canon that uses them",
       "scope": "L",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Structural search: definitions and name-matched references for every language the project declares, from tree-sitter through each grammar's own tags query, and the agent canon repointed at it so `intent search --kind def` answers the Highlander question from the tree.\n",
       "body": "Design: design.md, T2 and the agent canon. Grammars for Rust, Elixir, Swift, Lua and Bash compiled in, parsed only for the languages in the project's `languages` array. Symbols and name-matched references in their own tables with spans; references are named as name-matched on every surface and never as callers. The binary-size delta per grammar is measured and recorded before it ships, and hv rules on any grammar above the line hv sets. Once `--kind def` holds, every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def`, the agent guide regenerates, and `intent modules find` retires on hv's ruling. Depends on WP-19.\n",
       "preamble": ""
@@ -123,7 +123,7 @@
       "seq": 24,
       "title": "The LLM boundary: the harness's own search becomes a door into the index",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Move the boundary between the model's own search tools and Intent's index so that the index is the first call for a code question: the MCP server configured in every project by canon, tool descriptions the model matches on, outline and context verbs that answer in units with spans, the skills and guide routing the question, and a post-tool hook that annotates every grep with the index's structural answer without ever blocking or lying.\n",
       "body": "Design: design.md, \"The LLM boundary\". hv, 2026-09-12: \"how we get to a point where the LLM is using intent's tree-sitter based index of the source code instead of using grep ... That's the boundary that I want lifted and made high-performant and next gen.\" Five join points, in order of leverage: answers grep cannot give (`outline <path>`, `context <name>`, `def <name>`, each one facade call and one MCP tool call); zero-cost reach (`.mcp.json` naming `intent mcp` seeded by `claude upgrade --apply`, in-process queries, descriptions generated from the register that say when to use the tool and when not); the canon routing the question (CLAUDE.md, the skills, the generated guide); the PostToolUse hook served by the install that appends the index's answer to a grep and appends nothing when the envelope is not complete; and the PreToolUse redirect, specified with its safety condition and not built until hv rules. Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold. Depends on WP-20.\n",
       "preamble": ""

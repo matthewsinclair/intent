@@ -2,7 +2,7 @@
 wp_id: WP-20
 title: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
