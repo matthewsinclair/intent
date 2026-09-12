@@ -1,4 +1,4 @@
-//! **AC-17.1 to AC-17.4: `intent search --sql` runs ONE read statement, names
+//! **AT-17.1 to AT-17.4 / AC-17.1 to AC-17.4: `intent search --sql` runs ONE read statement, names
 //! both denominators, and auto-detects nothing.**
 //!
 //! The door exists because a join across the model is a question no verb
@@ -87,7 +87,7 @@ fn a_read_statement_answers_rows_and_columns() {
   );
 }
 
-/// **THE HEADLINE REFUSAL, with the estate as its control** (AC-17.1).
+/// **THE HEADLINE REFUSAL, with the estate as its control** (AT-17.1, AC-17.1).
 #[test]
 fn a_write_is_refused_and_the_store_does_not_move() {
   let dir = estate();
@@ -116,8 +116,8 @@ fn a_write_is_refused_and_the_store_does_not_move() {
   );
 }
 
-/// A second statement is where a read door becomes a write door: SQLite
-/// prepares the first and hands back the rest.
+/// AT-17.1: a second statement is where a read door becomes a write door --
+/// SQLite prepares the first and hands back the rest.
 #[test]
 fn a_second_statement_is_refused_and_neither_half_runs() {
   let dir = estate();
@@ -130,8 +130,8 @@ fn a_second_statement_is_refused_and_neither_half_runs() {
   assert_eq!(threads(root), before, "the batch's second half ran");
 }
 
-/// **THE OVER-REFUSAL CONTROL.** A door that refused every semicolon would pass
-/// the test above while making an ordinary query unreachable.
+/// **THE OVER-REFUSAL CONTROL** (AT-17.1). A door that refused every semicolon
+/// would pass the test above while making an ordinary query unreachable.
 #[test]
 fn a_semicolon_inside_a_literal_is_not_a_second_statement() {
   let dir = estate();
@@ -141,7 +141,7 @@ fn a_semicolon_inside_a_literal_is_not_a_second_statement() {
   assert!(out.contains(';'), "the literal did not come back: {out:?}");
 }
 
-/// **`ATTACH` IS THE REFUSAL THAT IS ABOUT REACH RATHER THAN WRITING.** A
+/// **`ATTACH` IS THE REFUSAL THAT IS ABOUT REACH RATHER THAN WRITING** (AT-17.1). A
 /// read-only connection reads another file on the machine perfectly happily,
 /// and this door is exposed on MCP.
 #[test]
@@ -167,7 +167,7 @@ fn attach_and_pragma_are_refused_as_out_of_reach() {
   );
 }
 
-/// AC-17.4: a capped result is never a silent subset.
+/// AT-17.4 / AC-17.4: a capped result is never a silent subset.
 #[test]
 fn a_capped_result_reports_both_denominators() {
   let dir = estate();
@@ -202,7 +202,7 @@ fn a_capped_result_reports_both_denominators() {
   );
 }
 
-/// AC-17.2: the envelope carries the store's schema version.
+/// AT-17.2 / AC-17.2: the envelope carries the store's schema version.
 #[test]
 fn the_envelope_carries_the_stores_schema_version() {
   let dir = estate();
@@ -218,7 +218,7 @@ fn the_envelope_carries_the_stores_schema_version() {
   assert_eq!(code, 1, "the pragma answered: {err}");
 }
 
-/// AC-17.3: nothing is auto-detected from the query's first word.
+/// AT-17.3 / AC-17.3: nothing is auto-detected from the query's first word.
 #[test]
 fn a_bare_query_is_text_even_when_it_begins_with_select() {
   let dir = estate();
@@ -234,8 +234,8 @@ fn a_bare_query_is_text_even_when_it_begins_with_select() {
   );
 }
 
-/// Both doors at once, or neither, is a usage error rather than a precedence
-/// rule -- any order of preference silently drops half of what was asked for.
+/// AT-17.3: both doors at once, or neither, is a usage error rather than a
+/// precedence rule -- any order of preference silently drops half of what was asked for.
 #[test]
 fn a_query_and_sql_together_or_neither_is_a_usage_error() {
   let dir = estate();
@@ -249,7 +249,7 @@ fn a_query_and_sql_together_or_neither_is_a_usage_error() {
   assert!(err.contains("nothing to search for"), "{err:?}");
 }
 
-/// **THE WORK BUDGET IS WHAT STOPS AN AGENT HANGING THE PROCESS**, and a row
+/// **THE WORK BUDGET IS WHAT STOPS AN AGENT HANGING THE PROCESS** (AT-17.1), and a row
 /// cap cannot reach it: this statement returns nothing until it finishes, and
 /// it never finishes. The budget is counted in SQLite instructions rather than
 /// seconds because nothing in this workspace may read a clock (D42), which is
@@ -276,7 +276,7 @@ fn a_statement_that_never_finishes_is_stopped() {
   );
 }
 
-/// AC-17.2's second half: **`--json` and the MCP tool answer the SAME envelope
+/// AT-17.2, AC-17.2's second half: **`--json` and the MCP tool answer the SAME envelope
 /// for the same statement.** Two spellings of one answer is two things to keep
 /// true, and the MCP side is the one nobody reads by eye.
 #[test]

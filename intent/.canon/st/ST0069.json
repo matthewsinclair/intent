@@ -661,6 +661,48 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-17.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+      "covers": [
+        "AC-17.1"
+      ],
+      "status": "green",
+      "note": "Drives the door against a real store: five write shapes refused with the read-only remedy, a batch refused, ATTACH and PRAGMA refused by name, and the thread count read before and after so a refusal for another reason fails the case. The gate's own directions are unit-tested in intentsvcs::sql_gate, including the over-refusal control."
+    },
+    {
+      "id": "AT-17.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+      "covers": [
+        "AC-17.2"
+      ],
+      "status": "green",
+      "note": "The envelope carries the store's schema version, and the same statement through the MCP tool and through --json is asserted byte-equal as JSON."
+    },
+    {
+      "id": "AT-17.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+      "covers": [
+        "AC-17.3"
+      ],
+      "status": "green",
+      "note": "A bare query beginning with select is answered as a text search, and a query with --sql together is a usage error rather than a precedence rule."
+    },
+    {
+      "id": "AT-17.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+      "covers": [
+        "AC-17.4"
+      ],
+      "status": "green",
+      "note": "A capped read reports matched and returned and truncated in the envelope, and the terminal rendering says the same on stderr."
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",

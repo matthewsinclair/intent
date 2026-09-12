@@ -99,10 +99,10 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
 
-- AC-17.1 `intent search --sql <statement>` runs one read statement on a connection opened read-only and returns rows; a write, a second statement or a state-changing pragma is refused with the remedy naming the read-only contract. -- satisfied: no (computed)
-- AC-17.2 The rows carry the store's schema version, and `--json` emits the same envelope the MCP tool returns for the same statement. -- satisfied: no (computed)
-- AC-17.3 A bare query is text and `--sql` is the only structured door; nothing is auto-detected from the query's first word. -- satisfied: no (computed)
-- AC-17.4 A result capped by `--limit` reports both denominators, matched and returned; a capped result is never a silent subset. -- satisfied: no (computed)
+- AC-17.1 `intent search --sql <statement>` runs one read statement on a connection opened read-only and returns rows; a write, a second statement or a state-changing pragma is refused with the remedy naming the read-only contract. -- satisfied: yes (computed)
+- AC-17.2 The rows carry the store's schema version, and `--json` emits the same envelope the MCP tool returns for the same statement. -- satisfied: yes (computed)
+- AC-17.3 A bare query is text and `--sql` is the only structured door; nothing is auto-detected from the query's first word. -- satisfied: yes (computed)
+- AC-17.4 A result capped by `--limit` reports both denominators, matched and returned; a capped result is never a silent subset. -- satisfied: yes (computed)
 
 ### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: WIP)
 
@@ -176,7 +176,10 @@ _(no tests in this group)_
 
 ### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
 
-_(no tests in this group)_
+- AT-17.1 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.1 -- status: green -- Drives the door against a real store: five write shapes refused with the read-only remedy, a batch refused, ATTACH and PRAGMA refused by name, and the thread count read before and after so a refusal for another reason fails the case. The gate's own directions are unit-tested in intentsvcs::sql_gate, including the over-refusal control.
+- AT-17.2 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.2 -- status: green -- The envelope carries the store's schema version, and the same statement through the MCP tool and through --json is asserted byte-equal as JSON.
+- AT-17.3 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.3 -- status: green -- A bare query beginning with select is answered as a text search, and a query with --sql together is a usage error rather than a precedence rule.
+- AT-17.4 `native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs` -- covers AC-17.4 -- status: green -- A capped read reports matched and returned and truncated in the envelope, and the terminal rendering says the same on stderr.
 
 ### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: WIP)
 
