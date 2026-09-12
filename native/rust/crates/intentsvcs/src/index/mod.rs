@@ -37,3 +37,23 @@ pub struct Row {
   /// Why the index holds no content for this file; `None` when it holds it.
   pub skipped_reason: Option<String>,
 }
+
+/// What one incremental pass did.
+///
+/// **PATHS RATHER THAN COUNTS**, for the reason `index status` lists its
+/// skipped files: the caller of an incremental refresh is a watcher deciding
+/// what to publish, and a number tells it nothing it can name to a subscriber.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Refreshed {
+  /// Paths whose rows and content were rewritten.
+  pub updated: Vec<String>,
+  /// Paths that have left the index.
+  pub removed: Vec<String>,
+}
+
+impl Refreshed {
+  /// Did this pass change anything at all?
+  pub fn is_empty(&self) -> bool {
+    self.updated.is_empty() && self.removed.is_empty()
+  }
+}

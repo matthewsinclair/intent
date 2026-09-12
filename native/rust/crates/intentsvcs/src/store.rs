@@ -1637,6 +1637,80 @@ fn section_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<DocSection> {
 
 /// The one upsert into `file_index`, shared by the whole-index replace and the
 /// per-projection record. `created_at` is the row's own, so a conflict keeps it.
+/// THE ONE PLACE AN INDEX ROW BECOMES A ROW, so the full rebuild and the
+/// incremental pass cannot disagree about what a column holds -- including the
+/// `COALESCE` that keeps a hash a writer did not supply.
+fn upsert_index_row(conn: &rusqlite::Connection, r: &crate::index::Row) -> Result<(), StoreError> {
+  conn.execute(
+    "INSERT INTO index_file (path, corpus, lang, size, mtime, indexed_sha256, skipped_reason)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+     ON CONFLICT (path) DO UPDATE SET
+       corpus = excluded.corpus,
+       lang = excluded.lang,
+       size = excluded.size,
+       mtime = excluded.mtime,
+       -- **PRESERVED WHERE THE WRITER DID NOT SUPPLY ONE.** A survey
+       -- stats files and does not read them, so it arrives with this
+       -- unset for every row; taking it literally would erase, on every
+       -- reconcile, the record of what the index actually holds. NULL
+       -- from a writer means `I do not know`, and the column already has
+       -- a way to say `nothing`: a row that has never been read has NULL
+       -- here and no writer has claimed otherwise.
+       indexed_sha256 = COALESCE(excluded.indexed_sha256, index_file.indexed_sha256),
+       skipped_reason = excluded.skipped_reason,
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+    params![
+      r.path,
+      r.corpus,
+      r.lang,
+      r.size as i64,
+      r.mtime,
+      r.indexed_sha256,
+      r.skipped_reason,
+    ],
+  )?;
+  Ok(())
+}
+
+/// THE ONE PLACE A PROSE SECTION BECOMES A ROW.
+fn insert_doc_section(conn: &rusqlite::Connection, s: &DocSection) -> Result<(), StoreError> {
+  conn.execute(
+    "INSERT INTO doc_sections (owner_type, owner_id, file, seq, heading, level, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+    params![
+      s.owner_type,
+      s.owner_id,
+      s.file,
+      s.seq as i64,
+      s.heading,
+      s.level as i64,
+      s.body,
+    ],
+  )?;
+  Ok(())
+}
+
+/// THE ONE PLACE A SOURCE SECTION BECOMES A ROW.
+fn insert_src_section(
+  conn: &rusqlite::Connection,
+  s: &crate::index::source::Section,
+) -> Result<(), StoreError> {
+  conn.execute(
+    "INSERT INTO src_sections (path, seq, start_line, end_line, kind, name, name_parts, body)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+    params![
+      s.path,
+      s.seq as i64,
+      s.start_line as i64,
+      s.end_line as i64,
+      s.kind,
+      s.name,
+      s.name_parts,
+      s.body,
+    ],
+  )?;
+  Ok(())
+}
+
 fn upsert_file_entries(
   tx: &rusqlite::Transaction<'_>,
   entries: &[FileEntry],
@@ -3799,34 +3873,75 @@ impl Store {
       params![keep],
     )?;
     for r in rows {
+      upsert_index_row(&tx, r)?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Apply one subtree's worth of index changes: upsert what moved, delete
+  /// what has gone, and leave every other row alone.
+  ///
+  /// **NOT [`Store::replace_index_files`], AND THE DIFFERENCE IS THE WHOLE
+  /// POINT OF AN INCREMENTAL PASS.** That one is told the entire scope and
+  /// deletes what it was not told about; this one is told about a subtree, so
+  /// deleting the rest would unindex the project every time one file changed.
+  /// The removals are named by the caller rather than inferred here, because
+  /// only the caller knows which subtree it asked about.
+  pub fn apply_index_changes(
+    &mut self,
+    upserts: &[crate::index::Row],
+    removed: &[String],
+  ) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    for path in removed {
+      tx.execute("DELETE FROM index_file WHERE path = ?1", params![path])?;
+    }
+    for r in upserts {
+      upsert_index_row(&tx, r)?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Replace the indexed content of NAMED PATHS, in one transaction.
+  ///
+  /// **THE PATHS ARE PASSED SEPARATELY FROM THE SECTIONS, and that is what
+  /// makes a removal expressible.** A file that has gone contributes no
+  /// sections, so a call that derived its own scope from the sections it was
+  /// given could never delete anything; the caller names every path it is
+  /// reconciling, and whatever it did not supply rows for is emptied.
+  ///
+  /// The FTS5 `rebuild` is [`Store::write_doc_sections`]'s, for the reason
+  /// recorded there -- a scoped delete leaves a tombstone per row exactly as a
+  /// wholesale one does.
+  pub fn replace_sections_for(
+    &mut self,
+    paths: &[String],
+    prose: &[DocSection],
+    source: &[crate::index::source::Section],
+  ) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    for path in paths {
       tx.execute(
-        "INSERT INTO index_file (path, corpus, lang, size, mtime, indexed_sha256, skipped_reason)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-         ON CONFLICT (path) DO UPDATE SET
-           corpus = excluded.corpus,
-           lang = excluded.lang,
-           size = excluded.size,
-           mtime = excluded.mtime,
-           -- **PRESERVED WHERE THE WRITER DID NOT SUPPLY ONE.** A survey
-           -- stats files and does not read them, so it arrives with this
-           -- unset for every row; taking it literally would erase, on every
-           -- reconcile, the record of what the index actually holds. NULL
-           -- from a writer means `I do not know`, and the column already has
-           -- a way to say `nothing`: a row that has never been read has NULL
-           -- here and no writer has claimed otherwise.
-           indexed_sha256 = COALESCE(excluded.indexed_sha256, index_file.indexed_sha256),
-           skipped_reason = excluded.skipped_reason,
-           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
-        params![
-          r.path,
-          r.corpus,
-          r.lang,
-          r.size as i64,
-          r.mtime,
-          r.indexed_sha256,
-          r.skipped_reason,
-        ],
+        "DELETE FROM doc_sections WHERE owner_type = ?1 AND file = ?2",
+        params![crate::prose::FILE_OWNER, path],
       )?;
+      tx.execute("DELETE FROM src_sections WHERE path = ?1", params![path])?;
+    }
+    tx.execute(
+      "INSERT INTO doc_sections(doc_sections) VALUES('rebuild')",
+      [],
+    )?;
+    tx.execute(
+      "INSERT INTO src_sections(src_sections) VALUES('rebuild')",
+      [],
+    )?;
+    for s in prose {
+      insert_doc_section(&tx, s)?;
+    }
+    for s in source {
+      insert_src_section(&tx, s)?;
     }
     tx.commit()?;
     Ok(())
@@ -3996,18 +4111,7 @@ impl Store {
       [],
     )?;
     for s in sections {
-      conn.execute(
-        "INSERT INTO doc_sections (owner_type, owner_id, file, seq, heading, level, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        params![
-          s.owner_type,
-          s.owner_id,
-          s.file,
-          s.seq as i64,
-          s.heading,
-          s.level as i64,
-          s.body,
-        ],
-      )?;
+      insert_doc_section(conn, s)?;
     }
     Ok(())
   }
@@ -4034,20 +4138,7 @@ impl Store {
       [],
     )?;
     for s in sections {
-      tx.execute(
-        "INSERT INTO src_sections (path, seq, start_line, end_line, kind, name, name_parts, body)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![
-          s.path,
-          s.seq as i64,
-          s.start_line as i64,
-          s.end_line as i64,
-          s.kind,
-          s.name,
-          s.name_parts,
-          s.body,
-        ],
-      )?;
+      insert_src_section(&tx, s)?;
     }
     tx.commit()?;
     Ok(())

@@ -380,3 +380,95 @@ fn the_two_prose_writers_leave_each_other_alone() {
     "and canon's is untouched"
   );
 }
+
+#[test]
+fn a_refresh_touches_its_subtree_and_leaves_the_rest_of_the_index_alone() {
+  // **THE DOOR A WATCHER CALLS.** Reconciling one file through the rebuild
+  // door would unindex the project on every keystroke, because a rebuild
+  // deletes every row it was not told about.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "docs/guide.md", b"# Guide\n\nabout widgets\n");
+  write(&fx, "src/lib.rs", b"fn assemble_widget() {}\n");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+
+  write(&fx, "src/lib.rs", b"fn assemble_gadget() {}\n");
+  let refreshed = facade
+    .index_refresh(&fx.root().join("src"))
+    .expect("refresh");
+
+  assert_eq!(refreshed.updated, vec!["src/lib.rs".to_string()]);
+  assert!(refreshed.removed.is_empty());
+
+  let code = facade.store().src_sections().expect("source");
+  let lib = code.iter().find(|r| r.path == "src/lib.rs").expect("a row");
+  assert!(
+    lib.body.contains("assemble_gadget") && !lib.body.contains("assemble_widget"),
+    "the file's content is replaced rather than added to: {lib:?}"
+  );
+
+  // **THE ROWS OUTSIDE THE SUBTREE ARE THE CLAIM**, and they are what a
+  // rebuild-with-a-filter would take: `replace_index_files` deletes every row
+  // it was not handed, so putting a refresh through that door unindexes the
+  // project on every keystroke while every section table still looks right.
+  let rows = facade.store().index_files().expect("rows");
+  assert!(
+    rows.iter().any(|r| r.path == "docs/guide.md"),
+    "a refresh under `src/` leaves the index's rows elsewhere alone: {rows:?}"
+  );
+
+  let prose = facade.store().doc_sections().expect("prose");
+  assert!(
+    prose
+      .iter()
+      .any(|s| s.file == "docs/guide.md" && s.body.contains("widgets")),
+    "and their content with them: {prose:?}"
+  );
+}
+
+#[test]
+fn a_refresh_of_an_untouched_subtree_changes_nothing_and_says_so() {
+  // A watcher wakes on events it will often have nothing to do about, and a
+  // pass that reported work every time would publish noise forever.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "src/lib.rs", b"fn a() {}\n");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+  let refreshed = facade
+    .index_refresh(&fx.root().join("src"))
+    .expect("refresh");
+
+  assert!(refreshed.is_empty(), "nothing moved: {refreshed:?}");
+}
+
+#[test]
+fn a_file_that_has_gone_leaves_the_index_and_takes_its_content_with_it() {
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "docs/old.md", b"# Old\n\nabout widgets\n");
+  write(&fx, "docs/new.md", b"# New\n\nabout gadgets\n");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+  std::fs::remove_file(fx.root().join("docs/old.md")).expect("remove");
+
+  let refreshed = facade
+    .index_refresh(&fx.root().join("docs"))
+    .expect("refresh");
+  assert_eq!(refreshed.removed, vec!["docs/old.md".to_string()]);
+
+  let prose = facade.store().doc_sections().expect("prose");
+  assert!(
+    prose.iter().all(|s| s.file != "docs/old.md"),
+    "content whose file has gone goes with it, or a search answers from a file \
+     that is not there: {prose:?}"
+  );
+  assert!(
+    prose.iter().any(|s| s.file == "docs/new.md"),
+    "and its neighbour is untouched"
+  );
+}

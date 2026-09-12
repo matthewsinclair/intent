@@ -119,29 +119,59 @@ fn every_table_records_when_the_database_wrote_the_row() {
   );
 }
 
-/// **The FTS5 table is the one exemption, and it is asserted rather than
-/// assumed.** An exemption nobody checks passes forever, including on the day
-/// it stops describing reality.
+/// **THE FTS5 TABLES ARE THE EXEMPTION, THEY ARE NAMED, AND THE EXEMPTION IS
+/// ASSERTED RATHER THAN ASSUMED.** An exemption nobody checks passes forever,
+/// including on the day it stops describing reality.
+///
+/// **IT SAID "THE ONE VIRTUAL TABLE" UNTIL `src_sections` LANDED**, and the
+/// arm red -- correctly, and in exactly the way it was written to: a second
+/// virtual table must be a DECISION rather than something that inherits the
+/// exemption by being virtual. The decision is recorded here, in the roster
+/// below, which is why the roster is a list of names and not a count.
 #[test]
-fn the_only_table_without_one_is_the_virtual_one_and_it_cannot_have_one() {
+fn the_tables_without_one_are_the_virtual_ones_and_they_cannot_have_one() {
+  // Every FTS5 table in the DDL, with why it takes the exemption. Both answers
+  // are the same one and neither is a policy choice: an FTS5 declaration's
+  // columns ARE the indexed surface and it has no column defaults to give, and
+  // the rows are wholly derived -- recomputed from files that carry their own
+  // mtime -- so the question a record stamp would answer is already answered
+  // where the row came from.
+  const EXEMPT: &[&str] = &["doc_sections", "src_sections"];
+
+  let declared: Vec<String> = DDL
+    .match_indices("CREATE VIRTUAL TABLE IF NOT EXISTS ")
+    .map(|(at, marker)| {
+      DDL[at + marker.len()..]
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .to_string()
+    })
+    .collect();
+
   assert_eq!(
     DDL.matches("CREATE VIRTUAL TABLE").count(),
-    1,
-    "a second virtual table appeared; decide what its record timestamp is rather than inheriting \
-     this exemption by being virtual"
+    declared.len(),
+    "a virtual table is declared in a shape this scan cannot read, so the roster below is not \
+     the population"
   );
-  assert!(
-    DDL.contains("CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5"),
-    "the exemption names doc_sections specifically"
-  );
-  // Not a policy choice: an FTS5 table's columns are the indexed surface and it
-  // has no column defaults to give. Its rows are also wholly derived -- wiped
-  // and recomputed from files that carry their own mtime -- so the question it
-  // would answer is already answered elsewhere.
-  assert!(
-    !DDL.contains("doc_sections USING fts5 (\n  created_at"),
-    "an FTS5 declaration cannot carry a DEFAULT column"
-  );
+  for name in &declared {
+    assert!(
+      EXEMPT.contains(&name.as_str()),
+      "`{name}` is a virtual table that nobody has decided the record timestamp of; add it to \
+       the roster with its reason rather than letting it inherit the exemption by being virtual"
+    );
+  }
+  for name in EXEMPT {
+    assert!(
+      declared.iter().any(|d| d == name),
+      "`{name}` takes an exemption from a table that is no longer declared"
+    );
+    assert!(
+      !DDL.contains(&format!("{name} USING fts5 (\n  created_at")),
+      "an FTS5 declaration cannot carry a DEFAULT column"
+    );
+  }
 }
 
 /// **The gap check reports a real gap.** Run over a synthetic DDL that is one

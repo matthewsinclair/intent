@@ -5195,6 +5195,18 @@ impl Facade {
     })
   }
 
+  /// The canon extract's own directory.
+  ///
+  /// One expression, because two spellings of it would put the extract in the
+  /// index's corpus on whichever side went stale -- and the extract is the
+  /// store's prose seen twice.
+  fn canon_dir(&self) -> std::path::PathBuf {
+    self.project.canon_st_dir().parent().map_or_else(
+      || self.project.root().join("intent").join(".canon"),
+      std::path::Path::to_path_buf,
+    )
+  }
+
   /// Every path the renderer produces for this project.
   ///
   /// The index excludes the store's own projections by ASKING THE RENDERER
@@ -5223,10 +5235,7 @@ impl Facade {
     let rows = crate::index::reconcile::survey(
       self.project.root(),
       &views,
-      &self.project.canon_st_dir().parent().map_or_else(
-        || self.project.root().join("intent").join(".canon"),
-        std::path::Path::to_path_buf,
-      ),
+      &self.canon_dir(),
       // **THE PROJECT'S CAP, NOT THE CONSTANT.** The default is a measurement
       // of one estate's own tree; a project whose documents are larger is not
       // wrong, and a cap it could not move would drop them with a row saying
@@ -5271,6 +5280,73 @@ impl Facade {
       .replace_src_sections(&content.source)
       .map_err(FacadeError::Store)?;
     Ok(crate::index::status::summarise(&rows))
+  }
+
+  /// Bring the index up to date under one path, touching nothing outside it.
+  ///
+  /// **THIS IS THE DOOR A WATCHER CALLS, and it is not `index_rebuild` with a
+  /// filter.** A rebuild is told the whole scope and deletes every row it was
+  /// not told about; a refresh is told about a subtree, so it upserts what
+  /// moved, deletes what has gone from under that path, and leaves the rest of
+  /// the index alone. Reconciling one file through the rebuild door would
+  /// unindex the project on every keystroke.
+  ///
+  /// **IT REPORTS PATHS RATHER THAN A COUNT**, because its caller is deciding
+  /// what to publish to a subscriber, and a number is not something anyone can
+  /// name.
+  pub fn index_refresh(
+    &mut self,
+    under: &std::path::Path,
+  ) -> Result<crate::index::Refreshed, FacadeError> {
+    let views = self.view_paths()?;
+    let previous = self.store.index_files().map_err(FacadeError::Store)?;
+    let change = crate::index::reconcile::changed_under(
+      self.project.root(),
+      under,
+      &previous,
+      &views,
+      &self.canon_dir(),
+      self.project.config().index.max_file_bytes,
+    )
+    .map_err(|e| {
+      FacadeError::Ingest(IngestError::Io {
+        path: under.display().to_string(),
+        source: std::io::Error::other(e.to_string()),
+      })
+    })?;
+    if change == crate::index::reconcile::Change::default() {
+      return Ok(crate::index::Refreshed::default());
+    }
+
+    let content = crate::index::reconcile::read_content(self.project.root(), &change.upserts);
+    let mut upserts = change.upserts;
+    for (path, sha) in &content.indexed {
+      if let Some(row) = upserts.iter_mut().find(|r| &r.path == path) {
+        row.indexed_sha256 = Some(sha.clone());
+      }
+    }
+    // **EVERY PATH THIS PASS TOUCHED, INCLUDING THE ONES THAT HAVE GONE.** A
+    // removed file contributes no sections, so a call that took its scope from
+    // the sections it was handed could never empty anything.
+    let touched: Vec<String> = upserts
+      .iter()
+      .map(|r| r.path.clone())
+      .chain(change.removed.iter().cloned())
+      .collect();
+
+    self
+      .store
+      .apply_index_changes(&upserts, &change.removed)
+      .map_err(FacadeError::Store)?;
+    self
+      .store
+      .replace_sections_for(&touched, &content.prose, &content.source)
+      .map_err(FacadeError::Store)?;
+
+    Ok(crate::index::Refreshed {
+      updated: upserts.into_iter().map(|r| r.path).collect(),
+      removed: change.removed,
+    })
   }
 
   /// What the index holds and what it does not hold, READ FROM THE STORE.
