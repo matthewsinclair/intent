@@ -716,6 +716,9 @@ shim_doctor() {  # shim_doctor red | clean | unjudgeable
   shim_doctor clean
   PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "doctor-clean"
   assert_success
+  # **THE PASS SAYS SO.** Without this the clean case asserts only that nothing
+  # blocked, which is equally true of a gate where the arm never ran.
+  assert_output_contains "intent doctor gate: estate clean."
 
   shim_doctor unjudgeable
   echo y > g.txt && git add g.txt

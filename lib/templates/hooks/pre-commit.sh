@@ -684,7 +684,15 @@ DOCTOR_RED=0
 doctor_out="$(intent doctor 2>&1)"
 doctor_rc=$?
 case "$doctor_rc" in
-  0) ;;
+  # **A PASS SAYS SO, AND AN ABSENCE IS NOT A REPORT** (vc, 2026-09-12). Silent
+  # on 0, a commit the arm PASSED and a commit where the arm never ran read
+  # identically -- which is this file's own `0 of 0` lesson one level up, where
+  # a block guarded on findings being non-empty printed nothing in the one state
+  # it existed to expose. The line is the cheapest possible proof that the
+  # question was asked.
+  0)
+    echo "intent doctor gate: estate clean." >&2
+    ;;
   1)
     DOCTOR_RED=1
     echo "" >&2
