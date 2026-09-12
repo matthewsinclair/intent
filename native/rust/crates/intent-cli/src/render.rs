@@ -2205,9 +2205,28 @@ fn hydrated(argument: &str) -> Result<(), Failure> {
 fn dehydrated(argument: &str) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
-  let done = facade.dehydrate(&address).map_err(fail)?;
+  // Taken BEFORE the call, because the announcing closure borrows it while the
+  // facade is borrowed mutably by the call it is passed to.
+  let project = facade.project().clone();
+  // **THE PATHS ARE NAMED BEFORE THEY GO** (hv, 2026-09-12: silent deletion).
+  // This verb printed `removed:` lines from the REPORT, which is after the
+  // removal -- the first time a path reached the screen it was already gone.
+  // These are printed from the PLAN, so the future-tense lines and the
+  // past-tense ones below can be compared by eye and by a test.
+  let done = facade
+    .dehydrate_announcing(&address, &mut |removing, pruning| {
+      for path in removing {
+        println!("  to-remove: {}", project.relative(path));
+      }
+      for path in pruning {
+        println!(
+          "  to-prune: {} (emptied by the removal)",
+          project.relative(path)
+        );
+      }
+    })
+    .map_err(fail)?;
 
-  let project = facade.project();
   let manifest = project.relative(&project.intentfiles_path());
 
   // **AC-00.6: `NOTHING TO DO` AND `DID SOMETHING` MUST NOT READ THE SAME**, and

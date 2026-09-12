@@ -1226,9 +1226,22 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// untouched, which is exactly why re-listing the id and re-running `hydrate`
 /// restores what it removed. A door is about the ADDRESSED ENTITY'S canon, not
 /// about how much a verb writes.
+///
+/// `dehydrate_announcing` is that same body with a callback taking every path
+/// before it goes (hv, 2026-09-12: silent deletion), so it is excluded for
+/// `dehydrate`'s reason and not for a new one. **The instrument caught it on
+/// the day it was added**, which is the behaviour this exclusion list exists to
+/// keep: a door arriving unannounced is the failure, and a door named here is
+/// a decision somebody can read.
 #[test]
 fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
-  const NOT_DOORS: [&str; 4] = ["hydrate", "hydration", "dehydrate", "edit"];
+  const NOT_DOORS: [&str; 5] = [
+    "hydrate",
+    "hydration",
+    "dehydrate",
+    "dehydrate_announcing",
+    "edit",
+  ];
 
   let source =
     std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/facade.rs"))

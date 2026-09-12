@@ -3505,7 +3505,32 @@ impl Facade {
     })
   }
 
+  /// Delist a thread and remove its realised files.
+  ///
+  /// **THE ANNOUNCING FORM IS THE ONE EVERY INTERACTIVE FACE OWES ITS
+  /// OPERATOR** (hv, 2026-09-12: silent deletion). This one announces to
+  /// nobody, which is right for a caller that shows no output at all.
   pub fn dehydrate(&mut self, address: &Address) -> Result<Dehydrated, FacadeError> {
+    self.dehydrate_announcing(address, &mut |_, _| {})
+  }
+
+  /// The same removal, with every path handed to `announce` BEFORE the first
+  /// byte goes.
+  ///
+  /// `st dehydrate` listed what it had removed AFTER removing it, so the first
+  /// time a path reached the screen it was already gone. The plan is in hand
+  /// here -- the scoped `Plan` is built before it is run -- so the caller is
+  /// handed the files and the directories the run will take, and prints them in
+  /// the future tense.
+  ///
+  /// **THE FACADE DOES NOT PRINT, WHICH IS WHY THIS IS A CALLBACK**
+  /// (IN-AG-THIN-COORD-001). What to say and where to say it is the renderer's;
+  /// what is about to go is this layer's, and only this layer knows it.
+  pub fn dehydrate_announcing(
+    &mut self,
+    address: &Address,
+    announce: &mut dyn FnMut(&[std::path::PathBuf], &[std::path::PathBuf]),
+  ) -> Result<Dehydrated, FacadeError> {
     if let Some(authority) = &address.authority {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
@@ -3631,6 +3656,17 @@ impl Facade {
       estate_root: whole.estate_root.clone(),
       held: Vec::new(),
     };
+    // **ANNOUNCED HERE, WHICH IS THE LAST MOMENT BEFORE ANYTHING IS
+    // IRREVERSIBLE.** Every refusal above has already been taken, so what is
+    // handed over is what the run will actually attempt -- announcing earlier
+    // would name files a refusal then spares, which is its own false report.
+    let going: Vec<std::path::PathBuf> = scoped
+      .with(organize::Action::Dehydrate)
+      .map(|s| s.path.clone())
+      .collect();
+    let prunes = organize::prunes_for(&scoped.estate_root, &going);
+    announce(&going, &prunes);
+
     let run = scoped
       .run(organize::Mode::Apply, &|| {
         organize::observe(&self.project, &previous)

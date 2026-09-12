@@ -842,6 +842,19 @@ fn would_be_emptied(dir: &Path, going: &BTreeSet<PathBuf>) -> bool {
   any
 }
 
+/// Which directories a removal set WOULD empty, without emptying anything.
+///
+/// **EXPOSED SO A CALLER CAN NAME THEM BEFORE IT ACTS** (hv, 2026-09-12: silent
+/// deletion). `st dehydrate` removes files and then prunes what they emptied,
+/// and a caller announcing only the files would announce less than the run
+/// takes. It is the same body the act uses, asked in the mode that withholds
+/// the act -- see [`prune_emptied`].
+pub fn prunes_for(root: &Path, removed: &[PathBuf]) -> Vec<PathBuf> {
+  let mut out = Vec::new();
+  prune_emptied(root, removed, &mut out, Mode::Preview);
+  out
+}
+
 /// The reason an index view is kept. Exposed so the report can print it rather
 /// than restate it.
 pub fn exempt_reason() -> &'static str {
