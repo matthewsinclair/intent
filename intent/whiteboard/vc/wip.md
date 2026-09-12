@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 19:11Z
+heartbeat_at: 2026-09-12 19:46Z
 status: active
-focus: "Directing ST0069 to the end (hv 2026-09-12): no cut until every non-cancelled WP is Done. Live store at 24 on the pair at 82b85c5e1; the doctor gate is live for every estate. Live now: cc the wb items then lifecycle, dc the WP-02 doors, ic the review of the message rows then the protocol half on my signal; then the migration verb, the cutover, the cut at hv's terminal."
+focus: "Directing ST0069 to the end (hv 2026-09-12): WP-14 is the last package. Live store at 24 on the pair at 82b85c5e1; the doctor gate is live for every estate. Live now: cc lifecycle then AC-14.2/14.7/14.8, dc the migration verb, ic 0311 by trace then the protocol half on my signal; then the cutover, wp done, the cut at hv's terminal."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing ST0069 to the end (hv, 2026-09-12); state as at 2026-09-12 19:11Z.** The state and every ruling are in `intent/wip.md`. The live store is at schema 24 on the pair at 82b85c5e1; the doctor gate (0308, 0309) is landed and live for every estate, doctor answering 0, 1 or 4 and the template reading the code alone; doctor reads 0 findings on the live estate. Orders out: cc the items group then lifecycle, rows with the verbs; dc the two WP-02 doors with `wp start`, then `wp done`, then the migration verb; ic the review of cc's three message rows, then the protocol half on my signal with AC-14.12 reworded for the fifth caller. Next, in order: each landing verified by file list; laksa-vc told the gate is live; the pair rebuilt at any Rust landing that changes what the live estate sees; the cutover when every node has folded; WP-02 and WP-14 `wp done`; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only; every replace asserts its match count.
+- **Directing ST0069 to the end (hv, 2026-09-12); state as at 2026-09-12 19:46Z.** The state and every ruling are in `intent/wip.md`. WP-14 is the last package. Orders out: cc lifecycle (`touch`, `release`, `pickup` composite, archival as the bounded write's own step) then AC-14.2, 14.7, 14.8 with AT rows; dc the migration verb against the fixture board; ic the items-row review, 0311 by trace with a matched control, then the protocol half on my signal once lifecycle is in. Next, in order: each landing verified by file list; the pair rebuilt at any Rust landing that changes what the live estate sees; the cutover when every node has folded, boards migrated by dc's verb, both guards retired, the views switched; `wp done ST0069/14`; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only; every replace asserts its match count; a socket send that fails is retried once and then written to the inbox.
 - **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
