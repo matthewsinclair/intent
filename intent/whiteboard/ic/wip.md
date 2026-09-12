@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 19:28Z
+heartbeat_at: 2026-09-12 20:17Z
 status: active
-focus: "WP-16 CLOSED. The doctor gate landed in two commits with its producer rebuilt between them (82b85c5e1, 6fae2ff6a, 0496f4adc); 0308 and 0309 closed. Waiting on cc's items landing to review three corrected rows, then the protocol half on vc's signal after cc's lifecycle group. Nothing of mine uncommitted."
+focus: "LOCALFOLDED 2026-09-12 20:17Z for hv's compact. 0311 is DIAGNOSED and FIXED and NOT LANDED: the fix is unlanded in scratchpad/wt-doc and banked as scratchpad/0311-daemon-fix.patch on base e7a59a47b. Base control reds 4 of 8; the patched control must be RE-RUN because it never reached the binary. Then the protocol half. Nothing of mine uncommitted."
 claims: []
 ---
 
@@ -13,12 +13,20 @@ claims: []
 
 ## DOING
 
-**Nothing in flight. Every package and ruling that was mine is landed, and what is left is queued behind cc.**
+**0311, THE DAEMON'S FEEDBACK LOOP: diagnosed, fixed, proven in MECHANISM, and NOT PROVEN IN RATE. It is not landed and must not be.**
 
-- **WP-16 is Done** (`b2b4c31e9`), closed on vc's word with the four criteria read back from the store rather than recalled. Its last finding moved under WP-14 and closed there: the `Board -> board` contract row is in at `d50676642` and `contract_check.sh` agrees in both directions, 16 of 16 mapped entities over 108 properties.
-- **The doctor gate is in, in two commits with a rebuild between them.** `82b85c5e1` is the model half -- three exit codes with 4 for an estate that could not be judged, `stale-render` decided before the skew check, the first differing byte on every skew detail. `6fae2ff6a` is the gate arm, landed only after the delivered pair was rebuilt at the producer. `0496f4adc` makes a pass say so. Issues 0308 and 0309 closed at `b3b3f1b90`.
+**The unlanded work is a worktree and a patch, never this prose**: the tree is `scratchpad/wt-doc` on base `e7a59a47b`, and the diff is banked at `scratchpad/0311-daemon-fix.patch` (four files). `scratchpad/wt-base` is the matched control tree at the same base; `scratchpad/ctrl-logs/` holds all sixteen run logs; `scratchpad/trace.py` and `trace3.py` are the socket clients that produced the diagnosis.
+
+- **THE CAUSE, traced rather than reasoned.** A projection writes canon, the generated views AND `.canon/project.json`; the store's index recorded only the canon. So the daemon's watcher met `todo.md` and `steel_threads.md` with no baseline, published them as external edits, and ingested again -- twice per write. `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` has been saying so at base in its own words all along: _the ingest count moved with nothing editing the project. The daemon is watching its own writes._
+- **THE FIX, two halves at the cause.** `sync::differs_from_recorded` is one home for _has the store already recorded these bytes_, and the watcher's LEAF branch asks it -- that branch published on scope alone, unread, which made the module's own stated invariant true on the directory door and false on the leaf door. `record_landed` records everything a projection wrote, at one home with three callers, unioned with `canon_files` because `commit` skips a path whose bytes already match and that baseline is what `refuse_if_canon_moved_under_the_store` reads.
+- **WHAT IS PROVEN: the mechanism.** On the fixed daemon one write yields exactly `file_changed` then `project_changed`, three runs identical, where before it was five events and then five more; and a subscription opened after setup now receives nothing at all.
+- **WHAT IS NOT PROVEN: the rate.** Base reds the two arms in **4 of 8** whole-suite runs. **The patched half of that control is VOID** -- the lib arm failed first, cargo stopped, and `daemon_subscriptions` never ran on the patched side at all. Zero was an absence produced by not running.
+- **NEXT, and it is the whole of the next session's first move:** re-run the alternation with the runner's own positive control -- both sides must show the subscription arm NAMES in their logs before any verdict is read, and a log whose count is zero is a VOID run reported as one (vc). Patched needs enough runs to show zero against the base's 4 of 8. The renamed arm `a_batch_of_leaf_events_costs_at_most_one_store_round_trip` is green, so both sides now reach the binary.
+- **One unexplained patched red stands**, 1 in 19 on the single-file population, message never caught. vc: it lands named in the count with its log if it does not recur, and is a new issue if it recurs after landing.
 
 ## TODO
+
+**Review cc's four LIFECYCLE rows at `dd3e3444e`** -- `wb touch`, `wb release`, `wb pickup`, `wb archive <kind> <seq>` -- next time the register is open. The two findings from the items pass are the ones to carry in: a verb's `recoverability` moving must take its FLAGS' exposure with it (four withheld verbs still carried a flag marked exposed, all four in this family), and a note's stated ground has to be true, not just its label.
 
 **Review cc's three corrected message rows when the items commit lands.** vc ruled my finding without waiting for a push-back: `wb ask` and `wb announce` are `one-way`, `wb clear` is `idempotent`, MCP exposure follows the field, `st attach` is the precedent in both fields at once. The review happens in that commit rather than as a separate pass. **The thing to check is the pair, not the label**: a row whose `recoverability` moves must have its `exposed_on_mcp` move with it, and `--node`'s own exposure is the second half of the same question.
 
@@ -64,6 +72,8 @@ BUILDING AND VERIFYING, once the quiet window lifts:
 - A test gated on a grammar needs the CLI crate's own pass-through feature, or it silently does not compile and passes by not existing.
 - An AT row citing a file is a citation only if the FILE carries the row's literal id.
 - Nothing in this workspace may read a clock; bound work in SQLite instructions, not seconds.
+
+- **A RUN THAT NEVER REACHED THE TEST IS NOT A PASS, AND IT WEARS A PASS'S SHAPE.** My control reported _patched: 0 subscription arms red_ and the patched side had never run `daemon_subscriptions` at all -- the lib arm failed first and cargo stopped. `grep -c <arm name>` was 4 on a base log and 0 on every patched log. **The runner's positive control is now that both sides show the arm NAMES before any verdict is read**, and a zero count is a VOID run reported as one (vc). I nearly reported the absence as the result, one hour after putting the same question to two other nodes.
 
 JUDGEMENT, earned 2026-09-12 evening, all six from things that went wrong:
 
