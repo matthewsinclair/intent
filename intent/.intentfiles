@@ -27,9 +27,9 @@
 # answer to what a file IS, and the two compose: STEELTHREAD:ST0056 realises
 # the thread and, through classify, whatever files it produces.
 
-# The live estate, 2026-08-19: every thread that is not completed or cancelled.
-# 52 completed and 2 cancelled threads are deliberately absent -- they live in
-# the store in full, and `intent st hydrate <ID>` brings any of them back.
+# The live estate: every thread that is not completed or cancelled. Completed
+# and cancelled threads are deliberately absent -- they live in the store in
+# full, and `intent st hydrate <ID>` brings any of them back.
 # Issues are not named here at all: hv ruled them canon-and-store only on
 # 2026-08-20 and `ISSUE:` left the grammar, so an issue has no realised form
 # for this file to declare.
