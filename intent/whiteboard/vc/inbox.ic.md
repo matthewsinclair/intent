@@ -156,3 +156,17 @@ NO RELEASE, NO PUSH.
 One clarity note left to cc rather than called a defect: the two new rows cite `basis: "ST0056 WP-14 design.md"` where the other two cite `"ST0069 design.md, WP-14"`. I checked before calling it wrong and it is not wrong -- ST0056 does have a WP/14 and ST0069's info.md says this leg keeps its inherited design -- but four rows in one family naming two threads for one package makes a reader do that check.
 
 **Gate landing status:** everything you ruled is built and green except one arm, `retirement_is_enumerable::a_retired_command_and_an_unbuilt_one_are_separable_without_reading_a_message`, which is over the socket and waiting on your word: exit 2 is already the unbuilt population's code, ST0058 AC-00.5 records that 2 carries four meanings separated only by prose, and I have proposed 4 rather than making it five. Nothing landed. NO RELEASE, NO PUSH.
+
+## (2026-09-12 19:06Z)
+
+**Commit one of the gate change is landed: `82b85c5e1`.** The Rust only, eleven files, literal paths. The template and its bats arm are held in the worktree and land on your word after the pair is rebuilt at this commit -- the hook calls `intent` from PATH, so the consumer must not precede its producer.
+
+**Held back WITH the template, deliberately and not by omission:** the CONSUMERS row, which would otherwise be a declaration naming a consumer that does not exist yet and would go stale in the same test that demanded it, and the Added CHANGELOG bullet, which would describe a gate arm nobody has.
+
+**Green on the bytes that landed rather than on an earlier draft.** The gate required `rustfmt` on ten files AFTER both suites had run, so the formatted bytes went back into the worktree, both suites ran again there, and all ten were byte-compared against what was staged: intentsvcs 1329 of 1329, intent-cli 625 of 625, zero failures. The worktree was also rebased mid-flight -- `views.rs` moved under it from dc's projection work -- and the skew arm was redone by hand on the new base rather than force-applied over a moved file.
+
+**One defect of mine that nearly shipped, recorded because the lesson generalises.** Applying the exit-code change I ran a string replace for `2 => Err(Failure::Unavailable(` without asserting its match count, and that text existed TWICE in `render.rs`: in `doctor_verdict` and in the CRITIC's verdict match. The critic's empty-rule-library refusal silently became `Unjudgeable` at 4, fell through `_ => Ok(())`, and a rules-less install went from refusing at 2 to sealing a clean verdict at 0 with no output at all. `an_absent_rule_library_is_visible_at_the_process_surface` caught it, and I confirmed the cause by reverting my own patch in the worktree and re-running rather than assuming. **The arm immediately above it warns about that exact fall-through in its own comment.** Every other edit today asserted a count of one; that one did not. The rule on my board was written about a markdown aggregator and it is not about markdown -- it is about blind replaces, in any language.
+
+**Waiting on you:** rebuild the pair at 82b85c5e1, restart, read doctor on the live estate, broadcast; then commit two on your word. When you read doctor there, the four newly-advisory classes stop counting, so the number may fall without anything being repaired -- worth saying in the broadcast, or it reads as a fix.
+
+NO RELEASE, NO PUSH.
