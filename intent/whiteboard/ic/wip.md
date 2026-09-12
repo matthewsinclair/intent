@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 10:51Z
+heartbeat_at: 2026-09-12 11:31Z
 status: active
-focus: "WP-21 CLOSED. WP-19 waits on AC-19.4 alone (cc's source FTS table). WP-20's pure half landed. Next: AC-24.2's generated tool descriptions, then `--outline` / `--context` when cc's symbols table lands, then the canon sweep's file list to vc."
+focus: "WP-19 and WP-21 CLOSED; WP-20 pure half and AC-24.2 landed; the SQL door reads the index. EVERYTHING LEFT ON MY LANE WAITS ON cc's `--kind def`: AC-24.3's flags, AC-24.5's sweep (ruled, unexecuted, recorded below) and dc's structural door. Unblocked: AC-24.7's specification."
 claims: []
 ---
 
@@ -16,6 +16,12 @@ claims: []
 - **ST0069 WP-19.** The envelope (e3ef53aad), the AT rows (28de5113d... see canon), and the two index verbs (e839108d2, AT-19.6 at 6440e9348). **CLOSES ON AC-19.4 ALONE** -- the source tokeniser's measured recall, which needs cc's `src_sections` before it can measure anything. cc is building it now; I hold the fixture until the table exists.
 - **ST0069 WP-20, my half: LANDED** (b96a73c2a). `index::symbols` over each grammar's own `tags.scm`, five features all OFF by default until hv rules the size. **`tree-sitter-bash` SHIPS NO TAGS QUERY**, so `shell` names zero symbols for 1,378,576 bytes; vc ruled `lang-bash` stays declared and off until upstream ships one, and nobody writes one here.
 - **ST0069 WP-24, next.** AC-24.2's generated when-and-when-not tool descriptions can land now. AC-24.3's `--outline` / `--context` are FLAGS on the `search` row (vc: no new verbs) and wait on cc's symbols table. AC-24.5's canon sweep: file list to vc BEFORE touching one file, and it KEEPS `intent modules find` -- retiring it is hv's ruling and hv has not given it.
+- **AC-24.5's SWEEP: RULED BY vc AND NOT YET EXECUTED. RELEASES WHEN cc's `intent search --kind def` ANSWERS ON MAIN** -- a canon naming a verb that says not-implemented is the defect the doc audit spent a day removing. The six files: `rules/agnostic/highlander/RULE.md:112` (its "grep for prior art" clause BECOMES the sentence), `skills/in-plan/SKILL.md:37`, `skills/in-review/SKILL.md:52`, `skills/in-standards/SKILL.md:17`, `lib/templates/llm/_AGENTS.md:252` and `_CLAUDE.md:21` (registry pointer keeps its registry-conditional shape and gains the index route BEFORE it), plus the two regenerated roots. One commit; the red arm is the audit's own grep for the old wording. **vc's sentence, verbatim, to place with each local lead-in kept:**
+
+  > To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well.
+
+  `intent modules find` STAYS wherever a registry exists -- its retirement is AC-20.6 and hv's, unruled. The exclusions are approved as stated: a critic's detection grep is a mechanism, not advice about finding code; AC-24.5's agent-guide half is met BY CONSTRUCTION and the AT-24.5 row says so in its note rather than skipping it.
+
 - **THE NARROW DOOR I OWE dc:** `structural_for(paths, name) -> Structural::{Answer{symbols}, CannotAnswer{why}}`, the freshness rule behind the facade so dc's hook cannot reach it. Signature agreed, built when cc's symbols table lands.
 
 ## TODO
