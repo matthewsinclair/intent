@@ -131,7 +131,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-20.5 References are named as name-matched on every surface and never as callers. -- satisfied: no (computed)
 - AC-20.6 Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling. -- satisfied: no (computed)
 
-### WP-21 -- The explorer's /search pane (status: Not Started)
+### WP-21 -- The explorer's /search pane (status: Done)
 
 - AC-21.1 `/search <query>` in the explorer opens a resident results pane whose rows are the envelope's hits, with the freshness line in the INFO section. -- satisfied: yes (computed)
 - AC-21.2 Enter on an entity hit lands on its view; Enter on a file hit opens the file through the lent terminal, and the row names the line. The editor is not positioned at it: editor line flags are not portable (`+N` for some, `-g file:N` for others), and this estate has already refused to sniff editors for a flag on exactly that ground. -- satisfied: yes (computed)
@@ -196,7 +196,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-21 -- The explorer's /search pane (status: Not Started)
+### WP-21 -- The explorer's /search pane (status: Done)
 
 - AT-21.1 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.1 -- status: green
 - AT-21.2 `native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs` -- covers AC-21.2 -- status: green

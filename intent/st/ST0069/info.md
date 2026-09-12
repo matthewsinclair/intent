@@ -33,7 +33,7 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 | WP-18 | The corpus: the gitignore-aware repository, two staleness policies, the widened watcher                                 | L    | WIP         |
 | WP-19 | Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index                                  | M    | Not Started |
 | WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | Not Started |
-| WP-21 | The explorer's /search pane                                                                                             | M    | Not Started |
+| WP-21 | The explorer's /search pane                                                                                             | M    | Done        |
 | WP-22 | Daemon-served search with daemonless parity                                                                             | M    | Not Started |
 | WP-23 | Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema                                  | S    | Not Started |
 | WP-24 | The LLM boundary: the harness's own search becomes a door into the index                                                | M    | Not Started |

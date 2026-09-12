@@ -2,7 +2,7 @@
 wp_id: WP-21
 title: The explorer's /search pane
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-21: The explorer's /search pane
