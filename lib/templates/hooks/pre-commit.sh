@@ -651,11 +651,68 @@ else
   echo "intent critic gate: ${#LANGS[@]} of ${#LANGS[@]} declared language(s) enforced (${LANGS[*]})." >&2
 fi
 
+# ---- Estate health: `intent doctor` ----
+#
+# **NOTHING BETWEEN A WORK-PACKAGE CLOSE AND THE RELEASE PREFLIGHT EVER ASKED
+# WHETHER THE ESTATE STILL AGREES WITH THE STORE** (hv, 2026-09-12, ruled in
+# prose; issue 0308). The guards read the commit and the critics read the code.
+# Neither reads the estate, so findings accumulated and every commit passed over
+# them.
+#
+# **THE VERDICT IS DOCTOR'S EXIT CODE AND NOTHING ELSE.** This gate does not
+# parse doctor's prose, count its lines or decide which of its classes matter:
+# `doctor` splits its own classes into blocking and advisory and carries the
+# split in its exit code, and the release preflight reads that same code. Two
+# readers, one rule, agreeing by construction rather than by being kept in step.
+#
+# **NO OPT-OUT FLAG, AND AN INHERITED RED IS THE ESTATE'S TO CLEAR.** A skip
+# flag becomes the normal way to commit inside a week, and what it would hide is
+# exactly the class nobody is already looking at. `--no-verify` remains, as it
+# does for every other arm here, and it leaves a trace.
+#
+# **1 IS FINDINGS; ANY OTHER NON-ZERO IS THIS GATE'S OWN BREAKAGE AND FAILS
+# OPEN**, which is the ruling the critic arm above already carries. A binary
+# that does not have the verb answers clap's unrecognised-subcommand code, and
+# refusing every commit because the tool is merely older is issue 0043 rebuilt
+# one more time on the git side.
+#
+# **THE OUTPUT IS CAPTURED WITHOUT A PIPE BEFORE `$?` IS READ**, for the reason
+# stated at the top of this file: `intent doctor | tail` answers `tail`'s exit
+# code. That mistake was made once while building this arm and it read as a
+# doctor that never fails.
+DOCTOR_RED=0
+doctor_out="$(intent doctor 2>&1)"
+doctor_rc=$?
+case "$doctor_rc" in
+  0) ;;
+  1)
+    DOCTOR_RED=1
+    echo "" >&2
+    [ -n "$doctor_out" ] && printf '%s\n' "$doctor_out" >&2
+    echo "intent doctor: the estate disagrees with the store -- commit refused." >&2
+    echo "  each finding above names what clears it; regenerating a view DISCARDS a hand" >&2
+    echo "  edit, so copy anything you meant to keep out of it first." >&2
+    echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
+    ;;
+  *)
+    # Only the CONSEQUENCE, never a cause: this gate knows the code was
+    # unrecognised and nothing else about why.
+    echo "intent doctor did not check (exit $doctor_rc) -- estate health is UNENFORCED in this commit." >&2
+    [ -n "$doctor_out" ] && printf '%s\n' "$doctor_out" >&2
+    ;;
+esac
+
 if [ "$AGGREGATE" -eq 1 ]; then
   echo "" >&2
   echo "intent critic gate: commit blocked by findings at severity >= $SEVERITY." >&2
   echo "  review the findings above, fix them, and re-commit." >&2
   echo "  to bypass (use sparingly): git commit --no-verify" >&2
+fi
+
+# **BOTH ARMS REPORT BEFORE EITHER REFUSES.** They answer different questions,
+# and a commit carrying both defects would otherwise show one and hide the other
+# until the first was cleared.
+if [ "$AGGREGATE" -eq 1 ] || [ "$DOCTOR_RED" -eq 1 ]; then
   exit 1
 fi
 

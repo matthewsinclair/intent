@@ -72,6 +72,23 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    "hooks/pre-commit.sh",
+    "doctor",
+    Policy::Invokes(
+      "The estate-health arm (issue 0308). 0 = nothing blocking, **1 = a blocking class has findings and \
+       the commit is REFUSED**, **4 = doctor could NOT JUDGE this estate** and the gate fails OPEN -- no \
+       project, a config that will not parse, or a project that has not migrated. Anything else non-zero also \
+       fails open, which is how a binary without the verb (clap's 2) is covered. 4 and not 2 because ST0058 \
+       AC-00.5 records 2 as already carrying four meanings and one consumer enumerates the unbuilt population \
+       by *refuses at 2*. Refusing on any of these would refuse every commit in every estate in that state, \
+       which is issue 0043 again. **The gate reads the CODE and never doctor's prose**: `doctor` owns the split \
+       between blocking and advisory classes and carries it in the code, and the release preflight reads the \
+       same code, so two consumers agree by construction rather than by being kept in step. Issue 0045 is \
+       this row too, from the direction that bit: a class that fires for a PROJECT-STATE reason rather than \
+       a defect blocks every commit in every estate in that state.",
+    ),
+  ),
+  (
     "hooks/critic-guard.sh",
     "critic",
     Policy::Invokes(

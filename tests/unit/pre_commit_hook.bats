@@ -664,3 +664,62 @@ EOF
   assert_output_contains "REFUSED"
   assert_output_contains "commit blocked by findings"
 }
+
+# Put an `intent` on PATH whose `doctor` we control, deferring everything else to
+# the real CLI. The fixture project has no store, so the real `doctor` could not
+# produce either verdict here -- and a gate arm that has only ever seen one
+# answer has not been measured.
+shim_doctor() {  # shim_doctor red | clean | unjudgeable
+  mkdir -p "${TEST_TEMP_DIR}/shim"
+  {
+    echo '#!/bin/sh'
+    echo 'if [ "$1" = "doctor" ]; then'
+    case "$1" in
+      red)
+        echo "  echo 'view-skew: intent/st/ST0001/info.md -- generated view is missing'"
+        echo "  echo 'doctor: 1 finding(s)'"
+        echo '  exit 1' ;;
+      clean)
+        echo "  echo 'doctor: 0 finding(s)'"
+        echo '  exit 0' ;;
+      # **THE CODE DOCTOR ACTUALLY EMITS FOR AN ESTATE IT CANNOT JUDGE**: no
+      # project, a config that will not parse, a project not migrated. The gate
+      # must fail OPEN on it or every v2 project on the fleet stops committing
+      # the day it installs this. The same `*)` arm covers an older binary
+      # answering clap's 2 for a verb it does not have.
+      unjudgeable)
+        echo "  echo 'error: no Intent project found' >&2"
+        echo '  exit 4' ;;
+    esac
+    echo 'fi'
+    echo "exec '${INTENT_BIN}' \"\$@\""
+  } > "${TEST_TEMP_DIR}/shim/intent"
+  chmod +x "${TEST_TEMP_DIR}/shim/intent"
+}
+
+@test "doctor joins the gate: a red estate REFUSES and a clean one passes" {
+  # hv, 2026-09-12 (issue 0308). Both verdicts on one fixture, because an arm
+  # driven to a single answer cannot tell a working gate from one that always
+  # agrees. The third arm is the fail-open: an older binary without the verb
+  # must not refuse every commit, which is issue 0043 on the git side.
+  declare_languages elixir
+  shim_critic elixir=0
+
+  shim_doctor red
+  echo x > f.txt && git add f.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "doctor-red"
+  assert_failure
+  assert_output_contains "the estate disagrees with the store"
+  # The refusal names the fix rather than only the verdict.
+  assert_output_contains "generated view is missing"
+
+  shim_doctor clean
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "doctor-clean"
+  assert_success
+
+  shim_doctor unjudgeable
+  echo y > g.txt && git add g.txt
+  PATH="${TEST_TEMP_DIR}/shim:$PATH" run git commit -m "doctor-unjudgeable"
+  assert_success
+  assert_output_contains "estate health is UNENFORCED in this commit"
+}
