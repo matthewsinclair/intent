@@ -4279,6 +4279,45 @@ impl Store {
     Ok(n as usize)
   }
 
+  /// Stamp a node's heartbeat from the clock at the write.
+  ///
+  /// **NO CALLER SUPPLIES THE TIME, HERE LEAST OF ALL.** A heartbeat is the one
+  /// field whose whole meaning is "this node was alive at this moment", so a
+  /// caller-supplied value would be the fabricated stamp with the model's
+  /// blessing. The database reads the clock as a VALUE, never as a column
+  /// default, for the reason the tables record.
+  pub fn wb_touch(&mut self, node: &str) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE wb_node SET heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
+      params![node],
+    )?;
+    Ok(())
+  }
+
+  /// Set a node's status.
+  pub fn wb_set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE wb_node SET status = ?2 WHERE moniker = ?1",
+      params![node, status],
+    )?;
+    Ok(())
+  }
+
+  /// Move one live item to archived, and say whether it moved.
+  ///
+  /// **ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its `seq` and
+  /// its text, so what an item said stays readable after it stops counting
+  /// against the bound -- which is what lets the bound be enforced by refusal
+  /// without costing anybody their record.
+  pub fn wb_archive_item(&mut self, node: &str, kind: &str, seq: u32) -> Result<bool, StoreError> {
+    let moved = self.conn.execute(
+      "UPDATE wb_item SET state = 'archived', archived_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE node = ?1 AND kind = ?2 AND seq = ?3 AND state = 'live'",
+      params![node, kind, seq],
+    )?;
+    Ok(moved > 0)
+  }
+
   /// How many LIVE items one node holds of one kind.
   pub fn wb_live_item_count(&self, node: &str, kind: &str) -> Result<usize, StoreError> {
     let n: i64 = self.conn.query_row(

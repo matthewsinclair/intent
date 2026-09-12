@@ -412,7 +412,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 67] = [
+pub const SERVED: [&str; 71] = [
   "st new",
   "st start",
   "st done",
@@ -473,6 +473,10 @@ pub const SERVED: [&str; 67] = [
   "wb status",
   "wb show",
   "wb clear",
+  "wb archive",
+  "wb pickup",
+  "wb touch",
+  "wb release",
   "wb claim",
   "wb unclaim",
   "export",
@@ -1301,6 +1305,39 @@ pub fn serve(
     // any node, on the tier where nobody types the flag by hand. Revisit on the
     // row if the acting node ever comes from somewhere the caller does not
     // choose (ic's finding, vc's ruling, 2026-09-12).
+    "wb pickup" => {
+      let node = str_arg(args, "node", path)?;
+      Ok(json!(f.wb_pickup(node)?))
+    }
+    "wb touch" => {
+      let node = str_arg(args, "node", path)?;
+      f.wb_touch(node)?;
+      Ok(json!({ "node": node }))
+    }
+    "wb release" => {
+      let node = str_arg(args, "node", path)?;
+      f.wb_release(node)?;
+      Ok(json!({ "node": node, "status": "paused" }))
+    }
+    "wb archive" => {
+      let node = str_arg(args, "node", path)?;
+      let kind = match str_arg(args, "kind", path)? {
+        "doing" => intentsvcs::model::WbItemKind::Doing,
+        "todo" => intentsvcs::model::WbItemKind::Todo,
+        "decision" => intentsvcs::model::WbItemKind::Decision,
+        "watchout" => intentsvcs::model::WbItemKind::Watchout,
+        other => {
+          return Err(args_err(
+            path,
+            format!("`kind` is not an item kind: {other}"),
+          ));
+        }
+      };
+      let seq: u32 = str_arg(args, "seq", path)?
+        .parse()
+        .map_err(|_| args_err(path, "`seq` is the item's number on the board"))?;
+      Ok(json!({ "node": node, "moved": f.wb_archive(node, kind, seq)? }))
+    }
     "wb claim" => {
       let node = str_arg(args, "node", path)?;
       let id = str_arg(args, "id", path)?;

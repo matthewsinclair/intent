@@ -3900,12 +3900,108 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       println!("ok: {me} -> {reached} node(s)");
       Ok(())
     }
+    Some(("touch", m)) => {
+      let me = acting_node(m)?;
+      let mut f = open()?;
+      f.wb_touch(&me).map_err(fail)?;
+      println!("ok: {me} touched");
+      Ok(())
+    }
+    Some(("release", m)) => {
+      let me = acting_node(m)?;
+      let mut f = open()?;
+      f.wb_release(&me).map_err(fail)?;
+      println!("ok: {me} paused");
+      Ok(())
+    }
+    Some(("pickup", m)) => {
+      let me = acting_node(m)?;
+      let mut f = open()?;
+      let up = f.wb_pickup(&me).map_err(fail)?;
+      if m.get_flag("json") {
+        println!(
+          "{}",
+          serde_json::to_string_pretty(&up).map_err(|e| Failure::Error(e.to_string()))?
+        );
+        return Ok(());
+      }
+      report_wb_board(&up.board, false)?;
+      // **THE PEERS COME AFTER THE BOARD AND ARE HEADERS ONLY.** The question a
+      // node asks at session start is where everybody is, not what is in
+      // everybody's inbox; `wb show` is the door for one whole board.
+      println!("peers ({})", up.peers.len());
+      for n in &up.peers {
+        let focus = if n.focus.is_empty() {
+          String::new()
+        } else {
+          format!(" -- {}", n.focus)
+        };
+        println!(
+          "  {} ({}) {} heartbeat {}{}",
+          n.moniker,
+          n.role,
+          status_word(&n.status),
+          n.heartbeat_at,
+          focus
+        );
+      }
+      Ok(())
+    }
     Some(("decide", m)) => {
       let me = acting_node(m)?;
       let text = m.get_one::<String>("text").expect("declared required");
       let mut f = open()?;
       let seq = f.wb_decide(&me, text).map_err(fail)?;
       println!("ok: {me} decision {seq}");
+      Ok(())
+    }
+    Some(("archive", m)) => {
+      let me = acting_node(m)?;
+      // **THE TABLE DECLARES `kind` AS AN ENUM WITH ITS VALUES, SO CLAP HAS
+      // ALREADY REFUSED ANYTHING ELSE.** A second vocabulary here would be the
+      // copy that drifts when a kind is added.
+      // **THE SET COMES FROM THE TABLE, NOT FROM THIS MATCH.** The spine does
+      // not apply an enum positional's declared values, so this arm is the only
+      // enforcement -- and the first draft had a `_ =>` catch-all that quietly
+      // archived `watchout` for any word at all (`wb archive nonsense 1`,
+      // driven). `enum_arg` reads the roster the table declares, so the
+      // vocabulary has one home and this match cannot outlive it.
+      let kind = match enum_arg(m, "wb archive", "kind")?.as_str() {
+        "doing" => intentsvcs::model::WbItemKind::Doing,
+        "todo" => intentsvcs::model::WbItemKind::Todo,
+        "decision" => intentsvcs::model::WbItemKind::Decision,
+        "watchout" => intentsvcs::model::WbItemKind::Watchout,
+        other => {
+          return Err(Failure::Unavailable(format!(
+            "error: the table declares `{other}` as an item kind and this build has no arm for it"
+          )));
+        }
+      };
+      let seq: u32 = m
+        .get_one::<String>("seq")
+        .expect("declared required")
+        .parse()
+        .map_err(|_| {
+          Failure::Error(
+            "error: `seq` is the item's number on the board\n  remedy: `intent wb show <node>` \
+             prints each item as `[kind] seq text`"
+              .to_string(),
+          )
+        })?;
+      let mut f = open()?;
+      // **WHAT MOVED, NOT WHAT WAS ASKED FOR.** Archiving something already
+      // archived, or a number no item carries, moves nothing -- and saying
+      // `archived` either way would report a write that did not happen.
+      let moved = f.wb_archive(&me, kind, seq).map_err(fail)?;
+      let word = item_kind_word(&kind);
+      println!(
+        "ok: {me} {}",
+        if moved {
+          format!("archived {word} {seq}")
+        } else {
+          format!("has no live {word} {seq}")
+        }
+      );
       Ok(())
     }
     Some(("claim", m)) => {
@@ -4013,8 +4109,14 @@ fn report_wb_status(boards: &[intentsvcs::model::Board], json: bool) -> Result<(
       n.name,
       status_word(&n.status),
       n.heartbeat_at,
-      b.items.len(),
-      b.messages.len(),
+      b.items
+        .iter()
+        .filter(|i| i.state == intentsvcs::model::WbItemState::Live)
+        .count(),
+      b.messages
+        .iter()
+        .filter(|m| m.state == intentsvcs::model::WbMessageState::Live)
+        .count(),
       focus,
     );
   }
@@ -4055,10 +4157,23 @@ fn report_wb_board(board: &intentsvcs::model::Board, json: bool) -> Result<(), F
       n.claims.join(", ")
     }
   );
-  println!("items ({})", board.items.len());
-  for i in &board.items {
+  // **ARCHIVED ITEMS ARE COUNTED AND NOT LISTED, AND THE FIRST DRAFT LISTED
+  // THEM AS THOUGH THEY WERE LIVE.** The extract carries every row because the
+  // round trip must be lossless, so filtering belongs HERE rather than in the
+  // read -- but a reader who cannot tell a live item from a retired one is
+  // reading a board that only ever grows, which is the thing the bound exists
+  // to stop. The count is named rather than silent, for the reason
+  // `index status` names its skipped paths: a reader who sees no archived line
+  // cannot tell an empty archive from a build that does not have one.
+  let (live, archived): (Vec<_>, Vec<_>) = board
+    .items
+    .iter()
+    .partition(|i| i.state == intentsvcs::model::WbItemState::Live);
+  println!("items ({})", live.len());
+  for i in &live {
     println!("  [{}] {} {}", item_kind_word(&i.kind), i.seq, i.text);
   }
+  println!("archived ({})", archived.len());
   println!("messages ({})", board.messages.len());
   for msg in &board.messages {
     println!(
@@ -11831,6 +11946,61 @@ fn enum_flag(a: &ArgMatches, path: &str, spelling: &str) -> Result<String, Failu
   } else {
     Err(Failure::Error(format!(
       "error: `{spelling}={chosen}` is not a value `{path}` declares -- it takes {}",
+      declared.join(" or ")
+    )))
+  }
+}
+
+/// The value of an enum-typed POSITIONAL arg, checked against the vocabulary
+/// THE TABLE declares for it.
+///
+/// **THE SIBLING OF [`enum_flag`], AND IT EXISTS FOR THE SAME REASON: THE
+/// ROSTER IS READ, NEVER COPIED.** A hand-written match beside a table that
+/// declares the set is two literals compared to nothing, and the drift is
+/// silent in the direction that matters -- the table gains a kind, the renderer
+/// keeps refusing it, and `--help` advertises a value the command rejects.
+///
+/// **IT IS NEEDED AT ALL BECAUSE THE SPINE DOES NOT APPLY `values` TO A
+/// POSITIONAL**, which `declared_values_are_enforced.rs` already records for
+/// the flag case: the spine reads `arg.default` for enum args and never
+/// `arg.values`. So an arm matching one of these is the ONLY enforcement there
+/// is -- and the first arm written against this slot had a `_ =>` catch-all
+/// that quietly archived the wrong kind for any word at all. **A catch-all on a
+/// value that reached us from outside is how a typo becomes a write.**
+///
+/// **CLAP IS THE WRONG LAYER FOR IT, AND THAT IS NOT A CONVENIENCE.** A clap
+/// rejection exits 2, the USAGE code the pre-commit gate FAILS OPEN on;
+/// enforcing here exits 1 and names the set, which is what the requirement
+/// asks for.
+///
+/// An EMPTY roster refuses at 2 rather than accepting anything, for
+/// [`enum_flag`]'s reason: a check whose population went to zero reports a
+/// green over nothing.
+fn enum_arg(a: &ArgMatches, path: &str, name: &str) -> Result<String, Failure> {
+  let table = dispatch::table();
+  let declared: Vec<String> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .find(|e| e.path == path)
+    .and_then(|e| e.args.iter().find(|ar| ar.name == name))
+    .map(|ar| ar.values.clone())
+    .unwrap_or_default();
+  if declared.is_empty() {
+    return Err(Failure::Unavailable(format!(
+      "error: the dispatch table declares no values for `{name}` on `{path}`, so this build cannot check the one you asked for"
+    )));
+  }
+  let chosen = a
+    .get_one::<String>(name)
+    .cloned()
+    .unwrap_or_else(|| declared[0].clone());
+  if declared.contains(&chosen) {
+    Ok(chosen)
+  } else {
+    Err(Failure::Error(format!(
+      "error: `{chosen}` is not a value `{path}` declares for `{name}` -- it takes {}",
       declared.join(" or ")
     )))
   }

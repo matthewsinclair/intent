@@ -322,6 +322,40 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wb archive",
+    "intentsvcs/tests/error_remedies.rs -- `provoked_errors` fills one kind to its bound through \
+     `wb_decide`, which is the state this verb is the only exit from, and the bound's own remedy \
+     names it. **What it writes is ONE COLUMN PAIR ON ONE ROW**, `state` and `archived_at`, and it \
+     DELETES NOTHING: the row keeps its `seq` and its text, so `wb show` reads back everything it \
+     said. `did the projected estate move` is the wrong observable for the same reason as its \
+     siblings -- rows and no file -- and what it can be wrong about is reporting a move that did \
+     not happen, which is why it returns whether it moved rather than assuming.",
+  ),
+  (
+    "wb touch",
+    "intentsvcs/tests/openness.rs -- `the_round_trip_carries_every_table_that_claims_a_file_form` \
+     and `re_emitting_the_extract_reproduces_it_byte_for_byte` carry `wb_node.heartbeat_at` through \
+     the extract in both directions, which is the single column this verb writes. Its own property \
+     is that NO CALLER SUPPLIES THE TIME -- there is no parameter for one, so the class closes by \
+     construction and there is nothing to assert about a value that cannot be passed.",
+  ),
+  (
+    "wb release",
+    "intentsvcs/tests/openness.rs, through the same round trip: it writes `wb_node.status` and \
+     `heartbeat_at`, both carried there. It composes `wb_set_status` and `wb_touch` and has no \
+     write of its own, so what it moves is exactly what those two move -- and the reason it touches \
+     as well is behavioural rather than structural: a pause that left the heartbeat alone would \
+     make a cleanly-released node indistinguishable from one that died mid-turn.",
+  ),
+  (
+    "wb pickup",
+    "A READ WITH ONE HEARTBEAT WRITE, and the write is `wb_touch`'s, covered above. It calls \
+     `Facade::boards` and `Facade::wb_touch` and adds no logic of its own (vc's ruling, \
+     2026-09-12), so it has no write path this file could hold to its own account. The ordering IS \
+     its own property -- the touch happens BEFORE the read, so the board it returns carries the \
+     heartbeat the same call wrote rather than one it is about to invalidate.",
+  ),
+  (
     "wb decide",
     "intentsvcs/tests/error_remedies.rs -- `provoked_errors` fills ONE KIND to the configured \
      per-kind bound through this verb's facade door, `wb_decide`, and asserts the next one is \

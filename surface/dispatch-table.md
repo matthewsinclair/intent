@@ -3882,6 +3882,10 @@ The whiteboard: read the node boards, and send between them
 | `wb show`     | <node>             | --json              | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
 | `wb ask`      | <recipient> <body> | --node, --re, --fyi | Send one message from the acting node into another node's board                      | new-surface |
 | `wb announce` | <body>             | --node              | Send one message to every registered node but the sender                             | new-surface |
+| `wb archive`  | <kind> <seq>       | --node              | Move one of the acting node's live items to archived                                 | new-surface |
+| `wb pickup`   | --                 | --node, --json      | Start a session: this node's board, its peers' state, and one heartbeat              | new-surface |
+| `wb touch`    | --                 | --node              | Stamp the acting node's heartbeat                                                    | new-surface |
+| `wb release`  | --                 | --node              | Pause the acting node, stamping when it stopped                                      | new-surface |
 | `wb decide`   | <text>             | --node              | Record a decision on the acting node's own board                                     | new-surface |
 | `wb claim`    | <id>               | --node              | Add a steel thread or work package to the acting node's claims                       | new-surface |
 | `wb unclaim`  | <id>               | --node              | Drop a steel thread or work package from the acting node's claims                    | new-surface |
@@ -3959,10 +3963,10 @@ Send one message from the acting node into another node's board
     - **exposed on mcp:** false
   - `--re` (string) -- The anchor of the message this answers
     - **disposition:** keep
-    - **exposed on mcp:** true
+    - **exposed on mcp:** false
   - `--fyi` (bool) -- No reply is expected
     - **disposition:** keep
-    - **exposed on mcp:** true
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
@@ -3984,7 +3988,7 @@ Send one message to every registered node but the sender
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
-    - **exposed on mcp:** true
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
@@ -3996,6 +4000,93 @@ Send one message to every registered node but the sender
 - **facade:** wb_announce
 - **note:** **IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH**, so the bounds, the roster check and the stamp rule are stated once. **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE**: every recipient is checked before any row is written, because half a broadcast is worse than none -- the nodes that received it and the nodes that did not both believe they know what was said.
 
+### `wb archive`
+
+Move one of the acting node's live items to archived
+
+- **v2:** new-surface
+- **Arguments:**
+  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`
+  - `seq` (string, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds, and AC-14.6 read as vc ruled it 2026-09-12. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.6
+- **recoverability:** idempotent
+- **facade:** wb_archive
+- **note:** **THE STATE CHANGE IS THE SCHEDULE** (vc, 2026-09-12, on cc's finding that a roll had no source population). AC-14.6 forbids a SECOND ACT after a fact is stated -- the fold, the sweep, the run somebody has to remember -- rather than the statement itself; handled and done are facts only the node can state. So an item leaves the live count the moment it is stated, deterministically, with no timer and nothing swept, and `wb clear` is the same transition for a message. **IT TAKES A KIND AS WELL AS A `seq` BECAUSE `seq` ALONE IS AMBIGUOUS**: items are numbered within (node, kind), so a node can hold a `doing` 1 and a `decision` 1 at once, and the pair is what `wb show` already prints. **ONE VERB FOR ONE TRANSITION, READING TWO WAYS BY DESIGN** -- done for work, retirement for a decision or a watch-out; two verbs on one state change is where they drift. This reading is recorded for hv to overrule with a line.
+
+### `wb pickup`
+
+Start a session: this node's board, its peers' state, and one heartbeat
+
+- **v2:** new-surface
+- **Flags:**
+  - `--node` (string) -- The moniker of the node picking up
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT at the start of a session -- it prints the acting node's whole board and every peer's header state, and moves this node's heartbeat once so peers can see it is back. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. It composes verbs that already ship and adds nothing of its own, so what it prints is what those verbs print.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **recoverability:** idempotent
+- **facade:** wb_pickup
+- **note:** **A THIN COMPOSITE, RULED SO RATHER THAN GROWN** (vc, 2026-09-12, on cc's Highlander question). It is `board`, `boards` and `touch`, with no logic of its own; the alternative considered and rejected was a skill telling a reader to run three verbs in order, which is the hand-kept list this register exists to end. **THE TOUCH HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a heartbeat the same call is about to invalidate. It is `mutate` because of that one write, and `idempotent` because running it again leaves the same state with a later stamp.
+
+### `wb touch`
+
+Stamp the acting node's heartbeat
+
+- **v2:** new-surface
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT to say this node is still alive without reading anything -- a long turn with no board activity otherwise looks like a node that stopped. DO NOT USE IT at session start: `wb pickup` touches and gives you the board and your peers in one go. No caller supplies the time and there is no flag for one; the service reads the clock at the write.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `touch` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.4
+- **recoverability:** idempotent
+- **facade:** wb_touch
+- **note:** **THE ONE FIELD WHOSE WHOLE MEANING IS A CLOCK READING, SO IT IS THE ONE A CALLER MOST OBVIOUSLY MUST NOT SUPPLY.** A heartbeat says `this node was alive at this moment`; a caller-supplied value would be the fabricated stamp with the model's blessing, which is the class this model exists to close by construction. There is no parameter for a time, so there is nothing to validate.
+
+### `wb release`
+
+Pause the acting node, stamping when it stopped
+
+- **v2:** new-surface
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Registering or picking up again is what makes a node active.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `release` among them; there is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **recoverability:** idempotent
+- **facade:** wb_release
+- **note:** **IT TOUCHES AS WELL, AND THAT IS THE WHOLE VALUE OF THE VERB.** The last thing a paused node says is WHEN it stopped. A status change alone would leave a cleanly-released node looking exactly like one that died mid-turn, and telling those apart is why a board carries a heartbeat at all.
+
 ### `wb decide`
 
 Record a decision on the acting node's own board
@@ -4006,7 +4097,7 @@ Record a decision on the acting node's own board
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
-    - **exposed on mcp:** true
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
@@ -4038,7 +4129,7 @@ Add a steel thread or work package to the acting node's claims
 - **acceptance:** AC-14.7
 - **recoverability:** idempotent
 - **facade:** wb_claim
-- **note:** **THE CLAIMS LIST IS REPLACED WHOLE BY THE STORE RATHER THAN APPENDED TO**, because the caller has already read it to decide what it should become; an append door beside a remove door would be two places holding one invariant, with the ordering between them the thing nobody tested. The address check DELEGATES the thread half to `model::is_thread_id` rather than re-spelling it, so the prefix has one home.
+- **note:** **IT IS EXPOSED BECAUSE IT IS IDEMPOTENT, AND THE FIRST REASON RECORDED HERE FOR THAT WAS WRONG** (ic, measured 2026-09-12). It said neither claim verb publishes to another node's board; with `--node` exposed, both write the claims list on WHATEVER NODE THE CALLER NAMES, so an agent on the tool tier can claim work as another node or drop its lane -- and claims are how a peer reading at pickup avoids starting something that collides, so that is coordination-affecting. The accurate statement is narrower: it writes only the ACTING node's claims, the acting node is whoever `--node` names, and that is the same convention-not-guarantee recorded on `wb ask`. The exposure still follows `recoverability`, which is right: running it again is the same state. **A WRONG REASON IS WORSE THAN NONE**, because the next person deciding a similar row reaches for it. **THE CLAIMS LIST IS REPLACED WHOLE BY THE STORE RATHER THAN APPENDED TO**, because the caller has already read it to decide what it should become; an append door beside a remove door would be two places holding one invariant, with the ordering between them the thing nobody tested. The address check DELEGATES the thread half to `model::is_thread_id` rather than re-spelling it, so the prefix has one home.
 
 ### `wb unclaim`
 

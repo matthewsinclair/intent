@@ -1389,6 +1389,20 @@ pub enum FacadeError {
   RootFile(#[from] crate::rootfiles::RootFileError),
 }
 
+/// What [`Facade::wb_pickup`] hands back: the acting node's own board, and every
+/// peer's header state.
+///
+/// **THE PEERS ARE HEADERS AND NOT WHOLE BOARDS, DELIBERATELY.** A node at
+/// session start needs to know who is active, on what, and how recently they
+/// said so; handing it every peer's items and messages would make the cheap
+/// question expensive and would put another node's inbox in front of a reader
+/// who asked where everybody is. `wb show` is the door for one whole board.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Pickup {
+  pub board: Board,
+  pub peers: Vec<crate::model::WbNode>,
+}
+
 impl crate::remedy::Remedy for FacadeError {
   /// What the operator should DO. Every variant has one, and no two variants
   /// share a remedy text -- a remedy that fits two different causes is telling
@@ -1413,7 +1427,7 @@ impl crate::remedy::Remedy for FacadeError {
         "`{recipient}` clears it with `intent wb clear {sender}` once the messages are handled. The bound is per inbox, so this says nothing about anyone else's"
       ),
       Self::WbItemsFull { node, kind, .. } => format!(
-        "archive what `{node}` is done with -- a `{kind}` item moves to archived by state and is never deleted, so what it said stays readable and stops counting"
+        "`intent wb archive --node {node} {kind} <seq>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
@@ -5037,6 +5051,65 @@ impl Facade {
     })
   }
 
+  /// Stamp the acting node's heartbeat.
+  ///
+  /// **THE SERVICE READS THE CLOCK AND NO CALLER OFFERS A TIME.** A heartbeat is
+  /// the one field whose entire meaning is "this node was alive at this
+  /// moment", so a caller-supplied value would be the fabricated stamp with the
+  /// model's blessing -- the class this whole model exists to close.
+  pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
+    self.require_registered(node)?;
+    self.store.wb_touch(node).map_err(FacadeError::Store)
+  }
+
+  /// Pause the acting node, and stamp its heartbeat on the way out.
+  ///
+  /// **IT TOUCHES AS WELL, because the last thing a paused node says is WHEN it
+  /// stopped.** A pause that left the heartbeat where it was would make a node
+  /// that released cleanly indistinguishable from one that died mid-turn, and
+  /// telling those apart is the whole point of a heartbeat on a board peers
+  /// read.
+  pub fn wb_release(&mut self, node: &str) -> Result<(), FacadeError> {
+    self.require_registered(node)?;
+    self
+      .store
+      .wb_set_status(
+        node,
+        &crate::model::enum_str(&crate::model::WbNodeStatus::Paused),
+      )
+      .map_err(FacadeError::Store)?;
+    self.store.wb_touch(node).map_err(FacadeError::Store)
+  }
+
+  /// What a node needs at the start of a session: its own board, its peers'
+  /// state, and its heartbeat moved once.
+  ///
+  /// **A THIN COMPOSITE AND NOTHING MORE** (vc's ruling, 2026-09-12). It calls
+  /// [`Self::wb_touch`] and [`Self::boards`] and adds no logic of its own: the
+  /// alternative was a skill telling a reader to run three verbs in order,
+  /// which is the hand-kept list the register exists to end.
+  ///
+  /// **THE TOUCH HAPPENS BEFORE THE READ, DELIBERATELY.** A node's own board is
+  /// part of what this returns, so reading first would hand back a heartbeat
+  /// this very call is about to invalidate -- a value that was true when it was
+  /// read and false by the time it was printed.
+  pub fn wb_pickup(&mut self, node: &str) -> Result<Pickup, FacadeError> {
+    self.require_registered(node)?;
+    self.store.wb_touch(node).map_err(FacadeError::Store)?;
+    let boards = self.boards()?;
+    let board = boards
+      .iter()
+      .find(|b| b.node.moniker == node)
+      .cloned()
+      .expect("require_registered passed, so this node has a board");
+    let peers = boards
+      .into_iter()
+      .filter(|b| b.node.moniker != node)
+      .map(|b| b.node)
+      .collect();
+    Ok(Pickup { board, peers })
+  }
+
   /// Record a decision on the acting node's own board.
   ///
   /// **A DECISION IS AN ITEM RATHER THAN A MESSAGE, and the difference is who
@@ -5100,6 +5173,39 @@ impl Facade {
           && seq.chars().all(|c| c.is_ascii_digit())
       }
     }
+  }
+
+  /// Move one of the acting node's live items to archived, and say whether it
+  /// moved.
+  ///
+  /// **THE STATE CHANGE IS THE SCHEDULE** (vc's ruling, 2026-09-12, on cc's
+  /// finding that the roll had no source population). AC-14.6 forbids a second
+  /// act after the fact is stated -- the fold, the sweep, the run somebody has
+  /// to remember -- not the statement itself. Handled and done are facts only
+  /// the node can state, so an item leaves the live count the moment it is
+  /// stated, deterministically, with no timer and nothing swept. `wb clear` is
+  /// the same transition for a message.
+  ///
+  /// **IT TAKES A KIND AS WELL AS A `seq`, BECAUSE `seq` ALONE IS AMBIGUOUS.**
+  /// [`Store::wb_insert_item`] numbers within (node, kind), so a node can hold a
+  /// `doing` 1 and a `decision` 1 at once. The pair is what a reader already
+  /// sees: `wb show` prints `[decision] 1`.
+  ///
+  /// **ONE VERB FOR ONE TRANSITION, AND IT READS TWO WAYS BY DESIGN.** For a
+  /// `doing` or `todo` item, archiving is what DONE means; for a `decision` or
+  /// `watchout` it is retirement. Splitting it into two verbs would be two doors
+  /// on one state change, which is where they drift.
+  pub fn wb_archive(
+    &mut self,
+    node: &str,
+    kind: WbItemKind,
+    seq: u32,
+  ) -> Result<bool, FacadeError> {
+    self.require_registered(node)?;
+    self
+      .store
+      .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
+      .map_err(FacadeError::Store)
   }
 
   /// Add one claim to the acting node's own board, and say whether it moved.

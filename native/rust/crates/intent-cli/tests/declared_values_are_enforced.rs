@@ -98,6 +98,22 @@ struct Slot {
 /// the table below and cross-checked against this in both directions.
 const DECLARED: &[Slot] = &[
   Slot {
+    // **ENFORCED BY THE RENDERER READING THE TABLE'S OWN ROSTER** (`enum_arg`),
+    // for the reason the `edit` rows above record: clap is the wrong layer,
+    // because its rejection exits 2 -- the USAGE code the pre-commit gate fails
+    // OPEN on -- and the requirement is an exit-1 refusal that names the set.
+    //
+    // **THE FIRST ARM WRITTEN HERE HAD A `_ =>` CATCH-ALL AND IT WROTE**:
+    // `wb archive nonsense 1` archived `watchout 1`, driven, before this row
+    // existed. The slot is the reason the arm is exhaustive and the roster is
+    // read rather than copied.
+    path: "wb archive",
+    arg: "kind",
+    lead: &[],
+    trail: &["1", "--node", "cc"],
+    disposition: Disposition::Enforced,
+  },
+  Slot {
     path: "st show",
     arg: "file",
     lead: &["ST0001"],

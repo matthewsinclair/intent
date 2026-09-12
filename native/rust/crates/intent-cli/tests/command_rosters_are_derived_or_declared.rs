@@ -108,6 +108,19 @@ const MCP_SERVING_MATCH: &str = "the MCP serving match: SERVED + arms, held agai
 const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/render.rs",
+    "wb archive",
+    Why::NotARoster(
+      "THE SAME SHAPE AS `daemon status` BELOW, one slot over: it is the LOOKUP KEY \
+     `enum_arg(m, \"wb archive\", \"kind\")` uses to find the row's declared values, and the \
+     same literal names the row back to the operator in the refusal. A roster is a LIST of \
+     paths kept beside the table; this is one path used to ASK the table, which is the \
+     opposite -- it is how the vocabulary stays single-homed rather than copied into the \
+     match beneath it. It goes when the spine applies an enum positional's `values` itself, \
+     at which point the arm has nothing to look up.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "daemon status",
     Why::CheckedBy(
       "NOT A ROSTER AND NOT A COINCIDENCE: it is the LOOKUP KEY `enum_flag(a, \"daemon status\", \
@@ -173,6 +186,26 @@ const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/mcp.rs",
     "wb clear",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb archive",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb pickup",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb touch",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb release",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),
   (
