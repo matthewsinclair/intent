@@ -5,3 +5,4 @@
 //! that a later package adds a file rather than moving one.
 
 pub mod corpus;
+pub mod reconcile;

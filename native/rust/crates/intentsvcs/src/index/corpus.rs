@@ -91,6 +91,75 @@ pub fn corpus_of(path: &Path, views: &[std::path::PathBuf], canon_dir: &Path) ->
   })
 }
 
+/// Why the index holds no content for a file that IS in scope.
+///
+/// **A SKIP IS A ROW, NOT AN ABSENCE** (AC-18.2). Every one of these gets a
+/// `file_index` row carrying the reason, and `intent index status` lists them,
+/// because the alternative is a user searching for something that is on disk,
+/// getting nothing, and having nothing to read that explains it. A silent
+/// exclusion is indistinguishable from a broken index.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SkipReason {
+  /// A NUL byte in the sampled block, which is how grep decides the same
+  /// question.
+  Binary,
+  /// Larger than the cap. See [`DEFAULT_MAX_FILE_BYTES`].
+  TooLarge,
+  /// A symlink. Its target is either inside the corpus, where it is indexed
+  /// once at its real path, or outside it, where following the link would take
+  /// the index out of the repository it is a statement about. Neither wants a
+  /// second copy under this name.
+  Symlink,
+  /// The bytes could not be read. **A reason and not an error**: one
+  /// unreadable file must not fail a reconcile over thousands.
+  Unreadable,
+}
+
+impl SkipReason {
+  /// The stored spelling. Kebab-case, as every other enumerated value the
+  /// store holds is.
+  pub fn as_str(self) -> &'static str {
+    match self {
+      SkipReason::Binary => "binary",
+      SkipReason::TooLarge => "too-large",
+      SkipReason::Symlink => "symlink",
+      SkipReason::Unreadable => "unreadable",
+    }
+  }
+}
+
+/// How much of a file is read to decide whether it is binary.
+///
+/// One block. A file whose first 8 KiB are NUL-free and which turns binary
+/// later is indexed as text, and the cost of that is bounded and small -- a
+/// few junk tokens in one file's rows -- where the cost of reading every byte
+/// of every file to be sure is paid on every reconcile of every project.
+pub const BINARY_SAMPLE_BYTES: usize = 8 * 1024;
+
+/// The default size cap, above which a file is in scope and not indexed.
+///
+/// **MEASURED ON THIS REPOSITORY RATHER THAN CHOSEN** (2026-09-12). Over the
+/// tracked tree outside the canon extract -- the extract is not in the disk
+/// corpus -- the largest file is `intent/llm/MODULES.md` at 846,473 bytes, and
+/// five files exceed 512 KiB. Nothing reaches 1 MiB. The default is roughly
+/// five times the largest real file, which keeps every legitimate document in
+/// the index while still stopping the case the cap exists for: one vendored
+/// bundle or generated blob whose FTS rows cost more than the rest of the
+/// project put together (D34: the index is roughly twice its corpus).
+///
+/// It is a config value because the measurement is of THIS estate and a
+/// project with larger documents is not wrong.
+pub const DEFAULT_MAX_FILE_BYTES: u64 = 4 * 1024 * 1024;
+
+/// Does this sample say the file is binary?
+///
+/// The rule is grep's: a NUL byte in the block read. Kept pure and separate
+/// from the read so the decision can be driven on bytes rather than on a
+/// fixture's filesystem.
+pub fn looks_binary(sample: &[u8]) -> bool {
+  sample.contains(&0)
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -174,6 +243,37 @@ mod tests {
         &canon
       ),
       Some(Corpus::Prose)
+    );
+  }
+
+  #[test]
+  fn binary_is_a_nul_and_not_merely_a_high_byte() {
+    assert!(looks_binary(b"\xff\xfe\x00Bud1"), "a NUL says binary");
+    assert!(
+      !looks_binary("a caf\u{e9}, an emoji \u{1f600}, a tab\t and a CR\r".as_bytes()),
+      "high bytes, punctuation and control characters are TEXT -- an earlier \
+       fixture in this estate used \\x00\\x01 as `not UTF-8` and proved nothing \
+       because those are valid UTF-8 control characters"
+    );
+    assert!(!looks_binary(b""), "an empty file is text, not binary");
+  }
+
+  #[test]
+  fn every_skip_reason_has_its_own_stored_spelling() {
+    let all = [
+      SkipReason::Binary,
+      SkipReason::TooLarge,
+      SkipReason::Symlink,
+      SkipReason::Unreadable,
+    ];
+    let mut seen: Vec<&str> = all.iter().map(|r| r.as_str()).collect();
+    seen.sort_unstable();
+    seen.dedup();
+    assert_eq!(
+      seen.len(),
+      all.len(),
+      "two reasons sharing a spelling would make `intent index status` unable \
+       to tell them apart, which is the whole of what it reports"
     );
   }
 }
