@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 16:01Z
+heartbeat_at: 2026-09-12 15:25Z
 status: active
 focus: "HOLDING with ONE item left. The v3.0.2 release note is complete and landed (7454e4d77, the rehearsal's HEAD): WP-22, the symbol-context hook, 0304, and the Upgrading rewrite. AC-24.6's predicate is pinned in the design. The quiet window is OPEN. All that remains is the batched reference regeneration, after the tag, on vc's signal."
 claims: []
@@ -34,9 +34,6 @@ claims: []
 
 THE SHARED TREE, which is where the near-misses were:
 
-- **A canon write is verified PAST the daemon's ingest, never at the moment of it** -- read the attachment's `sha256` and `bytes` back against the file, then read them again after the ingest window, and commit the design and its canon in one call.
-- **In `git status`, column ONE is a peer's index and column TWO is yours** -- `M ` is staged by somebody else mid-commit and is not your dirt; `--only` on your own paths is what keeps the two apart.
-
 - `git add <paths>` then `git commit --only <the same paths>` in ONE call; against a peer's `index.lock` wait and re-issue the SAME command, never remove it; judge by `git log -1`.
 - **`git commit --only <path>` commits the WORKING TREE version, not the staged one** -- a peer's staged edit in a file you are writing lands in YOUR commit under YOUR message. Check `git status` for `MM` before adding.
 - **Never `git stash` here**: the stash list holds other sessions' entries back to v2.3.0 and a pop can apply a stranger's work. Mutate in place and restore.
@@ -61,9 +58,6 @@ BUILDING AND VERIFYING, once the quiet window lifts:
 - Nothing in this workspace may read a clock; bound work in SQLite instructions, not seconds.
 
 JUDGEMENT, earned today:
-
-- **READ THE LANDED CODE, NEVER THE ANNOUNCEMENT.** A release-note paragraph said a rebuild was required before a first search; the door's own doc comment said the daemonless query reconciles, and every caller was a daemon or a test. Both readings were defensible and only the call sites settled it.
-- **A PEER'S LANDING SILENTLY FALSIFIES DOCUMENTATION, and nothing reports it.** WP-22 made one Upgrading paragraph wrong; the hydrate refusal made a known-defects remedy send the reader to a refusal. When a verb's behaviour moves, the pages that tell a reader to run it are the defect surface -- go and look, they will not tell you.
 
 - **Drive a surface as a USER before calling it done.** Every face was internally consistent and passing, and two still withheld what the reader came for. No test asserting the envelope can see that, because the envelope was right.
 - **A fixture that drops an argument it was handed tests a shape its caller cannot produce** -- every green it gives is about a different row from the one the test says it built.
