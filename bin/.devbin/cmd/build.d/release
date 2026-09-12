@@ -172,6 +172,45 @@ abort() {
   exit 1
 }
 
+# **A GATE THAT REFUSES WITHOUT NAMING WHAT REFUSED COSTS A REBUILD TO
+# DIAGNOSE, AND THAT IS A DEFECT IN THE RELEASE PATH RATHER THAN A NICETY.**
+# Both test gates below used to run their suite as `>/dev/null 2>&1` and abort
+# on the exit code alone, so the only thing the release could say was that
+# something failed. Driven in a rehearsal clone on 2026-09-12: the bats gate
+# refused, and naming the test took a second full clone and release build,
+# because the output the first run had already produced was thrown away.
+#
+# **THE LOG IS KEPT OUTSIDE THE PROJECT, DELIBERATELY.** A log written under
+# `$PROJECT_ROOT` would dirty the tree that the `working tree clean` gate above
+# has already passed, so a gate meant to explain a refusal would start causing
+# one. It is removed on success and left behind on failure, which is the only
+# moment anybody wants it.
+release_log_dir() {
+  [ -n "${RELEASE_LOG_DIR:-}" ] || RELEASE_LOG_DIR="$(mktemp -d -t intent-release-gates)" || abort "cannot create a directory for the gate logs"
+  printf '%s' "$RELEASE_LOG_DIR"
+}
+
+# Refuse, naming what failed and where the whole output is.
+#
+# `$3` is the shape a failure takes in THIS suite's output -- bats writes
+# `not ok <n> <name>`, cargo writes `test <name> ... FAILED`. When it matches
+# nothing the log is still named rather than a silent empty block printed: a
+# gate that fails in an unanticipated shape is precisely when the operator
+# needs the whole file.
+abort_with_log() {
+  local message="$1" log="$2" pattern="$3" lines
+  lines="$(grep -E "$pattern" "$log" 2>/dev/null | head -20)"
+  printf 'error: %s\n' "$message" >&2
+  if [ -n "$lines" ]; then
+    printf '  what failed:\n' >&2
+    printf '%s\n' "$lines" | sed 's/^/    /' >&2
+  else
+    printf '  no line in the output matches this gate failure shape, so read it whole.\n' >&2
+  fi
+  printf '  full output: %s\n' "$log" >&2
+  exit 1
+}
+
 confirm() {
   local prompt="$1"
   if [ "${NO_CONFIRM:-false}" = "true" ]; then
@@ -503,9 +542,12 @@ $faces_stale
 
   # Test suite.
   log_info "running test suite (this may take a minute)"
-  if ! (cd "$PROJECT_ROOT" && tests/run_tests.sh >/dev/null 2>&1); then
-    abort "test suite failed -- fix before releasing"
+  local bats_log
+  bats_log="$(release_log_dir)/bats.log"
+  if ! (cd "$PROJECT_ROOT" && tests/run_tests.sh) > "$bats_log" 2>&1; then
+    abort_with_log "test suite failed -- fix before releasing" "$bats_log" '^not ok'
   fi
+  rm -f "$bats_log"
   log_info "test suite green"
 
   # Rust workspace. THE BATS SUITE ABOVE NEVER COMPILES THE NATIVE TREE -- the
@@ -528,9 +570,12 @@ $faces_stale
       abort "cargo not found in PATH and $NATIVE_MANIFEST_REL is present -- refusing to release a native tree this machine cannot test"
     fi
     log_info "running cargo test --workspace (this may take several minutes)"
-    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace --no-fail-fast >/dev/null 2>&1); then
-      abort "cargo test --workspace failed -- fix before releasing (re-run it directly to see which test)"
+    local cargo_log
+    cargo_log="$(release_log_dir)/cargo-test.log"
+    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace --no-fail-fast) > "$cargo_log" 2>&1; then
+      abort_with_log "cargo test --workspace failed -- fix before releasing" "$cargo_log" '^test .* FAILED|^test result: FAILED'
     fi
+    rm -f "$cargo_log"
     log_info "cargo test green"
   fi
 
