@@ -91,6 +91,22 @@ enum Work {
   FileIndex {
     reply: oneshot::Sender<Vec<intentsvcs::sync::FileEntry>>,
   },
+  /// A path under the INDEX scope moved, and the index should reconcile it
+  /// (`AC-18.4`, dc's half of WP-18).
+  ///
+  /// **THIS IS THE SECOND STREAM AND IT CANNOT REACH CANON INGEST**, which is
+  /// the whole point of vc's two-registration ruling (2026-09-12). The canon
+  /// watcher keeps the registration its tests pin -- the root at depth one and
+  /// `intent/` recursively -- and this one covers the gitignore-aware
+  /// repository. Widening the CANON registration instead was measured at three
+  /// of four full-suite runs red against none of four: a coalesced root event
+  /// made the canon reconcile answer against a lagging `file_index`, publish,
+  /// and ingest, and the ingest's own writes coalesced back to the root.
+  ///
+  /// **IT CARRIES NO REPLY, DELIBERATELY.** Nothing waits on it: the index is a
+  /// read model for `intent search`, and a watcher thread blocking on a
+  /// subtree's re-read would delay the next batch for this project to no end.
+  IndexRefresh { under: std::path::PathBuf },
   /// The backup sweep came round and this project should decide (`AC-08.8`).
   ///
   /// **IT IS *CONSIDER*, NOT *DO*, AND THE DIFFERENCE IS WHERE THE DECISION
@@ -302,6 +318,25 @@ impl ProjectHandle {
             // a self-triggering loop over unreadable files invisible.
             thread_ingested.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
           }
+          Work::IndexRefresh { under } => {
+            // **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A subtree
+            // the index cannot re-read is a subtree whose source edits stop
+            // reaching `intent search`, and silence there is indistinguishable
+            // from nobody editing.
+            //
+            // **NO `projectChanged`, AND THAT IS A CHOICE RATHER THAN AN
+            // OMISSION.** `D20` has exactly two events and the index is not a
+            // third; emitting `projectChanged` here would wake every subscriber
+            // on every source edit in the repository, which is a behaviour
+            // change well past what this package was asked for. Reported to vc
+            // as a question rather than decided here.
+            if let Err(error) = facade.index_refresh(&under) {
+              eprintln!(
+                "intentd: could not refresh the index under `{}`: {error}\n  remedy: source edits under that path may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+                under.display()
+              );
+            }
+          }
           Work::FileIndex { reply } => {
             // **AN UNREADABLE INDEX ANSWERS EMPTY RATHER THAN REFUSING, AND
             // THAT IS THE SAFE DIRECTION HERE.** Empty means the reconciler
@@ -442,6 +477,24 @@ impl ProjectHandle {
   /// by the pre-commit critic). It is the same shape every other fallible entry
   /// in this crate returns, so the message and the remedy stay two fields
   /// rather than one string a caller has to take apart to report.
+  /// Ask the store thread to reconcile the index under `under`.
+  ///
+  /// **`blocking_send` FOR THE SAME REASON [`ProjectHandle::ingest`] USES IT**:
+  /// the caller is the debouncer's own thread, so waiting here delays the next
+  /// batch for this project and nothing else, and a dropped refresh leaves the
+  /// index behind the disk until somebody happens to edit again.
+  pub fn index_refresh(&self, under: std::path::PathBuf) -> Result<(), Response> {
+    self
+      .tx
+      .blocking_send(Work::IndexRefresh { under })
+      .map_err(|_| {
+        Response::error(
+          "the project's store thread has stopped, so the index cannot be refreshed",
+          "source edits will not reach `intent search` for this project. Restart the daemon, and run `intent index rebuild` to catch the index up.",
+        )
+      })
+  }
+
   pub fn ingest(&self) -> Result<(), Response> {
     self.tx.blocking_send(Work::Ingest).map_err(|_| {
       Response::error(

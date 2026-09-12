@@ -32,6 +32,8 @@ mod common;
 
 #[path = "a_daemon_outlives_nobody.rs"]
 mod a_daemon_outlives_nobody;
+#[path = "a_source_edit_reaches_the_index_and_costs_canon_nothing.rs"]
+mod a_source_edit_reaches_the_index_and_costs_canon_nothing;
 #[path = "an_ingest_never_reverts_a_newer_store_write.rs"]
 mod an_ingest_never_reverts_a_newer_store_write;
 #[path = "arguments_do_not_start_a_daemon.rs"]

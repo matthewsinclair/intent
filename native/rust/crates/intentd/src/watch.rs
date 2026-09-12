@@ -60,6 +60,16 @@ const QUIET: Duration = Duration::from_millis(250);
 /// symptom is the daemon eventually failing to watch anything new.
 pub struct Watch {
   _debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, RecommendedCache>,
+  /// The INDEX scope's own registration and its own debounced stream.
+  ///
+  /// **TWO REGISTRATIONS, NOT ONE WIDENED ONE** (vc, 2026-09-12, on a
+  /// measurement). The canon watch above keeps exactly the registration its
+  /// tests pin; this one covers the gitignore-aware repository and its events
+  /// reach only the index. Widening the canon registration instead was measured
+  /// at three of four full-suite runs red against none of four, and the second
+  /// stream's cost buys the property WP-18 promised: the canon path is
+  /// untouched by the index.
+  _index_debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, RecommendedCache>,
 }
 
 /// Start watching a project, driving ingest through its store handle.
@@ -89,6 +99,7 @@ pub struct Watch {
 /// about what a failure looks like**, which is the thing a bespoke enum here
 /// would quietly cost.
 pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response> {
+  let handle_for_index = Arc::clone(&handle);
   let watched_root = root.to_path_buf();
   let mut debouncer = new_debouncer(QUIET, None, move |result: DebounceEventResult| {
     on_batch(&watched_root, &handle, result)
@@ -122,9 +133,122 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
       })?;
   }
 
+  // **THE INDEX SCOPE'S OWN REGISTRATION.** Recursive from the root, because
+  // the index's scope IS the gitignore-aware repository; the events are
+  // filtered by `Scanned::in_repository` at the leaf and by the root bound
+  // above it, and they reach `Work::IndexRefresh` and nothing else.
+  //
+  // **THE VOLUME IS AFFORDABLE AND IT WAS MEASURED, NOT ASSUMED** (AC-18.6, dc
+  // 2026-09-12). FSEvents coalesces, so the volume tracks ACTIVITY rather than
+  // tree size: one entire release build in a watched tree produced 703
+  // path-events across 26 debounced batches, caching 447 distinct paths, of
+  // which 2 were in scope. The fear was a flood proportional to the 601,783
+  // paths under a build directory, and that flood does not arrive.
+  //
+  // **THE LINUX LEG IS NOT MEASURED AND IS NOT CLAIMED.** inotify does not
+  // coalesce and needs a watch per directory; this repository holds 496
+  // directories git tracks content under, which is evidence the per-directory
+  // strategy FITS under `max_user_watches` and no evidence about its rate.
+  let index_root = root.to_path_buf();
+  let index_handle = Arc::clone(&handle_for_index);
+  let mut index_debouncer = new_debouncer(QUIET, None, move |result: DebounceEventResult| {
+    on_index_batch(&index_root, &index_handle, result)
+  })
+  .map_err(|e| {
+    Response::error(
+      format!("the index watcher for `{}` could not start: {e}", root.display()),
+      "source edits will not reach `intent search` on their own. Run `intent index rebuild` there when you need it caught up, and restart the daemon to retry the watch.",
+    )
+  })?;
+  index_debouncer
+    .watch(root, RecursiveMode::Recursive)
+    .map_err(|e| {
+      Response::error(
+        format!("`{}` could not be watched for the index: {e}", root.display()),
+        "the project root is not readable, or this process has run out of the descriptors the platform watcher needs. Source edits will not reach `intent search` until the daemon is restarted.",
+      )
+    })?;
+
   Ok(Watch {
     _debouncer: debouncer,
+    _index_debouncer: index_debouncer,
   })
+}
+
+/// Which paths an index-scope batch should have reconciled, with the root bound
+/// applied.
+///
+/// **THE ROOT BOUND IS NOT HERE, AND THAT IS DELIBERATE.** An event naming the
+/// root names everything and therefore names nothing, so it must reconcile the
+/// root's own files without descending -- and that rule lives in
+/// `index::reconcile::changed_under` (cc, `cbcd46fad`), which is the one place
+/// that enumerates the index corpus. A second copy here would be two statements
+/// of one rule, which is the defect this thread has already paid for twice.
+///
+/// What this decides is only what the DISPATCH hands over: a directory or a
+/// vanished path goes as itself, a leaf goes only if the index scope admits it,
+/// and the daemon's own store writes are refused before they cost a round trip.
+fn index_paths_to_refresh(root: &Path, paths: &[&Path]) -> Vec<std::path::PathBuf> {
+  let scope = intentsvcs::sync::Scanned::for_root(root);
+  let mut out: Vec<std::path::PathBuf> = Vec::new();
+  for path in paths {
+    if path.is_dir() || !path.exists() || scope.in_repository(path) {
+      out.push(path.to_path_buf());
+    }
+  }
+  out.sort();
+  out.dedup();
+  out
+}
+
+/// One debounced batch from the INDEX registration.
+///
+/// **IT CANNOT START A CANON INGEST, WHICH IS THE WHOLE RULING.** The only door
+/// it reaches is [`ProjectHandle::index_refresh`], and the index's tables have
+/// their own writers, so nothing on this stream can rewrite a view and produce
+/// the next event.
+fn on_index_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResult) {
+  let events = match result {
+    Ok(events) => events,
+    // **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). An index watcher
+    // that stopped receiving events and said nothing is indistinguishable from
+    // a repository nobody is editing.
+    Err(errors) => {
+      for error in errors {
+        eprintln!(
+          "intentd: the index watcher for `{}` reported an error: {error}\n  remedy: source edits may not be reaching `intent search`. Run `intent index rebuild` there, and restart the daemon to re-establish the watch.",
+          root.display()
+        );
+      }
+      return;
+    }
+  };
+
+  let paths: Vec<&Path> = events
+    .iter()
+    .flat_map(|event| event.paths.iter())
+    .map(|p| p.as_path())
+    .collect();
+  for under in index_paths_to_refresh(root, &paths) {
+    match handle.index_refresh(under) {
+      Ok(()) => {}
+      // Rendered, never re-worded, exactly as the canon stream renders its own:
+      // the store said what went wrong and what to do about it, and this module
+      // did not diagnose it. **It returns rather than continuing, because a
+      // stopped store thread refuses every remaining path in the batch too, and
+      // a line per path would bury the one that matters.**
+      Err(Response::Error { message, remedy }) => {
+        eprintln!("intentd: {message}\n  remedy: {remedy}");
+        return;
+      }
+      Err(other) => {
+        eprintln!(
+          "intentd: the store refused an index refresh with {other:?}\n  remedy: this is a fault in intentd rather than in the project. Source edits are not reaching `intent search`."
+        );
+        return;
+      }
+    }
+  }
 }
 
 /// Which FILES a batch's paths say changed.
@@ -403,6 +527,62 @@ mod tests {
       changed,
       vec![agents],
       "a root file that changed must still be named"
+    );
+  }
+
+  /// **WHAT THE INDEX DISPATCH HANDS OVER, WHICH IS NOT THE SAME QUESTION AS
+  /// WHAT THE RECONCILE THEN DOES WITH IT.** The root bound -- an event naming
+  /// the root reconciles root-level files and never descends -- lives in
+  /// `index::reconcile::changed_under` and is asserted there. This pins the
+  /// dispatch: the daemon's own store write never costs a round trip, and a
+  /// path the index scope refuses never reaches the door.
+  #[test]
+  fn the_daemons_own_store_write_never_reaches_the_index_door() {
+    let (dir, _recorded) = project();
+    let root = dir.path();
+    let db = root.join("intent/.cache/intent.db");
+    std::fs::create_dir_all(db.parent().expect("parent")).expect("mkdir");
+    std::fs::write(&db, b"not source").expect("write");
+
+    assert!(
+      index_paths_to_refresh(root, &[db.as_path()]).is_empty(),
+      "the daemon's own store write reached the index reconcile, which is the loop scope exists to close"
+    );
+
+    // **THE CONTROL, WITHOUT WHICH AN EMPTY ANSWER PASSES FOR A CORRECT ONE.**
+    // A real source file in the same tree must still be handed over.
+    std::fs::create_dir_all(root.join("src")).expect("mkdir");
+    let leaf = root.join("src/main.rs");
+    std::fs::write(&leaf, b"fn main() {}\n").expect("write");
+    assert_eq!(
+      index_paths_to_refresh(root, &[leaf.as_path()]),
+      vec![leaf.clone()],
+      "a source file in the index scope did not reach the door"
+    );
+  }
+
+  /// **AND A DIRECTORY BELOW THE ROOT IS HANDED OVER WHOLE**, because there the
+  /// reconcile's filter means what it says. A fix that bounded every directory
+  /// event would stop source edits reaching the index at all, which is the
+  /// quieter failure.
+  #[test]
+  fn a_directory_below_the_root_is_handed_to_the_index_reconcile_as_itself() {
+    let (dir, _recorded) = project();
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("src")).expect("mkdir");
+    std::fs::write(root.join("src/main.rs"), b"fn main() {}\n").expect("write");
+
+    let src = root.join("src");
+    assert_eq!(
+      index_paths_to_refresh(root, &[src.as_path()]),
+      vec![src.clone()],
+      "a directory below the root must be reconciled as itself"
+    );
+    let leaf = root.join("src/main.rs");
+    assert_eq!(
+      index_paths_to_refresh(root, &[leaf.as_path()]),
+      vec![leaf.clone()],
+      "a leaf in the index scope must reach the reconcile"
     );
   }
 
