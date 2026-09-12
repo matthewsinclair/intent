@@ -127,6 +127,50 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
   })
 }
 
+/// Which FILES a batch's paths say changed.
+///
+/// **SEPARATED FROM [`on_batch`] SO IT CAN BE DRIVEN WITH A PLANTED
+/// DIRECTORY-GRANULARITY EVENT.** The defect this exists to close is reachable
+/// only when the OS coalesces, which is a property of load rather than of the
+/// code, so a test that waits for macOS to coalesce is a test that passes for
+/// the wrong reason most of the time. Given the paths, this function is
+/// decidable against a real tree with no daemon, no runtime and no waiting
+/// (`IN-AG-PFIC-001`: the decision is here, the publishing and the ingest are
+/// the caller's).
+///
+/// `index` is a closure rather than a value because fetching it is a round trip
+/// to the store thread, and a batch of leaf events -- the ordinary case -- must
+/// not pay for it.
+fn files_that_changed(
+  root: &Path,
+  paths: &[&Path],
+  index: &mut dyn FnMut() -> Vec<intentsvcs::sync::FileEntry>,
+) -> Vec<std::path::PathBuf> {
+  let scope = intentsvcs::sync::Scanned::for_root(root);
+  let mut recorded: Option<Vec<intentsvcs::sync::FileEntry>> = None;
+  let mut changed: Vec<std::path::PathBuf> = Vec::new();
+  for path in paths {
+    if path.is_dir() || !path.exists() {
+      let previous = recorded.get_or_insert_with(&mut *index);
+      match intentsvcs::sync::changed_under(root, path, previous) {
+        Ok(files) => changed.extend(files),
+        // **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A subtree this
+        // cannot read is a subtree whose edits stop reaching the store, and
+        // silence there is indistinguishable from nobody editing.
+        Err(error) => eprintln!(
+          "intentd: could not reconcile `{}` after a directory-level change: {error}\n  remedy: external edits under that path may not be reaching the store. Run `intent sync --to-store` to catch it up.",
+          path.display()
+        ),
+      }
+    } else if scope.includes(path) {
+      changed.push(path.to_path_buf());
+    }
+  }
+  changed.sort();
+  changed.dedup();
+  changed
+}
+
 /// Decide whether one debounced batch is worth an ingest.
 ///
 /// **THE SCOPE OBJECT IS BUILT ONCE PER BATCH, NOT ONCE PER PATH.**
@@ -155,12 +199,33 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
     }
   };
 
-  let scope = intentsvcs::sync::Scanned::for_root(root);
-  let changed: Vec<&std::path::PathBuf> = events
+  // **A DIRECTORY-GRANULARITY EVENT IS A QUESTION, NEVER AN ANSWER, AND
+  // ANSWERING IT BY ASKING `includes` IS WHAT BROKE THIS** (vc's ruling,
+  // 2026-09-12). macOS coalesces a burst into one event naming the PARENT --
+  // and a deleted path cannot be classified at all -- so `intent/` itself
+  // arrived here as the changed path. `Scanned::includes` returned true for it,
+  // the daemon published `fileChanged` naming a DIRECTORY, and then ingested
+  // the write its own store had just made: the feedback loop this module's
+  // header says scope prevents, reached because scope was asked the wrong
+  // question. The header's claim held only while the OS happened to report the
+  // leaf.
+  //
+  // So a path that is a directory, or no longer exists, is RECONCILED: the
+  // in-scope files under it, each compared against what the store last
+  // recorded. A leaf that names a file is unchanged from before.
+  //
+  // **THE CONTRACT D20 AND `AC-08.6` PROMISE NOW HOLDS BY CONSTRUCTION:** a
+  // `fileChanged` names a file whose bytes differ, or it is not published. And
+  // the daemon's own `intent/.cache/` write reconciles to an EMPTY set,
+  // because the skip list speaks at the leaf as the walk descends -- so the
+  // loop is closed by the shape of the answer rather than by whether the OS
+  // reported the leaf.
+  let paths: Vec<&Path> = events
     .iter()
     .flat_map(|event| event.paths.iter())
-    .filter(|path| scope.includes(path))
+    .map(|p| p.as_path())
     .collect();
+  let changed = files_that_changed(root, &paths, &mut || handle.file_index());
   if changed.is_empty() {
     return;
   }
@@ -177,7 +242,7 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
   for path in &changed {
     let _ = handle.publish(Event::FileChanged {
       project_id: handle.project_id().to_string(),
-      path: (*path).clone(),
+      path: path.clone(),
     });
   }
 
@@ -197,5 +262,163 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
     Err(other) => eprintln!(
       "intentd: the store refused an ingest with {other:?}\n  remedy: this is a fault in intentd rather than in the project. External edits are not reaching the store."
     ),
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  /// A project with one in-scope file under `intent/`, and the index a store
+  /// would have recorded for it.
+  fn project() -> (tempfile::TempDir, Vec<intentsvcs::sync::FileEntry>) {
+    let dir = tempfile::tempdir().expect("tempdir");
+    intentsvcs::init::init(dir.path(), "watched", "dc", "3.0.2").expect("init a project");
+    let recorded = intentsvcs::sync::scan(dir.path(), &[]).expect("scan the fresh project");
+    (dir, recorded)
+  }
+
+  /// **THE DEFECT, PLANTED RATHER THAN WAITED FOR.** macOS coalesces a write to
+  /// `intent/.cache/` into one event naming `intent/`, and that event used to
+  /// pass `Scanned::includes` -- so the daemon published `fileChanged` for a
+  /// directory and ingested the write its own store had just made. Reconciling
+  /// the subtree answers it with an empty set, because the skip list speaks at
+  /// the leaf as the walk descends. Empty means the caller returns before it
+  /// publishes anything and before it ingests.
+  #[test]
+  fn a_directory_event_over_the_daemons_own_store_write_names_nothing() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("intent/.cache")).expect("mkdir");
+    std::fs::write(
+      root.join("intent/.cache/scratch"),
+      b"the daemon's own write",
+    )
+    .expect("write");
+
+    let intent_dir = root.join("intent");
+    let changed = files_that_changed(root, &[intent_dir.as_path()], &mut || recorded.clone());
+
+    assert!(
+      changed.is_empty(),
+      "a write inside `intent/.cache/` reconciled to {changed:?}, so the daemon would publish and then ingest its own store write"
+    );
+  }
+
+  /// **AND THE SAME SHAPE OVER A REAL EDIT MUST STILL NAME THE LEAF.** A fix
+  /// that answered every directory event with nothing would close the loop and
+  /// stop delivering external edits, which is the worse failure and the one
+  /// nobody notices.
+  #[test]
+  fn a_directory_event_over_a_real_edit_names_the_file_that_changed() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+    let edited = root.join("intent/wip.md");
+    let before = std::fs::read_to_string(&edited).expect("the fixture has no wip.md");
+    std::fs::write(&edited, format!("{before}\nan external edit\n")).expect("edit");
+
+    let intent_dir = root.join("intent");
+    let changed = files_that_changed(root, &[intent_dir.as_path()], &mut || recorded.clone());
+
+    assert_eq!(
+      changed,
+      vec![edited.clone()],
+      "the reconciliation must name the LEAF that changed and nothing else"
+    );
+  }
+
+  /// **THE INDEX IS NOT FETCHED WHEN NO DIRECTORY EVENT ARRIVES.** It is a
+  /// round trip to the store thread, and the ordinary case is a batch of leaf
+  /// events.
+  #[test]
+  fn a_leaf_event_costs_no_store_round_trip() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+    let leaf = root.join("intent/wip.md");
+    let mut asked = 0;
+
+    let changed = files_that_changed(root, &[leaf.as_path()], &mut || {
+      asked += 1;
+      recorded.clone()
+    });
+
+    assert_eq!(changed, vec![leaf], "a leaf event names its own file");
+    assert_eq!(
+      asked, 0,
+      "the store was asked for its index on a leaf event"
+    );
+  }
+
+  /// **A DIRECTORY EVENT ON THE PROJECT ROOT MUST NOT NAME A FILE THE CORPUS
+  /// DOES NOT CONTAIN.** `walk` keeps every file git would commit under the
+  /// directory it is handed; outside `intent/` that is the whole repository,
+  /// and the corpus out there is [`ROOT_FILES`] by name and nothing else. So a
+  /// root-granularity event reconciled a `.prettierignore`, a `README.md` and
+  /// every source file against the store's index -- and `Scanned::includes`,
+  /// asked about the same `.prettierignore` as a LEAF, answers false. **Two
+  /// answers about one file from one scope object, decided by which door the
+  /// event came through**, which is the drift `Scanned` exists to prevent.
+  #[test]
+  fn a_root_event_names_only_what_the_corpus_contains() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+
+    // A file git commits, inside the tree, that the corpus does not hold --
+    // and differing from the index, so only membership can keep it out.
+    let outsider = root.join(".prettierignore");
+    let before = std::fs::read_to_string(&outsider).unwrap_or_default();
+    std::fs::write(
+      &outsider,
+      format!("{before}\na line the index has never seen\n"),
+    )
+    .expect("write the outsider");
+
+    let on_root = files_that_changed(root, &[root], &mut || recorded.clone());
+    let as_leaf = files_that_changed(root, &[outsider.as_path()], &mut || recorded.clone());
+
+    assert!(
+      as_leaf.is_empty(),
+      "the control is void: `includes` already admits {outsider:?} as a leaf, so this test cannot show a disagreement"
+    );
+    assert!(
+      on_root.is_empty(),
+      "a directory event on the root named {on_root:?}, which the same scope object refuses as a leaf"
+    );
+  }
+
+  /// **AND THE ROOT EVENT MUST STILL NAME A ROOT FILE THAT REALLY CHANGED.** A
+  /// fix that answered every root event with nothing would drop the canon files
+  /// that live out there, which is the quieter failure.
+  #[test]
+  fn a_root_event_still_names_a_root_file_that_changed() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+    let agents = root.join("AGENTS.md");
+    let before = std::fs::read_to_string(&agents).expect("the fixture has no AGENTS.md");
+    std::fs::write(&agents, format!("{before}\nan external edit\n")).expect("edit");
+
+    let changed = files_that_changed(root, &[root], &mut || recorded.clone());
+
+    assert_eq!(
+      changed,
+      vec![agents],
+      "a root file that changed must still be named"
+    );
+  }
+
+  /// A path that has been deleted cannot be classified, so it is reconciled
+  /// like a directory -- and a deleted subtree honestly holds nothing in scope.
+  #[test]
+  fn a_vanished_path_is_reconciled_rather_than_guessed_at() {
+    let (dir, recorded) = project();
+    let root = dir.path();
+    let gone = root.join("intent/st/ST0404");
+
+    let changed = files_that_changed(root, &[gone.as_path()], &mut || recorded.clone());
+
+    assert!(
+      changed.is_empty(),
+      "a path that is not there named {changed:?}"
+    );
   }
 }

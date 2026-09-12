@@ -75,6 +75,22 @@ enum Work {
   },
   /// The watcher saw the project's tree change (`AC-08.5`).
   Ingest,
+  /// The watcher needs to know what the store last recorded on disk, to answer
+  /// a directory-granularity event by reconciling rather than by guessing.
+  ///
+  /// **A READ DOOR, AND IT GOES THROUGH THIS CHANNEL FOR THE SAME REASON EVERY
+  /// OTHER READ DOES.** The index lives in the project's SQLite store, and
+  /// `one_store_door.rs` exists to stop a second connection to it being opened
+  /// somewhere convenient. The watcher owns its own thread, so waiting here
+  /// costs this runtime nothing -- the same reasoning that makes
+  /// [`ProjectHandle::ingest`]'s `blocking_send` correct.
+  ///
+  /// **LIKE [`Work::Ingest`] AND [`Work::Backup`] IT IS INTERNAL AND NOT A WIRE
+  /// `Op`.** No client asks for it, and it must not move
+  /// [`ProjectHandle::dispatched`], which counts what CLIENTS routed here.
+  FileIndex {
+    reply: oneshot::Sender<Vec<intentsvcs::sync::FileEntry>>,
+  },
   /// The backup sweep came round and this project should decide (`AC-08.8`).
   ///
   /// **IT IS *CONSIDER*, NOT *DO*, AND THE DIFFERENCE IS WHERE THE DECISION
@@ -286,6 +302,15 @@ impl ProjectHandle {
             // a self-triggering loop over unreadable files invisible.
             thread_ingested.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
           }
+          Work::FileIndex { reply } => {
+            // **AN UNREADABLE INDEX ANSWERS EMPTY RATHER THAN REFUSING, AND
+            // THAT IS THE SAFE DIRECTION HERE.** Empty means the reconciler
+            // treats every in-scope file as changed, so the watcher publishes
+            // and ingests -- noisy, and correct. The opposite default would
+            // silently stop delivering real external edits, which is the
+            // failure nobody notices.
+            let _ = reply.send(facade.store().file_index().unwrap_or_default());
+          }
           Work::Backup => {
             consider_backup(
               &mut facade,
@@ -427,6 +452,21 @@ impl ProjectHandle {
         "the project's store thread has ended, which it does only on a panic. Restart the daemon.",
       )
     })
+  }
+
+  /// What the store last recorded for each file it has read.
+  ///
+  /// **SYNCHRONOUS, AND ONLY THE WATCHER'S THREAD MAY CALL IT** -- see
+  /// [`Work::FileIndex`]. A store thread that has ended answers empty, which
+  /// makes the reconciler treat everything as changed: the daemon is already
+  /// broken at that point, and the direction that publishes too much is the
+  /// one that does not hide external edits.
+  pub fn file_index(&self) -> Vec<intentsvcs::sync::FileEntry> {
+    let (reply, wait) = oneshot::channel();
+    if self.tx.blocking_send(Work::FileIndex { reply }).is_err() {
+      return Vec::new();
+    }
+    wait.blocking_recv().unwrap_or_default()
   }
 
   /// Ask this project whether a scheduled backup is due, and take one if it is.

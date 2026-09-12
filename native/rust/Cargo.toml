@@ -181,6 +181,11 @@ time = { version = "0.3", features = ["formatting", "macros"] }
 sha2 = "0.10"
 thiserror = "2"
 proptest = "1"
+# Real directories on a real filesystem for tests whose subject IS the
+# filesystem. `intentd`'s watcher decides from what is a directory, what the
+# skip list prunes as the walk descends, and which bytes differ -- so a fake
+# filesystem would be exercising a different function from the one that broke.
+# Test-only: it is a dev-dependency everywhere it is used.
 tempfile = "3"
 
 # Release profile for the SHIPPED binaries (WP-11, dc 2026-08-15). Measured on

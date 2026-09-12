@@ -527,6 +527,25 @@ impl Scanned {
     }
     let intent_dir = self.root.join("intent");
     if let Ok(rest) = path.strip_prefix(&intent_dir) {
+      // **A BARE DIRECTORY IS A CONTAINER, NOT A MEMBER, AND `intent/` ITSELF
+      // IS THE ONE THAT BIT US.** An empty remainder means the path IS the
+      // intent directory, and every line below is about the components
+      // BETWEEN that directory and a file: with none, `components.pop()` on an
+      // empty vector is a no-op, the `descends` loop runs zero times, and the
+      // function fell through to `true`. The skip list never got a chance to
+      // speak, because there was no component left to test it against.
+      //
+      // **THAT IS HOW THE FEEDBACK LOOP THIS MODULE'S `includes` EXISTS TO
+      // PREVENT WAS REACHED ANYWAY** (2026-09-12, dc): macOS coalesces a write
+      // to `intent/.cache/` into a directory-granularity event on `intent/`,
+      // the watcher asked this predicate, and got `true` -- so the daemon
+      // published `fileChanged` naming a directory and ingested its own store
+      // write. Membership is a question about a FILE; the watcher now answers
+      // the directory question by reconciling the subtree
+      // ([`changed_under`]) rather than by asking this.
+      if rest.as_os_str().is_empty() {
+        return false;
+      }
       // Every directory between `intent/` and the file must be one the walk
       // would have descended into.
       let mut at = intent_dir.clone();
@@ -593,14 +612,70 @@ impl Scanned {
   }
 }
 
-pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
-  // **THE WALK AND THE PREDICATE ASK THE SAME OBJECT, WHICH IS THE WHOLE POINT
-  // OF [`Scanned`].** Leaving this function with its own `ignored.contains` and
-  // `SKIPPED_DIRS` checks would have made the predicate a SECOND statement of
-  // scope that happened to agree today -- and a watcher built on a second
-  // statement of scope drifts silently in the direction that loops.
+/// The in-scope files under `under` whose bytes differ from `previous`.
+///
+/// **THIS IS THE ANSWER TO A DIRECTORY-GRANULARITY EVENT, AND A DIRECTORY EVENT
+/// IS A QUESTION RATHER THAN AN ANSWER.** The OS may report *something under
+/// here changed* instead of naming the file -- macOS coalesces under load, and
+/// a deleted path cannot be classified at all. Neither can be answered by
+/// asking [`Scanned::includes`] about the directory: membership is a property
+/// of a file. It is answered the way the tool answers that question everywhere
+/// else, by reconciling against what the store last recorded.
+///
+/// **SCOPE AND POLICY STAY IN THIS MODULE, WHICH IS THE POINT OF THE FUNCTION
+/// EXISTING AT ALL.** The walk is [`walk`] with the same [`Scanned`] the sync
+/// engine uses, so the skip list speaks at the LEAF as the walk descends --
+/// which is why the daemon's own `intent/.cache/` write reconciles to an empty
+/// set without anything having to name `.cache` here. The comparison is
+/// SHA-256 over the bytes, the sole identity test (D24), never mtime or size.
+/// A watcher that walked the tree itself would be a second statement of scope,
+/// and a second statement of scope drifts in the direction that loops.
+///
+/// A file the index has never seen differs by definition. `under` not existing
+/// is not an error: a deleted subtree yields nothing in scope, which is the
+/// honest answer and is what a caller reconciling a removal needs.
+pub fn changed_under(
+  root: &Path,
+  under: &Path,
+  previous: &[FileEntry],
+) -> Result<Vec<PathBuf>, SyncError> {
+  if !under.exists() {
+    return Ok(Vec::new());
+  }
   let scope = Scanned::for_root(root);
+  let changed = candidates(root, &scope)?
+    .into_iter()
+    .filter(|path| path.starts_with(under))
+    .map(|path| {
+      let rel = crate::project::relative(root, &path);
+      let bytes = std::fs::read(&path).map_err(|e| io_err(&path, e))?;
+      let sha256 = sha256_hex(&bytes);
+      Ok((path, rel, sha256))
+    })
+    .collect::<Result<Vec<_>, SyncError>>()?
+    .into_iter()
+    .filter(|(_, rel, sha256)| {
+      !previous
+        .iter()
+        .any(|p| &p.path == rel && &p.sha256 == sha256)
+    })
+    .map(|(path, _, _)| path)
+    .collect();
+  Ok(changed)
+}
 
+/// The paths a scan of `root` reads, in ONE place.
+///
+/// **TWO ENUMERATIONS OF THE CORPUS ARE TWO STATEMENTS OF SCOPE, WHICH IS THE
+/// THING [`Scanned`] EXISTS TO PREVENT.** [`walk`] keeps every file git would
+/// commit under the directory it is handed, so walking from the project root --
+/// which is where a coalesced directory event lands -- enumerates the whole
+/// repository, while the corpus out there is [`ROOT_FILES`] by name and nothing
+/// else. When [`changed_under`] had its own walk it reconciled `.prettierignore`
+/// against the store's index and published it, for a file [`Scanned::includes`]
+/// refuses as a leaf: one scope object, two answers, decided by which door the
+/// event arrived through (2026-09-12, dc; vc's ruling is this function).
+fn candidates(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
   let mut paths = Vec::new();
   for name in ROOT_FILES {
     let candidate = root.join(name);
@@ -610,9 +685,21 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
   }
   let intent_dir = root.join("intent");
   if intent_dir.is_dir() {
-    walk(&intent_dir, &scope, &mut paths)?;
+    walk(&intent_dir, scope, &mut paths)?;
   }
   paths.sort();
+  Ok(paths)
+}
+
+pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
+  // **THE WALK AND THE PREDICATE ASK THE SAME OBJECT, WHICH IS THE WHOLE POINT
+  // OF [`Scanned`].** Leaving this function with its own `ignored.contains` and
+  // `SKIPPED_DIRS` checks would have made the predicate a SECOND statement of
+  // scope that happened to agree today -- and a watcher built on a second
+  // statement of scope drifts silently in the direction that loops.
+  let scope = Scanned::for_root(root);
+
+  let paths = candidates(root, &scope)?;
 
   let mut entries = Vec::with_capacity(paths.len());
   for path in paths {
@@ -1241,6 +1328,35 @@ pub fn tree_state(root: &Path) -> TreeState {
 
 #[cfg(test)]
 mod tests {
+  /// **`includes` IS A MEMBERSHIP PREDICATE FOR FILES, AND A BARE DIRECTORY IS
+  /// A CONTAINER.** `intent/` itself returned `true` -- an empty remainder
+  /// skipped every `descends` check below it -- and the watcher, handed a
+  /// directory-granularity event by macOS, asked this and was told the
+  /// daemon's own store write was in scope. Driven 2026-09-12 from the real
+  /// failure, not from reading the code.
+  #[test]
+  fn the_intent_directory_itself_is_not_a_member_of_the_corpus() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    crate::init::init(root, "scoped", "dc", "3.0.2").expect("init a project");
+    let scope = super::Scanned::for_root(root);
+
+    assert!(
+      !scope.includes(&root.join("intent")),
+      "the `intent` directory reports as a member of the corpus, so a directory-granularity event on it passes the scope filter"
+    );
+    // The neighbouring truths, so the fix is pinned as NARROW: a real file
+    // under it is still in scope, and the store is still out of it.
+    assert!(
+      scope.includes(&root.join("intent/wip.md")),
+      "a file the sync reads stopped being in scope"
+    );
+    assert!(
+      !scope.includes(&root.join("intent/.cache/intent.db")),
+      "the store is in scope, which is the feedback loop itself"
+    );
+  }
+
   use super::*;
 
   #[test]

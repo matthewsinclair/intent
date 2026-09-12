@@ -53,6 +53,12 @@ notify-debouncer-full.workspace = true
 # rule with a hand-rolled probe instead would make the test a second home for
 # the predicate, which is the one thing this seam cannot afford.
 intentsvcs = { path = "../intentsvcs" }
+# **THE UNIT TESTS IN `watch.rs` BUILD A REAL PROJECT ON DISK.** The watcher's
+# decision is about a real tree -- what is a directory, what the skip list
+# prunes, which bytes differ -- so a fake filesystem would be testing a
+# different function. `dev-dependencies` reaches the bin target's `#[cfg(test)]`
+# modules as well as `tests/`.
+tempfile = { workspace = true }
 # The orphan guard is single-homed in `testkit` rather than copy-pasted into
 # each crate's tests/ -- see testkit::assert_no_orphan_suite_members.
 testkit = { path = "../testkit" }
