@@ -344,3 +344,86 @@ fn a_migrated_thread_in_two_places_is_loaded_once_and_does_not_block() {
     second.residue
   );
 }
+
+/// **WP-02 / AC-02.1: the v2 `acceptance.md` preamble's AUTHORED lines survive,
+/// and the template's boilerplate does not.**
+///
+/// Every line of that file which was not an `AC-`/`AT-` row fell on the floor
+/// with no finding and no `Disposition` -- the LOST-PROSE shape
+/// `Thread::preamble` was minted to close for `info.md`, still open one file
+/// over. Measured on `ST0048/acceptance.md` at `baeae83a4` before it was built:
+/// seven boilerplate lines, then one authored STATUS line INSIDE THE SAME
+/// BLOCKQUOTE, nothing in the form separating them.
+///
+/// The fixture is that real shape: two lines byte-identical to the pinned
+/// template, one line that DRIFTED from it, and one purely authored line. The
+/// drifted line is carried, which is the ruled failure direction -- a stray
+/// instruction sentence on a cover costs one deletion, a dropped authored line
+/// is prose nobody knows is gone.
+#[test]
+fn the_acceptance_preambles_authored_lines_reach_the_thread_and_the_boilerplate_does_not() {
+  const BOILERPLATE_ONE: &str = "> Canonical acceptance contract for ST####. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).";
+  const BOILERPLATE_TWO: &str = "> Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.";
+  const DRIFTED: &str = "> AT status vocabulary: to-write (red-first) | red | green | n/a (non-test: doc / eyeball / gate).";
+  const AUTHORED: &str = "> STATUS: PROPOSED. ACs await hv ratification (the open-gate).";
+
+  let fx = Fixture::new();
+  fx.write_file(
+    "intent/.config/config.json",
+    "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
+  );
+  fx.write_file(
+    "intent/st/ST0001/info.md",
+    "---\nstatus: Completed\nslug: a-slug\ncreated: 20260817\n---\n\n# ST0001: A thread\n\nThe cover's own preamble.\n\n## Objective\n\nShip it.\n",
+  );
+  fx.write_file(
+    "intent/st/ST0001/acceptance.md",
+    &format!(
+      "---\nst_id: ST0001\n---\n\n# ST0001 A thread -- Acceptance\n\n{BOILERPLATE_ONE}\n>\n{BOILERPLATE_TWO}\n>\n{DRIFTED}\n>\n{AUTHORED}\n\n## Acceptance Criteria\n\n- AC-00.1 (non-test) A criterion. -- evidence: none -- satisfied: yes\n"
+    ),
+  );
+
+  let scan = legacy::scan(&fx.project()).expect("the scan reads the estate");
+  let thread = scan
+    .threads
+    .iter()
+    .find(|t| t.id == "ST0001")
+    .expect("the thread converted");
+
+  assert!(
+    thread.preamble.contains("The cover's own preamble."),
+    "info.md's own preamble is still first: {:?}",
+    thread.preamble
+  );
+  assert!(
+    thread.preamble.contains(AUTHORED),
+    "the authored line is carried: {:?}",
+    thread.preamble
+  );
+  assert!(
+    thread.preamble.contains(DRIFTED),
+    "a boilerplate line that drifted from the pinned revision is CARRIED, not dropped: {:?}",
+    thread.preamble
+  );
+  assert!(
+    !thread.preamble.contains(BOILERPLATE_ONE) && !thread.preamble.contains(BOILERPLATE_TWO),
+    "lines byte-identical to the pinned template are not the author's: {:?}",
+    thread.preamble
+  );
+
+  let about: Vec<&legacy::Disposition> = scan
+    .dispositions
+    .iter()
+    .filter(|d| d.heading == "the acceptance preamble")
+    .collect();
+  assert_eq!(
+    about.len(),
+    2,
+    "both halves are recorded -- what was dropped and what was moved: {about:?}"
+  );
+  assert!(
+    about.iter().any(|d| d.verdict == legacy::Verdict::Dropped)
+      && about.iter().any(|d| d.verdict == legacy::Verdict::Refiled),
+    "the drop is a judgement about the template; the carry is a MOVE into a file the author did not write it in: {about:?}"
+  );
+}

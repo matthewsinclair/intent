@@ -51,6 +51,14 @@ const WP_TEMPLATE_SUBST: &str = "bin/intent_wp:113";
 // Its own revision, not the template's: line 113 is blank at 0b1b3b5b, and
 // the prune deleted the file, so an unpinned line number points at nothing.
 const WP_TEMPLATE_SUBST_REV: &str = "27c4ec98";
+/// v2's ACCEPTANCE template, pinned like the other two (WP-02, AC-02.1).
+///
+/// **ONE REVISION, WHICH IS vc's CONDITION 3 HELD RATHER THAN EXTENDED** (ruled
+/// 2026-09-12). The drop set has to be exactly one template version or it
+/// becomes a function of which Intent happened to be on the machine, so the same
+/// estate migrated twice would lose different lines with nothing recording why.
+const AC_TEMPLATE_PATH: &str = "lib/templates/prj/st/ST####/acceptance.md";
+const AC_TEMPLATE_REV: &str = "684183330";
 
 /// What the migration decided about one section, and why.
 ///
@@ -360,8 +368,8 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     }
 
     let sections = sections(body);
-    let (criteria, tests) = match acceptance(project, &dir, closed, &mut out) {
-      Ok(pair) => pair,
+    let (criteria, tests, acceptance_preamble) = match acceptance(project, &dir, closed, &mut out) {
+      Ok(parsed) => parsed,
       // The thread is NOT pushed: a thread whose rows do not reconcile must not
       // enter the scan as though they did. The run still refuses; it refuses
       // knowing about every such thread instead of the first.
@@ -422,7 +430,11 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     out.threads.push(Thread {
       attachments,
       body: carried_body,
-      preamble: preamble(body),
+      // **ONE FIELD, TWO SOURCES, `info.md` FIRST** (AC-02.1). The thread has
+      // exactly one authored-prose field and the ruling put the acceptance
+      // file's authored lines in it; joined in file order so the cover reads
+      // the way the two documents did.
+      preamble: join_preamble(&preamble(body), &acceptance_preamble),
       schema: THREAD_SCHEMA.to_string(),
       id: id.clone(),
       title: heading,
@@ -1355,7 +1367,7 @@ fn acceptance(
   dir: &Path,
   closed: bool,
   out: &mut Scan,
-) -> Result<(Vec<Criterion>, Vec<AcceptanceTest>), std::io::Error> {
+) -> Result<(Vec<Criterion>, Vec<AcceptanceTest>, String), std::io::Error> {
   let path = dir.join("acceptance.md");
   // **ABSENCE IS A STATE; UNREADABILITY IS AN ERROR, AND THIS SWALLOWED THE
   // DIFFERENCE.** A `let Ok(..) else` cannot see WHY the read failed, so a
@@ -1375,7 +1387,7 @@ fn acceptance(
     // The one benign case, and it is narrow ON PURPOSE: nothing else is
     // absence.
     Err(absent) if absent.kind() == std::io::ErrorKind::NotFound => {
-      return Ok((Vec::new(), Vec::new()));
+      return Ok((Vec::new(), Vec::new(), String::new()));
     }
     Err(unreadable) => {
       return Err(std::io::Error::other(format!(
@@ -1388,6 +1400,12 @@ fn acceptance(
     }
   };
   let rel = project.relative(&path);
+  // **AC-02.1's second half.** Every line of this file that is not an `AC-`/`AT-`
+  // row used to fall on the floor with no finding and no `Disposition` -- which
+  // is precisely the LOST-PROSE shape `Thread::preamble` was minted to close for
+  // `info.md`, still open one file over.
+  let (_, acceptance_body) = frontmatter(&text);
+  let authored_preamble = authored_acceptance_preamble(&preamble(acceptance_body), &rel, out);
   let mut criteria = Vec::new();
   let mut tests = Vec::new();
   // The three quantities the reconciliation below closes over. Counted where
@@ -1637,7 +1655,7 @@ fn acceptance(
     }
   }
 
-  Ok((criteria, tests))
+  Ok((criteria, tests, authored_preamble))
 }
 
 /// `- AC-<gg>.<n> [(non-test)] <text> [-- evidence: <e>] [-- satisfied: yes|no]`
@@ -2882,6 +2900,150 @@ fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
 /// `NORMALISED-PROSE` rather than silently adopted. The two byte totals for
 /// this estate differ by exactly that trim: 6135 stripped against 6213
 /// unstripped, both reproduced at `42fb5269`.
+/// The v2 acceptance template's preamble region, verbatim at
+/// [`AC_TEMPLATE_REV`] -- frontmatter, title line and the instruction
+/// blockquote, exactly as the file carries them.
+///
+/// Embedded rather than read from the install, for [`ST_TEMPLATE_V2`]'s reason:
+/// a drop set that depends on the machine is not a drop set.
+///
+/// **ONE LINE OF THE REGION IS DELIBERATELY ABSENT, and it is absent because
+/// another shipped guard is right.** The template teaches the AT grammar with a
+/// worked example, `describe "AT-03.2 / AC-03.2: ..."`, and
+/// `no_pm_state_in_output` refuses a shipped string literal carrying Intent's
+/// own PM identifiers -- a consumer reading `AT-03.2` learns nothing they can
+/// act on. That guard's exemption is keyed to REAL TEMPLATE FILES and is proven
+/// against them, so widening it to reach this source file would be keying an
+/// exemption to a file rather than to the id class, which its own doc names as
+/// the hole to avoid.
+///
+/// **The cost is one line, in the sanctioned direction**: a thread whose
+/// preamble carries that sentence verbatim keeps it, exactly as a line that
+/// drifted from this revision is kept. Carrying an instruction line costs a
+/// reader one deletion; the alternative was weakening a guard that is doing its
+/// job.
+const AC_TEMPLATE_V2_PREAMBLE: &str = r#"---
+verblock: "[Date]:v0.1: [Author] - Initial version"
+st_id: ST####
+title: "[Title] -- acceptance contract"
+---
+
+# ST#### [Title] -- Acceptance
+
+> Canonical acceptance contract for ST####. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).
+>
+> Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.
+>
+> Change control: clarifying an AC or AT is verifier-and-builder; shrinking scope, or weakening an AT to make it pass, needs the owner.
+>
+> AT status vocabulary: to-write (red-first) | red | green | n/a. `n/a` belongs to non-test rows ONLY -- it is the doc / eyeball / gate status, and a row carrying it must be marked `(non-test)`.
+>
+> Non-test ACs carry their state inline -- `-- evidence: <ref> -- satisfied: yes|no` on the AC line; test-backed ACs are satisfied by a green covering AT (computed, never written). A `(non-test)` AT RECORDS a doc / eyeball check; it never satisfies anything, because `n/a` is not green -- the satisfaction lives on the AC's own `(non-test)` line.
+>
+> An AC has four states, not two. Beyond satisfied and unsatisfied, a requirement can leave this thread's scope while remaining real: **descoped** (it moved to a named thread -- `intent ac descope <ID> <AC> --to <ID>`) or **withdrawn** (it was dropped outright, with its reason on the record -- `intent ac withdraw <ID> <AC> --reason "..."`). Both are non-blocking and both are reported separately rather than folded into the satisfied count, so a thread that descoped half its contract looks like one. Use them instead of the two dishonest alternatives: satisfying an AC whose work was not done, or deleting the line and losing the audit trail. `intent ac rescope` / `intent ac reinstate` undo them.
+>
+> **The AT row has an enforced grammar (`intent at lint`, and the close-gate).** Two shapes, and nothing else parses:
+>
+> ```
+> - AT-<gg>.<n> `<repo-relative-path>` -- covers <AC-id>[, <AC-id>...] -- status: to-write|red|green[ -- <free note>]
+> - AT-<gg>.<n> (non-test) <prose> -- covers <AC-id>[, <AC-id>...] -- status: n/a[ -- <free note>]
+> ```
+>
+>
+> Exemption: the close-gate is fail-by-default -- a unit with an empty or missing contract is refused. A unit that is deliberately AC-free (eg a pure content / authorial task) declares `acceptance: exempt` in the frontmatter above; the gate then passes and announces the exemption. Omit it (the default) and the contract is enforced. Never inferred from emptiness; always declared.
+"#;
+
+/// The authored half of a v2 `acceptance.md` preamble, with both halves recorded.
+///
+/// **THE WORD IN AC-02.1 IS "AUTHORED", AND ON A REAL FILE IT IS DOING ALL THE
+/// WORK.** Measured on `ST0048/acceptance.md` at `baeae83a4` rather than
+/// assumed: seven lines of template boilerplate, then one authored line -- a
+/// STATUS note about which AC awaited ratification -- INSIDE THE SAME
+/// BLOCKQUOTE, in the same shape. Nothing about the form separates them. Carry
+/// the region whole and every migrated thread's COVER gains ten-odd lines of v2
+/// instruction text, permanently, because `preamble` is authored content and
+/// nothing prunes it; drop the region unless it is byte-identical to the
+/// template and every thread loses its authored line, which is the LOST-PROSE
+/// defect [`Thread::preamble`] was minted to close, re-created one file over.
+///
+/// **So the subtraction is LINE-WISE against ONE pinned revision** (vc, ruled
+/// 2026-09-12): a preamble line byte-identical to a template preamble line is
+/// template, in any order; everything else is the author's and is carried in
+/// the order they wrote it. It is the section rule this file already applies,
+/// one level finer.
+///
+/// **A DRIFTED BOILERPLATE LINE IS CARRIED, AND THAT IS THE CHOSEN FAILURE
+/// DIRECTION.** The template's blockquote grew between revisions -- that file's
+/// "AT status vocabulary" line is one sentence where today's is a paragraph plus
+/// a grammar block -- so a line that drifted matches nothing and survives. The
+/// cost of a carried instruction line is a stray sentence on a cover that a
+/// reader deletes once; the cost of a dropped authored line is prose nobody
+/// knows is gone.
+///
+/// **BLANK LINES ARE LAYOUT AND ARE NEVER SUBTRACTED.** A blank line matches the
+/// template's blank lines trivially, so subtracting them would collapse the
+/// spacing the author chose while reporting nothing.
+/// `info.md`'s preamble then `acceptance.md`'s, with one blank line between them
+/// when both are present. Either being empty yields the other unchanged, so a
+/// thread with nothing to merge keeps the exact bytes it had before WP-02.
+fn join_preamble(info: &str, acceptance: &str) -> String {
+  match (info.trim().is_empty(), acceptance.trim().is_empty()) {
+    (true, true) => String::new(),
+    (true, false) => acceptance.to_string(),
+    (false, true) => info.to_string(),
+    (false, false) => format!("{info}\n\n{acceptance}"),
+  }
+}
+
+fn authored_acceptance_preamble(found: &str, rel: &str, out: &mut Scan) -> String {
+  if found.trim().is_empty() {
+    return String::new();
+  }
+  let (_, template_body) = frontmatter(AC_TEMPLATE_V2_PREAMBLE);
+  let template = preamble(template_body);
+  let boilerplate: std::collections::BTreeSet<&str> =
+    template.lines().filter(|l| !l.trim().is_empty()).collect();
+
+  let mut carried: Vec<&str> = Vec::new();
+  let mut dropped: Vec<&str> = Vec::new();
+  for line in found.lines() {
+    if !line.trim().is_empty() && boilerplate.contains(line) {
+      dropped.push(line);
+    } else {
+      carried.push(line);
+    }
+  }
+
+  let kept = carried.join("\n").trim().to_string();
+  // **BOTH HALVES RECORDED, because a decision that leaves no record cannot be
+  // reconciled** -- and here the two halves want different readings: the drop
+  // is this migration's judgement about the template, the carry is a MOVE of
+  // the author's prose into a file they did not write it in.
+  if !dropped.is_empty() {
+    out.dispositions.push(Disposition {
+      owner: rel.to_string(),
+      heading: "the acceptance preamble".to_string(),
+      verdict: Verdict::Dropped,
+      reason: format!(
+        "{} line(s) byte-identical to the preamble of `{AC_TEMPLATE_PATH}` at {AC_TEMPLATE_REV}: no author wrote them",
+        dropped.len()
+      ),
+    });
+  }
+  if !kept.is_empty() {
+    out.dispositions.push(Disposition {
+      owner: rel.to_string(),
+      heading: "the acceptance preamble".to_string(),
+      verdict: Verdict::Refiled,
+      reason: format!(
+        "{} authored line(s) carried into the thread's `preamble`, which renders on the thread COVER rather than on the contract view -- the prose survives, in a different file",
+        kept.lines().count()
+      ),
+    });
+  }
+  kept
+}
+
 fn preamble(body: &str) -> String {
   let mut out: Vec<&str> = Vec::new();
   let mut drop_next_blank = false;
