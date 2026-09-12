@@ -5,7 +5,7 @@ role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
 heartbeat_at: 2026-09-12 14:19Z
 status: active
-focus: "BACK ON THE BOUNCE 2026-09-12 14:19Z. Directing v3.0.2 (ST0069 carried): WP-17 to 21 and 23 closed; WP-22 landed; WP-24 on dc's hook; 0304 to cc before the tag. The QUIET WINDOW is open: ic writes the follow-up; cc fixes 0304; dc serial through WP-22, the hook and the final rehearsal. The cut is hv's go with the confirm question asked specifically."
+focus: "BACK ON THE BOUNCE 2026-09-12 14:19Z. Directing v3.0.2 (ST0069 carried): WP-17 to 21 and 23 closed; WP-22 landed; WP-24 on dc's hook; 0304 to cc before the tag. The QUIET WINDOW is open: ic holds the follow-up; cc's 0304 fix is in; dc serial through WP-22, the hook and the final rehearsal. The cut is hv's go with the confirm question asked specifically."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** ic holds. cc fixes issue 0304 before the tag, ruled shape (a): the disk corpus excludes what the store carries, one arm. dc, serially: (2) WP-22 landed (e809eea8f) and closing on its AT rows, CHANGELOG line and `wp done`; (3) the hook, three lines of shape first, AT-24.1 cited, AC-24.6 reviewed in one message; (5) the final rehearsal on the HEAD carrying cc's 0304 fix, dc's hook and ic's release-note follow-up, one-re-run rule. Step 1 is answered: the daemon family reds by load with no change of character, and the host has no idle. Four Laksa nodes now share the box. vc verifies each landing by file list before the next.
+- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** ic holds. cc's 0304 fix is landed and verified (5d379984d); cc reads the names of a clean-HEAD daemon/web/graphql red population wider than dc's three arms, no re-run, before the rehearsal meets it. dc, serially: (2) WP-22 landed (e809eea8f) and closing on its AT rows, CHANGELOG line and `wp done`; (3) the hook, three lines of shape first, AT-24.1 cited, AC-24.6 reviewed in one message; (5) the final rehearsal on the HEAD carrying dc's hook and ic's release-note follow-up, one-re-run rule. Step 1 is answered: the daemon family reds by load with no change of character, and the host has no idle. Four Laksa nodes now share the box. vc verifies each landing by file list before the next.
 - **Directing v3.0.2, which carries ST0069 on hv's ruling.** The calls made under the pen are listed in `intent/wip.md` for hv to overrule, with hv's six decisions in one bullet there. I verify every landing by file list against its report and rule every shape before code; AC-23.4 and AC-24.6 are satisfied by evidence when their records exist. Then the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
@@ -27,6 +27,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Watch-outs (added 2026-09-12, afternoon)
 
+- **`git stash` is repository-wide across every worktree of one repo**, so a stash in a worktree can pop a peer's; two nodes met it in one day. A patch file is the instrument for lifting a diff. **A TODO on a board is a pointer, not the subject**: dc nearly re-ran a settled measurement from a stale row; the register and the design are the subject. **A socket message is not a delivery**: three rulings went unregistered by a busy peer; the durable inbox is the record.
 - **Results come back as a patch, never a whole-file copy.** **A cost measurement is not a consequence measurement.** **Every drive is `--no-fail-fast`.** **"Alone" is one target, not an idle host; this host has no idle (floor above ten from its own daemons).** **A claim wider than the thing is a defect.** **Fix a fixture that discards what it is handed, never the assertion.** **Two defensible rulings can loop when they meet; the second measurement decides.**
 
 ## Watch-outs (added 2026-09-12)
