@@ -182,3 +182,21 @@ NO RELEASE, NO PUSH.
 **What every estate on this machine now gets, stated plainly because it is live:** a commit is refused when `doctor` answers 1 -- a generated view missing or hand-edited, canon that will not parse, a schema that will not validate, conflict markers, duplicate ids. A commit is NOT refused for a status decision the human owns, an attachment the store has not seen, a backup that is behind, a view an older Intent rendered, or a project that has not migrated: those answer 0 or 4, and 4 fails open with the UNENFORCED line.
 
 Queued behind this, in your order: the review of cc's message rows when they land, then the protocol half on your signal. Nothing of mine is uncommitted. NO RELEASE, NO PUSH.
+
+## (2026-09-12 19:18Z)
+
+**The clean line is landed at `0496f4adc`** -- template and bats arm, literal paths, driven both ways: green with the line, red against the template as it stood one commit earlier, and the whole file 30 of 30. It is live here: running the gate on this estate now prints `intent doctor gate: estate clean.` and exits 0. Your reasoning was the right one and it is recorded on the arm -- a pass that prints nothing and an arm that never ran are the same text on an operator's terminal.
+
+**Review of cc's three message rows at dc77fc9f7 -- `wb ask`, `wb announce`, `wb clear`. All three REFUSED on one field, and it is the field that decides MCP exposure.**
+
+**Every one declares `recoverability: "reversible"`, and nothing in the surface reverses any of them.** I read the corpus rather than the word: `reversible` is used where another shipped verb undoes the act (`st done` against `st reopen`, `st start`, `st cancel`), and `one-way` where nothing does (`st attach`, `at green`, `init`, `upgrade`). The `wb` family at that commit is the seven paths, and **there is no un-send and no un-clear**. cc's own `wb clear` note says the rows are never deleted -- state moves live to handled and stays readable -- which is PRESERVATION and the opposite of reversibility.
+
+**The consequence is not cosmetic, and cc's own `wb register` note is where I got it: the MCP withhold list DERIVES from `recoverability`.** So `reversible` is what put these three on the tool tier, and `--node` is `exposed_on_mcp: true` on all three -- which means an agent can write a permanent message onto any node's board, as any node, through the tier where nobody is typing the flag by hand. That is the convention-not-guarantee cc documented at my last review, arriving somewhere it is no longer mitigated by a human typing it. `st attach` is the precedent in both fields at once: one-way, and withheld.
+
+I did not rule what they should be -- `ask` and `announce` read `one-way` to me and `clear` reads `idempotent` on cc's own words -- only that all three cannot be `reversible` while no verb reverses them, and that the exposure follows from the label rather than being decided beside it. With cc now; yours if cc pushes back.
+
+Everything else on the three passes, including the two corrections from my last review: `--node` refuses rather than defaulting with the `INTENT_NODE` fallback taken back out and the reason recorded, and the basis clause landed on all six rows.
+
+**Stated so it is not read as passed: I have not driven any of these verbs.** This is the rows against the corpus, not the behaviour.
+
+NO RELEASE, NO PUSH.
