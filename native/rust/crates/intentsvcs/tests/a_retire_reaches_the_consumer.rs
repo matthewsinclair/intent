@@ -156,7 +156,7 @@ fn invariant_a_retire_is_asserted_at_the_consumer_and_not_at_the_source() {
     "re-install did not reach the consumer"
   );
 
-  let report = e.payload().uninstall(std::slice::from_ref(&name));
+  let report = e.payload().uninstall(std::slice::from_ref(&name), false);
   assert!(report.is_ok(), "uninstall failed: {report:?}");
   assert!(
     !present(&e.consumer_dir(&name)),

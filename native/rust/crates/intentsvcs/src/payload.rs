@@ -515,6 +515,41 @@ pub enum Outcome {
     /// therefore left alone.
     left: Vec<String>,
   },
+  /// **A UNIT WHOSE RECORDED FILES ARE NOT THE BYTES THIS BUILD WROTE, AND NO
+  /// `--force`. NOTHING IS DELETED** (hv, 2026-09-12, `intent/wip.md` item 13).
+  ///
+  /// `uninstall` removed what it had recorded writing WITHOUT asking whether
+  /// those bytes were still its own, so an operator who installed a skill and
+  /// then edited it lost the edit -- at exit 0, under a line reading
+  /// `removed (N file(s))`, which is indistinguishable from the run that
+  /// removed only this tool's own copy. **That is the same defect `sync` was
+  /// built to end, in the verb next door**: `sync` holds on
+  /// [`Outcome::ModifiedLocally`] and this one did not, and a rule that holds
+  /// in one verb and not its sibling is not a rule.
+  ///
+  /// **THE PREDICATE IS `sync`'s, NOT A SECOND ONE**: the manifest's recorded
+  /// checksum against the RECORDED files as they stand now. An unrecorded file
+  /// beside them is not a modification of this unit -- ruling 5 already leaves
+  /// it, and holding on it would refuse to uninstall a pristine skill because
+  /// the operator kept notes in its directory.
+  ///
+  /// **`checksum` IS WHAT SURVIVES THE DECISION, AND IT IS NOT THE CONTENT.**
+  /// It identifies the tree the operator is about to discard; it cannot
+  /// restore it. Said out loud for the same reason [`Outcome::Forced`] says it.
+  RemovalHeld {
+    checksum: String,
+  },
+  /// `--force` removed a unit whose recorded files had moved. **The discarded
+  /// checksum is the whole remedy**, exactly as on [`Outcome::Forced`], and for
+  /// the same reason: once the removal has run it is the only artefact that can
+  /// identify what was there.
+  RemovedForced {
+    removed: Vec<String>,
+    /// Files found beside it that this tool never wrote. `--force` does not
+    /// reach them: it decides the HOLD, not ruling 5.
+    left: Vec<String>,
+    discarded: String,
+  },
   NotInstalled,
   SourceMissing,
 }
@@ -760,6 +795,29 @@ impl Payload {
           .collect(),
       ),
       Shape::SingleFile => Ok(vec![format!("{name}.md")]),
+    }
+  }
+
+  /// The checksum of an installed unit's RECORDED files, in this kind's scope.
+  ///
+  /// **THE POPULATION IS THE MANIFEST'S FILE LIST, NOT THE DIRECTORY**, which
+  /// is the whole difference from [`Payload::installed_checksum`]. At install
+  /// time the two were the same set, so this value is comparable with the
+  /// recorded checksum -- and it stays comparable after the operator drops a
+  /// file of their own beside the unit, which the directory form would report
+  /// as a modification of bytes nobody touched.
+  ///
+  /// A recorded file the operator has DELETED contributes nothing and the
+  /// digest therefore differs, which holds the removal. That is the
+  /// conservative direction and it is the one this verb takes everywhere else.
+  fn recorded_checksum(
+    &self,
+    name: &str,
+    recorded: &BTreeSet<String>,
+  ) -> Result<String, PayloadError> {
+    match self.kind.shape() {
+      Shape::SingleFile => file_checksum(&self.installed_dir(name)),
+      Shape::Tree => tree_checksum_of(&self.installed_dir(name), Some(recorded)),
     }
   }
 
@@ -1224,7 +1282,13 @@ impl Payload {
   /// whole directory, which destroys an operator's own file dropped inside it.
   /// A rule that holds in one verb and not its sibling is not a rule, and this
   /// direction can never lose data.
-  pub fn uninstall(&self, names: &[String]) -> Result<Report, PayloadError> {
+  ///
+  /// **AND IT HOLDS A UNIT WHOSE RECORDED FILES HAVE MOVED, WHICH IS THE OTHER
+  /// HALF OF THAT SENTENCE AND WAS MISSING UNTIL 2026-09-12.** Removing only
+  /// what it wrote is not the same promise as removing only what it wrote AND
+  /// still owns: an operator's edit lives in a file this tool did write. See
+  /// [`Outcome::RemovalHeld`]; `force` decides it, and reports the checksum.
+  pub fn uninstall(&self, names: &[String], force: bool) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
     let mut steps = Vec::new();
     for name in names {
@@ -1239,10 +1303,36 @@ impl Payload {
         });
         continue;
       }
-      let recorded: BTreeSet<String> = manifest
-        .find(name)
+      let entry = manifest.find(name).cloned();
+      let recorded: BTreeSet<String> = entry
+        .as_ref()
         .map(|e| e.files.iter().cloned().collect())
         .unwrap_or_default();
+
+      // **THE HOLD, AND IT IS `sync`'s HOLD RATHER THAN A SECOND ONE.** With no
+      // entry there is nothing recorded, so the loops below remove nothing and
+      // report what they left -- already a held step that deletes no bytes, and
+      // a more informative one than this, because it names the files. The state
+      // that loses data is the one with a baseline the installed tree no longer
+      // matches, and that is what this arm answers.
+      let discarded = match entry.as_ref() {
+        Some(e) => {
+          let now = self.recorded_checksum(name, &recorded)?;
+          if now == e.checksum {
+            None
+          } else if force {
+            Some(now)
+          } else {
+            steps.push(Step {
+              name: name.clone(),
+              outcome: Outcome::RemovalHeld { checksum: now },
+              shadowed: None,
+            });
+            continue;
+          }
+        }
+        None => None,
+      };
 
       // **THE SINGLE-FILE SHAPE REMOVES A FILE AND NEVER WALKS A DIRECTORY**,
       // and it keeps the remove-only-what-we-recorded rule rather than being
@@ -1263,7 +1353,7 @@ impl Payload {
         manifest.remove(name);
         steps.push(Step {
           name: name.clone(),
-          outcome: Outcome::Removed { removed, left },
+          outcome: removal(removed, left, discarded),
           shadowed: None,
         });
         continue;
@@ -1316,7 +1406,7 @@ impl Payload {
       manifest.remove(name);
       steps.push(Step {
         name: name.clone(),
-        outcome: Outcome::Removed { removed, left },
+        outcome: removal(removed, left, discarded),
         shadowed: None,
       });
     }
@@ -1560,18 +1650,59 @@ fn file_checksum(path: &Path) -> Result<String, PayloadError> {
 }
 
 fn tree_checksum(dir: &Path) -> Result<String, PayloadError> {
+  tree_checksum_of(dir, None)
+}
+
+/// The same digest, optionally narrowed to a NAMED set of relative paths.
+///
+/// **ONE DIGEST WITH TWO POPULATIONS, RATHER THAN TWO DIGESTS THAT AGREE
+/// TODAY** (IN-AG-HIGHLANDER-001). `tree_checksum` asks it about everything on
+/// disk; [`Payload::recorded_checksum`] asks it about the files the manifest
+/// names. A second implementation for the second question is how a recorded
+/// value and a compared value drift apart, and the drift would be invisible:
+/// both answers are hex.
+///
+/// **THE NARROWING IS A FILTER OVER THE SAME WALK, NOT A SECOND ORDER.** The
+/// digest hashes paths in `relative_files` order, and iterating a set of names
+/// instead would sort them as STRINGS -- `a.md` before `a/b.md`, where the walk
+/// puts `a/b.md` first -- so every recorded checksum of a tree holding both
+/// shapes would read as modified. Filtering keeps the order the recorded value
+/// was computed in.
+///
+/// A named path that is not on disk is not walked and so contributes nothing.
+/// That is correct rather than lossy: the caller's question is *are these bytes
+/// still the ones recorded*, and for a file the operator deleted the answer is
+/// no.
+fn tree_checksum_of(dir: &Path, only: Option<&BTreeSet<String>>) -> Result<String, PayloadError> {
   let mut hasher = Sha256::new();
   for rel in relative_files(dir)? {
+    let shown = display(&rel);
+    if only.is_some_and(|set| !set.contains(&shown)) {
+      continue;
+    }
     let bytes = std::fs::read(dir.join(&rel)).map_err(|source| PayloadError::Io {
       path: dir.join(&rel),
       source,
     })?;
-    hasher.update(display(&rel).as_bytes());
+    hasher.update(shown.as_bytes());
     hasher.update(b"\0");
     hasher.update(format!("{:x}", Sha256::digest(&bytes)).as_bytes());
     hasher.update(b"\n");
   }
   Ok(format!("{:x}", hasher.finalize()))
+}
+
+/// Which removal outcome a step took: the ordinary one, or the forced one that
+/// names what it discarded.
+fn removal(removed: Vec<String>, left: Vec<String>, discarded: Option<String>) -> Outcome {
+  match discarded {
+    Some(discarded) => Outcome::RemovedForced {
+      removed,
+      left,
+      discarded,
+    },
+    None => Outcome::Removed { removed, left },
+  }
 }
 
 /// A relative path as the manifest records it: `/`-separated, on every platform.

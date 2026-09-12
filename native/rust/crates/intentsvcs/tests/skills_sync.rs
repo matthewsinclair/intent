@@ -300,7 +300,7 @@ fn uninstall_removes_what_it_installed_and_leaves_what_it_found() {
   s.install(&one("in-probe"), false).unwrap();
   fs::write(f.target.join("in-probe/MY-NOTES.md"), "mine\n").unwrap();
 
-  let report = s.uninstall(&one("in-probe")).unwrap();
+  let report = s.uninstall(&one("in-probe"), false).unwrap();
   match outcome(&report.steps, "in-probe") {
     Outcome::Removed { removed, left } => {
       assert!(removed.contains(&"SKILL.md".to_string()), "{removed:?}");
@@ -315,6 +315,125 @@ fn uninstall_removes_what_it_installed_and_leaves_what_it_found() {
   assert!(f.target.join("in-probe/MY-NOTES.md").is_file());
   assert!(!f.target.join("in-probe/SKILL.md").exists());
   assert!(!f.target.join("in-probe/scripts").exists());
+}
+
+/// **THE DATA-LOSS ARM (`intent/wip.md` item 13, ruled by hv 2026-09-12).**
+///
+/// Driven against the build at HEAD before this was written, under an isolated
+/// `HOME`: install a skill, append a line to its `SKILL.md`, `uninstall` with
+/// no flag. It printed `removed (2 file(s))`, exited 0, and the edit was gone
+/// -- **the same line and the same code a run that destroyed nothing prints**,
+/// which is v2's `update available` defect arriving in the other verb.
+///
+/// `sync` has held this state since it was written. This is the sibling.
+#[test]
+fn uninstall_holds_a_unit_edited_since_it_was_installed() {
+  let f = Fixture::new();
+  f.source(
+    "in-probe",
+    &[("SKILL.md", "# probe\n"), ("scripts/run.sh", "BODY\n")],
+  );
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# probe\nMY EDIT\n").unwrap();
+
+  let report = s.uninstall(&one("in-probe"), false).unwrap();
+  match outcome(&report.steps, "in-probe") {
+    Outcome::RemovalHeld { checksum } => assert!(
+      !checksum.is_empty() && checksum != f.manifest_checksum("in-probe"),
+      "the held line must name the tree it would have discarded, and it is not the recorded one"
+    ),
+    other => panic!("expected the removal to be held, got {other:?}"),
+  }
+  assert_eq!(
+    read(&f.target.join("in-probe/SKILL.md")),
+    "# probe\nMY EDIT\n",
+    "the edit must survive a held uninstall"
+  );
+  assert!(
+    f.target.join("in-probe/scripts/run.sh").is_file(),
+    "a hold removes nothing at all, not merely the edited file"
+  );
+  assert!(
+    recorded(&f, "in-probe"),
+    "a held uninstall leaves the manifest entry, or the next run has no baseline to hold on"
+  );
+}
+
+/// The control that keeps the arm above from being a refusal of everything: an
+/// untouched unit still uninstalls, and says nothing about discards.
+#[test]
+fn uninstall_still_removes_a_unit_nobody_touched() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# probe\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  match outcome(
+    &s.uninstall(&one("in-probe"), false).unwrap().steps,
+    "in-probe",
+  ) {
+    Outcome::Removed { removed, left } => {
+      assert_eq!(removed, vec!["SKILL.md".to_string()]);
+      assert!(left.is_empty(), "{left:?}");
+    }
+    other => panic!("expected an ordinary removal, got {other:?}"),
+  }
+  assert!(!f.target.join("in-probe/SKILL.md").exists());
+}
+
+/// `--force` is the route the held line names, and it reports what it
+/// destroyed. **The checksum is the whole remedy** -- see `Outcome::Forced`.
+#[test]
+fn force_removes_the_edited_unit_and_names_what_it_discarded() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# probe\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# probe\nMY EDIT\n").unwrap();
+
+  match outcome(
+    &s.uninstall(&one("in-probe"), true).unwrap().steps,
+    "in-probe",
+  ) {
+    Outcome::RemovedForced {
+      removed,
+      left,
+      discarded,
+    } => {
+      assert_eq!(removed, vec!["SKILL.md".to_string()]);
+      assert!(left.is_empty(), "{left:?}");
+      assert!(!discarded.is_empty(), "the discard must be identifiable");
+    }
+    other => panic!("expected a forced removal, got {other:?}"),
+  }
+  assert!(!f.target.join("in-probe/SKILL.md").exists());
+}
+
+/// **AN UNRECORDED FILE BESIDE A UNIT IS NOT A MODIFICATION OF IT.** Ruling 5
+/// already leaves the operator's own file; holding the whole removal because it
+/// is there would refuse to uninstall a pristine skill over a file this tool
+/// never wrote, and would make the hold above unusable in the estate it ships
+/// to. The population the hold reads is the manifest's file list.
+#[test]
+fn a_file_this_build_never_wrote_does_not_hold_the_removal() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# probe\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+  fs::write(f.target.join("in-probe/MY-NOTES.md"), "mine\n").unwrap();
+
+  match outcome(
+    &s.uninstall(&one("in-probe"), false).unwrap().steps,
+    "in-probe",
+  ) {
+    Outcome::Removed { removed, left } => {
+      assert_eq!(removed, vec!["SKILL.md".to_string()]);
+      assert_eq!(left, vec!["MY-NOTES.md".to_string()]);
+    }
+    other => panic!("expected an ordinary removal, got {other:?}"),
+  }
+  assert!(f.target.join("in-probe/MY-NOTES.md").is_file());
 }
 
 // ---------------------------------------------------------------------------
@@ -991,7 +1110,7 @@ fn a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it() {
   // it works before or after the delete.
   let report = f
     .skills()
-    .uninstall(&["in-doomed".to_string()])
+    .uninstall(&["in-doomed".to_string()], false)
     .expect("uninstall");
   assert!(
     matches!(outcome(&report.steps, "in-doomed"), Outcome::Removed { .. }),

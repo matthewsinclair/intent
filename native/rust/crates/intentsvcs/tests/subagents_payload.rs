@@ -229,7 +229,7 @@ fn uninstall_leaves_an_agent_this_build_did_not_install() {
   fs::create_dir_all(&fx.target).unwrap();
   fs::write(fx.target.join("intent.md"), "installed by v2\n").unwrap();
 
-  let report = fx.agents().uninstall(&names(&["intent"])).unwrap();
+  let report = fx.agents().uninstall(&names(&["intent"]), false).unwrap();
   match &report.steps[0].outcome {
     Outcome::Removed { removed, left } => {
       assert!(
@@ -248,11 +248,84 @@ fn uninstall_leaves_an_agent_this_build_did_not_install() {
 
   // Control: one this build DID install goes.
   fx.agents().install(&names(&["intent"]), true).unwrap();
-  fx.agents().uninstall(&names(&["intent"])).unwrap();
+  fx.agents().uninstall(&names(&["intent"]), false).unwrap();
   assert!(
     fx.installed_bytes("intent").is_none(),
     "a recorded install must be removable"
   );
+}
+
+/// **THE HOLD ON AN EDITED UNIT, IN THE SHAPE THAT DOES NOT WALK A
+/// DIRECTORY.** `skills_sync.rs` covers the lifecycle over the same code; what
+/// is new here is that the comparison reads ONE FILE rather than a tree, so a
+/// hold keyed on a directory walk would pass there and never fire here -- and
+/// this is the shape every installed subagent has.
+#[test]
+fn uninstall_holds_a_subagent_edited_since_it_was_installed() {
+  let fx = Fixture::new();
+  fx.plant("intent", "canon body\n", "{}");
+  fx.agents().install(&names(&["intent"]), false).unwrap();
+  fs::write(fx.target.join("intent.md"), "canon body\nMY EDIT\n").unwrap();
+
+  match &fx
+    .agents()
+    .uninstall(&names(&["intent"]), false)
+    .unwrap()
+    .steps[0]
+    .outcome
+  {
+    Outcome::RemovalHeld { checksum } => assert!(!checksum.is_empty()),
+    other => panic!("expected the removal to be held, got {other:?}"),
+  }
+  assert_eq!(
+    fx.installed_bytes("intent").as_deref(),
+    Some("canon body\nMY EDIT\n"),
+    "the edit must survive a held uninstall"
+  );
+
+  // `--force` is the route the hold names, and it says what it destroyed.
+  match &fx
+    .agents()
+    .uninstall(&names(&["intent"]), true)
+    .unwrap()
+    .steps[0]
+    .outcome
+  {
+    Outcome::RemovedForced {
+      removed,
+      discarded,
+      left,
+    } => {
+      assert_eq!(removed, &names(&["intent.md"]));
+      assert!(left.is_empty(), "{left:?}");
+      assert!(!discarded.is_empty());
+    }
+    other => panic!("expected a forced removal, got {other:?}"),
+  }
+  assert!(fx.installed_bytes("intent").is_none());
+}
+
+/// The control: an untouched subagent still uninstalls.
+#[test]
+fn uninstall_still_removes_a_subagent_nobody_touched() {
+  let fx = Fixture::new();
+  fx.plant("intent", "canon body\n", "{}");
+  fx.agents().install(&names(&["intent"]), false).unwrap();
+
+  match &fx
+    .agents()
+    .uninstall(&names(&["intent"]), false)
+    .unwrap()
+    .steps[0]
+    .outcome
+  {
+    Outcome::Removed { removed, left } => {
+      assert_eq!(removed, &names(&["intent.md"]));
+      assert!(left.is_empty(), "{left:?}");
+    }
+    other => panic!("expected an ordinary removal, got {other:?}"),
+  }
+  assert!(fx.installed_bytes("intent").is_none());
 }
 
 /// The two kinds really do differ where this module says they do, and agree

@@ -8692,10 +8692,16 @@ fn payload_change(
   // only name what an operator could do by hand.
   //
   // **`try_get_one` RATHER THAN `get_one`, BECAUSE THE VERB DECIDES WHETHER THE
-  // FLAG EXISTS.** `uninstall` does not take it: v2's `--force` there skips an
-  // interactive confirmation and v3 does not prompt at all, so there is no
-  // prompt to skip. Asking clap for an argument a subcommand never declared
+  // FLAG EXISTS.** Asking clap for an argument a subcommand never declared
   // PANICS, and a panic here would turn a correct absence into a crash.
+  //
+  // **THIS COMMENT USED TO SAY `uninstall` DOES NOT TAKE IT, AND THE HELP TEXT
+  // SAID THE OPPOSITE THE WHOLE TIME** -- `--force` is advertised on the verb
+  // as the flag for *a skill that was changed here*, and it was read as `false`
+  // and ignored, so an edited skill was deleted at exit 0 (hv ruled the fix
+  // 2026-09-12, `intent/wip.md` item 13). v2's force there skipped an
+  // interactive confirmation v3 does not have; v3's force decides a HOLD, which
+  // is a different job the same flag name now does honestly.
   let force = given(a, "force");
 
   // **DECLARED ON THE FAMILY, HONOURED BY `sync`, REFUSED BY THE TWO VERBS THAT
@@ -8808,7 +8814,7 @@ fn payload_change(
     ChangeVerb::Install => lib.install(&names, force),
     ChangeVerb::Sync if dry_run => lib.sync_preview(force),
     ChangeVerb::Sync => lib.sync(force),
-    ChangeVerb::Uninstall => lib.uninstall(&names),
+    ChangeVerb::Uninstall => lib.uninstall(&names, force),
   }
   .map_err(payload_fail)?;
 
@@ -8913,6 +8919,42 @@ fn payload_change(
           removed.len(),
           left.len(),
           left.join(", ")
+        )
+      }
+      // **THE HOLD READS AS A REFUSAL TO DELETE, NOT AS A REFUSAL TO
+      // OVERWRITE.** `sync`'s held lines offer to take the source copy, which
+      // is the wrong remedy in this verb and the wrong fear: what is at stake
+      // here is the operator's own bytes being deleted, and the safe route is
+      // to copy them out. Sharing `MODIFIED_LOCALLY_HELD` would hand a reader
+      // the neighbouring verb's sentence.
+      Outcome::RemovalHeld { checksum } => {
+        needs_decision += 1;
+        format!(
+          "modified here since it was installed -- HELD, nothing was deleted. Copy your changes out first; `--force` removes it and reports the checksum of what it discarded. Installed checksum {checksum}"
+        )
+      }
+      // **`--force` NAMED AS THE CAUSE, AND THE CHECKSUM FIRST**, for the
+      // reason [`intentsvcs::payload::Outcome::Forced`] gives: once the removal
+      // has run, the checksum is the only artefact that can identify what was
+      // there, and a destructive run must not read like the routine one above.
+      Outcome::RemovedForced {
+        removed,
+        left,
+        discarded,
+      } => {
+        moved += 1;
+        let leftover = if left.is_empty() {
+          String::new()
+        } else {
+          format!(
+            "; left {} this build did not install: {}",
+            left.len(),
+            left.join(", ")
+          )
+        };
+        format!(
+          "REMOVED by --force; discarded your local changes; discarded checksum {discarded} ({} file(s) removed{leftover})",
+          removed.len()
         )
       }
       Outcome::UpToDate => {
