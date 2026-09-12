@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 17:52Z
+heartbeat_at: 2026-09-12 18:19Z
 status: active
-focus: "Directing ST0069 to the end (hv 2026-09-12): no cut until every non-cancelled WP is Done. Live now: dc's doctor fix (a WP-01 defect, preflight blocker), cc's commit two held for my go, ic's register-row review; then the schema-24 migration by my hand, WP-16 close, WP-14 verbs and cutover, WP-02, then the cut at hv's terminal."
+focus: "Directing ST0069 to the end (hv 2026-09-12): no cut until every non-cancelled WP is Done. Live store at schema 24 on the pair at 87b819abd. Live now: cc the wb verbs, dc WP-02 and the doctor-fix completion, ic the Board map entry then the doctor gate (0308, 0309) in a worktree; then the migration verb, the protocol half, the cutover, the cut at hv's terminal."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing ST0069 to the end (hv, 2026-09-12); back from hv's compact at 2026-09-12 17:52Z.** The state and every ruling are in `intent/wip.md`. Orders out: dc files and fixes the doctor defect (undeclared issues' absent views reported missing; views.rs:1663 asks `owning_thread` alone) with one arm and the live manifest header, then WP-02; cc rebases commit two onto main with the five `board.json` from `wb register`, answers with the code path whether doctor and organize read clean on the live estate with five committed boards and empty wb tables, and holds the landing for my go; ic reviews commit two's register rows from cc's banked patch, findings to cc before it lands. Next, in order: dc's fix landing verified by file list and doctor's live line; the two open issues declared (call 12); cc's go, commit two verified by file list, then the pair rebuilt at it, the daemon restarted, the live store at 24, the broadcast; ic's Board map entry, one clean run, WP-16 `wp done` on my word; the migration verb (dc), the protocol half (ic, AC-14.12 reworded for the fifth caller), the cutover when every node has folded; WP-02; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
+- **Directing ST0069 to the end (hv, 2026-09-12); state as at 2026-09-12 18:19Z.** The state and every ruling are in `intent/wip.md`. The live store is at schema 24 on the pair at 87b819abd, broadcast to every node at 18:14Z (e852d835d); doctor reads 0 findings at exit 0; the estate declares its open issues (call 12). Orders out: cc the rest of the `wb` family against the fixture, a register row per verb; dc the doctor-fix completion (two more callers of `dehydrated_owner`, 0306 closed, the template sentence) then WP-02 on the three ruled lines, line 2 rebased after cc; ic the `Board -> board` map entry and one clean run, then the doctor gate in a worktree, whole, on green. Next, in order: each landing verified by file list; the pair rebuilt at any Rust landing that matters and laksa-vc told when the gate is in it; ic's protocol half on my signal with AC-14.12 reworded; dc's migration verb and the guards' retirement; the cutover when every node has folded; WP-02 and WP-14 `wp done`; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only.
 - **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
