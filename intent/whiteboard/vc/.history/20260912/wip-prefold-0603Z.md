@@ -3,13 +3,15 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 06:03Z
+heartbeat_at: 2026-09-11 21:38Z
 status: active
-focus: "LOCALFOLD for hv's compact, not a release. Doc audit DONE and pushed (main 3b71d257d both remotes). Directing fix batch 1 (release + install), dc building; cc and ic hold. Other defect batches unruled."
+focus: "Directing hv's fix batch 1 (release + install), dc building it; verifying on dc's report. Other defect batches unruled."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
 # Validation Claude (vc)
+
+**3.0.1 SHIPPED 2026-09-11 19:34Z.** The cut's board is verbatim in `.history/20260911/`. Tag `v3.0.1` is at `a8942aead` on both remotes; the release carries four assets; the formula is live at `fc32170`; it is installed on rhadamanth (dev-tree pair, keg unlinked and pinned, Intent.app 3.0.1 in /Applications). Close-out is at `36839061a` and `89531a8f6`: ST0058, ST0064 and ST0068 are done, and ST0056 WP-07 and WP-12 are done. Both remotes were pushed at `89531a8f6`.
 
 ## DOING
 
@@ -62,13 +64,22 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Decisions
 
-- (2026-09-11) **hv's doc audit ran and is DONE**, every lane verified and pushed; its orders are in `intent/history/20260911-doc-audit.md`. **hv then ruled fix batch 1 (release + install) to dc**; the rest of the defect list in `intent/wip.md` is unruled. The 3.0.1 rulings this section carried, all executed in the cut, are in `.history/20260912/`.
-
+- (2026-09-11) **hv set new work at 19:45Z: the estate-wide doc audit, directed by vc.** It supersedes the 3.0.1 rule _THERE IS NO NEW WORK TO BE DONE_. The decisions below are 3.0.1 rulings, kept until the next fold.
+- (2026-09-11) **When a lane empties, the node takes the next unclaimed item in list order, skipping one whose files a peer is about to touch.** The lane column in `intent/wip.md` is the authority: `0083`, `0168` and `0176` moved ic -> cc on it. `0185` stays with ic beside `0154`, so the two body doors are one design.
+- (2026-09-11) **vc stopped dc maintaining the ST0068 AC-02.3 manifest and its disposition check.** A docs item is the page edit plus one commit; a stale quote in that manifest waits for the cut.
 - (2026-09-11) **NOT WORKABLE IN 3.0.1, kept open as constraints, lane `--`:**
   - `0177` -- all of `ext` is unbuilt;
   - `0141` -- no instance today, and the only fix is a guard.
     Closing either would lose the finding.
-
+- (2026-09-11) **`0100` shape ruled (b): carry the v2 spelling in `status_legacy`, with `status` unchanged.** The build is HELD on the 17 -> 18 store rung (decision 2).
 - (2026-09-11) **`0084` put to hv as decision 11, recommending (a), the byte write for opaque attachments.** vc drove the migrator hole: a Latin-1 `notes.txt` migrates with no sidecar, and the next restore refuses `broken-reference`.
-
 - (2026-09-11) **`0114`, `0220` and `0065` put to hv as decisions 12, 13 and 14.** Each issue reserves its question for hv, or needs a policy value.
+- (2026-09-11) **`0259` is not closed on half 1.** The issue's second clause is doctor's, and sits in dc's column.
+- (2026-09-11) **`0283` ruled A+B, both in 3.0.1, one row.**
+  - A (dc): make doctor's and organize's messages true, and name `st hydrate <ID>`, which pins the thread.
+  - B (cc, verified): re-render an undeclared view iff its disk bytes equal the prior render.
+  - C (a renderer-writes record) is out of 3.0.1.
+- (2026-09-11) **`0154` + `0185` ruled (1): one scriptable verb, `intent set <address> <field> <value | --from file>`, over `Facade::set`.** The spelling was ruled under the pen because it is the door's existing name (`Facade::set`, `Op::Set`); hv told, and renaming is one table row. There is no new facade code, and nothing gets widened.
+- (2026-09-11) **`0145`: the 2026-08-22 rollback test is deleted in the fix commit.** The ruling (no rollback for a refusal after a hydrate) stands. The fix moves the last such refusal ahead of the hydrate, so the ruling has no act left to govern, and keeping the test would pin the defect. **`0172` ruled not workable in 3.0.1** on hv's own 2026-08-30 NARROW, DO NOT BUILD ruling; its reopen condition is unmet.
+- (2026-09-11) **`0153` ruled (a): the shared NotAddressable remedy names only forms every door accepts** (a thread id, or a full thread address). Not a door-aware ladder (it would change hv's 2026-08-31 ladder) and not a surface change. edit's ambiguous-id remedy and its `issue` kind are found-whiles, left in the commit message.
+- (2026-09-11) **`0146` ruled the narrow half.** The AC-04.6 block lifted at f5b602ef. Refuse only a write that leaves a `file` on a non-test row after the call, judging this call's write and no prior state, once in the Facade path shared by `at edit` and `set`. `--prose` on test rows stays (in deliberate use). No lint rule: the census found 21 live rows across 4 estates, mostly `[n/a` migration residue.
