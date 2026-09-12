@@ -92,16 +92,16 @@ pub fn stamp_of(path: &Path) -> Option<Stamp> {
 /// from a hash taken now would claim the file had been indexed at that content
 /// when nothing had indexed it at all.
 ///
-/// `views` is every path the renderer produces for this project and `canon_dir`
+/// `carried` is every path the store already carries prose for and `canon_dir`
 /// is the extract's directory; both are the caller's to supply, so this can be
 /// driven without a store.
 pub fn survey(
   root: &Path,
-  views: &[std::path::PathBuf],
+  carried: &[std::path::PathBuf],
   canon_dir: &Path,
   max_bytes: u64,
 ) -> Result<Vec<Row>, SyncError> {
-  rows_under(root, None, views, canon_dir, max_bytes)
+  rows_under(root, None, carried, canon_dir, max_bytes)
 }
 
 /// What an event under `under` changes about the index, against the rows the
@@ -128,11 +128,11 @@ pub fn changed_under(
   root: &Path,
   under: Option<&Path>,
   previous: &[Row],
-  views: &[std::path::PathBuf],
+  carried: &[std::path::PathBuf],
   canon_dir: &Path,
   max_bytes: u64,
 ) -> Result<Change, SyncError> {
-  let seen = rows_under(root, under, views, canon_dir, max_bytes)?;
+  let seen = rows_under(root, under, carried, canon_dir, max_bytes)?;
   let mut upserts = Vec::new();
   for mut row in seen {
     let before = previous.iter().find(|p| p.path == row.path);
@@ -189,7 +189,7 @@ fn names(root: &Path, under: Option<&Path>, path: &Path) -> bool {
 fn rows_under(
   root: &Path,
   under: Option<&Path>,
-  views: &[std::path::PathBuf],
+  carried: &[std::path::PathBuf],
   canon_dir: &Path,
   max_bytes: u64,
 ) -> Result<Vec<Row>, SyncError> {
@@ -199,7 +199,7 @@ fn rows_under(
     if !names(root, under, &path) {
       continue;
     }
-    let Some(corpus) = corpus_of(&path, views, canon_dir) else {
+    let Some(corpus) = corpus_of(&path, carried, canon_dir) else {
       continue;
     };
     // **A PATH THAT CANNOT BE STAT'D IS STILL A ROW.** It is in scope, so the

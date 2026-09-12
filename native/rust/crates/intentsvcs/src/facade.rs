@@ -4005,30 +4005,22 @@ impl Facade {
 
   /// Every file a thread carries, whether or not it is on disk, sorted.
   ///
-  /// Asked of the two owners of the answer: `views::render_all` is THE
-  /// renderer and says which views exist for this artefact; canon's
-  /// `attachments` is THE store's own list. Neither is a restatement of what an
-  /// artefact owns -- both are the authority for their half, filtered to this
-  /// artefact's directory. A pure read, so `edit` can refuse on it before
-  /// `hydrate` writes anything (0145).
+  /// **ONE EXPRESSION, FILTERED** -- [`Facade::carried_paths`] asks the two
+  /// owners of the answer for the whole estate (`views::render_all` is THE
+  /// renderer; canon's `attachments` is THE store's own list), and this is that
+  /// set narrowed to one artefact's directory. It used to ask them a second
+  /// time here, which is two homes for "what files does this artefact have" and
+  /// the index's own scope now reads the same answer. A pure read, so `edit`
+  /// can refuse on it before `hydrate` writes anything (0145).
   fn carried(&self, id: &str) -> Result<Vec<std::path::PathBuf>, FacadeError> {
     let home = self.project.thread_dir(id);
-    let mut owned: Vec<std::path::PathBuf> = {
-      let ctx = self.render_ctx()?;
-      views::render_all(&self.project, &self.canon, &ctx)
+    Ok(
+      self
+        .carried_paths()?
         .into_iter()
-        .map(|v| v.path)
         .filter(|p| p.starts_with(&home))
-        .collect()
-    };
-    if let Some(thread) = self.canon.threads.iter().find(|t| t.id == id) {
-      for attachment in &thread.attachments {
-        owned.push(home.join(&attachment.path));
-      }
-    }
-    owned.sort();
-    owned.dedup();
-    Ok(owned)
+        .collect(),
+    )
   }
 
   /// [`Facade::hydrate`], with which of its paths THIS CALL WROTE (0083).
@@ -5621,20 +5613,38 @@ impl Facade {
     )
   }
 
-  /// Every path the renderer produces for this project.
+  /// Every path the store already carries prose for, sorted.
   ///
-  /// The index excludes the store's own projections by ASKING THE RENDERER
-  /// rather than by matching a path shape, which is what makes a view kind
-  /// added later excluded on the day it is first rendered, with nothing to
-  /// remember. [`Facade::carried`] asks the same question about one thread.
-  fn view_paths(&self) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+  /// The index excludes the store's own prose by ASKING THE TWO AUTHORITIES
+  /// rather than by matching a path shape: `views::render_all` says which views
+  /// exist, and canon's attachment rows say which authored documents the store
+  /// carries. So a view kind added later, or a newly attached document, is
+  /// excluded on the day it first exists and there is nothing to remember.
+  ///
+  /// **THE ATTACHMENTS ARE HERE BECAUSE A PROJECTION IS NOT THE WHOLE SET**
+  /// (issue 0304). A thread's `design.md` is authored, so it is not a view, and
+  /// the store carries it anyway -- which is the fact that decides whether the
+  /// disk corpus should hold it. When it was only the views, one document
+  /// realised on disk answered a search twice, once as `file` and once as
+  /// `thread`.
+  ///
+  /// [`Facade::carried`] is this same answer filtered to one thread, and reads
+  /// it from here rather than asking the two authorities a second time.
+  fn carried_paths(&self) -> Result<Vec<std::path::PathBuf>, FacadeError> {
     let ctx = self.render_ctx()?;
-    Ok(
-      views::render_all(&self.project, &self.canon, &ctx)
-        .into_iter()
-        .map(|v| v.path)
-        .collect(),
-    )
+    let mut paths: Vec<std::path::PathBuf> = views::render_all(&self.project, &self.canon, &ctx)
+      .into_iter()
+      .map(|v| v.path)
+      .collect();
+    for thread in &self.canon.threads {
+      let home = self.project.thread_dir(&thread.id);
+      for attachment in &thread.attachments {
+        paths.push(home.join(&attachment.path));
+      }
+    }
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
   }
 
   /// Walk the index's scope and record what it holds and what it does not.
@@ -5645,10 +5655,10 @@ impl Facade {
   /// So this answers "what is in scope, and what will never be held, and why",
   /// which is what `intent index status` reports and what AC-18.2 requires.
   pub fn index_rebuild(&mut self) -> Result<crate::index::status::Status, FacadeError> {
-    let views = self.view_paths()?;
+    let carried = self.carried_paths()?;
     let rows = crate::index::reconcile::survey(
       self.project.root(),
-      &views,
+      &carried,
       &self.canon_dir(),
       // **THE PROJECT'S CAP, NOT THE CONSTANT.** The default is a measurement
       // of one estate's own tree; a project whose documents are larger is not
@@ -5731,13 +5741,13 @@ impl Facade {
     &mut self,
     under: Option<&std::path::Path>,
   ) -> Result<crate::index::Refreshed, FacadeError> {
-    let views = self.view_paths()?;
+    let carried = self.carried_paths()?;
     let previous = self.store.index_files().map_err(FacadeError::Store)?;
     let change = crate::index::reconcile::changed_under(
       self.project.root(),
       under,
       &previous,
-      &views,
+      &carried,
       &self.canon_dir(),
       self.project.config().index.max_file_bytes,
     )

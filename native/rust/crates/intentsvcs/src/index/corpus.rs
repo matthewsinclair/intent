@@ -19,12 +19,32 @@
 //!
 //! # What is NOT in the disk corpus, and why it is a rule rather than a path
 //!
-//! The store's own projections -- the rendered views under `intent/st/**` and
-//! the canon extract under `intent/.canon/**` -- are the store's prose seen
-//! twice. Indexing them returns every entity hit beside its own rendering.
-//! **The views are identified by asking the renderer**, not by matching a path
-//! shape, so a view kind added later is excluded on the day it is first
-//! rendered and there is nothing to remember.
+//! **EVERY DOCUMENT THE STORE ALREADY CARRIES PROSE FOR IS OUT**, because the
+//! store indexes it once from its own rows and a second copy on disk is the
+//! same bytes answering twice. That is the canon extract under
+//! `intent/.canon/**`, the rendered views under `intent/st/**`, and the
+//! authored documents the store carries as attachments -- a thread's
+//! `design.md`, `impl.md` and `tasks.md`.
+//!
+//! **THE EXCLUSION WAS THE PROJECTIONS ONLY AND THAT WAS NOT WIDE ENOUGH**
+//! (issue 0304). A view is a projection: the renderer produces it, so nobody
+//! authored it and excluding it loses nothing. An attachment is AUTHORED, so it
+//! is not a view -- and the store carries it anyway, which is the fact that
+//! decides the question. Neither corpus was wrong about its own scope; the
+//! overlap was between the two scopes and belonged to neither, so one document
+//! realised on disk answered a search twice, once as `file` and once as
+//! `thread`, same path and same line.
+//!
+//! **THE SET IS OBTAINED BY ASKING THE TWO AUTHORITIES**, not by matching a
+//! path shape: the renderer says which views exist, canon's attachment rows say
+//! which documents it carries. So a view kind added later, or a newly attached
+//! document, is excluded on the day it first exists and there is nothing to
+//! remember.
+//!
+//! **AND THE ANSWER IS NOT WHERE SCOPE IS DECIDED.** The other shape available
+//! was to let the corpora overlap and dedupe the doubled row at the answer;
+//! ruled against, because a search that has to remember not to say one thing
+//! twice is a search whose scope nobody can state.
 
 use std::path::Path;
 
@@ -109,13 +129,15 @@ fn is_prose(path: &Path) -> bool {
 /// Which corpus this path joins, or `None` when it is not in the disk corpus at
 /// all.
 ///
-/// `views` is every path the renderer produces for this project, which is how
-/// the store's projections are excluded by rule. `canon_dir` is the extract's
-/// own directory.
-pub fn corpus_of(path: &Path, views: &[std::path::PathBuf], canon_dir: &Path) -> Option<Corpus> {
-  // **THE PROJECTIONS COME FIRST**, because a rendered view is also markdown
-  // and would otherwise be classified as prose by the arm below it.
-  if path.starts_with(canon_dir) || views.iter().any(|v| v == path) {
+/// `carried` is every path the store already carries prose for -- the renderer's
+/// views and the documents attached to a thread -- which is how the store's own
+/// prose is excluded by rule rather than by path shape. `canon_dir` is the
+/// extract's own directory.
+pub fn corpus_of(path: &Path, carried: &[std::path::PathBuf], canon_dir: &Path) -> Option<Corpus> {
+  // **WHAT THE STORE CARRIES COMES FIRST**, because a rendered view and an
+  // attached document are both markdown and would otherwise be classified as
+  // prose by the arm below it.
+  if path.starts_with(canon_dir) || carried.iter().any(|v| v == path) {
     return None;
   }
   if is_prose(path) {

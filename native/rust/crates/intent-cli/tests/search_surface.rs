@@ -571,3 +571,57 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     "the indexed bytes are gone, so the hit keeps its file and loses its line: {hits:?}"
   );
 }
+
+/// **A DOCUMENT THE STORE CARRIES ANSWERS ONCE, AS THE STORE'S** (issue 0304).
+///
+/// The reproduction dc filed: a thread's `design.md` is realised on disk AND
+/// carried by the store as an attachment, so before the fix one phrase on one
+/// line came back twice -- `file` from the disk prose corpus and `thread` from
+/// the store's doc sections, same path, same line, differing only in kind.
+///
+/// **NO `--no-reconcile` HERE, AND THAT IS THE POINT.** Since WP-22 a
+/// daemonless query reconciles before it answers, which is what made the
+/// doubling visible by default rather than only under an explicit rebuild. The
+/// sibling arm above flags OUT of the reconcile to stay on 0195; this one flags
+/// into it, because the reconcile is the thing under test.
+#[test]
+fn a_document_the_store_carries_is_not_indexed_again_from_the_disk() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  let design = root.join("intent/st/ST0001/design.md");
+  std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
+  std::fs::write(
+    &design,
+    "# Notes\n\n## Detail\n\nThe kestrel combinator returns its first argument.\n",
+  )
+  .expect("author prose");
+  // **THE CONTROL, and it is what makes the assertion above mean anything.**
+  // Prose the store does NOT carry must stay in the disk corpus, or the fix
+  // would be "stop indexing markdown" wearing the fix's name. It lives outside
+  // any thread directory because EVERY non-view file under one is an
+  // attachment -- see `Project::classify` -- so a sibling `notes.md` would be
+  // carried too and would prove nothing.
+  let note = root.join("docs/design/note.md");
+  std::fs::create_dir_all(note.parent().expect("a docs dir")).expect("mkdir docs");
+  std::fs::write(&note, "# Note\n\nThe pelican is not in the store.\n").expect("author a note");
+  restore_from_disk(root);
+
+  let hits = ok(root, &["search", "kestrel"]);
+  let rows: Vec<&str> = hits.lines().collect();
+  assert_eq!(
+    rows.len(),
+    1,
+    "a document the store carries is ONE row, not one per corpus: {hits:?}"
+  );
+  assert!(
+    rows[0].contains("  thread  "),
+    "and the row is the store's, which is the one that knows what owns it: {hits:?}"
+  );
+
+  let hits = ok(root, &["search", "pelican"]);
+  assert!(
+    hits.starts_with("docs/design/note.md:") && hits.contains("  file  "),
+    "prose the store does not carry is still the disk corpus's to answer: {hits:?}"
+  );
+}
