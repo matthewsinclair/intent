@@ -16,6 +16,7 @@ use intentsvcs::index::symbols::{Span, Symbol, SymbolKind};
 use intentsvcs::search::{HitKind, SearchQuery, Tier};
 use intentsvcs::store::Store;
 
+/// AT-20.3.
 #[test]
 fn a_definition_is_answered_by_name_from_the_store() {
   let fx = Fixture::new();
@@ -90,6 +91,11 @@ fn a_definition_is_answered_by_name_from_the_store() {
   );
 }
 
+/// AT-20.1, the first half: the hits exist for a language the project declares.
+/// The second half -- a language absent from the array parses nothing -- is
+/// ic's arm, and the row's note names it, because one criterion answered in two
+/// files is one record or it is neither.
+///
 /// **GATED, BECAUSE EVERY GRAMMAR IS OFF UNTIL hv RULES THE SIZE LINE.** Run
 /// with `--features lang-rust`; in a build without it there is no grammar and
 /// the claim is not one this binary can make.
