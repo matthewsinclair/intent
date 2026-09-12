@@ -206,6 +206,22 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        `Names` rather than `Invokes` despite being the entrance to the whole gate.",
     ),
   ),
+  (
+    "hooks/pre-commit-shim.sh",
+    "bootstrap",
+    Policy::Names(
+      "**THE REMEDY ON THE FIRST OF THE THREE REFUSALS, AND IT IS NAMED PRECISELY BECAUSE IT CANNOT BE \
+       CALLED.** With `~/.intent/home` absent or empty the shim says to run `intent bootstrap` and \
+       re-commit: that pointer is written by `install::publish_home` and by nothing else, so its absence \
+       means this machine has never run bootstrap rather than that Intent is missing -- and the message \
+       used to leave the operator to guess which. **Invoking it here is not an option that was passed \
+       over.** The shim has no resolved install root to find a binary in, and that is the very condition \
+       it is reporting; reaching for PATH instead would be the fallback chain the row above says the \
+       shim exists to remove rather than relocate. So no call is made and there is no exit code to have \
+       a policy about. The same sentence reaches the other audience as the generated formula's caveat, \
+       which a fresh keg gets BEFORE a commit is attempted; this one arrives after one has been.",
+    ),
+  ),
 ];
 
 /// The shipped canon: what a consumer project receives.
