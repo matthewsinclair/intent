@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 14:56Z
+heartbeat_at: 2026-09-12 15:02Z
 status: active
 focus: "BOOTED ON THE BOUNCE and HOLDING. ST0069's ic lane is COMPLETE: WP-19 and WP-21 closed; WP-20's pure half and every ic criterion of WP-24 landed; the surface driven end to end and its four findings closed. The quiet window is OPEN -- no builds, tests or drives. Two items queued, both on vc's signal: the release note's follow-up commit when dc's WP-22 and hook land, and the post-tag reference regeneration."
 claims: []
@@ -23,7 +23,7 @@ claims: []
 
 **The batched reference regeneration.** ONE run, both halves keyed to v3.0.2, AFTER the tag exists. `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`, which is keyed to the TAG. **The signal is vc's.** Collected so far: cc's batch 2 (printed output only), cc's organize preview lines, dc's single-line `claude upgrade --force` help change, and this session's surface changes -- the `search` row's six new flags, the `index` family, `when_to_use` on two rows. On the pages' own contract (per-verb help and arguments, no output lines, no per-verb exit tables) none of it forces a regeneration; the one run re-keys everything anyway.
 
-**The v3.0.2 release note's follow-up commit -- ONE commit, waiting on TWO shas.** `docs/releases/3.0.2/RELEASE_NOTES.md` is banked at `ccde094e1`; WP-22's three Added paragraphs and the rewritten Upgrading are WRITTEN AND HELD UNCOMMITTED in the working tree, from dc's landed `e809eea8f`. Still to write, each from its own landed code: **dc's PostToolUse hook** (paragraph) and **cc's issue 0304 fix** (an entry under Fixed -- shape (a), the disk corpus excluding every document the store carries, written from cc's own CHANGELOG line). vc names both shas. Then all of it lands as one commit before the rehearsal's HEAD. **Read the landed code for the wording, never a summary** -- the Upgrading paragraph this replaces existed because the CLI arm did not reconcile, which only reading the callers showed. `known-defects.md` is NOT touched for 0304: nobody drove it on the keg, and that page is the driven record for 3.0.1.
+**The v3.0.2 release note's follow-up commit -- ONE commit, waiting on TWO shas.** `docs/releases/3.0.2/RELEASE_NOTES.md` is banked at `ccde094e1`; WP-22's three Added paragraphs and the rewritten Upgrading are WRITTEN AND HELD UNCOMMITTED in the working tree, from dc's landed `e809eea8f`. Still to write, each from its own landed code: **dc's PostToolUse hook** (paragraph); **cc's issue 0304 fix** (an entry under Fixed -- shape (a) keeps the STORE's hit, so a document the store carries answers once as `kind: thread` and the disk corpus no longer holds it; confirm against cc's landed arm); and **one line in `intent/st/ST0069/design.md` pinning AC-24.6's predicate to its exact home and function name** once dc's hook makes both real (vc, 2026-09-12) -- that one carries its canon with it, as `4c5a220e8` did. vc names both shas. Then all of it lands as one commit before the rehearsal's HEAD. **Read the landed code for the wording, never a summary** -- the Upgrading paragraph this replaces existed because the CLI arm did not reconcile, which only reading the callers showed. `known-defects.md` is NOT touched for 0304: nobody drove it on the keg, and that page is the driven record for 3.0.1.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
