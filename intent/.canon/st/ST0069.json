@@ -701,6 +701,42 @@
       ],
       "status": "green",
       "note": "A capped read reports matched and returned and truncated in the envelope, and the terminal rendering says the same on stderr."
+    },
+    {
+      "id": "AT-19.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs",
+      "covers": [
+        "AC-19.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-19.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_search_tool_and_json_are_one_envelope.rs",
+      "covers": [
+        "AC-19.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-19.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs",
+      "covers": [
+        "AC-19.3"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-19.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs",
+      "covers": [
+        "AC-19.5"
+      ],
+      "status": "green"
     }
   ],
   "attachments": [
