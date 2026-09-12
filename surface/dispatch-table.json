@@ -5864,9 +5864,9 @@
                 "--skip-settings"
               ],
               "type": "bool",
-              "help": "Leave .claude/settings.json alone, so no Claude Code session hooks are wired",
+              "help": "Leave the Claude Code harness wiring alone -- .claude/settings.json and .mcp.json -- so no session hooks are wired and no MCP server is declared",
               "disposition": "keep",
-              "disposition_basis": "Restored 2026-09-11 for issue 0143 (v3.0.1 list #53). v2 shipped it (intent_claude_upgrade:74, :118, :856-860) as the single escape hatch for a project that does not want Claude Code lifecycle hooks, and nothing recorded dropping it at port time as a decision. In v2 it gated .claude/settings.json and the three per-project hook scripts; v3 writes no per-project hook scripts (their bodies are served from the install), so here it declines the settings file only, and reports it as skipped rather than leaving it unmentioned."
+              "disposition_basis": "Restored 2026-09-11 for issue 0143 (v3.0.1 list #53). v2 shipped it (intent_claude_upgrade:74, :118, :856-860) as the single escape hatch for a project that does not want Claude Code lifecycle hooks, and nothing recorded dropping it at port time as a decision. In v2 it gated .claude/settings.json and the three per-project hook scripts; v3 writes no per-project hook scripts (their bodies are served from the install), so here it declines the settings file only, and reports it as skipped rather than leaving it unmentioned. WIDENED 2026-09-12 (AC-24.1, vc's ruling): it declines .mcp.json too. ONE FLAG FOR THE HARNESS-WIRING CLASS, because both files exist only to wire Claude Code, and a project that declines the lifecycle hooks and then finds an MCP server declared in its editor anyway has been told no by a flag that only half meant it. Seeded-when-absent is not a way to decline either: deleting the file only means the next --apply seeds it again, so without this flag there is no way to say no at all. Both paths are named on the run's skipped line."
             }
           ],
           "v2": "bin/intent claude arm",

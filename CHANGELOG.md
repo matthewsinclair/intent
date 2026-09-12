@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed, and the defects that audit found are being fixed. What is fixed is below; [Known defects](docs/known-defects.md) carries what is not, and says which release fixed the rest.
 
+### Added
+
+- **`intent claude upgrade --apply` declares Intent's MCP server to Claude Code.** A `.mcp.json` naming `intent mcp` is seeded when the project has none, so a session reaches the tools without anyone configuring it. A project that already has one keeps it untouched, including under `--force`, and `--skip-settings` now declines this file as well as `.claude/settings.json` -- one flag for the wiring Claude Code reads, because deleting a seeded file is not a way to decline it when the next run seeds it again.
+
 ### Changed
 
 - **The documentation says what v3.0.1 does.** The README, the install, migration and known-defects pages, the command reference, the concept pages, the guides under `intent/docs/`, the skills, the subagents, the rule library, and the comments in the release scripts, the workflows and the menubar app were each measured against the build and rewritten where they were wrong. Hardcoded counts are gone from all of them: where the tool reports a figure about itself, the page names the command that reports it.

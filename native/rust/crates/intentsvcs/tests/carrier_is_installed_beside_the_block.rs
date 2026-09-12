@@ -319,9 +319,16 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
     after, project_settings,
     "--skip-settings rewrote the project's settings.json"
   );
-  assert_eq!(
-    applied.skipped,
-    vec![settings.clone()],
+  // **MEMBERSHIP, NOT THE WHOLE LIST, BECAUSE THE CLAIM IS ABOUT THIS FILE.**
+  // This asserted `skipped == vec![settings]` until 2026-09-12, when
+  // `--skip-settings` widened to the harness-wiring CLASS and `.mcp.json`
+  // joined the list (AC-24.1, vc's ruling). The test went red on the list's
+  // LENGTH, which it was never about -- the same shape as a test pinning the
+  // sentence around the claim rather than the claim. `.mcp.json`'s own
+  // disposition is asserted in `canon_seeds_the_mcp_declaration_once`, and a
+  // second home for it here would be the duplication this estate refuses.
+  assert!(
+    applied.skipped.contains(&settings),
     "the skip must be reported: {applied:?}"
   );
   assert!(

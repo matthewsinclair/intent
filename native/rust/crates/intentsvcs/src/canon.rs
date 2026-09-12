@@ -15,6 +15,7 @@
 //! - `.claude/settings.json` -- three hooks, every one dispatching the CLI door
 //! - `CLAUDE.md` / `AGENTS.md` -- generated from `lib/templates/llm/_*`
 //! - `usage-rules.md` -- seeded only when absent; user-owned after that
+//! - `.mcp.json` -- seeded only when absent; declares `intent mcp` to Claude Code
 //! - `.git/hooks/pre-commit` -- the chain block, REGION-EDITED
 //! - `.intent_critic.yml` -- seeded only when absent
 //!
@@ -179,7 +180,15 @@ pub struct Options {
   /// marker, `.claude/settings.json` without Intent's hook door, and
   /// `.intent_critic.yml`.
   pub force: bool,
-  /// Leave `.claude/settings.json` alone (issue `0143`).
+  /// Leave the Claude Code harness wiring alone -- `.claude/settings.json`
+  /// (issue `0143`) and `.mcp.json` (AC-24.1).
+  ///
+  /// **ONE FLAG FOR THE CLASS, BECAUSE BOTH FILES EXIST ONLY TO WIRE CLAUDE
+  /// CODE.** A project that declines the lifecycle hooks and then finds an MCP
+  /// server declared in its editor anyway has been told no by a flag that only
+  /// half meant it. And seeded-when-absent is not a way to decline: deleting
+  /// the file only means the next `--apply` seeds it again, so without this
+  /// flag there is no way to say no at all.
   pub skip_settings: bool,
   /// Compute every verdict and write NOTHING -- `claude upgrade` without
   /// `--apply` (issue `0115`). The dry run used to print canon's roster, which
@@ -205,8 +214,8 @@ pub struct Applied {
   /// canon owns the template for these, and held back on consent grounds.
   pub held: Vec<PathBuf>,
   /// Paths the caller told canon not to examine at all -- `.claude/settings.json`
-  /// under `--skip-settings` (issue `0143`). Not `preserved`: nothing here was
-  /// read, so nothing can be said about whose it is.
+  /// (issue `0143`) and `.mcp.json` (AC-24.1) under `--skip-settings`. Not
+  /// `preserved`: nothing here was read, so nothing can be said about whose it is.
   pub skipped: Vec<PathBuf>,
   /// The machine's install pointer as it stood when the carrier was installed;
   /// `None` when no carrier was installed at all.
@@ -461,6 +470,31 @@ pub fn apply(
   } else {
     let settings = template(home, ".claude/settings.json")?;
     write_if_changed(&settings_path, &settings, opts.report, &mut applied)?;
+  }
+
+  // 1b. `.mcp.json`, which declares `intent mcp` to Claude Code (AC-24.1).
+  //
+  //    **SEEDED WHEN ABSENT AND NEVER OVERWRITTEN, THROUGH THE SAME DOOR
+  //    `usage-rules.md` USES.** A project that has hand-edited it -- a second
+  //    server, an env var, a different command -- keeps it, and `--force` does
+  //    NOT reach it: that flag's own help names `CLAUDE.md` and
+  //    `.intent_critic.yml` and stops there.
+  //
+  //    **IT CARRIES NO TOOL LIST, DELIBERATELY.** What is exposed on MCP is the
+  //    register's `exposed_on_mcp` rows; a list here would be a second place
+  //    that decides it, and the register would stop being the answer.
+  let mcp_path = root.join(".mcp.json");
+  if opts.skip_settings {
+    applied.skipped.push(mcp_path);
+  } else {
+    seed_if_absent(
+      home,
+      "_mcp.json",
+      &mcp_path,
+      false,
+      opts.report,
+      &mut applied,
+    )?;
   }
 
   // 2. Generated root files. DELEGATED -- `rootfiles` owns substitution and the
