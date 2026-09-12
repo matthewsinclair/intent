@@ -48,6 +48,28 @@ use super::views;
 pub trait Source: edit::Model {
   fn rows(&mut self, view: &View) -> Vec<Row>;
 
+  /// What the reader must know before trusting the rows just handed over --
+  /// the search pane's freshness line (AC-21.1), and nothing else today.
+  ///
+  /// **ASKED ONLY WHEN THE VIEW CHANGES, so it cannot clobber a command's own
+  /// notice.** It answers about the LAST rows built, which is why it takes the
+  /// view for identification and not as a second question: a source that
+  /// answered by querying again would describe rows nobody is looking at.
+  fn note(&mut self, _view: &View) -> Option<String> {
+    None
+  }
+
+  /// An indexed path, resolved against the project and confirmed present.
+  ///
+  /// **ON THE SOURCE FOR `locate`'s REASON**: the project root and the disk are
+  /// the source's to know, and the default refuses because a source with no
+  /// project genuinely cannot answer.
+  fn file(&mut self, rel: &str) -> Result<std::path::PathBuf, edit::Refused> {
+    Err(edit::Refused::new(format!(
+      "`{rel}` cannot be opened -- this source has no project"
+    )))
+  }
+
   /// Resolve an operator's spelling to a view, or say why not.
   ///
   /// **ON THE SOURCE BECAUSE PRESENCE IS A FACT ONLY THE STORE KNOWS** --
@@ -615,6 +637,29 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       // held anywhere that a failure could strand. The re-read afterwards is
       // still unconditional, for `AC-17.10`'s reason: the editor is the
       // authority on what happened and its own report is not evidence.
+      // **A HIT IS OPENED THROUGH THE SAME LEND AN ARTEFACT IS** (AC-21.2), and
+      // for the same reason: `$EDITOR` holds the real screen until the operator
+      // leaves it, so the explorer hands the terminal over and takes it back.
+      // The re-read afterwards is unconditional, exactly as it is for an
+      // artefact -- the editor is the authority on what happened and its own
+      // report is not evidence.
+      Step::OpenFile(rel) => {
+        match source.file(&rel) {
+          Err(why) => app.notice = why.to_string(),
+          Ok(path) => {
+            let lent = borrowed.lend(|| session.launch(&path));
+            app.notice = match lent {
+              Ok(Ok(())) => format!("{rel} closed"),
+              Ok(Err(why)) => why.to_string(),
+              Err(e) => format!("the terminal would not come back: {e}"),
+            };
+          }
+        }
+        app.child_exited();
+        lent_the_terminal = true;
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+      }
       Step::Open { kind, id, name } => {
         match source.artefact(&kind, &id, &name) {
           Err(why) => app.notice = why.to_string(),
@@ -733,6 +778,13 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     // same class as `AC-17.10`'s stale-model save, one keystroke earlier.
     if *app.stack.current() != was {
       rows = source.rows(app.stack.current());
+      // **THE FRESHNESS LINE ARRIVES WITH THE PANE, WHICH IS THE ONLY MOMENT IT
+      // HELPS** (AC-21.1): the reader decides whether to trust a list before
+      // reading it, not after. Set here and nowhere else, so a command's own
+      // notice -- `st done ST0056 ok` -- is never overwritten by a view's.
+      if let Some(note) = source.note(app.stack.current()) {
+        app.notice = note;
+      }
       app.point_at(rows.len());
       app.notice.clear();
     }

@@ -51,6 +51,7 @@ use crate::form::Loaded;
 /// [`View::Help`].
 pub const SETTINGS_SEGMENT: &str = "settings";
 pub const HELP_SEGMENT: &str = "help";
+pub const SEARCH_SEGMENT: &str = "search";
 
 /// Every segment the entity namespace may not use.
 ///
@@ -58,7 +59,7 @@ pub const HELP_SEGMENT: &str = "help";
 /// A third reserved view added without a row here would be a collision nothing
 /// checks -- which is the whole failure the first reservation was written to
 /// make impossible.
-pub const RESERVED: &[&str] = &[SETTINGS_SEGMENT, HELP_SEGMENT];
+pub const RESERVED: &[&str] = &[SETTINGS_SEGMENT, HELP_SEGMENT, SEARCH_SEGMENT];
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
 /// child.
@@ -131,6 +132,23 @@ pub enum View {
   /// assumption -- a kind named `settings` fails the suite rather than
   /// disappearing from the browser.
   Settings,
+  /// The search results pane: the envelope's hits, resident rather than a
+  /// lent terminal (AC-21.1).
+  ///
+  /// **THE QUERY IS THE REST OF THE PATH, NOT ONE SEGMENT, AND THAT IS WHAT
+  /// MAKES THE ROUND TRIP TOTAL.** Every other view's components are names the
+  /// declaration carries, so a `/` inside one is the defect
+  /// [`View::Child`] exists to prevent. A query is free text an operator typed:
+  /// `render.rs` is a thing people search for, and so is `a/b`. There is no
+  /// structural fix for that -- text is text -- so this arm takes everything
+  /// after the segment verbatim and [`View::path`] puts it back unchanged.
+  /// A query is therefore never rejected for containing a separator, and
+  /// nothing is encoded, which would be a second grammar in a module whose
+  /// whole point is one.
+  ///
+  /// An EMPTY query is the pane before anything was typed, and `/search` is its
+  /// path.
+  Search { query: String },
 }
 
 impl View {
@@ -148,6 +166,8 @@ impl View {
         item,
       } => format!("/{kind}/{id}/{field}/{item}"),
       View::Settings => format!("/{SETTINGS_SEGMENT}"),
+      View::Search { query } if query.is_empty() => format!("/{SEARCH_SEGMENT}"),
+      View::Search { query } => format!("/{SEARCH_SEGMENT}/{query}"),
       View::Help { of: None } => format!("/{HELP_SEGMENT}"),
       View::Help { of: Some(name) } => format!("/{HELP_SEGMENT}/{name}"),
     }
@@ -160,6 +180,21 @@ impl View {
     let trimmed = path.strip_prefix('/')?;
     if trimmed.is_empty() {
       return Some(View::Entities);
+    }
+    // **ANSWERED BEFORE THE SEGMENT SPLIT, because the query is the REST of the
+    // path.** Splitting first and rejecting empty parts -- which the entity
+    // namespace must do -- would refuse `/search/a//b` and `/search/x/`, both
+    // of which are searches somebody typed, and would break the round trip for
+    // exactly the inputs a free-text view exists to carry.
+    if trimmed == SEARCH_SEGMENT {
+      return Some(View::Search {
+        query: String::new(),
+      });
+    }
+    if let Some(query) = trimmed.strip_prefix(&format!("{SEARCH_SEGMENT}/")) {
+      return Some(View::Search {
+        query: query.to_string(),
+      });
     }
     let parts: Vec<&str> = trimmed.split('/').collect();
     if parts.iter().any(|p| p.is_empty()) {

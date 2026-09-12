@@ -2751,70 +2751,18 @@ impl Facade {
     ))
   }
 
-  /// Full-text search across every authored section -- thread prose, issue
-  /// bodies, work-package text (AC-06.4).
-  ///
-  /// **BARE TERMS ARE MATCHED LITERALLY** -- `crate::fts` quotes them, so
-  /// `render.rs`, `AGENTS.md`, `v3.0.1` and `family-root` search for what they
-  /// say rather than reaching FTS5 as column syntax (`0247`). Operators
-  /// (`foo OR bar`), parentheses, quoted phrases, a trailing `*`, a leading
-  /// `^` and the explicit `{col}:` filter all still work.
-  /// A malformed expression comes back as [`FacadeError::BadQuery`] carrying
-  /// SQLite's own complaint in its cause chain: the remedy names the likely
-  /// fix, and the chain still says exactly what happened, so a genuinely
-  /// unhealthy store is not disguised as a typo.
-  pub fn search(&self, query: &str) -> Result<Vec<crate::prose::SearchHit>, FacadeError> {
-    // **THE ONE PLACE THE OPERATOR'S STRING BECOMES AN FTS5 EXPRESSION**
-    // (`0247`). Before this, `family-root` reached FTS5 raw and came back as
-    // `no such column: root` -- a database schema error about a query nobody
-    // wrote. The error's SUBJECT was sqlite's schema rather than the
-    // operator's words.
-    let expression = crate::fts::expression(query);
-    let hits = self.store.search_hits(&expression).map_err(|cause| {
-      if matches!(cause, StoreError::Sqlite(_)) {
-        FacadeError::BadQuery {
-          query: query.to_string(),
-          cause,
-        }
-      } else {
-        FacadeError::Store(cause)
-      }
-    })?;
-    // **A LINE ONLY WHERE THE INDEXED BODY IS THE FILE, CHECKED PER HIT**
-    // (issue 0195). The engine gave the match's offset in the BODY; that is a
-    // line in the FILE only when the two are the same bytes. It holds for an
-    // attachment at the moment it is carried, since both carry doors decode
-    // the file's bytes unchanged, and it stops holding the moment the file is
-    // edited without a carry. It never holds for canon JSON. So it is
-    // compared rather than assumed, and a file that cannot be read gets no
-    // line: the row still names the file, and a wrong line would be believed.
-    Ok(
-      hits
-        .into_iter()
-        .map(|row| {
-          let (section, at) = (row.section, row.at);
-          let line = at
-            .filter(|_| {
-              std::fs::read(self.project.root().join(&section.file))
-                .is_ok_and(|bytes| bytes == section.body.as_bytes())
-            })
-            .map(|at| section.body[..at].matches('\n').count() as u32 + 1);
-          crate::prose::SearchHit { section, line }
-        })
-        .collect(),
-    )
-  }
-
   /// `intent search <query>` -- the whole answer: hits grouped by tier, the
   /// index's freshness, and both denominators (AC-19.1, AC-19.2, AC-19.3,
   /// AC-19.5).
   ///
   /// **ONE CALL, AND EVERY SURFACE RENDERS WHAT IT RETURNS.** The terminal,
   /// `--json`, the MCP tool and the explorer's pane differ in how they DRAW
-  /// this value and in nothing else. [`Self::search`] survives beside it as
-  /// the flat section list the TUI's existing pane reads; it is the same rows
-  /// through a narrower door, and it is the one that goes when WP-21 moves the
-  /// pane onto the envelope.
+  /// this value and in nothing else. **It is the ONLY search door on the
+  /// facade**: the flat section list that used to sit beside it, and the
+  /// section COUNT that told a caller whether an empty result meant anything,
+  /// both went with WP-21 when the explorer's pane moved onto this envelope --
+  /// the count because `index.corpora` already carries it, and the list because
+  /// two doors onto one question is how two surfaces come to disagree.
   ///
   /// **THE ONLY TIER TODAY IS LEXICAL, AND IT IS STILL A GROUP.** WP-20's
   /// structural tier is a new group and moves nothing here; cc's source corpus
@@ -2954,18 +2902,6 @@ impl Facade {
       .count() as u32
       + 1;
     Located::At(line)
-  }
-
-  /// How many prose sections the index holds -- the question that makes an
-  /// empty search result interpretable.
-  ///
-  /// **A search over an unpopulated index returns exactly what a genuine miss
-  /// returns**, so a caller reading zero hits cannot tell "the phrase is not
-  /// there" from "nothing has been indexed, so the question was never asked"
-  /// (AC-06.4). Every caller that reports an empty result to a human owes them
-  /// that distinction, and it cannot be derived from the result itself.
-  pub fn prose_sections_indexed(&self) -> Result<usize, FacadeError> {
-    self.store.doc_section_count().map_err(FacadeError::Store)
   }
 
   /// `intent agents generate` -- render `AGENTS.md` from current project

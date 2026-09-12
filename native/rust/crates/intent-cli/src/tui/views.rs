@@ -122,7 +122,121 @@ pub fn app_line(view: &View) -> String {
     View::Settings => format!("settings  {}", intentsvcs::settings::SECTION),
     View::Help { of: None } => "help".to_string(),
     View::Help { of: Some(name) } => format!("help  intent {name}"),
+    View::Search { query } if query.is_empty() => "search".to_string(),
+    View::Search { query } => format!("search  {query}"),
   }
+}
+
+/// The envelope's hits as rows, groups separated by a rule (AC-21.1).
+///
+/// **THE ROWS ARE THE ENVELOPE'S, NOT A SECOND SHAPE READ OUT OF THE STORE.**
+/// This is the same value `--json` prints and the MCP tool answers, mapped once
+/// -- so a hit the CLI shows and a hit the pane shows cannot differ, which is
+/// what `AC-21.3` asks for and what a pane building its own query would break
+/// on its first divergence.
+///
+/// **A FILE HIT GETS NO DOOR AND THAT IS NOT AN OMISSION.** `door` is where
+/// Enter DESCENDS inside the model; a file is opened in the operator's editor
+/// through the lent terminal, which is an ACT rather than a descent, and the
+/// loop routes it by the row's kind. Giving it a door would send Enter into a
+/// view of an entity that does not exist.
+pub fn search_rows(answer: &intentsvcs::search::SearchAnswer) -> Vec<Row> {
+  let _ = &answer.index;
+  let mut rows: Vec<Row> = Vec::new();
+  for group in &answer.groups {
+    // **A RULE SEPARATING NOTHING FROM SOMETHING IS DECORATION** -- the rule
+    // this module already states for the thread collection's open/closed seam.
+    if !rows.is_empty() && !group.hits.is_empty() {
+      rows.push(Row::rule());
+    }
+    for hit in &group.hits {
+      let place = match &hit.span {
+        Some(span) => format!("{}:{}", hit.path, span.start_line),
+        None => hit.path.clone(),
+      };
+      // **THE NAME IS THE BARE PATH AND THE TITLE CARRIES THE LINE.** `name` is
+      // what the row is ACTED ON under -- the loop opens it -- and `path:12` is
+      // not a file anything can open; `title` is what the operator READS, and a
+      // hit without its line is a hit they have to go hunting in.
+      //
+      // **THE ROW'S KIND IS `button`, NOT THE HIT'S KIND, AND THE DESIGN SAYS
+      // `{type: kind}`.** The divergence is deliberate and was found by driving:
+      // in this estate a row's `kind` is the MODE MACHINE's discriminator, a
+      // widget name -- `super::mode::BY_ROW_KIND` routes Enter by it, and a kind
+      // it does not know takes the unclaimed arm, which for Enter is FIELD. A
+      // hit carrying `thread` as its kind therefore opened an EDITOR over a
+      // search result. The taxonomy travels where a reader can use it, in the
+      // value; the widget stays a widget, which is what keeps one meaning in one
+      // field.
+      let mut row = Row::named(
+        hit.path.clone(),
+        place,
+        format!("{}  {}", hit.kind.as_str(), hit.snippet),
+        "button",
+      );
+      row.door = door_for(hit);
+      rows.push(row);
+    }
+  }
+  rows
+}
+
+/// What the reader must know before trusting these rows, or `None` when there
+/// is nothing to say (AC-21.1, AC-19.3).
+///
+/// **IT GOES TO THE INFO ROW RATHER THAN INTO THE BODY**, which is what the
+/// layout's own section list asks for: INFO is *help for whatever is under the
+/// cursor* and a notice takes it. A freshness row inside the body would be a
+/// row the cursor can land on and Enter cannot open -- and it would shift every
+/// hit down by one, so the first thing the eye lands on would not be the best
+/// match.
+///
+/// **AN EMPTY CORPUS IS SAID DIFFERENTLY FROM AN INCOMPLETE ONE**, because they
+/// are different facts and the estate's dominant defect is reading the first as
+/// a miss.
+pub fn freshness_note(answer: &intentsvcs::search::SearchAnswer) -> Option<String> {
+  if answer.index.is_empty() {
+    return Some(
+      "nothing is indexed, so this search could not have matched -- an empty result does NOT mean the phrase is absent"
+        .to_string(),
+    );
+  }
+  if answer.index.complete() {
+    return None;
+  }
+  let stale = answer.index.stale.len();
+  let skipped = answer.index.skipped.len();
+  Some(match (stale, skipped) {
+    (0, n) => format!("{n} path(s) in scope were not indexed -- this answer is partial"),
+    (n, 0) => format!("{n} file(s) changed since they were indexed -- their hits carry no line"),
+    (n, m) => format!("{n} file(s) moved on and {m} were not indexed -- this answer is partial"),
+  })
+}
+
+/// Where Enter on a hit lands, when it lands inside the model (AC-21.2).
+///
+/// **THE ADDRESS COMES FROM THE ENTITY VOCABULARY, NOT FROM THE PATH.** A hit
+/// carries the FILE its prose lives in, and for a canon section that file is
+/// `thread.json` -- a path no view addresses. The entity's own kind and id are
+/// what `nav` addresses, so they are what this reads; anything it cannot place
+/// in the model gets no door and is opened as a file instead.
+fn door_for(hit: &intentsvcs::search::Hit) -> Option<View> {
+  use intentsvcs::search::HitKind;
+  let id = hit.owner.as_deref()?;
+  let kind = match hit.kind {
+    HitKind::Thread => "thread",
+    HitKind::Issue => "issue",
+    // **A WORK PACKAGE IS ADDRESSED BY TWO COMPONENTS AND A HIT CARRIES ONE
+    // STRING**, which is the exact collision `View::Child` was built for. The
+    // owner id of a wp section is not split here on a guess: until the envelope
+    // carries the pair, a wp hit opens as a file, which is true rather than
+    // nearly right.
+    _ => return None,
+  };
+  Some(View::Item {
+    kind: kind.to_string(),
+    id: id.to_string(),
+  })
 }
 
 #[cfg(test)]

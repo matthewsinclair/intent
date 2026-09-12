@@ -4017,6 +4017,7 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
       declaration: intentsvcs::form::Loaded::load()
         .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
       table: crate::dispatch::table(),
+      note: None,
     })
   }) {
     tui::progress::Outcome::Cancelled => return Ok(()),
@@ -4133,6 +4134,11 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // `intentsvcs::settings::read_all`. Answering `false` here would refuse the
     // one screen that tells the operator what is in force.
     View::Settings | View::Help { .. } => true,
+    // **THE SEARCH PANE IS ALWAYS PRESENT, AND AN EMPTY RESULT IS NOT AN ABSENT
+    // VIEW.** Answering `false` for a query that matches nothing would send the
+    // operator back to the root with no way to see that the search ran -- which
+    // is the silent-empty defect wearing navigation's clothes.
+    View::Search { .. } => true,
     // **A `Child`'s PARENT is what this answers, and the child item's own
     // existence is answered one layer down, DELIBERATELY.** `present` has the
     // facade and not the declaration, so asking whether WP-17 is in
@@ -4162,6 +4168,14 @@ struct Live {
   /// attachments could never have offered the operator the thing the criterion
   /// requires them to be refused for.
   table: crate::dispatch::Table,
+  /// The freshness line for the rows most recently built, or `None`.
+  ///
+  /// **CACHED RATHER THAN ASKED AGAIN, AND THE REASON IS NOT SPEED.** A second
+  /// `search_all` for the same query would be a second answer, and the two can
+  /// differ -- a file edited between them is enough. The note the operator reads
+  /// must describe the rows on their screen, so it is taken from the SAME
+  /// answer those rows were built from.
+  note: Option<String>,
 }
 
 /// Which composer keymap the operator has declared.
@@ -4198,7 +4212,51 @@ fn config_path() -> Result<std::path::PathBuf, tui::edit::Refused> {
 
 impl tui::run::Source for Live {
   fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
+    // **THE SEARCH ARM IS ANSWERED HERE RATHER THAN IN `rows_for` BECAUSE IT
+    // PRODUCES TWO THINGS** -- the rows and what the reader must know about
+    // them -- and `rows_for` is a pure map from a view to rows for every other
+    // view. One call, both outputs, no second query to disagree with the first.
+    if let intentsvcs::nav::View::Search { query } = view {
+      return match self
+        .facade
+        .search_all(query, &intentsvcs::search::SearchQuery::default())
+      {
+        Ok(answer) => {
+          self.note = tui::views::freshness_note(&answer);
+          tui::views::search_rows(&answer)
+        }
+        Err(why) => {
+          self.note = None;
+          vec![tui::layout::Row::new("search", why.to_string(), "label")]
+        }
+      };
+    }
+    self.note = None;
     rows_for(&self.facade, &self.declaration, &self.table, view)
+  }
+
+  /// What the reader must know before trusting the rows just handed over.
+  fn note(&mut self, _view: &intentsvcs::nav::View) -> Option<String> {
+    self.note.clone()
+  }
+
+  /// An indexed path, resolved against this project and confirmed to be there
+  /// (AC-21.2).
+  ///
+  /// **A HIT WHOSE FILE IS GONE IS REFUSED RATHER THAN LAUNCHED.** The index
+  /// records what it read, and canon realises lazily, so a path in a hit is not
+  /// a promise that a file is on the disk now. Handing `$EDITOR` a path that is
+  /// not there would open an empty buffer the operator could then SAVE -- a
+  /// search result that creates a file is the worst possible answer.
+  fn file(&mut self, rel: &str) -> Result<std::path::PathBuf, tui::edit::Refused> {
+    let path = self.facade.project().root().join(rel);
+    if path.is_file() {
+      Ok(path)
+    } else {
+      Err(tui::edit::Refused::new(format!(
+        "{rel} is indexed but not on the disk -- `intent organize --apply` realises what canon holds"
+      )))
+    }
   }
 
   /// The one resolver, presence-probed against this store (`AC-06.12`).
@@ -4455,6 +4513,18 @@ fn rows_for(
     // Neither the facade nor the store is consulted: help is a fact about the
     // PROGRAM, not about the model. The keymap is read because the vi section
     // must not be shown to an operator who cannot use it.
+    // **THE PANE CALLS THE SAME FACADE METHOD THE CLI AND THE MCP TOOL CALL**
+    // (AC-21.3). Nothing here filters, ranks or re-shapes: the envelope is the
+    // answer and this maps it to rows once.
+    View::Search { query } => {
+      match facade.search_all(query, &intentsvcs::search::SearchQuery::default()) {
+        Ok(answer) => tui::views::search_rows(&answer),
+        // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY PANE**
+        // (`tui-design.md` section 8): a malformed query would otherwise paint
+        // exactly what a genuine miss paints.
+        Err(why) => vec![Row::new("search", format!("{why}"), "label")],
+      }
+    }
     View::Help { of } => tui::help::rows(
       keymap_in_force(),
       &crate::spine::build(table),

@@ -97,6 +97,15 @@ pub enum Step {
     path: String,
     value: String,
   },
+  /// Open an indexed FILE a search hit names (AC-21.2).
+  ///
+  /// **ITS OWN VARIANT RATHER THAN [`Step::Open`], because the subject is a PATH
+  /// and not an artefact of an entity.** `Open` asks the source for the file of
+  /// `(kind, id, name)` and is refused for a generated view; a hit's path is
+  /// already the answer and the entity it belongs to may not be addressable at
+  /// all -- a markdown file on disk has no kind. Folding them would mean
+  /// inventing a kind for every file the corpus carries.
+  OpenFile(String),
   /// `AC-17.8`: open one realised artefact of this entity, or refuse it.
   ///
   /// **Its own variant rather than a flag on [`Handoff`]**, because
@@ -598,6 +607,18 @@ impl App {
               Step::Continue
             }
             Act::Settings => Step::ShowSetting(argument),
+            // **A SEARCH IS A PUSH, NOT A LEND** (AC-21.1). It is pure state:
+            // the view carries the query, the rows are read where every other
+            // view's rows are read, and the whole act is driven without a
+            // terminal -- which is the half `Step::Run` can never be.
+            //
+            // An EMPTY query pushes the pane anyway rather than refusing: the
+            // pane with nothing in it is a truthful screen, and the operator is
+            // one keystroke from the omnibox.
+            Act::Search => {
+              self.push(View::Search { query: argument });
+              Step::Continue
+            }
             // **THE ARGV IS SPLIT HERE AND RUN THERE**, for the reason every
             // other act splits that way: turning a buffer into `["intent",
             // "st", "list"]` is a pure function of what was typed and is
@@ -700,6 +721,22 @@ impl App {
       }
       match self.focused_row(rows).and_then(|r| r.door.clone()) {
         Some(view) => self.push(view),
+        // **IN THE SEARCH PANE A DOORLESS HIT IS A FILE, AND ENTER OPENS IT**
+        // (AC-21.2). Every other view's doorless row opens nothing because
+        // there is nothing to open; a hit always names something real, so
+        // *this row opens nothing yet* would be false here -- and it is the row
+        // kind that decides, never a list of view kinds, which is the rule the
+        // row's `door` field exists to keep.
+        None
+          if matches!(self.stack.current(), View::Search { .. })
+            && self.focused_row(rows).is_some_and(|r| !r.name.is_empty()) =>
+        {
+          let path = self
+            .focused_row(rows)
+            .map(|r| r.name.clone())
+            .unwrap_or_default();
+          return Step::OpenFile(path);
+        }
         None => self.notice = "this row opens nothing yet".to_string(),
       }
       return Step::Continue;

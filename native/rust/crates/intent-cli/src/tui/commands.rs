@@ -75,6 +75,20 @@ pub enum Act {
   /// **THE VERB ONLY. The arguments are read from the buffer at run time**, for
   /// the reason [`Act::Settings`] gives one line up.
   Cli(String),
+  /// The search results pane: `/search <query>` opens [`View::Search`]
+  /// (AC-21.1).
+  ///
+  /// **IT IS AN ACT RATHER THAN A ROSTER ENTRY, WHICH IS WHAT TOOK `search` OFF
+  /// [`CLI_ROSTER`].** As a roster entry it lent the terminal to `intent
+  /// search`, so the results were printed onto the real screen and were gone
+  /// the moment the explorer repainted -- readable once, navigable never. The
+  /// pane is resident: the hits are rows, Enter opens one, and the view stack
+  /// remembers the search the way it remembers everything else.
+  ///
+  /// **THE QUERY IS READ FROM THE BUFFER AT RUN TIME**, for the reason
+  /// [`Act::Settings`] gives: a constant vocabulary cannot carry an argument
+  /// that is still being typed.
+  Search,
 }
 
 /// The `intent` verbs the palette will run: **AN ALLOW-LIST, AND THE ONLY
@@ -107,10 +121,15 @@ pub enum Act {
 ///   waits on cc's WP-08 stub. This module's own rule: the vocabulary grows
 ///   when the act behind it lands.
 /// - `help` -- claimed by [`Act::Help`]. See [`vocabulary`].
+/// - `search` -- claimed by [`Act::Search`] at WP-21. It was here, and what it
+///   bought was a lend: the hits printed to the real screen and vanished on the
+///   next repaint. A resident pane is the thing hv asked the explorer for, so
+///   the entry moved rather than being duplicated -- two doors onto one search,
+///   one of them worse, is the collision this roster's drop rule exists to stop.
 pub const CLI_ROSTER: &[&str] = &[
   "st", "wp", "ac", "at", "issues", "todo", "info", "config", "doctor", "agents", "claude",
-  "critic", "lang", "llm", "learn", "modules", "plugin", "ext", "version", "search", "sync",
-  "schema", "export", "ingest", "backup", "organize", "edit", "events", "surface",
+  "critic", "lang", "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema",
+  "export", "ingest", "backup", "organize", "edit", "events", "surface",
 ];
 
 /// One offer in the palette.
@@ -200,6 +219,11 @@ fn acts() -> Vec<Command> {
       name: "settings".into(),
       blurb: "explorer settings -- name one to read it".into(),
       act: Act::Settings,
+    },
+    Command {
+      name: "search".into(),
+      blurb: "search the index -- the hits open in a pane".into(),
+      act: Act::Search,
     },
   ]
 }
