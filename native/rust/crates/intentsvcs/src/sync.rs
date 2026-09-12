@@ -691,6 +691,29 @@ fn candidates(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
   Ok(paths)
 }
 
+/// Every file in the INDEX's scope: the gitignore-aware repository.
+///
+/// **THE COUNTERPART OF [`candidates`], SHARING ITS WALK AND ITS SCOPE OBJECT.**
+/// `candidates` enumerates the canon corpus -- the named [`ROOT_FILES`] plus
+/// `intent/` -- and this enumerates everything git would carry. Two
+/// populations, one walker, one statement of what git ignores, and neither
+/// population is derived from the other's rule: that is the arrangement
+/// [`Scanned::in_repository`] describes from the predicate side, and a second
+/// walker here would undo it from the enumeration side.
+///
+/// The caller passes the scope so that a survey which also asks
+/// [`Scanned::in_repository`] asks the same object rather than building a
+/// second one -- the build is a filtered walk of the tree, and it is the
+/// expensive half.
+pub fn repository_files(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
+  let mut paths = Vec::new();
+  if root.is_dir() {
+    walk(root, scope, &mut paths)?;
+  }
+  paths.sort();
+  Ok(paths)
+}
+
 pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
   // **THE WALK AND THE PREDICATE ASK THE SAME OBJECT, WHICH IS THE WHOLE POINT
   // OF [`Scanned`].** Leaving this function with its own `ignored.contains` and

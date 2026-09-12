@@ -9,8 +9,9 @@
 use std::io::Read;
 use std::path::Path;
 
-use super::corpus::{BINARY_SAMPLE_BYTES, SkipReason, looks_binary};
+use super::corpus::{BINARY_SAMPLE_BYTES, Corpus, SkipReason, corpus_of, looks_binary};
 use super::freshness::Stamp;
+use crate::sync::{Scanned, SyncError, repository_files};
 
 /// Why the index will hold no content for this in-scope file, or `None` when it
 /// will hold it.
@@ -68,6 +69,49 @@ pub fn stamp_of(path: &Path) -> Option<Stamp> {
   crate::sync::stamp_of(path)
     .ok()
     .map(|(size, mtime)| Stamp { size, mtime })
+}
+
+/// One in-scope path, as the index sees it before it holds any content.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Surveyed {
+  /// Relative to the project root, as `file_index` stores a path.
+  pub path: String,
+  pub corpus: Corpus,
+  /// `None` when the index will hold this file's content.
+  pub skipped: Option<SkipReason>,
+}
+
+/// Every path in the index's scope, with the corpus it joins and the reason the
+/// index will not hold it, if there is one.
+///
+/// **THE STORE'S OWN PROJECTIONS ARE NOT IN THE RESULT AT ALL**, which is the
+/// one absence here that is correct: a rendered view and the canon extract are
+/// the store's prose seen twice, so they are not files the index declined --
+/// they are not files the index is about. Everything else in scope gets a row,
+/// skipped ones included.
+///
+/// `views` is every path the renderer produces for this project and `canon_dir`
+/// is the extract's directory; both are the caller's to supply, so this can be
+/// driven without a store.
+pub fn survey(
+  root: &Path,
+  views: &[std::path::PathBuf],
+  canon_dir: &Path,
+  max_bytes: u64,
+) -> Result<Vec<Surveyed>, SyncError> {
+  let scope = Scanned::for_root(root);
+  let mut out = Vec::new();
+  for path in repository_files(root, &scope)? {
+    let Some(corpus) = corpus_of(&path, views, canon_dir) else {
+      continue;
+    };
+    out.push(Surveyed {
+      path: crate::project::relative(root, &path),
+      corpus,
+      skipped: skip_for(&path, max_bytes),
+    });
+  }
+  Ok(out)
 }
 
 #[cfg(test)]
@@ -230,5 +274,148 @@ mod tests {
       "and source misses it, which is the accepted cost: one stale hit, against \
        hashing every source file on every reconcile"
     );
+  }
+
+  /// A project root that is a real repository, because the survey's scope is
+  /// git's answer and a fixture without git has no rules at all.
+  fn repo() -> tempfile::TempDir {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let ok = std::process::Command::new("git")
+      .args(["init", "-q"])
+      .current_dir(dir.path())
+      .status()
+      .expect("run git")
+      .success();
+    assert!(ok, "git init failed");
+    std::fs::write(dir.path().join(".gitignore"), "build/\n").expect("gitignore");
+    dir
+  }
+
+  fn write(dir: &tempfile::TempDir, rel: &str, bytes: &[u8]) -> std::path::PathBuf {
+    let path = dir.path().join(rel);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(&path, bytes).expect("write");
+    path
+  }
+
+  fn surveyed(rows: &[Surveyed], rel: &str) -> Surveyed {
+    rows
+      .iter()
+      .find(|r| r.path == rel)
+      .unwrap_or_else(|| panic!("no row for `{rel}`; rows: {rows:?}"))
+      .clone()
+  }
+
+  #[test]
+  fn every_in_scope_path_gets_a_row_and_a_skipped_one_is_still_a_row() {
+    let dir = repo();
+    write(&dir, "README.md", b"# readme\n");
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    write(&dir, "assets/logo.bin", b"\x00\x01binary");
+    write(&dir, "build/out.o", b"ignored\n");
+    let canon = dir.path().join("intent/.canon");
+
+    let rows = survey(
+      dir.path(),
+      &[],
+      &canon,
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("survey");
+
+    assert_eq!(surveyed(&rows, "README.md").corpus, Corpus::Prose);
+    assert_eq!(surveyed(&rows, "README.md").skipped, None);
+    assert_eq!(
+      surveyed(&rows, "src/lib.rs").corpus,
+      Corpus::Code { lang: Some("rust") }
+    );
+    assert_eq!(
+      surveyed(&rows, "assets/logo.bin").skipped,
+      Some(SkipReason::Binary),
+      "a file the index will not hold is a ROW SAYING WHY, which is the whole \
+       of AC-18.2 -- it is not missing from the survey"
+    );
+    assert!(
+      !rows.iter().any(|r| r.path.starts_with("build/")),
+      "and an IGNORED file is not in scope at all, so it gets no row: the \
+       corpus is the gitignore-aware repository, not everything on disk"
+    );
+  }
+
+  #[test]
+  fn the_stores_own_projections_are_absent_rather_than_skipped() {
+    // **THE ONE CORRECT ABSENCE.** A view is not a file the index declined; it
+    // is the store's prose seen twice, and a row saying `skipped` would invite
+    // an operator to go looking for the reason.
+    let dir = repo();
+    let view = write(&dir, "intent/st/ST0001/info.md", b"# a view\n");
+    write(&dir, "intent/.canon/st/ST0001.json", b"{}\n");
+    let beside = write(&dir, "intent/st/ST0001/notes.md", b"# not a view\n");
+    let canon = dir.path().join("intent/.canon");
+
+    let rows = survey(
+      dir.path(),
+      &[view],
+      &canon,
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("survey");
+
+    assert!(!rows.iter().any(|r| r.path == "intent/st/ST0001/info.md"));
+    assert!(
+      !rows
+        .iter()
+        .any(|r| r.path == "intent/.canon/st/ST0001.json")
+    );
+    // The control: the rule is the renderer's answer, not the directory.
+    assert_eq!(
+      surveyed(&rows, "intent/st/ST0001/notes.md").corpus,
+      Corpus::Prose,
+      "a file the renderer does not produce, in the same directory, stays in \
+       the corpus -- or the exclusion would be a path-shape hack"
+    );
+    assert!(beside.exists());
+  }
+
+  #[test]
+  fn the_survey_and_the_predicate_cannot_disagree() {
+    // One scope object answers both the enumeration and the question. Without
+    // this, a survey that walked its own way would drift from
+    // `Scanned::in_repository` in whichever direction nobody was looking.
+    let dir = repo();
+    write(&dir, "README.md", b"# readme\n");
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    write(&dir, "build/out.o", b"ignored\n");
+    write(&dir, "intent/.cache/intent.db", b"SQLite format 3\x00");
+    let canon = dir.path().join("intent/.canon");
+
+    let rows = survey(
+      dir.path(),
+      &[],
+      &canon,
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("survey");
+    let scope = Scanned::for_root(dir.path());
+
+    for row in &rows {
+      assert!(
+        scope.in_repository(&dir.path().join(&row.path)),
+        "the survey enumerated `{}` and the predicate excludes it",
+        row.path
+      );
+    }
+    assert!(
+      rows.len() >= 2,
+      "the fixture surveyed {} row(s), too few for either direction to mean \
+       anything: {rows:?}",
+      rows.len()
+    );
+    for out in ["build/out.o", "intent/.cache/intent.db"] {
+      assert!(
+        !rows.iter().any(|r| r.path == out),
+        "`{out}` is out of scope and the survey named it anyway"
+      );
+    }
   }
 }
