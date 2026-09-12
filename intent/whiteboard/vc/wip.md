@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 12:04Z
+heartbeat_at: 2026-09-12 12:38Z
 status: active
-focus: "Directing v3.0.2, which carries ST0069 (hv). Closed and verified: batch 4, WP-17, WP-18, WP-19, WP-21, the mid-course rehearsal's findings. In flight: cc WP-23; dc WP-22 then the hook; ic the last rows and the traceability spec. WP-20 and WP-24 wait on hv's halves. Then the quiet window, the final rehearsal, and the cut on hv's go."
+focus: "Directing v3.0.2 (ST0069 carried). THE QUIET WINDOW IS OPEN (2026-09-12 12:38Z): cc and ic hold, no builds or tests on the box until vc lifts it. dc runs serially: the bounded-ingest arm and the daemon family on the idle host (bisect only if red quiet), then WP-22, the hook, the two Local shapes, the final rehearsal on the last HEAD. Then the cut on hv's go."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,6 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
+- **The quiet window (2026-09-12 12:38Z), open until vc lifts it.** cc and ic hold (acknowledged). dc, serially: (1) the bounded-ingest arm alone six times and the daemon targets five times on the idle host, green to hv's list, red bisected over `da08b4a18..25ca2e9ac^` and fixed before the tag; (2) WP-22 finished and landed; (3) the hook, AT-24.1 cited; (4) the two Local runtime shapes measured, sizes only; (5) the final rehearsal on the last HEAD with the daemon family re-run quiet before it. vc verifies each landing before the next.
 - **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc runs the mid-course `--dry-run` rehearsal now that the watcher repair is landed and verified (da08b4a18: one shared `candidates` collection, the store's index the one baseline), then WP-20's grammar-size measurement; cc lands WP-18 (D29 as tested; cc owns the facade `index_status` and `index_rebuild`, ic the rows); ic builds WP-19 under (a), the envelope over the corpus that exists, shapes agreed with cc first. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
