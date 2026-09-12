@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 310,
+  "slug": "wp-gate-answers-a-pass-with-silence-and-no-verb",
+  "title": "wp gate answers a pass with silence, and no verb lists a work package's scoped criteria with their state",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-12",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by laksa-vc on Laksa under 3.0.1 (87b819abd) while reading ST0111/WP-03 back to hv ahead of a status call. A node asked \"which criteria are in this work package's scope, which are satisfied, and by what\" has no verb that answers: `intent wp show <ST>/<NN>` prints the header line alone (id, title, status, scope); `intent wp gate <ST>/<NN>` prints nothing when the gate passes; `intent ac list <ST>` printed nothing on that thread; `intent ac status <ST>` gives the thread's counts only. The fallback is reading the rendered `acceptance.md`, which is the view and not the model.\n\n`ac gate <ST>` prints its reasoning for a thread. `wp gate` is the same question one level down and answers with silence on a pass, so a passing gate over an EMPTY scope (the parked-work shape doctor's status-gate-disagreement remedy names) is indistinguishable from a passing gate over satisfied criteria. Two halves: `wp gate` prints its verdict and every criterion in scope with its state and its satisfying record, the way `ac gate` does; `wp show` lists the scoped criteria. Report against the surface register when built, since the `wp` rows say what each verb prints.\n\nFiled after ST0069 unless a lane is idle.\n"
+}
