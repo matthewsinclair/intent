@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.1
-# SCHEMA_SDL_VER: 15
+# SCHEMA_SDL_VER: 16
 
 enum AcKind {
   TEST
@@ -204,6 +204,32 @@ type Attachment {
   sha256: String!
 }
 
+"""
+One node's whiteboard: `whiteboard/<node>/board.json`.
+
+**Messages sit with the RECIPIENT, which is the shape the disk already
+has** -- `<recipient>/inbox.<sender>.md` -- so one file is a whole readable
+board and rendering one needs no join across nodes. A sender writing into
+the recipient's file is exactly what `ask` does today; the single-writer
+invariant is enforced by the API and is not a property of which file the
+extract lands in.
+"""
+type Board {
+  """
+  Always [`BOARD_SCHEMA`].
+  """
+  schema: String!
+  node: WbNode!
+  """
+  This node's own items, in `seq` order.
+  """
+  items: [WbItem!]!
+  """
+  The messages ADDRESSED TO this node, in insertion order.
+  """
+  messages: [WbMessage!]!
+}
+
 type Criterion {
   """
   `AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.
@@ -399,6 +425,16 @@ type Query {
   Every issue in the project, in number order.
   """
   issues: [Issue!]!
+  """
+  One node's board by its moniker, eg `cc`; `null` when no node by that
+  name is registered, which is an answer and not an error.
+  """
+  board(node: String!): Board
+  """
+  Every registered node's board. Any workstream reads any board: the
+  single-writer rule governs writes, and never made a board private.
+  """
+  boards: [Board!]!
 }
 
 """
@@ -563,6 +599,124 @@ enum Tshirt {
   L
   XL
   XXL
+}
+
+"""
+One line of a node's board.
+"""
+type WbItem {
+  """
+  The moniker of the node whose board this is.
+  """
+  node: String!
+  kind: WbItemKind!
+  """
+  Position within the node's items of that kind. Ties on `recorded_at` are
+  broken by insertion order, never by this value alone.
+  """
+  seq: Int!
+  text: String!
+  state: WbItemState!
+  archivedAt: String
+  """
+  **The item's creation instant**, written by the service from the clock,
+  once, at the write. Not named `created_at`: see the note above this block.
+  """
+  recordedAt: String!
+  """
+  The stamp the board's markdown claimed, verbatim. **Untrusted, and
+  non-null only on a migrated row.**
+  """
+  authoredAt: String
+}
+
+enum WbItemKind {
+  DOING
+  TODO
+  DECISION
+  WATCHOUT
+  HOLD
+}
+
+enum WbItemState {
+  LIVE
+  ARCHIVED
+}
+
+"""
+One entry in an inbox.
+"""
+type WbMessage {
+  sender: String!
+  recipient: String!
+  body: String!
+  """
+  The timestamp of the entry this one answers, where it answers one.
+  """
+  re: String
+  """
+  Set when the sender expects no reply.
+  """
+  fyi: Boolean!
+  state: WbMessageState!
+  handledAt: String
+  """
+  **The message's send instant**, written by the service from the clock,
+  once, at the write. Not named `sent_at`: see the note above this block.
+  """
+  recordedAt: String!
+  """
+  The stamp the entry's `## (...)` heading claimed, verbatim. **Untrusted,
+  and non-null only on a migrated row** -- this is the field that carries
+  the class of value the clock guard exists to refuse, so it is typed as
+  text and never read as a time.
+  """
+  authoredAt: String
+}
+
+enum WbMessageState {
+  LIVE
+  HANDLED
+}
+
+"""
+A participant: the board's header block, modelled.
+"""
+type WbNode {
+  """
+  The two-letter moniker: the directory name, the routing key and the
+  handle, all one value.
+  """
+  moniker: String!
+  name: String!
+  role: String!
+  """
+  Absent for a node that runs no session loop, which is how the human's
+  node is represented rather than by a special case.
+  """
+  sessionId: String
+  """
+  When this node last reported itself alive. Service-written; see the note
+  above this block for what a MIGRATED value means.
+  """
+  heartbeatAt: String!
+  status: WbNodeStatus!
+  focus: String!
+  claims: [String!]!
+  """
+  Written by the service from the clock, once, at the write.
+  """
+  recordedAt: String!
+  """
+  The stamp the board's markdown claimed, verbatim. **Untrusted, and
+  non-null only on a migrated row.**
+  """
+  authoredAt: String
+}
+
+enum WbNodeStatus {
+  ACTIVE
+  PAUSED
 }
 
 type WorkPackage {

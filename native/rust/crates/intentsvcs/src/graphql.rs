@@ -206,22 +206,30 @@ impl Criterion {
 // Query root
 // ---------------------------------------------------------------------------
 
-/// What the resolvers answer from: the project's threads and issues, cloned out
-/// of the facade at the moment the request was made.
+/// What the resolvers answer from: the project's threads, issues and boards,
+/// cloned out of the facade at the moment the request was made.
 ///
 /// **A SNAPSHOT RATHER THAN THE FACADE ITSELF, FOR A REASON THE TYPE SYSTEM
 /// STATES.** Schema data must be `Send + Sync + 'static`, and a `Facade` is a
 /// mutable store handle that lives on one thread; the two cannot meet. What
 /// CAN move into the future is what the facade ANSWERS -- and that keeps the
 /// seam where the bound puts it: the data reaches this face through
-/// [`Facade::st_list`] and [`Facade::issue_list`], the same accessors `st list`
-/// and `issues list` render, never through a second reader beside them.
+/// [`Facade::st_list`], [`Facade::issue_list`] and [`Facade::boards`], the same
+/// accessors `st list`, `issues list` and `wb show` render, never through a
+/// second reader beside them.
+///
+/// **THE BOARDS ARE HELD AS THE READ'S OUTCOME, NOT UNWRAPPED.** The threads and
+/// issues are already in memory; the boards are a store read that can fail, and
+/// this constructor cannot refuse. So a failed read travels to the two board
+/// fields and comes back in the answer's `errors`, where a document that never
+/// asks for a board is not refused for it.
 ///
 /// Reads only, so a snapshot cannot go stale in a way one request can observe:
 /// the document sees one consistent estate from its first field to its last.
 pub struct Snapshot {
   threads: Vec<Thread>,
   issues: Vec<Issue>,
+  boards: Result<Vec<crate::model::Board>, String>,
 }
 
 impl Snapshot {
@@ -229,8 +237,18 @@ impl Snapshot {
     Snapshot {
       threads: facade.st_list().into_iter().cloned().collect(),
       issues: facade.issue_list().into_iter().cloned().collect(),
+      boards: facade.boards().map_err(|e| e.to_string()),
     }
   }
+}
+
+/// The boards this request's snapshot read, or the store's refusal as the
+/// field's error.
+fn boards<'a>(ctx: &'a Context<'_>) -> async_graphql::Result<&'a Vec<crate::model::Board>> {
+  snapshot(ctx)?
+    .boards
+    .as_ref()
+    .map_err(|why| Error::new(why.clone()))
 }
 
 /// The snapshot this request carries, or a refusal that names the only door.
@@ -283,7 +301,7 @@ impl Facade {
   }
 }
 
-/// The read surface -- four roots over the [`Snapshot`].
+/// The read surface -- the roots over the [`Snapshot`].
 pub struct Query;
 
 #[Object]
@@ -313,5 +331,26 @@ impl Query {
   /// Every issue in the project, in number order.
   async fn issues(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Issue>> {
     Ok(snapshot(ctx)?.issues.clone())
+  }
+
+  /// One node's board by its moniker, eg `cc`; `null` when no node by that
+  /// name is registered, which is an answer and not an error.
+  async fn board(
+    &self,
+    ctx: &Context<'_>,
+    node: String,
+  ) -> async_graphql::Result<Option<crate::model::Board>> {
+    Ok(
+      boards(ctx)?
+        .iter()
+        .find(|b| b.node.moniker == node)
+        .cloned(),
+    )
+  }
+
+  /// Every registered node's board. Any workstream reads any board: the
+  /// single-writer rule governs writes, and never made a board private.
+  async fn boards(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<crate::model::Board>> {
+    Ok(boards(ctx)?.clone())
   }
 }

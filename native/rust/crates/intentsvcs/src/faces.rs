@@ -45,7 +45,7 @@ pub const SCHEMA_JSON_VER: u32 = 19;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_DDL_VER: u32 = 21;
 /// See [`SCHEMA_JSON_VER`].
-pub const SCHEMA_SDL_VER: u32 = 15;
+pub const SCHEMA_SDL_VER: u32 = 16;
 
 /// The committed faces, as `(relative path under schema/, content)` pairs.
 pub fn faces() -> Vec<(&'static str, String)> {

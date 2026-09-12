@@ -57,6 +57,68 @@ async fn the_four_reads_answer_what_the_facade_holds() {
 }
 
 #[tokio::test]
+async fn any_node_reads_every_board_and_one_board_by_moniker() {
+  let fx = Fixture::new();
+  let mut facade = fx.facade();
+  for (node, name, role) in [
+    ("cc", "Control Claude", "control"),
+    ("vc", "Validation Claude", "validation"),
+  ] {
+    let dir = fx.root().join("intent/whiteboard").join(node);
+    std::fs::create_dir_all(&dir).expect("node dir");
+    std::fs::write(
+      dir.join("wip.md"),
+      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
+    )
+    .expect("write the header the roster is read from");
+  }
+  facade.register_roster().expect("register the roster");
+  facade
+    .wb_add(
+      "cc",
+      intentsvcs::model::WbItemKind::Hold,
+      "held until the pair is rebuilt",
+    )
+    .expect("a hold");
+  facade
+    .wb_ask("vc", "cc", "the order", None, false)
+    .expect("a message");
+
+  let answer = facade
+    .graphql(
+      "{ boards { node { moniker } } board(node: \"cc\") { items { kind text } messages { sender body } } missing: board(node: \"zz\") { schema } }",
+      None,
+    )
+    .await
+    .expect("the answer serialises");
+
+  assert_eq!(
+    answer["errors"],
+    Value::Null,
+    "a valid read carries no errors: {answer}"
+  );
+  let data = &answer["data"];
+  assert_eq!(
+    data["boards"],
+    json!([{ "node": { "moniker": "cc" } }, { "node": { "moniker": "vc" } }]),
+    "every registered board: {data}"
+  );
+  assert_eq!(
+    data["board"],
+    json!({
+      "items": [{ "kind": "HOLD", "text": "held until the pair is rebuilt" }],
+      "messages": [{ "sender": "vc", "body": "the order" }],
+    }),
+    "one board with its items and the messages addressed to it: {data}"
+  );
+  assert_eq!(
+    data["missing"],
+    Value::Null,
+    "an unregistered moniker is null, not an error"
+  );
+}
+
+#[tokio::test]
 async fn a_mutation_document_is_refused_by_the_schema_inside_the_answer() {
   // **THE BOUND IS ENFORCED BY WHAT SHIPS, NOT BY A CHECK IN FRONT OF IT.**
   // `EmptyMutation` is the schema's mutation root, so a mutation document fails

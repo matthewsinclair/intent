@@ -327,7 +327,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // beside it, so the wire contract now says an acceptance test can be closed
     // on human authority against the evidence.
     // 14 -> 15 is `status_legacy`, as above.
-    ("SCHEMA_SDL_VER", 15, 0x3760_5121_a8aa_eb12),
+    // 15 -> 16 is the board reads: `board(node)` and `boards` on the query
+    // root, and the four coordination types they return. The JSON face already
+    // carries those types and the DDL already stores them, so neither moves.
+    ("SCHEMA_SDL_VER", 16, 0xe0ba_286f_a142_b8a6),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
