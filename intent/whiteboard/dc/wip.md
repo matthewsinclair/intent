@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 17:43Z
+heartbeat_at: 2026-09-12 18:04Z
 status: active
-focus: "WP-01 is Done and banked across three commits, the last one fixing a defect the LIVE ESTATE found that no fixture of mine could contain. Next is WP-02 -- three lines to vc's inbox, then build on the shape already ruled. NO RELEASE, NO PUSH."
+focus: "WP-02. vc's doctor order landed first at f70441dc2 -- 49a00fb80's defect in the sibling reader, one predicate over both artefact kinds. WP-02's first ruled line departs from the WP's own premise: the ingest layer is already built. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/01, ST0069/02, ST0069/22, ST0069/24]
 ---
 
@@ -13,17 +13,17 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/01, ST0069/02, ST0069/2
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-1743Z.md`.** Everything landed is carried by its commits, not here.
 
-## DOING -- WP-02, and WP-01 is closed behind me
+## DOING -- WP-02
 
-**WP-01 is Done.** `1f8c9fc08` + `496d38e99` are the landing, `49a00fb80` the fix; AT-01.1 to AT-01.3 are minted, cited and green; `wp done ST0069/01` is through. `cargo test --workspace --no-fail-fast` green on every target with the fix in.
+**The three ruled lines are in `vc/inbox.dc.md` at 17:52Z and I am building on them, per vc's release to proceed without waiting.** LINE 1, INGEST: only the `acceptance.md` preamble is missing -- the bucket walk, the allowlist retirement and the per-file content probe (`legacy_bucket_attachments.rs`) are all already built, so the WP's own premise is stale and I am citing rather than rebuilding. The authored lines above the rows go into `preamble` as ruled, **with the move recorded as a `Disposition{Refiled}`**, because `Thread::preamble` renders into the thread COVER and its own doc names a silent MOVE as the thing to avoid. LINE 2, PRUNE: one derivation `legacy::residue(project, canon)` -- removable, withheld-with-a-reason, pointers -- asked by the migration door inside `finish()` after the store rebuild and by `organize` under `--apply` as its own destructive row, never `Dehydrate`. **Any withheld path refuses the WHOLE prune and names every one.** LINE 3, POINTERS: reported as file, line and the path named, rewritten by neither door; AC-02.3 falls out of line 2's population rather than being a fourth layer.
 
-**NEXT: WP-02, on the shape vc already ruled in my lane order.** Write the three lines into `vc/inbox.dc.md` and BUILD on them without waiting -- vc is dark and said so explicitly -- but if a line departs from the ruled shape, hold that piece and write why. The shape: ingest every bucket-only file under a v2 thread directory as an attachment through the existing attach path, the v2 `acceptance.md` preamble's authored lines into `preamble`, verified PER FILE by a content probe; the prune of buckets, v2 issues dirs and `.treeindex` at migration and under `organize --apply`, REFUSING by name while any bucket file's content is not held; a tool tree beside the threads neither candidate nor pruned; authored files naming bucket paths reported, never rewritten. Fixtures are a v2 tree in testkit; **this WP prunes no estate but its fixtures.**
+**WHAT IS NOT ORDERED TO ME: call 12.** The estate declares 0177 and 0303 short. Filing 0306 declared IT, because `issues add` declares, so the manifest carries `ISSUE:0306` and `intent/issues/` holds exactly that one file. vc says the word or takes it.
 
-**THE 284 UNTRACKED ISSUE VIEWS ON THE LIVE ESTATE ARE NOT MINE TO TOUCH.** vc drives their removal on the bounce after rebuilding the delivered pair. No `organize --apply` on the live estate, nothing on it at all -- worktree only.
+**NOTHING OF MINE TOUCHES THE LIVE ESTATE.** Worktree only, isolated HOME, in-tree target. The post-fix live doctor line is vc's after the pair is rebuilt at `f70441dc2`; I run nothing built here against the live store.
 
 ## TODO
 
-- WP-02, as above.
+- WP-02, as above. **Its AT rows are unminted: `intent at list ST0069` returns nothing for AT-02.x, so the rows are minted as the arms land and cited to the files.**
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh`. ic delivered the contract (`intent/st/ST0056/parity/tools/contract_check.sh`, no args; 0 clean, 1 findings, 2 environment/usage). **It goes in ROSTERED MANUAL, not gated** -- it exits 1 today on the whiteboard faces cc has not built, which vc has ruled stands; a gated row would refuse every node's commit on a finding we have agreed to live with. **Positive-control the instrument with its `MODEL` override before trusting a green**, and keep exit 1 and exit 2 distinct in whatever the release script prints.
 - **CHANGELOG**: ic writes the Added lines for the search packages; my Fixed lines stay mine.
 
@@ -37,6 +37,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/01, ST0069/02, ST0069/2
 ## Watch-outs
 
 - **MY FIXTURE'S POPULATION WAS NOT THE ESTATE'S, THREE TIMES IN ONE PACKAGE, AND EACH TIME THE FULL RUN FOUND WHAT MY ARMS COULD NOT.** Every arm I wrote reaches an issue through `issues add`, which DECLARES it -- so not one of them could exhibit an UNDECLARED issue, which is what all 284 of the estate's issues are. `wp done` then materialised a view for every one of them against a manifest declaring none. **An arm that sets up its subject through the happy path tests the happy path**, and the discriminating case is the state the estate is actually in.
+- **A `None` FROM A THREAD-SHAPED READER, INSIDE AN `&&` OR AN `is_some_and`, IS THE ANSWER "YES, DECLARED" -- TWICE IN TWO DAYS, IN TWO SIBLING READERS.** The projection at 49a00fb80 and doctor at `f70441dc2` carried the identical sentence, and each was found by the ESTATE rather than by a fixture. **Where a question has two artefact kinds, write ONE predicate that answers for both** and make the neither-kind case say so explicitly.
 - **A COMMENT SAYING A COUNTERPART IS NOT NEEDED IS A CLAIM, AND MINE WAS WRONG WITHIN THE HOUR.** I wrote that an issue's single view has no window where the store is ahead of the disk. `issues close` is exactly that window -- it moves the record and undeclares it in one breath -- and the dehydration gate then refused to remove a file whose render had moved. The thread arm had solved it since 0079.
 - **A DIAGNOSTIC THAT MUTATES IS NOT A DIAGNOSTIC.** I ran `git commit` three times to READ the pre-commit gate's refusal; the first one SUCCEEDED, landing `1f8c9fc08` with two files under a message claiming all three criteria. **Read a gate with `--dry-run`, or a throwaway clone, or by reading the hook -- never by running the write and watching what it says.** Second overclaiming commit message today.
 - **AND THE REFUSAL I WAS CHASING WAS `rustfmt`, NOT THE PATH LIST.** The 60-attempt retry loop was reporting a real, permanent refusal as if it were lock contention. **A retry loop makes a deterministic refusal look like a race**: cap it, then PRINT the last failure rather than the attempt count.
