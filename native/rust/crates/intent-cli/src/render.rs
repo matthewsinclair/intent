@@ -9109,9 +9109,27 @@ fn payload_change(
           "OVERWRITTEN by --force; discarded {provenance}; discarded tree checksum {discarded} ({written} file(s) written{retired})"
         )
       }
+      // **THE REMOVED PATHS ARE NAMED, AND THEY WERE A COUNT UNTIL v3.0.2.**
+      // The arm below has always named the files it KEPT while this one
+      // reduced the files it DESTROYED to a number, so the only actionable
+      // half of the report described the half needing no action. The
+      // precedent is in this same `match`: `Outcome::Updated` prints
+      // `retired: <names>` for the files an update drops.
+      //
+      // **The both-empty case keeps its own words rather than rendering an
+      // empty list.** Running `uninstall` on a unit already gone still counts
+      // as `changed` in the summary when nothing changed -- that miscount is a
+      // separate defect, recorded in `docs/known-defects.md`, and it is
+      // deliberately NOT fixed here: this item is about naming what was
+      // destroyed, and quietly changing the arithmetic beside it would make
+      // one commit answer two questions.
+      Outcome::Removed { removed, left } if left.is_empty() && removed.is_empty() => {
+        moved += 1;
+        "removed nothing".to_string()
+      }
       Outcome::Removed { removed, left } if left.is_empty() => {
         moved += 1;
-        format!("removed ({} file(s))", removed.len())
+        format!("removed: {}", removed.join(", "))
       }
       // **NOTHING REMOVED AND SOMETHING LEFT IS A HELD STEP, NOT A CHANGE**
       // (issue `0078`). Every file here is one this build did not write, so the
@@ -9132,8 +9150,8 @@ fn payload_change(
       Outcome::Removed { removed, left } => {
         moved += 1;
         format!(
-          "removed ({} file(s)); left {} this build did not install: {}",
-          removed.len(),
+          "removed: {}; left {} this build did not install: {}",
+          removed.join(", "),
           left.len(),
           left.join(", ")
         )

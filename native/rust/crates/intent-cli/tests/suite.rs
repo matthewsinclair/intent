@@ -238,6 +238,8 @@ mod the_struck_doors_refuse_as_retired;
 mod the_web_face_answers_on_the_published_port;
 #[path = "twin_spellings_agree.rs"]
 mod twin_spellings_agree;
+#[path = "uninstall_names_what_it_removed.rs"]
+mod uninstall_names_what_it_removed;
 #[path = "unmigrated_surface.rs"]
 mod unmigrated_surface;
 #[path = "upgrade_command.rs"]
