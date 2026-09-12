@@ -1527,7 +1527,7 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
-  - `--covers` `<acid>` (string) -- The criterion id(s) this test covers
+  - `--covers` `<acid>` (string) -- The criterion id(s) this test covers; repeatable
     - **arity:** 1..n
     - **required:** true
     - **disposition:** keep
@@ -1579,7 +1579,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
     - **disposition:** keep
   - `--kind` `<test|non-test>` (string) -- Re-kind the row: test or non-test -- refused if the row's status cannot hold it
     - **disposition:** keep
-  - `--covers` `<ac-id>` (string) -- The AC id(s) this test covers, replacing the current set
+  - `--covers` `<ac-id>` (string) -- The AC id(s) this test covers, replacing the current set; repeatable
     - **arity:** 1..n
     - **disposition:** keep
   - `--note` `<text>` (string) -- Replace the row's note outright -- the deliberate door; `at green/red/na --note` only EXTENDS
@@ -2841,7 +2841,7 @@ Run Intent rule-library critics against source files
 - **Arguments:**
   - `lang` (enum, arity `1`) -- one of: `elixir`, `rust`, `swift`, `lua`, `shell`, `author`, `content`
 - **Flags:**
-  - `--files` `<path>` (string) -- Explicit file list
+  - `--files` `<path>` (string) -- Explicit file list; repeatable
     - default: scan nothing unless --staged
     - **arity:** 1..n
     - **disposition:** keep
