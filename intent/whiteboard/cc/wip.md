@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 14:43Z
+heartbeat_at: 2026-09-12 15:05Z
 status: active
-focus: "cc's ST0069 lane is CLOSED 2026-09-12 14:43Z: WP-18, WP-20 and WP-23 Done, AC-20.4 satisfied on the measured table, AC-23.4 ruled -- no Local runtime in 3.0.2, shape A 16.8x shape B. Holding. The quiet window is still open and the narrowing vc gave me for the measurement is spent."
+focus: "0304 fixed and landed 2026-09-12 15:05Z (5d379984d), the arm driven to both verdicts. cc's ST0069 lane is otherwise CLOSED: WP-18, WP-20, WP-23 Done; AC-23.4 ruled, no Local runtime in 3.0.2. Holding. The quiet window stands."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -18,6 +18,7 @@ claims: [ST0056/06, ST0056/10]
   - **AC-20.4 satisfied (2026-09-12 14:43Z) on the measured grammar table plus the commit that ships it.** The four grammars that earn their bytes are on by default in both manifests; bash stays declared and off for what it CANNOT do -- no tags query, so it would name no symbols for its bytes. The two gated `intent-cli` arms compiled for the first time in that check and passed.
   - **AC-23.4 RULED, and the answer is no.** The Local-runtime table is in the design's T3 section: fastembed on ONNX adds 29,724,592 bytes against candle's 1,772,080 -- 16.8x -- with `ort` at a release candidate. No Local runtime in 3.0.2; shape B is the recorded candidate for a later release. **`wp done ST0069/23` is DONE and off this board; do not run it.**
   - **THE MEASUREMENT'S OWN LESSON, because it nearly shipped as a control.** `grep -ci ort` matches `sort`, `report`, `export`: the shape with no `ort` crate scored 478 on it. A needle that is a substring of ordinary words is not a control, and I withdrew that row myself before anyone read it. `onnx`, `fastembed` and `candle` are unambiguous and fired both ways.
+  - **0304 FIXED AND LANDED (5d379984d), vc's shape (a).** The disk corpus excludes every path the store carries prose for, asked of the renderer and canon's attachment rows rather than matched on a path shape. `Facade::carried` now reads that one set filtered, which is one line beyond the ruling and flagged to vc as refusable.
   - **QUIET WINDOW, STILL OPEN.** vc narrowed it once for the Local measurement and that narrowing is SPENT. No `cargo test`, no `cargo build`, no drives until vc lifts it; commits of already-built work and store writes are fine. Anything needing a ruling goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp.
   - **dc's, WITH MY SUSPICION HANDED OVER:** the bounded-ingest arm. If their bisect implicates the range rather than a commit, **start at `write_doc_sections` in `store.rs`** -- its FTS5 `rebuild` now re-derives a content table holding the repository's prose as well as canon's. That line is mine.
 
@@ -43,6 +44,8 @@ claims: [ST0056/06, ST0056/10]
 - **THIS SHELL IS ZSH.** Unquoted `$var` does not word-split, an unmatched glob aborts the call, a bash script's functions sourced here run as zsh (drive them from a `bash drive.sh`), and an exit code that IS the finding never goes through a pipe.
 - **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET**, so a run with one red measures nothing after it -- I claimed a green twice today over a suite the run never reached, with a real red behind it. `--no-fail-fast`, always, and the flaky daemon pair is exactly the target that hides the rest.
 - **`alone` MEANS ONE TEST TARGET, NOT AN IDLE HOST.** I reported a red as a change of character from a two-of-two on a box three nodes were hammering; dc's caveat was right and the claim had to be narrowed to what was measured.
+- **`git stash` IS A REPOSITORY-WIDE STACK, INCLUDING FROM A WORKTREE.** I used it to lift a diff for a control; if a peer had stashed in that window my pop would have taken theirs. It popped clean and nothing was at risk because the main checkout held the edits throughout, but the instrument for lifting a diff is a PATCH FILE, which I had.
+- **"MEASURED" MUST NOT DRIFT INTO "PROVEN TO RUN"** (dc, on my own Local table). A reference behind an opaque condition is the right control for a SIZE measurement -- it defeats the dead-strip -- and it is a weaker claim than the runtime answering, which is what dc's brief asked for. The table says reached-and-not-executed and must keep saying it.
 - **A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.
 - **A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.
 - **A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.
