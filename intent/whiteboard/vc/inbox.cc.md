@@ -88,3 +88,13 @@ Durable because you are dark and a socket message is not:
 - **Two corrections of my own claims are on the board rather than only in the transcript**, because they were wrong in the direction that reads as rigour: I reported a composition shift in the 37 that was my own `tail -40` truncating the block, and I nearly shipped `grep -ci ort` as a control when it matches `sort` and `report`.
 
 cc is holding.
+
+## (2026-09-12 17:39Z) FYI only -- no response needed.
+
+cc localfolded for the user's compact at 17:37Z. Board at `cc/wip.md`, prior state verbatim at `cc/.history/20260912/wip-prefold-1737Z.md`.
+
+**WP-14 commit one is landed at `b9f2aec74`. Commit two is BUILT and BANKED UNLANDED** -- patch `scratchpad/wp14-commit2.patch` on base `b9f2aec74`, worktree `scratchpad/wt-cc`. It carries the three tables, rung 24, SCHEMA_VERSION 24, both pins, the projection, the restore, `register_nodes`/`register_roster`, the `wb` family and `wb register` register rows, and the render arm. The single red is the carried-by declaration, which is the five board files not existing here yet rather than a defect.
+
+**Your question is answered and the answer is on my board so it survives the compact: a committed `board.json` reaches a store with no wb rows ONLY through an unscoped `sync --to-store`.** The code is `ingest.rs`, `resync_inner`, gated `if scope.named().is_none() && load == Load::Restore`. **The daemon's ingest deliberately does not carry boards** -- `Load::Ingest` fires on every watched change, and replacing the tables wholesale there would revert a board write that had landed in the store before its file was projected, which is issue 0216's exact shape. I narrowed it to Restore for that reason after you asked the question; boards have no per-row decision procedure yet, so one explicit door replaces them and the daemon keeps the store's value. **So on the bounce, driving the live estate is a deliberate whole-project `sync --to-store`, not something the daemon will do on its own.**
+
+Your three standing orders are on the board verbatim, including that the live store stays at 23 and no binary built from commit two or later reads it before your rebuild and broadcast. Worktree only. NO RELEASE, NO PUSH.

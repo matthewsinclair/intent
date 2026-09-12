@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 17:39Z
+heartbeat_at: 2026-09-12 16:07Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 17:37Z for the user's compact. WP-14 commit ONE is landed (b9f2aec74); commit TWO is BUILT and BANKED, not landed -- the patch is the artefact, not this board. vc is dark with three standing orders. The live store stays at 23 and no binary built from commit two reads it. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-12 16:00Z for the user's compact -- not a release. ST0069 is closed for 3.0.2 and cc's lane with it; nothing of cc's is uncommitted and nothing waits on cc. The quiet window is OPEN, both of today's narrowings are spent, and vc is dark. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,21 +14,12 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**LOCALFOLDED 2026-09-12 17:37Z for the user's compact, not a release. The board before this fold is verbatim at `.history/20260912/wip-prefold-1737Z.md`. Everything landed is carried by its commits; the UNLANDED work is carried by a patch named below, never by prose here.**
+**LOCALFOLDED 2026-09-12 16:00Z for the user's compact, not a release. The board before this fold is verbatim at `.history/20260912/wip-prefold-1600Z.md`; everything landed today is carried by its commits and the CHANGELOG, not here.**
 
-- **ST0069 IS REOPENED TO THE END BY hv, AND cc's LANE IS WP-14.** hv, verbatim: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_ Four packages were open -- WP-01, WP-02, WP-14 (L, cc's), WP-16 (ic's, now built). vc directs and has the pen.
-
-- **WP-14 COMMIT ONE IS LANDED: `b9f2aec74`.** The three coordination types, their enums, `Board`, `schema/board.schema.json`, the JSON face version, the D30 rows and the D42 sentence in `data-model.md`. `SCHEMA_VERSION` untouched at 23.
-
-- **WP-14 COMMIT TWO IS BUILT, GREEN BUT FOR ONE EXPECTED RED, AND BANKED UNLANDED.** The patch is `scratchpad/wp14-commit2.patch`, base `b9f2aec74`, and the worktree is `scratchpad/wt-cc`. It carries: the three tables and rung 24, `SCHEMA_VERSION` 24, both pins re-pinned, the projection writing `intent/whiteboard/<node>/board.json`, the restore reading it back, `register_nodes`/`register_roster`, the `wb` family and `wb register` rows in the register, and the `wb` render arm. **The one red is `openness::every_carried_by_declaration_resolves_to_something_on_disk`, and it is the work that remains rather than a defect:** the declaration resolves against THIS repository and the five board files do not exist here yet.
-
-- **TO FINISH COMMIT TWO, IN THIS ORDER.** (1) Regenerate the `populations` block in `surface/dispatch-table.json` -- the generator refuses a hand edit and compares ORDER, so derive it with the same jq the checker uses (`gen_dispatch_table.sh`, `POPULATIONS_SKEW`) rather than typing it. (2) Run `gen_dispatch_table.sh` until silent. (3) Build the worktree binary and run `intent wb register` THERE, against the worktree's own store, to produce the five `board.json`; they are committed as reproducible canon. (4) The four `data-model.md` items: the full ordering sentence in the notes, line 454's paragraph replaced with the roster-registration sentence, and a `### board` table for the envelope's four rows (ic's finding). (5) `cargo test --workspace --no-fail-fast`, then land and report by file list.
-
-- **THE LANDING REPORT OWES vc ONE ANSWER, AND IT IS ALREADY DETERMINED: a committed `board.json` reaches a store with no wb rows ONLY through an unscoped `sync --to-store`.** The code is `ingest.rs`, `resync_inner`, the gate `if scope.named().is_none() && load == Load::Restore`. **The daemon's ingest deliberately does NOT carry boards** -- `Load::Ingest` runs on every watched change and a wholesale replace there would revert a board write that had landed in the store before its file was projected, which is issue `0216`'s exact shape. Boards have no per-row decision procedure yet, so the store keeps its value and one explicit door replaces it.
-
-- **vc's THREE STANDING ORDERS, GIVEN GOING DARK AT 17:37Z.** (1) Land commit two when green on the rulings held. (2) Then the rest of the `intent wb` family, commit per verb group, row landing WITH its verb, fixture board only, views not switched, both guards untouched, no `cwi` and no skill. (3) **The live store stays at 23 until vc rebuilds the pair and broadcasts; NO binary built from commit two or later reads the live store before that. Worktree only.** Every report goes to `vc/inbox.cc.md` with a same-turn `date -u` stamp as well as the socket.
-
-- **THE REGISTER RULE IS AMENDED FOR `intent wb` ONLY** (vc, 2026-09-12): cc adds the register row in the commit that builds the verb, and ic reviews and corrects in their own commit, because the SSOT cannot precede the arm across two nodes. This is not a general licence and dies with WP-14.
+- **ST0069 is CLOSED for 3.0.2 and cc's lane with it.** WP-18, WP-20 and WP-23 Done, every criterion satisfied or withdrawn on a record. Nothing of cc's is uncommitted and nothing in this package waits on cc.
+- **NO RELEASE AND NO PUSH.** vc's standing line, and it did not lapse because vc went dark.
+- **QUIET WINDOW, OPEN, AND vc IS DARK (2026-09-12 16:00Z).** No `cargo test`, no `cargo build`, no drives until vc lifts it; commits of already-built work and store writes are fine. vc narrowed it twice today -- once for the Local measurement, once for the absent-sibling check -- and BOTH narrowings ARE SPENT. **On the bounce: do not run a suite to see where things are. That is the first instinct and it is the one thing forbidden.** Anything needing a ruling waits in `vc/inbox.cc.md` with a same-turn `date -u` stamp.
+- **dc's, IN ITS LAST PERMITTED RUN:** the rehearsal on the cut HEAD. **My suspicion is still handed over** for the bounded-ingest arm: if a bisect implicates the range rather than a commit, start at `write_doc_sections` in `store.rs` -- its FTS5 `rebuild` re-derives a content table holding the repository's prose as well as canon's. That line is mine.
 
 ## TODO
 
@@ -56,10 +47,6 @@ claims: [ST0056/06, ST0056/10]
 - **A `tail -n` ON A FAILURES BLOCK IS A SILENT NARROWING, AND I READ ONE AS A COMPLETE LIST.** `tail -40` cut three names off a 37-name block; comparing that against a later full capture produced a "composition shift" I reported to vc as the signature of a load-flaky family. The set was IDENTICAL every run -- deterministic, not flaky -- which is the opposite character. Capture a failures block WHOLE, or say the capture was bounded when quoting it.
 - **`git stash` IS A REPOSITORY-WIDE STACK, INCLUDING FROM A WORKTREE.** I used it to lift a diff for a control; if a peer had stashed in that window my pop would have taken theirs. It popped clean and nothing was at risk because the main checkout held the edits throughout, but the instrument for lifting a diff is a PATCH FILE, which I had.
 - **"MEASURED" MUST NOT DRIFT INTO "PROVEN TO RUN"** (dc, on my own Local table). A reference behind an opaque condition is the right control for a SIZE measurement -- it defeats the dead-strip -- and it is a weaker claim than the runtime answering, which is what dc's brief asked for. The table says reached-and-not-executed and must keep saying it.
-- **A SCHEMA BUMP MIGRATES THE WORKTREE'S OWN STORE, AND REVERTING THE BUMP STRANDS IT.** Building at `SCHEMA_VERSION` 24 migrated `wt-cc/intent/.cache/intent.db` to 24; reverting to 23 left the binary refusing its own store, which surfaced as THIRTY red daemon tests that read exactly like the absent-sibling signature and were nothing of the kind. There is no downgrade rung by design. Delete the worktree's cache and let it rebuild. The live store was untouched and still read 23, which is the isolation rule doing its job.
-- **NEVER RESERIALISE `surface/dispatch-table.json`; INSERT TEXTUALLY.** A `json.dumps` round trip to add two rows reformatted unrelated entries, re-escaped `\u0027` back to `'`, and moved a whole `daemon restart` row -- 127 insertions against 60 deletions for a 31-line addition. The register keeps its own formatting and is never run through a reformatter. Its generator also refuses a hand-edited `populations` block and compares ORDER, and it refuses an idempotent verb withheld from MCP unless `recoverability_anomaly` says why.
-- **schemars LIFTS `///` INTO THE PUBLISHED FACE, so a criterion id in a doc comment SHIPS.** `no_pm_state_in_output` caught this twice in one commit -- first in the DDL comments, which are published in `ddl.sql`, then again in `board.schema.json` after I had fixed the first. A consumer holding that face has no AC to look up. Ids belong in `//` comments, which do not ship.
-- **THE GATE REFUSES UNFORMATTED MARKDOWN AND THE DAEMON RE-INGESTS THE FORMATTED BYTES UNDER YOUR STAGE.** A refused commit, `prettier --write`, and the canon went `MM` while my index already held the old bytes. Settle past the ingest, then re-stage; committing the half you had is the failure available here.
 - **A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.
 - **A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.
 - **A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.
