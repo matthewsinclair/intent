@@ -171,10 +171,22 @@ fn rows_under(
   let scope = Scanned::for_root(root);
   let mut out = Vec::new();
   for path in repository_files(root, &scope)? {
-    if let Some(under) = under
-      && !path.starts_with(under)
-    {
-      continue;
+    if let Some(under) = under {
+      // **AN EVENT NAMING THE ROOT NEVER DESCENDS** (vc, 2026-09-12, on a loop
+      // dc attributed four-of-four with and none without). A coalesced event
+      // names the bare project root, and answering it by reconciling the whole
+      // corpus against a lagging index publishes everything, which is ingested,
+      // which rewrites files, which coalesces to the root again. Root means
+      // depth one; every other path still means its subtree, because a
+      // directory event that did not descend would answer about nothing.
+      let named = if under == root {
+        path.parent() == Some(root)
+      } else {
+        path.starts_with(under)
+      };
+      if !named {
+        continue;
+      }
     }
     let Some(corpus) = corpus_of(&path, views, canon_dir) else {
       continue;
@@ -703,6 +715,33 @@ mod tests {
       "and when the file really does change, the upsert still says what the \
        index holds -- stale content, honestly recorded, until something reads \
        the new bytes"
+    );
+  }
+
+  #[test]
+  fn a_root_event_names_the_root_files_and_does_not_descend() {
+    // The bound vc ruled: a coalesced event names the bare project root, and a
+    // reconcile that answered it by walking the whole corpus published
+    // everything, which was ingested, which rewrote files, which coalesced to
+    // the root again.
+    let dir = repo();
+    write(&dir, "README.md", b"# readme\n");
+    write(&dir, "src/lib.rs", b"fn a() {}\n");
+    let previous = rows_of(&dir);
+
+    write(&dir, "README.md", b"# readme, now longer\n");
+    write(&dir, "src/lib.rs", b"fn a() { let longer = 1; }\n");
+
+    let change = changes(&dir, ".", &previous);
+    assert_eq!(
+      change
+        .upserts
+        .iter()
+        .map(|r| r.path.as_str())
+        .collect::<Vec<_>>(),
+      vec!["README.md"],
+      "a root event reconciles the root's own files; the edit under `src/` is \
+       real and belongs to the event that names that directory"
     );
   }
 }
