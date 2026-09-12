@@ -115,6 +115,12 @@
 #     rows from `related`'s table and leave the heading.
 #     -> REFUSED (AC-16.3): entity `Related` maps to table `related` ...
 #
+#   The row-shaped reader is driven the same way, because a code path that has
+#   never been driven is exactly what this criterion is about:
+#     drop `fyi` from the wb_message cell   -> WbMessage.fyi SHIPPED WITH NO CONTRACT ROW
+#     add a name to the wb_item cell        -> WbItem.<name> CONTRACT ROW WITH NO SHIPPED PROPERTY
+#     rename the `wb_node` row label        -> REFUSED (AC-16.3), the mapped row is not found
+#
 # **BOTH ARMS ARE REQUIRED AND THE REASON IS NOT SYMMETRY FOR ITS OWN SAKE.** A
 # one-sided demonstration leaves the untested direction free to be a constant
 # pass, and a constant pass is indistinguishable from agreement in every run
@@ -140,7 +146,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
 MODEL="${MODEL:-$REPO_ROOT/intent/st/ST0056/data-model.md}"
-FACES="${FACES:-$REPO_ROOT/schema/thread.schema.json $REPO_ROOT/schema/issue.schema.json $REPO_ROOT/schema/event.schema.json}"
+FACES="${FACES:-$REPO_ROOT/schema/thread.schema.json $REPO_ROOT/schema/issue.schema.json $REPO_ROOT/schema/event.schema.json $REPO_ROOT/schema/board.schema.json}"
 
 [ -f "$MODEL" ] || die "data-model.md not found: $MODEL"
 for f in $FACES; do [ -f "$f" ] || die "published face not found: $f"; done
@@ -164,7 +170,9 @@ Envelope|event_log
 FiatRecord|fiat_record
 Invoker|invoker
 Subject|subject
--|wb_node|pending:ST0069 WP-14 -- the coordination entities are specified and NOT BUILT; the store has no whiteboard tables and no schema face is published for them. This is RED by construction until those faces land, and it is not an exemption: WP-16 does not close while it stands.
+WbNode|wb_node#wb_node
+WbItem|wb_node#wb_item
+WbMessage|wb_node#wb_message
 -|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. RATIFIED by vc under the pen, 2026-09-12, on this line's own reasoning. Declared here rather than skipped silently: it is reported every run and it never gates.
 EOF
 )"
@@ -227,6 +235,43 @@ cut -f1 "$TMP/doc.tables" | LC_ALL=C sort -u > "$TMP/doc.entities"
 # Read one entity table's field names off the document, given its header line.
 # Refuses (empty output, non-zero) rather than guessing when the table is not
 # the shape a field table is.
+# TWO TABLE SHAPES, AND THE SECOND IS NOT A CONCESSION. A `Field`-headed table
+# is one row per property. An `Entity`-headed table is one row per ENTITY with
+# its properties in a cell -- which is how the coordination entities are
+# written, three of them under one heading, because they are three shapes of one
+# thing and splitting them would separate rows that are read together. A map
+# entry addresses that shape as `<heading>#<row>`.
+#
+# **THE CELL IS PARSED BY ITS FIRST BACKTICKED TOKEN PER COMMA-SEPARATED
+# ELEMENT**, so `status` (`active . paused`) yields `status` and not its value
+# list, and the optional and array markers (`?`, `[]`) are stripped -- they are
+# the document saying what the schema says with `type` and `required`, not part
+# of a name.
+read_row_fields() {
+  awk -v start="$1" -v want="$2" '
+    NR <= start { next }
+    /^\|/ {
+      line = $0
+      sub(/^\| */, "", line)
+      n = split(line, cell, / *\| */)
+      label = cell[1]; gsub(/`/, "", label); gsub(/^ +| +$/, "", label)
+      if (label ~ /^-+$/) { next }
+      if (label != want) { next }
+      body = cell[2]
+      m = split(body, parts, /, /)
+      for (i = 1; i <= m; i++) {
+        if (match(parts[i], /`[^`]+`/)) {
+          f = substr(parts[i], RSTART + 1, RLENGTH - 2)
+          gsub(/\?$/, "", f); gsub(/\[\]$/, "", f)
+          if (f != "") print f
+        }
+      }
+      exit
+    }
+    /^[^|]/ { if (seen) exit; }
+  ' "$MODEL"
+}
+
 read_table_fields() {
   awk -v start="$1" '
     NR <= start { next }
@@ -272,7 +317,7 @@ done < "$TMP/schema.entities"
 
 # 2. Every document entity table must be claimed.
 while IFS= read -r heading; do
-  row="$(printf '%s\n' "$MAP" | awk -F'|' -v h="$heading" '$2 == h {print; exit}')"
+  row="$(printf '%s\n' "$MAP" | awk -F'|' -v h="$heading" '{split($2, a, "#"); if (a[1] == h) {print; exit}}')"
   if [ -z "$row" ]; then
     finding "REFUSED: contract table \`$heading\` in ${MODEL##*/} is claimed by no schema entity and is not declared faceless -- a contract describing something nobody implemented."
   fi
@@ -302,15 +347,25 @@ while IFS='|' read -r ent heading rest; do
     continue
   fi
 
+  row=""
+  where="$heading"
+  case "$heading" in
+    *"#"*) row="${heading#*#}"; heading="${heading%%#*}" ;;
+  esac
+
   tline="$(awk -F'\t' -v h="$heading" '$1 == h {print $3; exit}' "$TMP/doc.tables")"
   if [ -z "$tline" ]; then
-    finding "REFUSED (AC-16.3): entity \`$ent\` maps to table \`$heading\` in ${MODEL##*/}, and no field table was found under that heading. Not skipped, not assumed clean."
+    finding "REFUSED (AC-16.3): entity \`$ent\` maps to table \`$where\` in ${MODEL##*/}, and no field table was found under that heading. Not skipped, not assumed clean."
     continue
   fi
 
-  read_table_fields "$tline" | LC_ALL=C sort -u > "$TMP/doc.fields"
+  if [ -n "$row" ]; then
+    read_row_fields "$tline" "$row" | LC_ALL=C sort -u > "$TMP/doc.fields"
+  else
+    read_table_fields "$tline" | LC_ALL=C sort -u > "$TMP/doc.fields"
+  fi
   if [ ! -s "$TMP/doc.fields" ]; then
-    finding "REFUSED (AC-16.3): entity \`$ent\` maps to table \`$heading\` at line $tline, and the table could not be parsed into field names. The refusal names the entity and the table rather than reporting it checked."
+    finding "REFUSED (AC-16.3): entity \`$ent\` maps to table \`$where\` at line $tline, and the table could not be parsed into field names. The refusal names the entity and the table rather than reporting it checked."
     continue
   fi
 
@@ -325,14 +380,14 @@ while IFS='|' read -r ent heading rest; do
 
   if [ -n "$missing_row" ]; then
     while IFS= read -r p; do
-      [ -n "$p" ] && finding "$ent.$p -- SHIPPED WITH NO CONTRACT ROW (in the schema, absent from \`$heading\`)"
+      [ -n "$p" ] && finding "$ent.$p -- SHIPPED WITH NO CONTRACT ROW (in the schema, absent from \`$where\`)"
     done <<EOF
 $missing_row
 EOF
   fi
   if [ -n "$missing_prop" ]; then
     while IFS= read -r p; do
-      [ -n "$p" ] && finding "$ent.$p -- CONTRACT ROW WITH NO SHIPPED PROPERTY (in \`$heading\`, absent from the schema)"
+      [ -n "$p" ] && finding "$ent.$p -- CONTRACT ROW WITH NO SHIPPED PROPERTY (in \`$where\`, absent from the schema)"
     done <<EOF
 $missing_prop
 EOF
