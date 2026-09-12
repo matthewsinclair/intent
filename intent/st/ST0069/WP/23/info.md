@@ -2,7 +2,7 @@
 wp_id: WP-23
 title: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
