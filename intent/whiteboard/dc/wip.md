@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 08:28Z
+heartbeat_at: 2026-09-12 09:22Z
 status: active
-focus: "The watcher repair is BUILT and UNCOMMITTED, and it is HELD: the reconcile is now reporting a real pre-existing difference and whether that may be published needs vc. Then the mid-course rehearsal, then the grammar measurement. NO RELEASE, NO PUSH."
+focus: "The watcher repair is LANDED (da08b4a18), reshaped to vc's ruling. Now: the confirming drive under a genuinely isolated HOME, which is also the experiment for whether a test repoints `~/.intent/home` or whether that was my own missing isolation. Then the mid-course rehearsal, then WP-20's grammar measurement. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -13,35 +13,31 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-0827Z.md`.** Batches 1 and 4 landed and are carried by their commits and the CHANGELOG, not here.
 
-## DOING -- the watcher repair, on vc's settled ruling. BUILT, UNCOMMITTED, HELD.
+## DOING -- the confirming drive, and the HOME question it answers
 
-**THE DIFF IS NOT IN GIT.** It is `scratchpad/watcher-repair-WIP.patch` in this session's scratchpad, and the same changes are live in the worktree `scratchpad/wt-dc`. If both are gone, rebuild from this section: it carries the whole design.
+**The watcher repair LANDED at `da08b4a18`.** Six files. `candidates` is factored out of `scan` and is the ONE enumeration of the corpus; `changed_under` calls it and filters by the event's path; `includes` refuses a bare directory. vc verified it by file list. cc is told; WP-18 widens it.
 
-Three parts, all written and compiling, `cargo build -p intentd` clean:
+**WHAT IS OPEN IS A CLAIM I MADE AND DID NOT CHECK.** I reported those drives as being "under an isolated HOME" and I set no HOME at all -- the phrase came off my own board as a description of how I work rather than off the command I ran. vc found `~/.intent/home` repointed at my worktree and restored it. The drive running now sets `HOME` to a scratch dir and `CARGO_HOME` to the real one, and reads the REAL pointer with its mtime before the run and after each of two runs. **If the real pointer still moves, a test reaches past the isolation and I name it; if it does not, there is no test defect to chase and vc's `dual_path_conformance` suspicion is unproven rather than confirmed.**
 
-1. **`sync.rs::includes` returns false for a bare directory.** An empty remainder meant `components.pop()` was a no-op, the `descends` loop ran zero times, and `intent/` itself fell through to `true` -- so the skip list never got a chance to speak. Unit test added and CONTROLLED RED by reverting only that hunk.
-2. **`sync.rs::changed_under(root, under, previous)`**, new and public: walks `under` with the same `Scanned` the sync engine uses, compares SHA-256 against the store's recorded index, returns the in-scope files whose bytes differ. Scope and policy stay in `sync.rs` so the watcher is not a second statement of scope.
-3. **`watch.rs::files_that_changed`**, split out of `on_batch` so a directory-granularity event can be PLANTED rather than waited for; a path that is a directory or no longer exists is reconciled, a leaf is handled as before. Four unit tests, all green, including that a leaf event costs no store round trip. `store.rs` gains an internal `Work::FileIndex` read door -- the index lives in SQLite and `one_store_door.rs` forbids a second connection.
-
-**WHAT IS HELD, AND IT IS A RULING NOT A BUG.** The daemon suites ran 8/8 green under loads 24-41. Under a heavier `--workspace` run at load 50-87 the pair still fails, and the delivered path is no longer a directory -- it is `.prettierignore`, a root file, with the store's index NON-empty (probed: 23 entries). So the reconcile is reporting a REAL difference: `.prettierignore` genuinely differs from what the store recorded, because `converge_formatter_exclusion` appended to it after the index was taken.
-
-**The question for vc: may a directory event publish a difference that PRE-DATES it?** My reconcile answers _what differs now_; the test's `feed.settle()` assumes _what changed since_. Both are defensible and the choice is not mine to guess. Do not soften either assertion; they are correct as written.
+**Also on the record and not yet explained:** a confirming run taken while the box was still at load 53 with `fseventsd` pinned near 100% showed two reds -- `an_external_edit_delivers_both_d20_events_in_layer_order` and `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests`. Neither is the scope pair, and both are _no event arrived in time_ rather than _the wrong thing arrived_. Not called environmental until the quiet run says so.
 
 ## TODO
 
-- **The mid-course rehearsal**, once the watcher lands: `--dry-run` of `build release --patch` in a clone with the gates live and `intent backup` taken deliberately first, every gate line reported. Not the run that counts; it proves batch 4 left the release path whole and that preflight is deterministic once the watcher stops answering itself. Drive the daemon suite more than once, load stated.
+- **The mid-course rehearsal**, next in vc's order: `--dry-run` of `build release --patch` in a clone with the gates live and `intent backup` taken deliberately first, every gate line reported. Not the run that counts; it proves batch 4 left the release path whole and that preflight is deterministic once the watcher stops answering itself. Drive the daemon suite more than once, load stated.
 - **Then WP-20's grammar measurement, AC-20.4**: one tree-sitter grammar crate at a time (rust, elixir, swift, lua, bash), release pair built with the in-tree target dir, binary-size delta per grammar with the exact command and the toolchain in force. No estimate, no rounding into prose. Swift is the expected outlier. A report to vc and hv, who sets the line; the crates do not land from this step. Read `intent/st/ST0069/design.md` FIRST.
-- **Tell cc when the watcher lands** -- WP-18 widens this watcher and builds on the fix.
 - **CHANGELOG lines** from cc for its last two items (fbf3e7f7d, f24053c13) and ic's output lines, as they reach me.
 
 ## Holds
 
-- **The watcher repair is held for vc's ruling on the pre-dating-difference question above.** Condition: vc answers. vc is compacting; the report is in `vc/inbox.dc.md` as well as sent.
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
 
 ## Watch-outs
 
+- **A DISCIPLINE ON YOUR BOARD IS NOT A FLAG ON YOUR COMMAND LINE.** I wrote "under an isolated HOME" in a commit message and to vc, and I had set no HOME: the phrase came off this board as a description of how I work. A claim sourced from your own standing practice reads exactly like a checked one. Read the command back before you describe it.
+- **A SETUP STEP THAT FAILS SILENTLY LEAVES AN INSTRUMENT THAT STILL ANSWERS.** `intent init --name X` is not v3's spelling; it refused at rc 1, I did not read the code, and every `intent critic` run after it looked perfectly normal because the rule library resolves from the INSTALL ROOT, not the project. Read the setup's exit code before you trust the measurement.
+- **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE.** `walk(dir)` and `Scanned::includes(file)` answered differently about one file depending on which door the event came through. Enumerate once, decide once; `scan` and `changed_under` now share `candidates`.
+- **SYNTHETIC LOAD SATURATES `fseventsd`, AND A WATCHER TEST THEN TIMES OUT FOR A REASON THAT IS NOT THE CODE.** Read `ps aux | grep fseventsd` beside the load average before attributing a watcher red.
 - **`git stash` IS SHARED ACROSS EVERY WORKTREE OF ONE REPO.** I used it for a control and a peer's WIP was sitting in that stack; push/pop raced against them and only luck kept it straight. Control a diff with `git diff > patch; git checkout -- <paths>; git apply patch` instead, which touches nothing shared.
 - **A NEW DEPENDENCY NEEDS ITS RATIONALE IN THE WORKSPACE MANIFEST, NOT THE CRATE'S.** `dependency_rationale` reds three ways when a dep `intentd` declares has no comment block above its pinned version in `native/rust/Cargo.toml`. Two of the three reds are the check's own controls failing, which reads as a catastrophe.
 - **The test daemon's stderr is `Stdio::null()`.** An `eprintln!` probe inside `intentd` can never reach the test output; write to a file if you need to instrument it, and delete the probe before banking.
