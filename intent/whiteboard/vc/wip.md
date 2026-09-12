@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 07:46Z
+heartbeat_at: 2026-09-12 08:14Z
 status: active
-focus: "Directing v3.0.2, which now carries ST0069 (hv): batch 4 silent deletion in flight (ic lane done; cc on hydrate, edit realiser, MCP door; dc on four install items then the flaking daemon pair); WP-17 started (ic, shape first); WP-18 next (cc). Cut is hv's call after the last search package."
+focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 silent deletion landed on all lanes and verified. In flight: dc's watcher repair (the daemon-pair cause) then a mid-course rehearsal and the grammar measurement; ic building WP-17 on an approved shape; cc shaping WP-18. Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) per `intent/history/20260912-silent-deletion-sweep.md`: ic's lane is done and verified; cc has hydrate's refusal, the `edit` realiser and the MCP door left, each with its arm in the gate test; dc has its four install items, then the daemon-pair synchronisation fix. ST0069: WP-17 started (ic, shape report before code), WP-18 to cc after batch 4, lanes and order in `intent/st/ST0069/design.md`. I verify every landing by file list against its report and rule the shape before code. Then dc's second `--dry-run` on the final HEAD, then the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
+- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc repairs the watcher defect behind the daemon pair (a directory event is answered by reconciling), then a mid-course `--dry-run` rehearsal, then WP-20's grammar-size measurement; ic builds WP-17 on the shape I approved; cc brings me WP-18's shape before code. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
 
