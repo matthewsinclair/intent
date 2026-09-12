@@ -32,6 +32,8 @@ mod all_flag_reaches_every_unit;
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_close_names_what_the_next_organize_removes.rs"]
+mod a_close_names_what_the_next_organize_removes;
 #[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_narrowed_render_names_its_scope.rs"]
@@ -154,6 +156,8 @@ mod no_intent_home;
 mod no_orphan_suite_member;
 #[path = "no_pm_state_in_output.rs"]
 mod no_pm_state_in_output;
+#[path = "no_removal_is_unannounced.rs"]
+mod no_removal_is_unannounced;
 #[path = "no_skill_names_an_unshipped_verb.rs"]
 mod no_skill_names_an_unshipped_verb;
 #[path = "one_daemon_predicate_across_both_trees.rs"]

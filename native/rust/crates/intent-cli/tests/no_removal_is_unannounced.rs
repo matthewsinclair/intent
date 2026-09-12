@@ -1,0 +1,298 @@
+//! **NO REMOVING VERB TAKES A BYTE IT DID NOT NAME FIRST.**
+//!
+//! hv, 2026-09-12, on finding `organize --apply` listing its removals only
+//! after making them: _"silent deletion ... This cannot be released publicly
+//! with that kind of bug. THEY NEED IDENTIFYING, TRIAGING, AND FIXING, AS A
+//! MATTER OF URGENCY."_ The individual fixes are each their own commit; this
+//! file is the thing that keeps the CLASS fixed, so the next verb that learns
+//! to remove something cannot quietly join the old shape.
+//!
+//! # What is asserted, and why it is not "the output mentions the path"
+//!
+//! A verb that prints `removed: x` AFTER removing `x` mentions the path and is
+//! exactly the defect. So the property is about TENSE and ORDER: every path
+//! that vanished from the tree must appear in a line that was printed BEFORE
+//! the act -- a `to-remove:` or `to-prune:` line -- and those lines must come
+//! before the past-tense ones. The run's own stdout carries both, in order, so
+//! one capture answers it.
+//!
+//! # The vacuity control is the point of the file
+//!
+//! **A fixture where nothing is removed passes every assertion here while
+//! proving nothing**, which is this estate's most-repeated failure: a subject
+//! that cannot exhibit the defect cannot clear it. So each arm computes what
+//! actually vanished by walking the tree before and after, and asserts that the
+//! set is NON-EMPTY before asserting anything about it.
+//!
+//! # Coverage, stated so the gaps are visible rather than implied
+//!
+//! Covered here: `organize --apply`, `organize --apply --quiet`, `st dehydrate`.
+//! **Not yet covered, because the fixes are not landed yet:** `st hydrate`
+//! overwriting a differing view (vc's sweep, item 4), `edit --path` and
+//! `st edit` realising through `Mode::Apply` (item 5), and the MCP `organize`
+//! tool with `apply: true` (item 3). Each lands with its arm here.
+
+use std::collections::BTreeSet;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+
+fn intent(dir: &Path, args: &[&str]) -> Output {
+  Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(args)
+    .current_dir(dir)
+    .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
+    .output()
+    .expect("run intent")
+}
+
+fn ok(dir: &Path, args: &[&str]) {
+  let out = intent(dir, args);
+  assert!(
+    out.status.success(),
+    "fixture step `{args:?}` failed: {}{}",
+    String::from_utf8_lossy(&out.stdout),
+    String::from_utf8_lossy(&out.stderr)
+  );
+}
+
+fn stdout(out: &Output) -> String {
+  String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// Every file under the project, relative and `/`-separated -- the population a
+/// removal is measured against.
+fn tree(root: &Path) -> BTreeSet<String> {
+  fn walk(root: &Path, dir: &Path, out: &mut BTreeSet<String>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+      return;
+    };
+    for entry in entries.flatten() {
+      let path = entry.path();
+      // `.git` and the store are not this verb's subject and churn on their own.
+      if path
+        .file_name()
+        .is_some_and(|n| n == ".git" || n == ".cache")
+      {
+        continue;
+      }
+      if path.is_dir() {
+        out.insert(rel(root, &path));
+        walk(root, &path, out);
+      } else {
+        out.insert(rel(root, &path));
+      }
+    }
+  }
+  let mut out = BTreeSet::new();
+  walk(root, root, &mut out);
+  out
+}
+
+fn rel(root: &Path, path: &Path) -> String {
+  path
+    .strip_prefix(root)
+    .unwrap_or(path)
+    .components()
+    .map(|c| c.as_os_str().to_string_lossy().to_string())
+    .collect::<Vec<_>>()
+    .join("/")
+}
+
+/// A project holding a realised thread the declaration does not name, which is
+/// the state every removing verb here reconciles.
+fn project() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  ok(root, &["init", "Fixture"]);
+  ok(root, &["st", "new", "Gate declaration"]);
+  ok(root, &["st", "new", "To be removed"]);
+  ok(root, &["st", "hydrate", "ST0001"]);
+  ok(root, &["st", "hydrate", "ST0002"]);
+  // The estate's own ship gate: exactly one criterion may carry the block, and
+  // it must be satisfied or every removal is held and the fixture is vacuous.
+  ok(
+    root,
+    &[
+      "ac",
+      "new",
+      "ST0001",
+      "AC-00.1",
+      "--text",
+      "No dehydration path removes any file while any declared precondition is \
+       unmet. <<PRECONDITIONS AC-00.9 PRECONDITIONS>>",
+    ],
+  );
+  ok(
+    root,
+    &["ac", "new", "ST0001", "AC-00.9", "--text", "a precondition"],
+  );
+  ok(
+    root,
+    &[
+      "ac",
+      "satisfy",
+      "ST0001",
+      "AC-00.9",
+      "--evidence",
+      "met by construction in this fixture",
+    ],
+  );
+  ok(root, &["st", "start", "ST0001"]);
+  dir
+}
+
+/// Take ST0002 out of the declaration while its files stay on disk.
+fn undeclare_st0002(root: &Path) {
+  let path = root.join("intent/.intentfiles");
+  let text = std::fs::read_to_string(&path).expect("the declaration is readable");
+  let kept: String = text
+    .lines()
+    .filter(|l| !l.contains("ST0002"))
+    .map(|l| format!("{l}\n"))
+    .collect();
+  std::fs::write(&path, kept).expect("rewrite the declaration");
+}
+
+/// The paths a run took away.
+fn vanished(before: &BTreeSet<String>, after: &BTreeSet<String>) -> Vec<String> {
+  before.difference(after).cloned().collect()
+}
+
+/// The property, applied to one run: everything that went was named in the
+/// future tense, and the future tense came first.
+fn assert_named_before_it_went(said: &str, gone: &[String], what: &str) {
+  assert!(
+    !gone.is_empty(),
+    "VACUITY CONTROL: `{what}` removed nothing, so this arm proves nothing \\
+     about a verb that removes. Output was:\\n{said}"
+  );
+  for path in gone {
+    let announced = said.lines().map(str::trim_start).any(|l| {
+      (l.starts_with("to-remove: ") || l.starts_with("to-prune: ")) && l.contains(path.as_str())
+    });
+    assert!(
+      announced,
+      "`{what}` removed `{path}` and never named it before doing so. Output \\
+       was:\\n{said}"
+    );
+  }
+  let first_future = said
+    .lines()
+    .position(|l| {
+      let t = l.trim_start();
+      t.starts_with("to-remove: ") || t.starts_with("to-prune: ")
+    })
+    .expect("a future-tense line, asserted above");
+  if let Some(first_past) = said.lines().position(|l| {
+    let t = l.trim_start();
+    t.starts_with("removed: ") || t.starts_with("pruned: ")
+  }) {
+    assert!(
+      first_future < first_past,
+      "`{what}` printed a past-tense removal line above its plan, so the plan \\
+       is not what a reader meets first. Output was:\\n{said}"
+    );
+  }
+}
+
+/// `organize --apply` -- the trigger case.
+#[test]
+fn organize_apply_names_every_path_before_it_goes() {
+  let dir = project();
+  let root = dir.path();
+  undeclare_st0002(root);
+
+  let before = tree(root);
+  let out = intent(root, &["organize", "--apply"]);
+  let after = tree(root);
+
+  assert_named_before_it_went(
+    &stdout(&out),
+    &vanished(&before, &after),
+    "organize --apply",
+  );
+}
+
+/// **AND `--quiet` DOES NOT BUY ITS QUIET WITH THE REMOVALS.** The flag may
+/// withhold what a run wrote and the inventory it walked past; the bytes it
+/// takes away are not reportage.
+#[test]
+fn organize_apply_quiet_names_every_path_before_it_goes() {
+  let dir = project();
+  let root = dir.path();
+  undeclare_st0002(root);
+
+  let before = tree(root);
+  let out = intent(root, &["organize", "--apply", "--quiet"]);
+  let after = tree(root);
+
+  assert_named_before_it_went(
+    &stdout(&out),
+    &vanished(&before, &after),
+    "organize --apply --quiet",
+  );
+}
+
+/// `st dehydrate` -- the same property in the verb that removes one thread.
+#[test]
+fn st_dehydrate_names_every_path_before_it_goes() {
+  let dir = project();
+  let root = dir.path();
+
+  let before = tree(root);
+  let out = intent(root, &["st", "dehydrate", "ST0002"]);
+  let after = tree(root);
+
+  assert_named_before_it_went(&stdout(&out), &vanished(&before, &after), "st dehydrate");
+}
+
+/// **THE CONTROL ON THE INSTRUMENT ITSELF.** Everything above rests on `tree`
+/// being able to see a removal at all; an arm that walked the wrong root, or
+/// skipped the directory the fixture uses, would report an empty `vanished` set
+/// and the vacuity guard would fire -- but only if the guard is really reached.
+/// This drives the measurement directly, with no verb involved.
+#[test]
+fn the_measurement_can_see_a_removal() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let file = root.join("intent/st/ST0001/info.md");
+  std::fs::create_dir_all(file.parent().expect("parent")).expect("mkdir");
+  std::fs::write(&file, "x\n").expect("write");
+
+  let before = tree(root);
+  std::fs::remove_file(&file).expect("remove");
+  let after = tree(root);
+
+  assert_eq!(
+    vanished(&before, &after),
+    vec!["intent/st/ST0001/info.md".to_string()],
+    "the walk must see a file that went, or every arm above is vacuous"
+  );
+}
+
+/// A run that removes nothing is not required to announce anything, and must
+/// not be made to. Without this the fix could be "print a plan every time",
+/// which is noise on the default spelling of a routine verb.
+#[test]
+fn a_run_that_removes_nothing_announces_no_removal() {
+  let dir = project();
+  let root = dir.path();
+
+  let before = tree(root);
+  let said = stdout(&intent(root, &["organize", "--apply"]));
+  let after = tree(root);
+
+  assert!(
+    vanished(&before, &after).is_empty(),
+    "precondition: with ST0002 still declared this run removes nothing"
+  );
+  assert!(
+    !said
+      .lines()
+      .any(|l| l.trim_start().starts_with("removed: ")),
+    "and it reports no removal. Output was:\\n{said}"
+  );
+}
+
+fn _unused(_: PathBuf) {}
