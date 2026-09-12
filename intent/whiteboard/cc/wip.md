@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 11:53Z
+heartbeat_at: 2026-09-12 12:36Z
 status: active
-focus: "WP-20's integration is landed and its two criteria are cited green: the symbols table, the writer from both index doors, `--kind def` from the store. Code is findable lexically now and every declared language says what this build can do for it. WP-23 next, shape sent to vc."
+focus: "The lane is complete but for one record: WP-18 and WP-20's integration are closed and cited, WP-23's seams are landed with its two AT rows green, and AC-23.4 waits on hv through vc. Holding after that; vc will say when the quiet window needs suites paused."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069. WP-18's corpus and WP-20's integration are landed; WP-23 is next.**
-  - **NEXT, MINE:** WP-23 -- the embedder trait, a Null that REFUSES rather than returning zeros (a zero vector is a wrong answer that scores), the HTTP one, the vector rung with cosine in Rust, Local left to hv. Shape sent to vc; building without waiting for the ack, per vc's standing rule.
-  - **dc's, unblocked:** the watcher's second registration over the index scope, dispatching into `index::reconcile::changed_under`. The root bound it needs is landed -- root means depth one.
-  - **ic's, unblocked:** rendering `Status.grammars`, a row per declared language, and the code hits that now reach the lexical group.
-  - **HELD, NOT MINE:** AC-20.4's grammar line is hv's to rule; every `lang-*` feature stays off until then, which is why one of my arms is gated and driven with `--features lang-rust`.
+- **ST0069. Everything in cc's lane is landed; one record is outstanding and it is not mine to write.**
+  - **WAITING, NOT BLOCKED:** AC-23.4, the Local-runtime decision. Two candidate shapes with their crates are with dc to measure (binary delta only, each crate referenced behind an opaque condition or fat LTO drops it and a zero reads as free) and with vc to put to hv. `wp done ST0069/23` follows the record. **I do not build Local.**
+  - **REPORTED, dc's:** `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` reds ALONE on a clean HEAD, twice of two, ingest 3 against a bound of 2 -- a different signature from the load flake, which passed alone all day. vc has routed it ahead of WP-22.
+  - **ON hv's LIST, NOT A QUIET ADDITION:** TLS. The HTTP embedder speaks `http://` and refuses `https://` by name; a TLS stack is a dependency with a rationale and it goes to hv beside the Local decision.
+  - **THEN:** hold. vc will say when the quiet window needs my suites paused.
 
 ## TODO
 
