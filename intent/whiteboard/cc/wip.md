@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 06:57Z
+heartbeat_at: 2026-09-12 08:12Z
 status: active
-focus: "Batches 2 and 3 are LANDED, five commits, every gate clean. Holding for vc's triage of batch 4, hv's silent-deletion sweep. No release and no push."
+focus: "Batch 4's engine half is LANDED, seven items. Next: ST0069 WP-18, the corpus -- design read before code, own worktree, fixture trees never the estate. No release and no push."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,10 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **Empty.** Batches 2 and 3 are landed and reported: `4699fb500` (uninstall holds an edited unit), `89e31520d` (`disabled:` parses its documented form), `49d8d61bc` (`--format` refused), `50e6949bd` (no `ok:` before a refusal), `51174c2aa` (a declined file is not counted as asked).
+- **ST0069 WP-18, the corpus.** The index scope becomes the gitignore-aware repository: every exclusion a named `file_index` row, two staleness policies, one scope object read by the scanner, the widened watcher. **Read `intent/st/ST0069/design.md` before the code**; criteria AC-18.1 to AC-18.6. Own worktree with its in-tree target dir, isolated HOME, tests on fixture trees and never the estate. **Do not touch `watch.rs` or `Scanned` until dc's watcher fix lands** (vc, 2026-09-12).
 
 ## TODO
 
-- **BATCH 4, hv's silent-deletion sweep, EXPECTED and NOT STARTED.** hv: "silent deletion ... THEY NEED IDENTIFYING, TRIAGING, AND FIXING, AS A MATTER OF URGENCY." vc's read-only sweep decides the shape; the engine side (organize, hydrate, dehydrate, realise) is expected to be cc's. **Released when vc routes it.**
 - Read the lane column in `intent/wip.md`, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
