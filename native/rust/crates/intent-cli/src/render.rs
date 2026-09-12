@@ -10282,10 +10282,40 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
     .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
-  let json = m
+  // **A `--format` THIS VERB DOES NOT SERVE IS REFUSED, NOT QUIETLY TREATED AS
+  // `text`** (`intent/wip.md` item 8, hv ruled the fix 2026-09-12). The test
+  // was `f == "json"`, so every other value -- a typo, a format another verb
+  // has, a format nothing has -- rendered text and exited 0. **The operator who
+  // asked for a machine-readable answer got a human one and a success code**,
+  // and a script parsing it sees well-formed output that is not what it asked
+  // for, which is worse than an error it would have handled.
+  //
+  // **THE ROSTER IS THE ROW'S: `text|json`**, declared on this verb's `--format`
+  // flag in `surface/dispatch-table.json`, where it reaches clap as a
+  // `value_name` and nothing parses it. That is the gap
+  // `format_roster_is_honoured.rs` exists over, from the other side: it drives
+  // what the row DECLARES against what the verb ACCEPTS, and a verb accepting
+  // everything passes it vacuously.
+  //
+  // **EXIT 2, WHICH IS THIS COMMAND'S USAGE CODE AND NOT A SLIP.** INV-04 and
+  // the dispatch table's `why_2_is_correct_for_critic` rule it deliberately:
+  // the gate's own principle is *fail open on its own breakage and closed on
+  // yours*, and a critic that cannot parse its own invocation is the gate's
+  // breakage. The two refusals directly above -- an unknown language, an
+  // unparseable severity -- are `Unavailable` for exactly that reason.
+  let format = m
     .get_one::<String>("format")
-    .map(|f| f == "json")
-    .unwrap_or(false);
+    .map(|s| s.as_str())
+    .unwrap_or("text");
+  let json = match format {
+    "json" => true,
+    "text" => false,
+    other => {
+      return Err(Failure::Unavailable(format!(
+        "error: `{other}` is not a format this command serves\n  remedy: one of text, json"
+      )));
+    }
+  };
   if json {
     render_critic_json(&report);
   } else {

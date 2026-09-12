@@ -34,11 +34,14 @@
 //! v2's arm 2 asserts the v2 usage STRING (`intent critic <lang>`), which is
 //! v2's rendering of its own help; clap owns that now.
 //!
-//! **TWO ARE LIVE DIVERGENCES WHERE v2 REFUSED AND v3 ANSWERS SUCCESS.** They
-//! are pinned below as assertions on TODAY's behaviour, not endorsed -- the
-//! technique `plugin_surface.rs` uses: couple the record to the behaviour, so
-//! that fixing either one REDS THE ARM and sends the next reader back to this
-//! header instead of letting the divergence be absorbed by a quiet edit.
+//! **TWO WERE LIVE DIVERGENCES WHERE v2 REFUSED AND v3 ANSWERED SUCCESS. ONE
+//! IS CLOSED AND ONE IS STILL OPEN.** They were pinned below as assertions on
+//! TODAY's behaviour, not endorsed -- the technique `plugin_surface.rs` uses:
+//! couple the record to the behaviour, so that fixing either one REDS THE ARM
+//! and sends the next reader back to this header instead of letting the
+//! divergence be absorbed by a quiet edit. **That coupling worked as designed:
+//! the second divergence was fixed on 2026-09-12 and the arm reddened**, which
+//! is why this header changed in the same commit as the code.
 //!
 //! **(1) A BARE `intent critic <lang>` REPORTS CLEAN OVER ZERO FILES AT EXIT
 //! 0.** v2 exited 2 with _no files specified_ rather than guess a population.
@@ -51,21 +54,25 @@
 //! shipped gate is unaffected: `lib/templates/hooks/pre-commit.sh` invokes
 //! `--staged`, where an empty population genuinely means nothing to check.
 //!
-//! **(2) AN UNKNOWN `--format` IS ACCEPTED AT EXIT 0 AND SILENTLY RENDERS
-//! TEXT.** v2 exited 2 with _invalid --format_. `--help` declares the flag as
-//! `--format <text|json>` -- a closed set of two -- and the binary takes any
-//! string. A script whose `--format json` is typoed to `--format jsonl` gets
-//! text at exit 0 and parses garbage. **Its sibling on the same command
-//! validates**: `--severity-min bogus` is refused at exit 2 with ``bogus` is
-//! not a severity``, so the two flags disagree about whether a declared value
-//! set is enforced. This is vc's own class from 2026-08-31 -- the declaration
-//! promising what the binary does not do, raised there against `intent daemon
-//! status` declaring `--format terminal|json` and projecting neither -- and
-//! this is a second instance in a different verb.
+//! **(2) AN UNKNOWN `--format` WAS ACCEPTED AT EXIT 0 AND SILENTLY RENDERED
+//! TEXT. CLOSED 2026-09-12, hv's v3.0.2 ruling, `intent/wip.md` item 8.** v2
+//! exited 2 with _invalid --format_; `--help` declares the flag as
+//! `--format <text|json>` -- a closed set of two -- and the binary took any
+//! string, so a script whose `--format json` was typoed to `--format jsonl` got
+//! text at exit 0 and parsed garbage. **Its sibling on the same command already
+//! validated**: `--severity-min bogus` is refused at exit 2, so the two flags
+//! disagreed about whether a declared value set is enforced. That was vc's own
+//! class from 2026-08-31 -- the declaration promising what the binary does not
+//! do, raised there against `intent daemon status` declaring
+//! `--format terminal|json` and projecting neither.
 //!
-//! Both are `IN-AG-NO-SILENT-001`'s subject and neither is fixed here: they are
-//! surface behaviour, and a test migration is not the place to change what the
-//! binary does during a tag window.
+//! It now refuses at exit 2 with a remedy naming the set, which is this
+//! command's usage code by INV-04's named exception rather than a slip. The arm
+//! below asserts the REFUSAL; the record of what it used to do is this
+//! paragraph.
+//!
+//! Both were `IN-AG-NO-SILENT-001`'s subject. (1) is still open: it is a
+//! question about what a bare invocation should do, which nobody has ruled.
 
 use std::path::PathBuf;
 use std::process::{Command, Output};
@@ -455,26 +462,28 @@ fn a_disabled_rule_is_suppressed_and_disabling_another_leaves_it_firing() {
   );
 }
 
-/// **THE TWO DIVERGENCES, PINNED TO TODAY'S BEHAVIOUR AND NOT ENDORSED.**
+/// **THE DIVERGENCE STILL OPEN, PINNED TO TODAY'S BEHAVIOUR AND NOT
+/// ENDORSED, AND THE ONE THAT CLOSED.**
 ///
-/// See this file's header for both in full. These assertions exist so the
-/// divergence cannot be absorbed silently: **if either is fixed, this arm goes
-/// red and sends the reader to the header rather than to a green suite that
-/// forgot the question was open.** That is the coupling `plugin_surface.rs`
-/// uses for the same purpose. Delete this arm when the record moves; do not
-/// edit the expectations to match a fix.
+/// See this file's header for both in full. The first assertion exists so the
+/// divergence cannot be absorbed silently: **if it is fixed, this arm goes red
+/// and sends the reader to the header rather than to a green suite that forgot
+/// the question was open.** That is the coupling `plugin_surface.rs` uses for
+/// the same purpose, and it did its job -- the `--format` half reddened here
+/// when the fix landed, and the header and this arm moved in that commit.
 #[test]
-fn the_two_places_where_v2_refused_and_this_build_answers_success() {
-  // (1) A bare language answers CLEAN over a population it did not read. The
-  // control is in the assertion: this repository tracks hundreds of Rust files,
-  // so `0 file(s)` is a statement about the scan and not about the corpus.
+fn a_bare_language_answers_clean_and_an_undeclared_format_is_refused() {
+  // (1) STILL OPEN. A bare language answers CLEAN over a population it did not
+  // read. The control is in the assertion: this repository tracks hundreds of
+  // Rust files, so `0 file(s)` is a statement about the scan and not about the
+  // corpus.
   let bare = critic(&["rust"]);
   assert_eq!(
     bare.status.code(),
     Some(0),
     "RECORDED, NOT ENDORSED: v2 exited 2 (`no files specified`) rather than \
      guess a population. If this now refuses, the divergence in this file's \
-     header is CLOSED -- update the header and delete this arm."
+     header is CLOSED -- update the header and delete this half."
   );
   assert!(
     out(&bare).contains("across 0 file(s)"),
@@ -483,7 +492,8 @@ fn the_two_places_where_v2_refused_and_this_build_answers_success() {
     out(&bare)
   );
 
-  // (2) An undeclared `--format` value is accepted and text is rendered.
+  // (2) CLOSED. An undeclared `--format` value is refused, and the refusal
+  // names the set the row declares rather than leaving the operator to guess.
   let good = fixture("good_test.exs");
   let bogus = critic(&[
     "elixir",
@@ -494,20 +504,40 @@ fn the_two_places_where_v2_refused_and_this_build_answers_success() {
   ]);
   assert_eq!(
     bogus.status.code(),
-    Some(0),
-    "RECORDED, NOT ENDORSED: `--help` declares `--format <text|json>` and v2 \
-     exited 2 on anything else. If this now refuses, the divergence is CLOSED \
-     -- update the header and delete this arm."
+    Some(2),
+    "an undeclared `--format` is a usage error, and 2 is this command's usage \
+     code (INV-04's named exception): {}{}",
+    out(&bogus),
+    err(&bogus)
   );
   assert!(
-    !out(&bogus).starts_with('{'),
-    "the fallback renders text rather than the JSON a caller may have meant: {}",
+    err(&bogus).contains("not a format this command serves") && err(&bogus).contains("text, json"),
+    "the refusal must name the set, or the operator is told no and not what to type: {}",
+    err(&bogus)
+  );
+  assert!(
+    out(&bogus).is_empty(),
+    "a refused invocation renders nothing: a caller that reads stdout must not \
+     find a report there: {}",
     out(&bogus)
   );
 
-  // The sibling flag on the same command DOES validate. Asserted here so the
-  // two arms above are read as a disagreement inside one command rather than
-  // as a binary that validates nothing.
+  // **THE DECLARED VALUES BOTH STILL WORK**, or the arm above would pass over a
+  // flag that refuses everything.
+  for fmt in ["text", "json"] {
+    let o = critic(&["elixir", "--files", good.to_str().unwrap(), "--format", fmt]);
+    assert_eq!(
+      o.status.code(),
+      Some(0),
+      "`--format {fmt}` is declared on this verb's row and must be served: {}{}",
+      out(&o),
+      err(&o)
+    );
+  }
+
+  // The sibling flag on the same command validates the same way. Asserted here
+  // so the two are read as one command's single rule rather than as two flags
+  // that happen to agree today.
   let sev = critic(&[
     "elixir",
     "--files",
@@ -518,7 +548,6 @@ fn the_two_places_where_v2_refused_and_this_build_answers_success() {
   assert_eq!(
     sev.status.code(),
     Some(2),
-    "`--severity-min` validates while `--format` does not; if this changed, the \
-     header's framing of the second divergence needs revisiting"
+    "`--severity-min` and `--format` now agree: a declared value set is enforced"
   );
 }
