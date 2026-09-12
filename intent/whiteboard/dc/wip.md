@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 06:07Z
+heartbeat_at: 2026-09-12 06:19Z
 status: active
-focus: "BATCH 1, release and install (hv ruled, vc directing). Items 2 and 3 landed; item 1 (schema faces at release) is not started. NO RELEASE, NO PUSH. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "BATCH 1 IS LANDED, all three items. hv named v3.0.2. What is left: the end-to-end --dry-run rehearsal in a clone, with the gates running. NO RELEASE, NO PUSH. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -13,17 +13,21 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-0607Z.md`.** Everything executed, every narrative and every finding already carried by a commit or by `intent/wip.md` is there, not here.
 
-## DOING -- batch 1, "release and install"
+## DOING -- batch 1, "release and install": LANDED
 
-hv ruled it 2026-09-11, vc directs, code authorised for these items and nothing else. Every build and test in a private worktree under an isolated HOME with its own `CARGO_TARGET_DIR`; read `~/.intent/home` afterwards. Red before green on each item, output read. **No release and no push.** Found-whiles go to vc, never into the fix.
+hv ruled it 2026-09-11, vc directs, code authorised for these items only. Builds and tests in a private worktree or clone under an isolated HOME with its own `CARGO_TARGET_DIR`; read `~/.intent/home` after. Red before green, output read. **No release and no push.** Found-whiles to vc.
 
-1. **Schema faces at release -- NOT STARTED.** The v3.0.1 tag carried `schema/*` stamped `INTENT_VER: 3.0.0`, so five schema tests fail at the tag. The release must make that impossible: the stamp step re-blesses the faces, or preflight refuses when a face's version disagrees with the version being cut. Design call mine; vc prefers the refuse-plus-regenerate shape the pipeline already uses. Proof owed: red on a fixture where VERSION is bumped and the faces are not, green on the fix, and `build release --patch --dry-run` in a clone showing the step.
-2. **Keg subagents -- LANDED `597a9f26`.** `SUPPORT_PATHS` ships `intent/plugins/claude` whole, and the coverage guard reads chains that span lines and refuses a run-time-resolved directory unless the whole tree ships. Proofs in the commit message.
-3. **Bootstrap after install -- LANDED `9173bbb6`.** The shim's absent-pointer remedy names `intent bootstrap`, and the generated formula carries a conditional caveat. The regenerated tap formula is committed LOCALLY at `9987a93` in `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent` and is NOT pushed. Proofs in the commit message; `post_install` was driven and cannot reach the user's HOME.
+1. **Schema faces at release -- LANDED `2f90fd28`.** Pre-flight refuses a tree whose faces disagree with its own VERSION; after the stamp, a `schema faces` step regenerates them through `INTENT_BLESS=1 cargo test -p intentsvcs schema_faces_drift`, reads the files back, and refuses unless every one carries the target; `schema` joins the release commit's paths. Red and green driven in clones, `--dry-run --skip-tests`.
+2. **Keg subagents -- LANDED `597a9f26`.** `SUPPORT_PATHS` ships `intent/plugins/claude` whole; the coverage guard reads chains that span lines and refuses a run-time-resolved directory unless the whole tree ships.
+3. **Bootstrap after install -- LANDED `9173bbb6`.** The shim's absent-pointer remedy names `intent bootstrap`; the generated formula carries a conditional caveat (post_install was driven and cannot reach the user's HOME). The regenerated tap formula is LOCAL at `9987a93` and unpushed.
+
+**CHANGELOG (mine): `b9a8deb5` and `2f90fd28`.** The entry is `## [3.0.2] - in progress` -- hv named the version; the release dates the heading at cut time and aborts on `## [Unreleased]`. It carries a Fixed line per landed batch-1 item. cc sends a line per batch-2 and batch-3 item as each lands; a fixed defect's entry in `docs/known-defects.md` says fixed in 3.0.2 rather than being deleted.
 
 ## TODO
 
-- Item 1 above, then report batch 1 to vc: per item, the commits, the proofs, and anything found outside the four.
+- **The release rehearsal, and it is the last thing owed on batch 1:** an end-to-end `bin/devbin build release --patch --dry-run` in a clone of HEAD with the gates RUNNING (no `--skip-tests`), which is where the bless step executes rather than being logged. Report every gate it printed to vc. If pre-flight's doctor refuses on the view-banner skew (cut item 1), report the exact line and stop -- that one is hv's.
+- **Then batch 1's report to vc:** per item, the commits, the proofs, and anything found outside the four.
+- **CHANGELOG lines from cc** for batches 2 and 3 as they land, and the matching `docs/known-defects.md` edits.
 
 ## Holds
 
