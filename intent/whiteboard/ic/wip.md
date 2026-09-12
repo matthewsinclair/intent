@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 16:49Z
+heartbeat_at: 2026-09-12 17:21Z
 status: active
-focus: "ST0069 to the end on hv's word. WP-16 BUILT and its four criteria satisfied; it closes on vc's word after cc's whiteboard faces land, not before. The 0305 register edit is landed (401aa29b9). ONE item left and it is not startable by me: WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build."
+focus: "ST0069 to the end. WP-16 is built and satisfied with ONE finding left -- `Board` is published and has no contract row; cc writes its table in WP-14 commit two, then I add the map entry, re-run and report, and the close is vc's word. Watch armed. Then WP-14's protocol half on vc's signal."
 claims: []
 ---
 
@@ -13,11 +13,12 @@ claims: []
 
 ## DOING
 
-**WP-16, built and satisfied; it does not CLOSE yet.** `contract_check.sh` (`intent/st/ST0056/parity/tools/`) joins the three published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. Populations derived at run time on both sides; the join is a declared map, because the two sides share no naming convention and a name-match reports `Envelope` homeless while its table sits at `event_log` complete -- the false finding I filed before writing the tool. AT-16.1 to AT-16.4 green on ST0069.
+**WP-16, built and satisfied; ONE finding stands and it is cc's to clear.** `contract_check.sh` joins four published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. On main at cbbb48350: 15 of 15 mapped entities checked, 104 properties, 16 derived. AT-16.1 to AT-16.4 green on ST0069.
 
-- **It found drift on its first run:** `Attachment.blob`, a contract row describing a property nothing publishes. Corrected on vc's ruling, the fact kept in prose because what was wrong was the claim and not the knowledge. Writing the `subject` table found a second: the envelope's row said `{kind, id}` and the face has always carried `type`.
-- **ONE FINDING STANDS AND IT IS RULED:** `wb_node` / `wb_item` / `wb_message` are pending by construction -- specified, not built, no face published. Not an exemption. **DO NOT RUN `wp done` ON WP-16** until vc says cc's faces have landed.
-- Rostered **manual**, dated not permanent; dc wires the preflight line, not me. Path and exit contract are with dc.
+- **WAITING ON cc's WP-14 COMMIT TWO, watch armed.** `Board` -- the file envelope `{schema, node, items, messages}` for `whiteboard/<node>/board.json` -- is published and has no contract row. vc ruled it a modelled form and cc writes its `### board` table. **When that lands: add the `Board -> board` map entry in my own commit, re-run on main, report. A clean run over every entity is WP-16's close and the word is vc's.**
+- **DO NOT RUN `wp done` ON WP-16.** Not on a clean run, not on cc's landing -- only on vc's word.
+- The three coordination entities AGREE with their rows property for property; cc's face and vc's reworded rows match, `created_at` and `sent_at` gone from both.
+- Rostered **manual**, dated not permanent; dc wires the preflight when vc signals, not me.
 
 ## TODO
 
