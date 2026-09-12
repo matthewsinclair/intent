@@ -28,6 +28,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::finding::{Finding, FindingClass};
+use crate::ingest::Canon;
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, Related,
   THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
@@ -3211,6 +3212,273 @@ fn split_field_value(value: &str) -> (&str, Option<&str>) {
   }
   let annotation = body[run..].trim_start_matches(['.', ',', ' ']).trim();
   (&body[..run], (!annotation.is_empty()).then_some(annotation))
+}
+
+// ---------------------------------------------------------------------------
+// WP-02: what the v2 tree left behind, and whether the store now holds it
+// ---------------------------------------------------------------------------
+
+/// A v2 leftover the prune will not remove, and why.
+///
+/// **THE REASON IS A REQUIRED FIELD, not a courtesy.** A refusal that names a
+/// path and not a cause sends an operator to a file with nothing to do about
+/// it, and the two causes want opposite actions: content the store never
+/// ingested must be ingested or moved by hand, while a file under no thread at
+/// all is somebody else's and stays forever.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Withheld {
+  pub path: std::path::PathBuf,
+  pub reason: String,
+}
+
+/// An authored file naming a v2 bucket path (AC-02.4).
+///
+/// **REPORTED AND NEVER REWRITTEN.** A path inside authored prose is a
+/// sentence about where something was, and rewriting it would be this tool
+/// editing a human's words to match its own filesystem -- which is the one
+/// thing `organize` has never done to an authored file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Pointer {
+  pub path: std::path::PathBuf,
+  pub line: u32,
+  /// The bucket path as the author wrote it, so the worklist is greppable.
+  pub names: String,
+}
+
+/// Everything the v2 tree left behind, and what the store makes of it.
+///
+/// **ONE DERIVATION, TWO DOORS** -- the migration prunes at conversion, and
+/// `organize --apply` prunes an estate that was converted before this existed.
+/// Two implementations of "may this go?" is how one door removes what the other
+/// would have kept, and the removal is the irreversible direction.
+#[derive(Debug, Default)]
+pub struct Leftovers {
+  /// Paths whose content the store holds, in sorted order.
+  pub removable: Vec<std::path::PathBuf>,
+  /// Paths the store does not hold. **While this is non-empty the prune removes
+  /// NOTHING** -- see [`Leftovers::refuses`].
+  pub withheld: Vec<Withheld>,
+  /// Authored files naming a bucket path. Never blocks anything.
+  pub pointers: Vec<Pointer>,
+}
+
+impl Leftovers {
+  /// **ALL OR NOTHING, AND THE WHOLE ESTATE IS THE UNIT** (AC-02.2: *a prune
+  /// that ingested nothing removes nothing*).
+  ///
+  /// A per-thread refusal was the alternative and it loses the property that
+  /// matters: the reason a file is unheld is usually the INGEST, and an ingest
+  /// that failed for one thread is evidence about the run rather than about the
+  /// thread. Removing the 53 threads it did carry, while one is refused, is
+  /// exactly the half-migrated estate the per-file content probe exists to
+  /// catch one layer up.
+  ///
+  /// **The cost is named rather than hidden**: one over-cap or unreadable file
+  /// anywhere freezes the prune for the whole estate until a human moves it.
+  /// That is the conservative direction, and the refusal names the file, so the
+  /// operator is never left guessing which one.
+  pub fn refuses(&self) -> bool {
+    !self.withheld.is_empty()
+  }
+}
+
+/// Whether the store holds one leftover file's content, and why not when it does
+/// not.
+///
+/// **NOT a stringly-typed failure type, and that is IN-RS-CODE-004 applied rather than
+/// worked around.** A file the store does not hold is an EXPECTED answer on the
+/// ordinary path -- the rule's own `does_not_apply_when` names errors modelled
+/// as data -- so the honest shape says held or not-held with the reason
+/// attached, instead of borrowing a failure type to carry a fact.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Holding {
+  Held,
+  NotHeld(String),
+}
+
+/// v2's own issue estate directories, which migration reads and leaves behind.
+pub const V2_ISSUE_BUCKETS: [&str; 2] = ["OPEN", "CLOSED"];
+
+/// The retired treeindex cache (hv, 2026-08-15). v3 never writes it.
+pub const V2_TREEINDEX: &str = ".treeindex";
+
+/// What the v2 tree left behind, and whether the store holds each file's
+/// content.
+///
+/// **THE POPULATION IS ROOTED AT THE THREE BUCKET NAMES, THE TWO ISSUE BUCKET
+/// NAMES AND `.treeindex`, AND NOWHERE ELSE (AC-02.3).** That rooting IS the
+/// answer to the tool-tree question: `intent/st/ST0056/parity/tools/` lives
+/// under a FLAT thread directory, so it is an attachment candidate exactly as
+/// it is today and is not a prune candidate at all. A predicate that asked
+/// "does this look like leftover tooling" would be a second, guessing, spelling
+/// of a question the layout already answers.
+pub fn leftovers(project: &Project, canon: &Canon) -> Leftovers {
+  let mut out = Leftovers::default();
+  let st_root = project.st_dir();
+
+  for bucket in V2_STATUS_BUCKETS {
+    let dir = st_root.join(bucket);
+    for rel in Project::files_in(&dir) {
+      let path = dir.join(&rel);
+      match bucket_verdict(canon, &rel, &path) {
+        Holding::Held => out.removable.push(path),
+        Holding::NotHeld(reason) => out.withheld.push(Withheld { path, reason }),
+      }
+    }
+  }
+
+  for bucket in V2_ISSUE_BUCKETS {
+    let dir = project.intent_dir().join("issues").join(bucket);
+    for rel in Project::files_in(&dir) {
+      let path = dir.join(&rel);
+      match issue_verdict(canon, &path) {
+        Holding::Held => out.removable.push(path),
+        Holding::NotHeld(reason) => out.withheld.push(Withheld { path, reason }),
+      }
+    }
+  }
+
+  // **THE ONE POPULATION WITH NOTHING TO HOLD, AND IT IS REMOVABLE ANYWAY.**
+  // `.treeindex` is a DERIVED cache of a command hv retired on 2026-08-15; v3
+  // generates it nowhere and `sync::SKIPPED_DIRS` has always refused to index
+  // it. Requiring an ingest for it would refuse the prune forever over bytes
+  // nothing ever meant to keep -- a rule right in general applied where its
+  // reason does not reach.
+  let cache = project.intent_dir().join(V2_TREEINDEX);
+  for rel in Project::files_in(&cache) {
+    out.removable.push(cache.join(rel));
+  }
+
+  out.pointers = pointers(project, &out.removable);
+  out.removable.sort();
+  out.withheld.sort_by(|a, b| a.path.cmp(&b.path));
+  out
+}
+
+/// Whether the store holds one bucket file's content.
+///
+/// `rel` is relative to the BUCKET, so its first component is the thread id --
+/// the same shape `thread_dirs` hands back, and the reason `classify` is asked
+/// about the remainder rather than about `rel` itself.
+fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
+  let mut parts = rel.components();
+  let Some(id) = parts.next().and_then(|c| c.as_os_str().to_str()) else {
+    return Holding::NotHeld("is directly in a status bucket rather than under a thread directory, so no thread's canon can hold it".to_string());
+  };
+  if !is_thread_id(id) {
+    return Holding::NotHeld(format!(
+      "`{id}` is not a thread id, so this is not a v2 thread directory and nothing here claims it"
+    ));
+  }
+  let Some(thread) = canon.threads.iter().find(|t| t.id == id) else {
+    return Holding::NotHeld(format!(
+      "{id} is not in canon, so this estate never migrated it and removing its files would be the loss the migration exists to prevent"
+    ));
+  };
+  let within: std::path::PathBuf = parts.collect();
+  match Project::classify(&within) {
+    // The migrator's source documents. Their content is the model: the
+    // frontmatter is fields, the prose is `preamble` / `objective` / `body` /
+    // the criteria. A thread in canon is the statement that this file was read.
+    ThreadFile::GeneratedView => Holding::Held,
+    // The migrator's own output, superseded by `.canon/st/<ID>.json`.
+    ThreadFile::Canon => Holding::Held,
+    ThreadFile::Attachment => {
+      let name = within.to_string_lossy().to_string();
+      let Some(held) = thread.attachments.iter().find(|a| a.path == name) else {
+        return Holding::NotHeld(format!(
+          "{id} carries no attachment `{name}`, so its content is on disk and nowhere else"
+        ));
+      };
+      // **THE SHA, NOT THE PRESENCE OF A ROW.** A row proves a path was seen;
+      // this proves the bytes travelled. The half-migrated thread AC-02.1's
+      // probe exists for is exactly a row whose content never arrived.
+      let Ok(bytes) = std::fs::read(path) else {
+        return Holding::NotHeld(format!(
+          "could not be read, so nothing can say whether {id} holds it"
+        ));
+      };
+      if crate::model::sha256_hex(&bytes) == held.sha256 {
+        Holding::Held
+      } else {
+        Holding::NotHeld(format!(
+          "differs from the `{name}` {id} carries, so the disk copy is the only one of these bytes"
+        ))
+      }
+    }
+  }
+}
+
+/// Whether the store holds one v2 issue file's content.
+///
+/// **THE BODY IS COMPARED, NOT THE FILE**: `legacy::issues` carries everything
+/// below the frontmatter verbatim and turns the frontmatter into fields, so a
+/// byte comparison against the whole file would refuse every issue ever
+/// migrated correctly.
+fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
+  let Ok(text) = std::fs::read_to_string(path) else {
+    return Holding::NotHeld(
+      "could not be read as text, so nothing can say whether the store holds it".to_string(),
+    );
+  };
+  let (front, body) = frontmatter(&text);
+  let Some(number) = front.get("id").and_then(|id| id.trim().parse::<u32>().ok()) else {
+    return Holding::NotHeld(
+      "carries no readable `id` in its frontmatter, so it names no issue this store could hold"
+        .to_string(),
+    );
+  };
+  let Some(issue) = canon.issues.iter().find(|i| i.number == number) else {
+    return Holding::NotHeld(format!(
+      "issue {number:04} is not in canon, so this estate never migrated it"
+    ));
+  };
+  if issue.body.trim() == body.trim() {
+    Holding::Held
+  } else {
+    Holding::NotHeld(format!(
+      "differs from the body canon carries for issue {number:04}, so the disk copy is the only one of these bytes"
+    ))
+  }
+}
+
+/// Authored files naming a v2 bucket path (AC-02.4).
+///
+/// **THE LEFTOVERS THEMSELVES ARE EXCLUDED FROM THE SEARCH**, because a bucket
+/// file naturally names its own neighbours and a worklist mostly made of files
+/// that are about to be removed is a worklist nobody can act on.
+fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer> {
+  const NAMES: [&str; 5] = [
+    "st/COMPLETED/",
+    "st/NOT-STARTED/",
+    "st/CANCELLED/",
+    "issues/OPEN/",
+    "issues/CLOSED/",
+  ];
+  let mut out = Vec::new();
+  let root = project.intent_dir();
+  for rel in Project::files_in(&root) {
+    let path = root.join(&rel);
+    if leftovers.contains(&path) {
+      continue;
+    }
+    let Ok(text) = std::fs::read_to_string(&path) else {
+      continue;
+    };
+    for (i, line) in text.lines().enumerate() {
+      for name in NAMES {
+        if line.contains(name) {
+          out.push(Pointer {
+            path: path.clone(),
+            line: (i + 1) as u32,
+            names: name.to_string(),
+          });
+        }
+      }
+    }
+  }
+  out.sort_by(|a, b| (&a.path, a.line, &a.names).cmp(&(&b.path, b.line, &b.names)));
+  out
 }
 
 #[cfg(test)]

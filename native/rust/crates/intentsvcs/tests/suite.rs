@@ -232,6 +232,8 @@ mod legacy_covers_plus;
 mod legacy_covers_token_rule;
 #[path = "legacy_document_conservation.rs"]
 mod legacy_document_conservation;
+#[path = "legacy_leftovers.rs"]
+mod legacy_leftovers;
 #[path = "legacy_marker_and_descope.rs"]
 mod legacy_marker_and_descope;
 #[path = "legacy_row_accounting.rs"]
