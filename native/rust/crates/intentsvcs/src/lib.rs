@@ -98,6 +98,7 @@ pub mod sync;
 pub mod transitions;
 pub mod userstate;
 pub mod views;
+pub mod wbmigrate;
 /// The CLI/daemon request envelope. Here for `daemon`'s reason: two binaries
 /// must agree, and this is the only crate both depend on.
 pub mod wire;

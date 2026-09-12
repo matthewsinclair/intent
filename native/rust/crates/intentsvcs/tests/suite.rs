@@ -412,6 +412,8 @@ mod unsatisfied_note_serde;
 mod view_determinism;
 #[path = "view_skew_check.rs"]
 mod view_skew_check;
+#[path = "wbmigrate_reads_a_board.rs"]
+mod wbmigrate_reads_a_board;
 #[path = "wp_prose_roundtrip.rs"]
 mod wp_prose_roundtrip;
 #[path = "wp_scaffolding_drop.rs"]
