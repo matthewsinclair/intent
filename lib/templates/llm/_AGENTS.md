@@ -249,7 +249,7 @@ In the Intent source repository (https://github.com/matthewsinclair/intent), not
 
 In this project:
 
-- `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). `intent init` does not create one; where it exists, search it with `intent modules find <name>`.
+- `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
 - `CLAUDE.md` -- Claude-specific overlay.
 - `usage-rules.md` -- DO / NEVER contract for this project.
 

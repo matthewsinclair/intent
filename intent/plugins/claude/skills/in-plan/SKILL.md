@@ -34,7 +34,7 @@ Present the workplan with:
 
 - What will be built or changed
 - Which files will be modified -- search for an existing owner before adding a new one
-- What new modules are needed. Where the project keeps a `intent/llm/MODULES.md` registry, find the owner with `intent modules find <name>` and register the new row before creating the file. Most projects have no registry: `intent init` does not create one, and its absence is normal.
+- What new modules are needed. To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. Where the project keeps a `intent/llm/MODULES.md` registry, register the new row before creating the file. Most projects have no registry: `intent init` does not create one, and its absence is normal -- which is why the index, not the registry, is the first question.
 - Expected test approach
 
 ### 3. Plan quality standards

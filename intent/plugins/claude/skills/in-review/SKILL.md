@@ -49,7 +49,7 @@ A mixed project (multiple entries in `languages`) dispatches to each critic whos
 
 Confirm no concretised-by rule is violated at the agnostic level:
 
-- [ ] `IN-AG-HIGHLANDER-001` -- no duplicated code paths (search for an existing owner; `intent modules find <name>` where the project keeps a registry)
+- [ ] `IN-AG-HIGHLANDER-001` -- no duplicated code paths. To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well.
 - [ ] `IN-AG-THIN-COORD-001` -- coordinators parse -> call -> render
 - [ ] `IN-AG-PFIC-001` -- Pure Function, Impure Coordination. **Read it before checking it: `intent claude rules show IN-AG-PFIC-001`.** This line used to say _pattern-match, pipe, tagged-tuple, compose idioms in play_, which is a different rule -- code can be fully idiomatic and still bury I/O three calls deep in a domain core, so the old check passed the violation and recorded the rule as examined (issue 0219).
 - [ ] `IN-AG-NO-SILENT-001` -- no rescue-and-swallow, no discarded fallible results

@@ -18,7 +18,7 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 
 - `AGENTS.md` -- primary tool-agnostic contract. Read first.
 - `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`). Seeded by `intent claude upgrade --apply` when absent and never overwritten after that; `intent init` does not create it.
-- `intent/llm/MODULES.md` -- OPTIONAL Highlander registry. `intent init` does not create one; a project that wants it creates the file and keeps it. Where it exists, search it with `intent modules find <name>` rather than reading it -- a mature registry is too large to read.
+- `intent/llm/MODULES.md` -- OPTIONAL Highlander registry. To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create one; a project that wants it creates the file and keeps it, and searches it rather than reading it -- a mature registry is too large to read.
 - `intent/llm/DECISION_TREE.md` -- OPTIONAL code-placement flow chart, Elixir/Phoenix-specific. `intent init` does not create one; where a project has one, it was chosen for that project.
 - `intent/llm/RULES.md`, `intent/llm/ARCHITECTURE.md` -- this project's own rules and architecture, seeded empty by `intent init` for the project to author.
 - `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
