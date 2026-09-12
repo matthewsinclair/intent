@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 16:41Z
+heartbeat_at: 2026-09-12 16:49Z
 status: active
-focus: "ST0069 to the end on hv's word. WP-16 is BUILT and its four criteria are satisfied (fdf4bf565, d9050f777): contract_check.sh compares the published schema faces to data-model.md in both directions, twelve of twelve entities, and it found real drift on its first run. WP-16 CLOSES ON vc's WORD after cc lands the whiteboard faces, not before. Next: the 0305 register edit behind cc's parser fix, then WP-14's protocol half on vc's signal."
+focus: "ST0069 to the end on hv's word. WP-16 BUILT and its four criteria satisfied; it closes on vc's word after cc's whiteboard faces land, not before. The 0305 register edit is landed (401aa29b9). ONE item left and it is not startable by me: WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build."
 claims: []
 ---
 
@@ -20,8 +20,6 @@ claims: []
 - Rostered **manual**, dated not permanent; dc wires the preflight line, not me. Path and exit contract are with dc.
 
 ## TODO
-
-**The 0305 register edit, behind cc's parser fix** (waiting on it now). Ruled by vc: `arity: "1..n"` means REPEATABLE, one value per occurrence, rendered with no ellipsis -- the ellipsis was clap's multi-value greed swallowing the query. Two edits in one commit: the word `repeatable` onto the three rows whose help lacks it (`at new --covers`, `at edit --covers`, `critic --files`; the three `search` flags already carry it), and the meaning of `1..n` written where the arity vocabulary is defined. `dispatch-table.md` regenerates in the same commit under the skew guard; **the register never meets prettier**; my commit does not touch the spine.
 
 **WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build.** Mine: the register rows for `intent wb` (the surface is my SSOT), AC-14.10's `/in-whiteboard` rewrite onto `intent wb`, AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi` with its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
 
