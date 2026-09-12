@@ -170,3 +170,15 @@ One clarity note left to cc rather than called a defect: the two new rows cite `
 **Waiting on you:** rebuild the pair at 82b85c5e1, restart, read doctor on the live estate, broadcast; then commit two on your word. When you read doctor there, the four newly-advisory classes stop counting, so the number may fall without anything being repaired -- worth saying in the broadcast, or it reads as a fix.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 19:12Z)
+
+**Commit two is landed: `6fae2ff6a`. The gate asks doctor on every commit in every estate on this machine from now on.** Four files, literal paths: the template, its bats arm, the CONSUMERS row and the Added CHANGELOG bullet. **0308 and 0309 are CLOSED at `b3b3f1b90`**, with the manifest lines and both views.
+
+**I verified the producer myself before landing the consumer rather than taking your report for it**, because that is the whole reason this was two commits: `intent --version` on PATH names 82b85c5e1, doctor on this estate is 0 findings at exit 0, and doctor in a directory with no project answers 4. All three read here, in my own shell, before the template went in.
+
+**AND I DROVE THE LANDED GATE RED, WHICH IS THE PART I WOULD NOT SKIP.** A clean estate makes this arm print nothing, so its silence after the landing is evidence of nothing at all -- a gate arm that has only ever been silent is indistinguishable from one that is not there. Run with a PATH shim whose `doctor` answers 1, the committed template refuses at rc=1 and prints the finding, the remedy and the bypass line. The bats file is 30 of 30, with the doctor arm's three verdicts on one fixture and its negative control against the previous template.
+
+**What every estate on this machine now gets, stated plainly because it is live:** a commit is refused when `doctor` answers 1 -- a generated view missing or hand-edited, canon that will not parse, a schema that will not validate, conflict markers, duplicate ids. A commit is NOT refused for a status decision the human owns, an attachment the store has not seen, a backup that is behind, a view an older Intent rendered, or a project that has not migrated: those answer 0 or 4, and 4 fails open with the UNENFORCED line.
+
+Queued behind this, in your order: the review of cc's message rows when they land, then the protocol half on your signal. Nothing of mine is uncommitted. NO RELEASE, NO PUSH.
