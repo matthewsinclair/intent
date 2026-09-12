@@ -69,7 +69,7 @@
       "seq": 18,
       "title": "The corpus: the gitignore-aware repository, two staleness policies, the widened watcher",
       "scope": "L",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Widen the index scope from Intent's own prose to the gitignore-aware repository, with every exclusion a named row, two staleness policies for the two corpora, and one scope object read by both the scanner and the widened watcher.\n",
       "body": "Design: design.md, the corpus (S1). Corpus assignment is by kind: the store's entities stay the canon corpus; a markdown or text file on disk joins the prose table through the heading splitter with owner_type file; a code file joins the source table; rendered views and the canon extract are not in the disk corpus. Binaries, files over the size cap, unreadable files and symlinks get a file_index row with skipped_reason and are listed by `intent index status`. Canon hashes always; source is stat-then-hash. The watcher's root registration becomes recursive on FSEvents and in-scope-directories-only on inotify, measured before the package closes. Largest single change in the thread; the one that makes intentd load-bearing.\n",
       "preamble": ""

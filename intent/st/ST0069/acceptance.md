@@ -97,14 +97,14 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: no (computed)
 
-### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: Not Started)
+### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
 
 - AC-17.1 `intent search --sql <statement>` runs one read statement on a connection opened read-only and returns rows; a write, a second statement or a state-changing pragma is refused with the remedy naming the read-only contract. -- satisfied: no (computed)
 - AC-17.2 The rows carry the store's schema version, and `--json` emits the same envelope the MCP tool returns for the same statement. -- satisfied: no (computed)
 - AC-17.3 A bare query is text and `--sql` is the only structured door; nothing is auto-detected from the query's first word. -- satisfied: no (computed)
 - AC-17.4 A result capped by `--limit` reports both denominators, matched and returned; a capped result is never a silent subset. -- satisfied: no (computed)
 
-### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: Not Started)
+### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: WIP)
 
 - AC-18.1 The index scope is the gitignore-aware repository: a tracked source file is indexed, a gitignored file never appears in a result, and `.git`, the store's own directory and the backup directory are outside by rule rather than by path shape. -- satisfied: no (computed)
 - AC-18.2 Every in-scope file the index does not hold has a `file_index` row naming why (binary, over the size cap, unreadable, symlink), and `intent index status` lists them; nothing is skipped silently. -- satisfied: no (computed)
@@ -174,11 +174,11 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: Not Started)
+### WP-17 -- The structured query door: intent search --sql, read-only over the published schema (status: WIP)
 
 _(no tests in this group)_
 
-### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: Not Started)
+### WP-18 -- The corpus: the gitignore-aware repository, two staleness policies, the widened watcher (status: WIP)
 
 _(no tests in this group)_
 

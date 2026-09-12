@@ -2,7 +2,7 @@
 wp_id: WP-17
 title: The structured query door: intent search --sql, read-only over the published schema
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-17: The structured query door: intent search --sql, read-only over the published schema
