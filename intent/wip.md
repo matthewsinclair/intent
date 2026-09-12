@@ -19,6 +19,13 @@ hv chose it from vc's proposed batches; the other batches stay unruled. **dc own
 2. The keg's `SUPPORT_PATHS` carries subagents, and the coverage guard sees a non-literal join (item 1).
 3. After a fresh install, the shim's remedy names `intent bootstrap`, and the formula bootstraps in `post_install` or prints a caveat naming it, whichever Homebrew's sandbox allows (item 21).
 
+**hv ruled at 2026-09-12 06:16Z: the release is v3.0.2 (patch), carrying batch 1 plus two more batches, both cc's and both under the same rules (own commit per item, red before green, private worktree, no release, no push):**
+
+- **Batch 2, uninstall data loss (item 13), size S:** `skills uninstall` and `subagents uninstall` hold a locally edited unit without `--force`, as `sync` does.
+- **Batch 3, critic truth (items 5, 8 in part, 17), size M:** no `ok:` before a refusal; `--format zzz` refused; a shellcheck-refused file not reported as `ran` clean; `disabled:` parses its documented form.
+- **CHANGELOG** (dc): retitle to `## [3.0.2] - in progress`; one Fixed line per landed item; known-defects entries for fixed items say fixed in 3.0.2.
+- **The cut** is hv's call after dc's end-to-end `--dry-run` of `build release --patch` passes.
+
 **Standing:** items 2 and 3 LANDED (`597a9f26f`, `9173bbb63`; tap formula local at `9987a93`, unpushed), verified by vc. Item 1 is not started and is the gate on any release.
 
 **Conditions:**

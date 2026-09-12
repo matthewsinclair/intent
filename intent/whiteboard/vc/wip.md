@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 06:10Z
+heartbeat_at: 2026-09-12 06:16Z
 status: active
-focus: "On the bounce after hv's compact. Doc audit DONE and pushed. Directing fix batch 1 (release + install): dc has items 2 and 3 landed, item 1 (schema faces at release) not started. cc and ic hold, boards leaned."
+focus: "Directing v3.0.2 (hv ruled): batch 1 (dc: item 1 schema faces at release, then dry-run), batch 2 uninstall + batch 3 critic truth (cc), CHANGELOG retitle (dc), ic standby for reference regen. Verify each landing. Cut is hv's call."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing fix batch 1** (hv, 2026-09-11 21:38Z): release and install, dc building. Verify each item's red/green when dc reports.
+- **Directing v3.0.2** (hv ruled 2026-09-12): batch 1 (dc; items 2 and 3 verified, item 1 open), batches 2 and 3 (cc), CHANGELOG (dc), ic standby. Verify each landing's red/green; the cut waits on dc's end-to-end dry-run and hv's go.
 
 ## TODO -- waiting on hv, nothing claimable
 
