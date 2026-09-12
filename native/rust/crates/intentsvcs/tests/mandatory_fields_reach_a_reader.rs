@@ -60,7 +60,18 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
 
     // Everything below refuses for a reason that is not "you left a field out",
     // so there is no authored value to carry to a reader.
-    FacadeError::WriteNotAddressable { .. }
+    // The SQL door's refusals are about a STATEMENT, not about a field the
+    // caller left out: the remedy is a different statement, never a fuller
+    // call.
+    FacadeError::SqlMoreThanOneStatement
+    | FacadeError::SqlNoStatement
+    | FacadeError::SqlUnterminated
+    | FacadeError::SqlWouldWrite
+    | FacadeError::SqlOutOfReach { .. }
+    | FacadeError::SqlOverBudget
+    | FacadeError::SqlLimitAboveCeiling { .. }
+    | FacadeError::SqlDidNotRun { .. }
+    | FacadeError::WriteNotAddressable { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

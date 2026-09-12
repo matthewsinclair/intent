@@ -53,7 +53,13 @@ async-graphql = "7"
 # The Highlander dependency: rusqlite is consumed by intentsvcs and NOWHERE
 # else (design.md D06). dep_graph_guard.rs asserts this; adding it to another
 # crate is a build-time architecture violation, not a style nit.
-rusqlite = { version = "0.32", features = ["bundled"] }
+# `hooks` is ON for the SQL read door (WP-17, AC-17.1), and it adds NO new
+# third-party code: it is more of a crate already here. Two things live behind
+# it and the door needs both -- the AUTHORIZER, which is what refuses `ATTACH`
+# (a read-only connection happily reads another file on the machine, and this
+# door is exposed on MCP), and the PROGRESS HANDLER, which is the only way to
+# bound how long somebody else's SQL runs inside our process.
+rusqlite = { version = "0.32", features = ["bundled", "hooks"] }
 ulid = "1"
 # `project_id` (design.md D15 / the four cloud seams): a UUID stamped into
 # `config.json` at migration, namespacing human-legible natural keys so that

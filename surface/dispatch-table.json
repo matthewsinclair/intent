@@ -8212,12 +8212,12 @@
   "new_surface": [
     {
       "path": "search",
-      "help": "Full-text search across all authored prose",
+      "help": "Search the indexed prose for text, or run one read-only SQL statement over this store's published schema",
       "args": [
         {
           "name": "query",
           "type": "string",
-          "arity": "1",
+          "arity": "0..1",
           "note": "Added by cc at build time (2026-08-14): the row declared no args, so the spine built a command that refused `intent search foo` with `unexpected argument`. A command specified to take a query needs somewhere to put it."
         }
       ],
@@ -8231,7 +8231,31 @@
       "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "read",
-      "flags": [],
+      "flags": [
+        {
+          "spellings": ["--sql"],
+          "type": "string",
+          "value": "<statement>",
+          "help": "Run ONE read-only SQL statement over this store instead of a text search",
+          "disposition": "keep",
+          "note": "WP-17 (AC-17.1): the structured door is a FLAG and nothing is auto-detected from the query's first word, because `select` is also a thing a person searches for. A query and `--sql` together is a usage error, and so is neither."
+        },
+        {
+          "spellings": ["--limit"],
+          "type": "string",
+          "value": "<n>",
+          "help": "Return at most n rows; the answer reports both what matched and what came back",
+          "disposition": "keep"
+        },
+        {
+          "spellings": ["--json"],
+          "type": "bool",
+          "help": "Emit as JSON instead of prose",
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "note": "terminal-channel, as `events --format` is: it selects the terminal rendering, and the MCP tool always answers the envelope"
+        }
+      ],
       "facade": "search"
     },
     {

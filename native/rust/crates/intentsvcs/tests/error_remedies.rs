@@ -40,6 +40,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // Reachable by a bad CALL since `Facade::schema` landed -- before it, the
   // variant existed and nothing on the facade raised it, so its exemption
   // below cited a CLI arm that composed its own refusal string instead.
+  // **THE SQL DOOR'S GATE REFUSES BEFORE IT OPENS ANYTHING**, which is what
+  // makes these four provokable here: they are decisions about TEXT, so they
+  // do not need a store on disk the way the four cited below do.
+  for (label, statement, limit) in [
+    ("a batch at the sql door", "select 1; select 2", None),
+    ("nothing at the sql door", "  -- just a comment\n", None),
+    (
+      "an unterminated literal at the sql door",
+      "select 'abc",
+      None,
+    ),
+    ("a limit above the ceiling", "select 1", Some(usize::MAX)),
+  ] {
+    out.push((
+      label,
+      facade
+        .search_sql(statement, limit)
+        .expect_err("the gate refuses this before it reaches a store"),
+    ));
+  }
   out.push((
     "unknown schema face",
     facade
@@ -758,6 +778,14 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::OffScope { .. } => "OffScope",
     FacadeError::WrongOffScopeState { .. } => "WrongOffScopeState",
     FacadeError::BadQuery { .. } => "BadQuery",
+    FacadeError::SqlMoreThanOneStatement => "SqlMoreThanOneStatement",
+    FacadeError::SqlNoStatement => "SqlNoStatement",
+    FacadeError::SqlUnterminated => "SqlUnterminated",
+    FacadeError::SqlWouldWrite => "SqlWouldWrite",
+    FacadeError::SqlOutOfReach { .. } => "SqlOutOfReach",
+    FacadeError::SqlOverBudget => "SqlOverBudget",
+    FacadeError::SqlLimitAboveCeiling { .. } => "SqlLimitAboveCeiling",
+    FacadeError::SqlDidNotRun { .. } => "SqlDidNotRun",
     FacadeError::NoSuchFace { .. } => "NoSuchFace",
     FacadeError::IllegalTransition { .. } => "IllegalTransition",
     FacadeError::ReasonRequired { .. } => "ReasonRequired",
@@ -813,6 +841,14 @@ fn variant(err: &FacadeError) -> &'static str {
 /// look like oversights -- an exemption that is announced, never inferred
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
+  "SqlMoreThanOneStatement",
+  "SqlNoStatement",
+  "SqlUnterminated",
+  "SqlWouldWrite",
+  "SqlOutOfReach",
+  "SqlOverBudget",
+  "SqlLimitAboveCeiling",
+  "SqlDidNotRun",
   "ValueNotRecordable",
   "NoteWouldBeLost",
   "FileOnANonTestRow",
@@ -993,6 +1029,24 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // succeed at their first step and refuse at their second.
   "NotEditable",
   "NoSuchEditable",
+  // **THE SQL DOOR'S OTHER FOUR, ASSERTED IN
+  // `intent-cli/tests/the_sql_door_is_read_only.rs` AND NOT MERELY REACHED
+  // THERE.** They are cited rather than provoked because each needs a store ON
+  // DISK to refuse about -- the door opens a second, read-only connection by
+  // path, and this file's fixtures are in memory.
+  //
+  // What each cover asserts, so a reader can tell whether it could go red:
+  // `SqlWouldWrite` -- five write shapes are refused AND the thread count is
+  // read before and after, so a refusal that happened for another reason fails
+  // it. `SqlOutOfReach` -- the refusal must NAME `ATTACH` or `PRAGMA`, and the
+  // attached file must not exist afterwards. `SqlTimedOut` -- a recursive CTE
+  // that never finishes is stopped, and the message must be the bound's rather
+  // than any other refusal. `SqlDidNotRun` -- a statement naming no table
+  // carries SQLite's own words out to the operator.
+  "SqlWouldWrite",
+  "SqlOutOfReach",
+  "SqlOverBudget",
+  "SqlDidNotRun",
 ];
 
 #[test]

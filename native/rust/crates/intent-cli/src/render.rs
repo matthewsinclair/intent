@@ -3361,8 +3361,136 @@ fn set_verb(m: &ArgMatches) -> Result<(), Failure> {
 /// successful search, and v2's own read verbs answer an empty set the same way
 /// -- making it a failure would mean every `grep`-shaped use in a script had to
 /// special-case the common answer.
+/// The envelope the SQL door answers with, and the ONE home for it.
+///
+/// **`--json` AND THE MCP TOOL RENDER THE SAME BYTES** (AC-17.2). Two spellings
+/// of one answer is two things to keep true, and the MCP side is the one nobody
+/// reads by eye.
+pub(crate) fn sql_json(page: &intentsvcs::facade::SqlPage, statement: &str) -> serde_json::Value {
+  let rows: Vec<serde_json::Value> = page
+    .rows
+    .iter()
+    .map(|row| {
+      serde_json::Value::Object(
+        page
+          .columns
+          .iter()
+          .cloned()
+          .zip(row.iter().cloned())
+          .collect(),
+      )
+    })
+    .collect();
+  serde_json::json!({
+    "schema_version": page.schema_version,
+    "statement": statement,
+    "columns": page.columns,
+    "rows": rows,
+    "matched": page.matched,
+    "returned": page.returned,
+    "truncated": page.matched > page.returned,
+  })
+}
+
+/// One read-only statement, rendered for a terminal or as the envelope.
+fn search_sql(m: &ArgMatches, statement: &str) -> Result<(), Failure> {
+  let limit = match m.get_one::<String>("limit") {
+    None => None,
+    Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
+      Failure::Error(format!(
+        "error: `--limit {raw}` is not a number of rows\n  remedy: give a whole number, eg `--limit 50`"
+      ))
+    })?),
+  };
+  let f = open()?;
+  let page = f.search_sql(statement, limit).map_err(fail)?;
+  if m.get_flag("json") {
+    println!("{}", sql_json(&page, statement));
+    return Ok(());
+  }
+  // **THE DENOMINATORS ARE PRINTED WHEN THEY DIFFER, AND ON STDERR** (AC-17.4).
+  // A capped result that said nothing would read as the whole answer; a line on
+  // stdout would corrupt a caller piping the table.
+  if page.matched > page.returned {
+    eprintln!(
+      "note: {} of {} matched row(s) shown -- raise `--limit` to see more",
+      page.returned, page.matched
+    );
+  }
+  if page.columns.is_empty() {
+    return Ok(());
+  }
+  let mut widths: Vec<usize> = page.columns.iter().map(|c| c.chars().count()).collect();
+  let cells: Vec<Vec<String>> = page
+    .rows
+    .iter()
+    .map(|row| row.iter().map(cell_text).collect())
+    .collect();
+  for row in &cells {
+    for (i, text) in row.iter().enumerate() {
+      widths[i] = widths[i].max(text.chars().count());
+    }
+  }
+  let line = |cells: &[String]| -> String {
+    cells
+      .iter()
+      .enumerate()
+      .map(|(i, text)| format!("{text:<width$}", width = widths[i]))
+      .collect::<Vec<_>>()
+      .join("  ")
+      .trim_end()
+      .to_string()
+  };
+  println!("{}", line(&page.columns));
+  for row in &cells {
+    println!("{}", line(row));
+  }
+  Ok(())
+}
+
+/// One value in the terminal table. `null` is the word, not an empty cell: a
+/// blank reads as an empty string, which is a different value.
+fn cell_text(value: &serde_json::Value) -> String {
+  match value {
+    serde_json::Value::Null => "null".to_string(),
+    serde_json::Value::String(s) => s.clone(),
+    other => other.to_string(),
+  }
+}
+
 fn search(m: &ArgMatches) -> Result<(), Failure> {
-  let query = arg(m, "query")?;
+  // **THE STRUCTURED DOOR IS THE FLAG, AND NOTHING IS AUTO-DETECTED** (AC-17.3).
+  // A query whose first word is `select` is a thing people search for, so a verb
+  // that sniffed the text would make that query unreachable -- and it would do
+  // it silently, by answering a different question well.
+  //
+  // **BOTH-OR-NEITHER IS A USAGE ERROR RATHER THAN A PRECEDENCE RULE.** Given a
+  // query AND `--sql`, any order of preference silently drops half of what was
+  // asked for; given neither, there is no question to answer.
+  let statement = m.get_one::<String>("sql").cloned();
+  let text = m.get_one::<String>("query").cloned();
+  match (&text, &statement) {
+    (Some(_), Some(_)) => {
+      return Err(Failure::Error(
+        "error: a text query and `--sql` are two different questions, and this takes one\n  \
+         remedy: drop one of them -- `intent search <text>` searches the indexed prose, \
+         `intent search --sql <statement>` reads this store"
+          .to_string(),
+      ));
+    }
+    (None, None) => {
+      return Err(Failure::Error(
+        "error: nothing to search for\n  remedy: give a text query, or a statement with \
+         `--sql <statement>`"
+          .to_string(),
+      ));
+    }
+    _ => {}
+  }
+  if let Some(statement) = statement {
+    return search_sql(m, &statement);
+  }
+  let query = text.expect("both-or-neither was checked above");
   let f = open()?;
   let hits = f.search(&query).map_err(fail)?;
   // **An unpopulated index answers every query exactly the way a genuine miss

@@ -89,6 +89,7 @@ pub mod resolve;
 pub mod rootfiles;
 pub mod rules;
 pub mod settings;
+pub mod sql_gate;
 pub mod store;
 pub mod sync;
 pub mod transitions;

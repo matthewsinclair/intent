@@ -1106,6 +1106,30 @@ pub fn serve(
 
     // ----- the new-surface four -----
     "search" => {
+      // **THE SAME TWO DOORS THE CLI HAS, AND THE SAME BOTH-OR-NEITHER RULE**
+      // (AC-17.1 to AC-17.3). The envelope is rendered by `render::sql_json`,
+      // the one home, so the tool and `--json` cannot answer differently for
+      // one statement.
+      if let Some(statement) = opt_s(path, map, "sql")? {
+        if opt_s(path, map, "query")?.is_some() {
+          return Err(args_err(
+            path,
+            "a text query and `sql` are two different questions, and this tool takes one"
+              .to_string(),
+          ));
+        }
+        let limit = match opt_s(path, map, "limit")? {
+          None => None,
+          Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
+            args_err(
+              path,
+              format!("`limit` must be a number of rows, not `{raw}`"),
+            )
+          })?),
+        };
+        let page = f.search_sql(statement, limit)?;
+        return Ok(crate::render::sql_json(&page, statement));
+      }
       let query = need_s(path, map, "query")?;
       let hits = f.search(query)?;
       // The AC-06.4 distinction travels: an empty result over an unpopulated

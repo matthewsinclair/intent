@@ -1205,6 +1205,12 @@ pub enum StoreError {
   Serde(#[from] serde_json::Error),
   #[error("creating the runtime cache directory: {0}")]
   Cache(#[source] std::io::Error),
+  /// An in-memory store was asked for the read-only door `intent search --sql`
+  /// reads through. There is no file to open a second connection to, and a
+  /// fresh in-memory database opened beside it would be EMPTY -- every query
+  /// answering zero rows, which is indistinguishable from a true miss.
+  #[error("this store is in memory, so there is no file to open a read-only connection to")]
+  NoReadOnlyDoor,
   /// The store holds a schema this binary does not speak. **Refused at open**,
   /// which is the whole point: the alternative is answering questions from a
   /// database whose shape disagrees with the queries.
@@ -1310,6 +1316,10 @@ impl crate::remedy::Remedy for StoreError {
          rather than migrating the store down; it holds version {found} and this build speaks \
          {expected}. `intent --version` names the build you are on"
       ),
+      // **IT NAMES THE CONDITION, NOT A COMMAND, because there is no command
+      // that turns an in-memory store into a file.** A remedy proposing one
+      // would send an operator looking for a flag that does not exist.
+      Self::NoReadOnlyDoor => "the read-only door reads a store on disk, and this process opened one in memory. Run the command in a project, where the store is a file".to_string(),
       Self::CreateHitAnExistingKey { kind, key } => format!(
         "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
          next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
@@ -1431,6 +1441,15 @@ fn upsert_file_entries(
 
 pub struct Store {
   conn: Connection,
+  /// Where this store LIVES, or `None` for an in-memory one.
+  ///
+  /// **KEPT BECAUSE A SECOND CONNECTION NEEDS IT** (WP-17). `init` already took
+  /// the path and used it only to name the store in a refusal, so the one fact
+  /// a reader-opener requires was read and dropped. The read-only door asks
+  /// THIS type to open its own second connection rather than rebuilding the
+  /// path itself: a second opener is a divergent copy of how this store is
+  /// opened, and the two would disagree the first time either moved.
+  path: Option<std::path::PathBuf>,
   /// How many loads-from-canon are open on this store right now.
   ///
   /// **Re-entrancy, because the operation that must be recorded is not the one
@@ -1803,8 +1822,53 @@ impl Store {
     }
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
-    conn.pragma_update(None, "busy_timeout", Self::BUSY_TIMEOUT_MS)?;
+    Self::wait_for_contention(&conn)?;
     Self::init(conn, Some(path))
+  }
+
+  /// Apply the contention wait -- **the ONE place the constant is read**.
+  ///
+  /// Both connections take it and neither names the value, so the wait cannot
+  /// acquire a second home (issue 0152, held by
+  /// `contention_wait_is_chosen.rs`).
+  fn wait_for_contention(conn: &Connection) -> Result<(), StoreError> {
+    conn.pragma_update(None, "busy_timeout", Self::BUSY_TIMEOUT_MS)?;
+    Ok(())
+  }
+
+  /// A SECOND connection to this same database, opened read-only.
+  ///
+  /// **THE DOOR `intent search --sql` READS THROUGH** (AC-17.1). It is a
+  /// separate connection rather than the live one because the guarantee has to
+  /// be structural: the live connection carries the estate's writes, and a
+  /// `query_only` pragma toggled around a statement on it is a guarantee that
+  /// lasts exactly as long as nobody returns early.
+  ///
+  /// **`query_only` IS SET ANYWAY, ON TOP OF THE READ-ONLY OPEN FLAG.** The
+  /// flag refuses the write at the file layer and the pragma refuses it at the
+  /// statement layer, and the door's contract is the statement layer -- an
+  /// operator reading the refusal should meet the rule that was broken rather
+  /// than an errno about a file.
+  ///
+  /// **AN IN-MEMORY STORE HAS NO SECOND DOOR AND SAYS SO.** There is no path to
+  /// open, and a fresh in-memory database opened alongside would be an EMPTY
+  /// one -- which would answer every query with zero rows and look exactly like
+  /// a true miss.
+  pub fn read_only_connection(&self) -> Result<Connection, StoreError> {
+    let Some(path) = self.path.as_ref() else {
+      return Err(StoreError::NoReadOnlyDoor);
+    };
+    let conn = Connection::open_with_flags(
+      path,
+      rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,
+    )?;
+    // The same wait the live connection takes, through the same applier: naming
+    // the constant a second time here is the second home
+    // `contention_wait_is_chosen.rs` exists to refuse, and it counts the name
+    // rather than the reads -- so this comment must not spell it either.
+    Self::wait_for_contention(&conn)?;
+    conn.pragma_update(None, "query_only", true)?;
+    Ok(conn)
   }
 
   /// An in-memory store, for tests.
@@ -1872,6 +1936,7 @@ impl Store {
     }
     Ok(Self {
       conn,
+      path: at.map(std::path::Path::to_path_buf),
       ingest_depth: 0,
       ingest_attempt: None,
     })

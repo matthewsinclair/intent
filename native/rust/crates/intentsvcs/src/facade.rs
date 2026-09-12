@@ -500,6 +500,49 @@ pub enum FacadeError {
   /// not a taxonomy of refusals.
   #[error("`{url}` cannot be written: {why}")]
   WriteNotAddressable { url: String, why: String },
+  /// The SQL door was handed more than one statement (AC-17.1).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE OPERATOR'S NEXT MOVE IS DIFFERENT.** A batch
+  /// is a person expecting a shell; a write is a person expecting a different
+  /// contract; and a door that answered both with one sentence would send the
+  /// first of them looking for a permission they do not need.
+  #[error("the SQL door runs ONE statement and this text carries more than one")]
+  SqlMoreThanOneStatement,
+  /// The SQL door was handed nothing but whitespace and comments.
+  #[error("the SQL door was given no statement to run")]
+  SqlNoStatement,
+  /// A quote or block comment that never closes -- refused by the gate rather
+  /// than passed to SQLite, because that is where a scanner and a parser
+  /// disagree about how many statements there are.
+  #[error("the SQL door was given a statement with an unterminated quote or comment")]
+  SqlUnterminated,
+  /// The statement would change the store.
+  #[error("the SQL door is READ-ONLY and this statement would change the store")]
+  SqlWouldWrite,
+  /// The statement asked for something outside this store -- `ATTACH`, a
+  /// pragma, a transaction.
+  ///
+  /// **SEPARATE FROM A WRITE, and `ATTACH` is why.** A read-only connection
+  /// reads ANOTHER file on the machine perfectly happily, so this is the one
+  /// refusal that is about reach rather than about writing, and this door is
+  /// exposed on MCP.
+  #[error("the SQL door refuses `{action}` -- it answers about THIS store and nothing else")]
+  SqlOutOfReach { action: String },
+  /// The statement spent the door's whole work budget and was stopped.
+  ///
+  /// **THE REFUSAL SAYS "WORK", NOT "TIME", because the bound is work.** A
+  /// message promising a time bound would be describing a mechanism this
+  /// workspace does not have: nothing here may read a clock (D42).
+  #[error("the statement did more work than the SQL door allows and was stopped")]
+  SqlOverBudget,
+  /// A `--limit` above the door's ceiling.
+  #[error("`--limit {asked}` is above the SQL door's ceiling of {ceiling}")]
+  SqlLimitAboveCeiling { asked: usize, ceiling: usize },
+  /// SQLite refused the statement for a reason of its own -- a syntax error, an
+  /// unknown table. Carried as itself: the operator wrote the SQL, and SQLite's
+  /// own words are the most useful thing anybody can say about it.
+  #[error("the statement did not run: {detail}")]
+  SqlDidNotRun { detail: String },
   /// A verdict (`green` / `red`) on a row whose cited file is not there (`0270`).
   ///
   /// **SEPARATE BECAUSE THE REMEDY HAS TO NAME A CONSEQUENCE, NOT A FIX.** The
@@ -1219,6 +1262,16 @@ impl crate::remedy::Remedy for FacadeError {
   /// the operator to guess which one they hit (AC-04.4).
   fn remedy(&self) -> String {
     match self {
+      Self::SqlMoreThanOneStatement => "send a single SELECT -- the door is read-only and stateless, so a batch has nothing to sequence".to_string(),
+      Self::SqlNoStatement => "give `--sql` a statement, eg `intent search --sql 'select id, title from thread'`".to_string(),
+      Self::SqlUnterminated => "close the quote or the comment -- the door refuses text it cannot read the same way SQLite would".to_string(),
+      Self::SqlWouldWrite => "read with SELECT; every change goes through a verb, which records what it did and why".to_string(),
+      Self::SqlOutOfReach { .. } => "name the tables you want -- `intent schema` publishes what this store holds".to_string(),
+      Self::SqlOverBudget => "narrow it -- add a WHERE, or a smaller --limit -- or ask the question with a verb. The door stops a statement that runs long rather than letting it hold the process".to_string(),
+      Self::SqlLimitAboveCeiling { ceiling, .. } => format!(
+        "ask for {ceiling} or fewer. A door that streamed everything would hand an agent a result nothing can hold"
+      ),
+      Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
       // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
@@ -1983,6 +2036,44 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
   })
 }
 
+/// What the SQL door denied, in the words a person types.
+///
+/// **THE NAME AND NOT THE DEBUG SPELLING.** `{:?}` on the action renders a
+/// Rust variant with its fields, which reads as an internal error rather than
+/// as the rule the operator met.
+fn action_name(action: &rusqlite::hooks::AuthAction<'_>) -> String {
+  use rusqlite::hooks::AuthAction;
+  match action {
+    AuthAction::Attach { .. } => "ATTACH",
+    AuthAction::Detach { .. } => "DETACH",
+    AuthAction::Pragma { .. } => "PRAGMA",
+    AuthAction::Transaction { .. } => "a transaction",
+    AuthAction::Insert { .. } => "INSERT",
+    AuthAction::Update { .. } => "UPDATE",
+    AuthAction::Delete { .. } => "DELETE",
+    AuthAction::CreateTable { .. } => "CREATE TABLE",
+    AuthAction::DropTable { .. } => "DROP TABLE",
+    _ => "that statement",
+  }
+  .to_string()
+}
+
+/// One SQLite value as JSON.
+///
+/// **A BLOB IS DESCRIBED, NEVER RENDERED.** The store holds attachment bytes,
+/// and a door that inlined them would answer a `select *` with a megabyte of
+/// mangled text -- and `--json` would not be valid UTF-8 to begin with.
+fn sql_value(value: rusqlite::types::ValueRef<'_>) -> serde_json::Value {
+  use rusqlite::types::ValueRef;
+  match value {
+    ValueRef::Null => serde_json::Value::Null,
+    ValueRef::Integer(i) => serde_json::Value::from(i),
+    ValueRef::Real(f) => serde_json::Value::from(f),
+    ValueRef::Text(t) => serde_json::Value::from(String::from_utf8_lossy(t).into_owned()),
+    ValueRef::Blob(b) => serde_json::Value::from(format!("<{} byte blob>", b.len())),
+  }
+}
+
 /// Whether a lifecycle transition makes its declared edit to `.intentfiles`,
 /// or the operator has suppressed it (AC-05.2).
 ///
@@ -2159,6 +2250,58 @@ pub struct EventFilter {
   pub subject: Option<String>,
   pub limit: Option<usize>,
 }
+
+/// What one read of the SQL door answers (AC-17.2, AC-17.4).
+///
+/// **BOTH DENOMINATORS TRAVEL**, the `events` page pattern: `matched` is every
+/// row the statement produced and `returned` is how many came back. A capped
+/// result that reported only what it returned is a silent subset, and the
+/// reader has no way to tell it from the whole answer.
+///
+/// **THE SCHEMA VERSION IS THE STORE'S, READ OFF THE DATABASE** rather than
+/// `store::SCHEMA_VERSION`, which is what this BINARY believes. They agree
+/// whenever the store opened at all, and the envelope is a claim about the
+/// database the caller just queried, so it comes from the database.
+#[derive(Debug, Clone)]
+pub struct SqlPage {
+  pub columns: Vec<String>,
+  pub rows: Vec<Vec<serde_json::Value>>,
+  pub matched: usize,
+  pub returned: usize,
+  pub schema_version: i32,
+}
+
+/// How many rows the SQL door returns when nobody says.
+///
+/// **A DEFAULT AND NOT A MEASUREMENT**, and it is a constant rather than a
+/// config key on purpose: a key nobody asked for is a second place for the
+/// answer to live, which is what D42 warns about. It is named in the refusal
+/// so an operator meeting the bound reads the number rather than guessing it.
+pub const SQL_ROWS_DEFAULT: usize = 200;
+
+/// The most rows the SQL door will return for any `--limit`.
+pub const SQL_ROWS_CEILING: usize = 10_000;
+
+/// How much WORK somebody else's statement may do inside this process, counted
+/// in SQLite virtual-machine instructions.
+///
+/// **IT IS A WORK BUDGET AND NOT A TIME BOUND, AND THAT IS THE ESTATE'S RULE
+/// RATHER THAN A PREFERENCE.** The specification said five seconds; a deadline
+/// needs `Instant::now`, and `one_clock.rs` bans every ambient clock in this
+/// workspace with an exemption list that is empty and says it must stay empty
+/// (D42: time is a property of a write). A budget answers the same question --
+/// *has this gone on too long* -- by counting the work rather than asking what
+/// time it is, and it has a property a deadline does not: the same statement on
+/// the same store is refused at the same point on a fast machine and a slow
+/// one.
+///
+/// Measured on this machine, a runaway recursive CTE trips it in a few seconds.
+/// That figure is an OBSERVATION about one machine and is not the contract; the
+/// contract is the budget.
+pub const SQL_WORK_BUDGET: u64 = 20_000;
+
+/// How many virtual-machine instructions pass between two checks of the budget.
+pub const SQL_WORK_INTERVAL: i32 = 10_000;
 
 /// A page of history WITH ITS DENOMINATOR.
 ///
@@ -2978,6 +3121,150 @@ impl Facade {
       .written()
       .map(|path| self.project.relative(path))
       .collect()
+  }
+
+  /// **ONE READ-ONLY SQL STATEMENT OVER THIS STORE** (AC-17.1 to AC-17.4).
+  ///
+  /// The door the agent guide cannot replace: `intent search` answers text, and
+  /// this answers a join across the model that no verb has. It is `&self`
+  /// because it cannot write, and the signature says so before any mechanism
+  /// does.
+  ///
+  /// **FIVE THINGS STAND BETWEEN A STATEMENT AND THE STORE, and each one has a
+  /// hole the others cover.**
+  ///
+  /// 1. The connection is opened READ-ONLY and is not the live one, so the
+  ///    guarantee does not depend on anybody restoring a pragma.
+  /// 2. `query_only` is set on it, so the refusal an operator meets is about
+  ///    the rule rather than an errno about a file.
+  /// 3. An AUTHORIZER allows `Select`, `Read`, `Function` and `Recursive` and
+  ///    denies everything else -- which is what refuses `ATTACH`. A read-only
+  ///    connection reads ANOTHER file on this machine perfectly happily, and
+  ///    this door is exposed on MCP.
+  /// 4. ONE statement, checked before prepare by [`crate::sql_gate`], because
+  ///    SQLite prepares the first and hands back the rest as a tail.
+  /// 5. A row cap and a time bound, so a cross join costs a refusal rather than
+  ///    the process.
+  ///
+  /// **THE SCHEMA VERSION IS READ BEFORE THE AUTHORIZER IS INSTALLED**, and
+  /// that ordering is load-bearing: `PRAGMA user_version` is a pragma, and an
+  /// authorizer that denies pragmas would deny this door's own read of the
+  /// version it has to report.
+  ///
+  /// **BOTH DENOMINATORS COME FROM ONE EXECUTION.** Rows stream, the first
+  /// `cap` are kept and the rest are counted. Wrapping the statement in
+  /// `select count(*) from (...)` would run somebody else's SQL twice, and two
+  /// executions are two truths.
+  pub fn search_sql(&self, statement: &str, limit: Option<usize>) -> Result<SqlPage, FacadeError> {
+    use rusqlite::hooks::{AuthAction, Authorization};
+
+    crate::sql_gate::single_statement(statement).map_err(|refusal| match refusal {
+      crate::sql_gate::GateRefusal::MoreThanOneStatement => FacadeError::SqlMoreThanOneStatement,
+      crate::sql_gate::GateRefusal::Empty => FacadeError::SqlNoStatement,
+      crate::sql_gate::GateRefusal::Unterminated => FacadeError::SqlUnterminated,
+    })?;
+
+    let cap = limit.unwrap_or(SQL_ROWS_DEFAULT);
+    if cap > SQL_ROWS_CEILING {
+      return Err(FacadeError::SqlLimitAboveCeiling {
+        asked: cap,
+        ceiling: SQL_ROWS_CEILING,
+      });
+    }
+
+    let conn = self
+      .store
+      .read_only_connection()
+      .map_err(FacadeError::Store)?;
+    let schema_version: i32 = conn
+      .pragma_query_value(None, "user_version", |row| row.get(0))
+      .map_err(|e| FacadeError::SqlDidNotRun {
+        detail: e.to_string(),
+      })?;
+
+    // **WHAT THE AUTHORIZER DENIED, KEPT, so the refusal can name it.** The
+    // error SQLite returns says only "not authorized"; which door the statement
+    // reached for is the operator's whole question, and only the callback knows.
+    let denied: std::sync::Arc<std::sync::Mutex<Option<String>>> =
+      std::sync::Arc::new(std::sync::Mutex::new(None));
+    let recorder = std::sync::Arc::clone(&denied);
+    conn.authorizer(Some(
+      move |ctx: rusqlite::hooks::AuthContext<'_>| match ctx.action {
+        AuthAction::Select | AuthAction::Read { .. } | AuthAction::Function { .. } => {
+          Authorization::Allow
+        }
+        AuthAction::Recursive => Authorization::Allow,
+        other => {
+          if let Ok(mut slot) = recorder.lock() {
+            slot.get_or_insert_with(|| action_name(&other));
+          }
+          Authorization::Deny
+        }
+      },
+    ));
+
+    // **THE BUDGET IS SPENT IN WORK, NOT IN SECONDS** -- see [`SQL_WORK_BUDGET`]
+    // for why this workspace cannot read a clock. The unit is SQLite
+    // virtual-machine instructions rather than rows, which is the case a row cap
+    // cannot reach: a cross join that returns nothing runs forever and returns
+    // no rows at all.
+    let mut spent: u64 = 0;
+    conn.progress_handler(
+      SQL_WORK_INTERVAL,
+      Some(move || {
+        spent += 1;
+        spent > SQL_WORK_BUDGET
+      }),
+    );
+
+    let refused = |e: rusqlite::Error| -> FacadeError {
+      if let Some(name) = denied.lock().ok().and_then(|slot| slot.clone()) {
+        return match name.as_str() {
+          "INSERT" | "UPDATE" | "DELETE" | "CREATE TABLE" | "DROP TABLE" | "ALTER TABLE" => {
+            FacadeError::SqlWouldWrite
+          }
+          other => FacadeError::SqlOutOfReach {
+            action: other.to_string(),
+          },
+        };
+      }
+      match e.sqlite_error_code() {
+        Some(rusqlite::ErrorCode::ReadOnly) => FacadeError::SqlWouldWrite,
+        Some(rusqlite::ErrorCode::OperationInterrupted) => FacadeError::SqlOverBudget,
+        _ => FacadeError::SqlDidNotRun {
+          detail: e.to_string(),
+        },
+      }
+    };
+
+    let mut stmt = conn.prepare(statement).map_err(&refused)?;
+    let columns: Vec<String> = stmt
+      .column_names()
+      .into_iter()
+      .map(str::to_string)
+      .collect();
+    let width = columns.len();
+    let mut kept: Vec<Vec<serde_json::Value>> = Vec::new();
+    let mut matched = 0usize;
+    let mut rows = stmt.query([]).map_err(&refused)?;
+    while let Some(row) = rows.next().map_err(&refused)? {
+      matched += 1;
+      if kept.len() < cap {
+        let mut out = Vec::with_capacity(width);
+        for i in 0..width {
+          out.push(sql_value(row.get_ref(i).map_err(&refused)?));
+        }
+        kept.push(out);
+      }
+    }
+
+    Ok(SqlPage {
+      columns,
+      returned: kept.len(),
+      rows: kept,
+      matched,
+      schema_version,
+    })
   }
 
   /// Read the history. **The store is the only home it has**, so this touches

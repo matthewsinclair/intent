@@ -232,6 +232,8 @@ mod the_canon_set_is_derived;
 mod the_daemon_harness_can_restart;
 #[path = "the_daemon_takes_the_backup_itself.rs"]
 mod the_daemon_takes_the_backup_itself;
+#[path = "the_sql_door_is_read_only.rs"]
+mod the_sql_door_is_read_only;
 #[path = "the_struck_doors_refuse_as_retired.rs"]
 mod the_struck_doors_refuse_as_retired;
 #[path = "the_web_face_answers_on_the_published_port.rs"]
