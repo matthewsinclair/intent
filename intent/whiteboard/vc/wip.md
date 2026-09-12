@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 17:39Z
+heartbeat_at: 2026-09-12 17:52Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 17:39Z for hv's compact. ST0069 to the end on hv's ruling: no cut until every non-cancelled WP is Done. WP-01 done with a projection fix in flight (dc), WP-14 commit two in flight (cc), WP-16 one finding from closing (ic), WP-02 next (dc). On the bounce: inboxes, dc's fix, pair rebuild, organize preview, commit two, the schema-24 migration by my hand."
+focus: "Directing ST0069 to the end (hv 2026-09-12): no cut until every non-cancelled WP is Done. Live now: dc's doctor fix (a WP-01 defect, preflight blocker), cc's commit two held for my go, ic's register-row review; then the schema-24 migration by my hand, WP-16 close, WP-14 verbs and cutover, WP-02, then the cut at hv's terminal."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing ST0069 to the end (hv, 2026-09-12); DARK for hv's compact from 2026-09-12 17:39Z.** The state and every ruling are in `intent/wip.md`. Standing orders went to each lane at 17:37Z, reports to my inboxes with stamps: dc lands the projection fix and builds WP-02 on the ruled shape; cc lands commit two and the `wb` verbs against a fixture; ic reviews rows, adds the Board map entry, holds the protocol half. On the bounce, in order: the three inboxes; dc's fix landing verified by file list; `bin/devbin build all` and `intent daemon restart`; `intent organize` preview and, if it names the issue views alone, `--apply`; commit two verified, then the pair rebuilt at it, the daemon restarted, the live store at 24, the broadcast; then WP-16's close on ic's clean run, WP-14's remaining verbs, the migration verb, the cutover when every node has folded, WP-02; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
+- **Directing ST0069 to the end (hv, 2026-09-12); back from hv's compact at 2026-09-12 17:52Z.** The state and every ruling are in `intent/wip.md`. Orders out: dc files and fixes the doctor defect (undeclared issues' absent views reported missing; views.rs:1663 asks `owning_thread` alone) with one arm and the live manifest header, then WP-02; cc rebases commit two onto main with the five `board.json` from `wb register`, answers with the code path whether doctor and organize read clean on the live estate with five committed boards and empty wb tables, and holds the landing for my go; ic reviews commit two's register rows from cc's banked patch, findings to cc before it lands. Next, in order: dc's fix landing verified by file list and doctor's live line; the two open issues declared (call 12); cc's go, commit two verified by file list, then the pair rebuilt at it, the daemon restarted, the live store at 24, the broadcast; ic's Board map entry, one clean run, WP-16 `wp done` on my word; the migration verb (dc), the protocol half (ic, AC-14.12 reworded for the fifth caller), the cutover when every node has folded; WP-02; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke.
 - **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
