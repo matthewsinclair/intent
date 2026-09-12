@@ -68,9 +68,10 @@ path = "src/main.rs"
 # dependency's feature and leaves `cfg(feature = "lang-rust")` in THIS crate
 # false -- so a test gated on a grammar silently does not compile, which is a
 # test that passes by not existing. The rosters are the same five as
-# `index::symbols::LANGUAGES`, and every one is off by default until hv rules
-# the binary-size line.
-default = []
+# `index::symbols::LANGUAGES`, and the default carries the same four the library
+# defaults to, so this crate's `cfg` agrees with the binary it is built into --
+# bash is declared and off in both, for the reason the library's table gives.
+default = ["lang-rust", "lang-elixir", "lang-swift", "lang-lua"]
 lang-rust = ["intentsvcs/lang-rust"]
 lang-elixir = ["intentsvcs/lang-elixir"]
 lang-swift = ["intentsvcs/lang-swift"]

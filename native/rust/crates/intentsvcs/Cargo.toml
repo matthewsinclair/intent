@@ -44,13 +44,22 @@ tree-sitter-lua = { workspace = true, optional = true }
 tree-sitter-bash = { workspace = true, optional = true }
 
 [features]
-# **EVERY GRAMMAR OFF BY DEFAULT UNTIL hv RULES THE LINE** (AC-20.4). The
-# default set is this one line, so hv's answer is a one-line change rather than
-# a rework; until then a build that wants a language asks for it by name.
+# **THE FOUR GRAMMARS THAT EARN THEIR BYTES ARE ON BY DEFAULT** (AC-20.4). The
+# per-grammar cost was measured before any of them shipped, against a baseline
+# from the same HEAD with each grammar referenced behind an opaque condition so
+# fat LTO could not drop it; the table is in the thread's design. The default
+# set is this one line, so the line moves with a one-line change if it is ruled
+# again.
+#
+# **bash IS DECLARED AND OFF, AND NOT FOR ITS SIZE.** `tree-sitter-bash` ships
+# no tags query -- a highlight query only -- so a shell file parses and names no
+# symbols and the bytes buy nothing. It comes on when upstream ships a tags
+# query; nobody writes one here, because a hand-written query is the
+# per-language extractor AC-20.2 exists to avoid.
 #
 # **A LANGUAGE THE BINARY WAS NOT BUILT WITH PARSES NOTHING, AND SAYS SO**
 # rather than silently returning no symbols -- see `index::symbols::symbols_of`.
-default = []
+default = ["lang-rust", "lang-elixir", "lang-swift", "lang-lua"]
 lang-rust = ["dep:tree-sitter-rust"]
 lang-elixir = ["dep:tree-sitter-elixir"]
 lang-swift = ["dep:tree-sitter-swift"]
