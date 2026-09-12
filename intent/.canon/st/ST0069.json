@@ -958,6 +958,16 @@
       "status": "green"
     },
     {
+      "id": "AT-24.4",
+      "kind": "test",
+      "file": "tests/unit/post_tool_symbol_context.bats",
+      "covers": [
+        "AC-24.4"
+      ],
+      "status": "green",
+      "note": "Eleven arms over the shipped script, driving a REAL index rather than a hand-written envelope -- a fixture blob would test this file's jq and nothing about whether the envelope carries what the rule reads, which is the shape that let the search envelope ship write-only. One arm per obligation: it appends the definition and references for a symbol-shaped pattern, bare or word-anchored; a regex, a non-Grep tool and an unknown symbol are never answered; it appends NOTHING once a path IN ITS OWN ANSWER has moved, and speaks again after a rebuild so the rule is a gate rather than a latch; the grep's own scope does not excuse a stale path in the answer, which is the defect the first build had; it exits 0 on rubbish, on no payload and outside a project; and the shipped settings do not wire it, so turning it on stays a deliberate edit. Disabling the freshness gate reddens exactly the two staleness arms."
+    },
+    {
       "id": "AT-24.5",
       "kind": "test",
       "file": "tests/unit/prior_art_route.bats",

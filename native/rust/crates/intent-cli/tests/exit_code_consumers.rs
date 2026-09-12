@@ -109,6 +109,21 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    ".claude/scripts/post-tool-symbol-context.sh",
+    "search",
+    Policy::Invokes(
+      "`|| true` plus `2>/dev/null` on `intent search --context <name> --json`, and here the discard is the \
+       CONTRACT rather than a hedge (AC-24.4). This is a PostToolUse hook: the grep it follows has already \
+       answered, so the only thing a non-zero `intent` can cost is this hook's addition. **An empty or \
+       unreadable answer therefore appends NOTHING and exits 0**, which is the same outcome the freshness \
+       rule produces for a stale index -- one silence, reached two ways, and neither of them blocks. The \
+       hedge `post-tool-advisory.sh` is faulted for above is a discard whose CONDITION expired; this one has \
+       no condition to expire, because a hook that may never block cannot act on an exit code. What it owes \
+       in exchange is that `intent search` prints its envelope on stdout and its diagnoses elsewhere, so a \
+       discarded stderr never removes part of the answer.",
+    ),
+  ),
+  (
     ".claude/scripts/post-tool-advisory.sh",
     "critic",
     Policy::Invokes(

@@ -165,10 +165,19 @@ fn canonical(p: &Path) -> PathBuf {
 /// `as-observed` and v2 refuses an unknown name, and a name that reaches the
 /// filesystem is a name that can contain `../`. Closed by construction beats
 /// validated in passing.
+///
+/// **A HOOK IS A `.sh` IN THAT DIRECTORY, AND WHAT IS NOT A HOOK CARRIES A
+/// DIFFERENT EXTENSION** (AC-24.4, 2026-09-12). `index-freshness.bash` lives
+/// beside the hook bodies and is SOURCED by them rather than run; it is not a
+/// name this roster may contain, and `hook_compat.rs` reads every `*.sh` there
+/// as a shipped hook, so the convention keeps both statements true at once
+/// without carving an exemption out of a population -- a filtered exemption and
+/// an accident look identical to the filter.
 pub const HOOKS: &[&str] = &[
   "session-context",
   "require-in-session",
   "post-tool-advisory",
+  "post-tool-symbol-context",
   "session-finish",
 ];
 
