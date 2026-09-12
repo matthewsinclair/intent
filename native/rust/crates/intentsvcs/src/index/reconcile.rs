@@ -10,6 +10,7 @@ use std::io::Read;
 use std::path::Path;
 
 use super::corpus::{BINARY_SAMPLE_BYTES, SkipReason, looks_binary};
+use super::freshness::Stamp;
 
 /// Why the index will hold no content for this in-scope file, or `None` when it
 /// will hold it.
@@ -54,6 +55,19 @@ pub fn skip_for(path: &Path, max_bytes: u64) -> Option<SkipReason> {
     return Some(SkipReason::Unreadable);
   }
   looks_binary(&sample).then_some(SkipReason::Binary)
+}
+
+/// What a stat says about this file now, or `None` when it cannot be stat'd.
+///
+/// **THE SPELLING IS `sync`'s AND IS NOT RESTATED HERE.** The recorded stamp
+/// this is compared against was written by the change detector, so a second
+/// formatting of the same instant would make every file look modified on the
+/// first reconcile after either moved -- and the symptom would be a slow index
+/// rather than an error.
+pub fn stamp_of(path: &Path) -> Option<Stamp> {
+  crate::sync::stamp_of(path)
+    .ok()
+    .map(|(size, mtime)| Stamp { size, mtime })
 }
 
 #[cfg(test)]
@@ -164,6 +178,57 @@ mod tests {
       Some(SkipReason::Unreadable),
       "a path that vanished between the walk and the read is the same class of \
        answer as one that cannot be opened"
+    );
+  }
+
+  #[test]
+  fn a_same_size_same_mtime_rewrite_is_caught_by_one_policy_and_missed_by_the_other() {
+    // **THE MISSED-EDIT PAIR, DRIVEN ON A REAL FILE RATHER THAN ON TWO
+    // STRUCTS.** The pure arms in `freshness` assert the decision; this asserts
+    // that the case they describe is one a filesystem actually produces --
+    // same length, mtime put back, different bytes.
+    use super::super::freshness::{Policy, must_read};
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let path = at(&dir, "src.rs");
+    std::fs::write(&path, "fn a() {}\n").expect("write");
+    let before = stamp_of(&path).expect("stamp");
+    let was = crate::sync::file_sha256(&path).expect("hash");
+    let times = std::fs::FileTimes::new().set_modified(
+      std::fs::metadata(&path)
+        .expect("meta")
+        .modified()
+        .expect("mtime"),
+    );
+
+    std::fs::write(&path, "fn b() {}\n").expect("rewrite, same length");
+    std::fs::File::options()
+      .write(true)
+      .open(&path)
+      .expect("open")
+      .set_times(times)
+      .expect("put the mtime back");
+
+    let after = stamp_of(&path).expect("stamp");
+    assert_eq!(
+      before, after,
+      "precondition: the rewrite must leave the stat untouched, or this arm is \
+       measuring an ordinary edit"
+    );
+    assert_ne!(
+      was,
+      crate::sync::file_sha256(&path).expect("hash"),
+      "precondition: the bytes must actually differ"
+    );
+
+    assert!(
+      must_read(Policy::HashAlways, Some(&before), &after),
+      "canon catches it, which is what D24 and AC-03.3 require"
+    );
+    assert!(
+      !must_read(Policy::StatThenHash, Some(&before), &after),
+      "and source misses it, which is the accepted cost: one stale hit, against \
+       hashing every source file on every reconcile"
     );
   }
 }

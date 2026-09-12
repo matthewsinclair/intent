@@ -955,7 +955,7 @@ pub(crate) fn entry_for(
 ) -> Result<FileEntry, SyncError> {
   let rel = crate::project::relative(root, path);
   let bytes = std::fs::read(path).map_err(|e| io_err(path, e))?;
-  let meta = std::fs::metadata(path).map_err(|e| io_err(path, e))?;
+  let (size, mtime) = stamp_of(path)?;
   let sha256 = sha256_hex(&bytes);
 
   let findings = inspect(&rel, &bytes);
@@ -972,12 +972,30 @@ pub(crate) fn entry_for(
 
   Ok(FileEntry {
     path: rel,
-    size: meta.len(),
-    mtime: OffsetDateTime::from(meta.modified().map_err(|e| io_err(path, e))?).format(&Rfc3339)?,
+    size,
+    mtime,
     sha256,
     state,
     findings,
   })
+}
+
+/// A file's size and modified time, spelled the way the index stores them.
+///
+/// **ONE ANSWER TO "WHEN DID THIS FILE LAST MOVE", BECAUSE TWO SPELLINGS OF AN
+/// MTIME COMPARE UNEQUAL AND NOTHING SAYS WHY.** The search index's
+/// stat-then-hash policy decides freshness by comparing a recorded stamp with
+/// a fresh one, and the recorded one is written by [`entry_for`] here. A second
+/// formatting of the same instant -- a truncated fraction, a different offset
+/// spelling -- would make every file look modified on the first reconcile after
+/// whichever of the two changed, and the symptom would be a slow index rather
+/// than an error.
+pub(crate) fn stamp_of(path: &Path) -> Result<(u64, String), SyncError> {
+  let meta = std::fs::metadata(path).map_err(|e| io_err(path, e))?;
+  Ok((
+    meta.len(),
+    OffsetDateTime::from(meta.modified().map_err(|e| io_err(path, e))?).format(&Rfc3339)?,
+  ))
 }
 
 /// Everything that makes a file unreadable-as-what-it-claims-to-be.
