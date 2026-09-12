@@ -74,7 +74,7 @@ enum Why {
   CheckedBy(&'static str),
 }
 
-/// The one reason all 52 of `mcp.rs`'s path literals share -- the serving
+/// The one reason every one of `mcp.rs`'s path literals shares -- the serving
 /// match's SERVED roster and arms (vc's (a)-now ruling, 2026-08-30).
 ///
 /// **CHECKED, NOT MERELY TOLERATED**: `mcp::tests::the_roster_and_the_tool_\
@@ -158,6 +158,16 @@ const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/mcp.rs",
     "index status",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb status",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wb show",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),
   (

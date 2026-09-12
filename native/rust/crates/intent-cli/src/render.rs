@@ -3860,11 +3860,131 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       println!("ok: {registered} node(s) registered");
       Ok(())
     }
+    Some(("status", m)) => {
+      let f = open()?;
+      let boards = f.boards().map_err(fail)?;
+      report_wb_status(&boards, m.get_flag("json"))
+    }
+    Some(("show", m)) => {
+      let f = open()?;
+      let node = m
+        .get_one::<String>("node")
+        .expect("the table declares `node` as required, so clap has already refused an absent one");
+      let board = f.board(node).map_err(fail)?;
+      report_wb_board(&board, m.get_flag("json"))
+    }
     _ => Err(Failure::Error(
-      "error: `intent wb` needs a subcommand\n  remedy: `intent wb register` puts the node roster \
-       into the model"
+      "error: `intent wb` needs a subcommand\n  remedy: `intent wb status` lists the roster, \
+       `intent wb show <node>` reads one board, `intent wb register` puts the roster into the model"
         .to_string(),
     )),
+  }
+}
+
+/// The roster, one line per node.
+///
+/// **AN EMPTY ROSTER SAYS SO AND NAMES THE VERB THAT FILLS IT.** Printing a
+/// header with nothing under it is the shape that reads as "this project has no
+/// nodes" when what it means is "nobody has registered them yet", and the two
+/// send an operator to different places.
+fn report_wb_status(boards: &[intentsvcs::model::Board], json: bool) -> Result<(), Failure> {
+  if json {
+    let rows: Vec<serde_json::Value> = boards.iter().map(|b| serde_json::json!(b.node)).collect();
+    println!(
+      "{}",
+      serde_json::to_string_pretty(&rows).map_err(|e| Failure::Error(e.to_string()))?
+    );
+    return Ok(());
+  }
+  if boards.is_empty() {
+    println!(
+      "no nodes are registered\n  remedy: `intent wb register` reads the roster from each node's \
+       own `wip.md` header"
+    );
+    return Ok(());
+  }
+  for b in boards {
+    let n = &b.node;
+    // **`focus` IS PRINTED LAST AND UNTRUNCATED**, because it is the one field
+    // a person actually reads, and a fixed-width table would be the thing that
+    // cuts it. The columns before it are all short by construction.
+    let focus = if n.focus.is_empty() {
+      String::new()
+    } else {
+      format!(" -- {}", n.focus)
+    };
+    println!(
+      "{} ({}) {} {} heartbeat {} items {} messages {}{}",
+      n.moniker,
+      n.role,
+      n.name,
+      status_word(&n.status),
+      n.heartbeat_at,
+      b.items.len(),
+      b.messages.len(),
+      focus,
+    );
+  }
+  Ok(())
+}
+
+fn status_word(s: &intentsvcs::model::WbNodeStatus) -> &'static str {
+  match s {
+    intentsvcs::model::WbNodeStatus::Active => "active",
+    intentsvcs::model::WbNodeStatus::Paused => "paused",
+  }
+}
+
+/// One board, whole.
+///
+/// **THE EMPTY SECTIONS ARE PRINTED RATHER THAN SKIPPED**, for the reason
+/// `report_index` gives about unfired reasons: a reader who sees no `messages`
+/// heading cannot tell an empty inbox from a build that does not carry
+/// messages yet.
+fn report_wb_board(board: &intentsvcs::model::Board, json: bool) -> Result<(), Failure> {
+  if json {
+    println!(
+      "{}",
+      serde_json::to_string_pretty(board).map_err(|e| Failure::Error(e.to_string()))?
+    );
+    return Ok(());
+  }
+  let n = &board.node;
+  println!("{} ({}) -- {}", n.moniker, n.role, n.name);
+  println!("  status     {}", status_word(&n.status));
+  println!("  heartbeat  {}", n.heartbeat_at);
+  println!("  focus      {}", n.focus);
+  println!(
+    "  claims     {}",
+    if n.claims.is_empty() {
+      "none".to_string()
+    } else {
+      n.claims.join(", ")
+    }
+  );
+  println!("items ({})", board.items.len());
+  for i in &board.items {
+    println!("  [{}] {} {}", item_kind_word(&i.kind), i.seq, i.text);
+  }
+  println!("messages ({})", board.messages.len());
+  for msg in &board.messages {
+    println!(
+      "  {} -> {}{} {}",
+      msg.sender,
+      msg.recipient,
+      if msg.fyi { " (fyi)" } else { "" },
+      msg.body
+    );
+  }
+  Ok(())
+}
+
+fn item_kind_word(k: &intentsvcs::model::WbItemKind) -> &'static str {
+  match k {
+    intentsvcs::model::WbItemKind::Doing => "doing",
+    intentsvcs::model::WbItemKind::Todo => "todo",
+    intentsvcs::model::WbItemKind::Decision => "decision",
+    intentsvcs::model::WbItemKind::Watchout => "watchout",
   }
 }
 

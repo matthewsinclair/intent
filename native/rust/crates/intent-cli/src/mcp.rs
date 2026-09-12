@@ -257,6 +257,13 @@ fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
         prop.insert("type".into(), json!("string"));
         prop.insert("description".into(), json!("an issue number, eg 0000"));
       }
+      "node" => {
+        prop.insert("type".into(), json!("string"));
+        prop.insert(
+          "description".into(),
+          json!("a whiteboard node's two-letter moniker, eg cc -- `wb status` lists the roster"),
+        );
+      }
       "string" | "positional" => {
         prop.insert("type".into(), json!("string"));
       }
@@ -405,7 +412,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 62] = [
+pub const SERVED: [&str; 64] = [
   "st new",
   "st start",
   "st done",
@@ -463,6 +470,8 @@ pub const SERVED: [&str; 62] = [
   "agents validate",
   "search",
   "index status",
+  "wb status",
+  "wb show",
   "export",
   "organize",
   "events",
@@ -1255,6 +1264,32 @@ pub fn serve(
     // The tool answers the same summary the terminal renders, with the SKIPPED
     // PATHS in it -- an agent deciding whether to trust a search needs to know
     // which files are not in the index, and a count cannot answer that.
+    "wb status" => Ok(json!(
+      f.boards()?
+        .iter()
+        .map(|b| json!({
+          "node": b.node,
+          // **THE COUNTS TRAVEL AND THE CONTENTS DO NOT.** An agent asking who
+          // is on the board should not be handed every item and message on it;
+          // `wb show` is the door for one board, and answering the roster with
+          // the whole estate would make the cheap question the expensive one.
+          "items": b.items.len(),
+          "messages": b.messages.len(),
+        }))
+        .collect::<Vec<_>>()
+    )),
+    "wb show" => {
+      let node = args
+        .get("node")
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| {
+          args_err(
+            path,
+            "`node` is required -- the moniker of the board to read",
+          )
+        })?;
+      Ok(json!(f.board(node)?))
+    }
     "index status" => {
       let status = f.index_status()?;
       let mut skipped = serde_json::Map::new();

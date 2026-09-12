@@ -66,6 +66,18 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .schema(Some("not-a-face"))
       .expect_err("a face the types do not generate is refused by name"),
   ));
+  // **AN UNREGISTERED NODE, AND THE DISCRIMINATING CASE IS THE EMPTY ROSTER.**
+  // This fixture has never run `wb register`, so the refusal has nothing to
+  // list -- which is precisely the state that would otherwise be answered with
+  // a board carrying no items and no messages, meaning the opposite thing. The
+  // refusal firing here is what says the reader refuses on REGISTRATION rather
+  // than on having a roster to compare against.
+  out.push((
+    "a board nobody has registered",
+    facade
+      .board("zz")
+      .expect_err("no roster is registered in this fixture, so no moniker resolves"),
+  ));
   // **THE PROVOCATION THAT USED TO BE HERE WAS `organize` ON A PROJECT WITH NO
   // MANIFEST, AND IT STOPPED REFUSING (ST0057 AC-04.7).** Absent is now nobody
   // having said, so it is not an error at all -- and the comment that stood
@@ -833,6 +845,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
     FacadeError::NoFormForEntity { .. } => "NoFormForEntity",
     FacadeError::EntityUnserialisable { .. } => "EntityUnserialisable",
+    FacadeError::WbNodeNotRegistered { .. } => "WbNodeNotRegistered",
   }
 }
 
@@ -913,6 +926,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Install",
   "RootFile",
   "RecordMovedUnderTheWrite",
+  "WbNodeNotRegistered",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by

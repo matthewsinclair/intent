@@ -3875,10 +3875,12 @@ The whiteboard: the node roster in the store
 - **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It read `node boards and inboxes, served from the store` while the one shipped verb registered monikers, carried no items and no messages, and left the markdown hand-authored and authoritative -- a reader typing `intent wb` would have been told the whiteboard is served and then found a roster registrar. The help moves when something serves a board.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args      | flags | help                                                       | disposition |
-| ------------- | --------- | ----- | ---------------------------------------------------------- | ----------- |
-| `wb`          | <command> | --    | The whiteboard: the node roster in the store               | new-surface |
-| `wb register` | --        | --    | Register the node roster from each node's own board header | new-surface |
+| command       | args      | flags  | help                                                                                 | disposition |
+| ------------- | --------- | ------ | ------------------------------------------------------------------------------------ | ----------- |
+| `wb`          | <command> | --     | The whiteboard: the node roster in the store                                         | new-surface |
+| `wb status`   | --        | --json | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
+| `wb show`     | <node>    | --json | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
+| `wb register` | --        | --     | Register the node roster from each node's own board header                           | new-surface |
 
 ### `wb`
 
@@ -3893,6 +3895,48 @@ The whiteboard: the node roster in the store
 - **basis:** ST0069 design.md, WP-14: the coordination model in the store. There is no v2 antecedent -- the whiteboard has always been markdown on disk.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
+
+### `wb status`
+
+List the registered nodes: role, status, heartbeat, and what each is working on
+
+- **v2:** new-surface
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk.
+- **basis:** ST0056 WP-14 design.md: the `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **facade:** boards
+- **note:** **AN EMPTY ROSTER SAYS SO AND NAMES `wb register`** rather than printing a header with nothing under it -- `no nodes are registered` and `this project has no nodes` send an operator to different places, and an empty listing is the shape that reads as the second while meaning the first.
+
+### `wb show`
+
+Read one node's whole board: its header, its items, and the messages addressed to it
+
+- **v2:** new-surface
+- **Arguments:**
+  - `node` (node, arity `1`)
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- read-only
+- **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.
+- **basis:** ST0056 WP-14 design.md and AC-14.7: any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.7
+- **facade:** board
+- **note:** **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages.
 
 ### `wb register`
 

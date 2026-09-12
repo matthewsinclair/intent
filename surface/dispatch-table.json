@@ -8234,6 +8234,58 @@
           "read_or_mutate": "read"
         },
         {
+          "path": "wb status",
+          "help": "List the registered nodes: role, status, heartbeat, and what each is working on",
+          "when_to_use": "USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk.",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0056 WP-14 design.md: the `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.",
+          "owner_wp": "WP-14",
+          "acceptance": "AC-14.7",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "flags": [
+            {
+              "spellings": ["--json"],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "note": "terminal-channel, as `index status --json` is: the MCP tool always answers the structured form."
+            }
+          ],
+          "facade": "boards",
+          "note": "**AN EMPTY ROSTER SAYS SO AND NAMES `wb register`** rather than printing a header with nothing under it -- `no nodes are registered` and `this project has no nodes` send an operator to different places, and an empty listing is the shape that reads as the second while meaning the first."
+        },
+        {
+          "path": "wb show",
+          "help": "Read one node's whole board: its header, its items, and the messages addressed to it",
+          "when_to_use": "USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.",
+          "args": [{ "name": "node", "type": "node", "arity": "1" }],
+          "v2": "new-surface",
+          "basis": "ST0056 WP-14 design.md and AC-14.7: any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.",
+          "owner_wp": "WP-14",
+          "acceptance": "AC-14.7",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "flags": [
+            {
+              "spellings": ["--json"],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "note": "terminal-channel, as `index status --json` is: the MCP tool always answers the structured form."
+            }
+          ],
+          "facade": "board",
+          "note": "**AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages."
+        },
+        {
           "path": "wb register",
           "help": "Register the node roster from each node's own board header",
           "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. It is idempotent by moniker, so a second run over an existing roster adds nothing and changes nothing.",
@@ -9341,8 +9393,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 56,
-      "census_note": "56 since 2026-09-12: the `wb` family and `wb register` (ST0069 WP-14 AC-14.7); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 58,
+      "census_note": "58 since 2026-09-12: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -9687,6 +9739,8 @@
       "app restart",
       "app status",
       "wb",
+      "wb status",
+      "wb show",
       "wb register",
       "index",
       "index status",
@@ -9827,6 +9881,8 @@
       "app restart",
       "app status",
       "wb",
+      "wb status",
+      "wb show",
       "wb register",
       "index",
       "index status",
@@ -9974,6 +10030,8 @@
       "app",
       "app status",
       "wb",
+      "wb status",
+      "wb show",
       "wb register",
       "index",
       "index status",

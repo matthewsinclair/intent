@@ -53,8 +53,8 @@ use crate::export::{self, ExportRefusal};
 use crate::ingest::{self, Canon, IngestError};
 use crate::intentfiles::{Realised, Sigil};
 use crate::model::{
-  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue, IssueStatus,
-  TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Board, Criterion, Issue,
+  IssueStatus, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{EditDisposition, Migration, Pending, Project, ThreadFile};
 use crate::realise;
@@ -1312,6 +1312,16 @@ pub enum FacadeError {
   #[error("cannot locate the Intent install")]
   Install(#[from] crate::install::InstallError),
   /// A root-file template could not be read or expanded. Same provenance as
+  /// A board was asked for by a moniker the roster does not carry.
+  ///
+  /// **IT NAMES WHO IS REGISTERED RATHER THAN SAYING NO.** The two ways to
+  /// reach this are a typo and an unregistered node, and the operator cannot
+  /// tell them apart from a refusal that only repeats what they typed -- one is
+  /// fixed by retyping and the other by registering, which are not the same
+  /// next move. The roster is small by construction, so listing it costs a line
+  /// and removes the guess.
+  #[error("no node `{node}` is registered on this board; the roster carries {known}")]
+  WbNodeNotRegistered { node: String, known: String },
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
@@ -1333,6 +1343,7 @@ impl crate::remedy::Remedy for FacadeError {
         "ask for {ceiling} or fewer. A door that streamed everything would hand an agent a result nothing can hold"
       ),
       Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
+      Self::WbNodeNotRegistered { .. } => "check the spelling against the roster above; a node that is genuinely missing is put on the board by `intent wb register`, which reads the roster from each node's own `wip.md` header".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
       // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
@@ -4857,6 +4868,43 @@ impl Facade {
       .store
       .register_nodes(&nodes)
       .map_err(FacadeError::Store)
+  }
+
+  /// Every registered node's board, in roster order.
+  ///
+  /// **THE READ IS UNSCOPED BY DESIGN, and AC-14.7 is why**: any workstream can
+  /// read any node's board. The single-writer invariant the protocol turns on
+  /// is about WRITES -- it never made a board private, and the markdown form it
+  /// replaces was world-readable in the checkout.
+  pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
+    self.store.hydrate_boards().map_err(FacadeError::Store)
+  }
+
+  /// One node's board, refused BY NAME when the moniker is not on the roster.
+  ///
+  /// **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** They render
+  /// almost identically -- no items, no messages -- and they mean opposite
+  /// things: one is a node with nothing to say, the other is a question about
+  /// somebody who is not here. A reader that answered both with the same empty
+  /// shape would let a typo look like a quiet colleague.
+  pub fn board(&self, node: &str) -> Result<Board, FacadeError> {
+    let boards = self.boards()?;
+    boards
+      .iter()
+      .find(|b| b.node.moniker == node)
+      .cloned()
+      .ok_or_else(|| FacadeError::WbNodeNotRegistered {
+        node: node.to_string(),
+        known: if boards.is_empty() {
+          "no nodes at all".to_string()
+        } else {
+          boards
+            .iter()
+            .map(|b| b.node.moniker.clone())
+            .collect::<Vec<_>>()
+            .join(", ")
+        },
+      })
   }
 
   pub fn sync_to_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
