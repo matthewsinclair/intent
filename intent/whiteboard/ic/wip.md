@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 17:47Z
+heartbeat_at: 2026-09-12 19:20Z
 status: active
-focus: "PICKED UP 2026-09-12 17:47Z after hv's compact, holding. contract_check re-run on main: the `Board` finding stands unchanged and cc's commit two is not landed, so every standing order I hold is gated. The protocol half is scoped and waits on vc's signal. Nothing of mine uncommitted."
+focus: "WP-16 CLOSED. The doctor gate landed in two commits with its producer rebuilt between them (82b85c5e1, 6fae2ff6a, 0496f4adc); 0308 and 0309 closed. Waiting on cc's items landing to review three corrected rows, then the protocol half on vc's signal after cc's lifecycle group. Nothing of mine uncommitted."
 claims: []
 ---
 
@@ -13,25 +13,22 @@ claims: []
 
 ## DOING
 
-**WP-16 is BUILT and satisfied; ONE finding stands and it is not mine to clear.** `contract_check.sh` joins four published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. On main at cbbb48350: 15 of 15 mapped entities checked, 104 properties, 16 derived. AT-16.1 to AT-16.4 green on ST0069.
+**Nothing in flight. Every package and ruling that was mine is landed, and what is left is queued behind cc.**
 
-- **THE LAST FINDING IS `Board`** -- the file envelope `{schema, node, items, messages}` for `whiteboard/<node>/board.json`, published with no contract row. vc ruled it a modelled form and cc writes its `### board` table in WP-14 commit two. **Then: add the `Board -> board` map entry in my own commit, re-run on main, report.**
-- **A CLEAN RUN IS NOT A CLOSE. DO NOT RUN `wp done` ON WP-16** -- not on a clean run, not on cc's landing, only on vc's word. The two conditions are deliberately separate; the gap between them is where a node closes its own package on its own evidence.
-- Rostered **manual**, dated not permanent. dc wires the preflight when vc signals; the path and exit contract are already with dc.
+- **WP-16 is Done** (`b2b4c31e9`), closed on vc's word with the four criteria read back from the store rather than recalled. Its last finding moved under WP-14 and closed there: the `Board -> board` contract row is in at `d50676642` and `contract_check.sh` agrees in both directions, 16 of 16 mapped entities over 108 properties.
+- **The doctor gate is in, in two commits with a rebuild between them.** `82b85c5e1` is the model half -- three exit codes with 4 for an estate that could not be judged, `stale-render` decided before the skew check, the first differing byte on every skew detail. `6fae2ff6a` is the gate arm, landed only after the delivered pair was rebuilt at the producer. `0496f4adc` makes a pass say so. Issues 0308 and 0309 closed at `b3b3f1b90`.
 
 ## TODO
 
-**Review every `intent wb` verb landing, one commit per landing, on vc's per-verb signal.** The register order is amended FOR THIS FAMILY ONLY (vc, 2026-09-12): cc writes the row in the commit that BUILDS each verb, starting `wb register` in commit two; I review and correct -- help prose, exit codes, voice, `when_to_use`, MCP exposure. **The order of writing moved; my ownership did not.** The reason is structural: the SSOT cannot precede the arm across two nodes, and a row with no arm fails reachability. **It is a review ON EVERY LANDING, never a pass** -- a review that happens once misses every commit after it. vc signals per verb, so this is not a watch I keep.
+**Review cc's three corrected message rows when the items commit lands.** vc ruled my finding without waiting for a push-back: `wb ask` and `wb announce` are `one-way`, `wb clear` is `idempotent`, MCP exposure follows the field, `st attach` is the precedent in both fields at once. The review happens in that commit rather than as a separate pass. **The thing to check is the pair, not the label**: a row whose `recoverability` moves must have its `exposed_on_mcp` move with it, and `--node`'s own exposure is the second half of the same question.
 
-**WP-14's protocol half, on vc's signal.** AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay. **Scoped 2026-09-12 17:47Z, nothing edited: size M.** The four functions sit at `intent_claude_cwi:218,278,298,316` with their dispatch arms at 430 to 433, and **a fifth call site at 392 offers `cmd_ws_new` from the interactive prompt** -- deleting the four functions and the four arms alone leaves that one calling a function that is gone. `in-whiteboard/SKILL.md` names the `ws` family in its scaffolding paragraph, its header-format section and its inbox-shape section, so the rewrite is not one line.
+**Then the protocol half, on vc's signal, which comes when cc's LIFECYCLE group lands** -- so the skill describes verbs that exist rather than verbs that are coming. AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, reworded by vc with `intent ac edit` to name every CALLER rather than four arms. **Scoped, nothing edited: size M.** The four functions sit at `intent_claude_cwi:218,278,298,316` with dispatch arms at 430 to 433, and a fifth caller at 392 offers `cmd_ws_new` from the interactive prompt -- deleting the four and the four arms leaves that one calling a function that is gone, and in a shell script it fails at the call rather than at load. `in-whiteboard/SKILL.md` names the `ws` family in its scaffolding paragraph, its header-format section and its inbox-shape section. **The open question I have asked cc**: whether `ws new`'s scaffolding becomes a `wb` verb or goes away, because it decides whether that paragraph is rewritten or deleted.
 
-**The batched reference regeneration, after the tag, on vc's signal.** Unchanged and still pinned as two literal commands below the fold at `.history/20260912/wip-prefold-1738Z.md`: both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed** because both generators hardcode `v3.0.0`. Neither needs a build.
-
-**AFTER cc's COMMIT TWO THE LIVE STORE IS AT SCHEMA 24, by vc's hand, and vc rebuilds the shared pair at that commit and broadcasts.** Between the landing and the broadcast: NO store reads through anything. From the broadcast on, PATH `intent` is current and reads and writes through it are fine. **I do not rebuild the shared pair** -- vc does, at every landing that matters.
+**The batched reference regeneration, after the tag, on vc's signal.** Unchanged: both halves `--rev v3.0.2 --baseline v3.0.1`, and `--baseline` must be passed because both generators hardcode `v3.0.0`. Neither needs a build.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
-0. **THE QUIET WINDOW IS OPEN NOW (vc, 2026-09-12, correcting the trigger from WP-22's landing to immediately).** Until vc says it is lifted: **no `cargo test`, no `cargo build`, no drives on this box** -- dc measures the daemon family on an idle host, then runs the final rehearsal. RELEASES WHEN vc says the window is lifted. The post-tag reference regeneration is after the tag and is unaffected by it.
+0. **THE QUIET WINDOW IS SUPERSEDED IN PRACTICE AND WAS NEVER FORMALLY LIFTED, WHICH IS WHY IT IS STILL WRITTEN DOWN.** vc opened it 2026-09-12 (no `cargo test`, no `cargo build`, no drives, while dc measured the daemon family on an idle host) and then spent the afternoon ordering builds, worktree suites and a rebuilt pair -- so it is spent by conduct rather than by a word. **A hold discharged by conduct is the one that rots**: the next node to read this board would either obey a dead rule or learn to skim the section. Recorded here, not deleted, until vc says it is lifted.
 
 1. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
 2. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
@@ -65,6 +62,15 @@ BUILDING AND VERIFYING, once the quiet window lifts:
 - A test gated on a grammar needs the CLI crate's own pass-through feature, or it silently does not compile and passes by not existing.
 - An AT row citing a file is a citation only if the FILE carries the row's literal id.
 - Nothing in this workspace may read a clock; bound work in SQLite instructions, not seconds.
+
+JUDGEMENT, earned 2026-09-12 evening, all six from things that went wrong:
+
+- **A TEMPLATE IN THIS TREE IS NOT A DRAFT, AND EDITING ONE IS A DEPLOYMENT.** `~/.intent/home` points at this working copy and the installed shim execs `lib/templates/hooks/pre-commit.sh` from it, so my half-finished gate arm refused every commit on ANOTHER estate, mid-deploy, until I reverted it. Uncommitted is not private. Hook and template work happens in a worktree, always.
+- **EVERY REPLACE ASSERTS ITS MATCH COUNT, AND THIS IS NOT A MARKDOWN RULE.** A blind swap of `2 => Err(Failure::Unavailable(` hit `doctor_verdict` AND the critic's verdict match, so a rules-less install went from refusing at 2 to sealing a clean verdict at 0 with no output. The arm directly above it warns about that exact fall-through in its own comment. A test caught it; I proved the cause by reverting my own patch and re-running rather than reasoning about it.
+- **A PASS THAT PRINTS NOTHING IS INDISTINGUISHABLE FROM AN ARM THAT NEVER RAN** (vc). The doctor arm was silent on 0, so its silence after landing was evidence of nothing -- the same shape as this estate's `0 of 0` digest, one level up. A gate arm you have only ever seen silent must be driven red before it is believed.
+- **VERIFY THE PRODUCER YOURSELF BEFORE LANDING THE CONSUMER.** The gate calls `intent` from PATH, so the arm had to land after the pair was rebuilt at its producer -- and I read the pair's own version and doctor's 0 and 4 in my own shell rather than taking the broadcast. Two commits with a rebuild between them, deliberately, instead of one clean-looking landing.
+- **A CODE ALREADY CARRYING FOUR MEANINGS DOES NOT TAKE A FIFTH.** Exit 2 is the unbuilt population's predicate, and `retirement_is_enumerable` refused to let doctor answer there. The ruled shape said 2; the estate's own record said 2 was full. Bringing the name and the evidence beat implementing the ruling as given.
+- **`cmd | tail` ANSWERS `tail`'s EXIT CODE, AND IT BIT ME TWICE IN ONE SESSION** -- once reading `intent doctor` as rc=0 when it was 1, once reading a background suite as green when it had a failure. Capture without a pipe before reading `$?`, and read a suite's raw output rather than a tail of it.
 
 JUDGEMENT, earned 2026-09-12 afternoon:
 
