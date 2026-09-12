@@ -78,6 +78,46 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .board("zz")
       .expect_err("no roster is registered in this fixture, so no moniker resolves"),
   ));
+  // **THE BOUNDS NEED A ROSTER, so one is registered here** -- `wb_ask` refuses
+  // an unregistered node before it ever looks at a body, so a bound refusal
+  // provoked without a roster would be the roster refusal wearing its name.
+  for (node, name, role) in [
+    ("cc", "Control Claude", "control"),
+    ("hv", "Hypervisor", "hypervisor"),
+  ] {
+    let dir = fx.root().join("intent/whiteboard").join(node);
+    std::fs::create_dir_all(&dir).expect("node dir");
+    std::fs::write(
+      dir.join("wip.md"),
+      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
+    )
+    .expect("write the header the roster is read from");
+  }
+  facade.register_roster().expect("register the roster");
+  // **ONE BYTE OVER, which is the criterion's own discriminating case.** A
+  // refusal provoked with a wildly oversized body passes whether the
+  // comparison is `>` or `>=` and whether the bound is the configured one or
+  // any smaller number.
+  let bound = fx.facade().project().config().whiteboard.body_bytes;
+  out.push((
+    "a body one byte over the bound",
+    facade
+      .wb_ask("cc", "hv", &"x".repeat(bound + 1), None, false)
+      .expect_err("the bound is enforced by refusal, never by truncation"),
+  ));
+  // Fill one inbox to its bound, then ask once more.
+  let inbox_bound = fx.facade().project().config().whiteboard.live_messages;
+  for i in 0..inbox_bound {
+    facade
+      .wb_ask("cc", "hv", &format!("message {i}"), None, false)
+      .expect("inside the bound");
+  }
+  out.push((
+    "an inbox at its bound",
+    facade
+      .wb_ask("cc", "hv", "one too many", None, false)
+      .expect_err("one past the configured bound is refused"),
+  ));
   // **THE PROVOCATION THAT USED TO BE HERE WAS `organize` ON A PROJECT WITH NO
   // MANIFEST, AND IT STOPPED REFUSING (ST0057 AC-04.7).** Absent is now nobody
   // having said, so it is not an error at all -- and the comment that stood
@@ -846,6 +886,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoFormForEntity { .. } => "NoFormForEntity",
     FacadeError::EntityUnserialisable { .. } => "EntityUnserialisable",
     FacadeError::WbNodeNotRegistered { .. } => "WbNodeNotRegistered",
+    FacadeError::WbBodyOverBound { .. } => "WbBodyOverBound",
+    FacadeError::WbInboxFull { .. } => "WbInboxFull",
+    FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
 
@@ -927,11 +970,22 @@ const ALL_VARIANTS: &[&str] = &[
   "RootFile",
   "RecordMovedUnderTheWrite",
   "WbNodeNotRegistered",
+  "WbBodyOverBound",
+  "WbInboxFull",
+  "WbNoActingNode",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **RAISED BY THE RENDERER AND BY NOTHING ON THE FACADE.** `WbNoActingNode`
+  // answers "nothing said which node is writing", and the facade's whiteboard
+  // doors all TAKE the acting node as a parameter -- it is the CLI's
+  // `--node`/`INTENT_NODE` resolution that can come up empty. It lives on
+  // `FacadeError` so its message and remedy sit beside the refusals it is read
+  // next to; provoking it here would mean constructing the value rather than
+  // reaching it, which asserts nothing about a path the estate takes.
+  "WbNoActingNode",
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
   // WP-01's `issue_home` turns a manifest id into an issue's view path.

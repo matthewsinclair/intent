@@ -225,6 +225,17 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // carries it; nothing was LEFT OUT, and the remedy is a different value for
     // the one they gave, or a registration. Same argument as the two above it.
     | FacadeError::WbNodeNotRegistered { .. }
+    // ST0069 WP-14's bounds. Nothing was LEFT OUT in either: one body is longer
+    // than the node's bound and one inbox already holds its limit, so the
+    // remedy is a shorter entry or a cleared inbox rather than a field.
+    | FacadeError::WbBodyOverBound { .. }
+    | FacadeError::WbInboxFull { .. }
+    // **A CALL PARAMETER IS MISSING AND A MODEL FIELD IS NOT, and this list is
+    // about the second.** `WbNoActingNode` does demand something -- `--node` or
+    // `INTENT_NODE` -- but no entity carries it, so there is no read face for
+    // it to reach and claiming one here would send this test looking for a
+    // field that does not exist.
+    | FacadeError::WbNoActingNode
     | FacadeError::VerdictCitesAbsentFile { .. } => None,
   }
 }

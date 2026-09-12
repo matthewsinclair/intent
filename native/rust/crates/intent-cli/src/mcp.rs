@@ -412,7 +412,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 64] = [
+pub const SERVED: [&str; 67] = [
   "st new",
   "st start",
   "st done",
@@ -472,6 +472,9 @@ pub const SERVED: [&str; 64] = [
   "index status",
   "wb status",
   "wb show",
+  "wb ask",
+  "wb announce",
+  "wb clear",
   "export",
   "organize",
   "events",
@@ -1279,16 +1282,36 @@ pub fn serve(
         .collect::<Vec<_>>()
     )),
     "wb show" => {
-      let node = args
-        .get("node")
-        .and_then(serde_json::Value::as_str)
-        .ok_or_else(|| {
-          args_err(
-            path,
-            "`node` is required -- the moniker of the board to read",
-          )
-        })?;
+      let node = str_arg(args, "node", path)?;
       Ok(json!(f.board(node)?))
+    }
+    "wb ask" => {
+      let node = str_arg(args, "node", path)?;
+      let recipient = str_arg(args, "recipient", path)?;
+      let body = str_arg(args, "body", path)?;
+      f.wb_ask(
+        node,
+        recipient,
+        body,
+        args.get("re").and_then(serde_json::Value::as_str),
+        args
+          .get("fyi")
+          .and_then(serde_json::Value::as_bool)
+          .unwrap_or(false),
+      )?;
+      Ok(json!({ "sender": node, "recipient": recipient }))
+    }
+    "wb announce" => {
+      let node = str_arg(args, "node", path)?;
+      let body = str_arg(args, "body", path)?;
+      let reached = f.wb_announce(node, body)?;
+      Ok(json!({ "sender": node, "reached": reached }))
+    }
+    "wb clear" => {
+      let node = str_arg(args, "node", path)?;
+      let sender = str_arg(args, "sender", path)?;
+      let handled = f.wb_clear(node, sender)?;
+      Ok(json!({ "recipient": node, "sender": sender, "handled": handled }))
     }
     "index status" => {
       let status = f.index_status()?;
@@ -1437,6 +1460,19 @@ fn args_err(path: &str, why: impl Into<String>) -> ServeError {
     path: path.to_string(),
     why: why.into(),
   }
+}
+
+/// A required string argument, refused BY NAME when it is absent or not a
+/// string.
+///
+/// **ONE HELPER RATHER THAN THE SAME `ok_or_else` AT EACH CALL**: the arms that
+/// take several of these would otherwise each spell the refusal, and the one
+/// spelled differently is the one an agent cannot pattern-match on.
+fn str_arg<'a>(args: &'a Value, name: &str, path: &str) -> Result<&'a str, ServeError> {
+  args
+    .get(name)
+    .and_then(Value::as_str)
+    .ok_or_else(|| args_err(path, format!("`{name}` is required and must be a string")))
 }
 
 /// A renderer-side refusal (`Failure`) rephrased as this surface's `Args`.

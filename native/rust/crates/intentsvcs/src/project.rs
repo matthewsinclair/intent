@@ -425,6 +425,102 @@ impl IndexConfig {
   }
 }
 
+/// The `whiteboard` block: what the coordination estate is allowed to grow to.
+///
+/// **THE BOUNDS ARE THE POINT OF MODELLING THE BOARD AND NOT A TIDINESS
+/// SETTING.** The measurement that opened this work is in the WP's own design:
+/// three LLM nodes wrote roughly 100KB of board in two days, one inbox reached
+/// 32KB, and the human's whole board was 308 bytes. The ratio is the
+/// specification -- the human's board is what a board is for, and the other
+/// three are what happens without a mechanism. A rule stated by the node that
+/// then breaks it is the definition of a rule needing a mechanism rather than
+/// better intentions, and `vc/wip.md` broke its own written rule about board
+/// length in the same file that stated it.
+///
+/// **SO EVERY BOUND HERE IS ENFORCED BY REFUSAL, NEVER BY TRUNCATION.** A
+/// truncating write accepts the call and silently keeps less than it was
+/// given, which is `IN-AG-NO-SILENT-001` on a write path; the refusal states
+/// the bound and the remedy and writes nothing.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WhiteboardConfig {
+  /// The largest single entry body, in bytes. Compared with `>`, so a body
+  /// exactly at the bound is accepted.
+  ///
+  /// **A BOUND IS SET FROM THE CORPUS IT GOVERNS, AND THE SETTING RECORDS WHICH
+  /// CORPUS AND WHEN** (ic's rule, and ic's measurement is why it is a rule).
+  /// The first value here was 2000, chosen as "a long paragraph" against the
+  /// 32KB inbox that motivated the work -- and measured against the traffic it
+  /// would actually govern it refused the MEDIAN case.
+  #[serde(default = "default_wb_body_bytes")]
+  pub body_bytes: usize,
+  /// The most LIVE messages one inbox may hold -- an inbox being one ordered
+  /// (sender, recipient) pair, as the file form already is.
+  #[serde(default = "default_wb_live_messages")]
+  pub live_messages: usize,
+  /// Nodes the bounds do not apply to.
+  ///
+  /// **THE HUMAN IS UNBOUNDED BY DEFAULT AND THAT IS NOT AN EXEMPTION FOR
+  /// SENIORITY.** The bounds exist to hold a class of writer that produces
+  /// volume without noticing; the measurement says the human is not that
+  /// writer -- their whole board was 308 bytes against one LLM inbox at 32KB --
+  /// and a person stopped mid-sentence by a machine's idea of length has no
+  /// recourse and did not opt in. Every LLM node can read the refusal and
+  /// shorten the entry.
+  ///
+  /// **THE EXEMPTION IS THEREFORE WORTH LITTLE IN PRACTICE, WHICH IS THE POINT**
+  /// (ic): it exempts the node that writes the shortest entries. It is here for
+  /// the case it was reasoned about, not because it does work today.
+  #[serde(default = "default_wb_unbounded")]
+  pub unbounded: Vec<String>,
+}
+
+/// Fitted to the corpus it governs: every entry in every
+/// `intent/whiteboard/*/inbox.*.md` on this repository, read 2026-09-12.
+/// Forty-five entries, median 2423 bytes, largest 7113. This clears all of them
+/// with headroom.
+///
+/// **THE VALUE IT REPLACED WAS 2000 AND IT WOULD HAVE REFUSED 62% OF THAT
+/// CORPUS**, the median included. That failure is not an error anybody debugs:
+/// it is a node discovering mid-report that its durable escalation will not fit,
+/// whose cheapest way out is to say less. A ceiling that refuses the median case
+/// teaches shorter reports rather than tidier ones, which is the opposite of
+/// what the bound is for -- the board should carry the pointer and the artefact
+/// should carry the account, and a squeezed report loses the account without
+/// gaining the pointer.
+fn default_wb_body_bytes() -> usize {
+  8_192
+}
+
+fn default_wb_live_messages() -> usize {
+  20
+}
+
+fn default_wb_unbounded() -> Vec<String> {
+  vec!["hv".to_string()]
+}
+
+impl Default for WhiteboardConfig {
+  fn default() -> Self {
+    Self {
+      body_bytes: default_wb_body_bytes(),
+      live_messages: default_wb_live_messages(),
+      unbounded: default_wb_unbounded(),
+    }
+  }
+}
+
+impl WhiteboardConfig {
+  /// Is this block exactly what an absent block means?
+  fn is_default(&self) -> bool {
+    self == &Self::default()
+  }
+
+  /// Do the bounds apply to this node?
+  pub fn bounds_apply_to(&self, node: &str) -> bool {
+    !self.unbounded.iter().any(|n| n == node)
+  }
+}
+
 /// The `embed` block: the semantic tier's endpoint, if a project has one.
 ///
 /// **ABSENT IS THE NORMAL CASE AND IT IS NOT A GAP.** Without it the semantic
@@ -506,6 +602,11 @@ pub struct Config {
   /// thought I had did not.
   #[serde(default, skip_serializing_if = "IndexConfig::is_default")]
   pub index: IndexConfig,
+  /// The `whiteboard` block. Absent in every config written before the board
+  /// had bounds, hence the default, and not written back when it is the
+  /// default for the `index` block's reason.
+  #[serde(default, skip_serializing_if = "WhiteboardConfig::is_default")]
+  pub whiteboard: WhiteboardConfig,
   /// The `doctor` block (issue 0065, hv decision 14). Absent unless a project
   /// has acknowledged something, and never written when empty.
   #[serde(default, skip_serializing_if = "DoctorConfig::is_empty")]
@@ -2275,6 +2376,7 @@ mod tests {
       backup: BackupConfig::default(),
       embed: EmbedConfig::default(),
       index: IndexConfig::default(),
+      whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };
@@ -2310,6 +2412,7 @@ mod tests {
       backup: BackupConfig::default(),
       embed: EmbedConfig::default(),
       index: IndexConfig::default(),
+      whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
       extra: serde_json::Map::new(),
     };

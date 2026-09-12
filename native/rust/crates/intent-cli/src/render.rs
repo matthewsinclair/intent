@@ -3873,11 +3873,70 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let board = f.board(node).map_err(fail)?;
       report_wb_board(&board, m.get_flag("json"))
     }
+    Some(("ask", m)) => {
+      let me = acting_node(m)?;
+      let to = m.get_one::<String>("recipient").expect("declared required");
+      let body = m.get_one::<String>("body").expect("declared required");
+      let mut f = open()?;
+      f.wb_ask(
+        &me,
+        to,
+        body,
+        m.get_one::<String>("re").map(String::as_str),
+        m.get_flag("fyi"),
+      )
+      .map_err(fail)?;
+      println!("ok: {me} -> {to}");
+      Ok(())
+    }
+    Some(("announce", m)) => {
+      let me = acting_node(m)?;
+      let body = m.get_one::<String>("body").expect("declared required");
+      let mut f = open()?;
+      let reached = f.wb_announce(&me, body).map_err(fail)?;
+      // **WHAT IT REACHED, NOT THE ROSTER'S SIZE.** An announce goes to every
+      // node but the sender, so on a one-node board it reaches nobody, and
+      // printing the roster size would report a delivery that did not happen.
+      println!("ok: {me} -> {reached} node(s)");
+      Ok(())
+    }
+    Some(("clear", m)) => {
+      let me = acting_node(m)?;
+      let from = m.get_one::<String>("sender").expect("declared required");
+      let mut f = open()?;
+      let moved = f.wb_clear(&me, from).map_err(fail)?;
+      println!("ok: {moved} message(s) from {from} marked handled");
+      Ok(())
+    }
     _ => Err(Failure::Error(
       "error: `intent wb` needs a subcommand\n  remedy: `intent wb status` lists the roster, \
        `intent wb show <node>` reads one board, `intent wb register` puts the roster into the model"
         .to_string(),
     )),
+  }
+}
+
+/// Who is writing: `--node`, or a refusal.
+///
+/// **THE ABSENCE REFUSES RATHER THAN DEFAULTING, and the default it will not
+/// take is the dangerous one.** Picking any node would write one node's words
+/// under another's name -- the single-writer invariant broken by the mechanism
+/// built to serve it, and invisible to everyone afterwards.
+///
+/// **AN `INTENT_NODE` FALLBACK IS NOT HERE, AND ITS ABSENCE IS A DECISION
+/// RATHER THAN AN OVERSIGHT.** It was built, and
+/// `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`
+/// refused it: the shipped surface reads one environment variable, and a second
+/// needs an hv ruling and a row in that test's `ALLOWED`, never a quiet
+/// addition. The guard's own reason is the reason it is right -- every machine
+/// in this estate would have the variable set, so nothing here would have
+/// failed, and the binary that meets a machine with no developer environment is
+/// the one that discovers it. The flag alone loses nothing structural: absence
+/// still refuses.
+fn acting_node(m: &ArgMatches) -> Result<String, Failure> {
+  match m.get_one::<String>("node") {
+    Some(n) => Ok(n.clone()),
+    None => Err(fail(FacadeError::WbNoActingNode)),
   }
 }
 

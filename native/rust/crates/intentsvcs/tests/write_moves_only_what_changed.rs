@@ -322,6 +322,33 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wb ask",
+    "intentsvcs/tests/error_remedies.rs -- `provoked_errors` registers a roster and drives this \
+     verb's facade door, `wb_ask`, to both of its bounds: a body ONE BYTE over the configured \
+     bound, and the twenty-first live message into one inbox. **What it writes is ROWS AND NO \
+     FILE**, so `did the projected estate move` is the wrong observable; the property this file \
+     exists for, in the form this verb can have it, is that an over-bound write is REFUSED and \
+     writes nothing rather than truncating -- which is what those two arms assert, each against \
+     the discriminating case rather than a wildly oversized one.",
+  ),
+  (
+    "wb announce",
+    "intentsvcs/tests/error_remedies.rs, through the same door: `wb_announce` is `wb_ask` in a \
+     loop and has no insert of its own, so the bounds, the roster check and the stamp rule it \
+     obeys are the ones asserted there. The property that is ITS OWN -- every recipient checked \
+     before any row is written, so a broadcast never half-lands -- is structural: the check loop \
+     runs to completion before the write loop starts, and there is no path between them.",
+  ),
+  (
+    "wb clear",
+    "intentsvcs/tests/openness.rs -- `the_round_trip_carries_every_table_that_claims_a_file_form` \
+     and `re_emitting_the_extract_reproduces_it_byte_for_byte` carry `wb_message` with its \
+     `state` and `handled_at` through the extract in both directions, which is what this verb \
+     moves. It DELETES NOTHING: a cleared message stays on the board with `state` handled, so \
+     what it writes is a column and what it costs the estate is nothing. `wb show` reads the \
+     result back on the same rows.",
+  ),
+  (
     "wb register",
     "intentsvcs/tests/openness.rs -- `the_round_trip_carries_every_table_that_claims_a_file_form` and \
      `re_emitting_the_extract_reproduces_it_byte_for_byte` drive this verb's facade door, \

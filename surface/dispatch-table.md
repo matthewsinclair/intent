@@ -3865,26 +3865,29 @@ Report whether the Intent menubar app is running, and where it is installed
 
 ## Family: `wb`
 
-The whiteboard: the node roster in the store
+The whiteboard: read the node boards, and send between them
 
 - **v2 source:** `new-surface`
 - **v2 help file:** none
 - **Owning work package:** WP-14
 
 - NEW SURFACE with no v2 antecedent: the whiteboard has always been markdown on disk, read and written by hand. ST0069 WP-14 puts the coordination entities in the store, and this family is how a person reaches them.
-- **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It read `node boards and inboxes, served from the store` while the one shipped verb registered monikers, carried no items and no messages, and left the markdown hand-authored and authoritative -- a reader typing `intent wb` would have been told the whiteboard is served and then found a roster registrar. The help moves when something serves a board.
+- **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It first read `node boards and inboxes, served from the store` while the one shipped verb registered monikers -- a reader typing `intent wb` was told the whiteboard is served and then found a roster registrar. **THE RULE CUTS BOTH WAYS AND THE SECOND CUT CAUGHT THE FIRST FIX** (ic, same day): narrowed to `the node roster in the store`, it was stale again one commit later, when `wb show` began reading whole boards -- promising LESS than the family does, which sends a reader looking elsewhere for a verb that is right there. **So this line moves with every verb group, in whichever direction the group moved it**, and it is not a decision that stays taken.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args      | flags  | help                                                                                 | disposition |
-| ------------- | --------- | ------ | ------------------------------------------------------------------------------------ | ----------- |
-| `wb`          | <command> | --     | The whiteboard: the node roster in the store                                         | new-surface |
-| `wb status`   | --        | --json | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
-| `wb show`     | <node>    | --json | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
-| `wb register` | --        | --     | Register the node roster from each node's own board header                           | new-surface |
+| command       | args               | flags               | help                                                                                 | disposition |
+| ------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| `wb`          | <command>          | --                  | The whiteboard: read the node boards, and send between them                          | new-surface |
+| `wb status`   | --                 | --json              | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
+| `wb show`     | <node>             | --json              | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
+| `wb ask`      | <recipient> <body> | --node, --re, --fyi | Send one message from the acting node into another node's board                      | new-surface |
+| `wb announce` | <body>             | --node              | Send one message to every registered node but the sender                             | new-surface |
+| `wb clear`    | <sender>           | --node              | Mark every live message one sender sent the acting node handled                      | new-surface |
+| `wb register` | --                 | --                  | Register the node roster from each node's own board header                           | new-surface |
 
 ### `wb`
 
-The whiteboard: the node roster in the store
+The whiteboard: read the node boards, and send between them
 
 - **v2:** new-surface
 - **Arguments:**
@@ -3892,7 +3895,7 @@ The whiteboard: the node roster in the store
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
-- **basis:** ST0069 design.md, WP-14: the coordination model in the store. There is no v2 antecedent -- the whiteboard has always been markdown on disk.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The coordination model in the store; there is no v2 antecedent, the whiteboard has always been markdown on disk.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 
@@ -3910,7 +3913,7 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk.
-- **basis:** ST0056 WP-14 design.md: the `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **facade:** boards
@@ -3932,11 +3935,85 @@ Read one node's whole board: its header, its items, and the messages addressed t
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.
-- **basis:** ST0056 WP-14 design.md and AC-14.7: any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. Any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **facade:** board
 - **note:** **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages.
+
+### `wb ask`
+
+Send one message from the acting node into another node's board
+
+- **v2:** new-surface
+- **Arguments:**
+  - `recipient` (node, arity `1`)
+  - `body` (string, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **THE ACTING NODE, AND ITS ABSENCE REFUSES RATHER THAN DEFAULTING.** Picking a node would write one node's words under another's name -- the single-writer invariant broken by the mechanism built to serve it, and invisible afterwards. **AN `INTENT_NODE` FALLBACK WAS BUILT AND TAKEN BACK OUT**: the shipped surface reads exactly one environment variable, and a second needs an hv ruling and a row in that guard's allow-list rather than a quiet addition. Every machine in this estate would have had it set, so nothing here would have failed and the binary meeting a machine with no developer environment is the one that would have discovered it.
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--re` (string) -- The anchor of the message this answers
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--fyi` (bool) -- No reply is expected
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT to say something to one node and have it survive the session -- the message lands on the RECIPIENT's board, which is the shape the markdown inboxes already had, so one board is a whole readable conversation. DO NOT USE IT for something every node needs: `wb announce` reaches them all and refuses as a whole rather than half-landing. The sender is the node named by `--node`, so who a message is FROM is a convention this layer trusts rather than a guarantee it makes.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `ask` among them. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.5
+- **recoverability:** reversible
+- **facade:** wb_ask
+- **note:** **THE SINGLE-WRITER INVARIANT IS A CONVENTION AT THIS LAYER AND NOT A GUARANTEE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED OTHERWISE** (ic, measured against the surface). `--node` IS the impersonation parameter wearing another name: `intent wb ask --node dc vc ...` lands in vc's board as dc from any session. The markdown form held the rule by the FILESYSTEM -- you wrote your own file -- and moving it into an API moved it to whoever types the flag. Making it structural means taking the acting node from somewhere the caller does not choose, which is a larger design than this cut. What the door does hold is narrower and real: a message reaches only a REGISTERED node and lands on the RECIPIENT's board. **NO PARAMETER TAKES A TIMESTAMP**, so the fabricated-stamp class closes by construction rather than by detection -- nothing to supply, nothing to validate, the store reading the clock at the write. **The migration is the one writer that does take a stamp, by design**: `authored_at` carries verbatim what a board's markdown claimed, a doorway rather than a hole, kept as a claim and never read as a time. The bounds are refusals stating the bound and the remedy, never truncation.
+
+### `wb announce`
+
+Send one message to every registered node but the sender
+
+- **v2:** new-surface
+- **Arguments:**
+  - `body` (string, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT when every node needs the same line -- before touching a shared layer, or to broadcast a ruling. It is marked FYI on every board it reaches, because a broadcast that expected a reply would expect one from everybody. DO NOT USE IT to reach one node: `wb ask` is the door and it threads. It reports how many boards it REACHED rather than the roster's size, so a one-node board is honestly reported as reaching nobody.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `announce` among them. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.5
+- **recoverability:** reversible
+- **facade:** wb_announce
+- **note:** **IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH**, so the bounds, the roster check and the stamp rule are stated once. **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE**: every recipient is checked before any row is written, because half a broadcast is worse than none -- the nodes that received it and the nodes that did not both believe they know what was said.
+
+### `wb clear`
+
+Mark every live message one sender sent the acting node handled
+
+- **v2:** new-surface
+- **Arguments:**
+  - `sender` (node, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** true
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **when to use:** USE IT when you have acted on what a node sent you, to take those messages out of the live count -- that count is what the per-inbox bound measures, so clearing is how an inbox that refuses a write starts accepting again. The recipient is the node named by `--node`, so ownership here stands exactly as far as authorship does on `wb ask` and no further. It reports what MOVED, so clearing an already-clear inbox reports nothing rather than its size.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `clear` among them. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.5
+- **recoverability:** reversible
+- **facade:** wb_clear
+- **note:** **ONLY THE RECIPIENT CLEARS, AND THE RECIPIENT IS WHOEVER `--node` NAMES**, so the ownership half of the single-writer invariant stands exactly as far as the sender half does -- see `wb ask` for why that is a convention at this layer. The rows are not deleted: `state` moves live to handled with `handled_at` stamped by the store, so what was said stays readable and stops counting against the bound.
 
 ### `wb register`
 
@@ -3947,7 +4024,7 @@ Register the node roster from each node's own board header
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. It is idempotent by moniker, so a second run over an existing roster adds nothing and changes nothing.
-- **basis:** ST0069 design.md, WP-14. The roster is authored configuration a human wrote; this registers it rather than inventing it.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The roster is authored configuration a human wrote; this registers it rather than inventing it.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **recoverability:** idempotent

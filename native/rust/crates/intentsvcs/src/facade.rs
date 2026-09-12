@@ -1322,6 +1322,40 @@ pub enum FacadeError {
   /// and removes the guess.
   #[error("no node `{node}` is registered on this board; the roster carries {known}")]
   WbNodeNotRegistered { node: String, known: String },
+  /// An entry body over the configured bound.
+  ///
+  /// **THE BOUND IS IN THE MESSAGE BECAUSE THE WRITER HAS TO ACT ON IT.** A
+  /// refusal saying only "too long" leaves the author guessing how much to cut,
+  /// and the guess is what produces a second refusal.
+  #[error("the body is {bytes} bytes and the bound for `{node}` is {bound}")]
+  WbBodyOverBound {
+    node: String,
+    bytes: usize,
+    bound: usize,
+  },
+  /// One inbox already holds as many live messages as it may.
+  ///
+  /// **IT NAMES THE INBOX RATHER THAN THE RECIPIENT**, because the bound is per
+  /// ordered pair: a full `cc -> vc` says nothing about `dc -> vc`, and a
+  /// refusal naming only `vc` would send the reader to clear the wrong thing.
+  #[error(
+    "the inbox `{sender}` -> `{recipient}` holds {live} live message(s) and the bound is {bound}"
+  )]
+  WbInboxFull {
+    sender: String,
+    recipient: String,
+    live: usize,
+    bound: usize,
+  },
+  /// No acting node: nothing said who is writing.
+  ///
+  /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
+  /// DANGEROUS ONE.** Defaulting to any node would write one node's words under
+  /// another node's name, which is the single-writer invariant broken by the
+  /// mechanism built to serve it, and it would be invisible to everyone
+  /// afterwards.
+  #[error("no acting node: nothing said which node is writing")]
+  WbNoActingNode,
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
@@ -1344,6 +1378,13 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
       Self::WbNodeNotRegistered { .. } => "check the spelling against the roster above; a node that is genuinely missing is put on the board by `intent wb register`, which reads the roster from each node's own `wip.md` header".to_string(),
+      Self::WbBodyOverBound { bound, .. } => format!(
+        "say it in {bound} bytes or fewer, or put the long form in the artefact it is about and leave a pointer here. A board carries the pointer; the account belongs where it will still be read next week"
+      ),
+      Self::WbInboxFull { sender, recipient, .. } => format!(
+        "`{recipient}` clears it with `intent wb clear {sender}` once the messages are handled. The bound is per inbox, so this says nothing about anyone else's"
+      ),
+      Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
       // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
@@ -4878,6 +4919,169 @@ impl Facade {
   /// replaces was world-readable in the checkout.
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
     self.store.hydrate_boards().map_err(FacadeError::Store)
+  }
+
+  /// Refuse an entry body the acting node's bound does not admit.
+  ///
+  /// **ONE HOME FOR THE CHECK, and every write path asks it.** Two spellings of
+  /// the same bound is how one door ends up enforcing a rule the other does
+  /// not, and the silent direction is the one that accepts.
+  fn check_body_bound(&self, node: &str, body: &str) -> Result<(), FacadeError> {
+    let cfg = &self.project.config().whiteboard;
+    if !cfg.bounds_apply_to(node) {
+      return Ok(());
+    }
+    // Compared with `>`, so a body exactly at the bound is accepted -- the same
+    // reading `IndexConfig::max_file_bytes` takes of its own cap.
+    if body.len() > cfg.body_bytes {
+      return Err(FacadeError::WbBodyOverBound {
+        node: node.to_string(),
+        bytes: body.len(),
+        bound: cfg.body_bytes,
+      });
+    }
+    Ok(())
+  }
+
+  /// Refuse a moniker the roster does not carry, with the roster named.
+  fn require_registered(&self, node: &str) -> Result<(), FacadeError> {
+    if self
+      .store
+      .wb_node_exists(node)
+      .map_err(FacadeError::Store)?
+    {
+      return Ok(());
+    }
+    let known = self.store.wb_monikers().map_err(FacadeError::Store)?;
+    Err(FacadeError::WbNodeNotRegistered {
+      node: node.to_string(),
+      known: if known.is_empty() {
+        "no nodes at all".to_string()
+      } else {
+        known.join(", ")
+      },
+    })
+  }
+
+  /// Send one message from `sender` into `recipient`'s board.
+  ///
+  /// **THE ACTING NODE COMES FROM THE CALLER, SO AC-14.5's SINGLE-WRITER RULE IS
+  /// A CONVENTION AT THIS LAYER AND NOT A GUARANTEE** (ic, measured against the
+  /// surface rather than against this signature). It is tempting to say the door
+  /// has no parameter for writing as somebody else, and it is false: `sender` IS
+  /// that parameter, and `--node dc` above it lands a message in a board as dc
+  /// from any session. The markdown form held the rule by the filesystem -- you
+  /// wrote your own file -- and moving it here moved it to whoever types the
+  /// flag. **Making it structural means taking the acting node from somewhere
+  /// the caller does not choose, which is a larger design than this cut**, and
+  /// saying so is the only honest state to leave it in: nothing above this layer
+  /// can tell an honest `--node` from a dishonest one.
+  ///
+  /// What this door DOES hold is narrower and real: a message can only be
+  /// addressed to a registered node, and it lands on the RECIPIENT's board.
+  ///
+  /// **NO PARAMETER TAKES A TIMESTAMP.** The fabricated-stamp class closes by
+  /// construction rather than by detection: there is nothing for a caller to
+  /// supply and therefore nothing to validate, and the store reads the clock at
+  /// the write. **THE MIGRATION IS THE ONE WRITER THAT DOES TAKE A STAMP, BY
+  /// DESIGN** (ic): `authored_at` carries verbatim what a board's markdown
+  /// claimed, which is a doorway rather than a hole -- the untrusted claim is
+  /// kept as a claim, typed as text and never read as a time.
+  pub fn wb_ask(
+    &mut self,
+    sender: &str,
+    recipient: &str,
+    body: &str,
+    re: Option<&str>,
+    fyi: bool,
+  ) -> Result<(), FacadeError> {
+    self.require_registered(sender)?;
+    self.require_registered(recipient)?;
+    self.check_body_bound(sender, body)?;
+    let cfg = self.project.config().whiteboard.clone();
+    if cfg.bounds_apply_to(sender) {
+      let live = self
+        .store
+        .wb_live_message_count(sender, recipient)
+        .map_err(FacadeError::Store)?;
+      if live >= cfg.live_messages {
+        return Err(FacadeError::WbInboxFull {
+          sender: sender.to_string(),
+          recipient: recipient.to_string(),
+          live,
+          bound: cfg.live_messages,
+        });
+      }
+    }
+    self
+      .store
+      .wb_insert_message(sender, recipient, body, re, fyi)
+      .map_err(FacadeError::Store)
+  }
+
+  /// Send one message to every OTHER registered node, and say how many boards
+  /// it reached.
+  ///
+  /// **IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH.** An announce
+  /// that inserted rows itself would be a second place the bounds, the roster
+  /// check and the stamp rule are stated, and the one that drifts is whichever
+  /// is edited second.
+  ///
+  /// **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE.** Every
+  /// recipient is checked before any row is written, so a broadcast never
+  /// half-lands -- half an announce is worse than none, because the nodes that
+  /// received it and the nodes that did not both believe they know what was
+  /// said.
+  pub fn wb_announce(&mut self, sender: &str, body: &str) -> Result<usize, FacadeError> {
+    self.require_registered(sender)?;
+    self.check_body_bound(sender, body)?;
+    let recipients: Vec<String> = self
+      .store
+      .wb_monikers()
+      .map_err(FacadeError::Store)?
+      .into_iter()
+      .filter(|m| m != sender)
+      .collect();
+    let cfg = self.project.config().whiteboard.clone();
+    if cfg.bounds_apply_to(sender) {
+      for r in &recipients {
+        let live = self
+          .store
+          .wb_live_message_count(sender, r)
+          .map_err(FacadeError::Store)?;
+        if live >= cfg.live_messages {
+          return Err(FacadeError::WbInboxFull {
+            sender: sender.to_string(),
+            recipient: r.clone(),
+            live,
+            bound: cfg.live_messages,
+          });
+        }
+      }
+    }
+    for r in &recipients {
+      self
+        .store
+        .wb_insert_message(sender, r, body, None, true)
+        .map_err(FacadeError::Store)?;
+    }
+    Ok(recipients.len())
+  }
+
+  /// Mark every live message `sender` sent this node handled.
+  ///
+  /// **ONLY THE RECIPIENT CLEARS, and the recipient is the acting node** -- so
+  /// the ownership half of AC-14.5 stands exactly as far as the sender half
+  /// does, and no further. `--node cc` clears cc's inbox from any session. See
+  /// [`Self::wb_ask`] for why that is a convention at this layer and what
+  /// making it a guarantee would cost.
+  pub fn wb_clear(&mut self, recipient: &str, sender: &str) -> Result<usize, FacadeError> {
+    self.require_registered(recipient)?;
+    self.require_registered(sender)?;
+    self
+      .store
+      .wb_clear_inbox(sender, recipient)
+      .map_err(FacadeError::Store)
   }
 
   /// One node's board, refused BY NAME when the moniker is not on the roster.

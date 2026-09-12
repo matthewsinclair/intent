@@ -4249,6 +4249,78 @@ impl Store {
   ///
   /// Rows are inserted in the order the board holds them, so the ROWIDs that
   /// order the next read are the order this write was given.
+  /// Is this moniker on the roster?
+  pub fn wb_node_exists(&self, moniker: &str) -> Result<bool, StoreError> {
+    let n: i64 = self.conn.query_row(
+      "SELECT count(*) FROM wb_node WHERE moniker = ?1",
+      params![moniker],
+      |r| r.get(0),
+    )?;
+    Ok(n > 0)
+  }
+
+  /// Every registered moniker, in roster order.
+  pub fn wb_monikers(&self) -> Result<Vec<String>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT moniker FROM wb_node ORDER BY rowid")?;
+    let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// How many LIVE messages one inbox holds -- an inbox being one ordered
+  /// (sender, recipient) pair, which is the shape the file form already has.
+  pub fn wb_live_message_count(&self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
+    let n: i64 = self.conn.query_row(
+      "SELECT count(*) FROM wb_message WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
+      params![sender, recipient],
+      |r| r.get(0),
+    )?;
+    Ok(n as usize)
+  }
+
+  /// Append one message to the recipient's board.
+  ///
+  /// **NO CALLER SUPPLIES A STAMP, AND THERE IS NO PARAMETER FOR ONE.** The
+  /// clock is read by the database at the write, as a VALUE and never as a
+  /// column default -- a default fires again on every re-insert and a
+  /// disk-to-db resync re-inserts every row, so the board would be re-stamped
+  /// on each sync, which is history rewritten silently. `authored_at` stays
+  /// NULL: it carries what a MIGRATED board's markdown claimed, and nothing
+  /// born through this door has such a claim to carry.
+  pub fn wb_insert_message(
+    &mut self,
+    sender: &str,
+    recipient: &str,
+    body: &str,
+    re: Option<&str>,
+    fyi: bool,
+  ) -> Result<(), StoreError> {
+    self.conn.execute(
+      "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, recorded_at, \
+       authored_at) \
+       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL)",
+      params![sender, recipient, body, re, fyi],
+    )?;
+    Ok(())
+  }
+
+  /// Mark every live message from `sender` to `recipient` handled, and say how
+  /// many moved.
+  ///
+  /// **THE COUNT IS WHAT MOVED, NOT WHAT WAS THERE.** Clearing an inbox that
+  /// was already clear moves nothing, and reporting its size either way would
+  /// say a write happened when none did -- the same rule `wb register` answers
+  /// to.
+  pub fn wb_clear_inbox(&mut self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
+    let moved = self.conn.execute(
+      "UPDATE wb_message SET handled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), state = \
+       'handled' WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
+      params![sender, recipient],
+    )?;
+    Ok(moved)
+  }
+
   pub fn replace_boards(&mut self, boards: &[Board]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
     tx.execute("DELETE FROM wb_message", [])?;
