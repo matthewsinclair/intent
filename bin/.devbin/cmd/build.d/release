@@ -1128,7 +1128,21 @@ fi
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would publish GitHub release $TAG with title '$GH_TITLE'"
   log_dry "release notes preview:"
-  sed 's/^/  | /' "$NOTES_FILE" | head -30
+  # **THE WHOLE SECTION, AND THE BOUND THAT WAS HERE IS THE REASON** (vc,
+  # 2026-09-12, on dc's rehearsal finding). This was `| head -30` over a section
+  # that had grown to 59 lines, so `### Fixed` and `### Removed` never reached
+  # the screen and NOTHING SAID THEY HAD BEEN CUT. What publishes was always
+  # whole -- `gh` is handed `$NOTES_FILE`, not this rendering -- but the preview's
+  # only job is to let the operator read what the cut will publish before it
+  # does, and it was showing them half of it while looking complete.
+  #
+  # **A TRUNCATION THAT DOES NOT ANNOUNCE ITSELF IS A SILENT NARROWING, AND THE
+  # READER CONCLUDES ABSENCE RATHER THAN OMISSION.** Same shape as the two test
+  # gates above, which refused on an exit code and named nothing until the
+  # rehearsal that found this one; a bound that announces itself would be second
+  # best, and for a screen of release notes there is no reason to bound it at
+  # all.
+  sed 's/^/  | /' "$NOTES_FILE"
   rm -f "$NOTES_FILE"
 else
   if [ "$RELEASE_EXISTS" = "true" ]; then
