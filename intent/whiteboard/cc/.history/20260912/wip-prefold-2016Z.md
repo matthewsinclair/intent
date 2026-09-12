@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-12 20:16Z
+heartbeat_at: 2026-09-12 19:02Z
 status: active
-focus: "LOCALFOLDED 2026-09-12 20:16Z for the user's compact. The whole `intent wb` family is LANDED across five commits. UNLANDED and banked as two patches: the `Hold` kind with `wb add`, and the two board renderers. Next: land the kind+verb, then the renderers, the GraphQL fields, the search measure. NO RELEASE, NO PUSH."
+focus: "The wb family, verb group by verb group. Reads landed (de03d227e); the MESSAGE group is green and HELD on ic's 0308 doctor commit, which has render.rs staged -- rebase over it the moment git log shows it. Then items, then lifecycle. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,17 +14,13 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**LOCALFOLDED 2026-09-12 20:16Z for the user's compact. Everything landed is carried by its commits; the UNLANDED work is carried by the two patches named below, never by prose here.**
+- **ST0069 IS REOPENED TO THE END BY hv, AND cc's LANE IS WP-14.** hv, verbatim: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_ vc directs and has the pen.
 
-- **ST0069 WP-14 IS cc's LANE, vc DIRECTS.** hv: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_
+- **WP-14 COMMIT ONE `b9f2aec74` AND COMMIT TWO `87b819abd` ARE BOTH LANDED.** Commit two carries the three tables and rung 24, `SCHEMA_VERSION` 24, both pins, the projection, the restore door, `register_nodes`/`register_roster`, the `wb` family and `wb register` register rows, the render arm, the five `intent/whiteboard/<node>/board.json`, and the four data-model.md items. `wp start ST0069/14` ran before it, so the WP reads in flight. The landing report with the file list and the peak is in `vc/inbox.cc.md` at 18:12Z.
 
-- **THE `intent wb` FAMILY IS LANDED, FIVE COMMITS.** `87b819abd` tables + rung 24 + `wb register` + the five `board.json`; `de03d227e` reads (`status`, `show`); `dc77fc9f7` messages (`ask`, `announce`, `clear`); `28f9d4b99` items (`decide`, `claim`, `unclaim`) plus four `recoverability` corrections; `dd3e3444e` lifecycle (`pickup`, `touch`, `release`, `archive`) plus `enum_arg`. Issue `0312` and its manifest line at `190eae3bf` / `ea0bad859`.
+- **NEXT IS vc's STANDING ORDER TWO: the rest of the `intent wb` family.** One commit per verb group, the register row landing WITH its verb (vc's amendment, for WP-14 only), fixture board only, views NOT switched, both guards untouched, no `cwi` and no skill. ic reviews and corrects the rows in their own commit after each lands.
 
-- **TWO PATCHES ARE BANKED UNLANDED, AND THEY LAND IN THIS ORDER.** (1) `scratchpad/wb-hold-and-add.patch`, base `ea0bad859` -- `WbItemKind::Hold` as the fifth kind, `SCHEMA_JSON_VER` 19, `wb add <kind> <text>` refusing `decision` with a remedy naming `wb decide`, the `wb_item_kind` map as one home, the row, the slot, the census bucket and the provoked refusal. **vc wants this as its OWN commit so dc can rebase the migration (AC-14.9) onto it.** (2) `scratchpad/wb-views.patch`, the same base -- `views::wb_board` and `views::wb_inbox`. **The renderers are written for FOUR kinds and must gain `Hold` before they land.**
-
-- **THEN, IN vc's ORDER.** AC-14.2: the two renderers as generated views, byte-identical on TWO RENDERS with the formatter EXCLUDED rather than a fixed point through it (vc reworded the row; `.prettierignore` already excludes the inboxes for a separate reason, and `generated_views_are_not_formatted.rs` derives its roster from `views::render_all`). Built against the FIXTURE; the live boards stay hand-authored under both guards until vc signals the cutover, so `render_all` is NOT wired yet and the doctor-skew half arrives with it. Then AC-14.7's GraphQL half -- root `board(node)` and `boards`, types already derive `SimpleObject`. Then AC-14.8, re-measured on the fixture once the views exist, never against a store a daemon holds.
-
-- **AT ROWS ARE OWED FOR EVERY AC-14 ROW I COVER**, cited to arms that exist.
+- **THE LIVE STORE STAYS AT 23 UNTIL vc REBUILDS THE PAIR AND BROADCASTS.** No binary built from commit two or later reads it; vc migrates it to 24 by their own hand. Worktree only. NO RELEASE, NO PUSH.
 
 ## TODO
 

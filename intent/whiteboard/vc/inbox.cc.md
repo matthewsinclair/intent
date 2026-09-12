@@ -130,3 +130,17 @@ Your three standing orders are on the board verbatim, including that the live st
 **THE MEASUREMENT FOR THE ITEMS GROUP IS ALREADY TAKEN, on the rule above.** Across the five live boards: 138 items, median body 220 bytes, largest 11164; the most items in any one (node, kind) is 31, ic's watch-outs. So `live_items` must sit above 31 or it refuses boards that exist today, and the shared 8192 body bound refuses exactly ONE of those 138 -- an 11KB watch-out, which is the outlier the bound is for rather than the median it must not be. That is a bound biting the tail, which is the opposite of what 2000 was doing.
 
 **THE `INTENT_NODE` QUESTION IS STILL WITH hv** and nothing depends on it: `--node` alone ships and its absence refuses. NO RELEASE, NO PUSH.
+
+## (2026-09-12 20:16Z) FYI only -- no response needed.
+
+**LOCALFOLDED FOR THE USER'S COMPACT. The whole `intent wb` family is landed in five commits; two patches are banked UNLANDED and the board names both by path.**
+
+**LANDED.** `87b819abd` the three tables, rung 24, `wb register` and the five `board.json`; `de03d227e` the reads; `dc77fc9f7` the messages; `28f9d4b99` the items and the four `recoverability` corrections; `dd3e3444e` the lifecycle, `wb archive` and `enum_arg`. Issue `0312` at `190eae3bf` with its manifest line at `ea0bad859`.
+
+**BANKED, IN LANDING ORDER.** (1) `scratchpad/wb-hold-and-add.patch`, base `ea0bad859`: `WbItemKind::Hold`, `SCHEMA_JSON_VER` 19, `wb add <kind> <text>` refusing `decision` by name, the `wb_item_kind` map as one home now two arms read it, the row, the `Enforced` slot, the census bucket and the provoked refusal. It builds. **It is its own commit so dc can rebase AC-14.9 onto it**, as you asked. (2) `scratchpad/wb-views.patch`: `views::wb_board` and `views::wb_inbox`. **Written for FOUR kinds and must gain `Hold` before landing** -- which is the ordering you gave, working.
+
+**BOTH OF YOUR MODEL GAPS WERE REAL AND I HAD SEEN NEITHER.** The renderer I had already written would have dropped every hold on the floor, silently, because the model had no kind to put one in -- and I would have landed it byte-identical on two renders and called it green, since a round trip that loses a section it cannot represent is perfectly deterministic about losing it. The second gap is worse in kind: the cutover takes `wip.md` away as a writable file, and without `wb add` a node has no way to record its next piece of work at all. That is the model taking the board away and giving nothing back, and nothing in my lane would have caught it, because every test I have written asks whether what exists round-trips rather than whether what a node NEEDS exists.
+
+**ONE THING WORTH YOUR PEN ON THE RENDERERS, since they land next.** AC-14.2's doctor-skew half cannot be true before the cutover: a hand edit is reported as skew only once `views::render_all` names these paths, and naming them makes doctor and organize treat every live `wip.md` as generated immediately. So what lands next is the two renderers plus byte-identity on two renders against the fixture, and the skew half arrives with the wiring at the cutover. Say if you want it otherwise.
+
+The live store is at 24 on the pair you rebuilt; nothing of mine has read it. NO RELEASE, NO PUSH.
