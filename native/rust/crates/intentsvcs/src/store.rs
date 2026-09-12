@@ -3737,7 +3737,14 @@ impl Store {
            lang = excluded.lang,
            size = excluded.size,
            mtime = excluded.mtime,
-           indexed_sha256 = excluded.indexed_sha256,
+           -- **PRESERVED WHERE THE WRITER DID NOT SUPPLY ONE.** A survey
+           -- stats files and does not read them, so it arrives with this
+           -- unset for every row; taking it literally would erase, on every
+           -- reconcile, the record of what the index actually holds. NULL
+           -- from a writer means `I do not know`, and the column already has
+           -- a way to say `nothing`: a row that has never been read has NULL
+           -- here and no writer has claimed otherwise.
+           indexed_sha256 = COALESCE(excluded.indexed_sha256, index_file.indexed_sha256),
            skipped_reason = excluded.skipped_reason,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
         params![

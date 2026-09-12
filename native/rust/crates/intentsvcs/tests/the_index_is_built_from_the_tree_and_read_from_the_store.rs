@@ -170,3 +170,49 @@ fn a_rebuild_leaves_the_change_detectors_table_alone() {
      against an operation that did nothing at all"
   );
 }
+
+#[test]
+fn a_writer_that_does_not_know_what_was_indexed_does_not_say_it_was_nothing() {
+  // **A SURVEY STATS AND DOES NOT READ**, so it arrives with `indexed_sha256`
+  // unset for every row. Taking that literally would erase, on every reconcile,
+  // the record of what the index actually holds -- leaving a column that says
+  // "nothing is indexed here" for a file whose content is indexed.
+  //
+  // Driven at the store, because the erasure would be the store's: the survey
+  // is right to arrive with `None`, and NULL from a writer means "I do not
+  // know", not "nothing".
+  use intentsvcs::index::Row;
+  use intentsvcs::store::Store;
+
+  let dir = tempfile::tempdir().expect("tempdir");
+  let mut store = Store::open(&dir.path().join("intent.db")).expect("store");
+
+  let row = |sha: Option<&str>| Row {
+    path: "README.md".to_string(),
+    corpus: "prose".to_string(),
+    lang: None,
+    size: 9,
+    mtime: "2026-09-12T10:00:00Z".to_string(),
+    indexed_sha256: sha.map(str::to_string),
+    skipped_reason: None,
+  };
+
+  store
+    .replace_index_files(&[row(None)])
+    .expect("first write");
+  store
+    .replace_index_files(&[row(Some("deadbeef"))])
+    .expect("what the content indexer read");
+  store
+    .replace_index_files(&[row(None)])
+    .expect("a later survey, which read nothing");
+
+  assert_eq!(
+    store.index_files().expect("rows")[0]
+      .indexed_sha256
+      .as_deref(),
+    Some("deadbeef"),
+    "the record of what the index holds survives a writer that has no opinion \
+     about it"
+  );
+}

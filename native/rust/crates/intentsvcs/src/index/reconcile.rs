@@ -96,9 +96,86 @@ pub fn survey(
   canon_dir: &Path,
   max_bytes: u64,
 ) -> Result<Vec<Row>, SyncError> {
+  rows_under(root, None, views, canon_dir, max_bytes)
+}
+
+/// What an event under `under` changes about the index, against the rows the
+/// store holds.
+///
+/// **THE SHAPE IS `sync::changed_under`'s ON PURPOSE, AND THE QUESTION IS NOT.**
+/// That one answers which CANON files differ, for a corpus of the named root
+/// files plus `intent/`; this answers which INDEX rows differ, for the
+/// gitignore-aware repository. A watcher that widened the first instead of
+/// calling the second would put every source edit through a canon ingest.
+///
+/// **THE CORPUS IS ENUMERATED ONCE AND FILTERED, NEVER WALKED FROM `under`**
+/// (vc, 2026-09-12, ruling the shape of the same defect in the watcher). A walk
+/// from the event's path keeps whatever is under it, which is a SECOND
+/// statement of scope and disagrees with the first at exactly the paths that
+/// matter -- a root event enumerating the whole tree for a corpus that is three
+/// files by name.
+///
+/// `indexed_sha256` is NOT part of the comparison, and the upserts carry the
+/// stored value forward. A survey does not read bytes, so it has no opinion
+/// about what the index holds; comparing on it would report every row as
+/// changed forever, and writing its `None` would erase the record.
+pub fn changed_under(
+  root: &Path,
+  under: &Path,
+  previous: &[Row],
+  views: &[std::path::PathBuf],
+  canon_dir: &Path,
+  max_bytes: u64,
+) -> Result<Change, SyncError> {
+  let seen = rows_under(root, Some(under), views, canon_dir, max_bytes)?;
+  let mut upserts = Vec::new();
+  for mut row in seen {
+    let before = previous.iter().find(|p| p.path == row.path);
+    row.indexed_sha256 = before.and_then(|b| b.indexed_sha256.clone());
+    if before != Some(&row) {
+      upserts.push(row);
+    }
+  }
+  let under_rel = crate::project::relative(root, under);
+  let removed = previous
+    .iter()
+    .filter(|p| {
+      under_rel.is_empty() || p.path == under_rel || p.path.starts_with(&format!("{under_rel}/"))
+    })
+    .filter(|p| !root.join(&p.path).exists())
+    .map(|p| p.path.clone())
+    .collect();
+  Ok(Change { upserts, removed })
+}
+
+/// What a scoped reconcile found: the rows to write, and the paths that have
+/// gone.
+///
+/// **REMOVALS ARE THEIR OWN FIELD RATHER THAN AN ABSENCE**, because the caller
+/// is reconciling a SUBTREE: a row missing from `upserts` is a row that did not
+/// change, and a row missing from the whole answer would be indistinguishable
+/// from one outside the event's path.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Change {
+  pub upserts: Vec<Row>,
+  pub removed: Vec<String>,
+}
+
+fn rows_under(
+  root: &Path,
+  under: Option<&Path>,
+  views: &[std::path::PathBuf],
+  canon_dir: &Path,
+  max_bytes: u64,
+) -> Result<Vec<Row>, SyncError> {
   let scope = Scanned::for_root(root);
   let mut out = Vec::new();
   for path in repository_files(root, &scope)? {
+    if let Some(under) = under
+      && !path.starts_with(under)
+    {
+      continue;
+    }
     let Some(corpus) = corpus_of(&path, views, canon_dir) else {
       continue;
     };
@@ -450,5 +527,114 @@ mod tests {
         "`{out}` is out of scope and the survey named it anyway"
       );
     }
+  }
+
+  fn rows_of(dir: &tempfile::TempDir) -> Vec<Row> {
+    survey(
+      dir.path(),
+      &[],
+      &dir.path().join("intent/.canon"),
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("survey")
+  }
+
+  fn changes(dir: &tempfile::TempDir, under: &str, previous: &[Row]) -> Change {
+    changed_under(
+      dir.path(),
+      &dir.path().join(under),
+      previous,
+      &[],
+      &dir.path().join("intent/.canon"),
+      super::super::corpus::DEFAULT_MAX_FILE_BYTES,
+    )
+    .expect("changed_under")
+  }
+
+  #[test]
+  fn an_unchanged_subtree_changes_nothing() {
+    // The control that every arm below needs: a reconcile that reported work
+    // on a tree nobody touched would wake the daemon forever.
+    let dir = repo();
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    write(&dir, "README.md", b"# readme\n");
+    let previous = rows_of(&dir);
+
+    assert_eq!(changes(&dir, "src", &previous), Change::default());
+  }
+
+  #[test]
+  fn an_edit_under_the_event_is_an_upsert_and_one_outside_it_is_not() {
+    let dir = repo();
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    write(&dir, "docs/guide.md", b"# guide\n");
+    let previous = rows_of(&dir);
+
+    write(&dir, "src/lib.rs", b"fn main() { let longer = 1; }\n");
+    write(
+      &dir,
+      "docs/guide.md",
+      b"# a much longer guide than before\n",
+    );
+
+    let change = changes(&dir, "src", &previous);
+    assert_eq!(
+      change
+        .upserts
+        .iter()
+        .map(|r| r.path.as_str())
+        .collect::<Vec<_>>(),
+      vec!["src/lib.rs"],
+      "the reconcile answers about the event's subtree; the edit to `docs/` is \
+       real and is not this event's business"
+    );
+    assert!(change.removed.is_empty());
+  }
+
+  #[test]
+  fn a_file_that_has_gone_is_removed_and_not_silently_dropped() {
+    let dir = repo();
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    write(&dir, "src/old.rs", b"fn gone() {}\n");
+    let previous = rows_of(&dir);
+
+    std::fs::remove_file(dir.path().join("src/old.rs")).expect("remove");
+    let change = changes(&dir, "src", &previous);
+
+    assert_eq!(change.removed, vec!["src/old.rs".to_string()]);
+    assert!(
+      change.upserts.is_empty(),
+      "and nothing else in the subtree is claimed to have changed"
+    );
+  }
+
+  #[test]
+  fn the_reconcile_carries_forward_what_the_index_holds() {
+    // **`indexed_sha256` IS NOT THE SURVEY'S TO KNOW OR TO ERASE.** A survey
+    // stats and does not read, so comparing on this column would report every
+    // row as changed forever, and writing its `None` would erase the record of
+    // what the index actually holds.
+    let dir = repo();
+    write(&dir, "src/lib.rs", b"fn main() {}\n");
+    let mut previous = rows_of(&dir);
+    for row in &mut previous {
+      row.indexed_sha256 = Some("deadbeef".to_string());
+    }
+
+    assert_eq!(
+      changes(&dir, "src", &previous),
+      Change::default(),
+      "a row whose only difference is a hash the survey cannot see is NOT a change"
+    );
+
+    write(&dir, "src/lib.rs", b"fn main() { let longer = 1; }\n");
+    let change = changes(&dir, "src", &previous);
+    assert_eq!(
+      change.upserts[0].indexed_sha256.as_deref(),
+      Some("deadbeef"),
+      "and when the file really does change, the upsert still says what the \
+       index holds -- stale content, honestly recorded, until something reads \
+       the new bytes"
+    );
   }
 }
