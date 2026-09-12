@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "**The migration leaves the v2 tree in place, and it disagrees with the store.** A migrated estate carries `intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/` beside the flat v3 tree, the two copies of a thread's views drift apart, and the v2 path answers greps first because it is the one that existed for a year. The store does NOT hold the bucket's content: the migrator's reach is a filename allowlist, `info.md` and `acceptance.md`, and every other file in a thread directory is left behind entirely (Devbin, measured 2026-08-26: 34 of 54 bucket files carry content the store does not hold). `organize` already reports these paths as `unclaimed`, deliberately never prunable.\n\n**Ruled under the pen on 2026-09-12, with hv's authority and overrulable with a line: ingest, then prune, in that order, and the prune refuses while the ingest is incomplete.** Three layers. (1) Ingest: every bucket-only file under a v2 thread directory becomes an attachment of its thread, the naming gate permitting, and the v2 `acceptance.md` preamble's authored lines go into `preamble`; verified PER FILE by a content probe, because a thread-level check passes on a half-migrated thread and `ok` at rc 0 has been printed over nothing before (issue 0097). (2) Prune: the buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex` are removed under the fail-forward ruling of 2026-08-19, at migration for a new conversion and under `organize --apply` for an already-migrated estate; a prune that ingested nothing removes nothing, by refusal and not by discipline. (3) Pointers: authored files naming a bucket path are reported as a worklist and never rewritten; the readable form of a closed thread's file is `intent://` or `intent edit <ID> <file>`.\n\n**A tool tree beside the threads is not a thread archive.** The Intent estate's own unclaimed paths are `ST0056/parity/tools/` and the like: a file under a thread directory is an attachment candidate, a tree beside the threads is neither ingested nor pruned.\n\n**This WP ships the mechanism and prunes no estate but the fixtures it drives.** The fleet prune is hv's, per estate, after `at-accounting.sh` has run there, because the v2 bucket is that instrument's only source surface.\n\nInherited whole from ST0057 WP-13 on hv's ruling of 2026-09-11 (decision 8). The criteria are minted on this thread on 2026-09-12; there were none before.\n",
       "body": "",
       "preamble": ""
@@ -191,7 +191,8 @@
       "text": "The fleet prune is per estate on hv word, after `at-accounting.sh` has run there, because the v2 bucket is that instrument only source surface; this WP ships the mechanism and prunes no estate but the fixtures it drives.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "the mechanism shipped at 2e01c238c and c5642a4ec and prunes no estate: the only trees it removes are the testkit fixtures its own arms build. The fleet prune stays hv's, per estate, after at-accounting.sh has run there, because the v2 bucket is that instrument's only source surface"
       }
     },
     {
@@ -758,6 +759,43 @@
       "file": "native/rust/crates/intent-cli/tests/issue_declaration_and_organize.rs",
       "covers": [
         "AC-01.3"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/legacy_bucket_attachments.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/legacy_document_conservation.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/legacy_leftovers.rs",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/legacy_leftovers.rs",
+      "covers": [
+        "AC-02.3",
+        "AC-02.4"
       ],
       "status": "green"
     },

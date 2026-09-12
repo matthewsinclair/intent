@@ -345,7 +345,9 @@ fn a_migrated_thread_in_two_places_is_loaded_once_and_does_not_block() {
   );
 }
 
-/// **WP-02 / AC-02.1: the v2 `acceptance.md` preamble's AUTHORED lines survive,
+/// AT-02.2 / AC-02.1 -- ST0069 WP-02.
+///
+/// **The v2 `acceptance.md` preamble's AUTHORED lines survive,
 /// and the template's boilerplate does not.**
 ///
 /// Every line of that file which was not an `AC-`/`AT-` row fell on the floor

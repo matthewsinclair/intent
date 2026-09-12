@@ -1,3 +1,7 @@
+//! AT-02.1 / AC-02.1 -- ST0069 WP-02: the per-file content probe for the
+//! bucket carry. The rows were minted on ST0069 when WP-02 built the prune that
+//! stands on this carry; the arms predate them and are cited as they are.
+//!
 //! **A BUCKETED THREAD MIGRATED WITH ZERO ATTACHMENTS, AT rc 0.**
 //!
 //! `thread_dirs` walks the top level AND v2's three status buckets, because

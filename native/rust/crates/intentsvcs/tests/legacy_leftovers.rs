@@ -1,4 +1,6 @@
-//! **WP-02: the v2 tree survives migration and disagrees with the store.**
+//! AT-02.3 / AC-02.2 and AT-02.4 / AC-02.3, AC-02.4 -- ST0069 WP-02.
+//!
+//! **The v2 tree survives migration and disagrees with the store.**
 //!
 //! A migrated estate carries `intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/`
 //! beside the flat v3 tree, and the v2 path answers greps first because it is

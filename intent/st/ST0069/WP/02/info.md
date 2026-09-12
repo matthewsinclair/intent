@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
