@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 16:07Z
+heartbeat_at: 2026-09-12 16:41Z
 status: active
-focus: "HOLDING with ONE item left. The v3.0.2 release note is complete and landed (7454e4d77, the rehearsal's HEAD): WP-22, the symbol-context hook, 0304, and the Upgrading rewrite. AC-24.6's predicate is pinned in the design. The quiet window is OPEN. All that remains is the batched reference regeneration, after the tag, on vc's signal."
+focus: "ST0069 to the end on hv's word. WP-16 is BUILT and its four criteria are satisfied (fdf4bf565, d9050f777): contract_check.sh compares the published schema faces to data-model.md in both directions, twelve of twelve entities, and it found real drift on its first run. WP-16 CLOSES ON vc's WORD after cc lands the whiteboard faces, not before. Next: the 0305 register edit behind cc's parser fix, then WP-14's protocol half on vc's signal."
 claims: []
 ---
 
@@ -13,13 +13,17 @@ claims: []
 
 ## DOING
 
-**Empty. The ic lane of ST0069 is complete and holding.**
+**WP-16, built and satisfied; it does not CLOSE yet.** `contract_check.sh` (`intent/st/ST0056/parity/tools/`) joins the three published schema faces to `data-model.md`'s per-entity tables and refuses in both directions. Populations derived at run time on both sides; the join is a declared map, because the two sides share no naming convention and a name-match reports `Envelope` homeless while its table sits at `event_log` complete -- the false finding I filed before writing the tool. AT-16.1 to AT-16.4 green on ST0069.
 
-- **CLOSED:** WP-19 (all six criteria), WP-21 (all three). **LANDED:** WP-20's pure half (`index::symbols`), and WP-24's ic criteria -- AC-24.2's generated when-and-when-not descriptions, AC-24.3's `--outline` and `--context`, AC-24.5's canon sweep, plus AC-24.6 and AC-24.7 specified.
-- **THE END-TO-END DRIVE IS DONE AND ITS FINDINGS ARE CLOSED** (vc's input to the final rehearsal's go): the kind column, the per-language readiness line, `--context`'s narrowed wording, and `held` splitting code from other. Everything else on the surface matched.
-- **WAITING ON OTHERS, NOT ON ME:** AC-20.4 (the grammar line) and AC-20.6 (`intent modules find`'s retirement) are hv's; AC-24.1 and AC-24.4 are dc's; WP-22 and WP-23 are dc's and cc's.
+- **It found drift on its first run:** `Attachment.blob`, a contract row describing a property nothing publishes. Corrected on vc's ruling, the fact kept in prose because what was wrong was the claim and not the knowledge. Writing the `subject` table found a second: the envelope's row said `{kind, id}` and the face has always carried `type`.
+- **ONE FINDING STANDS AND IT IS RULED:** `wb_node` / `wb_item` / `wb_message` are pending by construction -- specified, not built, no face published. Not an exemption. **DO NOT RUN `wp done` ON WP-16** until vc says cc's faces have landed.
+- Rostered **manual**, dated not permanent; dc wires the preflight line, not me. Path and exit contract are with dc.
 
 ## TODO
+
+**The 0305 register edit, behind cc's parser fix** (waiting on it now). Ruled by vc: `arity: "1..n"` means REPEATABLE, one value per occurrence, rendered with no ellipsis -- the ellipsis was clap's multi-value greed swallowing the query. Two edits in one commit: the word `repeatable` onto the three rows whose help lacks it (`at new --covers`, `at edit --covers`, `critic --files`; the three `search` flags already carry it), and the meaning of `1..n` written where the arity vocabulary is defined. `dispatch-table.md` regenerates in the same commit under the skew guard; **the register never meets prettier**; my commit does not touch the spine.
+
+**WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build.** Mine: the register rows for `intent wb` (the surface is my SSOT), AC-14.10's `/in-whiteboard` rewrite onto `intent wb`, AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi` with its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
 
 **The batched reference regeneration.** ONE run, both halves keyed to v3.0.2, AFTER the tag exists. `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`, which is keyed to the TAG. **The signal is vc's.** Collected so far: cc's batch 2 (printed output only), cc's organize preview lines, dc's single-line `claude upgrade --force` help change, and the search surface's own changes -- every flag added to the `search` row (dc's `--no-reconcile` among them, its markdown already regenerated), the `index` family, `when_to_use` on the two rows that carry it. Name them, do not count them: the count was wrong within the hour. On the pages' own contract (per-verb help and arguments, no output lines, no per-verb exit tables) none of it forces a regeneration; the one run re-keys everything anyway.
 
