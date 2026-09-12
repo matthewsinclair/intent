@@ -174,6 +174,61 @@ fn withheld(said: &str) -> Option<usize> {
     .find_map(|w| w.parse::<usize>().ok())
 }
 
+/// The same fixture after a run that realised it, with the declaration taken
+/// away -- so the next reconciliation REMOVES the views it just wrote.
+fn project_with_a_removal() -> tempfile::TempDir {
+  let dir = project();
+  let root = dir.path();
+  assert!(
+    intent(root, &["organize", "--apply"]).status.success(),
+    "the views must exist before a run can remove them"
+  );
+  // `.intentfiles` is hand-editable by design and nothing regenerates it;
+  // declaring nothing is what makes the realised views undeclared.
+  std::fs::write(root.join("intent/.intentfiles"), "# declares nothing\n")
+    .expect("undeclare everything");
+  dir
+}
+
+/// **`--quiet` MAY WITHHOLD WHAT A RUN WROTE. IT MAY NOT WITHHOLD WHAT A RUN
+/// REMOVED** (hv, 2026-09-12: silent deletion).
+///
+/// `shows_body` carried the reasoning from the day it was written -- removals
+/// are this verb's SUBJECT and must not go behind a flag -- and then `--quiet`
+/// arrived and put them behind one anyway, because they shared a predicate with
+/// the hydration lines. Driven before the fix: `organize --apply --quiet`
+/// printed one summary line, removed two files and pruned a directory, and
+/// named none of the three.
+#[test]
+fn quiet_still_names_every_path_a_run_removes() {
+  let dir = project_with_a_removal();
+  let said = stdout(&intent(dir.path(), &["organize", "--apply", "--quiet"]));
+
+  let removals: Vec<&str> = said
+    .lines()
+    .map(str::trim_start)
+    .filter(|l| l.starts_with("removed: ") || l.starts_with("pruned: "))
+    .collect();
+  assert!(
+    !removals.is_empty(),
+    "a quiet run that removed files must still name them, or the estate loses \
+     bytes under a summary line. Got:\n{said}"
+  );
+  assert!(
+    said.contains("to-remove: "),
+    "and the plan is still printed BEFORE the act, quiet or not. Got:\n{said}"
+  );
+
+  // **THE CONTROL, AND IT IS WHAT KEEPS `--quiet` A FLAG AT ALL**: the lines
+  // that are not removals are still withheld.
+  assert!(
+    !said
+      .lines()
+      .any(|l| l.trim_start().starts_with("unclaimed: ")),
+    "`--quiet` still withholds the inventory. Got:\n{said}"
+  );
+}
+
 /// **THE POSITIVE CONTROL. Everything else in this file is vacuous without it.**
 #[test]
 fn the_fixture_can_exhibit_what_the_others_measure() {

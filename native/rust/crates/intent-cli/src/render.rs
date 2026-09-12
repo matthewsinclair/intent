@@ -3701,13 +3701,22 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // be realised and acts on it cannot be previewed, so it is available only
   // behind `--force` and a confirmed human, which is the shape hv ruled.
   println!("    applying the regenerated declaration in the same run.");
+  // **THE PLAN IS PRINTED BEFORE THE ACT HERE TOO** (hv, 2026-09-12). The
+  // confirm above keeps its ratified position and wording: it is asked BEFORE
+  // the declaration is regenerated, and the plan is a plan OF the regenerated
+  // declaration, so it cannot be known when the question is put. What it can be
+  // is printed -- every path, before a byte moves -- and the act pinned to it.
+  let planned = facade
+    .organize(intentsvcs::organize::Mode::Preview)
+    .map_err(fail)?;
+  render_organize_report(&project, &planned, Tense::Planned, Verbosity::of(m))?;
   let report = facade
-    .organize(intentsvcs::organize::Mode::Apply)
+    .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&planned.digest))
     .map_err(fail)?;
   // Performed tense, and a refusal moves the exit code exactly as it does under
   // `--apply` -- the same act reported by the same code, including the part
   // where something asked to be removed and was not.
-  render_organize_report(&project, &report, false, Verbosity::of(m))
+  render_organize_report(&project, &report, Tense::Performed, Verbosity::of(m))
 }
 
 /// `intent explore` -- the TUI, rooted at the entity kinds.
@@ -4509,16 +4518,80 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // `disposition_basis` for the three grounds -- the short version is that v2
   // shipped BOTH polarities for this one operation, and resolving toward
   // preview resolves it in the direction that cannot lose data.
-  let mode = if given(m, "apply") {
-    intentsvcs::organize::Mode::Apply
-  } else {
-    intentsvcs::organize::Mode::Preview
-  };
-  let previewing = mode == intentsvcs::organize::Mode::Preview;
+  let verbosity = Verbosity::of(m);
   let (project, ctx) = context()?;
   let mut facade = engine(project.clone(), ctx, StoreNeed::Shared)?;
-  let report = facade.organize(mode).map_err(fail)?;
-  render_organize_report(&project, &report, previewing, Verbosity::of(m))
+
+  if !given(m, "apply") {
+    let report = facade
+      .organize(intentsvcs::organize::Mode::Preview)
+      .map_err(fail)?;
+    return render_organize_report(&project, &report, Tense::Preview, verbosity);
+  }
+
+  // **`--apply` NAMES EVERY FILE IT WILL REMOVE BEFORE IT REMOVES ONE** (hv,
+  // 2026-09-12: *silent deletion ... THEY NEED IDENTIFYING, TRIAGING, AND
+  // FIXING, AS A MATTER OF URGENCY*). It used to compute and perform in one
+  // call and render afterwards, so the first time a path appeared on the screen
+  // it was already gone. The standard is `sync --to-store`, which names every
+  // subject it will overwrite first, and the `--apply` flag's own ruling text
+  // in the register already promised it here.
+  //
+  // **AND THE ACT IS PINNED TO THE PLAN THAT WAS PRINTED**, not to a plan
+  // recomputed after the human read one. See `Facade::organize_as_shown`: a
+  // preview and the apply are two runs, and a reassurance about a different run
+  // is worse than no reassurance at all.
+  let planned = facade
+    .organize(intentsvcs::organize::Mode::Preview)
+    .map_err(fail)?;
+  render_organize_report(&project, &planned, Tense::Planned, verbosity)?;
+  confirm_destructive_plan(&planned)?;
+  let report = facade
+    .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&planned.digest))
+    .map_err(fail)?;
+  render_organize_report(&project, &report, Tense::Performed, verbosity)
+}
+
+/// The gate between a printed plan and the act.
+///
+/// **ON A TERMINAL IT ASKS; OFF ONE IT SAYS IT IS PROCEEDING.** A prompt that
+/// cannot be answered is a hang, and a script that has typed `--apply` has
+/// already said yes -- but the line still prints, so a captured log carries the
+/// sentence that stands between the plan above it and the removals below it.
+///
+/// **IT ASKS ONLY WHEN SOMETHING GOES.** A reconciliation that only writes
+/// missing views has nothing to lose and nothing to confirm, and a prompt in
+/// front of it would train the operator to answer without reading -- which
+/// spends the one question this verb gets to ask.
+fn confirm_destructive_plan(planned: &intentsvcs::organize::Report) -> Result<(), Failure> {
+  let removing = planned.dehydrated.len() + planned.pruned.len();
+  if removing == 0 {
+    return Ok(());
+  }
+  if !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+    println!(
+      "organize: proceeding -- the {removing} path(s) named above are about to be removed. There is no terminal here to ask."
+    );
+    return Ok(());
+  }
+  println!(
+    "organize: the {removing} path(s) named above will be REMOVED. Nothing has been written yet."
+  );
+  print!("proceed? [y/N] ");
+  use std::io::Write as _;
+  let _ = std::io::stdout().flush();
+  let mut answer = String::new();
+  std::io::stdin()
+    .read_line(&mut answer)
+    .map_err(|e| Failure::Error(format!("error: could not read the confirmation: {e}")))?;
+  // Only `y` proceeds, as on `--default --force`, and for the same reason: a
+  // prompt whose default is yes is a prompt that did not ask.
+  if answer.trim() != "y" {
+    return Err(Failure::Error(
+      "error: not confirmed, so nothing was written or removed".to_string(),
+    ));
+  }
+  Ok(())
 }
 
 /// How much of an `organize` report reaches the terminal.
@@ -4537,6 +4610,31 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
 /// FILE boundary was clean and the SYMBOL boundary was not. That condition is
 /// spent: `--scope` landed, and `doctor` now asks this type instead of
 /// resolving `quiet`/`verbose` for itself.
+/// Which run an `organize` report is about.
+///
+/// **THE THIRD STATE IS THE ONE THIS ENUM EXISTS FOR** (hv, 2026-09-12). A
+/// `bool` had only *preview* and *performed*, so the plan printed in front of an
+/// apply had to borrow the preview's wording -- including its footer, *nothing
+/// was written or removed ... `--apply` performs it*, which would be printed by
+/// the run that was about to perform it. The tense of the LINES is the same in
+/// both future cases; the FOOTER is the opposite.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Tense {
+  /// A run that will not touch the tree.
+  Preview,
+  /// The plan of the apply that is about to happen, printed before it does.
+  Planned,
+  /// What a run did.
+  Performed,
+}
+
+impl Tense {
+  /// Whether the lines read *to remove* rather than *removed*.
+  fn future(self) -> bool {
+    self != Self::Performed
+  }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Verbosity {
   /// `--quiet`: the summary line and refusals. Nothing else.
@@ -4575,6 +4673,23 @@ impl Verbosity {
     self != Self::Quiet
   }
 
+  /// Whether the per-path record of what was REMOVED prints.
+  ///
+  /// **IT IS ALWAYS TRUE, AND THAT IS THE POINT** (hv, 2026-09-12: silent
+  /// deletion). `shows_body` already carried the reasoning -- removals are this
+  /// verb's SUBJECT and must not go behind a flag -- and then `--quiet` was
+  /// added and put them behind one anyway, because they shared a predicate with
+  /// the hydration lines. `organize --apply --quiet` printed a summary line and
+  /// removed files it never named.
+  ///
+  /// **QUIET STILL MEANS QUIET FOR EVERYTHING ELSE.** The hydration and rewrite
+  /// lines, the inventory and the divergences are all still suppressed: what
+  /// cannot be suppressed is the naming of bytes that are going.
+  fn shows_removals(self) -> bool {
+    let _ = self;
+    true
+  }
+
   /// Whether the unclaimed inventory prints.
   ///
   /// **THIS IS THE LINE-COUNT DEFECT AND IT IS THE ONLY CLASS MOVED.** Measured
@@ -4606,15 +4721,18 @@ impl Verbosity {
 /// on printing plausible reports, and the one that lost a clause would lose it
 /// in the arm that REMOVES FILES.
 ///
-/// `previewing` is passed rather than derived from a `Mode`, because the
-/// destructive arm of `--default --force` renders in the performed tense
-/// without ever holding a `Mode` of its own.
+/// `Tense` is passed rather than derived from a `Mode`, because the destructive
+/// arm of `--default --force` renders in the performed tense without ever
+/// holding a `Mode` of its own -- and because a plan printed IMMEDIATELY BEFORE
+/// its own apply is a third case: future tense like a preview, and emphatically
+/// not "nothing will happen".
 fn render_organize_report(
   project: &Project,
   report: &intentsvcs::organize::Report,
-  previewing: bool,
+  tense: Tense,
   verbosity: Verbosity,
 ) -> Result<(), Failure> {
+  let previewing = tense.future();
   // **PROJECT-RELATIVE, THROUGH THE PROJECT'S OWN ANSWER.** Measured on a real
   // estate before this was added: 199 unclaimed paths printed absolute, each
   // carrying 90 characters of temp-directory prefix before the part that
@@ -4730,13 +4848,18 @@ fn render_organize_report(
     report.diverged.len(),
     report.refused.len()
   );
+  // **THE TWO GROUPS ARE PRINTED UNDER DIFFERENT PREDICATES, AND THE SPLIT IS
+  // THE FIX.** What this run WRITES is reportage and `--quiet` may withhold it;
+  // what this run REMOVES is the act itself, and nothing withholds that.
   if verbosity.shows_body() {
-    for (label, paths) in [
-      (hyd, &report.hydrated),
-      (rew, &report.rewritten),
-      (rem, &report.dehydrated),
-      (prn, &report.pruned),
-    ] {
+    for (label, paths) in [(hyd, &report.hydrated), (rew, &report.rewritten)] {
+      for path in paths {
+        println!("  {label}: {}", show(path));
+      }
+    }
+  }
+  if verbosity.shows_removals() {
+    for (label, paths) in [(rem, &report.dehydrated), (prn, &report.pruned)] {
       for path in paths {
         println!("  {label}: {}", show(path));
       }
@@ -4812,7 +4935,7 @@ fn render_organize_report(
   // above is what makes a preview unmistakable; this says it once more in plain
   // words and names the spelling that performs it, so the operator never has to
   // go and look the flag up.
-  if previewing && verbosity.shows_body() {
+  if tense == Tense::Preview && verbosity.shows_body() {
     println!(
       "organize: preview only -- nothing was written or removed. `intent organize --apply` performs it."
     );
@@ -4847,7 +4970,10 @@ fn render_organize_report(
   // build on the digest guard, arriving one layer up at the exit code -- and an
   // always-failing default is how an operator learns to stop reading this
   // command's output at all, which costs exactly the refusals above.
-  if previewing {
+  // **A PLANNED RUN DOES NOT CARRY THE VERDICT EITHER**, for the same reason a
+  // preview does not: the act has not happened yet, and the performed render
+  // that follows is the one whose exit code describes the estate.
+  if tense.future() {
     return Ok(());
   }
   Err(Failure::Verdict)

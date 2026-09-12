@@ -764,7 +764,20 @@ fn v2_bucket_copy(project: &Project, present: &BTreeSet<PathBuf>, id: &str) -> O
 /// and the one a person opens is the one that matters.** A sweep with `rmdir`
 /// cleared them once and would have recurred on the next dehydration, which is
 /// what makes this a code change rather than a tidy-up.
-fn prune_emptied(root: &Path, removed: &[PathBuf], pruned: &mut Vec<PathBuf>) {
+/// **THE PREVIEW PREDICTS THE PRUNES RATHER THAN OMITTING THEM** (hv,
+/// 2026-09-12: silent deletion). Until this took a `Mode`, pruning happened
+/// only under `Mode::Apply`, so a preview reported `0 to prune` and the apply
+/// that followed removed directories the plan had not named -- a removal
+/// announced nowhere, inside the verb whose preview exists to announce them.
+///
+/// **ONE BODY WITH THE ACT WITHHELD, WHICH IS THIS MODULE'S OWN RULE** (see
+/// [`Mode`]). The candidate set, the floor and the deepest-first order are
+/// shared; only the question at the bottom differs -- `remove_dir` SUCCEEDING
+/// is the act's test, and *every entry in it is already going* is the
+/// preview's. A second function predicting prunes its own way would be a
+/// promise about this one, and the two would drift in the direction nobody
+/// notices.
+fn prune_emptied(root: &Path, removed: &[PathBuf], pruned: &mut Vec<PathBuf>, mode: Mode) {
   // **DEDUPLICATED THROUGH A SET, NOT BY `dedup()` AFTER THE DEPTH SORT.**
   // `sort_by_key` on depth alone leaves equal paths merely at the same depth
   // rather than adjacent, and `Vec::dedup` only collapses NEIGHBOURS -- so the
@@ -786,11 +799,47 @@ fn prune_emptied(root: &Path, removed: &[PathBuf], pruned: &mut Vec<PathBuf>) {
   let mut candidates: Vec<PathBuf> = unique.into_iter().collect();
   candidates.sort_by_key(|d| std::cmp::Reverse(d.components().count()));
 
+  // Everything this run is taking away. The act reads it off the filesystem as
+  // it goes; the preview has to carry it, because deepest-first order means a
+  // directory's fate can depend on a CHILD DIRECTORY decided moments earlier.
+  let mut going: BTreeSet<PathBuf> = removed.iter().cloned().collect();
   for dir in candidates {
-    if std::fs::remove_dir(&dir).is_ok() {
+    let goes = if mode.performs() {
+      std::fs::remove_dir(&dir).is_ok()
+    } else {
+      would_be_emptied(&dir, &going)
+    };
+    if goes {
+      going.insert(dir.clone());
       pruned.push(dir);
     }
   }
+}
+
+/// Would this directory be empty once `going` has gone?
+///
+/// **UNREADABLE MEANS NO.** A directory this process cannot list is one it
+/// cannot predict, and answering *yes* would put a path in a preview's removal
+/// list that the act may well leave alone -- naming a file that is not going is
+/// its own kind of false report, and the conservative direction here is the one
+/// that under-promises.
+fn would_be_emptied(dir: &Path, going: &BTreeSet<PathBuf>) -> bool {
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return false;
+  };
+  let mut any = false;
+  for entry in entries {
+    let Ok(entry) = entry else {
+      return false;
+    };
+    any = true;
+    if !going.contains(&entry.path()) {
+      return false;
+    }
+  }
+  // An ALREADY-empty directory is not this run's prune to claim. `remove_dir`
+  // would take it, and it is not a consequence of anything removed here.
+  any
 }
 
 /// The reason an index view is kept. Exposed so the report can print it rather
@@ -825,6 +874,16 @@ pub struct Report {
   /// other removal on this report is named. A prune that happened silently
   /// would be the one line of this verb an operator could not review.
   pub pruned: Vec<PathBuf>,
+  /// The tree digest of the plan this report came from.
+  ///
+  /// **IT IS HERE SO A CALLER CAN PIN A LATER RUN TO THE PLAN IT SHOWED A
+  /// HUMAN** (hv, 2026-09-12: silent deletion). A preview and the `--apply`
+  /// that follows it are two runs, and between them the estate can move --
+  /// every read verb materialises the store on access, so a peer running
+  /// `intent st list` is enough. Without this the second run re-plans and acts
+  /// on a plan NOBODY WAS SHOWN, which is the defect with the preview's
+  /// reassurance on top of it. See [`Plan::digest`] for what the value measures.
+  pub digest: String,
 }
 
 impl Report {
@@ -918,6 +977,9 @@ impl Plan {
   /// operator is consulting the preview for.
   pub fn run(&self, mode: Mode, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
     let mut report = Report::default();
+    // **THE REPORT SAYS WHICH PLAN IT IS OF**, so a caller that rendered one can
+    // pin the act to it. See [`Report::digest`].
+    report.digest = self.digest.clone();
 
     // **REPORTED IN BOTH MODES, AND THE RUN CONTINUES** (issue 0209), for the
     // reason `refused` gives: one held thread must not make every other
@@ -998,9 +1060,12 @@ impl Plan {
           Err(refusal) => report.refused.push(refusal),
         }
       }
-      if mode.performs() {
-        prune_emptied(&self.estate_root, &report.dehydrated, &mut report.pruned);
-      }
+      prune_emptied(
+        &self.estate_root,
+        &report.dehydrated,
+        &mut report.pruned,
+        mode,
+      );
     }
 
     // Every write goes through ONE `WriteSet`, which is where the
@@ -1098,7 +1163,7 @@ mod prune_floor {
   //! So the floor is driven directly, against a root that IS empty and would
   //! therefore be removed by any code that considered it a candidate.
 
-  use super::prune_emptied;
+  use super::{Mode, prune_emptied};
   use std::path::PathBuf;
 
   /// A root holding nothing but one prunable child. Without the `d != root`
@@ -1114,7 +1179,7 @@ mod prune_floor {
     std::fs::remove_file(&file).expect("the run removed it");
 
     let mut pruned: Vec<PathBuf> = Vec::new();
-    prune_emptied(&root, std::slice::from_ref(&file), &mut pruned);
+    prune_emptied(&root, std::slice::from_ref(&file), &mut pruned, Mode::Apply);
 
     assert!(
       !child.exists(),

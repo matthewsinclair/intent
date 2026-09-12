@@ -156,14 +156,24 @@ fn the_estate_root_is_never_removed() {
   );
 }
 
-/// **PREVIEW PRUNES NOTHING**, for the same reason it removes no files.
+/// **A PREVIEW PRUNES NOTHING AND NAMES EVERY PRUNE IT WOULD PERFORM.**
+///
+/// **THIS ARM ASSERTED THE OPPOSITE UNTIL 2026-09-12, AND THE OLD WORDING IS
+/// WHY.** It read *it reports no prune it did not perform*, which reads as
+/// obviously right and conflates two different things: a preview performs
+/// nothing, so under that rule it may report nothing, and `0 to prune` was
+/// printed by the run that then pruned a directory. **A removal the plan did
+/// not name is exactly the class hv opened this batch on** (silent deletion,
+/// 2026-09-12), and it was arriving inside the verb whose preview exists to
+/// name removals. `pruned` in a preview means TO PRUNE, as `dehydrated` there
+/// has always meant TO REMOVE.
 #[test]
-fn a_preview_removes_no_directory() {
+fn a_preview_names_the_prune_it_would_perform_and_performs_none() {
   let fx = Fixture::new();
   dehydrating_estate(&fx);
   let dir = fx.project().thread_dir("ST0001");
 
-  let report = fx
+  let preview = fx
     .facade_on_disk()
     .organize(Mode::Preview)
     .expect("organize previews");
@@ -173,8 +183,24 @@ fn a_preview_removes_no_directory() {
     "a preview decides everything and touches nothing, directories included"
   );
   assert!(
-    report.pruned.is_empty(),
-    "and it reports no prune it did not perform. pruned: {:?}",
-    report.pruned
+    preview.pruned.iter().any(|p| p == &dir),
+    "the plan must NAME the directory it would prune, or the apply removes \
+     something nobody was shown. pruned: {:?}",
+    preview.pruned
   );
+
+  // **THE PREDICTION IS HELD TO THE ACT, WHICH IS THE ONLY THING THAT MAKES IT
+  // WORTH PRINTING.** A preview naming prunes the run does not perform, or
+  // missing ones it does, is a more confident version of the defect it was
+  // built to close -- so the two sets are compared, on the same fixture, in one
+  // arm.
+  let performed = fx
+    .facade_on_disk()
+    .organize(Mode::Apply)
+    .expect("organize reconciles");
+  assert_eq!(
+    preview.pruned, performed.pruned,
+    "what the plan named and what the run pruned must be the same set"
+  );
+  assert!(!dir.exists(), "and the apply really did take it");
 }

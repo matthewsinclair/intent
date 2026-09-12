@@ -2976,7 +2976,41 @@ impl Facade {
     }
   }
 
+  /// Reconcile the tree against the declaration.
+  ///
+  /// **UNPINNED, WHICH IS RIGHT FOR A CALLER THAT IS NOT SHOWING A PLAN TO
+  /// ANYBODY.** A caller that DOES show one -- every interactive face, by hv's
+  /// 2026-09-12 ruling on silent deletion -- must use
+  /// [`Facade::organize_as_shown`] and pin the act to the plan it rendered.
   pub fn organize(&mut self, mode: organize::Mode) -> Result<organize::Report, FacadeError> {
+    self.organize_as_shown(mode, None)
+  }
+
+  /// The same reconciliation, pinned to a plan that has already been RENDERED.
+  ///
+  /// **A PREVIEW AND THE `--apply` THAT FOLLOWS IT ARE TWO RUNS, AND THE SECOND
+  /// ONE RE-PLANS** (hv, 2026-09-12: *silent deletion ... THEY NEED
+  /// IDENTIFYING, TRIAGING, AND FIXING, AS A MATTER OF URGENCY*). Between them
+  /// the estate can move -- every read verb materialises the store on access,
+  /// so a peer running `intent st list` is enough -- and the act would then
+  /// perform a plan NOBODY WAS SHOWN, with the preview's reassurance standing
+  /// over it. That is worse than no preview at all: it is a specific promise
+  /// about which files go, made about a different run.
+  ///
+  /// `shown` is the digest of the plan the caller rendered ([`Report::digest`]).
+  /// If this run's plan does not carry the same digest, the run REFUSES and
+  /// removes nothing rather than acting on the difference.
+  ///
+  /// **THIS IS NOT THE MOMENT-OF-ACT GUARD AND DOES NOT REPLACE IT.** That one
+  /// stands between THIS run's plan and its own irreversible step, inside
+  /// [`Plan::run`]; this one stands between the plan a HUMAN READ and the plan
+  /// about to be performed. Two different windows, and only the second is
+  /// closed by a person having looked.
+  pub fn organize_as_shown(
+    &mut self,
+    mode: organize::Mode,
+    shown: Option<&str>,
+  ) -> Result<organize::Report, FacadeError> {
     let realised = self.manifest_for_action()?;
     // **NOTHING REGENERATES THIS FILE, BY hv's RULING (`d2b63bc3`).** organize
     // is: read the list, hydrate what is in it, dehydrate what is on disk and
@@ -3000,6 +3034,21 @@ impl Facade {
       let ctx = self.render_ctx()?;
       organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
     };
+
+    // **THE PIN IS TESTED BEFORE THE RUN, NOT INSIDE IT.** `Plan::run` is
+    // reached by callers who showed nobody anything; the question *is this the
+    // plan that was rendered* is the CALLER's, and answering it here keeps
+    // `run` answering only its own.
+    if let Some(shown) = shown
+      && plan.digest != shown
+    {
+      return Err(FacadeError::Organize(organize::OrganizeError::TreeMoved {
+        detail: format!(
+          "the plan you were shown measured the tree as {shown} and it now measures {}, so the removals about to run are not the ones that were printed",
+          plan.digest
+        ),
+      }));
+    }
 
     let project = &self.project;
     let report = plan
