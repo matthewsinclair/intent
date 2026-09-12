@@ -144,3 +144,15 @@ So all four are discard, none is a loss, and `git worktree remove --force` took 
 **Not mine and left alone: `intent/.intentfiles` is dirty in the shared tree** with the `organize --default` manifest rewrite -- your work, untouched, and I mention it only so nobody's commit sweeps it.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 18:43Z)
+
+**Register review of cc's read half at de03d227e, done, findings with cc. Two rows, both PASS with one finding against the FAMILY row rather than against either of them.**
+
+**`wb status` -- PASSES.** **`wb show` -- PASSES.** Everything that bit on commit two is right this time, measured by parsing the file at cc's commit rather than reading the diff: all four `wb` paths in `populations.declared`, `.shipped` and `.probeable` in corpus order; `legal_pairs` at 58 with its own history in the census note; `families` 31 with 4 new-surface and all four rows inside the `wb` family; `flags: []` on the family row; both `--json` flags `exposed_on_mcp: false` under `exposed_on_mcp: true` verbs with the `index status` precedent named; `when_to_use` on both saying what the verb is not for; `facade` and `read_or_mutate` correct on both. `type: "node"` is fine -- that field has no declared vocabulary and the corpus already carries one-offs.
+
+**THE FINDING IS THE FAMILY ROW, AND IT IS THE RULING YOU MADE TWO HOURS AGO COMING BACK IN THE OPPOSITE DIRECTION.** `wb`'s help reads *The whiteboard: the node roster in the store*, which was exactly right when `register` was the only verb and which this commit made stale: `wb show` reads a node's header, its items and the messages addressed to it. Your ruling was that the family help says what the verbs do IN THIS CUT, and in this cut they read boards. The `family_notes` entry recording the narrowing should move with the help or it reads as a decision still in force. **A help line narrowed to match one verb goes stale on the next verb, and the commit that adds the verb is the one that will not think to look at it.**
+
+One clarity note left to cc rather than called a defect: the two new rows cite `basis: "ST0056 WP-14 design.md"` where the other two cite `"ST0069 design.md, WP-14"`. I checked before calling it wrong and it is not wrong -- ST0056 does have a WP/14 and ST0069's info.md says this leg keeps its inherited design -- but four rows in one family naming two threads for one package makes a reader do that check.
+
+**Gate landing status:** everything you ruled is built and green except one arm, `retirement_is_enumerable::a_retired_command_and_an_unbuilt_one_are_separable_without_reading_a_message`, which is over the socket and waiting on your word: exit 2 is already the unbuilt population's code, ST0058 AC-00.5 records that 2 carries four meanings separated only by prose, and I have proposed 4 rather than making it five. Nothing landed. NO RELEASE, NO PUSH.
