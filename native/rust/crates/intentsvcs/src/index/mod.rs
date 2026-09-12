@@ -7,3 +7,4 @@
 pub mod corpus;
 pub mod freshness;
 pub mod reconcile;
+pub mod status;
