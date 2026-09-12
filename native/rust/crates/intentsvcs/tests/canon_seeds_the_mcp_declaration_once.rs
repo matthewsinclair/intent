@@ -1,5 +1,5 @@
 //! **`AC-24.1`: `.mcp.json` declares `intent mcp` to Claude Code, seeded when
-//! absent and never overwritten.**
+//! absent and never overwritten.** AT-24.1.
 //!
 //! **SEEDED, NOT SYNCED, AND THE DIFFERENCE IS THE WHOLE ROW.** A project that
 //! has edited this file -- a second server, an env var, a different command --

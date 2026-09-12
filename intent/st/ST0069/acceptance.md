@@ -152,7 +152,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 ### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
-- AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: no (computed)
+- AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: yes (computed)
 - AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: yes (computed)
 - AC-24.3 `intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope. -- satisfied: yes (computed)
 - AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
@@ -222,6 +222,7 @@ _(no tests in this group)_
 
 ### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
 
+- AT-24.1 `native/rust/crates/intentsvcs/tests/canon_seeds_the_mcp_declaration_once.rs` -- covers AC-24.1 -- status: green -- Three arms, one per clause: absent it is seeded and the file names `intent mcp`; present it is preserved byte for byte EVEN UNDER `--force`, because seeded-when-absent is the contract rather than a default somebody can override; and `--skip-settings` declines it and reports it skipped, since deleting the file only means the next `--apply` seeds it again and a project wanting no MCP server declared in its editor would otherwise have no way to say so.
 - AT-24.2 `native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs` -- covers AC-24.2 -- status: green
 - AT-24.3 `native/rust/crates/intent-cli/tests/the_structural_doors_answer_in_the_envelope.rs` -- covers AC-24.3 -- status: green
 - AT-24.5 `tests/unit/prior_art_route.bats` -- covers AC-24.5 -- status: green -- The guard holds four properties over the six authored artefacts and the two roots they generate: the index route, grep as the fallback, the registry kept where it was named, and the superseded wording gone. AC-24.5's agent-guide half is MET BY CONSTRUCTION rather than skipped -- the guide renders from the register on demand, so there is no committed guide to regenerate, and nothing in its authored half named a lookup verb to correct.

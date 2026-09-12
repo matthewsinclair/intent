@@ -899,6 +899,16 @@
       "note": "Planted vectors, a query through the trait with a test-only embedder, one semantic group ranked by cosine with another model's vector correctly absent from the answer, and the tiers already built still present -- the envelope's shape unchanged, which is AC-23.1's seam proof in the same arm. A fourth arm states the half this one rests on: a project with no embedder has no semantic group rather than an empty one. The rung itself is held by the ladder's own pins, not by an arm."
     },
     {
+      "id": "AT-24.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/canon_seeds_the_mcp_declaration_once.rs",
+      "covers": [
+        "AC-24.1"
+      ],
+      "status": "green",
+      "note": "Three arms, one per clause: absent it is seeded and the file names `intent mcp`; present it is preserved byte for byte EVEN UNDER `--force`, because seeded-when-absent is the contract rather than a default somebody can override; and `--skip-settings` declines it and reports it skipped, since deleting the file only means the next `--apply` seeds it again and a project wanting no MCP server declared in its editor would otherwise have no way to say so."
+    },
+    {
       "id": "AT-24.2",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs",
