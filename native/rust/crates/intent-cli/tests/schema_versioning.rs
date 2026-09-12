@@ -336,7 +336,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // the code that writes `board.json`, because a `carried by` declaration
     // naming a file nothing writes is a promise the openness check exists to
     // refuse.
-    ("SCHEMA_JSON_VER", 18, 0xebb0_a46f_55f2_e878),
+    // 18 -> 19 is the fifth item kind, `hold`, on `board.schema.json`; the DDL
+    // stores the kind as text and the board has no SDL face yet, so neither
+    // of the other two moves.
+    ("SCHEMA_JSON_VER", 19, 0x6341_3531_58b8_90f1),
   ];
 
   let mut moved = Vec::new();

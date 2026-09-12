@@ -1375,6 +1375,9 @@ pub enum FacadeError {
   /// A claim that is not a steel thread or work package address.
   #[error("`{claim}` is not a steel thread or work package address")]
   WbClaimMalformed { claim: String },
+  /// A kind this verb will not write, because another verb owns it.
+  #[error("`{kind}` items are not written by this verb")]
+  WbKindHasItsOwnVerb { kind: String, verb: String },
   /// No acting node: nothing said who is writing.
   ///
   /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
@@ -1430,6 +1433,9 @@ impl crate::remedy::Remedy for FacadeError {
         "`intent wb archive --node {node} {kind} <seq>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
+      Self::WbKindHasItsOwnVerb { kind, verb } => format!(
+        "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
+      ),
       Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
@@ -5108,6 +5114,30 @@ impl Facade {
       .map(|b| b.node)
       .collect();
     Ok(Pickup { board, peers })
+  }
+
+  /// Add one item of a WRITABLE kind to the acting node's own board.
+  ///
+  /// **`decision` IS REFUSED HERE AND `wb_decide` IS WHY** (vc, 2026-09-12).
+  /// One door per kind: a decision is broadcast by sitting on a board its peers
+  /// read, and a second way to write one is a second place the rule about what
+  /// a decision is for would have to be stated. The refusal names the verb, so
+  /// the caller is redirected rather than told no.
+  ///
+  /// **THE VERB EXISTS BECAUSE THE GENERATED VIEW CLOSES THE OTHER DOOR.** Until
+  /// the cutover a node writes its DOING and its watch-outs by editing
+  /// `wip.md`; afterwards that file is rendered, and a hand edit is skew doctor
+  /// reports. Without this verb a node would have no way to record its next
+  /// piece of work at all -- the model would have taken the board away and
+  /// given nothing back.
+  pub fn wb_add(&mut self, node: &str, kind: WbItemKind, text: &str) -> Result<u32, FacadeError> {
+    if kind == WbItemKind::Decision {
+      return Err(FacadeError::WbKindHasItsOwnVerb {
+        kind: crate::model::enum_str(&kind),
+        verb: "intent wb decide".to_string(),
+      });
+    }
+    self.wb_add_item(node, kind, text)
   }
 
   /// Record a decision on the acting node's own board.

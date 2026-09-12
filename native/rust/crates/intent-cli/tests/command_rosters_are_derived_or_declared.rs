@@ -121,6 +121,15 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/render.rs",
+    "wb add",
+    Why::NotARoster(
+      "`wb archive`'s shape exactly: the LOOKUP KEY `enum_arg(m, \"wb add\", \"kind\")` uses \
+     to find the row's declared kinds, and the literal that names the row back in the refusal. \
+     It goes when the spine applies an enum positional's `values` itself.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "daemon status",
     Why::CheckedBy(
       "NOT A ROSTER AND NOT A COINCIDENCE: it is the LOOKUP KEY `enum_flag(a, \"daemon status\", \

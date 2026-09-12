@@ -56,7 +56,8 @@
         "doing",
         "todo",
         "decision",
-        "watchout"
+        "watchout",
+        "hold"
       ],
       "type": "string"
     },
@@ -233,5 +234,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.0.1",
-  "x-schema-json-ver": 18
+  "x-schema-json-ver": 19
 }

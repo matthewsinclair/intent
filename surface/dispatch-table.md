@@ -3882,6 +3882,7 @@ The whiteboard: read the node boards, and send between them
 | `wb show`     | <node>             | --json              | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
 | `wb ask`      | <recipient> <body> | --node, --re, --fyi | Send one message from the acting node into another node's board                      | new-surface |
 | `wb announce` | <body>             | --node              | Send one message to every registered node but the sender                             | new-surface |
+| `wb add`      | <kind> <text>      | --node              | Add an item to the acting node's own board                                           | new-surface |
 | `wb archive`  | <kind> <seq>       | --node              | Move one of the acting node's live items to archived                                 | new-surface |
 | `wb pickup`   | --                 | --node, --json      | Start a session: this node's board, its peers' state, and one heartbeat              | new-surface |
 | `wb touch`    | --                 | --node              | Stamp the acting node's heartbeat                                                    | new-surface |
@@ -4000,13 +4001,36 @@ Send one message to every registered node but the sender
 - **facade:** wb_announce
 - **note:** **IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH**, so the bounds, the roster check and the stamp rule are stated once. **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE**: every recipient is checked before any row is written, because half a broadcast is worse than none -- the nodes that received it and the nodes that did not both believe they know what was said.
 
+### `wb add`
+
+Add an item to the acting node's own board
+
+- **v2:** new-surface
+- **Arguments:**
+  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `watchout`, `hold`
+  - `text` (string, arity `1`)
+- **Flags:**
+  - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout`. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The board's sections are DOING, TODO, Holds, Watch-outs and Decisions; this writes the four a node states directly. There is no v2 antecedent.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.2
+- **recoverability:** one-way
+- **facade:** wb_add
+- **note:** **THE VERB EXISTS BECAUSE THE GENERATED VIEW CLOSES THE OTHER DOOR** (vc, 2026-09-12, on a gap cc had not seen). Until the cutover a node writes its DOING and its watch-outs by editing `wip.md`; afterwards that file is RENDERED and a hand edit is skew doctor reports -- so without this verb the model would have taken the board away and given nothing back. **IT REFUSES `decision` RATHER THAN ACCEPTING IT**: what a decision is FOR is stated once, beside `wb decide`, and a second writer would be a second place to state it. **ONE-WAY AND WITHHELD, like `decide`**: nothing un-adds an item, `wb archive` retires it by state, and an agent writing a permanent item onto any board as any node on the tier where nobody types `--node` by hand is the exposure `ask` and `decide` were withheld for.
+
 ### `wb archive`
 
 Move one of the acting node's live items to archived
 
 - **v2:** new-surface
 - **Arguments:**
-  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`
+  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`
   - `seq` (string, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing

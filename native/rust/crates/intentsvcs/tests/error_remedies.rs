@@ -129,6 +129,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("one past the configured per-kind bound is refused"),
   ));
   out.push((
+    "a kind another verb owns",
+    facade
+      .wb_add("cc", intentsvcs::model::WbItemKind::Decision, "a decision")
+      .expect_err("`decision` has one writer and it is `wb decide`"),
+  ));
+  out.push((
     "a claim that is not an address",
     facade
       .wb_claim("cc", "the whole of ST0069")
@@ -912,6 +918,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbInboxFull { .. } => "WbInboxFull",
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
+    FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
@@ -998,6 +1005,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbInboxFull",
   "WbItemsFull",
   "WbClaimMalformed",
+  "WbKindHasItsOwnVerb",
   "WbNoActingNode",
 ];
 

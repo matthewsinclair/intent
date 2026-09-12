@@ -8356,6 +8356,40 @@
           "note": "**IT IS `wb_ask` IN A LOOP RATHER THAN A SECOND WRITE PATH**, so the bounds, the roster check and the stamp rule are stated once. **A BOUND HIT PART-WAY THROUGH REFUSES THE WHOLE ANNOUNCE**: every recipient is checked before any row is written, because half a broadcast is worse than none -- the nodes that received it and the nodes that did not both believe they know what was said."
         },
         {
+          "path": "wb add",
+          "help": "Add an item to the acting node's own board",
+          "when_to_use": "USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout`. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.",
+          "args": [
+            {
+              "name": "kind",
+              "type": "enum",
+              "arity": "1",
+              "values": ["doing", "todo", "watchout", "hold"]
+            },
+            { "name": "text", "type": "string", "arity": "1" }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The board's sections are DOING, TODO, Holds, Watch-outs and Decisions; this writes the four a node states directly. There is no v2 antecedent.",
+          "owner_wp": "WP-14",
+          "acceptance": "AC-14.2",
+          "target": { "state": "new-surface" },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "flags": [
+            {
+              "spellings": ["--node"],
+              "type": "string",
+              "help": "The moniker of the node writing",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ],
+          "facade": "wb_add",
+          "note": "**THE VERB EXISTS BECAUSE THE GENERATED VIEW CLOSES THE OTHER DOOR** (vc, 2026-09-12, on a gap cc had not seen). Until the cutover a node writes its DOING and its watch-outs by editing `wip.md`; afterwards that file is RENDERED and a hand edit is skew doctor reports -- so without this verb the model would have taken the board away and given nothing back. **IT REFUSES `decision` RATHER THAN ACCEPTING IT**: what a decision is FOR is stated once, beside `wb decide`, and a second writer would be a second place to state it. **ONE-WAY AND WITHHELD, like `decide`**: nothing un-adds an item, `wb archive` retires it by state, and an agent writing a permanent item onto any board as any node on the tier where nobody types `--node` by hand is the exposure `ask` and `decide` were withheld for."
+        },
+        {
           "path": "wb archive",
           "help": "Move one of the acting node's live items to archived",
           "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
@@ -8364,7 +8398,7 @@
               "name": "kind",
               "type": "enum",
               "arity": "1",
-              "values": ["doing", "todo", "decision", "watchout"]
+              "values": ["doing", "todo", "decision", "watchout", "hold"]
             },
             { "name": "seq", "type": "string", "arity": "1" }
           ],
@@ -9687,8 +9721,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 68,
-      "census_note": "68 since 2026-09-12: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 69,
+      "census_note": "69 since 2026-09-12: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10037,6 +10071,7 @@
       "wb show",
       "wb ask",
       "wb announce",
+      "wb add",
       "wb archive",
       "wb pickup",
       "wb touch",
@@ -10189,6 +10224,7 @@
       "wb show",
       "wb ask",
       "wb announce",
+      "wb add",
       "wb archive",
       "wb pickup",
       "wb touch",
@@ -10348,6 +10384,7 @@
       "wb show",
       "wb ask",
       "wb announce",
+      "wb add",
       "wb archive",
       "wb pickup",
       "wb touch",

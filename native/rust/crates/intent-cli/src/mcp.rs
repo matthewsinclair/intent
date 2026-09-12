@@ -1321,18 +1321,8 @@ pub fn serve(
     }
     "wb archive" => {
       let node = str_arg(args, "node", path)?;
-      let kind = match str_arg(args, "kind", path)? {
-        "doing" => intentsvcs::model::WbItemKind::Doing,
-        "todo" => intentsvcs::model::WbItemKind::Todo,
-        "decision" => intentsvcs::model::WbItemKind::Decision,
-        "watchout" => intentsvcs::model::WbItemKind::Watchout,
-        other => {
-          return Err(args_err(
-            path,
-            format!("`kind` is not an item kind: {other}"),
-          ));
-        }
-      };
+      let kind = crate::render::wb_item_kind(str_arg(args, "kind", path)?)
+        .map_err(|e| failure_args(path, e))?;
       let seq: u32 = str_arg(args, "seq", path)?
         .parse()
         .map_err(|_| args_err(path, "`seq` is the item's number on the board"))?;

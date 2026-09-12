@@ -2280,6 +2280,16 @@ pub enum WbItemKind {
   Todo,
   Decision,
   Watchout,
+  // Work this node has stopped, with the CONDITION that releases it.
+  //
+  // **THE FIFTH KIND, AND ITS ABSENCE WOULD HAVE LOST A SECTION THE PROTOCOL
+  // REQUIRES** (vc, 2026-09-12). The board's sections are DOING, TODO, Holds,
+  // Watch-outs and Decisions; a model with four kinds round-trips a board by
+  // dropping its holds, which is the one section the protocol calls
+  // load-bearing -- a hold with no condition is indistinguishable from work
+  // that was quietly abandoned, and a fold is forbidden from archiving one
+  // while its condition stands.
+  Hold,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]

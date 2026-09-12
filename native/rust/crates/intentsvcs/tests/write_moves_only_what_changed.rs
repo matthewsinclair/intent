@@ -322,6 +322,15 @@ fn shipped_mutators() -> Vec<String> {
 /// unproven one.
 const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
+    "wb add",
+    "intentsvcs/tests/error_remedies.rs -- `provoked_errors` drives the door this verb shares with \
+     `wb_decide`, `wb_add_item`, to its per-kind bound and asserts the next write is REFUSED. \
+     `wb_add` adds one thing of its own on top of it: it refuses `decision` by name so that kind \
+     has one writer, and that refusal is provoked there too. **What it writes is ROWS AND NO \
+     FILE**, so `did the projected estate move` is the wrong observable; what it can be wrong \
+     about is admitting a write the bound should have refused, which is what the arm holds.",
+  ),
+  (
     "wb archive",
     "intentsvcs/tests/error_remedies.rs -- `provoked_errors` fills one kind to its bound through \
      `wb_decide`, which is the state this verb is the only exit from, and the bound's own remedy \

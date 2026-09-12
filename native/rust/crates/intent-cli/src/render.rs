@@ -3947,6 +3947,15 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
+    Some(("add", m)) => {
+      let me = acting_node(m)?;
+      let kind = wb_item_kind(enum_arg(m, "wb add", "kind")?.as_str())?;
+      let text = m.get_one::<String>("text").expect("declared required");
+      let mut f = open()?;
+      let seq = f.wb_add(&me, kind, text).map_err(fail)?;
+      println!("ok: {me} {} {seq}", item_kind_word(&kind));
+      Ok(())
+    }
     Some(("decide", m)) => {
       let me = acting_node(m)?;
       let text = m.get_one::<String>("text").expect("declared required");
@@ -3966,17 +3975,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // archived `watchout` for any word at all (`wb archive nonsense 1`,
       // driven). `enum_arg` reads the roster the table declares, so the
       // vocabulary has one home and this match cannot outlive it.
-      let kind = match enum_arg(m, "wb archive", "kind")?.as_str() {
-        "doing" => intentsvcs::model::WbItemKind::Doing,
-        "todo" => intentsvcs::model::WbItemKind::Todo,
-        "decision" => intentsvcs::model::WbItemKind::Decision,
-        "watchout" => intentsvcs::model::WbItemKind::Watchout,
-        other => {
-          return Err(Failure::Unavailable(format!(
-            "error: the table declares `{other}` as an item kind and this build has no arm for it"
-          )));
-        }
-      };
+      let kind = wb_item_kind(enum_arg(m, "wb archive", "kind")?.as_str())?;
       let seq: u32 = m
         .get_one::<String>("seq")
         .expect("declared required")
@@ -4187,12 +4186,38 @@ fn report_wb_board(board: &intentsvcs::model::Board, json: bool) -> Result<(), F
   Ok(())
 }
 
+/// The item kind a table-declared wire word names.
+///
+/// **ONE HOME, BECAUSE TWO ARMS NOW READ THE SAME VOCABULARY.** `wb add` and
+/// `wb archive` both take a `kind`, and a second match is the copy that goes
+/// short when a kind is added -- which just happened: `Hold` is the fifth, and
+/// a board rendered from a model that had four dropped the one section the
+/// protocol calls load-bearing.
+///
+/// The value has already been checked against the table by `enum_arg`, so an
+/// unknown word here is a BUILD defect rather than the caller's -- the table
+/// declares a kind this binary has no arm for -- and it answers `Unavailable`
+/// rather than blaming the operator.
+pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, Failure> {
+  match wire {
+    "doing" => Ok(intentsvcs::model::WbItemKind::Doing),
+    "todo" => Ok(intentsvcs::model::WbItemKind::Todo),
+    "decision" => Ok(intentsvcs::model::WbItemKind::Decision),
+    "watchout" => Ok(intentsvcs::model::WbItemKind::Watchout),
+    "hold" => Ok(intentsvcs::model::WbItemKind::Hold),
+    other => Err(Failure::Unavailable(format!(
+      "error: the table declares `{other}` as an item kind and this build has no arm for it"
+    ))),
+  }
+}
+
 fn item_kind_word(k: &intentsvcs::model::WbItemKind) -> &'static str {
   match k {
     intentsvcs::model::WbItemKind::Doing => "doing",
     intentsvcs::model::WbItemKind::Todo => "todo",
     intentsvcs::model::WbItemKind::Decision => "decision",
     intentsvcs::model::WbItemKind::Watchout => "watchout",
+    intentsvcs::model::WbItemKind::Hold => "hold",
   }
 }
 

@@ -114,6 +114,18 @@ const DECLARED: &[Slot] = &[
     disposition: Disposition::Enforced,
   },
   Slot {
+    // Same enforcement as `wb archive` one slot up, through the same `enum_arg`
+    // reading the same table. Its set is narrower BY ONE ON PURPOSE: `decision`
+    // is absent because `wb decide` owns it, so a caller who names it is
+    // refused here by the roster rather than by the facade's own redirect --
+    // two refusals for one rule, and the earlier of them names the set.
+    path: "wb add",
+    arg: "kind",
+    lead: &[],
+    trail: &["some text", "--node", "cc"],
+    disposition: Disposition::Enforced,
+  },
+  Slot {
     path: "st show",
     arg: "file",
     lead: &["ST0001"],
