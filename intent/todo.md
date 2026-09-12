@@ -51,7 +51,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 21: The explorer's /search pane
   - [x] 22: Daemon-served search with daemonless parity
   - [x] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
-  - [-] 24: The LLM boundary: the harness's own search becomes a door into the index
+  - [x] 24: The LLM boundary: the harness's own search becomes a door into the index
 
 ## TODO
 

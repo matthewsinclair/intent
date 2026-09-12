@@ -2,7 +2,7 @@
 wp_id: WP-24
 title: The LLM boundary: the harness's own search becomes a door into the index
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-24: The LLM boundary: the harness's own search becomes a door into the index

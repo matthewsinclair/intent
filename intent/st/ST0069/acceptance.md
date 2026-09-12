@@ -150,7 +150,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-23.3 The vector schema is a recorded migration; semantic hits are a tier group ranked within itself. -- satisfied: yes (computed)
 - AC-23.4 (non-test) The local-runtime decision is put to hv with the measured costs of each shape. -- evidence: ST0069 design.md, T3 section: the Local-runtime record measured by cc on 2026-09-12 at 3ade8dea3 (report b70a0f97e) and the ruling under the pen that no Local runtime ships in 3.0.2 -- satisfied: yes
 
-### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Done)
 
 - AC-24.1 A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration. -- satisfied: yes (computed)
 - AC-24.2 The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description. -- satisfied: yes (computed)
@@ -222,7 +222,7 @@ _(no tests in this group)_
 - AT-23.2 `native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs` -- covers AC-23.2 -- status: green -- Two halves, two arms. The Null embedder refuses a semantic query and its remedy names the embed block with its endpoint and model -- it refuses rather than returning zeros, because a zero vector has a cosine with every other vector and an unconfigured project would get a confidently ordered list of nothing. The HTTP embedder is driven against a stub TcpListener answering one canned OpenAI-shaped reply, a double at the external boundary, and the arm asserts both what it POSTs (path, model, text) and what it reads back (vectors at the configured width).
 - AT-23.3 `native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs` -- covers AC-23.3 -- status: green -- Planted vectors, a query through the trait with a test-only embedder, one semantic group ranked by cosine with another model's vector correctly absent from the answer, and the tiers already built still present -- the envelope's shape unchanged, which is AC-23.1's seam proof in the same arm. A fourth arm states the half this one rests on: a project with no embedder has no semantic group rather than an empty one. The rung itself is held by the ladder's own pins, not by an arm.
 
-### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: WIP)
+### WP-24 -- The LLM boundary: the harness's own search becomes a door into the index (status: Done)
 
 - AT-24.1 `native/rust/crates/intentsvcs/tests/canon_seeds_the_mcp_declaration_once.rs` -- covers AC-24.1 -- status: green -- Three arms, one per clause: absent it is seeded and the file names `intent mcp`; present it is preserved byte for byte EVEN UNDER `--force`, because seeded-when-absent is the contract rather than a default somebody can override; and `--skip-settings` declines it and reports it skipped, since deleting the file only means the next `--apply` seeds it again and a project wanting no MCP server declared in its editor would otherwise have no way to say so.
 - AT-24.2 `native/rust/crates/intent-cli/tests/a_tool_description_comes_from_its_row.rs` -- covers AC-24.2 -- status: green
