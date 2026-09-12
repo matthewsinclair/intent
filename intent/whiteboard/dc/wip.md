@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 15:01Z
+heartbeat_at: 2026-09-12 15:22Z
 status: active
-focus: "Steps 1, 2 and 4 are DONE -- 4 was already done by cc and ruled by vc, and my board was carrying it. DOING is step 3, the hook, HELD on two words from vc. Step 5, the rehearsal, waits on the LAST HEAD. NO RELEASE, NO PUSH."
+focus: "Steps 1, 2, 3 and 4 are DONE. WP-22 closed at 783b9cc82, the hook landed at bd79cf605, whole workspace green. Only step 5 is left, the final rehearsal, and it waits on the HEAD vc names. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
@@ -13,11 +13,11 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-1414Z.md`.** Everything landed today is carried by its commits and the CHANGELOG, not here.
 
-## DOING -- step 3 of the quiet window: the hook, HELD on vc
+## DOING -- nothing. Step 5 waits on vc naming the rehearsal HEAD.
 
-**The shape went to vc in three lines and nothing is built.** A PostToolUse hook on Grep, served from the install as `intent claude hook <name>` with its body in `lib/templates/.claude/scripts/`; it reads the symbol the pattern named, calls `intent search --context <name> --json` in the project the call ran in, appends the structural answer after the grep's own result, never blocks, never replaces; and it appends NOTHING unless the envelope says the index can answer for the paths involved, owning no freshness reading of its own.
+**Steps 1 to 4 are done.** WP-22 landed at `e809eea8f` and CLOSED at `783b9cc82` (AT-22.1 to AT-22.3, CHANGELOG, `wp done`). The hook landed at `bd79cf605`: `post-tool-symbol-context.sh` plus the shared `index-freshness.bash`, eleven bats arms, AT-24.4 green, AC-24.4 satisfied. Step 4 was cc's and already ruled.
 
-**THE HOLD, and its condition: vc's word on the shared freshness predicate.** ic's AC-24.6 safety condition and mine are the SAME condition and BOTH are stricter than the field either of us would reach for. AC-24.6 fires the redirect only when the index is COMPLETE FOR THE PATHS the pattern would have reached; AC-24.4 appends nothing when the index is not complete FOR THE PATHS INVOLVED. **Neither is `index.complete`**, which is `skipped.is_empty() && stale.is_empty()` -- a claim about the WHOLE index, false for a query about one path because of an unreadable file nowhere near it. `skipped` and `stale` are LISTS OF PATHS, so per-path completeness is derivable today with `complete` as the fast path when true. One predicate, behind the facade beside `IndexFreshness`, called by both hooks -- which is where ic's own condition 3 puts it. **Left unnamed, the obvious implementation of both is `complete`, quietly narrower than either row claims, and the narrowing is invisible because a hook that says nothing looks identical to a hook with nothing to say.** Released when vc answers: the predicate as one facade call, and whether it sits in WP-24 or takes its own row.
+**Two things a rebuild would need.** The hook ships OFF BY DEFAULT, like `post-tool-advisory`, and a bats arm asserts the shipped `settings.json` does not wire it -- because `no_pm_state_in_output` holds this repository's own `settings.json` byte-identical to the template, so wiring it would switch it on for every session on this box. vc can have it on with two lines. And the freshness predicate is ONE shell function taking the prefix as an argument, so each caller supplies its own subject: for an append the paths involved are the ones the ANSWER names; for a redirect they are the ones the pattern would have reached.
 
 ## TODO -- vc's five steps, serial, in this order
 
@@ -38,6 +38,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 - **A FIELD SKIPPED ON SERIALISATION AND NOT DEFAULTED ON DESERIALISATION MAKES THE WHOLE ENVELOPE WRITE-ONLY.** `Hit::stale` skips `false` and had no `default`; serde supplies one for `Option` unasked and for NOTHING ELSE, so a fresh hit -- every hit in a normal answer -- made the envelope unreadable the first time anything read it back. Invisible for as long as the type only ever went outwards. Found by DRIVING `--daemon search`, not by reading.
 - **TWO DERIVATIONS THAT SHARE A MISTAKE ARE ONE DERIVATION.** `daemon_op_for`, `daemon_servable_paths` and the load-time `serving_op` check each walked `families` alone, and the test that checks the roster against the table walked one list too -- so a `serving_op` on a `new_surface` row would have been read by nothing, refused by nothing, and agreed about perfectly. A test written to be an independent derivation is only independent of the FUNCTION, not of the assumption.
 - **A SETUP STEP THAT SILENTLY DOES NOTHING IS STILL THE SAME TRAP** -- I ran `intent index refresh` as a control and it does not exist (`rebuild` does); its rc came from a pipe and the control read as informative while running nothing. Second time today's class has bitten.
+- **A GATE'S SUBJECT IS AS EASY TO GET WRONG AS ITS RULE, AND THE RULE BEING RIGHT HIDES IT.** My hook's first build read the correct freshness predicate against the wrong paths -- the ones the GREP searched rather than the ones its own ANSWER named -- so a grep confined to a clean directory passed the gate and appended hits from a file that had moved. Found by driving the case, not by reading the code, which looked right.
 - **A COST MEASUREMENT IS NOT A CONSEQUENCE MEASUREMENT.** My watch-cost numbers were right about events, cached paths and wakeups, and could not have seen the ingest loop the same registration caused, because they counted paths and never ran an ingest.
 - **A DEPENDENCY COMPILED BUT NEVER REFERENCED IS NOT IN THE BINARY.** `lto = "fat"` plus macOS dead-stripping drops it, so a size measurement that only adds the crate reads a real cost as ZERO. Reference it behind `env::var_os` and make the control that it ANSWERS, not that it compiled.
 - **THE ARITHMETIC IS AN INSTRUMENT CHECK.** Five grammar deltas summed to MORE than a shared-runtime model allows, which is impossible -- and that impossibility is what revealed they excluded the tree-sitter runtime.

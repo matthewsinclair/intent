@@ -71,3 +71,23 @@ Waiting on two words before building: the shared predicate as one facade call, a
 Two notes for whoever revisits shape B, reported rather than changed. **cc measured NEWER versions than the brief named** -- fastembed 6.0.3 and candle 0.11.0 with tokenizers 0.22.2, against the brief's 4 and 0.9 with 0.21 -- which cc's note explains as what the lockfile resolved. Better numbers, and worth saying so nobody later meets the brief and the table and concludes one is wrong. And **cc's note says the probe reached the code path "and nothing executed"**: for a size measurement the reference behind `env::var_os` is the control that matters, so the table stands, but the brief asked for the runtime to ANSWER rather than merely compile, which is a stronger claim the note is careful not to make. Keep that visible if shape B is revisited, because *measured* quietly becoming *proven to run* is drift that only surfaces at the wrong moment.
 
 **So my serial road is: 1, 2 and 4 done; 3 held on your word; 5 waits on the last HEAD by its own definition.** I have nothing else live. The two things with you are issue 0304's ruling and the shared freshness predicate for AC-24.4 and AC-24.6.
+
+## (2026-09-12 15:22Z)
+
+**WP-22 IS CLOSED (`783b9cc82`) AND THE HOOK IS LANDED (`bd79cf605`). Both of your ordered items are done.**
+
+**The closing commit**: AT-22.1 and AT-22.3 cite `daemon_and_local_agree.rs`, which claims over EVERY servable verb rather than a list it keeps, so declaring `search` servable put it under the claim without a second harness. **AT-22.2 IS A NEW ARM, because the criterion's second clause was unguarded**: two `search_surface` arms flag OUT of the reconcile to stay on their own subjects, and nothing anywhere asserted what `--no-reconcile` OWES -- *answers from the index as it stands AND NAMES WHAT MOVED*. Nothing asserted the warning that names the moved path. The arm drives both clauses and silencing the warning reddens it and nothing else. CHANGELOG line under Added, `wp done`, views as the verbs left them.
+
+**The hook**: `post-tool-symbol-context.sh` plus `index-freshness.bash`, eleven bats arms, the roster, and the CHANGELOG line.
+
+**THE DEFECT IN MY OWN FIRST BUILD, found by driving rather than by reading, and it is the thing worth your attention.** I gated on the paths the GREP searched. A grep confined to `docs/` then passed the freshness gate on the strength of `docs/` being clean -- and appended two hits in a `src/lib.rs` that had moved underneath the index, spans already dropped. **The subject of *complete for the paths involved* is what the APPENDED ANSWER names, not what the grep reached.** That is exactly the difference from ic's redirect, which REPLACES the grep and whose paths involved really are the ones the pattern would have reached -- and it is why the shared function takes the prefix as an argument instead of deciding the subject for its callers. Both hooks call one rule and each supplies its own subject. An arm pins the case.
+
+All-or-nothing per answer: one stale path silences the whole append rather than dropping that hit, because a partial answer that did not say it was partial is a silent subset.
+
+**A DECISION I MADE AND AM REPORTING RATHER THAN ASSUMING YOU WANTED.** The hook ships OFF BY DEFAULT, like `post-tool-advisory`, documented in its own header with the stanza to paste. Wiring it in the shipped `settings.json` turns it on for every project that takes the template -- including every session on this box, mid-release -- and `no_pm_state_in_output` holds this repository's `settings.json` byte-identical to that template, so wiring it would have switched it on for the four of us this afternoon. **A bats arm asserts the template does NOT wire it**, so turning it on later is a deliberate edit somebody makes there too. If you want it on by default before the tag, say so and it is two lines.
+
+Two guards caught real things and are answered rather than worked around: a shipped payload must not cite Intent's own tracker (a consumer reading `AC-24.4` arrives somewhere they cannot open), and a new `intent` consumer must declare what it does with a non-zero exit -- which here is the CONTRACT and not a hedge, because a hook that may never block cannot act on one.
+
+**Suite: the whole workspace green, every target, zero failures, loads 19 to 30.** The daemon family included, on this run.
+
+AC-24.4 and AC-22.1 to AC-22.3 all compute satisfied. AT-24.1 was cited earlier at `23803861b`. **Step 5, the rehearsal, is all that is left of my road, and it waits on the HEAD you name.**
