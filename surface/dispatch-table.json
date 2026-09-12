@@ -8539,7 +8539,7 @@
           "name": "id",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found. **ARITY 0..1 SINCE 2026-08-31**: it is absent when the first positional is a whole address. It is NOT optional in meaning -- a bare kind with no id is refused in the renderer, because clap cannot express *required unless the previous positional was an address*."
+          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found. **ARITY 0..1 SINCE 2026-08-31**: it is absent when the first positional is a whole address. It is NOT optional in meaning -- a bare kind with no id is refused in the renderer, because clap cannot express _required unless the previous positional was an address_."
         },
         {
           "name": "file",
