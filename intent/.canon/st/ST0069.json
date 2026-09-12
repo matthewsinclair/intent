@@ -658,7 +658,8 @@
       "text": "Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent/st/ST0069/design.md, \"AC-24.7, specified\": the specification with its measured data source (no commit-to-thread link in the store; attribution a claim about some symbols, unattributed said never guessed, ids resolved against the store before shown), landed 7c62a4e6a"
       }
     }
   ],

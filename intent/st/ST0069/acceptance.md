@@ -158,7 +158,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-24.4 A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved. -- satisfied: no (computed)
 - AC-24.5 Every skill, template and rule that tells the model how to find code names the index verbs, the agent guide regenerates, and grep is named as the fallback for when the envelope says the index is not complete. -- satisfied: yes (computed)
 - AC-24.6 (non-test) The PreToolUse redirect of symbol-shaped grep patterns is specified with its safety condition, the freshness contract holding, and is not built until hv rules it on. -- satisfied: no
-- AC-24.7 (non-test) Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built. -- satisfied: no
+- AC-24.7 (non-test) Stretch: a symbol hit names the thread and criterion that introduced it, through the commit references the store and git already hold; specified in the design with its data source before it is built. -- evidence: intent/st/ST0069/design.md, "AC-24.7, specified": the specification with its measured data source (no commit-to-thread link in the store; attribution a claim about some symbols, unattributed said never guessed, ids resolved against the store before shown), landed 7c62a4e6a -- satisfied: yes
 
 ## Acceptance Tests
 
