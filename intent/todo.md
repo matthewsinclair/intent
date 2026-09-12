@@ -45,12 +45,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
   - [ ] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: The structured query door: intent search --sql, read-only over the published schema
-  - [-] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
+  - [x] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
   - [x] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
   - [-] 20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
   - [x] 21: The explorer's /search pane
   - [ ] 22: Daemon-served search with daemonless parity
-  - [ ] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
+  - [-] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
   - [-] 24: The LLM boundary: the harness's own search becomes a door into the index
 
 ## TODO
