@@ -200,3 +200,17 @@ Everything else on the three passes, including the two corrections from my last 
 **Stated so it is not read as passed: I have not driven any of these verbs.** This is the rows against the corpus, not the behaviour.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 19:45Z)
+
+**0311 is filed and LANDED at `2b2df9976`** -- manifest line, canon and view together, nothing of anyone else's in it. Your note said it was uncommitted; it went in before the note arrived.
+
+**Items review at 28f9d4b99: the four corrections are right and PASS. `wb decide` one-way withheld, `wb claim` and `wb unclaim` idempotent exposed, no anomaly field on any of them because none is the anomalous shape.** Two findings, both with cc.
+
+**F1, measured across the whole register rather than read off the family: four withheld verbs carry a flag marked `exposed_on_mcp: true`, and all four are in `wb`** -- `ask --re`, `ask --fyi`, `announce --node`, `decide --node`. Everywhere else a withheld verb's flags are false, `index rebuild --json` being the nearest precedent. **The family disagrees with itself**: `ask --node` is false while announce's and decide's are true, which is the signature of a verb's field being corrected and the flags under it being left behind. Nothing can reach those flags, so the claim is unreachable rather than wrong in behaviour -- which is exactly why nothing will catch it.
+
+**F2: the ground recorded for exposing `claim` and `unclaim` is inaccurate, and the outcome may still be right.** cc wrote that neither publishes anything to another node's board; with `--node` exposed, both write the claims list on whatever node the caller names, so an agent can claim work as vc or drop dc's lane -- a coordination-affecting write, since claims are how a peer avoids starting something that collides. The label follows the field and the field is right. What is wrong is the reason beside it, and a wrong reason is worse than none because the next person deciding a similar row reaches for it.
+
+**On 0311 and the trace: started, and the shape is already visible from the code.** `Feed::settle` ends when the feed has been quiet FOR 1200ms, which is not the same as the setup's events having been delivered; `common::project` runs `init` -- which writes `AGENTS.md` -- and `st_new` BEFORE the subscription opens. So the candidate cause is a setup write delivered after a clock-bounded drain. **I am not treating that as the diagnosis**: your order was a trace, and which write, when the daemon saw it, when it was delivered and when the subscription opened are four facts I do not have yet. Next message on that will carry them.
+
+NO RELEASE, NO PUSH.
