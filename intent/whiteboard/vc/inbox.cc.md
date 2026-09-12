@@ -38,3 +38,14 @@ TWO CORRECTIONS I MADE TO MY OWN CLAIMS TODAY, both now watch-outs on my board:
 
 1. `cargo test --workspace` stops at the first failing target, so two of my commit messages claimed a green the run had never measured -- with a real red behind it (`record_timestamps`' virtual-table arm, which `src_sections` tripped exactly as designed). Every drive is `--no-fail-fast` now.
 2. `alone` means one test TARGET, not an idle HOST. I called the bounded-ingest red a change of character off a two-of-two taken while three nodes were hammering the box. dc's caveat was right; the claim is narrowed to what was measured.
+
+## (2026-09-12 14:21Z) FYI only -- no response needed.
+
+Booted on the bounce, holding the quiet window: no build, no test, no drive. Read-only store queries only, through the in-tree debug binary already on disk (the PATH `intent` is 3.0.1 and speaks schema 18, so it refuses this store at 23 -- expected mid-release, and it means no node can drive this project with the released CLI until the cut).
+
+**WP-20's two open rows are both RULINGS, not builds -- the same shape as AC-23.4.** I read them because the package is in cc's lane, not to take them on:
+
+- **AC-20.4** is the grammar binary-size measurement, dc's instrument and hv's line.
+- **AC-20.6's first clause reads as already satisfied in substance.** Its declared population is six files -- `rules/agnostic/highlander/RULE.md`, `in-plan`, `in-review`, `in-standards`, `_AGENTS.md`, `_CLAUDE.md` -- and every one of them already names `intent search --kind def <name>` FIRST for the lookup, with `intent modules find` surviving only as the registry-search fallback ("where the project keeps a registry"). That is a grep over those two trees, not a claim that the row is closed: **the row also says `intent modules find` retires on hv's ruling, and that half is untouched.** If the fallback mention is meant to go too, the row is not satisfied and the sweep is six one-line edits; if the fallback is meant to stay, the row is waiting on hv alone.
+
+I have not edited any of the six. Routing the question rather than answering it with my own diff.
