@@ -132,6 +132,52 @@ pub fn feature_of(lang: &str) -> Option<&'static str> {
     .map(|(_, feature)| *feature)
 }
 
+/// What this build can do for a language, asked WITHOUT parsing anything.
+///
+/// **THE THREE ANSWERS SEND A READER TO THREE DIFFERENT PLACES**, which is
+/// [`NoSymbols`]'s reason restated as a property of the build rather than of a
+/// file: a build flag, an upstream grammar that has not written a tags query,
+/// and a language nothing here supports. `intent index status` reports it per
+/// declared language, so a project whose `shell` files name no symbols reads
+/// why instead of reading nothing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Readiness {
+  /// A grammar is compiled in and it ships a tags query.
+  Ready,
+  /// The roster names a grammar for this language and this build does not
+  /// carry it. The feature is the whole of the fix.
+  NoGrammar { feature: &'static str },
+  /// The grammar is compiled in and ships no tags query, so it names nothing.
+  /// `tree-sitter-bash` is the live case and nobody here writes the query.
+  NoTagsQuery,
+  /// No grammar is declared for this language at all.
+  Unknown,
+}
+
+impl Readiness {
+  /// The stored and reported spelling.
+  pub fn as_str(&self) -> &'static str {
+    match self {
+      Readiness::Ready => "ready",
+      Readiness::NoGrammar { .. } => "no-grammar",
+      Readiness::NoTagsQuery => "no-tags-query",
+      Readiness::Unknown => "unknown",
+    }
+  }
+}
+
+/// What this build can do for a language.
+pub fn readiness(lang: &str) -> Readiness {
+  match grammar(lang) {
+    Some((_, _, Some(_))) => Readiness::Ready,
+    Some((_, _, None)) => Readiness::NoTagsQuery,
+    None => match feature_of(lang) {
+      Some(feature) => Readiness::NoGrammar { feature },
+      None => Readiness::Unknown,
+    },
+  }
+}
+
 /// The symbols in `bytes`, as the grammar for `lang` tags them.
 ///
 /// `path` is carried onto every row untouched: this module never interprets a

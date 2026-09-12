@@ -1657,6 +1657,16 @@ pub struct SearchRow {
   /// only against other rows of the same query.
   pub rank: f64,
 }
+/// One source row a lexical query matched.
+#[derive(Debug, Clone)]
+pub struct SourceRow {
+  pub section: crate::index::source::Section,
+  /// Where in the body the match begins, when the highlighter could say.
+  pub at: Option<usize>,
+  /// FTS5's own rank, carried rather than recomputed, and comparable only
+  /// within this tier.
+  pub rank: f64,
+}
 
 /// The mark [`Store::search_hits`] asks `highlight()` to put before each
 /// matched token. Private-use, so authored prose does not carry it.
@@ -3683,19 +3693,23 @@ impl Store {
     Ok(())
   }
 
-  /// How many distinct FILES the prose index holds.
+  /// How many distinct FILES of CANON the prose index holds.
+  ///
+  /// **SCOPED TO CANON'S HALF, because the table now holds two.** The
+  /// repository's own prose lives here too, under `owner_type = file`, and
+  /// counting it as canon would make the freshness block report one corpus's
+  /// size as another's.
   ///
   /// Sections are what the index stores and files are what an operator counts,
   /// so the freshness block reports files: "3 sections" says nothing about
   /// whether the tree was read, and one file split six ways is one file.
-  pub fn doc_file_count(&self) -> Result<usize, StoreError> {
-    let n: i64 =
-      self
-        .conn
-        .query_row("SELECT count(DISTINCT file) FROM doc_sections", [], |row| {
-          row.get(0)
-        })?;
-    Ok(n as usize)
+  pub fn canon_doc_file_count(&self) -> Result<usize, StoreError> {
+    let count: i64 = self.conn.query_row(
+      "SELECT count(DISTINCT file) FROM doc_sections WHERE owner_type <> ?1",
+      params![crate::prose::FILE_OWNER],
+      |row| row.get(0),
+    )?;
+    Ok(count as usize)
   }
 
   pub fn doc_section_count(&self) -> Result<usize, StoreError> {
@@ -4231,6 +4245,25 @@ impl Store {
     Ok(())
   }
 
+  /// The language the index recorded for a path, if it recorded one.
+  ///
+  /// **ONE HOME FOR A PATH'S LANGUAGE.** `src_sections` deliberately does not
+  /// carry it: a fact in two tables disagrees the first time a file is
+  /// reclassified, and this is a lookup on a primary key.
+  pub fn index_lang(&self, path: &str) -> Result<Option<String>, StoreError> {
+    match self.conn.query_row(
+      "SELECT lang FROM index_file WHERE path = ?1",
+      params![path],
+      |row| row.get::<_, Option<String>>(0),
+    ) {
+      Ok(lang) => Ok(lang),
+      // A path the index does not hold has no language, which is an answer and
+      // not a failure: a search may name a file the index has never read.
+      Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+      Err(e) => Err(e.into()),
+    }
+  }
+
   /// Every symbol with this exact name, ordered by path then line.
   ///
   /// **EXACT, BECAUSE THE QUESTION IS EXACT.** `--kind def <name>` asks whether
@@ -4361,6 +4394,44 @@ impl Store {
       // tier -- which is why the envelope never blends tiers (S4).
       let rank: f64 = row.get(8)?;
       Ok(SearchRow { section, at, rank })
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
+  }
+
+  /// One `src_sections` row a query matched, with where it matched and its
+  /// rank.
+  ///
+  /// **THE SOURCE TIER'S ROWS ARE THE SAME LEXICAL ANSWER AS PROSE'S, from a
+  /// different table with a different tokeniser.** They join the LEXICAL group
+  /// rather than forming one of their own: a tier is a group and a corpus is an
+  /// entry, so code arriving in the corpus does not add a tier.
+  pub fn search_source(&self, query: &str) -> Result<Vec<SourceRow>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, seq, start_line, end_line, kind, name, name_parts, body, \
+       highlight(src_sections, 7, ?2, ''), rank FROM src_sections \
+       WHERE src_sections MATCH ?1 ORDER BY rank, path, seq",
+    )?;
+    let rows = stmt.query_map(params![query, MATCH_MARK.to_string()], |row| {
+      let section = crate::index::source::Section {
+        path: row.get(0)?,
+        seq: row.get::<_, i64>(1)? as u32,
+        start_line: row.get::<_, i64>(2)? as u32,
+        end_line: row.get::<_, i64>(3)? as u32,
+        kind: row.get(4)?,
+        name: row.get(5)?,
+        name_parts: row.get(6)?,
+        body: row.get(7)?,
+      };
+      let marked: String = row.get(8)?;
+      let at = marked
+        .find(MATCH_MARK)
+        .filter(|_| !section.body.contains(MATCH_MARK));
+      let rank: f64 = row.get(9)?;
+      Ok(SourceRow { section, at, rank })
     })?;
     let mut out = Vec::new();
     for row in rows {

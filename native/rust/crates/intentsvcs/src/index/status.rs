@@ -22,6 +22,14 @@ use super::corpus::SkipReason;
 pub struct Status {
   /// Files the index holds, by corpus, in the corpus's own spelling.
   pub held: BTreeMap<String, usize>,
+  /// What this build can do for each language the project declares.
+  ///
+  /// **A LANGUAGE THAT NAMES NO SYMBOLS SAYS WHY.** Three different facts
+  /// produce an empty structural answer -- no grammar compiled in, a grammar
+  /// with no tags query, a language nothing supports -- and a reader who is
+  /// told none of them concludes the index is broken or that their code has no
+  /// definitions in it.
+  pub grammars: BTreeMap<String, String>,
   /// Files the index does not hold, by reason, each with its paths in path
   /// order. A reason with nothing under it is not carried.
   pub skipped: BTreeMap<String, Vec<String>>,
@@ -59,7 +67,30 @@ pub fn summarise(rows: &[Row]) -> Status {
   for paths in skipped.values_mut() {
     paths.sort();
   }
-  Status { held, skipped }
+  Status {
+    held,
+    grammars: BTreeMap::new(),
+    skipped,
+  }
+}
+
+/// What this build can do for each language a project declares.
+///
+/// **PURE, AND A FUNCTION OF THE BUILD RATHER THAN OF THE STORE.** Nothing is
+/// recorded about a grammar: whether one is compiled in is a fact about this
+/// binary, so a status read back from the store and one returned by a rebuild
+/// give the same answer, which is the property that lets the two renderings be
+/// compared.
+pub fn grammars(declared: &[String]) -> BTreeMap<String, String> {
+  declared
+    .iter()
+    .map(|lang| {
+      (
+        lang.clone(),
+        super::symbols::readiness(lang).as_str().to_string(),
+      )
+    })
+    .collect()
 }
 
 /// Every reason, in the order a report lists them, so that a reason with

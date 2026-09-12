@@ -2774,10 +2774,8 @@ impl Facade {
     query: &str,
     ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
-    use crate::index::corpus::Corpus;
     use crate::search::{
-      CANON_POLICY, CorpusState, Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier,
-      TierGroup, corpus_key, snippet,
+      Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier, TierGroup, snippet,
     };
 
     let expression = crate::fts::expression(query);
@@ -2792,13 +2790,7 @@ impl Facade {
       }
     })?;
 
-    let mut index = IndexFreshness::new(std::collections::BTreeMap::from([(
-      corpus_key(&Corpus::Canon).to_string(),
-      CorpusState {
-        policy: CANON_POLICY.to_string(),
-        files: self.store.doc_file_count().map_err(FacadeError::Store)?,
-      },
-    )]));
+    let mut index = IndexFreshness::new(self.corpora()?);
 
     let mut hits = Vec::new();
     for row in rows {
@@ -2825,6 +2817,40 @@ impl Facade {
       // the filters excluded is not part of what was returned, and warning
       // about it would print a caution about hits the reader cannot see --
       // `--kind issue` reporting that a thread's file moved.
+      if ask.keeps(&hit) {
+        if hit.stale {
+          index.mark_stale(hit.path.clone());
+        }
+        hits.push(hit);
+      }
+    }
+
+    // **CODE JOINS THE LEXICAL GROUP AND DOES NOT MAKE ONE OF ITS OWN.** A tier
+    // is a group and a corpus is an entry: the source table is a second corpus
+    // answered by the same lexical question, with a tokeniser chosen for
+    // identifiers rather than prose.
+    for row in self
+      .store
+      .search_source(&expression)
+      .map_err(FacadeError::Store)?
+    {
+      let section = row.section;
+      let located = self.locate_body(&section.path, &section.body, row.at);
+      let hit = Hit {
+        kind: HitKind::File,
+        name: section.path.clone(),
+        // A file's owner is its path, which is already in `path`.
+        owner: None,
+        lang: self.lang_of(&section.path),
+        path: section.path.clone(),
+        span: match located {
+          Located::At(line) => Some(Span::line(line)),
+          _ => None,
+        },
+        score: row.rank,
+        snippet: snippet(&section.body, row.at),
+        stale: matches!(located, Located::Moved),
+      };
       if ask.keeps(&hit) {
         if hit.stale {
           index.mark_stale(hit.path.clone());
@@ -2903,6 +2929,66 @@ impl Facade {
     })
   }
 
+  /// The language the index recorded for a path.
+  fn lang_of(&self, path: &str) -> Option<String> {
+    self.store.index_lang(path).ok().flatten()
+  }
+
+  /// Every corpus the index holds, with how its freshness is decided and how
+  /// many files it covers.
+  ///
+  /// **THE POLICY IS READ FROM THE RULE RATHER THAN SPELLED HERE** -- the
+  /// corpus name comes off the row, `corpus::named` turns it back into the
+  /// taxonomy, and `freshness::policy_for` says which policy that corpus is
+  /// under. A freshness block that named a corpus without saying how its
+  /// freshness is decided would tell a reader the question was never asked, and
+  /// a second spelling of the two policies would drift from the rule.
+  ///
+  /// **CANON IS COUNTED FROM THE PROSE TABLE AND THE REST FROM `index_file`**,
+  /// because they are different populations: canon's prose belongs to entities
+  /// the store holds, and a corpus row is a path on disk.
+  ///
+  /// **CANON IS NAMED EVEN WHEN IT HOLDS NOTHING, AND A DISK CORPUS IS NOT.**
+  /// Canon is intrinsic -- every store has an entity corpus, so a block that
+  /// omitted it would read as a build without one, which is the case
+  /// `an_empty_index_is_named_in_the_envelope_and_is_not_a_miss` exists to
+  /// tell apart from a miss. A disk corpus appears when the index has walked
+  /// and found files of that kind; a project with no code has no code corpus,
+  /// and naming it with a zero would invent one.
+  fn corpora(
+    &self,
+  ) -> Result<std::collections::BTreeMap<String, crate::search::CorpusState>, FacadeError> {
+    use crate::index::corpus::Corpus;
+    use crate::index::freshness::policy_for;
+    use crate::search::{CorpusState, corpus_key};
+
+    let mut out = std::collections::BTreeMap::new();
+    let canon = self
+      .store
+      .canon_doc_file_count()
+      .map_err(FacadeError::Store)?;
+    out.insert(
+      corpus_key(&Corpus::Canon).to_string(),
+      CorpusState {
+        policy: policy_for(&Corpus::Canon).as_str().to_string(),
+        files: canon,
+      },
+    );
+    for row in self.store.index_files().map_err(FacadeError::Store)? {
+      let Some(corpus) = crate::index::corpus::named(&row.corpus) else {
+        continue;
+      };
+      let entry = out
+        .entry(corpus_key(&corpus).to_string())
+        .or_insert_with(|| CorpusState {
+          policy: policy_for(&corpus).as_str().to_string(),
+          files: 0,
+        });
+      entry.files += 1;
+    }
+    Ok(out)
+  }
+
   /// What a symbol row may still claim about the file it came from: its span,
   /// whether it is stale, and the line to show.
   ///
@@ -2964,7 +3050,7 @@ impl Facade {
     section: &crate::prose::DocSection,
     at: Option<usize>,
   ) -> crate::search::Located {
-    use crate::search::{Located, find};
+    use crate::search::Located;
     if section.body.is_empty() {
       return Located::NoClaim;
     }
@@ -2979,10 +3065,24 @@ impl Facade {
     if section.file.starts_with(canon.trim_end_matches('/')) {
       return Located::NoClaim;
     }
-    let Ok(bytes) = std::fs::read(self.project.root().join(&section.file)) else {
+    self.locate_body(&section.file, &section.body, at)
+  }
+
+  /// **THE 0195 RULE ITSELF**, asked of any indexed body: where it sits in the
+  /// file as it now stands, or that it has moved, or that nothing can be
+  /// claimed. Both tiers ask it here rather than each carrying its own copy,
+  /// because a line is the one thing a search says about the disk and two
+  /// statements of when it may be said would differ in the direction that
+  /// prints a number.
+  fn locate_body(&self, file: &str, body: &str, at: Option<usize>) -> crate::search::Located {
+    use crate::search::{Located, find};
+    if body.is_empty() {
+      return Located::NoClaim;
+    }
+    let Ok(bytes) = std::fs::read(self.project.root().join(file)) else {
       return Located::NoClaim;
     };
-    let Some(found) = find(&bytes, section.body.as_bytes()) else {
+    let Some(found) = find(&bytes, body.as_bytes()) else {
       return Located::Moved;
     };
     let upto = found + at.unwrap_or(0);
@@ -5403,7 +5503,9 @@ impl Facade {
         &content.symbols,
       )
       .map_err(FacadeError::Store)?;
-    Ok(crate::index::status::summarise(&rows))
+    let mut status = crate::index::status::summarise(&rows);
+    status.grammars = crate::index::status::grammars(&self.project.config().languages);
+    Ok(status)
   }
 
   /// Bring the index up to date under one path, touching nothing outside it.
@@ -5490,7 +5592,9 @@ impl Facade {
   /// [`crate::index::status::Status::is_empty`] states in its own words.
   pub fn index_status(&self) -> Result<crate::index::status::Status, FacadeError> {
     let rows = self.store.index_files().map_err(FacadeError::Store)?;
-    Ok(crate::index::status::summarise(&rows))
+    let mut status = crate::index::status::summarise(&rows);
+    status.grammars = crate::index::status::grammars(&self.project.config().languages);
+    Ok(status)
   }
 
   pub fn doctor(

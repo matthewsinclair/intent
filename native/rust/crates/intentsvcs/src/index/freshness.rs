@@ -38,6 +38,21 @@ pub enum Policy {
   StatThenHash,
 }
 
+impl Policy {
+  /// How the freshness block names this policy.
+  ///
+  /// **THE ENVELOPE PUBLISHES THE POLICY AND MUST NOT SPELL IT ITSELF.** A
+  /// freshness block that names a corpus without saying how its freshness is
+  /// decided tells a reader the question was never asked, and a second spelling
+  /// of these two words would drift from the rule they describe.
+  pub fn as_str(self) -> &'static str {
+    match self {
+      Policy::HashAlways => "hash",
+      Policy::StatThenHash => "stat-then-hash",
+    }
+  }
+}
+
 /// The policy this corpus is under.
 ///
 /// **A MATCH RATHER THAN A FIELD, so a corpus added later cannot default into

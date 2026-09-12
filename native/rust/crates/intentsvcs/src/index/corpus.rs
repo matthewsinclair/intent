@@ -47,6 +47,25 @@ impl Corpus {
   }
 }
 
+/// The corpus a stored spelling names, or `None` for a word this build does
+/// not know.
+///
+/// **THE STORED STRING IS THE NAMESPACE AND THIS IS THE WAY BACK** (vc,
+/// 2026-09-12). A reader that matched on the words itself would be a second
+/// roster; a row naming a corpus this build has never heard of is a row no
+/// surface can classify, and `None` says so rather than guessing.
+///
+/// `lang` is not recoverable from the corpus name alone -- it is a column of
+/// its own -- so a code corpus comes back with none.
+pub fn named(word: &str) -> Option<Corpus> {
+  Some(match word {
+    "canon" => Corpus::Canon,
+    "prose" => Corpus::Prose,
+    "code" => Corpus::Code { lang: None },
+    _ => return None,
+  })
+}
+
 /// The extension-to-language map.
 ///
 /// **ITS NAMES ARE `critic::HEADLESS_LANGUAGES` AND A TEST PINS THEM THERE.**

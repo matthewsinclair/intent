@@ -472,3 +472,95 @@ fn a_file_that_has_gone_leaves_the_index_and_takes_its_content_with_it() {
     "and its neighbour is untouched"
   );
 }
+
+#[test]
+fn a_source_file_is_found_lexically_and_its_corpus_is_named() {
+  // **CODE THAT IS INDEXED AND ONLY FINDABLE STRUCTURALLY IS A HOLE IN "SEARCH
+  // THE WHOLE PROJECT"** (vc, 2026-09-12). The source table is a second corpus
+  // answered by the same lexical question, so its rows join the lexical group
+  // and add an ENTRY to the freshness block -- not a group of their own.
+  use intentsvcs::search::{SearchQuery, Tier};
+
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "src/lib.rs", b"fn assemble_widget() -> usize { 1 }\n");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+
+  let answer = facade
+    .search_all("assemble_widget", &SearchQuery::default())
+    .expect("the search answered");
+
+  let lexical = answer
+    .groups
+    .iter()
+    .find(|g| g.tier == Tier::Lexical)
+    .expect("the lexical group");
+  let hit = lexical
+    .hits
+    .iter()
+    .find(|h| h.path == "src/lib.rs")
+    .unwrap_or_else(|| panic!("the source file is not in the lexical answer: {answer:?}"));
+  assert!(
+    hit.snippet.contains("assemble_widget"),
+    "and the line that matched is shown: {hit:?}"
+  );
+  assert_eq!(
+    hit.span.map(|s| s.start_line),
+    Some(1),
+    "the line survives because the indexed body is the file's bytes"
+  );
+  assert_eq!(hit.lang.as_deref(), Some("rust"), "read from `index_file`");
+
+  let code = answer
+    .index
+    .corpora
+    .get("code")
+    .expect("the source corpus is named in the freshness block");
+  assert_eq!(
+    code.policy, "stat-then-hash",
+    "and it says how its freshness is decided, which is the half a block that \
+     named only the corpus would leave out"
+  );
+  assert!(code.files >= 1);
+}
+
+#[test]
+fn a_declared_language_that_names_no_symbols_says_why() {
+  // **THREE FACTS PRODUCE AN EMPTY STRUCTURAL ANSWER** -- no grammar compiled
+  // in, a grammar with no tags query, a language nothing supports -- and a
+  // reader told none of them concludes the index is broken or that their code
+  // has no definitions in it. The fixture declares `rust`; `shell` is added
+  // because its grammar ships no tags query in any build, which is the answer
+  // no feature flag changes.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  std::fs::write(
+    fx.root().join("intent/.config/config.json"),
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\", \"shell\"]\n}\n",
+  )
+  .expect("write config");
+
+  let mut facade = fx.facade();
+  let built = facade.index_rebuild().expect("rebuild");
+
+  for lang in ["rust", "shell"] {
+    assert!(
+      built.grammars.contains_key(lang),
+      "every declared language is answered for: {built:?}"
+    );
+  }
+  assert_ne!(
+    built.grammars.get("shell").map(String::as_str),
+    Some("ready"),
+    "`shell`'s grammar ships no tags query in any build, so it is never ready; \
+     what it must not be is silently empty"
+  );
+  assert_eq!(
+    facade.index_status().expect("status").grammars,
+    built.grammars,
+    "a status read from the store and one returned by a rebuild answer the \
+     same, because this is a fact about the build and not about the rows"
+  );
+}
