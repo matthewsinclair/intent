@@ -30,7 +30,7 @@ On 2026-09-12 hv asked for a full review of the search thread and its requiremen
 | WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                                             | L    | Not Started |
 | WP-16 | Contract drift: a shipped field with no model row is refused                                                            | S    | Not Started |
 | WP-17 | The structured query door: intent search --sql, read-only over the published schema                                     | S    | Done        |
-| WP-18 | The corpus: the gitignore-aware repository, two staleness policies, the widened watcher                                 | L    | WIP         |
+| WP-18 | The corpus: the gitignore-aware repository, two staleness policies, the widened watcher                                 | L    | Done        |
 | WP-19 | Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index                                  | M    | Done        |
 | WP-20 | Structural search: tree-sitter symbols per declared language, and the agent canon that uses them                        | L    | WIP         |
 | WP-21 | The explorer's /search pane                                                                                             | M    | Done        |

@@ -69,7 +69,7 @@
       "seq": 18,
       "title": "The corpus: the gitignore-aware repository, two staleness policies, the widened watcher",
       "scope": "L",
-      "status": "wip",
+      "status": "done",
       "objective": "Widen the index scope from Intent's own prose to the gitignore-aware repository, with every exclusion a named row, two staleness policies for the two corpora, and one scope object read by both the scanner and the widened watcher.\n",
       "body": "Design: design.md, the corpus (S1). Corpus assignment is by kind: the store's entities stay the canon corpus; a markdown or text file on disk joins the prose table through the heading splitter with owner_type file; a code file joins the source table; rendered views and the canon extract are not in the disk corpus. Binaries, files over the size cap, unreadable files and symlinks get a file_index row with skipped_reason and are listed by `intent index status`. Canon hashes always; source is stat-then-hash. The watcher's root registration becomes recursive on FSEvents and in-scope-directories-only on inotify, measured before the package closes. Largest single change in the thread; the one that makes intentd load-bearing.\n",
       "preamble": ""
@@ -425,7 +425,8 @@
       "text": "The watcher's registration strategy is recorded per platform with the measurement that chose it.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "native/rust/crates/intentd/src/watch.rs at 25ca2e9ac -- the registration strategy recorded beside the registration it explains, per platform, with the measurement that chose it. macOS (dc, one release build in the watched tree, 120s window): 26 debouncer wakeups, 703 path-events, 447 unique paths cached, 1 in canon scope, 2 in index scope with a deliberate in-scope edit among them as the control -- FSEvents coalesces, so volume tracks activity and not tree size, which is what makes the recursive root watch filtered by scope affordable. Scope counts (cc, this tree): 2,522 files in 484 directories in the index scope; 10,301 directories and 423,602 files in the whole tree excluding .git; .git 281 more. TWO LIMITS, STATED AS LIMITS: the window was measured on a 6,366-path worktree and the claim that it holds on the 433,929-path dev tree is an argument from MECHANISM (coalescing bounds volume by activity) and not an extrapolation from that ratio; and nothing here measures inotify -- the 484-directory count is evidence the per-directory strategy FITS under max_user_watches and is no evidence at all about event rate or re-registration cost."
       }
     },
     {
@@ -701,6 +702,56 @@
       ],
       "status": "green",
       "note": "A capped read reports matched and returned and truncated in the envelope, and the terminal rendering says the same on stderr."
+    },
+    {
+      "id": "AT-18.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_index_scope_is_the_repository.rs",
+      "covers": [
+        "AC-18.1"
+      ],
+      "status": "green",
+      "note": "Seven arms over the scope: a tracked source file in and a gitignored one out; .git, the store and the backup out by RULE rather than by path shape, with the fixture deliberately not gitignoring them so the rule is what excludes them; the walk not descending into what it ignores, proved semantically by a nested .gitignore that is decisive to a walk that descends and unreachable to one that prunes; the sync corpus unchanged; one ignore statement answering both questions; the ancestry and no-git conditions that the change of instrument would otherwise have dropped. Every probe is put to real git check-ignore with core.excludesFile=/dev/null, so the answer is not a property of the machine."
+    },
+    {
+      "id": "AT-18.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_index_is_built_from_the_tree_and_read_from_the_store.rs",
+      "covers": [
+        "AC-18.2"
+      ],
+      "status": "green",
+      "note": "A rebuild records every in-scope path with the reason the index does not hold it, and status READS THAT BACK rather than walking: a status that surveyed would describe the world and could never say the index is empty. The skipped paths are listed and not counted, because a count is silence with a number on it. Also here: the cap the project sets, a writer's silence not erasing what the index holds, and a declared language that names no symbols saying why. ic's surface arms render the same rows."
+    },
+    {
+      "id": "AT-18.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/index/reconcile.rs",
+      "covers": [
+        "AC-18.3"
+      ],
+      "status": "green",
+      "note": "The missed-edit case driven on a real file -- same length, mtime put back with File::set_times, different bytes, both preconditions asserted -- and put to BOTH policies: canon catches it, source is shown not to. The asymmetry is the design's and the cost is one stale hit against hashing every source file on every reconcile. The pure decision, driven on values, is in index::freshness."
+    },
+    {
+      "id": "AT-18.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/a_source_edit_reaches_the_index_and_costs_canon_nothing.rs",
+      "covers": [
+        "AC-18.4"
+      ],
+      "status": "green",
+      "note": "dc's daemon half: a source edit reaches the index through its own watch registration and the canon path never hears about it, which is the two-registration ruling as an arm. The engine half is cc's one_ignore_statement_answers_both_questions in the_index_scope_is_the_repository.rs -- the scanner and the watcher asking one scope object -- and index::reconcile::changed_under, which the dispatch calls and which never descends from a root event."
+    },
+    {
+      "id": "AT-18.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/index/corpus.rs",
+      "covers": [
+        "AC-18.5"
+      ],
+      "status": "green",
+      "note": "A rendered view and the canon extract are the store's prose seen twice, so they are not in the disk corpus, and the exclusion asks the RENDERER rather than matching a path shape -- with the control that a file the renderer does not produce, in the same directory, stays in the corpus. index::reconcile's survey arm drives the same rule over a real tree, where the absence is correct rather than a skip: a view is not a file the index declined."
     },
     {
       "id": "AT-19.1",

@@ -2,7 +2,7 @@
 wp_id: WP-18
 title: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
