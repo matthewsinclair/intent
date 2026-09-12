@@ -132,7 +132,7 @@
   "criteria": [
     {
       "id": "AC-01.1",
-      "text": "An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store and a formatter fixed point; `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case.",
+      "text": "An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store, its one writer the renderer and the formatter excluded from it as from every generated view (ST0056 AC-03.17); `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case.",
       "kind": "test",
       "state": {
         "is": "computed"
