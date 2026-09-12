@@ -1763,6 +1763,21 @@ pub enum Note {
   /// missing is the record of it, and a refusal would make the correct act
   /// unavailable to anyone who had ever typed in a generated file.
   OverwroteForeignBytes(Vec<String>),
+  /// Closing this artefact UNLISTS it, and these are the paths the next
+  /// `organize --apply` will remove because of that. Project-relative.
+  ///
+  /// **THE COMMITTED FILES ARE THE POINT, WHICH IS WHY THIS IS NOT
+  /// [`Note::UnsyncedAttachments`].** That warning names the bytes that reach
+  /// no commit -- the sharpest case, and a strict SUBSET. Everything else armed
+  /// by the same close disappeared from the operator's working tree without
+  /// ever being named, and "it was in git" is a recovery route rather than a
+  /// reason not to say it is going.
+  ///
+  /// **SAID BEFORE THE REMOVAL IS ARMED, not after it happens** (AC-03.9, and
+  /// the same argument [`Facade::closing_notes`] already makes): the close
+  /// itself removes nothing, so this is the moment the operator can still
+  /// decide otherwise.
+  DehydratesOnNextOrganize(Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1888,6 +1903,9 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
       Note::UnsyncedUnknown => serde_json::json!({ "kind": "unsynced-unknown" }),
       Note::OverwroteForeignBytes(paths) => serde_json::json!({
         "kind": "overwrote-foreign-bytes", "paths": paths,
+      }),
+      Note::DehydratesOnNextOrganize(paths) => serde_json::json!({
+        "kind": "dehydrates-on-next-organize", "paths": paths,
       }),
       Note::HeldByV2Bucket {
         thread,
@@ -9468,18 +9486,87 @@ impl Facade {
     if list == ListEdit::Suppressed || declared_list_edit(op) != Some(ListAction::Remove) {
       return Ok(Vec::new());
     }
+    // **EVERY PATH THE REMOVAL WOULD TAKE, COMMITTED ONES INCLUDED.** The
+    // uncommitted-attachment warning below is the sharpest case and a strict
+    // subset; a committed view is still a file that leaves the operator's
+    // working tree, and it left without being named.
+    let mut notes = match self.dehydration_paths(id)? {
+      paths if paths.is_empty() => Vec::new(),
+      paths => vec![Note::DehydratesOnNextOrganize(paths)],
+    };
+    // **THE ATTACHMENT QUESTION IS ASKED OF A THREAD THAT HAS ATTACHMENTS**, and
+    // an attachment-less thread cannot be uncertain about them -- see this
+    // function's own doc. It is asked SECOND now, because the removal list above
+    // is about files on disk and does not depend on the store carrying any.
     if self.st_show(id)?.attachments.is_empty() {
-      return Ok(Vec::new());
+      return Ok(notes);
     }
     let scope = SyncScope::Threads(vec![id.to_string()]);
-    Ok(match self.sync_uncommitted(&scope)? {
+    match self.sync_uncommitted(&scope)? {
       // **NOT FOLDED INTO SILENCE.** A close that says nothing is read as "no
       // uncommitted bytes" by anyone who knows it warns, so silence here IS the
       // clean bill of health `sync_uncommitted` refuses to let a caller print.
-      None => vec![Note::UnsyncedUnknown],
-      Some(found) if found.is_empty() => Vec::new(),
-      Some(found) => vec![Note::UnsyncedAttachments(found)],
-    })
+      None => notes.push(Note::UnsyncedUnknown),
+      Some(found) if found.is_empty() => {}
+      Some(found) => notes.push(Note::UnsyncedAttachments(found)),
+    }
+    Ok(notes)
+  }
+
+  /// The paths the next `organize --apply` would remove because this close
+  /// unlists `id`.
+  ///
+  /// **ASKED OF `organize::plan` RATHER THAN COMPUTED HERE**, with the manifest
+  /// it is ABOUT to have: the thread struck from the declared set, everything
+  /// else as it stands. A second opinion about what dehydration removes is a
+  /// divergent copy of the rule that does the removing, and the two would
+  /// disagree exactly when it mattered -- which is the objection `projection`
+  /// already records against a second renderer.
+  ///
+  /// **A MANIFEST THAT IS NOT `Declared` ARMS NOTHING.** Absent or unparseable
+  /// realises everything and `edit_list` writes no entry, so no removal is
+  /// coming and there is nothing to warn about -- the same fail-open direction
+  /// `Realised::declares` takes, read from the same place rather than assumed.
+  /// A thread the manifest does not list is likewise already unlisted, so this
+  /// close arms nothing new.
+  ///
+  /// **IT READS THE MANIFEST THROUGH [`Facade::realised_threads`] AND NOT
+  /// THROUGH `manifest_for_action`, AND THE DIFFERENCE IS WHICH ERROR THE
+  /// OPERATOR SEES.** The strict reader REFUSES an unparseable manifest, and a
+  /// note that refuses is a diagnostic deciding the verb's outcome: measured
+  /// here as two error-remedy arms going red, because a close carrying a bad
+  /// date on an estate with a bad manifest started reporting the manifest --
+  /// the wrong one of its two faults, chosen by which diagnostic ran first. A
+  /// note may say less than it would like; it may not change what the verb
+  /// answers.
+  fn dehydration_paths(&self, id: &str) -> Result<Vec<String>, FacadeError> {
+    let Realised::Declared(mut declared) = self.realised_threads() else {
+      return Ok(Vec::new());
+    };
+    if !declared.remove(id) {
+      return Ok(Vec::new());
+    }
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let ctx = self.render_ctx()?;
+    let plan = organize::plan(
+      &self.project,
+      &self.canon,
+      &Realised::Declared(declared),
+      &ctx,
+      &tree,
+      digest,
+    );
+    Ok(
+      plan
+        .steps
+        .into_iter()
+        .filter(|step| step.action.is_destructive())
+        .filter(|step| self.owning_thread(&step.path, &self.canon).as_deref() == Some(id))
+        .map(|step| self.project.relative(&step.path))
+        .collect(),
+    )
   }
 
   /// Make a lifecycle op's declared edit to `.intentfiles` (AC-05.2).

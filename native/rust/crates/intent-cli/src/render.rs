@@ -8261,6 +8261,22 @@ fn report_notes(outcome: &Outcome, subject: &str) {
           "  remedy: a generated view has one writer, so recover the text with `git diff` / `git checkout` if you need it, and make the change through the verb that owns the field"
         );
       }
+      // **NAMED BEFORE THE REMOVAL IS ARMED.** These files are projections and
+      // the store still holds them, so the remedy is real and the note is a
+      // record rather than a warning off the act -- but a file leaving the
+      // working tree unnamed is the silent half, whether or not it is
+      // recoverable.
+      Note::DehydratesOnNextOrganize(paths) => {
+        eprintln!(
+          "note: this unlists {subject}, so the next `intent organize --apply` will remove:"
+        );
+        for path in paths {
+          eprintln!("  {path}");
+        }
+        eprintln!(
+          "  remedy: `intent st hydrate {subject}` writes them back from the store, and `--keep` closes without unlisting"
+        );
+      }
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),

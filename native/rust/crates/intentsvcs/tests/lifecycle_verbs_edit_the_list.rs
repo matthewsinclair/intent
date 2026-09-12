@@ -851,12 +851,36 @@ fn committed_fixture() -> Fixture {
   fx
 }
 
-/// The paths a closing note names, or a panic saying what came back instead.
+/// The paths the UNCOMMITTED-BYTES note names, or a panic saying what came back
+/// instead.
+///
+/// **IT SELECTS ITS NOTE RATHER THAN ASSERTING THE SET HAS ONE MEMBER**, since
+/// a close also names every path the next `organize` would remove (batch 4,
+/// 2026-09-12) and these arms are about the sharper claim: which of those files
+/// hold bytes that reach no commit, and are therefore the ones the estate
+/// cannot give back. Asserting the whole set here would make every arm below
+/// fail whenever an unrelated note is added, which is a test of the note
+/// ROSTER wearing the name of a test about attachments.
 fn named_paths(notes: &[Note]) -> &[String] {
-  match notes {
-    [Note::UnsyncedAttachments(paths)] => paths,
-    other => panic!("expected one UnsyncedAttachments note, got {other:?}"),
+  let found: Vec<&Vec<String>> = notes
+    .iter()
+    .filter_map(|note| match note {
+      Note::UnsyncedAttachments(paths) => Some(paths),
+      _ => None,
+    })
+    .collect();
+  match found.as_slice() {
+    [paths] => paths,
+    _ => panic!("expected exactly one UnsyncedAttachments note, got {notes:?}"),
   }
+}
+
+/// Whether a close said anything about uncommitted bytes -- the question these
+/// arms ask, now that a close has more than one thing it can say.
+fn said_anything_about_uncommitted_bytes(notes: &[Note]) -> bool {
+  notes
+    .iter()
+    .any(|note| matches!(note, Note::UnsyncedAttachments(_) | Note::UnsyncedUnknown))
 }
 
 /// **THE HEADLINE: A CLOSE NAMES THE FILE WHOSE BYTES ARE IN NO COMMIT, AND
@@ -958,9 +982,9 @@ fn a_clean_repository_says_nothing_and_that_is_not_the_unknown_answer() {
   let outcome = facade.st_done("ST0056").expect("done");
 
   assert!(
-    outcome.notes().is_empty(),
+    !said_anything_about_uncommitted_bytes(outcome.notes()),
     "every attachment of this thread is in a commit, so there is nothing at \
-     risk and nothing to say: {outcome:?}"
+     risk and nothing to say about it: {outcome:?}"
   );
 }
 
