@@ -10392,6 +10392,26 @@ fn staged_files() -> Result<Vec<std::path::PathBuf>, Failure> {
 fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severity_min: &str) {
   use intentsvcs::critic::{Arming, Disposition, Severity};
 
+  // **NOTHING IS PRINTED BEFORE A REFUSAL THAT CONTRADICTS IT** (`intent/wip.md`
+  // item 5, hv ruled the fix 2026-09-12). This function ran to completion and
+  // the exit-code match refused AFTERWARDS, so an empty rule library printed a
+  // census of nothing, then `ok: no findings`, and only then the refusal. **The
+  // reader met a clean verdict and a refusal in one output**, in that order, and
+  // a consumer scraping stdout for `ok:` found one.
+  //
+  // At exit 2 the refusal is the WHOLE output: the census is empty by
+  // definition, and its headline -- `0 of 0 rule(s) ASKED ... a clean result
+  // covers what was ASKED` -- frames an abstention as a pass. The refusal on
+  // stderr already carries the file count and the remedy.
+  //
+  // **THIS IS THE TEXT FACE ONLY.** `--format json` still emits its object: it
+  // makes no `ok:` claim, its `total` and `asked` are the zeroes a machine
+  // needs to see, and the process still exits 2 beside it.
+  let verdict = report.exit_code();
+  if verdict == 2 {
+    return;
+  }
+
   // **THE CENSUS COMES FIRST AND THE FINDINGS FOLLOW IT.** That is v2's order
   // and it is the right way round: what could be asked frames what was found,
   // and a reader who sees findings first has already formed a verdict before
@@ -10505,7 +10525,16 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
   // **A CLEAN RUN SAYS WHAT IT COVERED, INCLUDING THE FILE COUNT.** `ok: no
   // findings` on its own is the sentence the census exists to deny -- it reads
   // as "your code is fine" when it may mean "nothing was examined".
+  //
+  // **AND IT IS WITHHELD WHEN THIS RUN IS ABOUT TO REFUSE.** At exit 3 the
+  // census has already named the rules this project armed that could not be
+  // enforced here, which is the honest part of the report and stays; `ok:` after
+  // it is not a summary of what was covered, it is the opposite claim. No
+  // findings is exactly what a run that could not ask has.
   if report.findings.is_empty() {
+    if verdict != 0 {
+      return;
+    }
     println!(
       "ok: no {} findings at severity >= {} across {} file(s)",
       report.lang, severity_min, files

@@ -71,16 +71,28 @@ fn copy_tree(src: &Path, dest: &Path) -> usize {
   rules
 }
 
-fn run_args(exe: &Path, args: &[&str]) -> (i32, String) {
+/// One invocation, with the two streams KEPT APART.
+///
+/// **A TEST THAT CONCATENATES THEM CANNOT ASK WHICH ONE SAID IT**, and that is
+/// exactly the question below: a refusal on stderr and an `ok:` on stdout read
+/// as one output to a human and as two very different things to a consumer.
+fn run_streams(exe: &Path, args: &[&str]) -> (i32, String, String) {
   let out = Command::new(exe)
     .args(args)
     .current_dir(repo_root())
     .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the fixture binary");
-  let mut text = String::from_utf8_lossy(&out.stderr).into_owned();
-  text.push_str(&String::from_utf8_lossy(&out.stdout));
-  (out.status.code().unwrap_or(-1), text)
+  (
+    out.status.code().unwrap_or(-1),
+    String::from_utf8_lossy(&out.stdout).into_owned(),
+    String::from_utf8_lossy(&out.stderr).into_owned(),
+  )
+}
+
+fn run_args(exe: &Path, args: &[&str]) -> (i32, String) {
+  let (rc, stdout, stderr) = run_streams(exe, args);
+  (rc, format!("{stderr}{stdout}"))
 }
 
 fn run(exe: &Path) -> (i32, String) {
@@ -104,6 +116,39 @@ fn a_binary_whose_install_carries_no_rules_exits_2_and_says_why() {
     text.contains("rule library is EMPTY"),
     "the refusal must NAME the empty library -- a bare rc=2 is a silent refusal \
      and the operator cannot act on it.\noutput was:\n{text}"
+  );
+}
+
+/// **THE REFUSAL IS THE WHOLE OUTPUT, AND NOTHING PRECEDES IT THAT CONTRADICTS
+/// IT** (`intent/wip.md` item 5, ruled by hv 2026-09-12).
+///
+/// The renderer ran to completion and the exit-code match refused afterwards,
+/// so this same invocation printed a census of nothing, then
+/// `ok: no shell findings ... across 1 file(s)`, and only then the refusal.
+/// **A reader met a clean verdict and a refusal in one output**, in that order,
+/// and a consumer scraping stdout for `ok:` found one over a run that examined
+/// its files against no rules at all.
+#[test]
+fn the_refusal_is_the_only_thing_this_run_prints() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let exe = crate::common::fake_install(dir.path());
+
+  let (rc, stdout, stderr) = run_streams(&exe, &["critic", "shell", "--files", "README.md"]);
+
+  assert_eq!(rc, 2, "stdout:\n{stdout}stderr:\n{stderr}");
+  assert!(
+    stdout.is_empty(),
+    "a refused run prints nothing to stdout -- the refusal on stderr is the \
+     whole answer, and anything above it is a claim about a run that did not \
+     happen.\nstdout was:\n{stdout}"
+  );
+  assert!(
+    !stdout.contains("ok:") && !stderr.contains("ok:"),
+    "no `ok:` line may precede a refusal on either stream.\nstdout:\n{stdout}stderr:\n{stderr}"
+  );
+  assert!(
+    stderr.contains("rule library is EMPTY"),
+    "the refusal still names what is wrong.\nstderr:\n{stderr}"
   );
 }
 
