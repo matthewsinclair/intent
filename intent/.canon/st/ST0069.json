@@ -522,7 +522,9 @@
       "text": "Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling.",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "Re-keyed under the pen 2026-09-12: the sweep half is AC-24.5's claim, satisfied through AT-24.5 (every canon home names intent search --kind def first, with the registry lookup kept as the fallback where a project keeps one); the retirement half is ruled: intent modules find stays in 3.0.2 as the registry fallback; hv may overrule with a line",
+        "by": "vc"
       }
     },
     {

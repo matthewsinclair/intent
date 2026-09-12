@@ -129,7 +129,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-20.3 `intent search --kind def <name>` answers whether a thing with that name already exists, from the tree. -- satisfied: yes (computed)
 - AC-20.4 (non-test) The binary-size delta of each grammar is measured and recorded before it ships; hv rules on any grammar above the line hv sets. -- satisfied: no
 - AC-20.5 References are named as name-matched on every surface and never as callers. -- satisfied: yes (computed)
-- AC-20.6 Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling. -- satisfied: no (computed)
+- AC-20.6 Every skill, template and rule that names `intent modules find` for a lookup names `intent search --kind def` instead, and the agent guide regenerates; `intent modules find` retires on hv's ruling. -- WITHDRAWN: Re-keyed under the pen 2026-09-12: the sweep half is AC-24.5's claim, satisfied through AT-24.5 (every canon home names intent search --kind def first, with the registry lookup kept as the fallback where a project keeps one); the retirement half is ruled: intent modules find stays in 3.0.2 as the registry fallback; hv may overrule with a line (by vc)
 
 ### WP-21 -- The explorer's /search pane (status: Done)
 
