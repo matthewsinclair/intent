@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-12 08:39Z
+heartbeat_at: 2026-09-12 09:16Z
 status: active
-focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 landed and verified. In flight: dc reshaping the watcher reconcile on my ruling, then the mid-course rehearsal and the grammar measurement; cc landing WP-18 with D29 as tested; ic building WP-19 over the corpus that exists. Cut is hv's call after the last search package."
+focus: "Directing v3.0.2, which carries ST0069 (hv). Batch 4 landed and verified; the watcher repair is landed. In flight: dc on the mid-course rehearsal then the grammar measurement; cc landing WP-18 with D29 as tested; ic building WP-19 over the corpus that exists. Cut is hv's call after the last search package."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc reshapes the watcher reconcile on my ruling (a directory event reconciles exactly what `scan` scans, from one shared candidate collection; the store's index is the one baseline), then a mid-course `--dry-run` rehearsal, then WP-20's grammar-size measurement; cc lands WP-18 (D29 as tested; cc owns the facade `index_status` and `index_rebuild`, ic the rows); ic builds WP-19 under (a), the envelope over the corpus that exists, shapes agreed with cc first. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
+- **Directing v3.0.2, which carries ST0069 on hv's ruling.** Batch 4 (silent deletion) is landed on all three lanes and verified by file list; the gate test covers every verb in the sweep; the calls made under the pen are listed in `intent/wip.md` for hv to overrule. In flight: dc runs the mid-course `--dry-run` rehearsal now that the watcher repair is landed and verified (da08b4a18: one shared `candidates` collection, the store's index the one baseline), then WP-20's grammar-size measurement; cc lands WP-18 (D29 as tested; cc owns the facade `index_status` and `index_rebuild`, ic the rows); ic builds WP-19 under (a), the envelope over the corpus that exists, shapes agreed with cc first. I verify every landing by file list against its report and rule every shape before code. Then the remaining search packages in the design's order, dc's final rehearsal on the last HEAD, and the cut on hv's go with the confirm question asked specifically; after the tag, ic's one reference regeneration and the tap publish as its own action.
 
 ## TODO -- waiting on hv, nothing claimable
 
