@@ -1543,6 +1543,25 @@ ${revline}
     bin.install_symlink libexec/"bin/intentd"
   end
 
+  # A CAVEAT, NOT A post_install, AND THE CHOICE WAS DRIVEN (dc, 2026-09-11).
+  # The pre-commit gate a project installs finds this keg through ~/.intent/home,
+  # and only \`intent bootstrap\` writes that file, so a fresh install refuses
+  # every commit until it runs. A post_install cannot run it for the user:
+  # Homebrew gives post_install a throwaway HOME inside its sandbox and denies
+  # writes outside the keg, measured with a probe formula (Dir.home was a
+  # sandbox temp directory; a write to the real home failed with EPERM). The
+  # caveat is conditional because bootstrap REPOINTS an existing pointer, and a
+  # machine already set up -- a source checkout, say -- should not be moved.
+  def caveats
+    <<~EOS
+      Intent's pre-commit gate finds this install through ~/.intent/home, which
+      only \`intent bootstrap\` writes. If that file does not exist yet, run:
+        intent bootstrap
+      Until it exists, every commit in a project with the gate installed is
+      refused.
+    EOS
+  end
+
   # THE SERVICE BLOCK, ADDED 2026-09-05 (dc) BECAUSE ITS OWN STATED PRECONDITION
   # WAS MET. This comment read: no start verb and no log path, so any block here
   # would be a guess at an interface that does not exist. Both halves are now

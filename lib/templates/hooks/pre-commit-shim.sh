@@ -26,7 +26,7 @@
 #
 # ---- HOW THE ROOT IS FOUND, AND WHAT IS DELIBERATELY NOT TRIED ----
 #
-# One line in `~/.intent/home`, written by the installer from `install::home()`.
+# One line in `~/.intent/home`, written by `intent bootstrap` from `install::home()`.
 # The source of the answer publishes its own cache; nothing else computes it.
 #
 # **`$INTENT_HOME` IS NOT READ FROM THE ENVIRONMENT, AND THAT IS NOT AN
@@ -88,16 +88,18 @@ fi
 
 # ---- FAILURE 1: the pointer is absent or empty ----
 #
-# Absent and empty are ONE state on purpose. Both mean the installer did not
-# finish, both have the same remedy, and splitting them would offer the reader
-# a distinction with no consequence attached to it.
+# Absent and empty are ONE state on purpose. Both mean `intent bootstrap` has
+# not run on this machine, both have the same remedy, and splitting them would
+# offer the reader a distinction with no consequence attached to it. Installing
+# Intent does not write the pointer -- only `intent bootstrap` does -- so a
+# fresh install lands here, and "reinstall" would send the reader round again.
 if [ ! -f "$_home_file" ] || [ ! -s "$_home_file" ]; then
   echo "${_self}: cannot locate the Intent install." >&2
   echo "  ${_home_file} is $( [ -f "$_home_file" ] && echo 'empty' || echo 'absent' )." >&2
-  echo "  that file is written by the installer -- its absence means the install" >&2
-  echo "  never completed, not that Intent is missing." >&2
+  echo "  that file is written by \`intent bootstrap\` -- its absence means this" >&2
+  echo "  machine has not run it, not that Intent is missing." >&2
   echo "  refusing rather than skipping: a declared gate that cannot run is a failure." >&2
-  echo "  remedy: reinstall Intent, then re-commit." >&2
+  echo "  remedy: run \`intent bootstrap\`, then re-commit." >&2
   echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
   exit 1
 fi
