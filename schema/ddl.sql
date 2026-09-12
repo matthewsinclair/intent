@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 15
+-- SCHEMA_DDL_VER: 16
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -267,6 +267,23 @@ CREATE TABLE IF NOT EXISTS issues (
 -- about this row. `created_at` / `updated_at` are the row's own, and the two
 -- answer different questions: a file untouched since last scan has a moving
 -- `updated_at` and a still `mtime`.
+--
+-- THE SEARCH INDEX WIDENS THIS TABLE RATHER THAN OPENING A SECOND ONE.
+-- One row per in-scope path, skipped ones included, so that a
+-- file the index does not hold is a ROW SAYING WHY and never an absence -- the
+-- difference between `intent index status` reporting a skip and a user finding
+-- out by not getting a hit.
+--
+-- The four columns are NULL until a reconcile fills them, and each NULL says
+-- something different and true: `corpus` and `lang` are the classification,
+-- `indexed_sha256` is the content this row was last indexed AT (NULL = in
+-- scope and not yet indexed), and `skipped_reason` names the exclusion (NULL =
+-- not skipped). A row written by the sync scanner before any reconcile has run
+-- carries four NULLs, which is the honest description of it.
+--
+-- `size`, `mtime`, `sha256`, `state` and `findings` remain the CHANGE
+-- DETECTOR's, over the narrower canon corpus `sync::scan` walks; the four
+-- below are the INDEX's, over the repository. Two questions, one row per path.
 CREATE TABLE IF NOT EXISTS file_index (
   path TEXT PRIMARY KEY,
   size INTEGER NOT NULL,
@@ -274,6 +291,10 @@ CREATE TABLE IF NOT EXISTS file_index (
   sha256 TEXT NOT NULL,
   state TEXT NOT NULL,
   findings TEXT NOT NULL,
+  corpus TEXT,
+  lang TEXT,
+  indexed_sha256 TEXT,
+  skipped_reason TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

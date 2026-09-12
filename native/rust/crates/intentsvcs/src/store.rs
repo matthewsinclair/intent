@@ -350,6 +350,23 @@ CREATE TABLE IF NOT EXISTS issues (
 -- about this row. `created_at` / `updated_at` are the row's own, and the two
 -- answer different questions: a file untouched since last scan has a moving
 -- `updated_at` and a still `mtime`.
+--
+-- THE SEARCH INDEX WIDENS THIS TABLE RATHER THAN OPENING A SECOND ONE.
+-- One row per in-scope path, skipped ones included, so that a
+-- file the index does not hold is a ROW SAYING WHY and never an absence -- the
+-- difference between `intent index status` reporting a skip and a user finding
+-- out by not getting a hit.
+--
+-- The four columns are NULL until a reconcile fills them, and each NULL says
+-- something different and true: `corpus` and `lang` are the classification,
+-- `indexed_sha256` is the content this row was last indexed AT (NULL = in
+-- scope and not yet indexed), and `skipped_reason` names the exclusion (NULL =
+-- not skipped). A row written by the sync scanner before any reconcile has run
+-- carries four NULLs, which is the honest description of it.
+--
+-- `size`, `mtime`, `sha256`, `state` and `findings` remain the CHANGE
+-- DETECTOR's, over the narrower canon corpus `sync::scan` walks; the four
+-- below are the INDEX's, over the repository. Two questions, one row per path.
 CREATE TABLE IF NOT EXISTS file_index (
   path TEXT PRIMARY KEY,
   size INTEGER NOT NULL,
@@ -357,6 +374,10 @@ CREATE TABLE IF NOT EXISTS file_index (
   sha256 TEXT NOT NULL,
   state TEXT NOT NULL,
   findings TEXT NOT NULL,
+  corpus TEXT,
+  lang TEXT,
+  indexed_sha256 TEXT,
+  skipped_reason TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -504,7 +525,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 18;
+pub const SCHEMA_VERSION: i32 = 19;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1179,6 +1200,52 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // Existing rows arrive NULL, which is true of every store written before
     // this -- none holds a carried status, because no migrator carried one.
     "ALTER TABLE wps ADD COLUMN status_legacy TEXT;",
+  ),
+  (
+    19,
+    // 18 -> 19: `file_index` gains the search index's four columns (ST0069
+    // WP-18). See the DDL for what each NULL means; the short form is that the
+    // five columns above them are the change detector's, over the canon corpus
+    // `sync::scan` walks, and these four are the index's, over the repository.
+    //
+    // **A REBUILD RATHER THAN FOUR `ADD COLUMN`s, FOR RUNG 15's REASON AND NOT
+    // BY PREFERENCE.** The cheap form was written first and
+    // `a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_
+    // refused` red it with `duplicate column name: corpus`: that fixture builds
+    // its store from the CURRENT `DDL`, which already carries the columns, and
+    // stamps an older version onto it. Rungs 17 and 18 take the cheap form only
+    // because rung 16 rebuilds the two tables they alter, which puts those
+    // tables back to their pre-17 shape inside the same walk; `file_index` was
+    // last rebuilt at rung 3, so nothing does that for it.
+    //
+    // **The load-bearing detail is that the `SELECT` never names the four.** A
+    // real store at 18 has no such columns to carry, and the fixture's store
+    // has them holding nothing, because nothing has been able to write them.
+    //
+    // **EVERY CARRIED ROW ARRIVES WITH FOUR NULLS AND THAT IS THE TRUE
+    // DESCRIPTION OF IT.** This table is DERIVED, so dropping it outright was
+    // available and loses nothing durable -- and it would make the next scan
+    // report every file in the project as changed. Carrying the rows keeps the
+    // change detector's answer about what moved, and the index fills its own
+    // columns on its first reconcile rather than inheriting a guess from here.
+    "CREATE TABLE file_index_v19 (
+       path TEXT PRIMARY KEY,
+       size INTEGER NOT NULL,
+       mtime TEXT NOT NULL,
+       sha256 TEXT NOT NULL,
+       state TEXT NOT NULL,
+       findings TEXT NOT NULL,
+       corpus TEXT,
+       lang TEXT,
+       indexed_sha256 TEXT,
+       skipped_reason TEXT,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     INSERT INTO file_index_v19 (path, size, mtime, sha256, state, findings)
+       SELECT path, size, mtime, sha256, state, findings FROM file_index;
+     DROP TABLE file_index;
+     ALTER TABLE file_index_v19 RENAME TO file_index;",
   ),
 ];
 

@@ -277,8 +277,19 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // status outside the vocabulary, carried beside the status it was read as, as
   // `scope_legacy` carries a scope. `ADD COLUMN` again, with a NULL default;
   // every existing row is NULL because no migrator carried one before.
-  const PINNED_SCHEMA_HASH: u64 = 0xd655_06e8_9680_ab35;
-  const PINNED_FOR_VERSION: i32 = 18;
+  // 19 is `file_index`'s four index columns (ST0069 WP-18): `corpus`, `lang`,
+  // `indexed_sha256` and `skipped_reason`, all nullable, so that one row per
+  // in-scope path can say why the index does not hold a file rather than the
+  // file being absent. A REBUILD and not four `ADD COLUMN`s -- the cheap form
+  // was written first and `a_store_stamped_by_an_earlier_draft_of_a_rung...`
+  // red it with `duplicate column name: corpus`, for the reason rung 15's note
+  // gives; rungs 17 and 18 could take the cheap form only because rung 16
+  // rebuilds the tables they alter, and nothing rebuilds `file_index` after
+  // rung 3. Rows are carried with four NULLs; the table is DERIVED and could
+  // have been dropped, but dropping it would make the next scan report every
+  // file in the project as changed.
+  const PINNED_SCHEMA_HASH: u64 = 0xdf05_8faf_e18f_234b;
+  const PINNED_FOR_VERSION: i32 = 19;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

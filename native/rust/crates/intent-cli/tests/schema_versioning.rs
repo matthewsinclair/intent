@@ -293,7 +293,14 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // was read as -- a real column (rung 18) and an optional field on a
     // modelled type, so it is both persisted and published, as
     // `scope_legacy` is.
-    ("SCHEMA_DDL_VER", 15, 0x713c_c8b0_73e2_2435),
+    //
+    // **15 -> 16 IS THE SEARCH INDEX'S FOUR `file_index` COLUMNS, AND IT MOVES
+    // THE DDL FACE ALONE.** `corpus`, `lang`, `indexed_sha256` and
+    // `skipped_reason` are real columns (rung 19), so the persisted contract
+    // moves; none of them reaches the wire or the JSON faces, because the index
+    // is per-machine derived state rather than modelled content -- the same
+    // one-face reading `threads.revision` produced.
+    ("SCHEMA_DDL_VER", 16, 0xb606_cef8_447b_2573),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
