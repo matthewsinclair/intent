@@ -278,9 +278,18 @@ fn no_repository_means_no_carrier_and_no_error() {
 /// an absent or already-canonical file, "left alone" and "rewritten" would look
 /// the same; the control run without the flag shows the same fixture DOES get
 /// rewritten.
+///
+/// **AND THE PLANT CARRIES INTENT'S HOOK DOOR, WHICH IT DID NOT UNTIL v3.0.2.**
+/// Canon now HOLDS a `settings.json` that never carried the door -- that is
+/// batch 4's fix, and it is the right answer for a file nobody here wrote. But
+/// it means a plant WITHOUT the door makes the control run hold rather than
+/// rewrite, and the control's only job is to show this fixture does get
+/// rewritten when the flag is absent. So the plant is now an Intent-written
+/// file the project has edited: the door is present, `mine` is not canon, and
+/// "left alone" and "rewritten" stay as distinguishable as they ever were.
 #[test]
 fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
-  let project_settings = r#"{ "hooks": {}, "mine": true }"#;
+  let project_settings = r#"{ "hooks": { "Stop": [ { "matcher": "", "hooks": [ { "type": "command", "command": "intent claude hook session-finish" } ] } ] }, "mine": true }"#;
   let run = |skip: bool| {
     let fx = crate::common::Fixture::new();
     fx.git_init();

@@ -2734,7 +2734,7 @@ Apply Claude canon to the project
 - **Flags:**
   - `--apply` (bool) -- Write the canon; without it the command reports only
     - **disposition:** keep
-  - `--force` (bool) -- Overwrite user-edited canon files (CLAUDE.md without the marker, and .intent_critic.yml)
+  - `--force` (bool) -- Overwrite user-edited canon files (CLAUDE.md without the marker, .claude/settings.json without Intent's hook door, and .intent_critic.yml)
     - **disposition:** keep
     - **measured late and the reason is the finding:** **ADDED BY ic 2026-08-23 ON cc's REPORT, CITATION VERIFIED EXACTLY.** `intent/plugins/claude/bin/intent_claude_upgrade:116` is the `--force)` parse arm and `:72` is its own `--help` line, both as cc cited them. **This row is the case where the obvious explanation fails: the flag is in the command's OWN file, in the SAME `case` idiom every correctly-declared row uses, and the census still missed it.** So _a flag reached through a sourced library is invisible to a per-command scan_ is true and is not sufficient. **AND ic NEARLY REPORTED cc's CITATION AS FABRICATED: I looked for `bin/intent_claude_upgrade`, found it absent from this repo AND from the frozen v2 checkout, and was one step from saying so. The file is at `intent/plugins/claude/bin/`.** My check was scoped to the wrong directory and produced a confident absence -- the same shape as the scan defect this row records, committed while verifying it, and it would have accused a peer.
   - `--skip-settings` (bool) -- Leave .claude/settings.json alone, so no Claude Code session hooks are wired

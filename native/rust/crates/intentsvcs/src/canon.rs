@@ -99,6 +99,19 @@ fn opens_chain_block(line: &str) -> bool {
 /// by either tool reads the same to the other.
 const CLAUDE_MD_MARKER: &str = "lib/templates/llm/_CLAUDE.md";
 
+/// **`.claude/settings.json`'s generated marker is Intent's own hook door.**
+///
+/// JSON carries no comment, so there is no footer to look for the way
+/// [`CLAUDE_MD_MARKER`] is looked for, and the question the marker has to answer
+/// is not *are these bytes ours* but *did this file ever carry our hooks*.
+///
+/// **BYTE-EQUALITY WITH THE TEMPLATE WAS THE OBVIOUS ALTERNATIVE AND IT IS
+/// WORSE, QUIETLY.** A project that took the door under an older template would
+/// then be held for ever: a hook fix would silently never reach it, and the
+/// report would say `held` while everybody assumed it had landed. Holding on
+/// the door's ABSENCE holds exactly the file nobody here wrote.
+const SETTINGS_MARKER: &str = "intent claude hook";
+
 /// The markers delimiting the project's OWN directives inside a generated
 /// `CLAUDE.md`.
 ///
@@ -163,7 +176,8 @@ pub fn carry_user_block(existing: &str, regenerated: &str) -> String {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Options {
   /// Overwrite user-edited canon files: `CLAUDE.md` without the generated
-  /// marker, and `.intent_critic.yml`.
+  /// marker, `.claude/settings.json` without Intent's hook door, and
+  /// `.intent_critic.yml`.
   pub force: bool,
   /// Leave `.claude/settings.json` alone (issue `0143`).
   pub skip_settings: bool,
@@ -423,9 +437,27 @@ pub fn apply(
   //    three hook names and their timeouts are canon, and a second spelling of
   //    them in Rust is the two-homes defect in the file whose whole job is to
   //    make every project agree.
+  //
+  //    **AND IT IS HELD WHEN IT IS NOT OURS, WHICH IT WAS NOT UNTIL v3.0.2.**
+  //    This wrote the template over whatever was there, in the same function
+  //    that holds `CLAUDE.md` twenty lines below on exactly this reasoning. A
+  //    project with its own Claude Code settings -- permissions, a model pin,
+  //    hooks of its own -- lost the file to a verb it ran to update its
+  //    documentation, at rc=0, with the file listed as written.
   let settings_path = root.join(".claude/settings.json");
+  // Read once, and only when the answer can matter: `--force` and
+  // `--skip-settings` both decide without it.
+  let settings_is_ours = opts.force
+    || !settings_path.exists()
+    || std::fs::read_to_string(&settings_path)
+      .unwrap_or_default()
+      .contains(SETTINGS_MARKER);
   if opts.skip_settings {
     applied.skipped.push(settings_path);
+  } else if !settings_is_ours {
+    // HELD, not silently left: a run that skipped the file that arms every
+    // lifecycle hook would otherwise look identical to one with nothing to do.
+    applied.held.push(settings_path);
   } else {
     let settings = template(home, ".claude/settings.json")?;
     write_if_changed(&settings_path, &settings, opts.report, &mut applied)?;

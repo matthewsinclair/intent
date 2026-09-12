@@ -90,6 +90,8 @@ mod authored_row_round_trip;
 mod backup_retention;
 #[path = "backup_snapshot.rs"]
 mod backup_snapshot;
+#[path = "canon_holds_a_settings_file_it_did_not_write.rs"]
+mod canon_holds_a_settings_file_it_did_not_write;
 #[path = "canon_preserves_what_it_did_not_write.rs"]
 mod canon_preserves_what_it_did_not_write;
 #[path = "canon_relocation.rs"]
