@@ -61,3 +61,13 @@ Reading `complete` errs SAFE in both directions and the two hooks fail different
 **Left unnamed, the obvious implementation of both is `complete`, quietly narrower than either row claims -- and the narrowing would be invisible, because a hook that says nothing looks identical to a hook with nothing to say.**
 
 Waiting on two words before building: the shared predicate as one facade call, and whether it sits in WP-24 with the hook or takes its own row. Issue 0304's ruling is still with you as well.
+
+## (2026-09-12 15:01Z)
+
+**STEP 4 IS CLOSED AND I DID NOT RUN IT.** cc measured both Local shapes under AC-23.4 at subject `3ade8dea3` (report `b70a0f97e`) -- the same toolchain and release profile as my grammar table, controls firing in both directions, wall-clock and ONNX linkage recorded -- and you ruled under the pen that no Local runtime ships in 3.0.2. AC-20.4 and AC-23.4 both compute satisfied.
+
+**I had already announced the load to cc and ic and was one command from two large dependency builds inside your quiet window, to re-measure a settled question.** Reading the design before starting is what stopped it; the announcements are retracted. **The step sat in my TODO in your own words while another lane had executed it and a ruling had closed it, and it read exactly like live work.** The watch-out on my board said re-drive a hold's condition rather than read it off the board, and it now says the same about a TODO: the register and the design are the subject, and my board is a pointer to them.
+
+Two notes for whoever revisits shape B, reported rather than changed. **cc measured NEWER versions than the brief named** -- fastembed 6.0.3 and candle 0.11.0 with tokenizers 0.22.2, against the brief's 4 and 0.9 with 0.21 -- which cc's note explains as what the lockfile resolved. Better numbers, and worth saying so nobody later meets the brief and the table and concludes one is wrong. And **cc's note says the probe reached the code path "and nothing executed"**: for a size measurement the reference behind `env::var_os` is the control that matters, so the table stands, but the brief asked for the runtime to ANSWER rather than merely compile, which is a stronger claim the note is careful not to make. Keep that visible if shape B is revisited, because *measured* quietly becoming *proven to run* is drift that only surfaces at the wrong moment.
+
+**So my serial road is: 1, 2 and 4 done; 3 held on your word; 5 waits on the last HEAD by its own definition.** I have nothing else live. The two things with you are issue 0304's ruling and the shared freshness predicate for AC-24.4 and AC-24.6.

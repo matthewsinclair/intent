@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 14:57Z
+heartbeat_at: 2026-09-12 15:01Z
 status: active
-focus: "Steps 1 and 2 are DONE: the quiet window's first answer is measured, and WP-22 landed at e809eea8f with AT-24.1 cited at 23803861b. DOING is step 3, the hook, HELD on two words from vc. Then the Local shapes and the final rehearsal. NO RELEASE, NO PUSH."
+focus: "Steps 1, 2 and 4 are DONE -- 4 was already done by cc and ruled by vc, and my board was carrying it. DOING is step 3, the hook, HELD on two words from vc. Step 5, the rehearsal, waits on the LAST HEAD. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
@@ -21,7 +21,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 
 ## TODO -- vc's five steps, serial, in this order
 
-- **Step 4: the two Local shapes measured**, one build each, sizes only, announced first. (a) `fastembed = "4"` on ONNX Runtime with `hf-hub`; (b) `candle-core`/`candle-transformers` `0.9` with `tokenizers = "0.21"`. Same instrument as the grammars, and **the runtime must ANSWER rather than merely compile** or a zero delta reads as a free runtime. Report build-or-not and wall-clock beside the delta; keep the two policy points (a downloads a model on first use; neither gives TLS) OUT of the byte count -- they are hv's.
+- **Step 4 is CLOSED and was never mine to run.** cc measured both Local shapes under AC-23.4 at subject `3ade8dea3` (report `b70a0f97e`) -- same toolchain and release profile as my grammar table, controls firing in both directions, wall-clock and ONNX linkage recorded -- and vc ruled under the pen that no Local runtime ships in 3.0.2. Both AC-20.4 and AC-23.4 compute satisfied. **I had announced the load and was one command from running two large dependency builds inside the quiet window to re-measure a settled question**; reading the design first is what stopped it. Two notes stand for whoever revisits shape B: cc measured NEWER versions than the brief named (fastembed 6.0.3 and candle 0.11.0 / tokenizers 0.22.2, against the brief's 4 and 0.9 / 0.21 -- the lockfile's resolution, and better numbers), and cc's note says the probe referenced the code path "and nothing executed", so the table is a SIZE measurement and does not claim the runtime answers.
 - **Step 5: the final rehearsal** on the last HEAD, `--dry-run`, every gate line verbatim, `intent backup` taken deliberately and the report saying why, `~/.intent/home` read before and after, loads stated. **vc's one-re-run rule**: a red confined to `daemon_watch`/`daemon_subscriptions` re-runs the WHOLE rehearsal once and both runs' gate lines are reported; a second consecutive red on that family halts to vc, and any red outside it halts on the first.
 - **CHANGELOG**: ic writes the Added lines for the search packages; my Fixed lines stay mine.
 
@@ -30,7 +30,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 - **vc is DARK (banking and folding).** Every landing and every report goes into `intent/whiteboard/vc/inbox.dc.md` with a same-turn `date -u` stamp as well as being messaged. **Anything needing a ruling WAITS in the inbox and is not guessed.**
 - **Issue 0304 is filed and its ruling is vc's**: reconcile-by-default makes a pre-existing corpus overlap the DEFAULT answer -- a document the store carries AND the disk holds is indexed by both corpora, so one line answers twice (`kind: file` and `kind: thread`, same path, same line). Reachable on 3.0.1 through `index rebuild`, so not new; WP-22 is what makes it the default. Three shapes are on the table and the third is **invert the flag before the tag**, a small edit to one default and one register row. Condition: vc answers.
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
-- **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
+- **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD, AND SO DOES A TODO SOMEBODY ELSE HAS ALREADY DONE.** Re-drive a hold's condition when you quote it; never read it off this line. **Driven the hard way 2026-09-12**: step 4 sat in my TODO in vc's own words while cc had measured it and vc had ruled on it, and the board read exactly the same as real work. I announced the load to two nodes and was one command from two large dependency builds inside a quiet window. **A board is a record of what was true when it was written, and the estate moves underneath it** -- so the register and the design are the subject, and this file is a pointer to them.
 
 ## Watch-outs
 
