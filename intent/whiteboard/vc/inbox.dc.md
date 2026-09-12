@@ -215,3 +215,65 @@ The clean decomposition is obvious and I am not taking it on my own: the suite h
 `~/.intent/home` unchanged across all three runs: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 2026-09-12 10:16:38. The clone stands at the rehearsal HEAD with its remotes and its deliberate backup.
 
 **NO RELEASE, NO PUSH.**
+
+## (2026-09-12 15:49Z) Step 5, run 4 -- ALL FOURTEEN PREVIEWS RAN, exit 0, and one finding in the preview itself
+
+**SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
+**CMD: `GH_CONFIG_DIR=/Users/matts/.config/gh bin/devbin build release --dry-run --patch --skip-tests`**
+
+Your `GH_CONFIG_DIR` fix is better than my decomposition and it cost nothing: gh read the real config, HOME stayed isolated, and the rehearsal went straight through to `info: dry-run complete -- no side effects`, **exit 0**. Loads 25.63 start, 25.63 end; the box barely noticed, because `--skip-tests` is the whole difference.
+
+Every preview line, verbatim and in order:
+
+```
+==> sidecar sync
+dry-run: would run 'bin/devbin version set 3.0.2' -- VERSION + declared sidecars (native/rust/Cargo.toml)
+dry-run: would rewrite '## [3.0.2] - in progress' to '## [3.0.2] - 2026-09-12' in CHANGELOG.md
+dry-run: would stamp intent_version = 3.0.2 in intent/.config/config.json
+
+==> schema faces
+dry-run: would re-bless the published faces for 3.0.2: (cd native/rust && INTENT_BLESS=1 cargo test -p intentsvcs schema_faces_drift), then refuse unless every face carries 3.0.2
+dry-run: would refresh native/rust/Cargo.lock via cargo, refusing any change beyond workspace member versions
+dry-run: would run 'intent agents sync' to refresh AGENTS.md footer
+dry-run: would run 'intent claude upgrade --apply' to refresh CLAUDE.md
+dry-run: would then refuse the cut if that rewrote anything outside the sidecar list
+
+==> commit
+dry-run: would commit ONLY VERSION CHANGELOG.md AGENTS.md CLAUDE.md intent/.config/config.json native/rust/Cargo.toml native/rust/Cargo.lock schema as 'release: v3.0.2' (--only: the ambient index is not swept)
+
+==> tag
+dry-run: would create tag v3.0.2 at HEAD
+
+==> push
+dry-run: would push main + v3.0.2 to 'local' (Dropbox)
+dry-run: would push main + v3.0.2 to 'upstream' (GitHub)
+
+==> github release
+dry-run: would publish GitHub release v3.0.2 with title 'Intent v3.0.2'
+dry-run: release notes preview:
+
+==> summary
+info: dry-run complete -- no side effects
+```
+
+Preflight was identical to run 3's through `no frozen remote in the push set`, then `warning: --skip-tests: skipping doctor + test suite` -- all three of those are green on this HEAD in this clone from run 3, at a measured load.
+
+### The finding: THE PREVIEW SHOWS HALF THE NOTES AND SAYS NOTHING ABOUT THE HALF IT WITHHOLDS
+
+**What the cut would PUBLISH is correct.** `extract_changelog_section` writes the whole `## [3.0.2]` section to `NOTES_FILE` and `gh release create --notes-file` sends that file. Measured: the section is 59 lines with four headings -- `### Added`, `### Changed`, `### Fixed`, `### Removed`.
+
+**What the OPERATOR sees is `sed 's/^/  | /' "$NOTES_FILE" | head -30`.** Thirty of fifty-nine lines. The preview ends mid-`### Changed`, so **`### Fixed` and `### Removed` are entirely invisible** -- including the 0304 entry, the `init` collision refusal, the settings.json hold, and every Removed line -- and nothing in the output says it was cut. **The preview's entire job is to let a human check what the cut will publish, and it cannot show them that.**
+
+This is the class this file already paid for once: batch 4 fixed the two test gates that refused without naming what refused, and cc hit the same shape this afternoon with a `tail` on a failures block that produced a wrong claim. A truncation that announces itself is a shortened view; one that does not is a silent narrowing, and the reader concludes the sections are absent rather than unshown.
+
+**The fix is one line** -- drop the `head -30`, or keep it and print `(N of M lines; full notes at $NOTES_FILE)`. **I have NOT taken it**, because it changes the rehearsal HEAD you defined and costs a re-run to re-establish, and that is your call rather than one I make inside a task. My own note says fix it before the tag rather than filing it; I am putting it to you with the cost attached instead of doing either silently.
+
+**Second, smaller, and NOT a defect**: the preview's first line reads `## [3.0.2] - in progress`. In a real run the sidecar sync rewrites that header to the date BEFORE the github step, and line 1118 re-extracts after the rewrite -- so the published notes would carry `2026-09-12`. The dry run shows the undated header because the rewrite did not happen. Worth stating so nobody reads the preview as literal.
+
+### Housekeeping, measured rather than quoted
+
+- **`~/.intent/home` unchanged**: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 10:16:38 -- identical before and after, and across all four runs.
+- **The live store is untouched**: `intent/.cache/intent.db` mtime 16:47:43 and 29,888,512 bytes, identical before and after.
+- **The clone's tree is still clean**, so `no side effects` is a measurement here and not the script quoting itself.
+
+**NO RELEASE, NO PUSH.**

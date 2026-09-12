@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-12 15:38Z
+heartbeat_at: 2026-09-12 15:49Z
 status: active
-focus: "All five steps are walked. WP-22 closed, WP-24 closed, the hook landed. Step 5 RAN on 25af41fba and HALTED to vc under the one-re-run rule: two runs red, both confined to the daemon family, both at loads above anything step 1 sampled. Waiting on vc. NO RELEASE, NO PUSH."
+focus: "THE REHEARSAL IS COMPLETE. Four runs on 25af41fba: gates green at a measured load 21 (run 3), all fourteen write-step previews green at exit 0 (run 4). One preview defect reported to vc and deliberately not taken. Nothing of mine is owed. NO RELEASE, NO PUSH -- the cut is hv's."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 ---
 
@@ -13,13 +13,25 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 
 **The board before this fold is verbatim at `.history/20260912/wip-prefold-1414Z.md`.** Everything landed today is carried by its commits and the CHANGELOG, not here.
 
-## DOING -- nothing. The rehearsal is run and HALTED to vc.
+## DOING -- nothing. The rehearsal is complete and every report is with vc.
 
-**SHA `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`, `bin/devbin build release --dry-run --patch`, two runs.** Both runs' full gate lines are in `vc/inbox.dc.md` at 2026-09-12 15:38Z. Every preflight gate passed verbatim in both -- clean tree, faces at 3.0.1, main, both remotes, no frozen remote, `intent doctor` clean, bats green. Both reds are in the cargo gate and both are confined to `daemon_subscriptions` and `daemon_watch`; no target outside `intentd` failed at any point.
+**SHA `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`. Four runs. Full gate and preview lines for all of them are in `vc/inbox.dc.md` (15:38Z, 15:45Z, 15:49Z).**
 
-**THE HALT IS THE RULE, NOT A VERDICT.** Run 1 ended at load 82.65, run 2 STARTED at 84.38 -- above anything step 1 sampled, and step 1 measured this family 3 of 6 red alone at 40 and 0 of 6 alone at 15. The same bytes ran the whole workspace green, every target, at loads 19 to 30 an hour earlier. So these runs cannot tell a defect in the cut from a box at 84, and a third run reported as the answer would be choosing the reading I wanted.
+**THE REHEARSAL COMMAND, so the next one reaches the previews without asking:**
 
-**The clone survives** at `scratchpad/rehearsal`, at the rehearsal HEAD, remotes configured, its own `intent backup` taken. `~/.intent/home` read identical before and after: `/Users/matts/Devel/prj/Intent`, 30 bytes, mtime 10:16:38.
+```
+GH_CONFIG_DIR=/Users/matts/.config/gh HOME=<isolated> bin/devbin build release --dry-run --patch [--skip-tests]
+```
+
+`gh` reads `GH_CONFIG_DIR` BEFORE `HOME` (vc, 2026-09-12), so the isolation stays whole and the gh gate still passes. Without it the run stops at the LAST line of `preflight()` and no preview ever executes.
+
+**THE LOAD QUESTION IS SETTLED: one variable, three readings -- red at 82.65, red at 84.38, GREEN at 20.98.** Run 3 reached `info: cargo test green`; the daemon family passes on this tree. Gate the run on a one-minute load read by the same script that then runs it (`sysctl -n vm.loadavg`, field 2), so the reading and the run are one event.
+
+**Run 4 ran all fourteen previews at exit 0** and `info: dry-run complete -- no side effects` -- verified as a measurement, since the clone's tree was still clean afterwards.
+
+**THE ONE FINDING, reported and NOT taken**: the release notes preview is `head -30` of a 59-line section, so `### Fixed` and `### Removed` are invisible and nothing says they were cut. What would PUBLISH is whole -- `gh` sends the file, not the preview -- but the preview's only job is to let a human check what ships. One line to fix; it changes the rehearsal HEAD, so it is vc's call.
+
+**The clone survives** at `scratchpad/rehearsal` with its remotes and its deliberate backup. `~/.intent/home` and the live store's mtime identical before and after every run.
 
 ## TODO -- vc's five steps, serial, in this order
 
@@ -51,7 +63,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/22, ST0069/24]
 - **A SETUP STEP THAT FAILS SILENTLY LEAVES AN INSTRUMENT THAT STILL ANSWERS.** `intent init --name X` is not v3's spelling; it refused at rc 1 and every `intent critic` run after it looked normal, because the rule library resolves from the INSTALL ROOT.
 - **`Op::Registry` LISTS the daemon's projects and does not REGISTER one**, and a watch only starts when a project-scoped op routes there. My arm's first run reported the dispatch broken while the dispatch was fine.
 - **A SECOND ENUMERATION OF A SET IS A SECOND STATEMENT OF SCOPE**, and this thread paid for it twice. Enumerate once, decide once.
-- **RUN THE WHOLE REHEARSAL, NOT THE STEP YOU EXPECT TO FAIL.** The first rehearsal refused at `intent doctor` and never reached the test gate, so a real committed defect sat red on main behind an unrelated refusal.
+- **RUN THE WHOLE REHEARSAL, NOT THE STEP YOU EXPECT TO FAIL -- AND IT CUTS BOTH WAYS.** The first rehearsal refused at `intent doctor` and never reached the test gate, so a real committed defect sat red on main behind an unrelated refusal. **The mirror cost more, 2026-09-12**: three rehearsals in a row stopped at the LAST line of `preflight()`, so every gate ran three times and the fourteen write-step previews -- the thing `--dry-run` exists for -- ran never. A green preflight reads like a green rehearsal.
+- **A TRUNCATION THAT DOES NOT ANNOUNCE ITSELF IS A SILENT NARROWING, AND THE READER CONCLUDES ABSENCE.** The release notes preview is `head -30` over a 59-line section, so `### Fixed` and `### Removed` never appear and nothing says so. Same shape as the gates that refused without naming what refused (fixed in batch 4) and cc's `tail` on a failures block the same afternoon. Three instances in one file family in one day: when you cap output, print what was capped.
+- **A COMMIT MESSAGE IS A CLAIM ABOUT ITS OWN DIFF, AND A FAILED EDIT DOES NOT STOP THE COMMIT.** My board edit aborted on a bad anchor before writing; the retry loop committed anyway, so `871886c45` describes a board update its diff does not contain. Check `git show --stat` against what the message says when a scripted edit and a scripted commit run in the same breath.
 - **A TEMPLATE OR SHELL PAYLOAD EDIT IS DRIVEN WITH THE BATS SUITE**; its text is asserted there and nowhere in cargo.
 - **A DISCIPLINE ON YOUR BOARD IS NOT A FLAG ON YOUR COMMAND LINE.** I wrote "under an isolated HOME" and had set none; the phrase came off this board rather than off the command.
 - **`git stash` IS SHARED ACROSS EVERY WORKTREE OF ONE REPO.** Control a diff with `git diff > patch; git checkout -- <paths>; git apply patch`.
