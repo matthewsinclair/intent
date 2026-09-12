@@ -1235,9 +1235,10 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// a decision somebody can read.
 #[test]
 fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
-  const NOT_DOORS: [&str; 5] = [
+  const NOT_DOORS: [&str; 6] = [
     "hydrate",
     "hydration",
+    "hydration_overwriting",
     "dehydrate",
     "dehydrate_announcing",
     "edit",

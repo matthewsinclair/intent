@@ -1,4 +1,4 @@
-//! **NO REMOVING VERB TAKES A BYTE IT DID NOT NAME FIRST.**
+//! **NO VERB TAKES A BYTE IT DID NOT NAME FIRST -- REMOVED OR WRITTEN OVER.**
 //!
 //! hv, 2026-09-12, on finding `organize --apply` listing its removals only
 //! after making them: _"silent deletion ... This cannot be released publicly
@@ -26,11 +26,13 @@
 //!
 //! # Coverage, stated so the gaps are visible rather than implied
 //!
-//! Covered here: `organize --apply`, `organize --apply --quiet`, `st dehydrate`.
-//! **Not yet covered, because the fixes are not landed yet:** `st hydrate`
-//! overwriting a differing view (vc's sweep, item 4), `edit --path` and
-//! `st edit` realising through `Mode::Apply` (item 5), and the MCP `organize`
-//! tool with `apply: true` (item 3). Each lands with its arm here.
+//! Covered here: `organize --apply`, `organize --apply --quiet`, `st dehydrate`,
+//! and `st hydrate` writing over a view whose bytes differ -- **which is the
+//! same class and not a second one**: hv's words are *removes or overwrites*,
+//! and a hand edit replaced by a render is as gone as a file deleted.
+//! **Not yet covered, because the fixes are not landed yet:** `edit --path` and
+//! `st edit` realising through `Mode::Apply` (vc's sweep, item 5), and the MCP
+//! `organize` tool with `apply: true` (item 3). Each lands with its arm here.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -245,6 +247,75 @@ fn st_dehydrate_names_every_path_before_it_goes() {
   let after = tree(root);
 
   assert_named_before_it_went(&stdout(&out), &vanished(&before, &after), "st dehydrate");
+}
+
+/// **AN OVERWRITE IS A REMOVAL OF THE BYTES THAT WERE THERE.** `st hydrate`
+/// put every realised view into its write set unconditionally, so a hand edit
+/// -- or any work an unregistered writer had left there -- was replaced by the
+/// render, reported afterwards as `wrote:`, at exit 0. Driven before the fix on
+/// exactly this fixture.
+///
+/// **`dehydrate` HAS REFUSED THIS SIGNATURE SINCE IT WAS WRITTEN.** A file whose
+/// bytes differ from the render may be a hand edit and nothing on disk says
+/// which, so `organize::gate` will not REMOVE it. The two verbs now answer
+/// alike.
+#[test]
+fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
+  let dir = project();
+  let root = dir.path();
+  let view = root.join("intent/st/ST0002/info.md");
+  let edited = format!(
+    "{}\nA HAND EDIT THE STORE DOES NOT CARRY\n",
+    std::fs::read_to_string(&view).expect("the view is realised")
+  );
+  std::fs::write(&view, &edited).expect("edit the view");
+
+  let refused = intent(root, &["st", "hydrate", "ST0002"]);
+  assert!(
+    !refused.status.success(),
+    "a realisation that would destroy a difference must refuse: {}",
+    stdout(&refused)
+  );
+  let said = format!(
+    "{}{}",
+    stdout(&refused),
+    String::from_utf8_lossy(&refused.stderr)
+  );
+  assert!(
+    said.contains("intent/st/ST0002/info.md"),
+    "and it must NAME the view, or the operator diffs a whole thread against a \
+     description of it: {said}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(&view).expect("still there"),
+    edited,
+    "nothing may be written by a refused realisation"
+  );
+
+  // **`--overwrite` IS THE ROUTE, AND IT STILL NAMES WHAT IT DISCARDS FIRST.**
+  // The flag is the operator accepting the loss; it is not permission to stop
+  // reporting which file takes it.
+  let forced = intent(root, &["st", "hydrate", "ST0002", "--overwrite"]);
+  let told = stdout(&forced);
+  assert!(forced.status.success(), "{told}");
+  let named = told
+    .lines()
+    .position(|l| l.trim_start().starts_with("to-overwrite: ") && l.contains("info.md"))
+    .expect("the discarded view is named");
+  let wrote = told
+    .lines()
+    .position(|l| l.trim_start().starts_with("wrote: ") && l.contains("info.md"))
+    .expect("and the write is reported");
+  assert!(
+    named < wrote,
+    "the naming comes BEFORE the write, or it is a report about something \
+     already gone: {told}"
+  );
+  assert_ne!(
+    std::fs::read_to_string(&view).expect("rewritten"),
+    edited,
+    "and --overwrite really did discard it"
+  );
 }
 
 /// **THE CONTROL ON THE INSTRUMENT ITSELF.** Everything above rests on `tree`

@@ -100,7 +100,11 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
     .split('`')
     .find(|span| span.starts_with("intent "))
     .unwrap_or_else(|| panic!("the finding names no command: {line}"));
-  assert_eq!(command, "intent st hydrate ST0001", "{line}");
+  // **THE FLAG IS PART OF THE REMEDY NOW** (hv, 2026-09-12: silent deletion).
+  // `st hydrate` refuses a view whose bytes differ from the render, which is
+  // this finding's exact signature, so the bare verb would send the operator to
+  // a refusal. The finding's own text already says what `--overwrite` discards.
+  assert_eq!(command, "intent st hydrate ST0001 --overwrite", "{line}");
   let args: Vec<&str> = command.split_whitespace().skip(1).collect();
   step(root, &args);
 

@@ -789,6 +789,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ManifestMalformed { .. } => "ManifestMalformed",
     FacadeError::NotHydratable { .. } => "NotHydratable",
     FacadeError::NoManifestToUnlistFrom { .. } => "NoManifestToUnlistFrom",
+    FacadeError::HydrationWouldOverwrite { .. } => "HydrationWouldOverwrite",
     FacadeError::DehydrationRefused { .. } => "DehydrationRefused",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
@@ -816,6 +817,7 @@ const ALL_VARIANTS: &[&str] = &[
   "FileOnANonTestRow",
   "NotHydratable",
   "NoManifestToUnlistFrom",
+  "HydrationWouldOverwrite",
   "DehydrationRefused",
   "NotEditable",
   "NoSuchEditable",
@@ -891,6 +893,14 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // tests, where the executable path is a parameter rather than a fact about
   // the process.
   "Install",
+  // **PROVOKED AND READ END TO END, ONE CRATE OVER** (hv, 2026-09-12: silent
+  // deletion). `intent-cli/tests/no_removal_is_unannounced.rs` realises a
+  // thread, edits a view, runs `st hydrate`, and asserts the refusal NAMES the
+  // path it would have written over -- which is this variant's whole text --
+  // then runs `--overwrite` and asserts the path is named before the write.
+  // Provoking it here would need a realised estate with a divergent view, which
+  // is the CLI fixture's shape rather than this file's.
+  "HydrationWouldOverwrite",
   // `RootFile` reaches the facade through `agents_generate` alone, and only
   // when the INSTALL is damaged -- a template under `lib/templates/` unreadable
   // or malformed -- which is a property of the world, not of the call. That

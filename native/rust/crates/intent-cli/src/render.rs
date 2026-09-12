@@ -2161,10 +2161,22 @@ pub(crate) fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Fail
   Ok(())
 }
 
-fn hydrated(argument: &str) -> Result<(), Failure> {
+fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
-  let done = facade.hydration(&address).map_err(fail)?;
+  let done = facade
+    .hydration_overwriting(&address, overwrite, &mut |discarding| {
+      // **NAMED BEFORE THE WRITE, NOT IN THE REPORT UNDER IT.** `--overwrite`
+      // says the operator accepts the loss; it does not say they stop being
+      // told which files take it.
+      for path in discarding {
+        println!(
+          "  to-overwrite: {} (DISCARDING the version on disk)",
+          path.display()
+        );
+      }
+    })
+    .map_err(fail)?;
 
   // **`wrote` FOR WHAT THIS RUN WROTE, `exists` FOR THE REST (0083).** Every
   // path was labelled `exists`, on the ground that `hydrate` returns what NOW
@@ -2575,7 +2587,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
-    Some(("hydrate", a)) => hydrated(&thread_arg(a, "id")?),
+    Some(("hydrate", a)) => hydrated(&thread_arg(a, "id")?, given(a, "overwrite")),
     Some(("dehydrate", a)) => dehydrated(&thread_arg(a, "id")?),
     // **AC-05.3: PATH-PRINTING HAS ONE HOME.** `st edit` is the same call with
     // an `st-id` argument instead of an address -- and since `address::promote`

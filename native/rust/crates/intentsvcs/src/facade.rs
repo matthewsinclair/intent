@@ -1004,6 +1004,25 @@ pub enum FacadeError {
     "refusing to dehydrate {id}: this project has no {path}, so nothing has declared what is realised -- and absent means EVERYTHING is, not nothing"
   )]
   NoManifestToUnlistFrom { id: String, path: String },
+
+  /// A realisation would have written over a view whose bytes on disk are not
+  /// what the store renders (hv, 2026-09-12: silent deletion).
+  ///
+  /// **THE DIFFERENCE IS NOT A DIRECTION, WHICH IS WHY THIS REFUSES RATHER THAN
+  /// CHOOSING.** A view that differs is either a hand edit the store never took
+  /// in, or a render the store has moved past. Nothing on disk tells the two
+  /// apart, and `dehydrate` has refused this exact signature since it was
+  /// written -- `organize::gate` will not REMOVE such a file. Writing over it is
+  /// the same loss by a different verb.
+  #[error(
+    "refusing to realise {id}: {} view(s) on disk are not what the store renders, and writing them would destroy the difference -- {}",
+    paths.len(),
+    paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join(", ")
+  )]
+  HydrationWouldOverwrite {
+    id: String,
+    paths: Vec<std::path::PathBuf>,
+  },
   /// One or more of an artefact's realised files could not be shown to be in the
   /// store, so NONE of them was removed (ST0061 AC-00.2).
   ///
@@ -1182,6 +1201,12 @@ impl crate::remedy::Remedy for FacadeError {
       // the right one, and a remedy that describes the rule leaves them to
       // derive it. Where no corrected form exists the remedy says what a
       // well-formed path IS rather than restating the fault.
+      // **THE REMEDY IS A SEQUENCE, NOT A FLAG.** Naming `--overwrite` alone
+      // would hand an operator the destructive route as the answer to a
+      // question they have not looked at yet; the copy comes first.
+      Self::HydrationWouldOverwrite { id, .. } => format!(
+        "copy the version on disk somewhere else first -- then `intent st hydrate {id} --overwrite` discards it and writes what the store renders. If the version on disk is the one you want, it belongs in canon: make the change through the CLI so the store carries it"
+      ),
       Self::AttachmentPathNotInThread { thread, fault, .. } => {
         use crate::project::PathFault;
         match fault {
@@ -3192,6 +3217,36 @@ impl Facade {
   /// what the organize run already knows -- created or rewritten -- so the
   /// report reads it here rather than guessing from the disk.
   pub fn hydration(&mut self, address: &Address) -> Result<Hydration, FacadeError> {
+    self.hydration_overwriting(address, false, &mut |_| {})
+  }
+
+  /// The same realisation, with the one question that decides whether it may
+  /// destroy work: **may it write over a view whose bytes on disk are not what
+  /// the store renders?**
+  ///
+  /// **IT REFUSED NOTHING AND ASKED NOTHING UNTIL 2026-09-12** (hv: silent
+  /// deletion). Every `Verify` step went into the write set unconditionally, so
+  /// a hand edit to `info.md` -- or any work an unregistered writer had put
+  /// there -- was replaced by the render, reported afterwards as `wrote`, at
+  /// exit 0. **`dehydrate` has refused exactly this since it was written**:
+  /// `organize::gate` will not REMOVE a file whose bytes differ from the render
+  /// because the difference may be a hand edit. Overwriting it is the same loss
+  /// by a different verb, and the two must not disagree.
+  ///
+  /// `overwrite` is the operator saying they know. It is not a default and
+  /// there is no environment variable for it.
+  ///
+  /// `announce` is handed every path the run is ABOUT TO WRITE OVER, before it
+  /// writes one, for the reason `dehydrate_announcing` takes a callback: what
+  /// to say is the renderer's and what is about to go is this layer's. It fires
+  /// only when `overwrite` is letting a divergence through -- an ordinary
+  /// realisation writes over nothing anybody could miss.
+  pub fn hydration_overwriting(
+    &mut self,
+    address: &Address,
+    overwrite: bool,
+    announce: &mut dyn FnMut(&[std::path::PathBuf]),
+  ) -> Result<Hydration, FacadeError> {
     if let Some(authority) = &address.authority {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
@@ -3337,6 +3392,42 @@ impl Facade {
       estate_root: whole.estate_root.clone(),
       held: Vec::new(),
     };
+    // **THE BYTES THAT WOULD GO ARE READ BEFORE ANY ARE WRITTEN.** A `Verify`
+    // step is a view this artefact owns that is already on disk; the plan
+    // carries what the store renders for it, so the comparison is in hand here
+    // and costs one read per view. **The refusal names every path**, because a
+    // verb that refuses without saying which file sends the operator to diff a
+    // whole thread against a description of it.
+    {
+      let diverged: Vec<std::path::PathBuf> = scoped
+        .with(organize::Action::Verify)
+        .filter(|step| {
+          step.content.as_ref().is_some_and(|rendered| {
+            // **UNREADABLE IS NOT DIVERGED.** A view this process cannot read
+            // is not evidence that somebody's work is under it, and refusing
+            // there would block a realisation over a permissions problem the
+            // operator would then have to diagnose from the wrong message.
+            std::fs::read_to_string(&step.path).is_ok_and(|disk| disk != *rendered)
+          })
+        })
+        .map(|step| self.project.relative(&step.path))
+        .map(std::path::PathBuf::from)
+        .collect();
+      if !diverged.is_empty() {
+        if !overwrite {
+          return Err(FacadeError::HydrationWouldOverwrite {
+            id: id.clone(),
+            paths: diverged,
+          });
+        }
+        // **`--overwrite` STILL NAMES WHAT IT DISCARDS, AND NAMES IT FIRST.**
+        // The flag is the operator saying they know; it is not permission to
+        // stop reporting. A run that destroys work and prints `wrote:` after
+        // the fact is the defect this batch exists for, flag or no flag.
+        announce(&diverged);
+      }
+    }
+
     // **`hydrate` IS ALWAYS `Mode::Apply`, AND IT NEEDS NO FLAG TO BE.** The
     // preview/apply split exists because `organize` REMOVES; `hydrate` only
     // ever writes, and a caller naming an address has already said what they

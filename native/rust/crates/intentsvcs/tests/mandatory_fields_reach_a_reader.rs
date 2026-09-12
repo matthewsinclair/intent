@@ -135,6 +135,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // -- there is no authored prose behind it for a reader to lose.
     | FacadeError::NotHydratable { .. }
     | FacadeError::NoManifestToUnlistFrom { .. }
+    // A realisation refused because it would write over a difference names
+    // the PATHS it would have destroyed; there is no field the caller left out.
+    | FacadeError::HydrationWouldOverwrite { .. }
     | FacadeError::DehydrationRefused { .. }
     // `intent edit`'s two refusals. Both are about WHERE a file may be
     // authored, not about a value the caller left out of one -- the argument

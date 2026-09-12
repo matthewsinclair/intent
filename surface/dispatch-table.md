@@ -183,7 +183,7 @@ Manage steel threads for the project
 | `st resume`                         | <id>        | --                                                                       | Take a thread off hold and back into Wip                                                                                           | new-surface |
 | `st reopen`                         | <id>        | --reason <text>                                                          | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
 | `st reinstate`                      | <id>        | --reason <text>                                                          | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
-| `st hydrate`                        | <id>        | --                                                                       | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
+| `st hydrate`                        | <id>        | --overwrite                                                              | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
 | `st dehydrate`                      | <id>        | --                                                                       | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
 | `st list`                           | --          | --status <status>, --width <n>, --markdown, --format terminal/md, --slug | List steel threads (default: in progress only)                                                                                     | keep        |
 | `st show`                           | <id> [file] | --                                                                       | Show details of a specific steel thread                                                                                            | keep        |
@@ -451,6 +451,10 @@ Add a steel thread to .intentfiles and write its files
 - **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
+- **Flags:**
+  - `--overwrite` (bool) -- Write over a view whose bytes on disk are not what the store renders, DISCARDING the version on disk
+    - **disposition:** keep
+    - **disposition basis:** **hv, 2026-09-12, on silent deletion: _THEY NEED IDENTIFYING, TRIAGING, AND FIXING, AS A MATTER OF URGENCY._** Every `Verify` step went into the write set unconditionally, so a hand edit to a realised view -- or any work an unregistered writer had put there -- was replaced by the render, reported afterwards as `wrote`, at exit 0. **`dehydrate` has refused exactly this signature since it was written**: `organize::gate` will not REMOVE a file whose bytes differ from the render, because the difference may be a hand edit and nothing on disk says which. Overwriting it is the same loss by a different verb, so the two verbs now answer alike: refuse, name every path, and make the destructive route an explicit flag. The flag is not a default and there is no environment variable for it.
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**

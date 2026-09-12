@@ -803,7 +803,17 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--overwrite"
+              ],
+              "type": "bool",
+              "help": "Write over a view whose bytes on disk are not what the store renders, DISCARDING the version on disk",
+              "disposition": "keep",
+              "disposition_basis": "**hv, 2026-09-12, on silent deletion: _THEY NEED IDENTIFYING, TRIAGING, AND FIXING, AS A MATTER OF URGENCY._** Every `Verify` step went into the write set unconditionally, so a hand edit to a realised view -- or any work an unregistered writer had put there -- was replaced by the render, reported afterwards as `wrote`, at exit 0. **`dehydrate` has refused exactly this signature since it was written**: `organize::gate` will not REMOVE a file whose bytes differ from the render, because the difference may be a hand edit and nothing on disk says which. Overwriting it is the same loss by a different verb, so the two verbs now answer alike: refuse, name every path, and make the destructive route an explicit flag. The flag is not a default and there is no environment variable for it."
+            }
+          ],
           "v2": "new-surface",
           "basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.",
           "owner_wp": "ST0057 WP-02",

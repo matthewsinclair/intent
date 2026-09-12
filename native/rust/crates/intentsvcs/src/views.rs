@@ -1535,8 +1535,16 @@ pub fn skew(
       Ok(on_disk) => {
         let unlisted = owning_thread(project, &view.path, canon).filter(|o| !realised.declares(o));
         let remedy = match &unlisted {
+          // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT
+          // IT** (hv, 2026-09-12: silent deletion). `st hydrate` will not write
+          // over a view whose bytes differ from the render -- which is this
+          // finding's exact signature -- so a remedy naming the bare verb would
+          // send the operator to a refusal. **And the refusal is right**: this
+          // finding's own paragraph says the difference has two causes and
+          // nothing here can tell them apart, so the remedy names the discard
+          // it performs rather than implying a regeneration that loses nothing.
           Some(id) => format!(
-            "`intent st hydrate {id}` regenerates it from the store and pins {id} in `.intentfiles`"
+            "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in `.intentfiles`"
           ),
           None => "`intent sync --to-disk` regenerates it from the store".to_string(),
         };
