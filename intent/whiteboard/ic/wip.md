@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 17:21Z
+heartbeat_at: 2026-09-12 17:32Z
 status: active
 focus: "ST0069 to the end. WP-16 is built and satisfied with ONE finding left -- `Board` is published and has no contract row; cc writes its table in WP-14 commit two, then I add the map entry, re-run and report, and the close is vc's word. Watch armed. Then WP-14's protocol half on vc's signal."
 claims: []
@@ -22,18 +22,11 @@ claims: []
 
 ## TODO
 
-**WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build.** Mine: the register rows for `intent wb` (the surface is my SSOT), AC-14.10's `/in-whiteboard` rewrite onto `intent wb`, AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi` with its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
+**WP-14's protocol half, on vc's signal, after cc's `intent wb` verbs exist on a build.** Mine: AC-14.10's `/in-whiteboard` rewrite onto `intent wb`, AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi` with its sentence lifted into an AT. **cc does not touch cwi or the skill; I do not touch the model.** The live board migrates at a cutover on vc's signal only -- until then every board stays hand-authored and both guards stay.
 
-**The batched reference regeneration.** ONE run, both halves keyed to v3.0.2, AFTER the tag exists. `docs/reference/**` from `gen_reference.sh` and `cut-surface.md` from `gen_cut_surface.sh`, which is keyed to the TAG. **The signal is vc's.** Collected so far: cc's batch 2 (printed output only), cc's organize preview lines, dc's single-line `claude upgrade --force` help change, and the search surface's own changes -- every flag added to the `search` row (dc's `--no-reconcile` among them, its markdown already regenerated), the `index` family, `when_to_use` on the two rows that carry it. Name them, do not count them: the count was wrong within the hour. On the pages' own contract (per-verb help and arguments, no output lines, no per-verb exit tables) none of it forces a regeneration; the one run re-keys everything anyway.
+**THE REGISTER ORDER IS AMENDED FOR THIS FAMILY ONLY (vc, 2026-09-12), AND IT IS AN ORDER CHANGE RATHER THAN AN OWNERSHIP ONE.** For `intent wb`, cc writes the row in the commit that BUILDS each verb, starting with `wb register` in commit two; I REVIEW every landing's rows and correct them in my own commit -- help prose, exit codes, voice, `when_to_use`, MCP exposure. **The reason is structural: the SSOT cannot precede the arm across two nodes, because a row with no arm fails reachability.** My ownership of the register does not move and nothing else about it changes. **So the ic job here is a REVIEW ON EVERY LANDING, not a one-time pass** -- a review that happens once is a review that misses every commit after it.
 
-**The run itself is pinned, so the signal is an execution and not a decision** (read off the two generators, 2026-09-12 16:07Z, no build involved -- both read the register out of git at a revision with `git show <rev>:surface/dispatch-table.json`, so the quiet window does not touch them and neither needs the delivered binary):
-
-```
-intent/st/ST0056/parity/tools/gen_reference.sh   --rev v3.0.2 --baseline v3.0.1 --out docs/reference
-intent/st/ST0056/parity/tools/gen_cut_surface.sh --rev v3.0.2 --baseline v3.0.1 --out docs/reference/cut-surface.md
-```
-
-**`--baseline` MUST be passed and MUST be v3.0.1.** Its default is hardcoded `v3.0.0` in `gen_reference.sh` and in its sibling, so a bare `--rev v3.0.2` emits a presence-and-delta section reporting two releases of change as one -- wrong, and wrong in a way the output states confidently with a revision beside it. The default was right for exactly one cut and nothing updates it.
+**AFTER cc's COMMIT TWO THE LIVE STORE IS AT SCHEMA 24, migrated by vc's hand, and vc broadcasts the moment.** Every store read of mine after that needs a CURRENT binary: the delivered pair is already behind HEAD and the currency arm refuses it. **Build in a private detached worktree with its own IN-TREE target dir under an isolated HOME; do NOT rebuild the shared release pair** -- three other nodes read it and that is dc's to move, not mine.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
