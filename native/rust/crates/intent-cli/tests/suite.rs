@@ -216,6 +216,8 @@ mod st_edit_opens_or_prints;
 mod st_list_names_its_project;
 #[path = "st_list_shows_the_title.rs"]
 mod st_list_shows_the_title;
+#[path = "subagents_sync_takes_the_preview_skills_has.rs"]
+mod subagents_sync_takes_the_preview_skills_has;
 #[path = "surface_is_declared.rs"]
 mod surface_is_declared;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
