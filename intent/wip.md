@@ -20,7 +20,7 @@ hv ruled the release on 2026-09-12: a patch, vc directing. Rules for every item:
 
 ## DOING: ST0069, project search and the LLM boundary (hv's go 2026-09-12, vc directing in specification, coordination and validation mode)
 
-- The design and build plan are `intent/st/ST0069/design.md`; the packages are WP-17 to WP-24 with their criteria. Ships in 3.0.2 (hv). Each package lands on main as it closes; the second dry-run rehearsal and the cut follow the last package; batch 4 finishes first on every lane. Lanes: cc the engine (WP-18, WP-20 integration, WP-23); dc the daemon and install (WP-22, WP-24 hooks and canon, the grammar-size measurement); ic the surfaces (WP-17, WP-19, WP-21, WP-24 verbs, descriptions and skills). First up: WP-17 (ic) and WP-18 (cc) in parallel. hv rules the design's listed decisions as each comes due.
+- The design and build plan are `intent/st/ST0069/design.md`; the packages are WP-17 to WP-24 with their criteria. Ships in 3.0.2 (hv). Each package lands on main as it closes; the second dry-run rehearsal and the cut follow the last package. Lanes: cc the engine (WP-18, WP-20 integration, WP-23, and the facade operations behind `intent index status` and `rebuild`); dc the daemon and install (the watcher reconcile, WP-22, WP-24 hooks and canon, the grammar-size measurement); ic the surfaces (WP-19, WP-21, WP-24 verbs, descriptions and skills, and the `index` register rows). In flight: WP-18 (cc, D29 as the landed test holds it), WP-19 (ic, the envelope built now over the corpus that exists, shapes agreed with cc first), dc's watcher reconcile reshaped so a directory event reconciles exactly what `scan` scans. hv rules the design's listed decisions as each comes due.
 
 ## TODO: waiting on hv
 
