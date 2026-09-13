@@ -209,7 +209,7 @@
         "AC-01.1"
       ],
       "status": "green",
-      "note": "test: \"AT-01.1 ws new scaffolds a protocol-3.0 node\""
+      "note": "test: \"AT-01.1 ws new scaffolds a protocol-3.0 node\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-01.2",
@@ -219,7 +219,7 @@
         "AC-01.2"
       ],
       "status": "green",
-      "note": "test: \"AT-01.2 ws new refuses an existing wsid with no mutation\""
+      "note": "test: \"AT-01.2 ws new refuses an existing wsid with no mutation\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-01.3",
@@ -229,7 +229,7 @@
         "AC-01.3"
       ],
       "status": "green",
-      "note": "test: \"AT-01.3 ws new rejects invalid ids with no partial scaffold\""
+      "note": "test: \"AT-01.3 ws new rejects invalid ids with no partial scaffold\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-01.4",
@@ -239,7 +239,7 @@
         "AC-01.4"
       ],
       "status": "green",
-      "note": "test: \"AT-01.4 hv is workstream zero (active) by default; working nodes paused\""
+      "note": "test: \"AT-01.4 hv is workstream zero (active) by default; working nodes paused\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-01.5",
@@ -249,7 +249,7 @@
         "AC-01.5"
       ],
       "status": "green",
-      "note": "test: \"AT-01.5 ws list prints one line per node from frontmatter, no writes\""
+      "note": "test: \"AT-01.5 ws list prints one line per node from frontmatter, no writes\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-02.1",
@@ -279,7 +279,7 @@
         "AC-02.3"
       ],
       "status": "green",
-      "note": "test: \"AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches\""
+      "note": "test: \"AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). Its subject moved rather than ending: `start` on a node that is not on the board now REFUSES and names `intent wb register`, driven by `an_absent_node_is_refused_and_told_where_to_register_it` in `native/rust/crates/intent-cli/tests/claude_cwi_door.rs`."
     },
     {
       "id": "AT-03.1",
@@ -289,7 +289,7 @@
         "AC-03.1"
       ],
       "status": "green",
-      "note": "test: \"AT-03.1 ws archive retires a node, history intact, gone from list\""
+      "note": "test: \"AT-03.1 ws archive retires a node, history intact, gone from list\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-03.2",
@@ -299,7 +299,7 @@
         "AC-03.2"
       ],
       "status": "green",
-      "note": "test: \"AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report\""
+      "note": "test: \"AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-03.3",
@@ -309,7 +309,7 @@
         "AC-03.3"
       ],
       "status": "green",
-      "note": "test: \"AT-03.3 ws hygiene leaves DOING content untouched\""
+      "note": "test: \"AT-03.3 ws hygiene leaves DOING content untouched\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-03.4",
@@ -319,7 +319,7 @@
         "AC-03.4"
       ],
       "status": "green",
-      "note": "test: \"AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)\""
+      "note": "test: \"AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
     },
     {
       "id": "AT-04.1",
@@ -329,7 +329,7 @@
         "AC-04.1"
       ],
       "status": "green",
-      "note": "test: \"AT-04.1 invocable as intent claude start|ws through the dispatch\""
+      "note": "test: \"AT-04.1 invocable as intent claude start|ws through the dispatch\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). It was deleted for Highlander rather than for retirement: `claude_cwi_door.rs` drives the same door against a fixture install, which is the stronger of the two readers."
     },
     {
       "id": "AT-04.2",
@@ -339,7 +339,7 @@
         "AC-04.2"
       ],
       "status": "green",
-      "note": "test: \"AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)\""
+      "note": "test: \"AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). THIS ROW'S ARM WAS ALREADY FAILING AT HEAD AND NOTHING REPORTED IT: it asserted the in-whiteboard skill names `intent claude ws new`, and AC-14.10 rewrote that skill onto `intent wb` at 124aa0d6f -- the requirement being MET is what broke the test asserting the opposite. The property it reached for is `no_skill_names_an_unshipped_verb.rs`, which derives its roster from the register."
     }
   ],
   "attachments": [
