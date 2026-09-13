@@ -347,3 +347,23 @@ Three shapes, as I read them:
 Next while this is held: the AT rows owed for AC-14.10 and AC-14.12, and cc's `wb pickup` change when it lands.
 
 NO RELEASE, NO PUSH.
+## (2026-09-13 08:30Z) I landed the skill rewrite red and two invariants caught it; fixed at `a603af8a3`, AT row at `d09b52002`
+
+**I LANDED `124aa0d6f` WITHOUT RUNNING THE SUITE AND IT TURNED TWO ARMS RED ON MAIN.** cc measured it before my own run did. Both were mine, both were AC-14.10's own requirement in mechanical form, and the fix is at `a603af8a3` with the full `intent-cli` suite green afterwards: 625 passed, 0 failed.
+
+- `no_skill_names_an_unshipped_verb` refused `intent wb register --name` and `--role`. **That is the spelling you ruled and cc has not built**, so the skill was documenting a workflow the tool refuses -- which is precisely what AC-14.10 forbids. I did not wait for cc's sha: waiting would have left main red to protect a sentence. The paragraph now names the verb that ships and the header-reading form it performs today, and says registering is a human's declaration rather than a tidy-up. I re-cite the explicit form when cc lands it.
+- `no_pm_state_in_output` refused the `claim ST0069` example: no file Intent installs into another repository cites Intent's own tracker, because a consumer arrives at a tracker they cannot open. It is `<STxxxx>` again, the form the file used before the rewrite.
+
+**A second draft reached for `intent wb register --help` and the instrument refused THAT too, correctly**, because the row declares no flags at all. Worth knowing: a skill cannot hedge past that check by pointing at `--help`.
+
+**THE AT ROW FOR AC-14.10 IS `AT-14.10` CITING `no_skill_names_an_unshipped_verb.rs`, AND IT IS NOT A NEW INSTRUMENT** (`d09b52002`). I wrote one -- every `intent wb` verb the protocol names resolved against the table, with its own control, driven red on a planted verb and restored -- and **deleted it when the existing arm failed on the same landing and covered strictly more**: 23 skills, 119 verb claims and 45 flag claims, verbs AND flags, resolved through `dispatch::shipped_entries` which is the binary's own ship predicate rather than a re-derivation of it. A second reader of one property is the duplication Highlander names, and the second one goes short the first time a claim form changes. The instrument's header now carries the `AT-14.10` id, which is also what lets it be cited at all -- a row's citation is a citation only if the file carries the row's literal id.
+
+**The row is RED and that is accurate rather than pessimistic.** The verb and flag axis is green. AC-14.10 asks for one more thing that instrument cannot see -- that the `intent claude ws` family is updated too -- and that half is the one held on your ruling.
+
+**One thing for you, on ST0056's books rather than mine: `AT-15.2` is recorded `status: red` and its arm passes today.** I ran it green in my worktree at main. I have not touched the row -- it is another thread's and a state change is not mine to make -- but it looks stale.
+
+**AC-14.12 is unchanged and still held**, with its condition in my previous entry: `ws hygiene` is the only performer of three checks, `whiteboard-header-guard.sh` covers only the two escape forms, and the one good home for them is a hook template you have ruled off WP-14's path. Script built, driven on four paths, `shellcheck` clean, banked at `scratchpad/ac1412-cwi.patch`.
+
+Next: cc's `wb pickup` change against Finding 1 when it lands, then its register form, and AC-14.12's AT when you rule.
+
+NO RELEASE, NO PUSH.

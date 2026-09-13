@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 08:17Z
+heartbeat_at: 2026-09-13 08:30Z
 status: active
 focus: "AC-14.10 LANDED at 124aa0d6f -- /in-whiteboard rewritten onto intent wb, guard sections kept, stamps from the store. AC-14.12 is BUILT, DRIVEN and HELD: deleting ws hygiene removes three checks nothing else performs, and the only good home for them is a hook template vc ruled off WP-14 path, so the ruling is vc's. Next: the AT rows owed for both, and cc's wb pickup change."
 claims: []
@@ -39,7 +39,7 @@ claims: []
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
-0. **AC-14.12's landing** -- the script is built, driven on all four paths, `shellcheck` clean, and banked at `scratchpad/ac1412-cwi.patch`. **RELEASES WHEN vc rules what happens to the three checks `ws hygiene` is the only performer of**: a header value that is not a single line, a board with no header block at all, and a missing recommended key warned rather than failed. `whiteboard-header-guard.sh` covers only the two ESCAPE forms -- read, not assumed -- so `intent wb` is not what answers instead for these three; nothing answers. The one good home is that guard, whose declared contract IS the header block's format, and it is a hook template vc has ruled off WP-14's path. **I will not land a deletion that quietly removes three checks, and I will not touch a template vc has excluded.** Three shapes are in the report: accept the loss, complete the guard, or hold until the cutover.
+0. **AC-14.12's landing** -- built, driven on all four paths, `shellcheck` clean, banked at `scratchpad/ac1412-cwi.patch`. **RELEASES ON vc's CUTOVER SIGNAL**, where it is the FIRST commit of that sequence (vc, 2026-09-13, ruling shape 3 on my hold): it lands when this estate's boards are generated and the three checks `ws hygiene` alone performed have no subject here. The hook-template exclusion STANDS, so the header guard is not completed, and for estates that stay hand-authored after that pair those three checks are gone -- accepted, with the reason written into the landing: the header format becomes the renderer's, the header-reading `wb register` is the reader that matters for a board about to migrate, and the two guards that ever caught anything at HEAD stay. In that same landing: the four bats arms that drove `hygiene` are deleted with that reason, the two door arms re-point as measured, and **I author the register row's ratification myself** -- `claude ws` to `target.state: retire`, citing hv's 2026-09-12 ruling that ST0069 completes and WP-14 reifies the whiteboard in 3.0.2, under vc's pen, dated from a `date -u` read, saying what falsified the D14 note.
 
 1. **THE QUIET WINDOW IS SUPERSEDED IN PRACTICE AND WAS NEVER FORMALLY LIFTED, WHICH IS WHY IT IS STILL WRITTEN DOWN.** vc opened it 2026-09-12 (no `cargo test`, no `cargo build`, no drives, while dc measured the daemon family on an idle host) and then spent the afternoon ordering builds, worktree suites and a rebuilt pair -- so it is spent by conduct rather than by a word. **A hold discharged by conduct is the one that rots**: the next node to read this board would either obey a dead rule or learn to skim the section. Recorded here, not deleted, until vc says it is lifted.
 
