@@ -9537,6 +9537,43 @@
       "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING REVERSIBLE, AND THE GROUND IS THAT IT IS NOT CALLABLE RATHER THAN THAT IT IS DANGEROUS.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: every edit `explore` makes goes through `intentsvcs` like any other client and is reversible by the same doors. **It is withheld because an interactive TUI blocks on keystrokes and needs a terminal, so an agent calling it receives a request that never returns.** That is a fact about the CHANNEL, not about the risk. **IT IS THE THIRD ROW ON THIS EXACT GROUND AND THE PRECEDENT IS WHY IT IS RECORDED RATHER THAN ARGUED**: `edit` and `browse` are both reversible, both withheld, and both on the ground that what they reach is a HUMAN face on THIS machine -- a path or a URL that exists here and nowhere else. `explore` is the third face in that set and the agent's door onto the same model is the daemon's JSON face (AC-08.9), not any of the three. **Recorded rather than resolved by relabelling: calling it `one-way` would make a derived number come out and would be false**, which is the move the `daemon` head row was making while one row stood for several verbs. Same day, ic ruled `organize` EXPOSED under AC-05.1 on the converse reasoning -- blast radius is not the rule, undoability is -- so bending undoability here to cover a channel problem would have contradicted a ruling made hours earlier."
     },
     {
+      "path": "discover",
+      "help": "Find Intent projects under a directory and register the ones this build can serve",
+      "args": [
+        {
+          "name": "fromdir",
+          "type": "path",
+          "arity": "0..1",
+          "note": "The directory the walk starts from, and the working directory when absent. Resolved to its canonical form before the walk, because the registry and intentd key a project by its canonical root and a second spelling would list one project twice."
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--depth"
+          ],
+          "type": "string",
+          "help": "How many directory levels below fromdir to search (default 4)",
+          "disposition": "keep"
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "hv, 2026-09-13, first-hand: _we need an 'intent discover [fromdir]' command that looks for all intent projects from the current dir (by default) or a dir that is passed in as a param. Whenever it finds one, it confirms that it is 'config compatible' with the current intentd, and then ensures that it is registered in the global config for intentd to find._ The walk's bounds and what compatible means are in ST0074's design.md, WP-03.",
+      "owner_wp": "ST0074 WP-03",
+      "disposition": "new-surface",
+      "read_or_mutate": "mutate",
+      "recoverability": "idempotent",
+      "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING IDEMPOTENT, AND THE GROUND IS WHERE IT WRITES RATHER THAN WHETHER IT CAN BE UNDONE.** A second run adds nothing, so the label is honest. What it writes is the operator's per-user project registry, outside every project, and what it reads is any directory the caller names: an agent attached to one project has no business walking the operator's disk and enrolling what it finds. The operator runs it.",
+      "exposed_on_mcp": false,
+      "mcp_review": {
+        "grounded_in": "Withheld for scope, not for danger: the argument is in `recoverability_anomaly`, which is the field the generator reads."
+      },
+      "acceptance": "ST0074 AC-03.3",
+      "target": {
+        "state": "new-surface"
+      }
+    },
+    {
       "path": "help",
       "help": "Show usage for Intent",
       "args": [],
@@ -9786,8 +9823,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 70,
-      "census_note": "70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 71,
+      "census_note": "71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10164,6 +10201,7 @@
       "surface",
       "browse",
       "explore",
+      "discover",
       "help",
       "graphql",
       "set"
@@ -10317,6 +10355,7 @@
       "surface",
       "browse",
       "explore",
+      "discover",
       "help",
       "graphql",
       "set"
@@ -10477,6 +10516,7 @@
       "surface",
       "browse",
       "explore",
+      "discover",
       "help",
       "graphql",
       "set"

@@ -37,6 +37,7 @@ use intentsvcs::userstate;
 use intentsvcs::wire::{self, Event, Op, Response};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
+mod listed;
 mod registry;
 mod store;
 mod watch;
@@ -289,6 +290,28 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   // which is the two-engines failure arrived at from inside the daemon meant to
   // prevent it.
   let registry = Arc::new(Registry::new());
+
+  // **THE PROJECT REGISTRY IS READ BEFORE THE FIRST CONNECTION AND KEPT IN STEP
+  // AFTER IT** (ST0074 `AC-03.4`). A daemon that cannot watch the file still
+  // serves every project and lists the file as it read it at start, and says so.
+  let _listed = match listed::start(
+    userstate::project_registry_under(dirs),
+    Arc::clone(&registry),
+  ) {
+    Ok(watching) => Some(watching),
+    Err(Response::Error { message, remedy }) => {
+      eprintln!(
+        "warning: intentd will not see changes to the project registry: {message}\n  remedy: {remedy}"
+      );
+      None
+    }
+    Err(other) => {
+      eprintln!(
+        "warning: the project registry watch answered a refusal with {other:?}\n  remedy: this is a fault in intentd rather than in the file; the project list is the one read at start"
+      );
+      None
+    }
+  };
 
   println!(
     "intentd listening on {} and {}",

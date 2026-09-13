@@ -82,6 +82,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
     Some(("explore", m)) => explore(m.get_one::<String>("address").map(String::as_str)),
+    Some(("discover", m)) => discover(m),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -4836,6 +4837,62 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   render_organize_report(&project, &report, Tense::Performed, Verbosity::of(m))
 }
 
+/// `intent discover [fromdir] [--depth N]` -- find Intent projects under a
+/// directory and register the ones this build can serve (ST0074 `AC-03.3`).
+///
+/// **EVERY PROJECT FOUND IS NAMED, WHATEVER HAPPENED TO IT.** Registered,
+/// already registered, or not registered with the reason: a walk that reported
+/// only what it added would leave an operator whose project is missing from the
+/// picker with no way to learn why.
+fn discover(m: &ArgMatches) -> Result<(), Failure> {
+  let from = match m.get_one::<String>("fromdir") {
+    Some(dir) => std::path::PathBuf::from(dir),
+    None => std::env::current_dir().map_err(|e| {
+      Failure::Error(format!(
+        "error: the working directory could not be read: {e}\n  remedy: name the directory to search, eg `intent discover ~/Devel`"
+      ))
+    })?,
+  };
+  let from = from.canonicalize().map_err(|e| {
+    Failure::Error(format!(
+      "error: `{}` could not be resolved: {e}\n  remedy: name a directory that exists",
+      from.display()
+    ))
+  })?;
+  let depth = match m.get_one::<String>("depth") {
+    None => 4,
+    Some(raw) => raw.parse::<usize>().map_err(|_| {
+      Failure::Error(format!(
+        "error: `--depth {raw}` is not a number of directory levels\n  remedy: give a whole number, eg `--depth 2`"
+      ))
+    })?,
+  };
+  let registry =
+    intentsvcs::userstate::project_registry().map_err(|e| Failure::Error(e.render()))?;
+  let found = intentsvcs::projects::discover(&registry, &from, depth)
+    .map_err(|e| Failure::Error(e.render()))?;
+  for root in &found.registered {
+    println!("registered: {}", root.display());
+  }
+  for root in &found.already {
+    println!("already registered: {}", root.display());
+  }
+  for (root, why) in &found.refused {
+    println!("not registered: {} -- {why}", root.display());
+  }
+  for path in &found.unreadable {
+    eprintln!("warning: not searched: {path}");
+  }
+  println!(
+    "done: {} registered, {} already registered, {} not registered, in {}",
+    found.registered.len(),
+    found.already.len(),
+    found.refused.len(),
+    registry.display()
+  );
+  Ok(())
+}
+
 /// `intent explore` -- the TUI, rooted at the entity kinds.
 ///
 /// **THE WHOLE VERB IS A ROOT AND A DATA SOURCE.** `explore` is not a second
@@ -4905,6 +4962,22 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
   // what turned four inline lines into a method, and the reasoning moved with
   // it rather than being left behind in a comment here.
   let project = live.facade.project().directory_name().unwrap_or_default();
+  // **`intent explore` KEEPS ITS PROJECT IN THE REGISTRY** (ST0074 `AC-03.2`),
+  // so the picker and intentd know every project somebody has opened. A
+  // registry that cannot be written is said on the info row and the project
+  // opens anyway: the operator came to explore, not to repair a file.
+  let registered = live
+    .facade
+    .project()
+    .root()
+    .canonicalize()
+    .map_err(|e| format!("this project's root could not be resolved: {e}"))
+    .and_then(|root| {
+      let path = intentsvcs::userstate::project_registry()
+        .map_err(|e| format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)))?;
+      intentsvcs::projects::add(&path, &[root], intentsvcs::projects::AddedBy::Explore)
+        .map_err(|e| format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)))
+    });
   let mut app = match address {
     None => tui::app::App::explore(),
     Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {
@@ -4921,6 +4994,9 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
       }
     },
   };
+  if let Err(why) = registered {
+    app = app.saying(format!("the project registry was not updated: {why}"));
+  }
   app = app.in_project(project);
   tui::run::run(&mut app, &mut live, session)
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))

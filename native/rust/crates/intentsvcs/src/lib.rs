@@ -84,6 +84,7 @@ pub mod payload;
 pub mod plugins;
 pub mod preconditions;
 pub mod project;
+pub mod projects;
 pub mod prose;
 pub mod realise;
 pub mod remedy;

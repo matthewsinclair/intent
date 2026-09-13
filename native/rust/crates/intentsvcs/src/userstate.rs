@@ -187,6 +187,20 @@ pub fn global_config_under(dirs: &Dirs) -> PathBuf {
   dirs.config.join("config.json")
 }
 
+/// `$XDG_CONFIG_HOME/intent/projects.json` -- the project registry (ST0074
+/// WP-03): the Intent projects this machine knows about. See [`crate::projects`].
+///
+/// **CONFIGURATION, BECAUSE THE OPERATOR AUTHORS IT** as much as `intent
+/// explore` and `intent discover` do, and `intentd` only reads it.
+pub fn project_registry() -> Result<PathBuf, UserStateError> {
+  Ok(project_registry_under(&dirs()?))
+}
+
+/// [`project_registry`]'s layout, against any [`Dirs`].
+pub fn project_registry_under(dirs: &Dirs) -> PathBuf {
+  dirs.config.join("projects.json")
+}
+
 /// Where `bin/devbin macos app-build` leaves the built `Intent.app` bundles.
 ///
 /// Mirrors `APP_STATE_DIR` in `bin/.devbin/cmd/macos`. **That is a second home

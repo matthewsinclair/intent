@@ -611,6 +611,12 @@ const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
 /// for -- a verb writing a file nobody had written down.
 const OUT_OF_ESTATE: &[(&str, &str)] = &[
   (
+    "discover",
+    "$XDG_CONFIG_HOME/intent/projects.json (by default ~/.config/intent/projects.json), the per-user \
+project registry, through `projects::add`'s rename, and nothing in any project it walks (ST0074 WP-03). \
+`intent explore` writes the same file through the same call.",
+  ),
+  (
     "agents sync",
     "AGENTS.md at the project root, plus AGENTS.md.bak beside it",
   ),

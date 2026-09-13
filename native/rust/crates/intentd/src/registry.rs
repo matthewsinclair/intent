@@ -91,6 +91,13 @@ impl std::fmt::Debug for Registered {
 #[derive(Debug, Default)]
 pub struct Registry {
   projects: Mutex<HashMap<PathBuf, Registered>>,
+  /// The roots the operator's project registry lists, canonical where they
+  /// resolve (ST0074 `AC-03.4`). Replaced whole by [`Registry::set_listed`].
+  ///
+  /// **A `std` MUTEX, UNLIKE `projects`, BECAUSE IT IS NEVER HELD ACROSS AN
+  /// `await`** and its writer is the file watcher's own thread, which is not
+  /// on the runtime.
+  listed: std::sync::Mutex<Vec<PathBuf>>,
 }
 
 impl Registry {
@@ -170,10 +177,33 @@ impl Registry {
     Ok(handle)
   }
 
-  /// Every registered project, and whether its root is still there.
+  /// Replace the roots the project registry lists.
+  ///
+  /// **A ROOT THAT DOES NOT RESOLVE IS KEPT AS WRITTEN** rather than dropped:
+  /// the listing then reports it with `root_exists: false`, which is the state
+  /// `AC-08.1` asks to see for a moved project, and the operator can find the
+  /// entry in the file by the spelling they wrote.
+  pub fn set_listed(&self, roots: Vec<PathBuf>) {
+    let roots = roots
+      .into_iter()
+      .map(|root| root.canonicalize().unwrap_or(root))
+      .collect();
+    *self
+      .listed
+      .lock()
+      .unwrap_or_else(|poisoned| poisoned.into_inner()) = roots;
+  }
+
+  /// Every project this daemon has opened or the registry lists, and whether
+  /// its root is still there.
   pub async fn snapshot(&self) -> Response {
+    let listed = self
+      .listed
+      .lock()
+      .unwrap_or_else(|poisoned| poisoned.into_inner())
+      .clone();
     let projects = self.projects.lock().await;
-    let mut listed: Vec<RegisteredProject> = projects
+    let mut known: Vec<RegisteredProject> = projects
       .iter()
       .map(|(root, registered)| RegisteredProject {
         root: root.clone(),
@@ -187,12 +217,27 @@ impl Registry {
         // whole point of the field is to notice a change that happened after
         // the daemon last looked.
         root_exists: root.exists(),
+        listed: listed.contains(root),
       })
       .collect();
+    // **LISTED AND NOT OPENED IS REPORTED, AND NOTHING IS OPENED TO REPORT IT.**
+    known.extend(
+      listed
+        .iter()
+        .filter(|root| !projects.contains_key(*root))
+        .map(|root| RegisteredProject {
+          root: root.clone(),
+          root_exists: root.exists(),
+          dispatched: 0,
+          ingested: 0,
+          watched: false,
+          listed: true,
+        }),
+    );
     // A stable order, so an operator comparing two runs is reading a real
     // difference rather than a hash iteration order.
-    listed.sort_by(|a, b| a.root.cmp(&b.root));
-    Response::Registry { projects: listed }
+    known.sort_by(|a, b| a.root.cmp(&b.root));
+    Response::Registry { projects: known }
   }
 
   /// Every open project's handle, for work that addresses all of them.

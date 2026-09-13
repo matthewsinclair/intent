@@ -363,6 +363,14 @@ pub struct RegisteredProject {
   /// store that is correct without it. Such a project has no second engine on
   /// its tree, so the carve-out has nothing to refuse.
   pub watched: bool,
+  /// **IS THIS PROJECT IN THE OPERATOR'S PROJECT REGISTRY?** (ST0074 `AC-03.4`)
+  ///
+  /// A listed project the daemon has not opened is reported too, with nothing
+  /// dispatched and nothing watched: listing never opens a store, so a picker can
+  /// offer every known project without the daemon holding all of them.
+  /// `default` so a client reading an older daemon's answer sees `false`.
+  #[serde(default)]
+  pub listed: bool,
 }
 
 /// What the daemon answers.

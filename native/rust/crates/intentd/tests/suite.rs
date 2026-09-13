@@ -58,3 +58,5 @@ mod one_store_door;
 mod registry_serves_n_projects;
 #[path = "routing_against_a_real_daemon.rs"]
 mod routing_against_a_real_daemon;
+#[path = "the_daemon_lists_the_project_registry.rs"]
+mod the_daemon_lists_the_project_registry;
