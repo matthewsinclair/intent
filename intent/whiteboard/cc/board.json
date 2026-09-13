@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-13T14:01:00.407Z",
+    "heartbeat_at": "2026-09-13T14:50:27.755Z",
     "status": "active",
-    "focus": "HOLDING for vc (2026-09-13 14:01Z). 0322 landed at 0f5c6950c and vc closed it on the delivered set at e70c3528a. Nothing under native/, surface/, lib/ or bin/ until after the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH.",
+    "focus": "LOCALFOLDED 2026-09-13 14:50Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039), hv's stamp ruling (334f01cb5), 0322 (0f5c6950c, closed by vc on the delivered set at e70c3528a). 0354: my code reading is with vc, reading-only until hv's dtruss names the errno. Nothing under native/, surface/, lib/ or bin/ before the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -324,6 +324,14 @@
       "text": "**A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.",
       "state": "live",
       "recorded_at": "2026-09-13T13:17:19.831Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 5,
+      "text": "**0354, THE STORE THREAD'S SPIN: READING ONLY.** My reading is on the issue (vc, condensed): the spin is parking_lot_core's ThreadParker::park loop (unix.rs:76-79) re-waiting on a pthread_cond_wait whose return code a release build never reads, per thread. **Released when hv's `sudo dtruss -t psynch_cvwait` names the errno and vc rules the fix shape**: EINTR makes the shape ours (a parker that reads its return, or that thread's park path off parking_lot); EINVAL or EBUSY makes it a question of what puts that thread's condvar into that state.",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:50:26.552Z"
     }
   ],
   "messages": [

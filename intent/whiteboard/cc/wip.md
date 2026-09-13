@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 14:01Z
+heartbeat_at: 2026-09-13 14:50Z
 status: active
-focus: "HOLDING for vc (2026-09-13 14:01Z). 0322 landed at 0f5c6950c and vc closed it on the delivered set at e70c3528a. Nothing under native/, surface/, lib/ or bin/ until after the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-13 14:50Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039), hv's stamp ruling (334f01cb5), 0322 (0f5c6950c, closed by vc on the delivered set at e70c3528a). 0354: my code reading is with vc, reading-only until hv's dtruss names the errno. Nothing under native/, surface/, lib/ or bin/ before the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -23,6 +23,7 @@ _(none)_
 
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
+- **0354, THE STORE THREAD'S SPIN: READING ONLY.** My reading is on the issue (vc, condensed): the spin is parking_lot_core's ThreadParker::park loop (unix.rs:76-79) re-waiting on a pthread_cond_wait whose return code a release build never reads, per thread. **Released when hv's `sudo dtruss -t psynch_cvwait` names the errno and vc rules the fix shape**: EINTR makes the shape ours (a parker that reads its return, or that thread's park path off parking_lot); EINVAL or EBUSY makes it a question of what puts that thread's condvar into that state.
 
 ## Watch-outs
 
