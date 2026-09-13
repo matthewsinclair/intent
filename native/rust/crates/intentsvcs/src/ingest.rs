@@ -309,7 +309,7 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
     // Attachment bytes arrive with `load_blobs` and a caller may carry more in
     // afterwards, so the index is taken from the finished model through the
     // one derivation every other caller uses.
-    canon.sections = sections_of(project, &canon.threads, &canon.issues);
+    canon.sections = sections_of(project, &canon.threads, &canon.issues, &canon.boards);
     Ok(canon)
   } else {
     Err(Refusal::new(findings).into())
@@ -369,8 +369,10 @@ pub fn recording<T>(
 /// refusal leaves the previous DB contents exactly as they were.
 pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
   recording(store, |store| {
-    let canon = read(project)?;
+    let mut canon = read(project)?;
     store.rebuild(&canon.threads, &canon.issues)?;
+    let stored = store.hydrate_boards()?;
+    swap_board_sections(project, &mut canon.sections, &stored);
     store.replace_doc_sections(&canon.sections)?;
     carry_project_state(project, store)?;
     record_canon_files(
@@ -491,7 +493,11 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
       threads,
       issues,
       sections: store.doc_sections()?,
-      boards: Vec::new(),
+      // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
+      // pays, and a model with no boards is one whose next thread mutation
+      // re-derives the index without them and whose corpus survey leaves
+      // `board.json` in as a file.
+      boards: store.hydrate_boards()?,
     });
   }
 
@@ -655,7 +661,7 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
     threads,
     issues: stored_issues,
     sections,
-    boards: Vec::new(),
+    boards: store.hydrate_boards()?,
   })
 }
 
@@ -899,7 +905,6 @@ fn resync_inner(
       }
     }
   }
-  store.replace_doc_sections(&canon.sections)?;
   // **ONLY AN UNSCOPED `Restore` CARRIES BOARDS FROM DISK INTO THE STORE.**
   // Two separate narrowings, and they have different reasons.
   //
@@ -920,11 +925,17 @@ fn resync_inner(
   //
   // The returned `Canon` therefore describes what the store actually holds,
   // not what the disk happened to carry past a narrowing that excluded it.
+  //
+  // **AND THE PROSE INDEX IS REPLACED ONLY AFTER THAT IS DECIDED**, so its board
+  // half is derived from the boards the store holds rather than from the disk
+  // read above, which does not carry a board write whose extract has not been
+  // projected yet.
   if scope.named().is_none() && load == Load::Restore {
     store.replace_boards(&canon.boards)?;
-  } else {
-    canon.boards = store.hydrate_boards()?;
   }
+  canon.boards = store.hydrate_boards()?;
+  swap_board_sections(project, &mut canon.sections, &canon.boards);
+  store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
   // **The file index is left alone under a scope, deliberately.** It records
   // what was last INGESTED, and a scoped run ingested only part of what the
@@ -1243,7 +1254,12 @@ impl Validated for Issue {
 /// it is replacing, and a name that drifts from what the emitter emits is
 /// invisible. **This function replaces the whole index from the whole model**,
 /// so there is no set to name and nothing to drift.
-pub fn sections_of(project: &Project, threads: &[Thread], issues: &[Issue]) -> Vec<DocSection> {
+pub fn sections_of(
+  project: &Project,
+  threads: &[Thread],
+  issues: &[Issue],
+  boards: &[crate::model::Board],
+) -> Vec<DocSection> {
   let mut out = Vec::new();
   for thread in threads {
     collect_thread_prose(project, &mut out, thread);
@@ -1268,7 +1284,59 @@ pub fn sections_of(project: &Project, threads: &[Thread], issues: &[Issue]) -> V
       &issue.body,
     ));
   }
+  out.append(&mut board_sections(project, boards));
   out
+}
+
+/// The prose sections of the boards and the inboxes addressed to them.
+///
+/// **A BOARD IS INDEXED FROM ITS ROWS, UNDER THE PATH ITS VIEW HAS.** Once the
+/// markdown is a generated view, the disk corpus leaves it out as the store's
+/// own projection, so this is the only way a board's words reach a search --
+/// and naming the view path keeps the hit the same shape as any file's.
+/// The inboxes belong to the recipient's board, one file per sender that has
+/// written; an empty inbox has nothing to find.
+pub fn board_sections(project: &Project, boards: &[crate::model::Board]) -> Vec<DocSection> {
+  let mut out = Vec::new();
+  for board in boards {
+    let node = &board.node.moniker;
+    out.append(&mut prose::split(
+      prose::BOARD_OWNER,
+      node,
+      &project.relative(&project.wb_board_view(node)),
+      &crate::views::wb_board_body(board),
+    ));
+    let mut senders: Vec<&str> = board.messages.iter().map(|m| m.sender.as_str()).collect();
+    senders.sort_unstable();
+    senders.dedup();
+    for sender in senders {
+      out.append(&mut prose::split(
+        prose::BOARD_OWNER,
+        node,
+        &project.relative(&project.wb_inbox_view(node, sender)),
+        &crate::views::wb_inbox_body(sender, node, &board.messages),
+      ));
+    }
+  }
+  out
+}
+
+/// Make the board half of a section list describe `boards`, leaving the
+/// thread and issue halves exactly as they were derived.
+///
+/// **THE BOARDS A SECTION LIST IS DERIVED FROM ARE THE STORE'S, NOT THE
+/// DISK'S.** A read derives sections from whatever `board.json` sits on disk,
+/// and the store is where a board write lands first; replacing the index from
+/// the read would erase every board section a write had stored before its
+/// extract was projected -- measured: 14 board sections after `wb add`, 0 after
+/// the next `intent search` opened the project.
+pub fn swap_board_sections(
+  project: &Project,
+  sections: &mut Vec<DocSection>,
+  boards: &[crate::model::Board],
+) {
+  sections.retain(|s| s.owner_type != prose::BOARD_OWNER);
+  sections.append(&mut board_sections(project, boards));
 }
 
 pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {

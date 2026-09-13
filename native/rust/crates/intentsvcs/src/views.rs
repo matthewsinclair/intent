@@ -1660,6 +1660,15 @@ fn board_header(node: &crate::model::WbNode) -> String {
 /// model exists to enforce. What they said stays in the store and in the
 /// extract; the view is the LIVE board.
 pub fn wb_board(board: &crate::model::Board, ctx: &RenderContext<'_>) -> String {
+  finish(wb_board_body(board), ctx, "the whiteboard model")
+}
+
+/// [`wb_board`] without the generated footer: the bytes the prose index splits.
+///
+/// **ONE LAYOUT, TWO READERS.** The index takes a board's sections from the
+/// same function the view is rendered from, so a search hit and the file it
+/// names cannot disagree about where a line sits.
+pub fn wb_board_body(board: &crate::model::Board) -> String {
   let mut out = board_header(&board.node);
   out.push_str(&format!(
     "# {} ({})\n\n",
@@ -1687,7 +1696,7 @@ pub fn wb_board(board: &crate::model::Board, ctx: &RenderContext<'_>) -> String 
     }
     out.push('\n');
   }
-  finish(out, ctx, "the whiteboard model")
+  out
 }
 
 /// One ordered (sender, recipient) pair as
@@ -1708,6 +1717,19 @@ pub fn wb_inbox(
   messages: &[crate::model::WbMessage],
   ctx: &RenderContext<'_>,
 ) -> String {
+  finish(
+    wb_inbox_body(sender, recipient, messages),
+    ctx,
+    "the whiteboard model",
+  )
+}
+
+/// [`wb_inbox`] without the generated footer, for the prose index.
+pub fn wb_inbox_body(
+  sender: &str,
+  recipient: &str,
+  messages: &[crate::model::WbMessage],
+) -> String {
   let mut out = format!("# inbox: {sender} -> {recipient}\n\n");
   let mine: Vec<&crate::model::WbMessage> = messages
     .iter()
@@ -1715,7 +1737,7 @@ pub fn wb_inbox(
     .collect();
   if mine.is_empty() {
     out.push_str("_(empty)_\n");
-    return finish(out, ctx, "the whiteboard model");
+    return out;
   }
   for m in mine {
     out.push_str(&format!("## ({})", board_stamp(&m.recorded_at)));
@@ -1732,7 +1754,7 @@ pub fn wb_inbox(
     out.push_str(&m.body);
     out.push_str("\n\n");
   }
-  finish(out, ctx, "the whiteboard model")
+  out
 }
 
 /// Every view the model implies, in a stable order.

@@ -76,6 +76,9 @@ pub const FILE_OWNER: &str = "file";
 /// `DELETE` that runs on every ingest.
 pub const WB_OWNER: &str = "wb_node";
 
+/// The owner of a board's and its inboxes' sections: the node's board.
+pub const BOARD_OWNER: &str = "board";
+
 /// Split one markdown document into sections.
 ///
 /// The concatenation law, which the round-trip test pins: rebuilding the file

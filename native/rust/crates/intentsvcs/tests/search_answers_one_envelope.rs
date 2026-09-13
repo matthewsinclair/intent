@@ -15,7 +15,8 @@
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::Attachment;
-use intentsvcs::search::{SearchQuery, Tier};
+use intentsvcs::model::WbItemKind;
+use intentsvcs::search::{HitKind, SearchQuery, Tier};
 
 /// A thread whose attachments carry one word twice, so a cap has something to
 /// cap: on a one-hit estate `matched` and `returned` are the same number and
@@ -29,6 +30,65 @@ fn estate() -> Fixture {
   ];
   fx.write_thread(&thread);
   fx
+}
+
+/// ST0069 AC-14.8: a board's item and an inbox's message are found by the
+/// same search as the rest of the corpus, as `file` hits at their view paths,
+/// and they stay found and go away with the rows they came from.
+#[test]
+fn a_board_and_an_inbox_are_found_where_their_views_sit() {
+  let fx = Fixture::new();
+  let mut f = fx.facade_on_disk();
+  for (node, name, role) in [
+    ("cc", "Control Claude", "control"),
+    ("vc", "Validation Claude", "validation"),
+  ] {
+    let dir = fx.root().join("intent/whiteboard").join(node);
+    std::fs::create_dir_all(&dir).expect("node dir");
+    std::fs::write(
+      dir.join("wip.md"),
+      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
+    )
+    .expect("write the header the roster is read from");
+  }
+  f.register_roster().expect("register the roster");
+  f.wb_add("cc", WbItemKind::Hold, "held for the wallaby")
+    .expect("a hold");
+  f.wb_ask("vc", "cc", "the numbat order", None, false)
+    .expect("a message");
+  // A thread mutation re-derives the whole index from the model it holds, so
+  // it is the write that would put a stale board back.
+  f.st_new("A thread written after the board")
+    .expect("mint a thread");
+  // And a fresh open of the same store, which re-derives the index from what
+  // it reads -- the open every command pays.
+  drop(f);
+  let mut f = fx.facade_on_disk();
+
+  let lexical = |f: &intentsvcs::facade::Facade, word: &str| {
+    f.search_all(word, &SearchQuery::default())
+      .expect("the search answered")
+      .groups
+      .into_iter()
+      .find(|g| g.tier == Tier::Lexical)
+      .expect("the lexical tier")
+      .hits
+  };
+  let hold = lexical(&f, "wallaby");
+  assert_eq!(hold.len(), 1, "{hold:?}");
+  assert_eq!(hold[0].kind, HitKind::File);
+  assert_eq!(hold[0].path, "intent/whiteboard/cc/wip.md");
+  let message = lexical(&f, "numbat");
+  assert_eq!(message.len(), 1, "{message:?}");
+  assert_eq!(message[0].kind, HitKind::File);
+  assert_eq!(message[0].path, "intent/whiteboard/cc/inbox.vc.md");
+
+  f.wb_archive("cc", WbItemKind::Hold, 1)
+    .expect("archive the hold");
+  assert!(
+    lexical(&f, "wallaby").is_empty(),
+    "an archived item leaves the view, so it leaves the index"
+  );
 }
 
 #[test]

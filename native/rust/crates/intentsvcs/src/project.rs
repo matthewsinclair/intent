@@ -1599,6 +1599,20 @@ impl Project {
     self.whiteboard_dir().join(node).join("board.json")
   }
 
+  /// A node's board as the markdown view, `whiteboard/<node>/wip.md`.
+  pub fn wb_board_view(&self, node: &str) -> PathBuf {
+    self.whiteboard_dir().join(node).join("wip.md")
+  }
+
+  /// One ordered pair's inbox view, `whiteboard/<recipient>/inbox.<sender>.md`:
+  /// it sits with the recipient, who reads and clears it.
+  pub fn wb_inbox_view(&self, recipient: &str, sender: &str) -> PathBuf {
+    self
+      .whiteboard_dir()
+      .join(recipient)
+      .join(format!("inbox.{sender}.md"))
+  }
+
   /// Every node directory that holds a `board.json`, sorted.
   ///
   /// **A NODE DIRECTORY WITHOUT ONE IS NOT LISTED, AND THAT IS THE WHOLE

@@ -5054,10 +5054,12 @@ impl Facade {
         nodes.push((node, name, role));
       }
     }
-    self
+    let registered = self
       .store
       .register_nodes(&nodes)
-      .map_err(FacadeError::Store)
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
+    Ok(registered)
   }
 
   /// Every registered node's board, in roster order.
@@ -5068,6 +5070,35 @@ impl Facade {
   /// replaces was world-readable in the checkout.
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
     self.store.hydrate_boards().map_err(FacadeError::Store)
+  }
+
+  /// Bring the model's boards and the prose index up to what a board write
+  /// just stored. Every whiteboard write ends here.
+  ///
+  /// **THE SAME DERIVATION AND THE SAME WRITER A THREAD MUTATION USES**:
+  /// `sections_of` over the whole model and `replace_doc_sections`, never a
+  /// board-only patch of the index. A mutation clones `self.canon` and indexes
+  /// what the clone carries, so the boards are refreshed there too, or the next
+  /// thread mutation in a long-lived facade would put a stale board back.
+  ///
+  /// **NOT IN THE BOARD WRITE'S OWN TRANSACTION**, which a thread mutation's
+  /// index is. A failure between the two leaves the row written and the index
+  /// one write behind, reported as this call's error rather than swallowed, and
+  /// the next board write or rebuild derives the whole index again.
+  fn reindex_boards(&mut self) -> Result<(), FacadeError> {
+    self.canon.boards = self.boards()?;
+    let sections = ingest::sections_of(
+      &self.project,
+      &self.canon.threads,
+      &self.canon.issues,
+      &self.canon.boards,
+    );
+    self
+      .store
+      .replace_doc_sections(&sections)
+      .map_err(FacadeError::Store)?;
+    self.canon.sections = sections;
+    Ok(())
   }
 
   /// Refuse an entry body the acting node's bound does not admit.
@@ -5120,7 +5151,8 @@ impl Facade {
   /// model's blessing -- the class this whole model exists to close.
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_registered(node)?;
-    self.store.wb_touch(node).map_err(FacadeError::Store)
+    self.store.wb_touch(node).map_err(FacadeError::Store)?;
+    self.reindex_boards()
   }
 
   /// Pause the acting node, and stamp its heartbeat on the way out.
@@ -5139,7 +5171,8 @@ impl Facade {
         &crate::model::enum_str(&crate::model::WbNodeStatus::Paused),
       )
       .map_err(FacadeError::Store)?;
-    self.store.wb_touch(node).map_err(FacadeError::Store)
+    self.store.wb_touch(node).map_err(FacadeError::Store)?;
+    self.reindex_boards()
   }
 
   /// What a node needs at the start of a session: its own board, its peers'
@@ -5157,7 +5190,8 @@ impl Facade {
   pub fn wb_pickup(&mut self, node: &str) -> Result<Pickup, FacadeError> {
     self.require_registered(node)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
-    let boards = self.boards()?;
+    self.reindex_boards()?;
+    let boards = self.canon.boards.clone();
     let board = boards
       .iter()
       .find(|b| b.node.moniker == node)
@@ -5209,9 +5243,8 @@ impl Facade {
   /// Append one item of one kind to the acting node's own board.
   ///
   /// **ONE DOOR FOR EVERY KIND, so the bound and the stamp rule are stated
-  /// once.** `wb_decide` is its only caller today; the remaining kinds arrive
-  /// with the verbs that write them, and a second insert path would be the
-  /// place one of them quietly skipped the bound.
+  /// once.** `wb_decide` and `wb_add` are its callers, and a second insert
+  /// path would be the place one of them quietly skipped the bound.
   pub fn wb_add_item(
     &mut self,
     node: &str,
@@ -5236,10 +5269,12 @@ impl Facade {
         });
       }
     }
-    self
+    let seq = self
       .store
       .wb_insert_item(node, &wire, text, None)
-      .map_err(FacadeError::Store)
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
+    Ok(seq)
   }
 
   /// Carry one node's hand-authored board into the model -- AC-14.9.
@@ -5389,6 +5424,7 @@ impl Facade {
       .store
       .replace_wb_sections_for(node, &sections)
       .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
 
     Ok(WbMigration {
       node: node.to_string(),
@@ -5546,10 +5582,12 @@ impl Facade {
     seq: u32,
   ) -> Result<bool, FacadeError> {
     self.require_registered(node)?;
-    self
+    let moved = self
       .store
       .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
-      .map_err(FacadeError::Store)
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
+    Ok(moved)
   }
 
   /// Add one claim to the acting node's own board, and say whether it moved.
@@ -5575,6 +5613,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &claims)
       .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
     Ok(true)
   }
 
@@ -5595,6 +5634,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &kept)
       .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
     Ok(true)
   }
 
@@ -5651,7 +5691,8 @@ impl Facade {
     self
       .store
       .wb_insert_message(sender, recipient, body, re, fyi, None)
-      .map_err(FacadeError::Store)
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()
   }
 
   /// Send one message to every OTHER registered node, and say how many boards
@@ -5700,6 +5741,7 @@ impl Facade {
         .wb_insert_message(sender, r, body, None, true, None)
         .map_err(FacadeError::Store)?;
     }
+    self.reindex_boards()?;
     Ok(recipients.len())
   }
 
@@ -5713,10 +5755,12 @@ impl Facade {
   pub fn wb_clear(&mut self, recipient: &str, sender: &str) -> Result<usize, FacadeError> {
     self.require_registered(recipient)?;
     self.require_registered(sender)?;
-    self
+    let cleared = self
       .store
       .wb_clear_inbox(sender, recipient)
-      .map_err(FacadeError::Store)
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
+    Ok(cleared)
   }
 
   /// One node's board, refused BY NAME when the moniker is not on the roster.
@@ -5937,7 +5981,7 @@ impl Facade {
       // shape exactly -- content present and findable by nothing -- so rebuilding
       // the thread sections is part of the carry rather than a tidy-up after it.
       if !canon.threads.is_empty() {
-        canon.sections = ingest::sections_of(project, &canon.threads, &canon.issues);
+        canon.sections = ingest::sections_of(project, &canon.threads, &canon.issues, &canon.boards);
         store.replace_doc_sections(&canon.sections)?;
       }
 
@@ -6784,6 +6828,13 @@ impl Facade {
       if section.owner_type == crate::prose::WB_OWNER {
         paths.push(self.project.root().join(&section.file));
       }
+    }
+    // **A BOARD'S EXTRACT IS CANON THAT LIVES OUTSIDE `.canon/`**, so the
+    // directory rule does not reach it, and the store indexes the board from
+    // its rows. Left in, one board answered a search twice: its section, and
+    // `board.json` as a file.
+    for board in &self.canon.boards {
+      paths.push(self.project.board_json(&board.node.moniker));
     }
     paths.sort();
     paths.dedup();
@@ -11488,7 +11539,7 @@ impl Facade {
     // section, so every mutation left one more copy of a thread's prose
     // behind, and issue prose was never derived here at all. `sections_of` has
     // no set to name.
-    let sections = ingest::sections_of(&self.project, &next.threads, &next.issues);
+    let sections = ingest::sections_of(&self.project, &next.threads, &next.issues, &next.boards);
 
     // THE DATABASE IS THE MUTATION (D01, reversed by hv 2026-08-15: the DB is
     // the SSOT and the files are re-creatable).
