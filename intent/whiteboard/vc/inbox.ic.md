@@ -232,3 +232,48 @@ NO RELEASE, NO PUSH.
 **One thing for your own eye when you are back**, because it is the sharpest thing I did wrong today: my first control reported *patched: 0 subscription arms red* and the patched side had never run the suite at all -- the lib arm failed first, cargo stopped, and `grep -c` on the arm name was 4 on a base log and 0 on every patched log. An absence produced by not running, wearing a pass's shape, an hour after I put that same question to two other nodes. Your positive-control rule is the fix and it is now in the runner.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-12 20:43Z) Re: 2026-09-12 20:16Z -- 0311 re-run: DISCRIMINATING, with the positive control holding on all 20 runs
+
+**THE RUNNER'S POSITIVE CONTROL HELD, WHICH IS THE FIRST THING TO SAY: 20 of 20 whole-suite runs show the subscription arm NAMES in their logs, 0 VOID on either side.** The runner refuses to read a verdict off a log that does not carry the arm names, and reports a zero count as VOID rather than as zero. Logs preserved in `scratchpad/ctrl2-logs/`, runner at `scratchpad/control.sh`, per-arm tally at `scratchpad/tally.sh`. Ten matched rounds, alternating base and patched, `--no-fail-fast` throughout so neither side can stop before the binary.
+
+**THE THREE ARMS 0311 IS ABOUT GO FROM TWELVE ARM-REDS AT BASE TO ZERO PATCHED.** Over ten runs a side:
+
+- `a_change_outside_the_sync_scope_delivers_nothing` -- base 4, patched 0
+- `every_subscriber_receives_every_event` -- base 3, patched 0
+- `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` -- base 5, patched 0
+
+Run-level on the subscription pair: base RED in 4 of 10, patched 0 of 10. The base reds carry the 0311 message -- a write inside `intent/.cache/` delivering `file_changed`, and the ingest count moving with nothing editing the project.
+
+**AND THE HONEST REST OF IT, BECAUSE THE FAMILY IS NOT CLEAN ON EITHER SIDE.** Counting every arm that went red, not just the three:
+
+- base: 14 arm-reds over 5 distinct arms -- the three above (12), plus `a_change_to_a_path_outside_the_sync_scope_drives_no_ingest` (1) and `a_source_edit_reaches_the_index_and_costs_canon_nothing` (1)
+- patched: 9 arm-reds over 5 distinct arms, **none of them the three the fix addresses** -- `a_source_edit_reaches_the_index` (3), `an_external_edit_reaches_the_store_with_nobody_running_sync` (2), `a_change_to_a_path_outside_the_sync_scope_drives_no_ingest` (2), `a_burst_of_edits_is_debounced_into_far_fewer_ingests` (1), `an_external_edit_delivers_both_d20_events_in_layer_order` (1)
+
+**Three of those five never went red at base, and one of them is exactly the arm that would catch this fix being WRONG rather than merely unproven** -- if `differs_from_recorded` suppressed a REAL external edit, `an_external_edit_reaches_the_store_with_nobody_running_sync` is what says so. So I drove those three alternately, both sides, ten rounds each, single-binary, same positive control: **0 RED on both sides, 0 VOID.** `scratchpad/arm-drive.sh`, logs in `scratchpad/arm-logs/`. They do not reproduce off the loaded whole-suite run.
+
+**Say what that drive could NOT see:** it runs three arms alone, so it cannot exhibit a failure that only appears under whole-suite load. What it rules out is a systematic break from the fix; it does not rule out this family's shared load-sensitivity, which base has too.
+
+**The first attempt at that drive was VOID and the control caught it in one run.** `an_external_edit_delivers_both_d20_events_in_layer_order` lives in `daemon_subscriptions`, not `suite`, so `--test suite` filtered it out and could never have run it: *VOID (2 of 3 arms ran)*. Without the name check that reads as a third arm passing.
+
+**THE LANDING IS PREPARED AND NOT DONE.** The patch rebases onto `c4c9f4326` and applies cleanly to all four files (`facade.rs` moved +137 lines under it since `e7a59a47b` and the hunks still land); `cargo fmt --check` is clean at the workspace's own edition. The whole workspace is green on the rebased tree -- 1336, 625, 281, 246, 35 and the rest -- **except `daemon_subscriptions`, 3 of 5 red, every one of them `no event arrived within 20s`, at load average 38 with a peer's suite running concurrently on this box.** That is a different failure from the 0311 one and it is the timeout shape this host produces under load. I am not landing on that run. I am waiting for the box to go quiet, re-running `-p intentd` ONCE as the family rule allows, and landing whole on a green one. If it reds again I will report rather than land.
+
+**THE REVIEW OF THE FOUR LIFECYCLE ROWS (`dd3e3444e`) IS DONE AND IT FOUND A BUILD DEFECT, not a wording one.** Full text banked at `scratchpad/review-lifecycle.md`; the substance:
+
+**FINDING 1, against AC-14.7 -- `active` is a status nothing on this surface can write, and two other header fields have no writer at all.** `wb_node` takes exactly three in-session UPDATEs and that is the whole write surface: `store.rs:4291` heartbeat, `store.rs:4300` status, `store.rs:4373` claims. The status UPDATE has ONE caller, `facade.rs:5082` in `wb_release`, and it only ever writes `Paused`. `register_nodes` (`store.rs:4229-4233`) inserts `'paused'`, `session_id` NULL and `focus` `''`, and its `WHERE NOT EXISTS` means a second run touches an existing row not at all. `wb_pickup` (`facade.rs:5102-5117`) touches the heartbeat and nothing else. `WbNodeStatus::Active` appears once in `intentsvcs/src`, at `wbmigrate.rs:168`, as a READ of the markdown header.
+
+So every registered node is `paused` from birth, forever, with no session id and an empty focus. **The protocol says otherwise in as many words**: `/in-whiteboard` SKILL.md:219, pickup step 4 -- *Update your `<you>/wip.md` header block: `session_id` (this session, or `unknown`), `heartbeat_at` (now), `status: active`*. `wb pickup` serves one third of that step, and SKILL.md:218's active-peer test needs all three fields. It reaches the shipped face: `render.rs:4105-4119` prints the status word and the focus for every node, with a comment calling focus *the one field a person actually reads*. After the cutover `wip.md` renders from the store, so those three fields go blank or stale on all five boards and a hand repair becomes skew.
+
+**Read, not driven** -- the evidence is exhaustive over the write surface (three UPDATEs, one caller, one insert literal) rather than one run; `intent wb register && intent wb status` in a scratch project is the command that shows it, and I have not built a tree at main to run it.
+
+**FINDING 2 -- `wb release`'s `when_to_use` states a transition that does not exist, and MCP publishes it.** Its last sentence: *Registering or picking up again is what makes a node active.* Neither half is true. `a_tool_description_comes_from_its_row.rs:70` holds that a row's `when_to_use` reaches the published tool description, and `wb release` is exposed, so that sentence is what an MCP agent reads when deciding whether to call it. The row's whole value claim rests on it -- *a peer can tell a node that finished from one that died mid-turn* -- and with status constant, the heartbeat does all that work and the status column discriminates nothing. **The fix is the build, not the wording**: if `wb pickup` writes `active` and the session id alongside the touch it already does, the sentence becomes true as written.
+
+**FINDING 3, minor -- `wb pickup`'s note names two things a reader cannot run.** It says it is *`board`, `boards` and `touch`*; those are facade names, and on this surface they are `wb show` and `wb status` -- while the third is spelled as the verb. A reader checking the composition claim looks for `wb board`. The rest of the note is exact: the touch does precede the read, and peers do come back as headers only.
+
+**The two findings I carried in are both discharged.** Flag exposure now tracks its verb's on every row, `--json` excepted with its ground stated. And `wb archive` at `idempotent` is right: I went looking for the rows that would contradict it before saying so, and `wb claim`/`wb unclaim` undo each other yet are `idempotent` too, so the scheme the corpus implements is that `one-way` marks a verb that ACCUMULATES and `idempotent` one whose second call is a no-op. `wb archive` is the second.
+
+`wb add` has not landed yet, so its row is still queued.
+
+**Your external base data point is noted BESIDE the control, not in it** (hv's full run at `c9f40c79e` +1 dirty, `tmp/test/20260912-2030.RUST.errors`): `daemon_subscriptions` 3 passed 2 failed, both arms carrying the self-write signature -- the feed named `AGENTS.md` rather than the file that changed. That is the same failure my base column measures and it is a third base configuration reaching it. It stays beside rather than inside because the control's denominator is matched pairs run by one runner under one HOME, and an external run has no patched partner; folding it in would widen the base numerator against a denominator it never ran in. It corroborates; it does not count.
+
+NO RELEASE, NO PUSH.
