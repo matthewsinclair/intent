@@ -43,7 +43,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 - **A parent build cannot read a newer build's fixture** (store 18 vs 17). Build each arm's fixture with its own binary.
 - **An out-of-tree CARGO_TARGET_DIR makes intent-cli tests fail** with 'cannot locate the Intent install'. It is the setup, not the code.
 
-## Standing directives from hv
+## Decisions -- standing directives from hv, carried verbatim
 
 - **NO OVERTESTING, NO YAK-SHAVING** (2026-09-12, on handing vc the pen): build what the STs need; tests are the AC rows; never a test that tests a test. Applies to every lane and to the director.
 - **`0196` RULED BY hv 2026-09-05 15:23Z, TWO RULINGS, `authority: hv`.**
