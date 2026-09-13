@@ -1,0 +1,67 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0074",
+  "title": "Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line",
+  "slug": "machine-wide-projects-intentd-s-config-home-the",
+  "status": "triage",
+  "created": "2026-09-13",
+  "objective": "Make Intent's own front doors reach every Intent project on the machine rather than only the one the terminal is standing in, and present them consistently.\n\n- The explorer handles `/threads` and `/issues` itself, and can pick a project from the ones this machine knows (`/projects`, and `intent explore` outside a project).\n- A single, standards-compliant home for intentd's durable configuration, human- and machine-editable, that lists every known Intent project.\n- `intent explore` keeps the project it runs in registered there, and `intent discover [fromdir]` finds Intent projects under a directory, checks each is config-compatible with the running intentd, and registers it.\n- intentd watches that file and refreshes what it knows when it changes.\n- The menubar app presents its menu in the same shape as Gtools': an identity row, one status line (place, state, details), then the actions.\n",
+  "context": "Raised by hv on 2026-09-13, while the cut waited on 0354, and ruled into one bundle: \"all of this should really go into the one work bundle. If we need a new ST to hold it all, then make one and make the various bits WPs inside it.\"\n\nWhat exists today, measured rather than recalled:\n\n- intentd's project registry (`intentd/src/registry.rs`) is in memory only. A project is registered as a side effect of first contact, so a freshly started daemon knows nothing until each project has been used again.\n- intentd has no durable configuration of its own. Its runtime state lives under `~/.local/share/intent/` (socket, loopback address, token, lock, log). The operator's v3 configuration is `~/.intent/config.json` (`intentsvcs::userstate::global_config`).\n- `~/.config/intent/config.json` is v2's file (it reads `intent_version: 2.0.0`, `backlog_dir`, `editor`) and nothing in v3 reads it: every v3 per-user store has its own path and never reads or writes v2's (hv adopted, 2026-08-22).\n- The shipped surface may read only the environment variables in `no_intent_home.rs`'s `ALLOWED` (`COLUMNS`, `EDITOR`, `HOME`, `USER`, `VISUAL`). A standards-compliant location that honours `XDG_CONFIG_HOME` or similar needs a grant from hv, recorded as a row there.\n- `intent explore` outside a project refuses through `context()`: it needs a project directory to open.\n- The explorer's palette sent `/issues` to `intent issues` and offered no `/threads`; landed as the explorer's own acts at 793984a50.\n\nhv's design for the registry, in their words: \"intentd has some global config that is easily human AND machine editable. Any time 'intent explore' is run, it should ensure that if it is running in an intent project, that that project is up to date in the global config that intentd can find it. AND: we need an 'intent discover [fromdir]' command that looks for all intent projects from the current dir (by default) or a dir that is passed in as a param. Whenever it finds one, it confirms that it is 'config compatible' with the current intentd, and then ensures that it is registered in the global config for intentd to find. intentd keeps an eye on that global config file and refreshes its knowledge of host-wide intent projects whenever it changes.\"\n\nAnd on the location: \"We also need to resolve where intentd's config resides ... that answer needs to be standards compliant.\" The location is ruled before the registry is built, because the registry is the first thing to live there.\n\nWhat `intent explore` does outside a project when no daemon answers depends on the registry: hv, \"the answer here changes depending on the outcome of 1\".\n",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "The explorer handles /threads and /issues itself",
+      "scope": "S",
+      "status": "wip",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "The menubar's one status line, in Gtools' shape",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "The explorer's project picker: /projects, and intent explore outside a project",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Where intentd's durable configuration lives: a standards-compliant home, ruled by hv",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    }
+  ],
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design: where intentd's durable configuration lives\n\n**Status: options for hv to rule. Nothing here is chosen.** hv, 2026-09-13: _\"We also need to resolve where intentd's config resides. I am not sure we have a good answer for that right now. And that answer needs to be standards compliant.\"_ The project registry is the first thing that will live there, so this is ruled before the registry is built.\n\n## What exists today\n\n| Path                           | What it holds                                                                                      | Written by                        | Read by v3 |\n| ------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------- | ---------- |\n| `~/.intent/config.json`        | The operator's v3 configuration: `author`, the explorer's settings                                 | `intent bootstrap`, `/settings`   | yes        |\n| `~/.intent/home`               | The install pointer                                                                                | `intent bootstrap`                | yes        |\n| `~/.local/share/intent/`       | intentd's runtime state: `intentd.sock`, `intentd.addr`, `intentd.token`, `intentd.lock`, the logs | `intentd`                         | yes        |\n| `~/Library/LaunchAgents/`      | The LaunchAgent plist                                                                              | `intent daemon` / the menubar app | yes        |\n| `~/.config/intent/config.json` | v2's configuration (`intent_version: 2.0.0`, `backlog_dir`, `editor`)                              | v2 only                           | **no**     |\n\nintentd has no durable configuration: its project registry is in memory and fills on first contact.\n\nTwo constraints any answer inherits:\n\n- **v3 never reads or writes a v2 per-user store** (hv adopted, 2026-08-22). `~/.config/intent/config.json` is v2's, so a v3 file there would share a path with a tool that can never be taught about it.\n- **The shipped surface reads only the environment variables in `no_intent_home.rs`'s `ALLOWED`**: `COLUMNS`, `EDITOR`, `HOME`, `USER`, `VISUAL`. Honouring `XDG_CONFIG_HOME` or `XDG_STATE_HOME` is a new row there, granted by hv.\n\n## The standards in play\n\n- **XDG Base Directory Specification**: configuration under `$XDG_CONFIG_HOME` (default `~/.config`), data under `$XDG_DATA_HOME` (default `~/.local/share`), state under `$XDG_STATE_HOME` (default `~/.local/state`), sockets and other runtime files under `$XDG_RUNTIME_DIR`. Widely followed by command-line tools on macOS as well as Linux.\n- **Apple's file-system guidelines**: per-user application data under `~/Library/Application Support/<bundle id>/`, preferences under `~/Library/Preferences/`, logs under `~/Library/Logs/`, caches under `~/Library/Caches/`. The menubar app is an Apple bundle; the CLI and intentd are not.\n\n## Options\n\n### A. Keep `~/.intent/`, and put the registry beside `config.json`\n\n- The registry is `~/.intent/projects.json` (or a section of `config.json`).\n- No new environment variable, no new directory, no migration.\n- Not standards-compliant: a dot-directory in `$HOME` is neither XDG nor Apple's layout. It is the status quo hv has asked to replace.\n\n### B. XDG, with a v3-specific directory name\n\n- Configuration, the registry included, under `$XDG_CONFIG_HOME/intent3/` or similar; daemon runtime state moves to `$XDG_STATE_HOME` and the socket to `$XDG_RUNTIME_DIR` where set.\n- Standards-compliant on both platforms Intent runs on.\n- Needs hv's grant for the `XDG_*` rows in `ALLOWED`.\n- The directory name must not be v2's `~/.config/intent/`, or the separate-paths ruling is broken. A different name is a wart an operator has to be told about.\n- `~/.intent/` becomes a migration source, then retires.\n\n### C. XDG, reclaiming `~/.config/intent/` from v2\n\n- As B, under the natural name.\n- Requires v2's file to be retired first. The ruling that forbids sharing it was made because v2 cannot be taught the branch, so this only works if v2 is gone from every machine that matters, and it is a reversal of an hv ruling rather than a choice within it.\n\n### D. Apple's layout on macOS, XDG elsewhere\n\n- `~/Library/Application Support/com.matthewsinclair.intent/` for configuration and the registry on macOS; XDG paths on Linux.\n- The most correct per platform, and the one the menubar app would expect.\n- Two layouts to document, test and support; an operator on macOS who looks in `~/.config` finds nothing.\n\n## Questions for hv\n\n1. Which option, or which combination (eg B for the CLI and daemon, with the menubar app reading the same path)?\n2. If XDG: grant the `XDG_*` environment rows, and pick the directory name.\n3. Does daemon runtime state move too, or only configuration and the registry?\n4. Where the current `~/.intent/config.json` goes: migrated by `intent upgrade`, by `intent bootstrap`, or read in place until it is retired.\n",
+      "bytes": 4997,
+      "sha256": "f6a1d7652952c2bec05ea7cb2546a6dc06be0ddcf9972e72483a937ec9456011"
+    }
+  ]
+}

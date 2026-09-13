@@ -57,6 +57,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [ ] ST0070: LLM config rationalisation -- one home per fact
+- [?] ST0074: Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line
+  - [-] 01: The explorer handles /threads and /issues itself
+  - [ ] 02: The menubar's one status line, in Gtools' shape
+  - [ ] 03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
+  - [ ] 04: The explorer's project picker: /projects, and intent explore outside a project
+  - [ ] 05: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
 
 ## DONE:2026-09-10T00:00:51Z
 
