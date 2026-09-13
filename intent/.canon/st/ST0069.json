@@ -800,6 +800,16 @@
       "status": "green"
     },
     {
+      "id": "AT-14.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/openness.rs",
+      "covers": [
+        "AC-14.1"
+      ],
+      "status": "green",
+      "note": "The coordination entities round-trip through their file form, both halves of the criterion driven in openness.rs. The round trip: the fixture registers two nodes and writes a board item and an inbox message into their rows, extracts to disk, restores on a clone that never held the store, and reads the item back with the stamp it claimed in authored_at and the message back with its body -- the fields a lossy extract drops first, because nothing re-derives them. The bytes: re_emitting_the_extract_reproduces_it_byte_for_byte emits, clones, reads back and emits again, and holds a board's board.json to the same byte-for-byte rule as a thread's and an issue's extract."
+    },
+    {
       "id": "AT-14.10",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/no_skill_names_an_unshipped_verb.rs",
@@ -809,6 +819,16 @@
       "status": "red"
     },
     {
+      "id": "AT-14.11",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/one_clock.rs",
+      "covers": [
+        "AC-14.11"
+      ],
+      "status": "green",
+      "note": "No modelled entity carries a caller-authored stamp: nothing in the workspace reads a clock and nothing is exempt, so every stamp is the store's, written as a value at the write rather than as a column default a resync would re-fire. record_timestamps.rs proves the database writes the record stamp when the caller had no time to give; a migrated board's claimed stamps travel in authored_at, never in the service's fields."
+    },
+    {
       "id": "AT-14.12",
       "kind": "non-test",
       "prose": "The shipped `intent/plugins/claude/bin/intent_claude_cwi` carries no `cmd_ws_*` definition, no `ws` dispatch arm, and no CALLER of one -- the fifth, at `cmd_start`, included, which a four-arm deletion would leave calling a function that is gone and which in a shell script fails at the call rather than at load. RED UNTIL ITS LANDING, which vc ruled (2026-09-13) is the FIRST commit of the cutover sequence rather than now: deleting `ws hygiene` deletes the only performer of three checks -- a header value that is not a single line, a board with no header block, a missing recommended key warned rather than failed -- and `whiteboard-header-guard.sh` covers only the two escape forms, so those three have no subject only once this estate's boards are generated. The work is built and driven (four paths, `bash -n` and `shellcheck` clean) and is banked on ic's board.",
@@ -816,6 +836,76 @@
         "AC-14.12"
       ],
       "status": "n-a"
+    },
+    {
+      "id": "AT-14.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/views.rs",
+      "covers": [
+        "AC-14.2"
+      ],
+      "status": "red",
+      "note": "PARTIAL UNTIL THE CUTOVER, as ruled. Satisfied now: wb_board and wb_inbox render from the store, five kinds in the protocol's order, byte-identical on two renders, archived items absent, handled messages marked (the unit arms in views.rs, a229c1cf5). Not yet satisfied: regeneration reproducing the committed bytes and doctor reporting a hand edit as view skew, which needs render_all to name the live paths -- that is the cutover's wiring commit, and this row is re-cited to it and set green then."
+    },
+    {
+      "id": "AT-14.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/error_remedies.rs",
+      "covers": [
+        "AC-14.3"
+      ],
+      "status": "green",
+      "note": "Every over-bound write is provoked and refused by name with its bound and remedy: a body ONE BYTE over body_bytes, an inbox at live_messages, a kind at live_items. Each refusal is a typed FacadeError whose remedy names the verb that frees it; nothing is truncated and nothing over the bound is written."
+    },
+    {
+      "id": "AT-14.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/no_function_takes_a_time.rs",
+      "covers": [
+        "AC-14.4"
+      ],
+      "status": "green",
+      "note": "Closed by construction at the signature: no function in the CLI or intentsvcs takes a time, so no whiteboard door can be handed a stamp to honour -- heartbeat_at, recorded_at, handled_at and archived_at are all written by the store from its own clock as a value. one_clock.rs is the statement-level half: nothing in the workspace reads a clock."
+    },
+    {
+      "id": "AT-14.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/error_remedies.rs",
+      "covers": [
+        "AC-14.5"
+      ],
+      "status": "green",
+      "note": "Satisfied as built with its limit on the record (vc, 2026-09-12). Every write the API takes names its acting node and touches only that node's board, or the inbox it sends into. error_remedies.rs provokes the refusal of a write whose acting node is not registered, by name with the roster. A write that names no acting node at all is refused before it reaches the facade, by the renderer's acting_node, rather than guessed. THE LIMIT: the acting node's identity is the caller's claim through --node; structural enforcement needs it sourced from somewhere the caller does not choose, which is with hv beside INTENT_NODE."
+    },
+    {
+      "id": "AT-14.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/wb_archive_frees_the_bound.rs",
+      "covers": [
+        "AC-14.6"
+      ],
+      "status": "green",
+      "note": "Archival is the state change, not a schedule run later (vc's ruling): a kind at its bound refuses, archiving one item admits the next write in that same call; an inbox at its bound refuses, the recipient's clear admits the next message. Nothing is deleted -- the archived item and the handled messages are still rows afterwards."
+    },
+    {
+      "id": "AT-14.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs",
+      "covers": [
+        "AC-14.7"
+      ],
+      "status": "green",
+      "note": "The wb family is served by intent wb from the store in-process (the register rows and render arms for status, show, ask, announce, add, decide, archive, claim, unclaim, clear, touch, release, pickup, register, migrate) and any node's board is readable over GraphQL: one document through Facade::graphql against a real store reads boards and board(node), with an unregistered moniker answering null."
+    },
+    {
+      "id": "AT-14.8",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs",
+      "covers": [
+        "AC-14.8"
+      ],
+      "status": "green",
+      "note": "Boards and inboxes are indexed from their rows under their view paths and found by the same search as the rest of the corpus: a hold and a message come back as file hits at intent/whiteboard/cc/wip.md and inbox.vc.md after a thread mutation and a fresh open of the store, and an archived item leaves the index. Measured through intent search on a scratch estate as well: 17 board sections held across writes, thread writes and searches, one hit per word, board.json not answering."
     },
     {
       "id": "AT-14.9",
