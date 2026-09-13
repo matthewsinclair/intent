@@ -3601,6 +3601,26 @@ impl Store {
     )
   }
 
+  /// Every file holding a section of one owner type, in no order.
+  ///
+  /// **NO BODY AND NO `ORDER BY`, AND THAT IS THE WHOLE OF WHY IT EXISTS.**
+  /// [`Store::doc_sections`] reads every body and sorts the table by file,
+  /// which SQLite does on a real store as an external merge sort spilling to
+  /// temporary files. The table is FTS5, so no index can sit under this; not
+  /// asking for the bodies is what keeps it cheap.
+  // Issue 0354: `carried_paths` paid that sort on every index refresh.
+  pub fn section_files(&self, owner_type: &str) -> Result<Vec<String>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT DISTINCT file FROM doc_sections WHERE owner_type = ?1")?;
+    let rows = stmt.query_map(params![owner_type], |row| row.get::<_, String>(0))?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
+  }
+
   /// **D35's SNAPSHOT: a byte-image of the store, taken through SQLite.**
   ///
   /// `VACUUM INTO`, and the choice is the whole arm rather than a preference

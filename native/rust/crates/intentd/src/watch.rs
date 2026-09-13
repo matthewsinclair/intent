@@ -229,24 +229,26 @@ fn on_index_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEven
     .flat_map(|event| event.paths.iter())
     .map(|p| p.as_path())
     .collect();
-  for under in index_paths_to_refresh(root, &paths) {
-    match handle.index_refresh(under) {
-      Ok(()) => {}
-      // Rendered, never re-worded, exactly as the canon stream renders its own:
-      // the store said what went wrong and what to do about it, and this module
-      // did not diagnose it. **It returns rather than continuing, because a
-      // stopped store thread refuses every remaining path in the batch too, and
-      // a line per path would bury the one that matters.**
-      Err(Response::Error { message, remedy }) => {
-        eprintln!("intentd: {message}\n  remedy: {remedy}");
-        return;
-      }
-      Err(other) => {
-        eprintln!(
-          "intentd: the store refused an index refresh with {other:?}\n  remedy: this is a fault in intentd rather than in the project. Source edits are not reaching `intent search`."
-        );
-        return;
-      }
+  // **THE WHOLE BATCH IS ONE REFRESH.** The facade pays for what the store
+  // carries, the stored rows and the walk once per call, so a batch handed over
+  // a path at a time paid them once per path.
+  // Issue 0354.
+  let under = index_paths_to_refresh(root, &paths);
+  if under.is_empty() {
+    return;
+  }
+  match handle.index_refresh(under) {
+    Ok(()) => {}
+    // Rendered, never re-worded, exactly as the canon stream renders its own:
+    // the store said what went wrong and what to do about it, and this module
+    // did not diagnose it.
+    Err(Response::Error { message, remedy }) => {
+      eprintln!("intentd: {message}\n  remedy: {remedy}");
+    }
+    Err(other) => {
+      eprintln!(
+        "intentd: the store refused an index refresh with {other:?}\n  remedy: this is a fault in intentd rather than in the project. Source edits are not reaching `intent search`."
+      );
     }
   }
 }

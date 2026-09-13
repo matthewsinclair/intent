@@ -398,7 +398,7 @@ fn a_refresh_touches_its_subtree_and_leaves_the_rest_of_the_index_alone() {
 
   write(&fx, "src/lib.rs", b"fn assemble_gadget() {}\n");
   let refreshed = facade
-    .index_refresh(Some(&fx.root().join("src")))
+    .index_refresh(Some(&[fx.root().join("src")]))
     .expect("refresh");
 
   assert_eq!(refreshed.updated, vec!["src/lib.rs".to_string()]);
@@ -431,6 +431,71 @@ fn a_refresh_touches_its_subtree_and_leaves_the_rest_of_the_index_alone() {
 }
 
 #[test]
+fn one_batch_of_leaf_paths_is_one_refresh_that_names_them_all() {
+  // Issue 0354: the daemon handed a watcher batch over a path at a time, and
+  // every refresh walked the tree and re-read what the store carries again.
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  for rel in ["src/a.rs", "src/b.rs", "src/c.rs"] {
+    write(&fx, rel, b"fn f() {}\n");
+  }
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+  for rel in ["src/a.rs", "src/b.rs", "src/c.rs"] {
+    write(&fx, rel, b"fn f_rewritten() {}\n");
+  }
+
+  let batch = ["src/a.rs", "src/b.rs", "src/c.rs"].map(|rel| fx.root().join(rel));
+  let mut refreshed = facade.index_refresh(Some(&batch)).expect("refresh");
+  refreshed.updated.sort();
+
+  assert_eq!(refreshed.updated, vec!["src/a.rs", "src/b.rs", "src/c.rs"]);
+}
+
+#[test]
+fn the_section_files_door_answers_one_owner_type_and_nothing_else() {
+  // Issue 0354: `carried_paths` read and sorted every body to find these.
+  use intentsvcs::prose::{DocSection, WB_OWNER};
+  use intentsvcs::store::Store;
+
+  let section = |owner_type: &str, owner_id: &str, file: &str, seq: u32| DocSection {
+    owner_type: owner_type.to_string(),
+    owner_id: owner_id.to_string(),
+    file: file.to_string(),
+    seq,
+    heading: None,
+    level: 0,
+    body: "text".to_string(),
+  };
+  let mut store = Store::open_in_memory().expect("store");
+  store
+    .replace_doc_sections(&[section("thread", "ST0001", "intent/st/ST0001/design.md", 0)])
+    .expect("canon sections");
+  store
+    .replace_wb_sections_for(
+      "cc",
+      &[
+        section(WB_OWNER, "cc", "intent/whiteboard/cc/.history/a.md", 0),
+        section(WB_OWNER, "cc", "intent/whiteboard/cc/.history/a.md", 1),
+        section(WB_OWNER, "cc", "intent/whiteboard/cc/.history/b.md", 0),
+      ],
+    )
+    .expect("whiteboard sections");
+
+  let mut files = store.section_files(WB_OWNER).expect("files");
+  files.sort();
+
+  assert_eq!(
+    files,
+    vec![
+      "intent/whiteboard/cc/.history/a.md",
+      "intent/whiteboard/cc/.history/b.md"
+    ]
+  );
+}
+
+#[test]
 fn a_refresh_of_an_untouched_subtree_changes_nothing_and_says_so() {
   // A watcher wakes on events it will often have nothing to do about, and a
   // pass that reported work every time would publish noise forever.
@@ -441,7 +506,7 @@ fn a_refresh_of_an_untouched_subtree_changes_nothing_and_says_so() {
   let mut facade = fx.facade();
   facade.index_rebuild().expect("rebuild");
   let refreshed = facade
-    .index_refresh(Some(&fx.root().join("src")))
+    .index_refresh(Some(&[fx.root().join("src")]))
     .expect("refresh");
 
   assert!(refreshed.is_empty(), "nothing moved: {refreshed:?}");
@@ -459,7 +524,7 @@ fn a_file_that_has_gone_leaves_the_index_and_takes_its_content_with_it() {
   std::fs::remove_file(fx.root().join("docs/old.md")).expect("remove");
 
   let refreshed = facade
-    .index_refresh(Some(&fx.root().join("docs")))
+    .index_refresh(Some(&[fx.root().join("docs")]))
     .expect("refresh");
   assert_eq!(refreshed.removed, vec!["docs/old.md".to_string()]);
 

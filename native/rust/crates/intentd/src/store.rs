@@ -107,7 +107,7 @@ enum Work {
   /// **IT CARRIES NO REPLY, DELIBERATELY.** Nothing waits on it: the index is a
   /// read model for `intent search`, and a watcher thread blocking on a
   /// subtree's re-read would delay the next batch for this project to no end.
-  IndexRefresh { under: std::path::PathBuf },
+  IndexRefresh { under: Vec<std::path::PathBuf> },
   /// The backup sweep came round and this project should decide (`AC-08.8`).
   ///
   /// **IT IS *CONSIDER*, NOT *DO*, AND THE DIFFERENCE IS WHERE THE DECISION
@@ -490,13 +490,14 @@ impl ProjectHandle {
   /// by the pre-commit critic). It is the same shape every other fallible entry
   /// in this crate returns, so the message and the remedy stay two fields
   /// rather than one string a caller has to take apart to report.
-  /// Ask the store thread to reconcile the index under `under`.
+  /// Ask the store thread to reconcile the index under every path of one batch,
+  /// in one refresh.
   ///
   /// **`blocking_send` FOR THE SAME REASON [`ProjectHandle::ingest`] USES IT**:
   /// the caller is the debouncer's own thread, so waiting here delays the next
   /// batch for this project and nothing else, and a dropped refresh leaves the
   /// index behind the disk until somebody happens to edit again.
-  pub fn index_refresh(&self, under: std::path::PathBuf) -> Result<(), Response> {
+  pub fn index_refresh(&self, under: Vec<std::path::PathBuf>) -> Result<(), Response> {
     self
       .tx
       .blocking_send(Work::IndexRefresh { under })
@@ -602,7 +603,7 @@ fn next_work(
       Err(mpsc::error::TryRecvError::Disconnected) => return None,
       Err(mpsc::error::TryRecvError::Empty) => {
         if let Some(under) = unbuilt.pop_front() {
-          refresh_index(facade, &under);
+          refresh_index(facade, std::slice::from_ref(&under));
         }
       }
     }
@@ -644,21 +645,22 @@ impl std::task::Wake for ThreadWaker {
   }
 }
 
-/// Reconcile the index under one path, reporting a failure rather than
-/// swallowing it.
+/// Reconcile the index under the paths one piece of work named, reporting a
+/// failure rather than swallowing it.
 ///
 /// **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A subtree the index
 /// cannot re-read is a subtree whose files stop reaching `intent search`, and
 /// silence there is indistinguishable from nobody editing.
 ///
-/// `Some(&under)` because the door also takes `None` for the whole scope, which
-/// is the daemonless query's case and not this one: a watch event names a
-/// path, and so does each piece of the build at open.
-fn refresh_index(facade: &mut Facade, under: &Path) {
+/// `Some(under)` because the door also takes `None` for the whole scope, which
+/// is the daemonless query's case and not this one: a watch batch names its
+/// paths, and each piece of the build at open names one directory.
+fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
   if let Err(error) = facade.index_refresh(Some(under)) {
+    let named: Vec<String> = under.iter().map(|p| p.display().to_string()).collect();
     eprintln!(
-      "intentd: could not refresh the index under `{}`: {error}\n  remedy: files under that path may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
-      under.display()
+      "intentd: could not refresh the index under `{}`: {error}\n  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+      named.join("`, `")
     );
   }
 }

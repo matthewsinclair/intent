@@ -126,7 +126,7 @@ pub fn survey(
 /// changed forever, and writing its `None` would erase the record.
 pub fn changed_under(
   root: &Path,
-  under: Option<&Path>,
+  under: Option<&[std::path::PathBuf]>,
   previous: &[Row],
   carried: &[std::path::PathBuf],
   canon_dir: &Path,
@@ -167,7 +167,7 @@ pub struct Change {
   pub removed: Vec<String>,
 }
 
-/// Does this event name this path?
+/// Does any path of this batch name this path?
 ///
 /// **`None` IS THE WHOLE SCOPE AND THE ROOT IS DEPTH ONE, WHICH ARE DIFFERENT
 /// ANSWERS.** A caller with no path is reconciling everything -- the daemonless
@@ -178,17 +178,22 @@ pub struct Change {
 /// root again (vc, 2026-09-12, on a loop dc attributed four-of-four with and
 /// none without). Every other path means its subtree, because a directory event
 /// that did not descend would answer about nothing.
-fn names(root: &Path, under: Option<&Path>, path: &Path) -> bool {
+fn names(root: &Path, under: Option<&[std::path::PathBuf]>, path: &Path) -> bool {
   match under {
     None => true,
-    Some(under) if under == root => path.parent() == Some(root),
-    Some(under) => path.starts_with(under),
+    Some(under) => under.iter().any(|under| {
+      if under == root {
+        path.parent() == Some(root)
+      } else {
+        path.starts_with(under)
+      }
+    }),
   }
 }
 
 fn rows_under(
   root: &Path,
-  under: Option<&Path>,
+  under: Option<&[std::path::PathBuf]>,
   carried: &[std::path::PathBuf],
   canon_dir: &Path,
   max_bytes: u64,
@@ -661,7 +666,7 @@ mod tests {
   fn changes(dir: &tempfile::TempDir, under: &str, previous: &[Row]) -> Change {
     changed_under(
       dir.path(),
-      Some(&dir.path().join(under)),
+      Some(&[dir.path().join(under)]),
       previous,
       &[],
       &dir.path().join("intent/.canon"),

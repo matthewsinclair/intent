@@ -7059,10 +7059,12 @@ impl Facade {
     // the rule 0304 settled: a document held as sections in the store and
     // indexed again as a file is one document answering a search twice, from
     // two halves of one table, with nothing on either hit saying so.
-    for section in self.store.doc_sections().map_err(FacadeError::Store)? {
-      if section.owner_type == crate::prose::WB_OWNER {
-        paths.push(self.project.root().join(&section.file));
-      }
+    for file in self
+      .store
+      .section_files(crate::prose::WB_OWNER)
+      .map_err(FacadeError::Store)?
+    {
+      paths.push(self.project.root().join(&file));
     }
     // **A BOARD'S EXTRACT IS CANON THAT LIVES OUTSIDE `.canon/`**, so the
     // directory rule does not reach it, and the store indexes the board from
@@ -7148,13 +7150,14 @@ impl Facade {
     Ok(status)
   }
 
-  /// Bring the index up to date under one path, touching nothing outside it.
+  /// Bring the index up to date under the paths one batch named, touching
+  /// nothing outside them.
   ///
   /// **`None` MEANS THE WHOLE SCOPE**, which is the daemonless query's case: it
   /// reconciles everything before it answers, and under the staleness policies
   /// that is a stat pass over source and a hash pass over canon rather than a
-  /// re-read of the tree. A path means that path's subtree, except the project
-  /// root, which means depth one -- see `index::reconcile`'s `names`.
+  /// re-read of the tree. Each path means its subtree, except the project root,
+  /// which means depth one -- see `index::reconcile`'s `names`.
   ///
   /// **THIS IS THE DOOR A WATCHER CALLS, and it is not `index_rebuild` with a
   /// filter.** A rebuild is told the whole scope and deletes every row it was
@@ -7166,9 +7169,15 @@ impl Facade {
   /// **IT REPORTS PATHS RATHER THAN A COUNT**, because its caller is deciding
   /// what to publish to a subscriber, and a number is not something anyone can
   /// name.
+  ///
+  /// **THE PATHS ARE ONE SLICE BECAUSE THE WORK AHEAD OF THE FILTER IS PAID PER
+  /// CALL.** What the store carries, the stored rows and the walk cost the same
+  /// whatever the call names, so a batch handed over a path at a time paid them
+  /// once per path.
+  // Issue 0354.
   pub fn index_refresh(
     &mut self,
-    under: Option<&std::path::Path>,
+    under: Option<&[std::path::PathBuf]>,
   ) -> Result<crate::index::Refreshed, FacadeError> {
     let change = self.index_change(under)?;
     if change == crate::index::reconcile::Change::default() {
@@ -7248,7 +7257,7 @@ impl Facade {
   /// stands. `None` is the whole scope, as it is for [`Facade::index_refresh`].
   fn index_change(
     &self,
-    under: Option<&std::path::Path>,
+    under: Option<&[std::path::PathBuf]>,
   ) -> Result<crate::index::reconcile::Change, FacadeError> {
     let carried = self.carried_paths()?;
     let previous = self.store.index_files().map_err(FacadeError::Store)?;
@@ -7262,7 +7271,10 @@ impl Facade {
     )
     .map_err(|e| {
       FacadeError::Ingest(IngestError::Io {
-        path: under.unwrap_or(self.project.root()).display().to_string(),
+        path: match under {
+          Some([one]) => one.display().to_string(),
+          _ => self.project.root().display().to_string(),
+        },
         source: std::io::Error::other(e.to_string()),
       })
     })

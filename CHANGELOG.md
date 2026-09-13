@@ -49,7 +49,7 @@ Every document in the repository was checked against v3.0.1 as built and correct
 
 ### Fixed
 
-- **An idle daemon no longer holds a core.** Each project's store thread waited for work in tokio's blocking receive, whose parker waits on a pthread condition variable, and on macOS that wait was seen returning with nothing to wake it, over and over, so a daemon with no client could hold a full core for as long as it ran. The store thread now waits on the standard library's thread parker, for its queue and for a GraphQL answer alike.
+- **An idle daemon no longer holds a core.** A daemon with no client burned a core for seconds whenever anything under the repository moved, `target/` and `.git/` included, and for minutes as it opened a project. Every index refresh read every stored prose body and sorted them all, which SQLite does by spilling to temporary files, only to find the whiteboard's file names, and the watcher asked for one refresh per path in a batch. A refresh now reads only those file names, and a batch is one refresh. The store thread also waits for work on the standard library's thread parker rather than tokio's.
 
 - **A daemon indexes the project it opens, not only the files that change after it starts.** Its index grew only as its watcher named paths, so a project opened over a quiet tree -- a fresh clone, or any checkout nobody was editing -- was indexed at the root and nowhere below it, and `intent --daemon search` answered from that index as if the rest of the tree held nothing. On opening a project the daemon now surveys the index once and refreshes each stale directory in turn, letting any waiting request go first; on an index that is already current the survey writes nothing.
 
