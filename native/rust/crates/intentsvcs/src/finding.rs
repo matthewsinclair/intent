@@ -198,6 +198,30 @@ pub enum FindingClass {
   /// silently never started. It is the two-sided construction: two recorded
   /// values compared to each other rather than an error waited for.
   BackupStale,
+  /// The runtime store disagrees with a rebuild from committed canon: commands
+  /// will answer from a model nobody committed until it is refreshed.
+  ///
+  /// **A SEPARATE CLASS FROM `ModelInconsistent` BECAUSE IT IS NOT ABOUT THE
+  /// CANON AT ALL** (issue `0313`, ruled by vc 2026-09-13). Every other arm in
+  /// that class asks whether the artefacts a commit carries are consistent with
+  /// each other; this one asks whether a DERIVED cache is current. The commit's
+  /// integrity is judged by the canon-based arms beside it and never by this
+  /// one, so putting the two behind one word made a cache question refuse a
+  /// commit.
+  ///
+  /// **AND ON A SHARED TREE IT FIRES ON EVERY PEER'S CANON WRITE, FOR THE
+  /// DURATION OF THAT WRITE.** Measured by laksa-vc on the Laksa estate,
+  /// 2026-09-12: the gate refused one commit at exit 1 while another session on
+  /// the same tree was mid `intent issues add`; the next run, with nobody
+  /// acting, reported nothing. **A refusal that clears itself with nobody
+  /// acting is a gate teaching its nodes to re-run gates**, which costs every
+  /// later refusal its credibility.
+  ///
+  /// The remedy also has to name the right actor: the node being refused is not
+  /// the node whose write is in flight, and running a sync on a shared tree
+  /// during someone else's write is the reversion hazard the daemon already
+  /// carries.
+  StoreStale,
   /// The backup mechanism is running and its attempts are failing.
   ///
   /// **THE OTHER HALF OF THE BACKUP RULE, AND [`FindingClass::BackupStale`]
@@ -512,6 +536,11 @@ impl FindingClass {
         "backup-stale",
         "run `intent backup` -- and if a schedule was supposed to be doing this, it is not running",
       ),
+      Self::StoreStale => (
+        8,
+        "store-stale",
+        "the store is refreshed by `intent sync` ONCE NO PEER IS MID-WRITE on this tree -- and on a shared tree that is the whole instruction, because a sync run over another node's write is the reversion the daemon already guards against. If you are the only writer here, run it now; if you are not, this clears itself when their write lands, and it was never yours to fix",
+      ),
       // **Rank 8 beside `BackupStale`, and the two can BOTH fire**, which is
       // the state a store failing for longer than its period is actually in.
       // The remedies are deliberately opposite in one respect: that one says
@@ -661,7 +690,11 @@ impl FindingClass {
   /// already covers what a commit carries. `BackupStale`: a protection being
   /// behind is not a reason to refuse work. `StaleRender`: the estate did
   /// nothing, and a patch release would otherwise refuse every commit in every
-  /// upgraded project.
+  /// upgraded project. **`StoreStale`: a DERIVED cache being behind says
+  /// nothing about what the commit carries, and on a shared tree it is the
+  /// normal state for the duration of every peer's write** -- the one member
+  /// admitted for a reason that is about OTHER PEOPLE'S writes rather than
+  /// about this operator's estate (issue `0313`).
   ///
   /// **`Unmigrated` IS DELIBERATELY NOT HERE, AND IT WOULD HAVE TAKEN THE FLEET
   /// OUT IF IT HAD BEEN SOLVED AT THIS LAYER** (vc, 2026-09-12). It is a real
@@ -688,6 +721,7 @@ impl FindingClass {
         | Self::StatusGateDisagreementOverFiat
         | Self::AttachmentDrift
         | Self::BackupStale
+        | Self::StoreStale
     )
   }
 

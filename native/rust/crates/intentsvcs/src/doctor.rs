@@ -1197,11 +1197,18 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
     return;
   }
 
+  // **`StoreStale` AND NOT `ModelInconsistent`, WHICH IS A CLASS CHANGE AND NOT
+  // A WORDING ONE** (issue `0313`, ruled by vc 2026-09-13). What this arm
+  // measures is whether COMMANDS will answer from a stale model -- its own
+  // detail says so in as many words -- and the commit's integrity is judged by
+  // the canon-based arms beside it. Under the blocking class it refused a
+  // commit on a shared tree every time a peer was mid canon write, and cleared
+  // itself with nobody acting.
   if on_disk != rebuilt {
     out.push(Finding::new(
       "intent/.cache/intent.db",
-      FindingClass::ModelInconsistent,
-      "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed; run `intent sync` (deleting intent/.cache/ also works, since the store is derived)",
+      FindingClass::StoreStale,
+      "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted",
     ));
   }
 }

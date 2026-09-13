@@ -637,15 +637,23 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
 }
 
 /// A COLD cache is the normal state and must never be a finding; a STALE one
-/// must be.
+/// is REPORTED AND NEVER REFUSED.
 ///
 /// `intent/.cache/` is gitignored (D21), so an empty store is what every fresh
 /// clone has. The first version of the DB check reported it, which would have
 /// fired on the commonest healthy state there is -- and a health check that
 /// cries wolf is one nobody reads. The second half of this test is what stops
 /// the narrowing from quietly disabling the check altogether.
+///
+/// **THE VERDICT HALF IS ISSUE `0313`, AND IT IS WHY THIS ARM ALSO ASSERTS THE
+/// EXIT CODE.** Under `ModelInconsistent` this state refused a commit, and on a
+/// shared tree it reached that state every time a peer was mid canon write:
+/// laksa-vc measured one gate refusal at exit 1 followed by a clean run with
+/// nobody acting. The finding is worth printing -- commands ARE answering from
+/// a stale model -- and it is not the commit's business, so the assertion that
+/// matters is both at once: named in the report, and 0 from the verdict.
 #[test]
-fn a_cold_cache_is_healthy_and_a_stale_one_is_not() {
+fn a_cold_cache_is_healthy_and_a_stale_one_is_reported_without_refusing() {
   let fx = Fixture::new();
   seed(&fx, &clean_thread("ST0001"));
 
@@ -656,19 +664,45 @@ fn a_cold_cache_is_healthy_and_a_stale_one_is_not() {
   );
 
   // Populate the on-disk cache, then move the canon out from under it.
+  //
+  // **RE-SEEDED RATHER THAN WRITTEN, so the STORE is the only thing behind.**
+  // `write_thread` alone leaves every generated view rendering the old title,
+  // and view skew is blocking -- so the exit code below would have been 1 for a
+  // reason that has nothing to do with this arm, and would have passed for the
+  // wrong reason if the class were ever put back.
   intentsvcs::facade::Facade::open(fx.project(), crate::common::facade_ctx())
     .expect("populate the cache");
   let mut moved = clean_thread("ST0001");
   moved.title = "A different title entirely".to_string();
-  fx.write_thread(&moved);
+  seed(&fx, &moved);
 
-  let findings = run(&fx);
-  assert!(
-    findings
-      .iter()
-      .any(|f| f.file.contains("intent.db") && f.detail.contains("does not match a rebuild")),
-    "a populated cache disagreeing with canon is a real diagnosis -- doctor does not open the facade, so it can still SEE the staleness rather than silently repairing it: {}",
-    details(&findings)
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
+  let stale = report
+    .findings
+    .iter()
+    .find(|f| f.file.contains("intent.db") && f.detail.contains("does not match a rebuild"))
+    .unwrap_or_else(|| {
+      panic!(
+        "a populated cache disagreeing with canon is a real diagnosis -- doctor does not open the \
+         facade, so it can still SEE the staleness rather than silently repairing it: {}",
+        details(&report.findings)
+      )
+    });
+  assert_eq!(
+    stale.class,
+    FindingClass::StoreStale,
+    "and it is the DERIVED cache's own class, not the canon's: the arms beside this one judge \
+     whether the commit is sound, and this one judges whether the next command answers from a \
+     fresh model"
+  );
+  assert_eq!(
+    report.exit_code(),
+    0,
+    "REPORTED AND NEVER COUNTED (issue 0313): on a shared tree this state is reached by every \
+     peer's canon write, and a gate refusal that clears itself with nobody acting teaches its \
+     nodes to re-run gates. Findings: {}",
+    details(&report.findings)
   );
 }
 
