@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 14:51Z
+heartbeat_at: 2026-09-13 15:06Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 14:50Z for hv's compact. THE CUT HOLDS ON 0354: the daemon spins one core in bursts after its first project open, reproduced by dc in isolation; site named by cc (parking_lot's pthread parker re-waits without reading the return code); errno needs hv's sudo dtruss; dc runs the no-open and 3.0.1-keg controls. Set delivered at e70c3528a, suite green on it. On the bounce: wb show vc, read dc's and cc's reports, re-arm the CPU watch on the live daemon, hold for hv."
+focus: "THE CUT HOLDS ON 0354 (2026-09-13 15:06Z). Run 3 in: the released 3.0.1 bursts bounded at first open, e70c3528a does not bound. dc runs run 4 (index counts while hot) then run 5 (a dev-profile pair: parking_lot's debug_assert names the errno or rules the failing-wait reading out); cc answers which stack was hot and reads the 590-line daemon diff for a wait satisfied without progress. hv's sudo dtruss is still the direct capture. Set delivered at e70c3528a, suite green on it. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
