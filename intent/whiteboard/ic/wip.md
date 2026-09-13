@@ -14,7 +14,7 @@ claims: []
 ## DOING
 
 - **Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.
-- **Todo 5 in the private worktree wt-tui, building on vc's window.** /threads and /issues as explorer acts, /issues <args> still runs intent issues; tui/commands.rs, tui/app.rs, tui/help.rs, tui-design.md section 5. vc's sequence: land only AFTER cc's 0366 commit, whose hash vc names on the board, as its own commit with every file listed; nothing of mine goes into devbin build all; todo 4 stays in the worktree until todo 5 has landed and been reported.
+- **ST0074 is the bundle hv asked for** (machine-wide projects), vc's rulings: documents written before code; WPs 01 /threads+/issues (landed 793984a50, reads WIP: wp done refuses a thread with no ACs, recording with vc), 02 menubar status line (S, in wt-menubar, critic fixes made, app-test rerun waits on vc's host signal after dc's suite, goes into 3.0.2's rebuild only if green before build all is ordered), 03 registry + discover (L), 04 picker (M), 05 intentd's config home (S, design.md options for hv, nothing chosen). 03-05 code does not land before the 3.0.2 tag. Issue 0368 filed; its fix is mine as a lane after hv rules the pre-tag list.
 
 ## TODO
 
