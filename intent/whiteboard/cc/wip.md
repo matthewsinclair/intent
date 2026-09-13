@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 11:02Z
+heartbeat_at: 2026-09-13 11:07Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 10:58Z for the user's compact, HOLDING for vc on the bounce. 0317 landed whole: 8157bd1fc (board writes land on disk), df6c6d52f (its view dehydrated), 18beb05a9 (migrated_at at rung 25). The delivered pair is still 59eeac618, so a board write reaches the store and not the disk until vc rebuilds. AT-14.2 held. NO RELEASE, NO PUSH."
+focus: "AT-14.2 GREEN at b318c7039 (2026-09-13 11:07Z): AC-14.2 satisfied, ST0069 has no unsatisfied row on cc's lane. HOLDING for vc's next order. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -23,7 +23,6 @@ _(none)_
 
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
-- **AT-14.2 GREEN, HELD FOR vc's INSTRUCTION AFTER THE USER'S COMPACT** (the user, 2026-09-13). vc ruled the row: cite native/rust/crates/intentsvcs/tests/wb_views_are_generated.rs plus e3ce17dbb. The file must carry the literal id first (its //! line becomes 'ST0069 AC-14.2 (AT-14.2)'), and the renderer comment in views.rs is re-worded to say the cutover is done; then intent at edit and intent at green. The edit is a thread mutation, so it re-renders every board, and those land in the same commit. **Released when vc gives the instruction on the bounce.**
 
 ## Watch-outs
 
