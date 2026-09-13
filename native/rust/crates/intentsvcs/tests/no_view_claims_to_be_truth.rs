@@ -240,6 +240,37 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
     }
   }
 
+  // **EACH NODE'S BOARD AND EVERY INBOX ADDRESSED TO IT, CHECKED AGAINST THAT
+  // BOARD'S OWN RECORD (ST0069 WP-14).** They join the walk for the reason the
+  // issues did: each has a single authoring record, and the partition below
+  // fails the day the generator renders a board this walk does not examine.
+  // The record is the authored text, so a node quoting a phrase in an item or
+  // a message is the node speaking, never the generator making a claim.
+  for board in &canon.boards {
+    let authored = serde_json::to_string(board).expect("board serialises");
+    let node = &board.node.moniker;
+    let mut per_board = vec![(
+      project.wb_board_view(node),
+      views::wb_board(board, &context),
+    )];
+    for peer in &canon.boards {
+      let sender = &peer.node.moniker;
+      if sender == node {
+        continue;
+      }
+      per_board.push((
+        project.wb_inbox_view(node, sender),
+        views::wb_inbox(sender, node, &board.messages, &context),
+      ));
+    }
+    for (path, content) in per_board {
+      examined += 1;
+      for claim in generator_truth_claims(&content, &artefacts, &authored) {
+        findings.push(format!("{}: {claim}", project.relative(&path)));
+      }
+    }
+  }
+
   // The two estate-level views have no single authoring thread, so they are
   // checked against the whole canon.
   let estate_authored = serde_json::to_string(&canon.threads).expect("canon serialises");

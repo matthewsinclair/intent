@@ -6637,6 +6637,8 @@ impl Facade {
         let changed_here = match &undeclared {
           views::Undeclared::Thread(id) => changed.contains(id.as_str()),
           views::Undeclared::Issue(number) => changed_issues.contains(number),
+          // A board has no manifest entry to change, so nothing is ahead of it.
+          views::Undeclared::Board(_) => false,
         };
         let store_ahead = changed_here
           && rendered_before

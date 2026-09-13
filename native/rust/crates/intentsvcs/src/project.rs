@@ -1814,6 +1814,8 @@ impl Project {
       // `issue_view` formats its number as `{:04}` and no wildcard survives
       // that. Same caveat, same place, so the two sit together.
       rel(self.issues_view_dir().join("*.md")),
+      rel(self.wb_board_view("*")),
+      rel(self.wb_inbox_view("*", "*")),
     ]
   }
 

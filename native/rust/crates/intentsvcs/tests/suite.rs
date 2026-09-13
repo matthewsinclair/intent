@@ -420,6 +420,8 @@ mod wb_migrate_carries_a_board;
 mod wb_pickup_states_the_session;
 #[path = "wb_register_names_a_node.rs"]
 mod wb_register_names_a_node;
+#[path = "wb_views_are_generated.rs"]
+mod wb_views_are_generated;
 #[path = "wbmigrate_reads_a_board.rs"]
 mod wbmigrate_reads_a_board;
 #[path = "wp_prose_roundtrip.rs"]

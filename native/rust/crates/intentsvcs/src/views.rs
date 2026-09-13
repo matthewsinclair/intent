@@ -1559,6 +1559,8 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
 pub enum Undeclared {
   Thread(String),
   Issue(u32),
+  /// A board or inbox view whose node has no `wb_node` row.
+  Board(String),
 }
 
 /// The artefact this view realises, WHEN the manifest says it is not realised --
@@ -1598,7 +1600,31 @@ pub fn undeclared_owner(
       .declares_artefact(crate::intentfiles::Sigil::Issue, &format!("{number:04}")))
     .then_some(Undeclared::Issue(number));
   }
+  // **A WHITEBOARD VIEW EXISTS FOR EXACTLY THE NODES THE STORE HOLDS** (vc,
+  // 2026-09-13), and the manifest has no word for a board: there is no
+  // `.intentfiles` grammar for one, deliberately. So the owner of a board or
+  // inbox view is its node, and it is unrealised when that node has no row --
+  // an estate whose `intent/whiteboard/` is hand-authored and unregistered
+  // sees no view, no skew and no manifest line.
+  if let Some(node) = whiteboard_owner(project, path) {
+    return (!canon.boards.iter().any(|b| b.node.moniker == node))
+      .then_some(Undeclared::Board(node));
+  }
   None
+}
+
+/// The node a path under `intent/whiteboard/<node>/` belongs to, when the path
+/// is that node's board view or one of its inbox views.
+fn whiteboard_owner(project: &Project, path: &std::path::Path) -> Option<String> {
+  let rest = path.strip_prefix(project.whiteboard_dir()).ok()?;
+  let mut parts = rest.components();
+  let node = parts.next()?.as_os_str().to_str()?.to_string();
+  let file = parts.next()?.as_os_str().to_str()?;
+  if parts.next().is_some() {
+    return None;
+  }
+  let is_view = file == "wip.md" || (file.starts_with("inbox.") && file.ends_with(".md"));
+  is_view.then_some(node)
 }
 
 /// A stored instant as a board renders it: minute granularity, `Z`-marked.
@@ -1793,6 +1819,26 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       content: self::issue(issue, ctx),
     });
   }
+  // **FIVE NODES ARE FIVE BOARDS AND TWENTY INBOXES**, one per ordered pair,
+  // an empty one included: an inbox that exists and says `_(empty)_` reads
+  // differently from one that is missing, and only the first is true.
+  for board in &canon.boards {
+    let node = &board.node.moniker;
+    views.push(View {
+      path: project.wb_board_view(node),
+      content: wb_board(board, ctx),
+    });
+    for peer in &canon.boards {
+      let sender = &peer.node.moniker;
+      if sender == node {
+        continue;
+      }
+      views.push(View {
+        path: project.wb_inbox_view(node, sender),
+        content: wb_inbox(sender, node, &board.messages, ctx),
+      });
+    }
+  }
   views.push(View {
     path: project.steel_threads_view(),
     content: steel_threads(&canon.threads, ctx),
@@ -1899,7 +1945,7 @@ pub fn skew(
         // there is no thread to pin.
         let unlisted = match undeclared_owner(project, &view.path, canon, realised) {
           Some(Undeclared::Thread(id)) => Some(id),
-          Some(Undeclared::Issue(_)) | None => None,
+          Some(Undeclared::Issue(_)) | Some(Undeclared::Board(_)) | None => None,
         };
         let remedy = match &unlisted {
           // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT

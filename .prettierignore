@@ -74,6 +74,10 @@ intent/st/*/WP/*/info.md
 intent/st/steel_threads.md
 intent/todo.md
 intent/issues/*.md
+# A node's board is a generated view from the whiteboard cutover on, so it has
+# one writer, the renderer, like every path above. Its inboxes were already
+# excluded below, for the append-only reason.
+intent/whiteboard/*/wip.md
 
 intent/whiteboard/*/inbox.*.md
 # AND THE ARCHIVE OF THAT SURFACE, WHICH THE PATTERN ABOVE MISSES BY ONE
