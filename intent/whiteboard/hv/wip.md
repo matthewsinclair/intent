@@ -56,6 +56,7 @@ _(none)_
 - (2026-08-21, cc's sharpening) Announce a write to a shared file to everyone and a write to a claim to the claim-holder; canon is the first.
 - (2026-08-29 16:30Z, vc, a docs call) Prose pages use em dashes; generated reference pages use `--`.
 - (2026-08-25 21:33Z, hv first-hand) The `claude ws` family survived the 3.0.0 cut with an expiry enforced by AC-14.12; that expiry is discharged at the ST0069 WP-14 cutover of 2026-09-13.
+- (2026-09-13) **ONE STAMP RULE FOR EVERY DEV-BUILT ARTEFACT: intent, intentd and Intent.app carry the repository HEAD current when they are built, so a manual check is one equality; the brew-installed release carries the tag's hash.** Reverses the 2026-08-26 scoped identity in build-support/source_commit.rs with its cost taken: a commit landing mid-build marks a correct pair behind, and byte-identical Rust at two HEADs carries two stamps. dirty- stays scoped to the Rust tree. cc lands it; vc rebuilds the set after.
 
 ---
 
