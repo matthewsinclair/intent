@@ -536,13 +536,15 @@ mod tests {
        is now silent."
       );
 
-      // **INSIDE `explore()` SPECIFICALLY.** A call that survives a refactor by
-      // landing somewhere harmless satisfies the count and protects nothing.
-      let body = &src[src.find("fn explore(").expect("explore() exists")..];
+      // **INSIDE `explore_here()` SPECIFICALLY**, the one project's load that
+      // `explore()` runs for the project it starts in and for each one picked
+      // (ST0074 WP-04). A call that survives a refactor by landing somewhere
+      // harmless satisfies the count and protects nothing.
+      let body = &src[src.find("fn explore_here(").expect("explore_here() exists")..];
       let end = body[1..].find("\nfn ").map(|i| i + 1).unwrap_or(body.len());
       assert!(
         body[..end].contains("while_loading("),
-        "the indicator is called somewhere in the renderer but NOT inside explore(), so the \
+        "the indicator is called somewhere in the renderer but NOT inside explore_here(), so the \
        one command that waits is the one command that shows nothing"
       );
     }

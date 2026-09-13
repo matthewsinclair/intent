@@ -524,7 +524,7 @@ fn draw_frame<W: io::Write>(
 /// facade because **this function should have no opinion about where data comes
 /// from**; that is what lets the whole composition above be driven in tests
 /// with no store at all.
-pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -> io::Result<()> {
+pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -> io::Result<Exit> {
   real::restore_on_panic();
   let mut borrowed = Borrowed::take(real::Crossterm)?;
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
@@ -535,6 +535,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
 
+  let mut exit = Exit::Quit;
   loop {
     let area = term.size()?;
     let screen = screen_for(app, &rows, area.width as usize);
@@ -576,6 +577,10 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     let was = app.stack.current().clone();
     match app.on_key(key, &rows) {
       Step::Quit => break,
+      Step::Projects => {
+        exit = Exit::Projects;
+        break;
+      }
       Step::Continue => {}
       // **THE SPELLING LANDS THROUGH THE ONE RESOLVER** (`AC-06.12` -- `56`,
       // `ST0056`, `st56` all name one thread). Failure reaches the info row
@@ -791,7 +796,16 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   }
 
   borrowed.restore();
-  Ok(())
+  Ok(exit)
+}
+
+/// Why [`run`] ended.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Exit {
+  /// The operator left the explorer.
+  Quit,
+  /// `/projects`: the operator asked for the project picker (ST0074 `AC-04.1`).
+  Projects,
 }
 
 #[cfg(test)]

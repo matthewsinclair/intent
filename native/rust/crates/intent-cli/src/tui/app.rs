@@ -63,6 +63,9 @@ pub enum Step {
   /// own `Ctrl-C`. **`tui-design.md` §3: quitting is an act, never an
   /// accident** -- no key reaches this by walking.
   Quit,
+  /// `/projects`: leave this project's screen for the project picker (ST0074
+  /// `AC-04.1`). The loop ends and `explore` opens the picker.
+  Projects,
   /// A spelling the omnibox could not match: hand it to the address resolver.
   ///
   /// **A `Step` BECAUSE PRESENCE IS A FACT ONLY THE STORE KNOWS.** `nav::land`
@@ -583,6 +586,7 @@ impl App {
           };
           return match self.commands[at].act.clone() {
             Act::Quit => Step::Quit,
+            Act::Projects => Step::Projects,
             Act::Back => {
               self.pop_view();
               Step::Continue

@@ -89,6 +89,13 @@ pub enum Act {
   /// [`Act::Settings`] gives: a constant vocabulary cannot carry an argument
   /// that is still being typed.
   Search,
+  /// `/projects`: the project picker, over this machine's project registry
+  /// (ST0074 `AC-04.1`).
+  ///
+  /// **IT ENDS THIS PROJECT'S LOOP RATHER THAN PUSHING A VIEW**, because the
+  /// picker's subject is which store the view stack reads, and a view inside
+  /// that stack cannot change it.
+  Projects,
   /// One top-level collection: `/threads` and `/issues` (hv, 2026-09-13).
   ///
   /// **`cli` IS THE VERB AN ARGUMENT RUNS, AND IT IS WHAT KEEPS `/issues add
@@ -242,6 +249,11 @@ fn acts() -> Vec<Command> {
       name: "search".into(),
       blurb: "search the index -- the hits open in a pane".into(),
       act: Act::Search,
+    },
+    Command {
+      name: "projects".into(),
+      blurb: "pick another project this machine knows".into(),
+      act: Act::Projects,
     },
     Command {
       name: "threads".into(),

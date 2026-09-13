@@ -4915,6 +4915,61 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
         .to_string(),
     ));
   }
+  let mut address = address.map(str::to_string);
+  loop {
+    let cwd = std::env::current_dir()
+      .map_err(|e| Failure::Error(format!("error: cannot read the working directory: {e}")))?;
+    // **OUTSIDE A PROJECT THE PICKER COMES FIRST, AND LEAVING IT RETURNS TO THE
+    // SHELL** (ST0074 `AC-04.2`): there is no project to fall back to.
+    if Project::discover(&cwd).is_err() {
+      match pick_project(None)? {
+        Some(root) => enter(&root)?,
+        None => return Ok(()),
+      }
+    }
+    match explore_here(address.take().as_deref())? {
+      tui::run::Exit::Quit => return Ok(()),
+      // **`/projects` LEAVES THIS PROJECT'S SCREEN FOR THE PICKER** (`AC-04.1`),
+      // and leaving the picker comes back to the same project.
+      tui::run::Exit::Projects => {
+        let here = context()?.0.root().to_path_buf();
+        if let Some(root) = pick_project(Some(&here))? {
+          enter(&root)?;
+        }
+      }
+    }
+  }
+}
+
+/// The project picker, offering the project registry's roots.
+fn pick_project(current: Option<&Path>) -> Result<Option<std::path::PathBuf>, Failure> {
+  let path = intentsvcs::userstate::project_registry().map_err(|e| Failure::Error(e.render()))?;
+  let registry = intentsvcs::projects::load(&path).map_err(|e| Failure::Error(e.render()))?;
+  let choices = registry
+    .roots()
+    .into_iter()
+    .map(tui::picker::Choice::of)
+    .collect();
+  tui::picker::pick(tui::picker::Picker::new(choices, current))
+    .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
+}
+
+/// Make `root` the project every command from here acts on.
+///
+/// **THE WORKING DIRECTORY, BECAUSE THAT IS WHAT A PROJECT IS TO EVERY OTHER
+/// DOOR.** `context()` resolves the project from it, and the palette's `/{cmd}`
+/// runs the CLI's own dispatch in this process, so moving it once moves both.
+fn enter(root: &Path) -> Result<(), Failure> {
+  std::env::set_current_dir(root).map_err(|e| {
+    Failure::Error(format!(
+      "error: `{}` could not be entered: {e}\n  remedy: check that it still exists and is readable",
+      root.display()
+    ))
+  })
+}
+
+/// One project's explorer, until the operator quits or asks for the picker.
+fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   // **THE INDICATOR WRAPS THE SLOW WORK, WHICH IS ALL OF IT.** Measured across
   // five projects: the gap between the terminal being taken and the first frame
   // is ONE MILLISECOND, even on a run that took 4,916 ms to get here. The wait
@@ -4934,7 +4989,7 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
       note: None,
     })
   }) {
-    tui::progress::Outcome::Cancelled => return Ok(()),
+    tui::progress::Outcome::Cancelled => return Ok(tui::run::Exit::Quit),
     tui::progress::Outcome::Done(loaded) => loaded?,
   };
   // **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
