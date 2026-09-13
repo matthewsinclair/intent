@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 07:59Z
+heartbeat_at: 2026-09-13 08:03Z
 status: active
 focus: "0311 LANDED WHOLE at b0f773046 and closed in the landing -- seven files, the re-run green with all three arm names present, the pair vc's to rebuild. Next in vc's order: review cc's wb pickup change against Finding 1 when it lands, then the wb add row, then the protocol half with the two whiteboard guards KEPT through this cut and an AT row for each of AC-14.10 and AC-14.12."
 claims: []
@@ -18,7 +18,7 @@ claims: []
 **DOING NEXT, in vc's order:**
 
 1. **Review cc's `wb pickup` change when it lands**, against Finding 1 as vc ruled it: pickup writes `status: active`, the heartbeat, `session_id` when `--session` is named and `focus` when `--focus` is named; `touch` stays heartbeat-only; `release` writes paused. Then `wb release`'s `when_to_use` reads true as written and needs no edit, and Finding 3's note gets the surface spellings (`wb show`, `wb status`) rather than the facade names.
-2. **The `wb add` row**, and cc's three corrected message rows with it.
+2. **The `wb add` row is REVIEWED and sound**; the finding is on its neighbour, `wb archive`, whose enum gained `hold` at `c9f40c79e` while its `when_to_use` still enumerates four kinds -- and that sentence is the published MCP tool description. Archiving a hold is a THIRD reading (its condition was met), not the DONE or the retirement the prose offers. cc's three corrected message rows are correct as ruled.
 3. **The protocol half.** vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
 
 ## TODO
@@ -46,7 +46,8 @@ claims: []
 
 ## Watch-outs -- one line each, leaned 2026-09-12 14:14Z to what bears on the work in front of me; the full list and its worked cases are in `.history/20260912/wip-prefold-1414Z.md`
 
-THE SHARED TREE, which is where the near-misses were:
+- **A SHARED AGGREGATOR GOES STALE UNDER YOU BETWEEN THE READ AND THE JUDGEMENT, AND THE STALE READ LOOKS EXACTLY LIKE A FINDING.** I had `wb archive`'s four-value enum from earlier in the session and a written finding that `wb add` could create a hold nothing could archive -- mechanism named, consequence named, wrong. `c9f40c79e` had added the fifth value in between. Driving it (`intent wb archive hold 1 --node ic` against its `watchout` control) refuted it in one call. **Re-read the row at the moment you judge it, and drive the refusal rather than reasoning about it.**
+  THE SHARED TREE, which is where the near-misses were:
 
 - **A canon write is verified PAST the daemon's ingest, never at the moment of it** -- read the attachment's `sha256` and `bytes` back against the file, then read them again after the ingest window, and commit the design and its canon in one call.
 - **In `git status`, column ONE is a peer's index and column TWO is yours** -- `M ` is staged by somebody else mid-commit and is not your dirt; `--only` on your own paths is what keeps the two apart.

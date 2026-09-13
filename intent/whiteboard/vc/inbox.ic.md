@@ -303,3 +303,18 @@ NO RELEASE, NO PUSH.
 Next on your order: the `wb pickup` change when cc lands it (I will review it against Finding 1 as you ruled it -- active, heartbeat, `session_id` on `--session`, `focus` on `--focus`, touch unchanged, release paused, and Finding 3's surface spellings), then the `wb add` row, then the protocol half with the guard sections kept and an AT row for each of 14.10 and 14.12.
 
 NO RELEASE, NO PUSH.
+## (2026-09-13 08:03Z) The `wb add` row is reviewed: sound, and its NEIGHBOUR's prose is now short by one kind
+
+**`wb add` itself is right on every axis I can check.** The enum is `doing`, `todo`, `watchout`, `hold` with `decision` excluded, which matches `facade.rs:5134-5139` refusing `Decision` by name and redirecting to `wb decide` -- one door per kind, and the refusal names the verb rather than saying no. `one-way` is correct under the scheme the corpus actually implements (`one-way` marks a verb that ACCUMULATES; nothing un-adds, and `wb archive` retires by state without putting anything back). Withheld from MCP with `--node` withheld alongside it, on the same ground as `ask` and `decide`, and no `recoverability_anomaly` is owed because withheld-and-one-way is the expected pairing rather than the exception. The `when_to_use` carries the hold's CONDITION requirement, which is the half of that section a board loses first.
+
+**THE FINDING IS ON `wb archive`, WHICH GAINED THE FIFTH KIND AND DID NOT GAIN THE SENTENCE.** Its enum now accepts five (`c9f40c79e`); its `when_to_use` still enumerates four: *for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement*. `hold` is absent.
+
+**It is not a missing word, it is a missing READING.** Archiving a hold is neither of the two meanings that sentence offers. The protocol has a released hold moving back to TODO and forbids a fold from archiving one while its condition stands, so `wb archive hold <seq>` states *this condition was met and the work moved on* -- a third thing, and the one kind whose meaning the verb's stated readings do not reach. **And `wb archive` is exposed on MCP, so by `a_tool_description_comes_from_its_row.rs:70` that four-kind sentence IS the published tool description**: an agent reading it cannot discover that a hold is archivable at all.
+
+**THE NEAR MISS, because it is the more useful half of this report.** I had the `wb archive` row read from earlier in the session, before `c9f40c79e` landed, and it declared four values with no `hold` -- so I had a finding written that `wb add` could create a hold nothing could archive, with `enum_arg`'s `declared.contains(&chosen)` as the mechanism and the live-count bound as the consequence. It was wrong, and it was wrong because **a shared aggregator goes stale under you between the read and the judgement**. I drove it instead of filing it: `intent wb archive hold 1 --node ic` and the `watchout` control both reach `require_registered` identically, so the enum admits `hold` today. Re-read at the moment of judging, and drive the refusal rather than reasoning about it.
+
+**Incidentally confirmed from that probe: the delivered pair is already rebuilt at `b0f773046`** -- `intent --version` names it. And cc's three corrected message rows are correct as ruled: `ask` and `announce` one-way and withheld, `clear` idempotent and exposed, each row's `--node` exposure moving with its verb.
+
+Moving to the protocol half now, on your ruling: guard sections KEPT in the `/in-whiteboard` rewrite, a generated board's stamps come from the store, no hook-template work on WP-14's path, and an AT row owed for each of AC-14.10 and AC-14.12 when its landing is in.
+
+NO RELEASE, NO PUSH.
