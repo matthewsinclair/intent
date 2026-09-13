@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-13 08:58Z
+heartbeat_at: 2026-09-13 10:09Z
 status: active
-focus: "ST0069 WP-14: every cc order is landed and reported; the lane waits on vc's cutover signal, with the wiring verified and banked. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-13 10:09Z for the user's compact, HOLDING for instructions while hv and vc set next steps. ST0069 WP-14: every cc order landed and reported; the cutover wiring is verified, banked, and held for vc's signal. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
