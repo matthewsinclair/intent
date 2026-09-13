@@ -634,6 +634,38 @@ impl Scanned {
 /// A file the index has never seen differs by definition. `under` not existing
 /// is not an error: a deleted subtree yields nothing in scope, which is the
 /// honest answer and is what a caller reconciling a removal needs.
+/// Does the store's recorded index already hold this path with these bytes?
+///
+/// **ONE HOME FOR *THE STORE HAS ALREADY SEEN THIS*, BECAUSE THE TWO CALLERS
+/// ARE THE TWO DOORS AN EVENT ARRIVES THROUGH** (issue `0311`). A
+/// directory-granularity event reconciles a subtree through
+/// [`changed_under`]; a leaf event is judged one path at a time in the
+/// daemon's watcher. Those were one question with one answer and one
+/// implementation, and the leaf door had none at all -- so a file the daemon
+/// itself had just written was published as a change, which is the feedback
+/// loop scope exists to prevent, reached through the other door.
+pub fn recorded_holds(previous: &[FileEntry], rel: &str, sha256: &str) -> bool {
+  previous
+    .iter()
+    .any(|entry| entry.path == rel && entry.sha256 == sha256)
+}
+
+/// The bytes at `path` against what the store last recorded for it.
+///
+/// `Ok(true)` means publish-worthy: the file differs from the store's index, or
+/// the store has never recorded it. `Ok(false)` means the store already holds
+/// exactly these bytes -- an echo of a write the daemon itself made, or a touch
+/// that changed nothing.
+pub fn differs_from_recorded(
+  root: &Path,
+  path: &Path,
+  previous: &[FileEntry],
+) -> Result<bool, SyncError> {
+  let bytes = std::fs::read(path).map_err(|e| io_err(path, e))?;
+  let rel = crate::project::relative(root, path);
+  Ok(!recorded_holds(previous, &rel, &sha256_hex(&bytes)))
+}
+
 pub fn changed_under(
   root: &Path,
   under: &Path,
@@ -654,11 +686,7 @@ pub fn changed_under(
     })
     .collect::<Result<Vec<_>, SyncError>>()?
     .into_iter()
-    .filter(|(_, rel, sha256)| {
-      !previous
-        .iter()
-        .any(|p| &p.path == rel && &p.sha256 == sha256)
-    })
+    .filter(|(_, rel, sha256)| !recorded_holds(previous, rel, sha256))
     .map(|(path, _, _)| path)
     .collect();
   Ok(changed)

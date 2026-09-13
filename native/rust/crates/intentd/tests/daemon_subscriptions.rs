@@ -125,6 +125,19 @@ impl Feed {
   ///
   /// The deadline here is short and is on the READ rather than on the claim:
   /// what is required is that the drain TERMINATES.
+  ///
+  /// **AND SINCE ISSUE `0311` THE SETUP DELIVERS NOTHING TO DRAIN, WHICH IS THE
+  /// FIX WORKING RATHER THAN THIS BECOMING DEAD CODE.** The daemon records the
+  /// bytes of everything a projection writes -- canon, the generated views and
+  /// `.canon/project.json` -- so a subscription opened after `project()` meets
+  /// an index that already holds those files and publishes none of them. Traced
+  /// on a socket client before and after: eleven `fileChanged` and a
+  /// `projectChanged` arriving 789ms after the subscribe, against silence.
+  /// **This stays because it is the only thing standing between these arms and
+  /// a genuinely external write**, which the fix does not and must not
+  /// suppress -- and a barrier keyed on the setup's own batch was deliberately
+  /// NOT built (vc, 2026-09-12), because it would block forever waiting for a
+  /// batch that no longer exists.
   fn settle(&mut self) {
     self
       .reader

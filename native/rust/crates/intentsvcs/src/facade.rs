@@ -5468,7 +5468,8 @@ impl Facade {
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
     self.refuse_if_canon_moved_under_the_store(&set, &canon_files)?;
     let applied = set.commit()?;
-    self.record_landed(&canon_files)?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    self.record_landed(&canon_files, &landed)?;
     // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
     // bytes already match, so a sync over an estate that already agrees writes
     // nothing -- and recording the SET would put an act that did not happen
@@ -5649,8 +5650,22 @@ impl Facade {
     let Projection { set, canon_files } =
       self.projection(&canon, &all_threads, &all_issues, Some(scope), None)?;
     let applied = set.commit()?;
-    self.record_landed(&canon_files)?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    self.record_landed(&canon_files, &landed)?;
     let wrote = self.estate_paths(&applied);
+    // **THE INDEX RECORDS THE VIEWS THIS WROTE, AND UNTIL ISSUE `0311` IT
+    // RECORDED ONLY THE CANON.** The store knew what it had just put on disk
+    // for one half of its own write and not the other, so a running daemon
+    // rewrote `todo.md` and `steel_threads.md`, its own watcher read them as an
+    // external edit, and it published them to every subscriber and ingested
+    // again -- the feedback loop scope is supposed to close, arriving through
+    // the one door that had no baseline to compare against.
+    //
+    // **IT IS THE SAME ACT AS `record_landed` ABOVE, APPLIED TO THE OTHER HALF
+    // OF WHAT THE PROJECTION WROTE**, which is why it uses that path rather
+    // than a second mechanism. A HAND edit to a view still differs from these
+    // bytes and is still reported: this records what the store wrote, never a
+    // claim about who may write next.
     applied.keep();
     // **THE DISK ACT OF A RESTORE IS THE RE-PROJECTION, AND IT IS THE HALF
     // NOTHING ELSE RECORDS.** The store side is already covered by
@@ -6276,8 +6291,27 @@ impl Facade {
   fn record_landed(
     &mut self,
     canon_files: &[(std::path::PathBuf, String)],
+    written: &[std::path::PathBuf],
   ) -> Result<(), FacadeError> {
-    let paths: Vec<std::path::PathBuf> = canon_files.iter().map(|(p, _)| p.clone()).collect();
+    // **THE STORE RECORDS EVERYTHING IT PUT ON DISK, AND UNTIL ISSUE `0311` IT
+    // RECORDED ONLY THE CANON HALF.** A projection writes canon, the generated
+    // views and `.canon/project.json`; the index learned about the first and
+    // not the rest. **The consequence was the feedback loop scope is supposed
+    // to close**: a running daemon rewrote `todo.md` and `steel_threads.md`,
+    // its own watcher compared them against an index that had never seen those
+    // bytes, published them to every subscriber as an external edit, and
+    // ingested again -- twice per write, traced on a socket client.
+    //
+    // **BOTH LISTS, BECAUSE NEITHER CONTAINS THE OTHER.** `commit` skips a path
+    // whose bytes already match, so a canon file that was already correct is
+    // absent from `written` and must still be recorded -- that baseline is what
+    // `refuse_if_canon_moved_under_the_store` reads. And the views are in
+    // `written` and were never in `canon_files`. The union is the honest answer
+    // to *what does the store now know it wrote*.
+    let mut paths: Vec<std::path::PathBuf> = canon_files.iter().map(|(p, _)| p.clone()).collect();
+    paths.extend(written.iter().cloned());
+    paths.sort();
+    paths.dedup();
     ingest::record_canon_files(&self.project, &mut self.store, &paths).map_err(FacadeError::Ingest)
   }
 
@@ -11387,10 +11421,13 @@ impl Facade {
     let foreign = self.foreign_bytes(&set)?;
     let projected = set.commit();
     self.canon = next;
-    projected
-      .map_err(|cause| FacadeError::ViewsNotWritten { cause })?
-      .keep();
-    self.record_landed(&canon_files)?;
+    let applied = projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    // **READ BEFORE `keep`, BECAUSE `keep` CONSUMES IT.** The mutation path is
+    // the one a fixture and a user both take, so a view written here that the
+    // index never learned about is the same feedback loop by the commonest door.
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    applied.keep();
+    self.record_landed(&canon_files, &landed)?;
     Ok(foreign)
   }
 

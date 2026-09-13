@@ -287,7 +287,43 @@ fn files_that_changed(
         ),
       }
     } else if scope.includes(path) {
-      changed.push(path.to_path_buf());
+      // **A LEAF IS RECONCILED AGAINST THE STORE TOO, AND UNTIL ISSUE `0311` IT
+      // WAS NOT** -- which made the invariant three paragraphs above true on one
+      // of its two branches and false on the other. A directory event
+      // reconciled its subtree and published only files whose bytes differ; a
+      // leaf event was published on scope alone, unread.
+      //
+      // **THE CONSEQUENCE WAS THE FEEDBACK LOOP THIS MODULE SAYS SCOPE
+      // PREVENTS, REACHED THROUGH THE OTHER DOOR.** An ingest writes canon and
+      // the generated views INSIDE the watched scope; the watcher saw those
+      // leaves, published them, and ingested again. Traced on a socket client:
+      // one hand-written canon file produced `ST0079.json`, the barrier file,
+      // `steel_threads.md`, `todo.md`, `project_changed` -- and then a SECOND
+      // round of the same. The daemon was telling subscribers about its own
+      // writes and waking itself up to do it again.
+      //
+      // Asking the same question the other door asks closes it by construction:
+      // the store recorded those bytes when it wrote them, so the echo
+      // reconciles to nothing, `changed` is empty, and the caller returns before
+      // it publishes OR ingests. **A real external edit is unaffected** -- its
+      // bytes are not what the store holds, which is what makes this a
+      // reconciliation and not a filter on who wrote it.
+      let previous = recorded.get_or_insert_with(&mut *index);
+      match intentsvcs::sync::differs_from_recorded(root, path, previous) {
+        Ok(true) => changed.push(path.to_path_buf()),
+        Ok(false) => {}
+        // **REPORTED, NEVER SWALLOWED, AND PUBLISHED ANYWAY.** A file this
+        // cannot read is a file whose change cannot be judged, and treating
+        // unreadable as unchanged would drop a real edit silently -- the one
+        // outcome worse than a duplicate event.
+        Err(error) => {
+          eprintln!(
+            "intentd: could not compare `{}` against the store's index: {error}\n  remedy: the event is being published unjudged. If this repeats, that file's edits may be reaching subscribers twice.",
+            path.display()
+          );
+          changed.push(path.to_path_buf());
+        }
+      }
     }
   }
   changed.sort();
@@ -451,25 +487,48 @@ mod tests {
     );
   }
 
-  /// **THE INDEX IS NOT FETCHED WHEN NO DIRECTORY EVENT ARRIVES.** It is a
-  /// round trip to the store thread, and the ordinary case is a batch of leaf
-  /// events.
+  /// **THE INDEX IS FETCHED AT MOST ONCE PER BATCH, WHATEVER THE BATCH HOLDS.**
+  /// It is a round trip to the store thread and the ordinary case is a batch of
+  /// leaf events, so the bound that protects that thread is per BATCH -- a
+  /// batch of five hundred leaves costs one fetch, not five hundred.
+  ///
+  /// **IT ASSERTED ZERO UNTIL ISSUE `0311`, AND THE TRADE IS WORTH STATING.** A
+  /// leaf now has a baseline because without one the daemon republished its own
+  /// writes: an ingest writes canon and the generated views inside the watched
+  /// scope, the leaf branch published them unread, and the daemon woke every
+  /// subscriber with its own work and ingested again. **The second in-memory
+  /// record of what the daemon wrote was refused** (vc, 2026-09-12) -- it would
+  /// have kept the zero and put a fact the store already holds in a second
+  /// home, which is the one that drifts.
   #[test]
-  fn a_leaf_event_costs_no_store_round_trip() {
+  fn a_batch_of_leaf_events_costs_at_most_one_store_round_trip() {
     let (dir, recorded) = project();
     let root = dir.path();
-    let leaf = root.join("intent/wip.md");
+    // Several leaves, because the bound is per batch: one of them cannot tell a
+    // per-event fetch from a per-batch one, and this arm is about exactly that
+    // difference.
+    let leaves = [
+      root.join("intent/wip.md"),
+      root.join("intent/llm/RULES.md"),
+      root.join("intent/llm/ARCHITECTURE.md"),
+    ];
+    let paths: Vec<&Path> = leaves.iter().map(std::path::PathBuf::as_path).collect();
     let mut asked = 0;
 
-    let changed = files_that_changed(root, &[leaf.as_path()], &mut || {
+    let changed = files_that_changed(root, &paths, &mut || {
       asked += 1;
       recorded.clone()
     });
 
-    assert_eq!(changed, vec![leaf], "a leaf event names its own file");
-    assert_eq!(
-      asked, 0,
-      "the store was asked for its index on a leaf event"
+    assert!(
+      changed.is_empty(),
+      "the fixture's own files are what the store recorded, so a leaf event over them is the \
+       daemon hearing its own write back: {changed:?}"
+    );
+    assert!(
+      asked <= 1,
+      "the store was asked for its index {asked} times for one batch; the bound is one fetch per \
+       batch, shared across every path in it"
     );
   }
 
