@@ -235,3 +235,61 @@ A line somebody typed above the first entry, belonging to no message.
     messages[1]
   );
 }
+
+/// **A BOARD THE RENDERER WROTE READS BACK AS THE BOARD IT WAS, EMPTY SECTIONS
+/// INCLUDED.** Every section is emitted and one with no live items carries the
+/// empty sentinel, which the reader carried as an item until WP-14's cutover put
+/// two of them on hv's board. The board is rendered by the real renderer rather
+/// than typed here, because the defect was the two sides DISAGREEING: a
+/// hand-typed sentinel would prove only that the reader knows one spelling.
+#[test]
+fn a_rendered_board_reads_back_without_carrying_its_empty_sections() {
+  let board = intentsvcs::model::Board {
+    schema: intentsvcs::model::BOARD_SCHEMA.to_string(),
+    node: intentsvcs::model::WbNode {
+      moniker: "dc".to_string(),
+      name: "DevX Claude".to_string(),
+      role: "worker".to_string(),
+      session_id: None,
+      heartbeat_at: "2026-09-13T10:24:37.071Z".to_string(),
+      status: intentsvcs::model::WbNodeStatus::Active,
+      focus: "one live todo and four empty sections".to_string(),
+      claims: Vec::new(),
+      recorded_at: "2026-09-13T10:24:37.071Z".to_string(),
+      authored_at: None,
+    },
+    items: vec![intentsvcs::model::WbItem {
+      node: "dc".to_string(),
+      kind: WbItemKind::Todo,
+      seq: 1,
+      text: "The only live item on this board.".to_string(),
+      state: intentsvcs::model::WbItemState::Live,
+      archived_at: None,
+      recorded_at: "2026-09-13T10:24:37.071Z".to_string(),
+      authored_at: None,
+    }],
+    messages: Vec::new(),
+  };
+  let rendered = intentsvcs::views::wb_board_body(&board);
+  assert!(
+    rendered.contains(intentsvcs::views::EMPTY_ITEMS),
+    "the fixture must render an empty section, or this arm proves nothing: {rendered}"
+  );
+
+  let read = wbmigrate::read_board("dc", &rendered, "intent/whiteboard/dc/wip.md");
+  let carried: Vec<(WbItemKind, &str)> = read
+    .items
+    .iter()
+    .map(|i| (i.kind, i.text.as_str()))
+    .collect();
+  assert_eq!(
+    carried,
+    vec![(WbItemKind::Todo, "The only live item on this board.")],
+    "the four empty sections carry nothing"
+  );
+  assert!(read.uncarried.is_empty(), "{:?}", read.uncarried);
+  assert_eq!(
+    read.source_items, 1,
+    "and the sentinel is not a unit the source offered"
+  );
+}

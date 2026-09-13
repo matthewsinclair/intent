@@ -195,6 +195,16 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
         return;
       }
       let taken = std::mem::take(block);
+      // **A SECTION THE RENDERER WROTE EMPTY IS EMPTY, NOT AN ITEM.** A board
+      // section with no live items renders as `views::EMPTY_ITEMS` on its own,
+      // and without this the block is carried as one item reading it --
+      // measured at WP-14's cutover on hv's board, and waiting on every board
+      // that folds a section to empty. **It is not counted either**: the
+      // renderer's statement that nothing is there is not a unit the source
+      // offered, exactly as the inbox reader treats `views::EMPTY_INBOX`.
+      if taken.len() == 1 && taken[0].1.trim() == crate::views::EMPTY_ITEMS {
+        return;
+      }
       for (line_no, text) in blocks_to_items(&taken) {
         // **COUNTED HERE, WHERE THE LINE IS DISPATCHED, WHATEVER BECOMES OF IT.**
         // A section nothing maps used to return before this line, so its content
@@ -359,7 +369,8 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> Sour
     // no-live-entries sentinel that keeps an inbox from being an ambiguous
     // zero-byte file. Neither is a message; anything else here is.
     let trimmed = line.trim();
-    if trimmed.is_empty() || trimmed == "_(empty)_" || trimmed.starts_with("# inbox:") {
+    if trimmed.is_empty() || trimmed == crate::views::EMPTY_INBOX || trimmed.starts_with("# inbox:")
+    {
       continue;
     }
     uncarried.push(Uncarried {

@@ -34,6 +34,26 @@ use crate::model::{
 use crate::project::{Project, canon_thread_rel};
 use crate::write_set::WriteSet;
 
+/// The line an EMPTY item list renders as: a `todo` bucket with nothing in it,
+/// and a board section with no live items.
+///
+/// **ONE SPELLING, BECAUSE THIS FILE IS NOT ITS ONLY READER.** `wbmigrate`
+/// reads boards and inboxes written in this shape, and while each side typed
+/// its sentinels as bare literals they could drift apart with nothing to
+/// notice -- and they had: the reader knew [`EMPTY_INBOX`] and not this one, so
+/// WP-14's cutover carried two empty sections on hv's board as a `doing` item
+/// and a `todo` item, each reading `_(none)_`. Renderer and reader now name the
+/// same value.
+///
+/// **NOT `EMPTY_SECTION`**: `rootfiles` has a private constant of that name for
+/// a different sentinel, and two constants sharing a name and not a meaning is
+/// the drift this exists to end.
+pub const EMPTY_ITEMS: &str = "_(none)_";
+
+/// The line an inbox with no entries renders as, so an inbox is never an
+/// ambiguous zero-byte file. One home for the reason [`EMPTY_ITEMS`] gives.
+pub const EMPTY_INBOX: &str = "_(empty)_";
+
 /// Everything a render is allowed to depend on besides the model.
 ///
 /// Deliberately tiny. Every field here is a fact about the tool or the
@@ -1454,7 +1474,7 @@ fn bucket(name: &str, rows: &[TodoItem]) -> String {
 /// which is why no test of this function could have caught it.
 fn items(rows: &[TodoItem]) -> String {
   if rows.is_empty() {
-    return "_(none)_\n\n".to_string();
+    return format!("{EMPTY_ITEMS}\n\n");
   }
   let mut out = String::new();
   for row in rows {
@@ -1716,7 +1736,7 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
       .filter(|i| i.kind == kind && i.state == crate::model::WbItemState::Live)
       .collect();
     if live.is_empty() {
-      out.push_str("_(none)_\n\n");
+      out.push_str(&format!("{EMPTY_ITEMS}\n\n"));
       continue;
     }
     for item in live {
@@ -1764,7 +1784,7 @@ pub fn wb_inbox_body(
     .filter(|m| m.sender == sender && m.recipient == recipient)
     .collect();
   if mine.is_empty() {
-    out.push_str("_(empty)_\n");
+    out.push_str(&format!("{EMPTY_INBOX}\n"));
     return out;
   }
   for m in mine {
