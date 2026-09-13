@@ -3917,7 +3917,13 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     Some(("pickup", m)) => {
       let me = acting_node(m)?;
       let mut f = open()?;
-      let up = f.wb_pickup(&me).map_err(fail)?;
+      let up = f
+        .wb_pickup(
+          &me,
+          m.get_one::<String>("session").map(String::as_str),
+          m.get_one::<String>("focus").map(String::as_str),
+        )
+        .map_err(fail)?;
       if m.get_flag("json") {
         println!(
           "{}",

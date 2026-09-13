@@ -1307,7 +1307,9 @@ pub fn serve(
     // choose (ic's finding, vc's ruling, 2026-09-12).
     "wb pickup" => {
       let node = str_arg(args, "node", path)?;
-      Ok(json!(f.wb_pickup(node)?))
+      let session = args.get("session").and_then(Value::as_str);
+      let focus = args.get("focus").and_then(Value::as_str);
+      Ok(json!(f.wb_pickup(node, session, focus)?))
     }
     "wb touch" => {
       let node = str_arg(args, "node", path)?;

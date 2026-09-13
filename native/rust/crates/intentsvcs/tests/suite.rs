@@ -414,6 +414,8 @@ mod view_determinism;
 mod view_skew_check;
 #[path = "wb_migrate_carries_a_board.rs"]
 mod wb_migrate_carries_a_board;
+#[path = "wb_pickup_states_the_session.rs"]
+mod wb_pickup_states_the_session;
 #[path = "wbmigrate_reads_a_board.rs"]
 mod wbmigrate_reads_a_board;
 #[path = "wp_prose_roundtrip.rs"]

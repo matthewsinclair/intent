@@ -4301,6 +4301,27 @@ impl Store {
     Ok(())
   }
 
+  /// A node picking up: its status, its heartbeat, and the session and focus
+  /// it names, in one statement.
+  ///
+  /// **AN UNNAMED SESSION OR FOCUS KEEPS WHAT THE ROW HOLDS.** A pickup that
+  /// says nothing about its focus has not said the focus is empty, and writing
+  /// it empty would erase the one line a peer reads to know what this node is
+  /// on. The clock is read as a value, as `wb_touch` reads it.
+  pub fn wb_pick_up(
+    &mut self,
+    node: &str,
+    status: &str,
+    session_id: Option<&str>,
+    focus: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE wb_node SET status = ?2, session_id = coalesce(?3, session_id), focus = coalesce(?4, focus), heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
+      params![node, status, session_id, focus],
+    )?;
+    Ok(())
+  }
+
   /// Set a node's status.
   pub fn wb_set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
     self.conn.execute(

@@ -8392,7 +8392,7 @@
         {
           "path": "wb archive",
           "help": "Move one of the acting node's live items to archived",
-          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
+          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
           "args": [
             {
               "name": "kind",
@@ -8425,8 +8425,8 @@
         },
         {
           "path": "wb pickup",
-          "help": "Start a session: this node's board, its peers' state, and one heartbeat",
-          "when_to_use": "USE IT at the start of a session -- it prints the acting node's whole board and every peer's header state, and moves this node's heartbeat once so peers can see it is back. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. It composes verbs that already ship and adds nothing of its own, so what it prints is what those verbs print.",
+          "help": "Start a session: mark this node active, then its board and its peers' state",
+          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its whole board and every peer's header state. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
           "args": [],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.",
@@ -8446,6 +8446,20 @@
               "exposed_on_mcp": true
             },
             {
+              "spellings": ["--session"],
+              "type": "string",
+              "help": "This session's id, recorded on the node's header",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
+              "spellings": ["--focus"],
+              "type": "string",
+              "help": "One line saying what this node is on, recorded on its header",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
               "spellings": ["--json"],
               "type": "bool",
               "help": "Emit as JSON instead of prose",
@@ -8455,7 +8469,7 @@
             }
           ],
           "facade": "wb_pickup",
-          "note": "**A THIN COMPOSITE, RULED SO RATHER THAN GROWN** (vc, 2026-09-12, on cc's Highlander question). It is `board`, `boards` and `touch`, with no logic of its own; the alternative considered and rejected was a skill telling a reader to run three verbs in order, which is the hand-kept list this register exists to end. **THE TOUCH HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a heartbeat the same call is about to invalidate. It is `mutate` because of that one write, and `idempotent` because running it again leaves the same state with a later stamp."
+          "note": "**A COMPOSITE OF THE READS, WITH ONE WRITE OF ITS OWN** (vc, 2026-09-12 on cc's Highlander question; the write ruled 2026-09-13 on ic's finding against AC-14.7). What it prints is `wb show` for the acting node and `wb status` for its peers; the alternative rejected was a skill telling a reader to run those in order, which is the hand-kept list this register exists to end. **ITS WRITE IS WHAT A SESSION START STATES**: status active, the heartbeat, and the session and focus when named, which is what makes `wb release`'s paused node active again. **THE WRITE HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a header the same call is about to change. It is `idempotent` because running it again with the same session and focus leaves the same state with a later stamp."
         },
         {
           "path": "wb touch",

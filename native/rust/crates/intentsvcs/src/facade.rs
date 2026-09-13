@@ -5175,21 +5175,35 @@ impl Facade {
     self.reindex_boards()
   }
 
-  /// What a node needs at the start of a session: its own board, its peers'
-  /// state, and its heartbeat moved once.
+  /// What a node needs at the start of a session: it is marked active with its
+  /// heartbeat moved, the session and focus it names are recorded, and it gets
+  /// back its own board and its peers' state.
   ///
-  /// **A THIN COMPOSITE AND NOTHING MORE** (vc's ruling, 2026-09-12). It calls
-  /// [`Self::wb_touch`] and [`Self::boards`] and adds no logic of its own: the
-  /// alternative was a skill telling a reader to run three verbs in order,
-  /// which is the hand-kept list the register exists to end.
+  /// **A COMPOSITE OF THE READS WITH ONE WRITE OF ITS OWN** (vc's rulings,
+  /// 2026-09-12 and 2026-09-13). The reads are [`Self::boards`]; the write is
+  /// what a session start states, which is what makes a released node active
+  /// again. An unnamed session or focus keeps what the header holds.
   ///
-  /// **THE TOUCH HAPPENS BEFORE THE READ, DELIBERATELY.** A node's own board is
-  /// part of what this returns, so reading first would hand back a heartbeat
-  /// this very call is about to invalidate -- a value that was true when it was
-  /// read and false by the time it was printed.
-  pub fn wb_pickup(&mut self, node: &str) -> Result<Pickup, FacadeError> {
+  /// **THE WRITE HAPPENS BEFORE THE READ, DELIBERATELY.** A node's own board is
+  /// part of what this returns, so reading first would hand back a header this
+  /// very call is about to change -- a value that was true when it was read and
+  /// false by the time it was printed.
+  pub fn wb_pickup(
+    &mut self,
+    node: &str,
+    session_id: Option<&str>,
+    focus: Option<&str>,
+  ) -> Result<Pickup, FacadeError> {
     self.require_registered(node)?;
-    self.store.wb_touch(node).map_err(FacadeError::Store)?;
+    self
+      .store
+      .wb_pick_up(
+        node,
+        &crate::model::enum_str(&crate::model::WbNodeStatus::Active),
+        session_id,
+        focus,
+      )
+      .map_err(FacadeError::Store)?;
     self.reindex_boards()?;
     let boards = self.canon.boards.clone();
     let board = boards
