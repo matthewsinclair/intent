@@ -1,5 +1,5 @@
-//! ST0069 AC-14.2, the half the cutover satisfies: once the views are wired, a
-//! node's board and its inboxes are rendered from the store and nowhere else,
+//! ST0069 AC-14.2 (AT-14.2), the half the cutover satisfies: once the views are
+//! wired, a node's board and its inboxes are rendered from the store and nowhere else,
 //! so a hand edit of either is view skew -- and an estate whose whiteboard is
 //! still hand-authored, with no rows, sees no view and no skew at all.
 
