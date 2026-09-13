@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 13:50Z
+heartbeat_at: 2026-09-13 14:01Z
 status: active
-focus: "0322 LANDED at 0f5c6950c (2026-09-13 13:50Z): wb show and wb pickup list live messages and count the handled ones, --all lists every message; reported to vc with every file, ic has the sha for the row prose. HOLDING for vc. NO RELEASE, NO PUSH."
+focus: "HOLDING for vc (2026-09-13 14:01Z). 0322 landed at 0f5c6950c and vc closed it on the delivered set at e70c3528a. Nothing under native/, surface/, lib/ or bin/ until after the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
