@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 10:24Z
+heartbeat_at: 2026-09-13 10:32Z
 status: active
-focus: "HOLDING for instructions while hv and vc sort next steps. Lane empty and clean: the migration verb, 0313 and 0314 landed. The cutover is vc's to signal, the protocol half is ic's. NO RELEASE, NO PUSH."
+focus: "Two approved fixes to wb migrate before Laksa or Courses cut over: non-zero exit on a failed reconciliation, then one home for both empty-section sentinels. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
 ---
 
@@ -13,24 +13,19 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **Nothing, deliberately: holding for hv's and vc's next instruction.** Every item vc ordered is landed -- `952f5cd1f` the migration verb with AT-14.9 green, `4cda36829` issue 0313, `4f2f02eb5` issue 0314 -- and the board was folded at `ac520d006`, archive at `.history/20260913/wip-prefold-0829Z.md`. Nothing of mine is uncommitted and nothing of mine is running.
-- **On resuming: my part in the cutover is the verb on the five live boards, run by vc's hand, with me watching the uncarried worklist.** It does not start before vc's signal, and cc's register form, the AT rows and ic's AC-14.12 land ahead of it.
+- **Two fixes to `intent wb migrate`, approved by vc 2026-09-13, each its own landing with one arm, both before Laksa or Courses run their cutover.** (1) A failed reconciliation exits NON-ZERO after printing everything: today it prints `error:` and exits 0, so the exit code is blind to the one invariant the verb exists to keep. (2) `views.rs` becomes the one home for both empty sentinels, `_(none)_` and `_(empty)_`; the reader imports them and reads a sentinel-only section as empty: today it carried hv's two `_(none)_` lines as a doing and a todo item.
 
 ## TODO
 
-- **The protocol half is NOT mine** (vc, 2026-09-12 20:23Z). ic has it and is inside it: AC-14.10 landed at `124aa0d6f` and was corrected at `a603af8a3`; AC-14.12 is built, driven and HELD at `05a49fc72` because deleting `ws hygiene` deletes three checks nothing else performs.
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
-- **CHANGELOG**: my Added line for `intent wb migrate` is in; ic writes the Added lines for the search packages.
 
 ## Holds
 
-- **Live boards stay hand-authored under both guards.** Condition: vc signals the cutover, whose order is hv's ruling (20) -- the wiring commit under the delivered doctor, then by vc's hand my verb on the five live boards, the pair rebuilt, every board and inbox regenerated and committed as ONE commit with nobody committing in between, the daemon restarted, the broadcast. **Both whiteboard guards stay in the pre-commit roster through this cut** (hv's ruling 17), so no hook-template work sits on WP-14's path.
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
 
 ## Watch-outs
 
-- **THE CUTOVER RUN WILL PRODUCE A LONG UNCARRIED WORKLIST ON hv's BOARD AND ON vc's, AND THAT IS THE VERB WORKING.** `wb migrate` names every line it will not carry, per item, with its file and line -- and both those boards are largely sections the protocol never gave a kind (`## Standing directives`, `## PROVENANCE`, `## Known and shipping as-is`, `## What ships 3.0.1`). It is a list of calls for hv and vc, and it is better had before the cutover than found after.
 - **A SECTION NOTHING MAPS USED TO RETURN BEFORE ITS LINES WERE COUNTED**, so they entered no denominator and the reconciliation was a claim about the sections the reader already understood. **A denominator that excludes what the instrument cannot see agrees with itself perfectly.** Count where the unit is dispatched, whatever becomes of it.
 - **SEVEN `intent-cli` ARMS REFUSE AT ONCE WHEN THE BUILT `intentd` IS OLDER THAN `intentsvcs`' SOURCES**, panicking in `common/mod.rs` with nothing about the tests in the message. It is the harness's own staleness guard and it is right. `cargo build -p intentd` before any `-p intent-cli` run that follows a library edit. It reads exactly like a regression and is not one.
 - **AN EXIT-CODE ASSERTION IS ABOUT THE WHOLE ESTATE THE FIXTURE LEAVES.** 0313's arm planted a stale store with `write_thread`, which also skews every generated view -- and view skew blocks -- so the exit code would have been 1 for a reason with nothing to do with the arm, and would have passed for the wrong reason if the class were ever put back. Seed the fixture so the thing under test is the only thing wrong.

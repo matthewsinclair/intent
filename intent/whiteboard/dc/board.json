@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "b9e78c72-479d-4984-9df9-ac1bedfe7f2d",
-    "heartbeat_at": "2026-09-13T10:24:37.071Z",
+    "heartbeat_at": "2026-09-13T10:32:34.327Z",
     "status": "active",
-    "focus": "HOLDING for instructions while hv and vc sort next steps. Lane empty and clean: the migration verb, 0313 and 0314 landed. The cutover is vc's to signal, the protocol half is ic's. NO RELEASE, NO PUSH.",
+    "focus": "Two approved fixes to wb migrate before Laksa or Courses cut over: non-zero exit on a failed reconciliation, then one home for both empty-section sentinels. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/07",
       "ST0056/11",
@@ -27,7 +27,8 @@
       "kind": "doing",
       "seq": 1,
       "text": "**Nothing, deliberately: holding for hv's and vc's next instruction.** Every item vc ordered is landed -- `952f5cd1f` the migration verb with AT-14.9 green, `4cda36829` issue 0313, `4f2f02eb5` issue 0314 -- and the board was folded at `ac520d006`, archive at `.history/20260913/wip-prefold-0829Z.md`. Nothing of mine is uncommitted and nothing of mine is running.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:32:59.395Z",
       "recorded_at": "2026-09-13T10:24:37.071Z"
     },
     {
@@ -35,7 +36,8 @@
       "kind": "doing",
       "seq": 2,
       "text": "**On resuming: my part in the cutover is the verb on the five live boards, run by vc's hand, with me watching the uncarried worklist.** It does not start before vc's signal, and cc's register form, the AT rows and ic's AC-14.12 land ahead of it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:32:58.274Z",
       "recorded_at": "2026-09-13T10:24:37.071Z"
     },
     {
@@ -43,7 +45,8 @@
       "kind": "todo",
       "seq": 1,
       "text": "**The protocol half is NOT mine** (vc, 2026-09-12 20:23Z). ic has it and is inside it: AC-14.10 landed at `124aa0d6f` and was corrected at `a603af8a3`; AC-14.12 is built, driven and HELD at `05a49fc72` because deleting `ws hygiene` deletes three checks nothing else performs.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:33:01.712Z",
       "recorded_at": "2026-09-13T10:24:37.071Z"
     },
     {
@@ -59,7 +62,8 @@
       "kind": "todo",
       "seq": 3,
       "text": "**CHANGELOG**: my Added line for `intent wb migrate` is in; ic writes the Added lines for the search packages.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:33:00.565Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -67,7 +71,8 @@
       "kind": "hold",
       "seq": 1,
       "text": "**Live boards stay hand-authored under both guards.** Condition: vc signals the cutover, whose order is hv's ruling (20) -- the wiring commit under the delivered doctor, then by vc's hand my verb on the five live boards, the pair rebuilt, every board and inbox regenerated and committed as ONE commit with nobody committing in between, the daemon restarted, the broadcast. **Both whiteboard guards stay in the pre-commit roster through this cut** (hv's ruling 17), so no hook-template work sits on WP-14's path.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:33:02.905Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -91,7 +96,8 @@
       "kind": "watchout",
       "seq": 1,
       "text": "**THE CUTOVER RUN WILL PRODUCE A LONG UNCARRIED WORKLIST ON hv's BOARD AND ON vc's, AND THAT IS THE VERB WORKING.** `wb migrate` names every line it will not carry, per item, with its file and line -- and both those boards are largely sections the protocol never gave a kind (`## Standing directives`, `## PROVENANCE`, `## Known and shipping as-is`, `## What ships 3.0.1`). It is a list of calls for hv and vc, and it is better had before the cutover than found after.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:33:04.016Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -213,6 +219,23 @@
       "text": "devbin `0047` (hv, 2026-09-01): option 3, the split. Relayed to devbin-vc, who own `bin/.devbin/lib/`; the vendored copy here is overwritten on upgrade, so it is never mine to implement. UNEXECUTED, and not dc's.",
       "state": "live",
       "recorded_at": "2026-09-13T10:24:37.073Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 3,
+      "text": "**Two fixes to `intent wb migrate`, approved by vc 2026-09-13, each its own landing with one arm, both before Laksa or Courses run their cutover.** (1) A failed reconciliation exits NON-ZERO after printing everything: today it prints `error:` and exits 0, so the exit code is blind to the one invariant the verb exists to keep. (2) `views.rs` becomes the one home for both empty sentinels, `_(none)_\" and `_(empty)_`, the reader imports them and reads a sentinel-only section as empty: today it carried hv's two `_(none)_` lines as a doing and a todo item.",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:33:46.572Z",
+      "recorded_at": "2026-09-13T10:33:05.205Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 4,
+      "text": "**Two fixes to `intent wb migrate`, approved by vc 2026-09-13, each its own landing with one arm, both before Laksa or Courses run their cutover.** (1) A failed reconciliation exits NON-ZERO after printing everything: today it prints `error:` and exits 0, so the exit code is blind to the one invariant the verb exists to keep. (2) `views.rs` becomes the one home for both empty sentinels, `_(none)_` and `_(empty)_`; the reader imports them and reads a sentinel-only section as empty: today it carried hv's two `_(none)_` lines as a doing and a todo item.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:34:09.795Z"
     }
   ],
   "messages": [
