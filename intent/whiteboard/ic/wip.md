@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-12 20:43Z
+heartbeat_at: 2026-09-13 07:59Z
 status: active
-focus: "0311 RE-RUN IS DISCRIMINATING, with the positive control holding on all 20 runs: the three arms the fix addresses go from 12 arm-reds at base to 0 patched, 0 VOID either side. The patch rebases onto c4c9f4326 cleanly and the workspace is green except daemon_subscriptions timing out at load 38 under a peer suite. LANDING IS PREPARED AND NOT DONE: one re-run on a quiet box, then land whole and close 0311. The lifecycle-row review found a build defect -- `active` is a status nothing can write."
+focus: "0311 LANDED WHOLE at b0f773046 and closed in the landing -- seven files, the re-run green with all three arm names present, the pair vc's to rebuild. Next in vc's order: review cc's wb pickup change against Finding 1 when it lands, then the wb add row, then the protocol half with the two whiteboard guards KEPT through this cut and an AT row for each of AC-14.10 and AC-14.12."
 claims: []
 ---
 
@@ -13,16 +13,13 @@ claims: []
 
 ## DOING
 
-**0311, THE DAEMON'S FEEDBACK LOOP: diagnosed, fixed, proven in MECHANISM, and NOT PROVEN IN RATE. It is not landed and must not be.**
+**0311 IS LANDED WHOLE AT `b0f773046` AND CLOSED IN THAT LANDING.** Seven files: the four source files, the issue's canon, its dehydrated view and `.intentfiles`. The re-run was green on all three `intentd` binaries with all three arm NAMES present. The result lives in the issue's own record -- cause, both halves of the fix, the mechanism proof, the rate measurement with its positive control, and the residual family reds with their counts and messages. The pair rebuilds at that sha by vc's hand.
 
-**The unlanded work is a worktree and a patch, never this prose**: the tree is `scratchpad/wt-doc` on base `e7a59a47b`, and the diff is banked at `scratchpad/0311-daemon-fix.patch` (four files). `scratchpad/wt-base` is the matched control tree at the same base; `scratchpad/ctrl-logs/` holds all sixteen run logs; `scratchpad/trace.py` and `trace3.py` are the socket clients that produced the diagnosis.
+**DOING NEXT, in vc's order:**
 
-- **THE CAUSE, traced rather than reasoned.** A projection writes canon, the generated views AND `.canon/project.json`; the store's index recorded only the canon. So the daemon's watcher met `todo.md` and `steel_threads.md` with no baseline, published them as external edits, and ingested again -- twice per write. `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` has been saying so at base in its own words all along: _the ingest count moved with nothing editing the project. The daemon is watching its own writes._
-- **THE FIX, two halves at the cause.** `sync::differs_from_recorded` is one home for _has the store already recorded these bytes_, and the watcher's LEAF branch asks it -- that branch published on scope alone, unread, which made the module's own stated invariant true on the directory door and false on the leaf door. `record_landed` records everything a projection wrote, at one home with three callers, unioned with `canon_files` because `commit` skips a path whose bytes already match and that baseline is what `refuse_if_canon_moved_under_the_store` reads.
-- **WHAT IS PROVEN: the mechanism.** On the fixed daemon one write yields exactly `file_changed` then `project_changed`, three runs identical, where before it was five events and then five more; and a subscription opened after setup now receives nothing at all.
-- **WHAT IS NOW PROVEN: the rate, on a control whose own instrument was checked first.** Ten matched whole-suite rounds a side, alternating, `--no-fail-fast`, logs in `scratchpad/ctrl2-logs/`. The three arms 0311 is about go from **twelve arm-reds at base to zero patched** -- `a_change_outside_the_sync_scope_delivers_nothing` 4 to 0, `every_subscriber_receives_every_event` 3 to 0, `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` 5 to 0. **20 of 20 runs carried the arm NAMES; 0 VOID.** The earlier void is closed.
-- **AND THE FAMILY IS NOT CLEAN ON EITHER SIDE, WHICH IS PART OF THE RESULT.** Base 14 arm-reds over five arms; patched 9 over five, **none of them the three the fix addresses**. Three of the patched five never red at base, and one -- `an_external_edit_reaches_the_store_with_nobody_running_sync` -- is exactly what would catch this fix suppressing a REAL edit. Drove those three alternately, ten rounds a side, single-binary: **0 RED both sides, 0 VOID** (`scratchpad/arm-drive.sh`). That drive cannot exhibit a load-only failure, and it is not claimed to.
-- **THE LANDING IS PREPARED AND NOT DONE.** The patch rebases onto `c4c9f4326` and applies cleanly (`facade.rs` moved +137 lines under it and the hunks still land); `cargo fmt --check` clean at the workspace edition; the whole workspace green EXCEPT `daemon_subscriptions` 3 of 5, every one `no event arrived within 20s`, at load average 38 with a peer's suite on the box. A different failure from 0311's. Re-run `-p intentd` ONCE on a quiet host, land whole, close 0311 in the landing. If it reds again, report rather than land.
+1. **Review cc's `wb pickup` change when it lands**, against Finding 1 as vc ruled it: pickup writes `status: active`, the heartbeat, `session_id` when `--session` is named and `focus` when `--focus` is named; `touch` stays heartbeat-only; `release` writes paused. Then `wb release`'s `when_to_use` reads true as written and needs no edit, and Finding 3's note gets the surface spellings (`wb show`, `wb status`) rather than the facade names.
+2. **The `wb add` row**, and cc's three corrected message rows with it.
+3. **The protocol half.** vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
 
 ## TODO
 

@@ -277,3 +277,29 @@ So every registered node is `paused` from birth, forever, with no session id and
 **Your external base data point is noted BESIDE the control, not in it** (hv's full run at `c9f40c79e` +1 dirty, `tmp/test/20260912-2030.RUST.errors`): `daemon_subscriptions` 3 passed 2 failed, both arms carrying the self-write signature -- the feed named `AGENTS.md` rather than the file that changed. That is the same failure my base column measures and it is a third base configuration reaching it. It stays beside rather than inside because the control's denominator is matched pairs run by one runner under one HOME, and an external run has no patched partner; folding it in would widen the base numerator against a denominator it never ran in. It corroborates; it does not count.
 
 NO RELEASE, NO PUSH.
+
+## (2026-09-13 07:59Z) Re: 2026-09-13 07:53Z -- 0311 LANDED WHOLE at `b0f773046`, closed in the landing
+
+**The re-run was green and the positive control held on it.** Rebased tree at `c4c9f4326` + the patch, load 25 on the one-minute with no peer suite running: all three `intentd` binaries green -- 8, 5 and 35 passed, 0 failed -- and all three 0311 arm NAMES present in the log, so the verdict is read off a run that reached them. The held run's three `no event arrived within 20s` arms did not recur.
+
+**THE LANDING: `b0f773046`, 7 files, 163 insertions and 54 deletions.**
+
+- `native/rust/crates/intentsvcs/src/sync.rs`
+- `native/rust/crates/intentsvcs/src/facade.rs`
+- `native/rust/crates/intentd/src/watch.rs`
+- `native/rust/crates/intentd/tests/daemon_subscriptions.rs`
+- `intent/.canon/issues/0311.json`
+- `intent/issues/0311.md` -- DELETED, because a closed issue dehydrates: `organize` previewed exactly one to-remove and I applied it, which is the shape `0308` and `0309` already have on disk
+- `intent/.intentfiles`
+
+**Before it, `ec734c5bc`**: the 20:43Z entry and my board, the two paths you named, `git add` then `commit --only` the same two in one call. The gate refused the first attempt over markdown formatting and rewrote nothing; prettier on the one file, re-add, landed. The formatter's only change was `*emphasis*` to `_emphasis_`.
+
+**0311's own record is the durable home for the result**, not the commit body alone: the cause, the two halves of the fix, the mechanism proof, the rate measurement with its positive control, and the residual family reds with their counts and their messages are all in the issue as it closed.
+
+**hv's external run is noted BESIDE the base column and not inside it.** An external run has no patched partner, so folding it in would widen the base numerator against a denominator it never ran in. It corroborates the signature; it does not count in the rate.
+
+**THE PAIR IS YOURS AND I HAVE NOT TOUCHED IT.** Rebuild at `b0f773046`. The gate's own currency line already reports the delivered pair as behind HEAD, naming `82b85c5e1`.
+
+Next on your order: the `wb pickup` change when cc lands it (I will review it against Finding 1 as you ruled it -- active, heartbeat, `session_id` on `--session`, `focus` on `--focus`, touch unchanged, release paused, and Finding 3's surface spellings), then the `wb add` row, then the protocol half with the guard sections kept and an AT row for each of 14.10 and 14.12.
+
+NO RELEASE, NO PUSH.
