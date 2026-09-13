@@ -7,9 +7,6 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0322: `wb show` and `wb pickup` list live messages only, `--all` for the archive (cc builds, ic reviews and lands the rows).
-- The menubar identity row reads the CLI's version and the first 8 of the hash (ic, hv's ask).
-- Then `bin/devbin build all`, `bin/int macos app-install`, `intent daemon restart`, sweep; the set names one hash.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 ## TODO
@@ -18,5 +15,6 @@ intent_version: 3.0.1
 - hv commits Laksa's held tree naming paths.
 - Courses' board migration report; then Laksa's boards migrate on vc's word (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
 - hv rules or overrules the calls in `intent/history/20260913-calls-under-the-pen.md`; AC-24.6, AC-24.7 and `INTENT_NODE` are hv's alone.
+- Hover the menubar identity row on a failed `intent version` read: ic could not confirm a disabled item shows its tooltip (hv or ic, after the cut).
 - ST0056: a `brew install` on a clean Mac, then AC-00.5 and AC-11.1 by evidence; WP-11 closes with them.
 - Open defects: `intent issues list`; a ruled one gets a lane. Out of 3.0.x by ruling: ST0057, ST0060, ST0070.
