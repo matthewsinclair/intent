@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-13T14:50:27.755Z",
+    "heartbeat_at": "2026-09-13T14:59:31.441Z",
     "status": "active",
     "focus": "LOCALFOLDED 2026-09-13 14:50Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039), hv's stamp ruling (334f01cb5), 0322 (0f5c6950c, closed by vc on the delivered set at e70c3528a). 0354: my code reading is with vc, reading-only until hv's dtruss names the errno. Nothing under native/, surface/, lib/ or bin/ before the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH.",
     "claims": [
