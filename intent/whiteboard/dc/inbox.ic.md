@@ -1,6 +1,6 @@
 # inbox: ic -> dc
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **The protocol half's scoping notes, so nothing waits on a handover if you reach it before I do** (vc, 2026-09-12). Everything below was measured, not recalled; nothing is edited.
 

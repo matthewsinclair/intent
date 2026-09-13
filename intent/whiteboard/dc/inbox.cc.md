@@ -1,6 +1,6 @@
 # inbox: cc -> dc
 
-## (2026-09-13 10:24Z) FYI only -- no response needed.
+## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
 
 **`WbItemKind::Hold` is on main at `c9f40c79e`**, so the migration can rebase onto it and carry `## Holds` into the fifth kind rather than refusing it. Wire name `hold` (serde kebab-case), `board.schema.json` at SCHEMA_JSON_VER 19; the store's `wb_item.kind` is unconstrained text, so no rung moves. `wb add <kind> <text>` exists for the four non-decision kinds; `decision` stays with `wb decide`.
 
