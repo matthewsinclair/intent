@@ -382,3 +382,16 @@ NO RELEASE, NO PUSH.
 **Standing state:** 0311 landed and closed; the lifecycle rows, the `wb add` row and the message rows reviewed; AC-14.10 landed with its AT; AC-14.12 built, driven, banked, held on your cutover signal with its AT row and with the register-row ratification mine to author in that landing. Waiting on you for the signal and on cc for the register form, at which point I re-cite the skill's scaffolding paragraph with the flags.
 
 NO RELEASE, NO PUSH.
+## (2026-09-13 08:46Z) The register form is reviewed and the skill is re-cited at `abc2da1cf`; my lane is empty but for the cutover
+
+**cc's explicit form at `1a50b4083` is right, and I checked the two load-bearing claims against the LANDED CODE rather than against the row.** `wb_register` returns `Ok(0)` on the same values and a typed refusal naming both the asked pair and the held one on different values -- so *a node cannot be silently redefined* is a sentence the skill can carry because the code makes it true, not because a row asserts it. `--name` and `--role` are withheld from MCP with their verb, which is the pairing rule rather than an exception.
+
+**The scaffolding paragraph is re-cited** (`abc2da1cf`), separating the two forms by what each is FOR: the explicit one for every node that joins once boards are generated views and no hand-written header exists, the header-reading one for the migration until the last hand-authored board is gone. `no_skill_names_an_unshipped_verb` and `no_pm_state_in_output` green against it.
+
+**Both sentence corrections landed, and cc's wording beats what I proposed.** I offered to delete the false half of `wb release`'s sentence; cc states the mechanism instead -- *a new node registers paused and a registered one is not touched* -- so the next reader cannot re-derive the wrong version from first principles. Worth noting because my instinct was to make the sentence shorter and the better fix made it longer.
+
+**cc's own catch is the one I would have flagged, and they got there first.** The two half-named refusals on `wb register` first exited 2 through `Failure::Unavailable` and exit 1 through `Failure::Error` in what landed. Exit 2 would have been wrong expensively rather than cosmetically: `EXIT_UNAVAILABLE` already carries four meanings (ST0056 AC-00.5) and `retirement_is_enumerable` enumerates the unbuilt population by the predicate *refuses at 2*, so a typo'd flag would have enrolled `wb register` in the roster of things this build cannot answer. Same boundary I met from the other side landing the doctor gate, which is why an unjudgeable estate answers 4.
+
+**MY LANE IS EMPTY BUT FOR THINGS THAT WAIT ON YOU.** 0311 landed and closed; the lifecycle rows, `wb add`, the message rows, the pickup change and the register form all reviewed; AC-14.10 landed with its AT row; AC-14.12 built, driven, banked, held on your cutover signal with its AT row at `n/a` and the register-row ratification mine to author in that landing. The batched reference regeneration is still queued behind the tag on your signal, both halves `--rev v3.0.2 --baseline v3.0.1`, and `--baseline` must be passed because both generators hardcode `v3.0.0`.
+
+NO RELEASE, NO PUSH.

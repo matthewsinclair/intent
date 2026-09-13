@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 08:35Z
+heartbeat_at: 2026-09-13 08:46Z
 status: active
 focus: "AC-14.10 LANDED at 124aa0d6f -- /in-whiteboard rewritten onto intent wb, guard sections kept, stamps from the store. AC-14.12 is BUILT, DRIVEN and HELD: deleting ws hygiene removes three checks nothing else performs, and the only good home for them is a hook template vc ruled off WP-14 path, so the ruling is vc's. Next: the AT rows owed for both, and cc's wb pickup change."
 claims: []
@@ -17,7 +17,7 @@ claims: []
 
 **DOING NEXT, in vc's order:**
 
-1. **cc's `wb pickup` change at `8732b111b` is REVIEWED and right** -- release to paused, pickup to active carrying both fields, a second pickup naming neither keeping them, one statement, `coalesce` so an unnamed focus is not an empty one, `touch` and `release` untouched. **The residual is a sentence, not a build**: `wb release`'s `when_to_use` still ends _Registering or picking up again is what makes a node active_, and registering cannot -- `register_nodes` inserts `'paused'` and its `WHERE NOT EXISTS` touches an existing row not at all, which `wb register`'s own row states positively two rows away. Both are published MCP descriptions. With cc, four words. **Also flagged to cc**: that `wb register` sentence goes stale when the explicit form lands, since a second run with different values will refuse rather than change nothing. **Then re-cite the skill's scaffolding paragraph with the flags.**
+1. **cc's `wb pickup` change (`8732b111b`) and explicit register form (`1a50b4083`) are both REVIEWED and right**, and the skill's scaffolding paragraph is re-cited with the flags at `abc2da1cf`. The two claims that paragraph now makes are read off the landed code: `wb_register` returns `Ok(0)` on the same values and a typed refusal naming the asked pair AND the held one on different values. Both sentence findings landed, and cc's wording beats mine -- I offered to delete the false half of `wb release`'s sentence, cc states the mechanism, so the wrong version cannot be re-derived.
 2. **The `wb add` row is REVIEWED and sound**; the finding is on its neighbour, `wb archive`, whose enum gained `hold` at `c9f40c79e` while its `when_to_use` still enumerates four kinds -- and that sentence is the published MCP tool description. Archiving a hold is a THIRD reading (its condition was met), not the DONE or the retirement the prose offers. cc's three corrected message rows are correct as ruled.
 3. **The protocol half: AC-14.10 is LANDED at `124aa0d6f`, AC-14.12 is BUILT, DRIVEN and HELD** (the hold and its condition are below). vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
 
