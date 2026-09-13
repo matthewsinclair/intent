@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 14:59Z
+heartbeat_at: 2026-09-13 16:34Z
 status: active
-focus: "Localfolded for hv's compact while dc runs the workspace suite and schema-face check on e70c3528a. Landed today and reported: 101e3ff22 (menubar identity row), c472db89b (0322 rows + skill). On the bounce: hold for vc; builds and tests held until dc reports; the reference regeneration (both halves --rev v3.0.2 --baseline v3.0.1) only on vc's signal after the tag. NO RELEASE, NO PUSH."
+focus: "Localfolded for hv's compact. ST0074 (machine-wide projects): WP-01 /threads+/issues Done (793984a50), WP-02 menubar status line Done (133061d7f), WP-05 ruled XDG in design.md (f2452077a), 0368 test fixed (64d272688). On the bounce: run ac satisfy ST0074 AC-05.1 with evidence f2452077a; hv restores ~/.intent/config.json with intent bootstrap --force, which the permission check blocked for me; WP-05, WP-03 and WP-04 code in a private worktree only after the 3.0.2 tag, for 3.1.0, in that order. The reference regeneration waits on vc's signal after the tag. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -14,7 +14,7 @@ claims: []
 ## DOING
 
 - **Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.
-- **ST0074, the bundle hv asked for.** WP-01 /threads and /issues (793984a50, AT-01.1 green) and WP-02 the menubar's one status line (133061d7f, AT-02.1..02.3 green) are Done on main. design.md holds WP-05's options for hv (nothing chosen) and WP-03's one-page registry design. WP-03 (registry + discover, L), WP-04 (picker, M) and WP-05 (config home, S) do not land before the 3.0.2 tag; WP-05 waits on hv's ruling, and WP-03 needs WP-05's location. Issue 0368 (bats test writing the real ~/.intent/config.json) is filed; its fix is mine after hv rules the pre-tag list.
+- **ST0074, after the 3.0.2 tag, for 3.1.0 (vc).** WP-05 first: the XDG layout and migration exactly as design.md rules them (f2452077a), the XDG_* ALLOWED rows in no_intent_home.rs as part of that code, every literal reader of ~/.intent and ~/.local/share/intent moved in the same change. Then WP-03 (registry + discover, design in design.md) and WP-04 (picker, /projects). Private worktree; ACs AC-03.1..04.2 already written; one-line ACs, one test run, land. Before the tag: ac satisfy AC-05.1 --evidence f2452077a.
 
 ## TODO
 
@@ -69,6 +69,7 @@ claims: []
 - **A COMPLETED THREAD'S ROWS ARE CORRECTED FORWARD, NEVER WITHDRAWN** (vc, citing hv 2026-08-21). Retiring a capability later does not make a closed thread's green rows false: each keeps its status and gains a note saying where its arm went and at which sha. And a count in a ruling that came from MY report is still mine to check -- it was twelve rows, not eleven. (`cmd | tail -1` hid a refusal's bound from me during this very fold: read the HEAD of an error, where the numbers are.)
 - **A GATE REFUSAL FROM A PEER'S DIRT PLUS MY STAGED FILES IS A DEADLOCK, AND I HID THE FIRST ONE.** cc's uncommitted stamp work left the shared-artefact guard not intact, so my board commit was refused; cc then would not add over my staged paths. The exit was to `git restore --staged` MY OWN two paths (store already held the change, nothing lost), let cc land, re-issue the same commit -- never `--no-verify`. And I first ran that commit with `>/dev/null 2>&1`, which printed the previous HEAD as if it had landed: **capture a commit's output to a file and read rc and the head of the refusal, every time.**
 - **AN EDIT DURING AN IN-FLIGHT BUILD IN THE SAME WORKTREE MAKES THE RUN A TEST OF OTHER BYTES, AND I DID IT TWICE IN ONE HOUR.** Both menubar app-test runs were compiling while I applied critic fixes; each green or red would have been about code I was no longer landing. Stop the run, finish the edits, then run once on the bytes that land -- and never edit a register a cargo build in that worktree compiles in. The same change carried a test doc claiming to catch a Rust-side format change its Swift literals could never see (critic-swift, red-control): **a test's comment is a claim about what it can fail on, and it gets the same check as the test.**
+- **A SILENT ERROR IN MY OWN SHELL DELETED A DOCUMENT, AND A GUARD I WROTE STOPPED A CORRECT COMMIT, IN THE SAME HOUR.** A perl substitution read its replacement from an environment variable I never set, `|| true` swallowed the die, and the substitution ran anyway with an empty replacement: ST0074's design lost a whole section on disk while canon still held it, and hv's doctor saw the divergence first. Separately, a count of aggregator lines not containing ST0074 read 10, but they were ST0074's own WP rows, which do not repeat the thread id. **Never `|| true` a write, pass data by file rather than an unset variable, and read a diff before trusting a count over it.** And `st attach` writes store and canon, never the realised file: edit an attachment at its own path, attach from that path, and commit in the same call.
 
 ## Decisions
 
