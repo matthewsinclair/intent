@@ -7,6 +7,7 @@ intent_version: 3.0.1
 
 ## DOING
 
+- 0354: the daemon spins one core after its first project open (reproduced by dc in isolation on e70c3528a); dc runs the no-open and the 3.0.1-keg controls, cc's reading names parking_lot's parker, the errno needs hv's `sudo dtruss`; the cut holds on it.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 ## TODO
