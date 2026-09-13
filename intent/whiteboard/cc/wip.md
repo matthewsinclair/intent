@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
-- **ST0056's data-model.md, output-contracts.md and realisation.md: the as-written against as-built pass (vc's order, after ST0069 at be0bac331 and ST0057 at 8074aa014).** Same protocol and doors: read each claim against the code, correct in place with one dated sentence and a citation, file a claim the code fails as an issue, st attach the WHOLE body, verify canon past the ingest, one commit. Drafting kit in the session scratchpad audit/ (PROTOCOL.md, design_edits.py, write-thread.sh, retry-thread.py, commit-paths.sh).
 
 ## Holds
 

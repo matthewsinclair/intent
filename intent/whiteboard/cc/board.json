@@ -381,7 +381,8 @@
       "kind": "todo",
       "seq": 2,
       "text": "**ST0056's data-model.md, output-contracts.md and realisation.md: the as-written against as-built pass (vc's order, after ST0069 at be0bac331 and ST0057 at 8074aa014).** Same protocol and doors: read each claim against the code, correct in place with one dated sentence and a citation, file a claim the code fails as an issue, st attach the WHOLE body, verify canon past the ingest, one commit. Drafting kit in the session scratchpad audit/ (PROTOCOL.md, design_edits.py, write-thread.sh, retry-thread.py, commit-paths.sh).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T16:48:40.076Z",
       "recorded_at": "2026-09-13T16:35:46.667Z"
     },
     {
