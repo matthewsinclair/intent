@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 07:54Z
+heartbeat_at: 2026-09-13 08:06Z
 status: active
-focus: "BACK on the bounce at 2026-09-12 20:24Z, directing ST0069 to the end: WP-14 is the last package. cc lands the Hold kind and wb add first, then the renderers, GraphQL, the search measure; dc rebases the migration verb onto Hold; ic runs the 0311 control then lands the daemon fix, then the row reviews and the protocol half. Then the cutover on my signal, wp done, the close, the cut at hv's terminal."
+focus: "LOCALFOLDED 2026-09-13 08:06Z for hv's compact after hv's restart. ST0069 to the end: WP-14 the last package; 0311 landed and the pair rebuilt at b0f773046; cc on the AC-14.8 index build, the pickup fields and AT rows; dc on the migration verb then 0313 and 0314; ic on the protocol half. On the bounce: inboxes, landings by file list, the pair at dc's three, then the cutover."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing ST0069 to the end (hv, 2026-09-12); BACK on the bounce at 2026-09-12 20:24Z, socket live.** The state and every ruling are in `intent/wip.md`. Standing orders went to each lane at 20:16Z (7344ba2b9), reports to my inboxes with stamps: cc the Hold kind and `wb add` first, then the AC-14.2 renderers, GraphQL, the search measure, AT rows; dc the migration verb against the fixture, then the protocol half if ic is still inside 0311; ic 0311 on the per-batch bound with the whole-suite control, then the row reviews, then the protocol half. On the bounce, in order: the three inboxes; every landing verified by file list; the pair rebuilt at ic's daemon fix and the daemon restarted; the cutover when every landing is in and every node has folded, dc's verb migrating the five live boards and inboxes, the views switched, both guards retired, the pair rebuilt; `wp done ST0069/14`; the thread's close; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only; every replace asserts its match count; a socket send that fails is retried once and then written to the inbox.
+- **Directing ST0069 to the end (hv, 2026-09-12); DARK for hv's compact from 2026-09-13 08:06Z, after hv's restart.** The state and every ruling are in `intent/wip.md`. Sync and standing orders went to each lane at 2026-09-13 08:06Z, reports to my inboxes with stamps: cc the AC-14.8 index build, the `wb pickup` header fields, the archive prose, the AT rows, the wiring banked; dc the migration verb then 0313 then 0314; ic the protocol half and the pickup review. On the bounce, in order: the three inboxes; every landing verified by file list; the pair rebuilt when dc's three landings are in; the cutover when every landing is in and every node has folded, dc's verb migrating the five live boards and inboxes, the views switched, both guards retired, the pair rebuilt; `wp done ST0069/14`; the thread's close; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only; every replace asserts its match count; a socket send that fails is retried once and then written to the inbox.
 - **The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.
 
 ## TODO -- waiting on hv, nothing claimable
