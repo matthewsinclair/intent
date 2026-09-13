@@ -376,6 +376,18 @@ pub enum OrganizeError {
   },
 }
 
+/// The one remedy for a v2 file the store does not hold (issue 0318).
+///
+/// **ONE HOME, TWO FACES**: the terminal prints it once under the class line,
+/// and every per-file `LegacyUnheld` a face lists carries the same sentence.
+///
+/// **IT NAMES BOTH EXITS, BECAUSE `intent upgrade` ALONE IS NOT ONE FOR EVERY
+/// FILE** (vc, 2026-09-13). Since 0319 an upgrade ingests every bucket file it
+/// can and reports each one it cannot -- a name the naming gate refuses, a file
+/// over the size cap -- with the reason. Re-running it for one of those changes
+/// nothing, so a remedy naming only the upgrade sends the operator round a loop.
+const LEGACY_UNHELD_REMEDY: &str = "run `intent upgrade`: it ingests every v2 file it can, and names each one it cannot with the reason. A file it reports as not ingested stays unheld until it is renamed or moved out of the v2 tree by hand, which is also the way out for a file that is not the record of any work. Nothing is removed until every one of them is held.";
+
 impl crate::remedy::Remedy for OrganizeError {
   /// **ONE ACTION PER REFUSAL, AND THEY ARE GENUINELY DIFFERENT ACTIONS.**
   /// Four of these are the verb doing its job, so a shared sentence here would
@@ -389,14 +401,10 @@ impl crate::remedy::Remedy for OrganizeError {
       // does not take a hand edit to a generated view into the model -- only
       // canon and the info covers are read back -- so that remedy did nothing
       // for most of the files this refusal is about (issue `0283`).
-      // **THE REFUSAL IS ABOUT THE RUN, SO THE REMEDY NAMES THE RUN.** The
-      // usual cause is an ingest that did not carry this file, which
-      // `intent upgrade` re-runs; the other is a file that is nobody's record,
-      // which only a human can say.
-      Self::LegacyUnheld { path, .. } => format!(
-        "run `intent upgrade` to ingest what the v2 tree still holds, then organize again. If {} is not the record of any work -- a scratch file, a build artefact -- move it out of the v2 tree by hand and it stops blocking the prune. Nothing is removed until every one of them is held.",
-        path.display()
-      ),
+      // **THE REFUSAL IS ABOUT THE RUN, SO THE REMEDY NAMES THE RUN** -- and
+      // since 0318 it is the class's one remedy, shared with the line the
+      // terminal prints once. See `LEGACY_UNHELD_REMEDY`.
+      Self::LegacyUnheld { .. } => LEGACY_UNHELD_REMEDY.to_string(),
       Self::HandEdited { path, .. } => format!(
         "decide which copy is right. `intent doctor` names the difference and the command that regenerates it. If nobody edited the file at {}, the store is right: delete it and re-run. If it holds an edit you want, make the change through the CLI so it lands in the model, then re-run.",
         path.display()
@@ -1058,6 +1066,76 @@ impl Report {
         _ => 0,
       })
       .sum()
+  }
+
+  /// The v2 prune refusal as ONE class for the whole run, or `None` when the
+  /// prune withheld nothing (issue 0318).
+  ///
+  /// **THE FOLD BELONGS TO THE REPORT, FOR `blocked`'s REASON.** `refused` keeps
+  /// one `LegacyUnheld` per file, so the summary count and every face that lists
+  /// refusals per path are unchanged; what a terminal prints once is a question
+  /// about the run, and a fold living inline in one renderer is the one the next
+  /// renderer gets subtly different.
+  pub fn legacy_unheld(&self) -> Option<LegacyUnheldClass<'_>> {
+    let files: Vec<(&std::path::Path, &str)> = self
+      .refused
+      .iter()
+      .filter_map(|refusal| match refusal {
+        OrganizeError::LegacyUnheld { path, reason } => Some((path.as_path(), reason.as_str())),
+        _ => None,
+      })
+      .collect();
+    (!files.is_empty()).then_some(LegacyUnheldClass { files })
+  }
+
+  /// Every refusal that is not folded into [`Report::legacy_unheld`]'s class,
+  /// in report order, for a face that prints the class once and the rest one
+  /// by one.
+  pub fn refused_outside_classes(&self) -> impl Iterator<Item = &OrganizeError> {
+    self
+      .refused
+      .iter()
+      .filter(|refusal| !matches!(refusal, OrganizeError::LegacyUnheld { .. }))
+  }
+}
+
+/// Every v2 file one run's prune withheld, as one refusal (issue 0318).
+///
+/// **hv met the per-file form on Laksa**: a PREVIEW printed an `error:` line per
+/// unheld file, each carrying the same remedy, so a run that changed nothing
+/// read as a run that failed, over and over, until the lines that mattered had
+/// scrolled away. The cause is one fact about the estate -- the prune is all or
+/// nothing (AC-02.2) -- so it is said once, with its count and one remedy.
+#[derive(Debug)]
+pub struct LegacyUnheldClass<'a> {
+  /// `(path, reason)` for each withheld file, in report order. **Named, never
+  /// dropped**: a face that does not list them says that it narrowed.
+  pub files: Vec<(&'a std::path::Path, &'a str)>,
+}
+
+impl LegacyUnheldClass<'_> {
+  /// The class line, in the tense of the run.
+  ///
+  /// **A PREVIEW IS NOT AN `error:`.** It refused nothing; it is saying what the
+  /// apply would refuse, and an error from a run that did what it was asked is
+  /// the always-on alarm this verb's exit code already declines to raise. The
+  /// apply did refuse, so it says so in the past tense, as an error.
+  pub fn line(&self, performed: bool) -> String {
+    let files = self.files.len();
+    match performed {
+      true => format!(
+        "{}refused to prune the v2 tree: the store does not hold {files} file(s) under it, so this run removed none of the v2 tree",
+        crate::remedy::ERROR_PREFIX
+      ),
+      false => format!(
+        "would refuse to prune the v2 tree: the store does not hold {files} file(s) under it, so `intent organize --apply` would remove none of the v2 tree"
+      ),
+    }
+  }
+
+  /// The class's one remedy line.
+  pub fn remedy_line(&self) -> String {
+    format!("{}{LEGACY_UNHELD_REMEDY}", crate::remedy::REMEDY_PREFIX)
   }
 }
 

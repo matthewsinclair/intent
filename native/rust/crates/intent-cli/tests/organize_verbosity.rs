@@ -363,3 +363,162 @@ fn stderr_does_not_vary_with_verbosity() {
     "`--verbose` must not touch stderr"
   );
 }
+
+/// A bare project whose v2 `COMPLETED/` bucket holds two files for a thread the
+/// store has never heard of, so the v2 prune withholds both and refuses.
+///
+/// **TWO FILES AND ONE CLASS LINE, SO THE TWO QUANTITIES DIFFER.** A renderer
+/// that printed one line per file would print two, and one that printed the
+/// class without its count would name no `2`.
+fn project_with_unheld_v2_files() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  assert!(
+    intent(root, &["init", "Fixture"]).status.success(),
+    "the fixture must initialise"
+  );
+  let bucket = root.join("intent/st/COMPLETED/ST0099");
+  std::fs::create_dir_all(&bucket).expect("the v2 bucket");
+  for name in ["design.md", "notes.md"] {
+    std::fs::write(bucket.join(name), format!("# {name}\n\nNever ingested.\n"))
+      .expect("an unheld v2 file");
+  }
+  dir
+}
+
+fn stderr_of(root: &std::path::Path, args: &[&str]) -> String {
+  String::from_utf8_lossy(&intent(root, args).stderr).into_owned()
+}
+
+/// **0318: THE v2 PRUNE REFUSAL IS ONE CLASS PER RUN, NOT ONE ERROR PER FILE.**
+///
+/// hv ran `organize` on Laksa and a PREVIEW printed one `error: refusing to
+/// prune <file>` line per unheld v2 file, each carrying the same remedy -- an
+/// `error:` from a run that changed nothing, repeated until the lines that
+/// mattered scrolled away. Ruled: one line carrying the count, the reason and
+/// the remedy, at every verbosity; the paths with their reasons only under
+/// `--verbose`, with the default announcing that it narrowed; the summary's
+/// `refused` count kept.
+///
+/// **THE CLASS STAYS ON STDERR AT EVERY VERBOSITY AND THE PATHS GO TO STDOUT**,
+/// which is what keeps `stderr_does_not_vary_with_verbosity` and
+/// `quiet_is_the_summary_alone` true on an estate that has this refusal: the
+/// per-path list is inventory, the same kind as the unclaimed directories.
+#[test]
+fn the_v2_prune_refusal_is_one_class_line_and_verbose_names_each_file() {
+  let dir = project_with_unheld_v2_files();
+  let root = dir.path();
+  let args = |flags: &[&'static str]| {
+    let mut a = vec!["organize"];
+    a.extend_from_slice(flags);
+    a
+  };
+
+  let default_out = run(root, &[]);
+  let default_err = stderr_of(root, &args(&[]));
+  assert!(
+    summary(&default_out).ends_with(", 2 refused"),
+    "the positive control: the fixture produces the refusal, and the summary still counts each file. Got:\n{default_out}"
+  );
+  let class: Vec<&str> = default_err
+    .lines()
+    .filter(|l| l.contains("prune the v2 tree"))
+    .collect();
+  assert_eq!(
+    class.len(),
+    1,
+    "one class line for the whole run. stderr:\n{default_err}"
+  );
+  assert!(
+    class[0].contains("would refuse")
+      && class[0].contains("2 file(s)")
+      && !class[0].starts_with("error:"),
+    "a preview says what the apply WOULD refuse, names the count, and is not an `error:`. Got: {}",
+    class[0]
+  );
+  assert!(
+    !default_err.contains("design.md") && !default_err.contains("notes.md"),
+    "no per-file refusal on stderr. stderr:\n{default_err}"
+  );
+  assert_eq!(
+    default_err
+      .lines()
+      .filter(|l| l.trim_start().starts_with("remedy:"))
+      .count(),
+    1,
+    "one remedy, not one per file. stderr:\n{default_err}"
+  );
+  assert!(
+    !default_out.contains("design.md") && !default_out.contains("notes.md"),
+    "the default does not list the files. stdout:\n{default_out}"
+  );
+  assert!(
+    default_out
+      .lines()
+      .any(|l| l.contains("2 file(s) not listed") && l.contains("--verbose")),
+    "and says that it narrowed, with the figure. stdout:\n{default_out}"
+  );
+
+  let verbose_out = run(root, &["--verbose"]);
+  for name in ["design.md", "notes.md"] {
+    assert!(
+      verbose_out
+        .lines()
+        .any(|l| l.contains(&format!("intent/st/COMPLETED/ST0099/{name} -- "))),
+      "`--verbose` names {name} with its reason. stdout:\n{verbose_out}"
+    );
+  }
+
+  assert_eq!(
+    stderr_of(root, &args(&["--verbose"])),
+    default_err,
+    "the class line and its remedy do not vary with `--verbose`"
+  );
+  assert_eq!(
+    stderr_of(root, &args(&["--quiet"])),
+    default_err,
+    "nor with `--quiet`"
+  );
+}
+
+/// **THE APPLY SAYS WHAT IT REFUSED, IN THE PAST TENSE, AS AN ERROR, AND EXITS
+/// NON-ZERO.** An apply renders twice -- the plan immediately before the act,
+/// in the future tense, and then the act -- so its stderr legitimately carries
+/// one `would refuse` from the plan. What this pins is the act's own line:
+/// exactly one `error: refused`, with the count, and no per-file refusal from
+/// either render.
+#[test]
+fn an_apply_reports_the_v2_prune_refusal_once_as_an_error() {
+  let dir = project_with_unheld_v2_files();
+  let out = intent(dir.path(), &["organize", "--apply"]);
+  let err = String::from_utf8_lossy(&out.stderr).into_owned();
+  let refused: Vec<&str> = err
+    .lines()
+    .filter(|l| l.starts_with("error: refused to prune the v2 tree"))
+    .collect();
+  assert_eq!(
+    refused.len(),
+    1,
+    "one past-tense class line for the act. stderr:\n{err}"
+  );
+  assert!(
+    refused[0].contains("2 file(s)"),
+    "with the count. Got: {}",
+    refused[0]
+  );
+  assert!(
+    !err.contains("refusing to prune"),
+    "and no per-file refusal, from the plan printed before the act or from the act. stderr:\n{err}"
+  );
+  assert!(
+    !out.status.success(),
+    "a refused removal moves the exit code on the apply path"
+  );
+  assert!(
+    dir
+      .path()
+      .join("intent/st/COMPLETED/ST0099/design.md")
+      .is_file(),
+    "and nothing was removed"
+  );
+}

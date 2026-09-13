@@ -5820,9 +5820,10 @@ impl Tense {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Verbosity {
-  /// `--quiet`: the summary line and refusals. Nothing else.
+  /// `--quiet`: the summary line, every removal, and refusals. Nothing else.
   Quiet,
-  /// The default: everything except the unclaimed inventory.
+  /// The default: everything except the inventory -- the unclaimed directories
+  /// and the files behind a v2 prune refusal -- each announced as withheld.
   Normal,
   /// `--verbose`: everything this verb knows.
   Verbose,
@@ -6125,6 +6126,24 @@ fn render_organize_report(
       println!("  diverged: {}", show(path));
     }
   }
+  // **THE FILES BEHIND THE v2 PRUNE REFUSAL ARE INVENTORY, AND GROUP LIKE THE
+  // UNCLAIMED DIRECTORIES DO** (issue 0318). The refusal itself is one class
+  // line on stderr at every verbosity; which files it covers, and why each is
+  // unheld, is the list an operator reads when they go to fix it. Named under
+  // `--verbose`, announced as withheld at the default with the figure, and
+  // absent under `--quiet` like every other inventory line.
+  if let Some(class) = report.legacy_unheld() {
+    if verbosity.shows_inventory() {
+      for (path, reason) in &class.files {
+        println!("  unheld (v2): {} -- {reason}", show(path));
+      }
+    } else if verbosity.shows_body() {
+      println!(
+        "  unheld (v2): {} file(s) not listed -- `intent organize --verbose` lists them",
+        class.files.len()
+      );
+    }
+  }
 
   // **THE FOOTER IS BELT-AND-BRACES, NOT THE MECHANISM.** The per-line tense
   // above is what makes a preview unmistakable; this says it once more in plain
@@ -6144,7 +6163,17 @@ fn render_organize_report(
   // refusals are the most valuable thing on the screen: they are the answer to
   // "what will happen if I now type `--apply`", which is the only question the
   // preview exists to answer.
-  for refusal in &report.refused {
+  //
+  // **EXCEPT THE v2 PRUNE, WHICH IS ONE REFUSAL SAID ONCE** (issue 0318). The
+  // prune is all or nothing, so N unheld files are one fact about the estate,
+  // and N copies of an `error:` line with its remedy buried the refusals that
+  // ARE about their file. The class line and its remedy print here at every
+  // verbosity; the files it covers are inventory, listed on stdout above.
+  if let Some(class) = report.legacy_unheld() {
+    eprintln!("{}", class.line(!previewing));
+    eprintln!("{}", class.remedy_line());
+  }
+  for refusal in report.refused_outside_classes() {
     eprintln!("{}", refusal.render());
   }
 
