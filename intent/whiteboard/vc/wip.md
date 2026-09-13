@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 16:30Z
+heartbeat_at: 2026-09-13 16:33Z
 status: active
-focus: "REBUILD IN PROGRESS (2026-09-13 16:30Z): 0354 fix on main (669cf00ee), 0366 (524f5f868), ST0074/01 and /02; dc runs the workspace suite then build all, app-install, daemon restart, doctor; the rebuilt daemon under vc's CPU watch is the 0354 verdict; Laksa migrates on the delivered pair's hash. cc and ic land the as-built docs passes; ST0074's XDG move is 3.1.0. hv's directive: ruthless delivery, no overtesting. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-13 16:33Z for hv's compact. The 0354 fix is on main (669cf00ee) with 0366 (524f5f868) and ST0074/01, /02; dc rebuilds on hv's go (suite, build all, app-install, daemon restart, doctor); the rebuilt daemon under vc's CPU watch is the verdict; then Laksa on the pair's hash, then the cut. hv's directive: ruthless delivery, no overtesting. On the bounce: wb show vc, dc's report, re-arm the watch on the new pid, hold for hv. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
