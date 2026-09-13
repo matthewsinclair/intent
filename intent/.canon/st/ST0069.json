@@ -800,6 +800,15 @@
       "status": "green"
     },
     {
+      "id": "AT-14.10",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/no_skill_names_an_unshipped_verb.rs",
+      "covers": [
+        "AC-14.10"
+      ],
+      "status": "red"
+    },
+    {
       "id": "AT-14.9",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/wb_migrate_carries_a_board.rs",

@@ -2,6 +2,16 @@
 //! shipped surface does not carry, measured against the dispatch table rather
 //! than against memory of it.**
 //!
+//! **ALSO `AT-14.10` (ST0069) / `AC-14.10`**, which asks that the
+//! `/in-whiteboard` protocol document no workflow the tool refuses. That is
+//! this predicate applied to one skill, so it is cited here rather than
+//! re-implemented beside it: a second reader of one property is the duplication
+//! Highlander names, and the second one goes short the first time a claim form
+//! changes. **The two rows differ in POPULATION, not in question** -- `AC-15.2`
+//! is every surviving skill, `AC-14.10` is `in-whiteboard` -- and `AC-14.10`
+//! asks for one thing this file cannot see: that the `intent claude ws` family
+//! is updated too, which is why its row is red while this arm is green.
+//!
 //! # THE REFERENCE IS THE BINARY'S OWN PREDICATE, NOT A SECOND COPY OF IT
 //!
 //! What "shipped" means is decided by [`dispatch::shipped_entries`], which is
