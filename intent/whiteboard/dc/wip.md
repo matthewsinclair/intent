@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 16:33Z
+heartbeat_at: 2026-09-13 16:41Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **STEP 2 IN FLIGHT (hv released the hold in dc's own session; vc's order): the WORKSPACE suite ONCE on main HEAD be0bac331** (0366 at 524f5f868, the 0354 fix at 669cf00ee, ST0074/01 793984a50 and /02 133061d7f), in wt-dc detached, in-tree target-dc, isolated HOME, cargo build -p intentd first, cargo test --workspace --no-fail-fast. Driver: scratchpad suite-head/drive.sh (tag-gap/drive.sh minus the schema-face check and the load gate); logs suite-head/run1.log and suite-head/run1/cargo-test.log; background task bpe2ajsjq. vc stopped its own copy: this is the one run, restart nothing. **A red goes to vc as the failing test's name and nothing else.** **STEP 3 ON GREEN:** announce the quiet window to cc and ic yourself (hold commits), bin/devbin build all from the shared checkout, bin/int macos app-install, intent daemon restart (ends 58837: vc ruled it, the rebuilt daemon is the 0354 verdict under vc's CPU watch), intent doctor 0, then the delivered set's hashes to vc. Run 7 is reported and accepted. Run 8, further 0354 repro runs and script control work are CANCELLED under hv's directive: new code, good tests, done, no yak-shaving. NO RELEASE, NO PUSH.
+- **STEP 3 DONE, awaiting vc's 0354 verdict (vc's CPU watch on the rebuilt daemon).** The delivered set is at 9e60fcfb6: intent sha256 4ae769e8aba0634f, intentd abacbc11a7969a8a, Intent.app 3.0.1 build 7001 (Contents/MacOS/Intent 60161795505de63e). The suite was green on be0bac331, and nothing under native/, surface/, bin/ or lib/ moved from there to 9e60fcfb6. The first build all refused on the stamp (a peer's board commit moved HEAD mid-build); the one re-run was verified and promoted. app-install exited 0, the daemon restart ended 58837 and the live daemon is pid 18592, doctor exited 0 with 0 findings. Hashes are with vc; cc, ic and vc were told build done. Logs are in scratchpad rebuild/. Next is vc's call (Laksa on the pair's hash, then the cut is hv's). NO RELEASE, NO PUSH.
 
 ## TODO
 
