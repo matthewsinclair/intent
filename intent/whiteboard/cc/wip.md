@@ -18,13 +18,15 @@ _(none)_
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
+- **ST0056's data-model.md, output-contracts.md and realisation.md: the as-written against as-built pass (vc's order, after ST0069 at be0bac331 and ST0057 at 8074aa014).** Same protocol and doors: read each claim against the code, correct in place with one dated sentence and a citation, file a claim the code fails as an issue, st attach the WHOLE body, verify canon past the ingest, one commit. Drafting kit in the session scratchpad audit/ (PROTOCOL.md, design_edits.py, write-thread.sh, retry-thread.py, commit-paths.sh).
 
 ## Holds
 
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
-- **0354, THE STORE THREAD'S SPIN: S1 RULED AND UNBUILT.** Run 6 (release codegen, assert armed) reproduced with no panic, so pthread_cond_wait returns 0 with should_park set. vc's ruling, conditional: an immediate NONZERO __psynch_cvwait return (updatebits carrying PTHRW_INC, a per-address psynch sequence fault) means S1: a private block_on in intentd/src/store.rs on std::thread::park/unpark via a Wake holding the Thread, at the blocking receive and at the graphql block_on under runtime.enter(), the :286-288 comment rewritten, graphql.rs's two doc lines, CHANGELOG Fixed, no new crate, the contended-lock parking_lot residue named in the commit message. A stream of -1 Err#4 means an interrupter, S3, and nothing is built until it is named. **Released when hv's sudo dtruss -t psynch_cvwait file on 58837 is read and vc names the branch.** Nothing else under native/ from cc until then.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
+- **0354 S1 LANDED AT 669cf00ee; vc VERIFIES IT LIVE.** The store thread's two waits (next_work's receive, the GraphQL arm under runtime.enter()) park on std's thread parker through a private block_on; intentd suite green in wt-cc on 5f62b2633. **Released when vc reports the rebuilt, restarted live daemon under its CPU watch: cool closes it; a spin means an interrupter, S3 with hv's dtruss, and nothing is built until it is named.**
+- **NO COMMITS INSIDE dc's BUILD WINDOW (vc, 2026-09-13).** dc runs the workspace suite on main, then bin/devbin build all from the shared checkout; a commit mid-build refuses the set verification. Writes may continue; commits hold. **Released when dc says build done.**
 
 ## Watch-outs
 
@@ -59,6 +61,7 @@ _(none)_
 - **`Failure::Unavailable` EXITS 2, WHICH A GATE READS AS FAIL-OPEN.** A refusal that is a plain no is `Failure::Error`, exit 1; the CLI drive caught the first build of the register form getting this wrong.
 - **A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.
 - **A SAMPLE CANNOT TELL A THREAD BLOCKED IN A WAIT FROM ONE SPINNING THROUGH IT.** Both show the same leaf in every sample, so the hot thread is named by ps -M CPU per row, and an inlined frame is resolved by disassembling the binary whose UUID matches the sample's Binary Images line (dwarfdump --uuid, then objdump at the return address), not by symbol names.
+- **CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.
 
 ## Decisions
 
