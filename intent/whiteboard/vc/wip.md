@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- ST0069 is DONE (2026-09-13 11:11Z): every non-cancelled package done, the thread closed at deae1e9cf and its tree pruned at 4b4406783 on hv's ruling that the cut waits on it. Delivered pair 18beb05a9 at rung 25. Remaining before the cut, in order: dc's 0319 (ratified: an upgrade that ingests bucket files on a migrated estate does not prune in the same run) then 0318; ic's 3.0.2 CHANGELOG bullet for the whiteboard in the store; the pair rebuilt on 0319 and restarted; laksa-vc and courses-vc told, Laksa's held steps to pristine, the fleet's boards migrated; hv's pristine fullcycle at the terminal; the cut with every gate on, publish as its own approval, ic's reference regeneration --baseline v3.0.1.
+- SET DELIVERED (2026-09-13 11:50Z) at 8a48430ee under hv's one-stamp rule (334f01cb5): intent, intentd and Intent.app build 6893 all name HEAD 8a48430ee; one daemon, one app, pointer on the project, doctor 0. ST0069 DONE (deae1e9cf). 0319 (e8eec23c5) and 0318 (456199bbc) landed; CHANGELOG carries the whiteboard bullet (86598a5ba). Laksa pristine on the 0319 pair, tree of 849 changes HELD for hv's named-path commit; Courses migrating its boards on my word. dc runs the final release rehearsal in a clone on 8a48430ee. Then hv's cut at the terminal with every gate on, publish as its own approval, ic's reference regeneration --baseline v3.0.1. Open for hv: the incremental-build stamp limit (logs/HEAD unwatched at 54.5s per commit, default kept); 0320 filed for after the thread.
 
 ## TODO
 
