@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 08:29Z
+heartbeat_at: 2026-09-13 10:09Z
 status: active
-focus: "Lane empty: the migration verb, 0313 and 0314 are landed. Waiting on vc for the next item; the cutover is vc's to signal and the protocol half is ic's. NO RELEASE, NO PUSH."
+focus: "HOLDING for instructions while hv and vc sort next steps. Lane empty and clean: the migration verb, 0313 and 0314 landed. The cutover is vc's to signal, the protocol half is ic's. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
 ---
 
@@ -15,7 +15,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-**Nothing. Every item vc ordered is landed**: `952f5cd1f` the migration verb with AT-14.9 green, `4cda36829` issue 0313, `4f2f02eb5` issue 0314. The next item comes from vc.
+**Nothing, deliberately: holding for hv's and vc's next instruction.** Every item vc ordered is landed -- `952f5cd1f` the migration verb with AT-14.9 green, `4cda36829` issue 0313, `4f2f02eb5` issue 0314 -- and the board was folded at `ac520d006`, archive at `.history/20260913/wip-prefold-0829Z.md`. Nothing of mine is uncommitted and nothing of mine is running.
+
+**On resuming: my part in the cutover is the verb on the five live boards, run by vc's hand, with me watching the uncarried worklist.** It does not start before vc's signal, and cc's register form, the AT rows and ic's AC-14.12 land ahead of it.
 
 ## TODO
 
