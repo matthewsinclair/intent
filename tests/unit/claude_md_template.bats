@@ -103,8 +103,10 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   cd "$project_dir" || exit 1
 
   # v3's one author source is `author` in the user config, which `bootstrap`
-  # writes from $USER (hv, 2026-08-27) -- never git, never an env var. HOME is
-  # this test's sandbox, so the fixture writes that source directly.
+  # writes from $USER (hv, 2026-08-27) -- never git, never an env var. The
+  # fixture writes that source directly, so HOME MUST be the sandbox first:
+  # without `setup_fake_home` this wrote the operator's real config (0368).
+  setup_fake_home
   mkdir -p "$HOME/.intent"
   printf '{"author":"TestUser"}\n' > "$HOME/.intent/config.json"
 
