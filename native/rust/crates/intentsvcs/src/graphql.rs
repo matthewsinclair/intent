@@ -36,9 +36,10 @@
 //! arriving in the same release as the first.
 //!
 //! **NOTHING HERE DRIVES A FUTURE.** [`Facade::graphql`] returns one; the store
-//! thread in intentd blocks on it with tokio's own handle. The CLI links no
-//! runtime and must not grow one for this -- when no daemon is answering, both
-//! its faces refuse and name `intent daemon start` rather than executing here.
+//! thread in intentd blocks on it on its own thread parker, inside tokio's
+//! runtime context. The CLI links no runtime and must not grow one for this --
+//! when no daemon is answering, both its faces refuse and name `intent daemon
+//! start` rather than executing here.
 
 use std::future::Future;
 use std::sync::OnceLock;
@@ -277,10 +278,10 @@ impl Facade {
   ///
   /// **THE FACADE IS TOUCHED SYNCHRONOUSLY, BEFORE THE FUTURE EXISTS, AND
   /// NEVER BY IT.** The snapshot is taken here; the returned future owns it
-  /// and borrows nothing, which is what lets intentd's store thread hand it to
-  /// a runtime without the facade leaving the thread. **This function drives
-  /// nothing** -- intentd blocks on the future with tokio's handle, and the CLI
-  /// never calls this at all: it bridges to intentd or refuses (vc,
+  /// and borrows nothing, which is what lets intentd's store thread drive it
+  /// without the facade leaving the thread. **This function drives nothing**
+  /// -- intentd's store thread blocks on the future on its own parker, and the
+  /// CLI never calls this at all: it bridges to intentd or refuses (vc,
   /// 2026-08-31).
   ///
   /// The answer is the spec's `{data, errors}` object. Serialising it does not

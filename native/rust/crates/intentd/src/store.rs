@@ -213,8 +213,9 @@ impl ProjectHandle {
     // **CAPTURED HERE BECAUSE HERE IS INSIDE THE RUNTIME AND THE STORE THREAD
     // IS NOT.** `Handle::current()` panics off a runtime thread; this `async
     // fn` runs on one, so the handle is taken once and moved across. The store
-    // thread uses it for exactly one thing: blocking on a GraphQL execution
-    // (`Op::Graphql`) with THIS process's runtime rather than a second one.
+    // thread uses it for exactly one thing: entering THIS process's runtime
+    // while it blocks on a GraphQL execution (`Op::Graphql`), rather than
+    // starting a second one.
     let runtime = tokio::runtime::Handle::current();
 
     std::thread::spawn(move || {
@@ -474,8 +475,8 @@ impl ProjectHandle {
   ///
   /// **SYNCHRONOUS, BECAUSE ITS ONLY CALLER IS NOT ON THE RUNTIME.** The
   /// debouncer owns its own thread, so `blocking_send` is correct here for the
-  /// same reason `blocking_recv` is correct on the store thread and would be a
-  /// defect anywhere else in this crate: neither is a runtime worker.
+  /// same reason blocking is correct on the store thread and would be a defect
+  /// anywhere else in this crate: neither is a runtime worker.
   ///
   /// **IT DOES NOT TOUCH [`ProjectHandle::dispatched`], AND THAT IS THE POINT
   /// OF ITS BEING A SEPARATE DOOR.** See [`Work`].
@@ -584,9 +585,9 @@ impl ProjectHandle {
 ///
 /// **A WAITING OP ALWAYS GOES FIRST**, so a client queues behind one
 /// directory's refresh at most, never behind the whole build. With nothing
-/// unbuilt this is the plain blocking receive, and `blocking_recv` is correct
-/// HERE and would be a defect anywhere else in this crate: this is not a
-/// runtime worker, it is a thread whose entire job is to block.
+/// unbuilt it blocks in [`block_on`] until work arrives, which is correct HERE
+/// and would be a defect anywhere else in this crate: this is not a runtime
+/// worker, it is a thread whose entire job is to block.
 fn next_work(
   rx: &mut mpsc::Receiver<Work>,
   unbuilt: &mut VecDeque<PathBuf>,
@@ -594,7 +595,7 @@ fn next_work(
 ) -> Option<Work> {
   loop {
     if unbuilt.is_empty() {
-      return rx.blocking_recv();
+      return block_on(rx.recv());
     }
     match rx.try_recv() {
       Ok(work) => return Some(work),
@@ -605,6 +606,41 @@ fn next_work(
         }
       }
     }
+  }
+}
+
+/// Drive `future` to completion on THIS thread, parked on the standard
+/// library's thread parker between polls.
+///
+/// **NOT tokio's `block_on`, AND THE PARKER IS THE REASON.** tokio's parker
+/// waits on a pthread condition variable, and an idle store thread was seen
+/// returning from that wait with nothing to wake it, over and over, holding a
+/// core. `std::thread::park` does not wait on that condition variable. Every
+/// future driven here is woken by a tokio channel or completes without
+/// waiting, so a waker that unparks this thread is the whole executor.
+// Issue 0354.
+fn block_on<F: std::future::Future>(future: F) -> F::Output {
+  let waker = std::task::Waker::from(std::sync::Arc::new(ThreadWaker(std::thread::current())));
+  let mut cx = std::task::Context::from_waker(&waker);
+  let mut future = std::pin::pin!(future);
+  loop {
+    if let std::task::Poll::Ready(output) = std::future::Future::poll(future.as_mut(), &mut cx) {
+      return output;
+    }
+    std::thread::park();
+  }
+}
+
+/// Wakes the thread parked in [`block_on`].
+struct ThreadWaker(std::thread::Thread);
+
+impl std::task::Wake for ThreadWaker {
+  fn wake(self: std::sync::Arc<Self>) {
+    self.0.unpark();
+  }
+
+  fn wake_by_ref(self: &std::sync::Arc<Self>) {
+    self.0.unpark();
   }
 }
 
@@ -760,8 +796,8 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
 ///
 /// `runtime` is the daemon's own tokio handle, and it is here for one arm:
 /// the store thread is a plain `std::thread`, so a future produced by the
-/// facade has to be driven by something, and the something must not be a
-/// second executor.
+/// facade is driven by [`block_on`] inside this handle's context, and no
+/// second runtime starts.
 /// One `nav` path as the address it names.
 ///
 /// **BOTH STEPS ARE `nav`'s, AND NEITHER IS RE-SPELLED HERE.** `View::parse`
@@ -930,23 +966,27 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
     // **THE STORE THREAD BLOCKS ON THIS, AND IT IS THE RIGHT THREAD TO DO IT
     // ON.** Executing a document is async because async-graphql's resolvers
     // are; the future awaits nothing outside itself -- the snapshot was taken
-    // through the facade BEFORE the future existed -- so `block_on` costs this
-    // thread exactly the resolver work and costs no worker anything. The
-    // handle is tokio's own, taken in `open`: no second executor enters the
-    // daemon, and none may enter the CLI, which is why the CLI ships the
-    // document here at all (vc's ruling, 2026-08-31, recorded on the op).
+    // through the facade BEFORE the future existed -- so [`block_on`] costs
+    // this thread exactly the resolver work and costs no worker anything. It
+    // parks on this thread's own parker, inside the context of tokio's handle
+    // taken in `open`: no second runtime starts in the daemon, and none may
+    // start in the CLI, which is why the CLI ships the document here at all
+    // (vc's ruling, 2026-08-31, recorded on the op).
     //
     // A refusal the SCHEMA makes -- a mutation against `EmptyMutation`, an
     // unknown field -- is inside `response`, on the spec's channel; the only
     // `Response::Error` this arm can produce is a serialisation fault, which
     // is intentd's and says so.
-    Op::Graphql { query, variables } => match runtime.block_on(facade.graphql(&query, variables)) {
-      Ok(response) => Response::Graphql { response },
-      Err(e) => Response::error(
-        format!("the GraphQL answer could not be serialised: {e}"),
-        "this is a fault in intentd rather than in the document or the project; the daemon's log names it.",
-      ),
-    },
+    Op::Graphql { query, variables } => {
+      let _runtime = runtime.enter();
+      match block_on(facade.graphql(&query, variables)) {
+        Ok(response) => Response::Graphql { response },
+        Err(e) => Response::error(
+          format!("the GraphQL answer could not be serialised: {e}"),
+          "this is a fault in intentd rather than in the document or the project; the daemon's log names it.",
+        ),
+      }
+    }
     // **UNREACHABLE BY DISPATCH AND ANSWERED ANYWAY.** The registry is not
     // scoped to a project, so the connection handler answers it before any
     // handle is involved. If that dispatch ever changes, a caller arriving here
