@@ -160,6 +160,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 - AC-22.1 intentd maintains the index incrementally; a daemonless query reconciles first and returns results identical to a daemon-served one for the same tree state. -- satisfied: yes (computed)
 - AC-22.2 `--no-reconcile` answers from the index as it stands and names what moved. -- satisfied: yes (computed)
 - AC-22.3 `Op::Search` crosses the wire carrying the same envelope. -- satisfied: yes (computed)
+- AC-22.4 A daemon builds its index when it opens a project: a daemon-served search finds a file below the root that was on disk before the daemon started, with no watcher event naming it. -- satisfied: yes (computed)
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 
@@ -261,6 +262,7 @@ _(no tests in this group)_
 - AT-22.1 `native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs` -- covers AC-22.1 -- status: green -- The identity itself, over EVERY servable verb rather than a list the file keeps, so declaring `search` servable put it under the claim. Each comparison is bracketed by the daemon's own dispatch counter: the local run must move it by 0 and the `--daemon` run by exactly 1, so the two answers are known to have come from two different processes rather than from a client that quietly fell back. Non-vacuity is checked BEFORE identity, because two empty answers are identical.
 - AT-22.2 `native/rust/crates/intent-cli/tests/search_surface.rs` -- covers AC-22.2 -- status: green -- Both clauses. As it stands: the index still holds the old bytes after the file is rewritten underneath it, so the old word is still found -- which is what a query that had reconciled would NOT return. And names what moved: the path is named on stderr while the hit keeps stdout parseable, and the envelope carries the same fact as `complete: false` with the path in `stale`, which is what a per-path freshness rule reads. The second clause was unguarded until this arm; silencing the warning reddens it and nothing else.
 - AT-22.3 `native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs` -- covers AC-22.3 -- status: green -- What the identity implies about the wire. The `--daemon` answer is rendered from an envelope this process DESERIALISED, so byte-equal renderings mean the envelope crossed intact and `IndexFreshness` recomputed `complete` from the lists that arrived rather than trusting the one that was sent. Demonstrated failing rather than assumed: `Hit::stale` skipped `false` on the way out with no `default` on the way in, which made every normal answer unreadable, and this arm is what reddened -- reverting that one attribute reddens it again and nothing else.
+- AT-22.4 `native/rust/crates/intentd/tests/a_daemon_indexes_a_project_when_it_opens_it.rs` -- covers AC-22.4 -- status: green -- Red on the unfixed tree (f0486c55d, native identical to e70c3528a), green on the 0366 fix; intentd suite --no-fail-fast after cargo build -p intentd.
 
 ### WP-23 -- Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema (status: Done)
 

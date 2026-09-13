@@ -7170,22 +7170,7 @@ impl Facade {
     &mut self,
     under: Option<&std::path::Path>,
   ) -> Result<crate::index::Refreshed, FacadeError> {
-    let carried = self.carried_paths()?;
-    let previous = self.store.index_files().map_err(FacadeError::Store)?;
-    let change = crate::index::reconcile::changed_under(
-      self.project.root(),
-      under,
-      &previous,
-      &carried,
-      &self.canon_dir(),
-      self.project.config().index.max_file_bytes,
-    )
-    .map_err(|e| {
-      FacadeError::Ingest(IngestError::Io {
-        path: under.unwrap_or(self.project.root()).display().to_string(),
-        source: std::io::Error::other(e.to_string()),
-      })
-    })?;
+    let change = self.index_change(under)?;
     if change == crate::index::reconcile::Change::default() {
       return Ok(crate::index::Refreshed::default());
     }
@@ -7226,6 +7211,60 @@ impl Facade {
     Ok(crate::index::Refreshed {
       updated: upserts.into_iter().map(|r| r.path).collect(),
       removed: change.removed,
+    })
+  }
+
+  /// The paths whose refresh would bring the whole index up to date: the
+  /// project root, for its own files, and each top-level directory holding a
+  /// file the index has not caught up with. Empty when the index is current.
+  ///
+  /// **ONE SURVEY AND NO WRITES**, so a caller holding a current index pays a
+  /// stat pass and nothing else. A caller that refreshes what this names gets
+  /// the whole-scope reconcile `index_refresh(None)` performs, in pieces it
+  /// can put other work between -- which is what a daemon opening a project
+  /// needs, because its clients queue behind whatever its store thread is
+  /// doing.
+  // Issue 0366: the daemon indexed only what its watcher happened to name, so a
+  // project opened over a quiet tree was indexed at the root and nowhere below.
+  pub fn index_stale_roots(&self) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+    let change = self.index_change(None)?;
+    let root = self.project.root();
+    let mut roots: Vec<std::path::PathBuf> = change
+      .upserts
+      .iter()
+      .map(|row| row.path.as_str())
+      .chain(change.removed.iter().map(String::as_str))
+      .map(|rel| match rel.split_once('/') {
+        Some((top, _)) => root.join(top),
+        None => root.to_path_buf(),
+      })
+      .collect();
+    roots.sort();
+    roots.dedup();
+    Ok(roots)
+  }
+
+  /// What a reconcile under `under` would change, read against the index as it
+  /// stands. `None` is the whole scope, as it is for [`Facade::index_refresh`].
+  fn index_change(
+    &self,
+    under: Option<&std::path::Path>,
+  ) -> Result<crate::index::reconcile::Change, FacadeError> {
+    let carried = self.carried_paths()?;
+    let previous = self.store.index_files().map_err(FacadeError::Store)?;
+    crate::index::reconcile::changed_under(
+      self.project.root(),
+      under,
+      &previous,
+      &carried,
+      &self.canon_dir(),
+      self.project.config().index.max_file_bytes,
+    )
+    .map_err(|e| {
+      FacadeError::Ingest(IngestError::Io {
+        path: under.unwrap_or(self.project.root()).display().to_string(),
+        source: std::io::Error::other(e.to_string()),
+      })
     })
   }
 

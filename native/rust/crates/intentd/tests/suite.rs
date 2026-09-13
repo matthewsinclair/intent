@@ -30,6 +30,8 @@
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_daemon_indexes_a_project_when_it_opens_it.rs"]
+mod a_daemon_indexes_a_project_when_it_opens_it;
 #[path = "a_daemon_outlives_nobody.rs"]
 mod a_daemon_outlives_nobody;
 #[path = "a_source_edit_reaches_the_index_and_costs_canon_nothing.rs"]

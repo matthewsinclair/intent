@@ -35,6 +35,7 @@
 //! would have needed a mutex around the facade to achieve the same thing, and
 //! a mutex held across a blocking call is the shape this module exists to avoid.
 
+use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 
 use intentsvcs::facade::{Facade, FacadeContext};
@@ -283,10 +284,26 @@ impl ProjectHandle {
         &mut said_why_it_is_not_backing_up,
       );
 
-      // `blocking_recv` is correct HERE and would be a defect anywhere else in
-      // this crate: this is not a runtime worker, it is a thread whose entire
-      // job is to block.
-      while let Some(work) = rx.blocking_recv() {
+      // **THE INDEX IS BUILT WHEN THE PROJECT OPENS, AND NOT IN ONE PIECE.**
+      // The watcher names only what changes after it starts, so without this a
+      // project opened over a quiet tree is indexed at the root and nowhere
+      // below it. One survey names what is stale -- nothing, on a current
+      // index -- and each stale directory is refreshed on its own, only while
+      // no client op is waiting: a whole-scope refresh is one transaction, and
+      // on a fresh clone every client would queue behind all of it.
+      // Issue 0366.
+      let mut unbuilt: VecDeque<PathBuf> = match facade.index_stale_roots() {
+        Ok(roots) => roots.into(),
+        Err(error) => {
+          eprintln!(
+            "intentd: could not survey the index of `{}` when opening it: {error}\n  remedy: files nobody has edited since the daemon started may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+            thread_root.display()
+          );
+          VecDeque::new()
+        }
+      };
+
+      while let Some(work) = next_work(&mut rx, &mut unbuilt, &mut facade) {
         match work {
           Work::Client { op, reply } => {
             let response = serve(&mut facade, op, &runtime);
@@ -330,15 +347,7 @@ impl ProjectHandle {
             // on every source edit in the repository, which is a behaviour
             // change well past what this package was asked for. Reported to vc
             // as a question rather than decided here.
-            // `Some(&under)` because the door now also takes `None` for the
-            // whole scope, which is the daemonless query's case and not this
-            // one: a watch event always names a path.
-            if let Err(error) = facade.index_refresh(Some(&under)) {
-              eprintln!(
-                "intentd: could not refresh the index under `{}`: {error}\n  remedy: source edits under that path may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
-                under.display()
-              );
-            }
+            refresh_index(&mut facade, &under);
           }
           Work::FileIndex { reply } => {
             // **AN UNREADABLE INDEX ANSWERS EMPTY RATHER THAN REFUSING, AND
@@ -570,6 +579,54 @@ impl ProjectHandle {
 /// unrelated question. `AC-08.4` names where daemon logs live; until that
 /// lands this is stderr, which is where `intent daemon run` puts it in front
 /// of whoever started it.
+/// The store thread's next piece of work, building the index between client
+/// ops while any of it is unbuilt.
+///
+/// **A WAITING OP ALWAYS GOES FIRST**, so a client queues behind one
+/// directory's refresh at most, never behind the whole build. With nothing
+/// unbuilt this is the plain blocking receive, and `blocking_recv` is correct
+/// HERE and would be a defect anywhere else in this crate: this is not a
+/// runtime worker, it is a thread whose entire job is to block.
+fn next_work(
+  rx: &mut mpsc::Receiver<Work>,
+  unbuilt: &mut VecDeque<PathBuf>,
+  facade: &mut Facade,
+) -> Option<Work> {
+  loop {
+    if unbuilt.is_empty() {
+      return rx.blocking_recv();
+    }
+    match rx.try_recv() {
+      Ok(work) => return Some(work),
+      Err(mpsc::error::TryRecvError::Disconnected) => return None,
+      Err(mpsc::error::TryRecvError::Empty) => {
+        if let Some(under) = unbuilt.pop_front() {
+          refresh_index(facade, &under);
+        }
+      }
+    }
+  }
+}
+
+/// Reconcile the index under one path, reporting a failure rather than
+/// swallowing it.
+///
+/// **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A subtree the index
+/// cannot re-read is a subtree whose files stop reaching `intent search`, and
+/// silence there is indistinguishable from nobody editing.
+///
+/// `Some(&under)` because the door also takes `None` for the whole scope, which
+/// is the daemonless query's case and not this one: a watch event names a
+/// path, and so does each piece of the build at open.
+fn refresh_index(facade: &mut Facade, under: &Path) {
+  if let Err(error) = facade.index_refresh(Some(under)) {
+    eprintln!(
+      "intentd: could not refresh the index under `{}`: {error}\n  remedy: files under that path may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+      under.display()
+    );
+  }
+}
+
 fn ingest(facade: &mut Facade, root: &Path) {
   if let Err(e) = facade.ingest_from_disk(&intentsvcs::sync::Scope::All) {
     eprintln!(

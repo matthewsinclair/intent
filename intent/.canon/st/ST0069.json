@@ -645,6 +645,14 @@
       }
     },
     {
+      "id": "AC-22.4",
+      "text": "A daemon builds its index when it opens a project: a daemon-served search finds a file below the root that was on disk before the daemon started, with no watcher event naming it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-23.1",
       "text": "T3 and T4 are specified as staged additions, and the T1 and T2 build proves the seams: no CLI contract change and no MCP schema change admits a tier.",
       "kind": "non-test",
@@ -1199,6 +1207,16 @@
       ],
       "status": "green",
       "note": "What the identity implies about the wire. The `--daemon` answer is rendered from an envelope this process DESERIALISED, so byte-equal renderings mean the envelope crossed intact and `IndexFreshness` recomputed `complete` from the lists that arrived rather than trusting the one that was sent. Demonstrated failing rather than assumed: `Hit::stale` skipped `false` on the way out with no `default` on the way in, which made every normal answer unreadable, and this arm is what reddened -- reverting that one attribute reddens it again and nothing else."
+    },
+    {
+      "id": "AT-22.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/a_daemon_indexes_a_project_when_it_opens_it.rs",
+      "covers": [
+        "AC-22.4"
+      ],
+      "status": "green",
+      "note": "Red on the unfixed tree (f0486c55d, native identical to e70c3528a), green on the 0366 fix; intentd suite --no-fail-fast after cargo build -p intentd."
     },
     {
       "id": "AT-23.2",
