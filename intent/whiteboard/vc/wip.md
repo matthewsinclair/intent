@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 15:41Z
+heartbeat_at: 2026-09-13 16:30Z
 status: active
-focus: "hv's ORDER (2026-09-13 15:41Z): fix 0354 first, then rebuild everything, then Laksa on the fresh build. Run 6 (assert-armed release pair) reproduces without a panic: the wait returns 0; hv's sudo dtruss on 58837 while hot decides EINTR (interrupter) vs immediate 0 (psynch fault, S1). 0366 found (the daemon never indexes at open), ST0069 reopened, cc builds its fix on WP-22 now. Courses migrated (0363-0365 filed); Laksa holds for the fixed pair's hash. NO RELEASE, NO PUSH."
+focus: "REBUILD IN PROGRESS (2026-09-13 16:30Z): 0354 fix on main (669cf00ee), 0366 (524f5f868), ST0074/01 and /02; dc runs the workspace suite then build all, app-install, daemon restart, doctor; the rebuilt daemon under vc's CPU watch is the 0354 verdict; Laksa migrates on the delivered pair's hash. cc and ic land the as-built docs passes; ST0074's XDG move is 3.1.0. hv's directive: ruthless delivery, no overtesting. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
