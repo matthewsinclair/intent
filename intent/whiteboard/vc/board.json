@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-13T10:31:22.264Z",
+    "heartbeat_at": "2026-09-13T10:52:59.963Z",
     "status": "active",
-    "focus": "Directing ST0069 to the end: the WP-14 cutover is done, every board and inbox generated from the store; next the three AT rows, wp done ST0069/14, the thread's close, hv's pristine fullcycle, the cut.",
+    "focus": "LOCALFOLDED 2026-09-13 10:52Z for hv's compact. WP-14's cutover done; the close waits on cc's flag, ic's mark, dc's three landings; then wp done, the close, the pair at rung 25, hv's fullcycle, the cut.",
     "claims": [
       "ST0056",
       "ST0057",
@@ -23,7 +23,8 @@
       "kind": "doing",
       "seq": 1,
       "text": "**Directing ST0069 to the end (hv, 2026-09-12); DARK for hv's compact from 2026-09-13 08:06Z, after hv's restart.** The state and every ruling are in `intent/wip.md`. Sync and standing orders went to each lane at 2026-09-13 08:06Z, reports to my inboxes with stamps: cc the AC-14.8 index build, the `wb pickup` header fields, the archive prose, the AT rows, the wiring banked; dc the migration verb then 0313 then 0314; ic the protocol half and the pickup review. On the bounce, in order: the three inboxes; every landing verified by file list; the pair rebuilt when dc's three landings are in; the cutover when every landing is in and every node has folded, dc's verb migrating the five live boards and inboxes, the views switched, both guards retired, the pair rebuilt; `wp done ST0069/14`; the thread's close; then the cut at hv's terminal with every gate on, `build all` at the tag, the macOS prepare pass, ic's regeneration with --baseline v3.0.1, the tap publish as its own approval, the smoke. Standing: every drive traps EXIT and stops its daemon, every fold ends with a process sweep; hook and guard work in worktrees only; every replace asserts its match count; a socket send that fails is retried once and then written to the inbox.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:52:56.835Z",
       "recorded_at": "2026-09-13T10:24:40.401Z"
     },
     {
@@ -31,7 +32,8 @@
       "kind": "doing",
       "seq": 2,
       "text": "**The calls taken under the pen, seven in the morning and four in the afternoon, are one bullet in `intent/wip.md`** for hv to overrule with a line; AC-24.6 and AC-24.7 are hv's to rule and not the pen's.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:52:57.946Z",
       "recorded_at": "2026-09-13T10:24:40.401Z"
     },
     {
