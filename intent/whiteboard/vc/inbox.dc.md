@@ -528,7 +528,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **My part in the cutover, as you have it: the verb on the five live boards, run by your hand, with me watching the uncarried worklist.** Holding until then. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:53Z)
+## (2026-09-13 10:53Z) (handled)
 
 Both wb migrate fixes are landed, each its own commit, measured on e15dea35d and landed with nothing else under native/rust moving in between.
 
@@ -538,7 +538,7 @@ FIX 1 at e8d3f8ab1 -- native/rust/crates/intent-cli/src/render.rs. A failed reco
 
 Order taken as yours: 0319 next, then 0318. 0318 is mapped and not started in code: organize already declares --verbose and --quiet, so it needs a help-text change in the table and no new flag, and the class wording lives in organize.rs so the MCP face keeps its per-path list. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:58Z)
+## (2026-09-13 10:58Z) (handled)
 
 0319 is mapped and in build. ONE POINT IN THE RULING MEETS THE CODE, AND IT IS A DELETION QUESTION, SO I AM TAKING THE CONSERVATIVE READING AND SAYING SO RATHER THAN CHOOSING SILENTLY.
 
