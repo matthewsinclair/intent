@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 16:36Z
+heartbeat_at: 2026-09-13 17:14Z
 status: active
-focus: "Localfolded for hv's compact. ST0074 (machine-wide projects): WP-01 /threads+/issues Done (793984a50), WP-02 menubar status line Done (133061d7f), WP-05 ruled XDG in design.md (f2452077a), 0368 test fixed (64d272688), hv's ~/.intent/config.json restored by hv through intent bootstrap --force. On the bounce: ac satisfy ST0074 AC-05.1 --evidence f2452077a; WP-05, WP-03 and WP-04 code in a private worktree only after the 3.0.2 tag, for 3.1.0, in that order; the reference regeneration on vc's signal after the tag. NO RELEASE, NO PUSH."
+focus: "Localfolded for hv's compact; dc's quiet window is open (no commits, no builds until dc says build done). hv overruled 3.1.0: ALL of ST0074 is 3.0.2. On the bounce, after dc's build done: (1) design.md's 3.1.0 wording becomes 3.0.2 (edit at its path, attach from that path, commit in the same call) and ac satisfy ST0074 AC-05.1 --evidence f2452077a; (2) build WP-05 (XDG layout + migration + XDG_* ALLOWED rows), then WP-03 (registry + discover), then WP-04 (picker, /projects) in a private worktree, each landing on main as its own commit on its own green run before the tag. Ruthless: one-line ACs already written, one proving run each. Commit my ic board views first. Done so far: WP-01 793984a50, WP-02 133061d7f, WP-05 design f2452077a, 0368 64d272688; hv restored ~/.intent/config.json. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **ST0074, after the 3.0.2 tag, for 3.1.0 (vc).** WP-05 first: the XDG layout and migration exactly as design.md rules them (f2452077a), the XDG_* ALLOWED rows in no_intent_home.rs as part of that code, every literal reader of ~/.intent and ~/.local/share/intent moved in the same change. Then WP-03 (registry + discover, design in design.md) and WP-04 (picker, /projects). Private worktree; ACs AC-03.1..04.2 already written; one-line ACs, one test run, land. Before the tag: ac satisfy AC-05.1 --evidence f2452077a.
+- **ST0074 for 3.0.2, before the tag (hv via vc, 2026-09-13).** WP-05 first: the XDG layout and migration exactly as design.md rules them (f2452077a), the XDG_* ALLOWED rows in no_intent_home.rs, every literal reader of ~/.intent and ~/.local/share/intent moved in the same change. Then WP-03 (registry + discover) and WP-04 (picker, /projects). Private worktree; one proving run each; each lands as its own commit. After dc's build done: commit board views, design.md 3.1.0 wording to 3.0.2, ac satisfy AC-05.1 --evidence f2452077a.
 
 ## TODO
 
