@@ -57,7 +57,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- WITHDRAWN: Re-keyed at the 2026-09-12 re-elaboration to AC-23.1, AC-23.2 and AC-23.4; text carried forward (by vc)
 
-### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: WIP)
+### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: Done)
 
 - AC-14.1 `wb_node`, `wb_item` and `wb_message` are model entities with schema faces, held in the DB per the reversed D01, and **sync round-trips them losslessly in both directions**: db-to-disk then disk-to-db reproduces the DB content, and the regenerated files are byte-identical to the committed ones. (Reworded 2026-08-15 for D01's reversal. The original asserted a `rm intent.db` rebuild from committed JSON canon; the property under test is now the round-trip rather than the rebuild, and it is a stronger claim because it binds both directions)
 
@@ -197,7 +197,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 
 _(no tests in this group)_
 
-### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: WIP)
+### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: Done)
 
 - AT-14.1 `native/rust/crates/intentsvcs/tests/openness.rs` -- covers AC-14.1 -- status: green -- The coordination entities round-trip through their file form, both halves of the criterion driven in openness.rs. The round trip: the fixture registers two nodes and writes a board item and an inbox message into their rows, extracts to disk, restores on a clone that never held the store, and reads the item back with the stamp it claimed in authored_at and the message back with its body -- the fields a lossy extract drops first, because nothing re-derives them. The bytes: re_emitting_the_extract_reproduces_it_byte_for_byte emits, clones, reads back and emits again, and holds a board's board.json to the same byte-for-byte rule as a thread's and an issue's extract.
 - AT-14.10 `native/rust/crates/intent-cli/tests/no_skill_names_an_unshipped_verb.rs` -- covers AC-14.10 -- status: green -- Green at 6de123412. The row's remaining red axis was the `intent claude ws` family, which AC-14.12 retires: the register row is retired on both fields, so `dispatch::shipped_entries` no longer carries the verb and no shipped skill names it. The verb-and-flag axis was already green through the same instrument, `no_skill_names_an_unshipped_verb`, which derives its roster from the register rather than from a hand-written list.

@@ -2,7 +2,7 @@
 wp_id: WP-14
 title: Coordination model: whiteboard and inboxes in the store, with a bounded API
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-14: Coordination model: whiteboard and inboxes in the store, with a bounded API
