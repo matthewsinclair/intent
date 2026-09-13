@@ -321,7 +321,8 @@
       "kind": "doing",
       "seq": 9,
       "text": "**0354 reproduction, vc's order, before the tag. In flight.** Scratchpad repro0354/. RUN 1 (drive.sh, run/): the spin REPRODUCED in a fresh scratch clone at e70c3528a on the delivered pair under an isolated HOME, lighting about 1s after one warm-up graphql opened a store just built by a daemonless st list: bursts of one thread at ~100% cpu, sys over user, ~490k BSD syscalls a second, NO store writes during it (counts-1.txt and counts-2.txt identical; search tables mid-build). vc stopped it. RUN 2 (probe.sh, run2/, run2.log): the same clone with its store already built, a fresh daemon, no warm-up: COLD five minutes untouched AND five minutes after one graphql; reported to vc. RUN 3 (probe.sh LABEL=run3, run3/, run3.log): launched at this fold on the 3.0.1 keg pair (/opt/homebrew/Cellar/intent/3.0.1/libexec/bin, a8942aead), a FRESH clone (run3-clone), store built by the keg's st list, one graphql, ten minutes. If run3.log is absent it did not start. Report it to vc with its log and verdict, nothing else; then confirm 58837 is the only intentd left. Also reported to vc: the live store's WAL read 297MB, unchanged across two stat reads.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T15:03:17.938Z",
       "recorded_at": "2026-09-13T14:52:22.351Z"
     },
     {
@@ -354,8 +355,17 @@
       "kind": "todo",
       "seq": 5,
       "text": "**0354 RUN 4, vc's order, after run 3 reports: run 1's conditions again to make the trigger REPRODUCIBLE, not inferred.** A FRESH clone at e70c3528a, the delivered pair, a daemonless st list to build the store, one open, ten minutes. While hot, every 10s: ps -M for the hot row AND three counts read-only from the clone's intent/.cache/intent.db (select count(*) from file_index, from index_file, from src_sections), to see whether the index advances during a burst and whether the bursts stop once the counts meet; if they never meet, intent index status on the clone at the end. Drive: repro0354/probe4.sh (its own copy, syntax-checked; NOT probe.sh), with LABEL=run4 BIN=/Users/matts/Devel/prj/Intent/native/rust/target/release CLONE=<scratchpad>/repro0354/run4-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r4. Counts land in run4/counts.log. vc names it the last measurement before ruling a fix shape with cc; vc folds for hv's compact and reads reports on the bounce.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T15:03:19.131Z",
       "recorded_at": "2026-09-13T14:57:12.804Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 10,
+      "text": "**0354 reproduction, vc's order, before the tag. Run 4 in flight; runs 1 to 3 reported to vc.** Scratchpad repro0354/. RUN 1 (drive.sh, run/): 3.0.2 delivered pair on a FRESH clone whose store a daemonless st list had just built: lit about 1s after one open and kept bursting, one thread, SYS over USER, ~490k BSD syscalls a second, no store writes during a burst (counts-1/counts-2), search tables mid-build; stopped by vc. RUN 2 (probe.sh, run2/): the same clone with its store already built, fresh daemon: COLD five minutes untouched and five after one open. RUN 3 (probe.sh, run3/): the RELEASED 3.0.1 keg pair on a fresh clone: three bursts, about 22s of CPU in all, USER over SYS, then cool for the rest; a 19.7MB store against 3.0.2's 69.7MB with search tables. Lead: 3.0.2's first-open index work on a fresh store. RUN 4 (probe4.sh, its own copy, run4/ and run4.log; counts while hot in run4/counts.log): 3.0.2 delivered pair, FRESH clone run4-clone, one open, ten minutes, the three counts file_index, index_file and src_sections sampled every 10s while hot; index status at the end if they never meet. Report it to vc with its log and verdict, nothing else; confirm 58837 is the only intentd left. vc then rules a fix shape with cc.",
+      "state": "live",
+      "recorded_at": "2026-09-13T15:03:20.339Z"
     }
   ],
   "messages": [
