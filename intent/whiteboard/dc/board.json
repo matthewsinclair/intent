@@ -306,6 +306,14 @@
       "text": "(2026-09-13) **0319 RATIFIED BY vc on both points I raised, standing until hv says otherwise.** (1) A run that CARRIED bucket files into re-emitted canon does NOT prune in that same run: removal stays with `intent organize --apply`, which names every path before it goes; the upgrade reports what it deferred and points at `intent organize`; the conversion prune (AC-02.2) is untouched and a re-emit run that carried nothing prunes as today. This is hv's 2026-09-12 no-silent-deletion ruling applied to this door. (2) A naming-gate refusal on the fleet's buckets is REPORTED as not ingested with its reason and never halts the upgrade. Build 0319 as stated, land it as its own commit with its view dehydrated, report every file, then 0318. The pair rebuild follows 0319 directly because Laksa's step 2 is held on it.",
       "state": "live",
       "recorded_at": "2026-09-13T11:00:28.856Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 15,
+      "text": "**A PROBE FOR A REMEDY RUNS IN THE EXACT ENVIRONMENT OF THE RUN IT VOUCHES FOR, OR IT VOUCHES FOR A DIFFERENT RUN.** Final rehearsal 2026-09-13: gh keeps its token in the macOS keyring, which an isolated HOME cannot reach. I probed `gh auth status` with HOME plus GH_TOKEN, it passed, and run3 carried HOME plus GH_CONFIG_DIR plus GH_TOKEN -- where gh lists the stored keyring account beside the token, fails it, and exits 1 because ANY account failed. Run3 halted at the gh gate. Build the probe from the run script, not from memory of it: the same exports, the same unsets. The rehearsal now carries GH_TOKEN and no GH_CONFIG_DIR, and probes inside the run before the load gate.",
+      "state": "live",
+      "recorded_at": "2026-09-13T12:21:02.482Z"
     }
   ],
   "messages": [
