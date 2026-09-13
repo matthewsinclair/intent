@@ -652,8 +652,17 @@
       "kind": "doing",
       "seq": 12,
       "text": "**ST0074 for 3.0.2, before the tag (hv via vc, 2026-09-13).** WP-05 first: the XDG layout and migration exactly as design.md rules them (f2452077a), the XDG_* ALLOWED rows in no_intent_home.rs, every literal reader of ~/.intent and ~/.local/share/intent moved in the same change. Then WP-03 (registry + discover) and WP-04 (picker, /projects). Private worktree; one proving run each; each lands as its own commit. After dc's build done: commit board views, design.md 3.1.0 wording to 3.0.2, ac satisfy AC-05.1 --evidence f2452077a.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T18:08:31.219Z",
       "recorded_at": "2026-09-13T16:41:57.692Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 13,
+      "text": "**ST0074 for 3.0.2, before the tag.** WP-05 LANDED at 2f29401b6 (66 files); design.md 3.0.2 and AC-05.1 at d64e9eca8. WP-03 (projects.rs registry, intent discover, explore registers its project, intentd listed.rs watch, wire listed field) is written in wt-wp03 stacked on WP-05 and in its one proving run (AT-03.4 red then green, then the workspace suite). Then WP-04 (picker, /projects, explore outside a project). Open with vc: the old pre-commit carriers read ~/.intent/home and need intent claude upgrade --apply per estate after the 3.0.2 install (option a, built) or hv rules (b). Do not stop or restart live daemon 87652; ~/.intent/home stays this tree. Hold every commit the moment dc announces a window.",
+      "state": "live",
+      "recorded_at": "2026-09-13T18:08:32.508Z"
     }
   ],
   "messages": [

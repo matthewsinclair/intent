@@ -35,7 +35,7 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 - AC-04.1 `/projects` in the explorer lists the registry's projects and opens the one picked. -- satisfied: no (computed)
 - AC-04.2 `intent explore` outside an Intent project opens the project picker, and leaving the picker returns to the shell. -- satisfied: no (computed)
 
-### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Not Started)
+### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Done)
 
 - AC-05.1 (non-test) hv has ruled where intentd's durable configuration lives, and design.md records the ruling. -- evidence: f2452077a -- satisfied: yes
 
@@ -59,7 +59,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Not Started)
+### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Done)
 
 _(no tests in this group)_
 

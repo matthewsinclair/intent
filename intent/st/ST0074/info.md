@@ -45,7 +45,7 @@ What `intent explore` does outside a project when no daemon answers depends on t
 | WP-02 | The menubar's one status line, in Gtools' shape                                                                          | S    | Done        |
 | WP-03 | The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file | L    | Not Started |
 | WP-04 | The explorer's project picker: /projects, and intent explore outside a project                                           | M    | Not Started |
-| WP-05 | Where intentd's durable configuration lives: a standards-compliant home, ruled by hv                                     | S    | Not Started |
+| WP-05 | Where intentd's durable configuration lives: a standards-compliant home, ruled by hv                                     | S    | Done        |
 
 ## Acceptance
 

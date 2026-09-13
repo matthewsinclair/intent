@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-05: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
