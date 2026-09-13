@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 13:17Z
+heartbeat_at: 2026-09-13 13:21Z
 status: active
 focus: "LOCALFOLDED 2026-09-13 13:17Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039, ST0069 closed by vc) and hv's stamp ruling (334f01cb5: identity is HEAD, dirt scoped, verify_pair and guard arm 6c moved with it). vc holds the incremental-build limit as a note to hv. Nothing in cc's lane before the tag. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
