@@ -366,6 +366,14 @@
       "text": "**0354 reproduction, vc's order, before the tag. Run 4 in flight; runs 1 to 3 reported to vc.** Scratchpad repro0354/. RUN 1 (drive.sh, run/): 3.0.2 delivered pair on a FRESH clone whose store a daemonless st list had just built: lit about 1s after one open and kept bursting, one thread, SYS over USER, ~490k BSD syscalls a second, no store writes during a burst (counts-1/counts-2), search tables mid-build; stopped by vc. RUN 2 (probe.sh, run2/): the same clone with its store already built, fresh daemon: COLD five minutes untouched and five after one open. RUN 3 (probe.sh, run3/): the RELEASED 3.0.1 keg pair on a fresh clone: three bursts, about 22s of CPU in all, USER over SYS, then cool for the rest; a 19.7MB store against 3.0.2's 69.7MB with search tables. Lead: 3.0.2's first-open index work on a fresh store. RUN 4 (probe4.sh, its own copy, run4/ and run4.log; counts while hot in run4/counts.log): 3.0.2 delivered pair, FRESH clone run4-clone, one open, ten minutes, the three counts file_index, index_file and src_sections sampled every 10s while hot; index status at the end if they never meet. Report it to vc with its log and verdict, nothing else; confirm 58837 is the only intentd left. vc then rules a fix shape with cc.",
       "state": "live",
       "recorded_at": "2026-09-13T15:03:20.339Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 6,
+      "text": "**0354 RUN 5, vc's order, after run 4 reports: run 1's recipe on a DEBUG-PROFILE pair, the decisive run.** parking_lot_core 0.9.12's unix parker loops on pthread_cond_wait with debug_assert_eq!(r, 0): in debug a failing wait PANICS with its errno; a debug pair that spins WITHOUT panicking means the wait returns 0 and something wakes the thread each iteration. Pair: wt-dc at e70c3528a, target-dc/debug/intent and intentd (both report e70c3528a); confirm with cargo build -p intent-cli -p intentd (dev profile, isolated HOME, CARGO_TARGET_DIR target-dc) AFTER run 4, so no build overlaps it. Drive: repro0354/probe5.sh (a copy of probe4.sh, syntax-checked), LABEL=run5 BIN=<wt-dc>/target-dc/debug CLONE=<scratchpad>/repro0354/run5-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r5. RUST_BACKTRACE=1 is exported; daemon start hands the child intentd.err.log as its stderr, proven by lsof -d 2 before the open (the script halts otherwise). Verdict to vc: (a) the panic text verbatim with the backtrace's top frames, or (b) no panic, spun N seconds, with the cpu shape; then whether the daemon survived and the first daemon status after. Cleanup: 58837 the only intentd left. List every file touched.",
+      "state": "live",
+      "recorded_at": "2026-09-13T15:05:57.998Z"
     }
   ],
   "messages": [
