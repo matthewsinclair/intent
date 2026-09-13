@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 363,
+  "slug": "upgrade-still-reports-the-whiteboard-as-a-model",
+  "title": "upgrade still reports the whiteboard as a model not yet carried after the carrying build landed, and the count grows with the migration",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported by courses-vc after migrating the Courses boards onto `intent wb` on the pair e70c3528a (register: 3 nodes; migrate: every node carried with no uncarried line; doctor 0). `intent upgrade` on that tree still reports the whiteboard as a model not yet carried, and the count grew with the migration: 37 not-yet-carried records before it, 51 after, the 14 new ones being exactly the files the migration's snapshots and the render added (board.json for each node, hv's wip.md and three inboxes, an inbox.hv.md per node, three snapshots).\n\nCause, checked against the source at e70c3528a: `sync::NOT_YET_BUILT` is a static const and `migration_not_yet_built_artefacts` walks `intent/whiteboard/` without asking the store, so it cannot notice that the carrying build has landed. `intent/docs/data-model.md:530` still says the whiteboard model is not built in 3.0.1, while this pair ships `wb register` and `wb migrate` and ST0069 is complete. The `ModelledNotBuilt` remedy tells the reader the lines stop when the carrying build lands; they did not. Related to 0326 (a project with no whiteboard still prints the summary line) but a different defect: the const and the doc line both need to move with the build that carries the model, and the rule that prints them should read the store rather than a list.\n"
+}

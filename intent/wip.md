@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.48: vc - hv orders the 0354 fix first, then the rebuild, then Laksa"
+verblock: "2026-09-13:v1.49: vc - Courses migrated; its findings filed"
 intent_version: 3.0.1
 ---
 
@@ -13,9 +13,9 @@ intent_version: 3.0.1
 ## TODO
 
 - After the tag: ic's reference regeneration, both halves `--rev v3.0.2 --baseline v3.0.1`; `intent claude skills sync` from the installed 3.0.2.
-- Courses' board migration report; Laksa's boards migrate on the fresh build carrying the 0354 fix, named to laksa-vc by hash with hv's go (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
+- Laksa's boards migrate on the fresh build carrying the 0354 fix, named to laksa-vc by hash with hv's go (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
 - hv rules or overrules the calls in `intent/history/20260913-calls-under-the-pen.md`; AC-24.6, AC-24.7 and `INTENT_NODE` are hv's alone.
 - Hover the menubar identity row on a failed `intent version` read: ic could not confirm a disabled item shows its tooltip (hv or ic, after the cut).
 - ST0056: a `brew install` on a clean Mac, then AC-00.5 and AC-11.1 by evidence; WP-11 closes with them.
-- hv rules whether 0355 (the index watch's tree walk) and 0356 to 0361 (search's answers, found in the ST0069 demonstration) go before the tag; a ruled one gets a lane.
+- hv rules whether 0355 (the index watch's tree walk), 0356 to 0361 (search's answers, found in the ST0069 demonstration) and 0363 to 0365 (Courses' migration findings: upgrade still calls the whiteboard not carried) go before the tag; a ruled one gets a lane.
 - Open defects: `intent issues list`; a ruled one gets a lane. Out of 3.0.x by ruling: ST0057, ST0060, ST0070.
