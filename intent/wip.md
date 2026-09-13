@@ -13,7 +13,6 @@ intent_version: 3.0.1
 ## TODO
 
 - After the tag: ic's reference regeneration, both halves `--rev v3.0.2 --baseline v3.0.1`; `intent claude skills sync` from the installed 3.0.2.
-- hv commits Laksa's held tree naming paths.
 - Courses' board migration report; then Laksa's boards migrate on vc's word (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
 - hv rules or overrules the calls in `intent/history/20260913-calls-under-the-pen.md`; AC-24.6, AC-24.7 and `INTENT_NODE` are hv's alone.
 - Hover the menubar identity row on a failed `intent version` read: ic could not confirm a disabled item shows its tooltip (hv or ic, after the cut).
