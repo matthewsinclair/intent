@@ -119,7 +119,11 @@ pub fn cli_rows(root: &clap::Command, of: Option<&str>) -> Vec<Row> {
     //
     // **ONLY AT THE ROOT**, because the roster is top-level verbs: `/help st`
     // lists `st`'s subcommands, and `/new` is not a command.
-    let title = if of.is_none() && commands::CLI_ROSTER.contains(&name.as_str()) {
+    //
+    // **ASKED OF `runs_cli`, NOT OF THE ROSTER**, because `/issues` is an act
+    // that still runs `intent issues ...` when given arguments -- the roster
+    // alone would show `issues` bare and say it cannot be run from here.
+    let title = if of.is_none() && commands::runs_cli(&name) {
       format!("/{name}")
     } else {
       name.clone()

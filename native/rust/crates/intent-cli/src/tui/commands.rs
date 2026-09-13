@@ -19,19 +19,19 @@
 //! nothing when chosen. **The vocabulary grows when the act behind it lands,
 //! never before.**
 //!
-//! # `/` IS FOR THINGS TO DO; TYPING IS FOR PLACES TO GO
+//! # `/threads` AND `/issues` ARE PLACES, AND THEY ARE ACTS ANYWAY
 //!
-//! **The palette holds ACTS, and navigation is deliberately not in it.** hv's
-//! own frame draws the line: *`/commands` fire up the menus, and anything else
-//! is omni-dispatched from the Omni.*
+//! **hv RULED IT 2026-09-13, after typing `/issues` and getting `intent issues`
+//! printed over the screen:** *both /threads and /issues SHOULD be natively
+//! handled by the TUI.* Until then this module kept navigation out of the
+//! palette on the ground that `thread` typed into the omnibox already reaches
+//! the collection. The reach is real and the conclusion did not survive the
+//! operator: someone who types `/issues` has told us where they look for the
+//! issues, which is the lesson `/quit` taught one release earlier.
 //!
-//! §5's bar had a `Go` group listing `Threads  Issues  Packages  Criteria`,
-//! and building it here was the obvious move. **It would have been redundant,
-//! and the code says so**: `Live::index` already puts one entry per declared
-//! kind into the omnibox, so `thread` ALREADY reaches the threads collection
-//! by typing. A `Go` group would have been a second route to a destination
-//! the composer reaches better -- and it would have buried the two commands
-//! that have no other route under a list of ones that do.
+//! **THE TWO COLLECTIONS hv NAMED ARE ACTS, AND NOTHING ELSE MOVES.** A work
+//! package is reached through its thread, and every other place is still one
+//! word in the omnibox.
 //!
 //! So the vocabulary is small on purpose, and it is the SMALL HONEST SET
 //! rather than a large one with holes. It grows when an act lands.
@@ -89,6 +89,20 @@ pub enum Act {
   /// [`Act::Settings`] gives: a constant vocabulary cannot carry an argument
   /// that is still being typed.
   Search,
+  /// One top-level collection: `/threads` and `/issues` (hv, 2026-09-13).
+  ///
+  /// **`cli` IS THE VERB AN ARGUMENT RUNS, AND IT IS WHAT KEEPS `/issues add
+  /// ...` WORKING.** `issues` was a roster entry, so `/issues add <title>` ran
+  /// the CLI; taking the name for the view without keeping that would remove a
+  /// command to add a place. With no argument the act opens the collection;
+  /// with one it runs `intent <cli> <argument>`. `/threads` carries no verb
+  /// because there is no `intent threads` -- `/st` is that door -- so an
+  /// argument there is refused on the info row rather than guessed at.
+  ///
+  /// The kind is a spelling here and the declaration is its authority:
+  /// [`every_collection_act_opens_a_declared_kind_and_runs_a_real_verb`] fails
+  /// the suite when a form is renamed underneath it.
+  Collection { kind: String, cli: Option<String> },
 }
 
 /// The `intent` verbs the palette will run: **AN ALLOW-LIST, AND THE ONLY
@@ -126,10 +140,14 @@ pub enum Act {
 ///   next repaint. A resident pane is the thing hv asked the explorer for, so
 ///   the entry moved rather than being duplicated -- two doors onto one search,
 ///   one of them worse, is the collision this roster's drop rule exists to stop.
+/// - `issues` -- claimed by the `/issues` [`Act::Collection`] (hv, 2026-09-13),
+///   which runs `intent issues ...` whenever it is given arguments. The verb is
+///   still one keystroke away and has exactly one entry; [`runs_cli`] is how
+///   the help page knows that.
 pub const CLI_ROSTER: &[&str] = &[
-  "st", "wp", "ac", "at", "issues", "todo", "info", "config", "doctor", "agents", "claude",
-  "critic", "lang", "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema",
-  "export", "ingest", "backup", "organize", "edit", "events", "surface",
+  "st", "wp", "ac", "at", "todo", "info", "config", "doctor", "agents", "claude", "critic", "lang",
+  "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema", "export", "ingest",
+  "backup", "organize", "edit", "events", "surface",
 ];
 
 /// One offer in the palette.
@@ -225,7 +243,36 @@ fn acts() -> Vec<Command> {
       blurb: "search the index -- the hits open in a pane".into(),
       act: Act::Search,
     },
+    Command {
+      name: "threads".into(),
+      blurb: "every steel thread".into(),
+      act: Act::Collection {
+        kind: "thread".into(),
+        cli: None,
+      },
+    },
+    Command {
+      name: "issues".into(),
+      blurb: "every issue -- with arguments, runs `intent issues ...`".into(),
+      act: Act::Collection {
+        kind: "issue".into(),
+        cli: Some("issues".into()),
+      },
+    },
   ]
+}
+
+/// Does `/{name} ...` reach `intent {name}`?
+///
+/// **TWO SOURCES AND ONE ANSWER.** A roster entry runs its verb, and so does a
+/// collection act given arguments. The help page marks a runnable verb with its
+/// slash, and asking the roster alone would show `issues` bare -- telling the
+/// operator that `/issues add` does not exist on the day it still works.
+pub fn runs_cli(name: &str) -> bool {
+  CLI_ROSTER.contains(&name)
+    || acts()
+      .iter()
+      .any(|c| matches!(&c.act, Act::Collection { cli: Some(verb), .. } if verb == name))
 }
 
 /// The searchable text of one command. **One function, shared with whatever
@@ -658,6 +705,67 @@ mod tests {
     assert!(
       checked > 0,
       "no CLI offer was examined, so this test asserted nothing"
+    );
+  }
+
+  /// hv's spellings, 2026-09-13: `/threads` and `/issues` reach the explorer's
+  /// own collections, never a lent CLI verb.
+  #[test]
+  fn slash_threads_and_slash_issues_rank_their_collection_acts_first() {
+    let v = vocabulary(&crate::spine::surface());
+    for (typed, kind) in [("threads", "thread"), ("issues", "issue")] {
+      let m = matches(&v, typed, 8);
+      assert!(!m.is_empty(), "`/{typed}` matched nothing at all");
+      assert!(
+        matches!(&v[m[0].entry].act, Act::Collection { kind: k, .. } if k == kind),
+        "`/{typed}` did not rank the {kind} collection first; it ranked `{}`",
+        v[m[0].entry].name
+      );
+    }
+  }
+
+  /// **A COLLECTION ACT NAMES ITS KIND AS A STRING, SO THE DECLARATION HOLDS IT
+  /// HONEST**, and the verb it runs must be a real one that the help page marks
+  /// runnable. The last assertion is the control on [`runs_cli`]: a predicate
+  /// that answered yes to everything would pass the rest.
+  #[test]
+  fn every_collection_act_opens_a_declared_kind_and_runs_a_real_verb() {
+    let loaded = intentsvcs::form::Loaded::load().expect("the shipped form declaration must load");
+    let declared = intentsvcs::nav::kinds(&loaded);
+    let cli = crate::spine::surface();
+    let mut checked = 0usize;
+    for c in acts() {
+      let Act::Collection { kind, cli: verb } = &c.act else {
+        continue;
+      };
+      assert!(
+        declared.contains(kind),
+        "`/{}` opens `{kind}`, which the form declaration does not declare",
+        c.name
+      );
+      if let Some(verb) = verb {
+        assert!(
+          cli
+            .get_subcommands()
+            .any(|s| s.get_name() == verb && !s.is_hide_set()),
+          "`/{}` runs `intent {verb}`, which the surface does not offer",
+          c.name
+        );
+        assert!(
+          runs_cli(verb),
+          "`/{}` runs `intent {verb}` and the help page would not mark it runnable",
+          c.name
+        );
+      }
+      checked += 1;
+    }
+    assert!(
+      checked > 0,
+      "no collection act was examined, so this asserted nothing"
+    );
+    assert!(
+      !runs_cli("explore"),
+      "`runs_cli` says `explore` is runnable from the palette, so it is not discriminating"
     );
   }
 }

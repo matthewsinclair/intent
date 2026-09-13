@@ -619,6 +619,33 @@ impl App {
               self.push(View::Search { query: argument });
               Step::Continue
             }
+            // **NO ARGUMENT OPENS THE COLLECTION; AN ARGUMENT RUNS ITS VERB**
+            // (hv, 2026-09-13). `/issues add <title>` worked while `issues` was
+            // a roster entry, and taking the name for the view must not take
+            // that away. A collection with no verb refuses an argument on the
+            // info row, since running something the operator did not name is
+            // worse than saying no.
+            //
+            // **ALREADY THERE IS NOT A PUSH.** `intent explore` roots at the
+            // threads list, so `/threads` at the root would stack the view on
+            // itself and the trail would read `/thread  <  /thread`.
+            Act::Collection { kind, .. } if argument.is_empty() => {
+              let view = View::Collection { kind };
+              if self.stack.current() != &view {
+                self.push(view);
+              }
+              Step::Continue
+            }
+            Act::Collection {
+              cli: Some(verb), ..
+            } => Step::Run(argv_for(&verb, &argument)),
+            Act::Collection { cli: None, .. } => {
+              self.notice = format!(
+                "`/{}` opens the list and takes no argument",
+                self.commands[at].name
+              );
+              Step::Continue
+            }
             // **THE ARGV IS SPLIT HERE AND RUN THERE**, for the reason every
             // other act splits that way: turning a buffer into `["intent",
             // "st", "list"]` is a pure function of what was typed and is
@@ -2407,10 +2434,13 @@ mod tests {
       let mut app = App::explore();
       app.commands = commands::vocabulary(&crate::spine::surface());
       app.point_at(rows.len());
-      // Armed so every act has something to do: `back` needs somewhere above.
-      app.push(View::Collection {
-        kind: "thread".into(),
-      });
+      // Armed so every act has something to do: `back` needs somewhere above,
+      // and a collection act needs to be somewhere other than its own list.
+      // **THE ARM IS THE ENTITY KINDS, NOT THE THREADS LIST**, because
+      // `/threads` on the threads list correctly moves nothing (it does not
+      // stack the view on itself), and an arm that is one act's destination
+      // would read that correct no-op as an offer that cannot perform.
+      app.push(View::Entities);
 
       assert_eq!(
         app.on_key(key(KeyCode::Char('/')), &rows),
@@ -3017,6 +3047,85 @@ mod tests {
       argv_for("st", "   list   "),
       vec!["intent".to_string(), "st".to_string(), "list".to_string()],
       "surrounding whitespace became arguments"
+    );
+  }
+
+  /// Type `/{typed}` into a fresh palette and press Enter.
+  fn run_palette(app: &mut App, typed: &str) -> Step {
+    app.commands = commands::vocabulary(&crate::spine::surface());
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    for c in typed.chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    app.on_key(key(KeyCode::Enter), &[])
+  }
+
+  /// hv, 2026-09-13: *both /threads and /issues SHOULD be natively handled by
+  /// the TUI.* **ROOTED AT THE ENTITY KINDS**, because the shipped root is the
+  /// threads list and `/threads` from there correctly moves nothing -- so a root
+  /// of threads could not tell an act that opens the view from one that does
+  /// nothing at all.
+  #[test]
+  fn slash_threads_and_slash_issues_open_their_collections() {
+    for (typed, kind) in [("threads", "thread"), ("issues", "issue")] {
+      let mut app = App::rooted_at(View::Entities);
+      let step = run_palette(&mut app, typed);
+      assert_eq!(
+        step,
+        Step::Continue,
+        "`/{typed}` handed the realiser work instead of opening a view"
+      );
+      assert_eq!(
+        app.stack.current(),
+        &View::Collection {
+          kind: kind.to_string()
+        },
+        "`/{typed}` did not open the {kind} collection"
+      );
+      assert_eq!(app.stack.depth(), 2, "`/{typed}` did not push one view");
+    }
+  }
+
+  /// **ALREADY THERE MOVES NOTHING**: `/threads` on the threads list must not
+  /// stack the view on itself.
+  #[test]
+  fn slash_threads_on_the_threads_list_does_not_stack_it_again() {
+    let mut app = App::explore();
+    run_palette(&mut app, "threads");
+    assert_eq!(
+      app.stack.depth(),
+      1,
+      "`/threads` on the threads list pushed a second copy of it"
+    );
+  }
+
+  /// **`/issues add ...` STILL RUNS THE CLI**, which is the half of the change
+  /// that keeps the verb; and `/threads` has no verb, so its argument is
+  /// refused where the operator reads it and nothing moves.
+  #[test]
+  fn a_collection_act_given_arguments_runs_its_verb_or_refuses() {
+    let mut app = App::explore();
+    assert_eq!(
+      run_palette(&mut app, "issues add A defect"),
+      Step::Run(
+        ["intent", "issues", "add", "A", "defect"]
+          .map(str::to_string)
+          .to_vec()
+      ),
+      "`/issues add A defect` did not reach `intent issues add`"
+    );
+
+    let mut app = App::rooted_at(View::Entities);
+    assert_eq!(run_palette(&mut app, "threads list"), Step::Continue);
+    assert_eq!(
+      app.stack.depth(),
+      1,
+      "`/threads list` moved the view although it was refused"
+    );
+    assert!(
+      app.notice.contains("takes no argument"),
+      "`/threads list` was refused in silence: the notice reads `{}`",
+      app.notice
     );
   }
 }
