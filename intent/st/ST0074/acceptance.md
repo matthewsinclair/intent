@@ -23,12 +23,12 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 - AC-02.2 While intentd is not live (stale, absent or unknown), the status line carries no port and no thread count, and a stale daemon's line names its pid and says to investigate it. -- satisfied: yes (computed)
 - AC-02.3 While a lifecycle verb is running, the status line says so and shows no port, because the port from before a restart is dead once its stop returns. -- satisfied: yes (computed)
 
-### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Not Started)
+### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Done)
 
-- AC-03.1 The project registry is one file that a human can edit by hand and the tool reads and rewrites without losing what the human wrote. -- satisfied: no (computed)
-- AC-03.2 `intent explore` run inside an Intent project ensures that project is in the registry and its entry is current. -- satisfied: no (computed)
-- AC-03.3 `intent discover [fromdir]` registers every config-compatible Intent project it finds under the directory, and names each project it does not register with the reason. -- satisfied: no (computed)
-- AC-03.4 intentd refreshes what it knows of the machine's projects when the registry file changes, without a restart. -- satisfied: no (computed)
+- AC-03.1 The project registry is one file that a human can edit by hand and the tool reads and rewrites without losing what the human wrote. -- satisfied: yes (computed)
+- AC-03.2 `intent explore` run inside an Intent project ensures that project is in the registry and its entry is current. -- satisfied: yes (computed)
+- AC-03.3 `intent discover [fromdir]` registers every config-compatible Intent project it finds under the directory, and names each project it does not register with the reason. -- satisfied: yes (computed)
+- AC-03.4 intentd refreshes what it knows of the machine's projects when the registry file changes, without a restart. -- satisfied: yes (computed)
 
 ### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Not Started)
 
@@ -51,9 +51,12 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 - AT-02.2 `native/macos/Intent/IntentTests/HealthTests.swift` -- covers AC-02.2 -- status: green -- bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.
 - AT-02.3 `native/macos/Intent/IntentTests/HealthTests.swift` -- covers AC-02.3 -- status: green -- bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.
 
-### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Not Started)
+### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Done)
 
-_(no tests in this group)_
+- AT-03.1 `native/rust/crates/intentsvcs/src/projects.rs` -- covers AC-03.1 -- status: green -- projects::tests::a_rewrite_keeps_what_the_operator_wrote, green at 2123f7c08
+- AT-03.2 `native/rust/crates/intentsvcs/src/projects.rs` -- covers AC-03.2 -- status: green -- projects::tests::a_root_is_added_once_and_a_newer_schema_is_left_alone, green at 2123f7c08
+- AT-03.3 `native/rust/crates/intentsvcs/src/projects.rs` -- covers AC-03.3 -- status: green -- projects::tests::discover_registers_the_compatible_and_names_the_rest, green at 2123f7c08
+- AT-03.4 `native/rust/crates/intentd/tests/the_daemon_lists_the_project_registry.rs` -- covers AC-03.4 -- status: green -- red with listed::start disabled (never listed in 10s), green at 2123f7c08
 
 ### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Not Started)
 

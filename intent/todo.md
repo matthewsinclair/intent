@@ -55,7 +55,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0074: Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line
   - [x] 01: The explorer handles /threads and /issues itself
   - [x] 02: The menubar's one status line, in Gtools' shape
-  - [ ] 03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
+  - [x] 03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
   - [ ] 04: The explorer's project picker: /projects, and intent explore outside a project
   - [x] 05: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
 

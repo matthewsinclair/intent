@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file",
       "scope": "L",
-      "status": "not-started",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
@@ -187,6 +187,46 @@
       ],
       "status": "green",
       "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/projects.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "projects::tests::a_rewrite_keeps_what_the_operator_wrote, green at 2123f7c08"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/projects.rs",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "projects::tests::a_root_is_added_once_and_a_newer_schema_is_left_alone, green at 2123f7c08"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/projects.rs",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "projects::tests::discover_registers_the_compatible_and_names_the_rest, green at 2123f7c08"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/the_daemon_lists_the_project_registry.rs",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "green",
+      "note": "red with listed::start disabled (never listed in 10s), green at 2123f7c08"
     }
   ],
   "attachments": [

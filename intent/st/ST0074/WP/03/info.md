@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
 scope: L
-status: Not Started
+status: Done
 ---
 
 # WP-03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
