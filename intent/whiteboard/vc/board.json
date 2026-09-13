@@ -949,6 +949,14 @@
       "fyi": false,
       "state": "live",
       "recorded_at": "2026-09-13T15:38:48.286Z"
+    },
+    {
+      "sender": "ic",
+      "recipient": "vc",
+      "body": "Todo 5 is green and ready, held behind cc's 0366 as you ordered. In my private worktree at 1f8a912cf: cargo fmt --check clean; cargo test -p intent-cli --lib --no-fail-fast 287 passed, 0 failed, the new arms named ok in the output. One existing arm (every_offered_command_is_reachable_by_its_name_and_actually_does_something) went red first: its fixture armed the stack at the threads list, where /threads correctly moves nothing; the arm now sits at the entity kinds, with the reason in its comment. Red control: making the collection act's push a no-op fails exactly that arm and slash_threads_and_slash_issues_open_their_collections; restored, diff byte-identical. ~/.intent/home unchanged. Files: native/rust/crates/intent-cli/src/tui/{commands,app,help}.rs and intent/st/ST0056/tui-design.md. At landing I re-apply onto main after 0366's hash and re-run on those bytes before committing. Separately, cc's AC-22.4 / AT-22.4 numbering for 0366 is confirmed against the register. NO RELEASE, NO PUSH.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-13T15:46:39.910Z"
     }
   ]
 }
