@@ -30,10 +30,10 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 - AC-03.3 `intent discover [fromdir]` registers every config-compatible Intent project it finds under the directory, and names each project it does not register with the reason. -- satisfied: yes (computed)
 - AC-03.4 intentd refreshes what it knows of the machine's projects when the registry file changes, without a restart. -- satisfied: yes (computed)
 
-### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Not Started)
+### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Done)
 
-- AC-04.1 `/projects` in the explorer lists the registry's projects and opens the one picked. -- satisfied: no (computed)
-- AC-04.2 `intent explore` outside an Intent project opens the project picker, and leaving the picker returns to the shell. -- satisfied: no (computed)
+- AC-04.1 `/projects` in the explorer lists the registry's projects and opens the one picked. -- satisfied: yes (computed)
+- AC-04.2 `intent explore` outside an Intent project opens the project picker, and leaving the picker returns to the shell. -- satisfied: yes (computed)
 
 ### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Done)
 
@@ -58,9 +58,10 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 - AT-03.3 `native/rust/crates/intentsvcs/src/projects.rs` -- covers AC-03.3 -- status: green -- projects::tests::discover_registers_the_compatible_and_names_the_rest, green at 2123f7c08
 - AT-03.4 `native/rust/crates/intentd/tests/the_daemon_lists_the_project_registry.rs` -- covers AC-03.4 -- status: green -- red with listed::start disabled (never listed in 10s), green at 2123f7c08
 
-### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Not Started)
+### WP-04 -- The explorer's project picker: /projects, and intent explore outside a project (status: Done)
 
-_(no tests in this group)_
+- AT-04.1 `native/rust/crates/intent-cli/src/tui/picker.rs` -- covers AC-04.1 -- status: green -- tui::picker::tests::enter_opens_the_project_under_the_cursor: red with Enter inert, green at 2a121e359
+- AT-04.2 `native/rust/crates/intent-cli/src/tui/picker.rs` -- covers AC-04.2 -- status: green -- tui::picker::tests::esc_leaves_and_an_empty_registry_says_how_to_fill_it: red with Esc inert, green at 2a121e359
 
 ### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Done)
 

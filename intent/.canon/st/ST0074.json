@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "The explorer's project picker: /projects, and intent explore outside a project",
       "scope": "M",
-      "status": "not-started",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
@@ -227,6 +227,26 @@
       ],
       "status": "green",
       "note": "red with listed::start disabled (never listed in 10s), green at 2123f7c08"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/picker.rs",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "green",
+      "note": "tui::picker::tests::enter_opens_the_project_under_the_cursor: red with Enter inert, green at 2a121e359"
+    },
+    {
+      "id": "AT-04.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/picker.rs",
+      "covers": [
+        "AC-04.2"
+      ],
+      "status": "green",
+      "note": "tui::picker::tests::esc_leaves_and_an_empty_registry_says_how_to_fill_it: red with Esc inert, green at 2a121e359"
     }
   ],
   "attachments": [

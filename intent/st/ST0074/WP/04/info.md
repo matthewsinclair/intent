@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The explorer's project picker: /projects, and intent explore outside a project
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-04: The explorer's project picker: /projects, and intent explore outside a project

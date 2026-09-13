@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **ST0074 for 3.0.2, before the tag.** WP-05 LANDED at 2f29401b6 (66 files); design.md 3.0.2 and AC-05.1 at d64e9eca8. WP-03 (projects.rs registry, intent discover, explore registers its project, intentd listed.rs watch, wire listed field) is written in wt-wp03 stacked on WP-05 and in its one proving run (AT-03.4 red then green, then the workspace suite). Then WP-04 (picker, /projects, explore outside a project). Open with vc: the old pre-commit carriers read ~/.intent/home and need intent claude upgrade --apply per estate after the 3.0.2 install (option a, built) or hv rules (b). Do not stop or restart live daemon 87652; ~/.intent/home stays this tree. Hold every commit the moment dc announces a window.
+- **ST0074 for 3.0.2: all three build WPs are on main.** WP-05 2f29401b6 (Done 7018aab1e), WP-03 2123f7c08 (Done 338451e3d), WP-04 2a121e359 (its ATs and Done being committed now). They reach the machine at dc's next rebuild before the cut. Open with hv via vc: the old pre-commit carriers read ~/.intent/home, and every estate needs intent claude upgrade --apply after the 3.0.2 install (option a, built) unless hv rules (b). Do not stop or restart live daemon 87652; ~/.intent/home stays this tree. Hold every commit the moment dc announces a window.
 
 ## TODO
 
