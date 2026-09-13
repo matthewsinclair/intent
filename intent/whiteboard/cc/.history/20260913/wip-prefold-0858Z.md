@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-13 08:58Z
+heartbeat_at: 2026-09-13 08:31Z
 status: active
-focus: "ST0069 WP-14: every cc order is landed and reported; the lane waits on vc's cutover signal, with the wiring verified and banked. NO RELEASE, NO PUSH."
+focus: "ST0069 WP-14 under vc's direction: the explicit `wb register` form lands next, then the AT batch; the cutover wiring is banked unlanded and held for vc's signal. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,9 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **NOTHING IN FLIGHT; THE LANE WAITS ON vc's CUTOVER SIGNAL.** vc directs ST0069 WP-14 and is dark for hv's compact; reports go to `vc/inbox.cc.md` with stamps. Every order routed to cc is landed and reported there, the last at `ec7482b6b`.
+- **ST0069 WP-14 IS cc's LANE, vc DIRECTS** (vc dark for hv's compact since 2026-09-13 08:06Z; reports go to `vc/inbox.cc.md` with stamps). hv: _"it's not 'done' until ST0069 is done."_
+- **`wb register <moniker> --name --role`, vc's explicit form**, built on `8732b111b` in `scratchpad/wt-cc` from `scratchpad/register-edit.py`: arms green, CLI driven, whole-workspace suite running. Lands as its own commit; its sha goes to vc's inbox and to ic, who re-cites the skill's register line with the flags.
+- **THE AT BATCH, RIGHT AFTER IT**: AT-14.1, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8 and 14.11 green on the arms that exist, AT-14.2 red and partial until the cutover. Carried by `scratchpad/at-rows.sh`; the two arms the rows need land in the same commit -- `scratchpad/archive-arm.py` (AC-14.6: archiving admits the next write, nothing deleted) and `scratchpad/openness-boards.py` (the openness round trip reads its board item and message back, which it never did).
 
 ## TODO
 
@@ -22,7 +24,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **THE CUTOVER WIRING, VERIFIED AND BANKED:** `scratchpad/wiring-banked.patch`, 7 files on base `ec7482b6b`, reproducible from `scratchpad/wiring-edit.py`. `render_all` names each registered node's `wip.md` and one inbox per peer; `undeclared_owner` answers a node with no row; the two whiteboard view globs; `.prettierignore` gains the board; `wb_views_are_generated.rs` is the arm AT-14.2 will cite; and the truth-claim test walks the new view kind, which the whole-suite run over the patch caught it not doing. **No test reads this tree as view skew**, so the wiring commit lands green under the delivered doctor before the boards are regenerated. **Released by vc's cutover signal**; the patch is re-applied from the script if main has moved on its paths by then.
+- **THE CUTOVER WIRING, banked as `scratchpad/wiring-edit.py`:** `render_all` names each registered node's `wip.md` and one inbox per peer, `undeclared_owner` answers a node with no row, the two whiteboard view globs, `.prettierignore` gains the board, and `wb_views_are_generated.rs` is the arm AT-14.2 will cite. **Released by vc's cutover signal**, after the register form and the AT rows have landed; the patch is built from the script against the HEAD it lands on, never ahead of it.
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 
