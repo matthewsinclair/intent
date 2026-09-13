@@ -1,17 +1,17 @@
 ---
-description: "Multi-session coordination via intent/whiteboard/<node>/: per-node boards + single-writer inboxes, claim ST scopes, broadcast, heartbeat, release"
+description: "Multi-session coordination through `intent wb`: per-node boards and single-writer inboxes in the store, claim ST scopes, broadcast, heartbeat, release"
 chains_to: []
 ---
 
 # Whiteboard -- Multi-Session Coordination (Protocol 3.0)
 
-Coordinator for multiple Claude Code sessions -- and the human -- running concurrently against one Intent project. Each participant is a **node** with its own directory under `intent/whiteboard/`. Every file has exactly one writer; that single-writer rule is what makes the board contention-free and cleansable. The whiteboard is the _live_ channel; `intent/wip.md` is the post-session snapshot.
+Coordinator for multiple Claude Code sessions -- and the human -- running concurrently against one Intent project. Each participant is a **node** with its own board. **`intent wb` is how you read and write it**, and the files under `intent/whiteboard/<node>/` are rendered views of what the store holds. Every board and every inbox has exactly one writer, enforced by the API rather than by convention; that single-writer rule is what makes the board contention-free and cleansable. The whiteboard is the _live_ channel; `intent/wip.md` is the post-session snapshot.
 
 **Protocol 3.0** supersedes 2.0 (flat shared `asks.md` + per-stream files). v3.0 = per-node directories + a single-writer inbox model + the human as a first-class `hv` (hypervisor) node.
 
 ## Nodes
 
-A node is a participant. The 2-letter moniker is the directory name, the routing key, and the handle. Nodes are **per-project configuration**: the project declares its roster (monikers, display names, roles) in its hand-authored `intent/whiteboard/README.md`. No roster is baked into this skill -- it discovers nodes by listing the immediate subdirectories of `intent/whiteboard/`.
+A node is a participant. The 2-letter moniker is the routing key, the handle, and the name of its rendered directory. Nodes are **per-project configuration**: the project declares its roster (monikers, display names, roles) in its hand-authored `intent/whiteboard/README.md`, and `intent wb register` is what puts that declaration on the board. No roster is baked into this skill -- `intent wb status` is how you find out who the nodes are.
 
 A project that wants the human in the loop gives them a node, conventionally `hv` (the **hypervisor**): the human who adjudicates scope, sequences work, owns releases, and is where escalations land. The human is addressed as `hv` in all protocol language, never by name. The hypervisor node is human-driven -- it is read like any other node, but the human maintains it (or has it maintained on their behalf) rather than running `pickup` on a heartbeat.
 
@@ -35,20 +35,29 @@ Intent's own roster names the validation node, in the human's words: _the workst
 
 **A node reporting an escalation is not finished when the write returns.** It is finished when a named reader has it. If the roster names nobody, that is the defect to fix first -- ahead of whatever was being escalated.
 
-## When to invoke
+## The verbs at a glance
 
-- `pickup` -- chained from `/in-session`; read own board + own inboxes + peer state, touch heartbeat.
-- `ask <node> <text>` -- send a point-to-point message to another node.
-- `announce <text>` -- broadcast one line to every peer (eg before touching a shared platform layer).
-- `decide <text>` -- record a cross-node decision on your own board.
-- `claim <STxxxx>` / `unclaim <STxxxx>` -- add/remove an ST from your board's claims.
-- `clear <sender>` -- archive handled entries out of one of your own inboxes.
-- `archive` -- roll your own DONE board content + handled inbox entries into your own history.
-- `touch` -- refresh your heartbeat.
-- `release` -- chained from `/in-finish`; set your status paused.
-- `status` -- read-only one-line-per-node summary.
+**EVERY ONE OF THESE IS A COMMAND, AND `intent wb` IS THE ONLY DOOR.** They read and write the coordination model in the store; the files under `intent/whiteboard/` are rendered views of it. Each takes `--node <moniker>` to name the node acting.
 
-If invoked with no subcommand, default to `status`.
+| What you want                                        | The verb                           |
+| ---------------------------------------------------- | ---------------------------------- |
+| Start a session                                      | `intent wb pickup`                 |
+| See where every node stands                          | `intent wb status`                 |
+| Read one node's whole board                          | `intent wb show <node>`            |
+| Message one node                                     | `intent wb ask <node> <body>`      |
+| Broadcast to every peer                              | `intent wb announce <body>`        |
+| Record what you are doing, or a watch-out, or a hold | `intent wb add <kind> <text>`      |
+| Record a cross-node decision                         | `intent wb decide <text>`          |
+| Take or drop a thread                                | `intent wb claim` / `unclaim <id>` |
+| Retire one of your own items                         | `intent wb archive <kind> <seq>`   |
+| Mark one sender's messages handled                   | `intent wb clear <sender>`         |
+| Say you are still alive                              | `intent wb touch`                  |
+| End a session                                        | `intent wb release`                |
+| Put the project's nodes on the board                 | `intent wb register`               |
+
+`intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`.
+
+**WHAT THIS FILE IS FOR, NOW THAT THE VERBS EXIST, IS THE HALF A COMMAND CANNOT CARRY**: when a verb is the wrong thing to run, and what has to be true before you run it. A verb enforces its own shape -- the bound, the single writer, the clock -- and cannot know whether an inbox entry was actually handled or whether a ruling has been executed. That judgement is below, and it is the reason this skill is longer than the verb list.
 
 ## File layout
 
@@ -63,7 +72,13 @@ intent/whiteboard/
       YYYYMMDD/             # the node's archived DONE work + handled inbox entries
 ```
 
-Scaffolding a node is the deterministic job of `intent claude ws new <node>` (the provisioner), not a hand ritual: it creates `<node>/`, `<node>/.history/.gitkeep` (git does not track an empty directory), the node's `wip.md`, and an `_(empty)_` inbox in **both** directions with every existing peer (`<node>/inbox.<peer>.md` + `<peer>/inbox.<node>.md`). The `intent claude ws` family (`new` / `list` / `archive` / `hygiene`) plus `intent claude start <node>` (launch a session bound to a node) own this mechanical lifecycle; this skill owns the judgement ops below. Both honour the one on-disk format described here.
+**THESE FILES ARE GENERATED VIEWS AND YOU DO NOT EDIT THEM.** The board and every inbox are rendered from the store, so a hand edit is not a write -- it is skew, and `intent doctor` reports it as skew. `intent wb` is what changes a board; the file is what the change looks like afterwards. The shapes below are documented because you READ them constantly, not because you author them.
+
+**`.history/` IS NO LONGER WHERE ARCHIVED CONTENT GOES.** Archived is a STATE an item or a message carries, not a directory it moves to: the row keeps its number and its text and stays readable, it just stops counting against the live bound. `intent wb archive` and `intent wb clear` are that transition. Existing `.history/` directories stay as the record of the hand-authored era and are not reloaded on pickup, exactly as before.
+
+**A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** `intent wb register <moniker> --name <display> --role <role>` puts one node on the board from its arguments; it is idempotent on a moniker already registered with the same values and refuses one registered with different values, so re-running it is safe and a silent redefinition is not possible. There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
+
+`intent wb register` with no arguments is the other form, and it exists for the migration rather than for new nodes: it reads the roster from each node's own hand-authored `wip.md` header. It stays beside the explicit form until the last hand-authored board on the machine has migrated, and then it has nothing left to read.
 
 Single-writer rule:
 
@@ -84,7 +99,7 @@ focus: "<one-line current goal>"
 claims: [STxxxx, ...]
 ---
 # <Name> (<node>)
-## DOING        -- in-flight work (archived into .history/ when done)
+## DOING        -- in-flight work (archived, as a state, when it is finished with)
 ## TODO         -- queued / next
 ## Holds        -- work you are NOT doing, each with the CONDITION that releases it
 ## Watch-outs   -- durable cautions peers should know (standing; not archived)
@@ -105,7 +120,7 @@ Only the header block is required for protocol compliance; the body sections are
 
 ### The header block is NOT YAML
 
-It looks like YAML frontmatter and it is not. It is a **line-oriented `key: value` block**, and every reader in the tool -- `fm_get`, `ws list`, `ws hygiene` -- reads it that way. The rules are the whole specification:
+It looks like YAML frontmatter and it is not. It is a **line-oriented `key: value` block**, and it is read that way by the header guard, by the roster registration that reads a hand-authored board, and by every tool that ever printed one. The rules are the whole specification:
 
 - **One line per key.** The value is everything after the first `: ` to the end of that line. There are no multi-line values, no block scalars, no nesting, no comments, and no continuation lines.
 - **Quotes are a display delimiter, not syntax, and the delimiter is the DOUBLE quote.** A single pair of surrounding `"` is stripped for display; quotes INSIDE a value are literal and are **never escaped**. Write `focus: "the counted body is the SENT body"` exactly as it reads. Writing `\"` puts a backslash in your board. **Single quotes are not delimiters and are never stripped** -- `focus: 'plain text'` renders with its quotes visible, which is the intended outcome rather than a gap. Two delimiter forms would mean a value whose content legitimately opens and closes with `'` silently loses two characters, and the rendered view would differ from the file with nothing saying so; visible quotes are a wart the author fixes at the next fold. **The one format whose whole purpose is having almost no rules does not get a second quoting rule.**
@@ -113,13 +128,13 @@ It looks like YAML frontmatter and it is not. It is a **line-oriented `key: valu
 
 This is a deliberate ruling, not an accident, and it was made because the alternative loses. The block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format: a `focus:` line quoting a phrase is the natural thing to write, and under YAML it is invalid. Measured on a live board, a sizeable share of headers were unparseable at a point in time, and a sweep of one node's recent revisions found invalid headers in more than one episode -- **all of which repaired themselves** at the next fold, before anyone noticed. A defect whose lifetime is shorter than the interval between observations leaves no corpse, so the real rate is higher than any point-in-time count.
 
-Under YAML the correct board also renders worse: `ws list` strips the delimiters without unescaping, so a node that complied would display `\"` mid-prose. The format the tooling actually implements, the format the nodes actually write, and the format that reads correctly are the same one; the word "YAML" was the only thing out of step, so the word is what changed.
+Under YAML the correct board also rendered worse: the reader that printed a roster stripped the delimiters without unescaping, so a node that complied displayed `\"` mid-prose. The format the tooling implements, the format the nodes write, and the format that reads correctly are the same one; the word "YAML" was the only thing out of step, so the word is what changed.
 
-`intent claude ws hygiene` enforces exactly this rule: every line in the block is a single-line `key: value`, and the required keys are readable. It does NOT check YAML validity, because validity is not the contract.
+**AND ON A GENERATED BOARD YOU ARE READING THIS BLOCK RATHER THAN WRITING IT.** The header is rendered from the node's row, so the quoting question stops arising the moment a board is a view: the renderer emits the one form described above and a value carrying a quote carries it literally, because nothing is parsing it back. The rules stay written down because the guards still refuse a bad block in a hand-authored board, and because a reader who does not know the format reads a rendered board wrongly too.
 
 #### Writing valid YAML here is the failure mode with no natural control
 
-The measurement above is about a node writing **invalid** YAML, and that direction has a built-in corrective: the next node to read the board sees something broken and repairs it. **The opposite direction does not, and cannot.** A node that knows YAML, meeting a `"` inside a double-quoted value, escapes it -- which is correct YAML, produced by care, and looks completely fine. Nothing about it reads as wrong. The only symptom is `fm_get` stripping the delimiters **without unescaping** (deliberately -- see `intent_claude_cwi`), so `ws list` renders the backslash or the doubled apostrophe mid-prose, at a moment nobody is looking.
+The measurement above is about a node writing **invalid** YAML, and that direction has a built-in corrective: the next node to read the board sees something broken and repairs it. **The opposite direction does not, and cannot.** A node that knows YAML, meeting a `"` inside a double-quoted value, escapes it -- which is correct YAML, produced by care, and looks completely fine. Nothing about it reads as wrong. The only symptom is a reader stripping the delimiters **without unescaping**, deliberately, so the backslash or the doubled apostrophe renders mid-prose at a moment nobody is looking.
 
 **So the escape forms are refused at commit time** by `lib/templates/hooks/whiteboard-header-guard.sh`, a separate guard from the clock guard below -- one concern, one home, because a guard's name must not come to cover checks it does not describe. It reads only header blocks of live boards (never `.history/`, whose archives replay old headers verbatim), only lines the commit ADDS (inherited breakage must never wedge a board), and **never prose** -- nodes report this class to each other by quoting it, and scanning prose would make reporting the defect an offence. Like the clock guard it never auto-corrects: it prints the repaired line so the fix is a copy-paste.
 
@@ -129,7 +144,7 @@ The fix is never a better escape. It is to stop treating the block as YAML.
 
 One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, `clear` into history).
 
-Inboxes are pre-seeded in both directions when a node is scaffolded (`ws new` writes the header + `_(empty)_` sentinel for every existing peer pair). `ask` / `announce` also create an absent `<recipient>/inbox.<you>.md` on demand before appending -- so a hand-added node, or a board predating the provisioner, self-heals. Either way, a fresh inbox is its header line plus the empty sentinel:
+An inbox exists because the pair of nodes exists: once both are registered, the view renders in both directions whether or not a message has been sent. A fresh one is its header line plus the empty sentinel:
 
 ```
 # inbox: <sender> -> <recipient>
@@ -179,6 +194,12 @@ Corollaries:
 - **A time that came out of a tool carries whatever zone that tool chose, and appending `Z` is an ASSERTION, not a format.** `git log` is the usual case and not the only one: `stat -f '%Sm'` prints local; `ls -la` prints local; `git log --date=format:` prints the commit's OWN recorded zone and IGNORES `TZ`, so `TZ=UTC git log --date=format:'%H:%MZ'` returns local and looks like it worked -- `--date=format-local:` is the form that honours `TZ`. The rule cannot enumerate every tool, so the general form is the keeper: `date -u`, or `date -u -r <epoch>`, or say nothing. Measured 2026-08-26 on the Intent board: two nodes each rendered a real read an hour ahead by appending `Z` to a local listing, and one did it INSIDE the audit it was running to catch the first instance.
 - **A stamp typed from the last one you read is fabricated too.** The offset error is +1h exactly; this one drifts by however long the turn felt. Same cure: a clock value goes into a message or a board only when the command that produced it is in front of you in this turn, verbatim, or it does not go in at all. Cross-session messages carry the same `## (...)` ordering claims as the boards and sit under none of the whiteboard guards (Intent issue 0099), so the discipline is the only check on that channel.
 
+### On a generated board the clock is the SERVICE's, and that is the point
+
+**EVERY STAMP `intent wb` WRITES IS READ FROM THE CLOCK BY THE SERVICE AT THE MOMENT OF THE WRITE.** No verb takes a timestamp, none of them has a flag for one, and there is nothing to validate -- the fabricated-stamp class is closed by construction rather than by detection, which is what the rule above spent two years asking for. A heartbeat, a message's stamp and an item's `archived_at` all come from the store.
+
+So the discipline below is NOT retired, and it is narrower than it was: it now governs everything you write by hand that a verb does not stamp for you -- a hand-authored board before the cutover, prose in a message body, a date you put in a commit or a report. **A clock value goes in only when the `date -u` read is in front of you in this turn, verbatim.**
+
 ### This is enforced, not merely written down
 
 `lib/templates/hooks/whiteboard-clock-guard.sh` runs from the pre-commit gate and **refuses the commit** -- the bad stamp never lands. It is opt-in by the presence of `intent/whiteboard/`, so nothing changes for a project without a board. Built and measured in Lamplight, brought upstream because Intent ships this protocol and every consumer inherits the hole otherwise.
@@ -201,94 +222,95 @@ Two things the guard deliberately does not do. It **never auto-corrects** -- a g
 
 ## Node-identity discovery
 
-On `pickup`, determine which node this session is:
+Every verb takes `--node <moniker>`, and which node you are is the one thing the tool cannot work out for you.
 
-1. If args carry a moniker (`/in-whiteboard pickup vc`), use it.
-2. Otherwise infer from cues: working directory, branch, recent commits, the user's framing, which node's `wip.md` carries this session's `session_id`.
-3. If still ambiguous, ask the user before writing anything.
+1. If the invocation carries a moniker, use it.
+2. Otherwise infer from cues: the session's own name, the working directory, the user's framing, which node's board names this session.
+3. If still ambiguous, ask the user before writing anything. **A write under the wrong moniker is a write on somebody else's board**, and the single-writer invariant is enforced against the moniker you passed rather than against who you are.
 
-The moniker is durable; subsequent sessions of that node inherit it via the existing `<node>/` directory.
+The moniker is durable; subsequent sessions of that node inherit it.
 
-## Procedure per subcommand
+## Each verb, and the judgement it cannot carry
 
-### pickup
+### `pickup`
 
-1. List `intent/whiteboard/*/` to enumerate nodes. Determine your node (see discovery).
-2. Read your `<you>/wip.md` (resume state) and every `<you>/inbox.*.md` (one per peer; incoming). Surface any non-empty inbox entries to the user.
-3. Read each peer's `<peer>/wip.md` header block (line-oriented `key: value`, NOT YAML -- see wip.md shape). For each peer with `status: active` AND `heartbeat_at` within 7 days AND a different `session_id`: surface "node X active (heartbeat <relative>, focus: <focus>)". Active but older than 7 days: "node X appears stale".
-4. Update your `<you>/wip.md` header block: `session_id` (this session, or `unknown`), `heartbeat_at` (now), `status: active`. Keep `claims` + body intact. One line per key; do not escape quotes inside a value.
-5. Report a one-line summary of peer state + your inbound messages.
+`intent wb pickup --node <you>` -- it prints your whole board and every peer's header state, and moves your heartbeat once, in that order (the touch precedes the read, because your own board is part of what comes back).
 
-### ask <node> <text>
+Peers come back as HEADERS only. `intent wb show <peer>` is the door for one whole board, and **every board is readable from every workstream** -- the single-writer invariant is about WRITES and never made a board private.
 
-1. Your `inbox.<you>.md` in `<node>/` usually already exists (`ws new` pre-seeds it); if it is absent (a hand-added node), create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
+**What the verb cannot do is read your inboxes FOR you.** Surface what came in to the user; an entry nobody mentions is an entry nobody handles.
 
-   ```
-   ## (YYYY-MM-DD HH:MMZ) [Re: <prior-anchor>] [FYI only -- no response needed.]
+### `ask <node> <body>`
 
-   <text>
-   ```
+`intent wb ask <node> "<body>" --node <you>`, with `--re <anchor>` when you are threading a reply and `--fyi` when no reply is expected. The path from sender to recipient is the message's own identity, so there is no `to:` or `from:` line to write.
 
-   If the inbox already carries only `_(empty)_`, replace that sentinel with the first entry.
+A reply is a new message in the other direction, carrying `--re` the entry it answers.
 
-2. Touch your heartbeat.
+**A SOCKET MESSAGE IS NOT A DELIVERY AND NEITHER IS THIS ONE.** The verb returns when the message is stored. It is handled when a reader has acted on it, which is a different event, and the gap between them is where three rulings went unregistered by a busy peer in one afternoon. Durable things go in the inbox; things that must be ACTED ON get said twice.
 
-A reply goes to `<sender>/inbox.<you>.md` (the inbox flips direction).
+### `announce <body>`
 
-### announce <text>
+`intent wb announce "<body>" --node <you>` -- one message to every registered node but you.
 
-1. Append the same one-line entry to EVERY peer's `<peer>/inbox.<you>.md` (all nodes except yourself).
-2. Touch your heartbeat.
+Use it for 1-to-all signals: a shared platform layer you are about to touch, a protocol change, a broadcast decision. It is not a second way to hold a conversation; a thing that needs an answer is an `ask`.
 
-Use for 1-to-all signals -- eg "touching `apps/lamplight/**` for ST-X" (a shared platform-layer edit; the retired `lamplight.md` job), or a protocol/decision broadcast.
+### `add <kind> <text>`
 
-### decide <text>
+`intent wb add <doing|todo|watchout|hold> "<text>" --node <you>`. The service assigns the `seq`.
 
-1. Append `- (YYYY-MM-DD) <text>` to your `<you>/wip.md` `## Decisions` section (peers read it at pickup).
-2. Touch heartbeat.
+**A HOLD CARRIES THE CONDITION THAT RELEASES IT, AND THE CONDITION IS THE CONTENT.** _Holding 0162 until the shared daemon is free_ is a hold; _holding 0162_ is an item that left DOING and entered nothing, indistinguishable at every later reading from work that was quietly dropped. The verb cannot check this. Nothing can -- it is judgement, and it is yours.
 
-### claim <STxxxx> / unclaim <STxxxx>
+`decision` is refused here by name and redirected to `wb decide`, so there is one door per kind.
 
-1. Add/remove `STxxxx` in your `wip.md` `claims`.
-2. On claim, scan peers' `wip.md` `claims`: if an _active_ peer already claims it, stop and surface the overlap for the hypervisor to arbitrate.
-3. Touch heartbeat.
+### `decide <text>`
 
-### clear <sender>
+`intent wb decide "<text>" --node <you>` -- a decision is an item on your own board rather than a message, because a decision is broadcast by sitting somewhere its peers read at pickup. Giving it recipients would turn one durable statement into four copies that can diverge.
 
-**AN ENTRY MAY BE ARCHIVED ONLY IF IT WAS ANSWERED, ACTIONED, OR RE-STATED LIVE ON YOUR BOARD. CLEARING IS NOT ONE OF THE THREE.** `clear` is not inbox hygiene and reading an entry is not handling it: the op moves an entry to where nobody looks, so a cleared-but-unactioned entry leaves a board that is affirmatively wrong rather than merely stale. Measured in Laksa 2026-08-31 (laksa-cc, adopted fleet-wide, routed here because the enforcement home is this file): a node routed two red guards to a peer, correctly attributed; the peer's next fold cleared and archived the entry unactioned and wrote _nothing in flight_, and the tree stayed red until a SECOND report caught it a session later. No guard is possible here -- actioned-ness is judgement -- so the precondition is prose and the discipline is yours.
+### `claim <id>` / `unclaim <id>`
 
-1. In your `<you>/inbox.<sender>.md`, move the handled entries verbatim into `<you>/.history/<YYYYMMDD>/inbox.<sender>.md`, and remove them from the live inbox (leaving the header + `_(empty)_` if none remain).
-2. You own your inbox -- no peer files touched. Touch heartbeat.
+`intent wb claim ST0069 --node <you>`, and `unclaim` to drop it. It takes a work package as well as a thread.
 
-### archive
+**Before you claim, look at who else does.** `intent wb status` prints every node's claims; if an active peer already holds it, stop and surface the overlap for the hypervisor to arbitrate rather than claiming alongside them.
 
-Roll your OWN node's DONE content out of the live files into your own history, daily-or-more, so the live files stay lean (they are read on every pickup).
+### `clear <sender>`
 
-1. Ensure `<you>/.history/<YYYYMMDD>/` exists (today, or the content's own date).
-2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/.history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, `## Holds`, and still-relevant `## Decisions`.
-   - **AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping `.history/` is discoverable by nobody, because grepping `.history/` is not a thing a node does at pickup. Buried directives were found, one of them shipping the option the human had explicitly DECLINED, days later.
-3. From each `<you>/inbox.<sender>.md`: move handled entries into history (same as `clear`, **including its precondition** -- answered, actioned, or re-stated live, and reading is none of the three).
-4. `prettier --write` the touched files if the project formats markdown.
-5. **Single-owner: you only ever touch your own `<you>/` directory, so there is no peer-collision hazard** -- this is the key simplification over 2.0's shared-file archive. Commit via explicit pathspec (`git commit --only <you>/...`), never `-A`.
+`intent wb clear <sender> --node <you>` -- it marks every live message that sender sent you handled.
 
-### touch
+**AN ENTRY MAY BE MARKED HANDLED ONLY IF IT WAS ANSWERED, ACTIONED, OR RE-STATED LIVE ON YOUR BOARD. CLEARING IS NOT ONE OF THE THREE, AND READING IT IS NOT EITHER.** The op moves an entry to where nobody looks, so a cleared-but-unactioned entry leaves a board that is affirmatively WRONG rather than merely stale. Measured in Laksa 2026-08-31 (laksa-cc, adopted fleet-wide, routed here because the enforcement home is this file): a node routed two red guards to a peer, correctly attributed; the peer's next fold cleared and archived the entry unactioned and wrote _nothing in flight_, and the tree stayed red until a SECOND report caught it a session later. **No guard is possible, because actioned-ness is judgement** -- the precondition is prose and the discipline is yours.
 
-1. Update your `wip.md` `heartbeat_at` to now, read from `date -u +'%Y-%m-%d %H:%MZ'`. No other change. Run the command every time -- "now" is not a value you already know.
+### `archive <kind> <seq>`
 
-### release
+`intent wb archive <doing|todo|decision|watchout|hold> <seq> --node <you>` -- one item of your own leaves the live count.
 
-**THIS IS A SESSION-END OP AND NOTHING ELSE.** Do not run it for a localfold, a compact, or a context reset -- see invariant 6. If the session continues, the status continues.
+**ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its number and its text and stays readable; it just stops counting, which is how a board that has started refusing a write begins accepting again. It reports what MOVED, so archiving something already archived says so rather than lying.
 
-1. Set your `wip.md` `status: paused`; update `heartbeat_at`. Leave `claims` + body intact.
+**It takes a KIND as well as a `seq` because `seq` alone is ambiguous**: items are numbered within (node, kind), so you can hold a `doing` 1 and a `decision` 1 at once.
 
-### Fold vocabulary (localfold / globalfold)
+**AND THE STATE CHANGE IS THE SCHEDULE.** There is no fold to remember, no sweep, no timer: an item leaves the live count the moment you state that it is finished with, because handled and done are facts only you can state. What the verb cannot judge is whether it IS finished with -- see the fold rules below, and in particular the one about rulings.
 
-The human may say "localfold" or "globalfold" (terms from Lamplight; defined in `/in-finish`). In whiteboard terms: **localfold** = tidy your OWN node before a compact -- migrate settled `## Decisions` into `wip.md`, then `archive` your own DONE content. **IT DOES NOT `release`.** A localfold before a compact is not a session ending, and invariant 6 says exactly that; `release` belongs to `/in-finish` when the session actually ends. This sentence read _then `release`_ until 2026-08-31 and contradicted invariant 6 and the red-flag table **in this same file**, four sections apart -- which is why nodes kept re-deriving the answer under compact pressure instead of reading it. `/in-finish` carried the same error in two places and has been corrected with it. **globalfold** = the project-wide snapshot (`intent/wip.md` / `restart.md` / `done.md`), typically the coordinating / validation node's job, not a per-node op. Either way you only ever fold your own `<you>/` directory.
+### `touch`
 
-### status
+`intent wb touch --node <you>` -- your heartbeat, and nothing else.
 
-1. Read every `<node>/wip.md` header block.
-2. Print one line per node: `<node>: <status>, focus=<focus>, claims=[...], heartbeat=<relative>`. No writes.
+**No caller supplies the time and there is no flag for one.** A heartbeat says _this node was alive at this moment_; a caller-supplied value would be the fabricated stamp with the model's blessing. The service reads the clock at the write, which closes that class by construction rather than by detection.
+
+### `release`
+
+`intent wb release --node <you>` -- it sets you paused AND stamps, because the last thing a paused node says is WHEN it stopped. A status change alone would leave a cleanly-released node looking exactly like one that died mid-turn, and telling those apart is why a board carries a heartbeat at all.
+
+**THIS IS A SESSION-END OP AND NOTHING ELSE.** Not for a localfold, not for a compact, not for a context reset -- see invariant 6. If the session continues, the status continues.
+
+### `status` and `show`
+
+`intent wb status` for one line per node -- role, status, heartbeat, claims, and the focus line untruncated, because the focus is the field a person is actually reading for. `intent wb show <node>` for one node's whole board: its header, its items, and the messages addressed to it. Neither writes.
+
+### Folding: localfold and globalfold
+
+The human may say "localfold" or "globalfold" (terms from Lamplight; defined in `/in-finish`). **localfold** = tidy your OWN node before a compact -- archive what is finished with, clear what you have handled. **IT DOES NOT `release`.** A localfold before a compact is not a session ending, and invariant 6 says exactly that; `release` belongs to `/in-finish` when the session actually ends. This sentence read _then `release`_ until 2026-08-31 and contradicted invariant 6 and the red-flag table **in this same file**, four sections apart -- which is why nodes kept re-deriving the answer under compact pressure instead of reading it. **globalfold** = the project-wide snapshot (`intent/wip.md` / `restart.md` / `done.md`), typically the coordinating or validation node's job, not a per-node op.
+
+**AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping an archive is discoverable by nobody. Buried directives were found days later, one of them shipping the option the human had explicitly DECLINED.
+
+**A HOLD IS NOT ARCHIVED WHILE ITS CONDITION STANDS UNMET.** Check every hold when you pick up and move the released ones back into TODO -- which is `wb archive hold <seq>` and then `wb add todo`, because the condition being met is a third thing, neither DONE nor retirement.
 
 ## Node roles
 
@@ -315,13 +337,13 @@ A validation node is the independent check that the other nodes' landed or claim
 
 ## Protocol invariants
 
-1. **One writer per file.** `wip.md` = the node; `inbox.<sender>.md` = the sender. The recipient owns its inbox lifecycle (reads, actions, clears into its own history).
+1. **One writer per board, enforced by the API rather than by convention.** A node writing another node's board, or an inbox it does not own, is refused by name. `wip.md` = the node; `inbox.<sender>.md` = the sender; the recipient owns its inbox lifecycle. The rule did not change when it stopped being a convention -- it stopped being breakable.
 2. **Live channel, not snapshot.** `intent/wip.md` is the post-session snapshot; `<node>/wip.md` is the live board.
 3. **Claims by ST ID** (in the `wip.md` header block), never glob paths.
 4. **Broadcast via `announce` -> peers' inboxes.** No shared file; a shared platform layer (eg `apps/lamplight/**`) is coordinated by announcing before you touch it.
 5. **Heartbeat older than 7 days marks a claim reclaimable** -- reclaim requires explicit hypervisor acknowledgement.
 6. **`/compact` does NOT end a session** -- status stays `active`; the next `pickup` touches the heartbeat.
-7. **Archive your own dir only**, daily-or-more; `.history/YYYYMMDD/` is append-only and never reloaded on pickup.
+7. **You archive your own items only**, and archived is a state rather than a directory: the row stays readable and stops counting. Existing `.history/YYYYMMDD/` trees are the record of the hand-authored era, append-only, never reloaded on pickup.
 8. **The human is `hv`** in all protocol language, never by name.
 
 ## Why this exists
@@ -343,3 +365,7 @@ Concurrent sessions need a live coordination surface, and `wip.md` (the post-ses
 | "The node said it's done, so it's done."                    | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask.  |
 | "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate. |
 | "I stamped one earlier this session, I'll reuse it."        | Time passed. Re-run `date -u` for every stamp, including the second one in the same turn.       |
+| "I'll just edit the board file, it is right there."         | It is a rendered view. Your edit is skew doctor reports, and the next render drops it.          |
+| "`wb clear` tidies the inbox before I fold."                | It states that you HANDLED them. Answer, action, or re-state live -- then clear.                |
+| "The verb returned ok, so the peer has it."                 | Stored is not delivered. A thing that must be acted on gets said twice.                         |
+| "I'll register the roster while I am in here."              | Who the participants are is a human's declaration. Registering is not a tidy-up.                |
