@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-13 08:31Z
+heartbeat_at: 2026-09-12 20:16Z
 status: active
-focus: "ST0069 WP-14 under vc's direction: the explicit `wb register` form lands next, then the AT batch; the cutover wiring is banked unlanded and held for vc's signal. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-12 20:16Z for the user's compact. The whole `intent wb` family is LANDED across five commits. UNLANDED and banked as two patches: the `Hold` kind with `wb add`, and the two board renderers. Next: land the kind+verb, then the renderers, the GraphQL fields, the search measure. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,9 +14,17 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **ST0069 WP-14 IS cc's LANE, vc DIRECTS** (vc dark for hv's compact since 2026-09-13 08:06Z; reports go to `vc/inbox.cc.md` with stamps). hv: _"it's not 'done' until ST0069 is done."_
-- **`wb register <moniker> --name --role`, vc's explicit form**, built on `8732b111b` in `scratchpad/wt-cc` from `scratchpad/register-edit.py`: arms green, CLI driven, whole-workspace suite running. Lands as its own commit; its sha goes to vc's inbox and to ic, who re-cites the skill's register line with the flags.
-- **THE AT BATCH, RIGHT AFTER IT**: AT-14.1, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8 and 14.11 green on the arms that exist, AT-14.2 red and partial until the cutover. Carried by `scratchpad/at-rows.sh`; the two arms the rows need land in the same commit -- `scratchpad/archive-arm.py` (AC-14.6: archiving admits the next write, nothing deleted) and `scratchpad/openness-boards.py` (the openness round trip reads its board item and message back, which it never did).
+**LOCALFOLDED 2026-09-12 20:16Z for the user's compact. Everything landed is carried by its commits; the UNLANDED work is carried by the two patches named below, never by prose here.**
+
+- **ST0069 WP-14 IS cc's LANE, vc DIRECTS.** hv: _"it's not 'done' until ST0069 is done... All non-cancelled WPs done done."_
+
+- **THE `intent wb` FAMILY IS LANDED, FIVE COMMITS.** `87b819abd` tables + rung 24 + `wb register` + the five `board.json`; `de03d227e` reads (`status`, `show`); `dc77fc9f7` messages (`ask`, `announce`, `clear`); `28f9d4b99` items (`decide`, `claim`, `unclaim`) plus four `recoverability` corrections; `dd3e3444e` lifecycle (`pickup`, `touch`, `release`, `archive`) plus `enum_arg`. Issue `0312` and its manifest line at `190eae3bf` / `ea0bad859`.
+
+- **TWO PATCHES ARE BANKED UNLANDED, AND THEY LAND IN THIS ORDER.** (1) `scratchpad/wb-hold-and-add.patch`, base `ea0bad859` -- `WbItemKind::Hold` as the fifth kind, `SCHEMA_JSON_VER` 19, `wb add <kind> <text>` refusing `decision` with a remedy naming `wb decide`, the `wb_item_kind` map as one home, the row, the slot, the census bucket and the provoked refusal. **vc wants this as its OWN commit so dc can rebase the migration (AC-14.9) onto it.** (2) `scratchpad/wb-views.patch`, the same base -- `views::wb_board` and `views::wb_inbox`. **The renderers are written for FOUR kinds and must gain `Hold` before they land.**
+
+- **THEN, IN vc's ORDER.** AC-14.2: the two renderers as generated views, byte-identical on TWO RENDERS with the formatter EXCLUDED rather than a fixed point through it (vc reworded the row; `.prettierignore` already excludes the inboxes for a separate reason, and `generated_views_are_not_formatted.rs` derives its roster from `views::render_all`). Built against the FIXTURE; the live boards stay hand-authored under both guards until vc signals the cutover, so `render_all` is NOT wired yet and the doctor-skew half arrives with it. Then AC-14.7's GraphQL half -- root `board(node)` and `boards`, types already derive `SimpleObject`. Then AC-14.8, re-measured on the fixture once the views exist, never against a store a daemon holds.
+
+- **AT ROWS ARE OWED FOR EVERY AC-14 ROW I COVER**, cited to arms that exist.
 
 ## TODO
 
@@ -24,9 +32,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **THE CUTOVER WIRING, banked as `scratchpad/wiring-edit.py`:** `render_all` names each registered node's `wip.md` and one inbox per peer, `undeclared_owner` answers a node with no row, the two whiteboard view globs, `.prettierignore` gains the board, and `wb_views_are_generated.rs` is the arm AT-14.2 will cite. **Released by vc's cutover signal**, after the register form and the AT rows have landed; the patch is built from the script against the HEAD it lands on, never ahead of it.
-- **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
-- **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
+- **RELEASED 2026-09-12:** the D29 pause. vc withdrew the amendment at `2866a40ed`; the corpus is the committed `.gitignore` rules and `ignored_paths_corpus.rs` is the record. The code never moved, so nothing had to be unwound.
+
+- **THE DEFECT LIST ITEMS hv DID NOT RULE.** hv ruled batches 2 and 3 to cc on 2026-09-12 06:16Z and both are landed. **The mixed-proxy silent drop stays held:** vc's two briefs disagreed and vc settled it -- the first stands, so it is not batch 3's and waits with item 9. **Still held, unruled:** the rule proxies that contradict their own rule (item 9) -- the elixir proxies firing on what their Good prescribes, swift and lua UNDECLARED -- and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.** The gate-blocked pair (`strong-assertions/bad_test.exs`, `test-highlander-shared-setup/good_test.exs`) is part of item 9 and waits with it.
+
+- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work. **Still held (2026-09-11 19:49Z):** hv opened the doc audit, not these, and `intent/wip.md` lists `0177` as post-cut with no owner.
 
 ## Watch-outs
 
@@ -56,11 +66,7 @@ claims: [ST0056/06, ST0056/10]
 - **A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.
 - **A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.
 - **A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.
-- **AN ARM ON AN IN-MEMORY STORE CANNOT SEE A DEFECT THAT LIVES IN THE OPEN PATH.** AC-14.8's facade arm was green while `intent search` found nothing: the next process's open erased the board sections, `load_fresh` held no boards, and `board.json` answered as a file. Measure through the surface the criterion names, on a store that outlives the facade.
-- **AFTER A THREE-WAY APPLY THE LANDING PATCH IS `git diff HEAD`.** The apply stages into the worktree's index, so a bare `git diff` is empty and the landing refused with "no valid patches"; a new file needs `git add -N` before it shows at all.
-- **`reset --hard` KEEPS UNTRACKED FILES.** A script's new test file survived onto the next base without its `suite.rs` line, and `no_orphan_suite_member` refused it; a red that names a file outside the change is residue, and the file says so.
-- **`Failure::Unavailable` EXITS 2, WHICH A GATE READS AS FAIL-OPEN.** A refusal that is a plain no is `Failure::Error`, exit 1; the CLI drive caught the first build of the register form getting this wrong.
 
 ## Decisions -- unexecuted only
 
-- **None.** Every ruling routed to cc is executed or is DOING above.
+- **None.** Every ruling routed to cc is executed. The lessons that were here are in `.history/20260912/wip-prelean-0606Z.md`, and the two from the doc audit are in the project memory (`feedback_shared_checkout_hazards`, `project_doc_audit_20260911`).
