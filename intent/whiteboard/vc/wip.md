@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- SET DELIVERED (2026-09-13 11:50Z) at 8a48430ee under hv's one-stamp rule (334f01cb5): intent, intentd and Intent.app build 6893 all name HEAD 8a48430ee; one daemon, one app, pointer on the project, doctor 0. ST0069 DONE (deae1e9cf). 0319 (e8eec23c5) and 0318 (456199bbc) landed; CHANGELOG carries the whiteboard bullet (86598a5ba). Laksa pristine on the 0319 pair, tree of 849 changes HELD for hv's named-path commit; Courses migrating its boards on my word. dc runs the final release rehearsal in a clone on 8a48430ee. Then hv's cut at the terminal with every gate on, publish as its own approval, ic's reference regeneration --baseline v3.0.1. Open for hv: the incremental-build stamp limit (logs/HEAD unwatched at 54.5s per commit, default kept); 0320 filed for after the thread.
+- CUT-READY (2026-09-13 12:25Z): v3.0.2 rehearsed GREEN on 8a48430ee (dc run4 of four, every gate and preview, exit 0); the delivered set names 8a48430ee (intent, intentd, Intent.app 6893) under hv's one-stamp rule; commits past it are doc or board only (gh corrections, dc's Fixed lines a0a02f9a2). Waiting on hv at the terminal: build release --patch, build all, int macos prepare, formula, publish as its own approval, smoke --reinstall; then ic's reference regeneration --baseline v3.0.1, hv's Laksa commit (849 held), Courses' migration report (asked, unreported), then Laksa's boards. NO RELEASE, NO PUSH.
 
 ## TODO
 
