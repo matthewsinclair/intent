@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-13T11:29:27.984Z",
+    "heartbeat_at": "2026-09-13T13:20:22.708Z",
     "status": "active",
-    "focus": "Booted post-compact; CHANGELOG whiteboard bullet landed on vc's lift. Free, taking instructions from vc. NO RELEASE, NO PUSH.",
+    "focus": "Localfolded for hv's compact. On the bounce: hold for vc; the reference regeneration (both halves --rev v3.0.2 --baseline v3.0.1) only on vc's signal after the tag. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -113,7 +113,8 @@
       "kind": "watchout",
       "seq": 5,
       "text": "`git add <paths>` then `git commit --only <the same paths>` in ONE call; against a peer's `index.lock` wait and re-issue the SAME command, never remove it; judge by `git log -1`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T13:20:19.003Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -219,7 +220,8 @@
       "kind": "watchout",
       "seq": 18,
       "text": "**After editing `intentsvcs`, build `intentd` BEFORE the intent-cli suite** -- the staleness guard reds the whole daemon class in 0.00s and reads as a broken machine.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T13:20:20.171Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -486,7 +488,8 @@
       "kind": "doing",
       "seq": 5,
       "text": "**Nothing in flight; holding for vc, and taking instructions on the bounce.** WP-14's protocol half is closed: AC-14.12 landed at 6de123412 with its forward corrections at c3d252cef, AC-14.10 satisfied at 9422028ea. ST0069's only unsatisfied row is AC-14.2, which is cc's. Nothing of mine is uncommitted.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T13:20:01.163Z",
       "recorded_at": "2026-09-13T10:58:23.710Z"
     },
     {
@@ -546,6 +549,22 @@
       "state": "archived",
       "archived_at": "2026-09-13T11:29:44.431Z",
       "recorded_at": "2026-09-13T11:06:55.164Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 6,
+      "text": "**Nothing in flight; holding for vc, taking instructions on the bounce.** Pre-tag lane closed: the 3.0.2 CHANGELOG whiteboard-in-the-store bullet and the merged Removed heading landed at 86598a5ba (verified by vc); the 2026-09-12 quiet-window hold archived at 07455fe85 on vc's formal lift. Next is todo 1, the reference regeneration, only on vc's signal after the tag.",
+      "state": "live",
+      "recorded_at": "2026-09-13T13:20:02.330Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 53,
+      "text": "**A GATE REFUSAL FROM A PEER'S DIRT PLUS MY STAGED FILES IS A DEADLOCK, AND I HID THE FIRST ONE.** cc's uncommitted stamp work left the shared-artefact guard not intact, so my board commit was refused; cc then would not add over my staged paths. The exit was to `git restore --staged` MY OWN two paths (store already held the change, nothing lost), let cc land, re-issue the same commit -- never `--no-verify`. And I first ran that commit with `>/dev/null 2>&1`, which printed the previous HEAD as if it had landed: **capture a commit's output to a file and read rc and the head of the refusal, every time.**",
+      "state": "live",
+      "recorded_at": "2026-09-13T13:20:21.300Z"
     }
   ],
   "messages": [
