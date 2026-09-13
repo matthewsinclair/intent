@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 18:02Z
+heartbeat_at: 2026-09-13 18:11Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -18,12 +18,13 @@ _(none)_
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
+- **For the cut's install sequence, awaiting hv's ruling (raised by ic, relayed by vc):** with ST0074 WP-05, every estate's old .git/hooks/pre-commit.intent still reads ~/.intent/home, and the first 3.0.2 command moves that file. Those estates then refuse commits until intent claude upgrade --apply runs in each one; intent bootstrap does not fix it. The options are a sweep step in dc's install sequence, or ic's option (b). Nothing is built until hv rules.
 
 ## Holds
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
-- **The next rebuild of the delivered set, for ic's ST0074 WP-05, WP-03 and WP-04.** Condition: those WPs are on main and vc says go. Run the same sequence once: the suite once in wt-dc, then announce the quiet window to cc, ic AND vc, wait for all three to acknowledge before build all (a commit queued before the notice arrives moves HEAD, and the stamp refuses, twice so far), bin/devbin build all, bin/int macos app-install (LaunchServices -600 at open after the swap: re-issue the same command), intent daemon restart, intent doctor 0, the hashes and pid to vc. Last delivered set: 363b18db1 (carries cc's 0354 cause fix 3110125b2), intent 5b66b26428bd509a, intentd 677b9c5bf2a6f4e1, Intent.app build 7013; the live daemon is 87652, under vc's watch for the 0354 verdict, then Laksa on the pair's hash. NO RELEASE, NO PUSH.
+- **The next rebuild of the delivered set.** Condition: ic's ST0074 WP-03 and WP-04 are both on main (WP-05, the XDG layout, landed at 2f29401b6 after the last window). Then run the same sequence once: the suite once in wt-dc; announce the quiet window to cc, ic AND vc, and wait for all three to acknowledge before build all (a commit already queued refused the stamp twice); bin/devbin build all; bin/int macos app-install (on LaunchServices -600 at open after the swap, re-issue the same command); intent daemon restart; intent doctor 0; the hashes and the new pid to vc. 0354 is RULED FIXED by vc on the set at 363b18db1 (a target/ directory event is priced at 0.10 s against 9 s before, and the daemon idles), and Laksa is released on that hash. NO RELEASE, NO PUSH.
 
 ## Watch-outs
 
@@ -43,6 +44,7 @@ _(none)_
 - **A PROBE FOR A REMEDY RUNS IN THE EXACT ENVIRONMENT OF THE RUN IT VOUCHES FOR, OR IT VOUCHES FOR A DIFFERENT RUN.** Final rehearsal 2026-09-13: gh keeps its token in the macOS keyring, which an isolated HOME cannot reach. I probed `gh auth status` with HOME plus GH_TOKEN, it passed, and run3 carried HOME plus GH_CONFIG_DIR plus GH_TOKEN -- where gh lists the stored keyring account beside the token, fails it, and exits 1 because ANY account failed. Run3 halted at the gh gate. Build the probe from the run script, not from memory of it: the same exports, the same unsets. The rehearsal now carries GH_TOKEN and no GH_CONFIG_DIR, and probes inside the run before the load gate.
 - **A DAEMON PROBE'S ISOLATED HOME MUST BE SHORT.** intentd binds $HOME/.local/share/intent/intentd.sock, and sockaddr_un holds about 104 bytes. A HOME under the scratchpad made the path 153 bytes, and the daemon refused to bind ('path must be shorter than SUN_LEN'). Use /tmp/<short>. **AND IN THE BASH TOOL, pgrep CAN RETURN TWO PIDS** (a script and its own subshell): zsh does not word-split, so `kill $P` failed with 'illegal pid', and an unbounded wait loop after it spun until stopped. Kill the literal pid, and bound every wait.
 - **NEVER EDIT A SCRIPT A RUNNING bash IS EXECUTING; COPY IT.** bash reads a script from the file as it goes, by byte offset, so an insertion above the line it is executing shifts every later read and it resumes on the wrong bytes: a re-run open, a second wait, a syntax error. Caught 2026-09-13 in the 0354 probes: run-4 counts were inserted into probe.sh while run 3 was still inside it, and the original bytes were restored (0 COUNTS lines, syntax ok) before run 3 reached its next read. Run 4 got its own copy, probe4.sh.
+- **NEVER run intent claude upgrade --apply anywhere from this tree with the installed 3.0.1 binary** (vc, 2026-09-13). The pre-commit hook migration for WP-05's XDG move is hv's to rule, and the step is part of the cut's sequence, not an ad-hoc fix.
 
 ## Decisions
 
