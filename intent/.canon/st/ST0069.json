@@ -809,6 +809,15 @@
       "status": "red"
     },
     {
+      "id": "AT-14.12",
+      "kind": "non-test",
+      "prose": "The shipped `intent/plugins/claude/bin/intent_claude_cwi` carries no `cmd_ws_*` definition, no `ws` dispatch arm, and no CALLER of one -- the fifth, at `cmd_start`, included, which a four-arm deletion would leave calling a function that is gone and which in a shell script fails at the call rather than at load. RED UNTIL ITS LANDING, which vc ruled (2026-09-13) is the FIRST commit of the cutover sequence rather than now: deleting `ws hygiene` deletes the only performer of three checks -- a header value that is not a single line, a board with no header block, a missing recommended key warned rather than failed -- and `whiteboard-header-guard.sh` covers only the two escape forms, so those three have no subject only once this estate's boards are generated. The work is built and driven (four paths, `bash -n` and `shellcheck` clean) and is banked on ic's board.",
+      "covers": [
+        "AC-14.12"
+      ],
+      "status": "n-a"
+    },
+    {
       "id": "AT-14.9",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/wb_migrate_carries_a_board.rs",
