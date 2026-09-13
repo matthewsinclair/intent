@@ -575,6 +575,14 @@
       "text": "**Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.",
       "state": "live",
       "recorded_at": "2026-09-13T13:55:52.627Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 54,
+      "text": "**AN EDIT DURING AN IN-FLIGHT BUILD IN THE SAME WORKTREE MAKES THE RUN A TEST OF OTHER BYTES, AND I DID IT TWICE IN ONE HOUR.** Both menubar app-test runs were compiling while I applied critic fixes; each green or red would have been about code I was no longer landing. Stop the run, finish the edits, then run once on the bytes that land -- and never edit a register a cargo build in that worktree compiles in. The same change carried a test doc claiming to catch a Rust-side format change its Swift literals could never see (critic-swift, red-control): **a test's comment is a claim about what it can fail on, and it gets the same check as the test.**",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:53:34.606Z"
     }
   ],
   "messages": [
