@@ -3,7 +3,7 @@
   "id": "ST0074",
   "title": "Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line",
   "slug": "machine-wide-projects-intentd-s-config-home-the",
-  "status": "triage",
+  "status": "wip",
   "created": "2026-09-13",
   "objective": "Make Intent's own front doors reach every Intent project on the machine rather than only the one the terminal is standing in, and present them consistently.\n\n- The explorer handles `/threads` and `/issues` itself, and can pick a project from the ones this machine knows (`/projects`, and `intent explore` outside a project).\n- A single, standards-compliant home for intentd's durable configuration, human- and machine-editable, that lists every known Intent project.\n- `intent explore` keeps the project it runs in registered there, and `intent discover [fromdir]` finds Intent projects under a directory, checks each is config-compatible with the running intentd, and registers it.\n- intentd watches that file and refreshes what it knows when it changes.\n- The menubar app presents its menu in the same shape as Gtools': an identity row, one status line (place, state, details), then the actions.\n",
   "context": "Raised by hv on 2026-09-13, while the cut waited on 0354, and ruled into one bundle: \"all of this should really go into the one work bundle. If we need a new ST to hold it all, then make one and make the various bits WPs inside it.\"\n\nWhat exists today, measured rather than recalled:\n\n- intentd's project registry (`intentd/src/registry.rs`) is in memory only. A project is registered as a side effect of first contact, so a freshly started daemon knows nothing until each project has been used again.\n- intentd has no durable configuration of its own. Its runtime state lives under `~/.local/share/intent/` (socket, loopback address, token, lock, log). The operator's v3 configuration is `~/.intent/config.json` (`intentsvcs::userstate::global_config`).\n- `~/.config/intent/config.json` is v2's file (it reads `intent_version: 2.0.0`, `backlog_dir`, `editor`) and nothing in v3 reads it: every v3 per-user store has its own path and never reads or writes v2's (hv adopted, 2026-08-22).\n- The shipped surface may read only the environment variables in `no_intent_home.rs`'s `ALLOWED` (`COLUMNS`, `EDITOR`, `HOME`, `USER`, `VISUAL`). A standards-compliant location that honours `XDG_CONFIG_HOME` or similar needs a grant from hv, recorded as a row there.\n- `intent explore` outside a project refuses through `context()`: it needs a project directory to open.\n- The explorer's palette sent `/issues` to `intent issues` and offered no `/threads`; landed as the explorer's own acts at 793984a50.\n\nhv's design for the registry, in their words: \"intentd has some global config that is easily human AND machine editable. Any time 'intent explore' is run, it should ensure that if it is running in an intent project, that that project is up to date in the global config that intentd can find it. AND: we need an 'intent discover [fromdir]' command that looks for all intent projects from the current dir (by default) or a dir that is passed in as a param. Whenever it finds one, it confirms that it is 'config compatible' with the current intentd, and then ensures that it is registered in the global config for intentd to find. intentd keeps an eye on that global config file and refreshes its knowledge of host-wide intent projects whenever it changes.\"\n\nAnd on the location: \"We also need to resolve where intentd's config resides ... that answer needs to be standards compliant.\" The location is ruled before the registry is built, because the registry is the first thing to live there.\n\nWhat `intent explore` does outside a project when no daemon answers depends on the registry: hv, \"the answer here changes depending on the outcome of 1\".\n",
@@ -14,7 +14,7 @@
       "seq": 1,
       "title": "The explorer handles /threads and /issues itself",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
@@ -54,6 +54,108 @@
       "objective": "",
       "body": "",
       "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "The explorer handles /threads and /issues itself: `/threads` and `/issues` open their panes as explorer acts, and `/issues <args>` still runs `intent issues`.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "While intentd is live, the menubar status line names the place, the state and the details on one line: `intentd :<port>`, `active`, and the steel-thread count. The port is read from the url the daemon published, and the count appears only once the project query has answered.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "While intentd is not live (stale, absent or unknown), the status line carries no port and no thread count, and a stale daemon's line names its pid and says to investigate it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "While a lifecycle verb is running, the status line says so and shows no port, because the port from before a restart is dead once its stop returns.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "The project registry is one file that a human can edit by hand and the tool reads and rewrites without losing what the human wrote.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "`intent explore` run inside an Intent project ensures that project is in the registry and its entry is current.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "`intent discover [fromdir]` registers every config-compatible Intent project it finds under the directory, and names each project it does not register with the reason.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "intentd refreshes what it knows of the machine's projects when the registry file changes, without a restart.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "`/projects` in the explorer lists the registry's projects and opens the one picked.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "`intent explore` outside an Intent project opens the project picker, and leaving the picker returns to the shell.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "hv has ruled where intentd's durable configuration lives, and design.md records the ruling.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/app.rs",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "cargo test -p intent-cli --lib --no-fail-fast: 287 passed, 0 failed, at the worktree base 1f8a912cf with 793984a50's bytes; red control: the collection act's push made a no-op fails slash_threads_and_slash_issues_open_their_collections. Literal id added at 5f62b2633."
     }
   ],
   "attachments": [

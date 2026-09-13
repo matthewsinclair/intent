@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The explorer handles /threads and /issues itself
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: The explorer handles /threads and /issues itself

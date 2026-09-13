@@ -1,7 +1,7 @@
 ---
 st_id: ST0074
 title: Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line
-status: Triage
+status: WIP
 created: 2026-09-13
 completed:
 ---
@@ -41,7 +41,7 @@ What `intent explore` does outside a project when no daemon answers depends on t
 
 | WP    | Title                                                                                                                    | Size | Status      |
 | ----- | ------------------------------------------------------------------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | The explorer handles /threads and /issues itself                                                                         | S    | WIP         |
+| WP-01 | The explorer handles /threads and /issues itself                                                                         | S    | Done        |
 | WP-02 | The menubar's one status line, in Gtools' shape                                                                          | S    | Not Started |
 | WP-03 | The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file | L    | Not Started |
 | WP-04 | The explorer's project picker: /projects, and intent explore outside a project                                           | M    | Not Started |
