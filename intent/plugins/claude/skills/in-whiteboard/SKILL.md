@@ -76,7 +76,11 @@ intent/whiteboard/
 
 **`.history/` IS NO LONGER WHERE ARCHIVED CONTENT GOES.** Archived is a STATE an item or a message carries, not a directory it moves to: the row keeps its number and its text and stays readable, it just stops counting against the live bound. `intent wb archive` and `intent wb clear` are that transition. Existing `.history/` directories stay as the record of the hand-authored era and are not reloaded on pickup, exactly as before.
 
-**A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** `intent wb register` reads the project's roster from each node's own hand-authored `wip.md` header and puts those nodes on the board. There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
+**A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
+
+`intent wb register <moniker> --name <display> --role <role>` names one node from its arguments. That is the form for every node that joins once boards are generated views, because there is no longer a hand-written header for anything to read. Running it again with the same values changes nothing; running it with different ones is refused rather than quietly taking the new values, so a node cannot be silently redefined.
+
+`intent wb register` with no arguments is the other form, and it is the migration's: it reads the roster from each node's own hand-authored `wip.md` header. Idempotent by moniker, an edited header included -- a second run adds nothing and changes nothing. It has nothing left to read once the last hand-authored board has migrated.
 
 **REGISTERING IS NOT A TIDY-UP.** Who the participants of a project are is a thing a human declares: every board, every item and every message afterwards hangs off the rows it writes, so an agent does not register a roster unasked.
 
