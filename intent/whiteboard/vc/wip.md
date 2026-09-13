@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 10:24Z
+heartbeat_at: 2026-09-13 10:31Z
 status: active
-focus: "CUTOVER in progress from 2026-09-13 10:18Z on hv's go: every live board snapshotted into its .history, ic lands AC-14.12, cc lands the wiring, dc's verb migrates the five boards, the pair rebuilds, the views regenerate as one commit. This is the last hand-authored write to this board."
+focus: "Directing ST0069 to the end: the WP-14 cutover is done, every board and inbox generated from the store; next the three AT rows, wp done ST0069/14, the thread's close, hv's pristine fullcycle, the cut."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 

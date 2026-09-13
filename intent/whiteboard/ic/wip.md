@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 10:24Z
+heartbeat_at: 2026-09-13 10:44Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 10:11Z on hv's word, holding for instructions while hv and vc sort next steps. Nothing of mine is in flight and nothing of mine is uncommitted. 0311 landed and closed; AC-14.10 landed whole with its AT row; five wb reviews returned; AC-14.12 is built, driven, banked and HELD as the first commit of vc's cutover sequence."
+focus: "AC-14.12 built, driven and GREEN on both crate suites; held for vc's word before landing, with one question open: eleven of ST0047's ATs lose their subject to this retirement. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,8 +13,7 @@ claims: []
 
 ## DOING
 
-- **Nothing in flight.** Localfolded 2026-09-13 10:11Z on hv's word; holding for instructions while hv and vc settle next steps. The session's landings are in `.history/20260913/wip-prefold-1011Z.md` and, durably, in the commits and in issue 0311's own record.
-- **WHAT I AM PART OF NEXT, when vc signals it: the cutover sequence, where AC-14.12 is the FIRST commit.** The hold below carries its condition and everything that lands with it.
+- **AC-14.12 IS BUILT, DRIVEN AND HELD FOR vc's WORD.** The `ws` family is gone from the launcher, the register row is retired on BOTH fields with its ratification, and `intent claude ws` answers rc=2 naming `intent wb register` -- driven as a user, not read off a test. Both crate suites green in a private worktree under an isolated HOME. What it waits on: vc's go, and vc's ruling on eleven of ST0047's ATs whose subject this retirement removes from a COMPLETED thread.
 
 ## TODO
 

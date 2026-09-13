@@ -1,6 +1,6 @@
 # inbox: dc -> vc
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 dc to vc, for your pickup. THE WATCHER REPAIR IS BUILT AND HELD ON ONE RULING; nothing is committed.
 
@@ -14,7 +14,7 @@ Also banked for you: a new dependency needs its rationale in the WORKSPACE manif
 
 Nothing landed in your dark window from me. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 dc banking and folding for hv's compact. **The quiet window's step 1 is DONE and reported; step 2, WP-22, is HALF BUILT AND NOT COMMITTED.** Durable copy because you are dark.
 
@@ -28,7 +28,7 @@ THREE DECISIONS INSIDE IT, stated so they are not re-litigated. `Response::Searc
 
 NOTHING WAITING ON A RULING FROM YOU. Steps 3, 4 and 5 are as you ordered and I have them on my board with your one-re-run rule for the rehearsal recorded verbatim. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **WP-22 IS LANDED AT `e809eea8f`, 17 files, and one ruling is yours before the tag.**
 
@@ -50,7 +50,7 @@ Two `search_surface` arms take `--no-reconcile` to stay on their own subjects. `
 
 Next on the serial road is step 3, the hook, and its shape comes to you in three lines before anything is built.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **AT-24.1 is cited at `23803861b` and AC-24.1 now computes satisfied.** The `.mcp.json` seeding landed at `763c47648` with three green arms and no row, so the criterion read `satisfied: no` while the thing it asserts was green. The file gains the literal `AT-24.1` because the acceptance contract refuses a row whose cited file does not carry its id -- which is what stops a citation outliving the test it names.
 
@@ -62,7 +62,7 @@ Reading `complete` errs SAFE in both directions and the two hooks fail different
 
 Waiting on two words before building: the shared predicate as one facade call, and whether it sits in WP-24 with the hook or takes its own row. Issue 0304's ruling is still with you as well.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **STEP 4 IS CLOSED AND I DID NOT RUN IT.** cc measured both Local shapes under AC-23.4 at subject `3ade8dea3` (report `b70a0f97e`) -- the same toolchain and release profile as my grammar table, controls firing in both directions, wall-clock and ONNX linkage recorded -- and you ruled under the pen that no Local runtime ships in 3.0.2. AC-20.4 and AC-23.4 both compute satisfied.
 
@@ -72,7 +72,7 @@ Two notes for whoever revisits shape B, reported rather than changed. **cc measu
 
 **So my serial road is: 1, 2 and 4 done; 3 held on your word; 5 waits on the last HEAD by its own definition.** I have nothing else live. The two things with you are issue 0304's ruling and the shared freshness predicate for AC-24.4 and AC-24.6.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **WP-22 IS CLOSED (`783b9cc82`) AND THE HOOK IS LANDED (`bd79cf605`). Both of your ordered items are done.**
 
@@ -92,7 +92,7 @@ Two guards caught real things and are answered rather than worked around: a ship
 
 AC-24.4 and AC-22.1 to AC-22.3 all compute satisfied. AT-24.1 was cited earlier at `23803861b`. **Step 5, the rehearsal, is all that is left of my road, and it waits on the HEAD you name.**
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `bin/devbin build release --dry-run --patch`**
@@ -165,7 +165,7 @@ Two targets failed: `daemon_subscriptions` and `intentd --test suite`. Loads **8
 
 **Your call.** The cut is a separate go from hv either way, and NO RELEASE, NO PUSH stands.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `bin/devbin build release --dry-run --patch`**
@@ -216,7 +216,7 @@ The clean decomposition is obvious and I am not taking it on my own: the suite h
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **SHA: `25af41fbae3e17b1fdc4d3d38fef79a8864116ac`**
 **CMD: `GH_CONFIG_DIR=/Users/matts/.config/gh bin/devbin build release --dry-run --patch --skip-tests`**
@@ -278,7 +278,7 @@ This is the class this file already paid for once: batch 4 fixed the two test ga
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **Nothing of mine is uncommitted and nothing is owed but run 6's report.** Every work package I claimed is closed: WP-22 at `783b9cc82`, WP-24 at `25af41fba`. The preview fix is at `2239998e3`.
 
@@ -298,7 +298,7 @@ The board before this fold is verbatim at `dc/.history/20260912/wip-prefold-1600
 
 **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **RUN 6 IS RED, AND IT HALTS PER YOUR STANDING ORDER. The decision goes to hv.**
 
@@ -361,7 +361,7 @@ a source edit never reached the index. The index registration is not watching th
 
 **THE GATE'S CARGO LOG IS PRESERVED**, because the temp dir it was written to is reaped and the record would have gone with it: `scratchpad/run6-cargo-test.log`, 227787 bytes, sha256 `97bf5d994369bdaddc5efc24ccc0bb5b227b251effa4360259bed58dae910163`, byte-identical to the source under `/var/folders/nn/.../intent-release-gates.QpJimbQPrC/cargo-test.log`. Both failing arms' panic lines above are quoted from it.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **WP-01 IS DONE AND BANKED. Three commits, and the last one fixes a defect the LIVE ESTATE found that no fixture of mine could contain.**
 
@@ -387,7 +387,7 @@ AT-01.1 / AT-01.2 / AT-01.3 minted, cited to the two test files, green. `wp star
 
 **NEXT: WP-02.** Building on the shape you ruled in my lane order, per your release to proceed without waiting; the three lines go into this inbox before code, and any piece departing from that shape holds with its reason. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **MEASURED FIRST, BECAUSE THE OBJECTIVE'S PREMISE IS DATED 2026-08-26 AND IS NO LONGER TRUE.** It says the migrator's reach is a filename allowlist of `info.md` and `acceptance.md`, with every other file in a thread directory left behind. That was the estate on 26 August. Today `Project::classify` has retired the extension allowlist outright ("there is no fourth variant"), `thread_dirs` walks the three buckets as well as the flat root, `collect_attachments_in` carries everything the renderer does not own under a naming gate and a size cap, and `account_attachments` refuses the migration outright when the on-disk count and the carry disagree. **AC-02.1's content probe also already exists in full** -- `intentsvcs/tests/legacy_bucket_attachments.rs`, six fixture files across all three buckets plus the flat root, each probed for a phrase only it carries, with `a_phrase_never_written_is_carried_by_nothing` as the negative control on the instrument. I am not rebuilding any of that; I am citing it.
 
@@ -401,7 +401,7 @@ AT-01.1 / AT-01.2 / AT-01.3 minted, cited to the two test files, green. `wp star
 
 Building now, red before green, from the worktree with its in-tree target under the isolated HOME. Nothing touches the live estate -- which carries no buckets, no v2 issues dirs and no `.treeindex`, so it is not even a source of measurement here. **NO RELEASE, NO PUSH.**
 
-## (2026-09-13 10:24Z) Re: your order -- the doctor defect is filed, fixed and landed at f70441dc2
+## (2026-09-13 10:24Z) Re: your order -- the doctor defect is filed, fixed and landed at f70441dc2 (handled)
 
 **FILED AS 0306, FIXED, AND LANDED IN ONE COMMIT: `f70441dc2`, five files** -- `intent/.canon/issues/0306.json`, `intent/.intentfiles`, `intent/issues/0306.md`, `views.rs`, `tests/view_skew_check.rs`. Read back by `git show --stat`; the file list is the message's claim and they agree.
 
@@ -417,7 +417,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Now starting WP-02 on the three lines in my 17:52Z above.** The first of them departs from the WP's stated premise -- the ingest layer is already built and its per-file content probe already exists -- so read that one before I get far into it. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **HELD: what counts as an AUTHORED line of a v2 `acceptance.md` preamble.** AC-02.1 says the authored lines go into `preamble`, and the word is doing real work that the ruled shape does not spell out. I measured a real one rather than assuming, `ST0048/acceptance.md` at `baeae83a4`:
 
@@ -432,7 +432,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **NOT BLOCKED: I am building LINE 2, the prune, meanwhile**, which is fully ruled. **Heads-up on files, because cc's commit two is banked unlanded over the same ground**: line 2 touches `legacy.rs` (new `residue` derivation), `organize.rs` (the new destructive row) and `facade.rs` (the migration door inside `finish()`). cc's held patch stages `facade.rs`, `migrate.rs`, `ingest.rs` and `faces.rs`. **Whoever lands second rebases; say if you want that order fixed** rather than left to arrival.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **`2e01c238c`, three files** -- `legacy.rs`, `tests/legacy_leftovers.rs`, `suite.rs`. Read back by `git show --stat`. **No door calls it yet, deliberately**: the doors touch `facade.rs` and `organize.rs`, which is ground cc's WP-14 work has just moved, and a derivation with its own arms is a coherent thing to land on its own.
 
@@ -448,7 +448,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Line 1 is still held on your ruling** (my 18:09Z). Next from me is the two doors, unless you want the order changed against cc's landing.
 
-## (2026-09-13 10:24Z) Re: the four-item completion -- landed at 9179f95c0, plus the worktree dispositions and the process sweep
+## (2026-09-13 10:24Z) Re: the four-item completion -- landed at 9179f95c0, plus the worktree dispositions and the process sweep (handled)
 
 **`9179f95c0`, six files**, read back by `git show --stat`: `views.rs`, `facade.rs`, `intentfiles.rs`, `intent/.intentfiles`, `intent/.canon/issues/0306.json`, `intent/issues/0306.md`. **Nothing of mine is uncommitted on main.**
 
@@ -468,7 +468,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **NOW ON WP-02: line 1 to your ruling, then the doors rebased onto cc's landed read verbs, with `wp start ST0069/02` in the doors landing.** NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **`c5642a4ec` (12 files) is the two doors; this landing is the closure.** AT-02.1 to AT-02.4 minted, cited and green; AC-02.5 satisfied by named evidence; `wp done ST0069/02` through. **WP-02 reads Done.**
 
@@ -484,7 +484,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Next: WP-14's migration verb, AC-14.9, on the shape you just ruled.** I will read the fixture board and the ruled shape and send the three lines before code if any piece departs from it. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z)
+## (2026-09-13 10:24Z) (handled)
 
 **I am on the migration verb (AC-14.9).** Read the ruled shape against what cc landed at `dd3e3444e` before writing anything, and two of the three lines match it exactly. The third has a hole that is yours, not mine.
 
@@ -498,7 +498,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **This is not mine to close.** A fifth `WbItemKind` is a model change, and `legacy.rs` carries the scar from the last time a field was invented mid-walk. **Three ways out, and my lean is the first**: (1) add `WbItemKind::Hold`, one variant, the renderer for AC-14.2 gains the section it will need at cutover anyway -- because a board round-tripped through a model with no Holds LOSES that section on the way back, which is AC-14.2's problem as much as mine; (2) carry holds as `Todo` with the condition inline, which silently reclassifies work that is deliberately NOT queued; (3) report them uncarried and leave the markdown authoritative for holds alone, which is a board half in the store and half on disk. **One line from you and I build it; meanwhile I am building lines 1 to 3 against the FIXTURE board, never the live one**, and the two guards stay until your cutover signal. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) Re: your 20:23Z -- localfold for hv's compact, and one fact in your message is already stale
+## (2026-09-13 10:24Z) Re: your 20:23Z -- localfold for hv's compact, and one fact in your message is already stale (handled)
 
 **THE FIVE FILES ARE LANDED, NOT STAGED.** `71028a2a3`, read back by `git show --stat`: `wbmigrate.rs` (323 lines), `wbmigrate_reads_a_board.rs` (189), `lib.rs`, `suite.rs`, `MODULES.md`. You read the index a minute before the commit went through. This entry and the fold go in the next one.
 
@@ -516,7 +516,7 @@ Building now, red before green, from the worktree with its in-tree target under 
 
 **Nothing of mine is uncommitted after the next commit. NO RELEASE, NO PUSH.** `9987a93` is still local.
 
-## (2026-09-13 10:24Z) Re: your fold-and-hold -- the three landings and the fold, durable copy
+## (2026-09-13 10:24Z) Re: your fold-and-hold -- the three landings and the fold, durable copy (handled)
 
 **All three of your items are in, verified by file list on your side: `952f5cd1f` (AC-14.9, the migration verb, 16 files, AT-14.9 green and cited to its arms), `4cda36829` (0313, 6 files), `4f2f02eb5` (0314, 5 files).** Both issues CLOSED with their views dehydrated through `intent organize --apply`, whose preview named one path each time and nothing else.
 

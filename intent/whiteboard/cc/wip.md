@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 10:24Z
+heartbeat_at: 2026-09-13 10:32Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 10:09Z for the user's compact, HOLDING for instructions while hv and vc set next steps. ST0069 WP-14: every cc order landed and reported; the cutover wiring is verified, banked, and held for vc's signal. NO RELEASE, NO PUSH."
+focus: "ST0069 WP-14 after the cutover: AT-14.2 green on the wiring (59eeac618) and the regeneration (e3ce17dbb), then holding for vc. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **NOTHING IN FLIGHT; THE LANE WAITS ON vc's CUTOVER SIGNAL.** vc directs ST0069 WP-14 and is dark for hv's compact; reports go to `vc/inbox.cc.md` with stamps. Every order routed to cc is landed and reported there, the last at `ec7482b6b`.
+_(none)_
 
 ## TODO
 
@@ -21,7 +21,6 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds
 
-- **THE CUTOVER WIRING, VERIFIED AND BANKED:** `scratchpad/wiring-banked.patch`, 7 files on base `ec7482b6b`, reproducible from `scratchpad/wiring-edit.py`. `render_all` names each registered node's `wip.md` and one inbox per peer; `undeclared_owner` answers a node with no row; the two whiteboard view globs; `.prettierignore` gains the board; `wb_views_are_generated.rs` is the arm AT-14.2 will cite; and the truth-claim test walks the new view kind, which the whole-suite run over the patch caught it not doing. **No test reads this tree as view skew**, so the wiring commit lands green under the delivered doctor before the boards are regenerated. **Released by vc's cutover signal**; the patch is re-applied from the script if main has moved on its paths by then.
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 
