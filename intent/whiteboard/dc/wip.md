@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **0318, after 0319: `organize` reports the v2 prune refusal ONCE PER RUN AS A CLASS. MAPPED, NOT YET EDITED.** `OrganizeError::LegacyUnheld` is pushed once per withheld file in `organize.rs` `Plan::run`, inside `if removals_permitted` (a bare `init` project permits, since no declaration reads as `NoDeclaration`), and `render_organize_report` prints every refusal through `refusal.render()` as `error:` plus its remedy. Build: keep the per-file entries in `report.refused`, so the summary `refused` count and the MCP per-path list stay as ruled; a `Report` method hands the renderer the v2 class, because the fold belongs to the report and not the renderer (the `Report::blocked` pattern); the class wording lives in `organize.rs` -- future tense `would refuse`, past tense `error: refused`, one remedy. The renderer prints the class line at EVERY verbosity including `--quiet`, the paths with their reasons only under `--verbose`, and otherwise one line announcing the narrowing (the unclaimed-inventory pattern). `organize` already declares `--verbose`/`-v` and `--quiet`/`-q`, so no new flag: amend the `--verbose` help and basis in `surface/dispatch-table.json` and regenerate the md with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`. Arm in `intent-cli/tests/organize_verbosity.rs` (a `suite` module): `init` plus two unheld files under `intent/st/COMPLETED/<ID>/`; the preview shows one class line naming 2 and no per-file error line, and `--verbose` names both paths. S.
+_(none)_
 
 ## TODO
 
