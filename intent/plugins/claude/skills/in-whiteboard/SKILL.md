@@ -57,6 +57,8 @@ Intent's own roster names the validation node, in the human's words: _the workst
 
 `intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`.
 
+**NOT EVERY VERB IS ONE AN AGENT MAY REACH FOR UNASKED, AND THE RULE IS A FIELD RATHER THAN A LIST.** Each row declares its `recoverability`, and that is what decides whether the verb is offered on the tool tier: reads and writes whose second call changes nothing are, and a verb that ACCUMULATES something permanent is not. So reading a board, stamping a heartbeat, claiming a thread and marking a sender's messages handled are ordinary; putting a message, a decision or an item on a board is a thing you do because you were asked to, and registering who the participants of a project ARE is a human's declaration. **Read the field, never a list of names** -- a sentence here naming which verbs are which would go stale, silently, the first time one row's `recoverability` moved, and the split is a consequence rather than a policy.
+
 **WHAT THIS FILE IS FOR, NOW THAT THE VERBS EXIST, IS THE HALF A COMMAND CANNOT CARRY**: when a verb is the wrong thing to run, and what has to be true before you run it. A verb enforces its own shape -- the bound, the single writer, the clock -- and cannot know whether an inbox entry was actually handled or whether a ruling has been executed. That judgement is below, and it is the reason this skill is longer than the verb list.
 
 ## File layout
