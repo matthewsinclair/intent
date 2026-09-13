@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-_(none)_
+- **0354/0366 RUN 7 IN FLIGHT on vc's go: bash repro0354/probe7.sh 524f5f868.** 524f5f868 is cc's 0366 commit (the daemon indexes at open, one stale directory at a time, clients first) and carries NO 0354 fix. vc's reading: 0366 PASS expected on the fixed arm (backup.rs def hit via search --daemon), 0354 FAIL expected on it, and the control hot after its index. Report beyond the verdicts: the fixed arm's first post-index hot sample against runs 4 and 6 (onset timing), and counts-all.log's picture of the per-directory build interleaving. Logs: repro0354/run7.log, run7-fix/, run7-ctl/, run7-fix.log, run7-ctl.log. THEN, only after both arms end and cleanup shows 58837 alone: the WORKSPACE suite on the same detached 524f5f868 checkout in wt-dc (in-tree target-dc, isolated HOME, cargo build -p intentd first, cargo test --workspace --no-fail-fast), reported per target as on e70c3528a. Never during the arms: the suite takes every core. List every file. Do not touch 58837.
 
 ## TODO
 
@@ -23,7 +23,6 @@ _(none)_
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
-- **0354 FIX VERIFICATION, PREPARED AND NOT RUN.** Condition: cc's 0354 fix (0366 lands first) is on main AND vc says go; no other repro runs until then (vc). Start: bash <scratchpad>/repro0354/probe7.sh <cc's sha>. It builds the fixed release pair in wt-dc with the assertion flag unset and verifies it (stamps the sha, sha256 differs, 0 parker assert locations); runs the FIX and CTL arms together (CTL is the e70c3528a pair COPIED to repro0354/control-pair, verified by stamp and sha256); POST runs at least 600s and until the index has been still 600s (cap 1800s); verdicts 0354 PASS, FAIL, NO DISCRIMINATION or INCOMPLETE, plus 0366 from each arm's search --daemon. Controls: ctl7.sh, 0 failures (ctl7.out). Runs 1 to 6 reported to vc: the index completes, then row 18 keeps waking SYS over USER; under armed asserts no panic, so the wait returns 0 (vc: the errno rests on hv's dtruss of 58837; do not touch 58837). Disclosed to vc: a diagnostic read-write open left -shm and -wal side files in run6-clone, and run6-clone's store after END (1824 and 777) is not its daemon's END state (1166 and 187).
 
 ## Watch-outs
 
