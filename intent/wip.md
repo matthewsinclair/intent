@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.47: vc - 0354 run 3 in, runs 4 and 5 ordered"
+verblock: "2026-09-13:v1.48: vc - hv orders the 0354 fix first, then the rebuild, then Laksa"
 intent_version: 3.0.1
 ---
 
@@ -7,14 +7,15 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0354: the daemon spins one core after its first project open (reproduced by dc in isolation on e70c3528a; the released 3.0.1 bursts bounded at first open, e70c3528a does not); dc runs run 4 (index counts while hot) then run 5 (a dev-profile pair, whose parker assert names the errno or rules the failing-wait reading out), cc reads the daemon diff since v3.0.1 for a wait satisfied without progress, hv's `sudo dtruss` is the direct capture; the cut holds on it.
+- 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. The site is settled (the store thread's park at store.rs:289, no sender, named by stack on the live daemon); run 5 (dc, a dev-profile pair) names the errno or not; cc rules the shape with vc (S1: std's thread parker at the two block_on sites; S2: a current_thread runtime on the store thread) and builds it in a worktree, tests as the AC rows; dc verifies with run 1's recipe cold for ten minutes after the index completes, then `bin/devbin build all`, app-install, daemon restart, doctor 0.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 ## TODO
 
 - After the tag: ic's reference regeneration, both halves `--rev v3.0.2 --baseline v3.0.1`; `intent claude skills sync` from the installed 3.0.2.
-- Courses' board migration report; then Laksa's boards migrate on vc's word (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
+- Courses' board migration report; Laksa's boards migrate on the fresh build carrying the 0354 fix, named to laksa-vc by hash with hv's go (restore the `.prettierignore` fence lines, retire the `:95` guard arm).
 - hv rules or overrules the calls in `intent/history/20260913-calls-under-the-pen.md`; AC-24.6, AC-24.7 and `INTENT_NODE` are hv's alone.
 - Hover the menubar identity row on a failed `intent version` read: ic could not confirm a disabled item shows its tooltip (hv or ic, after the cut).
 - ST0056: a `brew install` on a clean Mac, then AC-00.5 and AC-11.1 by evidence; WP-11 closes with them.
+- hv rules whether 0355 (the index watch's tree walk) and 0356 to 0361 (search's answers, found in the ST0069 demonstration) go before the tag; a ruled one gets a lane.
 - Open defects: `intent issues list`; a ruled one gets a lane. Out of 3.0.x by ruling: ST0057, ST0060, ST0070.

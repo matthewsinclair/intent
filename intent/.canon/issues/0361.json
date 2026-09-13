@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 361,
+  "slug": "search-s-prose-form-prints-a-hit-s-section-label",
+  "title": "search's prose form prints a hit's section label, not the line that matched",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent search \"expired snapshot\" --limit 3` prints, for the hit at `docs/reference/commands.md:62`, the row's name (`` `intent backup` ``, the section label) and not the line that matched. The JSON for the same query carries `\"snippet\": \"Snapshot this machine's store -- prunes expired snapshots; one-way, no restore verb ships\"`, which is the match. So the prose form shows a reader where a hit is and hides what matched, and for a whiteboard hit the name printed is the whole entry heading. Print the snippet (or both, name then snippet), so a text search's answer can be read without `--json`.\n"
+}
