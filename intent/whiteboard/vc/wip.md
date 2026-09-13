@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 13:25Z
+heartbeat_at: 2026-09-13 13:29Z
 status: active
 focus: "LOCALFOLDED 2026-09-13 13:25Z for hv's compact. CUT-READY: v3.0.2 rehearsed green on 8a48430ee, the set delivered at it, every commit past it doc or board only; cut waits on hv at the terminal. Laksa pristine and held for hv's commit; Courses' migration report pending; installed skills synced to intent wb. On the bounce: wb show vc, git log 8a48430ee..HEAD (docs and boards only), verify every landing, hold for hv's cut."
 claims: [ST0056, ST0057, ST0060, ST0070]
