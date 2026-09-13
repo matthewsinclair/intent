@@ -9,14 +9,8 @@ use intentsvcs::model::WbNodeStatus;
 fn a_pickup_makes_a_paused_node_active_and_records_what_it_names() {
   let fx = Fixture::new();
   let mut f = fx.facade();
-  let dir = fx.root().join("intent/whiteboard/cc");
-  std::fs::create_dir_all(&dir).expect("node dir");
-  std::fs::write(
-    dir.join("wip.md"),
-    "---\nnode: cc\nname: Control Claude\nrole: control\nstatus: active\n---\n",
-  )
-  .expect("write the header the roster is read from");
-  f.register_roster().expect("register the roster");
+  f.wb_register("cc", "Control Claude", "control")
+    .expect("register cc");
   f.wb_release("cc").expect("release");
   assert_eq!(
     f.board("cc").expect("board").node.status,

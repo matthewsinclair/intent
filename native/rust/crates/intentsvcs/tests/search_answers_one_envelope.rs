@@ -46,15 +46,8 @@ fn a_board_and_an_inbox_are_found_where_their_views_sit() {
     ("cc", "Control Claude", "control"),
     ("vc", "Validation Claude", "validation"),
   ] {
-    let dir = fx.root().join("intent/whiteboard").join(node);
-    std::fs::create_dir_all(&dir).expect("node dir");
-    std::fs::write(
-      dir.join("wip.md"),
-      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
-    )
-    .expect("write the header the roster is read from");
+    f.wb_register(node, name, role).expect("register the node");
   }
-  f.register_roster().expect("register the roster");
   f.wb_add("cc", WbItemKind::Hold, "held for the wallaby")
     .expect("a hold");
   f.wb_ask("vc", "cc", "the numbat order", None, false)

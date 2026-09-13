@@ -155,6 +155,13 @@
           "description": "When this node last reported itself alive. Service-written; see the note\nabove this block for what a MIGRATED value means.",
           "type": "string"
         },
+        "migrated_at": {
+          "description": "When this node's board became the model's, written by the service.\n**Absent on a node registered from its hand-authored header and not yet\nmigrated**, whose markdown on disk is still the board; every board write\nrefuses such a node.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "moniker": {
           "description": "The two-letter moniker: the directory name, the routing key and the\nhandle, all one value.",
           "type": "string"
@@ -234,5 +241,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.0.1",
-  "x-schema-json-ver": 19
+  "x-schema-json-ver": 20
 }

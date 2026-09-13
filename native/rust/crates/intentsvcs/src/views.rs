@@ -1579,7 +1579,7 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
 pub enum Undeclared {
   Thread(String),
   Issue(u32),
-  /// A board or inbox view whose node has no `wb_node` row.
+  /// A board or inbox view whose node has no migrated `wb_node` row.
   Board(String),
 }
 
@@ -1627,8 +1627,15 @@ pub fn undeclared_owner(
   // an estate whose `intent/whiteboard/` is hand-authored and unregistered
   // sees no view, no skew and no manifest line.
   if let Some(node) = whiteboard_owner(project, path) {
-    return (!canon.boards.iter().any(|b| b.node.moniker == node))
-      .then_some(Undeclared::Board(node));
+    // **REGISTERED IS NOT ENOUGH; MIGRATED IS** (0317). A node read off its
+    // header holds a row and none of its markdown, so a render of that row is an
+    // empty board, and projecting it would write over the board the migration
+    // exists to carry.
+    return (!canon
+      .boards
+      .iter()
+      .any(|b| b.node.moniker == node && b.node.migrated_at.is_some()))
+    .then_some(Undeclared::Board(node));
   }
   None
 }

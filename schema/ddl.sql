@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.1
--- SCHEMA_DDL_VER: 21
+-- SCHEMA_DDL_VER: 22
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -542,6 +542,12 @@ CREATE TABLE IF NOT EXISTS project (
 -- `authored_at` is the stamp a migrated board's markdown CLAIMED, verbatim and
 -- untrusted -- the one column in this store whose contents are known to include
 -- invented values, kept as text and never read as a time.
+--
+-- `migrated_at` is when a node's board became the model's: stamped by `wb
+-- migrate`, and by registering a node from its arguments, which has no
+-- hand-authored board to carry. Null means the markdown on disk is still the
+-- board, so every board write refuses until the node is migrated. It sits at
+-- the tail, where the rung that added it rebuilds the table to put it.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -554,7 +560,8 @@ CREATE TABLE IF NOT EXISTS wb_node (
   claims TEXT NOT NULL DEFAULT '[]',
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  migrated_at TEXT
 );
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_item (

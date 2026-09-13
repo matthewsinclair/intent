@@ -67,15 +67,10 @@ async fn any_node_reads_every_board_and_one_board_by_moniker() {
     ("cc", "Control Claude", "control"),
     ("vc", "Validation Claude", "validation"),
   ] {
-    let dir = fx.root().join("intent/whiteboard").join(node);
-    std::fs::create_dir_all(&dir).expect("node dir");
-    std::fs::write(
-      dir.join("wip.md"),
-      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
-    )
-    .expect("write the header the roster is read from");
+    facade
+      .wb_register(node, name, role)
+      .expect("register the node");
   }
-  facade.register_roster().expect("register the roster");
   facade
     .wb_add(
       "cc",

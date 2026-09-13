@@ -2215,6 +2215,12 @@ pub struct WbNode {
   /// non-null only on a migrated row.**
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub authored_at: Option<String>,
+  /// When this node's board became the model's, written by the service.
+  /// **Absent on a node registered from its hand-authored header and not yet
+  /// migrated**, whose markdown on disk is still the board; every board write
+  /// refuses such a node.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub migrated_at: Option<String>,
 }
 
 /// One line of a node's board.

@@ -311,8 +311,11 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // three new tables and the same easy rung, landing in the commit that also
   // writes their file form and registers the node roster, so no table declares
   // a carrier that is not there.
-  const PINNED_SCHEMA_HASH: u64 = 0x274a_956e_4239_a827;
-  const PINNED_FOR_VERSION: i32 = 24;
+  // 25 is `wb_node.migrated_at` (0317): a rebuild of `wb_node` with the column
+  // at its tail, so that no board write lands a render over a board that is
+  // still hand-authored markdown.
+  const PINNED_SCHEMA_HASH: u64 = 0x1800_483b_49ea_0a6d;
+  const PINNED_FOR_VERSION: i32 = 25;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

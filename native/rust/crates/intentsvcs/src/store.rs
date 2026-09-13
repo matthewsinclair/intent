@@ -625,6 +625,12 @@ CREATE TABLE IF NOT EXISTS project (
 -- `authored_at` is the stamp a migrated board's markdown CLAIMED, verbatim and
 -- untrusted -- the one column in this store whose contents are known to include
 -- invented values, kept as text and never read as a time.
+--
+-- `migrated_at` is when a node's board became the model's: stamped by `wb
+-- migrate`, and by registering a node from its arguments, which has no
+-- hand-authored board to carry. Null means the markdown on disk is still the
+-- board, so every board write refuses until the node is migrated. It sits at
+-- the tail, where the rung that added it rebuilds the table to put it.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -637,7 +643,8 @@ CREATE TABLE IF NOT EXISTS wb_node (
   claims TEXT NOT NULL DEFAULT '[]',
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  migrated_at TEXT
 );
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_item (
@@ -698,7 +705,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 24;
+pub const SCHEMA_VERSION: i32 = 25;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1595,6 +1602,53 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      );
      CREATE INDEX IF NOT EXISTS wb_item_by_node ON wb_item (node, kind, seq);
      CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id);",
+  ),
+  (
+    25,
+    // 24 -> 25: `wb_node.migrated_at` (0317).
+    //
+    // **A BOARD WRITE LANDS A RENDER, SO ON A NODE WHOSE BOARD IS STILL ITS
+    // MARKDOWN IT WOULD ERASE THE BOARD.** The column says which nodes are past
+    // that point, and every board write refuses a node that is not.
+    //
+    // **THE BACK-FILL MARKS THE NODES THAT ALREADY CARRY MIGRATED CONTENT**: a
+    // header claim in `authored_at`, or any item or message row. Registration
+    // writes none of those, so a node registered from its header and never
+    // carried stays null and keeps its hand-authored board. The value is the
+    // rung's own clock read, because when an earlier binary migrated a node was
+    // never recorded and inventing it would be the fabricated stamp.
+    //
+    // **A REBUILD RATHER THAN `ALTER TABLE ADD COLUMN`, for rung 15's reason.**
+    // The cheap form was written first and
+    // `a_store_stamped_by_an_earlier_draft_of_a_rung...` red it with `duplicate
+    // column name: migrated_at`: that fixture builds the current DDL and stamps
+    // an older version, and nothing rebuilds `wb_node` after rung 24. The
+    // `SELECT` names only the columns rung 24 made, so it reads either shape.
+    "CREATE TABLE wb_node_rebuilt (
+       moniker TEXT PRIMARY KEY,
+       name TEXT NOT NULL,
+       role TEXT NOT NULL,
+       session_id TEXT,
+       heartbeat_at TEXT NOT NULL,
+       status TEXT NOT NULL,
+       focus TEXT NOT NULL,
+       claims TEXT NOT NULL DEFAULT '[]',
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       migrated_at TEXT
+     );
+     INSERT INTO wb_node_rebuilt (moniker, name, role, session_id, heartbeat_at, status, focus,
+       claims, recorded_at, authored_at, updated_at, migrated_at)
+       SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at,
+         authored_at, updated_at,
+         CASE WHEN authored_at IS NOT NULL
+           OR EXISTS (SELECT 1 FROM wb_item WHERE wb_item.node = wb_node.moniker)
+           OR EXISTS (SELECT 1 FROM wb_message WHERE wb_message.recipient = wb_node.moniker)
+         THEN strftime('%Y-%m-%dT%H:%M:%fZ', 'now') END
+       FROM wb_node;
+     DROP TABLE wb_node;
+     ALTER TABLE wb_node_rebuilt RENAME TO wb_node;",
   ),
 ];
 
@@ -4070,7 +4124,7 @@ impl Store {
   pub fn hydrate_boards(&self) -> Result<Vec<Board>, StoreError> {
     let mut stmt = self.conn.prepare(
       "SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at, \
-       authored_at FROM wb_node ORDER BY moniker",
+       authored_at, migrated_at FROM wb_node ORDER BY moniker",
     )?;
     let nodes = stmt
       .query_map([], |row| {
@@ -4085,6 +4139,7 @@ impl Store {
           row.get::<_, String>(7)?,
           row.get::<_, String>(8)?,
           row.get::<_, Option<String>>(9)?,
+          row.get::<_, Option<String>>(10)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -4101,6 +4156,7 @@ impl Store {
       claims,
       recorded_at,
       authored_at,
+      migrated_at,
     ) in nodes
     {
       let node = WbNode {
@@ -4114,6 +4170,7 @@ impl Store {
         claims: serde_json::from_str(&claims)?,
         recorded_at,
         authored_at,
+        migrated_at,
       };
       boards.push(Board {
         schema: BOARD_SCHEMA.to_string(),
@@ -4225,20 +4282,27 @@ impl Store {
   /// Idempotent by moniker, so registering twice is not two rows -- but an
   /// existing row is LEFT ALONE rather than refreshed, because the roster is
   /// the starting state and everything after it belongs to whoever wrote it.
+  ///
+  /// **`migrated` SAYS WHETHER THE ROW IS THE BOARD.** A node named from its
+  /// arguments has no hand-authored board, so its row is stamped migrated at
+  /// the insert; a node read off its header is not, until `wb migrate` carries
+  /// the markdown the header sits on.
   pub fn register_nodes(
     &mut self,
     nodes: &[(String, String, String)],
+    migrated: bool,
   ) -> Result<usize, StoreError> {
     let tx = self.conn.transaction()?;
     let mut written = 0;
     for (moniker, name, role) in nodes {
       written += tx.execute(
         "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-         claims, recorded_at, authored_at) \
+         claims, recorded_at, authored_at, migrated_at) \
          SELECT ?1, ?2, ?3, NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'paused', '', '[]', \
-         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL \
+         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL, \
+         CASE WHEN ?4 THEN strftime('%Y-%m-%dT%H:%M:%fZ', 'now') END \
          WHERE NOT EXISTS (SELECT 1 FROM wb_node WHERE moniker = ?1)",
-        params![moniker, name, role],
+        params![moniker, name, role, migrated],
       )?;
     }
     tx.commit()?;
@@ -4256,6 +4320,16 @@ impl Store {
   ///
   /// Rows are inserted in the order the board holds them, so the ROWIDs that
   /// order the next read are the order this write was given.
+  /// Is this node's board the model's, rather than its markdown on disk?
+  pub fn wb_node_migrated(&self, moniker: &str) -> Result<bool, StoreError> {
+    let migrated: i64 = self.conn.query_row(
+      "SELECT count(*) FROM wb_node WHERE moniker = ?1 AND migrated_at IS NOT NULL",
+      params![moniker],
+      |row| row.get(0),
+    )?;
+    Ok(migrated > 0)
+  }
+
   /// Is this moniker on the roster?
   pub fn wb_node_exists(&self, moniker: &str) -> Result<bool, StoreError> {
     let n: i64 = self.conn.query_row(
@@ -4358,8 +4432,8 @@ impl Store {
   ) -> Result<(), StoreError> {
     self.conn.execute(
       "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, status = ?5, focus = ?6, \
-       claims = ?7, heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), authored_at = ?8 \
-       WHERE moniker = ?1",
+       claims = ?7, heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), authored_at = ?8, \
+       migrated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
       params![
         node,
         name,
@@ -4525,7 +4599,8 @@ impl Store {
       let n = &board.node;
       tx.execute(
         "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-         claims, recorded_at, authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+         claims, recorded_at, authored_at, migrated_at) \
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
         params![
           n.moniker,
           n.name,
@@ -4537,6 +4612,7 @@ impl Store {
           serde_json::to_string(&n.claims)?,
           n.recorded_at,
           n.authored_at,
+          n.migrated_at,
         ],
       )?;
       for item in &board.items {

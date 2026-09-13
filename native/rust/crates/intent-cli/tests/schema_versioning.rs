@@ -321,7 +321,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // commit as the code that writes `board.json`, because a `carried by`
     // declaration naming a file nothing writes is the promise the openness
     // check exists to refuse.
-    ("SCHEMA_DDL_VER", 21, 0xc7d1_3b14_aaae_45c7),
+    ("SCHEMA_DDL_VER", 22, 0xd609_73ef_0f1b_c895),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -330,7 +330,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 15 -> 16 is the board reads: `board(node)` and `boards` on the query
     // root, and the four coordination types they return. The JSON face already
     // carries those types and the DDL already stores them, so neither moves.
-    ("SCHEMA_SDL_VER", 16, 0xe0ba_286f_a142_b8a6),
+    ("SCHEMA_SDL_VER", 17, 0x400e_d940_cd2b_5581),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -342,7 +342,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 18 -> 19 is the fifth item kind, `hold`, on `board.schema.json`; the DDL
     // stores the kind as text and the board has no SDL face yet, so neither
     // of the other two moves.
-    ("SCHEMA_JSON_VER", 19, 0x6341_3531_58b8_90f1),
+    ("SCHEMA_JSON_VER", 20, 0x0082_cdc1_c6bf_051a),
   ];
 
   let mut moved = Vec::new();

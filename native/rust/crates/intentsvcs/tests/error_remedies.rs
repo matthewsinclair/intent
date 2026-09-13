@@ -89,15 +89,27 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     ("cc", "Control Claude", "control"),
     ("hv", "Hypervisor", "hypervisor"),
   ] {
-    let dir = fx.root().join("intent/whiteboard").join(node);
-    std::fs::create_dir_all(&dir).expect("node dir");
-    std::fs::write(
-      dir.join("wip.md"),
-      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
-    )
-    .expect("write the header the roster is read from");
+    facade
+      .wb_register(node, name, role)
+      .expect("register the node");
   }
-  facade.register_roster().expect("register the roster");
+  // A node read off its hand-authored header is registered and not migrated.
+  let dc = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(&dc).expect("node dir");
+  std::fs::write(
+    dc.join("wip.md"),
+    "---\nnode: dc\nname: DevX Claude\nrole: worker\nstatus: active\n---\n",
+  )
+  .expect("a hand-authored header");
+  facade
+    .register_roster()
+    .expect("register dc from its header");
+  out.push((
+    "a board write on a node whose board is still its markdown",
+    facade
+      .wb_touch("dc")
+      .expect_err("an unmigrated node's board is its markdown, and a render would erase it"),
+  ));
   // **ONE BYTE OVER, which is the criterion's own discriminating case.** A
   // refusal provoked with a wildly oversized body passes whether the
   // comparison is `>` or `>=` and whether the bound is the configured one or
@@ -940,6 +952,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
+    FacadeError::WbNotMigrated { .. } => "WbNotMigrated",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
     FacadeError::WbNoActingNode => "WbNoActingNode",
@@ -1029,6 +1042,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbItemsFull",
   "WbClaimMalformed",
   "WbAlreadyCarried",
+  "WbNotMigrated",
   "WbKindHasItsOwnVerb",
   "WbRegisteredDifferently",
   "WbNoActingNode",

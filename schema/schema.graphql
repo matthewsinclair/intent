@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.1
-# SCHEMA_SDL_VER: 16
+# SCHEMA_SDL_VER: 17
 
 enum AcKind {
   TEST
@@ -712,6 +712,13 @@ type WbNode {
   non-null only on a migrated row.**
   """
   authoredAt: String
+  """
+  When this node's board became the model's, written by the service.
+  **Absent on a node registered from its hand-authored header and not yet
+  migrated**, whose markdown on disk is still the board; every board write
+  refuses such a node.
+  """
+  migratedAt: String
 }
 
 enum WbNodeStatus {

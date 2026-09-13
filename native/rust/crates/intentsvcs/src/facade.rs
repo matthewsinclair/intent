@@ -1378,6 +1378,9 @@ pub enum FacadeError {
   /// A kind this verb will not write, because another verb owns it.
   #[error("`{kind}` items are not written by this verb")]
   WbKindHasItsOwnVerb { kind: String, verb: String },
+  /// A board write on a node whose board is still its hand-authored markdown.
+  #[error("`{node}` is registered and not migrated, so its board is still the markdown on disk")]
+  WbNotMigrated { node: String },
   /// A moniker already registered, named again with other values.
   #[error("`{node}` is registered as `{held_name}` ({held_role}), not `{name}` ({role})")]
   WbRegisteredDifferently {
@@ -1499,6 +1502,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbRegisteredDifferently { node, .. } => format!(
         "a node's name and role are set when it registers and are not re-set by registering again; `intent wb show {node}` shows what it holds, and a participant who is not that node needs a moniker of its own"
+      ),
+      Self::WbNotMigrated { node } => format!(
+        "`intent wb migrate {node}` carries its hand-authored board into the model first. A board write renders the board from the store, so writing before the carry would replace the markdown with a render of a board that holds none of it"
       ),
       Self::WbKindHasItsOwnVerb { kind, verb } => format!(
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
@@ -5068,7 +5074,7 @@ impl Facade {
     }
     let registered = self
       .store
-      .register_nodes(&nodes)
+      .register_nodes(&nodes, false)
       .map_err(FacadeError::Store)?;
     // Index only: the headers this read stay hand-authored until a migration.
     self.reindex_boards()?;
@@ -5116,7 +5122,10 @@ impl Facade {
     }
     let written = self
       .store
-      .register_nodes(&[(moniker.to_string(), name.to_string(), role.to_string())])
+      .register_nodes(
+        &[(moniker.to_string(), name.to_string(), role.to_string())],
+        true,
+      )
       .map_err(FacadeError::Store)?;
     self.land_board_write()?;
     Ok(written)
@@ -5243,6 +5252,27 @@ impl Facade {
     })
   }
 
+  /// Refuse a board write on a node whose board is still hand-authored.
+  ///
+  /// **A BOARD WRITE LANDS A RENDER, SO ON AN UNMIGRATED NODE IT WOULD ERASE THE
+  /// BOARD** (vc, 2026-09-13, on 0317). A node registered from its header holds a
+  /// row and none of its markdown, and rendering that row over `wip.md` replaces
+  /// the board a migration exists to carry with an empty one. Registration and
+  /// the migration are the two board writes that do not ask this.
+  fn require_migrated(&self, node: &str) -> Result<(), FacadeError> {
+    self.require_registered(node)?;
+    if self
+      .store
+      .wb_node_migrated(node)
+      .map_err(FacadeError::Store)?
+    {
+      return Ok(());
+    }
+    Err(FacadeError::WbNotMigrated {
+      node: node.to_string(),
+    })
+  }
+
   /// Stamp the acting node's heartbeat.
   ///
   /// **THE SERVICE READS THE CLOCK AND NO CALLER OFFERS A TIME.** A heartbeat is
@@ -5250,7 +5280,7 @@ impl Facade {
   /// moment", so a caller-supplied value would be the fabricated stamp with the
   /// model's blessing -- the class this whole model exists to close.
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
     self.land_board_write()
   }
@@ -5263,7 +5293,7 @@ impl Facade {
   /// telling those apart is the whole point of a heartbeat on a board peers
   /// read.
   pub fn wb_release(&mut self, node: &str) -> Result<(), FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     self
       .store
       .wb_set_status(
@@ -5294,7 +5324,7 @@ impl Facade {
     session_id: Option<&str>,
     focus: Option<&str>,
   ) -> Result<Pickup, FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     self
       .store
       .wb_pick_up(
@@ -5365,7 +5395,7 @@ impl Facade {
     kind: WbItemKind,
     text: &str,
   ) -> Result<u32, FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     self.check_body_bound(node, text)?;
     let wire = crate::model::enum_str(&kind);
     let cfg = self.project.config().whiteboard.clone();
@@ -5696,7 +5726,7 @@ impl Facade {
     kind: WbItemKind,
     seq: u32,
   ) -> Result<bool, FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     let moved = self
       .store
       .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
@@ -5713,7 +5743,7 @@ impl Facade {
   /// way would say a write happened when none did, which is the rule
   /// `wb register` and `wb clear` already answer to.
   pub fn wb_claim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     if !Self::is_claim_address(claim) {
       return Err(FacadeError::WbClaimMalformed {
         claim: claim.to_string(),
@@ -5739,7 +5769,7 @@ impl Facade {
   /// obvious cleanup -- unclaim everything, whatever the board says -- a script
   /// that has to check first.
   pub fn wb_unclaim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
-    self.require_registered(node)?;
+    self.require_migrated(node)?;
     let claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
     let kept: Vec<String> = claims.iter().filter(|c| *c != claim).cloned().collect();
     if kept.len() == claims.len() {
@@ -5786,7 +5816,7 @@ impl Facade {
     fyi: bool,
   ) -> Result<(), FacadeError> {
     self.require_registered(sender)?;
-    self.require_registered(recipient)?;
+    self.require_migrated(recipient)?;
     self.check_body_bound(sender, body)?;
     let cfg = self.project.config().whiteboard.clone();
     if cfg.bounds_apply_to(sender) {
@@ -5833,6 +5863,11 @@ impl Facade {
       .into_iter()
       .filter(|m| m != sender)
       .collect();
+    // Every recipient is asked before any row is written, for the reason the
+    // bounds below are: a broadcast never half-lands.
+    for r in &recipients {
+      self.require_migrated(r)?;
+    }
     let cfg = self.project.config().whiteboard.clone();
     if cfg.bounds_apply_to(sender) {
       for r in &recipients {
@@ -5868,7 +5903,7 @@ impl Facade {
   /// [`Self::wb_ask`] for why that is a convention at this layer and what
   /// making it a guarantee would cost.
   pub fn wb_clear(&mut self, recipient: &str, sender: &str) -> Result<usize, FacadeError> {
-    self.require_registered(recipient)?;
+    self.require_migrated(recipient)?;
     self.require_registered(sender)?;
     let cleared = self
       .store

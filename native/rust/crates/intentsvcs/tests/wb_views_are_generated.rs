@@ -4,6 +4,7 @@
 //! still hand-authored, with no rows, sees no view and no skew at all.
 
 use crate::common::{Fixture, ctx};
+use intentsvcs::facade::FacadeError;
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::WbItemKind;
 
@@ -105,4 +106,34 @@ fn a_board_write_lands_the_node_s_view_on_disk_at_the_write() {
     " M intent/whiteboard/cc/wip.md\n",
     "and git sees the view as changed"
   );
+}
+
+#[test]
+fn a_node_registered_from_its_header_refuses_a_board_write_until_it_is_migrated() {
+  let fx = Fixture::new();
+  let dir = fx.path("intent/whiteboard/dc");
+  std::fs::create_dir_all(&dir).expect("node dir");
+  let hand = "---\nnode: dc\nname: DevX Claude\nrole: worker\nheartbeat_at: 2026-09-12 18:31Z\nstatus: active\nfocus: \"the migration verb\"\nclaims: []\n---\n\n# DevX Claude (dc)\n\n## DOING\n\n- The busiest section on every real board.\n";
+  std::fs::write(dir.join("wip.md"), hand).expect("a hand-authored board");
+  let mut f = fx.facade_on_disk();
+  f.register_roster().expect("register by header");
+  assert!(
+    matches!(f.wb_touch("dc"), Err(FacadeError::WbNotMigrated { .. })),
+    "a board write before the migration refuses by name"
+  );
+  assert_eq!(
+    fx.read("intent/whiteboard/dc/wip.md"),
+    hand,
+    "and the hand-authored board is byte-identical"
+  );
+
+  f.wb_migrate("dc").expect("carry the board");
+  f.wb_touch("dc").expect("a board write after the migration");
+  let board = fx.read("intent/whiteboard/dc/wip.md");
+  assert!(
+    board != hand && board.contains("- The busiest section on every real board.\n"),
+    "the write lands the render of what was carried: {board}"
+  );
+  let findings = whiteboard_findings(&fx);
+  assert!(findings.is_empty(), "and the render is clean: {findings:?}");
 }
