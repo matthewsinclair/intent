@@ -614,8 +614,17 @@
       "kind": "doing",
       "seq": 9,
       "text": "**ST0074 is the bundle hv asked for** (machine-wide projects), vc's rulings: documents written before code; WPs 01 /threads+/issues (landed 793984a50, reads WIP: wp done refuses a thread with no ACs, recording with vc), 02 menubar status line (S, in wt-menubar, critic fixes made, app-test rerun waits on vc's host signal after dc's suite, goes into 3.0.2's rebuild only if green before build all is ordered), 03 registry + discover (L), 04 picker (M), 05 intentd's config home (S, design.md options for hv, nothing chosen). 03-05 code does not land before the 3.0.2 tag. Issue 0368 filed; its fix is mine as a lane after hv rules the pre-tag list.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T16:19:24.770Z",
       "recorded_at": "2026-09-13T16:06:12.409Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 10,
+      "text": "**ST0074, the bundle hv asked for.** WP-01 /threads and /issues (793984a50, AT-01.1 green) and WP-02 the menubar's one status line (133061d7f, AT-02.1..02.3 green) are Done on main. design.md holds WP-05's options for hv (nothing chosen) and WP-03's one-page registry design. WP-03 (registry + discover, L), WP-04 (picker, M) and WP-05 (config home, S) do not land before the 3.0.2 tag; WP-05 waits on hv's ruling, and WP-03 needs WP-05's location. Issue 0368 (bats test writing the real ~/.intent/config.json) is filed; its fix is mine after hv rules the pre-tag list.",
+      "state": "live",
+      "recorded_at": "2026-09-13T16:19:27.940Z"
     }
   ],
   "messages": [
