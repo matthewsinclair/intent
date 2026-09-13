@@ -18,6 +18,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
+- **0354 RUN 4, vc's order, after run 3 reports: run 1's conditions again to make the trigger REPRODUCIBLE, not inferred.** A FRESH clone at e70c3528a, the delivered pair, a daemonless st list to build the store, one open, ten minutes. While hot, every 10s: ps -M for the hot row AND three counts read-only from the clone's intent/.cache/intent.db (select count(*) from file_index, from index_file, from src_sections), to see whether the index advances during a burst and whether the bursts stop once the counts meet. If they never meet, run intent index status on the clone at the end. Drive: repro0354/probe.sh with COUNTS=1, LABEL=run4 BIN=<the release dir> CLONE=repro0354/run4-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r4. vc names it the last measurement before ruling a fix shape with cc. vc is folding for hv's compact, and reports queue for the bounce.
 
 ## Holds
 
