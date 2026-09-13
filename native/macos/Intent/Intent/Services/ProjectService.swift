@@ -25,23 +25,16 @@ final class ProjectService {
   /// renders this; a failure is nil and logged, never a fabricated zero.
   private(set) var threadCount: Int?
 
-  private var pollTask: Task<Void, Never>?
+  private let poller = Poller()
 
-  /// Mirrors DaemonService's cadence: one GraphQL read every five seconds, so
-  /// the count stays live and the query is exercised continuously.
+  /// On the shared `Poller` cadence, so the count stays live and the query is
+  /// exercised continuously.
   func startPolling() {
-    guard pollTask == nil else { return }
-    pollTask = Task { [weak self] in
-      while !Task.isCancelled {
-        await self?.refresh()
-        try? await Task.sleep(for: .seconds(5))
-      }
-    }
+    poller.start { [weak self] in await self?.refresh() }
   }
 
   func stopPolling() {
-    pollTask?.cancel()
-    pollTask = nil
+    poller.stop()
   }
 
   /// One read through the GraphQL door. No configured project -> nil, and the

@@ -17,6 +17,9 @@
 		8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */; };
 		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
 		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
+		AEC29FC709731DBCD305DDEC /* Poller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8E88CC01798FAF64224EC9 /* Poller.swift */; };
+		B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC383096DF8A7D0628802048 /* VersionServiceTests.swift */; };
+		BA9D8826A2AF602EDE7C694D /* VersionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295EE684DDA44AB926831B4 /* VersionService.swift */; };
 		D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1FDFCD2416E01A931378EF /* ProjectService.swift */; };
 		DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
@@ -43,6 +46,7 @@
 		5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
+		6E8E88CC01798FAF64224EC9 /* Poller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poller.swift; sourceTree = "<group>"; };
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		8A21089C3EE01CC6CD256BFC /* IntentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentApp.swift; sourceTree = "<group>"; };
@@ -52,7 +56,9 @@
 		B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectServiceTests.swift; sourceTree = "<group>"; };
 		BD1FDFCD2416E01A931378EF /* ProjectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectService.swift; sourceTree = "<group>"; };
 		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
+		D295EE684DDA44AB926831B4 /* VersionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionService.swift; sourceTree = "<group>"; };
 		D9ED4FC1411ABD3535ED4A3F /* Intent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC383096DF8A7D0628802048 /* VersionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -60,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */,
+				6E8E88CC01798FAF64224EC9 /* Poller.swift */,
 				894E47351007915CC6F59BBD /* Theme.swift */,
 			);
 			path = Utilities;
@@ -96,6 +103,7 @@
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
 				5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */,
 				5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */,
+				DC383096DF8A7D0628802048 /* VersionServiceTests.swift */,
 			);
 			path = IntentTests;
 			sourceTree = "<group>";
@@ -107,6 +115,7 @@
 				60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */,
 				9DC7A046D343F9FF30FC56EA /* LoginShell.swift */,
 				BD1FDFCD2416E01A931378EF /* ProjectService.swift */,
+				D295EE684DDA44AB926831B4 /* VersionService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -238,8 +247,10 @@
 				E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */,
 				954C28016164850D99C2B79C /* IntentCLI.swift in Sources */,
 				692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */,
+				AEC29FC709731DBCD305DDEC /* Poller.swift in Sources */,
 				D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */,
 				916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */,
+				BA9D8826A2AF602EDE7C694D /* VersionService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +262,7 @@
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
 				DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */,
+				B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 import Observation
 
-/// The daemon as the app sees it: a five-second poll of
+/// The daemon as the app sees it: a poll, on the shared `Poller` cadence, of
 /// `intent daemon status --format json` -- cc's projection, the ONE health
 /// predicate (AC-01.2), read through the CLI verb and never reimplemented in
 /// Swift -- plus Start / Stop / Restart through the same CLI. Geodica's
@@ -23,21 +23,14 @@ final class DaemonService {
   /// the icon does not flicker through a wrong state on a restart.
   private(set) var busy: String?
 
-  private var pollTask: Task<Void, Never>?
+  private let poller = Poller()
 
   func startPolling() {
-    guard pollTask == nil else { return }
-    pollTask = Task { [weak self] in
-      while !Task.isCancelled {
-        await self?.poll()
-        try? await Task.sleep(for: .seconds(5))
-      }
-    }
+    poller.start { [weak self] in await self?.poll() }
   }
 
   func stopPolling() {
-    pollTask?.cancel()
-    pollTask = nil
+    poller.stop()
   }
 
   /// One read of the health predicate. `daemon status` reports live, stale or

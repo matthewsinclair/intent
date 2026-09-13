@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem?
   private let daemon = DaemonService.shared
   private let project = ProjectService.shared
+  private let version = VersionService.shared
   private var observation: ContinuousObservation?
 
   static let firstRunKey = "FirstRunDone"
@@ -45,7 +46,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     daemon.startPolling()
-    project.startPolling()  // with a project set, one `intent graphql` read every 5s (AC-01.3)
+    project.startPolling()  // with a project set, one `intent graphql` read per poll (AC-01.3)
+    version.startPolling()  // one `intent version` read per poll, for the identity row
     startObserving()  // renders the current state immediately, then on every change
 
     if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
@@ -57,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   func applicationWillTerminate(_ notification: Notification) {
     daemon.stopPolling()
     project.stopPolling()
+    version.stopPolling()
     observation?.stop()
   }
 
@@ -103,13 +106,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   // MARK: - Observation
 
   /// The icon and menu follow the daemon's health, any lifecycle verb in flight,
-  /// and the project's thread count; ContinuousObservation re-arms after every
-  /// change, so a write from either poll repaints both.
+  /// the project's thread count and the CLI's version; ContinuousObservation
+  /// re-arms after every change, so a write from any poll repaints both.
   private func startObserving() {
     observation = ContinuousObservation(
       track: { [weak self] in
         guard let self else { return }
-        _ = (self.daemon.health, self.daemon.busy, self.project.threadCount)
+        _ = (self.daemon.health, self.daemon.busy, self.project.threadCount, self.version.state)
       },
       onChange: { [weak self] in
         guard let self else { return }
@@ -138,10 +141,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func rebuildMenu() {
     let menu = NSMenu()
 
-    let identity = NSMenuItem(title: "Intent", action: nil, keyEquivalent: "")
+    // **THE IDENTITY ROW NAMES THE BUILD** (hv, 2026-09-13): "intent 3.0.1
+    // (8a48430e)", read through `intent version` (VersionService). Until the
+    // CLI answers the row is the app's name; when it cannot answer the row
+    // says so and its tooltip carries the cause -- never a version remembered
+    // from an earlier read.
+    let identityTitle = version.state.menuTitle
+    let identity = NSMenuItem(title: identityTitle, action: nil, keyEquivalent: "")
     identity.isEnabled = false
+    identity.toolTip = version.state.failure
     identity.attributedTitle = NSAttributedString(
-      string: "Intent",
+      string: identityTitle,
       attributes: [.font: NSFont.boldSystemFont(ofSize: 13)]
     )
     menu.addItem(identity)
