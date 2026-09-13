@@ -107,6 +107,13 @@ pub struct Plan {
   /// untouched. **The third summary bucket beside modelled and carried**: a
   /// drop with no record cannot be told from a section that was never there.
   pub dispositions: Vec<crate::legacy::Disposition>,
+  /// Bucket files Phase A ingested into an already-migrated thread (0319),
+  /// passed through untouched. **For the report, and for one decision the door
+  /// makes**: a run that ingested does not also prune.
+  pub bucket_ingested: Vec<std::path::PathBuf>,
+  /// Bucket files Phase A did not ingest, each with its reason, passed through
+  /// untouched.
+  pub bucket_not_ingested: Vec<crate::legacy::Withheld>,
 }
 
 /// Why no plan exists.
@@ -392,6 +399,8 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
     carried,
     already_migrated,
     dispositions,
+    bucket_ingested,
+    bucket_not_ingested,
   } = scan;
 
   if !residue.is_empty() {
@@ -433,6 +442,8 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   // shape in the layer 0070 called the worst part.
   plan.already_migrated_issues = extra_numbers;
   plan.dispositions = dispositions;
+  plan.bucket_ingested = bucket_ingested;
+  plan.bucket_not_ingested = bucket_not_ingested;
   Ok(plan)
 }
 
@@ -641,6 +652,9 @@ fn assemble(
     // Same reason as above: `assemble` never sees a scan, so it cannot know
     // what Phase A dropped.
     dispositions: Vec::new(),
+    // Nor what it ingested from a bucket.
+    bucket_ingested: Vec::new(),
+    bucket_not_ingested: Vec::new(),
   })
 }
 

@@ -111,8 +111,25 @@ pub struct Upgraded {
   ///
   /// **A DESTRUCTIVE ACT THAT REPORTS ONLY A TOTAL IS ONE NOBODY CAN REVIEW.**
   /// Empty when the prune refused, and then [`Upgraded::prune_withheld`] says
-  /// which file stopped it.
+  /// which file stopped it -- and empty when it was deferred, and then
+  /// [`Upgraded::prune_deferred`] names what stays.
   pub pruned: Vec<std::path::PathBuf>,
+  /// v2 bucket files this run ingested into an already-migrated thread's canon
+  /// (issue 0319), named rather than counted.
+  pub ingested: Vec<std::path::PathBuf>,
+  /// Bucket files this run did not ingest, each with its reason. A report and
+  /// never a refusal: none of them stops the run.
+  pub not_ingested: Vec<crate::legacy::Withheld>,
+  /// v2 leftovers the store now holds and this run did NOT remove, because it
+  /// ingested some of them.
+  ///
+  /// **AN INGEST AND A REMOVAL ARE NOT ONE RUN** (vc, 2026-09-13, on hv's
+  /// no-silent-deletion ruling of 2026-09-12). Pruning straight after the
+  /// ingest would delete files whose only reviewable record is the line saying
+  /// they were just carried, and the operator would read both after the fact.
+  /// Removal stays with `intent organize`, which names every path before it
+  /// goes. A conversion, and a re-run that ingested nothing, prune as before.
+  pub prune_deferred: Vec<std::path::PathBuf>,
   /// Why the prune removed nothing: one entry per file the store does not hold.
   /// Empty on a conversion that pruned.
   pub prune_withheld: Vec<crate::legacy::Withheld>,
@@ -2781,6 +2798,8 @@ impl Facade {
       already_migrated,
       already_migrated_issues,
       dispositions,
+      bucket_ingested,
+      bucket_not_ingested,
     } = plan;
 
     let files = writes.len();
@@ -2791,7 +2810,14 @@ impl Facade {
     // stamp has landed.
     // Returns what the prune did, because the caller reports it and a closure
     // that swallowed it would make the removal unreviewable.
-    let finish = || -> Result<(Vec<std::path::PathBuf>, crate::legacy::Leftovers), FacadeError> {
+    let finish = || -> Result<
+      (
+        Vec<std::path::PathBuf>,
+        Vec<std::path::PathBuf>,
+        crate::legacy::Leftovers,
+      ),
+      FacadeError,
+    > {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
       // The store has just been built from the canon these writes landed, so
@@ -2819,13 +2845,21 @@ impl Facade {
       };
       let leftovers = crate::legacy::leftovers(project, &converted);
       let mut pruned = Vec::new();
-      if !leftovers.refuses() {
-        for path in &leftovers.removable {
-          std::fs::remove_file(path).map_err(|cause| FacadeError::MigrationHalted {
-            step: "removing the v2 tree the store now holds",
-            cause,
-          })?;
-          pruned.push(path.clone());
+      let mut deferred = Vec::new();
+      // **A RUN THAT INGESTED BUCKET FILES DEFERS THE PRUNE** (issue 0319; see
+      // `Upgraded::prune_deferred`). The refusal still comes first: an estate
+      // with an unheld file removes nothing whatever this run carried.
+      match (leftovers.refuses(), bucket_ingested.is_empty()) {
+        (true, _) => {}
+        (false, false) => deferred.clone_from(&leftovers.removable),
+        (false, true) => {
+          for path in &leftovers.removable {
+            std::fs::remove_file(path).map_err(|cause| FacadeError::MigrationHalted {
+              step: "removing the v2 tree the store now holds",
+              cause,
+            })?;
+            pruned.push(path.clone());
+          }
         }
       }
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
@@ -2846,13 +2880,16 @@ impl Facade {
         step: "stamping the project version",
         cause,
       })?;
-      Ok((pruned, leftovers))
+      Ok((pruned, deferred, leftovers))
     };
     match finish() {
-      Ok((pruned, leftovers)) => {
+      Ok((pruned, prune_deferred, leftovers)) => {
         applied.keep();
         Ok(Upgraded {
           pruned,
+          ingested: bucket_ingested,
+          not_ingested: bucket_not_ingested,
+          prune_deferred,
           prune_withheld: leftovers.withheld,
           pointers: leftovers.pointers,
           threads: threads.len(),

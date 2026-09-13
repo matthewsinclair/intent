@@ -188,6 +188,26 @@ pub struct Scan {
   /// `already_migrated + threads` reconciles against the estate and a re-run
   /// reports what it declined instead of quietly doing less.
   pub already_migrated: Vec<String>,
+  /// v2 bucket files this run INGESTED into a thread that already had canon
+  /// (issue 0319), one absolute path each.
+  ///
+  /// **The canon branch above loads the thread and moves on, which is right for
+  /// the markdown beside it and was wrong for an attachment in a status bucket:**
+  /// nothing else ever carries that file, so the prune probe found it unheld on
+  /// every run and an estate converted before WP-02 could never lose its v2 tree.
+  /// Named rather than counted, because an ingest nobody can review is the same
+  /// defect as a prune nobody can review.
+  pub bucket_ingested: Vec<std::path::PathBuf>,
+  /// Bucket files under a thread with canon that this run did NOT ingest, each
+  /// with its reason: refused by the carry (the naming gate, the size cap, an
+  /// unreadable file), or differing from the attachment canon already holds at
+  /// that path, where canon wins.
+  ///
+  /// **Reported, never a finding, and never a halt** (vc, 2026-09-13). A finding
+  /// on a live thread blocks the migration, and one badly named file on a fleet
+  /// estate is not a reason to leave every other file unheld. The prune probe
+  /// still withholds each of them, so nothing here is removed either.
+  pub bucket_not_ingested: Vec<Withheld>,
 }
 
 impl Scan {
@@ -285,6 +305,31 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       })?;
       if loaded.insert(id.clone()) {
         out.threads.push(thread);
+      }
+      // **THE BUCKET INGEST (issue 0319), AND ONLY FOR A BUCKET.** The markdown
+      // beside canon is a view and stays unread, which is the ruling above; an
+      // attachment in a v2 status bucket is not a view, and nothing but this
+      // walk will ever carry it. The flat `st/<ID>/` directory is not asked:
+      // for a thread in canon it is the realised tree rather than a v2
+      // leftover, and `leftovers` roots the prune's population at the three
+      // bucket names and nowhere else (AC-02.3).
+      if in_status_bucket(project, &dir) {
+        let (offered, refused) = accounted_attachments(project, &id, &dir)?;
+        let held = out.threads.iter_mut().find(|t| t.id == id).ok_or_else(|| {
+          std::io::Error::other(format!(
+            "{id} was loaded from canon and is not in this scan's thread list, so its bucket files at {} have nowhere to go",
+            project.relative(&dir)
+          ))
+        })?;
+        let (ingested, differing) = ingest_bucket_attachments(held, &dir, offered);
+        out.bucket_ingested.extend(ingested);
+        out.bucket_not_ingested.extend(differing);
+        out
+          .bucket_not_ingested
+          .extend(refused.into_iter().map(|(name, reason)| Withheld {
+            path: project.root().join(name),
+            reason,
+          }));
       }
       out.already_migrated.push(id);
       continue;
@@ -611,6 +656,28 @@ fn attachments(
   // `intent/st/<ID>/` does not exist. Asking `Project` for the path was how
   // every bucketed thread migrated with zero attachments at rc 0 -- the
   // sibling readers two lines above this call have always taken `dir`.
+  let (carried, refused) = accounted_attachments(project, id, dir)?;
+
+  for (name, reason) in refused {
+    out.record(
+      closed,
+      Finding::new(&name, FindingClass::UnknownFileShape, reason),
+    );
+  }
+  Ok(carried)
+}
+
+/// The attachment carry for one thread directory, under the accounting guard.
+///
+/// **ONE HOME FOR THE CARRY AND ITS COUNT, BECAUSE TWO DOORS NOW USE THEM**: the
+/// conversion above, and the bucket ingest into a thread that already has canon
+/// (issue 0319). A second copy of the count beside the second caller is how the
+/// guard would come to cover one door and not the other.
+fn accounted_attachments(
+  project: &Project,
+  id: &str,
+  dir: &Path,
+) -> Result<(Vec<Attachment>, Vec<(String, String)>), std::io::Error> {
   let (carried, refused) = project.collect_attachments_in(id, dir);
 
   // **THE POPULATION IS COUNTED FROM `dir`, INDEPENDENTLY OF THE CARRY.**
@@ -626,14 +693,63 @@ fn attachments(
     carried.len(),
     refused.len(),
   )?;
+  Ok((carried, refused))
+}
 
-  for (name, reason) in refused {
-    out.record(
-      closed,
-      Finding::new(&name, FindingClass::UnknownFileShape, reason),
-    );
+/// Whether `dir` is a thread directory inside one of v2's status buckets,
+/// `intent/st/<BUCKET>/<ID>/`, as opposed to the flat `intent/st/<ID>/`.
+fn in_status_bucket(project: &Project, dir: &Path) -> bool {
+  dir.parent().is_some_and(|bucket| {
+    bucket.parent() == Some(project.st_dir().as_path())
+      && bucket
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| V2_STATUS_BUCKETS.contains(&name))
+  })
+}
+
+/// Merge a bucket's carried attachments into a thread canon already holds, and
+/// say what became of each: `(ingested, not ingested)`.
+///
+/// **CANON WINS, WHICH IS THE RULING THE LOADER ABOVE ALREADY APPLIES.** A path
+/// canon lacks is ingested. A path canon holds at the same sha is already held,
+/// and is neither: reporting it as ingested would claim a carry that did not
+/// happen. A path canon holds at a DIFFERENT sha is not ingested -- the bucket
+/// copy is the older, unmigrated one, and replacing canon with it would undo the
+/// migration's own record -- and it is named, because the prune probe will then
+/// withhold it and the operator needs to know why before `organize` says so.
+///
+/// Pure over the thread and the offered files: the scan owns the disk read and
+/// the accounting, and this owns only the verdict.
+fn ingest_bucket_attachments(
+  thread: &mut Thread,
+  dir: &Path,
+  offered: Vec<Attachment>,
+) -> (Vec<std::path::PathBuf>, Vec<Withheld>) {
+  let mut ingested = Vec::new();
+  let mut differing = Vec::new();
+  for attachment in offered {
+    let path = dir.join(&attachment.path);
+    match thread.attachments.iter().find(|a| a.path == attachment.path) {
+      None => {
+        ingested.push(path);
+        thread.attachments.push(attachment);
+      }
+      Some(held) if held.sha256 == attachment.sha256 => {}
+      Some(_) => differing.push(Withheld {
+        path,
+        reason: format!(
+          "differs from the `{}` {} already carries in canon, and canon wins, so this copy is not ingested",
+          attachment.path, thread.id
+        ),
+      }),
+    }
   }
-  Ok(carried)
+  // Sorted by path, the order `collect_attachments_in` hands a fresh thread, so
+  // an ingested thread's canon is byte-identical to one converted with the same
+  // files in place.
+  thread.attachments.sort_by(|a, b| a.path.cmp(&b.path));
+  (ingested, differing)
 }
 
 /// **EVERY ATTACHMENT-SHAPED FILE UNDER A THREAD IS CARRIED OR NAMED, AND THE

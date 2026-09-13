@@ -4597,6 +4597,27 @@ fn upgrade() -> Result<(), Failure> {
       done.already_migrated_issues.len()
     );
   }
+  // **THE BUCKET INGEST IS NAMED PATH BY PATH TOO** (issue 0319), and so is
+  // what it declined: a file the carry refused is left on disk and withheld
+  // from every prune, so the operator needs its reason, not a total.
+  for path in &done.ingested {
+    eprintln!("ingested: {}", path.display());
+  }
+  for skipped in &done.not_ingested {
+    eprintln!(
+      "not ingested: {} -- {}",
+      skipped.path.display(),
+      skipped.reason
+    );
+  }
+  if !done.prune_deferred.is_empty() {
+    eprintln!(
+      "prune deferred: this run ingested v2 bucket files, so it removes none of the v2 tree -- `intent organize` names each file the removal takes, and `intent organize --apply` removes them"
+    );
+    for path in &done.prune_deferred {
+      eprintln!("  deferred: {}", path.display());
+    }
+  }
   // **THE v2 PRUNE IS NAMED PATH BY PATH, NEVER COUNTED** (WP-02, AC-02.2).
   // A removal an operator cannot review is the one line of a migration that
   // matters most, and a total is not a review.

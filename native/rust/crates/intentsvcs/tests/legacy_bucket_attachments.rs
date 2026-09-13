@@ -30,7 +30,9 @@
 //! carries, and [`a_phrase_never_written_is_carried_by_nothing`] pins that the
 //! probe can still return zero -- a probe that finds everything proves nothing.
 
-use crate::common::{Fixture, facade_ctx};
+use crate::common::{Fixture, facade_ctx, sample_thread};
+use intentsvcs::facade::Facade;
+use intentsvcs::organize::Mode;
 use intentsvcs::{legacy, migrate};
 
 /// `(bucket, id, file, phrase)` -- the phrase appears in exactly one file, so
@@ -214,5 +216,163 @@ fn the_carry_covers_every_bucket_the_thread_walk_covers() {
     carried,
     ESTATE.len(),
     "one attachment per fixture file, across the flat tree and all three v2 buckets"
+  );
+}
+
+/// `(file, phrase)` under `intent/st/COMPLETED/ST0010/` on an estate that is
+/// ALREADY v3. Neither name collides with `sample_thread`'s own attachments, so
+/// every one of these is content canon has never seen.
+const BUCKET_ONLY: &[(&str, &str)] = &[
+  ("design.md", "phrase-bucket-only-design"),
+  ("notes.md", "phrase-bucket-only-notes"),
+];
+
+/// **0319: AN ESTATE THAT IS ALREADY v3 STILL INGESTS WHAT ITS BUCKETS HOLD.**
+///
+/// `legacy::scan` loads a thread with committed canon and moves on, which is
+/// right for the markdown beside it (a generated view) and wrong for an
+/// attachment sitting in a v2 bucket: nothing else ever carries it, so the prune
+/// probe finds it unheld on every run and the v2 tree can never go. Laksa is
+/// that shape, and so is every fleet estate converted before WP-02.
+///
+/// **THE INGEST AND THE REMOVAL ARE TWO RUNS, AND THE ARM PINS BOTH HALVES.**
+/// The upgrade carries the files and deletes nothing (vc, 2026-09-13: a door
+/// that ingests and prunes in one run names what it removed only afterwards);
+/// the organize preview that follows is where they become removable, by name.
+/// A fix that ingested and then pruned in the same run reds the second half,
+/// because the preview then has nothing to prune.
+#[test]
+fn an_already_migrated_estates_bucket_files_are_ingested_and_left_for_organize_to_prune() {
+  let fixture = Fixture::new();
+  fixture.write_thread(&sample_thread("ST0010"));
+  for (file, phrase) in BUCKET_ONLY {
+    fixture.write_file(
+      &format!("intent/st/COMPLETED/ST0010/{file}"),
+      &format!("# {file}\n\nThis file alone says {phrase}.\n"),
+    );
+  }
+
+  Facade::upgrade(&fixture.project(), &facade_ctx()).expect("an already-migrated estate re-runs");
+
+  let project = fixture.project();
+  let mut facade = fixture.facade_on_disk();
+  let withheld = legacy::leftovers(&project, facade.canon()).withheld;
+  assert!(
+    withheld.is_empty(),
+    "the upgrade left bucket files the store does not hold: {withheld:?}"
+  );
+
+  let preview = facade.organize(Mode::Preview).expect("organize previews");
+  assert!(
+    preview.refused.is_empty(),
+    "the preview refused: {:?}",
+    preview.refused
+  );
+  let bucket = project.st_dir().join("COMPLETED").join("ST0010");
+  let mut to_prune: Vec<String> = preview
+    .pruned_legacy
+    .iter()
+    .filter_map(|p| p.strip_prefix(&bucket).ok())
+    .map(|p| p.to_string_lossy().into_owned())
+    .collect();
+  to_prune.sort();
+  assert_eq!(
+    (to_prune, preview.pruned_legacy.len()),
+    (vec!["design.md".to_string(), "notes.md".to_string()], 2),
+    "the preview prunes exactly the two ingested bucket files, so the upgrade removed neither"
+  );
+}
+
+/// **WHAT THE INGEST DECLINES IS NAMED, WITH ITS REASON, AND NEVER HALTS THE RUN**
+/// (issue 0319, vc 2026-09-13). Two ways a bucket file is not ingested, both on
+/// the fleet's real shape: a name the naming gate refuses (a `?` cannot survive
+/// the attachment URL), and a copy of an attachment canon already carries at a
+/// different sha, where canon wins. Beside them one ordinary file IS ingested,
+/// so a door that refused the whole bucket over one bad name reds here too.
+#[test]
+fn a_bucket_file_the_ingest_declines_is_named_with_its_reason_and_the_upgrade_still_runs() {
+  let fixture = Fixture::new();
+  let thread = sample_thread("ST0011");
+  let canon_reference = thread
+    .attachments
+    .iter()
+    .find(|a| a.path == "reference.md")
+    .and_then(|a| a.text.clone())
+    .expect("sample_thread carries reference.md as text");
+  fixture.write_thread(&thread);
+  let bucket = "intent/st/COMPLETED/ST0011";
+  fixture.write_file(&format!("{bucket}/kept.md"), "# kept\n\nIngested.\n");
+  fixture.write_file(
+    &format!("{bucket}/bad?name.md"),
+    "# bad\n\nUnaddressable.\n",
+  );
+  fixture.write_file(
+    &format!("{bucket}/reference.md"),
+    "# Reference\n\nAn older copy canon does not carry.\n",
+  );
+
+  let done = Facade::upgrade(&fixture.project(), &facade_ctx())
+    .expect("a declined bucket file never halts the upgrade");
+
+  let project = fixture.project();
+  let root = project.st_dir().join("COMPLETED").join("ST0011");
+  let names = |paths: Vec<&std::path::Path>| -> Vec<String> {
+    let mut out: Vec<String> = paths
+      .into_iter()
+      .map(|p| {
+        p.strip_prefix(&root)
+          .unwrap_or(p)
+          .to_string_lossy()
+          .into_owned()
+      })
+      .collect();
+    out.sort();
+    out
+  };
+  assert_eq!(
+    names(done.ingested.iter().map(|p| p.as_path()).collect()),
+    vec!["kept.md".to_string()],
+    "only the ordinary file is ingested"
+  );
+  assert_eq!(
+    names(done.not_ingested.iter().map(|w| w.path.as_path()).collect()),
+    vec!["bad?name.md".to_string(), "reference.md".to_string()],
+    "each declined file is named: {:?}",
+    done.not_ingested
+  );
+  assert!(
+    done
+      .not_ingested
+      .iter()
+      .all(|w| !w.reason.trim().is_empty()),
+    "every declined file carries a reason: {:?}",
+    done.not_ingested
+  );
+  assert!(
+    done.prune_deferred.is_empty() && done.pruned.is_empty(),
+    "a declined file is unheld, so the prune refuses rather than defers: deferred {:?}, pruned {:?}",
+    done.prune_deferred,
+    done.pruned
+  );
+
+  let facade = fixture.facade_on_disk();
+  let held = facade
+    .canon()
+    .threads
+    .iter()
+    .find(|t| t.id == "ST0011")
+    .expect("ST0011 is in canon");
+  assert_eq!(
+    held
+      .attachments
+      .iter()
+      .find(|a| a.path == "reference.md")
+      .and_then(|a| a.text.clone()),
+    Some(canon_reference),
+    "canon wins: the bucket's differing copy did not replace it"
+  );
+  assert!(
+    held.attachments.iter().any(|a| a.path == "kept.md"),
+    "the ingested file is in canon"
   );
 }
