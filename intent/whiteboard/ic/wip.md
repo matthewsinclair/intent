@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 08:03Z
+heartbeat_at: 2026-09-13 08:17Z
 status: active
-focus: "0311 LANDED WHOLE at b0f773046 and closed in the landing -- seven files, the re-run green with all three arm names present, the pair vc's to rebuild. Next in vc's order: review cc's wb pickup change against Finding 1 when it lands, then the wb add row, then the protocol half with the two whiteboard guards KEPT through this cut and an AT row for each of AC-14.10 and AC-14.12."
+focus: "AC-14.10 LANDED at 124aa0d6f -- /in-whiteboard rewritten onto intent wb, guard sections kept, stamps from the store. AC-14.12 is BUILT, DRIVEN and HELD: deleting ws hygiene removes three checks nothing else performs, and the only good home for them is a hook template vc ruled off WP-14 path, so the ruling is vc's. Next: the AT rows owed for both, and cc's wb pickup change."
 claims: []
 ---
 
@@ -19,7 +19,7 @@ claims: []
 
 1. **Review cc's `wb pickup` change when it lands**, against Finding 1 as vc ruled it: pickup writes `status: active`, the heartbeat, `session_id` when `--session` is named and `focus` when `--focus` is named; `touch` stays heartbeat-only; `release` writes paused. Then `wb release`'s `when_to_use` reads true as written and needs no edit, and Finding 3's note gets the surface spellings (`wb show`, `wb status`) rather than the facade names.
 2. **The `wb add` row is REVIEWED and sound**; the finding is on its neighbour, `wb archive`, whose enum gained `hold` at `c9f40c79e` while its `when_to_use` still enumerates four kinds -- and that sentence is the published MCP tool description. Archiving a hold is a THIRD reading (its condition was met), not the DONE or the retirement the prose offers. cc's three corrected message rows are correct as ruled.
-3. **The protocol half.** vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
+3. **The protocol half: AC-14.10 is LANDED at `124aa0d6f`, AC-14.12 is BUILT, DRIVEN and HELD** (the hold and its condition are below). vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
 
 ## TODO
 
@@ -39,10 +39,12 @@ claims: []
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
-0. **THE QUIET WINDOW IS SUPERSEDED IN PRACTICE AND WAS NEVER FORMALLY LIFTED, WHICH IS WHY IT IS STILL WRITTEN DOWN.** vc opened it 2026-09-12 (no `cargo test`, no `cargo build`, no drives, while dc measured the daemon family on an idle host) and then spent the afternoon ordering builds, worktree suites and a rebuilt pair -- so it is spent by conduct rather than by a word. **A hold discharged by conduct is the one that rots**: the next node to read this board would either obey a dead rule or learn to skim the section. Recorded here, not deleted, until vc says it is lifted.
+0. **AC-14.12's landing** -- the script is built, driven on all four paths, `shellcheck` clean, and banked at `scratchpad/ac1412-cwi.patch`. **RELEASES WHEN vc rules what happens to the three checks `ws hygiene` is the only performer of**: a header value that is not a single line, a board with no header block at all, and a missing recommended key warned rather than failed. `whiteboard-header-guard.sh` covers only the two ESCAPE forms -- read, not assumed -- so `intent wb` is not what answers instead for these three; nothing answers. The one good home is that guard, whose declared contract IS the header block's format, and it is a hook template vc has ruled off WP-14's path. **I will not land a deletion that quietly removes three checks, and I will not touch a template vc has excluded.** Three shapes are in the report: accept the loss, complete the guard, or hold until the cutover.
 
-1. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
-2. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
+1. **THE QUIET WINDOW IS SUPERSEDED IN PRACTICE AND WAS NEVER FORMALLY LIFTED, WHICH IS WHY IT IS STILL WRITTEN DOWN.** vc opened it 2026-09-12 (no `cargo test`, no `cargo build`, no drives, while dc measured the daemon family on an idle host) and then spent the afternoon ordering builds, worktree suites and a rebuilt pair -- so it is spent by conduct rather than by a word. **A hold discharged by conduct is the one that rots**: the next node to read this board would either obey a dead rule or learn to skim the section. Recorded here, not deleted, until vc says it is lifted.
+
+2. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
+3. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
 
 ## Watch-outs -- one line each, leaned 2026-09-12 14:14Z to what bears on the work in front of me; the full list and its worked cases are in `.history/20260912/wip-prefold-1414Z.md`
 

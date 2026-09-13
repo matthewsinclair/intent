@@ -318,3 +318,32 @@ NO RELEASE, NO PUSH.
 Moving to the protocol half now, on your ruling: guard sections KEPT in the `/in-whiteboard` rewrite, a generated board's stamps come from the store, no hook-template work on WP-14's path, and an AT row owed for each of AC-14.10 and AC-14.12 when its landing is in.
 
 NO RELEASE, NO PUSH.
+## (2026-09-13 08:16Z) AC-14.10 is LANDED at `124aa0d6f`; AC-14.12 is BUILT, DRIVEN and HELD, and the condition is a ruling only you can give
+
+**AC-14.10 landed.** `/in-whiteboard` is rewritten onto `intent wb`: every procedure that described editing a file is the verb that does it, with the call shapes read off the register rather than invented, and the guard sections KEPT as you ruled. The clock section says what changed -- every stamp `intent wb` writes is read from the clock by the service, so the fabricated-stamp class is closed by construction, and the hand-written discipline still governs everything a verb does not stamp for you. The scaffolding paragraph is written to your ruling: a node joins by `intent wb register <moniker> --name <display> --role <role>`, its board and inboxes render from that row, and the header-reading form stays beside it until the last hand-authored board migrates. **Two sentences there name arms cc has not built yet** -- that form and pickup's header fields -- so AC-14.10 is satisfied on cc's two landings; I re-cite rather than wait if a flag name moves. The bats guard's two skill arms are green against the rewrite.
+
+**AC-14.12 IS BUILT AND DRIVEN AND I HAVE NOT LANDED IT.** The script is banked at `scratchpad/ac1412-cwi.patch` (438 lines to 220). The four `cmd_ws_*` functions are gone with their dispatch arms; `cmd_start` refuses a missing workstream and names `intent wb register <moniker> --name <display> --role <role>` as you ruled; a `ws)` arm refuses BY NAME rather than falling through to usage, because a removal that prints generic usage reads as a typo; every helper the family owned and nothing else used is pruned (`fm_bad_lines`, `fm_present`, `foldable_bytes`, `valid_wsid`, `conv_name`, `conv_role`, `now_utc`), leaving `fm_get`, which `compose_ctx` still calls. Driven on all four paths: `start` on a live node dry-runs correctly, `start` on a missing one refuses at rc=1 with the remedy, `ws list` refuses at rc=1 by name, `--help` prints the reduced usage. `bash -n` clean, `shellcheck` rc=0 with no findings.
+
+**THE HOLD, AND IT IS NOT ABOUT THE SCRIPT.** Deleting `ws hygiene` deletes three live checks that nothing else performs, during exactly the window your own ruling keeps hand-authored boards alive in:
+
+- a header value that is not a single line (a block scalar) -- refused by hygiene
+- a board with no header block at all -- refused by hygiene
+- a missing recommended key such as `heartbeat_at` -- warned by hygiene without failing
+
+**`whiteboard-header-guard.sh` does NOT cover them.** I read it rather than assumed: its whole subject is the two ESCAPE forms, on lines a commit adds. So `intent wb` is not what answers instead for these three; nothing answers.
+
+**And the one good home for them is the file you have ruled off WP-14's path.** The header guard's declared contract IS the header block's format -- one concern, one home -- so completing it is not widening its name. But it is a hook template, live for every estate on this machine the moment it is written, and you said no hook-template work is on WP-14's path. **So the decision is yours and I am not taking it**, in either direction: I will not land a deletion that quietly removes three checks, and I will not touch a hook template you have excluded.
+
+Three shapes, as I read them:
+
+1. **Accept the loss.** The format stops mattering when every board renders, and the escape form is the one that actually reached HEAD. Then AC-14.12 lands as built, and the four bats arms that drove `hygiene` are DELETED rather than re-pointed, with the reason on the record.
+2. **Complete the header guard** with the two structural checks, which means lifting your hook-template exclusion for this one file and one landing. The checks move, the arms re-point, nothing is lost.
+3. **Hold AC-14.12 until the cutover**, when the last hand-authored board is gone and the three checks have no subject. Cleanest, and it means WP-14 does not close first.
+
+**The rest of the blast radius, measured, so the ruling is costed rather than guessed:** two arms in `claude_cwi_door.rs` drive `ws list` and `ws new` to prove the door passes a verb and an optional positional through -- both properties survive, re-pointed onto the retirement refusal and onto `start zz`. Four arms in `whiteboard_protocol_3_guard.bats` drive the family; one (`a focus quoting a phrase`) re-points, three are the ones above.
+
+**AND A SEPARATE FINDING ON THE REGISTER, for whenever you are back.** The `claude ws` row is `disposition: keep`, `target.state: as-observed`, and its note reads *D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.* **WP-14 reified it in 3.0.2, so that note's ground is falsified by this very work package.** The row wants `target.state: retire` with a ratification, which carries an authority, a date and a record -- and that is yours to give, not mine to author. I have left the row alone.
+
+Next while this is held: the AT rows owed for AC-14.10 and AC-14.12, and cc's `wb pickup` change when it lands.
+
+NO RELEASE, NO PUSH.
