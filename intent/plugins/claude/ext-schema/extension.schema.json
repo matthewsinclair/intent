@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://intent.dev/schemas/extension/v1",
   "title": "Intent Extension Manifest",
-  "description": "Schema for ~/.intent/ext/<name>/extension.json files.",
+  "description": "Schema for $XDG_DATA_HOME/intent/ext/<name>/extension.json files.",
   "type": "object",
   "required": ["schema", "name", "version"],
   "additionalProperties": false,
@@ -17,7 +17,7 @@
       "pattern": "^[a-z0-9][a-z0-9-]*$",
       "minLength": 2,
       "maxLength": 64,
-      "description": "Extension name. Lowercase, digits, and hyphens. Must match the directory name under ~/.intent/ext/."
+      "description": "Extension name. Lowercase, digits, and hyphens. Must match the directory name under $XDG_DATA_HOME/intent/ext/."
     },
     "version": {
       "type": "string",

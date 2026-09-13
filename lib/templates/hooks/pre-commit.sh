@@ -14,7 +14,7 @@
 #   shim `pre-commit-shim.sh` to `pre-commit.intent` in the git hooks
 #   directory and inserts a chain block that runs it into that directory's
 #   `pre-commit`, creating the hook if absent and editing only the block if
-#   present. The shim reads the install root from `~/.intent/home` and execs
+#   present. The shim reads the install root from `~/.local/share/intent/home` and execs
 #   this file from `<root>/lib/templates/hooks/`.
 #
 # Configuration:

@@ -21,7 +21,7 @@
 # THE SANDBOXED $HOME IS THE ISOLATION, and it is sound rather than hopeful.
 # `$HOME` is read in exactly ONE module (`userstate.rs`, which says so and is
 # enforced over every `src/**/*.rs`), and the socket path is
-# `daemon_socket_under(home)` = `$HOME/.local/share/intent/intentd.sock`. So a
+# `daemon_socket_under(home)` = `$HOME/.local/state/intent/run/intentd.sock`. So a
 # fake `$HOME` relocates the address the CLI probes, by construction and not by
 # convention.
 #
@@ -134,16 +134,16 @@ teardown() {
   # A unix socket file outlives the process that bound it. Planting one is the
   # whole fixture: bind it, close it, leave the inode. A status verb keying on
   # `Path::exists` reports a running daemon here and is wrong.
-  mkdir -p "$HOME/.local/share/intent"
+  mkdir -p "$HOME/.local/state/intent/run"
   python3 -c "
 import socket
 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s.bind('$HOME/.local/share/intent/intentd.sock')
+s.bind('$HOME/.local/state/intent/run/intentd.sock')
 s.close()
 "
   # The fixture must actually be a socket, or this test passes for the wrong
   # reason -- an absent file would also report absent.
-  [ -S "$HOME/.local/share/intent/intentd.sock" ]
+  [ -S "$HOME/.local/state/intent/run/intentd.sock" ]
 
   run "$INTENT_BIN" daemon status
   [ "$status" -eq 0 ]

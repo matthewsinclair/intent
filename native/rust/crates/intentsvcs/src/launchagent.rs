@@ -2,7 +2,7 @@
 //!
 //! **D19 FIXES EVERY NAME AND LOCATION HERE, SO THIS MODULE CHOOSES NOTHING.**
 //! The label is `com.matthewsinclair.intentd`, the plist lives under
-//! `~/Library/LaunchAgents/`, and the logs under `~/.local/share/intent/`. All
+//! `~/Library/LaunchAgents/`, and the logs under the XDG state directory. All
 //! three are read from [`crate::userstate`] rather than spelled again, because
 //! the plist's `Label`, the plist's FILENAME and every `launchctl` argument are
 //! the same string -- and a second spelling makes `launchctl` operate on a job
@@ -141,14 +141,14 @@ pub fn plist(binary: &Path, log: &Path, error_log: &Path) -> String {
 /// unstamped, which self-heals by rewriting a correct file forever.
 pub const STAMP_KEY: &str = "INTENT_VER";
 
-/// The version that generated the plist under `root`, if it says.
+/// The version that generated the plist under `dirs`, if it says.
 ///
 /// `None` for a plist with no marker, which is what every plist written before
 /// `AC-08.7` looks like -- **and that is the case the criterion is mostly
 /// about**: an old install heals without a migration precisely because an
 /// absent marker is treated as stale rather than as a reason to refuse.
-pub fn stamped_version(root: &Path) -> Option<String> {
-  let body = std::fs::read_to_string(userstate::launch_agent_plist_under(root)).ok()?;
+pub fn stamped_version(dirs: &userstate::Dirs) -> Option<String> {
+  let body = std::fs::read_to_string(userstate::launch_agent_plist_under(dirs)).ok()?;
   let marker = format!("{STAMP_KEY}: ");
   let at = body.find(&marker)? + marker.len();
   let rest = &body[at..];
@@ -156,17 +156,17 @@ pub fn stamped_version(root: &Path) -> Option<String> {
   Some(rest[..end].trim().to_string())
 }
 
-/// Does the plist under `root` need regenerating?
+/// Does the plist under `dirs` need regenerating?
 ///
 /// **NOT ENROLLED IS NOT STALE.** An absent plist is an operator who never
 /// enrolled, and healing it would enrol them -- turning a repair into a
 /// decision they did not make. `AC-08.7` is about artefacts that EXIST being
 /// brought up to date, never about creating ones that do not.
-pub fn is_stale(root: &Path) -> bool {
-  if !is_enrolled(root) {
+pub fn is_stale(dirs: &userstate::Dirs) -> bool {
+  if !is_enrolled(dirs) {
     return false;
   }
-  stamped_version(root).as_deref() != Some(crate::faces::INTENT_VER)
+  stamped_version(dirs).as_deref() != Some(crate::faces::INTENT_VER)
 }
 
 /// XML-escape a value going into the plist.
@@ -185,11 +185,11 @@ fn escape(raw: &str) -> String {
     .replace('>', "&gt;")
 }
 
-/// Write the plist under `root`, creating `~/Library/LaunchAgents/` if absent.
+/// Write the plist under `dirs`, creating `~/Library/LaunchAgents/` if absent.
 ///
 /// Returns the path written. Does NOT tell `launchd` about it -- see [`load`].
-pub fn write_plist(root: &Path, binary: &Path) -> Result<PathBuf, LaunchAgentError> {
-  let path = userstate::launch_agent_plist_under(root);
+pub fn write_plist(dirs: &userstate::Dirs, binary: &Path) -> Result<PathBuf, LaunchAgentError> {
+  let path = userstate::launch_agent_plist_under(dirs);
   if let Some(parent) = path.parent() {
     std::fs::create_dir_all(parent).map_err(|cause| LaunchAgentError::Unwritable {
       path: parent.to_path_buf(),
@@ -200,14 +200,14 @@ pub fn write_plist(root: &Path, binary: &Path) -> Result<PathBuf, LaunchAgentErr
   // `launchd` opens `StandardOutPath` ITSELF before the process starts: a
   // missing directory fails the job at spawn, where the daemon's own code has
   // not run and cannot report anything.
-  let log = userstate::daemon_log_under(root);
+  let log = userstate::daemon_log_under(dirs);
   if let Some(parent) = log.parent() {
     std::fs::create_dir_all(parent).map_err(|cause| LaunchAgentError::Unwritable {
       path: parent.to_path_buf(),
       cause,
     })?;
   }
-  let body = plist(binary, &log, &userstate::daemon_error_log_under(root));
+  let body = plist(binary, &log, &userstate::daemon_error_log_under(dirs));
   std::fs::write(&path, body).map_err(|cause| LaunchAgentError::Unwritable {
     path: path.clone(),
     cause,
@@ -215,20 +215,20 @@ pub fn write_plist(root: &Path, binary: &Path) -> Result<PathBuf, LaunchAgentErr
   Ok(path)
 }
 
-/// Is a plist present under `root`?
+/// Is a plist present under `dirs`?
 ///
 /// **PRESENCE OF THE FILE, NEVER `launchctl list`.** Enrolment is a property of
 /// the machine that survives logout, and `launchctl list` answers about the
 /// CURRENT session -- so it reports "not enrolled" for a correctly enrolled
 /// daemon whenever it is asked from outside a GUI login session, which is
 /// exactly where a test or a remote shell asks from.
-pub fn is_enrolled(root: &Path) -> bool {
-  userstate::launch_agent_plist_under(root).is_file()
+pub fn is_enrolled(dirs: &userstate::Dirs) -> bool {
+  userstate::launch_agent_plist_under(dirs).is_file()
 }
 
-/// Remove the plist under `root`. `true` when there was one to remove.
-pub fn remove_plist(root: &Path) -> Result<bool, LaunchAgentError> {
-  let path = userstate::launch_agent_plist_under(root);
+/// Remove the plist under `dirs`. `true` when there was one to remove.
+pub fn remove_plist(dirs: &userstate::Dirs) -> Result<bool, LaunchAgentError> {
+  let path = userstate::launch_agent_plist_under(dirs);
   if !path.exists() {
     return Ok(false);
   }
@@ -283,7 +283,8 @@ mod tests {
   fn the_plist_names_the_label_the_binary_and_both_logs() {
     let home = root();
     let binary = std::path::Path::new("/opt/intent/bin/intentd");
-    let written = write_plist(home.path(), binary).expect("write the plist");
+    let written =
+      write_plist(&userstate::Dirs::at_home(home.path()), binary).expect("write the plist");
     let body = std::fs::read_to_string(&written).expect("read it back");
 
     assert!(body.contains(LAUNCH_AGENT_LABEL), "no label: {body}");
@@ -293,7 +294,7 @@ mod tests {
     );
     assert!(
       body.contains(
-        &userstate::daemon_log_under(home.path())
+        &userstate::daemon_log_under(&userstate::Dirs::at_home(home.path()))
           .display()
           .to_string()
       ),
@@ -301,7 +302,7 @@ mod tests {
     );
     assert!(
       body.contains(
-        &userstate::daemon_error_log_under(home.path())
+        &userstate::daemon_error_log_under(&userstate::Dirs::at_home(home.path()))
           .display()
           .to_string()
       ),
@@ -323,8 +324,11 @@ mod tests {
     let awkward = home.path().join("R&D <lab>");
     std::fs::create_dir_all(&awkward).expect("create the awkward root");
 
-    let written = write_plist(&awkward, std::path::Path::new("/bin/intentd"))
-      .expect("write under an awkward root");
+    let written = write_plist(
+      &userstate::Dirs::at_home(&awkward),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("write under an awkward root");
     let body = std::fs::read_to_string(&written).expect("read it back");
 
     assert!(
@@ -354,16 +358,20 @@ mod tests {
   #[test]
   fn writing_creates_the_directories_launchd_opens_before_the_process_starts() {
     let home = root();
-    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
+    write_plist(
+      &userstate::Dirs::at_home(home.path()),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("write");
 
     assert!(
-      userstate::launch_agent_plist_under(home.path()).is_file(),
+      userstate::launch_agent_plist_under(&userstate::Dirs::at_home(home.path())).is_file(),
       "no plist"
     );
     // launchd opens StandardOutPath itself, BEFORE the daemon runs, so a
     // missing directory fails the job where no Intent code can report it.
     assert!(
-      userstate::daemon_log_under(home.path())
+      userstate::daemon_log_under(&userstate::Dirs::at_home(home.path()))
         .parent()
         .expect("a parent")
         .is_dir(),
@@ -374,14 +382,18 @@ mod tests {
   #[test]
   fn a_freshly_written_plist_carries_this_builds_stamp() {
     let home = root();
-    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
+    write_plist(
+      &userstate::Dirs::at_home(home.path()),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("write");
     assert_eq!(
-      stamped_version(home.path()).as_deref(),
+      stamped_version(&userstate::Dirs::at_home(home.path())).as_deref(),
       Some(crate::faces::INTENT_VER),
       "a plist this build just wrote does not name this build"
     );
     assert!(
-      !is_stale(home.path()),
+      !is_stale(&userstate::Dirs::at_home(home.path())),
       "a plist this build just wrote reports as stale, so every boot would rewrite it forever"
     );
   }
@@ -395,18 +407,18 @@ mod tests {
   #[test]
   fn a_plist_with_no_marker_at_all_is_stale() {
     let home = root();
-    let path = userstate::launch_agent_plist_under(home.path());
+    let path = userstate::launch_agent_plist_under(&userstate::Dirs::at_home(home.path()));
     std::fs::create_dir_all(path.parent().expect("a parent")).expect("dirs");
     std::fs::write(&path, "<plist><dict><key>Label</key></dict></plist>\n")
       .expect("write a pre-stamp plist");
 
     assert_eq!(
-      stamped_version(home.path()),
+      stamped_version(&userstate::Dirs::at_home(home.path())),
       None,
       "an unstamped plist reported a version"
     );
     assert!(
-      is_stale(home.path()),
+      is_stale(&userstate::Dirs::at_home(home.path())),
       "a plist from before the stamp existed is not being healed, which is the whole population the criterion names"
     );
   }
@@ -414,8 +426,12 @@ mod tests {
   #[test]
   fn a_plist_from_another_build_is_stale() {
     let home = root();
-    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
-    let path = userstate::launch_agent_plist_under(home.path());
+    write_plist(
+      &userstate::Dirs::at_home(home.path()),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("write");
+    let path = userstate::launch_agent_plist_under(&userstate::Dirs::at_home(home.path()));
     let body = std::fs::read_to_string(&path).expect("read");
     let aged = body.replace(
       &format!("{STAMP_KEY}: {}", crate::faces::INTENT_VER),
@@ -425,11 +441,11 @@ mod tests {
     std::fs::write(&path, aged).expect("write the aged plist");
 
     assert_eq!(
-      stamped_version(home.path()).as_deref(),
+      stamped_version(&userstate::Dirs::at_home(home.path())).as_deref(),
       Some("0.0.1-from-another-build")
     );
     assert!(
-      is_stale(home.path()),
+      is_stale(&userstate::Dirs::at_home(home.path())),
       "a plist naming another build is not stale"
     );
   }
@@ -444,9 +460,12 @@ mod tests {
   #[test]
   fn a_machine_that_never_enrolled_is_not_stale() {
     let home = root();
-    assert!(!is_enrolled(home.path()), "the fixture is already enrolled");
     assert!(
-      !is_stale(home.path()),
+      !is_enrolled(&userstate::Dirs::at_home(home.path())),
+      "the fixture is already enrolled"
+    );
+    assert!(
+      !is_stale(&userstate::Dirs::at_home(home.path())),
       "a machine that never enrolled reports as stale, so booting would enrol it without being asked"
     );
   }
@@ -454,17 +473,21 @@ mod tests {
   #[test]
   fn regenerating_a_stale_plist_brings_the_stamp_current() {
     let home = root();
-    let path = userstate::launch_agent_plist_under(home.path());
+    let path = userstate::launch_agent_plist_under(&userstate::Dirs::at_home(home.path()));
     std::fs::create_dir_all(path.parent().expect("a parent")).expect("dirs");
     std::fs::write(&path, "<plist><dict></dict></plist>\n").expect("write an old plist");
     assert!(
-      is_stale(home.path()),
+      is_stale(&userstate::Dirs::at_home(home.path())),
       "the fixture is not stale to begin with"
     );
 
-    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("regenerate");
+    write_plist(
+      &userstate::Dirs::at_home(home.path()),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("regenerate");
     assert!(
-      !is_stale(home.path()),
+      !is_stale(&userstate::Dirs::at_home(home.path())),
       "regenerating left the plist stale, so the healing does not converge"
     );
   }
@@ -473,28 +496,35 @@ mod tests {
   fn enrolment_is_the_plists_presence_and_removing_it_is_reversible() {
     let home = root();
     assert!(
-      !is_enrolled(home.path()),
+      !is_enrolled(&userstate::Dirs::at_home(home.path())),
       "enrolled before anything was written"
     );
 
-    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
+    write_plist(
+      &userstate::Dirs::at_home(home.path()),
+      std::path::Path::new("/bin/intentd"),
+    )
+    .expect("write");
     assert!(
-      is_enrolled(home.path()),
+      is_enrolled(&userstate::Dirs::at_home(home.path())),
       "not enrolled after writing the plist"
     );
 
     assert!(
-      remove_plist(home.path()).expect("remove"),
+      remove_plist(&userstate::Dirs::at_home(home.path())).expect("remove"),
       "removal reported nothing to remove"
     );
-    assert!(!is_enrolled(home.path()), "still enrolled after removal");
+    assert!(
+      !is_enrolled(&userstate::Dirs::at_home(home.path())),
+      "still enrolled after removal"
+    );
 
     // **REMOVING AGAIN IS `false`, NOT AN ERROR.** Unenrolling something that
     // is not enrolled is the operator getting what they asked for, and a
     // failure here would make `stop` noisy on every machine that never
     // enrolled.
     assert!(
-      !remove_plist(home.path()).expect("second remove"),
+      !remove_plist(&userstate::Dirs::at_home(home.path())).expect("second remove"),
       "removing an absent plist reported that it removed one"
     );
   }

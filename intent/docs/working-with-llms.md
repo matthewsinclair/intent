@@ -51,7 +51,7 @@ This document and its siblings under `intent/docs/` live in Intent's repository,
 - Critic cadence
 - Skills and /in-session auto-load
 - Multi-session coordination
-- Extensions at ~/.intent/ext/
+- Extensions at ~/.local/share/intent/ext/
 - Per-language canon (intent lang init)
 - Socrates vs Diogenes FAQ
 - For Elixir projects: usage_rules interop
@@ -214,7 +214,7 @@ Why no `PostToolUse` hook by default: it would fire on every `Write|Edit` during
 The primary critic cadence is the git `pre-commit` hook, and `intent claude upgrade --apply` installs it in two parts in the hooks directory git names (`git rev-parse --git-path hooks`, so `core.hooksPath` is honoured):
 
 - `pre-commit` gains a marked chain block (`# intent-chain-block:start` … `:end`) that runs `pre-commit.intent`. An existing hook keeps every other line; the block is inserted after its shebang and `set` preamble, and a hook already carrying the block is left alone.
-- `pre-commit.intent` is a shim. It reads the install root from `~/.intent/home` and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
+- `pre-commit.intent` is a shim. It reads the install root from `~/.local/share/intent/home` and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
 
 The gate runs a roster of repository guards, each only when its subject exists — whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, and lines removed from an append-only path — and then `intent critic <lang> --staged --severity-min <sev>` once per declared language. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine). The threshold is `severity_min` from `.intent_critic.yml`.
 
@@ -490,13 +490,13 @@ Multi-app codebases usually have a shared platform layer that no ST claim cleanl
 
 The live reference implementation runs in the Lamplight project, at its own `intent/whiteboard/`, and Intent's own repository runs one at `intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in ST0040's record (`intent/.canon/st/ST0040.json`); the 3.0 per-node rewrite is ST0045 (`intent/.canon/st/ST0045.json`).
 
-## Extensions at ~/.intent/ext/
+## Extensions at ~/.local/share/intent/ext/
 
-User extensions — subagents, skills, or rule packs contributed from `~/.intent/ext/<name>/` without forking Intent — are declared in v3 and not built.
+User extensions — subagents, skills, or rule packs contributed from `~/.local/share/intent/ext/<name>/` without forking Intent — are declared in v3 and not built.
 
 - `intent ext list`, `intent ext show <name>`, `intent ext validate [<name>]` and `intent ext new <name>` are on the command surface, and each one refuses with ``error: `ext` is a known command that is not implemented yet`` (exit 2), writing nothing.
-- No other command reaches `~/.intent/ext/` either. The extension base is held unset (`native/rust/crates/intentsvcs/src/userstate.rs`, `ext_base`), so `intent claude skills`, `intent claude subagents`, `intent claude rules` and `intent critic` see canon only, and `INTENT_EXT_DIR` / `INTENT_EXT_DISABLE` are not read. `intent claude rules validate` prints a note saying extension rule packs were not validated.
-- Anything left under `~/.intent/ext/` by v2 is inert under v3. To change a canon skill or rule today, change it in Intent's source.
+- No other command reaches `~/.local/share/intent/ext/` either. The extension base is held unset (`native/rust/crates/intentsvcs/src/userstate.rs`, `ext_base`), so `intent claude skills`, `intent claude subagents`, `intent claude rules` and `intent critic` see canon only, and `INTENT_EXT_DIR` / `INTENT_EXT_DISABLE` are not read. `intent claude rules validate` prints a note saying extension rule packs were not validated.
+- Anything left under `~/.local/share/intent/ext/` by v2 is inert under v3. To change a canon skill or rule today, change it in Intent's source.
 
 `intent/docs/writing-extensions.md` describes the extension design.
 
@@ -624,9 +624,9 @@ Fixes:
 
 Symptom: `git commit` fails with `pre-commit (intent shim): cannot locate the Intent install.`, or with the recorded install root "is not an install"; `intent claude upgrade --apply` warns that the gate is installed and cannot run.
 
-Cause: the carrier `pre-commit.intent` resolves the install from `~/.intent/home` and refuses rather than skipping when that pointer is absent, empty, or names a directory with no `lib/templates/`.
+Cause: the carrier `pre-commit.intent` resolves the install from `~/.local/share/intent/home` and refuses rather than skipping when that pointer is absent, empty, or names a directory with no `lib/templates/`.
 
-Fix: `intent bootstrap` records the pointer. `"$(git rev-parse --git-path hooks)/pre-commit.intent" --where` prints the pointer, the root it names, and the gate it would run, without committing.
+Fix: `intent bootstrap` records the pointer. A carrier installed before 3.0.2 reads the old `~/.intent/home`, which `intent bootstrap` does not write: run `intent claude upgrade --apply` in that project. `"$(git rev-parse --git-path hooks)/pre-commit.intent" --where` prints the pointer, the root it names, and the gate it would run, without committing.
 
 ### Pre-commit hook blocks on a rule you don't care about
 
@@ -686,7 +686,7 @@ This mirrors the upgrade-doesn't-clobber contract: sync leaves a locally changed
 - `intent llm guide` — the generated command reference for the build you are running.
 - `intent/docs/rules.md` — rule authoring guide.
 - `intent/docs/critics.md` — Critic subagent contract and report format.
-- `intent/docs/writing-extensions.md` — the design for extensions at `~/.intent/ext/`, which v3 does not build.
+- `intent/docs/writing-extensions.md` — the design for extensions at `~/.local/share/intent/ext/`, which v3 does not build.
 - `docs/migrating-from-v2.md` — the v2 to v3 migration guide.
 - `intent/llm/MODULES.md` — Highlander module registry, where the project keeps one.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart, where the project keeps one.

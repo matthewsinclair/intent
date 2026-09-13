@@ -288,7 +288,7 @@ impl RealDaemon {
   /// returning once it answers a real op.
   ///
   /// **THE HOME IS DELIBERATELY REUSED AND THE SOCKET PATH DOES NOT MOVE.**
-  /// `userstate::daemon_socket_under` is `<home>/.local/share/intent/intentd.sock`
+  /// `userstate::daemon_socket_under` is `<home>/.local/state/intent/run/intentd.sock`
   /// -- no pid, no port, no nonce -- so a restart produces the IDENTICAL
   /// `Endpoint::Unix`. **An endpoint comparison is therefore not a witness that
   /// anything restarted**, and a test written against one would assert
@@ -347,7 +347,8 @@ impl RealDaemon {
   }
 
   pub fn endpoint(&self) -> Option<Endpoint> {
-    let candidates = daemon::candidates_under(&self.home).ok()?;
+    let candidates =
+      daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(&self.home)).ok()?;
     match daemon::route(&candidates) {
       Route::Daemon(endpoint) => Some(endpoint),
       Route::InProcess => None,
@@ -886,7 +887,9 @@ fn newest_source(
 // ---------------------------------------------------------------------------
 
 pub fn published(daemon: &RealDaemon) -> String {
-  let path = intentsvcs::userstate::daemon_address_file_under(daemon.home());
+  let path = intentsvcs::userstate::daemon_address_file_under(
+    &intentsvcs::userstate::Dirs::at_home(daemon.home()),
+  );
   std::fs::read_to_string(&path)
     .unwrap_or_else(|e| panic!("no address published at {}: {e}", path.display()))
     .trim()
@@ -895,7 +898,8 @@ pub fn published(daemon: &RealDaemon) -> String {
 
 /// This run's secret, read the way a client reads it.
 pub fn token(daemon: &RealDaemon) -> String {
-  intentsvcs::daemon::Token::read_under(daemon.home()).expect("the daemon published a token")
+  intentsvcs::daemon::Token::read_under(&intentsvcs::userstate::Dirs::at_home(daemon.home()))
+    .expect("the daemon published a token")
 }
 
 /// One HTTP request over a bare socket, as `(status_line, body)`.

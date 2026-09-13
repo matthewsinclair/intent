@@ -94,7 +94,7 @@ impl crate::remedy::Remedy for InstallError {
         "nothing was recorded -- the pointer is untouched. This binary resolved an install root that is not one, so reinstall Intent rather than editing the pointer by hand".to_string()
       }
       Self::Pointer(_) => {
-        "the install-root pointer under ~/.intent/ could not be written -- check that ~/.intent exists and is writable, then re-run".to_string()
+        "the install-root pointer under $XDG_DATA_HOME/intent (by default ~/.local/share/intent) could not be written -- check that the directory is writable, then re-run".to_string()
       }
       // **THE TWO-WRITERS CASE, AND IT IS THE ONE THAT MUST NOT SAY 'RETRY'.**
       // The write returned success and the file says something else, so

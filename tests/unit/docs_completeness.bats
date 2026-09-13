@@ -54,7 +54,7 @@ DELETED_PATHS=(
 @test "DECISION_TREE.md mentions the rule library and ext system" {
   local dt="${INTENT_PROJECT_ROOT}/intent/llm/DECISION_TREE.md"
   grep -qF "rules/agnostic" "$dt" || fail "DECISION_TREE.md missing rules/agnostic placement"
-  grep -qF "~/.intent/ext/" "$dt" || fail "DECISION_TREE.md missing user-extension placement"
+  grep -qF "~/.local/share/intent/ext/" "$dt" || fail "DECISION_TREE.md missing user-extension placement"
   grep -qF "rule, a skill, or a subagent" "$dt" || fail "DECISION_TREE.md missing rule-vs-skill-vs-subagent branch"
 }
 

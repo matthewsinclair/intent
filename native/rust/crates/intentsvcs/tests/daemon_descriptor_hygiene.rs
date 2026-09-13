@@ -51,7 +51,8 @@ fn is_close_on_exec(fd: std::os::fd::RawFd) -> bool {
 fn the_unix_listener_the_daemon_binds_is_close_on_exec() {
   let dir = tempfile::tempdir().expect("tempdir");
   let (listener, _bound) =
-    Bound::bind_socket_under(dir.path()).expect("bind the daemon's unix socket");
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind the daemon's unix socket");
   assert!(
     is_close_on_exec(listener.as_raw_fd()),
     "the daemon's unix listener is not FD_CLOEXEC. A fork+exec anywhere in the process now leaks the LISTENING descriptor into a child, and if that child outlives the daemon the socket keeps accepting with nobody behind it -- AC-08.3 case 2, which the client survives and which the daemon owes narrowing"
@@ -62,7 +63,8 @@ fn the_unix_listener_the_daemon_binds_is_close_on_exec() {
 fn the_loopback_listener_the_daemon_binds_is_close_on_exec() {
   let dir = tempfile::tempdir().expect("tempdir");
   let (listener, _published) =
-    Published::bind_loopback_under(dir.path()).expect("bind the daemon's loopback port");
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind the daemon's loopback port");
   assert!(
     is_close_on_exec(listener.as_raw_fd()),
     "the daemon's TCP listener is not FD_CLOEXEC. The leak is worse on this transport than on the socket: a leaked unix listener is reachable only through a path the daemon unlinks, while a leaked port stays reachable by every process on the machine"
@@ -79,7 +81,8 @@ fn the_probe_would_be_answered_by_a_leaked_descriptor_which_is_why_this_matters(
   // It does NOT fork -- the point is the flag's semantics, not a race -- and it
   // restores the flag it clears, so nothing downstream inherits the fixture.
   let dir = tempfile::tempdir().expect("tempdir");
-  let (listener, _bound) = Bound::bind_socket_under(dir.path()).expect("bind");
+  let (listener, _bound) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("bind");
   let fd = listener.as_raw_fd();
 
   assert!(is_close_on_exec(fd), "baseline: the flag starts set");

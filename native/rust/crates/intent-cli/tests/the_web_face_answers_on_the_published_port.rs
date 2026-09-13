@@ -246,7 +246,9 @@ fn the_published_token_admits_and_the_answer_is_the_socket_s_answer() {
 fn the_token_is_readable_only_by_its_owner() {
   use std::os::unix::fs::PermissionsExt;
   let daemon = RealDaemon::start();
-  let path = intentsvcs::userstate::daemon_token_file_under(daemon.home());
+  let path = intentsvcs::userstate::daemon_token_file_under(&intentsvcs::userstate::Dirs::at_home(
+    daemon.home(),
+  ));
 
   let mode = std::fs::metadata(&path)
     .expect("the daemon published a token")
@@ -271,7 +273,8 @@ fn the_token_is_readable_only_by_its_owner() {
 fn a_published_port_always_has_a_token_behind_it() {
   let daemon = RealDaemon::start();
   assert!(
-    intentsvcs::daemon::Token::read_under(daemon.home()).is_ok(),
+    intentsvcs::daemon::Token::read_under(&intentsvcs::userstate::Dirs::at_home(daemon.home()))
+      .is_ok(),
     "the daemon is answering, so its token was written before it published"
   );
 }

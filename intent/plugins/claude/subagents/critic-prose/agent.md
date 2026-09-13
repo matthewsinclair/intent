@@ -123,7 +123,7 @@ intent claude rules list --lang agnostic    # the cross-language pack
 intent claude rules show <id>               # full RULE.md body, incl. ## Detection
 ```
 
-`rules list` is the whole rule set this build serves, with each rule's provenance in its `prov` column (`canon`, or `ext:<name>` for an extension pack) -- take it as the complete set and do not read `~/.intent/ext/` yourself. Whether this build reads extension packs at all is the tool's to say: `intent claude rules validate` prints a `note:` on stderr when it reads none. For each selected id, run `intent claude rules show <id>` and apply its `## Detection`. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
+`rules list` is the whole rule set this build serves, with each rule's provenance in its `prov` column (`canon`, or `ext:<name>` for an extension pack) -- take it as the complete set and do not read an extension directory yourself. Whether this build reads extension packs at all is the tool's to say: `intent claude rules validate` prints a `note:` on stderr when it reads none. For each selected id, run `intent claude rules show <id>` and apply its `## Detection`. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
 
 ## Category -> mode mapping
 

@@ -144,7 +144,7 @@ fn isolated_home(tag: &str) -> PathBuf {
 /// defect -- or too long on every other run.
 fn wait_until_answering(home: &Path) {
   for _ in 0..ATTEMPTS {
-    if let Ok(c) = daemon::candidates_under(home)
+    if let Ok(c) = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(home))
       && matches!(daemon::route(&c), Route::Daemon(_))
     {
       return;
@@ -213,7 +213,8 @@ impl Reaped {
   /// the address file on the way out, so an address that has gone means the
   /// shutdown path was entered.
   fn began_to_stop(&self, home: &Path) -> bool {
-    !intentsvcs::userstate::daemon_address_file_under(home).is_file()
+    !intentsvcs::userstate::daemon_address_file_under(&intentsvcs::userstate::Dirs::at_home(home))
+      .is_file()
   }
 
   fn kill_now(&mut self) {

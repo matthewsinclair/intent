@@ -49,7 +49,8 @@ fn hold(path: &std::path::Path) -> std::fs::File {
 fn no_lock_file_at_all_is_no_daemon() {
   let home = root();
   assert_eq!(
-    daemon::running_pid_under(home.path()).expect("absence is a state, not an error"),
+    daemon::running_pid_under(&intentsvcs::userstate::Dirs::at_home(home.path()))
+      .expect("absence is a state, not an error"),
     None,
     "a root that never ran a daemon reported one"
   );
@@ -58,7 +59,7 @@ fn no_lock_file_at_all_is_no_daemon() {
 #[test]
 fn a_lock_nobody_holds_is_no_daemon_whatever_it_says() {
   let home = root();
-  let path = userstate::daemon_lock_under(home.path());
+  let path = userstate::daemon_lock_under(&intentsvcs::userstate::Dirs::at_home(home.path()));
   std::fs::create_dir_all(path.parent().expect("a parent")).expect("state dir");
 
   // A pid left behind by a daemon that died. **The content is not the
@@ -66,7 +67,7 @@ fn a_lock_nobody_holds_is_no_daemon_whatever_it_says() {
   std::fs::write(&path, "424242").expect("write a stale pid");
 
   assert_eq!(
-    daemon::running_pid_under(home.path()).expect("read"),
+    daemon::running_pid_under(&intentsvcs::userstate::Dirs::at_home(home.path())).expect("read"),
     None,
     "a stale pid in an unheld lock was reported as a running daemon, which is the pid-file defect the lock exists to remove"
   );
@@ -75,14 +76,14 @@ fn a_lock_nobody_holds_is_no_daemon_whatever_it_says() {
 #[test]
 fn a_held_lock_publishes_the_holders_pid() {
   let home = root();
-  let path = userstate::daemon_lock_under(home.path());
+  let path = userstate::daemon_lock_under(&intentsvcs::userstate::Dirs::at_home(home.path()));
   let mut lock = hold(&path);
   lock.set_len(0).expect("truncate");
   write!(lock, "{}", std::process::id()).expect("write the pid");
   lock.flush().expect("flush");
 
   assert_eq!(
-    daemon::running_pid_under(home.path()).expect("read"),
+    daemon::running_pid_under(&intentsvcs::userstate::Dirs::at_home(home.path())).expect("read"),
     Some(std::process::id()),
     "a held lock carrying a pid did not report it"
   );
@@ -98,10 +99,10 @@ fn a_held_lock_publishes_the_holders_pid() {
 #[test]
 fn a_held_lock_with_no_pid_yet_is_refused_rather_than_reported_as_absent() {
   let home = root();
-  let path = userstate::daemon_lock_under(home.path());
+  let path = userstate::daemon_lock_under(&intentsvcs::userstate::Dirs::at_home(home.path()));
   let _lock = hold(&path);
 
-  match daemon::running_pid_under(home.path()) {
+  match daemon::running_pid_under(&intentsvcs::userstate::Dirs::at_home(home.path())) {
     Err(DaemonError::UnpublishedPid { found, .. }) => {
       assert!(
         found.trim().is_empty(),
@@ -121,7 +122,7 @@ fn a_held_lock_with_no_pid_yet_is_refused_rather_than_reported_as_absent() {
 #[test]
 fn a_partial_pid_is_refused_even_though_it_parses() {
   let home = root();
-  let path = userstate::daemon_lock_under(home.path());
+  let path = userstate::daemon_lock_under(&intentsvcs::userstate::Dirs::at_home(home.path()));
   let mut lock = hold(&path);
   lock.set_len(0).expect("truncate");
   write!(lock, "12 34").expect("write something parseable-looking");
@@ -129,7 +130,7 @@ fn a_partial_pid_is_refused_even_though_it_parses() {
 
   assert!(
     matches!(
-      daemon::running_pid_under(home.path()),
+      daemon::running_pid_under(&intentsvcs::userstate::Dirs::at_home(home.path())),
       Err(DaemonError::UnpublishedPid { .. })
     ),
     "content that is not a single whole pid was accepted"

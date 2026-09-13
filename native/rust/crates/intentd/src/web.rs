@@ -141,7 +141,7 @@ async fn op(State(face): State<Face>, headers: HeaderMap, body: String) -> HttpR
       StatusCode::UNAUTHORIZED,
       &intentsvcs::wire::Response::error(
         "this request carried no valid token".to_string(),
-        "the HTTP face requires the secret intentd published at `~/.local/share/intent/intentd.token`, sent as `Authorization: Bearer <secret>`. The unix socket needs no token because filesystem permissions are its authorisation.".to_string(),
+        "the HTTP face requires the secret intentd published at `$XDG_RUNTIME_DIR/intent/intentd.token` (on macOS `~/.local/state/intent/run/intentd.token`), sent as `Authorization: Bearer <secret>`. The unix socket needs no token because filesystem permissions are its authorisation.".to_string(),
       ),
     );
   }

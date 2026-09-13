@@ -76,7 +76,23 @@ use testkit::workspace_root;
 /// **AND THE ABSENT CASE IS NOT A FAILURE.** Unlike `HOME`, whose absence
 /// means per-user state cannot exist at all, an unset `USER` just means the
 /// author is unknown -- `bootstrap` records the config without it and says so.
-const ALLOWED: &[&str] = &["COLUMNS", "EDITOR", "HOME", "USER", "VISUAL"];
+///
+/// **THE FOUR `XDG_*` VARIABLES WERE GRANTED BY hv ON 2026-09-13, WITH THE
+/// LAYOUT THEY NAME** (ST0074 WP-05). Intent's per-user files follow the XDG
+/// Base Directory Specification, and a tool following it reads the variables
+/// or puts files where an operator who set them told it not to. Confined to
+/// `userstate.rs` below, for `HOME`'s reason.
+const ALLOWED: &[&str] = &[
+  "COLUMNS",
+  "EDITOR",
+  "HOME",
+  "USER",
+  "VISUAL",
+  "XDG_CONFIG_HOME",
+  "XDG_DATA_HOME",
+  "XDG_RUNTIME_DIR",
+  "XDG_STATE_HOME",
+];
 
 /// A variable that may be read, but in exactly ONE file.
 ///
@@ -100,6 +116,10 @@ const ALLOWED: &[&str] = &["COLUMNS", "EDITOR", "HOME", "USER", "VISUAL"];
 const CONFINED: &[(&str, &str)] = &[
   ("HOME", "crates/intentsvcs/src/userstate.rs"),
   ("USER", "crates/intentsvcs/src/userstate.rs"),
+  ("XDG_CONFIG_HOME", "crates/intentsvcs/src/userstate.rs"),
+  ("XDG_DATA_HOME", "crates/intentsvcs/src/userstate.rs"),
+  ("XDG_RUNTIME_DIR", "crates/intentsvcs/src/userstate.rs"),
+  ("XDG_STATE_HOME", "crates/intentsvcs/src/userstate.rs"),
   // **`VISUAL` AND `EDITOR` FOLLOW FROM hv's RULING OF 2026-08-29, WHICH IS
   // THAT `st edit` OPENS THE FILE ON A TERMINAL.** They are not a separable
   // decision: there is no way to know which editor to open without asking the

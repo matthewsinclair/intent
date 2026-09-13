@@ -25,7 +25,7 @@
 //! nothing is worse than one that is honestly absent.
 
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 use std::time::Duration;
@@ -239,12 +239,12 @@ async fn main() -> ExitCode {
   // reader has already advanced.
   let lifeline = Lifeline::observed();
 
-  let root = match userstate::home() {
-    Ok(root) => root,
+  let dirs = match userstate::dirs() {
+    Ok(dirs) => dirs,
     Err(e) => return refuse(StartupError::NoUserState(e)),
   };
 
-  match serve_under(&root, lifeline).await {
+  match serve_under(&dirs, lifeline).await {
     Ok(()) => ExitCode::SUCCESS,
     Err(e) => refuse(e),
   }
@@ -265,8 +265,8 @@ fn refuse(e: StartupError) -> ExitCode {
 /// the whole reason they are guards rather than a tidy-up at the end -- cleanup
 /// written after the serving loop is dead code until the day something returns
 /// early, and on that day it does not run.
-async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError> {
-  let (unix, bound) = Bound::bind_socket_under(root).map_err(StartupError::Address)?;
+async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), StartupError> {
+  let (unix, bound) = Bound::bind_socket_under(dirs).map_err(StartupError::Address)?;
 
   // **THE TOKEN IS MINTED BEFORE THE PORT IS PUBLISHED, AND THE ORDER IS D6's
   // ARGUMENT RATHER THAN TIDINESS** (vc's condition, 2026-08-30). Publishing an
@@ -275,9 +275,9 @@ async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError
   // the address itself, arriving one file later. `?` here means a daemon that
   // cannot write its secret does not come up: the alternative is a published
   // port whose only protection failed silently.
-  let token = Arc::new(intentsvcs::daemon::Token::mint_under(root).map_err(StartupError::Address)?);
+  let token = Arc::new(intentsvcs::daemon::Token::mint_under(dirs).map_err(StartupError::Address)?);
 
-  let (tcp, published) = Published::bind_loopback_under(root).map_err(StartupError::Address)?;
+  let (tcp, published) = Published::bind_loopback_under(dirs).map_err(StartupError::Address)?;
 
   unix.set_nonblocking(true).map_err(StartupError::Runtime)?;
   tcp.set_nonblocking(true).map_err(StartupError::Runtime)?;
@@ -337,7 +337,7 @@ async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError
   tokio::pin!(lifeline_closed);
 
   // Built once and pinned for the same reason the lifeline is.
-  let state_dir_gone = state_dir_removed(userstate::daemon_state_dir_under(root));
+  let state_dir_gone = state_dir_removed(userstate::daemon_runtime_dir_under(dirs));
   tokio::pin!(state_dir_gone);
 
   loop {
@@ -1022,15 +1022,15 @@ async fn shutdown() -> &'static str {
 /// and the plist is not needed for this process to serve anything -- it is only
 /// needed for the NEXT one to start itself.
 fn heal_the_policy_stamp() {
-  let Ok(home) = intentsvcs::userstate::home() else {
+  let Ok(dirs) = intentsvcs::userstate::dirs() else {
     // No home means no per-user state at all, which the daemon reports
     // elsewhere when it matters. There is no plist to heal.
     return;
   };
-  if !launchagent::is_stale(&home) {
+  if !launchagent::is_stale(&dirs) {
     return;
   }
-  let was = launchagent::stamped_version(&home).unwrap_or_else(|| "unstamped".to_string());
+  let was = launchagent::stamped_version(&dirs).unwrap_or_else(|| "unstamped".to_string());
   // **THE PLIST NAMES THIS BINARY, WHICH IS THE ONE FACT AN OLD PLIST IS MOST
   // LIKELY TO HAVE WRONG.** Resolved from `current_exe` rather than from
   // anything ambient, on `install.rs`'s precedent: a path read from the
@@ -1042,7 +1042,7 @@ fn heal_the_policy_stamp() {
     );
     return;
   };
-  match launchagent::write_plist(&home, &binary) {
+  match launchagent::write_plist(&dirs, &binary) {
     Ok(path) => println!(
       "intentd: regenerated the LaunchAgent at {} (was {was}, now {})",
       path.display(),

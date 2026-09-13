@@ -7,7 +7,18 @@
 
 use std::process::ExitCode;
 
+use intentsvcs::remedy::Remedy;
+use intentsvcs::userstate::{self, UserStateError};
+
 fn main() -> ExitCode {
+  // **THE MOVE INTO THE XDG LAYOUT COMES FIRST, SO NOTHING BELOW READS A PATH
+  // IT IS ABOUT TO CHANGE.** It does nothing after the first run. A missing
+  // home directory is not reported here: the project commands never needed one.
+  match userstate::dirs().and_then(|dirs| userstate::migrate_legacy(&dirs)) {
+    Ok(Some(migrated)) => eprintln!("{migrated}"),
+    Ok(None) | Err(UserStateError::NoHome) => {}
+    Err(e) => eprintln!("{}", e.render()),
+  }
   // **THE SEQUENCE ITSELF IS [`intent_cli::dispatch`], NOT HERE.** The
   // explorer's `/{cmd} ...` runs commands too, and two copies of parse-then-run
   // would be two homes for one thing. What is left in this function is what

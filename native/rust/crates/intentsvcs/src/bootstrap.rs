@@ -33,13 +33,13 @@
 //! writes, and a writer that diagnoses, are the same conflation from opposite
 //! ends. `doctor` is one command away and reports for itself.
 //!
-//! # Why the config is v3-private
+//! # Where the config lives
 //!
-//! `~/.intent/config.json`, never v2's `~/.config/intent/config.json`. That is
-//! vc's class ruling, hv adopted 2026-08-22: every v3 per-user store gets its
-//! own path and never reads or writes v2's. v2 is shipped and can never be
-//! taught to branch, so separate paths are the only mechanism that works --
-//! a `version` field would be a courtesy only the newer party reads.
+//! `$XDG_CONFIG_HOME/intent/config.json`, by default `~/.config/intent/config.json`
+//! (hv, 2026-09-13): Intent's per-user files follow the XDG Base Directory
+//! Specification, and v2 is no longer reasoned about. A v2 file found at that
+//! path is replaced by `userstate::migrate_legacy`, which tells the two apart by
+//! `intent_version`'s major number.
 
 use std::path::{Path, PathBuf};
 

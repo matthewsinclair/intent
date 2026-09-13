@@ -38,7 +38,7 @@ intent agents sync
 
 ### 3. Use `intent claude skills` for skill management
 
-NEVER manually create or edit files in `~/.claude/skills/`. Use the CLI for install, sync, and removal. Installs are tracked by a SHA256 manifest at `~/.intent/skills/installed-skills.v3.json`.
+NEVER manually create or edit files in `~/.claude/skills/`. Use the CLI for install, sync, and removal. Installs are tracked by a SHA256 manifest at `~/.local/share/intent/skills/installed-skills.v3.json`.
 
 ```bash
 # BAD -- manual copy

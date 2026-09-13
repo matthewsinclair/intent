@@ -9,7 +9,7 @@
 //!
 //! **THE ADDRESS ARM IS THE ONE THAT MATTERS, BECAUSE THE OBVIOUS WITNESS IS
 //! FALSE BY CONSTRUCTION.** `userstate::daemon_socket_under` is
-//! `<home>/.local/share/intent/intentd.sock` -- no pid, no port, no nonce -- so
+//! `<home>/.local/state/intent/run/intentd.sock` -- no pid, no port, no nonce -- so
 //! a restart under the same home yields the IDENTICAL endpoint. A test written
 //! as *the daemon moved, so its endpoint changed* asserts something that cannot
 //! be true, and would pass or fail for reasons unrelated to its subject. This

@@ -39,13 +39,13 @@ fn the_two_roots_are_not_the_same_directory() {
 /// `HOME`, and it failed -- correctly. This repo lives at `~/Devel/prj/Intent`,
 /// so anything under `target/` is inside the operator's home tree while being
 /// a perfectly good fixture. What has to differ is the thing a verb actually
-/// writes: `$HOME/.intent/home`.
+/// writes: `$HOME/.local/share/intent/home`.
 #[test]
 fn the_pointer_a_verb_would_write_is_not_the_operators_pointer() {
   let real = PathBuf::from(std::env::var("HOME").expect("a HOME to be isolated from"));
   assert_ne!(
-    fixture_home().join(".intent/home"),
-    real.join(".intent/home"),
+    fixture_home().join(".local/share/intent/home"),
+    real.join(".local/share/intent/home"),
     "a fixture HOME that resolves to the operator's own pointer isolates nothing"
   );
   assert!(

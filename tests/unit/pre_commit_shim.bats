@@ -2,7 +2,7 @@
 #
 # The shim locates the real gate, or REFUSES and says which failure it hit.
 #
-# **EVERY ARM OVERRIDES `HOME`.** The shim reads `$HOME/.intent/home`, which on
+# **EVERY ARM OVERRIDES `HOME`.** The shim reads `$XDG_DATA_HOME/intent/home`, by default under `$HOME`, which on
 # this machine is a real operator's real pointer. An arm that forgot the
 # override would read it, and a WRITING arm would have rewritten it.
 
@@ -13,7 +13,7 @@ SHIM="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit-shim.sh"
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-shim-test-XXXXXX)"
   FAKE_HOME="${TEST_TEMP_DIR}/home"
-  mkdir -p "${FAKE_HOME}/.intent"
+  mkdir -p "${FAKE_HOME}/.local/share/intent"
 }
 
 teardown() {
@@ -49,7 +49,7 @@ GATE
 }
 
 @test "pointer EMPTY: refuses, and says empty rather than absent" {
-  : > "${FAKE_HOME}/.intent/home"
+  : > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM"
   assert_failure
   assert_output_contains "is empty"
@@ -62,7 +62,7 @@ GATE
   # "cannot find the install" without saying where it looked sends the reader
   # to reinstall when the fault is one stale line in a file.
   mkdir -p "${TEST_TEMP_DIR}/not-an-install"
-  echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM"
   assert_failure
   assert_output_contains "is not an install"
@@ -75,11 +75,11 @@ GATE
   # to know about, and would mean this shim choosing an install root on their
   # behalf. Asserted on BYTES, because "it still refuses" would pass even if
   # the shim had rewritten the file to something else broken.
-  echo "/nowhere/at/all" > "${FAKE_HOME}/.intent/home"
-  local before; before="$(cat "${FAKE_HOME}/.intent/home")"
+  echo "/nowhere/at/all" > "${FAKE_HOME}/.local/share/intent/home"
+  local before; before="$(cat "${FAKE_HOME}/.local/share/intent/home")"
   HOME="${FAKE_HOME}" run bash "$SHIM"
   assert_failure
-  [ "$(cat "${FAKE_HOME}/.intent/home")" = "$before" ]
+  [ "$(cat "${FAKE_HOME}/.local/share/intent/home")" = "$before" ]
 }
 
 @test "root IS an install but the gate is missing: a DIFFERENT refusal, naming the file" {
@@ -87,7 +87,7 @@ GATE
   # "your pointer is wrong" would be false and would send someone at the wrong
   # repair.
   mkdir -p "${TEST_TEMP_DIR}/install/lib/templates/hooks"
-  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM"
   assert_failure
   assert_output_contains "has no pre-commit gate"
@@ -97,7 +97,7 @@ GATE
 
 @test "happy path: the real gate runs and receives the arguments" {
   make_install "${TEST_TEMP_DIR}/install"
-  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM" --some-arg
   assert_success
   assert_output_contains "REAL GATE RAN: --some-arg"
@@ -108,7 +108,7 @@ GATE
   # turning a refusal into a pass. 42 rather than 1, so a coincidental failure
   # cannot be mistaken for a passthrough.
   make_install "${TEST_TEMP_DIR}/install" 42
-  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM"
   [ "$status" -eq 42 ]
 }
@@ -129,7 +129,7 @@ GATE
 
 @test "--where reports what it resolved, and runs no gate" {
   make_install "${TEST_TEMP_DIR}/install"
-  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM" --where
   assert_success
   assert_output_contains "state:    OK"
@@ -139,7 +139,7 @@ GATE
 
 @test "--where on a broken pointer reports UNUSABLE and exits non-zero" {
   mkdir -p "${TEST_TEMP_DIR}/not-an-install"
-  echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.intent/home"
+  echo "${TEST_TEMP_DIR}/not-an-install" > "${FAKE_HOME}/.local/share/intent/home"
   HOME="${FAKE_HOME}" run bash "$SHIM" --where
   assert_failure
   assert_output_contains "UNUSABLE"

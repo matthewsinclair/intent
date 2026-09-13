@@ -62,7 +62,7 @@ This pattern means every coding session starts with `/in-session`, which loads t
 
 `intent critic <lang>` is the headless runner (`intentsvcs::critic`, no LLM); `intent critic --languages` lists the languages it serves. Exit codes: 0 clean, 1 findings, 2 invocation error (the gate fails open), 3 an armed rule's tool is absent (blocks). The LLM critics are subagents (`critic-<lang>`, `critic-prose`), invoked as `Task(subagent_type="critic-<lang>", prompt="review <paths>")`; each reads the rule library at invocation and applies the Detection heuristics.
 
-The pre-commit gate is `lib/templates/hooks/pre-commit.sh`, run live from the Intent install and never copied into a project: `intent claude upgrade --apply` writes the shim `lib/templates/hooks/pre-commit-shim.sh` to `pre-commit.intent` in the git hooks directory and inserts a chain block into that directory's `pre-commit`, and the shim reads the install root from `~/.intent/home` and execs the gate (`intentsvcs/src/canon.rs` `install_carrier`). The gate `intent critic <lang> --staged` per declared language. Severity threshold reads from `.intent_critic.yml`.
+The pre-commit gate is `lib/templates/hooks/pre-commit.sh`, run live from the Intent install and never copied into a project: `intent claude upgrade --apply` writes the shim `lib/templates/hooks/pre-commit-shim.sh` to `pre-commit.intent` in the git hooks directory and inserts a chain block into that directory's `pre-commit`, and the shim reads the install root from `~/.local/share/intent/home` and execs the gate (`intentsvcs/src/canon.rs` `install_carrier`). The gate `intent critic <lang> --staged` per declared language. Severity threshold reads from `.intent_critic.yml`.
 
 ## Migration history
 

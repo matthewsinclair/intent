@@ -222,7 +222,7 @@ pub struct Applied {
   ///
   /// **A GATE THAT WAS WRITTEN IS NOT A GATE THAT CAN RUN**, and those are
   /// different claims made by the same line of output. The carrier is a shim:
-  /// everything it does depends on `~/.intent/home` resolving to an install, so
+  /// everything it does depends on `~/.local/share/intent/home` resolving to an install, so
   /// a run that reports `written` while that pointer is absent or dangling has
   /// installed a gate which refuses every commit -- correctly, and without
   /// anything at install time having said so. Recorded here so the caller can

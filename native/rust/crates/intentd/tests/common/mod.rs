@@ -168,8 +168,8 @@ impl RunningDaemon {
   /// connect: a test carrying its own probe would pass while the two real ones
   /// disagreed.
   pub fn route(&self) -> Route {
-    let candidates =
-      daemon::candidates_under(&self.home).expect("a published address must be readable");
+    let candidates = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(&self.home))
+      .expect("a published address must be readable");
     daemon::route(&candidates)
   }
 
@@ -207,7 +207,7 @@ impl RunningDaemon {
 
   /// The socket this daemon is listening on.
   pub fn socket(&self) -> PathBuf {
-    intentsvcs::userstate::daemon_socket_under(&self.home)
+    intentsvcs::userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(&self.home))
   }
 
   /// Open a connection and ask a sequence of requests on it.
@@ -252,7 +252,8 @@ impl RunningDaemon {
   /// Deliberately the shipped reader rather than a second opinion about where
   /// addresses live.
   pub fn candidates(&self) -> Vec<daemon::Endpoint> {
-    daemon::candidates_under(&self.home).expect("a published address must be readable")
+    daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(&self.home))
+      .expect("a published address must be readable")
   }
 
   /// The loopback address this daemon published, if it published one.

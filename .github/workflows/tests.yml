@@ -34,6 +34,16 @@ jobs:
   test-linux:
     name: Test on Ubuntu
     runs-on: ubuntu-latest
+    # The suite points HOME at fixture directories, and Intent resolves its
+    # per-user paths from the XDG_* variables before HOME. GitHub's Linux
+    # runners set some of them, which would send a fixture's config and daemon
+    # socket to the runner's own directories. Intent reads an empty value as
+    # unset.
+    env:
+      XDG_CONFIG_HOME: ""
+      XDG_DATA_HOME: ""
+      XDG_STATE_HOME: ""
+      XDG_RUNTIME_DIR: ""
     
     steps:
     - uses: actions/checkout@v4
@@ -138,6 +148,16 @@ jobs:
   test-macos:
     name: Test on macOS
     runs-on: macos-latest
+    # The suite points HOME at fixture directories, and Intent resolves its
+    # per-user paths from the XDG_* variables before HOME. GitHub's Linux
+    # runners set some of them, which would send a fixture's config and daemon
+    # socket to the runner's own directories. Intent reads an empty value as
+    # unset.
+    env:
+      XDG_CONFIG_HOME: ""
+      XDG_DATA_HOME: ""
+      XDG_STATE_HOME: ""
+      XDG_RUNTIME_DIR: ""
     
     steps:
     - uses: actions/checkout@v4

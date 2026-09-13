@@ -7047,12 +7047,12 @@
     },
     {
       "name": "ext",
-      "help": "Manage Intent user extensions at ~/.intent/ext/<name>/",
+      "help": "Manage Intent user extensions at ~/.local/share/intent/ext/<name>/",
       "v2_source": "bin/intent_ext",
       "v2_help_file": null,
       "owner_wp": "WP-06",
       "family_notes": [
-        "Extensions live OUTSIDE the project, under `~/.intent/ext/`, so this family runs outside a project (measured: exit 0).",
+        "Extensions live OUTSIDE the project, under `~/.local/share/intent/ext/`, so this family runs outside a project (measured: exit 0).",
         "Its help block still marks verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help."
       ],
       "entries": [

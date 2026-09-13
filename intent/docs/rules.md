@@ -257,11 +257,11 @@ The full Critic contract — modes, ambiguity handling, report format, `.intent_
 
 ## Adding rules via user extensions
 
-Extension rule packs at `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md` are not read by v3 (`userstate::ext_base()` answers `None`), so they neither join discovery nor shadow a canon rule.
+Extension rule packs at `~/.local/share/intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md` are not read by v3 (`userstate::ext_base()` answers `None`), so they neither join discovery nor shadow a canon rule.
 
 `intent ext` (including `ext new --rule-pack`) is declared and not built in this release; it exits 2 with `is a known command that is not implemented yet`. See `intent/docs/writing-extensions.md` for the extension layout.
 
-`intent claude rules validate <path>` validates a RULE.md at any path against the canon corpus. Extension packs under `~/.intent/ext` are not validated, and the verb prints a `note:` saying so.
+`intent claude rules validate <path>` validates a RULE.md at any path against the canon corpus. Extension packs under `~/.local/share/intent/ext` are not validated, and the verb prints a `note:` saying so.
 
 ## Attribution policy
 

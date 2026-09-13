@@ -86,7 +86,7 @@ pub fn workspace_root() -> PathBuf {
 /// A `HOME` for any test that spawns the `intent` binary.
 ///
 /// **A TEST BINARY INHERITS THE OPERATOR'S REAL `HOME`, AND SOME VERBS WRITE
-/// THERE.** `intent bootstrap` publishes `~/.intent/home`, the machine-global
+/// THERE.** `intent bootstrap` publishes `~/.local/share/intent/home`, the machine-global
 /// install pointer the pre-commit shim resolves on every commit. On 2026-08-27
 /// two arms of `dispatch_ssot` published it to a scratch worktree that was later
 /// deleted, and the estate spent an evening with a pointer naming a directory

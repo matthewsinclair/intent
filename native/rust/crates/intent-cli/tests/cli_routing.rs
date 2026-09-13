@@ -77,11 +77,11 @@ fn project() -> tempfile::TempDir {
 /// A socket path under `root`, with its parent made and its length checked.
 ///
 /// **THE LAYOUT COMES FROM `userstate`, NOT FROM HERE.** Spelling
-/// `.local/share/intent/intentd.sock` out in a test would make the test a
+/// `.local/state/intent/run/intentd.sock` out in a test would make the test a
 /// second home for the address the CLI resolves -- and a second home that
 /// agrees today is the one that stops agreeing silently.
 fn socket_path(root: &Path) -> PathBuf {
-  let path = userstate::daemon_socket_under(root);
+  let path = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(root));
   fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir socket dir");
   assert!(
     path.as_os_str().len() < SUN_PATH_MAX,
@@ -789,25 +789,31 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
 fn the_candidate_list_is_read_from_the_daemons_published_address() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
-  let addr_file = userstate::daemon_address_file_under(root);
+  let addr_file = userstate::daemon_address_file_under(&intentsvcs::userstate::Dirs::at_home(root));
   std::fs::create_dir_all(addr_file.parent().expect("parent")).expect("mkdir");
 
   // Nothing published: the socket is the whole list. Absence is a STATE.
-  let bare = daemon::candidates_under(root).expect("no address file is not an error");
+  let bare = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root))
+    .expect("no address file is not an error");
   assert_eq!(
     bare,
-    vec![Endpoint::Unix(userstate::daemon_socket_under(root))],
+    vec![Endpoint::Unix(userstate::daemon_socket_under(
+      &intentsvcs::userstate::Dirs::at_home(root)
+    ))],
     "with no address file the list is the socket alone"
   );
 
   // Published: the socket FIRST -- it carries its own authz in filesystem
   // permissions, where a loopback port is reachable by anything on the box.
   std::fs::write(&addr_file, "127.0.0.1:54321\n").expect("write address");
-  let published = daemon::candidates_under(root).expect("a readable address is not an error");
+  let published = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root))
+    .expect("a readable address is not an error");
   assert_eq!(
     published,
     vec![
-      Endpoint::Unix(userstate::daemon_socket_under(root)),
+      Endpoint::Unix(userstate::daemon_socket_under(
+        &intentsvcs::userstate::Dirs::at_home(root)
+      )),
       Endpoint::Tcp("127.0.0.1:54321".parse().expect("parse")),
     ],
     "a published address adds a TCP candidate AFTER the socket"
@@ -818,7 +824,7 @@ fn the_candidate_list_is_read_from_the_daemons_published_address() {
   // shorter list runs in-process while a daemon holds the store -- the one
   // outcome the routing rule exists to prevent.
   std::fs::write(&addr_file, "not-an-address").expect("write address");
-  let refused = daemon::candidates_under(root);
+  let refused = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root));
   assert!(
     refused.is_err(),
     "an address file that cannot be parsed must refuse, not silently drop the candidate; got {refused:?}"
@@ -830,7 +836,8 @@ fn the_candidate_list_is_read_from_the_daemons_published_address() {
 fn the_shipped_cli_refuses_an_address_it_cannot_read() {
   let project = project();
   let home = tempfile::tempdir().expect("tempdir");
-  let addr_file = userstate::daemon_address_file_under(home.path());
+  let addr_file =
+    userstate::daemon_address_file_under(&intentsvcs::userstate::Dirs::at_home(home.path()));
   std::fs::create_dir_all(addr_file.parent().expect("parent")).expect("mkdir");
 
   let run = || {

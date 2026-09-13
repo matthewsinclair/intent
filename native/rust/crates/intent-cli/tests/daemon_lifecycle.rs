@@ -88,7 +88,7 @@ impl Machine {
   }
 
   fn state_dir(&self) -> PathBuf {
-    self.home.join(".local/share/intent")
+    self.home.join(".local/state/intent")
   }
 }
 

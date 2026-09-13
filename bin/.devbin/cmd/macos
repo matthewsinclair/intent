@@ -1547,7 +1547,7 @@ ${revline}
   end
 
   # A CAVEAT, NOT A post_install, AND THE CHOICE WAS DRIVEN (dc, 2026-09-11).
-  # The pre-commit gate a project installs finds this keg through ~/.intent/home,
+  # The pre-commit gate a project installs finds this keg through ~/.local/share/intent/home,
   # and only \`intent bootstrap\` writes that file, so a fresh install refuses
   # every commit until it runs. A post_install cannot run it for the user:
   # Homebrew gives post_install a throwaway HOME inside its sandbox and denies
@@ -1557,7 +1557,7 @@ ${revline}
   # machine already set up -- a source checkout, say -- should not be moved.
   def caveats
     <<~EOS
-      Intent's pre-commit gate finds this install through ~/.intent/home, which
+      Intent's pre-commit gate finds this install through ~/.local/share/intent/home, which
       only \`intent bootstrap\` writes. If that file does not exist yet, run:
         intent bootstrap
       Until it exists, every commit in a project with the gate installed is

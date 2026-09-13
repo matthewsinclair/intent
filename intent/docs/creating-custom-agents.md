@@ -186,7 +186,7 @@ Install your custom agent to make it available in Claude Code:
 intent claude subagents install your-agent-name
 ```
 
-This copies `agent.md` to `~/.claude/agents/your-agent-name.md` and records the install in `~/.intent/subagents/installed-subagents.v3.json`.
+This copies `agent.md` to `~/.claude/agents/your-agent-name.md` and records the install in `~/.local/share/intent/subagents/installed-subagents.v3.json`.
 
 **Installation Options:**
 

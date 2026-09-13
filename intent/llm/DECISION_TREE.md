@@ -74,7 +74,7 @@
 
 **Does the rule only apply to a specific team or project?**
 
-- Not in this build: `~/.intent/ext/` is read by nothing. `intent critic <lang> --rules <dir>` runs the headless critic against a rules root you name instead of canon.
+- Not in this build: `~/.local/share/intent/ext/` is read by nothing. `intent critic <lang> --rules <dir>` runs the headless critic against a rules root you name instead of canon.
 - See `intent/docs/writing-extensions.md`
 
 Always run `intent claude rules validate <id>` before committing a new rule.
@@ -88,7 +88,7 @@ Always run `intent claude rules validate <id>` before committing a new rule.
 
 **Is it specific to a user, team, or domain workflow?**
 
-- Not in this build: `~/.intent/ext/` is read by nothing, and `intent claude skills install` resolves canon only
+- Not in this build: `~/.local/share/intent/ext/` is read by nothing, and `intent claude skills install` resolves canon only
 
 ### Step 5: Is this a rule, a skill, or a subagent?
 
@@ -104,7 +104,7 @@ Always run `intent claude rules validate <id>` before committing a new rule.
 
 **A focused worker with its own context window and tool loadout (eg "critic", "test-spec generator")?**
 
-- Subagent. `intent/plugins/claude/subagents/<name>/agent.md` (canon; `~/.intent/ext/` is read by nothing in this build).
+- Subagent. `intent/plugins/claude/subagents/<name>/agent.md` (canon; `~/.local/share/intent/ext/` is read by nothing in this build).
 
 If the same prose lives in two of these layers, the duplicate is the bug. The rule file always wins.
 

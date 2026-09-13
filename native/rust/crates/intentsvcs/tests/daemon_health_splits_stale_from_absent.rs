@@ -71,7 +71,7 @@ fn answer_on(listener: UnixListener) {
 fn nothing_running_is_absent() {
   let dir = tempfile::tempdir().expect("tempdir");
   assert_eq!(
-    daemon::health_under(dir.path()).expect("health"),
+    daemon::health_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("health"),
     Health::Absent,
     "an estate where no daemon has ever run must read as ABSENT"
   );
@@ -80,13 +80,14 @@ fn nothing_running_is_absent() {
 #[test]
 fn a_holder_that_does_not_answer_is_stale() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (_listener, bound) = Bound::bind_socket_under(dir.path()).expect("bind");
+  let (_listener, bound) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("bind");
   assert!(
     !bound.endpoint().answers(),
     "this fixture needs a holder that is NOT answering, or it tests the live case under another name"
   );
 
-  match daemon::health_under(dir.path()).expect("health") {
+  match daemon::health_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("health") {
     Health::Stale { pid } => assert_eq!(
       pid,
       std::process::id(),
@@ -106,12 +107,13 @@ fn a_daemon_that_answers_is_live_even_though_it_holds_the_lock() {
   // such a regression would be noticed at all -- which is precisely why it is
   // pinned here rather than left to the obviousness of the code.
   let dir = tempfile::tempdir().expect("tempdir");
-  let (listener, bound) = Bound::bind_socket_under(dir.path()).expect("bind");
+  let (listener, bound) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("bind");
   let endpoint = bound.endpoint();
   answer_on(listener);
 
   assert_eq!(
-    daemon::health_under(dir.path()).expect("health"),
+    daemon::health_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("health"),
     Health::Live(endpoint),
     "a daemon that holds the lock and answers the probe must be LIVE. Consulting the lock before the round trip renders every healthy daemon STALE"
   );
@@ -123,7 +125,7 @@ fn an_orphaned_listener_with_no_holder_is_absent_and_not_stale() {
   // socket accepts connections while NO lock is held -- an inherited listening
   // descriptor whose parent has died, in its deterministic form.
   let dir = tempfile::tempdir().expect("tempdir");
-  let path = userstate::daemon_socket_under(dir.path());
+  let path = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   std::fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir");
   let listener = UnixListener::bind(&path).expect("bind the orphan");
 
@@ -134,7 +136,7 @@ fn an_orphaned_listener_with_no_holder_is_absent_and_not_stale() {
   );
 
   assert_eq!(
-    daemon::health_under(dir.path()).expect("health"),
+    daemon::health_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("health"),
     Health::Absent,
     "an orphaned listening descriptor read as STALE. There is no holder to investigate and nothing to leave alone, so STALE would declare a remedy that cannot be carried out -- and this is the one case the two candidate discriminators disagree on"
   );
@@ -164,7 +166,7 @@ fn an_orphaned_listener_with_no_holder_is_absent_and_not_stale() {
 #[test]
 fn absent_promises_the_residue_is_safe_to_clear_and_a_start_clears_it() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let path = userstate::daemon_socket_under(dir.path());
+  let path = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   std::fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir");
 
   // The hard-killed case: a socket FILE with no listener behind it and no lock
@@ -178,15 +180,17 @@ fn absent_promises_the_residue_is_safe_to_clear_and_a_start_clears_it() {
   );
 
   assert_eq!(
-    daemon::health_under(dir.path()).expect("health"),
+    daemon::health_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("health"),
     Health::Absent,
     "a socket file with no holder and no answer must read ABSENT before its remedy means anything"
   );
 
   // **THE REMEDY, CARRIED OUT RATHER THAN DESCRIBED.** If a start cannot clear
   // the residue, ABSENT is announcing a remedy the build does not have.
-  let (_listener, _bound) = Bound::bind_socket_under(dir.path())
-    .expect("ABSENT promises the residue is safe to clear, and the start could not carry that out");
+  let (_listener, _bound) = Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(
+    dir.path(),
+  ))
+  .expect("ABSENT promises the residue is safe to clear, and the start could not carry that out");
 }
 
 /// **THE OTHER HALF OF THE SPLIT, AND THE ONE WHERE BEING WRONG IS DESTRUCTIVE
@@ -211,14 +215,14 @@ fn an_answering_endpoint_is_never_unlinked_even_when_the_lock_is_free() {
   use std::os::unix::fs::MetadataExt;
 
   let dir = tempfile::tempdir().expect("tempdir");
-  let path = userstate::daemon_socket_under(dir.path());
+  let path = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   std::fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir");
 
   let listener = UnixListener::bind(&path).expect("bind the answerer");
   answer_on(listener);
   let before = std::fs::metadata(&path).expect("metadata").ino();
 
-  match Bound::bind_socket_under(dir.path()) {
+  match Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())) {
     Err(daemon::DaemonError::AlreadyRunning {
       evidence: daemon::RunningEvidence::EndpointAnsweredUnderOurLock,
       ..

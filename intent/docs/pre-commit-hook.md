@@ -6,10 +6,10 @@ Intent's canonical pre-commit gate runs the repository guards, then `intent crit
 
 `intent claude upgrade --apply` installs the gate as two files in `.git/hooks/`, and makes both executable (`--skip-settings` leaves `.claude/settings.json` alone while still installing the gate):
 
-- **`pre-commit.intent`, the carrier.** A copy of `lib/templates/hooks/pre-commit-shim.sh` from the Intent install. It reads the install root from `~/.intent/home` and execs that install's `lib/templates/hooks/pre-commit.sh`. The gate body is never copied into a project, so a gate fix reaches every project when the install is updated.
+- **`pre-commit.intent`, the carrier.** A copy of `lib/templates/hooks/pre-commit-shim.sh` from the Intent install. It reads the install root from `~/.local/share/intent/home` and execs that install's `lib/templates/hooks/pre-commit.sh`. The gate body is never copied into a project, so a gate fix reaches every project when the install is updated.
 - **`pre-commit`, the chain block.** A block between `# intent-chain-block:start` and `# intent-chain-block:end` that runs `pre-commit.intent` when it is executable. A missing hook is created as a shebang plus the block. An existing hook keeps every line it has: the block is inserted after its shebang and `set` lines, and a hook that already carries the block is left untouched.
 
-`~/.intent/home` is written by `intent bootstrap`. When it is absent, empty, or names a directory without `lib/templates/`, the carrier refuses every commit and names what it found, and `intent claude upgrade --apply` warns about it at install time. Check what the carrier resolves without running the gate:
+`$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) is written by `intent bootstrap`. A carrier installed by a build before 3.0.2 reads `~/.intent/home` instead, which 3.0.2 moves; `intent claude upgrade --apply` in that project reinstalls the carrier. When it is absent, empty, or names a directory without `lib/templates/`, the carrier refuses every commit and names what it found, and `intent claude upgrade --apply` warns about it at install time. Check what the carrier resolves without running the gate:
 
 ```bash
 .git/hooks/pre-commit.intent --where
@@ -69,7 +69,7 @@ The gate exits `0` (letting the commit through) when it cannot apply:
 
 Each case prints a stderr line saying what was skipped. The gate is a quality check, not an availability check.
 
-It does **not** fail open when `intent` cannot run in an Intent project: see Troubleshooting. And the carrier refuses (exit `1`) when `~/.intent/home` does not lead to a gate, before `pre-commit.sh` runs at all.
+It does **not** fail open when `intent` cannot run in an Intent project: see Troubleshooting. And the carrier refuses (exit `1`) when `~/.local/share/intent/home` does not lead to a gate, before `pre-commit.sh` runs at all.
 
 ## Repository guards
 
@@ -141,7 +141,7 @@ The hook itself exits only `0` or `1`.
 
 - **Hook not running**: check `ls -la .git/hooks/pre-commit .git/hooks/pre-commit.intent` — both must exist and be executable. Git skips a missing hook silently and a non-executable one with only a `hint:` line, and the chain block skips a non-executable `pre-commit.intent` without a word.
 
-- **"cannot locate the Intent install" from `pre-commit (intent shim)`**: `~/.intent/home` is absent or empty. Run `intent bootstrap`, then re-commit. `.git/hooks/pre-commit.intent --where` shows what the carrier resolves.
+- **"cannot locate the Intent install" from `pre-commit (intent shim)`**: `~/.local/share/intent/home` is absent or empty. Run `intent bootstrap`, then re-commit. `.git/hooks/pre-commit.intent --where` shows what the carrier resolves.
 
 - **"'intent' CLI is not runnable, and this IS an Intent project"**: install Intent, or add the directory holding the `intent` executable to PATH in your shell rc. The message names which state it found (no `intent` on PATH, a dangling link, a directory, or a file without the executable bit) and the remedy for it. **The hook REFUSES the commit rather than skipping** (hv, 2026-08-27): reaching that message means `intent/.config/config.json` is present, so the project declared the gate, and a declared gate that cannot run is a failure rather than a repo it does not apply to. It fails open only for a repo that is _not_ an Intent project, which is tested separately and first. `git commit --no-verify` bypasses one commit if you need to land work before fixing the install.
 

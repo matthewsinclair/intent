@@ -274,7 +274,7 @@ gate_currency() {
       printf '                 EVERY COMMIT IN THIS REPOSITORY REFUSES until that root resolves.\n'
       printf '                 this is NOT staleness: the bytes may be perfectly current and the gate\n'
       printf '                 still cannot run, so reinstalling the carrier will not fix it.\n'
-      printf '                 remedy: repoint ~/.intent/home at a real Intent install root.\n'
+      printf '                 remedy: repoint ~/.local/share/intent/home at a real Intent install root.\n'
       return 0
     fi
   else
@@ -304,7 +304,7 @@ gate_currency() {
   # into a false reassurance the moment somebody runs it. cc's `f8a78e05` made
   # `canon::apply` install the carrier, so the verb now does repair this.
   #
-  # **BUT IT INSTALLS A SHIM, AND A SHIM IS ONLY AS GOOD AS `~/.intent/home`.**
+  # **BUT IT INSTALLS A SHIM, AND A SHIM IS ONLY AS GOOD AS `~/.local/share/intent/home`.**
   # When that pointer names a deleted tree -- which it did on this machine when
   # this was written -- running the verb replaces a working copied gate with a
   # shim that refuses every commit. **Naming the verb without that condition
@@ -315,8 +315,8 @@ gate_currency() {
   # state this function has already looked at. Raised by cc before it could bite
   # anyone.
   printf '                 remedy: `intent claude upgrade --apply` installs the carrier (since f8a78e05).\n'
-  printf '                 CHECK FIRST -- it installs a SHIM, which is only as good as ~/.intent/home:\n'
-  printf '                   bash %s --where   (or read ~/.intent/home)\n' "$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
+  printf '                 CHECK FIRST -- it installs a SHIM, which is only as good as ~/.local/share/intent/home:\n'
+  printf '                   bash %s --where   (or read ~/.local/share/intent/home)\n' "$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
   printf '                 if that root is not a real Intent install, the shim will refuse EVERY commit\n'
   printf '                 here -- repoint it first, then upgrade.\n'
   upgrade_apply_scope '                 '

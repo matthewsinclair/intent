@@ -60,7 +60,8 @@ struct AnsweringDaemon {
 impl AnsweringDaemon {
   fn start() -> AnsweringDaemon {
     let home = short_dir("optin-home");
-    let socket = intentsvcs::userstate::daemon_socket_under(&home);
+    let socket =
+      intentsvcs::userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(&home));
     std::fs::create_dir_all(socket.parent().expect("a parent")).expect("state dir");
     let listener = UnixListener::bind(&socket).expect("bind the fixture listener");
     listener
@@ -102,7 +103,8 @@ impl AnsweringDaemon {
   /// do between them.
   fn wait_until_seen(&self) {
     for _ in 0..500 {
-      let candidates = daemon::candidates_under(&self.home).expect("readable");
+      let candidates = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(&self.home))
+        .expect("readable");
       if matches!(daemon::route(&candidates), daemon::Route::Daemon(_)) {
         return;
       }

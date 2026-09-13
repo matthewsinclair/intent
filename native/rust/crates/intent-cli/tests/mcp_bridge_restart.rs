@@ -9,7 +9,7 @@
 //!
 //! # The witness is the PID, not the endpoint
 //!
-//! The daemon's socket is `<home>/.local/share/intent/intentd.sock` -- no pid,
+//! The daemon's socket is `<home>/.local/state/intent/run/intentd.sock` -- no pid,
 //! no port, no nonce (cc, `RealDaemon::restart`'s own doc) -- so the endpoint is
 //! IDENTICAL across a restart and an "it moved" assertion on the endpoint would
 //! assert something false. The restart is real because the serving PID changes

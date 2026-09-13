@@ -3283,14 +3283,14 @@ Show detailed information for a plugin
 
 ## Family: `ext`
 
-Manage Intent user extensions at ~/.intent/ext/<name>/
+Manage Intent user extensions at ~/.local/share/intent/ext/<name>/
 
 - **v2 source:** `bin/intent_ext`
 - **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
-- Extensions live OUTSIDE the project, under `~/.intent/ext/`, so this family runs outside a project (measured: exit 0).
+- Extensions live OUTSIDE the project, under `~/.local/share/intent/ext/`, so this family runs outside a project (measured: exit 0).
 - Its help block still marks verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help.
 
 | command        | args      | flags                            | help                                            | disposition |

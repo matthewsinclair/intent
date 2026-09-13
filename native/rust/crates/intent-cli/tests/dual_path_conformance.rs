@@ -297,7 +297,7 @@ enum Hazard {
   /// that asymmetry is the whole hazard. The in-process route calls
   /// `render::run` in this process, which inherits the developer's real
   /// environment -- so a row reaching `userstate::home()` reaches THEIR
-  /// `~/.local/share/intent/`, not a temporary one.
+  /// `~/.local/state/intent/`, not a temporary one.
   ///
   /// **THE WORST CASE IS NOT A WRONG ANSWER, IT IS A RUNNING DAEMON.** `daemon
   /// start` under the real `HOME` binds the socket every peer session probes

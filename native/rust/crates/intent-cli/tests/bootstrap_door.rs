@@ -54,7 +54,7 @@ fn run(home: &Path, args: &[&str], user: Option<&str>) -> (String, String, i32) 
 }
 
 fn config(home: &Path) -> PathBuf {
-  home.join(".intent/config.json")
+  home.join(".config/intent/config.json")
 }
 
 /// **The whole point of the command: the pointer the shim reads gets written.**
@@ -67,7 +67,7 @@ fn it_publishes_the_pointer_the_shim_reads() {
   let (stdout, stderr, code) = run(&home, &[], Some("matts"));
   assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
 
-  let pointer = home.join(".intent/home");
+  let pointer = home.join(".local/share/intent/home");
   let recorded = std::fs::read_to_string(&pointer)
     .unwrap_or_else(|e| panic!("no pointer at {}: {e}", pointer.display()));
   let root = PathBuf::from(recorded.lines().next().expect("a line").trim());
@@ -105,7 +105,10 @@ fn quiet_suppresses_the_report_and_still_does_the_work() {
 
   // The work still happened -- a quiet flag that also skipped the setup would
   // pass an assertion about silence and be useless.
-  assert!(home.join(".intent/home").is_file(), "pointer not written");
+  assert!(
+    home.join(".local/share/intent/home").is_file(),
+    "pointer not written"
+  );
   assert!(config(&home).is_file(), "config not written");
 }
 

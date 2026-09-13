@@ -160,7 +160,7 @@
       </svg>
     </button>
     <pre><code>curl -s http://127.0.0.1:$PORT/op \
-  -H "Authorization: Bearer $(cat ~/.local/share/intent/intentd.token)" \
+  -H "Authorization: Bearer $(cat ~/.local/state/intent/run/intentd.token)" \
   -d '{"root":"'"$PWD"'","op":"registry"}'</code></pre>
   </div>
 

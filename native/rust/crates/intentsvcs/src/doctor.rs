@@ -1451,7 +1451,7 @@ pub enum GateState {
 /// **THE ARCHITECTURE GREW A SECOND CARRIER AND THE CHECKS DID NOT** (issue
 /// 0105). `canon::install_carrier` writes `hooks/pre-commit-shim.sh`; the older
 /// monolithic carrier is a copy of `hooks/pre-commit.sh`. They differ in kind,
-/// not in generation: **a shim is a LOCATOR** -- it resolves `~/.intent/home`
+/// not in generation: **a shim is a LOCATOR** -- it resolves `~/.local/share/intent/home`
 /// and execs the gate, and the gate is what reaches the guard runner.
 ///
 /// **THE DISCRIMINATOR IS MEASURED AND TWO-SIDED**, on the shipped templates

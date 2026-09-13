@@ -227,7 +227,7 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "shim",
     Policy::Names(
       "IT INVOKES NO `intent` AT ALL, and cannot: it is the file that runs BEFORE anything has \
-       resolved the install root, so its whole job is reading one line out of `~/.intent/home` and \
+       resolved the install root, so its whole job is reading one line out of `$XDG_DATA_HOME/intent/home` and \
        `exec bash`ing the gate body it names. Asking the binary would be a fallback chain, which is \
        the class the shim exists to remove rather than relocate. The only appearance is its own \
        `pre-commit (intent shim)` self-label on the three refusal messages -- and it is the LABEL that \
@@ -243,7 +243,7 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "bootstrap",
     Policy::Names(
       "**THE REMEDY ON THE FIRST OF THE THREE REFUSALS, AND IT IS NAMED PRECISELY BECAUSE IT CANNOT BE \
-       CALLED.** With `~/.intent/home` absent or empty the shim says to run `intent bootstrap` and \
+       CALLED.** With `$XDG_DATA_HOME/intent/home` absent or empty the shim says to run `intent bootstrap` and \
        re-commit: that pointer is written by `install::publish_home` and by nothing else, so its absence \
        means this machine has never run bootstrap rather than that Intent is missing -- and the message \
        used to leave the operator to guess which. **Invoking it here is not an option that was passed \

@@ -484,11 +484,11 @@ pub enum Health {
 /// travels rather than collapsing into [`Health::Absent`]: telling an operator
 /// *nothing is running* when the truth is *we could not find out* is the
 /// confident-negative defect this estate keeps re-finding.
-pub fn health_under(root: &std::path::Path) -> Result<Health, DaemonError> {
-  if let Route::Daemon(endpoint) = route(&candidates_under(root)?) {
+pub fn health_under(dirs: &crate::userstate::Dirs) -> Result<Health, DaemonError> {
+  if let Route::Daemon(endpoint) = route(&candidates_under(dirs)?) {
     return Ok(Health::Live(endpoint));
   }
-  match running_pid_under(root)? {
+  match running_pid_under(dirs)? {
     Some(pid) => Ok(Health::Stale { pid }),
     None => Ok(Health::Absent),
   }
@@ -500,10 +500,10 @@ pub fn health_under(root: &std::path::Path) -> Result<Health, DaemonError> {
 /// without `$HOME` there is no per-user state and so no daemon to find, which
 /// is an answer rather than a failure.
 pub fn health() -> Result<Health, DaemonError> {
-  let Ok(root) = crate::userstate::home() else {
+  let Ok(dirs) = crate::userstate::dirs() else {
     return Ok(Health::Absent);
   };
-  health_under(&root)
+  health_under(&dirs)
 }
 
 /// Every address this build knows to look for a daemon on.
@@ -763,22 +763,22 @@ fn parse_lsof_pids(stdout: &str, own: u32) -> Result<Vec<u32>, String> {
 /// start requiring a variable they have never needed because a routing probe
 /// could not resolve a directory.
 pub fn candidates() -> Result<Vec<Endpoint>, DaemonError> {
-  let Ok(root) = crate::userstate::home() else {
+  let Ok(dirs) = crate::userstate::dirs() else {
     return Ok(Vec::new());
   };
-  candidates_under(&root)
+  candidates_under(&dirs)
 }
 
-/// [`candidates`] against any root: the one ambient read stays above, and the
+/// [`candidates`] against any [`crate::userstate::Dirs`]: the one ambient read stays above, and the
 /// policy below is a pure mapping a test can drive against a temp directory.
 ///
 /// The same split [`crate::userstate::daemon_state_dir_under`] uses, for the
 /// same reason -- without it the only way to test this is to mutate `$HOME`,
 /// which is process-global and races every sibling test.
-pub fn candidates_under(root: &std::path::Path) -> Result<Vec<Endpoint>, DaemonError> {
-  let mut found = vec![Endpoint::Unix(crate::userstate::daemon_socket_under(root))];
+pub fn candidates_under(dirs: &crate::userstate::Dirs) -> Result<Vec<Endpoint>, DaemonError> {
+  let mut found = vec![Endpoint::Unix(crate::userstate::daemon_socket_under(dirs))];
 
-  let published = crate::userstate::daemon_address_file_under(root);
+  let published = crate::userstate::daemon_address_file_under(dirs);
   // **ONLY `NotFound` IS ABSENCE. EVERY OTHER KIND IS A FAULT.** Matching on
   // the kind rather than on `Ok` is the whole of vc's finding: the previous
   // form dropped the candidate on `PermissionDenied`, `InvalidData` and
@@ -827,8 +827,10 @@ pub fn candidates_under(root: &std::path::Path) -> Result<Vec<Endpoint>, DaemonE
 /// FAULT: an unreadable or malformed address file still travels as `Err` out of
 /// [`candidates_under`], because *we could not find out* is not *there is
 /// nothing there* -- the confident-negative defect this module keeps re-finding.
-pub fn answering_loopback_under(root: &std::path::Path) -> Result<Option<SocketAddr>, DaemonError> {
-  let candidates = candidates_under(root)?;
+pub fn answering_loopback_under(
+  dirs: &crate::userstate::Dirs,
+) -> Result<Option<SocketAddr>, DaemonError> {
+  let candidates = candidates_under(dirs)?;
   let answering = candidates
     .iter()
     .find(|e| matches!(e, Endpoint::Tcp(_)) && e.answers());
@@ -844,10 +846,10 @@ pub fn answering_loopback_under(root: &std::path::Path) -> Result<Option<SocketA
 /// [`candidates`]: without `$HOME` there is no per-user state, so no address
 /// was ever published and there is nowhere to send a browser.
 pub fn answering_loopback() -> Result<Option<SocketAddr>, DaemonError> {
-  let Ok(root) = crate::userstate::home() else {
+  let Ok(dirs) = crate::userstate::dirs() else {
     return Ok(None);
   };
-  answering_loopback_under(&root)
+  answering_loopback_under(&dirs)
 }
 
 /// The base URL of the loopback face: scheme and authority, no path.
@@ -914,8 +916,10 @@ impl Published {
   /// the daemon owns the socket. Dropping the listener without dropping this
   /// would leave the address published, which is the state
   /// [`Endpoint::answers`] exists to survive.
-  pub fn bind_loopback_under(root: &std::path::Path) -> Result<(TcpListener, Self), DaemonError> {
-    let path = crate::userstate::daemon_address_file_under(root);
+  pub fn bind_loopback_under(
+    dirs: &crate::userstate::Dirs,
+  ) -> Result<(TcpListener, Self), DaemonError> {
+    let path = crate::userstate::daemon_address_file_under(dirs);
     let listener = Self::preferred_or_any().map_err(|source| {
       // Reporting this as `Unpublishable { path: <the address file> }` named a
       // file the failure had not reached and could not explain.
@@ -1070,8 +1074,8 @@ pub struct Token {
 
 impl Token {
   /// Mint a secret for this run and publish it where a client can read it.
-  pub fn mint_under(root: &std::path::Path) -> Result<Self, DaemonError> {
-    let path = crate::userstate::daemon_token_file_under(root);
+  pub fn mint_under(dirs: &crate::userstate::Dirs) -> Result<Self, DaemonError> {
+    let path = crate::userstate::daemon_token_file_under(dirs);
     let secret = uuid::Uuid::new_v4().to_string();
     let fail = |source| DaemonError::Unpublishable {
       path: path.clone(),
@@ -1121,8 +1125,8 @@ impl Token {
   }
 
   /// Read the secret a running daemon published, for a client that needs it.
-  pub fn read_under(root: &std::path::Path) -> Result<String, DaemonError> {
-    let path = crate::userstate::daemon_token_file_under(root);
+  pub fn read_under(dirs: &crate::userstate::Dirs) -> Result<String, DaemonError> {
+    let path = crate::userstate::daemon_token_file_under(dirs);
     std::fs::read_to_string(&path)
       .map(|text| text.trim().to_string())
       .map_err(|source| DaemonError::Unpublishable { path, source })
@@ -1257,7 +1261,7 @@ pub struct Bound {
   identity: (u64, u64),
 }
 
-/// The pid of the daemon running under `root`, if one is running.
+/// The pid of the daemon running under `dirs`, if one is running.
 ///
 /// **`Ok(None)` MEANS NO DAEMON, AND IT IS ESTABLISHED BY TAKING THE LOCK
 /// RATHER THAN BY READING ANYTHING.** If this process can acquire the lock then
@@ -1273,8 +1277,8 @@ pub struct Bound {
 /// **AN EMPTY OR UNPARSEABLE READ IS REFUSED, NEVER ROUNDED DOWN TO `None`.**
 /// Returning `None` there would say *no daemon is running* about a machine
 /// where one demonstrably is, and the caller would go on to start a second.
-pub fn running_pid_under(root: &std::path::Path) -> Result<Option<u32>, DaemonError> {
-  let path = crate::userstate::daemon_lock_under(root);
+pub fn running_pid_under(dirs: &crate::userstate::Dirs) -> Result<Option<u32>, DaemonError> {
+  let path = crate::userstate::daemon_lock_under(dirs);
   let lock = match std::fs::File::options().read(true).open(&path) {
     Ok(lock) => lock,
     // No lock file at all: no daemon has ever run here. Absence is a state.
@@ -1299,8 +1303,10 @@ pub fn running_pid_under(root: &std::path::Path) -> Result<Option<u32>, DaemonEr
 
 impl Bound {
   /// Bind the daemon socket, refusing to evict a daemon that is answering.
-  pub fn bind_socket_under(root: &std::path::Path) -> Result<(UnixListener, Self), DaemonError> {
-    let path = crate::userstate::daemon_socket_under(root);
+  pub fn bind_socket_under(
+    dirs: &crate::userstate::Dirs,
+  ) -> Result<(UnixListener, Self), DaemonError> {
+    let path = crate::userstate::daemon_socket_under(dirs);
     let fail = |source| DaemonError::Unpublishable {
       path: path.clone(),
       source,
@@ -1312,7 +1318,7 @@ impl Bound {
     // first build of this asked `Endpoint::answers` whether to evict, which is
     // the CLIENT's routing predicate -- sound there and unsound here, because
     // the two decisions have opposite blast radii.
-    let lock_path = crate::userstate::daemon_lock_under(root);
+    let lock_path = crate::userstate::daemon_lock_under(dirs);
     let lock = std::fs::File::options()
       .create(true)
       .read(true)

@@ -1,5 +1,5 @@
 //! Operator settings: the DECLARED allow-list, and the one reader/writer of
-//! `~/.intent/config.json`'s `explorer` section. `AC-17.14`.
+//! `~/.config/intent/config.json`'s `explorer` section. `AC-17.14`.
 //!
 //! # The exposed set is declared, never derived
 //!

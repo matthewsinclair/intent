@@ -107,8 +107,8 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   # fixture writes that source directly, so HOME MUST be the sandbox first:
   # without `setup_fake_home` this wrote the operator's real config (0368).
   setup_fake_home
-  mkdir -p "$HOME/.intent"
-  printf '{"author":"TestUser"}\n' > "$HOME/.intent/config.json"
+  mkdir -p "$HOME/.config/intent"
+  printf '{"author":"TestUser"}\n' > "$HOME/.config/intent/config.json"
 
   run run_intent init "ScratchProj"
   assert_success

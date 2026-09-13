@@ -5,40 +5,31 @@
 //! estate has conflated two of them before (issue 0025). `project.rs` answers
 //! *where is the tree I am standing in*. `install.rs` answers *where is the
 //! tool I am running*. This answers *where is the state that belongs to the
-//! person running it* -- skills, subagents, extensions, caches.
+//! person running it* -- configuration, the install pointer, the payload
+//! manifests, the daemon's logs and the daemon's socket.
 //!
-//! **THIS IS THE ONE PLACE `$HOME` IS READ, AND THAT CONFINEMENT IS THE POINT
-//! OF THE RULING RATHER THAN A TIDINESS PREFERENCE.** AC-11.3's invariant held
-//! the shipped surface to exactly one environment variable, `COLUMNS`, and
-//! `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`
-//! enforced it structurally over every `src/**/*.rs`. hv granted `$HOME` on
-//! 2026-08-22, with a row in `ALLOWED` rather than a quiet addition, so the
-//! commands that manage per-user state can exist at all.
+//! **THE LAYOUT IS THE XDG BASE DIRECTORY SPECIFICATION** (hv, 2026-09-13,
+//! ST0074 WP-05). Configuration under `$XDG_CONFIG_HOME/intent`, data under
+//! `$XDG_DATA_HOME/intent`, logs and build output under `$XDG_STATE_HOME/intent`,
+//! and what a running daemon publishes under `$XDG_RUNTIME_DIR/intent`. Each
+//! variable takes the specification's default when it is unset, empty or not
+//! an absolute path. The runtime directory falls back to `<state>/run` without
+//! the warning the specification suggests, because macOS never sets
+//! `XDG_RUNTIME_DIR` and the warning would print on every command there.
+//! [`Dirs`] is that mapping, and nothing else knows it.
 //!
-//! **A GRANT THAT LANDS EVERYWHERE IS A DIFFERENT GRANT FROM THE ONE THAT WAS
-//! ASKED FOR.** The question put to hv was whether per-user state may be
-//! reached; it was not whether any file may consult the environment. So the
-//! read is confined to this module and the test pins it here by path -- a
-//! second `$HOME` read anywhere else fails the same way an unapproved variable
-//! does. That keeps the invariant meaning what it said, and it keeps the audit
-//! surface one file wide.
+//! **THIS IS THE ONE PLACE THOSE VARIABLES ARE READ, AND THE CONFINEMENT IS THE
+//! POINT OF THE RULINGS RATHER THAN A TIDINESS PREFERENCE.** `$HOME` (hv,
+//! 2026-08-22), `$USER` (hv, 2026-08-27) and the four `XDG_*` variables (hv,
+//! 2026-09-13) are rows in `no_intent_home.rs`'s `ALLOWED`, each confined to
+//! this file by path. A second reader anywhere else fails the same way an
+//! unapproved variable does, so the audit surface stays one file wide.
 //!
-//! **AND IT IS WHAT MAKES vc's CLASS RULING ENFORCEABLE IN ONE EDIT.** hv
-//! adopted, 2026-08-22: *every v3 per-user store gets its own path and never
-//! reads or writes v2's* -- ruled as a property after `installed-agents.json`
-//! turned up as the exact sibling of `installed-skills.json` an hour after the
-//! instance was ruled. Seven such stores exist. With every path named here,
-//! the rule is checkable by reading one file; spread across seven call sites
-//! it would be re-litigated seven times and lost on the eighth.
-//!
-//! **A `version` FIELD DOES NOT DISCHARGE THAT RULE.** It is a SCHEMA version
-//! -- it says what shape a file is, never who wrote it -- and a field only the
-//! newer party reads is a courtesy rather than a discriminator (ic). v2 is
-//! shipped and can never be taught the branch. Four of the seven stores are
-//! content files carrying no field at all, so there is nothing to discriminate
-//! with even in principle. Separate paths are the only mechanism that works.
+//! **`~/.intent/` IS READ BY [`migrate_legacy`] AND BY NOTHING ELSE.** It was
+//! the layout up to 3.0.1; the first command of a build that knows this one
+//! moves what it owns out of it.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use thiserror::Error;
 
@@ -52,17 +43,34 @@ pub enum UserStateError {
   /// have per-user state at all.
   #[error("cannot locate your home directory: $HOME is not set in this environment")]
   NoHome,
+  #[error("could not move `{}` to `{}`", from.display(), to.display())]
+  Unmovable {
+    from: PathBuf,
+    to: PathBuf,
+    #[source]
+    cause: std::io::Error,
+  },
+  #[error("could not remove `{}`", path.display())]
+  Unremovable {
+    path: PathBuf,
+    #[source]
+    cause: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for UserStateError {
   fn remedy(&self) -> String {
-    "per-user state (skills, subagents, extensions) lives under your home directory, so this command cannot run in an environment without one. If you are inside a wrapper that strips the environment, run it outside; the project commands do not need $HOME and are unaffected.".to_string()
+    match self {
+      Self::NoHome => "per-user state (skills, subagents, extensions) lives under your home directory, so this command cannot run in an environment without one. If you are inside a wrapper that strips the environment, run it outside; the project commands do not need $HOME and are unaffected.".to_string(),
+      Self::Unmovable { .. } => "Intent keeps its per-user files in the XDG layout, and this one is still where an earlier build put it. Move it to the path named above by hand, then re-run. A move across filesystems is the usual cause, when $XDG_CONFIG_HOME or $XDG_DATA_HOME is on another volume from your home directory.".to_string(),
+      Self::Unremovable { .. } => "the file is left over from an earlier layout and nothing reads it. Remove it by hand, then re-run.".to_string(),
+    }
   }
 }
 
 /// The operator's home directory.
 ///
-/// The one ambient read in this module, kept in a single function so the rest
+/// The one `$HOME` read in this module, kept in a single function so the rest
 /// stays a pure mapping a test can drive against any root it likes -- the same
 /// split `install.rs` uses, and the reason its walk has real tests rather than
 /// one test of whatever tree the suite happens to run in.
@@ -73,235 +81,206 @@ pub fn home() -> Result<PathBuf, UserStateError> {
   }
 }
 
-/// `~/.intent` -- Intent's own per-user directory.
-pub fn intent_dir() -> Result<PathBuf, UserStateError> {
-  Ok(home()?.join(".intent"))
+/// The four XDG variables as the environment gave them, before any default.
+#[derive(Debug, Default, Clone)]
+pub struct Xdg {
+  pub config_home: Option<String>,
+  pub data_home: Option<String>,
+  pub state_home: Option<String>,
+  pub runtime_dir: Option<String>,
 }
 
-/// `~/.intent/home` -- the one line naming this machine's Intent install root.
+/// Intent's own directory of each XDG kind, resolved.
+///
+/// **A VALUE, NOT A SET OF FUNCTIONS OF `$HOME`, BECAUSE THE ANSWER NOW HAS
+/// FIVE INPUTS.** Every `*_under` below takes one, so a test builds it with
+/// [`Dirs::at_home`] against a temporary directory and never has to mutate the
+/// process environment, which would race every sibling test.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Dirs {
+  /// `$HOME`: the root of the defaults, and of the two directories other
+  /// programs define, `~/Library/LaunchAgents/` and `~/.claude/`.
+  pub home: PathBuf,
+  /// `$XDG_CONFIG_HOME/intent`: what the operator authors.
+  pub config: PathBuf,
+  /// `$XDG_DATA_HOME/intent`: what Intent writes and keeps.
+  pub data: PathBuf,
+  /// `$XDG_STATE_HOME/intent`: logs and build output, which survive a restart
+  /// and nobody authors.
+  pub state: PathBuf,
+  /// `$XDG_RUNTIME_DIR/intent`, else `<state>/run`: what a running daemon
+  /// publishes, meaningless once it stops.
+  pub runtime: PathBuf,
+}
+
+impl Dirs {
+  /// The layout under `home` with every variable unset.
+  pub fn at_home(home: &Path) -> Dirs {
+    Dirs::resolve(home, &Xdg::default())
+  }
+
+  /// The pure mapping from `home` and the variables to the layout.
+  ///
+  /// **A VALUE THAT IS NOT AN ABSOLUTE PATH IS IGNORED**, as the specification
+  /// says, and an empty one is such a value.
+  pub fn resolve(home: &Path, xdg: &Xdg) -> Dirs {
+    let base = |value: &Option<String>, default: &str| match value.as_deref().map(Path::new) {
+      Some(path) if path.is_absolute() => path.to_path_buf(),
+      _ => home.join(default),
+    };
+    let state = base(&xdg.state_home, ".local/state").join("intent");
+    let runtime = match xdg.runtime_dir.as_deref().map(Path::new) {
+      Some(path) if path.is_absolute() => path.join("intent"),
+      _ => state.join("run"),
+    };
+    Dirs {
+      home: home.to_path_buf(),
+      config: base(&xdg.config_home, ".config").join("intent"),
+      data: base(&xdg.data_home, ".local/share").join("intent"),
+      state,
+      runtime,
+    }
+  }
+}
+
+/// This operator's layout: `$HOME` and the four `XDG_*` variables, read here.
+pub fn dirs() -> Result<Dirs, UserStateError> {
+  let xdg = Xdg {
+    config_home: std::env::var("XDG_CONFIG_HOME").ok(),
+    data_home: std::env::var("XDG_DATA_HOME").ok(),
+    state_home: std::env::var("XDG_STATE_HOME").ok(),
+    runtime_dir: std::env::var("XDG_RUNTIME_DIR").ok(),
+  };
+  Ok(Dirs::resolve(&home()?, &xdg))
+}
+
+/// `$XDG_DATA_HOME/intent/home` -- the one line naming this machine's Intent
+/// install root.
 ///
 /// **THE POINTER THE PRE-COMMIT SHIM READS, AND THE ONLY THING IT READS**
 /// (hv ruling 1, 2026-08-27). The gate stopped being copied into each project;
 /// a shim resolves the install root from this file and execs the one gate body
-/// out of it. See `lib/templates/hooks/pre-commit-shim.sh`.
+/// out of it. See `lib/templates/hooks/pre-commit-shim.sh`, which spells this
+/// path for itself because it is shell, and so is the second home this layout
+/// cannot close.
 ///
 /// **A CACHE THE SOURCE PUBLISHES ABOUT ITSELF.** The value is
 /// [`crate::install::home`]'s answer and nothing else's -- the moment a second
-/// thing can write here there are two answers to a question that must have one,
-/// which is the class the shim exists to remove rather than relocate.
+/// thing can write here there are two answers to a question that must have one.
 ///
-/// It lives under [`intent_dir`] rather than beside the binary on purpose: it
-/// describes THIS MACHINE, and a binary that has been moved, relinked or
-/// replaced must not be able to take its own pointer with it.
+/// It is data rather than configuration: nobody authors it, and it describes
+/// THIS MACHINE, so a binary that has been moved, relinked or replaced must not
+/// be able to take its own pointer with it.
 pub fn home_pointer() -> Result<PathBuf, UserStateError> {
-  Ok(intent_dir()?.join("home"))
+  Ok(dirs()?.data.join("home"))
 }
 
-/// `~/.intent/config.json` -- the operator's own Intent configuration.
-///
-/// **A v3-PRIVATE PATH, AND THAT IS THE CLASS RULING RATHER THAN A CHOICE MADE
-/// HERE.** v2 keeps this at `~/.config/intent/config.json`; vc's rule, hv
-/// adopted 2026-08-22, is that every v3 per-user store gets its own path and
-/// never reads or writes v2's. Nothing in this crate reads v2's file and
-/// nothing should: a shared config is how two tools that can never be taught
-/// about each other come to disagree about who the operator is.
-///
-/// It sits under [`intent_dir`] beside [`home_pointer`], so the operator's
-/// CONFIGURATION is one directory they can inspect or delete.
-///
-/// **THAT USED TO SAY "the whole of Intent's per-user state" AND THAT WAS
-/// FALSE IN BOTH READINGS** (vc, 2026-08-29). D19 puts the daemon's logs,
-/// plist and PID file under `~/.local/share/intent/`, so Intent's per-user
-/// state has always been TWO directories -- and the sentence misled whichever
-/// one you read it as naming, most expensively for whoever writes the plist.
-/// **The split is real and deliberate rather than a defect to converge:**
-/// configuration is state an operator authors and may delete, and daemon
-/// runtime state is not. See [`daemon_state_dir`]. What was wrong was a
-/// sentence claiming a unity the layout never had.
+/// `$XDG_CONFIG_HOME/intent/config.json` -- the operator's own configuration:
+/// `author`, written by `intent bootstrap`, and the explorer's settings,
+/// written by `/settings`.
 pub fn global_config() -> Result<PathBuf, UserStateError> {
-  Ok(intent_dir()?.join("config.json"))
+  Ok(global_config_under(&dirs()?))
 }
 
-/// `~/.local/share/intent/` -- where the daemon keeps its runtime state.
-///
-/// **D19's DIRECTORY RATHER THAN [`intent_dir`], AND THE SPLIT IS A CONFLICT
-/// THIS FUNCTION INHERITS RATHER THAN CREATES.** D19 puts the LaunchAgent
-/// plist under `~/Library/LaunchAgents/` and the daemon's logs under
-/// `~/.local/share/intent/`; the module note above says the whole of Intent's
-/// per-user state is one directory, meaning `~/.intent`. Both cannot be true.
-/// A numbered decision outranks a module's habit, and a socket is daemon
-/// runtime state of exactly the class D19 addressed -- so the daemon's
-/// footprint stays together, beside the logs and the PID file that D19 already
-/// placed, rather than being split across two roots by where its first
-/// consumer happened to look. **The two-homes problem is open with vc and
-/// lands on whoever writes the plist, whichever root wins.**
-///
-/// **RUNTIME STATE, NOT CONFIGURATION, AND THAT IS WHY IT IS NOT UNDER
-/// [`intent_dir`] EVEN ON THE MERITS.** `~/.intent` is described as something
-/// an operator can inspect or delete; a live socket and a PID file are things
-/// deleting which orphans a running daemon. Keeping them apart means the
-/// invitation to delete stays honest.
-pub fn daemon_state_dir() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_state_dir_under(&home()?))
+/// [`global_config`]'s layout, against any [`Dirs`].
+pub fn global_config_under(dirs: &Dirs) -> PathBuf {
+  dirs.config.join("config.json")
 }
 
 /// Where `bin/devbin macos app-build` leaves the built `Intent.app` bundles.
-///
-/// **IT LIVES HERE BECAUSE THIS IS THE ONE MODULE ALLOWED TO ASK WHERE HOME
-/// IS** (`AC-11.3`, enforced by `no_intent_home.rs`). `macapp.rs` wanted the
-/// path and read `$HOME`, `$XDG_STATE_HOME` and `$INTENT_MACOS_STATE_DIR` to
-/// get it; the guard refused all three and its instruction was to route through
-/// this module rather than to add rows to an allowlist. **The env overrides are
-/// deliberately NOT carried across**: they are a developer convenience in the
-/// devbin verb, and a shipped binary meeting a brew install on a machine with
-/// no clone must not have its answer depend on a variable only a developer sets.
 ///
 /// Mirrors `APP_STATE_DIR` in `bin/.devbin/cmd/macos`. **That is a second home
 /// for this layout and it is not one this module can close**: the builder is a
 /// shell verb and the reader is Rust, so they cannot share a constant. What
 /// keeps them honest is that a disagreement makes `intent app status` report
 /// `not installed` on a machine that has just built the app -- loud, and on the
-/// verb whose whole subject is where the bundle is.
+/// verb whose whole subject is where the bundle is. The devbin verb's
+/// `$INTENT_MACOS_STATE_DIR` override is deliberately not carried across: a
+/// shipped binary must not have its answer depend on a variable only a
+/// developer sets.
 pub fn macos_app_build_dir() -> Result<PathBuf, UserStateError> {
-  Ok(macos_app_build_dir_under(&home()?))
+  Ok(macos_app_build_dir_under(&dirs()?))
 }
 
-/// [`macos_app_build_dir`]'s layout, against any root -- the same split, for
-/// the same reason.
-pub fn macos_app_build_dir_under(root: &std::path::Path) -> PathBuf {
-  root
-    .join(".local")
-    .join("state")
-    .join("intent")
+/// [`macos_app_build_dir`]'s layout, against any [`Dirs`].
+pub fn macos_app_build_dir_under(dirs: &Dirs) -> PathBuf {
+  dirs
+    .state
     .join("build")
     .join("macos")
     .join("Build")
     .join("Products")
 }
 
-/// [`daemon_state_dir`]'s layout, against any root.
+/// The directory a running daemon publishes into, and watches.
 ///
-/// **THE SPLIT `install.rs` USES, AND FOR THE REASON THIS MODULE ALREADY GIVES
-/// FOR IT**: the one ambient read stays in [`home`] and the rest is a pure
-/// mapping a test can drive against a temp directory. The alternative is a
-/// test that spells the layout out for itself, which makes the test a SECOND
-/// HOME for the path -- and a second home that agrees today is exactly the one
-/// that stops agreeing without saying so.
-pub fn daemon_state_dir_under(root: &std::path::Path) -> PathBuf {
-  root.join(".local").join("share").join("intent")
+/// **RUNTIME STATE, NOT CONFIGURATION AND NOT DATA.** A live socket and a lock
+/// are things deleting which orphans a running daemon, and nothing in them
+/// outlives it -- which is also why `intentd` exits when this directory is
+/// removed out from under it.
+pub fn daemon_runtime_dir_under(dirs: &Dirs) -> PathBuf {
+  dirs.runtime.clone()
 }
 
-/// `~/.local/share/intent/intentd.sock` -- the address `intentd` binds and the
-/// CLI probes.
+/// `<runtime>/intentd.sock` -- the address `intentd` binds and the CLI probes.
 ///
 /// **ONE HOME FOR AN ADDRESS TWO BINARIES MUST AGREE ON.** The routing rule
-/// lives in [`crate::daemon`] and takes a path; the path is named here because
-/// `$HOME` is confined to this module and nowhere else can read it. A second
-/// spelling anywhere would be a daemon listening where the CLI never looks,
-/// and the failure is silent in the worst direction -- a CLI that finds no
-/// daemon simply runs in-process, correctly, forever.
+/// lives in [`crate::daemon`] and takes a [`Dirs`]; the path is named here. A
+/// second spelling anywhere would be a daemon listening where the CLI never
+/// looks, and the failure is silent in the worst direction -- a CLI that finds
+/// no daemon simply runs in-process, correctly, forever.
 ///
 /// **THE PATH IS SHORT ON PURPOSE.** `sun_path` is 104 bytes on macOS and 108
 /// on Linux, and a unix socket address that overruns it fails at bind and
-/// connect with an error naming neither the limit nor the path. Anything
-/// deeper than this needs that limit checked rather than assumed.
-pub fn daemon_socket() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_socket_under(&home()?))
+/// connect with an error naming neither the limit nor the path. The macOS
+/// default, `~/.local/state/intent/run/intentd.sock`, leaves a home path over
+/// sixty bytes of room; anything deeper needs that limit checked.
+pub fn daemon_socket_under(dirs: &Dirs) -> PathBuf {
+  dirs.runtime.join("intentd.sock")
 }
 
-/// [`daemon_socket`]'s layout, against any root. See [`daemon_state_dir_under`].
-pub fn daemon_socket_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.sock")
-}
-
-/// `~/.local/share/intent/intentd.addr` -- the loopback address the running
-/// daemon published for itself.
+/// `<runtime>/intentd.addr` -- the loopback address the running daemon
+/// published for itself.
 ///
 /// **THERE IS NO PORT CONSTANT ANYWHERE AND THAT IS THE RULING, NOT AN
 /// OMISSION** (hv, 2026-08-29). The daemon binds `127.0.0.1:0`, lets the kernel
-/// assign, and WRITES what it got here; every client reads it. A named default
-/// and a compile-time environment variable were both priced and lost: a literal
-/// collides eventually, and a build that needs an env var to compile is a cost
-/// this estate has no targets to justify.
-///
-/// **IT COSTS CLIENTS NOTHING BECAUSE THEY ALREADY READ THIS DIRECTORY.** The
-/// socket path is resolved from here too, so an address file is one more read
-/// in a place already being read -- which is why `--browser` can build its URL
-/// from what it found rather than from a constant it would have to keep in step.
-pub fn daemon_address_file() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_address_file_under(&home()?))
+/// assign, and WRITES what it got here; every client reads it.
+pub fn daemon_address_file_under(dirs: &Dirs) -> PathBuf {
+  dirs.runtime.join("intentd.addr")
 }
 
-/// [`daemon_address_file`]'s layout, against any root.
-pub fn daemon_address_file_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.addr")
-}
-
-/// `~/.local/share/intent/intentd.token` -- the secret the HTTP face requires
-/// and the socket face does not (D56).
+/// `<runtime>/intentd.token` -- the secret the HTTP face requires and the
+/// socket face does not (D56).
 ///
-/// **THE TWO TRANSPORTS HAVE DIFFERENT AUTHZ STORIES AND THIS FILE IS THE
-/// SECOND ONE.** The workspace manifest records the split beside `axum`:
-/// filesystem permissions are the socket's authz, and the HTTP half carries
-/// one auto-generated token. **Loopback is not a permission boundary** -- every
-/// local process reaches `127.0.0.1`, and so does any page the operator's
-/// browser happens to be showing -- so the port needs a check the socket does
-/// not, and treating them uniformly gives the socket a check it does not need
-/// or the port none at all.
-///
-/// **IT LIVES BESIDE THE ADDRESS FILE BECAUSE IT HAS THE ADDRESS FILE'S
-/// LIFETIME.** Both are written by a starting daemon, both are meaningless
-/// when it stops, and both are read by a client asking *where do I connect and
-/// what do I say*. A token under [`global_config`] would be operator
-/// configuration, which it is not: nobody authors it and deleting it costs
-/// nothing but a restart.
-pub fn daemon_token_file() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_token_file_under(&home()?))
-}
-
-/// [`daemon_token_file`]'s layout, against any root.
-pub fn daemon_token_file_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.token")
+/// **LOOPBACK IS NOT A PERMISSION BOUNDARY** -- every local process reaches
+/// `127.0.0.1`, and so does any page the operator's browser happens to be
+/// showing -- so the port needs a check the socket does not. **It lives beside
+/// the address file because it has the address file's lifetime**: both are
+/// written by a starting daemon and meaningless when it stops, and nobody
+/// authors either.
+pub fn daemon_token_file_under(dirs: &Dirs) -> PathBuf {
+  dirs.runtime.join("intentd.token")
 }
 
 /// The file whose LOCK means "a daemon is running here" (`AC-08.12`).
 ///
 /// **A SEPARATE FILE FROM THE SOCKET, AND THE SEPARATION IS THE MECHANISM.**
 /// The lock has to survive being asked about while the socket is being
-/// unlinked and rebound, and a lock on the socket itself would vanish with it.
-/// It is also the one file here whose CONTENT is irrelevant -- what carries the
-/// meaning is the kernel's lock on the open descriptor, which is released on
-/// process death by any means including `SIGKILL`. That is the whole reason it
-/// exists rather than a pid file: **a pid file goes stale and a lock cannot.**
-pub fn daemon_lock_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.lock")
-}
-
-/// [`daemon_lock_under`] against the operator's own home.
-pub fn daemon_lock() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_lock_under(&home()?))
+/// unlinked and rebound. What carries the meaning is the kernel's lock on the
+/// open descriptor, released on process death by any means including
+/// `SIGKILL`: **a pid file goes stale and a lock cannot.**
+pub fn daemon_lock_under(dirs: &Dirs) -> PathBuf {
+  dirs.runtime.join("intentd.lock")
 }
 
 /// `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist` -- the enrolment.
 ///
-/// **D19's LOCATION, AND IT IS THE ONE PATH HERE THAT IS NOT OURS TO CHOOSE.**
-/// Every other file in this module sits where Intent decided to put it;
+/// **THE ONE PATH HERE THAT IS NOT OURS TO CHOOSE, AND NOT XDG's EITHER.**
 /// `launchd` only reads per-user agents from `~/Library/LaunchAgents/`, so this
 /// is a location the platform fixes and D19 records rather than selects.
-///
-/// **IT IS DELIBERATELY NOT UNDER [`daemon_state_dir`], THOUGH EVERYTHING ELSE
-/// THE DAEMON OWNS IS.** That split is D19's and it is the reason the comment
-/// on [`global_config`] once misled: Intent's per-user footprint is not one
-/// directory and never was. The plist is the ONE piece of daemon state another
-/// program owns the reading of, which is exactly why it lives where that
-/// program looks.
-pub fn launch_agent_plist() -> Result<PathBuf, UserStateError> {
-  Ok(launch_agent_plist_under(&home()?))
-}
-
-/// [`launch_agent_plist`]'s layout, against any root.
-pub fn launch_agent_plist_under(root: &std::path::Path) -> PathBuf {
-  root
+pub fn launch_agent_plist_under(dirs: &Dirs) -> PathBuf {
+  dirs
+    .home
     .join("Library")
     .join("LaunchAgents")
     .join(format!("{LAUNCH_AGENT_LABEL}.plist"))
@@ -316,52 +295,36 @@ pub fn launch_agent_plist_under(root: &std::path::Path) -> PathBuf {
 /// so in a way that reads like the daemon being absent.
 pub const LAUNCH_AGENT_LABEL: &str = "com.matthewsinclair.intentd";
 
-/// Where the daemon's stdout goes (D19: logs at `~/.local/share/intent/`).
+/// `<state>/intentd.log` -- where the daemon's stdout goes.
 ///
 /// **NAMED HERE RATHER THAN IN THE PLIST WRITER, BECAUSE TWO PROGRAMS NEED IT
 /// AND ONLY ONE OF THEM WRITES THE PLIST.** `launchd` is told this path once,
 /// at enrolment; whoever answers *where are the logs* has to produce the same
-/// path months later without reading the plist back. A literal in the plist
-/// writer would be correct at enrolment and unavailable to every reader after.
-pub fn daemon_log_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.log")
+/// path months later without reading the plist back.
+pub fn daemon_log_under(dirs: &Dirs) -> PathBuf {
+  dirs.state.join("intentd.log")
 }
 
-/// [`daemon_log_under`] against the operator's own home.
-pub fn daemon_log() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_log_under(&home()?))
-}
-
-/// Where the daemon's stderr goes.
+/// `<state>/intentd.err.log` -- where the daemon's stderr goes.
 ///
 /// **SEPARATE FROM [`daemon_log_under`] BECAUSE THE DAEMON ALREADY TREATS THEM
 /// AS SEPARATE.** `intentd` reports refusals and its served-and-not-watched
 /// notices on stderr and says nothing on stdout in normal running, so merging
 /// them would bury the only lines anybody reads under the ones nobody does.
-pub fn daemon_error_log_under(root: &std::path::Path) -> PathBuf {
-  daemon_state_dir_under(root).join("intentd.err.log")
-}
-
-/// [`daemon_error_log_under`] against the operator's own home.
-pub fn daemon_error_log() -> Result<PathBuf, UserStateError> {
-  Ok(daemon_error_log_under(&home()?))
+pub fn daemon_error_log_under(dirs: &Dirs) -> PathBuf {
+  dirs.state.join("intentd.err.log")
 }
 
 /// The operator's login name, when the environment names one.
 ///
 /// **`$USER` IS GRANTED FOR `bootstrap` AND CONFINED HERE** -- hv, 2026-08-27,
-/// with the row and the reason in `no_intent_home.rs`. It is read in this
-/// module for the same purpose `HOME` is: so the grant stays one file wide and
-/// a second reader anywhere else fails exactly the way an unapproved variable
-/// does.
+/// with the row and the reason in `no_intent_home.rs`.
 ///
 /// **`None` IS A NORMAL ANSWER, NOT AN ERROR, AND THE DIFFERENCE FROM
 /// [`home`] IS THE POINT.** A missing `HOME` means per-user state cannot exist,
 /// which is a refusal. A missing `USER` means only that nobody can be named --
 /// `bootstrap` writes the rest of the config and reports the identity as
 /// unset, which is a true statement the operator can act on in one edit.
-/// Returning a `Result` here would push a decision the caller has already made
-/// into an error path it would have to unwrap anyway.
 ///
 /// **AND IT IS NOT A FALLBACK CHAIN.** No `LOGNAME`, no `whoami`, no `git
 /// config user.name`. hv ruled the source; a second source consulted when the
@@ -378,30 +341,23 @@ pub fn author() -> Option<String> {
 /// but does not own.
 ///
 /// **INTENT IS A GUEST HERE AND THE DISTINCTION IS LOAD-BEARING.** Everything
-/// under `intent_dir()` is ours to structure; everything under this path has a
-/// layout Claude Code defines, so a v3-specific filename is available in the
-/// first and not the second. That asymmetry is exactly why the skills manifest
-/// could be moved to its own path and the installed skills could not.
+/// under [`Dirs`] is ours to structure; everything under this path has a layout
+/// Claude Code defines, so a v3-specific filename is available in the first and
+/// not the second. That asymmetry is exactly why the skills manifest could be
+/// given its own path and the installed skills could not.
 pub fn claude_dir() -> Result<PathBuf, UserStateError> {
   Ok(home()?.join(".claude"))
 }
 
-/// Where v3 records what IT installed.
+/// Where v3 records what IT installed: `$XDG_DATA_HOME/intent/<kind's manifest>`.
 ///
-/// See [`crate::payload::Kind::manifest_relative`] for why this is not v2's
-/// file -- and note it is now one answer PER KIND, so the separation has to
-/// hold for each of them rather than once.
+/// See [`crate::payload::Kind::manifest_relative`] -- one answer PER KIND, so
+/// the separation has to hold for each of them rather than once.
 pub fn payload_manifest(kind: crate::payload::Kind) -> Result<PathBuf, UserStateError> {
-  Ok(intent_dir()?.join(kind.manifest_relative()))
+  Ok(dirs()?.data.join(kind.manifest_relative()))
 }
 
 /// Where installed skills land, which is Claude Code's layout and not ours.
-///
-/// **SHARED WITH v2 AND UNAVOIDABLY SO.** This is the directory Claude Code
-/// reads; a v3-private one would install skills nothing loads. The manifests
-/// separating is what stops the mutual clobber -- each tool now compares
-/// against its own record of what it wrote, rather than against a number the
-/// other one computed by a different function.
 pub fn payload_target(kind: crate::payload::Kind) -> Result<PathBuf, UserStateError> {
   Ok(claude_dir()?.join(kind.target_subdir()))
 }
@@ -409,60 +365,323 @@ pub fn payload_target(kind: crate::payload::Kind) -> Result<PathBuf, UserStateEr
 /// The extension base, when extensions are wired.
 ///
 /// **ALWAYS `None` TODAY, AND IT IS A HELD RULING RATHER THAN AN OVERSIGHT.**
-/// v2 resolves this through `$INTENT_EXT_DIR` and `$INTENT_EXT_DISABLE`, and
-/// **hv granted `$HOME` and nothing else** -- reading two more variables off
-/// the back of that grant is precisely the quiet addition the invariant's own
-/// failure message forbids. `rules.rs` is parked on the identical seam.
-///
-/// **THE CONSEQUENCE IS NAMED RATHER THAN SWALLOWED:** an operator with skills
-/// or rules under `~/.intent/ext` sees them from v2 and not from v3, and
-/// `Provenance::Ext` is reachable in the library and unreachable from the CLI.
-/// Defaulting to `~/.intent/ext` here without the two variables would be worse
-/// than not wiring it: an operator who set `INTENT_EXT_DISABLE=1` would have
-/// their extensions silently switched back on.
+/// hv ruled `ext` out of the 3.0.0 cut on 2026-08-30. When it is wired, its
+/// directory is `$XDG_DATA_HOME/intent/ext`, which [`migrate_legacy`] already
+/// moves an old one into. `Provenance::Ext` is reachable in the library and
+/// unreachable from the CLI until then, and that consequence is named rather
+/// than swallowed.
 pub fn ext_base() -> Option<PathBuf> {
   None
+}
+
+/// What [`migrate_legacy`] moved, for the one line the CLI prints.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Migrated {
+  pub from: PathBuf,
+  /// Each entry moved, with where it went.
+  pub moved: Vec<(String, PathBuf)>,
+  /// What is still in `from` afterwards. Empty means `from` was removed.
+  pub left: Vec<String>,
+}
+
+impl std::fmt::Display for Migrated {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let moved: Vec<String> = self
+      .moved
+      .iter()
+      .map(|(name, to)| format!("{name} to {}", to.display()))
+      .collect();
+    write!(
+      f,
+      "note: moved {} out of {} into the XDG layout",
+      moved.join(", "),
+      self.from.display()
+    )?;
+    if self.left.is_empty() {
+      write!(f, ", and removed it")
+    } else {
+      write!(
+        f,
+        ", and kept it for what Intent does not own: {}",
+        self.left.join(", ")
+      )
+    }
+  }
+}
+
+/// The entries the 3.0.1 layout kept under `~/.intent/`, and where each goes.
+fn legacy_moves(dirs: &Dirs) -> [(&'static str, PathBuf); 6] {
+  [
+    ("config.json", global_config_under(dirs)),
+    ("home", dirs.data.join("home")),
+    ("skills", dirs.data.join("skills")),
+    ("subagents", dirs.data.join("subagents")),
+    ("agents", dirs.data.join("agents")),
+    ("ext", dirs.data.join("ext")),
+  ]
+}
+
+/// Move what Intent owns out of `~/.intent/` into the layout, once.
+///
+/// **`Ok(None)` WHEN THERE WAS NOTHING TO MOVE**, which is every run after the
+/// first, so the CLI can call this on every command and print only when it did
+/// something.
+///
+/// **AN ENTRY ALREADY AT ITS NEW PATH IS LEFT WHERE IT IS**, except a
+/// configuration that is not v3's: v2 is ignored (hv, 2026-09-13) and its
+/// `~/.config/intent/config.json` is replaced. So a `~/.intent/` recreated by
+/// an older binary after the move is never read again rather than overwriting
+/// newer state.
+///
+/// **`~/.intent/` IS REMOVED ONLY WHEN EMPTY.** Anything Intent did not put
+/// there is somebody else's, and a migration that deleted it would be the one
+/// destructive path in a move.
+pub fn migrate_legacy(dirs: &Dirs) -> Result<Option<Migrated>, UserStateError> {
+  let from = dirs.home.join(".intent");
+  if !from.is_dir() {
+    return Ok(None);
+  }
+  let mut moved = Vec::new();
+  for (name, to) in legacy_moves(dirs) {
+    let source = from.join(name);
+    if !source.exists() || (to.exists() && !replaceable(name, &to)) {
+      continue;
+    }
+    let unmovable = |cause: std::io::Error| UserStateError::Unmovable {
+      from: source.clone(),
+      to: to.clone(),
+      cause,
+    };
+    if let Some(parent) = to.parent() {
+      std::fs::create_dir_all(parent).map_err(&unmovable)?;
+    }
+    std::fs::rename(&source, &to).map_err(&unmovable)?;
+    moved.push((name.to_string(), to));
+  }
+  if moved.is_empty() {
+    return Ok(None);
+  }
+  let unremovable = |cause: std::io::Error| UserStateError::Unremovable {
+    path: from.clone(),
+    cause,
+  };
+  let mut left: Vec<String> = std::fs::read_dir(&from)
+    .map_err(unremovable)?
+    .flatten()
+    .map(|entry| entry.file_name().to_string_lossy().into_owned())
+    .collect();
+  left.sort();
+  if left.is_empty() {
+    std::fs::remove_dir(&from).map_err(|cause| UserStateError::Unremovable {
+      path: from.clone(),
+      cause,
+    })?;
+  }
+  Ok(Some(Migrated { from, moved, left }))
+}
+
+/// Whether the file already at an entry's new path gives way to the old one:
+/// only a configuration that is not v3's.
+fn replaceable(name: &str, to: &Path) -> bool {
+  name == "config.json" && !is_v3_config(to)
+}
+
+/// **`intent_version` IS THE DISCRIMINATOR, BY ITS MAJOR NUMBER.** v2 and v3
+/// both write the key, so its presence says nothing; v2's reads `2.x`.
+fn is_v3_config(path: &Path) -> bool {
+  std::fs::read_to_string(path)
+    .ok()
+    .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+    .and_then(|doc| {
+      doc
+        .get("intent_version")?
+        .as_str()?
+        .split('.')
+        .next()?
+        .parse::<u32>()
+        .ok()
+    })
+    .is_some_and(|major| major >= 3)
+}
+
+/// The layout a 3.0.1 daemon published its runtime files in:
+/// `~/.local/share/intent`. `None` when that is this layout's runtime
+/// directory too, so there is nothing separate to look at.
+///
+/// **READ BY `daemon stop`, SO AN OLD DAEMON STILL RUNNING ACROSS THE UPGRADE IS
+/// STOPPED RATHER THAN LEFT SERVING BESIDE A NEW ONE.** A 3.0.1 daemon watches
+/// `~/.local/share/intent` for removal, and that directory is this layout's
+/// data directory, so it never goes away and the old daemon never exits on its
+/// own.
+pub fn legacy_daemon(dirs: &Dirs) -> Option<Dirs> {
+  let runtime = dirs.home.join(".local").join("share").join("intent");
+  (runtime != dirs.runtime).then(|| Dirs {
+    runtime,
+    ..dirs.clone()
+  })
+}
+
+/// Remove what a stopped 3.0.1 daemon left in [`legacy_daemon`]'s directory,
+/// returning the files removed. Only the daemon's own files: the directory is
+/// this layout's data directory now.
+pub fn remove_legacy_runtime(legacy: &Dirs) -> Result<Vec<PathBuf>, UserStateError> {
+  let mut removed = Vec::new();
+  for path in [
+    daemon_socket_under(legacy),
+    daemon_address_file_under(legacy),
+    daemon_token_file_under(legacy),
+    daemon_lock_under(legacy),
+    legacy.runtime.join("intentd.log"),
+    legacy.runtime.join("intentd.err.log"),
+  ] {
+    match std::fs::remove_file(&path) {
+      Ok(()) => removed.push(path),
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+      Err(cause) => return Err(UserStateError::Unremovable { path, cause }),
+    }
+  }
+  Ok(removed)
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
 
-  /// The paths hang off one another, so a home relocation moves all of them
-  /// and none can drift onto a different root.
+  /// Each variable wins only as an absolute path; empty and relative values
+  /// take the default, and the runtime directory falls back under state.
   #[test]
-  fn every_path_descends_from_the_one_home() {
-    let Ok(h) = home() else {
-      return;
-    };
+  fn xdg_values_win_only_as_absolute_paths() {
+    let home = Path::new("/h");
+    let dirs = Dirs::resolve(
+      home,
+      &Xdg {
+        config_home: Some("/cfg".into()),
+        data_home: Some(String::new()),
+        state_home: Some("relative".into()),
+        runtime_dir: None,
+      },
+    );
+    assert_eq!(dirs.config, PathBuf::from("/cfg/intent"));
+    assert_eq!(dirs.data, PathBuf::from("/h/.local/share/intent"));
+    assert_eq!(dirs.state, PathBuf::from("/h/.local/state/intent"));
+    assert_eq!(dirs.runtime, PathBuf::from("/h/.local/state/intent/run"));
+
+    let linux = Dirs::resolve(
+      home,
+      &Xdg {
+        runtime_dir: Some("/run/user/1000".into()),
+        ..Xdg::default()
+      },
+    );
+    assert_eq!(linux.runtime, PathBuf::from("/run/user/1000/intent"));
+    assert_eq!(linux.config, PathBuf::from("/h/.config/intent"));
+  }
+
+  /// The daemon's files sit in the kind of directory their lifetime names.
+  #[test]
+  fn each_file_lives_under_its_kind() {
+    let dirs = Dirs::at_home(Path::new("/h"));
     for path in [
-      intent_dir().unwrap(),
-      claude_dir().unwrap(),
-      payload_manifest(crate::payload::Kind::Skills).unwrap(),
-      payload_target(crate::payload::Kind::Skills).unwrap(),
-      payload_manifest(crate::payload::Kind::Agents).unwrap(),
-      payload_target(crate::payload::Kind::Agents).unwrap(),
-      daemon_state_dir().unwrap(),
-      daemon_socket().unwrap(),
-      daemon_address_file().unwrap(),
-      daemon_lock().unwrap(),
+      daemon_socket_under(&dirs),
+      daemon_address_file_under(&dirs),
+      daemon_token_file_under(&dirs),
+      daemon_lock_under(&dirs),
     ] {
-      assert!(
-        path.starts_with(&h),
-        "{} escaped the home directory",
-        path.display()
-      );
+      assert!(path.starts_with(&dirs.runtime), "{}", path.display());
     }
+    for path in [
+      daemon_log_under(&dirs),
+      daemon_error_log_under(&dirs),
+      macos_app_build_dir_under(&dirs),
+    ] {
+      assert!(path.starts_with(&dirs.state), "{}", path.display());
+    }
+    assert_eq!(
+      global_config_under(&dirs),
+      PathBuf::from("/h/.config/intent/config.json")
+    );
+    assert!(launch_agent_plist_under(&dirs).starts_with("/h/Library/LaunchAgents"));
+  }
+
+  fn legacy_home() -> (tempfile::TempDir, Dirs) {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let dirs = Dirs::at_home(dir.path());
+    std::fs::create_dir_all(dir.path().join(".intent/skills")).expect("legacy skills");
+    std::fs::write(dir.path().join(".intent/home"), "/install\n").expect("legacy pointer");
+    std::fs::write(
+      dir.path().join(".intent/skills/installed-skills.v3.json"),
+      "{}",
+    )
+    .expect("legacy manifest");
+    std::fs::write(
+      dir.path().join(".intent/config.json"),
+      r#"{"intent_version": "3.0.1", "author": "old"}"#,
+    )
+    .expect("legacy config");
+    (dir, dirs)
+  }
+
+  /// The known entries move, a v2 config at the new path is replaced, and
+  /// `~/.intent/` goes once it is empty.
+  #[test]
+  fn migration_moves_what_intent_owns_and_removes_the_emptied_directory() {
+    let (dir, dirs) = legacy_home();
+    std::fs::create_dir_all(&dirs.config).expect("config dir");
+    std::fs::write(global_config_under(&dirs), r#"{"intent_version": "2.0.0"}"#)
+      .expect("v2 config");
+
+    let migrated = migrate_legacy(&dirs)
+      .expect("migrate")
+      .expect("something moved");
+
+    let names: Vec<&str> = migrated.moved.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(names, ["config.json", "home", "skills"]);
+    assert!(migrated.left.is_empty());
+    assert!(!dir.path().join(".intent").exists());
+    assert_eq!(
+      std::fs::read_to_string(dirs.data.join("home")).unwrap(),
+      "/install\n"
+    );
+    assert!(dirs.data.join("skills/installed-skills.v3.json").is_file());
+    assert!(
+      std::fs::read_to_string(global_config_under(&dirs))
+        .unwrap()
+        .contains("\"old\"")
+    );
+    assert_eq!(migrate_legacy(&dirs).expect("second run"), None);
+  }
+
+  /// A v3 config already in place wins, and what Intent did not put in
+  /// `~/.intent/` keeps the directory alive.
+  #[test]
+  fn migration_keeps_a_v3_config_and_what_it_does_not_own() {
+    let (dir, dirs) = legacy_home();
+    std::fs::create_dir_all(&dirs.config).expect("config dir");
+    std::fs::write(
+      global_config_under(&dirs),
+      r#"{"intent_version": "3.0.2", "author": "new"}"#,
+    )
+    .expect("v3 config");
+    std::fs::create_dir_all(dir.path().join(".intent/evidence")).expect("foreign entry");
+
+    let migrated = migrate_legacy(&dirs)
+      .expect("migrate")
+      .expect("something moved");
+
+    let names: Vec<&str> = migrated.moved.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(names, ["home", "skills"]);
+    assert_eq!(migrated.left, ["config.json", "evidence"]);
+    assert!(
+      std::fs::read_to_string(global_config_under(&dirs))
+        .unwrap()
+        .contains("\"new\"")
+    );
   }
 
   /// **THE MANIFEST PATH IS THE CLASS RULING'S ONE MECHANICAL CHECK.** If this
   /// ever equals v2's file, the two tools resume overwriting each other
-  /// forever while both report success.
-  /// **AND IT NOW COVERS EVERY KIND, BECAUSE THE SECOND ONE INHERITS THE
-  /// HAZARD WITHOUT INHERITING THE CHECK.** v2 wrote a subagents manifest of
-  /// its own, so a v3 path that collided with it would resume the same mutual
-  /// clobber one payload over -- and a check written when there was one kind
-  /// tests the kind it was written for, forever, however many arrive later.
+  /// forever while both report success -- for every kind, because the second
+  /// one inherits the hazard without inheriting the check.
   #[test]
   fn no_kinds_manifest_is_v2s() {
     for (kind, v2_path) in [
@@ -479,14 +698,13 @@ mod tests {
         !path.ends_with(v2_path),
         "{kind:?} writes v2's manifest path, which resumes the mutual clobber"
       );
-      assert!(path.starts_with(intent_dir().unwrap()));
+      assert!(path.starts_with(dirs().unwrap().data));
     }
   }
 
   /// **TWO KINDS MUST NOT SHARE A MANIFEST OR A TARGET.** Nothing structural
-  /// stops `manifest_relative` returning one string for both -- they are hand
-  /// written per arm -- and if they did, installing a skill would silently
-  /// evict every recorded subagent from the file they shared.
+  /// stops `manifest_relative` returning one string for both, and if they did,
+  /// installing a skill would silently evict every recorded subagent.
   #[test]
   fn the_kinds_do_not_collide_with_each_other() {
     use crate::payload::Kind;
@@ -503,7 +721,7 @@ mod tests {
     assert_ne!(st, at, "both kinds install into the same directory");
   }
 
-  /// Extensions stay unwired until the two variables they need are ruled on.
+  /// Extensions stay unwired until they are ruled on.
   #[test]
   fn extensions_are_not_quietly_enabled() {
     assert!(ext_base().is_none());

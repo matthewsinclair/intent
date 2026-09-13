@@ -1944,7 +1944,7 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   let facade = open()?;
   facade.entity_json(&address.entity).map_err(fail)?;
 
-  let root = intentsvcs::userstate::home().map_err(|e| {
+  let dirs = intentsvcs::userstate::dirs().map_err(|e| {
     Failure::Error(format!(
       "error: cannot find your Intent state directory -- {e}\n  \
        remedy: `--browser` needs the address and token a running `intentd` publishes there"
@@ -1957,7 +1957,7 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   // about where the daemon is, silently, because both answers look like
   // addresses.
   let answering =
-    intentsvcs::daemon::answering_loopback_under(&root).map_err(|e| Failure::Error(e.render()))?;
+    intentsvcs::daemon::answering_loopback_under(&dirs).map_err(|e| Failure::Error(e.render()))?;
   let Some(addr) = answering else {
     return Err(Failure::Error(
       concat!(
@@ -1971,7 +1971,7 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
     ));
   };
 
-  let secret = intentsvcs::daemon::Token::read_under(&root).map_err(|e| {
+  let secret = intentsvcs::daemon::Token::read_under(&dirs).map_err(|e| {
     Failure::Error(format!(
       "error: a daemon is answering but its token could not be read -- {e}\n  \
        remedy: the page needs it to ask for anything. Restarting the daemon republishes it"
@@ -5364,7 +5364,7 @@ fn rows_for(
     // **THE ONE VIEW THAT DOES NOT GO THROUGH THE FACADE, BECAUSE ITS STATE IS
     // NOT IN THE STORE.** `AC-17.3` says the TUI is a client of the facade for
     // the MODEL, and the operator's own configuration is not part of it -- it
-    // lives at `~/.intent/config.json` and is the same on every project. A
+    // lives at `~/.config/intent/config.json` and is the same on every project. A
     // settings row reaching for the facade would be asking the wrong authority.
     // **DERIVED FROM THE DECLARATIONS IT DESCRIBES, SO IT CANNOT GO STALE.**
     // Neither the facade nor the store is consulted: help is a fact about the
@@ -7056,7 +7056,7 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // `USER` set, which is what makes the guard worth more than the test run.
   //
   // **THE ENV READ BELONGS IN `bootstrap`, AND THAT IS NOW WHERE IT IS.**
-  // `bootstrap` writes `~/.intent/config.json` once, at developer-environment
+  // `bootstrap` writes `~/.config/intent/config.json` once, at developer-environment
   // setup, reading `$USER` through `userstate::author()` under hv's grant of
   // 2026-08-27. This reads that file rather than the environment, so the
   // identity has exactly one home and `init` stays inside AC-11.3's invariant
@@ -8161,7 +8161,7 @@ fn daemon_run() -> Result<(), Failure> {
 fn daemon_start(at_login: bool) -> Result<(), Failure> {
   use std::os::unix::process::CommandExt;
 
-  let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
+  let dirs = intentsvcs::userstate::dirs().map_err(|e| Failure::Error(e.render()))?;
   // **ALREADY RUNNING IS SUCCESS, NOT A FAILURE, AND THE POSTCONDITION IS WHY.**
   // The operator asked for a running daemon and there is one. `systemctl start`
   // on an active unit exits 0 for the same reason, and the alternative has a
@@ -8171,7 +8171,7 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
   // **IT STILL SAYS SO RATHER THAN PRETENDING IT STARTED ONE.** Silence here
   // would be the version of this that hides a daemon nobody meant to leave
   // running; naming the pid is what lets an operator notice.
-  if let Some(pid) = running_daemon_pid(&home)? {
+  if let Some(pid) = running_daemon_pid(&dirs)? {
     println!("ok: intentd is already running (pid {pid})");
     return Ok(());
   }
@@ -8183,7 +8183,7 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
   // enrolled path must not ALSO spawn one, or two processes race for the socket
   // and the loser's refusal is reported as a failure to start.
   if at_login {
-    let plist = launchagent::write_plist(&home, &binary).map_err(|e| Failure::Error(e.render()))?;
+    let plist = launchagent::write_plist(&dirs, &binary).map_err(|e| Failure::Error(e.render()))?;
     launchagent::load(&plist).map_err(|e| Failure::Error(e.render()))?;
     for _ in 0..START_ATTEMPTS {
       if let daemon::Route::Daemon(endpoint) = route_now()? {
@@ -8196,12 +8196,12 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
     return Err(Failure::Error(format!(
       "error: intentd was enrolled at login and is not answering\n  remedy: the plist is at `{}` and `launchctl` accepted it, so the job loaded and the process did not come up. Its output is in `{}`.",
       plist.display(),
-      intentsvcs::userstate::daemon_log_under(&home).display()
+      intentsvcs::userstate::daemon_log_under(&dirs).display()
     )));
   }
 
-  let out = intentsvcs::userstate::daemon_log_under(&home);
-  let err = intentsvcs::userstate::daemon_error_log_under(&home);
+  let out = intentsvcs::userstate::daemon_log_under(&dirs);
+  let err = intentsvcs::userstate::daemon_error_log_under(&dirs);
   if let Some(parent) = out.parent() {
     std::fs::create_dir_all(parent).map_err(|e| {
       Failure::Error(format!(
@@ -8296,7 +8296,7 @@ const START_PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// operator needs it stopped. A wire-only `stop` would work in every case
 /// except the one it was reached for.
 fn daemon_stop(at_login: bool) -> Result<(), Failure> {
-  let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
+  let dirs = intentsvcs::userstate::dirs().map_err(|e| Failure::Error(e.render()))?;
 
   // **UNLOADING STOPS THE JOB AS WELL AS UNENROLLING IT**, so the enrolled path
   // does not fall through to the wire-then-signal sequence below: asking a
@@ -8307,16 +8307,16 @@ fn daemon_stop(at_login: bool) -> Result<(), Failure> {
   // asked for no enrolment and there is none, which is `populations.self_loop`'s
   // rule applied to the flag rather than only to the bare verb.
   if at_login {
-    if launchagent::is_enrolled(&home) {
-      let plist = intentsvcs::userstate::launch_agent_plist_under(&home);
+    if launchagent::is_enrolled(&dirs) {
+      let plist = intentsvcs::userstate::launch_agent_plist_under(&dirs);
       launchagent::unload(&plist).map_err(|e| Failure::Error(e.render()))?;
     }
-    let removed = launchagent::remove_plist(&home).map_err(|e| Failure::Error(e.render()))?;
+    let removed = launchagent::remove_plist(&dirs).map_err(|e| Failure::Error(e.render()))?;
     // The job is unloaded; anything still answering was started by hand and is
     // stopped by the ordinary path rather than left behind.
     let still_up = matches!(route_now()?, daemon::Route::Daemon(_));
     if still_up {
-      stop_whatever_is_running(&home)?;
+      stop_whatever_is_running(&dirs)?;
     }
     println!(
       "ok: intentd is not enrolled at login{}",
@@ -8329,11 +8329,12 @@ fn daemon_stop(at_login: bool) -> Result<(), Failure> {
     return Ok(());
   }
 
-  stop_whatever_is_running(&home)
+  stop_whatever_is_running(&dirs)
 }
 
 /// Stop a running daemon: over the wire first, by signal if it will not answer.
-fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
+fn stop_whatever_is_running(dirs: &intentsvcs::userstate::Dirs) -> Result<(), Failure> {
+  stop_a_legacy_daemon(dirs)?;
   if let daemon::Route::Daemon(endpoint) = route_now()? {
     let asked = wire::ask(
       &endpoint,
@@ -8362,7 +8363,7 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
         // way. **A postcondition that is true often enough is a race, not a
         // postcondition** -- so this now waits for BOTH, and `stopped` means
         // gone.
-        if matches!(route_now()?, daemon::Route::InProcess) && running_daemon_pid(home)?.is_none() {
+        if matches!(route_now()?, daemon::Route::InProcess) && running_daemon_pid(dirs)?.is_none() {
           println!("ok: intentd stopped");
           return Ok(());
         }
@@ -8376,11 +8377,43 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
     // signal exists for, so fall through rather than reporting a failure.
   }
 
-  let Some(pid) = running_daemon_pid(home)? else {
+  let Some(pid) = running_daemon_pid(dirs)? else {
     println!("ok: no intentd is running");
     return Ok(());
   };
+  terminate(dirs, pid)?;
+  println!("ok: intentd (pid {pid}) would not answer its socket and was sent SIGTERM");
+  Ok(())
+}
 
+/// Stop a daemon an earlier build left running at its old runtime path, and
+/// remove what it published there.
+///
+/// **A 3.0.1 DAEMON IS INVISIBLE TO EVERYTHING ELSE IN THIS VERB.** It holds its
+/// lock and socket under `~/.local/share/intent`, which is the XDG data
+/// directory now, so its own watcher never sees that directory go and it never
+/// exits. Left alone, `restart` would start a second daemon on the same stores.
+fn stop_a_legacy_daemon(dirs: &intentsvcs::userstate::Dirs) -> Result<(), Failure> {
+  let Some(legacy) = intentsvcs::userstate::legacy_daemon(dirs) else {
+    return Ok(());
+  };
+  if let Some(pid) = running_daemon_pid(&legacy)? {
+    terminate(&legacy, pid)?;
+    println!("ok: stopped the intentd an earlier build left running (pid {pid})");
+  }
+  let removed = intentsvcs::userstate::remove_legacy_runtime(&legacy)
+    .map_err(|e| Failure::Error(e.render()))?;
+  if !removed.is_empty() {
+    println!(
+      "ok: removed an earlier build's daemon files from {}",
+      legacy.runtime.display()
+    );
+  }
+  Ok(())
+}
+
+/// Send `pid` a TERM and wait until it releases its lock under `dirs`.
+fn terminate(dirs: &intentsvcs::userstate::Dirs, pid: u32) -> Result<(), Failure> {
   // **`kill(1)` RATHER THAN A `libc` DEPENDENCY, AND IT IS A STATED TRADE.**
   // Signalling directly would put `libc` into this crate's PRODUCTION graph for
   // one function on a fallback path, which `dep_graph_guard` walks and which
@@ -8392,23 +8425,22 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
     .output()
     .map_err(|e| {
       Failure::Error(format!(
-        "error: intentd (pid {pid}) would not answer its socket and `kill` could not be run: {e}\n  remedy: the daemon is wedged and this build cannot signal it. Send it a TERM by hand: `kill -TERM {pid}`."
+        "error: intentd (pid {pid}) could not be signalled because `kill` could not be run: {e}\n  remedy: this build cannot signal it. Send it a TERM by hand: `kill -TERM {pid}`."
       ))
     })?;
   if !killed.status.success() {
     return Err(Failure::Error(format!(
-      "error: intentd (pid {pid}) would not answer its socket and could not be signalled: {}\n  remedy: the process may belong to another user, or may already be gone. `intent daemon status` reports whether anything is still answering.",
+      "error: intentd (pid {pid}) could not be signalled: {}\n  remedy: the process may belong to another user, or may already be gone. `intent daemon status` reports whether anything is still answering.",
       String::from_utf8_lossy(&killed.stderr).trim()
     )));
   }
   // **THE SIGNAL IS DELIVERED, NOT OBSERVED, SO THIS WAITS TOO.** `kill`
   // returning 0 means the signal was sent; the process still has to act on it
-  // and release its lock. Reporting a stop here without waiting would reproduce
-  // the defect above on the fallback path -- the one reached precisely when the
-  // daemon is already misbehaving.
+  // and release its lock. Reporting a stop without waiting would reproduce the
+  // race `stop_whatever_is_running` documents, on the path reached precisely
+  // when the daemon is already misbehaving.
   for _ in 0..START_ATTEMPTS {
-    if running_daemon_pid(home)?.is_none() {
-      println!("ok: intentd (pid {pid}) would not answer its socket and was sent SIGTERM");
+    if running_daemon_pid(dirs)?.is_none() {
       return Ok(());
     }
     std::thread::sleep(START_PAUSE);
@@ -8423,8 +8455,8 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
 /// **THE REFUSAL IS CARRIED THROUGH RATHER THAN FLATTENED TO `None`.** A lock
 /// held over an unpublished pid means a daemon IS running, and answering "none"
 /// there would let `start` launch a second one against the same state.
-fn running_daemon_pid(home: &std::path::Path) -> Result<Option<u32>, Failure> {
-  daemon::running_pid_under(home).map_err(|e| Failure::Error(e.render()))
+fn running_daemon_pid(dirs: &intentsvcs::userstate::Dirs) -> Result<Option<u32>, Failure> {
+  daemon::running_pid_under(dirs).map_err(|e| Failure::Error(e.render()))
 }
 
 /// This machine's route, right now.
@@ -9866,7 +9898,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
 
   // **WHETHER THE GATE JUST INSTALLED CAN ACTUALLY RUN.** Everything above is a
   // claim about bytes on disk. The carrier is a shim whose entire behaviour is
-  // to resolve `~/.intent/home` and exec what it names, so `written` and
+  // to resolve `~/.local/share/intent/home` and exec what it names, so `written` and
   // `runnable` are different facts and only the first was ever reported.
   //
   // **SAID AFTER THE `ok:` LINE ON PURPOSE.** A reader who stops at the summary
@@ -9886,13 +9918,13 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       );
       println!("  every commit in this project will refuse until it does.");
       println!(
-        "  the carrier resolves ~/.intent/home and execs the gate it names; that file is absent."
+        "  the carrier resolves ~/.local/share/intent/home and execs the gate it names; that file is absent."
       );
       println!("  remedy: intent bootstrap");
     }
     Some(intentsvcs::install::PointerState::Unusable { root }) => {
       println!(
-        "warning: the gate is installed and CANNOT RUN -- ~/.intent/home names something that is not an install."
+        "warning: the gate is installed and CANNOT RUN -- ~/.local/share/intent/home names something that is not an install."
       );
       // **THE PATH IS QUOTED BACK**, as the shim itself does: "cannot find the
       // install" without saying where it looked sends the reader to reinstall
@@ -9908,7 +9940,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
 
   // **TWO ROOTS, AND NOTHING COMPARED THEM UNTIL NOW.** The carrier's bytes
   // came from `home` -- resolved from this binary's own location. The gate it
-  // will exec comes from whatever `~/.intent/home` names. Those are allowed to
+  // will exec comes from whatever `~/.local/share/intent/home` names. Those are allowed to
   // differ and there is no error in either, but the operator has then installed
   // one install's shim to run another install's guards, which is the
   // moving-route hazard that produced the shim in the first place.
@@ -9917,7 +9949,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   {
     println!("note: the gate will run from a DIFFERENT install than this binary.");
     println!("  this binary:      {}", home.display());
-    println!("  ~/.intent/home:   {}", root.display());
+    println!("  install pointer:  {}", root.display());
     println!("  neither is wrong, but the guards that run are the second one's.");
   }
   Ok(())
@@ -10625,7 +10657,7 @@ fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
   // the note and the behaviour cannot disagree.
   if intentsvcs::userstate::ext_base().is_none() {
     eprintln!(
-      "note: extension rule packs were NOT validated. `userstate::ext_base()` answers `None`, so `ext_packs()` returns an empty list by construction and no pack under `~/.intent/ext` is reached -- see that function for why it is held. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
+      "note: extension rule packs were NOT validated. `userstate::ext_base()` answers `None`, so `ext_packs()` returns an empty list by construction and no pack under `~/.local/share/intent/ext` is reached -- see that function for why it is held. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
     );
   }
 
@@ -10672,7 +10704,7 @@ fn library() -> Result<intentsvcs::rules::Library, Failure> {
   // **AND THE COMMENT THAT STOOD HERE NAMED THE WRONG REASON**, which is the
   // durable half. It said ext support was blocked on an `ALLOWED` row for a
   // second environment variable. The owning function states the real one --
-  // defaulting to `~/.intent/ext` without `$INTENT_EXT_DISABLE` silently
+  // defaulting to `~/.local/share/intent/ext` without `$INTENT_EXT_DISABLE` silently
   // switches extensions back ON for an operator who turned them off. Two nodes
   // read this seam from the describing files and both got the reason wrong;
   // the function that OWNS a decision beats every file that describes it from

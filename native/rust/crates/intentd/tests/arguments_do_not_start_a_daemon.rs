@@ -69,7 +69,7 @@ fn run(home: &PathBuf, arg: &str) -> (Option<i32>, String, String) {
 /// indistinguishable from a clean refusal by rc alone. Publishing an address is
 /// something only a serving daemon does.
 fn published(home: &Path) -> bool {
-  home.join(".local/share/intent/intentd.addr").exists()
+  home.join(".local/state/intent/run/intentd.addr").exists()
 }
 
 #[test]

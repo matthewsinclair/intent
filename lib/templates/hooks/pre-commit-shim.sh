@@ -26,7 +26,7 @@
 #
 # ---- HOW THE ROOT IS FOUND, AND WHAT IS DELIBERATELY NOT TRIED ----
 #
-# One line in `~/.intent/home`, written by `intent bootstrap` from `install::home()`.
+# One line in `$XDG_DATA_HOME/intent/home` (default `~/.local/share/intent/home`), written by `intent bootstrap` from `install::home()`.
 # The source of the answer publishes its own cache; nothing else computes it.
 #
 # **`$INTENT_HOME` IS NOT READ FROM THE ENVIRONMENT, AND THAT IS NOT AN
@@ -56,7 +56,7 @@
 
 set -u
 
-_home_file="${HOME}/.intent/home"
+_home_file="${XDG_DATA_HOME:-${HOME}/.local/share}/intent/home"
 _self="pre-commit (intent shim)"
 
 # `--where` answers what this shim resolved and exits, without running a gate.

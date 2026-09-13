@@ -4,9 +4,9 @@ User extensions let you add subagents, skills, or rule packs to Intent without f
 
 ## What is an extension?
 
-An extension is a self-contained directory at `~/.intent/ext/<name>/` that contributes subagents, skills, or rule packs into Intent. Each extension declares its contributions in an `extension.json` manifest.
+An extension is a self-contained directory at `~/.local/share/intent/ext/<name>/` that contributes subagents, skills, or rule packs into Intent. Each extension declares its contributions in an `extension.json` manifest.
 
-**`ext` is declared and not built.** `intent ext` and its subcommands `list`, `show`, `validate` and `new` are listed by `intent --help` and `intent ext --help`, and every one refuses at exit 2 with ``error: `ext` is a known command that is not implemented yet``. No command in this build reads `~/.intent/ext/`: rules, skills and subagents resolve from the install's canon only, and `intent claude rules validate` says so on stderr (`note: extension rule packs were NOT validated ...`). `$INTENT_EXT_DIR` and `$INTENT_EXT_DISABLE` are read by nothing. The layout and manifest below are what `intent/plugins/claude/ext-schema/extension.schema.json` defines; nothing in this build validates against it.
+**`ext` is declared and not built.** `intent ext` and its subcommands `list`, `show`, `validate` and `new` are listed by `intent --help` and `intent ext --help`, and every one refuses at exit 2 with ``error: `ext` is a known command that is not implemented yet``. No command in this build reads `~/.local/share/intent/ext/`: rules, skills and subagents resolve from the install's canon only, and `intent claude rules validate` says so on stderr (`note: extension rule packs were NOT validated ...`). `$INTENT_EXT_DIR` and `$INTENT_EXT_DISABLE` are read by nothing. The layout and manifest below are what `intent/plugins/claude/ext-schema/extension.schema.json` defines; nothing in this build validates against it.
 
 ## When to build an extension
 
@@ -21,7 +21,7 @@ If you want the change to be part of Intent itself, open an issue or PR against 
 ## Anatomy of an extension
 
 ```
-~/.intent/ext/<name>/
+~/.local/share/intent/ext/<name>/
   extension.json              # required manifest
   README.md                   # recommended
   LICENSE                     # optional but strongly recommended
@@ -43,7 +43,7 @@ The `extension.json` manifest is the single source of truth for what the extensi
 See `intent/plugins/claude/ext-schema/extension.schema.json` for the full JSON Schema. Required top-level fields:
 
 - `schema` — must be the literal `"intent-extension/v1"`.
-- `name` — lowercase letters, digits, hyphens. 2–64 characters. Must match the directory basename under `~/.intent/ext/`.
+- `name` — lowercase letters, digits, hyphens. 2–64 characters. Must match the directory basename under `~/.local/share/intent/ext/`.
 - `version` — semantic version (`MAJOR.MINOR.PATCH`, optional pre-release suffix).
 
 Recommended fields:
@@ -66,7 +66,7 @@ See `intent ext --help` for full usage.
 
 `intent claude subagents install` and `intent claude skills install` resolve canon only in this build, so an extension's subagent or skill cannot be installed through them.
 
-Rule packs under `~/.intent/ext/` are not reached in this build: `intent claude rules list` prints `canon` in its `prov` column for every rule, and `intent claude rules validate` notes on stderr that extension packs were not validated.
+Rule packs under `~/.local/share/intent/ext/` are not reached in this build: `intent claude rules list` prints `canon` in its `prov` column for every rule, and `intent claude rules validate` notes on stderr that extension packs were not validated.
 
 ## Publishing (deferred)
 

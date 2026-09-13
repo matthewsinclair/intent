@@ -37,7 +37,7 @@
 //! can point this binary at another tree's skills.
 //!
 //! **EVERY AMBIENT PATH IS A PARAMETER, AND THAT IS A BLOCKED SEAM RATHER THAN
-//! A STYLE.** The manifest lives under `~/.intent/skills/` and the target under
+//! A STYLE.** The manifest lives under `$XDG_DATA_HOME/intent/skills/` and the target under
 //! `~/.claude/skills/`, so this command needs `$HOME` -- the FILENAME is
 //! [`MANIFEST_RELATIVE`]'s to state and is deliberately not repeated here,
 //! because a paragraph about why `$HOME` is needed has no business pinning a
@@ -107,12 +107,10 @@ pub const MANIFEST_VERSION: &str = "2.0.0";
 /// know the history to decode is not a declaration.
 pub const SCOPE_TREE: &str = "tree";
 
-/// Where v3's manifest belongs, under the operator's `~/.intent`.
+/// Where v3's manifest belongs, under Intent's XDG data directory.
 ///
 /// **DELIBERATELY NOT v2's `skills/installed-skills.json`** -- see the module
-/// note on the mutual clobber. Same directory, so an operator looking for
-/// either finds both together and can see that two tools are in play; a
-/// filename v2 cannot produce, because v2 hardcodes its own and globs nothing.
+/// note on the mutual clobber. A filename v2 cannot produce, because v2 hardcodes its own and globs nothing.
 ///
 /// The constant lives here rather than at the call site because the CLI arm
 /// that would use it is held behind the AC-11.3 `$HOME` ruling, and a decision
@@ -174,7 +172,7 @@ impl Kind {
     }
   }
 
-  /// This kind's manifest, relative to the operator's `~/.intent/`.
+  /// This kind's manifest, relative to Intent's XDG data directory.
   pub fn manifest_relative(self) -> &'static str {
     match self {
       Self::Skills => MANIFEST_RELATIVE,
@@ -599,13 +597,13 @@ struct Planned {
 pub struct Payload {
   kind: Kind,
   canon: PathBuf,
-  /// The extension base (`~/.intent/ext`), when extensions are in play.
+  /// The extension base (`$XDG_DATA_HOME/intent/ext`), when extensions are in play.
   ///
   /// **`Option`, exactly as `rules::Library` has it, and for the identical
   /// held reason.** Wiring the real resolution needs `$INTENT_EXT_DIR` /
   /// `$INTENT_EXT_DISABLE` / `$HOME`, which is the same AC-11.3 seam this whole
   /// module is parked behind. The consequence is named rather than swallowed:
-  /// until it is wired, an operator with skills under `~/.intent/ext` sees them
+  /// until it is wired, an operator with skills in an extension directory sees them
   /// from v2 and not from v3.
   ext: Option<PathBuf>,
   target: PathBuf,

@@ -377,7 +377,7 @@ fn probe_every_shipped_entry() -> Wiredness {
     // **`HOME` IS SANDBOXED BECAUSE THIS PROBE RUNS THE COMMAND, AND ONE OF
     // THEM NOW WRITES** (vc, 2026-08-27, under hv's pen; found by cc driving
     // `bootstrap` rather than reading it). `current_dir` bounds where the
-    // command runs; it does NOT bound `$HOME`, and `userstate::intent_dir` is
+    // command runs; it does NOT bound `$HOME`, and `userstate::dirs` is
     // `home()?.join(".intent")` -- so bare `intent bootstrap` published the
     // install-root pointer into the OPERATOR'S REAL `~/.intent`, beside their
     // `agents/` and `evidence/`, as a side effect of asking whether the command

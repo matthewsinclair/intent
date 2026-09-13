@@ -40,7 +40,7 @@ fn a_running_intentd_is_routed_to_and_a_stopped_one_is_not() {
   // what the kernel gave it -- so pinning one here would mint the constant the
   // design went out of its way not to have.
   assert!(
-    daemon.home().join(".local/share/intent").exists(),
+    daemon.home().join(".local/state/intent/run").exists(),
     "the daemon published under the isolated HOME it was given, not the operator's"
   );
 

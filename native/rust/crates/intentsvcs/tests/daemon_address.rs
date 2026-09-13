@@ -21,7 +21,7 @@ use intentsvcs::daemon::{self, Endpoint, Published, Route};
 use intentsvcs::userstate;
 
 fn address_file(root: &Path) -> std::path::PathBuf {
-  userstate::daemon_address_file_under(root)
+  userstate::daemon_address_file_under(&intentsvcs::userstate::Dirs::at_home(root))
 }
 
 /// The published address, as the SHIPPED READER sees it.
@@ -30,7 +30,7 @@ fn address_file(root: &Path) -> std::path::PathBuf {
 /// for the format, and a test carrying its own parser cannot notice the two
 /// real ones disagreeing.
 fn tcp_candidate(root: &Path) -> Option<SocketAddr> {
-  daemon::candidates_under(root)
+  daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root))
     .expect("a published address must be readable")
     .into_iter()
     .find_map(|e| match e {
@@ -48,7 +48,9 @@ fn what_the_daemon_publishes_is_what_the_router_reads() {
     "the fixture must start with nothing published, or it proves nothing about publishing"
   );
 
-  let (listener, published) = Published::bind_loopback_under(dir.path()).expect("bind and publish");
+  let (listener, published) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind and publish");
   let bound = listener.local_addr().expect("local_addr");
 
   assert_eq!(
@@ -64,8 +66,10 @@ fn what_the_daemon_publishes_is_what_the_router_reads() {
 fn the_port_comes_from_the_kernel_and_not_from_a_constant() {
   let a = tempfile::tempdir().expect("tempdir");
   let b = tempfile::tempdir().expect("tempdir");
-  let (_la, pa) = Published::bind_loopback_under(a.path()).expect("bind a");
-  let (_lb, pb) = Published::bind_loopback_under(b.path()).expect("bind b");
+  let (_la, pa) = Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(a.path()))
+    .expect("bind a");
+  let (_lb, pb) = Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(b.path()))
+    .expect("bind b");
 
   let (Endpoint::Tcp(aa), Endpoint::Tcp(bb)) = (pa.endpoint(), pb.endpoint()) else {
     panic!("a loopback publication must be a TCP endpoint");
@@ -81,7 +85,9 @@ fn the_port_comes_from_the_kernel_and_not_from_a_constant() {
 #[test]
 fn the_publication_does_not_outlive_the_daemon() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (listener, published) = Published::bind_loopback_under(dir.path()).expect("bind and publish");
+  let (listener, published) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind and publish");
   assert!(address_file(dir.path()).exists());
 
   drop(published);
@@ -104,8 +110,11 @@ fn a_panicking_daemon_still_withdraws_its_address() {
     let root = root.clone();
     move || {
       let (_listener, _published) =
-        Published::bind_loopback_under(&root).expect("bind and publish");
-      assert!(userstate::daemon_address_file_under(&root).exists());
+        Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(&root))
+          .expect("bind and publish");
+      assert!(
+        userstate::daemon_address_file_under(&intentsvcs::userstate::Dirs::at_home(&root)).exists()
+      );
       panic!("the daemon dies here");
     }
   });
@@ -127,8 +136,10 @@ fn a_departing_daemon_does_not_withdraw_a_live_peers_address() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
 
-  let (_first_listener, first) = Published::bind_loopback_under(root).expect("bind a");
-  let (_second_listener, second) = Published::bind_loopback_under(root).expect("bind b");
+  let (_first_listener, first) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(root)).expect("bind a");
+  let (_second_listener, second) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(root)).expect("bind b");
 
   // B published second, so the file is B's.
   assert_eq!(
@@ -158,7 +169,9 @@ fn an_address_left_by_a_hard_kill_still_routes_as_absent() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
 
-  let (listener, published) = Published::bind_loopback_under(root).expect("bind and publish");
+  let (listener, published) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(root))
+      .expect("bind and publish");
   let addr = listener.local_addr().expect("local_addr");
   // `SIGKILL` runs no destructor: the file stays, the listener does not.
   std::mem::forget(published);
@@ -174,7 +187,8 @@ fn an_address_left_by_a_hard_kill_still_routes_as_absent() {
     "the stale address must still be OFFERED as a candidate -- the routing rule's job is to reject it on liveness, not to fail to see it"
   );
 
-  let candidates = daemon::candidates_under(root).expect("candidates");
+  let candidates =
+    daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root)).expect("candidates");
   assert_eq!(
     daemon::route(&candidates),
     Route::InProcess,
@@ -201,12 +215,14 @@ fn republishing_swings_the_file_rather_than_rewriting_it() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
 
-  let (_first_listener, first) = Published::bind_loopback_under(root).expect("bind a");
+  let (_first_listener, first) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(root)).expect("bind a");
   let before = std::fs::metadata(address_file(root))
     .expect("published")
     .ino();
 
-  let (_second_listener, second) = Published::bind_loopback_under(root).expect("bind b");
+  let (_second_listener, second) =
+    Published::bind_loopback_under(&intentsvcs::userstate::Dirs::at_home(root)).expect("bind b");
   let after = std::fs::metadata(address_file(root))
     .expect("republished")
     .ino();
@@ -280,10 +296,11 @@ impl Drop for Answering {
 #[test]
 fn binding_creates_the_socket_and_dropping_removes_it() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let socket = userstate::daemon_socket_under(dir.path());
+  let socket = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   assert!(!socket.exists(), "the fixture must start with no socket");
 
-  let (listener, bound) = Bound::bind_socket_under(dir.path()).expect("bind");
+  let (listener, bound) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())).expect("bind");
   assert!(socket.exists());
   assert_eq!(bound.endpoint(), Endpoint::Unix(socket.clone()));
 
@@ -299,14 +316,15 @@ fn binding_creates_the_socket_and_dropping_removes_it() {
 #[test]
 fn a_stale_socket_is_cleared_rather_than_blocking_the_restart() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let socket = userstate::daemon_socket_under(dir.path());
+  let socket = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   std::fs::create_dir_all(socket.parent().expect("parent")).expect("mkdir");
   // A crash: the file outlives the listener, and `bind` refuses a path that
   // exists, so without this one crash makes every future start impossible.
   drop(UnixListener::bind(&socket).expect("bind the corpse"));
   assert!(socket.exists(), "the fixture is not stale");
 
-  let (_l, _b) = Bound::bind_socket_under(dir.path()).expect("a corpse must not block a restart");
+  let (_l, _b) = Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+    .expect("a corpse must not block a restart");
   assert!(socket.exists());
 }
 
@@ -314,14 +332,16 @@ fn a_stale_socket_is_cleared_rather_than_blocking_the_restart() {
 #[test]
 fn a_live_daemon_is_refused_rather_than_evicted() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (listener, first) = Bound::bind_socket_under(dir.path()).expect("bind the first daemon");
+  let (listener, first) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind the first daemon");
   let _answering = Answering::on(listener);
   assert!(
     first.endpoint().answers(),
     "the fixture's first daemon is not answering, so this would exercise the stale path instead"
   );
 
-  match Bound::bind_socket_under(dir.path()) {
+  match Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())) {
     Err(DaemonError::AlreadyRunning { .. }) => {}
     Err(other) => panic!("a live daemon must be refused as AlreadyRunning, got: {other}"),
     Ok(_) => panic!(
@@ -340,13 +360,15 @@ fn a_live_daemon_is_refused_rather_than_evicted() {
 #[test]
 fn a_second_daemon_is_refused_even_when_the_first_is_not_answering() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind the first daemon");
+  let (_listener, first) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind the first daemon");
   assert!(
     !first.endpoint().answers(),
     "this fixture needs a daemon that is NOT answering, or it tests the same thing as the live case"
   );
 
-  match Bound::bind_socket_under(dir.path()) {
+  match Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path())) {
     Err(DaemonError::AlreadyRunning { .. }) => {}
     Err(other) => panic!("expected AlreadyRunning, got: {other}"),
     Ok(_) => panic!(
@@ -382,7 +404,7 @@ fn a_second_daemon_is_refused_even_when_the_first_is_not_answering() {
 #[test]
 fn a_lock_held_by_a_departing_stranger_is_waited_out_rather_than_refused() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let lock_path = userstate::daemon_lock_under(dir.path());
+  let lock_path = userstate::daemon_lock_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   std::fs::create_dir_all(lock_path.parent().expect("parent")).expect("mkdir");
 
   let stranger = std::fs::File::options()
@@ -403,7 +425,7 @@ fn a_lock_held_by_a_departing_stranger_is_waited_out_rather_than_refused() {
     drop(stranger);
   });
 
-  let bound = Bound::bind_socket_under(dir.path());
+  let bound = Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
   handle.join().expect("stranger thread");
 
   match bound {
@@ -419,15 +441,19 @@ fn a_lock_held_by_a_departing_stranger_is_waited_out_rather_than_refused() {
 #[test]
 fn a_departed_daemon_blocks_nothing() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (first_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind first");
+  let (first_listener, first) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind first");
   drop(first);
   drop(first_listener);
 
-  let (_l, second) = Bound::bind_socket_under(dir.path())
+  let (_l, second) = Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
     .expect("a departed daemon must not block the next start -- the lock is released on death");
   assert_eq!(
     second.endpoint(),
-    Endpoint::Unix(userstate::daemon_socket_under(dir.path()))
+    Endpoint::Unix(userstate::daemon_socket_under(
+      &intentsvcs::userstate::Dirs::at_home(dir.path())
+    ))
   );
 }
 
@@ -443,9 +469,11 @@ fn a_departed_daemon_blocks_nothing() {
 #[test]
 fn a_daemon_whose_socket_was_replaced_does_not_unlink_the_replacement() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let socket = userstate::daemon_socket_under(dir.path());
+  let socket = userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()));
 
-  let (first_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind first");
+  let (first_listener, first) =
+    Bound::bind_socket_under(&intentsvcs::userstate::Dirs::at_home(dir.path()))
+      .expect("bind first");
 
   // What an evictor leaves behind: the path now names a DIFFERENT inode.
   std::fs::remove_file(&socket).expect("unlink the first socket");
@@ -509,7 +537,7 @@ fn an_address_file_that_cannot_be_read_refuses_rather_than_dropping_the_candidat
     "the fixture must fail with something OTHER than NotFound, which is the only kind that means absence"
   );
 
-  match daemon::candidates_under(root) {
+  match daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root)) {
     Err(daemon::DaemonError::UnreadableAddress { path, .. }) => {
       assert_eq!(
         path, published,
@@ -534,8 +562,8 @@ fn a_missing_address_file_is_a_state_and_not_a_fault() {
     "the fixture must start with nothing published"
   );
 
-  let candidates =
-    daemon::candidates_under(root).expect("a missing address file must not be an error");
+  let candidates = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(root))
+    .expect("a missing address file must not be an error");
   assert!(
     candidates.iter().all(|e| matches!(e, Endpoint::Unix(_))),
     "a missing address file produced a TCP candidate"
@@ -561,8 +589,10 @@ fn the_two_failures_are_distinguishable_and_their_remedies_disagree() {
   let u_root = unreadable.path();
   std::fs::create_dir_all(address_file(u_root)).expect("a directory where the file belongs");
 
-  let m_err = daemon::candidates_under(m_root).expect_err("garbage content must refuse");
-  let u_err = daemon::candidates_under(u_root).expect_err("an unreadable file must refuse");
+  let m_err = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(m_root))
+    .expect_err("garbage content must refuse");
+  let u_err = daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(u_root))
+    .expect_err("an unreadable file must refuse");
 
   assert!(
     matches!(m_err, daemon::DaemonError::MalformedAddress { .. }),
