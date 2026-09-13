@@ -692,6 +692,9 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
   let paths = [
     "intent/.canon/st/ST0056.json",
     "intent/.canon/issues/0021.json",
+    // A board's extract, which AC-14.1 holds to the same byte-for-byte rule as
+    // every other file form: the fixture wrote its rows, so there is one to emit.
+    "intent/whiteboard/cc/board.json",
     // **NOT `intent/events.jsonl` (D53).** It is no longer projected, so a
     // second machine writes no bytes for it and there is nothing here for the
     // two repositories to fight over -- which was this arm's whole subject for
