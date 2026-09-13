@@ -9,9 +9,9 @@ status: Done
 
 ## Objective
 
-**`intent doctor` exits 1 with 234 findings on a healthy estate, every one of them instructing the operator to regenerate a file the design says should not exist.** Found by vc at `aa74c0d7`, minutes after the dehydration shipped. **The argument against this is already written down in this codebase, one file over, and was applied to attachments and not to views.**
+**`intent doctor` exited 1 with 234 findings on a healthy estate, every one of them instructing the operator to regenerate a file the design says should not exist.** Found by vc at `aa74c0d7`, minutes after the dehydration shipped. **The argument against this is already written down in this codebase, one file over, and was applied to attachments and not to views.**
 
-## What it does now
+## What it did before the fix
 
     $ intent doctor
     rc=1
@@ -37,13 +37,13 @@ status: Done
 
 **So the check needs the manifest, and the manifest is already parsed** (`intentfiles::parse`, 3 callers). The shape is: declared and absent -> finding; undeclared and absent -> silence; present -> compare bytes as now.
 
-**And the mirror case is worth deciding in the same pass: a view PRESENT for an UNDECLARED artefact.** Today that is `organize`'s `unclaimed`, and `doctor` says nothing about it. One of the two surfaces should own it rather than both assuming the other does.
+**And the mirror case is worth deciding in the same pass: a view PRESENT for an UNDECLARED artefact.** As built, `organize` owns it: a present view of an undeclared artefact is its `to remove` row (`Action::Dehydrate`, through the gate), and `unclaimed` is kept for paths the renderer does not produce. One of the two surfaces should own it rather than both assuming the other does.
 
 ## Why it is filed rather than fixed
 
 Found during `/in-finish`, which is documentation-only by its own contract. **The estate is not damaged and no data is at risk** -- `doctor` is a report, the 234 findings are false rather than destructive, and the remedy each one prints (`regenerate it`) would be answered by `organize` re-hydrating nothing, since the manifest does not declare them.
 
-**But `doctor` exits 1, so anything gating on it is now red on a healthy tree**, and that is the part to check first tomorrow.
+**But `doctor` exited 1, so anything gating on it was red on a healthy tree.** Fixed under this WP: `views::skew` reports a missing view only where the manifest declares its artefact, and a missing or unreadable manifest keeps every view in scope (AC-10.1, AC-10.2).
 
 ## Acceptance
 

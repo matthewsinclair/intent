@@ -9,7 +9,7 @@ status: Done
 
 ## Objective
 
-**The DONE cutoff must survive a git clone, and today it does not.** It is stored only as a `todo.flush` EVENT, D53 took the event log out of the working tree, and so a machine that has never run a command in the project has no cutoff at all. Measured on Intent's own estate: **all 54 completed-or-cancelled threads reappear in DONE on a fresh clone**, and `doctor` reports the committed `todo.md` as hand-edited, permanently, on every project that has ever flushed. That is the v2 defect the watermark exists to prevent, arriving through a different door.
+**The DONE cutoff must survive a git clone, and when this WP opened it did not.** It is stored only as a `todo.flush` EVENT, D53 took the event log out of the working tree, and so a machine that has never run a command in the project has no cutoff at all. Measured on Intent's own estate: **all 54 completed-or-cancelled threads reappear in DONE on a fresh clone**, and `doctor` reports the committed `todo.md` as hand-edited, permanently, on every project that has ever flushed. That is the v2 defect the watermark exists to prevent, arriving through a different door.
 
 ## The distinction that makes this a fix and not a workaround
 
@@ -32,7 +32,7 @@ hv ruled it on 2026-08-26: the cutoff is canon state.
 
 **The canon file is the ONE home for the current cutoff, and NOTHING reads a cutoff out of the log.** `event::todo_watermark` is REMOVED rather than kept as a fallback. A fallback is the gate-figure defect in miniature: two homes, two values, and drift that nobody sees because both answers look plausible.
 
-The one exception is the migration, which reads the log exactly once to derive the value it is writing, and is the last thing ever to do so.
+There was to be one exception, a migration reading the log once to derive the value it writes; hv withdrew it on 2026-08-27 (AC-14.8), so nothing reads a cutoff out of the log.
 
 ## Shape
 
@@ -58,7 +58,7 @@ Both of the tests that have been red since the watermark was restored go green *
 
 ## Migration
 
-An existing project has flushes in its log and no `project.json`. The migration derives the cutoff from the log's maximum `todo.flush` stamp, writes it once, and after that nothing reads a cutoff out of the log again. A project that has never flushed gets a file with no `todo_watermark`, which is the correct representation of never-flushed.
+An existing project has flushes in its log and no `project.json`. This migration was withdrawn rather than built (hv, 2026-08-27, AC-14.8): no estate had flushes in its log and no `project.json`, a fresh clone has no log to derive from, and `intent init` and `sync --to-disk` write `project.json` in ordinary use. A project that has never flushed gets a file with no `todo_watermark`, which is the correct representation of never-flushed.
 
 ## The acceptance criteria were authored AFTER the code, and from this cover
 
@@ -68,7 +68,7 @@ An existing project has flushes in its log and no `project.json`. The migration 
 
 **This is stated because a reader in six months cannot otherwise tell them from criteria that drove the work, and that difference is the whole of their evidential value.** (ic, on vc's word under hv's pen, 2026-08-27.)
 
-### Two are left unsatisfied and VISIBLE, deliberately
+### Two were left unsatisfied and VISIBLE, deliberately (both since settled: AC-14.7 is covered by `flush_is_one_transaction.rs`, and hv withdrew AC-14.8 on 2026-08-27)
 
 **`AC-14.7` -- one transaction -- is UNCOVERED.** Nothing drives it. A run that wrote the `todo.flush` event and failed before the project state would leave a flush no cutoff reflects, and no test forces that ordering; reaching it needs an injected mid-transaction failure this estate has no harness for.
 

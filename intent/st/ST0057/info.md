@@ -22,7 +22,7 @@ It was surfaced the way the problem is meant to be surfaced: hv looked at their 
 
 **The brief collapses two layers and the design separates three.** hv's framing was _"the DB is SSOT and disk is a sparse copy of the db out to realised files based on an index"_ -- right for views, fatal for canon. **Sparseness applies to VIEWS; canon is never sparse.** If the manifest governed canon, an unrealised artefact would exist only inside a gitignored database: absent from a fresh clone, destroyed by `rm -rf intent/.cache`. **D29 -- a gitignored path is never canon -- is what makes a clone complete**, and it is what makes every deletion here safe rather than careful: `organize` only ever removes a file it can regenerate, from a source sitting beside it in the same commit.
 
-The design is ratified as D57-1 through D57-8 in `design.md`. This contract is derived from those decisions and adds none of its own.
+The design is ratified as D57-1 through D57-9 in `design.md`. This contract is derived from those decisions and adds none of its own. As built (2026-09-13), every live work package is done and the thread stays WIP because AC-12.1, AC-12.2, AC-13.1 and AC-13.2 remain on it untested after their work shipped as ST0069 WP-01 and WP-02; hv has ruled ST0057 out of the 3.0.x line (issue 0338).
 
 ## Work Packages
 

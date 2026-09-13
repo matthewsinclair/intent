@@ -9,7 +9,7 @@ status: Done
 
 ## Objective
 
-**Every op that changes the MODEL is recorded; no op that changes the DISK is.** `intent/events.jsonl` is the one table that cannot be re-derived from anything else on disk, and the acts it does not witness are the destructive ones. Close the gap at the boundary, not by widening the chokepoint that is already right.
+**Every op that changes the MODEL is recorded; no op that changes the DISK is.** The event log is the one table that cannot be re-derived from anything else on disk (it was the tracked `intent/events.jsonl` when this WP opened; D53 moved it into the store's `event_log`, which `intent events` reads), and the acts it does not witness are the destructive ones. Close the gap at the boundary, not by widening the chokepoint that is already right.
 
 ## The chokepoint exists and it is good
 
@@ -17,7 +17,7 @@ status: Done
 
 Everything reaching it is logged: `ac.put`, `at.put`, `at.set`, `issues.add`, `st.new`, `wp.new`, `wp.rescope`, and the whole `set_thread_status` family -- `st.triage`, `st.start`, `st.hold`, `st.resume`, `st.done`, `st.reopen`, `st.reinstate`, `st.cancel`.
 
-## And the realisation verbs do not reach it
+## And the realisation verbs did not reach it (as built, they record `disk.organize`, `disk.hydrate`, `disk.dehydrate`, `disk.declare_default`, `disk.sync_to_disk` and `disk.sync_from_disk` through `Facade::record_disk_act`, with subject kind `paths`)
 
 **`grep -c 'apply(' organize.rs` returns 0.** `Facade::organize`, `sync_to_disk`, `sync_from_disk` and `hydrate` each write the filesystem without passing the door. The one other caller of `Store::append_event` is the text-backup path at `facade.rs:1913`, and it is there to obtain the database's stamp rather than to witness an act.
 
@@ -35,7 +35,7 @@ Everything reaching it is logged: `ac.put`, `at.put`, `at.set`, `issues.add`, `s
 
 ## What IS worth deciding at the same time
 
-**Concurrent append.** It is a tracked, append-only file written by four sessions committing minutes apart, so every concurrent write is a same-line git conflict waiting to happen. Seven commits have touched it without one, which is luck at 55 rows rather than a property. **Decide it while there are 55 rows to migrate, not 17,000** -- per-node event files that merge, or a store-side sequence that the file is projected from.
+**Concurrent append.** It is a tracked, append-only file written by four sessions committing minutes apart, so every concurrent write is a same-line git conflict waiting to happen. Seven commits have touched it without one, which is luck at 55 rows rather than a property. **Decide it while there are 55 rows to migrate, not 17,000** (decided at 55 rows by D53, 2026-08-20: the tracked file is deleted and the log lives in the store alone, so neither option below was needed) -- per-node event files that merge, or a store-side sequence that the file is projected from.
 
 ## Raised by
 

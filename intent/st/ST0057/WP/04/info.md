@@ -39,6 +39,8 @@ Run twice, changes nothing, **including mtimes**. Measured 2026-08-18: the curre
 
 `info`, `st list`, `doctor` and `export` all materialise the store on access, so a peer typing `intent st list` opens the same file `organize` is reconciling against. **"The estate was quiet when I measured" is not establishable over any window** -- so the defence is the moment-of-act digest: digest the measured tree, re-compute immediately before the irreversible step, refuse on any difference.
 
+**As built (2026-09-13).** `intent organize --apply` prints the plan, asks on a terminal before removing anything, and acts on the plan it printed (`--plan <digest>` pins one shown earlier); only `Dehydrate` removes, always through the gate, and `st hydrate` / `st dehydrate` are the same plan narrowed to one artefact, editing its `.intentfiles` line in the same call (`render.rs:5683-5773`, `facade.rs:4429`, `facade.rs:4858`).
+
 ## Acceptance
 
 Acceptance Criteria for this work package are RENDERED into `ST0057/acceptance.md`, under the `WP-04` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `.canon/st/ST0057.json`, then `intent sync --to-store`. This cover never restates them.

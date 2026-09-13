@@ -22,11 +22,11 @@ The dehydration gate proves **THE STORE holds it**. A complete text export prove
 
 ## The refusal whose reason expires
 
-`export --format md` is refused today on the grounds that _"the views are already in the tree"_. **That is correct now and false the moment the disk model lands** -- which is why it is withdrawn as part of THIS thread and not before. A refusal whose justification expires must be retired by the change that expires it, or it survives as a rule nobody can re-derive.
+`export --format md` was refused, until this WP, on the grounds that _"the views are already in the tree"_. **That is correct now and false the moment the disk model lands** -- which is why it is withdrawn as part of THIS thread and not before. A refusal whose justification expires must be retired by the change that expires it, or it survives as a rule nobody can re-derive.
 
 ## Precondition found by cc
 
-**`intent init` is NOT IMPLEMENTED.** A fallback cannot be demonstrated from a clean directory nobody can create, so `init` is in scope here or must land ahead of it.
+**`intent init` was NOT IMPLEMENTED when this WP opened; it landed under it (AC-06.4).** A fallback cannot be demonstrated from a clean directory nobody can create, so `init` is in scope here or must land ahead of it.
 
 ## Acceptance
 

@@ -15,14 +15,15 @@ status: Done
 
 **THE RULING THAT STANDS, TRANSCRIBED FROM ITS SOURCE RATHER THAN SUMMARISED.** `intent/whiteboard/hv/wip.md`, entry dated 2026-08-26 19:48Z, carrying its own provenance caveat verbatim -- *"recorded by vc: hv FIRST-HAND IN lamplight-vc's SESSION, relayed verbatim by lamplight-vc; hv's own stamp not read"*. hv's words on seeing a 57-thread realised set: **"Now it has NOT STARTED STs!??!"** and **"It should ONLY HAVE WIP STs!!!!!"**
 
-So `.intentfiles`'s rule *"OPEN means every status except Completed and Cancelled"* was WRONG -- **a definition by exclusion, which acquires members by accident**: it swept in planned threads nobody is working on. `--default` declares exactly the threads whose status is WIP; Not Started, Triage, Hold, Completed and Cancelled live in the store, in full, and `intent st hydrate <ID>` realises any of them on demand.
+So `.intentfiles`'s rule *"OPEN means every status except Completed and Cancelled"* was WRONG -- **a definition by exclusion, which acquires members by accident**: it swept in planned threads nobody is working on. `--default` declares exactly the threads whose status is WIP, and every open issue since ST0069 WP-01; Not Started, Triage, Hold, Completed and Cancelled live in the store, in full, and `intent st hydrate <ID>` realises any of them on demand.
 
 ## The verb
 
-- `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per WIP thread) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
+- `intent organize --default` -- `.intentfiles` ABSENT: write it from status (header + one `STEELTHREAD:<ID>` line per WIP thread and one `ISSUE:<NNNN>` line per open issue) and exit 0. PRESENT: change nothing, say so (`present, declares N; --force to regenerate`), exit 0.
 - `intent organize --default --force` -- PRESENT: regenerate from status after a y/N read from the tty (`hydrate` / `dehydrate` customisations are lost, which is what the confirmation is for); no tty, no `--force` write.
 - `--default` on its own writes the DECLARATION only and never removes a file: removal stays behind `organize --apply` and the dehydration preconditions, so the next preview reports every undeclared realised thread as `to remove (blocked)` and nothing moves. Declaring and dehydrating are two steps by design.
 - **`--default --force` ANSWERED `y` ON A TTY IS THE EXCEPTION, AND THIS COVER USED TO DENY IT EXISTED.** hv, 2026-08-26, first-hand, quoted at AC-11.6: `--default` never removes a file *"unless it is used with --force, which does remove files, after a confirm"*. That arm applies the regenerated declaration in the same run, dehydrating each undeclared realised thread ONLY where every declared precondition holds for it, and removing not one file of a thread whose preconditions are unmet. AC-11.6 is the contract, and it is BUILT as of 2026-08-27 (AT-11.6, driven on a real pseudo-terminal, which is the only way this arm can be reached). **The confirm text was owed a rewrite alongside it and has had one:** it promised *"it removes no files"*, which under `--force` is false, and it now names the act, names what survives it, and names the spelling that does not do it. The refusal was owed one too and had gone unnoticed -- it named the unmet precondition but not the THREAD whose files it was holding, so an operator was told how many files were held and left to work out whose.
+- **As built (2026-09-13):** bare `--default` writes `.intentfiles` when absent and touches no other file; `--default --force`, confirmed on a terminal, regenerates it and runs the `organize --apply` reconciliation in the same call (`render.rs:4706-4820`).
 
 ## One function, three callers
 
@@ -30,12 +31,12 @@ The default declaration from status is ONE function in `intentsvcs::intentfiles`
 
 ## Why
 
-Every migrated project is fully realised (Laksa: 110 of 110) because none has an `intent/.intentfiles` and the contract says ABSENT means everything stays; `migrate.rs:474-488` consults the file and nothing writes it. Intent's own tree is 8 of 63 because hv wrote the file by hand.
+Every migrated project is fully realised (Laksa: 110 of 110) because none has an `intent/.intentfiles` and the contract says ABSENT means everything stays; `migrate.rs` consulted the file and nothing wrote it. As built, `intent upgrade` writes the default declaration when the file is absent (`declare_default_if_absent`, called after the migration plan in `Facade::upgrade`), and the migration realises from that same default. Intent's own tree is 8 of 63 because hv wrote the file by hand.
 
 ## Not here
 
-- Issues: hv's default is "open STs and ISSUES", and the grammar has exactly one sigil; `ISSUE` was retired 2026-08-20 because a declared issue realised nothing. WP-12 gives issues a realised form first; until then `--default` declares WIP threads only.
-- Dehydrating the fleet's realised trees: waits on one `.canon` emitter (attachments in canon), the preconditions moving into the tool (`organize.rs:261`), and `st dehydrate` (ST0061); then one `organize --apply` per project.
+- Issues: built under ST0069 WP-01, which inherited this thread's WP-12: an issue realises to `intent/issues/<NNNN>.md`, `ISSUE` is back in the grammar, and `--default` declares every open issue beside the WIP threads.
+- Dehydrating the fleet's realised trees: waited on one `.canon` emitter (attachments in canon), the preconditions moving into the tool, and `st dehydrate` (ST0061). `st dehydrate` has shipped (ST0061 is completed) and `organize::plan` reads the preconditions (`preconditions::check`); what remains is one `organize --apply` per project.
 
 ## Acceptance
 

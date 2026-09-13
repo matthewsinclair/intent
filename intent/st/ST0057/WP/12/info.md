@@ -10,7 +10,7 @@ status_reason: Descoped to ST0069/01 by hv, 2026-09-11 (decision 8): not in 3.0.
 
 ## Objective
 
-**Issues join the default declaration once an issue has a realised form on disk.** hv, 2026-08-26: "default means that the only things in .intentfiles are OPEN (ie STs and ISSUES)". Today `.intentfiles` has exactly one sigil, `STEELTHREAD`, as a closed enum; `ISSUE` was in it and hv retired it on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files -- an issue lives in the store and has no file to realise. The decision this WP waits on is hv's: what a realised issue looks like (one file per issue under `intent/issues/`, or a single rendered `intent/issues.md`). Then the sigil returns as the model change the enum's comment anticipates, `organize` learns to hydrate and dehydrate it, and WP-11's default gains open issues.
+**Issues join the default declaration once an issue has a realised form on disk.** hv, 2026-08-26: "default means that the only things in .intentfiles are OPEN (ie STs and ISSUES)". When this WP was written `.intentfiles` had exactly one sigil, `STEELTHREAD`, as a closed enum (ST0069 WP-01, which inherited this WP, has since restored `ISSUE`); `ISSUE` was in it and hv retired it on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files -- an issue lives in the store and has no file to realise. The decision this WP waited on was hv's, and was taken under ST0069 WP-01 (one file per issue): what a realised issue looks like (one file per issue under `intent/issues/`, or a single rendered `intent/issues.md`). Then the sigil returns as the model change the enum's comment anticipates, `organize` learns to hydrate and dehydrate it, and WP-11's default gains open issues.
 
 ## Acceptance
 

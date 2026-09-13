@@ -14,7 +14,7 @@ Hydrate an artefact on demand and open it, under a verb name that is not already
 ## Deliverables
 
 - `intent edit <ID>` -- hydrate if absent, then open.
-- Pins the artefact in `.intentfiles` for the duration of the work, or leaves the pin to the operator; **that choice is open and belongs to this WP.**
+- Pins the artefact in `.intentfiles`: `edit` realises through `Facade::hydrate`, which adds the line before it writes, so the artefact stays realised until a verb or a human removes the line. (The choice was open when this WP was written.)
 
 ## Why not `wip` (D57-4)
 
@@ -22,7 +22,9 @@ hv proposed `intent wip <ID>`. **In this project `wip` already means a WP status
 
 ## Note
 
-`st edit` currently exists as an UNIMPLEMENTED command whose `--help` fully describes behaviour it does not have (_"Print the absolute path to a steel thread file"_, with a `[FILE] [default: info]` argument). That help text is a claim nothing checks -- the same shape as the `llm guide` defect fixed at `04e4206f`. Resolve the collision as part of this WP rather than leaving two verbs with one meaning.
+`st edit` existed, when this WP was written, as an UNIMPLEMENTED command whose `--help` fully described behaviour it did not have (_"Print the absolute path to a steel thread file"_, with a `[FILE] [default: info]` argument). That help text is a claim nothing checks -- the same shape as the `llm guide` defect fixed at `04e4206f`. Resolve the collision as part of this WP rather than leaving two verbs with one meaning.
+
+**As built (2026-09-13).** `intent edit` and `intent st edit` are one function that realises through `Facade::hydrate` before printing the path (`render.rs:104`, `render.rs:2646`). An adding lifecycle verb (`st start`, `st resume`, `st reopen`) renders the thread's views in its own write and leaves its attachments to `intent organize --apply` or `intent st hydrate`, so a reopened dehydrated thread lacks `design.md` until then (issue 0367).
 
 ## Acceptance
 
