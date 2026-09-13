@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 13:20Z
+heartbeat_at: 2026-09-13 13:25Z
 status: active
 focus: "Localfolded for hv's compact. On the bounce: hold for vc; the reference regeneration (both halves --rev v3.0.2 --baseline v3.0.1) only on vc's signal after the tag. NO RELEASE, NO PUSH."
 claims: []
