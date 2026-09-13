@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-13T16:34:30.522Z",
+    "heartbeat_at": "2026-09-13T16:36:55.924Z",
     "status": "active",
-    "focus": "Localfolded for hv's compact. ST0074 (machine-wide projects): WP-01 /threads+/issues Done (793984a50), WP-02 menubar status line Done (133061d7f), WP-05 ruled XDG in design.md (f2452077a), 0368 test fixed (64d272688). On the bounce: run ac satisfy ST0074 AC-05.1 with evidence f2452077a; hv restores ~/.intent/config.json with intent bootstrap --force, which the permission check blocked for me; WP-05, WP-03 and WP-04 code in a private worktree only after the 3.0.2 tag, for 3.1.0, in that order. The reference regeneration waits on vc's signal after the tag. NO RELEASE, NO PUSH.",
+    "focus": "Localfolded for hv's compact. ST0074 (machine-wide projects): WP-01 /threads+/issues Done (793984a50), WP-02 menubar status line Done (133061d7f), WP-05 ruled XDG in design.md (f2452077a), 0368 test fixed (64d272688), hv's ~/.intent/config.json restored by hv through intent bootstrap --force. On the bounce: ac satisfy ST0074 AC-05.1 --evidence f2452077a; WP-05, WP-03 and WP-04 code in a private worktree only after the 3.0.2 tag, for 3.1.0, in that order; the reference regeneration on vc's signal after the tag. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -573,7 +573,8 @@
       "kind": "doing",
       "seq": 7,
       "text": "**Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T16:36:52.653Z",
       "recorded_at": "2026-09-13T13:55:52.627Z"
     },
     {
@@ -589,7 +590,8 @@
       "kind": "todo",
       "seq": 4,
       "text": "**hv 2026-09-13 15:30Z, target 3.0.2, not P0/P1: the explorer's project picker.** `intent explore` outside an Intent project asks intentd for the projects it knows, offers a simple picker, and either opens the chosen one or returns to the CLI. `/projects` is an explorer command that opens the same picker at any time; starting the explorer inside a project is the same as picking that project. The TUI shape is a design question to settle first.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T16:36:49.408Z",
       "recorded_at": "2026-09-13T15:30:08.656Z"
     },
     {
@@ -597,7 +599,8 @@
       "kind": "todo",
       "seq": 5,
       "text": "**hv 2026-09-13 15:30Z: `/threads` and `/issues` are handled by the explorer, not passed through.** Today `/issues` falls through to the CLI and dumps its output. hv expected a top-level THREADS / ISSUES switch with `/threads` the default. Pass-through stays right for any slash command the TUI does not own; these two it must own.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T16:36:46.225Z",
       "recorded_at": "2026-09-13T15:30:09.880Z"
     },
     {
