@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-13T16:41:30.976Z",
+    "heartbeat_at": "2026-09-13T17:59:19.815Z",
     "status": "active",
     "focus": "LOCALFOLDED 2026-09-13 15:56Z for the user's compact, HOLDING for vc. Landed this session: 0366 at 524f5f868 (the daemon builds its index at open, one stale directory at a time between client ops; AC-22.4/AT-22.4 red then green), dc verifying. 0354: S1 ruled and unbuilt until hv's dtruss is read; nothing under native/ from cc until then. NO RELEASE, NO PUSH.",
     "claims": [
@@ -401,6 +401,15 @@
       "text": "**0354 (a)+(b) LANDED AT 3110125b2 ON TOP OF S1 (669cf00ee); vc JUDGES IT ON THE REBUILT DAEMON.** vc's hot sample named the burst: every index refresh ran Store::doc_sections, sorting every prose body through SQLite's spilling external sort, only for carried_paths to find the whiteboard's files, and the watcher asked for one refresh per path. Now Store::section_files reads those names with no body and no ORDER BY, and a batch is one Facade::index_refresh over a slice. intentsvcs and intentd are green in wt-cc on 92cd1041b. **Released when vc reports dc's rebuild under the CPU watch: cool closes 0354; still hot goes to S3, with views::render_all next and nothing built until vc rules.**",
       "state": "live",
       "recorded_at": "2026-09-13T17:13:39.842Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 11,
+      "text": "**NO COMMITS OF ANY FILE, BOARD FILES INCLUDED, AND NO BUILDS, INSIDE dc's QUIET WINDOW (dc, on 3110125b2).** dc runs bin/devbin build all, app-install, intent daemon restart (ending 18592) and doctor; a commit that moves HEAD mid-build makes the stamp check refuse the set. Uncommitted wb store writes are fine. **Released when dc says build done**, and this board's views land then.",
+      "state": "archived",
+      "archived_at": "2026-09-13T18:02:04.253Z",
+      "recorded_at": "2026-09-13T17:17:10.384Z"
     }
   ],
   "messages": [
