@@ -76,9 +76,9 @@ intent/whiteboard/
 
 **`.history/` IS NO LONGER WHERE ARCHIVED CONTENT GOES.** Archived is a STATE an item or a message carries, not a directory it moves to: the row keeps its number and its text and stays readable, it just stops counting against the live bound. `intent wb archive` and `intent wb clear` are that transition. Existing `.history/` directories stay as the record of the hand-authored era and are not reloaded on pickup, exactly as before.
 
-**A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** `intent wb register <moniker> --name <display> --role <role>` puts one node on the board from its arguments; it is idempotent on a moniker already registered with the same values and refuses one registered with different values, so re-running it is safe and a silent redefinition is not possible. There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
+**A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** `intent wb register` reads the project's roster from each node's own hand-authored `wip.md` header and puts those nodes on the board. There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
 
-`intent wb register` with no arguments is the other form, and it exists for the migration rather than for new nodes: it reads the roster from each node's own hand-authored `wip.md` header. It stays beside the explicit form until the last hand-authored board on the machine has migrated, and then it has nothing left to read.
+**REGISTERING IS NOT A TIDY-UP.** Who the participants of a project are is a thing a human declares: every board, every item and every message afterwards hangs off the rows it writes, so an agent does not register a roster unasked.
 
 Single-writer rule:
 
@@ -268,7 +268,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `claim <id>` / `unclaim <id>`
 
-`intent wb claim ST0069 --node <you>`, and `unclaim` to drop it. It takes a work package as well as a thread.
+`intent wb claim <STxxxx> --node <you>`, and `unclaim` to drop it. It takes a work package as well as a thread.
 
 **Before you claim, look at who else does.** `intent wb status` prints every node's claims; if an active peer already holds it, stop and surface the overlap for the hypervisor to arbitrate rather than claiming alongside them.
 
