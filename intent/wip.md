@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.52: vc - hv adds the as-built docs pass and ST0074 validation"
+verblock: "2026-09-13:v1.53: vc - hv: ruthless delivery; S1 built now, dc rebuilds on release"
 intent_version: 3.0.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. The site is settled (the store thread's park at store.rs:289, no sender, named by stack on the live daemon); run 6 (a release pair with the parker's assert armed) reproduces WITHOUT a panic, so the wait returns 0 and hv's `sudo dtruss -t psynch_cvwait -p 58837` while hot decides between EINTR (an interrupter, the whole fix) and an immediate 0 (a psynch condvar fault: cc's S1, a private block_on on std's Darwin parker at the two sites); dc verifies the fix with run 1's recipe cold for ten minutes after the index completes, then `bin/devbin build all`, app-install, daemon restart, doctor 0.
+- 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. Under hv's no-yak-shaving directive the fix is BUILT NOW, not traced first: cc lands S1 (a private block_on on std's Darwin thread parker at the store thread's two block_on sites) on the intentd suite; dc, when hv releases the hold, runs the workspace suite once on main then `bin/devbin build all`, app-install, `intent daemon restart`, doctor 0; the rebuilt daemon under vc's CPU watch is the verdict, and hv's `sudo dtruss -t psynch_cvwait -p <pid>` on it is the fallback if it still spins (then the wait is being interrupted and the interrupter is the fix).
 - The rebuild carries 0366 (fixed at 524f5f868, AT-22.4 red then green) and ic's explorer todo 5 (landing behind it); dc runs the workspace suite on the fix commit before `bin/devbin build all`.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 

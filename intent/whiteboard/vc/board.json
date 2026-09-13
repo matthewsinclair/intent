@@ -335,6 +335,14 @@
       "text": "CUT-READY (2026-09-13 12:25Z): v3.0.2 rehearsed GREEN on 8a48430ee (dc run4 of four, every gate and preview, exit 0); the delivered set names 8a48430ee (intent, intentd, Intent.app 6893) under hv's one-stamp rule; commits past it are doc or board only (gh corrections, dc's Fixed lines a0a02f9a2). Waiting on hv at the terminal: build release --patch, build all, int macos prepare, formula, publish as its own approval, smoke --reinstall; then ic's reference regeneration --baseline v3.0.1, hv's Laksa commit (849 held), Courses' migration report (asked, unreported), then Laksa's boards. NO RELEASE, NO PUSH.",
       "state": "live",
       "recorded_at": "2026-09-13T12:25:13.582Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 15,
+      "text": "(2026-09-13) hv, verbatim: NO UNNECESSARY OVERTESTING, NO TESTING TESTS, NO YAK-SHAVING. Expeditious delivery of working code; do not relitigate the speed of light for every decision; be RUTHLESS. New code, good code, good tests, done. Applied: build the cheap fix and let the live system judge it; one run decides a question; never a positive control of an instrument; ACs one line per user-facing behaviour, ATs the test that proves it once.",
+      "state": "live",
+      "recorded_at": "2026-09-13T16:12:07.617Z"
     }
   ],
   "messages": [
