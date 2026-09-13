@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 10:18Z
+heartbeat_at: 2026-09-13 08:06Z
 status: active
-focus: "CUTOVER in progress from 2026-09-13 10:18Z on hv's go: every live board snapshotted into its .history, ic lands AC-14.12, cc lands the wiring, dc's verb migrates the five boards, the pair rebuilds, the views regenerate as one commit. This is the last hand-authored write to this board."
+focus: "LOCALFOLDED 2026-09-13 08:06Z for hv's compact after hv's restart. ST0069 to the end: WP-14 the last package; 0311 landed and the pair rebuilt at b0f773046; cc on the AC-14.8 index build, the pickup fields and AT rows; dc on the migration verb then 0313 and 0314; ic on the protocol half. On the bounce: inboxes, landings by file list, the pair at dc's three, then the cutover."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
