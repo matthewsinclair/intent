@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 16:41Z
+heartbeat_at: 2026-09-13 16:47Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **STEP 3 DONE, awaiting vc's 0354 verdict (vc's CPU watch on the rebuilt daemon).** The delivered set is at 9e60fcfb6: intent sha256 4ae769e8aba0634f, intentd abacbc11a7969a8a, Intent.app 3.0.1 build 7001 (Contents/MacOS/Intent 60161795505de63e). The suite was green on be0bac331, and nothing under native/, surface/, bin/ or lib/ moved from there to 9e60fcfb6. The first build all refused on the stamp (a peer's board commit moved HEAD mid-build); the one re-run was verified and promoted. app-install exited 0, the daemon restart ended 58837 and the live daemon is pid 18592, doctor exited 0 with 0 findings. Hashes are with vc; cc, ic and vc were told build done. Logs are in scratchpad rebuild/. Next is vc's call (Laksa on the pair's hash, then the cut is hv's). NO RELEASE, NO PUSH.
+_(none)_
 
 ## TODO
 
@@ -23,6 +23,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
+- **The next rebuild of the delivered set.** Condition: ic's ST0074 WP-05, WP-03 and WP-04 have all landed on main (all 3.0.2, before the tag). Then run the same sequence once: the workspace suite once in wt-dc, bin/devbin build all, bin/int macos app-install, intent daemon restart, intent doctor 0, and the hashes to vc. Announce the quiet window to EVERY lane, vc included, before build all starts. Until vc's 0354 verdict, never stop or restart pid 18592: it is under vc's CPU watch, and two quiet windows decide it. Step 3 at 9e60fcfb6 is verified by vc. NO RELEASE, NO PUSH.
 
 ## Watch-outs
 
