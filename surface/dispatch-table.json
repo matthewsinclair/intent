@@ -8263,8 +8263,8 @@
         },
         {
           "path": "wb show",
-          "help": "Read one node's whole board: its header, its items, and the messages addressed to it",
-          "when_to_use": "USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.",
+          "help": "Read one node's board: its header, its items, the messages still live, and a count of the handled ones",
+          "when_to_use": "USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. BY DEFAULT IT ANSWERS WITH THE LIVE SET: the messages still waiting to be handled are listed, and the handled ones are one line, `handled: N message(s) -- --all lists them`. REACH FOR `--all` only when the archive itself is the question, eg rereading a ruling whose message was already cleared; a status read never needs it. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.",
           "args": [{ "name": "node", "type": "node", "arity": "1" }],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. Any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.",
@@ -8280,7 +8280,8 @@
               "type": "bool",
               "help": "List every message addressed to the node, handled ones included",
               "disposition": "keep",
-              "exposed_on_mcp": true
+              "exposed_on_mcp": true,
+              "note": "**THE ARCHIVE IS BEHIND THE FLAG, NOT GONE.** Without it the read lists the live messages and counts the handled ones in one line; with it every message comes back, and the JSON face carries each with its `state`. `handled_count` is present either way."
             },
             {
               "spellings": ["--json"],
@@ -8292,7 +8293,7 @@
             }
           ],
           "facade": "board",
-          "note": "**AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages."
+          "note": "**AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages. **HANDLED MESSAGES ARE COUNTED AND NOT LISTED UNLESS `--all`** (hv, 2026-09-13): a read measured at hv's terminal was almost entirely the bodies of messages already handled, with no live message on the board, so the default answer to what a node's state is had become its archive. The count is in every answer, `handled_count` on the JSON face included, so an empty archive and a left-out one read differently; `wb clear` stays the one door that moves a message from live to handled."
         },
         {
           "path": "wb ask",
@@ -8435,7 +8436,7 @@
         {
           "path": "wb pickup",
           "help": "Start a session: mark this node active, then its board and its peers' state",
-          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its whole board and every peer's header state. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
+          "when_to_use": "USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- and every peer's header state. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.",
           "args": [],
           "v2": "new-surface",
           "basis": "ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.",
@@ -8473,7 +8474,8 @@
               "type": "bool",
               "help": "List every message addressed to the node, handled ones included",
               "disposition": "keep",
-              "exposed_on_mcp": true
+              "exposed_on_mcp": true,
+              "note": "**THE ARCHIVE IS BEHIND THE FLAG, NOT GONE.** Without it the read lists the live messages and counts the handled ones in one line; with it every message comes back, and the JSON face carries each with its `state`. `handled_count` is present either way."
             },
             {
               "spellings": ["--json"],
@@ -8485,7 +8487,7 @@
             }
           ],
           "facade": "wb_pickup",
-          "note": "**A COMPOSITE OF THE READS, WITH ONE WRITE OF ITS OWN** (vc, 2026-09-12 on cc's Highlander question; the write ruled 2026-09-13 on ic's finding against AC-14.7). What it prints is `wb show` for the acting node and `wb status` for its peers; the alternative rejected was a skill telling a reader to run those in order, which is the hand-kept list this register exists to end. **ITS WRITE IS WHAT A SESSION START STATES**: status active, the heartbeat, and the session and focus when named, which is what makes `wb release`'s paused node active again. **THE WRITE HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a header the same call is about to change. It is `idempotent` because running it again with the same session and focus leaves the same state with a later stamp."
+          "note": "**A COMPOSITE OF THE READS, WITH ONE WRITE OF ITS OWN** (vc, 2026-09-12 on cc's Highlander question; the write ruled 2026-09-13 on ic's finding against AC-14.7). What it prints is `wb show` for the acting node and `wb status` for its peers; the alternative rejected was a skill telling a reader to run those in order, which is the hand-kept list this register exists to end. **ITS WRITE IS WHAT A SESSION START STATES**: status active, the heartbeat, and the session and focus when named, which is what makes `wb release`'s paused node active again. **THE WRITE HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a header the same call is about to change. It is `idempotent` because running it again with the same session and focus leaves the same state with a later stamp. **ITS BOARD IS `wb show`'S DEFAULT, THE LIVE SET, AND IT TAKES `--all` FOR THE SAME REASON** (hv, 2026-09-13): a session start asks what still needs an answer, and an inbox that only grows would otherwise answer it with the archive."
         },
         {
           "path": "wb touch",

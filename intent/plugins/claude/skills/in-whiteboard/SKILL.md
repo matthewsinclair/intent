@@ -55,7 +55,7 @@ Intent's own roster names the validation node, in the human's words: _the workst
 | End a session                                        | `intent wb release`                |
 | Put the project's nodes on the board                 | `intent wb register`               |
 
-`intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`.
+`intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`. `pickup` and `show` also take `--all`, which lists the handled messages a default read only counts.
 
 **NOT EVERY VERB IS ONE AN AGENT MAY REACH FOR UNASKED, AND THE RULE IS A FIELD RATHER THAN A LIST.** Each row declares its `recoverability`, and that is what decides whether the verb is offered on the tool tier: reads and writes whose second call changes nothing are, and a verb that ACCUMULATES something permanent is not. So reading a board, stamping a heartbeat, claiming a thread and marking a sender's messages handled are ordinary; putting a message, a decision or an item on a board is a thing you do because you were asked to, and registering who the participants of a project ARE is a human's declaration. **Read the field, never a list of names** -- a sentence here naming which verbs are which would go stale, silently, the first time one row's `recoverability` moved, and the split is a consequence rather than a policy.
 
@@ -240,7 +240,9 @@ The moniker is durable; subsequent sessions of that node inherit it.
 
 ### `pickup`
 
-`intent wb pickup --node <you>` -- it prints your whole board and every peer's header state, and moves your heartbeat once, in that order (the touch precedes the read, because your own board is part of what comes back).
+`intent wb pickup --node <you>` -- it prints your board and every peer's header state, and moves your heartbeat once, in that order (the touch precedes the read, because your own board is part of what comes back).
+
+**YOUR MESSAGES COME BACK AS THE LIVE SET.** The ones still waiting are listed and the handled ones are one line, `handled: N message(s) -- --all lists them`, because a session start asks what still needs an answer, and an inbox that only grows would otherwise answer it with the archive. `--all` lists every message, handled included: reach for it when the archive is the question, never to start a session.
 
 Peers come back as HEADERS only. `intent wb show <peer>` is the door for one whole board, and **every board is readable from every workstream** -- the single-writer invariant is about WRITES and never made a board private.
 
@@ -308,7 +310,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `status` and `show`
 
-`intent wb status` for one line per node -- role, status, heartbeat, claims, and the focus line untruncated, because the focus is the field a person is actually reading for. `intent wb show <node>` for one node's whole board: its header, its items, and the messages addressed to it. Neither writes.
+`intent wb status` for one line per node -- role, status, heartbeat, claims, and the focus line untruncated, because the focus is the field a person is actually reading for. `intent wb show <node>` for one node's board: its header, its live items, its live messages, and a count of the archived items and of the handled messages; `--all` lists the handled messages as well. Neither writes.
 
 ### Folding: localfold and globalfold
 

@@ -3876,24 +3876,24 @@ The whiteboard: read the node boards, and send between them
 - **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It first read `node boards and inboxes, served from the store` while the one shipped verb registered monikers -- a reader typing `intent wb` was told the whiteboard is served and then found a roster registrar. **THE RULE CUTS BOTH WAYS AND THE SECOND CUT CAUGHT THE FIRST FIX** (ic, same day): narrowed to `the node roster in the store`, it was stale again one commit later, when `wb show` began reading whole boards -- promising LESS than the family does, which sends a reader looking elsewhere for a verb that is right there. **So this line moves with every verb group, in whichever direction the group moved it**, and it is not a decision that stays taken.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args               | flags                                     | help                                                                                 | disposition |
-| ------------- | ------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------ | ----------- |
-| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                          | new-surface |
-| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
-| `wb show`     | <node>             | --all, --json                             | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
-| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                      | new-surface |
-| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                             | new-surface |
-| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                           | new-surface |
-| `wb archive`  | <kind> <seq>       | --node                                    | Move one of the acting node's live items to archived                                 | new-surface |
-| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state          | new-surface |
-| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                    | new-surface |
-| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                      | new-surface |
-| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                     | new-surface |
-| `wb claim`    | <id>               | --node                                    | Add a steel thread or work package to the acting node's claims                       | new-surface |
-| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                    | new-surface |
-| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                      | new-surface |
-| `wb register` | [moniker]          | --name, --role                            | Register a node from its arguments, or the roster from each node's own board header  | new-surface |
-| `wb migrate`  | <node>             | --                                        | Carry one node's hand-authored board into the model                                  | new-surface |
+| command       | args               | flags                                     | help                                                                                                   | disposition |
+| ------------- | ------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
+| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                            | new-surface |
+| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on                        | new-surface |
+| `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones | new-surface |
+| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                        | new-surface |
+| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                               | new-surface |
+| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                             | new-surface |
+| `wb archive`  | <kind> <seq>       | --node                                    | Move one of the acting node's live items to archived                                                   | new-surface |
+| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                            | new-surface |
+| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                      | new-surface |
+| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                        | new-surface |
+| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                       | new-surface |
+| `wb claim`    | <id>               | --node                                    | Add a steel thread or work package to the acting node's claims                                         | new-surface |
+| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                                      | new-surface |
+| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                        | new-surface |
+| `wb register` | [moniker]          | --name, --role                            | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
+| `wb migrate`  | <node>             | --                                        | Carry one node's hand-authored board into the model                                                    | new-surface |
 
 ### `wb`
 
@@ -3931,13 +3931,14 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 
 ### `wb show`
 
-Read one node's whole board: its header, its items, and the messages addressed to it
+Read one node's board: its header, its items, the messages still live, and a count of the handled ones
 
 - **v2:** new-surface
 - **Arguments:**
   - `node` (node, arity `1`)
 - **Flags:**
   - `--all` (bool) -- List every message addressed to the node, handled ones included
+    - **THE ARCHIVE IS BEHIND THE FLAG, NOT GONE.** Without it the read lists the live messages and counts the handled ones in one line; with it every message comes back, and the JSON face carries each with its `state`. `handled_count` is present either way.
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
@@ -3947,12 +3948,12 @@ Read one node's whole board: its header, its items, and the messages addressed t
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
-- **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.
+- **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. BY DEFAULT IT ANSWERS WITH THE LIVE SET: the messages still waiting to be handled are listed, and the handled ones are one line, `handled: N message(s) -- --all lists them`. REACH FOR `--all` only when the archive itself is the question, eg rereading a ruling whose message was already cleared; a status read never needs it. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. Any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **facade:** board
-- **note:** **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages.
+- **note:** **AN ABSENT NODE IS A REFUSAL AND NEVER AN EMPTY BOARD.** The two render almost identically -- no items, no messages -- and mean opposite things: a node with nothing to say, against a question about somebody who is not here. The refusal LISTS THE ROSTER rather than repeating the moniker back, because a typo is fixed by retyping and an unregistered node by `wb register`, which are not the same next move. **The empty sections are printed rather than skipped**, for the reason `index status` gives about unfired reasons: no `messages` heading cannot be told from a build that does not carry messages. **HANDLED MESSAGES ARE COUNTED AND NOT LISTED UNLESS `--all`** (hv, 2026-09-13): a read measured at hv's terminal was almost entirely the bodies of messages already handled, with no live message on the board, so the default answer to what a node's state is had become its archive. The count is in every answer, `handled_count` on the JSON face included, so an empty archive and a left-out one read differently; `wb clear` stays the one door that moves a message from live to handled.
 
 ### `wb ask`
 
@@ -4068,6 +4069,7 @@ Start a session: mark this node active, then its board and its peers' state
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--all` (bool) -- List every message addressed to the node, handled ones included
+    - **THE ARCHIVE IS BEHIND THE FLAG, NOT GONE.** Without it the read lists the live messages and counts the handled ones in one line; with it every message comes back, and the JSON face carries each with its `state`. `handled_count` is present either way.
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
@@ -4077,13 +4079,13 @@ Start a session: mark this node active, then its board and its peers' state
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its whole board and every peer's header state. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.
+- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- and every peer's header state. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: peers come back as HEADERS only, and `wb show <node>` is the door for one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **recoverability:** idempotent
 - **facade:** wb_pickup
-- **note:** **A COMPOSITE OF THE READS, WITH ONE WRITE OF ITS OWN** (vc, 2026-09-12 on cc's Highlander question; the write ruled 2026-09-13 on ic's finding against AC-14.7). What it prints is `wb show` for the acting node and `wb status` for its peers; the alternative rejected was a skill telling a reader to run those in order, which is the hand-kept list this register exists to end. **ITS WRITE IS WHAT A SESSION START STATES**: status active, the heartbeat, and the session and focus when named, which is what makes `wb release`'s paused node active again. **THE WRITE HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a header the same call is about to change. It is `idempotent` because running it again with the same session and focus leaves the same state with a later stamp.
+- **note:** **A COMPOSITE OF THE READS, WITH ONE WRITE OF ITS OWN** (vc, 2026-09-12 on cc's Highlander question; the write ruled 2026-09-13 on ic's finding against AC-14.7). What it prints is `wb show` for the acting node and `wb status` for its peers; the alternative rejected was a skill telling a reader to run those in order, which is the hand-kept list this register exists to end. **ITS WRITE IS WHAT A SESSION START STATES**: status active, the heartbeat, and the session and focus when named, which is what makes `wb release`'s paused node active again. **THE WRITE HAPPENS BEFORE THE READ**: this node's own board is part of what comes back, so reading first would hand back a header the same call is about to change. It is `idempotent` because running it again with the same session and focus leaves the same state with a later stamp. **ITS BOARD IS `wb show`'S DEFAULT, THE LIVE SET, AND IT TAKES `--all` FOR THE SAME REASON** (hv, 2026-09-13): a session start asks what still needs an answer, and an inbox that only grows would otherwise answer it with the archive.
 
 ### `wb touch`
 
