@@ -555,7 +555,8 @@
       "kind": "doing",
       "seq": 6,
       "text": "**Nothing in flight; holding for vc, taking instructions on the bounce.** Pre-tag lane closed: the 3.0.2 CHANGELOG whiteboard-in-the-store bullet and the merged Removed heading landed at 86598a5ba (verified by vc); the 2026-09-12 quiet-window hold archived at 07455fe85 on vc's formal lift. Next is todo 1, the reference regeneration, only on vc's signal after the tag.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T13:55:51.504Z",
       "recorded_at": "2026-09-13T13:20:02.330Z"
     },
     {
@@ -565,6 +566,14 @@
       "text": "**A GATE REFUSAL FROM A PEER'S DIRT PLUS MY STAGED FILES IS A DEADLOCK, AND I HID THE FIRST ONE.** cc's uncommitted stamp work left the shared-artefact guard not intact, so my board commit was refused; cc then would not add over my staged paths. The exit was to `git restore --staged` MY OWN two paths (store already held the change, nothing lost), let cc land, re-issue the same commit -- never `--no-verify`. And I first ran that commit with `>/dev/null 2>&1`, which printed the previous HEAD as if it had landed: **capture a commit's output to a file and read rc and the head of the refusal, every time.**",
       "state": "live",
       "recorded_at": "2026-09-13T13:20:21.300Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 7,
+      "text": "**Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.",
+      "state": "live",
+      "recorded_at": "2026-09-13T13:55:52.627Z"
     }
   ],
   "messages": [

@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **Nothing in flight; holding for vc, taking instructions on the bounce.** Pre-tag lane closed: the 3.0.2 CHANGELOG whiteboard-in-the-store bullet and the merged Removed heading landed at 86598a5ba (verified by vc); the 2026-09-12 quiet-window hold archived at 07455fe85 on vc's formal lift. Next is todo 1, the reference regeneration, only on vc's signal after the tag.
+- **Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.
 
 ## TODO
 
