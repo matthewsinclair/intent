@@ -69,3 +69,40 @@ fn a_hand_authored_whiteboard_with_no_rows_has_no_view_and_no_skew() {
   let findings = whiteboard_findings(&fx);
   assert!(findings.is_empty(), "no rows means no view: {findings:?}");
 }
+
+#[test]
+fn a_board_write_lands_the_node_s_view_on_disk_at_the_write() {
+  let fx = Fixture::new();
+  {
+    let mut f = fx.facade_on_disk();
+    f.wb_register("cc", "Control Claude", "control")
+      .expect("register cc");
+  }
+  fx.git_init().git_commit_all();
+  let before = fx.read("intent/whiteboard/cc/wip.md");
+  {
+    let mut f = fx.facade_on_disk();
+    f.wb_add("cc", WbItemKind::Hold, "held until the pair is rebuilt")
+      .expect("a hold");
+  }
+  let board = fx.read("intent/whiteboard/cc/wip.md");
+  assert!(
+    board != before && board.contains("## Holds\n\n- held until the pair is rebuilt\n"),
+    "the write rewrote the node's view with its new item: {board}"
+  );
+  let findings = whiteboard_findings(&fx);
+  assert!(
+    findings.is_empty(),
+    "the view on disk is byte-equal to a fresh render: {findings:?}"
+  );
+  let status = std::process::Command::new("git")
+    .args(["status", "--porcelain", "--", "intent/whiteboard/cc/wip.md"])
+    .current_dir(fx.root())
+    .output()
+    .expect("git status");
+  assert_eq!(
+    String::from_utf8_lossy(&status.stdout),
+    " M intent/whiteboard/cc/wip.md\n",
+    "and git sees the view as changed"
+  );
+}

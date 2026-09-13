@@ -5070,6 +5070,7 @@ impl Facade {
       .store
       .register_nodes(&nodes)
       .map_err(FacadeError::Store)?;
+    // Index only: the headers this read stay hand-authored until a migration.
     self.reindex_boards()?;
     Ok(registered)
   }
@@ -5117,7 +5118,7 @@ impl Facade {
       .store
       .register_nodes(&[(moniker.to_string(), name.to_string(), role.to_string())])
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(written)
   }
 
@@ -5152,6 +5153,52 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     self.canon.sections = sections;
     Ok(())
+  }
+
+  /// Refresh the index for a board write, then land the write's views on disk.
+  ///
+  /// **THE WRITE LANDS THROUGH THE PROJECTION A MUTATION USES** (0317). From the
+  /// cutover on a board is a generated view, so a board write that moved the
+  /// row and the index and not the files left every view stale at the first
+  /// verb, and the one repair was a sync the running daemon refuses. The
+  /// projection is narrowed to the whiteboard, because a board write changes no
+  /// thread; `WriteSet::commit` skips a board whose bytes already match, so only
+  /// the boards this write changed are written, and what landed is recorded so
+  /// the daemon does not read it back as an edit.
+  ///
+  /// **A HAND EDIT OF A GENERATED BOARD IS OVERWRITTEN, AS A MUTATION OVERWRITES
+  /// ONE.** Skipping a view whose bytes differ from the prior render wedges: a
+  /// facade whose boards are a write behind the store reads its own last render
+  /// as a hand edit and never writes that board again.
+  ///
+  /// **THE TWO VERBS THAT READ HAND-AUTHORED MARKDOWN DO NOT CALL THIS.**
+  /// [`Self::register_roster`] reads every node's header and
+  /// [`Self::wb_migrate`] reads a whole board, so landing a render from either
+  /// would write over the file the verb had just read -- the registration step
+  /// would erase the board the migration after it exists to carry. They refresh
+  /// the index only, and a migrated board's views come from the regeneration
+  /// that follows the migration.
+  fn land_board_write(&mut self) -> Result<(), FacadeError> {
+    self.reindex_boards()?;
+    let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
+    let whiteboard = self.project.whiteboard_dir();
+    let mut boards = WriteSet::new();
+    for (path, content) in set
+      .writes()
+      .filter(|(path, _)| path.starts_with(&whiteboard))
+    {
+      boards.add_bytes(path.to_path_buf(), content.to_vec());
+    }
+    let applied = boards
+      .commit()
+      .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    applied.keep();
+    let canon_files: Vec<(std::path::PathBuf, String)> = canon_files
+      .into_iter()
+      .filter(|(path, _)| path.starts_with(&whiteboard))
+      .collect();
+    self.record_landed(&canon_files, &landed)
   }
 
   /// Refuse an entry body the acting node's bound does not admit.
@@ -5205,7 +5252,7 @@ impl Facade {
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_registered(node)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
-    self.reindex_boards()
+    self.land_board_write()
   }
 
   /// Pause the acting node, and stamp its heartbeat on the way out.
@@ -5225,7 +5272,7 @@ impl Facade {
       )
       .map_err(FacadeError::Store)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
-    self.reindex_boards()
+    self.land_board_write()
   }
 
   /// What a node needs at the start of a session: it is marked active with its
@@ -5257,7 +5304,7 @@ impl Facade {
         focus,
       )
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     let boards = self.canon.boards.clone();
     let board = boards
       .iter()
@@ -5340,7 +5387,7 @@ impl Facade {
       .store
       .wb_insert_item(node, &wire, text, None)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(seq)
   }
 
@@ -5491,6 +5538,7 @@ impl Facade {
       .store
       .replace_wb_sections_for(node, &sections)
       .map_err(FacadeError::Store)?;
+    // Index only: the board this read stays on disk until the regeneration.
     self.reindex_boards()?;
 
     Ok(WbMigration {
@@ -5653,7 +5701,7 @@ impl Facade {
       .store
       .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(moved)
   }
 
@@ -5680,7 +5728,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &claims)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(true)
   }
 
@@ -5701,7 +5749,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &kept)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(true)
   }
 
@@ -5759,7 +5807,7 @@ impl Facade {
       .store
       .wb_insert_message(sender, recipient, body, re, fyi, None)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()
+    self.land_board_write()
   }
 
   /// Send one message to every OTHER registered node, and say how many boards
@@ -5808,7 +5856,7 @@ impl Facade {
         .wb_insert_message(sender, r, body, None, true, None)
         .map_err(FacadeError::Store)?;
     }
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(recipients.len())
   }
 
@@ -5826,7 +5874,7 @@ impl Facade {
       .store
       .wb_clear_inbox(sender, recipient)
       .map_err(FacadeError::Store)?;
-    self.reindex_boards()?;
+    self.land_board_write()?;
     Ok(cleared)
   }
 
