@@ -1,9 +1,9 @@
 ---
 st_id: ST0069
 title: v3 post-cut: project search, store-backed coordination, and contract drift
-status: WIP
+status: Completed
 created: 2026-08-30
-completed:
+completed: 2026-09-13
 ---
 
 # ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
