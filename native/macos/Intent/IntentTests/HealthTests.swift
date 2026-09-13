@@ -61,15 +61,62 @@ final class HealthTests: XCTestCase {
     }
   }
 
+  /// `AT-02.1` (ST0074 WP-02), with the thread-count test below it.
+  ///
   /// **hv, 2026-09-08: the live line reads `active`, and the wording is pinned
-  /// because it is now also the CLICK TARGET.** The status line opens the web
-  /// face, so this string is the affordance's label rather than a caption --
-  /// and `answering` was the CLI's word for a different question (does a round
-  /// trip complete), which is why hv asked for the change.
-  func testLiveSummaryReadsActiveAndNotAnswering() {
+  /// because it is also the CLICK TARGET.** The status line opens the web face,
+  /// so this string is the affordance's label rather than a caption -- and
+  /// `answering` was the CLI's word for a different question (does a round trip
+  /// complete), which is why hv asked for the change.
+  ///
+  /// **hv, 2026-09-13: ONE LINE IN GTOOLS' SHAPE**, place then state then
+  /// details. The place carries the port only when the daemon published a url
+  /// to read it from; absent, the line never invents one.
+  func testTheLineNamesThePortOnlyWhenTheDaemonPublishedOne() {
     let live = Health.live(endpoint: "/tmp/x.sock", url: "http://127.0.0.1:51737")
-    XCTAssertEqual(live.summary, "intentd is active")
-    XCTAssertFalse(live.summary.contains("answering"))
+    XCTAssertEqual(live.menuLine(busy: nil, threadCount: nil), "intentd :51737 — active")
+    XCTAssertEqual(
+      Health.live(endpoint: "/tmp/x.sock", url: nil).menuLine(busy: nil, threadCount: nil),
+      "intentd — active")
+  }
+
+  /// The thread count is the live line's detail, the way Gtools' request count
+  /// is of a running CMS: after a `·`, with its plural, and gone entirely when
+  /// the project query has not answered -- never a zero standing in for "not
+  /// read".
+  func testTheThreadCountJoinsTheLiveLineWithItsPlural() {
+    let live = Health.live(endpoint: "/tmp/x.sock", url: "http://127.0.0.1:51737")
+    XCTAssertEqual(
+      live.menuLine(busy: nil, threadCount: 73), "intentd :51737 — active · 73 steel threads")
+    XCTAssertEqual(
+      live.menuLine(busy: nil, threadCount: 1), "intentd :51737 — active · 1 steel thread")
+  }
+
+  /// `AT-02.2` (ST0074 WP-02).
+  ///
+  /// **NO STATE BUT `live` CARRIES THE COUNT.** It is a separate poll, so beside
+  /// a daemon the line says is gone it would be a figure from the state before.
+  /// Each state is pinned whole, with a count to hand, so a count leaking back
+  /// in fails here.
+  func testOnlyTheLiveLineCarriesTheThreadCount() {
+    XCTAssertEqual(Health.absent.menuLine(busy: nil, threadCount: 73), "intentd — not running")
+    XCTAssertEqual(
+      Health.stale(pid: 42).menuLine(busy: nil, threadCount: 73),
+      "intentd — pid 42 holds the socket but is not answering, investigate it")
+    XCTAssertEqual(
+      Health.unknown("not yet polled").menuLine(busy: nil, threadCount: 73),
+      "intentd — status unknown (not yet polled)")
+  }
+
+  /// `AT-02.3` (ST0074 WP-02).
+  ///
+  /// **A LIFECYCLE VERB IN FLIGHT OWNS THE LINE, AND SHOWS NO PORT.** Polling
+  /// pauses while the verb runs, so the only port to hand is the one from before
+  /// it -- dead once a restart's stop returns, and the new daemon's is assigned
+  /// by the kernel.
+  func testALifecycleVerbInFlightOwnsTheLineWithoutAPort() {
+    let live = Health.live(endpoint: "/tmp/x.sock", url: "http://127.0.0.1:51737")
+    XCTAssertEqual(live.menuLine(busy: "Restarting…", threadCount: 73), "intentd — restarting…")
   }
 
   /// **NO STATE BUT `live` CARRIES A URL, WHICH IS WHAT KEEPS THE OTHER LINES
@@ -92,9 +139,10 @@ final class HealthTests: XCTestCase {
 
   /// The remedy travels with the state (AC-01.6): stale names its pid and points
   /// the operator at it, absent does not -- the difference the display gates on.
-  func testStaleSummaryNamesThePidAndAbsentDoesNot() {
-    XCTAssertTrue(Health.stale(pid: 42).summary.contains("42"))
-    XCTAssertTrue(Health.stale(pid: 42).summary.contains("investigate"))
-    XCTAssertFalse(Health.absent.summary.contains("investigate"))
+  func testStaleLineNamesThePidAndAbsentDoesNot() {
+    XCTAssertEqual(
+      Health.stale(pid: 42).menuLine(busy: nil, threadCount: nil),
+      "intentd — pid 42 holds the socket but is not answering, investigate it")
+    XCTAssertEqual(Health.absent.menuLine(busy: nil, threadCount: nil), "intentd — not running")
   }
 }

@@ -60,14 +60,43 @@ enum Health: Sendable, Equatable {
     let url: String?
   }
 
-  /// The menu's one-line summary. `stale` names the pid and points the operator
-  /// at it -- the remedy, never an unlink.
-  var summary: String {
+  /// The menu's ONE status line, and the icon's tooltip: place, state, details,
+  /// in Gtools' shape (hv, 2026-09-13), eg "intentd :51737 — active · 73 steel
+  /// threads". `stale` names the pid and points the operator at it -- the
+  /// remedy, never an unlink.
+  ///
+  /// **EVERY PART IS A REPORTED FACT, NOTHING IS MEASURED HERE** (AC-01.1). The
+  /// port is read off the `url` the daemon published, the thread count is the
+  /// project's `intent graphql` answer, and a verb in flight is
+  /// `DaemonService.busy`. Gtools' line also carries uptime and a request count;
+  /// `intent daemon status` reports neither, so this line does not either.
+  ///
+  /// **A VERB IN FLIGHT SHOWS NO PORT, WHERE GTOOLS' DOES.** Gtools' port is a
+  /// configured constant; intentd's is assigned by the kernel at each start, and
+  /// `DaemonService` stops polling while a verb runs, so the only port to hand
+  /// mid-restart is the dead one from before it.
+  ///
+  /// **THE THREAD COUNT IS A DETAIL OF `live` ONLY**, as Gtools' details are of
+  /// `running`. It comes from a separate poll, so beside `not running` or
+  /// `status unknown` it would be a figure from a state the line says is gone.
+  func menuLine(busy: String?, threadCount: Int?) -> String {
+    if let busy { return "intentd — \(busy.lowercased())" }
     switch self {
-    case .live: "intentd is active"
-    case .stale(let pid): "intentd (pid \(pid)) holds the socket but is not answering -- investigate it"
-    case .absent: "intentd is not running"
-    case .unknown(let why): "intentd status unknown (\(why))"
+    case .live:
+      let place = port.map { "intentd :\($0)" } ?? "intentd"
+      guard let threadCount else { return "\(place) — active" }
+      return "\(place) — active · \(threadCount) steel thread\(threadCount == 1 ? "" : "s")"
+    case .stale(let pid): return "intentd — pid \(pid) holds the socket but is not answering, investigate it"
+    case .absent: return "intentd — not running"
+    case .unknown(let why): return "intentd — status unknown (\(why))"
     }
+  }
+
+  /// The web face's port, as the daemon published it inside `url`. **READ,
+  /// NEVER BUILT**: only a live daemon carries a url, so no other state shows a
+  /// port, and an unparseable url shows none rather than a guess.
+  private var port: Int? {
+    guard case .live(_, let url?) = self else { return nil }
+    return URLComponents(string: url)?.port
   }
 }

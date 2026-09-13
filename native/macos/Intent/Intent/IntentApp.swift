@@ -128,8 +128,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     button.toolTip = statusSummary()
   }
 
+  /// The one status line, for the menu AND the icon's tooltip, so the two can
+  /// never describe the daemon differently. See `Health.menuLine`.
   private func statusSummary() -> String {
-    daemon.busy ?? daemon.health.summary
+    daemon.health.menuLine(busy: daemon.busy, threadCount: project.threadCount)
   }
 
   // MARK: - Menu
@@ -168,9 +170,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // nothing is worse than the redundancy this removes.
     //
     // **A LIFECYCLE VERB IN FLIGHT OWNS THE LINE.** While `busy` is set the
-    // title is "Starting…"/"Stopping…"/"Restarting…", which is not a state and
+    // line says "starting…"/"stopping…"/"restarting…", which is not a state and
     // has no page behind it -- and mid-restart is exactly when the old address
     // is dead.
+    //
+    // **ONE LINE, IN GTOOLS' SHAPE** (hv, 2026-09-13): where the daemon is, its
+    // state, then the details, eg "intentd :51737 — active · 73 steel threads".
+    // The thread count was a greyed row of its own under this one; it is the
+    // same `intent graphql` datum (AC-01.3), rendered on this line instead.
     let summary = NSMenuItem(title: statusSummary(), action: nil, keyEquivalent: "")
     if daemon.busy == nil, case .live(_, let url) = daemon.health, let url {
       summary.action = #selector(openWebFace(_:))
@@ -179,15 +186,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       summary.isEnabled = false
     }
     menu.addItem(summary)
-
-    // A real datum read through `intent graphql` (AC-01.3), rendered not derived:
-    // shown only when a project is configured and the query has answered.
-    if let count = project.threadCount {
-      let threads = NSMenuItem(
-        title: "\(count) steel thread\(count == 1 ? "" : "s")", action: nil, keyEquivalent: "")
-      threads.isEnabled = false
-      menu.addItem(threads)
-    }
 
     menu.addItem(.separator())
 
