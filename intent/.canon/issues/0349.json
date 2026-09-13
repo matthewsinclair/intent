@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 349,
+  "slug": "tests-that-read-this-repository-instead-of-a-fix",
+  "title": "Tests that read this repository instead of a fixture red whenever the estate is mid-flight",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`lifecycle_verbs_edit_the_list` and `facade_acceptance::a_no_op_scope_change_is_reported_rather_than_written_twice` name `intent/.canon/st/ST0056.json` and `intent/st/ST0056/**` in their failures (dc and vc, 2026-09-12). Green again once the estate was consistent, so the class stands unfixed and blames whoever is committing. Each such test moves to a fixture tree; hv's to rule, cc's if ruled. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

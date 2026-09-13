@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 343,
+  "slug": "organize-apply-leaves-a-tree-half-dehydrated-vie",
+  "title": "organize --apply leaves a tree half-dehydrated, views kept and attachments gone",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by hv on 2026-09-12 while driving `organize --apply`: the tree is left half-dehydrated, views kept and attachments gone. Its two siblings from the same drive are handled: the one-finding-printed-many-times half is fixed by 0318, and naming removals only afterwards was batch 4's trigger. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

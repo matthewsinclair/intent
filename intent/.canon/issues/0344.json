@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 344,
+  "slug": "a-stranger-s-brew-tap-may-refuse-our-tap-as-untr",
+  "title": "A stranger's brew tap may refuse our tap as untrusted",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Seen at the 3.0.1 cut on Homebrew main with an empty trust store, and not measured on stable: `brew tap` may refuse `matthewsinclair/intent` as untrusted, so the install docs may need `brew trust --tap matthewsinclair/intent`. Measure on stable first. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 348,
+  "slug": "a-registered-test-module-whose-file-is-not-in-th",
+  "title": "A registered test module whose file is not in the commit builds nowhere but on the machine that has it",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Found 2026-09-12: d4d7aec2b carried a `suite.rs` registration for a file only one node had, and HEAD could not build its test target until 5746e02e. A pre-commit arm that refuses a `suite.rs` naming a `#[path]` the index does not carry is small. hv's to rule; cc's if ruled. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

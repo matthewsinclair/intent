@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 350,
+  "slug": "intent-critic-answers-outside-a-project-indistin",
+  "title": "intent critic answers outside a project, indistinguishably from inside one",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "dc, 2026-09-12, driving the keg: `intent init --name` is not v3's spelling and refused at rc 1, and `intent critic` in the uninitialised directory then produced output indistinguishable from a project's, because the rule library resolves from the install root. Every other verb refuses outside a project; whether critic should is hv's to say. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

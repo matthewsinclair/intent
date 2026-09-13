@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 352,
+  "slug": "the-daemon-family-s-timing-arms-are-calibrated-a",
+  "title": "The daemon family's timing arms are calibrated against an idle host, and this host has none",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "dc, measured 2026-09-12 in the quiet window: the bounded-ingest arm passed alone six of six at a one-minute load near fifteen and failed three of six near forty on the same HEAD family, so reds under load are load and not a change of character; with every Intent node silent the host's own file-sync daemon and running iOS simulators hold the load floor above ten, so no measurement on this host is on an idle one. The process rule for the cut (a red confined to `daemon_watch` and `daemon_subscriptions` re-runs once, never twice) lives in `intent/restart.md`. The arms' calibration is the finding. Carried in `intent/wip.md` until 2026-09-13.\n"
+}

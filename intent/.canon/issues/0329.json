@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 329,
+  "slug": "rule-proxies-that-contradict-their-own-rule",
+  "title": "Rule proxies that contradict their own rule",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "From cc's lane:\n\n- `test-highlander-shared-setup` and `real-code-over-mocks` fire on the pattern their own Good prescribes.\n- `no-silent-failures` is single-line and never matches its own multi-line Bad.\n- `no-parse-ls` claims only SC2012 and misses SC2045, SC2011 and SC2010.\n- Every swift and lua rule is undeclared (`critic.rs:855-872`).\n- The gate lints the library's own Bad examples, so `strong-assertions/bad_test.exs` cannot be committed without `--no-verify`.\n\nLine numbers as at the audit.\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
+}

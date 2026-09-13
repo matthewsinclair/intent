@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 331,
+  "slug": "dead-artefacts-held-in-place-by-code-or-an-open",
+  "title": "Dead artefacts held in place by code or an open ruling, and stale comments a doc sweep cannot reach",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "From cc's lane; each needs hv:\n\n- `lib/templates/hooks/module_check_hook.json`: nothing reads it, but a roster row in `exit_code_consumers.rs:128` names it.\n- `lib/templates/hooks/critic-guard.sh` is parked and has drifted: it lacks 0242's zero-scope report. Retire it, or re-roster it after porting that report.\n- The `rules/_schema/index-generator.md`, `rules/index.json` and `.template` trio sit behind the unwired `claude rules index`, whose retirement is pending hv. `index.json` is also wrong.\n- `lib/templates/llm/{_ARCHETYPES,_DECISION_TREE,_DEPENDENCY_GRAPH,_MODULES}.md` and `lib/templates/prj/st/ST####/{acceptance,design,impl,tasks}.md` are dead, and still embedded through `init.rs` DESTINATIONS rows. Deleting them is code.\n- Stale comments in test and code files, listed in `817fa950b`: hv-banned counts in bats and Rust test headers; `guard_dispatch.bats:41` says pre-commit.sh is copied; `schema_faces_drift.rs:6,39` name a test target that is now a module of `suite`; `rules_path_guard.bats:20-21` grep paths that are gone, so they pass vacuously; organize.rs, tui.rs, mcp_stdio.rs, plugins.rs and the Cargo.toml descriptions.\n- `intent/plugins/claude/subagents/.manifest/global-agents.json` (ic): no v3 code reads it, it has drifted, and its checksums are empty. Three bats tests assert it (critic_prose, rule_pack_shell, highlander_audit), so deleting it removes their assertions.\n\nLine numbers as at the audit.\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
+}

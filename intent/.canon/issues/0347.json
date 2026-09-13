@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 347,
+  "slug": "the-rulings-gate-and-dehydration-collide-a-ratif",
+  "title": "The rulings gate and dehydration collide: a ratified ruling cites a thread file that a done thread's unlisting takes off the disk",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Found twice on 2026-09-12: a ratified ruling cites a thread file as its record, `rulings_check.sh` resolves the record on disk, and a completed thread hv's hygiene rule unlists takes its file off the disk. ST0058 and ST0066 stay realised until the gate resolves a dehydrated thread's record through the canon extract, or the two records cite canon paths. Small, code, hv's to rule. Carried in `intent/wip.md` until 2026-09-13.\n"
+}
