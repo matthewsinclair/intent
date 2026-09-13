@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-13T15:24:56.862Z",
+    "heartbeat_at": "2026-09-13T15:41:41.436Z",
     "status": "active",
-    "focus": "hv's ORDER (2026-09-13 15:22Z): fix 0354 first, then rebuild everything, then Laksa on the fresh build. The site is settled (store thread's park at store.rs:289, no sender, named by stack on 58837); run 5 (dev-profile pair) in flight for the errno; cc rules the fix shape (S1 std parker at the two block_on sites, S2 current_thread runtime) and builds in a worktree; dc verifies with run 1's recipe cold, then build all, app-install, daemon restart. ST0069 demonstrated on the live tree for hv: --context, --kind def, JSON with freshness, MCP intent_search, the Grep hook; defects filed 0356-0361. NO RELEASE, NO PUSH.",
+    "focus": "hv's ORDER (2026-09-13 15:41Z): fix 0354 first, then rebuild everything, then Laksa on the fresh build. Run 6 (assert-armed release pair) reproduces without a panic: the wait returns 0; hv's sudo dtruss on 58837 while hot decides EINTR (interrupter) vs immediate 0 (psynch fault, S1). 0366 found (the daemon never indexes at open), ST0069 reopened, cc builds its fix on WP-22 now. Courses migrated (0363-0365 filed); Laksa holds for the fixed pair's hash. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",

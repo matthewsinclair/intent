@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.49: vc - Courses migrated; its findings filed"
+verblock: "2026-09-13:v1.50: vc - run 6 no panic, dtruss decides; 0366 ordered, ST0069 reopened"
 intent_version: 3.0.1
 ---
 
@@ -7,7 +7,8 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. The site is settled (the store thread's park at store.rs:289, no sender, named by stack on the live daemon); run 5 (dc, a dev-profile pair) names the errno or not; cc rules the shape with vc (S1: std's thread parker at the two block_on sites; S2: a current_thread runtime on the store thread) and builds it in a worktree, tests as the AC rows; dc verifies with run 1's recipe cold for ten minutes after the index completes, then `bin/devbin build all`, app-install, daemon restart, doctor 0.
+- 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. The site is settled (the store thread's park at store.rs:289, no sender, named by stack on the live daemon); run 6 (a release pair with the parker's assert armed) reproduces WITHOUT a panic, so the wait returns 0 and hv's `sudo dtruss -t psynch_cvwait -p 58837` while hot decides between EINTR (an interrupter, the whole fix) and an immediate 0 (a psynch condvar fault: cc's S1, a private block_on on std's Darwin parker at the two sites); dc verifies the fix with run 1's recipe cold for ten minutes after the index completes, then `bin/devbin build all`, app-install, daemon restart, doctor 0.
+- 0366, same window under hv's "sans defects": the daemon never builds its index at open (cc's reading, matched by runs 4 and 5); ST0069 reopened for it; cc builds the index-at-open reconcile on WP-22 with its AC/AT (a daemon-suite test, red on e70c3528a) as one commit.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 ## TODO
