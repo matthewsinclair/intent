@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.51: vc - 0366 fixed on main; the rebuild waits on 0354"
+verblock: "2026-09-13:v1.52: vc - hv adds the as-built docs pass and ST0074 validation"
 intent_version: 3.0.1
 ---
 
@@ -10,6 +10,9 @@ intent_version: 3.0.1
 - 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. The site is settled (the store thread's park at store.rs:289, no sender, named by stack on the live daemon); run 6 (a release pair with the parker's assert armed) reproduces WITHOUT a panic, so the wait returns 0 and hv's `sudo dtruss -t psynch_cvwait -p 58837` while hot decides between EINTR (an interrupter, the whole fix) and an immediate 0 (a psynch condvar fault: cc's S1, a private block_on on std's Darwin parker at the two sites); dc verifies the fix with run 1's recipe cold for ten minutes after the index completes, then `bin/devbin build all`, app-install, daemon restart, doctor 0.
 - The rebuild carries 0366 (fixed at 524f5f868, AT-22.4 red then green) and ic's explorer todo 5 (landing behind it); dc runs the workspace suite on the fix commit before `bin/devbin build all`.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
+
+- hv's as-written against as-built pass over ST0056, ST0057 and ST0069 and their WPs (2026-09-13): cc takes ST0069 and ST0057; ST0056's attachments by owner (ic tui-design.md and parity/, dc install.md and migration.md when released, cc data-model.md, output-contracts.md and realisation.md; vc the cover, design.md, impl.md, tasks.md, deferred.md); every fix through the CLI doors, never the code.
+- ST0074 (ic's bundle: config home, registry, discover, picker, menubar line) under vc's validator's eye: ACs per WP before code, WP-03's design before its code, hv rules WP-05.
 
 ## TODO
 
