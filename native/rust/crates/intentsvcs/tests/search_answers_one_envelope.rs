@@ -12,6 +12,9 @@
 //! a fixture; `returned <= matched`, `matched` unmoved by a cap, and scores
 //! ordered within a group are the properties the surface promises. They survive
 //! a fixture gaining a section and they catch the defects the AC names.
+//!
+//! ST0069 AT-14.8 cites this file: a board's item and an inbox's message come
+//! back in the same envelope as the rest of the corpus.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::Attachment;

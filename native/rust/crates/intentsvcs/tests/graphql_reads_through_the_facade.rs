@@ -7,6 +7,9 @@
 //! resolvers read a struct, not that they read the facade -- which is the
 //! whole of the bound. The one place the schema IS driven bare, below, exists
 //! to prove that door is the only one.
+//!
+//! ST0069 AT-14.7 cites this file: any node's board is read over GraphQL through
+//! that one door, `boards` and `board(node)`.
 
 use crate::common::Fixture;
 use serde_json::{Value, json};

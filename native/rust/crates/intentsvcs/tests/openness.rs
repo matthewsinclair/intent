@@ -35,6 +35,10 @@
 //! carrying an undeclared table. A test over the tables that already have file
 //! forms passes on the defect -- which is exactly how `event_log` survived a
 //! whole AC with a schema face and no artefact.
+//!
+//! ST0069 AT-14.1 cites this file: the round trip carries the coordination
+//! tables, and the arm reads a board's item and message back from the restored
+//! store.
 
 use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::store::{DDL, Store};

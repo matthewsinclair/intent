@@ -26,6 +26,9 @@
 //! crate the day it is added -- the failure mode of a hand-maintained list
 //! being that the act which invalidates it (adding a file) is not the act that
 //! updates it.
+//!
+//! ST0069 AT-14.11 cites this file: every whiteboard stamp is the store's,
+//! because nothing in the workspace reads a clock.
 
 use std::path::{Path, PathBuf};
 use testkit::workspace_root;

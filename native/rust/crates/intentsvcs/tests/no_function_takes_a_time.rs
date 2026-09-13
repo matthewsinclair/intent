@@ -26,6 +26,9 @@
 //! history, which is the door's whole purpose -- and banning it in tests would
 //! forbid testing the restore path at all. `one_clock.rs` covers `tests/` for
 //! the different and narrower question of whether a fixture INVENTS a time.
+//!
+//! ST0069 AT-14.4 cites this file: no whiteboard door can be handed a time,
+//! because no function can.
 
 use std::path::{Path, PathBuf};
 use testkit::workspace_root;

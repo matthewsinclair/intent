@@ -2,6 +2,8 @@
 //! bound is freed by the write that says an item is finished or a message was
 //! handled -- no sweep, no fold, no later act -- and what was archived stays a
 //! row.
+//!
+//! ST0069 AT-14.6 cites this file.
 
 use crate::common::Fixture;
 use intentsvcs::facade::FacadeError;

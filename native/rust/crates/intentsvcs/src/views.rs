@@ -1646,6 +1646,8 @@ fn board_header(node: &crate::model::WbNode) -> String {
   out
 }
 
+// ST0069 AT-14.2 cites the two renderers below, partially until the cutover
+// wires them into `render_all`.
 /// One node's board as `intent/whiteboard/<node>/wip.md`.
 ///
 /// **EVERY SECTION IS EMITTED, INCLUDING THE EMPTY ONES.** A board with no

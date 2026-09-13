@@ -16,6 +16,10 @@
 //! `ReasonRequired` and `DescopeTargetMissing`. The claim is now carried by
 //! `every_variant_is_provoked_or_declared_elsewhere`, and the exemptions are
 //! declared rather than implied.
+//!
+//! ST0069 AT-14.3 and AT-14.5 cite this file: every over-bound whiteboard write
+//! is provoked and refused by name, and a write whose acting node is unregistered
+//! or unnamed is refused rather than guessed.
 
 use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
 use intentsvcs::facade::{Facade, FacadeError, ListEdit};
