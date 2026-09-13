@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "The menubar's one status line, in Gtools' shape",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
@@ -156,6 +156,36 @@
       ],
       "status": "green",
       "note": "cargo test -p intent-cli --lib --no-fail-fast: 287 passed, 0 failed, at the worktree base 1f8a912cf with 793984a50's bytes; red control: the collection act's push made a no-op fails slash_threads_and_slash_issues_open_their_collections. Literal id added at 5f62b2633."
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/macos/Intent/IntentTests/HealthTests.swift",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/macos/Intent/IntentTests/HealthTests.swift",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "native/macos/Intent/IntentTests/HealthTests.swift",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
     }
   ],
   "attachments": [

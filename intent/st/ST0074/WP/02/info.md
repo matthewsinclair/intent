@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The menubar's one status line, in Gtools' shape
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-02: The menubar's one status line, in Gtools' shape

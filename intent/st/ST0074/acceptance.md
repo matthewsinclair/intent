@@ -17,11 +17,11 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 
 - AC-01.1 The explorer handles /threads and /issues itself: `/threads` and `/issues` open their panes as explorer acts, and `/issues <args>` still runs `intent issues`. -- satisfied: yes (computed)
 
-### WP-02 -- The menubar's one status line, in Gtools' shape (status: Not Started)
+### WP-02 -- The menubar's one status line, in Gtools' shape (status: Done)
 
-- AC-02.1 While intentd is live, the menubar status line names the place, the state and the details on one line: `intentd :<port>`, `active`, and the steel-thread count. The port is read from the url the daemon published, and the count appears only once the project query has answered. -- satisfied: no (computed)
-- AC-02.2 While intentd is not live (stale, absent or unknown), the status line carries no port and no thread count, and a stale daemon's line names its pid and says to investigate it. -- satisfied: no (computed)
-- AC-02.3 While a lifecycle verb is running, the status line says so and shows no port, because the port from before a restart is dead once its stop returns. -- satisfied: no (computed)
+- AC-02.1 While intentd is live, the menubar status line names the place, the state and the details on one line: `intentd :<port>`, `active`, and the steel-thread count. The port is read from the url the daemon published, and the count appears only once the project query has answered. -- satisfied: yes (computed)
+- AC-02.2 While intentd is not live (stale, absent or unknown), the status line carries no port and no thread count, and a stale daemon's line names its pid and says to investigate it. -- satisfied: yes (computed)
+- AC-02.3 While a lifecycle verb is running, the status line says so and shows no port, because the port from before a restart is dead once its stop returns. -- satisfied: yes (computed)
 
 ### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Not Started)
 
@@ -45,9 +45,11 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 
 - AT-01.1 `native/rust/crates/intent-cli/src/tui/app.rs` -- covers AC-01.1 -- status: green -- cargo test -p intent-cli --lib --no-fail-fast: 287 passed, 0 failed, at the worktree base 1f8a912cf with 793984a50's bytes; red control: the collection act's push made a no-op fails slash_threads_and_slash_issues_open_their_collections. Literal id added at 5f62b2633.
 
-### WP-02 -- The menubar's one status line, in Gtools' shape (status: Not Started)
+### WP-02 -- The menubar's one status line, in Gtools' shape (status: Done)
 
-_(no tests in this group)_
+- AT-02.1 `native/macos/Intent/IntentTests/HealthTests.swift` -- covers AC-02.1 -- status: green -- bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.
+- AT-02.2 `native/macos/Intent/IntentTests/HealthTests.swift` -- covers AC-02.2 -- status: green -- bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.
+- AT-02.3 `native/macos/Intent/IntentTests/HealthTests.swift` -- covers AC-02.3 -- status: green -- bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.
 
 ### WP-03 -- The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file (status: Not Started)
 
