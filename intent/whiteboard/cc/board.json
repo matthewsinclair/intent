@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-13T14:59:31.441Z",
+    "heartbeat_at": "2026-09-13T15:50:12.641Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-09-13 14:50Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039), hv's stamp ruling (334f01cb5), 0322 (0f5c6950c, closed by vc on the delivered set at e70c3528a). 0354: my code reading is with vc, reading-only until hv's dtruss names the errno. Nothing under native/, surface/, lib/ or bin/ before the tag unless hv orders it; the cut is hv's. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-13 15:50Z: 0366 LANDED at 524f5f868 on vc's order (the daemon builds its index at open, one stale top-level directory at a time between client ops; AC-22.4/AT-22.4 on ST0069/WP-22, red then green, intentd suite green). 0354: S1 (a std-parker block_on at store.rs:289 and :886) is ruled and unbuilt until hv's dtruss reads Err#4 (interrupter, S3) or a nonzero immediate return (psynch sequence fault, S1). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
