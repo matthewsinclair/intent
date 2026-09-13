@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 11:07Z
+heartbeat_at: 2026-09-13 13:17Z
 status: active
-focus: "AT-14.2 GREEN at b318c7039 (2026-09-13 11:07Z): AC-14.2 satisfied, ST0069 has no unsatisfied row on cc's lane. HOLDING for vc's next order. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-13 13:17Z for the user's compact, HOLDING for vc. Landed today: AT-14.2 green (b318c7039, ST0069 closed by vc) and hv's stamp ruling (334f01cb5: identity is HEAD, dirt scoped, verify_pair and guard arm 6c moved with it). vc holds the incremental-build limit as a note to hv. Nothing in cc's lane before the tag. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -55,6 +55,7 @@ _(none)_
 - **AFTER A THREE-WAY APPLY THE LANDING PATCH IS `git diff HEAD`.** The apply stages into the worktree's index, so a bare `git diff` is empty and the landing refused with "no valid patches"; a new file needs `git add -N` before it shows at all.
 - **`reset --hard` KEEPS UNTRACKED FILES.** A script's new test file survived onto the next base without its `suite.rs` line, and `no_orphan_suite_member` refused it; a red that names a file outside the change is residue, and the file says so.
 - **`Failure::Unavailable` EXITS 2, WHICH A GATE READS AS FAIL-OPEN.** A refusal that is a plain no is `Failure::Error`, exit 1; the CLI drive caught the first build of the register form getting this wrong.
+- **A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.
 
 ## Decisions
 
