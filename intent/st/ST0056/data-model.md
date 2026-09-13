@@ -35,30 +35,34 @@ Per-table naming follows how each table is written. Rows with durable identity a
 
 **There are FOUR domain dates.** `threads.created`, `threads.completed`, `issues.created` **and `issues.closed`**. **The comment that defines what a domain date IS is the comment a future author reads to decide whether a new column needs a door**, so a column missing from it is a column that will be added without one.
 
-**The ruling: every entity carrying a domain date needs both doors, because the door is chosen by the ACT and both acts reach every such entity.** As built, `Store::write_thread` and `Store::write_issue` each take a `Stamp` (`store.rs:1991`, `:2176`): `Stamp::ByTheDatabase` is the create door, where SQLite fills an empty date inside the `INSERT`, and `Stamp::CarriedFromTheExtract` is the restore door, where the recorded date is written verbatim. `rebuild` uses the restore door; `commit_mutation` uses the create door.
+**The ruling: every entity carrying a domain date needs both doors, because the door is chosen by the ACT and both acts reach every such entity.** As built, `Store::write_thread` and `Store::write_issue` each take a `Stamp` (`store.rs:2647`, `:2832`): `Stamp::ByTheDatabase` is the create door, where SQLite fills an empty date inside the `INSERT`, and `Stamp::CarriedFromTheExtract` is the restore door, where the recorded date is written verbatim. `rebuild` uses the restore door; `commit_mutation` uses the create door.
 
 **`issues.closed` takes the three-state form `threads.completed` has** -- `None` stays null, `Some("")` is stamped by the database, `Some(date)` is carried -- because `issues close` is precisely the act that produces it, and the alternative is the facade reading a clock, which D42 forbids.
 
 **The `stays authored` rationale answers a migration question only**: why a v2 `created` is not replaced by `created_at`, where a v2 author really did write the date. When **nobody authored it** -- every v3-native `issues add` -- the create door stamps it.
 
-**`commit_mutation` returns `StoredDates`** (`store.rs:1607`, `:2317`), one named struct carrying the thread dates, the issue dates and the stamp on the mutation's own event, so every date the database set comes back from the write for the extract to render from. Without that channel, truth and its projection would disagree on the one field neither can recompute, which is D42's own stated hazard.
+**`commit_mutation` returns `StoredDates`** (`store.rs:2217`, `:2973`), one named struct carrying the thread dates, the issue dates and the stamp on the mutation's own event, so every date the database set comes back from the write for the extract to render from. Without that channel, truth and its projection would disagree on the one field neither can recompute, which is D42's own stated hazard.
 
 **Scope call with its reversibility** (D39): `wps` and `criteria` have stable IDs, so wholesale-replace is a property of today's write strategy, not of the domain. Delete-missing + upsert-present is the upgrade path and `written_at` does not block it.
 
 ### project (`intent/.config/config.json` -- as today, plus)
 
-| Field                | Type   | Notes                                                                                           |
-| -------------------- | ------ | ----------------------------------------------------------------------------------------------- |
-| project_id           | uuid   | stamped at migration (D15); never changes                                                       |
-| intent_version       | string | `3.0.0`+                                                                                        |
-| project_name, author | string | as v2                                                                                           |
-| languages            | array  | as v2 (ST0037)                                                                                  |
-| server               | object | RESERVED, absent in v3 (D15); intentc-era binding                                               |
-| ~~st_prefix~~        | --     | **RETIRED (hv, 2026-08-16, issue 0040)** -- see below                                           |
-| todo                 | object | `{window_hours: int}`, default 24 -- **NOT the watermark**; see below                           |
-| backup               | object | the D35 snapshot schedule and per-tier retention                                                |
-| doctor               | object | findings a project has acknowledged; absent unless used                                         |
-| _(any other key)_    | --     | carried verbatim (`Config::extra`), so a rewrite never drops a block this version does not know |
+| Field                | Type   | Notes                                                                                                                   |
+| -------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------- |
+| project_id           | uuid   | minted by `intent init` for a new project and stamped at migration for a v2 one (D15, `mint_project_id`); never changes |
+| intent_version       | string | `3.0.0`+                                                                                                                |
+| project_name, author | string | as v2                                                                                                                   |
+| languages            | array  | as v2 (ST0037)                                                                                                          |
+| server               | object | RESERVED, absent in v3 (D15); intentc-era binding                                                                       |
+| ~~st_prefix~~        | --     | **RETIRED (hv, 2026-08-16, issue 0040)** -- see below                                                                   |
+| todo                 | object | `{window_hours: int}`, default 24 -- **NOT the watermark**; see below                                                   |
+| backup               | object | the D35 snapshot schedule and per-tier retention                                                                        |
+| doctor               | object | findings a project has acknowledged; absent unless used                                                                 |
+| intent_dir           | string | the Intent directory, default `intent`                                                                                  |
+| embed                | object | the embedder block; absent unless a project has an embedder, never written when default                                 |
+| index                | object | search-index settings; never written back when default                                                                  |
+| whiteboard           | object | whiteboard bounds; never written back when default                                                                      |
+| _(any other key)_    | --     | carried verbatim (`Config::extra`), so a rewrite never drops a block this version does not know                         |
 
 Project-level **state** -- as opposed to configuration -- lives in committed canon at `intent/.canon/project.json` (`schema: intent/project@3.0`), carried into the store's `project` singleton table. Its one field today is `todo_watermark`, below.
 
@@ -234,7 +238,7 @@ Measured on this repository's own corpus (vc, 2026-08-15, on cc's WP-06 finding)
 
 | Field | Type   | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| id    | string | `AC-01.1` -- **the group is a GROUP, and it names a WP only when the thread HAS work packages.** `00` is thread-level. In a thread with no WPs the group is a numbering device and references nothing, and several threads in this estate number criteria across groups with no WP directories at all. **`doctor` asserts the WP reference only when `!thread.wps.is_empty()`** (`doctor.rs:924`): in a thread that DOES carry work packages, a group naming a missing WP is a real inconsistency and is reported. |
+| id    | string | `AC-01.1` -- **the group is a GROUP, and it names a WP only when the thread HAS work packages.** `00` is thread-level. In a thread with no WPs the group is a numbering device and references nothing, and several threads in this estate number criteria across groups with no WP directories at all. **`doctor` asserts the WP reference only when `!thread.wps.is_empty()`** (`doctor.rs:951`): in a thread that DOES carry work packages, a group naming a missing WP is a real inconsistency and is reported. |
 | text  | string |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | kind  | enum   | `test · non-test` -- **the DISCRIMINATOR for `state`'s shape below**                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | state | tagged | `{is: computed}` · `{is: unsatisfied, note?}` · `{is: satisfied, evidence}` (evidence non-empty) · `{is: descoped, to: STxxxx, by?, reason?}` · `{is: withdrawn, reason, by?}` · `{is: fiat, because, by, at, invoker, inherited_from?, inherited_event?}` -- **REQUIRED on every criterion.** `computed` is the in-scope value for a `test` criterion; `satisfied`/`unsatisfied` are refused on one. `computed` RATIFIED by hv 2026-08-15 (see "The fifth state"), `fiat` by hv 2026-08-29 (Machine 3)            |
@@ -406,7 +410,7 @@ Evidence about the invocation that recorded a fiat close. **Collected by the ser
 
 **The body lives in the JSON (hv ruling, 2026-08-18).** Before the ruling the spec named a sibling authored `issues/<n>.md` while `schema/issue.schema.json` declared `body`, and neither was implemented: no canon file carried a `body` key, so the authored issue text lived ONLY in `intent/.cache/intent.db`. That path is gitignored, so by D29 the content was never canon and by D34 it never travelled -- **absent from every clone, and nothing anywhere said so.** It surfaced only because `sync --to-store` replaced the store from an extract that had never carried it.
 
-The issue is self-contained the way a thread is and round-trips under AC-02.6. **A sibling authored file whose canon record does not hold it is the two-ended shape this thread has now paid for twice.** v3 renders no per-issue `.md`; `intent issues show` reads the issue from the store.
+The issue is self-contained the way a thread is and round-trips under AC-02.6. **A sibling authored file whose canon record does not hold it is the two-ended shape this thread has now paid for twice.** v3 renders `intent/issues/<nnnn>.md` as a generated view of the canon record (`views::issue`, restored by ST0069 WP-01) -- a rendering, not a second authored home; `intent issues show` reads the issue from the store.
 
 **The bodies were recovered from a store snapshot and proved interchangeable with the v2 originals rather than assumed:** every snapshot body compared byte-for-byte against `9b73e98f`'s authored v2 originals with the YAML frontmatter stripped, and every one was identical, the per-file gap being exactly the frontmatter block the migrator parsed into fields.
 
@@ -430,7 +434,7 @@ Written by every mutation (WP-02).
 
 **`ts` IS ABSENT ON A MINTED-BUT-UNWRITTEN ENVELOPE, AND THAT IS D42 IN THE ONE PLACE IT IS EASIEST TO BREAK.** `Envelope::minted` deliberately produces an envelope with NO time, because the clock belongs to the WRITE -- a log entry is the last thing anyone would think to withhold a timestamp from, and it is exactly where a caller-supplied time would become unfalsifiable history. The number of `minted` call sites is deliberately not written here; it is a thing to derive, not to keep a second copy of.
 
-**The DB is the durable SSOT, so the event log in it is durable truth like everything else there** (D01 as reversed). **It has ONE home and it is the store (D53)**: no events file is kept in the working tree. `intent events` queries it (`--op`, `--subject`, `--limit`), and `intent export` produces the lossless `events.jsonl` form on demand. The read-only query door is `intent graphql`, through intentd; there is no SQL surface. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
+**The DB is the durable SSOT, so the event log in it is durable truth like everything else there** (D01 as reversed). **It has ONE home and it is the store (D53)**: no events file is kept in the working tree. `intent events` queries it (`--op`, `--subject`, `--limit`), and `intent export` produces the lossless `events.jsonl` form on demand. The read-only query doors are `intent graphql`, through intentd, and `intent search --sql`, which runs exactly one read statement (AC-17.1); there is no write-SQL surface. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
 
 #### `subject` (inside the event envelope)
 
@@ -457,20 +461,20 @@ One file is a whole readable board, so rendering one needs no join across nodes.
 | ---------- | ------------------------------------------------------------------ |
 | `schema`   | always `intent/board@3.0`, the published face's own version marker |
 | `node`     | this board's own `wb_node` -- the header block, modelled           |
-| `items`    | this node's `wb_item` rows, in `seq` order                         |
+| `items`    | this node's `wb_item` rows, in insertion order (ROWID)             |
 | `messages` | the `wb_message` rows ADDRESSED TO this node, in insertion order   |
 
 **A message lands in the RECIPIENT's file, which is where the markdown board already puts it** -- `<recipient>/inbox.<sender>.md` (AC-14.5). A sender writing into the recipient's file is exactly what `ask` does today; the single-writer invariant is the API's and is not a property of which file the extract lands in.
 
 ### wb_node / wb_item / wb_message (`whiteboard/<node>/board.json`; D30, WP-14)
 
-The coordination entities, **modelled and in the store from ST0069 WP-14**, inside the `board` envelope above. `intent wb register` is how a roster gets there: it reads `moniker`, `name` and `role` from each node's own `wip.md` header and writes one `wb_node` row per participant, idempotent by moniker, with no items and no messages. **Registering is not migrating.** The markdown beside the registered rows stays hand-authored and authoritative, and `wip.md` and `inbox.<sender>.md` are not yet the generated views D02 describes -- switching them is a later package, and until it lands a thin registered board is configuration rather than a half-finished migration. Durable form is committed JSON canon per D01, one `board.json` per node.
+The coordination entities, **modelled and in the store from ST0069 WP-14**, inside the `board` envelope above. `intent wb register` is how a roster gets there: it reads `moniker`, `name` and `role` from each node's own `wip.md` header and writes one `wb_node` row per participant, idempotent by moniker, with no items and no messages. **Registering is not migrating.** The markdown beside the registered rows stays hand-authored and authoritative, and `wip.md` and `inbox.<sender>.md` are not yet the generated views D02 describes -- switching them is a later package, and until it lands a thin registered board is configuration rather than a half-finished migration. As built (2026-09-13), that package has landed: `intent wb migrate` carries a node's board and inboxes into rows and stamps `migrated_at`, every board write on an unmigrated node refuses (`WbNotMigrated`), a migrated node's `wip.md` and inboxes are rendered from its rows, and `wb register <moniker> --name <display> --role <role>` registers one node from its arguments (`facade.rs:5338-5350`, `:5538`, `render.rs:3853-3872`). Durable form is committed JSON canon per D01, one `board.json` per node.
 
-| Entity       | Fields                                                                                                                                           |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`  |
-| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?` |
-| `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`      |
+| Entity       | Fields                                                                                                                                                          |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?` |
+| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`         |
+| `wb_message` | `sender`, `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`, `recorded_at`, `authored_at?`                     |
 
 The properties that are the point of modelling these rather than parsing them (D30):
 
@@ -481,7 +485,7 @@ The properties that are the point of modelling these rather than parsing them (D
 - **Bounds are enforced on write and refused by name.** Per-entry body size, live items per node per kind, and live messages per inbox are configured, and an over-bound write is refused with the bound and the remedy stated -- the D05 posture applied to size, never truncation, never a silent accept.
 - **`state` transitions are the API's**, so archival happens on schedule rather than when a node remembers, which is what produced 251KB of `.history`.
 
-The header block is line-oriented `key: value` (D13) and the traffic runs both ways: `wb register` PARSES it to seed `wb_node`, and the rendered view is GENERATED from those rows once the views are switched. Parsing is how an existing hand-authored board gets into the model at all; it is a one-way door taken once per node, not a standing read.
+The header block is line-oriented `key: value` (D13) and the traffic runs both ways: `wb register` PARSES it to seed `wb_node`, and the rendered view is GENERATED from those rows once the node is migrated (`wb migrate`). Parsing is how an existing hand-authored board gets into the model at all; it is a one-way door taken once per node, not a standing read.
 
 ## Generated views: the renderer has no clock
 
@@ -511,7 +515,7 @@ UTF-8, LF, 2-space indent, trailing newline, object keys in schema-declared orde
 
 The WP-01 draft schema that stood here is **pruned**. WP-02 landed the schemars face, so the supersession this document declared at the top has already happened, and a second copy of the schema in prose is the divergent-copy drift Highlander exists to stop -- proved in the act: the draft went stale the moment `objective`, `context`, `related` and `legacy` were added above, and a reader building from it would have built the wrong type.
 
-The authored master is the Rust type layer (`native/rust/crates/intentsvcs/src/model.rs`). The committed faces are generated from it into `schema/` at the repo root -- `thread.schema.json`, `issue.schema.json`, `event.schema.json`, `ddl.sql`, `schema.graphql` -- by `native/rust/crates/intentsvcs/src/faces.rs`, and `native/rust/crates/intentsvcs/tests/schema_faces_drift.rs` fails CI on any diff. Re-bless deliberately and in the same commit as the type change:
+The authored master is the Rust type layer (`native/rust/crates/intentsvcs/src/model.rs`). The committed faces are generated from it into `schema/` at the repo root -- `thread.schema.json`, `issue.schema.json`, `board.schema.json`, `event.schema.json`, `ddl.sql`, `schema.graphql` -- by `native/rust/crates/intentsvcs/src/faces.rs`, and `native/rust/crates/intentsvcs/tests/schema_faces_drift.rs` fails CI on any diff. Re-bless deliberately and in the same commit as the type change:
 
 ```
 INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift
@@ -527,7 +531,7 @@ Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content --
 
 This set is what an `intent export` cannot reproduce from the DB alone.
 
-**The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`. That model is not built in 3.0.1 (WP-14 cancelled, descoped to ST0069), so `intent/whiteboard/` is reported as modelled-but-unbuilt rather than as out of model, and its files stay on disk untouched.
+**The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`. That model is not built in 3.0.1 (WP-14 cancelled, descoped to ST0069), so `intent/whiteboard/` is reported as modelled-but-unbuilt rather than as out of model, and its files stay on disk untouched. As built (2026-09-13), ST0069 WP-14 built it: each node's `board.json` is canon, and a migrated node's `wip.md` and inboxes are rendered from its rows (`wbmigrate.rs`, `views.rs:1717`).
 
 ## State machines (RATIFIED by hv, 2026-08-15)
 
@@ -584,7 +588,7 @@ Two of those were caused by vc adding ACs to a closed WP: **`wp done` existed an
   - **THE PREDICATE (vc's reading of hv's ruling, 2026-08-17; the shape found by cc while implementing it).** **A verb applied to an entity already in that verb's TARGET state is a self-loop, and is accepted at exit 0 without running the verb's guards. Whether the verb is DECLARED from the current state is a separate question, and it is asked only when the current state differs from the target.**
     - **Recorded as a reading rather than as ruling text, because it is not derivable from the ruling.** hv ruled the behaviour; the predicate is the form that makes it decidable at a call site, and it should be argued with as vc's, not deferred to as hv's.
     - **The second clause is what keeps 0046 refused**, and it is why "is the verb declared from here" cannot be the test. `wp start` on `Done`: the target is `Wip`, `Wip != Done`, so it is not a self-loop; it goes to the declared-edge test and fails there. Test the verb's TARGET, never its declared origins -- a verb declared from many states would otherwise self-loop from all of them.
-    - **`transitions.rs` transcribes this; it does not restate it.** A predicate living only in the test that exercises it is the declaration-enforced-by-hand shape deleted from `facade.rs` on the same day -- `Guard::GatePass` was declared and hand-enforced in two call sites, so deleting the declaration changed nothing. AC-04.6 holds the pair.
+    - **`transitions.rs` transcribes this; it does not restate it.** As built (2026-09-13), the self-loop test lives in the facade's shared setters ahead of `transitions::permits` and `transitions.rs` declares only the edges (`facade.rs:8027-8036`, `:8607-8610`, `:9819-9836`). A predicate living only in the test that exercises it is the declaration-enforced-by-hand shape deleted from `facade.rs` on the same day -- `Guard::GatePass` was declared and hand-enforced in two call sites, so deleting the declaration changed nothing. AC-04.6 holds the pair.
 
 ### CLOSURE IS MEASURED AT THE FACADE, AND SURFACE REACHABILITY IS A SEPARATE QUESTION (ruling, vc, 2026-08-17, on ic's issue 0052 and cc's `WorkPackage.scope` reasoning)
 
@@ -809,7 +813,7 @@ States: `to-write` | `red` | `green` | `n-a` | `fiat`. **Entry: `to-write`.**
 
 **`(any)` IS NOT A STATE, AND THIS IS THE FIRST TABLE ON THE PAGE TO CARRY IT.** `at.set` declares `from: &[]`, which `Edge::accepts` reads as _no from-restriction_ and `machine_table_check.sh` renders as the literal `(any)`. Writing the states out instead would declare a DIFFERENT machine -- that `at.set` is legal from exactly those values -- and a value added later would then owe a new row per landing rather than none.
 
-**EVERY CELL IN THE VERB COLUMN IS AN OP TOKEN AND NONE IS A CLI INVOCATION; this is the first table on the page where that is true of the whole column.** Machine 3's two `ac.fc` cells were the first such cells and the reason here is broader than a top-level verb: **`at.set` has no CLI spelling at all.** The surface offers `at green`, `at red` and `at na` -- each onto one facade call, the single `at_set` call site at `render.rs:3179`. The checker normalises a Verb cell by joining its first two words with a dot, so each of them would normalise to a token no edge declares. `at.fc` is the top-level-verb case Machine 3 already records.
+**EVERY CELL IN THE VERB COLUMN IS AN OP TOKEN AND NONE IS A CLI INVOCATION; this is the first table on the page where that is true of the whole column.** Machine 3's two `ac.fc` cells were the first such cells and the reason here is broader than a top-level verb: **`at.set` has no CLI spelling at all.** The surface offers `at green`, `at red` and `at na` -- each onto one facade call, the single `at_set` call site at `render.rs:3272`. The checker normalises a Verb cell by joining its first two words with a dot, so each of them would normalise to a token no edge declares. `at.fc` is the top-level-verb case Machine 3 already records.
 
 **AND THE SURFACE CANNOT DRIVE ONE OF ITS LANDING STATES.** `at new` enters at `to-write` by default -- it also takes `--status` for any ordinary value, writing the new row through `Facade::put` as one `at.put` event -- and no command returns an existing test to `to-write`: `at edit` re-cites file, prose, kind and coverage, and does not touch status. So `(any) -> to-write` is reachable through the typed API and through no command. **That is this page's own closure-is-measured-at-the-facade ruling with a live instance** -- the machine is closed to the API, `no_state_can_be_entered_and_not_left` is satisfied, and neither fact says an operator can walk it. Recorded rather than fixed: inventing a verb so that a table looks symmetrical is how a surface grows commands nobody asked for.
 

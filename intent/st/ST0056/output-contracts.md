@@ -56,12 +56,12 @@ ic's general form covers every mechanism below and predicts ones nobody has hit 
 
 ## The same defect at three scales, one afternoon
 
-| scale      | artefact                              | what it failed to announce                                               | closed by       |
-| ---------- | ------------------------------------- | ------------------------------------------------------------------------ | --------------- |
-| the ARM    | `self_provenance_check.sh` arm 2      | five outcome branches, four worded as findings, `rc` set in none of them | `addd4581` (dc) |
-| the GUARD  | `G_SELFPROV` in `cmd/precommit`       | declared arm 1's concern while running arm 2 undeclared                  | `af7f86d7` (vc) |
-| the MARKER | `intent-source-commit:dirty-<sha>`    | it names a COMMIT and is not an IDENTITY                                 | AC-10.11 (vc)   |
-| the STORE  | the sqlite store behind `intent sync` | that it had REFUSED the last write and was therefore stale               | open            |
+| scale      | artefact                              | what it failed to announce                                               | closed by                                        |
+| ---------- | ------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------ |
+| the ARM    | `self_provenance_check.sh` arm 2      | five outcome branches, four worded as findings, `rc` set in none of them | `addd4581` (dc)                                  |
+| the GUARD  | `G_SELFPROV` in `cmd/precommit`       | declared arm 1's concern while running arm 2 undeclared                  | `af7f86d7` (vc)                                  |
+| the MARKER | `intent-source-commit:dirty-<sha>`    | it names a COMMIT and is not an IDENTITY                                 | AC-10.11 (vc)                                    |
+| the STORE  | the sqlite store behind `intent sync` | that it had REFUSED the last write and was therefore stale               | closed 2026-08-19, ST0057 AC-03.13 (`46ab22206`) |
 
 In the first three the artefact was correct, the reader was careful, and the contract lived somewhere the reader could not reach: a comment, a roster line, nowhere at all.
 
@@ -256,4 +256,6 @@ With three instances it reads as coincidence. **The recurrence is the finding, a
   **The narrow verb.** Keeping one thread's attachment records current once took repeated whole-estate syncs within the hour, because `intent sync` had no operation smaller than the estate. `intent sync <id>...` now names the threads that take their value from the source.
   **A commit-time control refusing canon that names bytes not in that same commit** -- argued from AC-11.1 and the clock guard's block-only-on-what-the-commit-adds. Measured before it was built: half the commits carrying canon with attachments disagreed, but only a handful introduced a new divergence, so a naive form would block half of all commits and be a guard nobody keeps; the inherited-breakage clause is the whole design. It runs in Intent's own pre-commit gate as `canon_commit_check.sh --staged`, which GATES on what a commit ADDS and reports inherited divergences without failing on them.
 
-- **OPEN.** A store that refused a write must not then be read as truth silently (vc's, above -- the only member of this class that destroyed data). The nominations over the instruments this WP does not own, held by their owners.
+- **CLOSED SINCE.** A store that refused a write is no longer written back over canon silently (vc's, above -- the only member of this class that destroyed data): `sync --to-disk` refuses to egest from a store whose last ingest was refused (as built since 2026-08-19, ST0057 AC-03.13, `46ab22206`, `facade.rs:6027`).
+
+- **OPEN.** The nominations over the instruments this WP does not own, held by their owners.

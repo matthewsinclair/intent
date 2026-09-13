@@ -10,17 +10,17 @@ This document takes that brief, names the one thing in it that cannot be true as
 
 ## 1. The model is THREE layers, and the brief collapses two of them
 
-| layer     | what                                                                                     | where                                                                    | committed            | who derives it              |
-| --------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------- | --------------------------- |
-| **canon** | one JSON file per thread (carrying its attachments) and per issue                        | `intent/.canon/st/<ID>.json`, `intent/.canon/issues/<NNNN>.json`         | **yes**              | authored through the facade |
-| **store** | `intent/.cache/intent.db`                                                                | machine-local                                                            | **NO -- gitignored** | rebuilt from canon          |
-| **disk**  | a realised thread's views (`info.md`, `acceptance.md`, WP `info.md`) and its attachments | `intent/st/<ID>/`, plus the index views `steel_threads.md` and `todo.md` | yes                  | written from the store      |
+| layer     | what                                                                                                                  | where                                                                                                  | committed            | who derives it              |
+| --------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------- | --------------------------- |
+| **canon** | one JSON file per thread (carrying its attachments) and per issue                                                     | `intent/.canon/st/<ID>.json`, `intent/.canon/issues/<NNNN>.json`                                       | **yes**              | authored through the facade |
+| **store** | `intent/.cache/intent.db`                                                                                             | machine-local                                                                                          | **NO -- gitignored** | rebuilt from canon          |
+| **disk**  | a realised thread's views (`info.md`, `acceptance.md`, WP `info.md`) and its attachments, and a realised issue's view | `intent/st/<ID>/` and `intent/issues/<NNNN>.md`, plus the index views `steel_threads.md` and `todo.md` | yes                  | written from the store      |
 
 **The store is SSOT for a running tool on one machine. It is not what travels.** `intent/.cache/` is gitignored at `.gitignore:125`, and the ignore rule's own comment says the name contradicts the model. `intent sync --to-disk` is documented as _"Write the store out to **the committed extract**"_ -- the tool's own vocabulary already distinguishes the runtime store from the durable record.
 
 **So "disk is a sparse copy of the DB" is safe for the realised files and unsafe for CANON.** If `.intentfiles` governed canon as well, an unrealised artefact would exist only inside a gitignored database. A fresh clone would not contain it. **D29 -- a gitignored path is never canon -- is not a style rule here; it is the thing that makes a clone complete.**
 
-**Ruling, as built: `.intentfiles` governs a thread's realised files -- its views and its attachments. Canon is never sparse.**
+**Ruling, as built: `.intentfiles` governs realised files -- a thread's views and attachments, and an issue's view. Canon is never sparse.**
 
 That is what makes every deletion in this design safe rather than merely careful: **`organize` only ever removes a file the store can put back byte for byte, from canon sitting beside it in the same commit.**
 
@@ -50,11 +50,11 @@ The set it governs is committed. If the manifest were machine-local, `organize` 
 
 Many writers, one meaning:
 
-- `st start`, `st resume` and `st reopen` add the thread's id; `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and `st reinstate` do neither. The op decides, not the status it lands on.
+- `st start`, `st resume` and `st reopen` add the thread's id; `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and `st reinstate` do neither; `issues add` and `issues open` add an issue's id and `issues close` removes it. The op decides, not the status it lands on.
 - `st hydrate <ID>` and `st dehydrate <ID>` add or remove it directly and write or delete the files.
 - `intent edit` adds the id of a thread it realises.
 - A human may edit the file by hand.
-- `intent organize --default` writes the file from status -- one `STEELTHREAD:` line per WIP thread, nothing else -- when it is absent, and `--force` regenerates an existing one (refused without a tty; confirmed on one). `intent init` writes the header with no declarations, and `intent upgrade` writes the default when the file is absent.
+- `intent organize --default` writes the file from status -- one `STEELTHREAD:` line per WIP thread and one `ISSUE:` line per open issue, nothing else -- when it is absent, and `--force` regenerates an existing one (refused without a tty; confirmed on one). `intent init` writes the header with no declarations, and `intent upgrade` writes the default when the file is absent.
 
 **ABSENT is not EMPTY.** A missing file means nobody has said, and everything stays; a present file declaring nothing means keep nothing.
 
@@ -67,17 +67,17 @@ STEELTHREAD:ST0057
 
 ### 4.3 The grammar is enforced, and a malformed line REFUSES
 
-`<SIGIL>:<ID>`, where `STEELTHREAD` is the only sigil and `ID` must have a steel-thread id's shape, with an optional trailing `# comment`. Nothing else. **`ISSUE:` was in the proposed grammar and hv retired it on 2026-08-20**: issues live in canon and the store only and have no realised form, so there is nothing for a manifest line to declare.
+`<SIGIL>:<ID>`, where the sigil is `STEELTHREAD` or `ISSUE` and `ID` must have that artefact's id shape (`ST` and four digits, or four digits), with an optional trailing `# comment`. Nothing else. **`ISSUE:` was in the proposed grammar and hv retired it on 2026-08-20**, when an issue had no realised form. ST0069 WP-01 restored it once an issue rendered to `intent/issues/<NNNN>.md`, so the line names something that exists.
 
-**A line the parser cannot read aborts the run, naming the line number.** Not skip it. A skipped line silently drops an artefact from realisation, and the estate looks exactly like a correct one that never listed it. **This project has paid for that shape twice already** -- v2.19.0's `ac gate` F1 fix turned malformed AC/AT lines from a silent drop into a block precisely because a silent drop produced a vacuous green, and the AT row grammar with `at lint` L1-L5 exists for the same reason. Driven at v3.0.1: an `ISSUE:0001` line refuses with ``line <n>: `ISSUE` is not a known sigil -- expected STEELTHREAD`` and exit 1.
+**A line the parser cannot read aborts the run, naming the line number.** Not skip it. A skipped line silently drops an artefact from realisation, and the estate looks exactly like a correct one that never listed it. **This project has paid for that shape twice already** -- v2.19.0's `ac gate` F1 fix turned malformed AC/AT lines from a silent drop into a block precisely because a silent drop produced a vacuous green, and the AT row grammar with `at lint` L1-L5 exists for the same reason. Driven at v3.0.1: an `ISSUE:0001` line refuses with ``line <n>: `ISSUE` is not a known sigil -- expected STEELTHREAD`` and exit 1. Since ST0069 WP-01 an unknown sigil refuses with ``line <n>: `<SIGIL>` is not a known sigil -- expected STEELTHREAD or ISSUE``.
 
 ## 5. `intent organize` -- a reconciler with a fixed set of answers per path
 
 ```
-intent organize [--apply] [--default [--force]] [-v | --verbose] [-q | --quiet]
+intent organize [--apply [--plan <digest>]] [--default [--force]] [-v | --verbose] [-q | --quiet]
 ```
 
-**Previews by default and touches nothing; `--apply` performs the reconciliation.** v2's `organize` was a status-directory tidier; under the flat layout that job disappeared, and hv reclaimed the name for this verb on 2026-08-19.
+**Previews by default and touches nothing; `--apply` performs the reconciliation.** `--apply` prints the plan first, asks before any removal on a terminal (and says it is proceeding when there is none), and pins the act to the printed plan's digest -- or to `--plan <digest>`, a plan shown earlier -- so a tree that has moved since refuses with `TreeMoved`. v2's `organize` was a status-directory tidier; under the flat layout that job disappeared, and hv reclaimed the name for this verb on 2026-08-19.
 
 For every realisable path, compare **declared** (in the manifest) against **actual** (on disk):
 
@@ -90,10 +90,10 @@ For every realisable path, compare **declared** (in the manifest) against **actu
 
 Plus the rows that are not about a declared artefact:
 
-| path                                                                     | action                                |
-| ------------------------------------------------------------------------ | ------------------------------------- |
-| a file under `intent/st/` that the store neither renders nor carries     | **UNCLAIMED -- report, never remove** |
-| an index view no manifest line can imply (`steel_threads.md`, `todo.md`) | **EXEMPT -- kept, always**            |
+| path                                                                                     | action                                |
+| ---------------------------------------------------------------------------------------- | ------------------------------------- |
+| a file under `intent/st/` or `intent/issues/` that the store neither renders nor carries | **UNCLAIMED -- report, never remove** |
+| an index view no manifest line can imply (`steel_threads.md`, `todo.md`)                 | **EXEMPT -- kept, always**            |
 
 **A file the renderer does not know how to make is either an attachment the store has not taken in or something a human put there, and both are content. `organize` must not be the thing that decides an unrecognised file is rubbish.**
 
@@ -137,7 +137,7 @@ The two are different facts:
 
 **The disposition record is a LICENCE, not an account.** `conservation_check.sh` reads a declared drop as _"removed on purpose, not loss"_ and stops reporting it. Admitting uncarried files under that verdict would silence the exact population the check exists to find -- **which is the attack ic drove on 2026-08-18 through `--out-of-model`: the migrator zeroes a counter by naming everything, certifying its own denominator.** Same move, different door.
 
-**Home for the fact: `doctor`.** As built, any file a human puts under a thread is an attachment when it fits under `ATTACHMENT_CAP_BYTES` (1 MiB, inclusive; `project.rs:50`), and a file over the cap is the uncarried case, which `doctor` names with its size (`doctor.rs:1220`). An uncarried file is a LIVE CONDITION, not a record of what a migration once did.
+**Home for the fact: `doctor`.** As built, any file a human puts under a thread is an attachment when it fits under `ATTACHMENT_CAP_BYTES` (1 MiB, inclusive; `project.rs:50`), and a file over the cap is the uncarried case, which `doctor` names with its size (`doctor.rs:1254`). An uncarried file is a LIVE CONDITION, not a record of what a migration once did.
 
 ### 5.2 Idempotence is a measured requirement, not an aspiration
 
@@ -156,13 +156,13 @@ One consequence worth carrying rather than fixing: **the store is created at the
 As built, a run prints one summary line naming every bucket, and a preview says so:
 
 ```
-organize (preview): <n> to hydrate, <n> to rewrite, <n> unchanged, <n> to remove, <n> to prune, <n> unclaimed (<digest>), <n> diverged, <n> refused
+organize (preview): <n> to hydrate, <n> to rewrite, <n> unchanged, <n> to remove (<n> blocked), <n> to prune, <n> to prune (v2), <n> unclaimed (<digest>), <n> diverged, <n> refused
   to-rewrite: <path>
   unclaimed: <n> directory(ies) not listed -- `intent organize --verbose` lists them
 organize: preview only -- nothing was written or removed. `intent organize --apply` performs it.
 ```
 
-`--apply` prints the same buckets in the past tense (`hydrated`, `rewritten`, `removed`, `pruned`). Each refusal is named with its path and remedy, and a refusal on `--apply` moves the exit code. The `unclaimed` digest is over the sorted membership of the unclaimed set, so two runs can be compared by membership rather than by size. **A count that names every bucket is a measurement rather than a report**, and `organize` is the command whose greens authorise deletions.
+`--apply` prints the same buckets in the past tense (`hydrated`, `rewritten`, `removed`, `pruned`, `pruned (v2)`). Each refusal is named with its path and remedy, and a refusal on `--apply` moves the exit code. The `unclaimed` digest is over the sorted membership of the unclaimed set, so two runs can be compared by membership rather than by size. **A count that names every bucket is a measurement rather than a report**, and `organize` is the command whose greens authorise deletions.
 
 ## 6. Realising one artefact on demand
 
@@ -172,7 +172,7 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 
 **Built: `intent edit [KIND] [ID] [FILE]`.** It realises the thread if it is not on disk, adds the thread's id to `.intentfiles`, and prints the path of the file to open (`info` by default). `--path` prints the path whatever stdout is; `--editor[=<program>]` opens it in `$VISUAL`, `$EDITOR` or the named program; `--browser` opens the entity in the browser, served by `intentd`. A `FILE` the thread does not carry is refused with the list of what it does carry.
 
-**`intent st edit <ID>` is the same behaviour spelled under the family** -- _"Print the path to a steel thread file, realising the thread if it is not on disk"_ -- one behaviour, one home. An issue has no realised form, so `intent edit issue <N>` refuses by name; `intent issues edit` corrects an issue's record (its prose, title and severity) through the store instead.
+**`intent st edit <ID>` is the same behaviour spelled under the family** -- _"Print the path to a steel thread file, realising the thread if it is not on disk"_ -- one behaviour, one home. An issue's only file is its generated view `intent/issues/<NNNN>.md`, rendered rather than authored, so `intent edit issue <N>` refuses by name; `intent issues edit` corrects an issue's record (its prose, title and severity) through the store instead.
 
 **A hand realisation survives `organize`** because nothing regenerates the manifest from status (4.2): the id `edit` added stays until a command or a human removes it.
 
@@ -182,7 +182,7 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 
 - **Attachments.** `Attachment{path,text,bytes,sha256}`, one constructor, `text` carried with NO trim so a round trip cannot cost a byte (landed `36bc02c5`). Any file under a thread that fits under the attachment cap is an attachment; the extension allowlist that once left files uncarried is retired. **A TEXT attachment's bytes are in canon, so it dehydrates and hydrates like a view. An OPAQUE one is recorded by path, size and sha256 with `text: None`, so its bytes cannot be put back: `organize` refuses to remove it and does not hydrate it as an empty file.**
 - **The typed thread documents.** `design.md`, `impl.md` and `tasks.md` were classified as typed documents the model had no field for. **Resolved by D57-6: they left the classifier's `THREAD_PROSE` list and are carried as attachments**, verbatim, each indexed as one unsplit section for search (`ingest.rs`).
-- **Issue bodies.** `Issue.body` is carried VERBATIM rather than trimmed -- cc's ruling: _a normalisation that requires a future component to compensate is a scheduled defect_. Issues have no realised form, so nothing renders them to disk.
+- **Issue bodies.** `Issue.body` is carried VERBATIM rather than trimmed -- cc's ruling: _a normalisation that requires a future component to compensate is a scheduled defect_. An issue's realised form is its generated view `intent/issues/<NNNN>.md` (`views::issue`), declared by an `ISSUE:` line.
 - **`ROOT_FILES`.** `AGENTS.md`, `CLAUDE.md`, `usage-rules.md` stay out of `.intentfiles` scope. `AGENTS.md` has its generator (`intent agents init|generate|sync|validate`).
 - **The estate-level verdict.** The dehydration ship gate reads the project's declared preconditions (5.1).
 
@@ -193,13 +193,13 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 1. **Canon location -- A, B or C in section 3.** C, built.
 2. **Manifest path.** `intent/.intentfiles`, built. It is a manifest, not an artefact.
 3. **`intent edit` over `intent wip`.** `intent edit`, built.
-4. **Default rule.** Proposed as every thread whose status is not terminal; **built as every WIP thread and nothing else** (hv, 2026-08-26: _"It should ONLY HAVE WIP STs!!!!!"_). Stated positively, the realised set cannot acquire members by accident: it is the set somebody is working on (`intentfiles::default_declaration`).
+4. **Default rule.** Proposed as every thread whose status is not terminal; **built as every WIP thread and nothing else** among threads, plus every open issue since ST0069 WP-01 (hv, 2026-08-26: _"It should ONLY HAVE WIP STs!!!!!"_). Stated positively, the realised set cannot acquire members by accident: it is the set somebody is working on (`intentfiles::default_declaration`).
 5. **Work packages.** A WP is realised with its thread, not independently. There is no `WORKPACKAGE:` sigil.
 6. **The typed documents** (`design.md` / `impl.md` / `tasks.md`) -- give the model fields for them, or reclassify them as attachments. **Attachments, on this spec's own rule 2 (D57-6).** A typed field earns its parsing because the model has fields for what comes out. These are freeform prose under arbitrary headings and the model has no fields for what is inside them, **so parsing them would discard structure into nothing -- which is precisely how `## Related Steel Threads` became rows of `LOST-PROSE`.** Carry them verbatim. The one-off `.md` files under a thread (`parity.md`, `data-model.md`, the fleet reports) were already carried as attachments, so the fix was subtractive: three names came out of the classifier's list.
-7. **Issues have no rendered-view path in v3.** Settled by retiring `ISSUE:` from the grammar (hv, 2026-08-20): an issue lives in canon (`intent/.canon/issues/<NNNN>.json`, carrying its `body`) and in the store, and has no realised form. The only rendered issue markdown in a v2 estate is its `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is residue this design retires.
+7. **Issues have no rendered-view path in v3.** Settled by retiring `ISSUE:` from the grammar (hv, 2026-08-20): an issue lives in canon (`intent/.canon/issues/<NNNN>.json`, carrying its `body`) and in the store, and has no realised form. The only rendered issue markdown in a v2 estate is its `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is residue this design retires. **Reopened by ST0069 WP-01:** as built (2026-09-13), an issue renders to `intent/issues/<NNNN>.md`, `ISSUE:` is back in the grammar, and `organize` realises and dehydrates issue views under the same per-file gate (`intentfiles.rs:87-99`, `views.rs:1528`).
 
 ## 9. The second derivation
 
 `intent/st/ST0056/parity/tools/realise_plan.sh` was this document made executable before `organize` existed. It reads canon (never the directory listing -- **a listing answers "what has a folder" and the question is "what artefacts exist", and those differ by exactly the set this design is about**), applies a default rule, parses a manifest with the refusing grammar, prints the plan with a denominator, and writes nothing.
 
-**It encodes the pre-build rules**: a non-terminal default rather than WIP-only, the retired `ISSUE:` sigil, and issue canon at v2's `intent/issues/NNNN.json`. **Its DEHYDRATE list is UNGATED and it says so in its own output**, because rendering is the Rust binary's job and a shell script cannot run the reproducibility check. `intent organize` without `--apply` is the gated plan: it classifies exactly as `--apply` does, including the per-file gate, and writes nothing.
+**It encodes the pre-build rules**: a non-terminal default rather than WIP-only, an `ISSUE:` sigil with no issue view behind it (`organize` now renders one to `intent/issues/<NNNN>.md`), and issue canon at v2's `intent/issues/NNNN.json`. **Its DEHYDRATE list is UNGATED and it says so in its own output**, because rendering is the Rust binary's job and a shell script cannot run the reproducibility check. `intent organize` without `--apply` is the gated plan: it classifies exactly as `--apply` does, including the per-file gate, and writes nothing.
