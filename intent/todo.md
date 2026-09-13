@@ -38,6 +38,20 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 12: Issues get a realised form and a sigil, then join the default declaration
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
+- [-] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
+  - [x] 01: Issues get a realised form and a sigil, then join the default declaration
+  - [x] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
+  - [~] 13: Project search: full-text, structural, and the agent search surface
+  - [x] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
+  - [x] 16: Contract drift: a shipped field with no model row is refused
+  - [x] 17: The structured query door: intent search --sql, read-only over the published schema
+  - [x] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
+  - [x] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
+  - [x] 20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
+  - [x] 21: The explorer's /search pane
+  - [x] 22: Daemon-served search with daemonless parity
+  - [x] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
+  - [x] 24: The LLM boundary: the harness's own search becomes a door into the index
 
 ## TODO
 
@@ -65,20 +79,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [x] ST0068: Update Intent's docs for v3
-- [x] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
-  - [x] 01: Issues get a realised form and a sigil, then join the default declaration
-  - [x] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
-  - [~] 13: Project search: full-text, structural, and the agent search surface
-  - [x] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
-  - [x] 16: Contract drift: a shipped field with no model row is refused
-  - [x] 17: The structured query door: intent search --sql, read-only over the published schema
-  - [x] 18: The corpus: the gitignore-aware repository, two staleness policies, the widened watcher
-  - [x] 19: Lexical search over the whole corpus: the envelope, --json, the MCP tool, intent index
-  - [x] 20: Structural search: tree-sitter symbols per declared language, and the agent canon that uses them
-  - [x] 21: The explorer's /search pane
-  - [x] 22: Daemon-served search with daemonless parity
-  - [x] 23: Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema
-  - [x] 24: The LLM boundary: the harness's own search becomes a door into the index
 
 ---
 
