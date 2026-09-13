@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 317,
+  "slug": "wb-a-write-reaches-the-store-and-the-index-and-n",
+  "title": "wb: a write reaches the store and the index and never the disk, so a generated board goes stale at the first verb",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "**A `wb` write reaches the store and the index and never the disk, so every generated board goes stale at the first verb after regeneration.** Measured on the Intent estate at the WP-14 cutover, 2026-09-13 10:31Z, on the pair at 59eeac618: `intent wb pickup --node vc --session <id> --focus <text>` updated the store (`wb status` shows the new heartbeat and focus) and refreshed the index, but `intent/whiteboard/vc/wip.md` and `board.json` on disk kept the 10:24Z header, `git status` showed nothing, and `doctor` read 0 findings because the view still matched the unchanged canon extract. The views refresh only on `sync --to-disk`, which refuses to run beside the daemon that watches the tree, so the operating shape is stop the daemon, sync, start the daemon after every board write, on every estate.\n\n**Every other canon-writing verb projects at the write.** A thread or issue mutation commits canon and re-renders its views in the same act and records what it wrote so the daemon does not republish it (0311). The `wb` family stops one step short: the store row and the search index move, the extract and the view do not. AC-14.2 holds as written, the views ARE generated from the store, and the estate is still unusable, because nothing regenerates them when the store changes.\n\n**Ruled under the pen, 2026-09-13:** every `wb` write projects through the same path a thread mutation uses: the node's `board.json` and `wip.md` for an item, header or lifecycle write; the recipient's `board.json` and `inbox.<sender>.md` for a message write; each recorded by `record_landed`. One projection path, no second writer; the index refresh stays where it is. One arm: a `wb add` on a fixture project leaves the node's `wip.md` on disk byte-equal to a fresh render and visible to git as changed. Closes before `wp done ST0069/14`.\n"
+}
