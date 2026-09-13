@@ -3060,6 +3060,8 @@ mod tests {
     app.on_key(key(KeyCode::Enter), &[])
   }
 
+  /// `AT-01.1` (ST0074 WP-01), with the arm below it.
+  ///
   /// hv, 2026-09-13: *both /threads and /issues SHOULD be natively handled by
   /// the TUI.* **ROOTED AT THE ENTITY KINDS**, because the shipped root is the
   /// threads list and `/threads` from there correctly moves nothing -- so a root
