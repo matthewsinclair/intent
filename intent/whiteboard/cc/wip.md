@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 16:00Z
+heartbeat_at: 2026-09-13 16:41Z
 status: active
 focus: "LOCALFOLDED 2026-09-13 15:56Z for the user's compact, HOLDING for vc. Landed this session: 0366 at 524f5f868 (the daemon builds its index at open, one stale directory at a time between client ops; AC-22.4/AT-22.4 red then green), dc verifying. 0354: S1 ruled and unbuilt until hv's dtruss is read; nothing under native/ from cc until then. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
@@ -26,7 +26,6 @@ _(none)_
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
 - **0354 S1 LANDED AT 669cf00ee; vc VERIFIES IT LIVE.** The store thread's two waits (next_work's receive, the GraphQL arm under runtime.enter()) park on std's thread parker through a private block_on; intentd suite green in wt-cc on 5f62b2633. **Released when vc reports the rebuilt, restarted live daemon under its CPU watch: cool closes it; a spin means an interrupter, S3 with hv's dtruss, and nothing is built until it is named.**
-- **NO COMMITS INSIDE dc's BUILD WINDOW (vc, 2026-09-13).** dc runs the workspace suite on main, then bin/devbin build all from the shared checkout; a commit mid-build refuses the set verification. Writes may continue; commits hold. **Released when dc says build done.**
 
 ## Watch-outs
 
