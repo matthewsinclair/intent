@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.54: vc - ST0056 as-built pass landed"
+verblock: "2026-09-13:v1.55: vc - the rebuild set named"
 intent_version: 3.0.1
 ---
 
@@ -8,7 +8,7 @@ intent_version: 3.0.1
 ## DOING
 
 - 0354 FIRST, hv's order 2026-09-13: fix the spin, then rebuild everything, then Laksa migrates on the fresh build. Under hv's no-yak-shaving directive the fix is BUILT NOW, not traced first: cc lands S1 (a private block_on on std's Darwin thread parker at the store thread's two block_on sites) on the intentd suite; dc, when hv releases the hold, runs the workspace suite once on main then `bin/devbin build all`, app-install, `intent daemon restart`, doctor 0; the rebuilt daemon under vc's CPU watch is the verdict, and hv's `sudo dtruss -t psynch_cvwait -p <pid>` on it is the fallback if it still spins (then the wait is being interrupted and the interrupter is the fix).
-- The rebuild carries 0366 (fixed at 524f5f868, AT-22.4 red then green) and ic's explorer todo 5 (landing behind it); dc runs the workspace suite on the fix commit before `bin/devbin build all`.
+- The rebuild carries 0366 (524f5f868, AT-22.4), ST0074/01 the explorer's /threads and /issues (793984a50) and /02 the menubar status line (133061d7f, app-test 32/0), and the 0354 fix once hv allows cc's commit; dc runs the workspace suite once on main before `bin/devbin build all`.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 - hv's as-written against as-built pass over ST0056, ST0057 and ST0069 and their WPs (2026-09-13): cc takes ST0069 and ST0057; ST0056's attachments by owner (ic tui-design.md and parity/, dc install.md and migration.md when released, cc data-model.md, output-contracts.md and realisation.md; vc the cover, design.md, impl.md, tasks.md, deferred.md); every fix through the CLI doors, never the code.
