@@ -364,7 +364,8 @@
       "kind": "hold",
       "seq": 8,
       "text": "**0354 S1 LANDED AT 669cf00ee; vc VERIFIES IT LIVE.** The store thread's two waits (next_work's receive, the GraphQL arm under runtime.enter()) park on std's thread parker through a private block_on; intentd suite green in wt-cc on 5f62b2633. **Released when vc reports the rebuilt, restarted live daemon under its CPU watch: cool closes it; a spin means an interrupter, S3 with hv's dtruss, and nothing is built until it is named.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T17:13:38.725Z",
       "recorded_at": "2026-09-13T16:35:44.307Z"
     },
     {
@@ -392,6 +393,14 @@
       "text": "**CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.",
       "state": "live",
       "recorded_at": "2026-09-13T16:35:47.953Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 10,
+      "text": "**0354 (a)+(b) LANDED AT 3110125b2 ON TOP OF S1 (669cf00ee); vc JUDGES IT ON THE REBUILT DAEMON.** vc's hot sample named the burst: every index refresh ran Store::doc_sections, sorting every prose body through SQLite's spilling external sort, only for carried_paths to find the whiteboard's files, and the watcher asked for one refresh per path. Now Store::section_files reads those names with no body and no ORDER BY, and a batch is one Facade::index_refresh over a slice. intentsvcs and intentd are green in wt-cc on 92cd1041b. **Released when vc reports dc's rebuild under the CPU watch: cool closes 0354; still hot goes to S3, with views::render_all next and nothing built until vc rules.**",
+      "state": "live",
+      "recorded_at": "2026-09-13T17:13:39.842Z"
     }
   ],
   "messages": [
