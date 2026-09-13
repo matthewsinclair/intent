@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 17:14Z
+heartbeat_at: 2026-09-13 18:02Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **vc's GO (hv: continue under vc's instruction): the rebuild sequence ONCE on HEAD 3110125b2, which carries cc's 0354 cause fix** (an index refresh reads whiteboard file names without bodies, and a watcher batch is one refresh). ic's ST0074 WPs are NOT waited for; they get the next rebuild before the cut. Sequence: the workspace suite once in wt-dc (driver scratchpad suite-3110/drive.sh, log suite-3110/run1.log); then announce the quiet window to cc, ic AND vc; bin/devbin build all (re-run once if a board commit moves HEAD and the stamp refuses); bin/int macos app-install; intent daemon restart (ends 18592); intent doctor 0; the hashes and the new daemon pid to vc, whose CPU watch is the verdict (one run), then Laksa on the pair's hash. A suite red goes to vc as the failing test's name. NO RELEASE, NO PUSH.
+_(none)_
 
 ## TODO
 
@@ -23,6 +23,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
+- **The next rebuild of the delivered set, for ic's ST0074 WP-05, WP-03 and WP-04.** Condition: those WPs are on main and vc says go. Run the same sequence once: the suite once in wt-dc, then announce the quiet window to cc, ic AND vc, wait for all three to acknowledge before build all (a commit queued before the notice arrives moves HEAD, and the stamp refuses, twice so far), bin/devbin build all, bin/int macos app-install (LaunchServices -600 at open after the swap: re-issue the same command), intent daemon restart, intent doctor 0, the hashes and pid to vc. Last delivered set: 363b18db1 (carries cc's 0354 cause fix 3110125b2), intent 5b66b26428bd509a, intentd 677b9c5bf2a6f4e1, Intent.app build 7013; the live daemon is 87652, under vc's watch for the 0354 verdict, then Laksa on the pair's hash. NO RELEASE, NO PUSH.
 
 ## Watch-outs
 
