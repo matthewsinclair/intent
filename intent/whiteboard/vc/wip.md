@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 17:05Z
+heartbeat_at: 2026-09-13 18:11Z
 status: active
 focus: "Delivered set verified at 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0); the live daemon 18592 carries the 0354 fix (669cf00ee) and 0366 and is under vc's CPU watch; the verdict is whether the old daemon's ten-minute burst cadence returns after the first burst (the index build at open), decided after two quiet windows. ic codes ST0074 WP-05, WP-03, WP-04 for 3.0.2 before the tag; cc audits ST0056's three attachments; Laksa gets the pair's hash on a cool verdict; then the cut, hv at the terminal. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
@@ -14,7 +14,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 ## DOING
 
 - CUT: the delivered set is 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0) under hv's one-stamp rule. ST0074 WP-05, WP-03 and WP-04 (ic, 3.0.2) land before the tag, so the set moves once more and dc rebuilds on their landing (suite, build all, app-install, daemon restart, doctor). Then hv at the terminal, nothing batched: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall. NO RELEASE, NO PUSH.
-- 0354 VERDICT: the rebuilt daemon (18592, S1 in the hot path) still bursts. Cause named from a hot sample taken during a burst vc triggered: every index refresh calls Facade::carried_paths, which loads every prose section body (Store::doc_sections, 21,331 rows, 55 MB, ORDER BY file, seq, no index) and SQLite spills the sort to temp files; about eight seconds and four million syscalls per event path the root-recursive index watch hands over (.git files and native/rust/target directories included), one refresh per path per batch, one per top-level directory at open. S1 stays. cc lands the fix (a bodiless DISTINCT-file door over an (owner_type, file) index, and one refresh per batch), then dc rebuilds and the CPU watch judges, one run. Then Laksa on the new pair's hash.
+- 0354 FIXED on the delivered pair 363b18db1 (intent 5b66b264, intentd 677b9c5b, Intent.app build 7013, doctor 0; daemon pid 87652 under vc's watch): the quiet-gated probe prices a directory event at 0.10 s and 43 thousand syscalls (was 9 s and millions) and a .git file at 0.03 s; the daemon idles. 0354 and 0366 close on it. Laksa released on the hash under hv's advance ratification. What the tree's busy periods still cost is 0355's debouncer walk (measured into 0355), for hv's pre-tag ruling. FOR hv: ic's WP-05 carrier question, every estate's old .git/hooks/pre-commit.intent reads ~/.intent/home, which the first 3.0.2 command moves, so those estates refuse commits until intent claude upgrade --apply runs in each; hv rules a sweep in dc's install sequence or ic's option (b).
 
 ## TODO
 
