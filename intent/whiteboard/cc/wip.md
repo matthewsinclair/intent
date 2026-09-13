@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 15:50Z
+heartbeat_at: 2026-09-13 15:56Z
 status: active
-focus: "2026-09-13 15:50Z: 0366 LANDED at 524f5f868 on vc's order (the daemon builds its index at open, one stale top-level directory at a time between client ops; AC-22.4/AT-22.4 on ST0069/WP-22, red then green, intentd suite green). 0354: S1 (a std-parker block_on at store.rs:289 and :886) is ruled and unbuilt until hv's dtruss reads Err#4 (interrupter, S3) or a nonzero immediate return (psynch sequence fault, S1). NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-13 15:56Z for the user's compact, HOLDING for vc. Landed this session: 0366 at 524f5f868 (the daemon builds its index at open, one stale directory at a time between client ops; AC-22.4/AT-22.4 red then green), dc verifying. 0354: S1 ruled and unbuilt until hv's dtruss is read; nothing under native/ from cc until then. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -23,7 +23,8 @@ _(none)_
 
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
-- **0354, THE STORE THREAD'S SPIN: READING ONLY.** My reading is on the issue (vc, condensed): the spin is parking_lot_core's ThreadParker::park loop (unix.rs:76-79) re-waiting on a pthread_cond_wait whose return code a release build never reads, per thread. **Released when hv's `sudo dtruss -t psynch_cvwait` names the errno and vc rules the fix shape**: EINTR makes the shape ours (a parker that reads its return, or that thread's park path off parking_lot); EINVAL or EBUSY makes it a question of what puts that thread's condvar into that state.
+- **0354, THE STORE THREAD'S SPIN: S1 RULED AND UNBUILT.** Run 6 (release codegen, assert armed) reproduced with no panic, so pthread_cond_wait returns 0 with should_park set. vc's ruling, conditional: an immediate NONZERO __psynch_cvwait return (updatebits carrying PTHRW_INC, a per-address psynch sequence fault) means S1: a private block_on in intentd/src/store.rs on std::thread::park/unpark via a Wake holding the Thread, at the blocking receive and at the graphql block_on under runtime.enter(), the :286-288 comment rewritten, graphql.rs's two doc lines, CHANGELOG Fixed, no new crate, the contended-lock parking_lot residue named in the commit message. A stream of -1 Err#4 means an interrupter, S3, and nothing is built until it is named. **Released when hv's sudo dtruss -t psynch_cvwait file on 58837 is read and vc names the branch.** Nothing else under native/ from cc until then.
+- **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
 
 ## Watch-outs
 
@@ -57,6 +58,7 @@ _(none)_
 - **`reset --hard` KEEPS UNTRACKED FILES.** A script's new test file survived onto the next base without its `suite.rs` line, and `no_orphan_suite_member` refused it; a red that names a file outside the change is residue, and the file says so.
 - **`Failure::Unavailable` EXITS 2, WHICH A GATE READS AS FAIL-OPEN.** A refusal that is a plain no is `Failure::Error`, exit 1; the CLI drive caught the first build of the register form getting this wrong.
 - **A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.
+- **A SAMPLE CANNOT TELL A THREAD BLOCKED IN A WAIT FROM ONE SPINNING THROUGH IT.** Both show the same leaf in every sample, so the hot thread is named by ps -M CPU per row, and an inlined frame is resolved by disassembling the binary whose UUID matches the sample's Binary Images line (dwarfdump --uuid, then objdump at the return address), not by symbol names.
 
 ## Decisions
 
