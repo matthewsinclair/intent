@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-13T15:06:01.866Z",
+    "heartbeat_at": "2026-09-13T15:24:56.862Z",
     "status": "active",
-    "focus": "THE CUT HOLDS ON 0354 (2026-09-13 15:06Z). Run 3 in: the released 3.0.1 bursts bounded at first open, e70c3528a does not bound. dc runs run 4 (index counts while hot) then run 5 (a dev-profile pair: parking_lot's debug_assert names the errno or rules the failing-wait reading out); cc answers which stack was hot and reads the 590-line daemon diff for a wait satisfied without progress. hv's sudo dtruss is still the direct capture. Set delivered at e70c3528a, suite green on it. NO RELEASE, NO PUSH.",
+    "focus": "hv's ORDER (2026-09-13 15:22Z): fix 0354 first, then rebuild everything, then Laksa on the fresh build. The site is settled (store thread's park at store.rs:289, no sender, named by stack on 58837); run 5 (dev-profile pair) in flight for the errno; cc rules the fix shape (S1 std parker at the two block_on sites, S2 current_thread runtime) and builds in a worktree; dc verifies with run 1's recipe cold, then build all, app-install, daemon restart. ST0069 demonstrated on the live tree for hv: --context, --kind def, JSON with freshness, MCP intent_search, the Grep hook; defects filed 0356-0361. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
