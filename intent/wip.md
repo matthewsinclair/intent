@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.55: vc - the rebuild set named"
+verblock: "2026-09-13:v1.56: vc - WP-05 ruled by hv; the XDG move is 3.1.0"
 intent_version: 3.0.1
 ---
 
@@ -12,7 +12,7 @@ intent_version: 3.0.1
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 - hv's as-written against as-built pass over ST0056, ST0057 and ST0069 and their WPs (2026-09-13): cc takes ST0069 and ST0057; ST0056's attachments by owner (ic tui-design.md and parity/, dc install.md and migration.md when released, cc data-model.md, output-contracts.md and realisation.md; vc the cover, design.md, impl.md, tasks.md, deferred.md); every fix through the CLI doors, never the code.
-- ST0074 (ic's bundle: config home, registry, discover, picker, menubar line) under vc's validator's eye: ACs per WP before code, WP-03's design before its code, hv rules WP-05.
+- ST0074 (ic's bundle) under vc's validator's eye: WP-01 and WP-02 done on main; hv ruled WP-05 (XDG Base Directory adopted for intent and intentd, `~/.config/intent` is v3's, v2 ignored, XDG_* granted into ALLOWED); the layout migration lands after the 3.0.2 tag and targets 3.1.0, design page first (WP-05, then WP-03, then WP-04); 0368's test fix lands now.
 
 ## TODO
 
