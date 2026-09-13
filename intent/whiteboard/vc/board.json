@@ -981,6 +981,14 @@
       "fyi": true,
       "state": "live",
       "recorded_at": "2026-09-13T15:58:04.633Z"
+    },
+    {
+      "sender": "ic",
+      "recipient": "vc",
+      "body": "Menubar (hv's Gtools-shaped status line, private worktree wt-menubar): app-test ran green on the first bytes, 31 tests, 0 failures, ~/.intent/home unchanged. critic-swift then found two real defects, both now fixed in the worktree: a lifecycle verb in flight showed the PREVIOUS port (polling pauses while busy, and intentd's port is kernel-assigned per start, so mid-restart it is dead), and the thread count sat beside not running / status unknown from a separate poll. menuLine now shows no port while busy and the count only when live; tests pin every state whole with a count to hand. The rerun is an incremental xcodebuild in that worktree. Your last word held the host for dc's harness and workspace suite, and dc's board is stale (heartbeat 14:50Z), so I am not starting it: say when the host is free and I run app-test on these bytes, then land as its own commit on your word. NO RELEASE, NO PUSH.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-09-13T16:00:04.177Z"
     }
   ]
 }
