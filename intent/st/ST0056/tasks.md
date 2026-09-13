@@ -28,9 +28,9 @@ The work breakdown is the WP ladder below (`intent wp list ST0056` is the live s
 ## Task Notes
 
 - 01 -> 05 is the strictly ordered spine; 06/07 interleave freely after 04; 09's stdio mode needs only the facade and can land before 08.
-- **13, 14 and 16 are cancelled**, each with its criteria descoped to ST0069 (post-cut). WP-13's retirement half landed first, so WP-06 never ported `treeindex` or the `in-handoff` skill (`fileindex` was retired separately); its search half is ST0069's. WP numbers are creation order; the Depends column is the sequence.
+- **13, 14 and 16 are cancelled**, each with its criteria descoped to ST0069 (post-cut), where all three landed in 3.0.2: 14 as ST0069/WP-14 (the boards in the store), 16 as ST0069/WP-16, and 13's search half as ST0069/WP-17 to WP-24. WP-13's retirement half landed first, so WP-06 never ported `treeindex` or the `in-handoff` skill (`fileindex` was retired separately); its search half is ST0069's. WP numbers are creation order; the Depends column is the sequence.
 - WP-10 is deliberately late (it migrates the whole surface) and consumes the fleet corpus: Intent's own tree first as canary, then Lamplight/Utilz/Baize at named revisions.
-- Conformance as built: `dual_path_conformance.rs` drives the whole shipped surface through the `intent` binary and in-process and requires identical results, and `daemon_and_local_agree.rs` runs every daemon-servable verb (in 3.0.1, `st list`) locally and through a real `intentd`.
+- Conformance as built: `dual_path_conformance.rs` drives the whole shipped surface through the `intent` binary and in-process and requires identical results, and `daemon_and_local_agree.rs` runs every daemon-servable verb (`st list` and, since 3.0.2, `search`) locally and through a real `intentd`.
 - WP-01 review by hv was the gate before any Rust existed (document-before-code).
 
 ## Dependencies

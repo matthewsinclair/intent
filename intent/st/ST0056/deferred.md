@@ -13,6 +13,8 @@
 
 **The hoist has landed (Intent is self-hosted on v3.0.1), and every row below carries its verdict at that revision.**
 
+**Walked again at 3.0.2 (2026-09-13), and the end condition is met: every row still open is homed.** EXP-09 and the guard-population hole stay with ic and cc, to be filed as issues when touched; hv's provisional rulings (D43, D46, the `new-surface` scope, the withheld-13 field, `ac gate`'s ratification) are on `intent/wip.md`'s TODO for hv; WP-14's whiteboard is in the store since ST0069/WP-14 and `upgrade`'s not-yet-carried report is issue 0363. Nothing else here is open, and the file stays only because an attachment has no detach door.
+
 ## Deferred by the moratorium, 2026-08-17
 
 The hold: no new defect classes, no new acceptance criteria, no new instruments until the hoist lands. Findings go in the commit that fixes them. The moratorium was lifted 2026-08-18.

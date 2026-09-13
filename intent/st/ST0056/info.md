@@ -12,13 +12,15 @@ completed:
 
 Ship **Intent v3.0.0**: replace the v2 shell implementation with a native Rust system -- `intentsvcs` (the library owning all functionality, the SQLite store, and the file canon), `intent` (a thin-coordinator CLI running in-process or via GraphQL), and `intentd` (one daemon per machine serving N projects) -- built around a reified, schema-validated data model. Markdown is always realised on disk (generated views for structure, the authoring surface for prose); the full surface is exposed as both CLI and MCP; an automated migrator brings v2.19.0+ projects across with refuse-lossy discipline; distribution is `brew install intent`. One major release, patched by 3.0.x.
 
+**As built (2026-09-13):** v3.0.0 cut over and self-hosted in August, v3.0.1 released 2026-09-11, and v3.0.2 is the patch in the cut (ST0069's search and coordination model, the daemon fixes 0354 and 0366). What remains in this thread is WP-11: a `brew install` on a clean Mac, then AC-00.5 and AC-11.1 by evidence.
+
 ## Context
 
 v2 is 12,492 lines of bash across 27 files where every reader reimplements parsing -- the "answers confidently from partial evidence" bug class that v2.19.0 spent five of its fifteen issues on, and that v2 tried to patch by bolting schema onto markdown three separate times (0012, 0017, the close-gate). v3 reifies the model instead: one schema authored once in the type layer, generating its JSON Schema / SQL DDL / GraphQL SDL faces; committed JSON as durable truth; a rebuildable per-project SQLite DB as runtime truth; markdown demoted to generated views plus authored prose.
 
 Constraints ratified with hv (2026-08-14): .md realisations always on disk; thin coordinator at every seam (the CLI speaks only the intentsvcs facade or GraphQL); Rust native, macOS first then Linux; Elixir-oriented (SDL + JSON Schema artefacts, Phoenix-channels-shaped cloud seam); AI-agent aware (CLI + MCP parity); intentd in the 3.0.0 gate. Prior art: Lamplight `native/cli` (dispatch-spine SSOT, typed transport errors, MCP bridge) and Conflab `native/daemon` (the conflabd stack: async-graphql + axum, rmcp streamable HTTP, launchd lifecycle owned by the CLI, debounced watching, policy-stamp self-healing). Full architecture, decision log (D01-D17), and alternatives: `design.md`. Work breakdown: `tasks.md` + the 12-WP ladder.
 
-Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agent bus (with the whiteboard restructure and hv oversight gates), Laksa web page, macOS menubar app, `intent_ex` hex client.
+Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agent bus (with the whiteboard restructure and hv oversight gates), Laksa web page, macOS menubar app, `intent_ex` hex client. **As built:** the TUI (`intent explore`, WP-17's form DSL) and the macOS menubar app shipped in 3.0.x, and the whiteboard entered the store under ST0069/WP-14; the agent bus, the Laksa page and `intent_ex` remain parked; the machine-wide project registry and the explorer's project picker are ST0074.
 
 ## Related Steel Threads
 
