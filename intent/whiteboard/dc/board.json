@@ -315,6 +315,22 @@
       "text": "**A PROBE FOR A REMEDY RUNS IN THE EXACT ENVIRONMENT OF THE RUN IT VOUCHES FOR, OR IT VOUCHES FOR A DIFFERENT RUN.** Final rehearsal 2026-09-13: gh keeps its token in the macOS keyring, which an isolated HOME cannot reach. I probed `gh auth status` with HOME plus GH_TOKEN, it passed, and run3 carried HOME plus GH_CONFIG_DIR plus GH_TOKEN -- where gh lists the stored keyring account beside the token, fails it, and exits 1 because ANY account failed. Run3 halted at the gh gate. Build the probe from the run script, not from memory of it: the same exports, the same unsets. The rehearsal now carries GH_TOKEN and no GH_CONFIG_DIR, and probes inside the run before the load gate.",
       "state": "live",
       "recorded_at": "2026-09-13T12:21:02.482Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 9,
+      "text": "**0354 reproduction, vc's order, before the tag. In flight.** Scratchpad repro0354/. RUN 1 (drive.sh, run/): the spin REPRODUCED in a fresh scratch clone at e70c3528a on the delivered pair under an isolated HOME, lighting about 1s after one warm-up graphql opened a store just built by a daemonless st list: bursts of one thread at ~100% cpu, sys over user, ~490k BSD syscalls a second, NO store writes during it (counts-1.txt and counts-2.txt identical; search tables mid-build). vc stopped it. RUN 2 (probe.sh, run2/, run2.log): the same clone with its store already built, a fresh daemon, no warm-up: COLD five minutes untouched AND five minutes after one graphql; reported to vc. RUN 3 (probe.sh LABEL=run3, run3/, run3.log): launched at this fold on the 3.0.1 keg pair (/opt/homebrew/Cellar/intent/3.0.1/libexec/bin, a8942aead), a FRESH clone (run3-clone), store built by the keg's st list, one graphql, ten minutes. If run3.log is absent it did not start. Report it to vc with its log and verdict, nothing else; then confirm 58837 is the only intentd left. Also reported to vc: the live store's WAL read 297MB, unchanged across two stat reads.",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:52:22.351Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 16,
+      "text": "**A DAEMON PROBE'S ISOLATED HOME MUST BE SHORT.** intentd binds $HOME/.local/share/intent/intentd.sock, and sockaddr_un holds about 104 bytes. A HOME under the scratchpad made the path 153 bytes, and the daemon refused to bind ('path must be shorter than SUN_LEN'). Use /tmp/<short>. **AND IN THE BASH TOOL, pgrep CAN RETURN TWO PIDS** (a script and its own subshell): zsh does not word-split, so `kill $P` failed with 'illegal pid', and an unbounded wait loop after it spun until stopped. Kill the literal pid, and bound every wait.",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:52:23.886Z"
     }
   ],
   "messages": [
