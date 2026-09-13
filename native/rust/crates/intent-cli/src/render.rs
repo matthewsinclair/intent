@@ -4255,7 +4255,8 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
 /// only in a markdown file they are about to stop reading. The refused half is
 /// on stderr because it is a worklist for a person rather than part of the
 /// answer, and it does not fail the run: a migration that carried what it could
-/// and named the rest is the outcome, not an error.
+/// and named the rest is the outcome, not an error. **A failed reconciliation
+/// DOES fail it**, once everything above is printed -- see the end of the body.
 fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), Failure> {
   for item in &carried.items {
     println!(
@@ -4283,19 +4284,24 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
       refused.reason
     );
   }
-  // **THE INVARIANT IS PRINTED WHEN IT FAILS, NEVER ASSERTED IN A BINARY.** A
-  // debug assertion here would be a crash in the operator's cutover; what they
-  // need is the run's own statement that its two halves do not account for what
-  // it read, with everything above still on the record.
-  if !carried.reconciles() {
-    eprintln!(
+  // **THE INVARIANT FAILS THE RUN, AFTER EVERYTHING ABOVE IS ON THE RECORD.** It
+  // once printed and exited 0, because a debug assertion would have been a crash
+  // in the operator's cutover -- and that left the exit code, the one check every
+  // operator reaches for, blind to the one invariant this verb exists to keep.
+  // Measured at WP-14's cutover: five boards read "exit 0 each" and only the
+  // logs could say whether any of them reconciled. An `Err` is not a crash:
+  // every line is already printed, and the spine writes this to stderr at 1.
+  match carried.reconciles() {
+    true => Ok(()),
+    false => Err(Failure::Error(format!(
       "error: {} unit(s) were read and {} were accounted for; the lines above are not the whole \
-       of what this board offered",
+       of what this board offered\n  remedy: the rows above WERE written, and `wb migrate` \
+       refuses a board that already holds rows, so a re-run will not help. This is a fault in \
+       the migration reader rather than in the board: report it with this output",
       carried.offered,
       carried.items.len() + carried.messages + carried.snapshots.len() + carried.uncarried.len()
-    );
+    ))),
   }
-  Ok(())
 }
 
 /// The first line of a body, for a one-line receipt.
@@ -12781,6 +12787,39 @@ mod tests {
       "the schema descends into levels this realiser does not build (or names levels the schema \
        no longer has). An unbuilt level renders as an empty collection, which is a bug wearing \
        the costume of data."
+    );
+  }
+
+  /// **A MIGRATION THAT DOES NOT RECONCILE FAILS THE RUN, AND ONE THAT DOES,
+  /// DOES NOT.** The exit code is the check an operator reaches for, and it read
+  /// 0 on both until WP-14's cutover said so. No real board can be made to fail
+  /// reconciliation through the binary without a broken reader, so the report is
+  /// driven on the value directly; the pair is the test, because an arm that
+  /// only asserted the failure would pass for a verb that always exits 1.
+  #[test]
+  fn a_migration_that_does_not_reconcile_exits_non_zero_and_one_that_does_exits_zero() {
+    let reconciled = intentsvcs::facade::WbMigration {
+      node: "dc".to_string(),
+      items: Vec::new(),
+      messages: 1,
+      snapshots: Vec::new(),
+      uncarried: Vec::new(),
+      offered: 1,
+    };
+    assert_eq!(report_wb_migration(&reconciled), Ok(()));
+
+    let short = intentsvcs::facade::WbMigration {
+      offered: 2,
+      ..reconciled
+    };
+    let failed =
+      report_wb_migration(&short).expect_err("a board that does not reconcile must fail");
+    assert_eq!(failed.code(), crate::spine::EXIT_ERROR);
+    assert!(
+      failed
+        .message()
+        .is_some_and(|m| m.contains("2 unit(s) were read and 1 were accounted for")),
+      "the failure names both halves: {failed:?}"
     );
   }
 }
