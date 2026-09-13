@@ -1287,7 +1287,11 @@ pub fn serve(
     )),
     "wb show" => {
       let node = str_arg(args, "node", path)?;
-      Ok(json!(f.board(node)?))
+      let all = opt_b(path, map, "all")?;
+      Ok(json!(intentsvcs::facade::BoardRead::of(
+        f.board(node)?,
+        all
+      )))
     }
     "wb clear" => {
       let node = str_arg(args, "node", path)?;
@@ -1309,7 +1313,8 @@ pub fn serve(
       let node = str_arg(args, "node", path)?;
       let session = args.get("session").and_then(Value::as_str);
       let focus = args.get("focus").and_then(Value::as_str);
-      Ok(json!(f.wb_pickup(node, session, focus)?))
+      let all = opt_b(path, map, "all")?;
+      Ok(json!(f.wb_pickup(node, session, focus, all)?))
     }
     "wb touch" => {
       let node = str_arg(args, "node", path)?;

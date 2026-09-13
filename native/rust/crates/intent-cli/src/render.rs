@@ -3889,8 +3889,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let node = m
         .get_one::<String>("node")
         .expect("the table declares `node` as required, so clap has already refused an absent one");
-      let board = f.board(node).map_err(fail)?;
-      report_wb_board(&board, m.get_flag("json"))
+      let all = m.get_flag("all");
+      let board = intentsvcs::facade::BoardRead::of(f.board(node).map_err(fail)?, all);
+      report_wb_board(&board, m.get_flag("json"), all)
     }
     Some(("ask", m)) => {
       let me = acting_node(m)?;
@@ -3935,12 +3936,14 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("pickup", m)) => {
       let me = acting_node(m)?;
+      let all = m.get_flag("all");
       let mut f = open()?;
       let up = f
         .wb_pickup(
           &me,
           m.get_one::<String>("session").map(String::as_str),
           m.get_one::<String>("focus").map(String::as_str),
+          all,
         )
         .map_err(fail)?;
       if m.get_flag("json") {
@@ -3950,7 +3953,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         );
         return Ok(());
       }
-      report_wb_board(&up.board, false)?;
+      report_wb_board(&up.board, false, all)?;
       // **THE PEERS COME AFTER THE BOARD AND ARE HEADERS ONLY.** The question a
       // node asks at session start is where everybody is, not what is in
       // everybody's inbox; `wb show` is the door for one whole board.
@@ -4171,14 +4174,22 @@ fn status_word(s: &intentsvcs::model::WbNodeStatus) -> &'static str {
 /// `report_index` gives about unfired reasons: a reader who sees no `messages`
 /// heading cannot tell an empty inbox from a build that does not carry
 /// messages yet.
-fn report_wb_board(board: &intentsvcs::model::Board, json: bool) -> Result<(), Failure> {
+///
+/// **THE HANDLED MESSAGES ARE ONE LINE UNLESS `all`**, and the line names the
+/// flag that lists them, so the archive is one step away rather than gone.
+fn report_wb_board(
+  read: &intentsvcs::facade::BoardRead,
+  json: bool,
+  all: bool,
+) -> Result<(), Failure> {
   if json {
     println!(
       "{}",
-      serde_json::to_string_pretty(board).map_err(|e| Failure::Error(e.to_string()))?
+      serde_json::to_string_pretty(read).map_err(|e| Failure::Error(e.to_string()))?
     );
     return Ok(());
   }
+  let board = &read.board;
   let n = &board.node;
   println!("{} ({}) -- {}", n.moniker, n.role, n.name);
   println!("  status     {}", status_word(&n.status));
@@ -4217,6 +4228,12 @@ fn report_wb_board(board: &intentsvcs::model::Board, json: bool) -> Result<(), F
       msg.recipient,
       if msg.fyi { " (fyi)" } else { "" },
       msg.body
+    );
+  }
+  if !all {
+    println!(
+      "handled: {} message(s) -- --all lists them",
+      read.handled_count
     );
   }
   Ok(())

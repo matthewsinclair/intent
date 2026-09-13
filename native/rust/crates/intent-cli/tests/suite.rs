@@ -266,3 +266,5 @@ mod verbosity_flags;
 mod version_spellings_agree;
 #[path = "view_single_writer.rs"]
 mod view_single_writer;
+#[path = "wb_reads_list_live_messages.rs"]
+mod wb_reads_list_live_messages;

@@ -1481,10 +1481,50 @@ impl WbMigration {
 /// said so; handing it every peer's items and messages would make the cheap
 /// question expensive and would put another node's inbox in front of a reader
 /// who asked where everybody is. `wb show` is the door for one whole board.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct Pickup {
-  pub board: Board,
+  pub board: BoardRead,
   pub peers: Vec<crate::model::WbNode>,
+}
+
+/// One node's board as `wb show` and `wb pickup` answer it: the messages still
+/// LIVE, and a count of the handled ones, unless the caller asks for all.
+///
+/// **THE HANDLED MESSAGES ARE COUNTED AND NOT LISTED BY DEFAULT**, for the
+/// reason archived items are: a status read asks what still needs an answer,
+/// and an inbox that only grows answers it with the archive. The count stays
+/// in the answer so an empty archive and a left-out one read differently, and
+/// `all` puts every message back with its state.
+///
+/// **A READ SHAPE, NOT A MODEL TYPE.** [`Board`] is the published schema and
+/// the lossless extract, and it carries every row; this is what one read shows
+/// of it, so it sits beside [`Pickup`] rather than in the model.
+// Issue 0322: one `wb show` measured at hv's terminal was mostly the bodies of
+// handled messages, with no live message on the board.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct BoardRead {
+  #[serde(flatten)]
+  pub board: Board,
+  pub handled_count: usize,
+}
+
+impl BoardRead {
+  pub fn of(mut board: Board, all: bool) -> Self {
+    let handled_count = board
+      .messages
+      .iter()
+      .filter(|m| m.state == crate::model::WbMessageState::Handled)
+      .count();
+    if !all {
+      board
+        .messages
+        .retain(|m| m.state == crate::model::WbMessageState::Live);
+    }
+    Self {
+      board,
+      handled_count,
+    }
+  }
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -5355,11 +5395,14 @@ impl Facade {
   /// part of what this returns, so reading first would hand back a header this
   /// very call is about to change -- a value that was true when it was read and
   /// false by the time it was printed.
+  ///
+  /// The board comes back as [`BoardRead`] does it: live messages unless `all`.
   pub fn wb_pickup(
     &mut self,
     node: &str,
     session_id: Option<&str>,
     focus: Option<&str>,
+    all: bool,
   ) -> Result<Pickup, FacadeError> {
     self.require_migrated(node)?;
     self
@@ -5383,7 +5426,10 @@ impl Facade {
       .filter(|b| b.node.moniker != node)
       .map(|b| b.node)
       .collect();
-    Ok(Pickup { board, peers })
+    Ok(Pickup {
+      board: BoardRead::of(board, all),
+      peers,
+    })
   }
 
   /// Add one item of a WRITABLE kind to the acting node's own board.

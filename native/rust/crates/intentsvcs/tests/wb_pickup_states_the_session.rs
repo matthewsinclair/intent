@@ -18,16 +18,19 @@ fn a_pickup_makes_a_paused_node_active_and_records_what_it_names() {
   );
 
   let up = f
-    .wb_pickup("cc", Some("session-1"), Some("the renderers"))
+    .wb_pickup("cc", Some("session-1"), Some("the renderers"), false)
     .expect("pick up");
-  assert_eq!(up.board.node.status, WbNodeStatus::Active);
-  assert_eq!(up.board.node.session_id.as_deref(), Some("session-1"));
-  assert_eq!(up.board.node.focus, "the renderers");
+  assert_eq!(up.board.board.node.status, WbNodeStatus::Active);
+  assert_eq!(up.board.board.node.session_id.as_deref(), Some("session-1"));
+  assert_eq!(up.board.board.node.focus, "the renderers");
 
-  let again = f.wb_pickup("cc", None, None).expect("pick up again");
-  assert_eq!(again.board.node.session_id.as_deref(), Some("session-1"));
+  let again = f.wb_pickup("cc", None, None, false).expect("pick up again");
   assert_eq!(
-    again.board.node.focus, "the renderers",
+    again.board.board.node.session_id.as_deref(),
+    Some("session-1")
+  );
+  assert_eq!(
+    again.board.board.node.focus, "the renderers",
     "an unnamed focus is not an empty one"
   );
 }

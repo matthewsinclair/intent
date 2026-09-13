@@ -8276,6 +8276,13 @@
           "read_or_mutate": "read",
           "flags": [
             {
+              "spellings": ["--all"],
+              "type": "bool",
+              "help": "List every message addressed to the node, handled ones included",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
               "spellings": ["--json"],
               "type": "bool",
               "help": "Emit as JSON instead of prose",
@@ -8458,6 +8465,13 @@
               "spellings": ["--focus"],
               "type": "string",
               "help": "One line saying what this node is on, recorded on its header",
+              "disposition": "keep",
+              "exposed_on_mcp": true
+            },
+            {
+              "spellings": ["--all"],
+              "type": "bool",
+              "help": "List every message addressed to the node, handled ones included",
               "disposition": "keep",
               "exposed_on_mcp": true
             },

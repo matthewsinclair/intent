@@ -3876,24 +3876,24 @@ The whiteboard: read the node boards, and send between them
 - **THE FAMILY HELP SAYS WHAT THE VERBS DO IN THIS CUT, AND NOT WHAT THE MODEL WILL EVENTUALLY SERVE** (ic, ruled by vc 2026-09-12). It first read `node boards and inboxes, served from the store` while the one shipped verb registered monikers -- a reader typing `intent wb` was told the whiteboard is served and then found a roster registrar. **THE RULE CUTS BOTH WAYS AND THE SECOND CUT CAUGHT THE FIRST FIX** (ic, same day): narrowed to `the node roster in the store`, it was stale again one commit later, when `wb show` began reading whole boards -- promising LESS than the family does, which sends a reader looking elsewhere for a verb that is right there. **So this line moves with every verb group, in whichever direction the group moved it**, and it is not a decision that stays taken.
 - DECLARED AS A FAMILY FROM THE FIRST VERB, not as a root row promoted later. `index` was moved into a family after two root paths sharing a prefix made the prefix itself ambiguous (`intent index` refused, matching `index rebuild` and `index status`); a family that starts as one costs nothing now and cannot arrive at that refusal.
 
-| command       | args               | flags                              | help                                                                                 | disposition |
-| ------------- | ------------------ | ---------------------------------- | ------------------------------------------------------------------------------------ | ----------- |
-| `wb`          | <command>          | --                                 | The whiteboard: read the node boards, and send between them                          | new-surface |
-| `wb status`   | --                 | --json                             | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
-| `wb show`     | <node>             | --json                             | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
-| `wb ask`      | <recipient> <body> | --node, --re, --fyi                | Send one message from the acting node into another node's board                      | new-surface |
-| `wb announce` | <body>             | --node                             | Send one message to every registered node but the sender                             | new-surface |
-| `wb add`      | <kind> <text>      | --node                             | Add an item to the acting node's own board                                           | new-surface |
-| `wb archive`  | <kind> <seq>       | --node                             | Move one of the acting node's live items to archived                                 | new-surface |
-| `wb pickup`   | --                 | --node, --session, --focus, --json | Start a session: mark this node active, then its board and its peers' state          | new-surface |
-| `wb touch`    | --                 | --node                             | Stamp the acting node's heartbeat                                                    | new-surface |
-| `wb release`  | --                 | --node                             | Pause the acting node, stamping when it stopped                                      | new-surface |
-| `wb decide`   | <text>             | --node                             | Record a decision on the acting node's own board                                     | new-surface |
-| `wb claim`    | <id>               | --node                             | Add a steel thread or work package to the acting node's claims                       | new-surface |
-| `wb unclaim`  | <id>               | --node                             | Drop a steel thread or work package from the acting node's claims                    | new-surface |
-| `wb clear`    | <sender>           | --node                             | Mark every live message one sender sent the acting node handled                      | new-surface |
-| `wb register` | [moniker]          | --name, --role                     | Register a node from its arguments, or the roster from each node's own board header  | new-surface |
-| `wb migrate`  | <node>             | --                                 | Carry one node's hand-authored board into the model                                  | new-surface |
+| command       | args               | flags                                     | help                                                                                 | disposition |
+| ------------- | ------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                          | new-surface |
+| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on      | new-surface |
+| `wb show`     | <node>             | --all, --json                             | Read one node's whole board: its header, its items, and the messages addressed to it | new-surface |
+| `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                      | new-surface |
+| `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                             | new-surface |
+| `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                           | new-surface |
+| `wb archive`  | <kind> <seq>       | --node                                    | Move one of the acting node's live items to archived                                 | new-surface |
+| `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state          | new-surface |
+| `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                    | new-surface |
+| `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                      | new-surface |
+| `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                     | new-surface |
+| `wb claim`    | <id>               | --node                                    | Add a steel thread or work package to the acting node's claims                       | new-surface |
+| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                    | new-surface |
+| `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                      | new-surface |
+| `wb register` | [moniker]          | --name, --role                            | Register a node from its arguments, or the roster from each node's own board header  | new-surface |
+| `wb migrate`  | <node>             | --                                        | Carry one node's hand-authored board into the model                                  | new-surface |
 
 ### `wb`
 
@@ -3937,6 +3937,9 @@ Read one node's whole board: its header, its items, and the messages addressed t
 - **Arguments:**
   - `node` (node, arity `1`)
 - **Flags:**
+  - `--all` (bool) -- List every message addressed to the node, handled ones included
+    - **disposition:** keep
+    - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
@@ -4062,6 +4065,9 @@ Start a session: mark this node active, then its board and its peers' state
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--focus` (string) -- One line saying what this node is on, recorded on its header
+    - **disposition:** keep
+    - **exposed on mcp:** true
+  - `--all` (bool) -- List every message addressed to the node, handled ones included
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
