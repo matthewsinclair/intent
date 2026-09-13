@@ -5,12 +5,13 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-13T10:44:09.359Z",
+    "heartbeat_at": "2026-09-13T10:58:25.549Z",
     "status": "active",
-    "focus": "AC-14.12 built, driven and GREEN on both crate suites; held for vc's word before landing, with one question open: eleven of ST0047's ATs lose their subject to this retirement. NO RELEASE, NO PUSH.",
+    "focus": "WP-14's protocol half is closed out: AC-14.12 landed 6de123412, forward corrections c3d252cef, AC-14.10 satisfied 9422028ea. ST0069's only unsatisfied row is AC-14.2 (cc's). Holding for vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
-    "authored_at": "2026-09-13 10:11Z"
+    "authored_at": "2026-09-13 10:11Z",
+    "migrated_at": "2026-09-13T11:03:59.755Z"
   },
   "items": [
     {
@@ -44,7 +45,8 @@
       "kind": "todo",
       "seq": 2,
       "text": "**AC-14.10's AT row is `AT-14.10` and it is RED on one axis only.** The verb-and-flag axis is green through `no_skill_names_an_unshipped_verb`, which is the instrument that already asks the question rather than a second reader beside it. It goes green when AC-14.12 lands, because AC-14.10 also asks that the `intent claude ws` family be updated and that is the held half.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:21.357Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -52,7 +54,8 @@
       "kind": "hold",
       "seq": 1,
       "text": "0. **AC-14.12's landing** -- built, driven on all four paths, `shellcheck` clean, banked at `scratchpad/ac1412-cwi.patch`. **RELEASES ON vc's CUTOVER SIGNAL**, where it is the FIRST commit of that sequence (vc, 2026-09-13, ruling shape 3 on my hold): it lands when this estate's boards are generated and the three checks `ws hygiene` alone performed have no subject here. The hook-template exclusion STANDS, so the header guard is not completed, and for estates that stay hand-authored after that pair those three checks are gone -- accepted, with the reason written into the landing: the header format becomes the renderer's, the header-reading `wb register` is the reader that matters for a board about to migrate, and the two guards that ever caught anything at HEAD stay. In that same landing: the four bats arms that drove `hygiene` are deleted with that reason, the two door arms re-point as measured, and **I author the register row's ratification myself** -- `claude ws` to `target.state: retire`, citing hv's 2026-09-12 ruling that ST0069 completes and WP-14 reifies the whiteboard in 3.0.2, under vc's pen, dated from a `date -u` read, saying what falsified the D14 note.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:22.508Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -92,7 +95,8 @@
       "kind": "watchout",
       "seq": 3,
       "text": "**A canon write is verified PAST the daemon's ingest, never at the moment of it** -- read the attachment's `sha256` and `bytes` back against the file, then read them again after the ingest window, and commit the design and its canon in one call.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:00.270Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -156,7 +160,8 @@
       "kind": "watchout",
       "seq": 11,
       "text": "THE REGISTER, which refuses by name and is usually right:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:58.130Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -196,7 +201,8 @@
       "kind": "watchout",
       "seq": 16,
       "text": "BUILDING AND VERIFYING, once the quiet window lifts:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:59.226Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -228,7 +234,8 @@
       "kind": "watchout",
       "seq": 20,
       "text": "A test gated on a grammar needs the CLI crate's own pass-through feature, or it silently does not compile and passes by not existing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:01.430Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -260,7 +267,8 @@
       "kind": "watchout",
       "seq": 24,
       "text": "JUDGEMENT, earned 2026-09-12 evening, all six from things that went wrong:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:59:00.361Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -332,7 +340,8 @@
       "kind": "watchout",
       "seq": 33,
       "text": "JUDGEMENT, earned 2026-09-12 afternoon:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:59:01.516Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -356,7 +365,8 @@
       "kind": "watchout",
       "seq": 36,
       "text": "**A NEW CODE PATH HAS NEVER BEEN DRIVEN, WHICH IS THE WHOLE OF AC-16.4.** The row-shaped table reader was a second reader with its own green; I drove it red both ways plus its refusal before trusting it. A reader that has only ever agreed is indistinguishable from one that always agrees.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:02.519Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -380,7 +390,8 @@
       "kind": "watchout",
       "seq": 39,
       "text": "JUDGEMENT, earned earlier:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:59:02.601Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -420,7 +431,8 @@
       "kind": "watchout",
       "seq": 44,
       "text": "A claim wider than the thing is not a bug and still has to be narrowed.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:03.634Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -428,7 +440,8 @@
       "kind": "watchout",
       "seq": 45,
       "text": "A count in a doc is DEAD (hv): name the thing, or the verb that reports the figure.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:04.736Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -436,7 +449,8 @@
       "kind": "watchout",
       "seq": 46,
       "text": "`intent fc` is the human's verb, even in a sandbox.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:05.865Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -444,7 +458,8 @@
       "kind": "watchout",
       "seq": 47,
       "text": "Read the clock in the same command as the stamp.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:00:06.967Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -452,8 +467,74 @@
       "kind": "doing",
       "seq": 3,
       "text": "**AC-14.12 IS BUILT, DRIVEN AND HELD FOR vc's WORD.** The `ws` family is gone from the launcher, the register row is retired on BOTH fields with its ratification, and `intent claude ws` answers rc=2 naming `intent wb register` -- driven as a user, not read off a test. Both crate suites green in a private worktree under an isolated HOME. What it waits on: vc's go, and vc's ruling on eleven of ST0047's ATs whose subject this retirement removes from a COMPLETED thread.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:18.876Z",
       "recorded_at": "2026-09-13T10:42:56.934Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 4,
+      "text": "**AC-14.12 is LANDED (6de123412) with its forward corrections (c3d252cef), and I am holding for vc.** Driven as a user before landing: `intent claude ws list` rc=2 naming `intent wb register`, gone from `claude --help`, `claude start` on an unregistered node rc=1 naming the register command. Both crate suites and both bats suites green in a private worktree; doctor 0 findings after. Next on vc's word only: the batched reference regeneration after the tag, both halves `--rev v3.0.2 --baseline v3.0.1`.",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:58:20.109Z",
+      "recorded_at": "2026-09-13T10:49:57.112Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 5,
+      "text": "**Nothing in flight; holding for vc, and taking instructions on the bounce.** WP-14's protocol half is closed: AC-14.12 landed at 6de123412 with its forward corrections at c3d252cef, AC-14.10 satisfied at 9422028ea. ST0069's only unsatisfied row is AC-14.2, which is cc's. Nothing of mine is uncommitted.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:58:23.710Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 48,
+      "text": "**A RETIREMENT IS A REGISTER ACT, NOT A CODE DELETION, AND THE ESTATE ALREADY HAD THE MECHANISM.** Deleting the `cmd_ws_*` functions made the script's arms unreachable and left `intent claude ws` a live clap subcommand. `Entry::is_shipped()` reads `disposition` AND `target.state` and fails OPEN, so retiring either field strikes the door, and `legal_pairs` makes (retire, retire) the only legal pairing. I had banked a bespoke rc=1 refusal beside a matcher that answers rc=2, names the replacement and is classifiable without reading prose. **Read the register's own rules before inventing a refusal.**",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:08.274Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 49,
+      "text": "**A GREEN AT IS COVERAGE, NOT SATISFACTION.** A `non-test` AC stays `satisfied: no` beside a green AT and a landed requirement until `intent ac satisfy --evidence` names what met it. AT-14.10 sat that way until vc caught it. And the AT on a non-test row stays `n/a`: doctor refuses a test result there, so the model's word beats a signal's.",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:09.407Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 50,
+      "text": "**BOARDS ARE STORE ROWS NOW: EVERY WRITE IS A `wb` VERB WITH `--node ic`, AND A HAND EDIT IS OVERWRITTEN.** My inbox append after the 10:24Z migration was lost to the regeneration; vc had it only because the socket copy existed. Any store write can re-render a PEER's stale view on disk (`ac edit` rewrote dc's board and issue 0317's view): those files are theirs, never in my `--only` paths. Bounds refuse: a peer inbox at 20 refuses `wb ask` (the socket is then the only channel), and my own watch-outs stop at 40 -- the migration carried section HEADINGS in as items, and archiving those was the first room to make.",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:10.535Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 51,
+      "text": "**AN INSTALLED PAYLOAD CANNOT CITE THIS PROJECT'S TRACKER, AND I HAVE NOW DONE IT TWICE.** The whiteboard skill last night and `intent_claude_cwi` today, both refused by `no_pm_state_in_output` (AT-00.17) for ST/WP/AC ids a consumer cannot open. Name the version and the behaviour. **Run that arm on anything under `intent/plugins/` or `lib/templates/` before landing, rather than remembering harder.**",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:11.619Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 52,
+      "text": "**A COMPLETED THREAD'S ROWS ARE CORRECTED FORWARD, NEVER WITHDRAWN** (vc, citing hv 2026-08-21). Retiring a capability later does not make a closed thread's green rows false: each keeps its status and gains a note saying where its arm went and at which sha. And a count in a ruling that came from MY report is still mine to check -- it was twelve rows, not eleven. (`cmd | tail -1` hid a refusal's bound from me during this very fold: read the HEAD of an error, where the numbers are.)",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:12.716Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 4,
+      "text": "**Committing my rendered board to disk** -- the fold is in the store and `intent/whiteboard/ic/wip.md` on disk still shows the pre-fold board. RELEASES WHEN one of: vc names a render that writes only my node's files; vc runs the whole-estate `sync --to-disk` on the pen; or cc's issue 0317 projection fix lands in the delivered pair so a `wb` write renders its own board. Until then I do NOT run a whole-estate render in the shared tree -- `sync` scopes by thread id only, and an unscoped run writes every peer's views while they are busy.",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:02:07.096Z"
     }
   ],
   "messages": [

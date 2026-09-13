@@ -5,7 +5,7 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "b9e78c72-479d-4984-9df9-ac1bedfe7f2d",
-    "heartbeat_at": "2026-09-13T10:36:35.631Z",
+    "heartbeat_at": "2026-09-13T11:03:10.230Z",
     "status": "active",
     "focus": "Two approved fixes to wb migrate before Laksa or Courses cut over: non-zero exit on a failed reconciliation, then one home for both empty-section sentinels. NO RELEASE, NO PUSH.",
     "claims": [
@@ -19,7 +19,8 @@
       "ST0069/24"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
-    "authored_at": "2026-09-13 10:09Z"
+    "authored_at": "2026-09-13 10:09Z",
+    "migrated_at": "2026-09-13T11:03:59.755Z"
   },
   "items": [
     {
@@ -234,8 +235,75 @@
       "kind": "doing",
       "seq": 4,
       "text": "**Two fixes to `intent wb migrate`, approved by vc 2026-09-13, each its own landing with one arm, both before Laksa or Courses run their cutover.** (1) A failed reconciliation exits NON-ZERO after printing everything: today it prints `error:` and exits 0, so the exit code is blind to the one invariant the verb exists to keep. (2) `views.rs` becomes the one home for both empty sentinels, `_(none)_` and `_(empty)_`; the reader imports them and reads a sentinel-only section as empty: today it carried hv's two `_(none)_` lines as a doing and a todo item.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:53:20.934Z",
       "recorded_at": "2026-09-13T10:34:09.795Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 5,
+      "text": "**0318, assigned by vc, before the tag: the v2 prune refusal in `intent organize` is reported ONCE PER RUN AS A CLASS.** hv ran organize on Laksa and a PREVIEW printed one `error: refusing to prune <v2 bucket file>` line per file, with its remedy repeated each time. Ruled: one line carrying the count, the reason and the remedy; the paths only under `--verbose`; worded as what the apply WOULD refuse, never as `error:`; the summary refused count kept; one arm on a two-file fixture. WP-02 owns the prune, so it is mine.",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:59:25.530Z",
+      "recorded_at": "2026-09-13T10:46:23.858Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 6,
+      "text": "**0319, ordered AHEAD of 0318 by vc: `intent upgrade` on an already-migrated estate runs the bucket ingest.** It re-emits every thread with committed canon and never runs AC-02.1s ingest, so it withholds all 184 Laksa bucket files and the v2 prune can never be met on the path the fleet is on. Ruled: upgrade runs the ingest over the bucket files of every thread it re-emits -- same per-file probe, naming gate and preamble carry -- each file reported carried or withheld with its reason. One arm: committed canon plus a two-file bucket, upgraded, both held, and the following organize preview reads 2 to prune (v2) and 0 refused. M at most.",
+      "state": "archived",
+      "archived_at": "2026-09-13T10:59:24.372Z",
+      "recorded_at": "2026-09-13T10:53:22.075Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 7,
+      "text": "**0319, vc-ordered AHEAD of 0318: `intent upgrade` on an already-migrated estate runs the bucket ingest. MAPPED, NOT YET EDITED -- the worktree is clean at 9422028ea.** The defect: `legacy::scan` loads a thread with committed canon and `continue`s, which skips `attachments()`, so re-emitted canon never gains the bucket files and the prune probe (`bucket_verdict`) finds them unheld. Build: in that canon branch, when `dir` is a v2 status bucket (reuse `V2_STATUS_BUCKETS`; `organize.rs::v2_bucket_copy` is the nearest existing helper, check it before writing one), run `project.collect_attachments_in(id, dir)` under the same `account_attachments` guard and merge into the loaded thread: absent is carried, same sha is already held, a different sha is withheld because canon wins, then re-sort by path. Naming-gate, size-cap and unreadable refusals are REPORTED as not ingested and never block the run. New per-file carried and withheld lists on `Scan` (the exhaustive destructure in `migrate::plan` forces the hop) to `migrate::Plan` to `Upgraded`; `render.rs` `upgrade()` prints one `ingested:` or `not ingested: <path> -- <reason>` line per file. The preamble carry has no subject on this path: a GeneratedView or Canon file of a thread in canon is already held. **ASSUMPTION SENT TO vc AND PENDING OVERRULE: a run that carried bucket files does NOT run upgrade own second-door prune in that same run**, because it would delete them and name them only afterwards, and the ruled arm expects the following organize preview to read 2 to prune (v2); removal stays with `organize --apply`, the conversion prune is untouched, and a re-emit run that carried nothing prunes as today. Arm in `legacy_bucket_attachments.rs`: `Fixture::new()` (a 3.0.0 config, so `Migration::Done` and no git needed), `write_thread` of a thread (note `sample_thread` already carries two attachments -- choose file names that do not collide), a bucket `intent/st/COMPLETED/<ID>/` holding exactly two attachment files and no `info.md`, `Facade::upgrade`, then `legacy::leftovers` withheld empty, then `fx.facade_on_disk().organize(Mode::Preview)` with 2 `pruned_legacy` and `refused` empty. Mutate the ingest out and expect red. M.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:59:26.702Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 8,
+      "text": "**0318, after 0319: `organize` reports the v2 prune refusal ONCE PER RUN AS A CLASS. MAPPED, NOT YET EDITED.** `OrganizeError::LegacyUnheld` is pushed once per withheld file in `organize.rs` `Plan::run`, inside `if removals_permitted` (a bare `init` project permits, since no declaration reads as `NoDeclaration`), and `render_organize_report` prints every refusal through `refusal.render()` as `error:` plus its remedy. Build: keep the per-file entries in `report.refused`, so the summary `refused` count and the MCP per-path list stay as ruled; a `Report` method hands the renderer the v2 class, because the fold belongs to the report and not the renderer (the `Report::blocked` pattern); the class wording lives in `organize.rs` -- future tense `would refuse`, past tense `error: refused`, one remedy. The renderer prints the class line at EVERY verbosity including `--quiet`, the paths with their reasons only under `--verbose`, and otherwise one line announcing the narrowing (the unclaimed-inventory pattern). `organize` already declares `--verbose`/`-v` and `--quiet`/`-q`, so no new flag: amend the `--verbose` help and basis in `surface/dispatch-table.json` and regenerate the md with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`. Arm in `intent-cli/tests/organize_verbosity.rs` (a `suite` module): `init` plus two unheld files under `intent/st/COMPLETED/<ID>/`; the preview shows one class line naming 2 and no per-file error line, and `--verbose` names both paths. S.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:59:27.883Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 12,
+      "text": "**`cargo test -p intent-cli --bins <filter>` RAN ZERO TESTS AND EXITED 0.** `render.rs` is compiled by the LIBRARY target `intent_cli`; the `intent` bin holds no tests at all, so `0 filtered out` meant the binary has none, not that the filter missed. Read `running N tests` before trusting any green. `--lib` is the target for in-crate tests there, and `--test suite` for the integration arms in both crates.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:59:29.043Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 13,
+      "text": "**NEVER `git commit --only` A PATH A PEER HAS UNCOMMITTED EDITS IN** -- it takes the whole working file, so their in-flight work lands under your message. Wait for their landing, rebase, then land. **And guard a landing on NOTHING UNDER `native/rust` HAVING MOVED SINCE THE MEASURED BASE, not on HEAD equality**: three peers move HEAD every few minutes and an equality guard starves the landing, while the narrower guard keeps the measurement honest and lets the commit message name the base it was measured on.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:59:30.186Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 14,
+      "text": "**`wb` WRITES GO IN ONE SEQUENTIAL CALL.** Parallel store writes from here hit `sqlite: database is locked`, and an `archive` that succeeded before a failed `add` left the board with no live item for one command. Re-issue the SAME command. Under the pair at 59eeac618 a wb write does not reliably project its view to disk (0317 fixes that), so compare the view with `wb show --json` before committing it.",
+      "state": "live",
+      "recorded_at": "2026-09-13T10:59:31.356Z"
+    },
+    {
+      "node": "dc",
+      "kind": "decision",
+      "seq": 6,
+      "text": "(2026-09-13) **0319 RATIFIED BY vc on both points I raised, standing until hv says otherwise.** (1) A run that CARRIED bucket files into re-emitted canon does NOT prune in that same run: removal stays with `intent organize --apply`, which names every path before it goes; the upgrade reports what it deferred and points at `intent organize`; the conversion prune (AC-02.2) is untouched and a re-emit run that carried nothing prunes as today. This is hv's 2026-09-12 no-silent-deletion ruling applied to this door. (2) A naming-gate refusal on the fleet's buckets is REPORTED as not ingested with its reason and never halts the upgrade. Build 0319 as stated, land it as its own commit with its view dehydrated, report every file, then 0318. The pair rebuild follows 0319 directly because Laksa's step 2 is held on it.",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:00:28.856Z"
     }
   ],
   "messages": [

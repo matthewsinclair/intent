@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 10:52Z
+heartbeat_at: 2026-09-13 11:04Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 10:52Z for hv's compact. WP-14's cutover done; the close waits on cc's flag, ic's mark, dc's three landings; then wp done, the close, the pair at rung 25, hv's fullcycle, the cut."
+focus: "BACK 2026-09-13 10:58Z. cc's migrated_at in at 18beb05a9 (rung 25); AT-14.2 ordered green; dc's 0319 ratified and in build, then 0318; the pair rebuilds after 0319, then wp done ST0069/14, the close, the fleet released, hv's fullcycle, the cut."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-_(none)_
+- Directing ST0069 to the end (hv, 2026-09-12); DARK for hv's compact from 2026-09-13 10:54Z. WP-14's cutover is done; every board write is a wb verb from here. Still to land: cc's migrated_at flag and AT-14.2, dc's 0319 then 0318. Then wp done ST0069/14, the close, the pair at rung 25, the fleet released, hv's pristine fullcycle, the cut. On the bounce: wb show vc, the inboxes, every landing by file list.
 
 ## TODO
 
