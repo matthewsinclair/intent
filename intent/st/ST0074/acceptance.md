@@ -37,7 +37,7 @@ title: Machine-wide projects: intentd's config home, the project registry and di
 
 ### WP-05 -- Where intentd's durable configuration lives: a standards-compliant home, ruled by hv (status: Not Started)
 
-- AC-05.1 (non-test) hv has ruled where intentd's durable configuration lives, and design.md records the ruling. -- satisfied: no
+- AC-05.1 (non-test) hv has ruled where intentd's durable configuration lives, and design.md records the ruling. -- evidence: f2452077a -- satisfied: yes
 
 ## Acceptance Tests
 

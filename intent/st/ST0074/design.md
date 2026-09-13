@@ -1,6 +1,6 @@
 # Design: where Intent's per-user files live (WP-05)
 
-**RULED by hv, 2026-09-13.** _"XDG\_\* looks very much like the right way to do. Use that or conform to that. That's what we want."_ _"What ever is the most compliant to standards, use that. Use you judgement."_ _"We can ignore v2 now as there's nothing left using it. Just push on as if it doesn't exist."_ The standard is the XDG Base Directory Specification, for `intent` and `intentd` alike. `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME` and `XDG_RUNTIME_DIR` join `no_intent_home.rs`'s `ALLOWED`, read in `userstate.rs` only, each taking the specification's default when unset or empty. Lands after the 3.0.2 tag, for 3.1.0 (vc).
+**RULED by hv, 2026-09-13.** _"XDG\_\* looks very much like the right way to do. Use that or conform to that. That's what we want."_ _"What ever is the most compliant to standards, use that. Use you judgement."_ _"We can ignore v2 now as there's nothing left using it. Just push on as if it doesn't exist."_ The standard is the XDG Base Directory Specification, for `intent` and `intentd` alike. `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME` and `XDG_RUNTIME_DIR` join `no_intent_home.rs`'s `ALLOWED`, read in `userstate.rs` only, each taking the specification's default when unset or empty. Lands in 3.0.2 (hv, 2026-09-13, relayed by vc).
 
 ## The layout
 
@@ -21,15 +21,15 @@
 
 ## The migration
 
-- **What moves.** The first 3.1.0 command to resolve a per-user path, finding `~/.intent/` and no `~/.config/intent/config.json` in v3's shape, moves `~/.intent/config.json`, `home`, `skills/`, `subagents/`, `agents/` and `ext/` into the layout, removes `~/.intent/`, and prints one line saying so. Hooks run through the installed binary, so a commit on any estate performs the move rather than refusing on it.
-- **Read once, never again.** `~/.intent/` is read by that move and by nothing else in 3.1.0. A `~/.config/intent/config.json` not in v3's shape is replaced.
-- **What a running daemon meets.** Runtime files are not moved: a 3.0.x intentd keeps its socket under `~/.local/share/intent/` until it stops. A 3.1.0 client looks under the new runtime path, finds no daemon, and runs in-process as it does with none running. `intent daemon restart` starts the 3.1.0 daemon at the new path and removes the old runtime files. The rebuild's daemon restart does this on this machine.
-- **What an old binary meets.** A 3.0.x `intent` finds no `~/.intent/home`, and its existing refusal names `intent bootstrap`; running that recreates a `~/.intent/` the 3.1.0 binary never reads. The remedy is the 3.1.0 binary.
-- **Every literal reader moves in the same change**: `userstate.rs`, `lib/templates/hooks/pre-commit-shim.sh` and `pre-commit.sh`, `bin/.devbin/cmd/{hooks,macos}`, the skills naming the manifest path, and the menubar app.
+- **What moves.** The first 3.0.2 command to resolve a per-user path, finding `~/.intent/` and no `~/.config/intent/config.json` in v3's shape, moves `~/.intent/config.json`, `home`, `skills/`, `subagents/`, `agents/` and `ext/` into the layout, removes `~/.intent/` if nothing else is left in it, and prints one line saying so. Claude Code hooks run through the installed binary and perform the move. A project's git pre-commit carrier is a copy of the shim: one installed before 3.0.2 reads `~/.intent/home` and refuses until `intent claude upgrade --apply` reinstalls it there.
+- **Read once, never again.** `~/.intent/` is read by that move and by nothing else in 3.0.2. A `~/.config/intent/config.json` not in v3's shape is replaced.
+- **What a running daemon meets.** Runtime files are not moved: a 3.0.1 intentd keeps its socket under `~/.local/share/intent/` until it stops. A 3.0.2 client looks under the new runtime path, finds no daemon, and runs in-process as it does with none running. `intent daemon stop`, and so `restart`, also stops a daemon still holding the old lock and removes its runtime files; `restart` then starts the 3.0.2 daemon at the new path. The rebuild's daemon restart does this on this machine.
+- **What an old binary meets.** A 3.0.1 `intent` finds no `~/.intent/home`, and its existing refusal names `intent bootstrap`; running that recreates a `~/.intent/` the 3.0.2 binary never reads. The remedy is the 3.0.2 binary.
+- **Every literal reader moves in the same change**: `userstate.rs`, `lib/templates/hooks/pre-commit-shim.sh` and `pre-commit.sh`, `bin/.devbin/cmd/{hooks,macos}`, and the skills and docs naming these paths. The menubar app names none: it asks the CLI.
 
 # Design: the project registry and `intent discover` (WP-03)
 
-Where the file lives is WP-05's ruling; until then it is `<config-home>/projects.json`.
+It lives at `$XDG_CONFIG_HOME/intent/projects.json` (WP-05).
 
 ## Schema
 
