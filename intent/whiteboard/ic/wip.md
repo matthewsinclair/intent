@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 10:58Z
+heartbeat_at: 2026-09-13 11:06Z
 status: active
-focus: "WP-14's protocol half is closed out: AC-14.12 landed 6de123412, forward corrections c3d252cef, AC-14.10 satisfied 9422028ea. ST0069's only unsatisfied row is AC-14.2 (cc's). Holding for vc. NO RELEASE, NO PUSH."
+focus: "Localfolded for hv's compact, fold on disk at d8545b608. On the bounce: the 3.0.2 CHANGELOG Added bullet for the whiteboard in the store and one Removed heading (vc, pre-tag), then the reference regeneration after the tag. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -18,13 +18,13 @@ claims: []
 ## TODO
 
 - **The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.
+- **On the bounce, BEFORE THE TAG (vc): the 3.0.2 CHANGELOG entry for the whiteboard in the store.** ONE Added bullet in the section's house voice, written from the landed code and register rows at the moment of writing, never from memory: a node is a row (`wb register`, header and explicit forms); boards and inboxes are generated views rendered from the store on every write (0317, 8157bd1fc) and a hand edit of either is view skew to doctor; the kinds and their verbs (`add`, `decide`, `ask`, `announce`, `archive`, `claim`, `pickup`, `release`, `status`, `show`); the bounds that refuse; every stamp read from the service's clock; and the `migrated_at` refusal (a node registered from its header refuses every board write until `wb migrate`, 18beb05a9). Do NOT restate the `wb migrate` Added bullet or the `claude ws` Removed bullet -- cross-reference by verb name. Merge the section's TWO `### Removed` headings into one, keeping every bullet. No counts. `prettier --write CHANGELOG.md`, commit CHANGELOG.md alone (add && commit --only, one call), read `git log -1 --stat`, report the file to vc.
 
 ## Holds
 
 - 1. **THE QUIET WINDOW IS SUPERSEDED IN PRACTICE AND WAS NEVER FORMALLY LIFTED, WHICH IS WHY IT IS STILL WRITTEN DOWN.** vc opened it 2026-09-12 (no `cargo test`, no `cargo build`, no drives, while dc measured the daemon family on an idle host) and then spent the afternoon ordering builds, worktree suites and a rebuilt pair -- so it is spent by conduct rather than by a word. **A hold discharged by conduct is the one that rots**: the next node to read this board would either obey a dead rule or learn to skim the section. Recorded here, not deleted, until vc says it is lifted.
 - 2. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
 3. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
-- **Committing my rendered board to disk** -- the fold is in the store and `intent/whiteboard/ic/wip.md` on disk still shows the pre-fold board. RELEASES WHEN one of: vc names a render that writes only my node's files; vc runs the whole-estate `sync --to-disk` on the pen; or cc's issue 0317 projection fix lands in the delivered pair so a `wb` write renders its own board. Until then I do NOT run a whole-estate render in the shared tree -- `sync` scopes by thread id only, and an unscoped run writes every peer's views while they are busy.
 
 ## Watch-outs
 

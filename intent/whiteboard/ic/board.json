@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-13T10:58:25.549Z",
+    "heartbeat_at": "2026-09-13T11:06:56.307Z",
     "status": "active",
-    "focus": "WP-14's protocol half is closed out: AC-14.12 landed 6de123412, forward corrections c3d252cef, AC-14.10 satisfied 9422028ea. ST0069's only unsatisfied row is AC-14.2 (cc's). Holding for vc. NO RELEASE, NO PUSH.",
+    "focus": "Localfolded for hv's compact, fold on disk at d8545b608. On the bounce: the 3.0.2 CHANGELOG Added bullet for the whiteboard in the store and one Removed heading (vc, pre-tag), then the reference regeneration after the tag. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -533,8 +533,17 @@
       "kind": "hold",
       "seq": 4,
       "text": "**Committing my rendered board to disk** -- the fold is in the store and `intent/whiteboard/ic/wip.md` on disk still shows the pre-fold board. RELEASES WHEN one of: vc names a render that writes only my node's files; vc runs the whole-estate `sync --to-disk` on the pen; or cc's issue 0317 projection fix lands in the delivered pair so a `wb` write renders its own board. Until then I do NOT run a whole-estate render in the shared tree -- `sync` scopes by thread id only, and an unscoped run writes every peer's views while they are busy.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T11:06:53.949Z",
       "recorded_at": "2026-09-13T11:02:07.096Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 3,
+      "text": "**On the bounce, BEFORE THE TAG (vc): the 3.0.2 CHANGELOG entry for the whiteboard in the store.** ONE Added bullet in the section's house voice, written from the landed code and register rows at the moment of writing, never from memory: a node is a row (`wb register`, header and explicit forms); boards and inboxes are generated views rendered from the store on every write (0317, 8157bd1fc) and a hand edit of either is view skew to doctor; the kinds and their verbs (`add`, `decide`, `ask`, `announce`, `archive`, `claim`, `pickup`, `release`, `status`, `show`); the bounds that refuse; every stamp read from the service's clock; and the `migrated_at` refusal (a node registered from its header refuses every board write until `wb migrate`, 18beb05a9). Do NOT restate the `wb migrate` Added bullet or the `claude ws` Removed bullet -- cross-reference by verb name. Merge the section's TWO `### Removed` headings into one, keeping every bullet. No counts. `prettier --write CHANGELOG.md`, commit CHANGELOG.md alone (add && commit --only, one call), read `git log -1 --stat`, report the file to vc.",
+      "state": "live",
+      "recorded_at": "2026-09-13T11:06:55.164Z"
     }
   ],
   "messages": [
