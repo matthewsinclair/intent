@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 359,
+  "slug": "index-status-reports-grammar-unknown-for-author",
+  "title": "index status reports grammar unknown for author and content, which have no grammar to have",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent index status` reports `grammar: author  unknown` and `grammar: content  unknown` beside `grammar: shell  no-grammar` and `elixir`, `rust`, `swift` `ready`. author and content are prose kinds with no grammar to have; `unknown` is the word for a state the reporter could not determine, and the row already has the word for a language without a grammar. Say `no-grammar` (or omit prose kinds from the grammar rows), so the report does not read as a lookup that failed.\n"
+}

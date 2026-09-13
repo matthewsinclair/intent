@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 360,
+  "slug": "a-text-hit-on-a-whiteboard-file-renders-twice-on",
+  "title": "a text hit on a whiteboard file renders twice, once by path and once by node moniker",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent search \"expired snapshot\" --limit 8` renders each hit on a whiteboard file twice: once with the path in the second column and once with the node's moniker (`intent/whiteboard/cc/.history/20260815/inbox.vc.md:1987  file  intent/whiteboard/cc/.history/20260815/inbox.vc.md  ...` then the same line with `cc`; likewise `vc`, `ic`). Eight rows shown carry four distinct hits. Either the two rows are two records for one line (a file hit and a board hit) and one of them should not be a `file`, or the renderer prints one record twice. The `.history` archives dominating a text search's top rows is a separate question about the prose corpus, not filed here.\n"
+}

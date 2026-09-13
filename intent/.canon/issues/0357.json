@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 357,
+  "slug": "search-s-returned-count-and-its-note-disagree-wi",
+  "title": "search's returned count and its note disagree with the rows the answer carries",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent search Retention --tier structural --limit 20 --json` answers `matched: 17, returned: 17` and carries 2 hits (backup.rs:89 def, backup.rs:111 ref). At `--limit 8` the prose form prints `note: 8 of 17 shown` and two rows. So `returned` and the note count rows the answer does not carry, fifteen of seventeen here. The contract on `--limit` is that the answer reports both what matched and what came back; here what came back is neither number. Whatever drops the rows after counting (a filter applied after the count, or a de-duplication in rendering) has to run before `returned` is computed, and the count has to be the length of the body.\n"
+}
