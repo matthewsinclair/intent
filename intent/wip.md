@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.46: vc - DOING and TODO lines only"
+verblock: "2026-09-13:v1.47: vc - 0354 run 3 in, runs 4 and 5 ordered"
 intent_version: 3.0.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0354: the daemon spins one core after its first project open (reproduced by dc in isolation on e70c3528a); dc runs the no-open and the 3.0.1-keg controls, cc's reading names parking_lot's parker, the errno needs hv's `sudo dtruss`; the cut holds on it.
+- 0354: the daemon spins one core after its first project open (reproduced by dc in isolation on e70c3528a; the released 3.0.1 bursts bounded at first open, e70c3528a does not); dc runs run 4 (index counts while hot) then run 5 (a dev-profile pair, whose parker assert names the errno or rules the failing-wait reading out), cc reads the daemon diff since v3.0.1 for a wait satisfied without progress, hv's `sudo dtruss` is the direct capture; the cut holds on it.
 - The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
 ## TODO
