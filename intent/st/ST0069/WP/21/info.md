@@ -11,7 +11,7 @@ status: Done
 
 Make `/search` in the explorer a resident results pane fed by the same facade call as the CLI, with hits as rows, freshness in the INFO section, and Enter landing on an entity's view or opening a file at its line.
 
-Design: design.md, the explorer's /search. A nav::View::Search whose rows are the envelope's hits, groups as sections; Enter on an entity hit uses the existing navigation, Enter on a file hit opens the file at its line through the lent terminal the way edit already borrows it. The TUI's pure layers stay pure and testable without a terminal. The omnibox-as-search-box option is hv's decision, listed in the design. Depends on WP-19.
+Design: design.md, the explorer's /search. A nav::View::Search whose rows are the envelope's hits, groups as sections; Enter on an entity hit uses the existing navigation, Enter on a file hit opens the file through the lent terminal the way edit already borrows it; the row names the line and the editor is not positioned at it, because editor line flags are not portable (AC-21.2). The TUI's pure layers stay pure and testable without a terminal. The omnibox-as-search-box option was ruled out of 3.0.2 under the pen on 2026-09-12. Depends on WP-19.
 
 ## Acceptance
 

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 372,
+  "slug": "the-mcp-search-tool-and-the-explorer-s-search-pa",
+  "title": "the MCP search tool and the explorer's /search pane answer without reconciling, so without a daemon they can return a confident subset",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "The MCP `search` tool and the explorer's `/search` pane answer without reconciling, so without a daemon they can return a confident subset.\n\nST0069's WP-22 and design say the in-process MCP face stays correct without the daemon because it reconciles too. It does not. The `search` arm calls `Facade::search_all` straight away (`intent-cli/src/mcp.rs:1252`), and nothing on the MCP path calls `index_refresh`; the explorer's `View::Search` does the same (`intent-cli/src/render.rs:5376-5378`). Only the CLI's in-process path reconciles first (`intent-cli/src/render.rs:3649-3651`).\n\nWithout a daemon, the index these faces read is as current as the last CLI search or `intent index rebuild`. A file added, or edited so that it now matches, yields no hit and no stale entry, so `complete` stays true over a subset: the confident subset AC-19.3 forbids, on the surface WP-24 routes the model to. The commit that built the daemonless reconcile (`e809eea8f`) gives the reason it is needed, and no ruling exempts MCP or the pane.\n\nRemedy: reconcile before `search_all` in the MCP arm and the pane, as `render.rs` does (MCP could take a `no_reconcile` argument to match the CLI); or rule that these faces depend on a running daemon and say so in WP-22 and the design.\n\nFound by the as-written against as-built audit of ST0069, 2026-09-13.\n"
+}

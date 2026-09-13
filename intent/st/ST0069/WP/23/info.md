@@ -11,7 +11,7 @@ status: Done
 
 Specify the semantic and type-aware tiers as staged additions, prove the seams by the T1 and T2 build, and land the embedder interface with a refusing Null implementation and an HTTP implementation, leaving the local runtime to hv's ruling.
 
-Design: design.md, T3 and T4. The embedder is the category change and its runtime is the decision: Null refuses a semantic query with a remedy naming the configuration; HTTP talks to an OpenAI-compatible endpoint from config.json, which covers a local Ollama; Local (a compiled-in runtime and a fetched model) is a package for after hv rules on the runtime and the binary-size line. Storage is a vector column beside the symbol rows with cosine ranking in Rust; sqlite-vec is the recorded upgrade. Depends on WP-20, because symbols are the chunks.
+Design: design.md, T3 and T4. The embedder is the category change and its runtime is the decision: Null's `embed` refuses with a remedy naming the configuration, and a search over a project with no embedder answers with no semantic group (as built, 2026-09-13, `facade.rs:3343-3366`; issue 0356); HTTP talks to an OpenAI-compatible endpoint from config.json, which covers a local Ollama; as built it speaks `http://` only and refuses an `https://` endpoint by name; Local (a compiled-in runtime and a fetched model) was measured and ruled under the pen on 2026-09-12: no Local runtime ships in 3.0.2. Storage is an `embeddings` table keyed by chunk and model with cosine ranking in Rust (`embed::cosine`); nothing writes a row until a chunker exists (as built, 2026-09-13), and sqlite-vec is the recorded upgrade. Depends on WP-20, because symbols are the chunks.
 
 ## Acceptance
 

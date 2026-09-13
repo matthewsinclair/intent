@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 369,
+  "slug": "the-search-envelope-never-carries-reconciled-at",
+  "title": "the search envelope never carries reconciled_at, and nothing records when the index was last reconciled",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "The search envelope never carries `reconciled_at`, and nothing records when the index was last reconciled.\n\nST0069's design makes the last reconcile part of every answer's freshness block: the Architecture table has `reconcile` stamping `index_state` and `freshness` reading it, the envelope example carries `\"reconciled_at\"`, and the Data model lists an `index_state` table. `search.rs` says the field stays `None` only until WP-18's reconcile exists to write it.\n\nWP-18 is done and its reconcile (`Facade::index_rebuild`, `Facade::index_refresh`) stamps nothing. No `index_state` table or column exists, and every `IndexFreshness` is built through `new` (`intentsvcs/src/search.rs:158-165`), which sets `reconciled_at` to `None`, so the serialiser omits the field from every envelope.\n\nIt matters because a daemon-served search does not reconcile before answering (`intentd/src/store.rs:896-909`): the envelope is the only place a reader could learn how old that answer is.\n\nRemedy: stamp the reconcile in the statement that performs it (D42, no clock read at render) and read it into `reconciled_at`; or rule the field and the `index_state` row out of the design.\n\nFound by the as-written against as-built audit of ST0069, 2026-09-13.\n"
+}

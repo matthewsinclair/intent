@@ -11,7 +11,7 @@ status: Done
 
 intentd keeps the index warm incrementally through the widened watcher, an Op::Search crosses the wire with the envelope, and a daemonless query reconciles the source corpus first so its answer is identical to the daemon's for the same tree state.
 
-Design: design.md, the daemon. A changed file is re-tokenised, re-parsed and its rows replaced. A daemonless query runs the same reconcile-then-query in intentsvcs; `--no-reconcile` trades that for a named staleness. The MCP face stays in-process and correct without the daemon because it reconciles too. Depends on WP-18 and WP-19.
+Design: design.md, the daemon. A changed file is re-tokenised, re-parsed and its rows replaced. As built (2026-09-13), the daemon also builds its index when it opens a project: `Facade::index_stale_roots` names the root and each top-level directory holding something stale, and the store thread refreshes one at a time between client ops, a waiting op first (issue 0366, AC-22.4). A daemon-served query does not reconcile (`intentd/src/store.rs:896-909`), and only a text query crosses the wire: `--daemon` with `--outline`, `--context` or `--sql` refuses. A daemonless query runs the same reconcile-then-query in intentsvcs; `--no-reconcile` trades that for a named staleness. The MCP face stays in-process and correct without the daemon because it reconciles too. Depends on WP-18 and WP-19.
 
 ## Acceptance
 

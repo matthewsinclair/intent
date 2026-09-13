@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 373,
+  "slug": "intent-index-status-reports-no-index-sizes-thoug",
+  "title": "intent index status reports no index sizes, though the design and AC-19.6 commit it to the measured sizes",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent index status` reports no index sizes, though the design and AC-19.6 commit it to the measured sizes.\n\nST0069's design (Data model additions, Risks) makes index size load-bearing once source is indexed (D34: FTS roughly twice its corpus) and says `intent index status` reports the measured sizes rather than anyone estimating them; AC-19.6 says the verbs report measured sizes.\n\nThe built `Status` (`intentsvcs/src/index/status.rs:22-36`) carries files held per corpus, grammar readiness per declared language, and skipped paths by reason, and `report_index` renders those (`intent-cli/src/render.rs:4340-4380`). Nothing reads the size of `src_sections`, `doc_sections`, `symbols` or the store, so no surface measures what the index costs.\n\nRemedy: report the measured size of the index's tables, read and never estimated (eg SQLite's `dbstat` or page counts); or rule the claim out of the design and AC-19.6.\n\nFound by the as-written against as-built audit of ST0069, 2026-09-13.\n"
+}

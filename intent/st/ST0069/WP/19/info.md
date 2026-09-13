@@ -11,7 +11,7 @@ status: Done
 
 Lexical search over the whole corpus, returned in the one envelope every later tier extends: grouped by tier, ranked within a tier, never blended, freshness in every answer, the same JSON from the CLI and the MCP tool.
 
-Design: design.md, T1 and the envelope. The source table is unicode61 without stemming so snake_case splits; trigram is the measured alternative, adopted only on evidence from an identifier fixture. One row per file for this tier. `--json` and the MCP tool return the same envelope from one facade call; `--format` is terminal-channel only. A stale, partial or empty index is named or the query refuses; a hit's line is kept only when the indexed bytes still match the disk. Adds `intent index status` and `intent index rebuild`. Depends on WP-18.
+Design: design.md, T1 and the envelope. The source table is unicode61 without stemming so snake_case splits; trigram was measured on an identifier fixture and not adopted, because it returns nothing for a query shorter than three characters (2026-09-12, AT-19.4). One row per file for this tier. `--json` and the MCP tool return the same envelope from one facade call; `--format` is terminal-channel only. As built (2026-09-13) the MCP face is the one `search` tool, whose arguments are the CLI's doors (a text query, `sql`, `outline`, `context`) and its filters, refusing two doors at once as the CLI does; `index status` is a tool and `index rebuild` is withheld (`mcp.rs:1134-1272`). A stale, partial or empty index is named or the query refuses; a hit's line is kept only when the indexed bytes still match the disk. Adds `intent index status` and `intent index rebuild`. Depends on WP-18.
 
 ## Acceptance
 
