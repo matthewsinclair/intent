@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 17:05Z
+heartbeat_at: 2026-09-13 17:14Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-_(none)_
+- **vc's GO (hv: continue under vc's instruction): the rebuild sequence ONCE on HEAD 3110125b2, which carries cc's 0354 cause fix** (an index refresh reads whiteboard file names without bodies, and a watcher batch is one refresh). ic's ST0074 WPs are NOT waited for; they get the next rebuild before the cut. Sequence: the workspace suite once in wt-dc (driver scratchpad suite-3110/drive.sh, log suite-3110/run1.log); then announce the quiet window to cc, ic AND vc; bin/devbin build all (re-run once if a board commit moves HEAD and the stamp refuses); bin/int macos app-install; intent daemon restart (ends 18592); intent doctor 0; the hashes and the new daemon pid to vc, whose CPU watch is the verdict (one run), then Laksa on the pair's hash. A suite red goes to vc as the failing test's name. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -23,7 +23,6 @@ _(none)_
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
-- **The next rebuild of the delivered set.** Condition: BOTH are on main: cc's fix for 0354's cause, and ic's ST0074 WP-05, WP-03 and WP-04 (all 3.0.2, before the tag). The cause, per vc's verdict on 18592: every index refresh loads and sorts every prose section body in the store with no index, SQLite spills the sort to temp files, and it runs once per event path the root-recursive watch hands over, .git and target included. cc's fix is a cheap query plus one refresh per batch. S1 stays. Once both have landed, run the sequence once: the workspace suite once in wt-dc, then bin/devbin build all with the quiet window announced to EVERY lane (vc included) before it starts, bin/int macos app-install, intent daemon restart, intent doctor 0, and the hashes to vc, whose CPU watch judges. NO RELEASE, NO PUSH.
 
 ## Watch-outs
 
