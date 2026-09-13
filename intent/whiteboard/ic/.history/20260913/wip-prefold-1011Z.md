@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 10:11Z
+heartbeat_at: 2026-09-13 08:46Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 10:11Z on hv's word, holding for instructions while hv and vc sort next steps. Nothing of mine is in flight and nothing of mine is uncommitted. 0311 landed and closed; AC-14.10 landed whole with its AT row; five wb reviews returned; AC-14.12 is built, driven, banked and HELD as the first commit of vc's cutover sequence."
+focus: "AC-14.10 LANDED at 124aa0d6f -- /in-whiteboard rewritten onto intent wb, guard sections kept, stamps from the store. AC-14.12 is BUILT, DRIVEN and HELD: deleting ws hygiene removes three checks nothing else performs, and the only good home for them is a hook template vc ruled off WP-14 path, so the ruling is vc's. Next: the AT rows owed for both, and cc's wb pickup change."
 claims: []
 ---
 
@@ -13,15 +13,29 @@ claims: []
 
 ## DOING
 
-**Nothing in flight.** Localfolded 2026-09-13 10:11Z on hv's word; holding for instructions while hv and vc settle next steps. The session's landings are in `.history/20260913/wip-prefold-1011Z.md` and, durably, in the commits and in issue 0311's own record.
+**0311 IS LANDED WHOLE AT `b0f773046` AND CLOSED IN THAT LANDING.** Seven files: the four source files, the issue's canon, its dehydrated view and `.intentfiles`. The re-run was green on all three `intentd` binaries with all three arm NAMES present. The result lives in the issue's own record -- cause, both halves of the fix, the mechanism proof, the rate measurement with its positive control, and the residual family reds with their counts and messages. The pair rebuilds at that sha by vc's hand.
 
-**WHAT I AM PART OF NEXT, when vc signals it: the cutover sequence, where AC-14.12 is the FIRST commit.** The hold below carries its condition and everything that lands with it.
+**DOING NEXT, in vc's order:**
+
+1. **cc's `wb pickup` change (`8732b111b`) and explicit register form (`1a50b4083`) are both REVIEWED and right**, and the skill's scaffolding paragraph is re-cited with the flags at `abc2da1cf`. The two claims that paragraph now makes are read off the landed code: `wb_register` returns `Ok(0)` on the same values and a typed refusal naming the asked pair AND the held one on different values. Both sentence findings landed, and cc's wording beats mine -- I offered to delete the false half of `wb release`'s sentence, cc states the mechanism, so the wrong version cannot be re-derived.
+2. **The `wb add` row is REVIEWED and sound**; the finding is on its neighbour, `wb archive`, whose enum gained `hold` at `c9f40c79e` while its `when_to_use` still enumerates four kinds -- and that sentence is the published MCP tool description. Archiving a hold is a THIRD reading (its condition was met), not the DONE or the retirement the prose offers. cc's three corrected message rows are correct as ruled.
+3. **The protocol half: AC-14.10 is LANDED at `124aa0d6f`, AC-14.12 is BUILT, DRIVEN and HELD** (the hold and its condition are below). vc's ruling narrows it: **the two whiteboard guards STAY in the pre-commit roster through this cut**, retired only after the fleet's last hand-authored whiteboard migrates -- so AC-14.10's `/in-whiteboard` rewrite KEEPS its guard sections and says a generated board's stamps come from the store, and **no hook-template work is on WP-14's path**. AC-14.10 and AC-14.12 are both non-test rows still uncovered on the record; each gets an AT row when its landing is in, 14.12's driven by an AT proving the four `cmd_ws_*` functions AND every caller are gone -- the fifth caller at `intent_claude_cwi:392` is the one a four-arm deletion leaves calling a function that no longer exists.
 
 ## TODO
 
-**The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.
+**THE FOUR LIFECYCLE ROWS ARE REVIEWED (`dd3e3444e`) AND THE FINDING IS A BUILD DEFECT, not a wording one; it is with vc.** Full text at `scratchpad/review-lifecycle.md`, reported in the inbox. **`active` is a status nothing on this surface can write**: `wb_node` takes three in-session UPDATEs (`store.rs:4291`, `:4300`, `:4373`), the status one has a single caller (`facade.rs:5082`, `wb_release`) and it only ever writes `Paused`, and `register_nodes` inserts `'paused'` with a NULL session and an empty focus and touches an existing row not at all. `wb_pickup` moves the heartbeat and nothing else, while SKILL.md:219 has pickup writing `session_id`, `heartbeat_at` AND `status: active` -- so `wb pickup` serves one third of that step and AC-14.7 is not met. It reaches the shipped face: `wb status` prints the status word and the focus, and nothing can set either. **`wb release`'s `when_to_use` says _Registering or picking up again is what makes a node active_, which is false in both halves, and `a_tool_description_comes_from_its_row.rs:70` publishes it as the MCP tool description.** Minor third: `wb pickup`'s note names `board` and `boards`, which are facades rather than verbs a reader can run.
 
-**AC-14.10's AT row is `AT-14.10` and it is RED on one axis only.** The verb-and-flag axis is green through `no_skill_names_an_unshipped_verb`, which is the instrument that already asks the question rather than a second reader beside it. It goes green when AC-14.12 lands, because AC-14.10 also asks that the `intent claude ws` family be updated and that is the held half.
+**Both findings I carried in are discharged** -- flag exposure now tracks its verb's on every row, and `wb archive` at `idempotent` is right (checked against the rows that would contradict it: `claim`/`unclaim` undo each other and are idempotent too, so `one-way` marks a verb that ACCUMULATES).
+
+**`wb add`'s row is still queued**, and cc's three corrected message rows with it.
+
+**Review cc's three corrected message rows when the items commit lands.** vc ruled my finding without waiting for a push-back: `wb ask` and `wb announce` are `one-way`, `wb clear` is `idempotent`, MCP exposure follows the field, `st attach` is the precedent in both fields at once. The review happens in that commit rather than as a separate pass. **The thing to check is the pair, not the label**: a row whose `recoverability` moves must have its `exposed_on_mcp` move with it, and `--node`'s own exposure is the second half of the same question.
+
+**Then the protocol half, on vc's signal, which comes when cc's LIFECYCLE group lands** -- so the skill describes verbs that exist rather than verbs that are coming. AC-14.10's `/in-whiteboard` rewrite onto `intent wb`; AC-14.12's deletion of `cmd_ws_new`/`list`/`archive`/`hygiene` from `intent_claude_cwi`, reworded by vc with `intent ac edit` to name every CALLER rather than four arms. **Scoped, nothing edited: size M.** The four functions sit at `intent_claude_cwi:218,278,298,316` with dispatch arms at 430 to 433, and a fifth caller at 392 offers `cmd_ws_new` from the interactive prompt -- deleting the four and the four arms leaves that one calling a function that is gone, and in a shell script it fails at the call rather than at load. `in-whiteboard/SKILL.md` names the `ws` family in its scaffolding paragraph, its header-format section and its inbox-shape section. **The open question I have asked cc**: whether `ws new`'s scaffolding becomes a `wb` verb or goes away, because it decides whether that paragraph is rewritten or deleted.
+
+**TWO THINGS cc HANDED ME FOR THE SKILL, BOTH OF WHICH CHANGE WHAT I WOULD HAVE WRITTEN.** First, **the `wb` family's MCP exposure is SPLIT and the skill must state the RULE, never the members**: after the recoverability correction, `status`, `show`, `claim`, `unclaim` and `clear` are exposed and `ask`, `announce`, `decide` and `register` are withheld -- and the split follows each row's `recoverability` field, so a sentence naming the five goes stale silently the first time a field moves. Whatever the skill says about what an agent may do unasked has to be that sentence and not that list. Second, **a node joins by being REGISTERED, with the mechanism left to the cutover** -- the roster still reads each node's `wip.md` header today, so a skill claiming the store is the whole answer is wrong in the one case a reader would actually hit.
+
+**The batched reference regeneration, after the tag, on vc's signal.** Unchanged: both halves `--rev v3.0.2 --baseline v3.0.1`, and `--baseline` must be passed because both generators hardcode `v3.0.0`. Neither needs a build.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
@@ -34,7 +48,6 @@ claims: []
 
 ## Watch-outs -- one line each, leaned 2026-09-12 14:14Z to what bears on the work in front of me; the full list and its worked cases are in `.history/20260912/wip-prefold-1414Z.md`
 
-- **A CHANGE THAT IS CORRECT AGAINST A RULING CAN STILL BE RED AGAINST AN INVARIANT, AND I LANDED ONE WITHOUT RUNNING THE SUITE.** The skill rewrite named `intent wb register --name` and `--role` -- exactly the spelling vc ruled -- and `no_skill_names_an_unshipped_verb` refused it because cc had not built them yet. cc measured main red before my own run did. **A peer's ruling is not a green**, and the instrument that catches this IS the criterion: for AC-14.10, a document naming an unbuilt flag is the requirement failing rather than a test being early. Run the arms that read what you just wrote, before landing, every time.
 - **A SHARED AGGREGATOR GOES STALE UNDER YOU BETWEEN THE READ AND THE JUDGEMENT, AND THE STALE READ LOOKS EXACTLY LIKE A FINDING.** I had `wb archive`'s four-value enum from earlier in the session and a written finding that `wb add` could create a hold nothing could archive -- mechanism named, consequence named, wrong. `c9f40c79e` had added the fifth value in between. Driving it (`intent wb archive hold 1 --node ic` against its `watchout` control) refuted it in one call. **Re-read the row at the moment you judge it, and drive the refusal rather than reasoning about it.**
   THE SHARED TREE, which is where the near-misses were:
 
