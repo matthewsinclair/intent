@@ -382,8 +382,17 @@
       "kind": "doing",
       "seq": 11,
       "text": "**0354 reproduction, vc's order, before the tag. Run 5 in flight; runs 1 to 4 reported to vc.** Scratchpad repro0354/. RUN 1 (fresh clone, 3.0.2 delivered pair): lit about 1s after the open and kept bursting; one thread, SYS over USER, no store writes during a burst. RUN 2 (same clone, store already built): COLD before and after one open. RUN 3 (released 3.0.1 keg, fresh clone): three bursts, about 22s of CPU, then quiet. RUN 4 (probe4.sh, fresh clone, 3.0.2): the index COMPLETED inside the first burst (index_file 101, then 207, then 1175 by about 34s of CPU; index status reports the corpus complete), and the bursts CONTINUED for about 2:19 more CPU with every count frozen; ps -M row 18 carried it, SYS over USER, about 510k BSD syscalls a second. Run 4's counts.log hotrows field was empty (the awk read %cpu from field 4, and a thread row has no USER column); fixed and positive-controlled in probe5.sh. RUN 5 (probe5.sh, run5/ and run5.log): the DEBUG pair from wt-dc/target-dc/debug (cargo build -p intent-cli -p intentd recompiled both in 13s; both report e70c3528a), fresh clone run5-clone, RUST_BACKTRACE=1, daemon stderr proven by lsof -d 2 before the open, one open, ten minutes. It settles cc's parker reading: a panic naming the pthread_cond_wait errno, or no panic, meaning something wakes the thread each iteration. Verdict to vc with the panic text or the cpu shape, whether the daemon survived, and the first daemon status after; list every file touched (probe5.sh, run5/, run5-clone/, /tmp/dc0354-r5, /tmp/dc0354-build-home, wt-dc/target-dc/debug). Load was 37 at launch, with no gate. Confirm 58837 is the only intentd left.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T15:26:13.989Z",
       "recorded_at": "2026-09-13T15:15:07.145Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 12,
+      "text": "**0354 reproduction: runs 1 to 5 reported to vc; holding for vc's ruling on a next run or a fix shape with cc.** Scratchpad repro0354/. RUN 1 (fresh clone, 3.0.2 release pair): lit about 1s after the open and kept bursting, no store writes. RUN 2 (store already built): cold. RUN 3 (released 3.0.1): about 22s of CPU, then quiet. RUN 4 (fresh clone, 3.0.2 release): the index completed inside the first burst, and the bursts continued for about 2:19 more CPU with every count frozen; row 18, SYS over USER, about 510k BSD syscalls a second. RUN 5 (probe5.sh, fresh clone, DEBUG pair from wt-dc/target-dc/debug, RUST_BACKTRACE=1, stderr proven by lsof -d 2): NO panic and NO spin, 3.49s of CPU in ten minutes; the index STALLED at index_file 13 and src_sections 6 with every thread parked; the daemon survived, and status and graphql answered after. Not decisive on the parker reading: the loop never ran at speed. Proposed to vc, not built: a release build with debug assertions on (CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true cargo build --release -p intent-cli -p intentd in wt-dc), then run 1's recipe. Evidence kept: run/, run2/ to run5/, the clones, /tmp/dc0354-r2 to r5. Only 58837 is running.",
+      "state": "live",
+      "recorded_at": "2026-09-13T15:26:15.157Z"
     }
   ],
   "messages": [
