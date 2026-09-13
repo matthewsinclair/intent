@@ -337,8 +337,25 @@
       "kind": "todo",
       "seq": 4,
       "text": "**0354 RUN 4, vc's order, after run 3 reports: run 1's conditions again to make the trigger REPRODUCIBLE, not inferred.** A FRESH clone at e70c3528a, the delivered pair, a daemonless st list to build the store, one open, ten minutes. While hot, every 10s: ps -M for the hot row AND three counts read-only from the clone's intent/.cache/intent.db (select count(*) from file_index, from index_file, from src_sections), to see whether the index advances during a burst and whether the bursts stop once the counts meet. If they never meet, run intent index status on the clone at the end. Drive: repro0354/probe.sh with COUNTS=1, LABEL=run4 BIN=<the release dir> CLONE=repro0354/run4-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r4. vc names it the last measurement before ruling a fix shape with cc. vc is folding for hv's compact, and reports queue for the bounce.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T14:57:11.620Z",
       "recorded_at": "2026-09-13T14:54:33.920Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 17,
+      "text": "**NEVER EDIT A SCRIPT A RUNNING bash IS EXECUTING; COPY IT.** bash reads a script from the file as it goes, by byte offset, so an insertion above the line it is executing shifts every later read and it resumes on the wrong bytes: a re-run open, a second wait, a syntax error. Caught 2026-09-13 in the 0354 probes: run-4 counts were inserted into probe.sh while run 3 was still inside it, and the original bytes were restored (0 COUNTS lines, syntax ok) before run 3 reached its next read. Run 4 got its own copy, probe4.sh.",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:56:56.696Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 5,
+      "text": "**0354 RUN 4, vc's order, after run 3 reports: run 1's conditions again to make the trigger REPRODUCIBLE, not inferred.** A FRESH clone at e70c3528a, the delivered pair, a daemonless st list to build the store, one open, ten minutes. While hot, every 10s: ps -M for the hot row AND three counts read-only from the clone's intent/.cache/intent.db (select count(*) from file_index, from index_file, from src_sections), to see whether the index advances during a burst and whether the bursts stop once the counts meet; if they never meet, intent index status on the clone at the end. Drive: repro0354/probe4.sh (its own copy, syntax-checked; NOT probe.sh), with LABEL=run4 BIN=/Users/matts/Devel/prj/Intent/native/rust/target/release CLONE=<scratchpad>/repro0354/run4-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r4. Counts land in run4/counts.log. vc names it the last measurement before ruling a fix shape with cc; vc folds for hv's compact and reads reports on the bounce.",
+      "state": "live",
+      "recorded_at": "2026-09-13T14:57:12.804Z"
     }
   ],
   "messages": [
