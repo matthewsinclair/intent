@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 11:06Z
+heartbeat_at: 2026-09-13 11:29Z
 status: active
-focus: "Localfolded for hv's compact, fold on disk at d8545b608. On the bounce: the 3.0.2 CHANGELOG Added bullet for the whiteboard in the store and one Removed heading (vc, pre-tag), then the reference regeneration after the tag. NO RELEASE, NO PUSH."
+focus: "Booted post-compact; CHANGELOG whiteboard bullet landed on vc's lift. Free, taking instructions from vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -18,7 +18,6 @@ claims: []
 ## TODO
 
 - **The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.
-- **On the bounce, BEFORE THE TAG (vc): the 3.0.2 CHANGELOG entry for the whiteboard in the store.** ONE Added bullet in the section's house voice, written from the landed code and register rows at the moment of writing, never from memory: a node is a row (`wb register`, header and explicit forms); boards and inboxes are generated views rendered from the store on every write (0317, 8157bd1fc) and a hand edit of either is view skew to doctor; the kinds and their verbs (`add`, `decide`, `ask`, `announce`, `archive`, `claim`, `pickup`, `release`, `status`, `show`); the bounds that refuse; every stamp read from the service's clock; and the `migrated_at` refusal (a node registered from its header refuses every board write until `wb migrate`, 18beb05a9). Do NOT restate the `wb migrate` Added bullet or the `claude ws` Removed bullet -- cross-reference by verb name. Merge the section's TWO `### Removed` headings into one, keeping every bullet. No counts. `prettier --write CHANGELOG.md`, commit CHANGELOG.md alone (add && commit --only, one call), read `git log -1 --stat`, report the file to vc.
 
 ## Holds
 
