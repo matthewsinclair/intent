@@ -5990,10 +5990,12 @@
             }
           },
           "target": {
-            "state": "as-observed",
-            "note": "D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified."
+            "state": "retire",
+            "spelling": "intent wb register",
+            "ratification": "hv, 2026-08-25, carried as ST0069 AC-14.12 and recorded by vc under the pen: the four verbs `new` / `list` / `archive` / `hygiene` are gone and `intent wb` answers instead. The criterion exists to give `AC-12.1`'s cut exception an end that is ENFORCED rather than remembered -- an unsatisfied AC blocks `wp done`, so the exception retires at the moment WP-14 tries to close whether or not anyone recalls why the row is here. AND hv AGAIN 2026-09-12, ruling that ST0069 completes and that WP-14 reifies the whiteboard in 3.0.2 -- the two rulings together are the whole warrant, the first that the family ends and the second that it ends HERE rather than in a later release. Ratified under vc's pen and landed by ic at 2026-09-13 10:44Z; the cutover's board migration landed ahead of this, so this is the landing that follows it rather than the one that opens it.",
+            "note": "**WHAT FALSIFIED D14, WHICH THIS ROW CARRIED UNTIL NOW: `D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.`** hv ruled 2026-09-12 that ST0069 completes and that WP-14 reifies the whiteboard in 3.0.2 -- so the restructure D14 deferred to a 3.2 bus ST happened two releases early, and `ports as-is` lost its subject rather than its schedule. The four verbs managed the board as FILES; a node is now a ROW and `intent/whiteboard/<id>/` is the rendered view of it. **THE ROW IS RETIRED ON BOTH FIELDS DELIBERATELY**: `Entry::is_shipped()` reads both and fails OPEN, so `retire` on one alone would strike the door while the other field still read `keep`. The spelling names where the capability went -- `intent wb register` creates a node, `intent wb status` lists them, `intent wb show` reads one whole board, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for. It SHIPPED in 3.0.1 and is withdrawn in 3.0.2, which is a user-visible removal and is why the CHANGELOG carries it under Removed."
           },
-          "disposition": "keep",
+          "disposition": "retire",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
@@ -9761,9 +9763,9 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 48,
+      "n": 47,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin.",
-      "census_note": "48 since 2026-09-11: `claude prime` retired by hv's decision 3. 49 since 2026-09-04: `claude subagents` moved to keep/corrected when vc's canon-names-it rule took `init` and `status` off the row. The pair below gained the same row, so the TOTAL is unchanged and only this per-pair census sees the move -- which is why the generator checks pairs rather than totals."
+      "census_note": "47 since 2026-09-13: `claude ws` retired by ST0069 AC-14.12, the whiteboard cutover -- the only member so far to leave this pair for having SHIPPED and been withdrawn rather than for never having been built. 48 since 2026-09-11: `claude prime` retired by hv's decision 3. 49 since 2026-09-04: `claude subagents` moved to keep/corrected when vc's canon-names-it rule took `init` and `status` off the row. The pair below gained the same row, so the TOTAL is unchanged and only this per-pair census sees the move -- which is why the generator checks pairs rather than totals."
     },
     {
       "disposition": "new-surface",
@@ -9788,8 +9790,8 @@
     {
       "disposition": "retire",
       "target_state": "retire",
-      "n": 13,
-      "census_note": "13 since 2026-09-11: `st bootstrap`, `agents template` and `claude prime`, retired by hv's decision 3 (ST0058 AC-00.3).",
+      "n": 14,
+      "census_note": "14 since 2026-09-13: `claude ws` (ST0069 AC-14.12), and it is the first member that RAN -- the other 13 either never shipped in v3 or were struck for answering `not implemented yet`, so this is the pair's first genuine withdrawal of a working command and the reason the CHANGELOG carries a Removed bullet rather than a note. 13 since 2026-09-11: `st bootstrap`, `agents template` and `claude prime`, retired by hv's decision 3 (ST0058 AC-00.3).",
       "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
     },
     {
@@ -10232,7 +10234,6 @@
       "claude rules",
       "claude hook",
       "claude upgrade",
-      "claude ws",
       "claude start",
       "critic",
       "lang",
@@ -10313,6 +10314,7 @@
       "organize",
       "agents template",
       "claude prime",
+      "claude ws",
       "lang sync",
       "treeindex",
       "fileindex",
@@ -10400,7 +10402,6 @@
       "claude skills",
       "claude rules",
       "claude hook",
-      "claude ws",
       "critic",
       "lang",
       "lang list",

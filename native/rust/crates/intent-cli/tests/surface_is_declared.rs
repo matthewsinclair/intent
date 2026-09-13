@@ -205,9 +205,11 @@ fn offered_paths() -> Offered {
 /// **THE SECOND FORM IS LOAD-BEARING AND OMITTING IT COSTS 21 FALSE FINDINGS.**
 /// A family is modelled either as one row per verb, or -- the `daemon` pattern
 /// -- as ONE row whose `subcommand` argument declares its verbs as `values`.
-/// `claude rules`, `claude skills`, `claude subagents`, `claude ws`,
-/// `agents template` and `surface` all take the second shape, and reading only
-/// entry paths reports every one of their leaves as undeclared. Measured before
+/// `claude rules`, `claude skills`, `claude subagents`, `agents template` and
+/// `surface` all take the second shape, and reading only entry paths reports
+/// every one of their leaves as undeclared. (`claude ws` was the sixth until
+/// ST0069 AC-14.12 retired it, which is why the count below is of the
+/// measurement and not of this list.) Measured before
 /// this function existed: 37 undeclared, of which 21 were this mistake.
 ///
 /// The vocabulary is read by KIND rather than by argument name, because the

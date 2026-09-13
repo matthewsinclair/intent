@@ -1,14 +1,36 @@
-//! `intent claude start` and `intent claude ws` reach the MAAC launcher.
+//! `intent claude start` reaches the MAAC launcher.
 //!
 //! **The defect these arms exist for was reachability, not a missing feature.**
-//! `intent/plugins/claude/bin/intent_claude_cwi` implements both verbs and was
+//! `intent/plugins/claude/bin/intent_claude_cwi` implemented the verb and was
 //! measured working standalone under a v3 binary; the v3 `claude()` dispatch
-//! simply had no arm for either, so both answered `2` -- "a known command that
-//! is not implemented yet" -- while `intent claude --help` listed them and
+//! simply had no arm for it, so it answered `2` -- "a known command that is not
+//! implemented yet" -- while `intent claude --help` listed it and
 //! `dispatch-table.json` filed `claude start` under `shipped`. hv was blocked
 //! on `claude start` for as long as that gap stood.
 //!
-//! # Driving these verbs is a SAFETY question, and both hazards have a seam
+//! # It had a sibling until ST0069 AC-14.12, and the arms that drove it are gone
+//!
+//! `intent claude ws <verb> [wsid]` -- `new` / `list` / `archive` / `hygiene` --
+//! managed the whiteboard as FILES. WP-14 makes a node a ROW, so the row is
+//! retired in `dispatch-table.json` and the spelling never reaches this script:
+//! it is refused at spelling-match time at rc=2 naming `intent wb register`.
+//! **That refusal is driven by `retirement_is_enumerable`, which walks every
+//! retired row in the register**, so nothing here re-drives it -- an arm beside
+//! that one would be a second reader of the same fact, and a worse one, because
+//! it would name the row by hand.
+//!
+//! **THREE ARMS BECAME ONE WITH THE SECOND VERB, RATHER THAN BEING RE-POINTED
+//! ONE BY ONE.** `neither_verb_answers_the_unwired_refusal`,
+//! `the_verb_reaches_the_launcher_rather_than_being_eaten` and
+//! `the_optional_wsid_reaches_the_launcher` each discriminated a different way
+//! of failing to reach the launcher: an unwired door, a verb the door consumed,
+//! a positional the door dropped. With one verb left they all discriminate the
+//! same thing -- the dry-run line only a correctly dispatched `start <ws>` can
+//! print -- so they are one arm asserting all three, and the third's subject
+//! moved to the refusal below, which is where a positional's VALUE is now
+//! visible.
+//!
+//! # Driving this verb is a SAFETY question, and both hazards have a seam
 //!
 //! `claude start` is a declared member of `populations.not_probed`, whose
 //! recorded reason is that **invoked bare it launches a real Claude Code
@@ -19,10 +41,10 @@
 //!
 //! - **`CWI_DRY_RUN=1`** -- the script's own documented seam. It prints the
 //!   `claude` argv it WOULD exec and exits, so no session is ever launched.
-//!   Every arm below that names `start` sets it.
-//! - **`CWI_WB=<tempdir>`** -- redirects the whiteboard root, so the writing
-//!   verbs (`ws new`) provision into a scratch directory and the repository's
-//!   real board is never touched.
+//!   Every arm below sets it.
+//! - **`CWI_WB=<tempdir>`** -- redirects the whiteboard root, so an arm resolves
+//!   its node against a scratch directory and the repository's real board is
+//!   never read.
 //!
 //! **An arm here that forgets either is not a slow test, it is a live session
 //! or a written board**, which is why they are named at the top rather than
@@ -85,11 +107,7 @@ fn run(exe: &Path, args: &[&str], wb: &Path) -> (String, i32) {
   (text, out.status.code().unwrap_or(-1))
 }
 
-/// Provision a node in the scratch board.
-///
-/// `start` on a node that does not exist PROMPTS to create it, reads EOF from a
-/// test's closed stdin, and aborts at 1 -- correct behaviour, and it fails an
-/// arm that meant to exercise the door rather than the absent-node path.
+/// Put a node in the scratch board, as the rendered view of a registered one.
 fn seed_node(wb: &Path, node: &str) {
   std::fs::create_dir_all(wb.join(node)).expect("node dir");
   std::fs::write(
@@ -105,99 +123,86 @@ fn seed_node(wb: &Path, node: &str) {
 
 const UNWIRED: &str = "is a known command that is not implemented yet";
 
-/// The regression this file exists for, stated as the symptom hv reported.
-#[test]
-fn neither_verb_answers_the_unwired_refusal() {
-  let install = fixture_install();
-  let exe = install.path().join("bin/intent");
-  let wb = tempfile::tempdir().expect("tempdir");
-  seed_node(wb.path(), "cc");
-  for args in [vec!["claude", "start", "cc"], vec!["claude", "ws", "list"]] {
-    let (text, code) = run(&exe, &args, wb.path());
-    assert!(
-      !text.contains(UNWIRED),
-      "`intent {}` still answers the unwired refusal: {text}",
-      args.join(" ")
-    );
-    // **`assert_ne!(code, 2)` ALONE PASSES FOR THE WRONG REASON, and it did.**
-    // Before every arm used the fixture, these two ran against a binary whose
-    // `home()` could not resolve: it exited 1 with an install error, which is
-    // neither the unwired phrase nor a 2, so the arm went green while the door
-    // was never reached. A success assertion is what makes it about the door.
-    assert_eq!(
-      code,
-      0,
-      "`intent {}` did not succeed: {text}",
-      args.join(" ")
-    );
-  }
-}
-
-/// `start` reaches the launcher and the launcher gets as far as composing the
-/// session it would open.
+/// The regression this file exists for, stated as the symptom hv reported, and
+/// the three ways of not reaching the launcher that the dry-run line settles.
 ///
-/// Asserting the DRY-RUN text rather than merely a zero exit: a door wired to
-/// the wrong script, or one that swallowed its argument, could also exit 0.
+/// **`assert_ne!(code, 2)` ALONE PASSES FOR THE WRONG REASON, and it did.**
+/// Before every arm used the fixture, this ran against a binary whose `home()`
+/// could not resolve: it exited 1 with an install error, which is neither the
+/// unwired phrase nor a 2, so the arm went green while the door was never
+/// reached. Asserting the launcher's OWN output is what makes it about the
+/// door -- and each assertion below names a different way of missing it:
+///
+/// - the unwired phrase -- no arm in `claude()` at all;
+/// - `Usage:` -- the door consumed the verb, so the script dispatched on `cc`
+///   and fell to its `*)` case (v2's `bin/intent` carried this as a comment:
+///   *"Do NOT shift: intent_claude_cwi's own dispatch consumes `start`"*);
+/// - the session name -- the door forwarded the verb but dropped its
+///   positional, which the script composes into `<project>-<ws>`.
 #[test]
 fn start_reaches_the_launcher_and_composes_a_session() {
   let install = fixture_install();
   let exe = install.path().join("bin/intent");
   let wb = tempfile::tempdir().expect("tempdir");
   seed_node(wb.path(), "cc");
+
   let (text, code) = run(&exe, &["claude", "start", "cc"], wb.path());
   assert_eq!(
     code, 0,
     "start should succeed under the dry-run seam: {text}"
   );
   assert!(
+    !text.contains(UNWIRED),
+    "`intent claude start` still answers the unwired refusal: {text}"
+  );
+  assert!(
     text.contains("DRY RUN") && text.contains("--append-system-prompt"),
     "start did not reach the launcher's dry-run path: {text}"
-  );
-}
-
-/// **The verb is PASSED THROUGH, not consumed.**
-///
-/// v2's `bin/intent` carried this as a comment -- *"Do NOT shift:
-/// intent_claude_cwi's own dispatch consumes `start`/`ws`"* -- and it is
-/// exactly the sort of line a reader tidies away. If the door shifted the verb
-/// off, the launcher would receive `list` as its command, fall to its `*)`
-/// case, and print usage. So this asserts board content, which only a correctly
-/// dispatched `ws list` can produce.
-#[test]
-fn the_verb_reaches_the_launcher_rather_than_being_eaten() {
-  let install = fixture_install();
-  let exe = install.path().join("bin/intent");
-  let wb = tempfile::tempdir().expect("tempdir");
-  seed_node(wb.path(), "qq");
-
-  let (text, code) = run(&exe, &["claude", "ws", "list"], wb.path());
-  assert_eq!(code, 0, "ws list should succeed: {text}");
-  assert!(
-    text.contains("qq"),
-    "ws list did not read the fixture board -- the verb was probably consumed: {text}"
   );
   assert!(
     !text.contains("Usage:") && !text.contains("usage:"),
     "the launcher printed usage, which is what it does when handed a verb it does not know: {text}"
   );
+  // The SUFFIX, not the whole name. `<project>-<ws>` is composed from the
+  // basename of wherever this runs, and a private worktree is not called
+  // `Intent` -- asserting the full string would make the arm a fact about the
+  // checkout's directory name rather than about the door.
+  assert!(
+    text.contains("-cc --append-system-prompt"),
+    "the node id never reached the launcher -- no session name was composed from it: {text}"
+  );
 }
 
-/// The OPTIONAL positional reaches the launcher.
+/// **ST0069 AC-14.12: a node that is not on the board is REFUSED, and the
+/// refusal names the command that creates one.**
 ///
-/// `wsid` is arity `0..1` in the dispatch table: `ws list` takes none and
-/// `ws new` takes one. A door that read it with the required-positional
-/// accessor would refuse `ws list`; one that never forwarded it would turn
-/// `ws new qq` into a bare `ws new`. This drives the half that carries a value.
+/// This offered to scaffold the directory until the `ws` family retired -- it
+/// prompted, read EOF from a test's closed stdin, and aborted at 1. A node is
+/// now a ROW and its board renders from that row, so there is nothing here to
+/// create. **The refusal has to name `intent wb register` rather than the
+/// concept**: a launcher that says no without saying what instead is how a
+/// person ends up making the directory by hand, which the cutover turns into
+/// skew -- and that is the same argument the register's own retirement makes
+/// one level up, where the retired spelling names its replacement.
 #[test]
-fn the_optional_wsid_reaches_the_launcher() {
+fn an_absent_node_is_refused_and_told_where_to_register_it() {
   let install = fixture_install();
   let exe = install.path().join("bin/intent");
   let wb = tempfile::tempdir().expect("tempdir");
-  let (text, code) = run(&exe, &["claude", "ws", "new", "zz"], wb.path());
-  assert_eq!(code, 0, "ws new should succeed: {text}");
+
+  let (text, code) = run(&exe, &["claude", "start", "zz"], wb.path());
+  assert_eq!(code, 1, "an absent node must be refused: {text}");
   assert!(
-    wb.path().join("zz/wip.md").is_file(),
-    "the wsid never reached the launcher -- no node was provisioned: {text}"
+    text.contains("'zz' is not on this board"),
+    "the refusal does not name the node that was asked for: {text}"
+  );
+  assert!(
+    text.contains("intent wb register zz"),
+    "the refusal does not name the command that creates one: {text}"
+  );
+  assert!(
+    !text.contains("DRY RUN"),
+    "an absent node reached the launch path rather than the refusal: {text}"
   );
 }
 
@@ -217,15 +222,16 @@ fn an_absent_launcher_refuses_by_name() {
     .path()
     .join("intent/plugins/claude/bin/intent_claude_cwi");
   let wb = tempfile::tempdir().expect("tempdir");
+  seed_node(wb.path(), "cc");
 
   // Positive control FIRST: with the launcher present this same invocation
   // succeeds. Without it, a red arm below would be consistent with the fixture
   // simply being broken.
-  let (before, code) = run(&exe, &["claude", "ws", "list"], wb.path());
+  let (before, code) = run(&exe, &["claude", "start", "cc"], wb.path());
   assert_eq!(code, 0, "the fixture install itself is broken: {before}");
 
   std::fs::remove_file(&launcher).expect("remove the launcher");
-  let (text, code) = run(&exe, &["claude", "ws", "list"], wb.path());
+  let (text, code) = run(&exe, &["claude", "start", "cc"], wb.path());
   assert_ne!(code, 0, "an absent launcher must not succeed: {text}");
   assert!(
     text.contains("whiteboard launcher not found"),

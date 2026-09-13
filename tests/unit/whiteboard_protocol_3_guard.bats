@@ -49,89 +49,45 @@ RETIRED_MARKER='retired|supersede|legacy|2\.0'
 
 # ---- issue 0012: the header block is line-oriented, NOT YAML ---------------
 #
-# `ws hygiene` is the whiteboard's lint gate and did not check that a board's
+# `ws hygiene` was the whiteboard's lint gate and did not check that a board's
 # header block was readable at all: the one channel the protocol specifies as
 # machine-read was the one nothing machine-checked. The second half was the
 # design fork -- the tooling did not merely tolerate the invalid-YAML form, it
 # PREFERRED it, because `ws list` stripped the delimiters without unescaping. So
 # a board corrected to valid YAML displayed `\"` mid-prose while the incorrect
-# one displayed properly. The ruling: it is not YAML, and hygiene enforces the
+# one displayed properly. The ruling: it is not YAML, and hygiene enforced the
 # rule that was actually implemented all along.
-
-wb_project() {
-  project_dir=$(create_test_project "WB Format Test")
-  cd "$project_dir"
-  run run_intent claude ws new hv
-  assert_success
-  run run_intent claude ws new cc
-  assert_success
-  BOARD="intent/whiteboard/cc/wip.md"
-}
-
-@test "a focus quoting a phrase is valid and renders with its quotes intact" {
-  wb_project
-  # The shape that made two of five live boards unparseable as YAML. Quoting a
-  # phrase inside a hand-written prose field is the natural thing to write, and
-  # nothing in the loop ever said not to -- because nothing should.
-  python3 - "$BOARD" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p).read().replace(
-  'focus: "(new workstream -- not yet started)"',
-  'focus: "the counted body is the SENT body, not the "2x gap""')
-open(p, 'w').write(s)
-PY
-  run run_intent claude ws hygiene
-  assert_success
-
-  # And it displays as written: the surrounding pair is a delimiter, the inner
-  # quotes are content.
-  run run_intent claude ws list
-  assert_success
-  # Anchored on `focus: ` so the surrounding DELIMITER is proven stripped: a
-  # substring match alone passes happily on `focus: "the counted...""`.
-  assert_output_contains 'focus: the counted body is the SENT body, not the "2x gap"'
-  refute_output_contains '\"'
-}
-
-@test "hygiene rejects a value that is not a single line" {
-  wb_project
-  # A multi-line or block scalar is the shape that genuinely breaks every
-  # line-oriented reader, and it was accepted in silence.
-  python3 - "$BOARD" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p).read().replace('claims: []', 'claims: []\nnotes: >\n  a block scalar\n  spanning lines')
-open(p, 'w').write(s)
-PY
-  run run_intent claude ws hygiene
-  assert_failure
-  assert_output_contains "line-oriented"
-  assert_output_contains "a block scalar"
-}
-
-@test "hygiene rejects a board with no header block at all" {
-  wb_project
-  printf '# cc\n\nno header block here\n' > "$BOARD"
-  run run_intent claude ws hygiene
-  assert_failure
-  assert_output_contains "no leading --- header block"
-}
-
-@test "a missing recommended key warns without failing the gate" {
-  wb_project
-  # Degraded is not malformed: a peer cannot run the active-peer test without
-  # heartbeat_at, but hygiene must not newly fail boards that predate the rule.
-  python3 - "$BOARD" <<'PY'
-import sys
-p = sys.argv[1]
-s = "".join(l for l in open(p) if not l.startswith("heartbeat_at:"))
-open(p, 'w').write(s)
-PY
-  run run_intent claude ws hygiene
-  assert_success
-  assert_output_contains "no heartbeat_at:"
-}
+#
+# ==========================================================================
+# FOUR ARMS DROVE `ws hygiene` AND ARE DELETED BY ST0069 AC-14.12, WHICH
+# REMOVES THREE CHECKS AND REPLACES THEM WITH TWO READERS
+# ==========================================================================
+#
+# They asserted: a focus quoting a phrase is valid and renders with its quotes
+# intact; a value that is not a single line is refused; a board with no header
+# block at all is refused; a missing recommended key warns without failing.
+# **Those three checks are performed by nothing else after this landing, and
+# saying so is the point of this comment.**
+#
+# The accounting, rather than a claim that nothing is lost:
+#
+# - A board is a GENERATED VIEW from the cutover on, so its header block is the
+#   renderer's output and not a hand-written record. A lint on a hand-written
+#   format cannot fail on a rendered one without the renderer having failed
+#   first, which its own criteria cover.
+# - The header-reading `wb register` is the reader that matters for a board
+#   still being MIGRATED: it refuses a header it cannot read, at the moment the
+#   board crosses into the model, which is later than `hygiene` fired and is
+#   the crossing that actually matters.
+# - The two whiteboard guards (`whiteboard-clock-guard.sh`,
+#   `whiteboard-header-guard.sh`) run from the pre-commit gate and are the two
+#   that ever caught anything at HEAD. They stay, and they are why the escape
+#   forms are still refused.
+#
+# **The residue is the hand-authored board in an estate that has not migrated:
+# for that board these three checks are gone, and the hook template that would
+# carry them is ruled off WP-14's path.** Accepted with the reason written down
+# rather than left for a later reader to reconstruct from an absence.
 
 @test "the skill declares the block NOT YAML and the tool agrees" {
   # The word was the only thing out of step with the implementation, so the

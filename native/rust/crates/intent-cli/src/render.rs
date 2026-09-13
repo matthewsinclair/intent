@@ -9622,45 +9622,45 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
     Some(("skills", a)) => payload_family(a, intentsvcs::payload::Kind::Skills),
     Some(("subagents", a)) => payload_family(a, intentsvcs::payload::Kind::Agents),
     Some(("upgrade", a)) => claude_upgrade(a),
-    Some(("start", a)) => claude_cwi(a, CwiVerb::Start),
-    Some(("ws", a)) => claude_cwi(a, CwiVerb::Ws),
+    Some(("start", a)) => claude_cwi(a),
     Some((verb, _)) => unwired("claude", verb),
     None => unwired("claude", ""),
   }
 }
 
-/// The two verbs [`claude_cwi`] fronts. An enum rather than a `&str` so the
-/// argv assembly below is exhaustive: the two verbs read their positionals
-/// from DIFFERENT shapes, and a string would let a third verb be added here
-/// with `start`'s shape by accident.
-#[derive(Clone, Copy)]
-enum CwiVerb {
-  Start,
-  Ws,
-}
-
-/// `intent claude start <ws>` and `intent claude ws <verb> [wsid]` -- the MAAC
-/// whiteboard launcher and provisioner.
+/// `intent claude start <ws>` -- the MAAC whiteboard launcher.
+///
+/// **IT HAD A SIBLING UNTIL ST0069 AC-14.12: `intent claude ws <verb> [wsid]`,
+/// the provisioner.** `new` / `list` / `archive` / `hygiene` managed the board
+/// as FILES; WP-14 makes a node a ROW and `intent wb` manages the model those
+/// verbs were a view of, so the row is retired in `dispatch-table.json` and the
+/// spelling is answered by the retirement matcher at rc=2 naming `intent wb
+/// register`. **THE ENUM THAT SELECTED BETWEEN THE TWO WENT WITH IT**, rather
+/// than being left as a one-variant selector: a parameter that can take one
+/// value reads as a seam and is a residue.
 ///
 /// **THE SURFACE WAS ALREADY PARSED AND ONLY THE RENDERER WAS MISSING**, the
-/// same shape [`skills`] records. `dispatch-table.json` declares both verbs,
-/// lists `claude start` under `shipped`, and the spine builds their positionals
-/// -- so `intent claude --help` has listed them, `intent claude start` with no
-/// argument has correctly said `<WS>` is required, and the verb has answered
-/// `2` the whole time. **Wiring this makes the table TRUE rather than newly
+/// same shape [`skills`] records. `dispatch-table.json` declared both verbs,
+/// listed `claude start` under `shipped`, and the spine built their positionals
+/// -- so `intent claude --help` listed them, `intent claude start` with no
+/// argument correctly said `<WS>` is required, and the verb answered `2` the
+/// whole time. **Wiring this makes the table TRUE rather than newly
 /// false**: the entry claiming `shipped` was the thing that was wrong.
 ///
 /// **IT DISPATCHES RATHER THAN PORTS, DELIBERATELY.** See
 /// [`intentsvcs::install::cwi_script`] for hv's ruling that this script
-/// survives the cut. Measured before wiring: `CWI_DRY_RUN=1 ... start cc` and
-/// `... ws list` both exit 0 under a v3 binary, in this project and from
+/// survives the cut. Measured before wiring: `CWI_DRY_RUN=1 ... start cc`
+/// exits 0 under a v3 binary, in this project and from
 /// another estate's working directory, because the script does its own
 /// `find_project_root`. One binary therefore serves every estate.
 ///
 /// **THE VERB IS PASSED THROUGH, NOT CONSUMED.** v2's `bin/intent` carried the
 /// same instruction as a comment -- *"Do NOT shift: intent_claude_cwi's own
 /// dispatch consumes `start`/`ws`"* -- and it is the sort of thing a reader
-/// tidies away, so it is stated here as well as obeyed.
+/// tidies away, so it is stated here as well as obeyed. It reads as redundant
+/// now that one verb is left and the argv below names `start` literally; it is
+/// not. The script still dispatches on its first argument, so a door that
+/// shifted the verb off would hand it `<ws>` as the command.
 ///
 /// **KNOWN, AND NOT FIXED BY THIS CHANGE** (vc, 2026-08-27): once these are
 /// wired, every estate's `intent claude start` reads its launcher out of ONE
@@ -9669,39 +9669,15 @@ enum CwiVerb {
 /// unowned machine-level fact that one project's build tree is on eleven
 /// projects' `PATH` -- wiring does not create it, but it does add weight to it,
 /// and hv rules on it with the weight visible rather than meeting it later.
-fn claude_cwi(m: &ArgMatches, verb: CwiVerb) -> Result<(), Failure> {
+fn claude_cwi(m: &ArgMatches) -> Result<(), Failure> {
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(format!("error: {e}")))?;
   let script = intentsvcs::install::cwi_script(&home);
 
-  let args = match verb {
-    CwiVerb::Start => vec!["start".to_string(), arg(m, "ws")?],
-    CwiVerb::Ws => match m.subcommand() {
-      Some((sub, a)) => {
-        let mut v = vec!["ws".to_string(), sub.to_string()];
-        // `wsid` is `0..1` in the table -- `ws list` takes none, `ws hygiene`
-        // takes an optional one. `opt` rather than `arg`, or the optional verbs
-        // refuse on a positional the table says they do not need.
-        if let Some(wsid) = opt(a, "wsid") {
-          v.push(wsid);
-        }
-        v
-      }
-      // **UNREACHABLE FROM THE CLI, and the first comment here said the
-      // opposite.** I wrote that `intent claude ws` bare would hand through to
-      // the script's own usage; it does not. The table gives `verb` arity `1`,
-      // the spine turns that into clap's `subcommand_required`, and clap
-      // refuses at `error: 'intent claude ws' requires a subcommand` before
-      // this function is entered. Driven, not reasoned about.
-      //
-      // The arm stays because `subcommand()` is an `Option` and the match must
-      // be total; it is written as the passthrough it would be if the arity
-      // ever relaxed, rather than an `unreachable!()` that would turn a table
-      // edit into a panic.
-      None => vec!["ws".to_string()],
-    },
-  };
-
-  exec_shipped_script(&script, &args, "whiteboard launcher")
+  exec_shipped_script(
+    &script,
+    &["start".to_string(), arg(m, "ws")?],
+    "whiteboard launcher",
+  )
 }
 
 /// `intent claude upgrade` -- apply v3 canon to an existing project (issue 0077).

@@ -788,7 +788,6 @@ const UNPROVEN: &[&str] = &[
   "claude start",
   "claude subagents",
   "claude upgrade",
-  "claude ws",
   "config set",
   // **THE FAMILY HEAD CAME OUT AND THREE OF ITS FOUR VERBS WENT IN.** `daemon`
   // was one row standing for four verbs; splitting it into a family (ic,

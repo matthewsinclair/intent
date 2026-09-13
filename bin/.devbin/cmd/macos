@@ -171,11 +171,14 @@ APP_ASSET="Intent.app.zip"
 # what makes that survivable is that the coverage arm reads the consumer, so the
 # staleness is refused at stage rather than shipped.
 #
-# WHAT IT DARKENS WHEN ABSENT: `intent claude start <ws>` and `intent claude ws
-# <verb>` -- the MAAC whiteboard launcher and provisioner, both `disposition: keep`.
-# The Whiteboard Protocol skill SHIPS IN THIS SAME KEG and names `intent claude ws
-# new` as the provisioner, so a keg without this file contradicts its own
-# documentation on disk.
+# WHAT IT DARKENS WHEN ABSENT: `intent claude start <ws>` -- the MAAC whiteboard
+# launcher, `disposition: keep`. It had a sibling, `intent claude ws <verb>`, the
+# provisioner, until ST0069 AC-14.12 retired the family; the Whiteboard Protocol
+# skill SHIPS IN THIS SAME KEG and named `intent claude ws new` as the
+# provisioner, so a keg without this file used to contradict its own
+# documentation on disk. The skill now names `intent wb`, which is in the
+# binary rather than in this script, so what a missing file darkens is the
+# launch and nothing else.
 #
 # It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
 # `chmod` in the formula exists only for the BINARIES, which GitHub serves as

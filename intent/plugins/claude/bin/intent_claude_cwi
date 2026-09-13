@@ -1,19 +1,31 @@
 #!/bin/bash
 #
-# intent_claude_cwi -- launch + manage MAAC whiteboard workstreams.
+# intent_claude_cwi -- launch a Claude session bound to a MAAC whiteboard node.
 # Copyright (c) 2026 Matthew Sinclair
 # Licensed under the MIT License (see LICENSE file)
-# Usage: intent claude start <ws> | intent claude ws <new|list|archive|hygiene> [args]
+# Usage: intent claude start <ws>
 #
 # Multi-Agent Agentic Coding (MAAC) over the Intent Claude Whiteboard. A
-# "workstream" is a whiteboard node (Protocol 3.0): a directory under
-# intent/whiteboard/<id>/ with a single-writer wip.md + per-peer inboxes.
+# "workstream" is a whiteboard node (Protocol 3.0), and since Intent 3.0.2 a
+# node is a ROW in the store: `intent/whiteboard/<id>/` is the rendered view of
+# it, with a single-writer wip.md + per-peer inboxes.
 #
 #   intent claude start <ws>        launch a Claude session for a workstream
-#   intent claude ws new <wsid>     scaffold a new workstream (== protocol node)
-#   intent claude ws list           list workstreams + status
-#   intent claude ws archive <wsid> retire a workstream, keep .history/
-#   intent claude ws hygiene [<ws>] mechanical whiteboard lint + tidy
+#
+# THE `ws` FAMILY IS GONE. `new`, `list`, `archive` and
+# `hygiene` managed the board as FILES; `intent wb` manages the model they were
+# a view of, so this script keeps only the one job no verb does -- composing a
+# session's context and launching it. `intent wb register` is what creates a
+# node now, `intent wb status` lists them, and the two whiteboard guards plus
+# `intent doctor` are what `hygiene` was reaching for.
+#
+# THE RETIRED SPELLING IS ANSWERED BY THE CLI, NOT HERE, and that is the whole
+# reason this file carries no `ws` arm. `surface/dispatch-table.json` retires
+# the row, so `intent claude ws` never reaches this script: it is refused at
+# spelling-match time at rc=2, naming its replacement, and `retirement_is_enumerable`
+# can then classify it as gone-forever rather than coming-soon without reading
+# the message. A second refusal here would say the same thing worse, in a code
+# a caller cannot classify.
 #
 # Promoted from the Baize prototype. Operates on the whiteboard of the
 # CURRENT project (find_project_root), so the one command serves every project.
@@ -21,8 +33,8 @@
 # Test/automation seams (env):
 #   CWI_DRY_RUN=1|full   `start` prints the assembled `claude` argv instead of
 #                        exec-ing it (full also dumps the composed context).
-#   CWI_WB=<dir>         override the whiteboard root (provision/list against a
-#                        scratch dir; never touch the real board).
+#   CWI_WB=<dir>         override the whiteboard root, so a test resolves a node
+#                        against a scratch dir and never reads the real board.
 
 # ---- Bootstrap ----
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -84,7 +96,7 @@ find_project_root() {
 set -u
 
 # Deterministic, byte-based globbing: keep [a-z0-9-] ASCII rather than locale
-# collation, so an uppercase id cannot slip past valid_wsid (caught in test).
+# collation, so a case-folding locale cannot change how a moniker compares.
 export LC_ALL=C
 
 # The whiteboard belongs to the CURRENT project, not the Intent tool home.
@@ -103,10 +115,9 @@ usage() {
   cat <<'EOF'
 Usage:
   intent claude start <ws>        launch a Claude session for a workstream
-  intent claude ws new <wsid>     scaffold a new workstream
-  intent claude ws list           list workstreams + status
-  intent claude ws archive <wsid> retire a workstream, keep .history/
-  intent claude ws hygiene [<ws>] mechanical whiteboard lint + tidy
+
+The workstreams themselves are `intent wb`: `register` to put a node on the
+board, `status` to see who is there, `show <node>` to read one whole board.
 EOF
 }
 
@@ -124,8 +135,10 @@ EOF
 # for every caller. Quotes inside a value are literal and are never escaped, so
 # there is deliberately no unescaping step: a board that wrote \" to be correct
 # under YAML would render the backslash, which is the disincentive that made the
-# invalid form the pretty one. Stripping in the reader rather than at one call
-# site is what keeps `ws list` and `ws hygiene` reading the same value.
+# invalid form the pretty one. It is stripped in the reader rather than at the
+# call site because that is where it stayed correct while the callers changed:
+# `ws list` and `ws hygiene` were the two that mattered, and `compose_ctx` is
+# what is left.
 fm_get() { # $1 file  $2 key
   [ -f "$1" ] || return 0
   awk -v k="$2" '
@@ -139,224 +152,6 @@ fm_get() { # $1 file  $2 key
       }
     }
   ' "$1"
-}
-
-# Every line of a wip.md's header block that is NOT a single-line `key: value`.
-# Empty when the board conforms. This is the whole mechanical contract: the
-# format has no multi-line values, no continuations, no nesting and no comments,
-# so any other line shape means a reader is about to lose data silently.
-fm_bad_lines() { # $1 file
-  [ -f "$1" ] || return 0
-  awk '
-    /^---[[:space:]]*$/ { fm++; if (fm==2) exit; next }
-    fm==1 {
-      if ($0 ~ /^[[:space:]]*$/) next
-      if ($0 !~ /^[A-Za-z_][A-Za-z0-9_-]*:([[:space:]]|$)/) print FNR ": " $0
-    }
-  ' "$1"
-}
-
-# Does the file open with a header block at all?
-fm_present() { # $1 file
-  [ -f "$1" ] || return 1
-  head -n1 "$1" | grep -q '^---[[:space:]]*$'
-}
-
-# A workstream id is a short-ish slug: lowercase, [a-z0-9-], 1..16 chars.
-# Bytes NOT inside a section the protocol declares STANDING.
-#
-# The size WARN thresholded the WHOLE file and then told the operator to
-# archive DONE content -- a remedy `ws archive` forbids for most of what it was
-# counting. `## Watch-outs` is defined as "durable cautions peers should know
-# (standing; not archived)" and archive KEEPS it, with Holds, Standing
-# directives and still-relevant Decisions. Measured 2026-09-08 (issue 0282,
-# reported from Utilz): the old form fired on 5 of 5 boards here, the smallest
-# over four times the threshold. A warning whose remedy never applies gets
-# ignored, and then the board that IS large for a bad reason draws the same
-# line and nobody looks.
-#
-# MATCH THE HEADING STEM, NEVER THE WHOLE HEADING. Nodes decorate their
-# headings and the protocol does not forbid it -- `## Watch-outs -- mechanisms
-# only`, `## Holds -- mine, with the CONDITION that releases each`. An
-# exact-match first draft read one board as 2% standing where the stem match
-# reads 87%: a 46x difference from a suffix, which would have reported the node
-# with the largest Watch-outs section on the board as having none.
-#
-# LC_ALL=C so `length` counts BYTES, agreeing with the `wc -c` total beside it.
-# Content before the first `## ` heading is the frontmatter, which no fold can
-# reduce, so it starts STANDING rather than being counted against the operator.
-foldable_bytes() { # $1 file
-  LC_ALL=C awk '
-    BEGIN { standing = 1 }
-    /^## / {
-      standing = ($0 ~ /^## Watch-outs/ || $0 ~ /^## Holds/ || \
-                  $0 ~ /^## Standing directives/ || $0 ~ /^## Decisions/)
-    }
-    !standing { n += length($0) + 1 }
-    END { print n + 0 }
-  ' "$1"
-}
-
-valid_wsid() { # $1 id
-  id="$1"
-  [ -n "$id" ] || return 1
-  [ "${#id}" -le 16 ] || return 1
-  case "$id" in
-    *[!a-z0-9-]*) return 1 ;;
-  esac
-  return 0
-}
-
-# Conventional name/role for the well-known monikers (the protocol's common
-# shape); arbitrary ids default to name=id, role=worker. hv is Workstream Zero.
-conv_name() { case "$1" in hv) echo Hypervisor ;; cc) echo "Control Claude" ;; ic) echo "Interface Claude" ;; vc) echo "Validation Claude" ;; ac) echo "Author Claude" ;; *) echo "$1" ;; esac; }
-conv_role() { case "$1" in hv) echo hypervisor ;; cc) echo control ;; ic) echo interface ;; vc) echo validation ;; ac) echo author ;; *) echo worker ;; esac; }
-
-now_utc() { date -u +%Y-%m-%dT%H:%MZ; }
-
-# --- ws new ------------------------------------------------------------------
-cmd_ws_new() {
-  id="${1:-}"
-  [ -n "$id" ] || error "ws new <wsid>: missing workstream id"
-  valid_wsid "$id" || error "invalid wsid '$id' (lowercase [a-z0-9-], 1..16 chars)"
-  node="$WB/$id"
-  [ -e "$node" ] && error "workstream '$id' already exists -- refusing (no mutation)"
-
-  name="${2:-$(conv_name "$id")}"
-  role="${3:-$(conv_role "$id")}"
-  status=paused
-  [ "$id" = hv ] && status=active
-
-  mkdir -p "$node/.history" || error "ws new: cannot create node dir $node"
-  printf '# keeps .history/ tracked -- git ignores empty directories\n' > "$node/.history/.gitkeep" || error "ws new: cannot write $node/.history/.gitkeep"
-
-  cat > "$node/wip.md" <<EOF || error "ws new: cannot write $node/wip.md"
----
-node: $id
-name: $name
-role: $role
-session_id: none
-heartbeat_at: $(now_utc)
-status: $status
-focus: "(new workstream -- not yet started)"
-claims: []
----
-
-# $name ($id)
-
-## DOING
-
-- (not started)
-
-## TODO
-
-- (set on first pickup)
-
-## Watch-outs
-
-- (none yet)
-
-## Decisions
-
-- (none yet)
-EOF
-
-  # Bidirectional inboxes with every existing peer (header + empty sentinel).
-  for pd in "$WB"/*/; do
-    [ -d "$pd" ] || continue
-    peer="$(basename "$pd")"
-    [ "$peer" = "$id" ] && continue
-    [ "$peer" = ".archived" ] && continue
-    printf '# inbox: %s -> %s\n\n_(empty)_\n' "$peer" "$id" > "$node/inbox.$peer.md" || error "ws new: cannot write $node/inbox.$peer.md"
-    printf '# inbox: %s -> %s\n\n_(empty)_\n' "$id" "$peer" > "$pd/inbox.$id.md" || error "ws new: cannot write $pd/inbox.$id.md"
-  done
-
-  echo "created workstream: $id ($name / $role) at intent/whiteboard/$id"
-}
-
-# --- ws list -----------------------------------------------------------------
-cmd_ws_list() {
-  [ -d "$WB" ] || error "no whiteboard at $WB"
-  found=0
-  for d in "$WB"/*/; do
-    [ -d "$d" ] || continue
-    ws="$(basename "$d")"
-    [ "$ws" = ".archived" ] && continue
-    [ -f "$d/wip.md" ] || continue
-    found=1
-    st="$(fm_get "$d/wip.md" status)"
-    hb="$(fm_get "$d/wip.md" heartbeat_at)"
-    cl="$(fm_get "$d/wip.md" claims)"
-    fc="$(fm_get "$d/wip.md" focus)"
-    printf '%-6s [%-7s] claims=%-18s hb=%s\n' "$ws" "$st" "$cl" "$hb"
-    printf '       focus: %s\n' "$fc"
-  done
-  [ "$found" -eq 1 ] || echo "(no workstreams under $WB)"
-}
-
-# --- ws archive --------------------------------------------------------------
-cmd_ws_archive() {
-  id="${1:-}"
-  [ -n "$id" ] || error "ws archive <wsid>: missing workstream id"
-  [ "$id" = hv ] && error "refusing to archive hv (Workstream Zero)"
-  [ -d "$WB/$id" ] || error "workstream '$id' does not exist"
-  mkdir -p "$WB/.archived" || error "ws archive: cannot create $WB/.archived"
-  [ -e "$WB/.archived/$id" ] && error "an archived '$id' already exists"
-  mv "$WB/$id" "$WB/.archived/$id" || error "ws archive: could not move $id into .archived"
-  # Drop the now-inert inbox.<id>.md from remaining peers (only after the move).
-  for pd in "$WB"/*/; do
-    [ -d "$pd" ] || continue
-    [ "$(basename "$pd")" = ".archived" ] && continue
-    rm -f "$pd/inbox.$id.md"
-  done
-  echo "archived workstream: $id -> intent/whiteboard/.archived/$id (history intact)"
-}
-
-# --- ws hygiene --------------------------------------------------------------
-cmd_ws_hygiene() {
-  target="${1:-}"
-  [ -d "$WB" ] || error "no whiteboard at $WB"
-  rc=0
-  for d in "$WB"/*/; do
-    [ -d "$d" ] || continue
-    ws="$(basename "$d")"
-    [ "$ws" = ".archived" ] && continue
-    [ -n "$target" ] && [ "$target" != "$ws" ] && continue
-    if [ ! -f "$d/wip.md" ]; then echo "MISSING   $ws/wip.md"; rc=1; continue; fi
-    # Conformance to the declared line-oriented rule (issue 0012). Hygiene is
-    # the whiteboard's lint gate and it checked structure -- files present, keys
-    # present, headers present -- while saying nothing about whether the header
-    # block itself was readable. The one channel the protocol specifies as
-    # machine-read was the one nothing machine-checked.
-    if ! fm_present "$d/wip.md"; then
-      echo "BAD-FM    $ws/wip.md: no leading --- header block"; rc=1
-    else
-      bad="$(fm_bad_lines "$d/wip.md")"
-      if [ -n "$bad" ]; then
-        echo "BAD-FM    $ws/wip.md: header block is line-oriented 'key: value' (one line per key, no continuations); offending line(s):"
-        printf '%s\n' "$bad" | while IFS= read -r l; do [ -n "$l" ] && echo "            $l"; done
-        rc=1
-      fi
-    fi
-    [ -n "$(fm_get "$d/wip.md" node)" ]   || { echo "BAD-FM    $ws/wip.md: no node:"; rc=1; }
-    [ -n "$(fm_get "$d/wip.md" status)" ] || { echo "BAD-FM    $ws/wip.md: no status:"; rc=1; }
-    # Recommended keys WARN rather than block: a board missing one is degraded
-    # (a peer cannot run the active-peer test without heartbeat_at) but it is
-    # not malformed, and hygiene must not newly fail boards that predate this.
-    for k in name role session_id heartbeat_at focus claims; do
-      [ -n "$(fm_get "$d/wip.md" "$k")" ] || echo "WARN      $ws/wip.md: no $k: (recommended by the protocol)"
-    done
-    [ -f "$d/.history/.gitkeep" ]         || { echo "MISSING   $ws/.history/.gitkeep"; rc=1; }
-    for ib in "$d"inbox.*.md; do
-      [ -e "$ib" ] || continue
-      head -n1 "$ib" | grep -q '^# inbox: ' || { echo "BAD-INBOX $ws/$(basename "$ib"): no header"; rc=1; }
-    done
-    bytes="$(wc -c < "$d/wip.md" | tr -d ' ')"
-    fold="$(foldable_bytes "$d/wip.md")"
-    [ "$fold" -gt 16000 ] && echo "WARN      $ws/wip.md carries ${fold}b outside its standing sections (${bytes}b total) -- fold finished work out of DOING"
-  done
-  [ "$rc" -eq 0 ] && echo "hygiene: ok"
-  exit "$rc"
 }
 
 # --- compose context + start -------------------------------------------------
@@ -385,13 +180,18 @@ EOF
 cmd_start() {
   ws="${1:-}"
   [ -n "$ws" ] || error "start <ws>: missing workstream id"
+  # A MISSING WORKSTREAM IS REFUSED HERE AND NAMED SOMEWHERE ELSE.
+  # This offered to scaffold one until the `ws` family retired; a
+  # node is now a row rather than a directory, and its board and inboxes render
+  # from that row, so there is nothing here to create. The refusal names the
+  # command rather than the concept, because a launcher that says no without
+  # saying what instead is how a person ends up making the directory by hand --
+  # which the cutover turns into skew.
   if [ ! -d "$WB/$ws" ]; then
-    printf 'workstream "%s" does not exist. create it now? [y/N] ' "$ws" >&2
-    read -r ans || ans=n
-    case "$ans" in
-      y|Y|yes) cmd_ws_new "$ws" ;;
-      *) echo "aborted -- no workstream created." >&2; exit 1 ;;
-    esac
+    error "workstream '$ws' is not on this board.
+  remedy: register it first --
+    intent wb register $ws --name <display name> --role <role>
+  then run this again. \`intent wb status\` lists the nodes that exist."
   fi
   ctx="$(compose_ctx "$ws")"
   # THE SESSION NAME IS SET AT LAUNCH, NOT BY THE WOKEN SESSION (hv, 2026-08-27).
@@ -423,16 +223,6 @@ cmd="${1:-}"
 [ "$#" -gt 0 ] && shift
 case "$cmd" in
   start) cmd_start "$@" ;;
-  ws)
-    sub="${1:-}"
-    [ "$#" -gt 0 ] && shift
-    case "$sub" in
-      new)     cmd_ws_new "$@" ;;
-      list)    cmd_ws_list "$@" ;;
-      archive) cmd_ws_archive "$@" ;;
-      hygiene) cmd_ws_hygiene "$@" ;;
-      *)       usage; exit 1 ;;
-    esac ;;
   ""|-h|--help|help) usage ;;
   *) usage; exit 1 ;;
 esac

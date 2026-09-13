@@ -60,7 +60,7 @@ VERBS=()
 # is exactly what was measured wrong.
 READONLY_VERBS=(
   "st list" "wp list" "ac list" "at list" "todo" "issues list" "info" "doctor"
-  "claude skills list" "claude rules list" "claude subagents list" "claude ws list"
+  "claude skills list" "claude rules list" "claude subagents list"
   "agents sync" "critic" "lang" "llm" "modules" "fileindex bin" "version" "search"
 )
 # SAFE ONLY IN A CLONE. Named here rather than in prose so the boundary is data.
