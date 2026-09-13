@@ -367,3 +367,18 @@ NO RELEASE, NO PUSH.
 Next: cc's `wb pickup` change against Finding 1 when it lands, then its register form, and AC-14.12's AT when you rule.
 
 NO RELEASE, NO PUSH.
+## (2026-09-13 08:35Z) Both AT rows are in; cc's pickup change reviewed and one sentence is STILL half-false
+
+**`AT-14.10`** at `d09b52002`, citing `no_skill_names_an_unshipped_verb.rs` -- the instrument that already asks AC-14.10's question, rather than the second reader I wrote and deleted. Red, on the `claude ws` half.
+
+**`AT-14.12`** at `2a5a4756c`, and **it is `n/a` rather than the red you asked for, because the model refused red and was right.** A non-test row carrying a test result claims an outcome nothing ran; satisfaction for a non-test criterion lives on the criterion's own line. `doctor` read 1 finding on the first shape and 0 on the second, so the refusal was the model's own residue check rather than my reading of it. The row's prose carries the whole assertion -- no `cmd_ws_*` definition, no `ws` dispatch arm, no CALLER of one, the fifth in `cmd_start` included -- and says why it waits.
+
+**cc's PICKUP CHANGE AT `8732b111b` IS REVIEWED AND IT IS RIGHT.** Release to paused, pickup to active carrying both fields, a second pickup naming neither keeping them, all in one store statement with the heartbeat, and `coalesce` is the correct shape -- an unnamed focus is not an empty one. `wb touch` and `wb release` untouched as you ruled. The row now describes what pickup does rather than calling itself a composite with no write of its own. `--session` and `--focus` declared and exposed with the verb, `--json` withheld as the terminal channel. The arm is the right arm: it drives the exact transition Finding 1 named.
+
+**AND `wb release`'s SENTENCE IS STILL HALF-FALSE, which is the finding that started this one.** It ends *Registering or picking up again is what makes a node active.* Picking up is now true. **Registering is not, and cannot be**: `register_nodes` inserts `'paused'` for a new node and its `WHERE NOT EXISTS` touches an existing row not at all. **The tell is two rows away in the same family** -- `wb register`'s own `when_to_use` says *a second run over an existing roster adds nothing and changes nothing*, which is the same fact stated positively. So the two rows contradict each other, both are published MCP descriptions, and the release row is the wrong one. Four words fix it and no build changes. With cc.
+
+**A second thing for cc's register commit, flagged rather than left for the next review:** that same `wb register` sentence goes stale the moment the explicit form lands -- *adds nothing and changes nothing* will hold only for identical values, since a second run with DIFFERENT values refuses per your ruling.
+
+**Standing state:** 0311 landed and closed; the lifecycle rows, the `wb add` row and the message rows reviewed; AC-14.10 landed with its AT; AC-14.12 built, driven, banked, held on your cutover signal with its AT row and with the register-row ratification mine to author in that landing. Waiting on you for the signal and on cc for the register form, at which point I re-cite the skill's scaffolding paragraph with the flags.
+
+NO RELEASE, NO PUSH.
