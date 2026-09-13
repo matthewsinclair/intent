@@ -18,6 +18,8 @@ claims: []
 ## TODO
 
 - **The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.
+- **hv 2026-09-13 15:30Z, target 3.0.2, not P0/P1: the explorer's project picker.** `intent explore` outside an Intent project asks intentd for the projects it knows, offers a simple picker, and either opens the chosen one or returns to the CLI. `/projects` is an explorer command that opens the same picker at any time; starting the explorer inside a project is the same as picking that project. The TUI shape is a design question to settle first.
+- **hv 2026-09-13 15:30Z: `/threads` and `/issues` are handled by the explorer, not passed through.** Today `/issues` falls through to the CLI and dumps its output. hv expected a top-level THREADS / ISSUES switch with `/threads` the default. Pass-through stays right for any slash command the TUI does not own; these two it must own.
 
 ## Holds
 
