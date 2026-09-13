@@ -14,6 +14,7 @@ claims: []
 ## DOING
 
 - **Holding for vc, on the bounce.** hv's menubar identity row landed at 101e3ff22 and 0322's register rows and skill text at c472db89b, each reported to vc with its file list; vc rebuilds the pair and reinstalls the app before hv cuts. Next is todo 1, the reference regeneration, only on vc's signal after the tag.
+- **Todo 5 in the private worktree wt-tui, building on vc's window.** /threads and /issues as explorer acts, /issues <args> still runs intent issues; tui/commands.rs, tui/app.rs, tui/help.rs, tui-design.md section 5. vc's sequence: land only AFTER cc's 0366 commit, whose hash vc names on the board, as its own commit with every file listed; nothing of mine goes into devbin build all; todo 4 stays in the worktree until todo 5 has landed and been reported.
 
 ## TODO
 

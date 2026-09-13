@@ -599,6 +599,14 @@
       "text": "**hv 2026-09-13 15:30Z: `/threads` and `/issues` are handled by the explorer, not passed through.** Today `/issues` falls through to the CLI and dumps its output. hv expected a top-level THREADS / ISSUES switch with `/threads` the default. Pass-through stays right for any slash command the TUI does not own; these two it must own.",
       "state": "live",
       "recorded_at": "2026-09-13T15:30:09.880Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 8,
+      "text": "**Todo 5 in the private worktree wt-tui, building on vc's window.** /threads and /issues as explorer acts, /issues <args> still runs intent issues; tui/commands.rs, tui/app.rs, tui/help.rs, tui-design.md section 5. vc's sequence: land only AFTER cc's 0366 commit, whose hash vc names on the board, as its own commit with every file listed; nothing of mine goes into devbin build all; todo 4 stays in the worktree until todo 5 has landed and been reported.",
+      "state": "live",
+      "recorded_at": "2026-09-13T15:43:42.742Z"
     }
   ],
   "messages": [
