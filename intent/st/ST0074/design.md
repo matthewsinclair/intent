@@ -1,62 +1,31 @@
-# Design: where intentd's durable configuration lives
+# Design: where Intent's per-user files live (WP-05)
 
-**Status: options for hv to rule. Nothing here is chosen.** hv, 2026-09-13: _"We also need to resolve where intentd's config resides. I am not sure we have a good answer for that right now. And that answer needs to be standards compliant."_ The project registry is the first thing that will live there, so this is ruled before the registry is built.
+**RULED by hv, 2026-09-13.** _"XDG\_\* looks very much like the right way to do. Use that or conform to that. That's what we want."_ _"What ever is the most compliant to standards, use that. Use you judgement."_ _"We can ignore v2 now as there's nothing left using it. Just push on as if it doesn't exist."_ The standard is the XDG Base Directory Specification, for `intent` and `intentd` alike. `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME` and `XDG_RUNTIME_DIR` join `no_intent_home.rs`'s `ALLOWED`, read in `userstate.rs` only, each taking the specification's default when unset or empty. Lands after the 3.0.2 tag, for 3.1.0 (vc).
 
-## What exists today
+## The layout
 
-| Path                           | What it holds                                                                                      | Written by                        | Read by v3 |
-| ------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------- | ---------- |
-| `~/.intent/config.json`        | The operator's v3 configuration: `author`, the explorer's settings                                 | `intent bootstrap`, `/settings`   | yes        |
-| `~/.intent/home`               | The install pointer                                                                                | `intent bootstrap`                | yes        |
-| `~/.local/share/intent/`       | intentd's runtime state: `intentd.sock`, `intentd.addr`, `intentd.token`, `intentd.lock`, the logs | `intentd`                         | yes        |
-| `~/Library/LaunchAgents/`      | The LaunchAgent plist                                                                              | `intent daemon` / the menubar app | yes        |
-| `~/.config/intent/config.json` | v2's configuration (`intent_version: 2.0.0`, `backlog_dir`, `editor`)                              | v2 only                           | **no**     |
+| Kind                                            | Path                                                          | What lives there                                           |
+| ----------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| Configuration, `$XDG_CONFIG_HOME` (`~/.config`) | `~/.config/intent/config.json`                                | The operator's settings: `author`, the explorer's settings |
+|                                                 | `~/.config/intent/projects.json`                              | The project registry (WP-03), hand-editable                |
+| Data, `$XDG_DATA_HOME` (`~/.local/share`)       | `~/.local/share/intent/home`                                  | The install pointer                                        |
+|                                                 | `~/.local/share/intent/{skills,subagents,agents}/`            | The installed-payload manifests                            |
+|                                                 | `~/.local/share/intent/ext/`                                  | User extensions                                            |
+| State, `$XDG_STATE_HOME` (`~/.local/state`)     | `~/.local/state/intent/`                                      | intentd's logs, the macOS app's build output               |
+| Runtime, `$XDG_RUNTIME_DIR`                     | `$XDG_RUNTIME_DIR/intent/`, else `~/.local/state/intent/run/` | intentd's socket, address, token and lock                  |
+| Apple's, not XDG                                | `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist`    | launchd reads only that directory                          |
+| Claude Code's, not Intent's                     | `~/.claude/`                                                  | Unchanged                                                  |
 
-intentd has no durable configuration: its project registry is in memory and fills on first contact.
+- **The runtime fallback is silent.** macOS never sets `XDG_RUNTIME_DIR`, so the specification's warning would print on every command there.
+- **No `intent.d/`.** A `.d` directory holds drop-in fragments a tool composes; nothing here composes fragments.
 
-Two constraints any answer inherits:
+## The migration
 
-- **v3 never reads or writes a v2 per-user store** (hv adopted, 2026-08-22). `~/.config/intent/config.json` is v2's, so a v3 file there would share a path with a tool that can never be taught about it.
-- **The shipped surface reads only the environment variables in `no_intent_home.rs`'s `ALLOWED`**: `COLUMNS`, `EDITOR`, `HOME`, `USER`, `VISUAL`. Honouring `XDG_CONFIG_HOME` or `XDG_STATE_HOME` is a new row there, granted by hv.
-
-## The standards in play
-
-- **XDG Base Directory Specification**: configuration under `$XDG_CONFIG_HOME` (default `~/.config`), data under `$XDG_DATA_HOME` (default `~/.local/share`), state under `$XDG_STATE_HOME` (default `~/.local/state`), sockets and other runtime files under `$XDG_RUNTIME_DIR`. Widely followed by command-line tools on macOS as well as Linux.
-- **Apple's file-system guidelines**: per-user application data under `~/Library/Application Support/<bundle id>/`, preferences under `~/Library/Preferences/`, logs under `~/Library/Logs/`, caches under `~/Library/Caches/`. The menubar app is an Apple bundle; the CLI and intentd are not.
-
-## Options
-
-### A. Keep `~/.intent/`, and put the registry beside `config.json`
-
-- The registry is `~/.intent/projects.json` (or a section of `config.json`).
-- No new environment variable, no new directory, no migration.
-- Not standards-compliant: a dot-directory in `$HOME` is neither XDG nor Apple's layout. It is the status quo hv has asked to replace.
-
-### B. XDG, with a v3-specific directory name
-
-- Configuration, the registry included, under `$XDG_CONFIG_HOME/intent3/` or similar; daemon runtime state moves to `$XDG_STATE_HOME` and the socket to `$XDG_RUNTIME_DIR` where set.
-- Standards-compliant on both platforms Intent runs on.
-- Needs hv's grant for the `XDG_*` rows in `ALLOWED`.
-- The directory name must not be v2's `~/.config/intent/`, or the separate-paths ruling is broken. A different name is a wart an operator has to be told about.
-- `~/.intent/` becomes a migration source, then retires.
-
-### C. XDG, reclaiming `~/.config/intent/` from v2
-
-- As B, under the natural name.
-- Requires v2's file to be retired first. The ruling that forbids sharing it was made because v2 cannot be taught the branch, so this only works if v2 is gone from every machine that matters, and it is a reversal of an hv ruling rather than a choice within it.
-
-### D. Apple's layout on macOS, XDG elsewhere
-
-- `~/Library/Application Support/com.matthewsinclair.intent/` for configuration and the registry on macOS; XDG paths on Linux.
-- The most correct per platform, and the one the menubar app would expect.
-- Two layouts to document, test and support; an operator on macOS who looks in `~/.config` finds nothing.
-
-## Questions for hv
-
-1. Which option, or which combination (eg B for the CLI and daemon, with the menubar app reading the same path)?
-2. If XDG: grant the `XDG_*` environment rows, and pick the directory name.
-3. Does daemon runtime state move too, or only configuration and the registry?
-4. Where the current `~/.intent/config.json` goes: migrated by `intent upgrade`, by `intent bootstrap`, or read in place until it is retired.
+- **What moves.** The first 3.1.0 command to resolve a per-user path, finding `~/.intent/` and no `~/.config/intent/config.json` in v3's shape, moves `~/.intent/config.json`, `home`, `skills/`, `subagents/`, `agents/` and `ext/` into the layout, removes `~/.intent/`, and prints one line saying so. Hooks run through the installed binary, so a commit on any estate performs the move rather than refusing on it.
+- **Read once, never again.** `~/.intent/` is read by that move and by nothing else in 3.1.0. A `~/.config/intent/config.json` not in v3's shape is replaced.
+- **What a running daemon meets.** Runtime files are not moved: a 3.0.x intentd keeps its socket under `~/.local/share/intent/` until it stops. A 3.1.0 client looks under the new runtime path, finds no daemon, and runs in-process as it does with none running. `intent daemon restart` starts the 3.1.0 daemon at the new path and removes the old runtime files. The rebuild's daemon restart does this on this machine.
+- **What an old binary meets.** A 3.0.x `intent` finds no `~/.intent/home`, and its existing refusal names `intent bootstrap`; running that recreates a `~/.intent/` the 3.1.0 binary never reads. The remedy is the 3.1.0 binary.
+- **Every literal reader moves in the same change**: `userstate.rs`, `lib/templates/hooks/pre-commit-shim.sh` and `pre-commit.sh`, `bin/.devbin/cmd/{hooks,macos}`, the skills naming the manifest path, and the menubar app.
 
 # Design: the project registry and `intent discover` (WP-03)
 
