@@ -393,6 +393,14 @@
       "text": "**0354 reproduction: runs 1 to 5 reported to vc; holding for vc's ruling on a next run or a fix shape with cc.** Scratchpad repro0354/. RUN 1 (fresh clone, 3.0.2 release pair): lit about 1s after the open and kept bursting, no store writes. RUN 2 (store already built): cold. RUN 3 (released 3.0.1): about 22s of CPU, then quiet. RUN 4 (fresh clone, 3.0.2 release): the index completed inside the first burst, and the bursts continued for about 2:19 more CPU with every count frozen; row 18, SYS over USER, about 510k BSD syscalls a second. RUN 5 (probe5.sh, fresh clone, DEBUG pair from wt-dc/target-dc/debug, RUST_BACKTRACE=1, stderr proven by lsof -d 2): NO panic and NO spin, 3.49s of CPU in ten minutes; the index STALLED at index_file 13 and src_sections 6 with every thread parked; the daemon survived, and status and graphql answered after. Not decisive on the parker reading: the loop never ran at speed. Proposed to vc, not built: a release build with debug assertions on (CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true cargo build --release -p intent-cli -p intentd in wt-dc), then run 1's recipe. Evidence kept: run/, run2/ to run5/, the clones, /tmp/dc0354-r2 to r5. Only 58837 is running.",
       "state": "live",
       "recorded_at": "2026-09-13T15:26:15.157Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 7,
+      "text": "**0354 RUN 6, vc's order: the RELEASE profile with debug assertions ARMED, run 1's recipe as run 5 ran it.** cc's correction: libpthread maps an interrupted wait (EINTR) to a 0 return, so parking_lot's debug_assert_eq!(r, 0) fires only on EINVAL. Build in wt-dc at e70c3528a: CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true cargo build --release -p intent-cli -p intentd, CARGO_TARGET_DIR target-dc, HOME /tmp/dc0354-build-home, log at repro0354/build6.log. Confirm the flag took: intentd sha256 differs from the delivered 92b69ce61dbbfc5c, and strings carries 'assertion `left == right` failed' near a parking_lot_core path. Drive: repro0354/probe6.sh (a copy of probe5.sh), LABEL=run6 BIN=<wt-dc>/target-dc/release CLONE=<scratchpad>/repro0354/run6-clone FRESH=1 PRE_SECS=0 POST_SECS=600 SHORT_HOME=/tmp/dc0354-r6. Verdict, one of: (a) a panic naming the return code, with the backtrace's top frames, and the first daemon status after; (b) run 4's bursts with NO panic: the wait returns 0 and the thread is being interrupted; (c) cold ten minutes, with the cpu shape. Cleanup; DO NOT TOUCH 58837, hv's live specimen for dtruss. List every file touched.",
+      "state": "live",
+      "recorded_at": "2026-09-13T15:27:29.720Z"
     }
   ],
   "messages": [
