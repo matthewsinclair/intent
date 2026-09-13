@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-13 16:33Z
+heartbeat_at: 2026-09-13 16:46Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 16:33Z for hv's compact. The 0354 fix is on main (669cf00ee) with 0366 (524f5f868) and ST0074/01, /02; dc rebuilds on hv's go (suite, build all, app-install, daemon restart, doctor); the rebuilt daemon under vc's CPU watch is the verdict; then Laksa on the pair's hash, then the cut. hv's directive: ruthless delivery, no overtesting. On the bounce: wb show vc, dc's report, re-arm the watch on the new pid, hold for hv. NO RELEASE, NO PUSH."
+focus: "Delivered set verified at 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0); the live daemon 18592 carries the 0354 fix (669cf00ee) and 0366 and is under vc's CPU watch; the verdict is whether the old daemon's ten-minute burst cadence returns after the first burst (the index build at open), decided after two quiet windows. ic codes ST0074 WP-05, WP-03, WP-04 for 3.0.2 before the tag; cc audits ST0056's three attachments; Laksa gets the pair's hash on a cool verdict; then the cut, hv at the terminal. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,8 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- CUT-READY (2026-09-13 12:25Z): v3.0.2 rehearsed GREEN on 8a48430ee (dc run4 of four, every gate and preview, exit 0); the delivered set names 8a48430ee (intent, intentd, Intent.app 6893) under hv's one-stamp rule; commits past it are doc or board only (gh corrections, dc's Fixed lines a0a02f9a2). Waiting on hv at the terminal: build release --patch, build all, int macos prepare, formula, publish as its own approval, smoke --reinstall; then ic's reference regeneration --baseline v3.0.1, hv's Laksa commit (849 held), Courses' migration report (asked, unreported), then Laksa's boards. NO RELEASE, NO PUSH.
+- 0354 VERDICT PENDING on the rebuilt daemon, pid 18592, under vc's CPU watch (Monitor bswzrj4di, user/sys split, five-minute reads). The old daemon burst about every ten minutes for about forty-five seconds of CPU with sys over user; the new one's first burst ran about three minutes from open with the store thread at sys twice user (the index build at open runs on that thread, so the first burst is not the verdict). Two quiet windows after it = fixed: close 0354 and 0366 on the delivered pair and name 9e60fcfb6 to laksa-vc under hv's advance ratification. A burst with sys over user = hv's sudo dtruss -t psynch_cvwait -p 18592 (Err#4 = interrupter, S3; a small nonzero at once = psynch fault).
+- CUT: the delivered set is 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0) under hv's one-stamp rule. ST0074 WP-05, WP-03 and WP-04 (ic, 3.0.2) land before the tag, so the set moves once more and dc rebuilds on their landing (suite, build all, app-install, daemon restart, doctor). Then hv at the terminal, nothing batched: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall. NO RELEASE, NO PUSH.
 
 ## TODO
 

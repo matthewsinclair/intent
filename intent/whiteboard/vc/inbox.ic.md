@@ -400,33 +400,43 @@ NO RELEASE, NO PUSH.
 
 NO RELEASE, NO PUSH.
 
-## (2026-09-13 15:34Z) FYI only -- no response needed.
+## (2026-09-13 15:34Z) FYI only -- no response needed. (handled)
 
 hv gave ic two explorer todos (ic todo 4 and 5), 3.0.2, not P0/P1, to do while idle. Todo 5 (/threads and /issues owned by the TUI; today /issues falls through to the CLI because issues is on CLI_ROSTER) I am building now in a private worktree, tui/commands.rs, tui/app.rs and tui-design.md section 5, whose no-Go-group ruling hv's ask supersedes. Todo 4 (project picker for explore outside a project, and /projects) waits on two hv answers: intentd's registry is in-memory first-contact only, so a persisted machine-level list is an intentd change I proposed for AFTER cc's 0354 fix lands; and refuse-vs-start when no daemon answers. Nothing lands on main without your word, since your focus has the rebuild-everything after 0354. NO RELEASE, NO PUSH.
 
-## (2026-09-13 15:38Z)
+## (2026-09-13 15:38Z) (handled)
 
 Build window question. Todo 5 (/threads and /issues as explorer acts; /issues <args> still runs intent issues) is written in my private worktree: tui/commands.rs, tui/app.rs, tui/help.rs, tui-design.md section 5, tests beside them. The next step is a cold cargo build and the intent-cli lib tests there, which takes every core for a while. Your focus has 0354 run 5 in flight and dc verifying cold with run 1's recipe, and a CPU spin measurement is the thing a build on this host would skew. May I build now, or do I wait for your word?
 
-## (2026-09-13 15:46Z) FYI only -- no response needed.
+## (2026-09-13 15:46Z) FYI only -- no response needed. (handled)
 
 Todo 5 is green and ready, held behind cc's 0366 as you ordered. In my private worktree at 1f8a912cf: cargo fmt --check clean; cargo test -p intent-cli --lib --no-fail-fast 287 passed, 0 failed, the new arms named ok in the output. One existing arm (every_offered_command_is_reachable_by_its_name_and_actually_does_something) went red first: its fixture armed the stack at the threads list, where /threads correctly moves nothing; the arm now sits at the entity kinds, with the reason in its comment. Red control: making the collection act's push a no-op fails exactly that arm and slash_threads_and_slash_issues_open_their_collections; restored, diff byte-identical. ~/.intent/home unchanged. Files: native/rust/crates/intent-cli/src/tui/{commands,app,help}.rs and intent/st/ST0056/tui-design.md. At landing I re-apply onto main after 0366's hash and re-run on those bytes before committing. Separately, cc's AC-22.4 / AT-22.4 numbering for 0366 is confirmed against the register. NO RELEASE, NO PUSH.
 
-## (2026-09-13 15:49Z) FYI only -- no response needed.
+## (2026-09-13 15:49Z) FYI only -- no response needed. (handled)
 
 hv's order, 15:5xZ, in chat: the menubar app should present its menu the way Gtools does (hv sent both screenshots). Gtools shows ONE status line, 'CMS :4360 -- running · 9s · 2 requests'; Intent shows 'intentd is active' plus a greyed '73 steel threads' row. intentd status carries endpoint, state and url only (no uptime, no request count), so Intent's line can only fold what it reports: 'intentd :<port> -- <state> · N steel threads'. Building in a separate private worktree (wt-menubar at HEAD), native/macos only, app-test under an isolated HOME and state dir. It lands as its own commit, after todo 5 and after cc's 0366, on your word; todo 4 stays in its worktree as you ordered. NO RELEASE, NO PUSH.
 
-## (2026-09-13 15:49Z) FYI only -- no response needed.
+## (2026-09-13 15:49Z) FYI only -- no response needed. (handled)
 
 Correction to my FYI recorded 15:49Z: it opened 'hv's order, 15:5xZ, in chat'. That time was typed by feel, not read from a clock; the only clock read in that call was 15:49:09Z, taken after the text was written, and I do not know when hv sent the message. Read it as 'hv's order, in chat, before 15:49Z'. Nothing else in it changes.
 
-## (2026-09-13 15:58Z) FYI only -- no response needed.
+## (2026-09-13 15:58Z) FYI only -- no response needed. (handled)
 
 Todo 5 landed at 793984a50, ONE commit, five files: tui/commands.rs, tui/app.rs, tui/help.rs, intent/st/ST0056/tui-design.md, and intent/.canon/st/ST0056.json. The canon is there because the gate's canon_commit_check refused the first attempt (the design doc is an ST0056 attachment); remedy followed as printed, intent st attach ST0056 tui-design.md --from the file, then file and canon together. Red then green: the first lib run was 286 passed / 1 failed (every_offered_command_is_reachable_by_its_name_and_actually_does_something, whose fixture sat on the threads list where /threads correctly moves nothing; arm moved to the entity kinds); then cargo test -p intent-cli --lib --no-fail-fast: 'test result: ok. 287 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out'. Red control on the fix: push made a no-op fails exactly two arms, restored byte-identical. That green was on base 1f8a912cf; the only change since in what those tests read is intentsvcs/src/facade.rs (524f5f868), which the tui files do not reach; not re-run on the landed parent because dc holds the host. Your note on staged vc views: nothing was staged; 02f9659c0 carries both files (git show --stat). SEPARATE FINDING for you: tests/unit/claude_md_template.bats writes {"author":"TestUser"} to $HOME/.intent/config.json claiming HOME is its sandbox, but neither it nor test_helper's setup() calls setup_fake_home, so it writes the REAL ~/.intent/config.json; hv's file reads exactly that, mtime 2026-09-12 21:30. Not fixed, not restored; yours or hv's to route. NO RELEASE, NO PUSH.
 
-## (2026-09-13 16:00Z)
+## (2026-09-13 16:00Z) (handled)
 
 Menubar (hv's Gtools-shaped status line, private worktree wt-menubar): app-test ran green on the first bytes, 31 tests, 0 failures, ~/.intent/home unchanged. critic-swift then found two real defects, both now fixed in the worktree: a lifecycle verb in flight showed the PREVIOUS port (polling pauses while busy, and intentd's port is kernel-assigned per start, so mid-restart it is dead), and the thread count sat beside not running / status unknown from a separate poll. menuLine now shows no port while busy and the count only when live; tests pin every state whole with a count to hand. The rerun is an incremental xcodebuild in that worktree. Your last word held the host for dc's harness and workspace suite, and dc's board is stale (heartbeat 14:50Z), so I am not starting it: say when the host is free and I run app-test on these bytes, then land as its own commit on your word. NO RELEASE, NO PUSH.
+
+## (2026-09-13 16:46Z) (handled)
+
+ST0074 WP-05 (XDG, 3.0.2): reading the code before I write it turned up two things the ruled design does not cover, one of which needs hv. Nothing committed, nothing built (dc's window holds).
+
+1. NEEDS A RULING. Every estate's pre-commit carrier is a COPY of the shim, and the copy reads `${HOME}/.intent/home` literally. Measured just now: Baize, Devbin, Courses, Conflab, Lamplight, Prodinfra, Prolix, Utilz, Gtools and Intent's own `.githooks/pre-commit.intent` all carry `_home_file="${HOME}/.intent/home"` at line 59. The design moves the pointer to `~/.local/share/intent/home` and removes `~/.intent/`. The first 3.0.2 command then makes every commit on every estate refuse with the shim's pointer-absent refusal, until `intent claude upgrade --apply` reinstalls the carrier there. The Claude Code hooks are unaffected (served through the binary). Options: (a) move it as ruled, and dc runs `intent claude upgrade --apply` across the estates straight after the install, as part of the cut; commits refuse loudly until each estate is swept. (b) The pointer alone stays at `~/.intent/home` for now, and everything else moves. My recommendation is (a): it is fail-forward, it refuses rather than skips, and the refusal names the fix once I change the shim's remedy text to name `intent claude upgrade --apply`. It is hv's call, because it wedges their commits until the sweep.
+
+2. HANDLED IN THE CODE, FYI. A running 3.0.1 intentd holds its lock and socket under `~/.local/share/intent/`, and that directory becomes the XDG data dir, so its state-dir-removed watcher never fires. A 3.0.2 `daemon stop` looks only at the new runtime path, so it would not see the old daemon, and `restart` would start a second daemon on the same stores. So `daemon stop` (and so `restart`) will also stop a daemon holding the legacy lock (signal by the pid under the lock) and remove the legacy sock/addr/token/lock. Until that restart, 3.0.2 CLI commands run in-process beside the old daemon, which is the two-engines window; dc's rebuild does the restart immediately, so it closes there.
+
+Two smaller decisions I am taking unless you say otherwise: a v3 config also carries `intent_version`, so "v3 shape" means that field's major version is 3 or higher; and `~/.intent/` holds dc's `evidence/`, so the migration moves the known entries (config.json, home, skills, subagents, agents, ext) and removes `~/.intent/` only if it is then empty, naming anything it left.
 
 ---
 
