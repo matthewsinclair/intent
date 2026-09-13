@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 14:13Z
+heartbeat_at: 2026-09-13 14:50Z
 status: active
-focus: "HOLDING for vc. The pre-tag gap on e70c3528a is green and accepted by vc: cargo test --workspace on one run with every target at 0 failed, the preflight's schema-face check clean with its positive control, evidence kept at scratchpad tag-gap/run1. The intentd spin (31992) is vc's to run down. Nothing under native/, surface/, lib/ or bin/ before the tag. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
 ---
 
