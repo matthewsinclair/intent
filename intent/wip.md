@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-13:v1.58: vc - hv: all of ST0074 is 3.0.2"
+verblock: "2026-09-13:v1.59: vc - 0354's cause named; cc fixes; the set moves once more"
 intent_version: 3.0.1
 ---
 
@@ -7,11 +7,10 @@ intent_version: 3.0.1
 
 ## DOING
 
-- 0354: the fix is on main (669cf00ee, the store thread on std's thread parker); dc, released by hv, runs the workspace suite once on main, then `bin/devbin build all`, app-install, `intent daemon restart`, doctor 0; the rebuilt daemon under vc's CPU watch is the verdict, hv's `sudo dtruss -t psynch_cvwait -p <pid>` the fallback if it still spins; then Laksa migrates on the delivered pair's hash.
-- The rebuild carries 0366 (524f5f868, AT-22.4), ST0074/01 the explorer's /threads and /issues (793984a50) and /02 the menubar status line (133061d7f, app-test 32/0), and the 0354 fix once hv allows cc's commit; dc runs the workspace suite once on main before `bin/devbin build all`.
-- The cut, hv at the terminal, nothing batched: `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
+- 0354: S1 (669cf00ee) is in the delivered daemon (pid 18592) and the bursts continue; the cause is named in the issue from a hot sample (every index refresh loads and sorts every prose section body through `Facade::carried_paths`, and SQLite spills the sort to disk); cc lands the fix as one commit on green (a bodiless DISTINCT-file store door over an `(owner_type, file)` index, and one refresh per index batch); the rebuilt daemon under vc's CPU watch is the verdict, one run; then Laksa migrates on that pair's hash.
+- The cut, hv at the terminal, nothing batched: the delivered set (9e60fcfb6) moves once more when cc's 0354 fix and ic's ST0074 WPs land, and dc rebuilds on their landing (suite once, `bin/devbin build all` announced to every lane, app-install, `intent daemon restart`, doctor 0); then `bin/devbin build release --patch`, `build all`, `int macos prepare`, `build formula`, `build publish`, `build smoke --reinstall`.
 
-- hv's as-written against as-built pass over ST0056, ST0057 and ST0069 and their WPs (2026-09-13): cc takes ST0069 and ST0057; ST0056's attachments by owner (ic tui-design.md and parity/, dc install.md and migration.md when released, cc data-model.md, output-contracts.md and realisation.md; vc the cover, design.md, impl.md, tasks.md, deferred.md); every fix through the CLI doors, never the code.
+- hv's as-written against as-built pass over ST0056, ST0057 and ST0069 and their WPs (2026-09-13): ST0056's remaining attachments by owner (ic tui-design.md and parity/, dc install.md and migration.md when released); every fix through the CLI doors, never the code.
 - ST0074 (ic's bundle) under vc's validator's eye: WP-01 and WP-02 done on main; hv ruled WP-05 (XDG Base Directory adopted for intent and intentd, `~/.config/intent` is v3's, v2 ignored, XDG_* granted into ALLOWED); hv: it is ALL 3.0.2, no 3.1.0; WP-05 (the XDG layout and its migration), WP-03 (the registry and discover) and WP-04 (the picker) are coded now in ic's worktree and land on main before the tag; 0368's test fix landed (64d272688).
 
 ## TODO
@@ -22,5 +21,5 @@ intent_version: 3.0.1
 - hv rules the provisional items ST0056's deferred list still carries: D43, D46, the `new-surface` scope line in parity.md, the withheld-13 field, and `ac gate`'s ratification (issue 0032).
 - Hover the menubar identity row on a failed `intent version` read: ic could not confirm a disabled item shows its tooltip (hv or ic, after the cut).
 - ST0056: a `brew install` on a clean Mac, then AC-00.5 and AC-11.1 by evidence; WP-11 closes with them.
-- hv rules whether 0355 (the index watch's tree walk), 0356 to 0361 (search's answers, found in the ST0069 demonstration) and 0363 to 0365 (Courses' migration findings: upgrade still calls the whiteboard not carried) go before the tag; a ruled one gets a lane.
+- hv rules whether 0355 (the index watch's tree walk), 0356 to 0361 (search's answers, found in the ST0069 demonstration), 0363 to 0365 (Courses' migration findings: upgrade still calls the whiteboard not carried) and 0369 to 0373 (ST0069's as-built gaps: index_state, skipped, name_parts, reconcile in MCP and the explorer, status sizes) go before the tag; a ruled one gets a lane.
 - Open defects: `intent issues list`; a ruled one gets a lane. Out of 3.0.x by ruling: ST0057, ST0060, ST0070.
