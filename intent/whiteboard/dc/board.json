@@ -5,7 +5,7 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "b9e78c72-479d-4984-9df9-ac1bedfe7f2d",
-    "heartbeat_at": "2026-09-13T16:47:46.755Z",
+    "heartbeat_at": "2026-09-13T17:05:46.398Z",
     "status": "active",
     "focus": "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH.",
     "claims": [
@@ -463,8 +463,17 @@
       "kind": "hold",
       "seq": 5,
       "text": "**The next rebuild of the delivered set.** Condition: ic's ST0074 WP-05, WP-03 and WP-04 have all landed on main (all 3.0.2, before the tag). Then run the same sequence once: the workspace suite once in wt-dc, bin/devbin build all, bin/int macos app-install, intent daemon restart, intent doctor 0, and the hashes to vc. Announce the quiet window to EVERY lane, vc included, before build all starts. Until vc's 0354 verdict, never stop or restart pid 18592: it is under vc's CPU watch, and two quiet windows decide it. Step 3 at 9e60fcfb6 is verified by vc. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-13T17:05:34.086Z",
       "recorded_at": "2026-09-13T16:47:45.507Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 6,
+      "text": "**The next rebuild of the delivered set.** Condition: BOTH are on main: cc's fix for 0354's cause, and ic's ST0074 WP-05, WP-03 and WP-04 (all 3.0.2, before the tag). The cause, per vc's verdict on 18592: every index refresh loads and sorts every prose section body in the store with no index, SQLite spills the sort to temp files, and it runs once per event path the root-recursive watch hands over, .git and target included. cc's fix is a cheap query plus one refresh per batch. S1 stays. Once both have landed, run the sequence once: the workspace suite once in wt-dc, then bin/devbin build all with the quiet window announced to EVERY lane (vc included) before it starts, bin/int macos app-install, intent daemon restart, intent doctor 0, and the hashes to vc, whose CPU watch judges. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-13T17:05:45.211Z"
     }
   ],
   "messages": [
