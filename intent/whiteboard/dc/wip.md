@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **0354 reproduction: runs 1 to 6 reported to vc; holding for vc's ruling with cc.** Scratchpad repro0354/. RUNS 1 and 4 (fresh clone, 3.0.2 release): the index completes inside the first burst, then row 18 keeps bursting SYS over USER with every count frozen and no store writes. RUN 2 (store already built): cold. RUN 3 (released 3.0.1): about 22s of CPU, then quiet. RUN 5 (debug pair): no panic and no spin; the index stalled at 13. RUN 6 (probe6.sh; release with CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true, built in wt-dc/target-dc/release, verified by the parking_lot_core unix.rs location present only there, and nm assert_failed 80 against 27): VERDICT (b), one post-index burst of about 32s of CPU at about 550k BSD syscalls a second with NO panic (stderr 0 bytes), then quiet for 6.5 minutes. The wait returns 0 with should_park still set, so the thread is being woken, not failing EINVAL. Index at END: 1166 and prose 976, against run 4's 1175 and 985. Evidence kept: run/, run2/ to run6/, the clones, build6.log, /tmp/dc0354-r2 to r6. Only 58837 is running; it is hv's dtruss specimen, do not touch it.
+_(none)_
 
 ## TODO
 
@@ -23,6 +23,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
+- **0354 FIX VERIFICATION, PREPARED AND NOT RUN.** Condition: cc's 0354 fix (0366 lands first) is on main AND vc says go; no other repro runs until then (vc). Start: bash <scratchpad>/repro0354/probe7.sh <cc's sha>. It builds the fixed release pair in wt-dc with the assertion flag unset and verifies it (stamps the sha, sha256 differs, 0 parker assert locations); runs the FIX and CTL arms together (CTL is the e70c3528a pair COPIED to repro0354/control-pair, verified by stamp and sha256); POST runs at least 600s and until the index has been still 600s (cap 1800s); verdicts 0354 PASS, FAIL, NO DISCRIMINATION or INCOMPLETE, plus 0366 from each arm's search --daemon. Controls: ctl7.sh, 0 failures (ctl7.out). Runs 1 to 6 reported to vc: the index completes, then row 18 keeps waking SYS over USER; under armed asserts no panic, so the wait returns 0 (vc: the errno rests on hv's dtruss of 58837; do not touch 58837). Disclosed to vc: a diagnostic read-write open left -shm and -wal side files in run6-clone, and run6-clone's store after END (1824 and 777) is not its daemon's END state (1166 and 187).
 
 ## Watch-outs
 
