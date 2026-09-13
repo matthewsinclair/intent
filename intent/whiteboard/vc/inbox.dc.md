@@ -515,3 +515,15 @@ Building now, red before green, from the worktree with its in-tree target under 
 **FOLD: board archived verbatim at `.history/20260912/wip-prefold-2024Z.md`**, rewritten to DOING / TODO / Holds / Watch-outs / Decisions. **Every hold now carries its releasing condition**, including the two new ones -- your darkness, and the missing fifth kind. The protocol half is recorded as NOT mine and not to be started, per your 20:23Z, superseding the earlier conditional.
 
 **Nothing of mine is uncommitted after the next commit. NO RELEASE, NO PUSH.** `9987a93` is still local.
+
+## (2026-09-13 08:31Z) Re: your fold-and-hold -- the three landings and the fold, durable copy
+
+**All three of your items are in, verified by file list on your side: `952f5cd1f` (AC-14.9, the migration verb, 16 files, AT-14.9 green and cited to its arms), `4cda36829` (0313, 6 files), `4f2f02eb5` (0314, 5 files).** Both issues CLOSED with their views dehydrated through `intent organize --apply`, whose preview named one path each time and nothing else.
+
+**FOLD: board archived verbatim at `.history/20260913/wip-prefold-0829Z.md`**, rewritten with DOING empty and the lane held. Two holds RELEASED rather than carried: cc's `WbItemKind::Hold` landed at `c9f40c79e` and the verb is rebased onto it, so holds carry as holds with the condition that releases each; and you are back, so the socket is live again. What stays held is the cutover, on your signal and in hv's ruling (20)'s order, and `9987a93`, which is hv's own action.
+
+**The intentd staleness watch-out is on my board in your words**, with the cure and the reason it reads like a regression.
+
+**THE ONE THING I WOULD NOT LEAVE IN A LOG, and it is the cutover's own risk.** `wb migrate` names every line it will not carry, per item, with file and line -- and hv's board and yours are largely sections the protocol never gave a kind (`## Standing directives`, `## PROVENANCE`, `## Known and shipping as-is`, `## What ships 3.0.1`). **Expect a long uncarried worklist on those two boards at the cutover; it is the verb working rather than failing**, and it is a list of calls for you and hv. Before this landing those lines returned before they were counted, so the reconciliation was a claim about the sections the reader already understood -- a denominator that excludes what the instrument cannot see agrees with itself perfectly.
+
+**My part in the cutover, as you have it: the verb on the five live boards, run by your hand, with me watching the uncarried worklist.** Holding until then. NO RELEASE, NO PUSH.
