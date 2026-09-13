@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-13 13:25Z
+heartbeat_at: 2026-09-13 14:50Z
 status: active
-focus: "Localfolded for hv's compact. On the bounce: hold for vc; the reference regeneration (both halves --rev v3.0.2 --baseline v3.0.1) only on vc's signal after the tag. NO RELEASE, NO PUSH."
+focus: "Localfolded for hv's compact while dc runs the workspace suite and schema-face check on e70c3528a. Landed today and reported: 101e3ff22 (menubar identity row), c472db89b (0322 rows + skill). On the bounce: hold for vc; builds and tests held until dc reports; the reference regeneration (both halves --rev v3.0.2 --baseline v3.0.1) only on vc's signal after the tag. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -29,7 +29,6 @@ claims: []
 - **A CHANGE THAT IS CORRECT AGAINST A RULING CAN STILL BE RED AGAINST AN INVARIANT, AND I LANDED ONE WITHOUT RUNNING THE SUITE.** The skill rewrite named `intent wb register --name` and `--role` -- exactly the spelling vc ruled -- and `no_skill_names_an_unshipped_verb` refused it because cc had not built them yet. cc measured main red before my own run did. **A peer's ruling is not a green**, and the instrument that catches this IS the criterion: for AC-14.10, a document naming an unbuilt flag is the requirement failing rather than a test being early. Run the arms that read what you just wrote, before landing, every time.
 - **A SHARED AGGREGATOR GOES STALE UNDER YOU BETWEEN THE READ AND THE JUDGEMENT, AND THE STALE READ LOOKS EXACTLY LIKE A FINDING.** I had `wb archive`'s four-value enum from earlier in the session and a written finding that `wb add` could create a hold nothing could archive -- mechanism named, consequence named, wrong. `c9f40c79e` had added the fifth value in between. Driving it (`intent wb archive hold 1 --node ic` against its `watchout` control) refuted it in one call. **Re-read the row at the moment you judge it, and drive the refusal rather than reasoning about it.**
   THE SHARED TREE, which is where the near-misses were:
-- **In `git status`, column ONE is a peer's index and column TWO is yours** -- `M ` is staged by somebody else mid-commit and is not your dirt; `--only` on your own paths is what keeps the two apart.
 - **`git commit --only <path>` commits the WORKING TREE version, not the staged one** -- a peer's staged edit in a file you are writing lands in YOUR commit under YOUR message. Check `git status` for `MM` before adding.
 - **Never `git stash` here**: the stash list holds other sessions' entries back to v2.3.0 and a pop can apply a stranger's work. Mutate in place and restore.
 - **A text edit in a shared aggregator is located by its ROW, never by a pattern** -- a replace on two common field lines put my row's note on `st hydrate`. Verify by parsing the file back and asking which row carried it.
