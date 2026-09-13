@@ -47,7 +47,7 @@
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
-use intentsvcs::model::{AcKind, AcState, AtKind, AtStatus, Criterion, Thread};
+use intentsvcs::model::{AcKind, AcState, AtKind, AtStatus, Criterion, Legacy, Thread};
 use intentsvcs::remedy::Remedy;
 
 fn criterion<'a>(facade: &'a Facade, ac: &str) -> &'a Criterion {
@@ -713,5 +713,97 @@ fn two_facades_opened_before_either_writes_cannot_both_create_one_child_id() {
     criterion(&fx.facade_on_disk(), "AC-09.1").text,
     "the first writer's text",
     "the store does not hold the first writer's criterion"
+  );
+}
+
+/// Issue 0314: **a re-cite IS the rewrite in the v3 grammar, so it retires the
+/// legacy reference -- and an edit that does not touch the citation leaves it.**
+///
+/// `doctor`'s advisory on a migrated row asks for exactly this rewrite. Carrying
+/// `legacy` across it left the row citing a test file AND holding a legacy
+/// reference, which `doctor` reports as BLOCKING -- *these are alternatives, not
+/// a pair* -- so the verb the remedy named was the one that made the estate
+/// worse, and with no `at rm` and `at new` refusing a taken id, a migrated row
+/// could not be expressed in the v3 grammar at all. Surfaced on Laksa, where
+/// five rows on one thread sit in that state.
+///
+/// **THE SECOND HALF IS WHAT MAKES THE FIRST A RULE RATHER THAN A SWEEP.** If
+/// any edit dropped `legacy`, a `--note` fold would silently discard the one
+/// record of what the v2 row said, which nothing can re-derive.
+#[test]
+fn a_re_cite_retires_a_legacy_reference_and_an_untouched_citation_keeps_it() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  // The migrated shape, verbatim: a v2 reference the v3 grammar cannot read,
+  // carried on the row so nothing about it is lost.
+  thread
+    .tests
+    .iter_mut()
+    .find(|t| t.id == "AT-03.1")
+    .expect("the fixture carries it")
+    .legacy = Some(Legacy {
+    raw: "apps/x/test/y_test.exs::a name with spaces".to_string(),
+  });
+  fx.write_thread(&thread);
+  fx.write_file(
+    "crates/intentsvcs/tests/the_v3_home.rs",
+    "// AT-03.1: the test, written in the v3 grammar\n",
+  );
+  let mut facade = fx.facade();
+
+  let row = |f: &Facade| {
+    f.canon().threads[0]
+      .tests
+      .iter()
+      .find(|t| t.id == "AT-03.1")
+      .expect("still there")
+      .clone()
+  };
+  assert!(
+    row(&facade).legacy.is_some(),
+    "precondition: the fixture row must actually carry the legacy reference, or this arm passes \
+     against a subject that cannot exhibit the defect"
+  );
+
+  // A note edit touches neither citation field, so the reference stays.
+  facade
+    .at_edit(
+      "ST0001",
+      "AT-03.1",
+      None,
+      None,
+      None,
+      Some("a note the row did not have".to_string()),
+      None,
+    )
+    .expect("a note edit is legal on a migrated row");
+  assert!(
+    row(&facade).legacy.is_some(),
+    "an edit that does not re-cite must not discard the one record of what the v2 row said: \
+     nothing can re-derive it"
+  );
+
+  // The re-cite IS the rewrite, and it retires the reference.
+  facade
+    .at_edit(
+      "ST0001",
+      "AT-03.1",
+      Some("crates/intentsvcs/tests/the_v3_home.rs".to_string()),
+      None,
+      None,
+      None,
+      None,
+    )
+    .expect("the rewrite doctor's advisory asks for");
+  let after = row(&facade);
+  assert_eq!(
+    after.file.as_deref(),
+    Some("crates/intentsvcs/tests/the_v3_home.rs"),
+    "the row cites its v3 file"
+  );
+  assert!(
+    after.legacy.is_none(),
+    "and carries no legacy reference beside it -- a file and a legacy reference are alternatives, \
+     and a row holding both is the blocking finding this verb exists to clear: {after:?}"
   );
 }

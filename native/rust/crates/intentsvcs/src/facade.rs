@@ -8972,12 +8972,35 @@ impl Facade {
     // not change*. 0207 records that `at edit` exists precisely so a re-cite
     // does not eat a row's note -- **the reasoning was applied to this verb
     // and stopped one field short.**
+    // **AND `legacy` IS THE ONE FIELD THAT CANNOT BE READ OFF THE STORED ROW,
+    // BECAUSE A RE-CITE IS WHAT RETIRES IT** (issue `0314`, ruled by vc
+    // 2026-09-13). `doctor`'s advisory on a migrated row asks for exactly this
+    // rewrite -- *worth rewriting in the v3 grammar next time the thread is
+    // touched* -- and carrying `legacy` across it left the row citing a test
+    // file AND holding a legacy reference, which `doctor` then reported as
+    // BLOCKING: *these are alternatives, not a pair*. There is no `at rm` and
+    // `at new` refuses a taken id, so a migrated row could not be expressed in
+    // the v3 grammar at all: the verb the remedy named was the one that made
+    // the estate worse.
+    //
+    // **NAMING `--file` OR `--prose` IS THE DELIBERATE ACT**, which is this
+    // verb's own contract read the right way round: the citation is what
+    // `legacy` holds an older spelling of, so re-citing it REPLACES it, while a
+    // `--note` or `--covers` edit touches neither and leaves it exactly where
+    // it is. **The `--kind` refusal below is the precedent and the same rule:
+    // a verb must not create the disagreement `doctor` reports.**
+    let recited = file.is_some() || prose.is_some();
     let row = AcceptanceTest {
       file: file.or_else(|| existing.file.clone()),
       prose: prose.or_else(|| existing.prose.clone()),
       covers: covers.unwrap_or_else(|| existing.covers.clone()),
       note: note.or_else(|| existing.note.clone()),
       kind: kind.unwrap_or(existing.kind),
+      legacy: if recited {
+        None
+      } else {
+        existing.legacy.clone()
+      },
       ..existing.clone()
     };
 
