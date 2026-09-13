@@ -3891,7 +3891,7 @@ The whiteboard: read the node boards, and send between them
 | `wb claim`    | <id>               | --node                             | Add a steel thread or work package to the acting node's claims                       | new-surface |
 | `wb unclaim`  | <id>               | --node                             | Drop a steel thread or work package from the acting node's claims                    | new-surface |
 | `wb clear`    | <sender>           | --node                             | Mark every live message one sender sent the acting node handled                      | new-surface |
-| `wb register` | --                 | --                                 | Register the node roster from each node's own board header                           | new-surface |
+| `wb register` | [moniker]          | --name, --role                     | Register a node from its arguments, or the roster from each node's own board header  | new-surface |
 | `wb migrate`  | <node>             | --                                 | Carry one node's hand-authored board into the model                                  | new-surface |
 
 ### `wb`
@@ -4110,7 +4110,7 @@ Pause the acting node, stamping when it stopped
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Registering or picking up again is what makes a node active.
+- **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Picking up again is what makes a node active; registering never does, because a new node registers paused and a registered one is not touched.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `release` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4208,20 +4208,29 @@ Mark every live message one sender sent the acting node handled
 
 ### `wb register`
 
-Register the node roster from each node's own board header
+Register a node from its arguments, or the roster from each node's own board header
 
 - **v2:** new-surface
+- **Arguments:**
+  - `moniker` (node, arity `0..1`)
+- **Flags:**
+  - `--name` (string) -- The node's display name, with `<moniker>`
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--role` (string) -- The node's role, with `<moniker>`
+    - **disposition:** keep
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. It is idempotent by moniker, so a second run over an existing roster adds nothing and changes nothing.
+- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name <display> --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The roster is authored configuration a human wrote; this registers it rather than inventing it.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
 - **recoverability:** idempotent
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT IS A PROJECT-SETUP ACT RATHER THAN THAT IT CANNOT BE UNDONE -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is irreversibility, and this one is reversible in the only sense that matters: running it twice writes nothing the first run did not. **What it does is decide WHO the participants of this project are, which is a thing a human declares and an agent should not start unasked** -- every board, every item and every message afterwards hangs off the rows it writes, and a roster registered by a passing tool call is a coordination estate nobody chose. The same reasoning `index rebuild` records, arriving at the same answer from a different direction: that one is withheld for contention, this one for authorship. A candidate for exposure on a ruling about who may declare a roster, never on the observation that it is safe to repeat -- which is true and is a different question.
 - **facade:** register_roster
-- **note:** **THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration.
+- **note:** **THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration. **AND A NODE CAN BE NAMED FROM ITS ARGUMENTS** (vc, 2026-09-13, on ic's finding): once headers render from the store, reading them can create nothing, so the explicit form is how a node joins after the cutover; the header form stays beside it until the last hand-authored board has migrated. Both forms reach the store through one insert.
 
 ### `wb migrate`
 

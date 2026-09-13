@@ -3850,9 +3850,28 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
 /// `Facade::register_roster`, which is where that reasoning lives.
 fn wb(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
-    Some(("register", _)) => {
+    Some(("register", m)) => {
       let mut f = open()?;
-      let registered = f.register_roster().map_err(fail)?;
+      let name = m.get_one::<String>("name");
+      let role = m.get_one::<String>("role");
+      let registered = match (m.get_one::<String>("moniker"), name, role) {
+        (Some(moniker), Some(name), Some(role)) => {
+          f.wb_register(moniker, name, role).map_err(fail)?
+        }
+        (Some(_), _, _) => {
+          return Err(Failure::Error(
+            "error: a node named on the command line needs both `--name <display>` and `--role <role>`"
+              .to_string(),
+          ));
+        }
+        (None, None, None) => f.register_roster().map_err(fail)?,
+        (None, _, _) => {
+          return Err(Failure::Error(
+            "error: `--name` and `--role` describe the node named as `<moniker>`; with no moniker, `wb register` reads every node's own header"
+              .to_string(),
+          ));
+        }
+      };
       // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** The verb is idempotent by
       // moniker, so a second run over an existing roster registers nothing --
       // and reporting the roster's SIZE either time would say a write happened

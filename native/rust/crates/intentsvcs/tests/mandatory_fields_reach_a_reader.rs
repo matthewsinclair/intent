@@ -239,6 +239,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A kind another verb owns: the caller supplied everything, and the remedy
     // is a different VERB rather than a field they left out.
     | FacadeError::WbKindHasItsOwnVerb { .. }
+    // A moniker registered with other values: the caller supplied every field,
+    // and the remedy is a different moniker rather than one they left out.
+    | FacadeError::WbRegisteredDifferently { .. }
     // **A CALL PARAMETER IS MISSING AND A MODEL FIELD IS NOT, and this list is
     // about the second.** `WbNoActingNode` does demand something -- `--node` or
     // `INTENT_NODE` -- but no entity carries it, so there is no read face for

@@ -146,6 +146,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("`decision` has one writer and it is `wb decide`"),
   ));
   out.push((
+    "a registered moniker named again with other values",
+    facade
+      .wb_register("cc", "Someone Else", "control")
+      .expect_err("a registered node keeps the name it registered with"),
+  ));
+  out.push((
     "a claim that is not an address",
     facade
       .wb_claim("cc", "the whole of ST0069")
@@ -931,6 +937,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
+    FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
@@ -1019,6 +1026,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbClaimMalformed",
   "WbAlreadyCarried",
   "WbKindHasItsOwnVerb",
+  "WbRegisteredDifferently",
   "WbNoActingNode",
 ];
 

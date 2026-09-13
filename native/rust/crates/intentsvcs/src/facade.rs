@@ -1378,6 +1378,15 @@ pub enum FacadeError {
   /// A kind this verb will not write, because another verb owns it.
   #[error("`{kind}` items are not written by this verb")]
   WbKindHasItsOwnVerb { kind: String, verb: String },
+  /// A moniker already registered, named again with other values.
+  #[error("`{node}` is registered as `{held_name}` ({held_role}), not `{name}` ({role})")]
+  WbRegisteredDifferently {
+    node: String,
+    name: String,
+    role: String,
+    held_name: String,
+    held_role: String,
+  },
   /// A migration into a board that already holds rows.
   ///
   /// **THERE IS NO MERGE HERE THAT IS NOT A GUESS.** A second run cannot tell
@@ -1488,6 +1497,9 @@ impl crate::remedy::Remedy for FacadeError {
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
+      Self::WbRegisteredDifferently { node, .. } => format!(
+        "a node's name and role are set when it registers and are not re-set by registering again; `intent wb show {node}` shows what it holds, and a participant who is not that node needs a moniker of its own"
+      ),
       Self::WbKindHasItsOwnVerb { kind, verb } => format!(
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
       ),
@@ -5068,6 +5080,47 @@ impl Facade {
   /// read any node's board. The single-writer invariant the protocol turns on
   /// is about WRITES -- it never made a board private, and the markdown form it
   /// replaces was world-readable in the checkout.
+  /// Register one node from its arguments, and say how many rows that wrote.
+  ///
+  /// **HOW A NODE JOINS ONCE NO HEADER IS HAND-WRITTEN** (vc, 2026-09-13, on
+  /// ic's finding). [`Self::register_roster`] reads each node's `wip.md` header,
+  /// and after the cutover those headers are rendered FROM the rows -- so
+  /// reading them can create nothing, and a new participant would have no door.
+  ///
+  /// **THE SAME VALUES TWICE WRITE NOTHING; DIFFERENT VALUES ARE REFUSED.** A
+  /// silent overwrite would rename a node under every peer reading its board,
+  /// and a silent no-op would tell a caller who asked for new values that they
+  /// hold.
+  pub fn wb_register(
+    &mut self,
+    moniker: &str,
+    name: &str,
+    role: &str,
+  ) -> Result<usize, FacadeError> {
+    if let Some(held) = self
+      .boards()?
+      .into_iter()
+      .find(|b| b.node.moniker == moniker)
+    {
+      if held.node.name == name && held.node.role == role {
+        return Ok(0);
+      }
+      return Err(FacadeError::WbRegisteredDifferently {
+        node: moniker.to_string(),
+        name: name.to_string(),
+        role: role.to_string(),
+        held_name: held.node.name,
+        held_role: held.node.role,
+      });
+    }
+    let written = self
+      .store
+      .register_nodes(&[(moniker.to_string(), name.to_string(), role.to_string())])
+      .map_err(FacadeError::Store)?;
+    self.reindex_boards()?;
+    Ok(written)
+  }
+
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
     self.store.hydrate_boards().map_err(FacadeError::Store)
   }
