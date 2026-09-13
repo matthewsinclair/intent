@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 318,
+  "slug": "organize-preview-prints-one-error-line-per-un-in",
+  "title": "organize preview prints one error line per un-ingested v2 bucket file, 184 on Laksa, where one class line would do",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "**`organize` in preview prints one `error:` line with a three-line remedy for every v2 bucket file it will not prune, so on an estate that has not run the ingest the preview is a wall.** Measured by hv on Laksa, 2026-09-13, on the pair at 59eeac618: `intent organize` printed `organize (preview): 0 to hydrate, 0 to rewrite, 24 unchanged, 0 to remove, 0 to prune, 0 to prune (v2), 824 unclaimed, 0 diverged, 184 refused`, then 184 times `error: refusing to prune /Users/matts/Devel/prj/Laksa/intent/st/COMPLETED/<ID>/<file>: <ID> carries no attachment <file>, so its content is on disk and nowhere else. The v2 tree is removed only once the store holds every one of its files ...` each followed by a two-line `remedy:`, 371 lines in all, exit 0. The mechanism is WP-02's prune refusing correctly: Laksa's store holds none of those files because `intent upgrade` on a WP-02 pair, whose ingest carries them into their threads as attachments, has not been run there. The presentation is the defect: a preview that touches nothing reports a refusal as an `error:`, repeats the same class-level remedy 184 times, and buries the one instruction the operator needs (`intent upgrade` first) under a wall that reads as 184 things broken.\n\n**Ruled under the pen, 2026-09-13, before the tag:** the v2 prune refusal is reported once per run as a class, with the count, the reason and the remedy stated once, and the per-file list only under `--verbose`; in preview the line reads as what the apply WOULD refuse rather than as `error:`; the summary line's `refused` count stays. One arm: a fixture with two un-ingested bucket files previews with one class line naming 2, not two error lines, and `--verbose` names both paths. dc, since the prune is WP-02's.\n"
+}
