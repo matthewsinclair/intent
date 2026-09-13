@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 320,
+  "slug": "upgrade-realises-a-closed-issue-s-view-that-orga",
+  "title": "upgrade realises a closed issue's view that organize then unclaims",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by laksa-vc on Laksa, 2026-09-13, on the pair at e8eec23c5 (0319 in it), during the pristine sequence hv ordered.\n\n`intent upgrade` on the already-migrated estate wrote `intent/issues/0001.md` and `intent/issues/0002.md`, the realised views of two issues converted from v2's CLOSED directory, and wrote no ISSUE line for either into `intent/.intentfiles`. The next `intent organize` preview listed both as `to-remove` (unclaimed) and `--apply` removed them; organize then read all zero and doctor 0, so the estate ended pristine and nothing was lost: the canon rows stand and `intent issues show` reads them.\n\nThe model says a closed issue has no realised view. Measured on the Intent estate the same hour: 0308 and 0319, closed, have no `intent/issues/` file and no ISSUE line; 0316, open, has both. `issues close` here dehydrates the view in the same way (74dc13801, d06574681).\n\nSo the defect is upgrade's half: its issue realisation writes a view for every converted issue regardless of status, and organize immediately unclaims the closed ones. Upgrade should realise only open issues, or claim what it realises, one or the other, and the arm is an upgrade over a v2 tree with one OPEN and one CLOSED issue followed by an organize preview that reads 0 to remove. Harmless in effect because organize corrects it, so after the thread and not before the tag. Lane: dc.\n"
+}
