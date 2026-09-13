@@ -92,7 +92,7 @@ title: v3 post-cut: project search, store-backed coordination, and contract drif
 **MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: no (computed)
 - AC-14.9 The existing three-node board migrates into the model with nothing dropped silently: what cannot be carried is named per item, and the count of carried items reconciles against the source
 
-**MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: no (computed)
+**MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.* -- satisfied: yes (computed)
 
 ### WP-16 -- Contract drift: a shipped field with no model row is refused (status: Done)
 
@@ -193,7 +193,7 @@ _(no tests in this group)_
 
 ### WP-14 -- Coordination model: whiteboard and inboxes in the store, with a bounded API (status: WIP)
 
-_(no tests in this group)_
+- AT-14.9 `native/rust/crates/intentsvcs/tests/wb_migrate_carries_a_board.rs` -- covers AC-14.9 -- status: green -- `intent wb migrate <node>` carries the node's whole hand-authored board: the header block, items of all five kinds including holds with the condition that releases each, every inbox entry from a registered sender in source order, and every `.history/` file as a verbatim snapshot document rather than as items. What it will not carry it NAMES, per item, with the file and line it was found at -- a section no kind maps, the prose above the first section, a line above an inbox's first entry, an inbox whose sender has no row on the roster, a `.history/` file that is not a document. THE VERB CARRIES EVERYTHING AND THE BOUND IS THE WRITER'S (vc, 2026-09-13): no live-item or live-message bound applies to the carry and nothing is marked handled or archived, because the bound is a refusal on `ask`, `announce` and `add` rather than a state invariant -- an inbox that migrates over-bound refuses new sends until its owner clears it. The service stamps take the ingest instant and the board's claimed stamps land verbatim in `authored_at`, untrusted, which is AC-14.4 and AC-14.9 resolved rather than traded. The reader's own arms are at native/rust/crates/intentsvcs/tests/wbmigrate_reads_a_board.rs.
 
 ### WP-16 -- Contract drift: a shipped field with no model row is refused (status: Done)
 

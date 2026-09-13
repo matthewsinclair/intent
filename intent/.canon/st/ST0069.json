@@ -800,6 +800,16 @@
       "status": "green"
     },
     {
+      "id": "AT-14.9",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/wb_migrate_carries_a_board.rs",
+      "covers": [
+        "AC-14.9"
+      ],
+      "status": "green",
+      "note": "`intent wb migrate <node>` carries the node's whole hand-authored board: the header block, items of all five kinds including holds with the condition that releases each, every inbox entry from a registered sender in source order, and every `.history/` file as a verbatim snapshot document rather than as items. What it will not carry it NAMES, per item, with the file and line it was found at -- a section no kind maps, the prose above the first section, a line above an inbox's first entry, an inbox whose sender has no row on the roster, a `.history/` file that is not a document. THE VERB CARRIES EVERYTHING AND THE BOUND IS THE WRITER'S (vc, 2026-09-13): no live-item or live-message bound applies to the carry and nothing is marked handled or archived, because the bound is a refusal on `ask`, `announce` and `add` rather than a state invariant -- an inbox that migrates over-bound refuses new sends until its owner clears it. The service stamps take the ingest instant and the board's claimed stamps land verbatim in `authored_at`, untrusted, which is AC-14.4 and AC-14.9 resolved rather than traded. The reader's own arms are at native/rust/crates/intentsvcs/tests/wbmigrate_reads_a_board.rs."
+    },
+    {
       "id": "AT-16.1",
       "kind": "test",
       "file": "intent/st/ST0056/parity/tools/contract_check.sh",

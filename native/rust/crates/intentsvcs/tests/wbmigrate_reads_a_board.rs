@@ -52,6 +52,10 @@ A second paragraph is a second item.
 ## Decisions
 
 - Ruled on 2026-09-12, and recorded here.
+
+## Standing directives
+
+- A section the protocol names for one node and the model maps to no kind.
 "#;
 
 #[test]
@@ -114,26 +118,52 @@ fn prose_sections_and_bullet_sections_both_carry() {
   );
 }
 
-/// AC-14.9's own words: what cannot be carried is NAMED, per item, and the
-/// count reconciles.
+/// AC-14.9's own words: a hold carries AS A HOLD, and what no kind maps is
+/// NAMED per item rather than passed over.
 #[test]
-fn a_hold_is_refused_by_name_and_the_count_still_reconciles() {
+fn a_hold_carries_as_a_hold_and_an_unmapped_section_is_named() {
   let board = wbmigrate::read_board("dc", BOARD, "intent/whiteboard/dc/wip.md");
-  assert_eq!(board.uncarried.len(), 1, "{:?}", board.uncarried);
-  let held = &board.uncarried[0];
-  assert!(
-    held.text.contains("condition that releases it"),
-    "the refused line is quoted, so nobody has to go looking for it: {held:?}"
+  let holds: Vec<&str> = board
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Hold)
+    .map(|i| i.text.as_str())
+    .collect();
+  assert_eq!(
+    holds.len(),
+    1,
+    "the fifth kind landed, so the section the protocol calls load-bearing carries as itself \
+     rather than being refused: {holds:?}"
   );
   assert!(
-    held.at.starts_with("intent/whiteboard/dc/wip.md:"),
+    holds[0].contains("condition that releases it"),
+    "and it carries the CONDITION, which is the field that makes it a hold: {holds:?}"
+  );
+
+  // **THE REFUSAL ARM NOW POINTS AT WHERE THE LOSS ACTUALLY IS.** Two things on
+  // this board have no kind: the lead paragraph above the first section, and a
+  // section the protocol names for one node and the model maps to nothing. Both
+  // are named; neither is passed over, which is what the count means.
+  let named: Vec<&str> = board.uncarried.iter().map(|u| u.text.as_str()).collect();
+  assert_eq!(named.len(), 2, "{:?}", board.uncarried);
+  assert!(
+    named.iter().any(|t| t.contains("lead paragraph")),
+    "prose above the first `## ` is named rather than carried into a kind: {named:?}"
+  );
+  let unmapped = board
+    .uncarried
+    .iter()
+    .find(|u| u.text.contains("maps to no kind"))
+    .expect("the unmapped section is named");
+  assert!(
+    unmapped.at.starts_with("intent/whiteboard/dc/wip.md:"),
     "and it is named where it was found: {}",
-    held.at
+    unmapped.at
   );
   assert!(
-    held.reason.contains("WbItemKind"),
-    "the reason says what is missing and that it is pending, not that the line was junk: {}",
-    held.reason
+    unmapped.reason.contains("Standing directives"),
+    "the reason names the section, so the reader knows which one to decide about: {}",
+    unmapped.reason
   );
   assert!(
     board.reconciles(),
@@ -151,6 +181,8 @@ fn an_inbox_carries_its_entries_and_not_its_scaffolding() {
 
 _(empty)_
 
+A line somebody typed above the first entry, belonging to no message.
+
 ## (2026-09-12 15:03Z) Re: your 15:01Z -- three rulings
 
 **Nothing is with me.** All three are ruled.
@@ -159,11 +191,27 @@ _(empty)_
 
 **BROADCAST: the live store is at schema 24.**
 "#;
-  let messages = wbmigrate::read_inbox("vc", "dc", INBOX);
+  let read = wbmigrate::read_inbox("vc", "dc", INBOX, "intent/whiteboard/dc/inbox.vc.md");
+  let messages = read.messages;
   assert_eq!(
     messages.len(),
     2,
     "the routing header and the `_(empty)_` sentinel are scaffolding, not entries: {messages:?}"
+  );
+  assert_eq!(
+    read.uncarried.len(),
+    1,
+    "and a line above the first entry that is NEITHER of those is named rather than assumed \
+     away: {:?}",
+    read.uncarried
+  );
+  assert!(
+    read.uncarried[0].text.contains("belonging to no message")
+      && read.uncarried[0]
+        .at
+        .starts_with("intent/whiteboard/dc/inbox.vc.md:"),
+    "{:?}",
+    read.uncarried
   );
   assert_eq!(
     messages[0].authored_at.as_deref(),

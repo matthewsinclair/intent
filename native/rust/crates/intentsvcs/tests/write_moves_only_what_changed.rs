@@ -430,6 +430,18 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      also the verb's ONLY exercised door: the render arm calls `register_roster` and nothing else.",
   ),
   (
+    "wb migrate",
+    "intentsvcs/tests/wb_migrate_carries_a_board.rs -- four arms drive the verb's facade door, \
+     `wb_migrate`, against a node whose whole directory is written first, and read back what it \
+     wrote: the items with their kinds, the messages with their claimed stamps, and the \
+     `.history/` snapshots. **It writes ROWS AND DOC SECTIONS AND NO FILE** -- the markdown it \
+     reads is left exactly where it was, because the disk stays authoritative until the cutover \
+     -- so `did the projected estate move` is the wrong observable, and the answer to it is NO \
+     BY DESIGN. The right one is that what the source offered is either a row this verb wrote or \
+     a line it named, which those arms assert against a fixture whose every line is known, and \
+     that a carried snapshot comes back out of its sections byte for byte.",
+  ),
+  (
     "index rebuild",
     "intent-cli/tests/the_index_says_what_it_holds.rs -- `a_status_before_a_rebuild_says_the_index_holds_nothing` \
      drives the verb against a real estate and holds the property this file exists for, in the form \

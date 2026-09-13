@@ -3964,6 +3964,17 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       println!("ok: {me} decision {seq}");
       Ok(())
     }
+    Some(("migrate", m)) => {
+      // **THE NODE IS A POSITIONAL AND NOT `--node`, WHICH IS THE ONE PLACE
+      // THIS FAMILY DEPARTS FROM ITS OWN CONVENTION.** Every other verb writes
+      // as the acting node; a cutover is performed ON a board by whoever runs
+      // it, so the board being carried is the argument and there is a human
+      // behind the act rather than a session claiming a moniker.
+      let node = m.get_one::<String>("node").expect("declared required");
+      let mut f = open()?;
+      let carried = f.wb_migrate(node).map_err(fail)?;
+      report_wb_migration(&carried)
+    }
     Some(("archive", m)) => {
       let me = acting_node(m)?;
       // **THE TABLE DECLARES `kind` AS AN ENUM WITH ITS VALUES, SO CLAP HAS
@@ -4209,6 +4220,62 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
       "error: the table declares `{other}` as an item kind and this build has no arm for it"
     ))),
   }
+}
+
+/// What one `wb migrate` carried, and what it would not carry.
+///
+/// **EVERY LINE ON BOTH SIDES IS PRINTED, and the refused half goes to stderr.**
+/// The carried half is the operator's receipt: a run reporting only totals would
+/// reconcile arithmetically and leave nobody able to say which board line is now
+/// only in a markdown file they are about to stop reading. The refused half is
+/// on stderr because it is a worklist for a person rather than part of the
+/// answer, and it does not fail the run: a migration that carried what it could
+/// and named the rest is the outcome, not an error.
+fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), Failure> {
+  for item in &carried.items {
+    println!(
+      "carried: [{}] {} -- {}",
+      item_kind_word(&item.kind),
+      item.at,
+      first_line(&item.text)
+    );
+  }
+  for file in &carried.snapshots {
+    println!("carried: [snapshot] {file}");
+  }
+  println!(
+    "ok: {} carried {} item(s), {} message(s), {} snapshot(s)",
+    carried.node,
+    carried.items.len(),
+    carried.messages,
+    carried.snapshots.len()
+  );
+  for refused in &carried.uncarried {
+    eprintln!(
+      "uncarried: {} -- {}\n  reason: {}",
+      refused.at,
+      first_line(&refused.text),
+      refused.reason
+    );
+  }
+  // **THE INVARIANT IS PRINTED WHEN IT FAILS, NEVER ASSERTED IN A BINARY.** A
+  // debug assertion here would be a crash in the operator's cutover; what they
+  // need is the run's own statement that its two halves do not account for what
+  // it read, with everything above still on the record.
+  if !carried.reconciles() {
+    eprintln!(
+      "error: {} unit(s) were read and {} were accounted for; the lines above are not the whole \
+       of what this board offered",
+      carried.offered,
+      carried.items.len() + carried.messages + carried.snapshots.len() + carried.uncarried.len()
+    );
+  }
+  Ok(())
+}
+
+/// The first line of a body, for a one-line receipt.
+fn first_line(text: &str) -> &str {
+  text.lines().next().unwrap_or_default()
 }
 
 fn item_kind_word(k: &intentsvcs::model::WbItemKind) -> &'static str {

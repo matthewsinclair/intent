@@ -63,6 +63,19 @@ pub struct SearchHit {
 /// deletes miss, and the symptom would be duplicated hits rather than an error.
 pub const FILE_OWNER: &str = "file";
 
+/// The `owner_type` of a section that belongs to a WHITEBOARD NODE: the
+/// `.history/` snapshots a board's folds left behind, carried as documents.
+///
+/// **A THIRD HALF RATHER THAN A THIRD MEANING FOR AN EXISTING ONE, for the
+/// reason stated one constant up.** Each writer names its own rows in SQL and
+/// knows nothing about the others', so the canon ingest's wholesale replace
+/// cannot reach these and the file indexer's cannot either. Whiteboard prose is
+/// store-owned in exactly the way the boards themselves are -- the daemon's
+/// pass does not carry either of them from disk -- and giving it the canon
+/// half's `owner_type` would have put a node's history on the wrong side of a
+/// `DELETE` that runs on every ingest.
+pub const WB_OWNER: &str = "wb_node";
+
 /// Split one markdown document into sections.
 ///
 /// The concatenation law, which the round-trip test pins: rebuilding the file

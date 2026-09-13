@@ -1378,6 +1378,19 @@ pub enum FacadeError {
   /// A kind this verb will not write, because another verb owns it.
   #[error("`{kind}` items are not written by this verb")]
   WbKindHasItsOwnVerb { kind: String, verb: String },
+  /// A migration into a board that already holds rows.
+  ///
+  /// **THERE IS NO MERGE HERE THAT IS NOT A GUESS.** A second run cannot tell
+  /// the rows its own first run wrote from a live write made since, so carrying
+  /// again would either duplicate a board or silently skip a node's real work.
+  /// It says what is standing, because that is what the operator has to look at
+  /// before deciding which of the two happened.
+  #[error("`{node}` already holds {items} item(s) and {messages} message(s)")]
+  WbAlreadyCarried {
+    node: String,
+    items: usize,
+    messages: usize,
+  },
   /// No acting node: nothing said who is writing.
   ///
   /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
@@ -1390,6 +1403,45 @@ pub enum FacadeError {
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
+}
+
+/// What [`Facade::wb_migrate`] carried off one node's board, and what it would
+/// not carry.
+///
+/// **THE CARRIED HALF IS PER ITEM AND SO IS THE REFUSED HALF**, which is the
+/// whole of AC-14.9's accounting: a migration that reported `41 carried, 3
+/// uncarried` would reconcile arithmetically while telling nobody which three
+/// lines are now only in a markdown file somebody is about to stop reading.
+/// Every entry on both sides carries its `<file>:<line>`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbMigration {
+  pub node: String,
+  /// The items carried, in source order, each with its address.
+  pub items: Vec<crate::wbmigrate::SourceItem>,
+  /// Inbox entries carried. They are not listed per item because each is
+  /// already addressed by its own `authored_at` heading and lands whole.
+  pub messages: usize,
+  /// The `.history/` documents carried, by project-relative path.
+  pub snapshots: Vec<String>,
+  /// Everything the source offered and this would not carry, named.
+  pub uncarried: Vec<crate::wbmigrate::Uncarried>,
+  /// Every unit the source offered: item-shaped board lines, inbox entries and
+  /// `.history/` files. **Counted where each unit is dispatched**, never
+  /// re-derived by a second walk that would be free to disagree.
+  pub offered: usize,
+}
+
+impl WbMigration {
+  /// Did everything the source offered end up on one side or the other?
+  ///
+  /// **THIS IS THE CHEAP HALF OF AC-14.9 AND IT IS NOT THE PROOF.** It holds by
+  /// construction today, so what it guards is a later edit that dispatches a
+  /// unit without counting it. The proof that nothing is dropped is an arm
+  /// reading a fixture whose every line is known, finding each one either
+  /// carried with its address or refused by name.
+  pub fn reconciles(&self) -> bool {
+    self.items.len() + self.messages + self.snapshots.len() + self.uncarried.len() == self.offered
+  }
 }
 
 /// What [`Facade::wb_pickup`] hands back: the acting node's own board, and every
@@ -1431,6 +1483,9 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbItemsFull { node, kind, .. } => format!(
         "`intent wb archive --node {node} {kind} <seq>` moves one to archived: the state change IS the archival, the row is never deleted, and what it said stays readable after it stops counting"
+      ),
+      Self::WbAlreadyCarried { node, .. } => format!(
+        "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbKindHasItsOwnVerb { kind, verb } => format!(
@@ -5183,8 +5238,267 @@ impl Facade {
     }
     self
       .store
-      .wb_insert_item(node, &wire, text)
+      .wb_insert_item(node, &wire, text, None)
       .map_err(FacadeError::Store)
+  }
+
+  /// Carry one node's hand-authored board into the model -- AC-14.9.
+  ///
+  /// **IT READS THE DISK AND IT IS THE ONLY WHITEBOARD VERB THAT DOES.** Every
+  /// other verb in this family reads and writes rows; this one exists to end the
+  /// markdown era for one node, so it takes that node's `wip.md`, every
+  /// `inbox.<sender>.md` it owns, and every `.history/` snapshot, and it writes
+  /// what it found.
+  ///
+  /// **NOTHING IS DROPPED SILENTLY, AND THE ACCOUNTING IS PER ITEM ON BOTH
+  /// SIDES** ([`WbMigration::reconciles`]). A count that reconciles arithmetically
+  /// tells nobody WHICH line went, so every carried item and every refused one
+  /// comes back with its `<file>:<line>`, and the two halves are asserted to
+  /// account for every item-shaped line the source offered.
+  ///
+  /// **IT APPLIES NO LIVE BOUND AND MARKS NOTHING HANDLED** (hv, ruled
+  /// 2026-09-12). The bounds are a refusal on `ask`, `announce` and `add` -- a
+  /// board's own author being told to prune before writing more -- and applying
+  /// them here would make a node's history refuse to be carried because it is
+  /// long, which is the one moment pruning is not available. An over-bound
+  /// migrated inbox refuses NEW sends until its owner clears it, which is the
+  /// bound doing its job one write later.
+  ///
+  /// **A NODE THAT ALREADY HOLDS ROWS IS REFUSED BY NAME rather than carried
+  /// twice.** A second run cannot tell its own earlier work from a live write
+  /// made since, so there is no version of "merge" here that is not a guess; the
+  /// remedy names what to do about it.
+  ///
+  /// **THE ACTING NODE IS THE OPERATOR'S ARGUMENT, NOT THE BOARD'S OWNER**,
+  /// which is the one deliberate exception to the single-writer convention this
+  /// family otherwise holds: a cutover is performed on every node's board by
+  /// whoever is running it, and that is a human act with a human behind it.
+  pub fn wb_migrate(&mut self, node: &str) -> Result<WbMigration, FacadeError> {
+    self.require_registered(node)?;
+    let standing = self.board(node)?;
+    if !standing.items.is_empty() || !standing.messages.is_empty() {
+      return Err(FacadeError::WbAlreadyCarried {
+        node: node.to_string(),
+        items: standing.items.len(),
+        messages: standing.messages.len(),
+      });
+    }
+
+    let home = self.project.whiteboard_dir().join(node);
+    let wip = home.join("wip.md");
+    let text = Self::read_board_file(&wip)?;
+    let source = crate::wbmigrate::read_board(node, &text, &self.project.relative(&wip));
+
+    // **INBOXES IN SENDER ORDER AND ENTRIES IN SOURCE FILE ORDER**, because
+    // every message migrated in one pass shares one `recorded_at`: the stamp
+    // cannot order them, so insertion order is the board's only surviving
+    // ordering and it has to be a decided one rather than whatever the
+    // filesystem hands back.
+    let mut inboxes: Vec<(String, std::path::PathBuf)> = Vec::new();
+    for entry in Self::read_node_dir(&home)? {
+      let name = entry.file_name().to_string_lossy().to_string();
+      if let Some(sender) = name
+        .strip_prefix("inbox.")
+        .and_then(|rest| rest.strip_suffix(".md"))
+      {
+        inboxes.push((sender.to_string(), entry.path()));
+      }
+    }
+    inboxes.sort();
+
+    let mut messages: Vec<crate::wbmigrate::SourceMessage> = Vec::new();
+    let mut message_uncarried: Vec<crate::wbmigrate::Uncarried> = Vec::new();
+    for (sender, path) in &inboxes {
+      let text = Self::read_board_file(path)?;
+      let rel = self.project.relative(path);
+      let read = crate::wbmigrate::read_inbox(sender, node, &text, &rel);
+      // **AN INBOX FROM A SENDER THE ROSTER DOES NOT KNOW IS REPORTED BY FILE
+      // AND NEVER INSERTED** (vc, ruled 2026-09-13). A message row names its
+      // sender, and writing one under a moniker with no `wb_node` row would put
+      // a message on a board from a node that does not exist on it -- readable
+      // by nothing, addressed by nobody, and invisible to the renderer, which
+      // renders inboxes only for registered pairs. This estate has two such
+      // files today, both empty; an empty one is still named, because "no rows
+      // were dropped" and "the file was empty" are different facts and a reader
+      // cannot tell them apart from silence.
+      if !self
+        .store
+        .wb_node_exists(sender)
+        .map_err(FacadeError::Store)?
+      {
+        message_uncarried.push(crate::wbmigrate::Uncarried {
+          at: rel,
+          text: format!("{} entry(s) from `{sender}`", read.messages.len()),
+          reason: format!(
+            "no `{sender}` is registered on this board, and a message row names its sender: \
+             carrying these would address them from a node the roster does not have. Register \
+             the sender and re-run, or leave the file where it is"
+          ),
+        });
+        continue;
+      }
+      messages.extend(read.messages);
+      message_uncarried.extend(read.uncarried);
+    }
+
+    let (snapshots, mut sections, snapshot_uncarried) = self.read_snapshots(node, &home)?;
+
+    // Nothing is written until every file has been read, so a refusal on the
+    // third inbox does not leave a board half carried.
+    self
+      .store
+      .wb_carry_header(
+        node,
+        &source.name,
+        &source.role,
+        source.session_id.as_deref(),
+        &crate::model::enum_str(&source.status.unwrap_or(crate::model::WbNodeStatus::Paused)),
+        &source.focus,
+        &source.claims,
+        source.authored_at.as_deref(),
+      )
+      .map_err(FacadeError::Store)?;
+    for item in &source.items {
+      self
+        .store
+        // **A MIGRATED ITEM CARRIES NO `authored_at`, AND THAT IS THE SOURCE
+        // SPEAKING RATHER THAN A FIELD BEING SKIPPED.** A board's markdown
+        // stamps its header and its inbox entries; an item is a line in a
+        // section and has never claimed a time. Giving it the header's
+        // heartbeat would invent a per-item stamp out of a per-board one,
+        // which is the fabrication this pair of fields exists to make
+        // impossible.
+        .wb_insert_item(node, &crate::model::enum_str(&item.kind), &item.text, None)
+        .map_err(FacadeError::Store)?;
+    }
+    for message in &messages {
+      self
+        .store
+        .wb_insert_message(
+          &message.sender,
+          &message.recipient,
+          &message.body,
+          message.re.as_deref(),
+          message.fyi,
+          message.authored_at.as_deref(),
+        )
+        .map_err(FacadeError::Store)?;
+    }
+    sections.sort_by(|a, b| (&a.file, a.seq).cmp(&(&b.file, b.seq)));
+    self
+      .store
+      .replace_wb_sections_for(node, &sections)
+      .map_err(FacadeError::Store)?;
+
+    Ok(WbMigration {
+      node: node.to_string(),
+      offered: source.source_items
+        + messages.len()
+        + message_uncarried.len()
+        + snapshots.len()
+        + snapshot_uncarried.len(),
+      items: source.items,
+      messages: messages.len(),
+      snapshots,
+      uncarried: source
+        .uncarried
+        .into_iter()
+        .chain(message_uncarried)
+        .chain(snapshot_uncarried)
+        .collect(),
+    })
+  }
+
+  /// One whiteboard file, read with its path in the failure.
+  ///
+  /// **THE PATH IS THE WHOLE VALUE OF THIS WRAPPER.** A migration reads a
+  /// directory's worth of files and `No such file or directory` on its own
+  /// names none of them.
+  fn read_board_file(path: &std::path::Path) -> Result<String, FacadeError> {
+    std::fs::read_to_string(path).map_err(|source| {
+      FacadeError::Ingest(IngestError::Io {
+        path: path.display().to_string(),
+        source,
+      })
+    })
+  }
+
+  /// One node's directory, in a stable order.
+  fn read_node_dir(home: &std::path::Path) -> Result<Vec<std::fs::DirEntry>, FacadeError> {
+    let mut entries: Vec<std::fs::DirEntry> = std::fs::read_dir(home)
+      .map_err(|source| {
+        FacadeError::Ingest(IngestError::Io {
+          path: home.display().to_string(),
+          source,
+        })
+      })?
+      .filter_map(Result::ok)
+      .collect();
+    entries.sort_by_key(std::fs::DirEntry::file_name);
+    Ok(entries)
+  }
+
+  /// Every `.history/` file, as verbatim snapshot documents.
+  ///
+  /// **A FOLD'S ARCHIVE IS A DOCUMENT AND NEVER A SOURCE OF ITEMS** (hv, ruled
+  /// 2026-09-12): splitting one into items would put every archived DOING line
+  /// back on the board as live work and manufacture a second history of the same
+  /// node. The walk is recursive because folds archive by date directory.
+  ///
+  /// **A FILE THIS CANNOT CARRY IS NAMED RATHER THAN PASSED OVER.** `.gitkeep`
+  /// is the exception and it is a git artefact rather than a document: it exists
+  /// because git does not track an empty directory.
+  #[allow(clippy::type_complexity)]
+  fn read_snapshots(
+    &self,
+    node: &str,
+    home: &std::path::Path,
+  ) -> Result<
+    (
+      Vec<String>,
+      Vec<crate::prose::DocSection>,
+      Vec<crate::wbmigrate::Uncarried>,
+    ),
+    FacadeError,
+  > {
+    let mut carried = Vec::new();
+    let mut sections = Vec::new();
+    let mut uncarried = Vec::new();
+    let mut pending = vec![home.join(".history")];
+    while let Some(dir) = pending.pop() {
+      if !dir.is_dir() {
+        continue;
+      }
+      for entry in Self::read_node_dir(&dir)? {
+        let path = entry.path();
+        if path.is_dir() {
+          pending.push(path);
+          continue;
+        }
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name == ".gitkeep" {
+          continue;
+        }
+        let rel = self.project.relative(&path);
+        if !name.ends_with(".md") {
+          uncarried.push(crate::wbmigrate::Uncarried {
+            at: rel.clone(),
+            text: name,
+            reason: "a `.history/` file that is not markdown: the snapshot carry splits a \
+                     document into prose sections, and there is nothing here that would read \
+                     these bytes back"
+              .to_string(),
+          });
+          continue;
+        }
+        let text = Self::read_board_file(&path)?;
+        sections.extend(crate::wbmigrate::snapshot_sections(node, &rel, &text));
+        carried.push(rel);
+      }
+    }
+    carried.sort();
+    uncarried.sort_by(|a, b| a.at.cmp(&b.at));
+    Ok((carried, sections, uncarried))
   }
 
   /// Is this a thing a board can claim: a steel thread, or one of its work
@@ -5336,7 +5650,7 @@ impl Facade {
     }
     self
       .store
-      .wb_insert_message(sender, recipient, body, re, fyi)
+      .wb_insert_message(sender, recipient, body, re, fyi, None)
       .map_err(FacadeError::Store)
   }
 
@@ -5383,7 +5697,7 @@ impl Facade {
     for r in &recipients {
       self
         .store
-        .wb_insert_message(sender, r, body, None, true)
+        .wb_insert_message(sender, r, body, None, true, None)
         .map_err(FacadeError::Store)?;
     }
     Ok(recipients.len())
@@ -6460,6 +6774,15 @@ impl Facade {
       let home = self.project.thread_dir(&thread.id);
       for attachment in &thread.attachments {
         paths.push(home.join(&attachment.path));
+      }
+    }
+    // **A `.history/` SNAPSHOT THE STORE CARRIES LEAVES THE DISK CORPUS**, by
+    // the rule 0304 settled: a document held as sections in the store and
+    // indexed again as a file is one document answering a search twice, from
+    // two halves of one table, with nothing on either hit saying so.
+    for section in self.store.doc_sections().map_err(FacadeError::Store)? {
+      if section.owner_type == crate::prose::WB_OWNER {
+        paths.push(self.project.root().join(&section.file));
       }
     }
     paths.sort();

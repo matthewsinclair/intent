@@ -1841,16 +1841,23 @@ const MATCH_MARK: char = '\u{E000}';
 
 /// Which half of the prose table a write owns.
 ///
-/// **THE PROSE TABLE IS THE ONE PLACE TWO WRITERS SHARE A TABLE, and they can
-/// because the row says which is which.** `owner_type` is `file` for the
-/// repository's own prose and an entity kind for canon's, so each writer's
-/// delete-missing names its own half in SQL. See
-/// [`Store::replace_doc_sections`] for why the index's other tables are not
-/// arranged this way.
+/// **THE PROSE TABLE IS THE ONE PLACE SEVERAL WRITERS SHARE A TABLE, and they
+/// can because the row says which is which.** `owner_type` is `file` for the
+/// repository's own prose, `wb_node` for a whiteboard node's carried history
+/// and an entity kind for canon's, so each writer's delete-missing names its
+/// own half in SQL. See [`Store::replace_doc_sections`] for why the index's
+/// other tables are not arranged this way.
+///
+/// **THE WHITEBOARD HALF IS SCOPED TO ONE NODE AND THE OTHER TWO ARE NOT**,
+/// because it is written one node at a time by `wb migrate` while the others
+/// are re-derived whole from a model. A migration of dc that emptied cc's
+/// history would be the estate-wide write the verb's own scope exists to
+/// prevent.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ProseHalf {
+enum ProseHalf<'a> {
   Canon,
   Files,
+  Whiteboard(&'a str),
 }
 
 /// One `doc_sections` row, from its first seven columns in declaration order.
@@ -4303,6 +4310,49 @@ impl Store {
     Ok(())
   }
 
+  /// Carry one node's HEADER BLOCK off its hand-authored board, for `wb
+  /// migrate` and for nothing else.
+  ///
+  /// **THE SERVICE STAMPS TAKE THE INGEST INSTANT AND THE BOARD'S CLAIM GOES TO
+  /// `authored_at`**, which is the ruling that resolves AC-14.4 against AC-14.9:
+  /// a migration run through the ordinary API turns every historical stamp into
+  /// `now` and loses the claim, and one run around the API puts a hole in the
+  /// refusal on its first day. So `heartbeat_at` is re-read from the clock here
+  /// -- what a board CLAIMED about its own liveness is the value we know may be
+  /// invented -- while that claim survives verbatim beside it.
+  ///
+  /// `recorded_at` is left exactly as registration wrote it: that is when this
+  /// node entered the model, and a migration is not a second birth.
+  #[allow(clippy::too_many_arguments)]
+  pub fn wb_carry_header(
+    &mut self,
+    node: &str,
+    name: &str,
+    role: &str,
+    session_id: Option<&str>,
+    status: &str,
+    focus: &str,
+    claims: &[String],
+    authored_at: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, status = ?5, focus = ?6, \
+       claims = ?7, heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), authored_at = ?8 \
+       WHERE moniker = ?1",
+      params![
+        node,
+        name,
+        role,
+        session_id,
+        status,
+        focus,
+        serde_json::to_string(claims)?,
+        authored_at
+      ],
+    )?;
+    Ok(())
+  }
+
   /// Move one live item to archived, and say whether it moved.
   ///
   /// **ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its `seq` and
@@ -4336,7 +4386,26 @@ impl Store {
   /// hands one function down. It counts LIVE and ARCHIVED alike, so archiving an
   /// item never frees its number for reuse and a `seq` refers to one item for
   /// the life of the board.
-  pub fn wb_insert_item(&mut self, node: &str, kind: &str, text: &str) -> Result<u32, StoreError> {
+  ///
+  /// **`authored_at` IS A CLAIM THE CALLER CARRIES, NEVER A TIME THE CALLER
+  /// CHOOSES, and it is `None` for every write but a migration's.** The service
+  /// still reads the clock for `recorded_at` here, in this statement, as a value
+  /// and never as a column default -- that half has no parameter and will not
+  /// get one. What this takes is the stamp a hand-authored board's markdown
+  /// PRINTED, verbatim, for the one door that has such a stamp to carry.
+  ///
+  /// **ONE INSERT PER TABLE, WHICH IS WHY THE PARAMETER IS HERE RATHER THAN IN A
+  /// SECOND WRITER BESIDE IT.** A migration-only insert would be the second
+  /// spelling of this row, free to drift on `seq`, on `state`, or on the
+  /// clock-as-a-value rule, and the drift would be invisible because each door
+  /// would be self-consistent.
+  pub fn wb_insert_item(
+    &mut self,
+    node: &str,
+    kind: &str,
+    text: &str,
+    authored_at: Option<&str>,
+  ) -> Result<u32, StoreError> {
     let tx = self.conn.transaction()?;
     let next: i64 = tx.query_row(
       "SELECT coalesce(max(seq), 0) + 1 FROM wb_item WHERE node = ?1 AND kind = ?2",
@@ -4345,8 +4414,8 @@ impl Store {
     )?;
     tx.execute(
       "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, authored_at) \
-       VALUES (?1, ?2, ?3, ?4, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL)",
-      params![node, kind, next, text],
+       VALUES (?1, ?2, ?3, ?4, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?5)",
+      params![node, kind, next, text, authored_at],
     )?;
     tx.commit()?;
     Ok(next as u32)
@@ -4378,13 +4447,20 @@ impl Store {
 
   /// Append one message to the recipient's board.
   ///
-  /// **NO CALLER SUPPLIES A STAMP, AND THERE IS NO PARAMETER FOR ONE.** The
-  /// clock is read by the database at the write, as a VALUE and never as a
-  /// column default -- a default fires again on every re-insert and a
-  /// disk-to-db resync re-inserts every row, so the board would be re-stamped
-  /// on each sync, which is history rewritten silently. `authored_at` stays
-  /// NULL: it carries what a MIGRATED board's markdown claimed, and nothing
-  /// born through this door has such a claim to carry.
+  /// **NO CALLER SUPPLIES THE SERVICE'S STAMP, AND THERE IS NO PARAMETER FOR
+  /// ONE.** The clock is read by the database at the write, as a VALUE and never
+  /// as a column default -- a default fires again on every re-insert and a
+  /// disk-to-db resync re-inserts every row, so the board would be re-stamped on
+  /// each sync, which is history rewritten silently.
+  ///
+  /// **`authored_at` IS THE OTHER THING AND IS NOT AN EXCEPTION TO IT**: what
+  /// the entry's `## (...)` heading CLAIMED, verbatim, `None` for everything
+  /// born through this door live and non-null only on a migration's write. It is
+  /// the field that deliberately carries the class of value the clock guard
+  /// exists to refuse -- stamps measured fabricated, an hour out, and ordered
+  /// before the message they answer -- so it is stored as text and never read as
+  /// a time. See [`Store::wb_insert_item`] for why the parameter sits on this
+  /// writer rather than on a second one beside it.
   pub fn wb_insert_message(
     &mut self,
     sender: &str,
@@ -4392,12 +4468,13 @@ impl Store {
     body: &str,
     re: Option<&str>,
     fyi: bool,
+    authored_at: Option<&str>,
   ) -> Result<(), StoreError> {
     self.conn.execute(
       "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, recorded_at, \
        authored_at) \
-       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL)",
-      params![sender, recipient, body, re, fyi],
+       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?6)",
+      params![sender, recipient, body, re, fyi, authored_at],
     )?;
     Ok(())
   }
@@ -4710,6 +4787,35 @@ impl Store {
     Ok(())
   }
 
+  /// Replace ONE NODE's whiteboard prose: the `.history/` snapshots its folds
+  /// left behind, carried as documents by `wb migrate`.
+  ///
+  /// **SCOPED TO THE NODE, so migrating one board cannot empty another's
+  /// history**, and re-running the verb over the same node replaces what it
+  /// wrote rather than doubling it -- which is the one part of a migration that
+  /// is safe to repeat, because the source file is still the authority for it.
+  pub fn replace_wb_sections_for(
+    &mut self,
+    node: &str,
+    sections: &[DocSection],
+  ) -> Result<(), StoreError> {
+    for s in sections {
+      debug_assert_eq!(
+        s.owner_type,
+        crate::prose::WB_OWNER,
+        "a whiteboard section's owner_type is what tells the writers apart"
+      );
+      debug_assert_eq!(
+        s.owner_id, node,
+        "a section written under this node's scope belongs to this node"
+      );
+    }
+    let tx = self.conn.transaction()?;
+    Self::write_doc_sections(&tx, sections, ProseHalf::Whiteboard(node))?;
+    tx.commit()?;
+    Ok(())
+  }
+
   /// Replace the FILE half of the prose index: the repository's own prose,
   /// which the search index owns. See [`Store::replace_doc_sections`].
   pub fn replace_file_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
@@ -4735,12 +4841,16 @@ impl Store {
   ) -> Result<(), StoreError> {
     match half {
       ProseHalf::Canon => conn.execute(
-        "DELETE FROM doc_sections WHERE owner_type <> ?1",
-        params![crate::prose::FILE_OWNER],
+        "DELETE FROM doc_sections WHERE owner_type NOT IN (?1, ?2)",
+        params![crate::prose::FILE_OWNER, crate::prose::WB_OWNER],
       ),
       ProseHalf::Files => conn.execute(
         "DELETE FROM doc_sections WHERE owner_type = ?1",
         params![crate::prose::FILE_OWNER],
+      ),
+      ProseHalf::Whiteboard(node) => conn.execute(
+        "DELETE FROM doc_sections WHERE owner_type = ?1 AND owner_id = ?2",
+        params![crate::prose::WB_OWNER, node],
       ),
     }?;
     // **THE `DELETE` EMPTIES THE ROWS AND LEAVES THE INDEX BEHIND** (issue

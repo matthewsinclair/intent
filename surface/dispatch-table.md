@@ -3892,6 +3892,7 @@ The whiteboard: read the node boards, and send between them
 | `wb unclaim`  | <id>               | --node              | Drop a steel thread or work package from the acting node's claims                    | new-surface |
 | `wb clear`    | <sender>           | --node              | Mark every live message one sender sent the acting node handled                      | new-surface |
 | `wb register` | --                 | --                  | Register the node roster from each node's own board header                           | new-surface |
+| `wb migrate`  | <node>             | --                  | Carry one node's hand-authored board into the model                                  | new-surface |
 
 ### `wb`
 
@@ -4215,6 +4216,24 @@ Register the node roster from each node's own board header
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT IS A PROJECT-SETUP ACT RATHER THAN THAT IT CANNOT BE UNDONE -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is irreversibility, and this one is reversible in the only sense that matters: running it twice writes nothing the first run did not. **What it does is decide WHO the participants of this project are, which is a thing a human declares and an agent should not start unasked** -- every board, every item and every message afterwards hangs off the rows it writes, and a roster registered by a passing tool call is a coordination estate nobody chose. The same reasoning `index rebuild` records, arriving at the same answer from a different direction: that one is withheld for contention, this one for authorship. A candidate for exposure on a ruling about who may declare a roster, never on the observation that it is safe to repeat -- which is true and is a different question.
 - **facade:** register_roster
 - **note:** **THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration.
+
+### `wb migrate`
+
+Carry one node's hand-authored board into the model
+
+- **v2:** new-surface
+- **Arguments:**
+  - `node` (node, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT once per node at the cutover, to carry a markdown board into the store: its header block, its item sections, every entry in every inbox it owns, and every `.history/` snapshot as a document. It prints every line it carried AND every line it would not, each with its `<file>:<line>`, because a total that reconciles arithmetically tells nobody which line stayed behind. DO NOT USE IT on a board that already holds rows -- it refuses rather than guessing whether those are an earlier carry or work written since -- and do not reach for it to create a node: `wb register` does that, and this needs the row to exist.
+- **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. AC-14.9, read as vc ruled its three lines on 2026-09-12, with hv's bounds ruling of the same day. There is no v2 antecedent: the whiteboard has always been markdown on disk, read and written by hand.
+- **owner wp:** WP-14
+- **acceptance:** AC-14.9
+- **recoverability:** one-way
+- **facade:** wb_migrate
+- **note:** **THE NODE IS A POSITIONAL AND NOT `--node`, WHICH IS THE ONE PLACE THIS FAMILY DEPARTS FROM ITS OWN CONVENTION.** Every other verb writes as the acting node and trusts the flag; a cutover is performed ON a board by whoever is running it, so the board being carried is the argument rather than a moniker a session claims. **IT APPLIES NO LIVE BOUND AND MARKS NOTHING HANDLED** (hv, 2026-09-12): the bounds are a refusal on `ask`, `announce` and `add`, and applying them here would refuse a node's history for being long at the one moment pruning is not available. An over-bound migrated inbox refuses new sends until its owner clears it. **THE SERVICE STAMPS TAKE THE INGEST INSTANT AND THE BOARD'S OWN CLAIMED STAMPS GO TO `authored_at`, VERBATIM AND UNTRUSTED** -- that is AC-14.4 and AC-14.9 resolved rather than traded: a migration run through the ordinary API turns every historical stamp into `now`, and one run around the API puts a hole in the caller-stamp refusal on its first day. **WITHHELD FROM MCP** as a one-way estate act, for `wb register`'s reason one row up: what it does is decide that a node's history now lives in the store, and that is a human's call rather than a passing tool call's.
 
 ## Family: `index`
 

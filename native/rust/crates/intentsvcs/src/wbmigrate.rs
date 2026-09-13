@@ -33,8 +33,15 @@ pub struct Uncarried {
 }
 
 /// One item read off a board, before it reaches the store.
+///
+/// **IT CARRIES ITS ADDRESS FOR THE SAME REASON [`Uncarried`] DOES**: the
+/// accounting is per item on both sides, and a carried half reported as a
+/// number against a named uncarried half is the arithmetic reconciliation that
+/// tells nobody which line went where.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceItem {
+  /// `<file>:<line>`, so the worklist is walkable.
+  pub at: String,
   pub kind: WbItemKind,
   pub text: String,
 }
@@ -51,6 +58,14 @@ pub struct SourceMessage {
   pub authored_at: Option<String>,
 }
 
+/// One inbox, read but not yet written: its entries, and every line above them
+/// that belongs to no entry.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct SourceInbox {
+  pub messages: Vec<SourceMessage>,
+  pub uncarried: Vec<Uncarried>,
+}
+
 /// One node's board, read but not yet written.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct SourceBoard {
@@ -64,17 +79,12 @@ pub struct SourceBoard {
   /// The header's own `heartbeat_at:`, verbatim and untrusted.
   pub authored_at: Option<String>,
   pub items: Vec<SourceItem>,
-  pub messages: Vec<SourceMessage>,
-  /// `.history/` files, carried as verbatim snapshot documents and never split
-  /// into items (vc, ruled 2026-09-12).
-  pub snapshots: Vec<(String, String)>,
   pub uncarried: Vec<Uncarried>,
   /// Every item-shaped line the source offered, carried or not. **The
   /// denominator of AC-14.9's reconciliation**, counted where the lines are
   /// dispatched rather than re-derived afterwards: a second walk would be a
   /// second reader of the same file, free to disagree with this one.
   pub source_items: usize,
-  pub source_messages: usize,
 }
 
 impl SourceBoard {
@@ -86,15 +96,14 @@ impl SourceBoard {
 
 /// The board's item sections, and the kind each maps to.
 ///
-/// **`## Holds` IS DELIBERATELY ABSENT AND IS DELIBERATELY NOT A DROP.**
-/// `WbItemKind` has four variants and the protocol's board has five sections;
-/// the fifth kind is cc's to add (vc, ruled 2026-09-12) and the migration
-/// rebases onto it. Until then every hold is REFUSED BY NAME through
-/// [`Uncarried`] rather than skipped -- which is the difference between a
-/// section waiting for a model and a section nobody can prove was ever there.
-/// The skill is emphatic about which section this is: the item is not the
-/// content, the CONDITION is, and a hold survives a fold precisely while its
-/// condition stands unmet.
+/// **`## Holds` MAPS TO `WbItemKind::Hold`, WHICH IS WHY THE SECTION SURVIVES
+/// THE ROUND TRIP.** This reader refused every hold by name for as long as the
+/// model had four kinds, because a board carried through a model with no holds
+/// comes back without the one section the protocol calls load-bearing -- the
+/// item is not the content, the CONDITION is, and a hold with no condition is
+/// indistinguishable from work that was quietly dropped. The fifth kind landed
+/// (vc's ruling of 2026-09-12, built by cc) and the refusal arm is now pointed
+/// at the sections nothing maps, which is where the remaining loss lives.
 fn kind_of(heading: &str) -> Option<WbItemKind> {
   // Matched on the heading's leading word rather than the whole line, because
   // a board's headings carry trailing prose -- `## DOING -- WP-02` is one of
@@ -107,19 +116,9 @@ fn kind_of(heading: &str) -> Option<WbItemKind> {
     "todo" => Some(WbItemKind::Todo),
     "decisions" | "decision" => Some(WbItemKind::Decision),
     "watch-outs" | "watch-out" | "watchouts" => Some(WbItemKind::Watchout),
+    "holds" | "hold" => Some(WbItemKind::Hold),
     _ => None,
   }
-}
-
-/// Whether a heading is the held `## Holds` section.
-fn is_holds(heading: &str) -> bool {
-  let head = heading.trim_start_matches('#').trim().to_ascii_lowercase();
-  head
-    .split_whitespace()
-    .next()
-    .unwrap_or_default()
-    .trim_end_matches(':')
-    == "holds"
 }
 
 /// Read one node's board file.
@@ -190,40 +189,56 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
   // perfectly against zero.
   let mut heading: Option<String> = None;
   let mut block: Vec<(usize, String)> = Vec::new();
-  let flush = |heading: &Option<String>,
-               block: &mut Vec<(usize, String)>,
-               out: &mut SourceBoard| {
-    if block.is_empty() {
-      return;
-    }
-    let taken = std::mem::take(block);
-    let Some(head) = heading else {
-      // Above the first `## `: the board's own title and its lead paragraph,
-      // which belong to the document rather than to any item.
-      return;
-    };
-    let held = is_holds(head);
-    let kind = kind_of(head);
-    if kind.is_none() && !held {
-      return; // Not an item section at all.
-    }
-    for (line_no, text) in blocks_to_items(&taken) {
-      out.source_items += 1;
-      match (held, kind) {
-        (true, _) => out.uncarried.push(Uncarried {
-          at: format!("{file}:{line_no}"),
-          text,
-          reason: "`## Holds` has no `WbItemKind` yet, so this line is refused rather than carried into a kind it does not belong to. The fifth variant is ruled and pending; re-run the migration once it lands".to_string(),
-        }),
-        (false, Some(kind)) => out.items.push(SourceItem { kind, text }),
-        (false, None) => unreachable!("guarded above"),
+  let flush =
+    |heading: &Option<String>, block: &mut Vec<(usize, String)>, out: &mut SourceBoard| {
+      if block.is_empty() {
+        return;
       }
-    }
-  };
+      let taken = std::mem::take(block);
+      for (line_no, text) in blocks_to_items(&taken) {
+        // **COUNTED HERE, WHERE THE LINE IS DISPATCHED, WHATEVER BECOMES OF IT.**
+        // A section nothing maps used to return before this line, so its content
+        // never entered the denominator and the reconciliation was a claim about
+        // the sections the reader already understood. Every board on this estate
+        // carries sections the protocol does not name -- the human's node is
+        // mostly such sections -- so that is where the remaining loss is, and it
+        // is now refused by name in the same worklist as everything else.
+        out.source_items += 1;
+        match heading.as_deref().and_then(kind_of) {
+          Some(kind) => out.items.push(SourceItem {
+            at: format!("{file}:{line_no}"),
+            kind,
+            text,
+          }),
+          None => out.uncarried.push(Uncarried {
+            at: format!("{file}:{line_no}"),
+            text,
+            reason: match heading {
+              Some(head) => format!(
+                "`{}` is not one of the protocol's item sections, so no `WbItemKind` carries it",
+                head.trim()
+              ),
+              None => "above the first `## ` section: a board's lead paragraph belongs to the \
+                     document rather than to any item, and the model has no field for it"
+                .to_string(),
+            },
+          }),
+        }
+      }
+    };
   for (i, line) in wip_md.lines().enumerate().skip(header_end + 1) {
     if line.starts_with("## ") {
       flush(&heading, &mut block, &mut out);
       heading = Some(line.to_string());
+      continue;
+    }
+    // The board's own `# <Name> (<node>)` title, which the header block already
+    // carries as data and a renderer writes back from `name` and `moniker`. It
+    // ends whatever section preceded it, so a `#` title mid-document cannot
+    // silently adopt the section above it.
+    if line.starts_with("# ") {
+      flush(&heading, &mut block, &mut out);
+      heading = None;
       continue;
     }
     if line.trim().is_empty() {
@@ -267,14 +282,36 @@ fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String)> {
   out
 }
 
+/// Carry one `.history/` file as a verbatim snapshot document.
+///
+/// **A FOLD'S ARCHIVE IS A SNAPSHOT OF A BOARD AT A MOMENT, NEVER A SOURCE OF
+/// ITEMS** (hv, ruled 2026-09-12). Splitting one into `WbItem`s would
+/// manufacture a second, competing history of the same node -- every archived
+/// DOING line back on the board as live work, and every later count ambiguous
+/// about which history it measured. It goes through the ordinary prose splitter,
+/// so the bytes that went in come out identical: [`crate::prose::join`] of what
+/// this returns is the file.
+///
+/// The sections are addressed by the NODE rather than by the file alone, so a
+/// search that hits one can say whose board it was.
+pub fn snapshot_sections(node: &str, file: &str, text: &str) -> Vec<crate::prose::DocSection> {
+  crate::prose::split(crate::prose::WB_OWNER, node, file, text)
+}
+
 /// Read one inbox file into its messages.
 ///
 /// **ENTRIES ARE THE `## (...)` HEADINGS AND NOTHING ELSE.** The `# inbox:
 /// <sender> -> <recipient>` line restates the routing the path already encodes,
 /// and `_(empty)_` is the no-live-entries sentinel that keeps an inbox from
 /// being an ambiguous zero-byte file; neither is a message.
-pub fn read_inbox(sender: &str, recipient: &str, text: &str) -> Vec<SourceMessage> {
+/// **AND THE PROLOGUE IS ACCOUNTED FOR RATHER THAN ASSUMED EMPTY.** Anything
+/// above the first entry that is neither of those two lines is prose somebody
+/// wrote into an inbox by hand, and it is named in [`SourceInbox::uncarried`] --
+/// the same rule the board reader holds to, because "the file only ever has a
+/// header" is exactly the class of assumption that drops content quietly.
+pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> SourceInbox {
   let mut out: Vec<SourceMessage> = Vec::new();
+  let mut uncarried: Vec<Uncarried> = Vec::new();
   let mut body: Vec<&str> = Vec::new();
   let mut pending: Option<SourceMessage> = None;
   let finish =
@@ -285,7 +322,7 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str) -> Vec<SourceMessag
       }
       body.clear();
     };
-  for line in text.lines() {
+  for (i, line) in text.lines().enumerate() {
     if let Some(rest) = line.strip_prefix("## (") {
       finish(&mut pending, &mut body, &mut out);
       let (stamp, tail) = match rest.split_once(')') {
@@ -316,8 +353,26 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str) -> Vec<SourceMessag
     }
     if pending.is_some() {
       body.push(line);
+      continue;
     }
+    // The prologue: the routing header the path already encodes, and the
+    // no-live-entries sentinel that keeps an inbox from being an ambiguous
+    // zero-byte file. Neither is a message; anything else here is.
+    let trimmed = line.trim();
+    if trimmed.is_empty() || trimmed == "_(empty)_" || trimmed.starts_with("# inbox:") {
+      continue;
+    }
+    uncarried.push(Uncarried {
+      at: format!("{file}:{}", i + 1),
+      text: line.to_string(),
+      reason: "above the first `## (...)` entry, where an inbox carries only its routing header \
+               and the empty sentinel: this line belongs to no message"
+        .to_string(),
+    });
   }
   finish(&mut pending, &mut body, &mut out);
-  out
+  SourceInbox {
+    messages: out,
+    uncarried,
+  }
 }

@@ -128,6 +128,17 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .wb_decide("cc", "one too many")
       .expect_err("one past the configured per-kind bound is refused"),
   ));
+  // **THE BOARD IT REFUSES IS ONE WITH ROWS, AND `cc` HAS THEM BY NOW.** The
+  // migration cannot tell its own earlier carry from live work written since,
+  // so it refuses rather than guessing -- and provoking it on a node that has
+  // been written to through the ordinary verbs is the state an operator will
+  // actually meet.
+  out.push((
+    "a migration into a board that already holds rows",
+    facade
+      .wb_migrate("cc")
+      .expect_err("a board with items is not carried a second time"),
+  ));
   out.push((
     "a kind another verb owns",
     facade
@@ -918,6 +929,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbInboxFull { .. } => "WbInboxFull",
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
+    FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
@@ -1005,6 +1017,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbInboxFull",
   "WbItemsFull",
   "WbClaimMalformed",
+  "WbAlreadyCarried",
   "WbKindHasItsOwnVerb",
   "WbNoActingNode",
 ];
