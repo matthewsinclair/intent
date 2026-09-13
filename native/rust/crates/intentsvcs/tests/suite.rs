@@ -412,6 +412,8 @@ mod unsatisfied_note_serde;
 mod view_determinism;
 #[path = "view_skew_check.rs"]
 mod view_skew_check;
+#[path = "wb_archive_frees_the_bound.rs"]
+mod wb_archive_frees_the_bound;
 #[path = "wb_migrate_carries_a_board.rs"]
 mod wb_migrate_carries_a_board;
 #[path = "wb_pickup_states_the_session.rs"]

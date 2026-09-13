@@ -604,6 +604,28 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     descoped.state
   );
 
+  // **THE BOARDS CAME BACK, AND WHAT THEY CARRIED WITH THEM.** The fixture
+  // wrote one item and one message into the board rows precisely so this trip
+  // has something to lose; the claimed stamp in `authored_at` is the field a
+  // lossy extract would drop first, because nothing re-derives it.
+  let boards = restored.store().hydrate_boards().expect("boards");
+  let item = boards
+    .iter()
+    .flat_map(|b| b.items.iter())
+    .find(|i| i.text == "carry the quokka invariant")
+    .expect("the board item came back");
+  assert_eq!(
+    item.authored_at.as_deref(),
+    Some("2026-09-12 16:00Z"),
+    "with the stamp it claimed"
+  );
+  assert!(
+    boards
+      .iter()
+      .flat_map(|b| b.messages.iter())
+      .any(|m| m.body == "the kestrel combinator returns its first argument"),
+    "and the message addressed to that board: {boards:?}"
+  );
   // **THE EVENT LOG'S ROUND TRIP MOVED WITH D53; IT DID NOT DISAPPEAR, AND
   // THIS ARM PINS BOTH HALVES.** `intent/events.jsonl` is no longer projected
   // into the working tree, so the disk trip above cannot carry history --
