@@ -239,35 +239,36 @@ fn git(args: &[&str]) -> Option<String> {
 /// value as `pub const SOURCE_COMMIT`, which is a real consumer and not a
 /// duplicate of this one.
 fn emit_source_commit() {
-  // **BOTH QUESTIONS ARE ASKED ABOUT THE SAME SUBJECT, AND THAT IS THE WHOLE
-  // FIX.** Until 2026-08-26 identity came from an UNSCOPED `rev-parse HEAD`
-  // while dirt came from a SCOPED `status`, so the value meant "the repo's HEAD,
-  // annotated with whether the artefact was dirty" -- two subjects in one
-  // string. It was internally inconsistent rather than merely awkward, and it
-  // showed twice: a commit anywhere in the repo landing during a ~60s build
-  // REDDED A CORRECT PAIR, and the marker REWROTE THE STAMP OF BYTE-IDENTICAL
-  // CODE, so two builds of the same source carried different stamps.
+  // **TWO QUESTIONS WITH TWO SUBJECTS, AND TWO ANSWERS BY hv's RULING
+  // (2026-09-13).** IDENTITY is the repository's HEAD, unscoped: a dev-built
+  // artefact names the commit it was built at, one rule across `intent`,
+  // `intentd` and Intent.app, so a manual check is a single equality against
+  // `git rev-parse HEAD`. A brew-installed release carries the tag's commit,
+  // which is the same thing at a tag. DIRT is asked over `DIRT_SCOPE` only,
+  // because it is a question about the artefact's own inputs: a dirty board view
+  // on the shared checkout must not print `dirty-` on a pair whose bytes are
+  // clean, or the equality fails for the wrong reason.
   //
-  // **WHAT IT COSTS, STATED RATHER THAN DISCOVERED: THE STAMP NO LONGER
-  // IDENTIFIES THE REPO.** Two repo states with identical build inputs now
-  // produce identical stamps, and "which commit was this built at" is no longer
-  // answerable from the artefact. That is the correct trade, because the two
-  // questions already have two homes: the release TAG records the repo, and this
-  // marker records the SUBJECT. An artefact should carry what it IS.
-  let mut ident: Vec<&str> = vec!["rev-list", "-1", "HEAD", "--"];
-  ident.extend_from_slice(DIRT_SCOPE);
+  // **THIS REVERSES THE SCOPED IDENTITY OF 2026-08-26, ON PURPOSE AND WITH ITS
+  // COST KNOWN.** From then until this ruling identity was `rev-list -1 HEAD`
+  // over `DIRT_SCOPE`, the newest commit touching the build's inputs, and this
+  // comment called the unscoped form an inconsistency. hv takes back the two
+  // costs that change removed: a commit anywhere in the repo landing during a
+  // build marks a correct pair as behind, and byte-identical code built at two
+  // HEADs carries two stamps. The tag records the release; the stamp records the
+  // checkout.
+  //
+  // **"WHEN IT IS BUILT" MEANS WHEN THIS SCRIPT LAST RAN.** Cargo re-runs it on
+  // the triggers `emit_rerun_triggers` names, and a HEAD move is not one of them
+  // (its measured cost is recorded there). An incremental build after a commit
+  // outside the scope reuses the old output and keeps the old stamp; a build
+  // that cleans the packages first, as `int build all` does, names the HEAD it
+  // was built at.
   let mut dirt: Vec<&str> = vec!["status", "--porcelain", "--"];
   dirt.extend_from_slice(DIRT_SCOPE);
 
-  let value = match git(&ident) {
+  let value = match git(&["rev-parse", "HEAD"]) {
     None => "unknown".to_string(),
-    // **`rev-list` ANSWERS rc 0 WITH EMPTY OUTPUT WHEN NO COMMIT TOUCHES THE
-    // SCOPE**, which `rev-parse HEAD` never did -- so nothing in the previous
-    // shape had any reason to guard it. Without this arm the emit is
-    // `INTENT_SOURCE_COMMIT=` and the marker reads `[intent-source-commit:]`.
-    // **An empty stamp is not a smaller claim than a sha; it is a broken one,
-    // and it would pass every arm we have.** Driven before it was written.
-    Some(sha) if sha.is_empty() => "unknown".to_string(),
     Some(sha) => match git(&dirt) {
       Some(s) if s.is_empty() => sha,
       Some(_) => format!("dirty-{sha}"),
@@ -328,8 +329,10 @@ fn emit_source_commit() {
 /// committed with no further edit, no watched file moves, so the marker keeps
 /// saying `dirty-<old>` until the next edit in scope. That residual reads DIRTY,
 /// never a stale clean sha, and it fails closed: `int macos publish` refuses a
-/// dirty marker. A commit outside the scope leaving the marker on the last
-/// in-scope commit is the marker's documented meaning, not a defect.
+/// dirty marker. A commit outside the scope moves no watched file either, so an
+/// incremental build after one keeps naming the HEAD this script last ran at;
+/// hv's ruling of 2026-09-13 names the HEAD at build time, and a build that
+/// cleans the packages first is the one that meets it.
 ///
 /// **ALL OR NOTHING.** Naming SOME paths replaces cargo's package default with a
 /// partial list, which is a staleness hole in whatever was left out. So if any

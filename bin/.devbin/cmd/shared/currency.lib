@@ -15,7 +15,8 @@
 # construction:
 #
 #   1. THE SCOPE. `_rust_source_changed` diffed `-- native/rust` alone, while the
-#      marker's base commit is `rev-list -1 HEAD` over SEVERAL pathspecs. So the
+#      marker's base commit was then `rev-list -1 HEAD` over SEVERAL pathspecs
+#      (it is the checkout's HEAD since hv's ruling of 2026-09-13). So the
 #      base was chosen over one population and the range measured over a narrower
 #      one: a commit touching only `surface/` or `docs/design/` moved the build
 #      inputs and this reported a source-clean range. NOT hypothetical -- recent

@@ -127,3 +127,51 @@ stage_pair() {
   [[ "$body" == *'final_dir=""'* ]]
   [[ "$body" == *'[ -n "$final_dir" ] || return 0'* ]]
 }
+
+# verify_pair's comparand is the checkout's HEAD, unscoped (hv's ruling,
+# 2026-09-13). The fixture repo's last commit touches nothing the build compiles
+# in, so HEAD and the last commit to touch the build's inputs are two different
+# shas, and each arm below reds under the other rule.
+pair_repo() {
+  REPO="$TEST_TEMP_DIR/repo"
+  mkdir -p "$REPO/native/rust" "$REPO/intent"
+  git -C "$REPO" init -q
+  echo "fn main() {}" > "$REPO/native/rust/main.rs"
+  git -C "$REPO" add -A
+  git -C "$REPO" -c user.name=t -c user.email=t@example.com commit -qm input
+  INPUT_COMMIT="$(git -C "$REPO" rev-parse HEAD)"
+  echo "board" > "$REPO/intent/wip.md"
+  git -C "$REPO" add -A
+  git -C "$REPO" -c user.name=t -c user.email=t@example.com commit -qm board
+  HEAD_COMMIT="$(git -C "$REPO" rev-parse HEAD)"
+  PROJECT_ROOT="$REPO"
+  # shellcheck source=/dev/null
+  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/artefact.lib"
+  # shellcheck source=/dev/null
+  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/sharedtarget.lib"
+  # shellcheck source=/dev/null
+  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/currency.lib"
+}
+
+# Both binaries as text carrying the marker `artefact_source_commit` extracts.
+mark_pair() {
+  local b
+  for b in intent intentd; do
+    printf 'binary bytes\n[intent-source-commit:%s]\n' "$1" > "$FROM/$b"
+  done
+}
+
+@test "verify_pair: a shared pair naming the checkout's HEAD is installable after a commit outside the build's inputs" {
+  pair_repo
+  mark_pair "$HEAD_COMMIT"
+  run verify_pair "$FROM" shared
+  [ "$status" -eq 0 ]
+}
+
+@test "verify_pair: a shared pair naming the last commit to touch the build's inputs is refused once HEAD has moved" {
+  pair_repo
+  mark_pair "$INPUT_COMMIT"
+  run verify_pair "$FROM" shared
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"does not name the checkout's HEAD ($HEAD_COMMIT)"* ]]
+}

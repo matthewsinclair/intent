@@ -227,32 +227,56 @@ else
     fi
   fi
 
-  # ARM 6c -- THE MARKER ASKS **IDENTITY** OVER THE SCOPE TOO, NOT JUST DIRT.
+  # ARM 6c -- THE MARKER ASKS IDENTITY OF THE CHECKOUT'S HEAD, UNSCOPED, AND
+  # DIRT OVER DIRT_SCOPE (hv's ruling, 2026-09-13).
   #
-  # Arm 6 checks that the two scopes agree. It is structurally blind to the
-  # defect that made this fix necessary: until 2026-08-26 the marker asked DIRT
-  # over DIRT_SCOPE and IDENTITY over an unscoped `rev-parse HEAD`, so one
-  # string answered two questions about two different subjects -- and arm 6 was
-  # green throughout, because the scope it compared was the one that was already
-  # right.
+  # Arm 6 checks that the two scopes agree, and is blind to which question each
+  # call asks. From 2026-08-26 this arm pinned identity to `rev-list -1 HEAD`
+  # over DIRT_SCOPE; hv reversed that so a dev-built artefact names the HEAD it
+  # was built at, one rule for intent, intentd and Intent.app, and a manual check
+  # is a single equality. Dirt stays scoped, because a dirty board view on the
+  # checkout must not print `dirty-` on an artefact whose bytes are clean. So the
+  # arm refuses the reversed rev-list form, requires `rev-parse HEAD`, and
+  # requires the dirt call to reach DIRT_SCOPE.
   #
   # THE BODY IS READ WITH COMMENTS STRIPPED, following arm 7, which failed its
-  # own first draft by matching a header sentence ABOUT an invocation. That is
-  # not hypothetical here: the fix's own doc comment names `rev-parse HEAD`
-  # twice, explaining what it replaced. **A guard that reads prose would refuse
-  # the very change it exists to enforce.**
-  emit_body="$(awk '/^fn emit_source_commit\(\) \{/ { inb = 1 } inb { print } inb && /^\}/ { exit }' "$MARKER_SRC" |
-    sed 's://.*::')"
-  if [ -z "$emit_body" ]; then
-    fail "arm 6c -- could not extract emit_source_commit from $MARKER_SRC; an unread body is not a scoped one"
-  elif grep -q 'rev-parse' <<<"$emit_body"; then
-    fail "arm 6c -- emit_source_commit still asks identity with rev-parse, which is UNSCOPED. The stamp would mean 'the repo's HEAD, annotated with whether the artefact was dirty' -- two subjects in one string."
-  elif ! grep -q 'rev-list' <<<"$emit_body"; then
-    fail "arm 6c -- emit_source_commit asks identity with neither rev-parse nor rev-list; the call changed shape and this arm cannot say what subject it names"
-  elif ! grep -q 'DIRT_SCOPE' <<<"$emit_body"; then
-    fail "arm 6c -- emit_source_commit's identity call does not reach DIRT_SCOPE, so identity and dirt describe different subjects again"
+  # own first draft by matching a header sentence ABOUT an invocation. The
+  # source's own comment names `rev-list` while explaining what was reversed,
+  # so a guard that read prose would refuse the change it enforces.
+  #
+  # BOTH DIRECTIONS ARE DRIVEN EVERY RUN: a copy of the source with identity
+  # planted back in the rev-list form must red, and the source as it stands must
+  # green. A control that cannot red says nothing about the green beside it.
+  marker_rule_6c() {
+    local body
+    body="$(awk '/^fn emit_source_commit\(\) \{/ { inb = 1 } inb { print } inb && /^\}/ { exit }' "$1" |
+      sed 's://.*::')"
+    if [ -z "$body" ]; then
+      printf 'could not extract emit_source_commit from %s; an unread body is not a checked one' "$1"
+      return 1
+    fi
+    if grep -q 'rev-list' <<<"$body"; then
+      printf "emit_source_commit asks identity with rev-list, the scoped form hv reversed on 2026-09-13; the stamp must name the checkout's HEAD"
+      return 1
+    fi
+    if ! grep -q '"rev-parse", "HEAD"' <<<"$body"; then
+      printf 'emit_source_commit does not ask identity with rev-parse HEAD; the call changed shape and this arm cannot say what commit the stamp names'
+      return 1
+    fi
+    if ! grep -q '"status", "--porcelain"' <<<"$body" || ! grep -q 'DIRT_SCOPE' <<<"$body"; then
+      printf "emit_source_commit's dirt call does not reach DIRT_SCOPE, so a dirty file outside the artefact's inputs would mark a clean artefact dirty"
+      return 1
+    fi
+    return 0
+  }
+  planted_6c="$TMP/source_commit_planted_rev_list.rs"
+  sed 's/git(&\["rev-parse", "HEAD"\])/git(\&["rev-list", "-1", "HEAD", "--"])/' "$MARKER_SRC" > "$planted_6c"
+  if marker_rule_6c "$planted_6c" >/dev/null; then
+    fail "arm 6c -- control did not fire: a source planted with the reversed rev-list identity passed, so a green here would mean nothing"
+  elif ! why_6c="$(marker_rule_6c "$MARKER_SRC")"; then
+    fail "arm 6c -- $why_6c"
   else
-    ok "arm 6c -- the marker asks identity AND dirt over DIRT_SCOPE"
+    ok "arm 6c -- the marker asks identity of the checkout's HEAD and dirt over DIRT_SCOPE (both controls fired)"
   fi
 fi
 

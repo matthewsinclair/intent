@@ -319,9 +319,10 @@ fn build_footer() -> String {
   // and the two artefacts have been measured forty-two hours apart.
   //
   // **`intentsvcs` TAKES THIS BINARY'S COMMIT, AND THAT IS EXACT RATHER THAN
-  // ASSUMED.** It ships no artefact of its own, and its sources are inside the
-  // embed's `DIRT_SCOPE`, so the sha this binary carries is computed over a
-  // scope that includes them. Its version comes from its own crate.
+  // ASSUMED.** It ships no artefact of its own and its sources are compiled into
+  // this binary, so the commit this binary names is the one they were built at,
+  // and its dirt is asked over a scope that includes them. Its version comes
+  // from its own crate.
   let this = crate::SOURCE_COMMIT;
   let sibling = match (
     sibling_marker("intent", "version"),

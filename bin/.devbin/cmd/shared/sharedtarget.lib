@@ -143,11 +143,13 @@ SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/desig
 # `const DIRT_SCOPE` in native/rust/build-support/source_commit.rs. Returns 1 and
 # prints nothing when the constant cannot be read.
 #
-# THE IDENTITY QUESTIONS ARE ASKED OVER THIS, NOT OVER SHARED_TARGET_DIRT_SCOPES.
-# That list CONTAINS the marker's scope on purpose: stricter is the safe
-# direction for DIRT. But "which commit does this pair describe" (verify_pair)
-# and "has a build input changed since it" (currency.lib) must be asked over
-# exactly the paths the build stamps, or a commit touching only the rest of
+# CURRENCY IS ASKED OVER THIS, NOT OVER SHARED_TARGET_DIRT_SCOPES. That list
+# CONTAINS the marker's scope on purpose: stricter is the safe direction for
+# DIRT. IDENTITY is no longer asked over any scope: since hv's ruling of
+# 2026-09-13 the marker names the checkout's HEAD and verify_pair compares
+# against `rev-parse HEAD`. "Has a build input changed since the pair's commit"
+# (currency.lib) is still asked over exactly the paths the build compiles in,
+# and until that ruling verify_pair's comparand was too, or a commit touching only the rest of
 # `lib/templates` -- read live out of the install, compiled into nothing --
 # becomes the comparand. A correct pair is then refused as not describing the
 # tree, and called behind HEAD by the currency reader. That refused the delivery
