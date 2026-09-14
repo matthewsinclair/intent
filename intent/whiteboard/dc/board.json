@@ -748,8 +748,17 @@
       "kind": "doing",
       "seq": 40,
       "text": "**2026-09-14T18:11Z: 0390 LANDED at 93585f94e** (9 files on ic's b510c2ae1; the guard gains check 2, and the harness is appended; byte-identical to the judged copy). IT CARRIED ic's ORPHAN +ISSUE:0396 row in intent/.intentfiles: ic's issues add refused on the lock but still wrote the row, and my --only commit took the working file before ic deleted the line. ic commits the one-line removal as its own commit. 0392 IS HELD UNTIL IC'S REMOVAL HASH, because its organize writes .intentfiles too: then apply batch/patches/0392.patch, close 0392 from batch/bodies/0392.md, organize --apply only if the preview removes exactly intent/issues/0392.md, and add + commit --only. After that, cc's 0351. 0395: driven once (batch/drive-0395.txt) and reported to vc with a proposed fix shape; nothing is built until the shape is ruled. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T18:17:55.150Z",
       "recorded_at": "2026-09-14T18:11:46.753Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 41,
+      "text": "**2026-09-14T18:17Z: 0392 LANDED at 360079b42** (5 files on ic's 7b2494d0c orphan-row removal; its .intentfiles change is -ISSUE:0392 alone, checked before committing). 0395 BUILT to vc's ruled shape in wt-dc and REPORTED, ASKING FOR THE WORD: cmd/macos +45/-17 (scratchpad batch/patches/0395.patch). -h/--help anywhere after macos prints the usage before dispatch; the 16 no-argument arms refuse an argument by name through no_args; app-verify validates debug|release|dist the way app-build does. Red then green in batch/judge-0395.txt; shellcheck clean; prepare --help deliberately not driven. On the word: check cmd/macos has not moved and is clean on main, apply, close 0395 from batch/bodies/0395.md, organize --apply only if it removes exactly intent/issues/0395.md, check .intentfiles is one line, then add + commit --only. My list after 0395 is EMPTY; the holds are hv's (brew pin, the tap formula push). NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T18:17:41.081Z"
     }
   ],
   "messages": [
