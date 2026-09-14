@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 14:47Z
+heartbeat_at: 2026-09-14 16:28Z
 status: active
-focus: "IDLE on vc's word: the eleven-issue batch landed at 7a3b90270, and 0388's Rust-side deadline landed at f2c2f335c with the issue closed at ed88af639. Lane idle until hv rules the next batch; two rulings are hv's (0382 the carried stamp, 0389 the release gate under load). NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED 2026-09-14 16:26Z for the user's compact. Landed today: 7a3b90270 (issues 0379-0389), f2c2f335c/ed88af639/6e8c1f675 (0388), 41d349d04 (0379-0381), fd553e846..e705e5365 (0374 0382 0383 0384 0385). In flight: 0376 in wt-cc, five reds to fix then re-judge (see doing). Queue ruled by vc (see todo). NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -13,11 +13,12 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-_(none)_
+- **0376 IN FLIGHT IN wt-cc ON e705e5365, NOT LANDED.** Built as vc ruled: a warning after the store commit (apply_envelopes render/write/index steps, every board verb via land_board_write_noting, organize event-log receipt), the manifest restored before it (one restore_manifest shared by the thread path, issue_add, set_issue_status), notes to the CLI via print_notes and to MCP via notes_json. Its three arms were red on the base and are green. **The judging run left five reds to fix:** (1) the note carries cause.to_string() and drops the cause chain, so a_wrapped_failure_renders_its_full_cause_chain loses its caused-by lines; carry the chain (remedy.rs render walks source()) and reuse ViewsNotWritten remedy as one home, not RERENDER_REMEDY; (2) event_log_envelopes a_file_write_failure_still_records_the_envelope, facade_st_wp a_failed_creation_leaves_no_directory_behind and a_mid_write_failure_leaves_no_torn_state pin the old Err contract: move each to Ok plus the note, keeping every other assertion; (3) command_rosters: the "wb register" literal, already fixed in wt-cc to "the roster". Then one judging run (full intentsvcs, intent-cli, intentd), the word request, and name TornRollback-through-a-verb-is-now-a-warning to vc. Scripts: scratchpad/g376.py, g376-run.sh.
 
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
+- **AFTER 0376, ALL RULED BY vc 2026-09-14, EACH ITS OWN COMMIT, vc SEQUENCES THE LANDINGS.** 0326+0363: the whiteboard leaves sync::NOT_YET_BUILT, mechanism kept, member-dependent arms deleted, one red arm (scratchpad/g326.py ready); data-model.md:534 moves with ST0056 canon in the same commit, and the commit says the set is empty by delivery. 0364: legacy::pointers skips paths with a .history component; arm in legacy_leftovers.rs. 0321: the stamp is SQLite strftime over one process-wide in-memory connection in intentsvcs daemon.rs (intentd may not depend on rusqlite), a logln macro before intentd main.rs mods, --help/--version/argument refusals unstamped; asker left out and said in the close; file the Op::Shutdown wire field as its own XS issue. Then 0351, 0378, 0349, 0347, 0323, 0315, 0316, 0320, 0343+0367+0338, 0377, 0331 comments half. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.
 
 ## Holds
 
@@ -60,6 +61,7 @@ _(none)_
 - **CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.
 - **BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.
 - **A LOCAL DAEMON PROBE NAMES A COST; A THREAD CENSUS DOES NOT.** 0355's touch cost was attributed to a watcher thread by ps -M creation order and was the store thread, off by one; a probe-only timing line per handler and per refresh stage named replace_sections_for in one run. Run it from wt-cc's release build under an isolated HOME on a separate worktree, with XDG_RUNTIME_DIR from mktemp -d, because a socket under the scratchpad is past SUN_LEN and the daemon exits at bind. Kit: scratchpad/probe-run.sh, probe-instrument.py.
+- **A FIX IS JUDGED BY THE WHOLE WORKSPACE, ON THE BASE IT LANDS ON.** 2026-09-14: 0388 was judged by its own arms and put one_clock red on main (fixed 6e8c1f675); group 2 was judged, then applied textually onto a base that had moved under facade.rs, which is a merge nobody compiled. So every judging run carries the full intentsvcs and intent-cli suites (vc), and a moved base is rebased and run again, not re-applied. And a zsh $var holding many paths is ONE git pathspec: it matched nothing and read as "no commit touched them".
 
 ## Decisions
 
