@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "b9e78c72-479d-4984-9df9-ac1bedfe7f2d",
-    "heartbeat_at": "2026-09-14T17:05:00.090Z",
-    "status": "active",
-    "focus": "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH.",
+    "heartbeat_at": "2026-09-14T21:58:35.573Z",
+    "status": "paused",
+    "focus": "DAY CLOSED 2026-09-14T21:55Z on hv's word. Batch 2 (vc's seven) LANDED on main: C1 000521c0a (0393, index deletes as one statement per table) and C2 c4c4880c2 (0394 st detach, 0315 uncommitted report, 0323 init gitignore, 0316 organize footer gate + upgrade dehydration, 0320 closed-issue views, 0397 v2 id reader, ST0057 AC-04.2 reworded). Nothing in flight, nothing unlanded in wt-dc. Holds for hv: tap formula 9987a93 unpushed; the 3.0.2 hook-migration sweep (todo 8). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/07",
       "ST0056/11",
@@ -106,7 +106,8 @@
       "kind": "watchout",
       "seq": 2,
       "text": "**A SECTION NOTHING MAPS USED TO RETURN BEFORE ITS LINES WERE COUNTED**, so they entered no denominator and the reconciliation was a claim about the sections the reader already understood. **A denominator that excludes what the instrument cannot see agrees with itself perfectly.** Count where the unit is dispatched, whatever becomes of it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:56:16.909Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -122,7 +123,8 @@
       "kind": "watchout",
       "seq": 4,
       "text": "**AN EXIT-CODE ASSERTION IS ABOUT THE WHOLE ESTATE THE FIXTURE LEAVES.** 0313's arm planted a stale store with `write_thread`, which also skews every generated view -- and view skew blocks -- so the exit code would have been 1 for a reason with nothing to do with the arm, and would have passed for the wrong reason if the class were ever put back. Seed the fixture so the thing under test is the only thing wrong.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:56:26.248Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -130,7 +132,8 @@
       "kind": "watchout",
       "seq": 5,
       "text": "**A NEW MECHANISM HAS NO BASELINE TO REDDEN, SO MUTATE THE IMPLEMENTATION INSTEAD.** Six mutations this session, each reddening the arm it should: holds as `Todo`, snapshots unwritten, the claimed stamp dropped, the unregistered-sender check removed, an unmapped section dropped rather than named, and `legacy` carried across a re-cite.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:56:48.864Z",
       "recorded_at": "2026-09-13T10:24:37.072Z"
     },
     {
@@ -313,7 +316,8 @@
       "kind": "watchout",
       "seq": 15,
       "text": "**A PROBE FOR A REMEDY RUNS IN THE EXACT ENVIRONMENT OF THE RUN IT VOUCHES FOR, OR IT VOUCHES FOR A DIFFERENT RUN.** Final rehearsal 2026-09-13: gh keeps its token in the macOS keyring, which an isolated HOME cannot reach. I probed `gh auth status` with HOME plus GH_TOKEN, it passed, and run3 carried HOME plus GH_CONFIG_DIR plus GH_TOKEN -- where gh lists the stored keyring account beside the token, fails it, and exits 1 because ANY account failed. Run3 halted at the gh gate. Build the probe from the run script, not from memory of it: the same exports, the same unsets. The rehearsal now carries GH_TOKEN and no GH_CONFIG_DIR, and probes inside the run before the load gate.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:57:00.758Z",
       "recorded_at": "2026-09-13T12:21:02.482Z"
     },
     {
@@ -347,7 +351,8 @@
       "kind": "watchout",
       "seq": 17,
       "text": "**NEVER EDIT A SCRIPT A RUNNING bash IS EXECUTING; COPY IT.** bash reads a script from the file as it goes, by byte offset, so an insertion above the line it is executing shifts every later read and it resumes on the wrong bytes: a re-run open, a second wait, a syntax error. Caught 2026-09-13 in the 0354 probes: run-4 counts were inserted into probe.sh while run 3 was still inside it, and the original bytes were restored (0 COUNTS lines, syntax ok) before run 3 reached its next read. Run 4 got its own copy, probe4.sh.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:57:23.324Z",
       "recorded_at": "2026-09-13T14:56:56.696Z"
     },
     {
@@ -632,7 +637,8 @@
       "kind": "watchout",
       "seq": 19,
       "text": "**FIND A PROJECT'S LIVE HOOK WITH git rev-parse --git-path hooks, NEVER BY GLOBBING .git/hooks.** The 2026-09-14 carrier census globbed <estate>/.git/hooks/pre-commit.intent and so read Laksa's inactive leftover body copy; its real carrier under core.hooksPath=bin/hooks was a shim, and the table misclassed it. The baseline that resolved the path properly was already in hand and showed only four estates on a non-default path.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:57:34.737Z",
       "recorded_at": "2026-09-14T09:42:19.840Z"
     },
     {
@@ -793,8 +799,25 @@
       "kind": "doing",
       "seq": 45,
       "text": "**LOCALFOLDED 2026-09-14T21:13Z for hv's compact. BATCH 2 (vc's seven): BUILT, REBASED onto 31e6cd78e, FULL RUN FINISHED RED.** wt-dc is at cc's 31e6cd78e carrying all seven (clean apply; patch /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b9e78c72-479d-4984-9df9-ac1bedfe7f2d/scratchpad/batch/patches/batch2-on-af7501075.patch, 18 files): 0394 st detach, 0393 temp.gone deletes, 0323 init gitignore, 0315 uncommitted Deleted{in_head}, 0316 organize gate plus upgrade's narrowed dehydration, 0320 undeclared issue views, 0397 legacy::issue_id. FULL RUN 21:07-21:11Z (/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b9e78c72-479d-4984-9df9-ac1bedfe7f2d/scratchpad/batch/judge-batch2-full.txt): rustfmt rc 0, clippy rc 0, TESTS RED in 4 targets. (a) DAEMON FAMILY, RERUN ONCE: intentd daemon_subscriptions::an_external_edit_delivers_both_d20_events_in_layer_order, daemon_watch::a_change_to_a_path_outside_the_sync_scope_drives_no_ingest. (b) MINE, FIX IN wt-dc: intentsvcs lib migrate::tests::a_clean_scan_plans_canon_and_views_and_still_writes_nothing (migrate.rs:801) and ::the_canon_carries_one_file_per_artefact_plus_the_log (migrate.rs:1014), likely 0320's filter changing the planned view count; intentsvcs suite mutation_every_writable_field::the_door_set_is_the_facades_own_and_announces_a_fifth (:1298) and write_moves_only_what_changed::every_shipped_mutator_is_accounted_for (:1449), likely the new doors detach_attachment and dehydrate_undeclared_thread_views unregistered. Fix each, rerun those, then the FULL RUN again. Only then REPORT TO VC with every file per commit. VC RULED THE LANDING: TWO COMMITS on main's head at report time. C1 = native/rust/crates/intentsvcs/src/store.rs plus 0393's close, message batch/batch2-c1-msg.txt. C2 = the other 17 files plus the closes of 0394 0315 0323 0316 0320 0397 plus `intent ac edit ST0057 AC-04.2 --text \"$(cat batch/ac-04.2-ST0057.txt)\"` (row stays computed), message batch/batch2-c2-msg.txt. Bodies batch/bodies/<id>.md. Base-red batch/judge-batch2-base-red.txt; drive batch/drive-0393.txt (36s -> 1s). LANDING CHAIN: none of the paths moved since 31e6cd78e and none dirty; git apply; cmp each against wt-dc; per commit issues edit --from + close; organize preview removes exactly its views; --apply; .intentfiles carries exactly its own lines; add + commit --only; git log -1 --stat to vc. RULES: a turn that finishes something ends with its report sent; every judging run carries the full suites and workspace clippy; a hook-template landing runs the intent-cli suite; patches, never a stash; verify 'landed' against main's HEAD blobs, never main's working files. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:55:22.411Z",
       "recorded_at": "2026-09-14T21:13:50.183Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 20,
+      "text": "**ONE ATTEMPT PER STORE WRITE, NEVER A RETRY LOOP.** A wb or store write retried past 'database is locked' holds the lock for the loop's whole life: dc's focus loop refused ic's 0307 closure three times (2026-09-14, stopped by vc), and cc's scripted fold refused dc's batch-2 landing twice mid-chain. On a lock: lsof intent/.cache/intent.db, wait on THAT pid bounded, re-issue once. A landing chain that meets a peer's write stops, reports its exact partial state, and resumes from it.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:57:46.632Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 21,
+      "text": "**A NEW DISPATCH ROW MOVES A DECLARED COUNT THE CARGO SUITES CANNOT SEE.** surface/dispatch-table.json's legal_pairs carries a per-pair n with a dated census_note; adding a v2 new-surface row (st detach, 2026-09-14) made it 73 against a corpus of 74, and only the commit gate's view_skew_check caught it, after a green full run. Bump n with its census_note entry and regenerate surface/dispatch-table.md with intent/st/ST0056/parity/tools/gen_dispatch_table.sh in the SAME change as the row.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:57:56.624Z"
     }
   ],
   "messages": [
