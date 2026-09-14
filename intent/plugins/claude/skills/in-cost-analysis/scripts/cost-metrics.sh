@@ -108,8 +108,8 @@ ext_to_language() {
 
 comment_prefix_for_language() {
   case "$1" in
-    Shell|Python|Ruby|R)           echo "#" ;;
-    Elixir|Haskell|Lua|SQL)        echo "--" ;;
+    Shell|Python|Ruby|R|Elixir)    echo "#" ;;
+    Haskell|Lua|SQL)               echo "--" ;;
     C|"C++"|Java|Kotlin|Go|Rust|Swift|JavaScript|TypeScript|PHP|"C#"|Scala|Dart) echo "//" ;;
     Erlang)                        echo "%" ;;
     OCaml)                         echo "(*" ;;

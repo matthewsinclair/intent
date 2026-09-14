@@ -5538,7 +5538,14 @@
                 "sync",
                 "uninstall",
                 "show"
-              ]
+              ],
+                 "value_help": {
+                   "list": "List available and installed subagents (-v for details)",
+                   "install": "Install subagent(s) to Claude configuration",
+                   "sync": "Sync installed subagents with latest versions",
+                   "uninstall": "Remove Intent-managed subagents",
+                   "show": "Display detailed subagent information"
+                 }
             },
             {
               "name": "name",
@@ -5643,7 +5650,14 @@
                 "sync",
                 "uninstall",
                 "show"
-              ]
+              ],
+                 "value_help": {
+                   "list": "List available and installed skills (-v for details)",
+                   "install": "Install skill(s) to Claude configuration",
+                   "sync": "Sync installed skills with latest versions",
+                   "uninstall": "Remove Intent-managed skills",
+                   "show": "Display detailed skill information"
+                 }
             },
             {
               "name": "name",
@@ -5750,7 +5764,13 @@
                 "show",
                 "validate",
                 "index"
-              ]
+              ],
+                 "value_help": {
+                   "list": "List all rules across canon and extensions",
+                   "show": "Print a rule's Markdown body",
+                   "validate": "Validate frontmatter and required sections",
+                   "index": "Regenerate rules/index.json (canon only)"
+                 }
             },
             {
               "name": "id",
@@ -9485,7 +9505,10 @@
           "arity": "1",
           "values": [
             "retired"
-          ]
+          ],
+          "value_help": {
+            "retired": "List the commands this build has retired"
+          }
         }
       ],
       "flags": [
@@ -10011,6 +10034,7 @@
         "name",
         "required_unless",
         "type",
+        "value_help",
         "values"
       ],
       "note": [

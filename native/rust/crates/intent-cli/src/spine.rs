@@ -561,6 +561,10 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
   {
     for value in &slot.values {
       let mut leaf = Command::new(value.clone());
+      // Issue 0332: each verb says what it does in its parent's `--help`.
+      if let Some(help) = slot.value_help.get(value) {
+        leaf = leaf.about(help.clone());
+      }
       leaf = positionals(leaf, entry);
       leaf = flags(leaf, entry);
       cmd = cmd.subcommand(leaf);
@@ -1567,6 +1571,31 @@ mod tests {
       cmd.is_subcommand_required_set(),
       "`{family} {verb}` declares a values-backed slot at `1..n` and the surface made the bare form legal -- the inline reading, at the site the other case \
        cannot reach"
+    );
+  }
+
+  /// **No subcommand renders with a blank description** (issue 0332).
+  /// `claude skills --help` listed its verbs with empty help, because a
+  /// values slot built its leaves with no `.about()`. Walked at every depth,
+  /// so a leaf added later without help is named here rather than shipped.
+  #[test]
+  fn no_shipped_subcommand_renders_a_blank_description() {
+    fn walk(cmd: &Command, path: &str, blank: &mut Vec<String>) {
+      for sub in cmd.get_subcommands() {
+        let here = format!("{path} {}", sub.get_name());
+        let about = sub.get_about().map(|a| a.to_string()).unwrap_or_default();
+        if about.trim().is_empty() {
+          blank.push(here.trim().to_string());
+        }
+        walk(sub, &here, blank);
+      }
+    }
+    let table = dispatch::table();
+    let mut blank = Vec::new();
+    walk(&build(&table), "", &mut blank);
+    assert!(
+      blank.is_empty(),
+      "these subcommands render with no description in their parent's --help: {blank:?}"
     );
   }
 

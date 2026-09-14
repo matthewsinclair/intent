@@ -364,6 +364,12 @@ pub struct Arg {
   /// the slot, silently accepted invented ones.
   #[serde(default)]
   pub values: Vec<String>,
+  /// One line of help per value, keyed by the value (issue 0332). The spine
+  /// reads it as each value leaf's `.about()`, so `claude skills --help`
+  /// lists what each verb does rather than a blank column. A value with no
+  /// entry renders without one, and `spine`'s test names every such leaf.
+  #[serde(default)]
+  pub value_help: std::collections::BTreeMap<String, String>,
   /// What the slot means when the caller leaves it out.
   ///
   /// **Deserialized and validated, deliberately not rendered as a clap
@@ -1312,6 +1318,7 @@ mod tests {
       arity: "0..1".to_string(),
       values: values.iter().map(|v| v.to_string()).collect(),
       default: Some(default.to_string()),
+      value_help: Default::default(),
       required_unless: None,
     };
     let with = |arg: Arg| Entry {
@@ -1534,6 +1541,7 @@ mod tests {
       arity: arity.to_string(),
       values: vec![],
       default: None,
+      value_help: Default::default(),
       required_unless: None,
     };
 

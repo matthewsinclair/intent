@@ -8,7 +8,7 @@
 //!
 //! That is the failure mode this replaces, and it was measured rather than
 //! assumed (`surface/agent-guide.spec.md`, 2026-08-15). v2's `usage-rules.md`
-//! named 54 of the surface's 111 commands and invented none -- so the defect
+//! named fewer than half of the surface's commands and invented none -- so the defect
 //! of a hand-written list is not drift into falsehood, it is **silent
 //! omission**, and omission is the worse of the two for an agent. A wrong
 //! command earns an error the agent can react to; a missing one reads as a
@@ -17,7 +17,7 @@
 //! as commands, and the guide never named `intent llm` -- the command that
 //! prints it.
 //!
-//! **Shipped, not declared, and the difference is five commands.** The table
+//! **Shipped, not declared, and the two sets differ.** The table
 //! is a PARITY REGISTER before it is a command list: a row records that the
 //! question was asked about v2, never that the answer was yes. Rendering every
 //! DECLARED row would tell an agent to call `intent st_zero`, which hv
@@ -153,7 +153,7 @@ fn surface_wide(table: &Table) -> Result<String, Failure> {
 - **{}** ({}). Results go to stdout; failures go to stderr with a lowercase `error: ` prefix. Nothing is banner-wrapped.
 - **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2.
 - **{}** ({}). A command that needs to be inside an Intent project says so plainly when it is not, rather than half-working.
-- **`--help` works on every command**, at every level, and is not listed per row below. clap supplies it to all of them, while only ten rows declare it -- so a per-row rendering would under-report it.
+- **`--help` works on every command**, at every level, and is not listed per row below. clap supplies it to all of them, while only some rows declare it -- so a per-row rendering would under-report it.
 
 ",
     inv("INV-04")?,
@@ -842,6 +842,7 @@ mod tests {
       arity: arity.to_string(),
       values: vec![],
       default: None,
+      value_help: Default::default(),
       required_unless: None,
     };
     assert_eq!(delimit("x", &arg("1")), "<x>");

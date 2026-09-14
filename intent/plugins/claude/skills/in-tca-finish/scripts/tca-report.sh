@@ -314,7 +314,7 @@ $(printf "%b" "$WP_SUMMARIES")
 | Files audited     |                  ? |
 | Raw violations    | ${TOTAL_VIOLATIONS} |
 | Unique violations |                  ? |
-| Dedup rate        |                  ? |
+| Dedup rate        |     ${DEDUP_RATE} |
 | Fixed             |                  ? |
 | False positives   |                  ? |
 | Deferred          |                  ? |

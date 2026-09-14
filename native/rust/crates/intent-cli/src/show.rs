@@ -34,7 +34,8 @@ use intentsvcs::facade::AcRow;
 use intentsvcs::model::{AcState, Criterion, Issue, Thread, WorkPackage};
 
 /// `intent st show <id>`'s text: id, title, status, its reason if any, created,
-/// completed if any. No body — `st show` does not print it.
+/// completed if any, then the objective (issue 0332), which is what a reader
+/// opens a thread to learn. The rest of the body stays in `info.md`.
 pub fn thread(t: &Thread) -> String {
   let mut s = String::new();
   let _ = writeln!(s, "{}: {}", t.id, t.title);
@@ -45,6 +46,14 @@ pub fn thread(t: &Thread) -> String {
   let _ = writeln!(s, "created: {}", t.created);
   if let Some(done) = &t.completed {
     let _ = writeln!(s, "completed: {done}");
+  }
+  if t.objective.trim().is_empty() {
+    let _ = writeln!(s, "objective: _(not yet written)_");
+  } else {
+    let _ = writeln!(s, "objective:");
+    for line in t.objective.trim_end().lines() {
+      let _ = writeln!(s, "  {line}");
+    }
   }
   s
 }
