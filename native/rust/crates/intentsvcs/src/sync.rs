@@ -163,16 +163,13 @@ pub struct NotYetBuilt {
 ///
 /// **NOTHING HERE IS LOST.** The files are untouched on disk. What is unmet is
 /// the model's own claim, which is why this reports rather than refuses.
-pub const NOT_YET_BUILT: &[NotYetBuilt] = &[NotYetBuilt {
-  shown: "the whiteboard",
-  at: "intent/whiteboard/",
-  // **THE PHRASE ASSERTS DEPARTURE, WHICH IS THE ONLY KIND THAT CAN JUSTIFY
-  // THIS SET.** "modelled above as `wb_node`..." is true and would have been
-  // the wrong pin: it appears INSIDE the not-modelled section, so a check
-  // asking only whether the section carries it cannot tell a member from an
-  // exception the section is describing.
-  justified_by: "left this set at D30",
-}];
+// **EMPTY BY DELIVERY, AND THE MECHANISM STAYS** (vc, ruled 2026-09-14). The
+// whiteboard was its one member until `wb register` and `wb migrate` carried it
+// (ST0069), so no build gap is claimed today. The next class the model covers
+// before a build carries it is a new member here, and every reader of this set
+// already answers nothing for an empty one.
+// Issue 0326 and 0363: the whiteboard stayed listed after the build that carries it landed, so upgrade reported it in every project.
+pub const NOT_YET_BUILT: &[NotYetBuilt] = &[];
 
 /// The migrator's twin of [`extract_written`], composed from the SAME
 /// [`NOT_CARRIED`] because the two operations decline the same three
@@ -200,13 +197,13 @@ pub fn migration_not_carried() -> String {
 /// disappears instead of reading "nothing is missing" -- which is a claim, and
 /// one this function is not entitled to make about anything outside its list.
 pub fn migration_not_yet_built() -> Option<String> {
-  if NOT_YET_BUILT.is_empty() {
-    return None;
-  }
   let each: Vec<String> = NOT_YET_BUILT
     .iter()
     .map(|m| format!("{} ({})", m.shown, m.at))
     .collect();
+  if each.is_empty() {
+    return None;
+  }
   Some(format!(
     "not yet carried -- the model claims these and they are still on disk: {}",
     each.join(", ")

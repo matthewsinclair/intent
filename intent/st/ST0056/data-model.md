@@ -533,7 +533,7 @@ Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content --
 
 This set is what an `intent export` cannot reproduce from the DB alone.
 
-**The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`. That model is not built in 3.0.1 (WP-14 cancelled, descoped to ST0069), so `intent/whiteboard/` is reported as modelled-but-unbuilt rather than as out of model, and its files stay on disk untouched. As built (2026-09-13), ST0069 WP-14 built it: each node's `board.json` is canon, and a migrated node's `wip.md` and inboxes are rendered from its rows (`wbmigrate.rs`, `views.rs:1717`).
+**The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`. ST0069 WP-14 built it (2026-09-13): each node's `board.json` is canon, and a migrated node's `wip.md` and inboxes are rendered from its rows (`wbmigrate.rs`, `views.rs:1717`). So upgrade no longer reports `intent/whiteboard/` as modelled-but-unbuilt: that set is empty by delivery (issues 0326 and 0363), and a class the model covers before a build carries it is added to it.
 
 ## State machines (RATIFIED by hv, 2026-08-15)
 
