@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 09:32Z
+heartbeat_at: 2026-09-14 12:09Z
 status: active
-focus: "0355's touch-cost fix LANDED 2026-09-14 09:32Z at 743247d8a on vc's word (five files, the 3.0.2 notes' schema number included; SCHEMA_VERSION 26, one-way); vc and dc have the sha. HOLDING for dc's suite and cycle and vc's verdict on the live pair. NO RELEASE, NO PUSH."
+focus: "dc's build done at 4c172d260 (2026-09-14 12:09Z): 0355's touch-cost fix is live (intentd pid 16233, doctor clean), so the build-window hold is archived. Awaiting vc's verdict on the live touch cost; then clear wt-cc's uncommitted patch and the scratchpad/subj worktree. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -59,6 +59,7 @@ _(none)_
 - **A SAMPLE CANNOT TELL A THREAD BLOCKED IN A WAIT FROM ONE SPINNING THROUGH IT.** Both show the same leaf in every sample, so the hot thread is named by ps -M CPU per row, and an inlined frame is resolved by disassembling the binary whose UUID matches the sample's Binary Images line (dwarfdump --uuid, then objdump at the return address), not by symbol names.
 - **CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.
 - **BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.
+- **A LOCAL DAEMON PROBE NAMES A COST; A THREAD CENSUS DOES NOT.** 0355's touch cost was attributed to a watcher thread by ps -M creation order and was the store thread, off by one; a probe-only timing line per handler and per refresh stage named replace_sections_for in one run. Run it from wt-cc's release build under an isolated HOME on a separate worktree, with XDG_RUNTIME_DIR from mktemp -d, because a socket under the scratchpad is past SUN_LEN and the daemon exits at bind. Kit: scratchpad/probe-run.sh, probe-instrument.py.
 
 ## Decisions
 
