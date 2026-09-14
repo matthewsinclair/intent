@@ -454,6 +454,32 @@ fn one_batch_of_leaf_paths_is_one_refresh_that_names_them_all() {
 }
 
 #[test]
+fn a_refresh_that_names_one_file_reads_nothing_outside_it() {
+  // Issue 0355: a refresh naming one file walked and surveyed every file in
+  // the repository. A directory the refresh does not name is made unreadable,
+  // so a walk that still reached it fails the refresh.
+  use std::os::unix::fs::PermissionsExt;
+  let fx = Fixture::new();
+  git_init(&fx, "");
+  write(&fx, "src/lib.rs", b"fn assemble_widget() {}\n");
+  write(&fx, "locked/notes.md", b"# Notes\n");
+
+  let mut facade = fx.facade();
+  facade.index_rebuild().expect("rebuild");
+  write(&fx, "src/lib.rs", b"fn assemble_gadget() {}\n");
+
+  let locked = fx.root().join("locked");
+  std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000)).expect("chmod 000");
+  let refreshed = facade.index_refresh(Some(&[fx.root().join("src/lib.rs")]));
+  std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o755)).expect("chmod 755");
+
+  assert_eq!(
+    refreshed.expect("refresh").updated,
+    vec!["src/lib.rs".to_string()]
+  );
+}
+
+#[test]
 fn the_section_files_door_answers_one_owner_type_and_nothing_else() {
   // Issue 0354: `carried_paths` read and sorted every body to find these.
   use intentsvcs::prose::{DocSection, WB_OWNER};

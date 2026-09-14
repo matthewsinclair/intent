@@ -17,7 +17,7 @@ use std::path::Path;
 use super::Row;
 use super::corpus::{BINARY_SAMPLE_BYTES, SkipReason, corpus_of, looks_binary};
 use super::freshness::Stamp;
-use crate::sync::{Scanned, SyncError, repository_files};
+use crate::sync::{Scanned, SyncError, repository_files, repository_files_under};
 
 /// Why the index will hold no content for this in-scope file, or `None` when it
 /// will hold it.
@@ -113,12 +113,15 @@ pub fn survey(
 /// gitignore-aware repository. A watcher that widened the first instead of
 /// calling the second would put every source edit through a canon ingest.
 ///
-/// **THE CORPUS IS ENUMERATED ONCE AND FILTERED, NEVER WALKED FROM `under`**
+/// **THE SCOPE IS STATED ONCE AND THE NAMED PATHS ARE FILTERED THROUGH IT**
 /// (vc, 2026-09-12, ruling the shape of the same defect in the watcher). A walk
-/// from the event's path keeps whatever is under it, which is a SECOND
-/// statement of scope and disagrees with the first at exactly the paths that
+/// from the event's path that kept whatever was under it would be a SECOND
+/// statement of scope, disagreeing with the first at exactly the paths that
 /// matter -- a root event enumerating the whole tree for a corpus that is three
-/// files by name.
+/// files by name. As built 2026-09-14 (issue 0355), the enumeration starts at
+/// the named paths through [`repository_files_under`], which asks the same
+/// scope object, and the rows are still filtered by `names`, so a refresh
+/// naming one file no longer surveys the repository.
 ///
 /// `indexed_sha256` is NOT part of the comparison, and the upserts carry the
 /// stored value forward. A survey does not read bytes, so it has no opinion
@@ -199,8 +202,12 @@ fn rows_under(
   max_bytes: u64,
 ) -> Result<Vec<Row>, SyncError> {
   let scope = Scanned::for_root(root);
+  let files = match under {
+    None => repository_files(root, &scope)?,
+    Some(under) => repository_files_under(root, &scope, under)?,
+  };
   let mut out = Vec::new();
-  for path in repository_files(root, &scope)? {
+  for path in files {
     if !names(root, under, &path) {
       continue;
     }

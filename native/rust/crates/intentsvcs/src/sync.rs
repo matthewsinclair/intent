@@ -753,6 +753,40 @@ pub fn repository_files(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, Sy
   Ok(paths)
 }
 
+/// [`repository_files`] for what a batch of paths names, and nothing else.
+///
+/// The same walker and the same scope object: a named directory is walked when
+/// [`Scanned::reaches`] admits it, a named file is kept when
+/// [`Scanned::in_repository`] does, and the root names only its own files. The
+/// answer is the whole-repository enumeration filtered to the named paths,
+/// without paying for the rest of the repository. A path that has gone names
+/// nothing here; its rows are the caller's to remove.
+// Issue 0355: a refresh naming one file walked and surveyed every file in the
+// repository.
+pub fn repository_files_under(
+  root: &Path,
+  scope: &Scanned,
+  under: &[PathBuf],
+) -> Result<Vec<PathBuf>, SyncError> {
+  let mut paths = Vec::new();
+  for path in under {
+    if path == root {
+      for child in children(root)? {
+        if child.is_file() && scope.keeps(&child) {
+          paths.push(child);
+        }
+      }
+    } else if path.is_dir() && scope.reaches(path) {
+      walk(path, scope, &mut paths)?;
+    } else if path.is_file() && scope.in_repository(path) {
+      paths.push(path.clone());
+    }
+  }
+  paths.sort();
+  paths.dedup();
+  Ok(paths)
+}
+
 pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
   // **THE WALK AND THE PREDICATE ASK THE SAME OBJECT, WHICH IS THE WHOLE POINT
   // OF [`Scanned`].** Leaving this function with its own `ignored.contains` and
@@ -983,16 +1017,7 @@ impl Ignored {
 /// order is filesystem-dependent, and an index whose row order varies by
 /// machine cannot be compared across them.
 fn walk(dir: &Path, scope: &Scanned, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
-  let mut children: Vec<PathBuf> = std::fs::read_dir(dir)
-    .map_err(|e| io_err(dir, e))?
-    .collect::<Result<Vec<_>, _>>()
-    .map_err(|e| io_err(dir, e))?
-    .into_iter()
-    .map(|e| e.path())
-    .collect();
-  children.sort();
-
-  for child in children {
+  for child in children(dir)? {
     if child.is_dir() {
       if !scope.descends(&child) {
         continue;
@@ -1003,6 +1028,19 @@ fn walk(dir: &Path, scope: &Scanned, out: &mut Vec<PathBuf>) -> Result<(), SyncE
     }
   }
   Ok(())
+}
+
+/// A directory's entries, sorted by name.
+fn children(dir: &Path) -> Result<Vec<PathBuf>, SyncError> {
+  let mut children: Vec<PathBuf> = std::fs::read_dir(dir)
+    .map_err(|e| io_err(dir, e))?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| io_err(dir, e))?
+    .into_iter()
+    .map(|e| e.path())
+    .collect();
+  children.sort();
+  Ok(children)
 }
 
 /// One file's index entry, hashed from its bytes on disk now.
