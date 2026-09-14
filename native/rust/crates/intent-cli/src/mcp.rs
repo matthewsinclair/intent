@@ -923,7 +923,8 @@ pub fn serve(
         }
       };
       let status = match opt_s(path, map, "status")? {
-        None | Some("to-write") => AtStatus::ToWrite,
+        None => AtStatus::entry(kind),
+        Some("to-write") => AtStatus::ToWrite,
         Some("red") => AtStatus::Red,
         Some("green") => AtStatus::Green,
         Some("n-a") | Some("n/a") => AtStatus::Na,

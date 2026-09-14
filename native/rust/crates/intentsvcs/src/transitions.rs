@@ -496,6 +496,12 @@ pub const FIELDS: &[Field] = &[
     // refuses a satisfied or noted row with the verb that clears it
     // (`Facade::rekinded_state`). Converting a criterion when its test gets
     // written is ordinary workflow, and it no longer needs a hand-edit.
+    //
+    // **hv'S FOLD OF 2026-08-17, WRITTEN IN THE REGISTER'S TERMS** (vc, 2026-09-14).
+    // hv ruled `kind` a component of Machine 3 rather than a machine of its own:
+    // a re-kind is a transition of the (kind, state) pair. These edges ARE that
+    // transition -- each lands the state at `AcState::entry` in the same act --
+    // and `Disposition` has no closer word than `State` for a component field.
     disposition: Disposition::State {
       initial: &["test", "non-test"],
       edges: &[
@@ -664,9 +670,27 @@ pub const FIELDS: &[Field] = &[
   Field {
     entity: "AcceptanceTest",
     field: "kind",
-    disposition: Disposition::Unbuilt {
-      note: "test against non-test, the AT-side mirror of `Criterion.kind` and owed for the same reason",
-      entry: Entry::Authored,
+    // **BUILT BY ISSUES 0324 AND 0337 ON vc's RULING, THE MIRROR OF
+    // `Criterion.kind`.** `at edit --kind` refused a kind whose status the row
+    // could not hold and sent the caller to a verdict first; once 0337 made a
+    // verdict fit its kind, that route closed in both directions. A re-kind now
+    // re-enters the status at `AtStatus::entry` instead of refusing.
+    //
+    // **hv'S FOLD OF 2026-08-17, WRITTEN IN THE REGISTER'S TERMS** (vc, 2026-09-14).
+    // hv ruled `kind` a component of the `AcceptanceTest.status` machine rather
+    // than a machine of its own: a re-kind is a transition of the (kind, status)
+    // pair. These edges ARE that transition -- each lands the status at
+    // `AtStatus::entry` in the same act -- and `Disposition` has no closer word
+    // than `State` for a component field.
+    disposition: Disposition::State {
+      initial: &["test", "non-test"],
+      edges: &[
+        // From any value: any value, one verb, the entry state, which is the
+        // trivial machine `data-model.md` ratifies in prose.
+        Edge::direct("at.edit", &[], "test"),
+        Edge::direct("at.edit", &[], "non-test"),
+      ],
+      orphans: &[],
     },
   },
   Field {
@@ -674,16 +698,17 @@ pub const FIELDS: &[Field] = &[
     field: "status",
     disposition: Disposition::State {
       initial: &["to-write"],
-      // `at_set` takes any status and guards nothing, so the graph is complete
-      // by construction. Noted as a DIVERGENCE for the register rather than
-      // celebrated: v2 documents `at green` as "reachable only from red"
-      // (surface/dispatch-table.json), so v3 is more closed here and less
-      // faithful. Adding the guard back would keep the graph closed either
-      // way; which way it goes is ic's call, not this table's.
+      // **GREEN IS REACHABLE ONLY FROM RED** (issue 0337, ic's call, which this
+      // comment used to leave open). `at_set` took any status, so `at green`
+      // straight from `to-write` recorded a pass nobody had seen fail, and v2
+      // documents green as "reachable only from red". Red first means the test
+      // was seen failing before it was seen passing. `at_set` consults this
+      // edge through `transitions::permits_to`, since every `at.set` edge
+      // shares one verb and only the target tells them apart.
       edges: &[
         Edge::direct("at.set", &[], "to-write"),
         Edge::direct("at.set", &[], "red"),
-        Edge::direct("at.set", &[], "green"),
+        Edge::direct("at.set", &["red"], "green"),
         Edge::direct("at.set", &[], "n-a"),
         // **THE FROM-SET MIRRORS MACHINE 3's TWO OPEN STATES AND IS dc's
         // READING, NOT A RULING.** hv settled that ATs get a variant
@@ -790,6 +815,40 @@ fn edges_for(entity: &str, field: &str, verb: &'static str) -> impl Iterator<Ite
 /// ratified document (`mutation_completeness.rs` holds the second copy).
 pub fn permits(entity: &str, field: &str, verb: &'static str, current: &str) -> bool {
   edges_for(entity, field, verb).any(|e| e.accepts(current))
+}
+
+/// Whether `verb` may move `field` from `current` to `target`.
+///
+/// **FOR A VERB WHOSE EDGES DIFFER BY TARGET**, which [`permits`] cannot see:
+/// it asks whether ANY edge of the verb accepts `current`, and `at.set`'s edge
+/// to `to-write` accepts every state, so green-only-from-red would pass there.
+pub fn permits_to(
+  entity: &str,
+  field: &str,
+  verb: &'static str,
+  current: &str,
+  target: &str,
+) -> bool {
+  edges_for(entity, field, verb).any(|e| e.to == target && e.accepts(current))
+}
+
+/// The states `verb` may move `field` from on its way to `target`; empty for
+/// any state.
+pub fn accepted_from_to(
+  entity: &str,
+  field: &str,
+  verb: &'static str,
+  target: &str,
+) -> Vec<&'static str> {
+  let mut seen: Vec<&'static str> = Vec::new();
+  for edge in edges_for(entity, field, verb).filter(|e| e.to == target) {
+    for value in edge.from {
+      if !seen.contains(value) {
+        seen.push(value);
+      }
+    }
+  }
+  seen
 }
 
 /// The values `verb` is declared to accept, so a refusal can name them rather

@@ -366,9 +366,10 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
 
   // **ARM 1: REFUSED, WRITES NOTHING, AND THE REMEDY RUN VERBATIM CLEARS
   // IT.** A remedy that cannot succeed is 0146's own class, so the commands are
-  // read out of the rendered remedy and run as written. The row's status
-  // decides what they are: a `to-write` row re-kinds in one call, while an
-  // `n-a` row's re-kind is refused until a result is recorded.
+  // read out of the rendered remedy and run as written. Either row re-kinds in
+  // one call: a `to-write` row keeps its status, and an `n-a` row re-enters at
+  // `to-write` (issues 0324 and 0337), where it used to be refused until a
+  // result was recorded -- a verdict a non-test row can no longer take.
   let remedy_for = |facade: &mut Facade, at: &str| {
     let refused = facade
       .at_edit(
@@ -424,12 +425,23 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
 
   let remedy = remedy_for(&mut facade, "AT-03.2");
   let commands = commands_in(&remedy);
-  let (record, rekind) = (commands.first(), commands.last());
-  for command in [record, rekind].into_iter().flatten() {
-    run_verbatim(&mut facade, command)
-      .unwrap_or_else(|e| panic!("the remedy `{command}` failed: {e}\n  remedy: {remedy}"));
-  }
+  assert_eq!(
+    commands.len(),
+    1,
+    "an `n-a` row re-kinds in one call too: {remedy}"
+  );
+  run_verbatim(&mut facade, &commands[0]).unwrap_or_else(|e| {
+    panic!(
+      "the remedy `{}` failed: {e}\n  remedy: {remedy}",
+      commands[0]
+    )
+  });
   assert_eq!(row(&facade, "AT-03.2").kind, AtKind::Test);
+  assert_eq!(
+    row(&facade, "AT-03.2").status,
+    AtStatus::ToWrite,
+    "and the status it could not keep re-entered at the test kind's entry"
+  );
 
   facade
     .at_edit(

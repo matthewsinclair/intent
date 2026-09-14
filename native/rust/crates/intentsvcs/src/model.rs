@@ -1792,6 +1792,16 @@ pub enum AtStatus {
 }
 
 impl AtStatus {
+  /// The status a row of `kind` is created in, and the one a re-kind re-enters
+  /// when the row holds a status the new kind cannot (vc, 2026-09-14, the mirror
+  /// of [`AcState::entry`]): `to-write` for a test row, `n-a` for a non-test one.
+  pub fn entry(kind: AtKind) -> Self {
+    match kind {
+      AtKind::Test => Self::ToWrite,
+      AtKind::NonTest => Self::Na,
+    }
+  }
+
   /// The status as a human reads it -- in a printed line, in `at list`, and in
   /// the generated `acceptance.md` row.
   ///

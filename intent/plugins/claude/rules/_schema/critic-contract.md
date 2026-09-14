@@ -90,7 +90,7 @@ disabled:
   - IN-EX-CODE-003 # reason: <why this project opts out>
   - IN-EX-TEST-005 # we have legacy non-async tests we're not converting
 severity_min: warning # show warning, critical; hide recommendation, style
-show_all: false # shorthand for severity_min: style (subagents only)
+show_all: false # shorthand for severity_min: style (the gate and the subagents)
 post_tool_use_advisory: false # opt-in per-edit advisory
 ```
 

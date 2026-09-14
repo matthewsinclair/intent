@@ -221,6 +221,7 @@ fn st_done_reports_the_second_call_as_a_no_op() {
   // can move at all -- and it must NOT be consulted on the second call, which is
   // the load-bearing half of hv's ruling. If it were, this would exit 1.
   satisfy(dir.path());
+  line(dir.path(), &["wp", "done", "ST0001/01"]);
   twice(
     dir.path(),
     &["st", "done", "ST0001"],
@@ -440,14 +441,26 @@ fn at_set_to_the_current_status_is_a_no_op() {
 fn at_na_prints_one_spelling_on_the_movement_and_the_no_op_alike() {
   let dir = project();
   seed(dir.path());
+  // **A non-test row at `to-write`, written straight into canon**, because
+  // that is the only shape `at na` can move: a verdict must fit its kind
+  // (issue 0337), so a test row refuses `n/a`, and a legal non-test row is
+  // already there. This is the estate shape the verb exists to repair.
+  let canon = dir.path().join("intent/.canon/st/ST0001.json");
+  let text = std::fs::read_to_string(&canon).expect("read canon");
+  let text = text.replacen(
+    "\"tests\": [\n",
+    "\"tests\": [\n    { \"id\": \"AT-01.2\", \"covers\": [\"AC-01.1\"], \"kind\": \"non-test\", \"prose\": \"eyeballed\", \"status\": \"to-write\" },\n",
+    1,
+  );
+  std::fs::write(&canon, text).expect("write canon");
   twice(
     dir.path(),
-    &["at", "na", "ST0001", "AT-01.1"],
-    "AT-01.1",
-    |root| at_state(root, "AT-01.1"),
+    &["at", "na", "ST0001", "AT-01.2"],
+    "AT-01.2",
+    |root| at_state(root, "AT-01.2"),
   );
   assert_eq!(
-    at_state(dir.path(), "AT-01.1"),
+    at_state(dir.path(), "AT-01.2"),
     "n/a",
     "the authored spelling, which is what every row in every estate carries -- `n-a` is the wire \
      form and reaches no human-facing surface"
@@ -659,6 +672,7 @@ fn todo_done_and_st_done_report_a_no_op_identically() {
   let dir = project();
   seed(dir.path());
   satisfy(dir.path());
+  line(dir.path(), &["wp", "done", "ST0001/01"]);
   line(dir.path(), &["st", "done", "ST0001"]);
 
   let direct = line(dir.path(), &["st", "done", "ST0001"]);

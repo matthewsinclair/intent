@@ -3136,7 +3136,10 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         }
       };
       let status = match opt(a, "status").as_deref() {
-        None | Some("to-write") => AtStatus::ToWrite,
+        // No status named: the kind's entry, so a non-test row starts `n/a`
+        // rather than at a pair `doctor` reports (issues 0324 and 0337).
+        None => AtStatus::entry(kind),
+        Some("to-write") => AtStatus::ToWrite,
         Some("red") => AtStatus::Red,
         Some("green") => AtStatus::Green,
         // `n-a` is the wire spelling and `n/a` is what every authored row in
@@ -9897,6 +9900,12 @@ fn print_notes(notes: &[Note], subject: &str) {
           eprintln!("{}{link}", intentsvcs::remedy::CAUSED_BY_PREFIX);
         }
         eprintln!("{}{remedy}", intentsvcs::remedy::REMEDY_PREFIX);
+      }
+      Note::UnwrittenObjective(unit) => {
+        eprintln!(
+          "warning: {unit} closed with its objective still unwritten, so nothing says what it was for"
+        );
+        eprintln!("  remedy: `intent set {unit} objective --from <file>`");
       }
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"

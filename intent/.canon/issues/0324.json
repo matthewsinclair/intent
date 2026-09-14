@@ -3,9 +3,10 @@
   "number": 324,
   "slug": "st-done-ignores-work-package-status-so-a-thread",
   "title": "st done ignores work-package status, so a thread closes with a not-started WP",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "A thread closed with a `not-started` work package: the close gate is over criteria only and never reads the packages. (vc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
+  "body": "A thread closed with a `not-started` work package: the close gate is over criteria only and never reads the packages. (vc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n\n\n**CLOSED 2026-09-14 17:54Z (ic, on vc's batch order).** Fixed in the commit carrying this note. `st done` now reads the work packages once its gate has passed, so a thread that is BLOCKED still reports its verdict first, and refuses with `FacadeError::OpenWorkPackages`, naming each package still `not-started` or `wip` and the remedy (`intent wp done` or `intent wp cancel`). `st fc` stays the human's override and does not read the packages (vc's ruling); `todo done` inherits the refusal through the same setter. `docs/concepts/steel-threads.md` no longer describes the gap as built. Reproduced first with the delivered 3.0.3 pair: `st done` closed a thread at rc 0 with its work package still not started. Proved by `st_done_refuses_while_a_work_package_is_open`.\n"
 }

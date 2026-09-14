@@ -911,7 +911,11 @@ fn cases() -> Vec<Case> {
     ),
     (
       "st done",
-      NOOP,
+      // WP 3 is `wip` in the seed, and a thread does not close over an open
+      // package (issue 0324), so it is settled here, outside the measured write.
+      |fx| {
+        fx.facade().wp_done("ST0001", 3).expect("WP 3 settles");
+      },
       |fx| {
         fx.facade().st_done("ST0001").expect("st done");
       },
@@ -952,6 +956,9 @@ fn cases() -> Vec<Case> {
     (
       "st reopen",
       |fx| {
+        // WP 3 is `wip` in the seed and a thread does not close over an open
+        // package (issue 0324), so it is settled before the close.
+        fx.facade().wp_done("ST0001", 3).expect("WP 3 settles");
         fx.facade().st_done("ST0001").expect("to done");
       },
       |fx| {
@@ -1165,10 +1172,30 @@ fn cases() -> Vec<Case> {
     ),
     (
       "at na",
-      NOOP,
+      // **A non-test row at `to-write`, the estate shape `at na` repairs.** A
+      // verdict must fit its kind (issue 0337), so the test row AT-03.1 refuses
+      // `n/a`, and the non-test AT-03.2 is seeded there already. No verb makes
+      // this pair, so it is authored and projected the way `seeded` does.
+      |fx| {
+        let mut thread = sample_thread("ST0001");
+        thread
+          .tests
+          .iter_mut()
+          .find(|t| t.id == "AT-03.2")
+          .expect("the seed carries AT-03.2")
+          .status = AtStatus::ToWrite;
+        fx.write_thread(&thread);
+        let mut facade = fx.facade();
+        facade
+          .sync_from_disk(&intentsvcs::sync::Scope::All)
+          .expect("ingest the authored row");
+        facade
+          .sync_to_disk(&intentsvcs::sync::Scope::All)
+          .expect("project it back");
+      },
       |fx| {
         fx.facade()
-          .at_set("ST0001", "AT-03.1", AtStatus::Na, None)
+          .at_set("ST0001", "AT-03.2", AtStatus::Na, None)
           .expect("at na");
       },
       true,

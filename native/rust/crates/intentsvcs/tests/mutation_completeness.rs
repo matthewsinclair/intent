@@ -669,10 +669,15 @@ fn the_wider_reading_fires_on_edgeless_rows_only() {
     }
   }
 
+  // **THE UNBUILT POPULATION IS EMPTY, AND THAT IS THE DEBT PAID RATHER THAN A
+  // WALK GONE SHORT.** `AcceptanceTest.kind` was the last `Unbuilt` row, built
+  // on 2026-09-14 (issues 0324 and 0337) after `Criterion.kind` (issue 0346).
+  // The edgeless side of the discrimination is still shown, by `Immutable`, and
+  // an `Unbuilt` row added later is counted and held to the same property.
   assert!(
-    state_fields > 0 && owed_fields > 0 && immutable_fields > 0,
-    "the walk found {state_fields} State, {owed_fields} Unbuilt and {immutable_fields} Immutable fields, and it needs all three to be showing a difference \
-     between them rather than a property of an empty set"
+    state_fields > 0 && immutable_fields > 0,
+    "the walk found {state_fields} State, {owed_fields} Unbuilt and {immutable_fields} Immutable fields, and it needs a State and an edgeless field to be \
+     showing a difference between them rather than a property of an empty set"
   );
   assert_eq!(
     state_fields + owed_fields + immutable_fields,
@@ -905,7 +910,19 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
   match (entity, field) {
     ("Thread", "status") => {
       let fx = Fixture::new();
-      fx.write_thread(&thread_with(|t| t.status = parse(from)));
+      fx.write_thread(&thread_with(|t| {
+        t.status = parse(from);
+        // A thread does not close over an open package (issue 0324), and
+        // `wp done` is not legal from every state this walk drives `st.done`
+        // from, so the packages are authored settled for that edge alone.
+        if edge.verb == "st.done" {
+          for wp in t.wps.iter_mut() {
+            if matches!(wp.status, WpStatus::NotStarted | WpStatus::Wip) {
+              wp.status = WpStatus::Done;
+            }
+          }
+        }
+      }));
       let mut facade = fx.facade();
       let outcome = match edge.verb {
         "st.triage" => facade.st_triage(ST).expect("st triage"),
@@ -970,21 +987,35 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
     }
     ("AcceptanceTest", "status") => {
       let fx = Fixture::new();
-      fx.write_thread(&thread_with(|t| t.tests[0].status = parse(from)));
+      // **A verdict must fit its kind** (issue 0337): `n-a` is a non-test row's
+      // status and the rest are a test row's, so the `n-a` edge is driven on
+      // AT-03.2 (non-test) and every other edge on AT-03.1 (test).
+      let id = if edge.to == "n-a" {
+        "AT-03.2"
+      } else {
+        "AT-03.1"
+      };
+      fx.write_thread(&thread_with(|t| {
+        t.tests
+          .iter_mut()
+          .find(|r| r.id == id)
+          .expect("the fixture carries the row")
+          .status = parse(from)
+      }));
       let mut facade = fx.facade();
       let to: AtStatus = parse(edge.to);
       let outcome = match edge.verb {
-        "at.set" => facade.at_set(ST, "AT-03.1", to, None).expect("at set"),
+        "at.set" => facade.at_set(ST, id, to, None).expect("at set"),
         // The reason is supplied because the edge DECLARES `ReasonRecorded`;
         // the refusal without one is the UNMET walk's job, not this one's.
         "at.fc" => facade
-          .at_fc(ST, "AT-03.1", "hv closed it on authority", "hv")
+          .at_fc(ST, id, "hv closed it on authority", "hv")
           .expect("at fc"),
         other => panic!("no arm drives {other} on AcceptanceTest.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
       let thread = facade.st_show(ST).expect("thread");
-      let test = thread.tests.iter().find(|t| t.id == "AT-03.1").expect("AT");
+      let test = thread.tests.iter().find(|t| t.id == id).expect("AT");
       enum_str(&test.status).to_string()
     }
     ("Criterion", "state") => {
@@ -1047,6 +1078,34 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         .expect("set kind");
       assert_movement(entity, field, edge, from, outcome);
       enum_str(&criterion(&facade).kind).to_string()
+    }
+    ("AcceptanceTest", "kind") => {
+      let fx = Fixture::new();
+      // Issues 0324 and 0337. The row is authored at `from` in the status that
+      // kind is created in, with prose and no file, so every flip starts from a
+      // legal row and the walk measures the edge rather than the fixture.
+      // AT-03.2 covers the non-test AC-03.2, so neither kind of row covering it
+      // is a contract finding and the flip is refused by nothing but the edge.
+      let kind: AtKind = parse(from);
+      fx.write_thread(&thread_with(|t| {
+        let row = t
+          .tests
+          .iter_mut()
+          .find(|r| r.id == "AT-03.2")
+          .expect("the fixture carries AT-03.2");
+        row.kind = kind;
+        row.status = AtStatus::entry(kind);
+        row.file = None;
+        row.prose = Some("the render was eyeballed".to_string());
+      }));
+      let mut facade = fx.facade();
+      let outcome = facade
+        .at_edit(ST, "AT-03.2", None, None, None, None, Some(parse(edge.to)))
+        .expect("at edit --kind");
+      assert_movement(entity, field, edge, from, outcome);
+      let thread = facade.st_show(ST).expect("thread");
+      let test = thread.tests.iter().find(|t| t.id == "AT-03.2").expect("AT");
+      enum_str(&test.kind).to_string()
     }
     ("Issue", "status") => {
       let fx = Fixture::new();
@@ -1454,7 +1513,7 @@ const RATIFIED_ISSUE: &[RatifiedEdge] = &[
 const RATIFIED_AT: &[RatifiedEdge] = &[
   ("at.set", &[], "to-write", &[]),
   ("at.set", &[], "red", &[]),
-  ("at.set", &[], "green", &[]),
+  ("at.set", &["red"], "green", &[]),
   ("at.set", &[], "n-a", &[]),
   (
     "at.fc",
@@ -1526,6 +1585,11 @@ const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[
     "kind",
     "data-model.md: \"Criterion.kind: test and non-test, both initial, with `intent set <ac> kind` the single edge between them; the state re-enters at AcState::entry, where nothing is lost, and a satisfied or noted criterion refuses the re-kind naming the verb that clears it. No table: any value, one verb, any value.\"",
   ),
+  (
+    "AcceptanceTest",
+    "kind",
+    "data-model.md: \"AcceptanceTest.kind: test and non-test, both initial, with `intent at edit <ST> <AT> --kind` the single edge between them; a status the new kind cannot hold re-enters at AtStatus::entry, to-write for a test row and n/a for a non-test row, where a re-kind used to be refused until a verdict the new kind cannot record had been recorded. No table: any value, one verb, the entry state.\"",
+  ),
 ];
 
 /// Machines with NO undeclared (verb, state) pair, declared with the reason.
@@ -1564,9 +1628,10 @@ const TOTAL_MACHINES: &[(&str, &str)] = &[(
 const UNRESTRICTED_VERBS: &[(&str, &str, &str)] = &[(
   "AcceptanceTest",
   "at.set",
-  "data-model.md Machine 5 renders its From column `(any)`: at.set takes any status from any \
-   status, and all four ordinary landings are therefore the exits that keep `fiat` from being a \
-   trap. Enumerating the five states instead would declare a DIFFERENT machine -- one where a \
+  "data-model.md Machine 5 renders its From column `(any)` for three landings: at.set takes \
+   to-write, red and n-a from any status, and those are therefore the exits that keep `fiat` from \
+   being a trap. Its fourth landing, green, is reached from red alone (issue 0337) and is walked \
+   target by target in close_and_verdict_verbs_enforce_what_they_promise.rs. Enumerating the five states instead would declare a DIFFERENT machine -- one where a \
    sixth status would owe five new rows rather than none",
 )];
 
@@ -2183,10 +2248,19 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
       // NOT GUESS WHICH.** See `UNRESTRICTED_VERBS`. Reading it as "declared from
       // nothing" is what asked `at.set` to refuse from `fiat` -- the one state
       // whose exit `at.set` IS.
+      // **A VERB WITH ANY FROM-ANY EDGE IS UNRESTRICTED, EVEN WHEN ANOTHER OF ITS
+      // EDGES IS NOT** (issue 0337): `at.set` reaches three statuses from any
+      // status and `green` from `red` alone. The union above is `{red}` for it,
+      // and reading that as the verb's from-set would demand a refusal from
+      // `fiat`, the one state whose exit `at.set` IS. The red-only edge is held
+      // by `green_is_reachable_only_from_red`, target by target.
+      let any_unrestricted = ratified
+        .iter()
+        .any(|(v, from, _, _)| v == verb && from.is_empty());
       let unrestricted = UNRESTRICTED_VERBS
         .iter()
         .find(|(e, v, _)| e == entity && v == verb);
-      if from.is_empty() {
+      if any_unrestricted {
         assert!(
           unrestricted.is_some(),
           "{entity}: `{verb}` declares an EMPTY from-set. If that means ANY state, say so in \

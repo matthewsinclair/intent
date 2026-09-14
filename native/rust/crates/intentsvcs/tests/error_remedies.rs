@@ -381,6 +381,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .at_edit("ST0056", "AT-03.1", None, None, None, None, None)
       .expect_err("an edit with nothing to change is refused, not reported unchanged"),
   ));
+  // Issue 0337: `AT-03.2` is a non-test row, so a `green` verdict does not fit it.
+  out.push((
+    "a test verdict on a non-test row",
+    facade
+      .at_set("ST0056", "AT-03.2", AtStatus::Green, None)
+      .expect_err("green on a non-test row is refused"),
+  ));
+  // Issue 0324: `st done` reads the packages AFTER the gate, so the thread is
+  // exempt (the gate passes) and still has work package 3 WIP. Its own fixture,
+  // so the calls around it see the facade they always did.
+  out.push(("closing a thread with a work package still open", {
+    let exempt = Fixture::new();
+    let mut thread = sample_thread("ST0056");
+    thread.acceptance = Some(intentsvcs::model::AcceptanceMode::Exempt);
+    exempt.write_thread(&thread);
+    exempt
+      .facade()
+      .st_done("ST0056")
+      .expect_err("st done with an open work package is refused")
+  }));
   // Issue 0325: a row covering a criterion that does not exist breaks the
   // contract, and the refusal carries its own remedy rather than the `put`
   // door's.
@@ -905,6 +925,8 @@ fn variant(err: &FacadeError) -> &'static str {
   match err {
     FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
     FacadeError::RowBreaksContract { .. } => "RowBreaksContract",
+    FacadeError::VerdictWrongForKind { .. } => "VerdictWrongForKind",
+    FacadeError::OpenWorkPackages { .. } => "OpenWorkPackages",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
@@ -1058,6 +1080,8 @@ const ALL_VARIANTS: &[&str] = &[
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
   "RowBreaksContract",
+  "VerdictWrongForKind",
+  "OpenWorkPackages",
   "ExportRoundTripFailed",
   "NoSuchIssue",
   "MalformedIssueId",

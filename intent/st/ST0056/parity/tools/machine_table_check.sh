@@ -246,6 +246,7 @@ MACHINE_MAP='
 UNTABLED='
 WorkPackage scope
 Criterion kind
+AcceptanceTest kind
 '
 
 # COMPUTED, never transcribed: this line used to read "the four ratified

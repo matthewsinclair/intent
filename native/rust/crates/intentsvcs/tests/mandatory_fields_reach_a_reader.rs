@@ -76,6 +76,8 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::SqlDidNotRun { .. }
     | FacadeError::WriteNotAddressable { .. }
     | FacadeError::RowBreaksContract { .. }
+    | FacadeError::VerdictWrongForKind { .. }
+    | FacadeError::OpenWorkPackages { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

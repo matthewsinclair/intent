@@ -249,6 +249,8 @@ Measured on this repository's own corpus (vc, 2026-08-15, on cc's WP-06 finding)
 
 **RATIFIED IN PROSE (vc, 2026-09-14, issue 0346):** Criterion.kind: test and non-test, both initial, with `intent set <ac> kind` the single edge between them; the state re-enters at AcState::entry, where nothing is lost, and a satisfied or noted criterion refuses the re-kind naming the verb that clears it. No table: any value, one verb, any value.
 
+**RATIFIED IN PROSE (vc, 2026-09-14, issues 0324 and 0337):** AcceptanceTest.kind: test and non-test, both initial, with `intent at edit <ST> <AT> --kind` the single edge between them; a status the new kind cannot hold re-enters at AtStatus::entry, to-write for a test row and n/a for a non-test row, where a re-kind used to be refused until a verdict the new kind cannot record had been recorded. No table: any value, one verb, the entry state.
+
 #### The JSON form differs by AC kind, and `kind` is the discriminator (ruling, vc, 2026-08-15)
 
 **Asked by cc before cutting the collapse, which is the cheap moment.** Two candidate forms were put to me: an **absent `state` key** on a test-backed AC (smaller diff), or a **discriminated shape** where the absence is structural. **Ruled: discriminated, on `kind`.** Three grounds, and the first is decisive on its own.
@@ -768,14 +770,14 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 
 **The ruling is that only ONE of them is a state machine.** A field that cannot move on its own is not a state variable, it is a **component** of one -- and the other three cannot move on their own:
 
-| field                 | disposition                                                         | as built                                                                                                                          |
-| --------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `Issue.status`        | **Machine 4**, below                                                | `Disposition::State`; `issues add`, `issues close`, `issues open`                                                                 |
-| `Criterion.kind`      | folded into **Machine 3** as a `(kind, state)` pair; no new machine | still `Disposition::Unbuilt`: no verb converts a criterion's kind (`ac edit` takes `--text` and `--note` only)                    |
-| `AcceptanceTest.kind` | folded into the **`AcceptanceTest.status`** machine; no new machine | `at edit --kind` re-kinds a row, refused where the current status cannot hold the new kind; `transitions.rs` still says `Unbuilt` |
-| `Thread.acceptance`   | **immutable after creation**; no machine, no edge                   | `Disposition::Immutable`                                                                                                          |
+| field                 | disposition                                                         | as built                                                                                                                                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Issue.status`        | **Machine 4**, below                                                | `Disposition::State`; `issues add`, `issues close`, `issues open`                                                                                                                                                                                               |
+| `Criterion.kind`      | folded into **Machine 3** as a `(kind, state)` pair; no new machine | `Disposition::State` since issue 0346 (2026-09-14): `intent set <ac> kind` re-kinds a criterion and lands its state at `AcState::entry` in the same act, which is the pair's transition written in the register's terms (vc); ratified in prose under Machine 3 |
+| `AcceptanceTest.kind` | folded into the **`AcceptanceTest.status`** machine; no new machine | `Disposition::State` since issues 0324 and 0337 (2026-09-14): `at edit --kind` re-kinds a row and lands its status at `AtStatus::entry` in the same act, where it used to refuse a status the new kind cannot hold; ratified in prose under Machine 3           |
+| `Thread.acceptance`   | **immutable after creation**; no machine, no edge                   | `Disposition::Immutable`                                                                                                                                                                                                                                        |
 
-**The pairing is enforced already and that is what settles it.** The `allOf` on `Criterion` (`model.rs:1145`) carries the `kind`/`state` invariant in the JSON Schema face, held by `tests/ac_kind_state_invariant.rs`: `{kind: test, state: satisfied}` records a satisfaction nothing computed, `{kind: non-test, state: computed}` claims a derivation with nothing to derive. **Flipping `kind` alone is schema-invalid**, so a kind conversion is one act moving two fields, which is a transition of the pair rather than of either field. `AcceptanceTest` has the identical shape -- a `(non-test)` AT is `n/a` by definition and can never be green -- so its `kind` folds into its own status machine the same way. For the AT the pairing is not in the schema face: `doctor` reports a test-backed row recording `n/a` as `model-inconsistent`, and `at na` does not refuse one. **ic hit this from the register side independently, having no notation for a multi-field atomic move; that gap was diagnostic rather than clerical.**
+**The pairing is enforced already and that is what settles it.** The `allOf` on `Criterion` (`model.rs:1145`) carries the `kind`/`state` invariant in the JSON Schema face, held by `tests/ac_kind_state_invariant.rs`: `{kind: test, state: satisfied}` records a satisfaction nothing computed, `{kind: non-test, state: computed}` claims a derivation with nothing to derive. **Flipping `kind` alone is schema-invalid**, so a kind conversion is one act moving two fields, which is a transition of the pair rather than of either field. `AcceptanceTest` has the identical shape -- a `(non-test)` AT is `n/a` by definition and can never be green -- so its `kind` folds into its own status machine the same way. For the AT the pairing is not in the schema face: `doctor` reports a test-backed row recording `n/a` as `model-inconsistent`, and since issue 0337 `at na` refuses one. **ic hit this from the register side independently, having no notation for a multi-field atomic move; that gap was diagnostic rather than clerical.**
 
 **`Thread.acceptance` is `Option<AcceptanceMode>` -- `exempt` or absent.** That is an attribute of a thread, not a lifecycle: changing it is AUTHORING, not a transition, and it gets no verb.
 
@@ -808,10 +810,12 @@ States: `to-write` | `red` | `green` | `n-a` | `fiat`. **Entry: `to-write`.**
 | _(none)_   | `to-write` | `at.new` | --              |
 | `(any)`    | `to-write` | `at.set` | --              |
 | `(any)`    | `red`      | `at.set` | --              |
-| `(any)`    | `green`    | `at.set` | --              |
+| `red`      | `green`    | `at.set` | --              |
 | `(any)`    | `n-a`      | `at.set` | --              |
 | `to-write` | `fiat`     | `at.fc`  | reason recorded |
 | `red`      | `fiat`     | `at.fc`  | reason recorded |
+
+**`green` IS REACHED FROM `red` ONLY (ic, 2026-09-14, issue 0337, on vc's batch ruling; listed for hv).** `at_set` took any status, so `at green` straight from `to-write` recorded a pass nobody had seen fail, and v2 documents green as reachable only from red. Red first means the test was seen failing before it was seen passing. The other three ordinary landings keep `(any)`, and `at_set` consults the green edge through `transitions::permits_to`, since every `at.set` edge shares one verb and only the target tells them apart.
 
 **`(any)` IS NOT A STATE, AND THIS IS THE FIRST TABLE ON THE PAGE TO CARRY IT.** `at.set` declares `from: &[]`, which `Edge::accepts` reads as _no from-restriction_ and `machine_table_check.sh` renders as the literal `(any)`. Writing the states out instead would declare a DIFFERENT machine -- that `at.set` is legal from exactly those values -- and a value added later would then owe a new row per landing rather than none.
 

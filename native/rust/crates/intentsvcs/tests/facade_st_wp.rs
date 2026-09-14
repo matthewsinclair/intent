@@ -141,6 +141,9 @@ fn a_gate_pass_lets_the_thread_close() {
     facade.gate("ST0056", Scope::Thread).unwrap().is_pass(),
     "precondition: the fixture contract is satisfied"
   );
+  // The fixture leaves WP 3 at `wip`, and a thread does not close over an open
+  // package (issue 0324), so it is settled through its own verb first.
+  facade.wp_done("ST0056", 3).expect("WP 3 settles");
   facade.st_done("ST0056").expect("done");
   assert_eq!(
     facade.st_show("ST0056").unwrap().status,

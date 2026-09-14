@@ -112,6 +112,8 @@ mod canon_seeds_the_mcp_declaration_once;
 mod canon_seeds_usage_rules_with_the_project_name;
 #[path = "carrier_is_installed_beside_the_block.rs"]
 mod carrier_is_installed_beside_the_block;
+#[path = "close_and_verdict_verbs_enforce_what_they_promise.rs"]
+mod close_and_verdict_verbs_enforce_what_they_promise;
 #[path = "close_gate_parity.rs"]
 mod close_gate_parity;
 #[path = "contention_wait_is_chosen.rs"]

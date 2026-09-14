@@ -589,7 +589,7 @@ fn put_still_replaces_and_that_is_the_hole_this_leaves() {
 /// cannot be asked to create this state -- exactly as the estate could not
 /// repair it. A migration put it there and only a direct write reproduces it.
 #[test]
-fn at_edit_repairs_a_mis_migrated_kind_and_refuses_to_create_the_disagreement() {
+fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
   let fx = Fixture::new();
   let mut thread = sample_thread("ST0001");
   // The Baize shape, verbatim: a non-test row the migrator recorded as a test.
@@ -645,33 +645,33 @@ fn at_edit_repairs_a_mis_migrated_kind_and_refuses_to_create_the_disagreement() 
     "the disagreement must be gone, not relabelled"
   );
 
-  // **THE ARM THAT MATTERS: the flag must not be able to CREATE the state it
-  // exists to remove.** AT-03.1 is Test/Green, and Green is not a status a
-  // non-test row can hold.
-  let err = facade
+  // **THE ARM THAT MATTERS: the flag cannot CREATE the state it exists to
+  // remove.** A re-kind whose status the new kind cannot hold re-enters at that
+  // kind's entry (vc, 2026-09-14, issues 0324 and 0337), where it used to be
+  // refused -- a refusal that sent the caller to a verdict the row could not
+  // take. The repaired AT-03.2 flipped back to a test lands `to-write`, never
+  // the test/`n-a` pair it was repaired out of.
+  facade
     .at_edit(
       "ST0001",
-      "AT-03.1",
+      "AT-03.2",
       None,
       None,
       None,
       None,
-      Some(AtKind::NonTest),
+      Some(AtKind::Test),
     )
-    .expect_err("re-kinding a green test row to non-test would claim an outcome nothing ran");
-  assert!(
-    matches!(err, FacadeError::ValueNotRecordable { ref field, .. } if field == "--kind"),
-    "the refusal must name the flag whose value cannot be recorded, got {err:?}"
-  );
+    .expect("a re-kind re-enters the status rather than refusing");
+  let back = row(&facade);
+  assert_eq!(back.kind, AtKind::Test);
   assert_eq!(
-    facade.canon().threads[0]
-      .tests
-      .iter()
-      .find(|t| t.id == "AT-03.1")
-      .expect("still there")
-      .kind,
-    AtKind::Test,
-    "a refused re-kind writes nothing"
+    back.status,
+    AtStatus::ToWrite,
+    "the n/a a test row cannot hold re-entered at the test kind's entry"
+  );
+  assert!(
+    back.status.permitted_for(back.kind),
+    "the disagreement was not re-created"
   );
 }
 

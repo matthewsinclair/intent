@@ -544,6 +544,8 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
     "and the reopen actually moved it, rather than only printing that it had"
   );
 
+  // The reopen left the package open, and a thread refuses to close over one.
+  ok(root, &["wp", "done", "ST0001/01"]);
   ok(root, &["st", "done", "ST0001"]);
   assert_eq!(
     ok(
@@ -1522,5 +1524,39 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
   assert!(
     String::from_utf8_lossy(&out.stderr).contains("ST0099"),
     "and the refusal names the NORMALISED id rather than the spelling typed"
+  );
+}
+
+/// **A ROW IS CREATED IN A STATUS ITS KIND CAN HOLD** (issues 0324 and 0337).
+/// `at new --kind non-test` with no `--status` landed `to-write`, a pair `doctor`
+/// then reported as model-inconsistent. It now starts at the kind's entry, `n/a`,
+/// and an explicit status the kind cannot hold is refused by the facade.
+#[test]
+fn at_new_with_no_status_starts_a_non_test_row_at_n_a() {
+  let dir = project();
+  let root = dir.path();
+  seed_closeable_thread(root);
+
+  ok(
+    root,
+    &[
+      "at",
+      "new",
+      "ST0001",
+      "AT-01.9",
+      "--covers",
+      "AC-01.1",
+      "--kind",
+      "non-test",
+      "--prose",
+      "eyeballed",
+    ],
+  );
+  let listed = ok(root, &["at", "list", "ST0001"]);
+  assert!(
+    listed
+      .lines()
+      .any(|l| l.starts_with("AT-01.9") && l.contains("n/a")),
+    "a non-test row created with no status starts at n/a:\n{listed}"
   );
 }

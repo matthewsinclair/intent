@@ -700,9 +700,8 @@ pub enum FacadeError {
   ///
   /// **ITS OWN VARIANT BECAUSE THE REMEDY IS THE POINT.** `ValueNotRecordable`
   /// says the value is wrong; here the value is fine and the row's KIND is
-  /// what cannot hold it, so the way out is a re-kind -- and on a row at `n-a`
-  /// the re-kind is itself refused until the status moves, so the remedy has
-  /// to name that step too or it names a command that cannot succeed.
+  /// what cannot hold it, so the way out is a re-kind, which re-enters a row
+  /// at `n-a` at `to-write` in the same call (issues 0324 and 0337).
   #[error(
     "{st} {at} is a non-test row, which asserts prose INSTEAD of a file, so `{file}` cannot be cited on it"
   )]
@@ -710,8 +709,20 @@ pub enum FacadeError {
     st: String,
     at: String,
     file: String,
-    status_holds_a_test: bool,
   },
+  /// A status that does not fit the row's kind (issue 0337): `n/a` on a test
+  /// row, or `to-write`/`red`/`green` on a non-test row -- recorded by a verdict
+  /// on an existing row, or named to `at new` for a row it would create.
+  #[error("{st} {at} is a {kind} row, and `{status}` is not a verdict that row can hold")]
+  VerdictWrongForKind {
+    st: String,
+    at: String,
+    kind: String,
+    status: String,
+  },
+  /// `st done` on a thread whose work packages are not all settled (issue 0324).
+  #[error("{st} cannot close while work packages are still open: {}", .open.join(", "))]
+  OpenWorkPackages { st: String, open: Vec<String> },
   /// A `--note` that would DESTROY an existing note rather than extend it.
   ///
   /// **DISTINCT FROM [`FacadeError::ValueNotRecordable`], and the difference is
@@ -1675,21 +1686,22 @@ impl crate::remedy::Remedy for FacadeError {
          and nothing was written"
           .to_string()
       }
-      Self::FileOnANonTestRow {
-        st,
-        at,
-        file,
-        status_holds_a_test,
-      } => {
-        let rekind = format!("`intent at edit {st} {at} --kind test --file {file}`");
-        if *status_holds_a_test {
-          format!("re-kind it in the same call: {rekind}")
-        } else {
-          format!(
-            "once the test has actually run, record it (`intent at green {st} {at}` or `intent at red {st} {at}`), then re-kind it: {rekind}"
-          )
-        }
+      Self::VerdictWrongForKind { st, at, .. } => {
+        format!(
+          "a test row holds to-write, red or green and a non-test row holds n/a. Creating it, `intent at new` \
+           with no `--status` starts the row at its kind's entry. On an existing row, a test row takes \
+           `intent at red|green {st} {at}` and a non-test row takes `intent at na {st} {at}`; if the row's kind is \
+           what is wrong, re-kind it with `intent at edit {st} {at} --kind <test|non-test>`"
+        )
       }
+      Self::OpenWorkPackages { st, .. } => {
+        format!(
+          "finish each with `intent wp done {st}/<NN>` or drop it with `intent wp cancel {st}/<NN> --reason \"...\"`, then close {st} again"
+        )
+      }
+      Self::FileOnANonTestRow { st, at, file } => format!(
+        "re-kind it in the same call, where a row recording n/a re-enters at to-write: `intent at edit {st} {at} --kind test --file {file}`"
+      ),
       Self::FieldNotWritable { .. } => {
         "go to the door the refusal names: a lifecycle verb for a field a state machine owns, \
          and the member's own address for a collection"
@@ -2228,6 +2240,9 @@ pub enum Note {
   /// itself removes nothing, so this is the moment the operator can still
   /// decide otherwise.
   DehydratesOnNextOrganize(Vec<String>),
+  /// A unit closed while its objective was still unwritten (issue 0337). It
+  /// carries the address `intent set` takes for that unit.
+  UnwrittenObjective(String),
   /// The write landed, and a step after it did not.
   ///
   /// **A WARNING AND NOT A REFUSAL, BECAUSE THE WRITE HAPPENED** (vc, ruled
@@ -2425,6 +2440,9 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       }),
       Note::DehydratesOnNextOrganize(paths) => serde_json::json!({
         "kind": "dehydrates-on-next-organize", "paths": paths,
+      }),
+      Note::UnwrittenObjective(unit) => serde_json::json!({
+        "kind": "unwritten-objective", "unit": unit,
       }),
       Note::HeldByV2Bucket {
         thread,
@@ -8348,11 +8366,36 @@ impl Facade {
 
     Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
     self.check_gate(("Thread", "status", op), id, id, Scope::Thread)?;
+    // **`st done` READS THE PACKAGES** (issue 0324). The gate is over criteria
+    // only, so a thread closed with a work package still `not-started`. `st fc`
+    // is the human's override and does not pass through here.
+    // After the gate, so a thread whose criteria are unsatisfied is told that
+    // first, and the packages are the last thing between a passing gate and
+    // the close.
+    if op == "st.done" {
+      let open: Vec<String> = self
+        .st_show(id)?
+        .wps
+        .iter()
+        .filter(|w| matches!(w.status, WpStatus::NotStarted | WpStatus::Wip))
+        .map(|w| format!("{id}/{:02} ({})", w.seq, w.status.display()))
+        .collect();
+      if !open.is_empty() {
+        return Err(FacadeError::OpenWorkPackages {
+          st: id.to_string(),
+          open,
+        });
+      }
+    }
     // The guard still refuses a verb that REQUIRES a reason and was given
     // none; its return value is no longer the thing that writes the field.
     Self::check_reason("Thread", "status", op, reason)?;
     // Read BEFORE anything is written -- see [`Facade::closing_notes`].
     let mut notes = self.closing_notes(op, id, list)?;
+    // Issue 0337: a close on an unwritten objective warns rather than passing in silence.
+    if status == ThreadStatus::Completed && self.st_show(id)?.objective.trim().is_empty() {
+      notes.push(Note::UnwrittenObjective(id.to_string()));
+    }
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
@@ -9007,9 +9050,28 @@ impl Facade {
         &record,
       ));
     }
+    // Issue 0337: a close on an unwritten objective warns rather than passing in silence.
+    let unwritten = status == WpStatus::Done
+      && self
+        .st_show(st)?
+        .wps
+        .iter()
+        .find(|w| w.seq == seq)
+        .is_some_and(|w| w.objective.trim().is_empty());
     self
       .apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)
-      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
+      .map(|foreign| {
+        let moved = if unwritten {
+          Outcome::MovedWith {
+            notes: vec![Note::UnwrittenObjective(format!(
+              "intent:///threads/{st}/wp/{seq:02}"
+            ))],
+          }
+        } else {
+          Outcome::Moved
+        };
+        moved.with_overwrites(foreign)
+      })
   }
 
   // -------------------------------------------------------------------------
@@ -9180,6 +9242,20 @@ impl Facade {
         st: st.to_string(),
         at: at.to_string(),
         kind: existing.kind,
+      });
+    }
+
+    // **A ROW IS CREATED IN A STATUS ITS KIND CAN HOLD** (vc, 2026-09-14, issues
+    // 0324 and 0337, the mirror of `ac_new` taking `AcState::entry`). `at new
+    // --kind non-test` landed `to-write`, a pair `doctor` then reported as
+    // model-inconsistent. A caller that names no status gets `AtStatus::entry`;
+    // one that names a status the kind cannot hold is refused here.
+    if !status.permitted_for(kind) {
+      return Err(FacadeError::VerdictWrongForKind {
+        st: st.to_string(),
+        at: at.to_string(),
+        kind: crate::model::enum_str(&kind).to_string(),
+        status: status.display().to_string(),
       });
     }
 
@@ -9545,10 +9621,10 @@ impl Facade {
     // verb's own contract read the right way round: the citation is what
     // `legacy` holds an older spelling of, so re-citing it REPLACES it, while a
     // `--note` or `--covers` edit touches neither and leaves it exactly where
-    // it is. **The `--kind` refusal below is the precedent and the same rule:
+    // it is. **The `--kind` re-entry below serves the same rule:
     // a verb must not create the disagreement `doctor` reports.**
     let recited = file.is_some() || prose.is_some();
-    let row = AcceptanceTest {
+    let mut row = AcceptanceTest {
       file: file.or_else(|| existing.file.clone()),
       prose: prose.or_else(|| existing.prose.clone()),
       covers: covers.unwrap_or_else(|| existing.covers.clone()),
@@ -9562,33 +9638,16 @@ impl Facade {
       ..existing.clone()
     };
 
-    // **THE DECISION IS `AtStatus::permitted_for`, NOT A MATCH HERE**, for the
-    // reason `doctor` records at the same rule: a match that decides needs a
-    // `_` arm, and a `_` arm goes quiet about the next variant nobody taught
-    // it. One home for the rule, two readers.
+    // **A RE-KIND RE-ENTERS THE STATUS AT `AtStatus::entry`** (vc, 2026-09-14,
+    // issues 0324 and 0337, the mirror of `Facade::rekinded_state`). This used
+    // to refuse a kind the row's status could not hold and send the caller to a
+    // verdict first; once a verdict had to fit its kind, that route closed in
+    // both directions. `AtStatus::permitted_for` decides, as `doctor` does.
     //
-    // Only a caller who NAMED `--kind` can trip this: a row already carrying
-    // the disagreement is left exactly as it is, so this refuses the flag
-    // rather than the estate, and no existing row becomes unwritable.
+    // Only a caller who NAMED `--kind` moves the status: a row already carrying
+    // the disagreement is left as it is under a `--note` or `--covers` edit.
     if kind.is_some() && !row.status.permitted_for(row.kind) {
-      // **`ValueNotRecordable`, NOT `WriteNotAddressable`**, and its own
-      // docstring is why: that one's remedy sends the reader to `PUT json to a
-      // caller-assigned id`, which is nothing anybody can do about a kind that
-      // disagrees with a status. The field IS theirs to set; this value is not
-      // one it can hold while the row reads as it does.
-      return Err(FacadeError::ValueNotRecordable {
-        field: "--kind".to_string(),
-        given: crate::model::enum_str(&row.kind),
-        why: format!(
-          "{} records `{}`, and re-kinding it that way would CREATE the disagreement `intent doctor` reports -- the defect this flag exists to repair. Move the status first ({}), then re-kind",
-          row.id,
-          row.status.display(),
-          match row.kind {
-            AtKind::Test => "`at green` / `at red`, once something has actually run",
-            AtKind::NonTest => "`at na`",
-          }
-        ),
-      });
+      row.status = AtStatus::entry(row.kind);
     }
     Self::refuse_a_file_written_onto_a_non_test_row(st, existing, &row)?;
     if &row == existing {
@@ -9634,7 +9693,6 @@ impl Facade {
         st: st.to_string(),
         at: after.id.clone(),
         file: file.to_string(),
-        status_holds_a_test: after.status.permitted_for(AtKind::Test),
       });
     }
     Ok(())
@@ -10068,12 +10126,12 @@ impl Facade {
       .tests
       .iter()
       .find(|t| t.id == at)
-      .map(|t| (t.status, t.file.clone()))
+      .map(|t| (t.status, t.file.clone(), t.kind))
       .ok_or_else(|| FacadeError::NoSuchTest {
         st: st.to_string(),
         at: at.to_string(),
       })?;
-    let (from, cited) = row_now;
+    let (from, cited, kind) = row_now;
 
     // **A VERDICT NEEDS ITS EVIDENCE TO EXIST, AND THE FORWARD STEP IS A ONE-WAY
     // DOOR** (issue 0270, vc ruled option 2, 2026-09-05).
@@ -10134,6 +10192,41 @@ impl Facade {
         // the second of the three spellings one command produced.
         state: from.display().to_string(),
       });
+    }
+
+    // **A VERDICT MUST FIT THE ROW'S KIND** (issue 0337). `n/a` belongs to a
+    // non-test row, which asserts prose instead of a file, and `red`/`green`
+    // belong to a test row, whose verdict is a test's. `at_set` read neither,
+    // so `at na` on a test row and `at green` on a non-test row both landed.
+    let fits = match status {
+      AtStatus::Na => kind == AtKind::NonTest,
+      AtStatus::Red | AtStatus::Green => kind == AtKind::Test,
+      _ => true,
+    };
+    if !fits {
+      return Err(FacadeError::VerdictWrongForKind {
+        st: st.to_string(),
+        at: at.to_string(),
+        kind: crate::model::enum_str(&kind).to_string(),
+        status: status.display().to_string(),
+      });
+    }
+    // **GREEN ONLY FROM RED** (issue 0337): every `at.set` edge shares one
+    // verb, so only the target tells them apart -- see `transitions::permits_to`.
+    if from != status {
+      let (from_s, to_s) = (
+        crate::model::enum_str(&from),
+        crate::model::enum_str(&status),
+      );
+      if !transitions::permits_to("AcceptanceTest", "status", "at.set", &from_s, &to_s) {
+        return Err(FacadeError::IllegalTransition {
+          verb: "at.set",
+          subject: format!("{st} {at}"),
+          from: from_s.to_string(),
+          legal: transitions::accepted_from_to("AcceptanceTest", "status", "at.set", &to_s)
+            .join(", "),
+        });
+      }
     }
 
     let mut next = self.canon.clone();

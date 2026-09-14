@@ -391,7 +391,7 @@ disabled:
 | `show_all`               | Shorthand for `severity_min: style`                    | `false`   |
 | `post_tool_use_advisory` | Opt in to the `PostToolUse` critic advisory (see D7)   | `false`   |
 
-The readers differ by key. The pre-commit gate reads `severity_min`; `intent critic` reads `disabled`, and when run by hand takes its threshold from `--severity-min` (default `warning`) rather than from the file. `show_all` is honoured by the `critic-<lang>` subagents only — the headless runner and the gate ignore it.
+The readers differ by key. The pre-commit gate reads `severity_min`; `intent critic` reads `disabled`, and when run by hand takes its threshold from `--severity-min` (default `warning`) rather than from the file. `show_all: true` stands for `severity_min: style` in the gate and in the `critic-<lang>` subagents; an explicit `severity_min` wins over it, and `intent critic` run by hand still takes its threshold from `--severity-min`.
 
 Default `severity_min` is `warning`: both CRITICAL and WARNING findings block a commit (the "warnings-are-errors" posture). Per-project tuning is expected; a per-rule `# reason:` comment on each `disabled` entry is required discipline so downstream reviewers know why the rule was silenced. An unknown rule ID in `disabled` is tolerated silently.
 
@@ -663,7 +663,7 @@ Symptom: pre-commit passes and the subagent fails (or vice versa) on the same fi
 
 First: confirm both are running the same rules. Both read the rule library the installed tool serves; `intent critic --rules <dir>` replaces that library for one run, so a run given `--rules` is not comparable.
 
-Second: the two are not built to agree on every rule. The headless runner enforces only the rules whose Detection heuristic carries a greppable proxy, where the subagent applies every rule by judgement, so the subagent reporting more is expected. The subagent also honours `show_all` in `.intent_critic.yml`, which the runner ignores. The runner reporting a finding on a mechanical rule that the subagent does not is worth a report: send a minimal reproducing file plus the rule ID and the expected versus observed output.
+Second: the two are not built to agree on every rule. The headless runner enforces only the rules whose Detection heuristic carries a greppable proxy, where the subagent applies every rule by judgement, so the subagent reporting more is expected. The gate and the subagent honour `show_all` in `.intent_critic.yml`; `intent critic` run by hand takes its threshold from `--severity-min` instead. The runner reporting a finding on a mechanical rule that the subagent does not is worth a report: send a minimal reproducing file plus the rule ID and the expected versus observed output.
 
 ### `intent claude skills sync` holds a skill you edited
 

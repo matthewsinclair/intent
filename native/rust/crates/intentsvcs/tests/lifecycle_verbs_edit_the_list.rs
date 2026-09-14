@@ -121,9 +121,25 @@ STEELTHREAD:ST0099
 # END INTENT
 ";
 
+/// Write a thread with its open work package authored settled, so a close in this
+/// file meets only the list edit it is testing. `sample_thread` leaves WP 3 at
+/// `wip`, and a thread does not close over an open package (issue 0324).
+///
+/// **Authored rather than driven through `wp done`, because the verb realises the
+/// thread's views on disk**, and a realised view is a file the close then reports
+/// as dehydrating -- a note this file's tests assert the exact set of. WP 2 is
+/// authored `Done` by `sample_thread` the same way.
+fn write_settled(fx: &Fixture, thread: &intentsvcs::model::Thread) {
+  let mut thread = thread.clone();
+  for wp in thread.wps.iter_mut().filter(|wp| wp.seq == 3) {
+    wp.status = intentsvcs::model::WpStatus::Done;
+  }
+  fx.write_thread(&thread);
+}
+
 fn fixture() -> Fixture {
   let fx = Fixture::new();
-  fx.write_thread(&sample_thread("ST0056"));
+  write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx
 }
@@ -595,7 +611,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
   // `st new` -- the one most likely to be implemented as "create and list".
   {
     let fx = Fixture::new();
-    fx.write_thread(&sample_thread("ST0056"));
+    write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade
       .st_new("a thread in a project that never listed anything")
@@ -611,7 +627,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
   // the same catastrophe in the other direction.
   {
     let fx = Fixture::new();
-    fx.write_thread(&sample_thread("ST0056"));
+    write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade.st_done("ST0056").expect("done");
     assert!(!fx.path(path_rel).exists(), "`st done` created a manifest");
@@ -620,7 +636,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
   // `st reopen`, which ADDS -- the verb with the strongest excuse to create one.
   {
     let fx = Fixture::new();
-    fx.write_thread(&sample_thread("ST0056"));
+    write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade.st_done("ST0056").expect("done");
     facade
@@ -813,7 +829,7 @@ fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
   let fx = Fixture::new();
   let mut thread = sample_thread("ST0056");
   thread.attachments.clear();
-  fx.write_thread(&thread);
+  write_settled(&fx, &thread);
   fx.write_file("intent/.intentfiles", MANIFEST);
 
   let mut facade = fx.facade();
@@ -842,7 +858,7 @@ fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
 fn committed_fixture() -> Fixture {
   let fx = Fixture::new();
   fx.git_init();
-  fx.write_thread(&sample_thread("ST0056"));
+  write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx.write_prose("ST0056", "reference.md", "bytes that are in a commit\n");
   fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
@@ -945,7 +961,7 @@ fn the_warning_closes_the_thread_and_still_makes_the_edit() {
 fn an_untracked_attachment_is_named_and_says_so_in_its_own_words() {
   let fx = Fixture::new();
   fx.git_init();
-  fx.write_thread(&sample_thread("ST0056"));
+  write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
   fx.git(&["add", "-A"]);

@@ -507,6 +507,11 @@ if [ -f ".intent_critic.yml" ]; then
       exit
     }
   ' .intent_critic.yml 2>/dev/null)"
+  # `show_all: true` is shorthand for `severity_min: style`, and an explicit
+  # `severity_min` wins over it.
+  if [ -z "$config_sev" ] && grep -Eq '^show_all:[[:space:]]*true([[:space:]]|#|$)' .intent_critic.yml 2>/dev/null; then
+    config_sev="style"
+  fi
   case "$config_sev" in
     critical|warning|recommendation|style) SEVERITY="$config_sev" ;;
   esac

@@ -74,7 +74,7 @@ A cancelled thread reinstates to `not-started`, not to whatever it was before. C
 
 **`wp done` is guarded by `ac gate` in the same way `st done` is, over the work package's own criteria:** `wp done ST0001/01` is gated on the `AC-01.*` criteria. A work package closes when what it owed is satisfied, not when someone decides it feels finished. One with no criteria of its own closes without a contract check, as long as the thread has some; a thread with no criteria at all refuses `wp done` and `st done` alike as an empty contract. One whose criteria were all descoped or withdrawn refuses until it is cancelled instead, because an exemption is never inferred from an emptied contract.
 
-**`st done` does not look at work-package status.** A thread whose criteria all pass closes even with a work package still `not-started`, so close or cancel the work packages first.
+**`st done` refuses while a work package is `not-started` or `wip`.** Finish each with `intent wp done` or drop it with `intent wp cancel`, then close the thread. `intent fc` is the human's override and does not read the packages.
 
 `wp unstart` exists because starting a work package by mistake is common and should not require cancelling it. It is not a state change with meaning; it is an undo.
 
