@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-13 17:59Z
+heartbeat_at: 2026-09-14 07:25Z
 status: active
-focus: "LOCALFOLDED 2026-09-13 15:56Z for the user's compact, HOLDING for vc. Landed this session: 0366 at 524f5f868 (the daemon builds its index at open, one stale directory at a time between client ops; AC-22.4/AT-22.4 red then green), dc verifying. 0354: S1 ruled and unbuilt until hv's dtruss is read; nothing under native/ from cc until then. NO RELEASE, NO PUSH."
+focus: "IDLE 2026-09-14 07:25Z, no lane work queued. 0355 landed at 842409d2b; dc said build done on e3c67792c and this tree's gate is refreshed, so landings resume. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -24,13 +24,11 @@ _(none)_
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
-- **NOTHING UNDER native/ UNLESS hv RULES 0355 BEFORE THE TAG (vc, 2026-09-13).** 0354 is fixed on the delivered pair (363b18db1, daemon 87652), verified by vc: one mkdir under target costs 0.10 s where it cost 9.35 s. The cost left during an event flood is the index registration's notify-rs debouncer thread (notify_debouncer_full handle_event walking directories through opendir, the FileIdMap cache), measured into 0355 for hv. **Released when hv rules 0355: the shape is 0355's own remedy list, and vc routes it to cc.**
 
 ## Watch-outs
 
 - **LEANED 2026-09-12 06:07Z ON hv's INSTRUCTION.** One line each, and only what bears on work in front of cc. The families whose subject is gone or which a guard now enforces -- population and denominator, one name two artefacts, the unfelt claim, the reachable-but-unread artefact, canon past the daemon's ingest, folding this board, counting a migration's blast radius -- are in `.history/20260912/wip-prelean-0606Z.md` with their full text. Read them there before arguing with one.
 - **THE SHARED CHECKOUT.** `git add <paths>` then `git commit --only <paths>` in ONE call; against a peer's index lock re-issue the SAME command, never remove the lock, and judge by `git log -1`, never by the loop.
-- **BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back `~/.intent/home` and the live store's mtime afterwards, because a test run deploys to the estate it lives in.
 - **THE GATE.** Never `--no-verify`. Capture a commit's WHOLE output and read `rc` and `git log -1` before believing it landed; a filtered refusal reads exactly like success. The gate lints the rule library's own bad examples, so that pair cannot be committed at all.
 - **THIS SHELL IS ZSH.** Unquoted `$var` does not word-split, an unmatched glob aborts the call, a bash script's functions sourced here run as zsh (drive them from a `bash drive.sh`), and an exit code that IS the finding never goes through a pipe.
 - **`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET**, so a run with one red measures nothing after it -- I claimed a green twice today over a suite the run never reached, with a real red behind it. `--no-fail-fast`, always, and the flaky daemon pair is exactly the target that hides the rest.
@@ -60,6 +58,7 @@ _(none)_
 - **A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.
 - **A SAMPLE CANNOT TELL A THREAD BLOCKED IN A WAIT FROM ONE SPINNING THROUGH IT.** Both show the same leaf in every sample, so the hot thread is named by ps -M CPU per row, and an inlined frame is resolved by disassembling the binary whose UUID matches the sample's Binary Images line (dwarfdump --uuid, then objdump at the return address), not by symbol names.
 - **CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.
+- **BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.
 
 ## Decisions
 

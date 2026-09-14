@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-13T17:59:19.815Z",
+    "heartbeat_at": "2026-09-14T07:25:44.012Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-09-13 15:56Z for the user's compact, HOLDING for vc. Landed this session: 0366 at 524f5f868 (the daemon builds its index at open, one stale directory at a time between client ops; AC-22.4/AT-22.4 red then green), dc verifying. 0354: S1 ruled and unbuilt until hv's dtruss is read; nothing under native/ from cc until then. NO RELEASE, NO PUSH.",
+    "focus": "IDLE 2026-09-14 07:25Z, no lane work queued. 0355 landed at 842409d2b; dc said build done on e3c67792c and this tree's gate is refreshed, so landings resume. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -80,7 +80,8 @@
       "kind": "watchout",
       "seq": 3,
       "text": "**BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back `~/.intent/home` and the live store's mtime afterwards, because a test run deploys to the estate it lives in.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:25:41.726Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -417,8 +418,35 @@
       "kind": "hold",
       "seq": 12,
       "text": "**NOTHING UNDER native/ UNLESS hv RULES 0355 BEFORE THE TAG (vc, 2026-09-13).** 0354 is fixed on the delivered pair (363b18db1, daemon 87652), verified by vc: one mkdir under target costs 0.10 s where it cost 9.35 s. The cost left during an event flood is the index registration's notify-rs debouncer thread (notify_debouncer_full handle_event walking directories through opendir, the FileIdMap cache), measured into 0355 for hv. **Released when hv rules 0355: the shape is 0355's own remedy list, and vc routes it to cc.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T06:51:50.830Z",
       "recorded_at": "2026-09-13T18:11:22.566Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 13,
+      "text": "**NO COMMITS OF ANY FILE, BOARD FILES INCLUDED, AND NO BUILDS, INSIDE dc's FINAL PRE-TAG QUIET WINDOW (dc, base 013f5da81).** build all starts only after cc, ic and vc acknowledge; cc acknowledged holding with nothing queued. A commit that moves HEAD mid-build refuses the stamp. Uncommitted wb store writes are fine. **Released when dc says build done**, and this board's views land then.",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:25:40.581Z",
+      "recorded_at": "2026-09-13T18:29:01.704Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 14,
+      "text": "**0355 IS PREPARED AND GREEN, NOT LANDED; IT LANDS ONLY ON vc's WORD AFTER hv RULES IT INTO 3.0.2.** Two pieces in wt-cc on base 013f5da81: the index registration's debouncer uses new_debouncer_opt with NoCache (canon keeps its cache), and index_paths_to_refresh hands over a directory or vanished path only when it is the root or the new Scanned::reaches (in_repository plus descends on its own name) admits it. Files: native/rust/crates/intentd/src/watch.rs, native/rust/crates/intentsvcs/src/sync.rs, CHANGELOG.md; the new arm is a_removal_under_an_ignored_directory_and_a_directory_under_git_reach_no_refresh. intentd and intentsvcs green, rustfmt clean. Kit in the session scratchpad: 0355.patch, commit-0355.txt, 0355-land.sh (plain git apply, then add + commit --only over the three paths). On the bounce, if wt-cc is gone, rebuild it from 0355.patch on the base. **Released when vc relays hv's ruling: in lands outside dc's window, out archives this. Nothing else under native/ meanwhile.**",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:11:01.530Z",
+      "recorded_at": "2026-09-14T06:51:52.992Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 33,
+      "text": "**BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.",
+      "state": "live",
+      "recorded_at": "2026-09-14T07:25:42.875Z"
     }
   ],
   "messages": [
