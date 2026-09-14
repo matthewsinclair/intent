@@ -3,9 +3,10 @@
   "number": 347,
   "slug": "the-rulings-gate-and-dehydration-collide-a-ratif",
   "title": "The rulings gate and dehydration collide: a ratified ruling cites a thread file that a done thread's unlisting takes off the disk",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Found twice on 2026-09-12: a ratified ruling cites a thread file as its record, `rulings_check.sh` resolves the record on disk, and a completed thread hv's hygiene rule unlists takes its file off the disk. ST0058 and ST0066 stay realised until the gate resolves a dehydrated thread's record through the canon extract, or the two records cite canon paths. Small, code, hv's to rule. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "Found twice on 2026-09-12: a ratified ruling cites a thread file as its record, `rulings_check.sh` resolves the record on disk, and a completed thread hv's hygiene rule unlists takes its file off the disk. ST0058 and ST0066 stay realised until the gate resolves a dehydrated thread's record through the canon extract, or the two records cite canon paths. Small, code, hv's to rule. Carried in `intent/wip.md` until 2026-09-13.\n\nCLOSED 2026-09-14 19:02Z: rulings_check.sh now resolves a ruling whose record names a thread file through that thread's canon when the file is not on disk: a generated view (info.md, acceptance.md, a work package's info.md) resolves when the thread's canon exists, since the view renders from it, and an attachment resolves when the canon lists it. A record on disk resolves as before, and a thread file the canon does not carry still dangles. So a completed thread no longer has to stay realised for the gate's sake; ST0058 and ST0066, whose acceptance.md are the two such records, are unlisted in their own commit after this one (vc's ruling). Fixed in the commit that closes this issue.\n"
 }

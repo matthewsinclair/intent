@@ -180,6 +180,31 @@ fi
 # as untraceable as a missing one, and the pre-migration grammar's habit of
 # falling through to "conforms" on an unmatched pattern is what let a dead
 # `issue 0046` citation certify itself for days.
+# A THREAD FILE A DEHYDRATED THREAD NO LONGER HAS ON DISK RESOLVES THROUGH ITS
+# CANON (issue 0347).  Dehydration takes a completed thread's files off the disk
+# and keeps every one in `intent/.canon/st/<ID>.json`: a generated view renders
+# from that canon, and an attachment's full text is in it.  So a record naming
+# either lasts as long as the thread does, and reading it as dangling kept
+# threads realised for this script's sake.  A file the canon does not carry
+# still dangles.
+CANON_ST="${CANON_ST:-$REPO_ROOT/intent/.canon/st}"
+in_thread_canon() {
+  local rel="$1" id file canon
+  case "$rel" in
+    intent/st/ST[0-9][0-9][0-9][0-9]/*) ;;
+    *) return 1 ;;
+  esac
+  id="${rel#intent/st/}"
+  file="${id#*/}"
+  id="${id%%/*}"
+  canon="$CANON_ST/$id.json"
+  [ -f "$canon" ] || return 1
+  case "$file" in
+    info.md | acceptance.md | WP/[0-9][0-9]/info.md) return 0 ;;
+  esac
+  jq -e --arg p "$file" 'any(.attachments[]?; .path == $p)' "$canon" >/dev/null 2>&1
+}
+
 record_resolves() {
   local rec="$1"
   case "$rec" in
@@ -190,7 +215,7 @@ record_resolves() {
       grep -qx "$(grep -Eo '[0-9]{3,4}' <<<"$rec")" <<<"$RESOLVABLE"
       ;;
     *.md|*.rs|*.sh|*.json|*.toml|*.txt|*.md:*|*.rs:*|*.sh:*|*.json:*|*.toml:*|*.txt:*)
-      [ -e "$REPO_ROOT/${rec%%:*}" ] || [ -e "$ST_DIR/${rec%%:*}" ]
+      [ -e "$REPO_ROOT/${rec%%:*}" ] || [ -e "$ST_DIR/${rec%%:*}" ] || in_thread_canon "${rec%%:*}"
       ;;
     *)
       if grep -Eq '^[0-9a-f]{7,40}$' <<<"$rec"; then
