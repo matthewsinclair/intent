@@ -658,8 +658,26 @@
       "kind": "doing",
       "seq": 30,
       "text": "**2026-09-14T14:36Z: v3.0.3 IS CUT, PUBLISHED AND SMOKED; the cut is called done by vc.** v3.0.2 was tagged (e75708756) and its GitHub release created, but publish refused its off-tag stage, and the tag's own macos script refused the 3.0.2 support tree (vc's ff4a2476a fixed that). hv ruled A: v3.0.3 from main. dc landed 717bd6ea4 (the 3.0.3 CHANGELOG section and docs/releases/3.0.3) and 06fa152e4 (151 footer-only views to v3.0.2). The cut's cargo-test preflight failed twice on fseventsd saturation (FSEvents-timing arms timing out; Gtools was cleared by gtools-vc's measurement) and passed the third time. Tag v3.0.3 = 46599d145 on both remotes. publish uploaded 4 assets whose GitHub digests equal SHA256SUMS; tap f349504fc 'intent 3.0.3' carries the XDG caveat; 9987a93 was never pushed (smoke's untap dropped it). smoke --reinstall answered every arm. POST-CUT: intentd restarted onto the dev-tree 3.0.3 pair, pid 1773; doctor 0 findings, 155 advisories (footer lag); the footers did not flip, so there was no footer commit. OPEN, hv's: brew's intent 3.0.3 is now LINKED ahead of ~/.local/bin on PATH (brew unlink/pin restores dev-tree routing), and the stranger-machine brew install. NO FURTHER RELEASE WORK OWED BY dc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T15:30:03.323Z",
       "recorded_at": "2026-09-14T14:36:50.594Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 31,
+      "text": "**2026-09-14T15:30Z: hv's AGGRESSIVE ISSUE PASS, dc's batch of 20 (vc directing), L in total.** Search: 0356 0357 0358 0360 0361 0359 0369 0370 0371 0372 0373. Release tooling: 0386 0387 0389. CI and scripts: 0335 0330 0348. Keg and install: 0327 0340 0333. Rules: wt-dc at main (started at 5bacaefef), isolated HOME scratchpad/batch/home, in-tree target-dc, cargo build -p intentd before any intent-cli suite; ONE run reproduces each issue before its fix and ONE run judges the fix (hv decision 15); one commit per issue or shaped group, closing the issue in the same landing (issues edit with the whole body plus a dated CLOSED note, then close; view, canon json and .intentfiles together); every report lists every file; nothing lands on the shared tree without vc's word, rebased first. v3.0.3 is shipped; the app is 3.0.3 build 7080. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-14T16:29:13.093Z",
+      "recorded_at": "2026-09-14T15:30:10.263Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 32,
+      "text": "**LOCALFOLDED 2026-09-14T16:29Z for hv's compact. hv's AGGRESSIVE ISSUE PASS, dc's 20 (vc directing); the tree is dc's through search commit 2.** LANDED: search commit 1 b7df8e9f2 (rung 27 + 0369 + 0373; 13 files; issues closed, views removed by organize). ON THE BOUNCE, IN ORDER: (1) COMMIT 2 on main: git apply scratchpad batch/patches/c2-search.patch (based on C1 before rustfmt; the store.rs hunks are the DISTINCT reads), rustfmt --edition 2024 facade.rs and store.rs, issues edit --from batch/bodies/<id>.md and close for 0356 0357 0358 0359 0360 0361 0370 0371 0372, organize preview (must remove only those views) then --apply, git add the EXISTING paths and commit --only ALL paths (the deleted views only in --only, never in add), log -1 --stat to vc. (2) FILE the two new issues from batch/close-notes.md: low 'a large indexed directory vanishing costs a refresh one delete per path', XS 'st attach has no detach'. (3) The other groups, uncommitted in wt-dc at e705e5365, need rebasing onto main: RELEASE build.d/release (0386 early spill check JUDGED green in a clone; 0389 private-worktree gate JUDGED: mechanics and classifier green, and vc ruled the family is a mechanism, a_source_edit arm added with the comment; 0387 stamp CLI + fold: the README abort is JUDGED green, but the FOLD IS A GAP: sync --to-disk skips footer-only-stale views via views::differs_only_in_banner_version, so the fold needs a door that rewrites them using that ONE predicate, per vc). KEG (0333 JUDGED: pre-v2.10 refusal plus render.rs context() now renders the error's own remedy, userstate::home(), and the two intent@2 tests re-pointed; 0340 JUDGED: SUPPORT_PATHS carries agents plugin.json, the keg lists agents, shim remedies name intent bootstrap; 0327 NOT DRIVEN because /Applications/Intent.app exists). CI/SCRIPTS (0335: Swift compiles (Debug 7091); TCA scripts JUDGED (wp new registers, ac gate refuses); probe fix by construction, the false LEAKED NOT reproduced; workflows PATH, shellcheck selector, pr-checks native/ and README not drivable here. 0348: suite_path_check.sh installed, controls fire, rostered gated, in precommit. 0330: read_claim_probe BIN + of_n_population REACH done; coverage_map.sh and fixture_probe.sh to DELETE by vc's canon route AT LANDING: store snapshot, remove the two attachment rows from intent/.canon/st/ST0056.json, sync --to-store ST0056 then --to-disk, git rm both, fix the roster rows, doctor 0 and organize -v 0, CLOSED note naming the AC-00.6 commit). Evidence throughout: scratchpad batch/. Slip owned: the carrier commits used --no-verify; undone by exporting patches and resetting wt-dc. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T16:29:21.405Z"
     }
   ],
   "messages": [
