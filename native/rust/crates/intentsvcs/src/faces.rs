@@ -43,7 +43,7 @@ pub const INTENT_VER: &str = env!("CARGO_PKG_VERSION");
 /// existence within hours of being written.
 pub const SCHEMA_JSON_VER: u32 = 20;
 /// See [`SCHEMA_JSON_VER`].
-pub const SCHEMA_DDL_VER: u32 = 22;
+pub const SCHEMA_DDL_VER: u32 = 23;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_SDL_VER: u32 = 17;
 

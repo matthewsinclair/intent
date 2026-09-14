@@ -321,7 +321,8 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // commit as the code that writes `board.json`, because a `carried by`
     // declaration naming a file nothing writes is the promise the openness
     // check exists to refuse.
-    ("SCHEMA_DDL_VER", 22, 0xd609_73ef_0f1b_c895),
+    // 23: `index_state` (issue 0369, schema rung 27).
+    ("SCHEMA_DDL_VER", 23, 0x5c41_95b3_c1ce_3a27),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed

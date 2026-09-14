@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.3
--- SCHEMA_DDL_VER: 22
+-- SCHEMA_DDL_VER: 23
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -395,6 +395,16 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- When the search index was last reconciled. One row, id 1.
+-- `reconciled_at` is written by the database clock in the statement that
+-- records a reconcile; nothing reads a clock at render.
+-- openness: DERIVED -- a fact about this store's own last reconcile.
+CREATE TABLE IF NOT EXISTS index_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  reconciled_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- The semantic tier's vectors. One row per indexed unit per model.
 --
 -- **`model` IS PART OF THE KEY BECAUSE TWO MODELS' SPACES ARE UNRELATED.** A

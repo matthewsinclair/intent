@@ -33,6 +33,9 @@ pub struct Status {
   /// Files the index does not hold, by reason, each with its paths in path
   /// order. A reason with nothing under it is not carried.
   pub skipped: BTreeMap<String, Vec<String>>,
+  /// The measured size in bytes of each index table family and of the whole
+  /// store (issue 0373). Read, never estimated; empty until the store fills it.
+  pub sizes: BTreeMap<String, u64>,
 }
 
 impl Status {
@@ -93,6 +96,7 @@ pub fn summarise(rows: &[Row]) -> Status {
     held,
     grammars: BTreeMap::new(),
     skipped,
+    sizes: BTreeMap::new(),
   }
 }
 

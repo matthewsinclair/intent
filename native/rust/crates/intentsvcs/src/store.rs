@@ -478,6 +478,16 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- When the search index was last reconciled. One row, id 1.
+-- `reconciled_at` is written by the database clock in the statement that
+-- records a reconcile; nothing reads a clock at render.
+-- openness: DERIVED -- a fact about this store's own last reconcile.
+CREATE TABLE IF NOT EXISTS index_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  reconciled_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- The semantic tier's vectors. One row per indexed unit per model.
 --
 -- **`model` IS PART OF THE KEY BECAUSE TWO MODELS' SPACES ARE UNRELATED.** A
@@ -705,7 +715,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 26;
+pub const SCHEMA_VERSION: i32 = 27;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -1670,7 +1680,22 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // stay until the next wholesale write, whose rebuild clears them.
     FTS_SECURE_DELETE,
   ),
+  (
+    27,
+    // 26 -> 27: `index_state`, the one row that says when the search index was
+    // last reconciled (0369).
+    INDEX_STATE,
+  ),
 ];
+
+/// The one-row table a reconcile stamps (issue 0369). Shared by the DDL and
+/// rung 27 so the fresh arm and the migration arm create the same table.
+const INDEX_STATE: &str = "CREATE TABLE IF NOT EXISTS index_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  reconciled_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);";
 
 /// Which of the two write acts is happening (D42).
 ///
@@ -5098,6 +5123,66 @@ impl Store {
   /// **ONE HOME FOR A PATH'S LANGUAGE.** `src_sections` deliberately does not
   /// carry it: a fact in two tables disagrees the first time a file is
   /// reclassified, and this is a lookup on a primary key.
+  /// Record that the search index was reconciled, by the database clock
+  /// (issue 0369, D42). A reconcile that found nothing still ran, so it stamps.
+  pub fn stamp_reconciled(&mut self) -> Result<(), StoreError> {
+    self.conn.execute(
+      "INSERT INTO index_state (id) VALUES (1) ON CONFLICT (id) DO UPDATE SET \
+       reconciled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+      [],
+    )?;
+    Ok(())
+  }
+
+  /// When the search index was last reconciled, as that reconcile stamped it.
+  pub fn reconciled_at(&self) -> Result<Option<String>, StoreError> {
+    use rusqlite::OptionalExtension;
+    Ok(
+      self
+        .conn
+        .query_row(
+          "SELECT reconciled_at FROM index_state WHERE id = 1",
+          [],
+          |row| row.get(0),
+        )
+        .optional()?,
+    )
+  }
+
+  /// The measured size of the index's tables in bytes, read from `dbstat`
+  /// (issue 0373), and the whole store's from its page count. An FTS5 table's
+  /// bytes are in its shadow tables and a table's indexes count with it.
+  pub fn index_sizes(&self) -> Result<std::collections::BTreeMap<String, u64>, StoreError> {
+    let mut sizes = std::collections::BTreeMap::new();
+    let mut stmt = self.conn.prepare(
+      "SELECT family, SUM(pgsize) FROM (SELECT CASE \
+         WHEN name LIKE 'src_sections%' THEN 'src_sections' \
+         WHEN name LIKE 'doc_sections%' THEN 'doc_sections' \
+         WHEN name LIKE 'symbols%' THEN 'symbols' \
+         WHEN name = 'index_file' OR name LIKE 'sqlite_autoindex_index_file%' THEN 'index_file' \
+       END AS family, pgsize FROM dbstat) WHERE family IS NOT NULL GROUP BY family",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+    })?;
+    for row in rows {
+      let (family, bytes) = row?;
+      sizes.insert(family, u64::try_from(bytes).unwrap_or(0));
+    }
+    let pages: i64 = self
+      .conn
+      .query_row("PRAGMA page_count", [], |row| row.get(0))?;
+    let page_size: i64 = self
+      .conn
+      .query_row("PRAGMA page_size", [], |row| row.get(0))?;
+    sizes.insert(
+      "store".to_string(),
+      u64::try_from(pages.saturating_mul(page_size)).unwrap_or(0),
+    );
+    Ok(sizes)
+  }
+
   pub fn index_lang(&self, path: &str) -> Result<Option<String>, StoreError> {
     match self.conn.query_row(
       "SELECT lang FROM index_file WHERE path = ?1",

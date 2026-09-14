@@ -3249,6 +3249,9 @@ impl Facade {
     })?;
 
     let mut index = IndexFreshness::new(self.corpora()?);
+    // Issue 0369: the age of the index this answer read, as its reconcile
+    // stamped it.
+    index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
 
     let mut hits = Vec::new();
     for row in rows {
@@ -3627,6 +3630,7 @@ impl Facade {
     // "what does this index hold" is the duplication the extraction was for, so
     // mine went and this calls theirs.
     let mut index = IndexFreshness::new(self.corpora()?);
+    index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
     let mut hits = Vec::new();
     for symbol in symbols {
       let hit = self.structural_hit(&symbol);
@@ -7199,8 +7203,12 @@ impl Facade {
         &content.symbols,
       )
       .map_err(FacadeError::Store)?;
+    // Issue 0369: a rebuild is a whole-scope reconcile, and stamps.
+    self.store.stamp_reconciled().map_err(FacadeError::Store)?;
     let mut status = crate::index::status::summarise(&rows);
     status.grammars = crate::index::status::grammars(&self.project.config().languages);
+    // Issue 0373: what the index costs, measured.
+    status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
     Ok(status)
   }
 
@@ -7235,6 +7243,13 @@ impl Facade {
   ) -> Result<crate::index::Refreshed, FacadeError> {
     let change = self.index_change(under)?;
     if change == crate::index::reconcile::Change::default() {
+      // Issue 0369: a WHOLE-SCOPE reconcile that found nothing still ran, and
+      // says so. A scoped one that found nothing writes nothing: the daemon's
+      // watcher hands over `intent/` when the OS coalesces the store's own
+      // writes, and a stamp there would be the next event (issues 0354, 0355).
+      if under.is_none() {
+        self.store.stamp_reconciled().map_err(FacadeError::Store)?;
+      }
       return Ok(crate::index::Refreshed::default());
     }
 
@@ -7271,6 +7286,7 @@ impl Facade {
       .replace_symbols_for(&touched, &content.symbols)
       .map_err(FacadeError::Store)?;
 
+    self.store.stamp_reconciled().map_err(FacadeError::Store)?;
     Ok(crate::index::Refreshed {
       updated: upserts.into_iter().map(|r| r.path).collect(),
       removed: change.removed,
@@ -7345,6 +7361,8 @@ impl Facade {
     let rows = self.store.index_files().map_err(FacadeError::Store)?;
     let mut status = crate::index::status::summarise(&rows);
     status.grammars = crate::index::status::grammars(&self.project.config().languages);
+    // Issue 0373: what the index costs, measured.
+    status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
     Ok(status)
   }
 

@@ -319,8 +319,11 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // create arm rather than by the DDL, which is why this hash is unchanged. It
   // lets the scoped refresh door delete a file's sections without rebuilding
   // the whole index.
-  const PINNED_SCHEMA_HASH: u64 = 0x1800_483b_49ea_0a6d;
-  const PINNED_FOR_VERSION: i32 = 26;
+  //
+  // 27 is `index_state` (0369): one row a reconcile stamps with the database
+  // clock, so a search envelope can say how old its index is.
+  const PINNED_SCHEMA_HASH: u64 = 0x93d9_f79a_8d0a_070f;
+  const PINNED_FOR_VERSION: i32 = 27;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

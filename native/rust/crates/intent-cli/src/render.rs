@@ -4397,6 +4397,7 @@ fn report_index(
         "held": held,
         "grammars": status.grammars,
         "skipped": skipped,
+        "sizes": status.sizes,
         "empty": status.is_empty(),
         "rebuilt": rebuilt,
       }))
@@ -4425,6 +4426,9 @@ fn report_index(
   // build, because upstream ships none and no flag here can change that.
   for (lang, readiness) in &status.grammars {
     println!("grammar: {lang}  {readiness}");
+  }
+  for (family, bytes) in &status.sizes {
+    println!("size: {family}  {bytes} bytes");
   }
   for reason in intentsvcs::index::status::REASONS {
     let paths = status.skipped.get(reason.as_str());
