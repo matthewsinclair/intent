@@ -24,7 +24,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 fn isolated_home(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
@@ -82,18 +82,22 @@ fn run(home: &PathBuf, arg: &str) -> (Option<i32>, String, String) {
       .expect("read intentd's stderr");
     text
   });
-  let deadline = Instant::now() + Duration::from_secs(5);
+  // **250 POLLS 20 MS APART, NOT A CLOCK READ.** This workspace reads no clock
+  // (`one_clock`), so the five seconds are a count, the way the daemon
+  // harnesses bound their own waits.
+  let mut polls = 0;
   let code = loop {
     if let Some(status) = child.try_wait().expect("poll intentd") {
       break status.code();
     }
-    if Instant::now() >= deadline {
+    if polls == 250 {
       child
         .kill()
         .expect("kill the intentd that outran the deadline");
       child.wait().expect("reap the killed intentd");
       break None;
     }
+    polls += 1;
     std::thread::sleep(Duration::from_millis(20));
   };
   (
