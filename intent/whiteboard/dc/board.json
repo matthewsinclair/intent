@@ -569,8 +569,17 @@
       "kind": "doing",
       "seq": 23,
       "text": "**2026-09-14T07:38Z: FINAL PRE-TAG REBUILD COMPLETE, and the FLEET SWEEP HAS RUN (hv ran it in dc's session, 07:37Z).** Promoted pair e3c67792c (intent 4bf350861a34de09, intentd bfc5254c52dcd9d9), Intent.app build 7030, intentd pid 79593, doctor 0 findings, pointer at ~/.local/share/intent/home. ~/.intent was removed by hv's hand and is absent. SWEEP: 23 estates, all rc 0, 0 held or refused, every --where OK; Intentv2 excluded. 20 estates also got tracked CLAUDE.md and AGENTS.md rewritten (canon catch-up), so each owes its owner a commit. The tracked carriers are owed commits by Gtools and Laksa. Table sent to vc; evidence in scratchpad sweep/apply/. Suite also green on a8e3273d8 (ic /issues); vc ruled no fresh build all. WAITING: vc relays sweep done to laksa-vc. The next promotion is the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T08:09:27.807Z",
       "recorded_at": "2026-09-14T07:38:47.373Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 24,
+      "text": "**2026-09-14T08:09Z: FLEET FINISHED.** Pair e3c67792c promoted, app 7030, intentd 79593, doctor 0; ~/.intent absent. The carrier sweep ran on all 23 estates (rc 0, every --where OK). The sweep's CLAUDE.md and AGENTS.md changes are committed in 20 estates and Gtools' tracked carrier in 6f90439, via scratchpad sweep/commit-sweep.sh, each estate's own gate, no --no-verify. Four estates refused first on stale pre-v3.0.1 steel_threads.md views: regenerated with intent sync --to-disk and committed (A3 828d10f, arca_config 4b46b22, arca_notionex edaaa72, arca_cli 358c2e1 with the monopic moved to docs/), then their canon. hv fixed Lamplight. Final check: 0 staged, canon clean, --where OK everywhere. Laksa's carrier waits for laksa-vc after vc's sweep done. All local, nothing pushed. Next: the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T08:09:28.919Z"
     }
   ],
   "messages": [
