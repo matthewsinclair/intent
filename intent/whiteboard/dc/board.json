@@ -605,8 +605,51 @@
       "kind": "doing",
       "seq": 26,
       "text": "**2026-09-14T08:58Z: 0355 REMAINDER CYCLE DONE, build done.** Suite ONCE on cc's 92f8ed52a: 14 targets, 2590 passed, 0 failed, 2 ignored. Built at d9703ba8f, whose only change past 92f8ed52a is cc's board. Promoted: intent 1cd6d80960f00e07, intentd 83d1ea057ca0fb5b. Intent.app build 7047 installed. intentd restarted from 60171 to pid 35471. doctor: rc 0, 0 findings. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. vc probes the live daemon for the 0355 verdict. Laksa migrates on this pair after laksa-dc's guard fix commits. Next: the cut's build all, on hv's word. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T09:42:16.304Z",
       "recorded_at": "2026-09-14T08:58:18.769Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 11,
+      "text": "**Next (vc, 2026-09-14):** on cc's '0355 fix landed at <sha>' (FTS5 secure-delete, schema rung 25 to 26; intentsvcs/src/store.rs, two intentsvcs tests, CHANGELOG.md, RELEASE_NOTES.md): check the code diff from d9703ba8f is exactly store.rs and the two tests; run the suite ONCE on the sha with suite-final/drive.sh (a daemon-family red reruns once); if green, the four-way announce and all four acks; build all, app-install, daemon restart, doctor; the hashes, app build, pid and user_version before and after (scratchpad cycle-rung26/user_version.txt) to vc; build done to every lane; board commit. The rung is ONE-WAY: a d9703ba8f or 3.0.1 binary refuses a store at 26.",
+      "state": "archived",
+      "archived_at": "2026-09-14T09:42:17.478Z",
+      "recorded_at": "2026-09-14T09:30:41.673Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 27,
+      "text": "**LOCALFOLDED 2026-09-14T09:42Z for hv's compact. RUNG-26 CYCLE, HELD AT THE LAST ACK before bin/devbin build all.** Base HEAD 4c172d260: its code equals cc's 743247d8a (0355 touch-cost fix: FTS5 secure-delete, schema rung 25 to 26, ONE-WAY). vc RULED THE SUITE GREEN by the rule's shape: run 1 red a_source_edit...:96 and daemon_watch:94; the one rerun passed both and red a different arm, a_daemon_outlives_nobody lifeline:593; the set moved, and the diff provably reaches none of the three. Evidence: scratchpad suite-final/run4-rung26/ and run4-rerun/. ANNOUNCED four ways: vc, ic and cc have acked. laksa-vc is holding and its FULL ACK waits on laksa-dc's confirmation (reads included). Laksa is at 1972f8108 and migrated on d9703ba8f. BEFORE, in scratchpad cycle-rung26/user_version.txt: user_version 25, pair d9703ba8f (intent 1cd6d80960f00e07, intentd 83d1ea057ca0fb5b), intentd 35471, app 7047. ON THE BOUNCE, on laksa-vc's full ack: check HEAD is still 4c172d260 (else check the code delta from 743247d8a is none); bin/devbin build all; check the stamps; bin/int macos app-install (re-issue on -600); intent daemon restart; intent doctor; user_version after (sqlite3 -readonly pragma user_version on intent/.cache/intent.db); then the hashes, app build, pid, doctor and user_version before and after to vc; build done WITH HASHES to cc, ic and laksa-vc; THEN commit the dc board views (not before: a commit now would move HEAD off the announced base). The running Intent.app 7047 is schema-25 code until app-install replaces it. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-14T12:09:44.838Z",
+      "recorded_at": "2026-09-14T09:42:18.644Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 19,
+      "text": "**FIND A PROJECT'S LIVE HOOK WITH git rev-parse --git-path hooks, NEVER BY GLOBBING .git/hooks.** The 2026-09-14 carrier census globbed <estate>/.git/hooks/pre-commit.intent and so read Laksa's inactive leftover body copy; its real carrier under core.hooksPath=bin/hooks was a shim, and the table misclassed it. The baseline that resolved the path properly was already in hand and showed only four estates on a non-default path.",
+      "state": "live",
+      "recorded_at": "2026-09-14T09:42:19.840Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 28,
+      "text": "**2026-09-14T12:10Z: RUNG-26 CYCLE DONE, build done.** Base 4c172d260, whose code is cc's 743247d8a (0355 touch-cost fix), ruled green by vc on the moved-set shape. Promoted: intent 4d3b8fa996f86066, intentd b0db7ab57ce94876. Intent.app build 7052 installed. intentd restarted from 35471 to pid 16233. doctor: rc 0, 0 findings. This tree's store user_version went 25 to 26 (read from the header, bytes 60-63; the WAL is empty) at the new pair's first store-opening command, doctor; the restart alone does not open the store. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. vc probes the live daemon for the 0355 verdict. Laksa's next command migrates its store to 26. Next: the cut's build all, on hv's word. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T12:10:18.460Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 29,
+      "text": "**2026-09-14T12:10Z: RUNG-26 CYCLE DONE, build done.** Base 4c172d260, whose code is cc's 743247d8a (0355 touch-cost fix), ruled green by vc on the moved-set shape. Promoted: intent 4d3b8fa996f86066, intentd b0db7ab57ce94876. Intent.app build 7052 installed. intentd restarted from 35471 to pid 16233. doctor: rc 0, 0 findings. This tree's store user_version went 25 to 26 (read from the header, bytes 60-63; the WAL is empty) at the new pair's first store-opening command, doctor; the restart alone does not open the store. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. vc probes the live daemon for the 0355 verdict. Laksa's next command migrates its store to 26. Next: the cut's build all, on hv's word. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T12:10:45.044Z"
     }
   ],
   "messages": [
