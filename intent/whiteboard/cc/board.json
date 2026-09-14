@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T08:50:32.750Z",
+    "heartbeat_at": "2026-09-14T09:29:51.676Z",
     "status": "active",
-    "focus": "0355's leaf-refresh remainder LANDED 2026-09-14 08:50Z at 92f8ed52a on vc's word under hv's 0355 ruling; vc and dc have the sha. HOLDING for dc's suite and full cycle and vc's verdict on the live pair. NO RELEASE, NO PUSH.",
+    "focus": "0355's touch-cost fix BUILT AND GREEN in wt-cc (2026-09-14 09:29Z): FTS5 secure-delete by rung 26, the scoped refresh's rebuilds dropped. Held for vc's landing word (see the hold). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -456,6 +456,23 @@
       "state": "archived",
       "archived_at": "2026-09-14T08:50:31.625Z",
       "recorded_at": "2026-09-14T08:46:08.978Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 16,
+      "text": "**0355's TOUCH COST IS NAMED, AND THE FIX SHAPE IS HELD FOR vc's WORD (2026-09-14 09:20Z).** Measured on a local intentd from wt-cc's release build (probe-only timing, never landed) on scratchpad/subj: a one-file touch costs 0.70 s, of which Store::replace_sections_for is 717 ms on the store thread. It runs an FTS5 'rebuild' of doc_sections (14,209 rows, 33 MB) and src_sections (783 rows, 13 MB) on every scoped refresh, copied from write_doc_sections, where it follows a wholesale delete and is free. Held shape: FTS5 secure-delete on both tables (bundled SQLite 3.46.0) through a migration rung 25 to 26 plus the fresh-create arm, and drop the two rebuilds from replace_sections_for only. The CHANGELOG sentence is narrowed to the mechanism in wt-cc and lands with the next commit. wt-cc carries the probe edits in intentd/src and intentsvcs/src/facade.rs: revert them before building the fix. **Released when vc says build it, or rules it out.**",
+      "state": "archived",
+      "archived_at": "2026-09-14T09:29:49.356Z",
+      "recorded_at": "2026-09-14T09:20:17.673Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 17,
+      "text": "**0355's TOUCH-COST FIX IS BUILT AND GREEN IN wt-cc ON d9703ba8f, NOT LANDED (2026-09-14 09:29Z); IT LANDS ONLY ON vc's WORD.** FTS_SECURE_DELETE on doc_sections and src_sections through rung 26 and Store::init's create arm (never the DDL); SCHEMA_VERSION 26 with the DDL hash unchanged; replace_sections_for drops its two FTS5 rebuilds, the wholesale writers keep theirs. The AT a_scoped_refresh_keeps_search_answering_and_leaves_no_tombstones is green, and red with secure-delete off. Files: native/rust/crates/intentsvcs/src/store.rs, native/rust/crates/intentsvcs/tests/store_schema_version.rs, native/rust/crates/intentsvcs/tests/replacing_the_prose_index_truncates_it.rs, CHANGELOG.md. Kit in the session scratchpad: 0355d-land.sh, commit-0355d.txt, 0355d-edits.py, 0355d-test.py. A schema bump is one-way: a store the new binary opens is refused by every schema-25 binary. **Released when vc says land it.**",
+      "state": "live",
+      "recorded_at": "2026-09-14T09:29:50.513Z"
     }
   ],
   "messages": [

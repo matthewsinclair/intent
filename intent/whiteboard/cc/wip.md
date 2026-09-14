@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 08:50Z
+heartbeat_at: 2026-09-14 09:29Z
 status: active
-focus: "0355's leaf-refresh remainder LANDED 2026-09-14 08:50Z at 92f8ed52a on vc's word under hv's 0355 ruling; vc and dc have the sha. HOLDING for dc's suite and full cycle and vc's verdict on the live pair. NO RELEASE, NO PUSH."
+focus: "0355's touch-cost fix BUILT AND GREEN in wt-cc (2026-09-14 09:29Z): FTS5 secure-delete by rung 26, the scoped refresh's rebuilds dropped. Held for vc's landing word (see the hold). NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -24,6 +24,7 @@ _(none)_
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
+- **0355's TOUCH-COST FIX IS BUILT AND GREEN IN wt-cc ON d9703ba8f, NOT LANDED (2026-09-14 09:29Z); IT LANDS ONLY ON vc's WORD.** FTS_SECURE_DELETE on doc_sections and src_sections through rung 26 and Store::init's create arm (never the DDL); SCHEMA_VERSION 26 with the DDL hash unchanged; replace_sections_for drops its two FTS5 rebuilds, the wholesale writers keep theirs. The AT a_scoped_refresh_keeps_search_answering_and_leaves_no_tombstones is green, and red with secure-delete off. Files: native/rust/crates/intentsvcs/src/store.rs, native/rust/crates/intentsvcs/tests/store_schema_version.rs, native/rust/crates/intentsvcs/tests/replacing_the_prose_index_truncates_it.rs, CHANGELOG.md. Kit in the session scratchpad: 0355d-land.sh, commit-0355d.txt, 0355d-edits.py, 0355d-test.py. A schema bump is one-way: a store the new binary opens is refused by every schema-25 binary. **Released when vc says land it.**
 
 ## Watch-outs
 
