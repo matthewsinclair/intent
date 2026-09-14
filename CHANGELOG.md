@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - in progress
+
+**v3.0.3 is the v3.0.2 product, published.** The v3.0.2 tag was cut and its GitHub release created, but its artefacts were never published: the release pipeline's support-tree guard refused the 3.0.2 tree at the tag, and a stage taken anywhere but a clean checkout at the tag is refused by `int macos publish`, correctly. v3.0.3 carries the guard fix and nothing else that changes behaviour. **If you are on v3.0.1, read the [v3.0.2 notes](docs/releases/3.0.2/RELEASE_NOTES.md) -- everything in them ships in this release, including the Upgrading section.**
+
+### Fixed
+
+- **`int macos prepare` stages the support tree again.** Its guard scanned the source for every `home.join(...)` chain and took each one as a path under the install root. 3.0.2 added chains that are not: the XDG data directory, the legacy `~/.intent`, `Library/LaunchAgents`, and the whiteboard's board home. The guard now reads only install-root chains, and the two install-root parameters that were named `home` are named `install`. Release tooling and two parameter names; no behaviour change in `intent` or `intentd`.
+
 ## [3.0.2] - 2026-09-14
 
 Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed, and the defects that audit found are being fixed. What is fixed is below; [Known defects](docs/known-defects.md) carries what is not, and says which release fixed the rest.
