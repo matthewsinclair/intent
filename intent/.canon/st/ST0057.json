@@ -328,7 +328,7 @@
     },
     {
       "id": "AC-04.2",
-      "text": "**The dehydration gate re-renders each view into memory, compares to the bytes on disk, refuses on ANY difference, and names the path.** A view carrying a hand edit is never removed. Fail-safe by construction rather than by discipline: one render and one comparison per file, on the removal path itself.",
+      "text": "**The dehydration gate re-renders each view into memory, compares to the bytes on disk, refuses on any difference but the footer's version, and names the path.** A view carrying a hand edit is never removed. Fail-safe by construction rather than by discipline: one render and one comparison per file, on the removal path itself. _Reworded 2026-09-14 for issue 0316, on vc's ruling: a view that differs from the render only in the version its footer names carries no hand edit, so the gate accepts that one difference, asked through `views::differs_only_in_banner_version`, the predicate doctor (0309) and the overwrite check (0385) already ask._",
       "kind": "test",
       "state": {
         "is": "computed"

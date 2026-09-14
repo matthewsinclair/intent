@@ -249,6 +249,28 @@ pub struct Held {
 
 impl Plan {
   /// Steps carrying a given action, in path order.
+  /// This plan narrowed to the removals of the paths `keep` names, and nothing
+  /// else: no hydration, no v2 prune, no held-thread refusal (issue 0316).
+  ///
+  /// **THE NARROWING IS OF THE STEPS, NOT OF THE GATES.** The steps kept run
+  /// through [`Plan::run`] exactly as organize's own do -- the preconditions,
+  /// the re-observation guard and the per-file [`gate`] -- so a caller that
+  /// wants only these removals gets organize's refusals with them. Dropping the
+  /// leftovers is what keeps the v2 prune out: an ingest and a removal are not
+  /// one run (0319), and a caller of this is not running the prune.
+  pub fn only_dehydrating(self, keep: impl Fn(&Path) -> bool) -> Plan {
+    Plan {
+      steps: self
+        .steps
+        .into_iter()
+        .filter(|s| s.action == Action::Dehydrate && keep(&s.path))
+        .collect(),
+      leftovers: crate::legacy::Leftovers::default(),
+      held: Vec::new(),
+      ..self
+    }
+  }
+
   pub fn with(&self, action: Action) -> impl Iterator<Item = &Step> {
     self.steps.iter().filter(move |s| s.action == action)
   }
@@ -1389,8 +1411,16 @@ impl Plan {
 
 /// The dehydration gate (AC-04.2).
 ///
-/// Re-render into memory, compare to the bytes on disk, refuse on ANY difference
-/// and name the path. **Fail-safe by construction rather than by discipline:**
+/// Re-render into memory, compare to the bytes on disk, refuse on any difference
+/// but the footer's version, and name the path.
+///
+/// **THE FOOTER'S VERSION IS THE ONE DIFFERENCE THAT CARRIES NO HAND EDIT**
+/// (issue 0316, vc's ruling 2026-09-14). A view an earlier Intent rendered
+/// differs from today's render in the version its banner names and nowhere
+/// else, and refusing it left a closed, undeclared thread's views with no
+/// owner: nothing re-rendered them and nothing removed them. The question is
+/// asked through [`crate::views::differs_only_in_banner_version`], the one
+/// predicate doctor (0309) and the overwrite check (0385) already ask. **Fail-safe by construction rather than by discipline:**
 /// the only way to remove a view is to have proved first that the store can
 /// reproduce it exactly, so a hand edit cannot be destroyed by an operator who
 /// forgot to check.
@@ -1403,6 +1433,7 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   let on_disk = std::fs::read_to_string(&step.path).map_err(|e| io_err(&step.path, e))?;
   match &step.content {
     Some(rendered) if *rendered == on_disk => Ok(()),
+    Some(rendered) if crate::views::differs_only_in_banner_version(&on_disk, rendered) => Ok(()),
     _ => Err(OrganizeError::HandEdited {
       path: step.path.clone(),
       bytes: on_disk.len(),

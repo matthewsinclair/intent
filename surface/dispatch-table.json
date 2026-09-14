@@ -1178,6 +1178,46 @@
           "recoverability": "one-way"
         },
         {
+          "path": "st detach",
+          "help": "Remove an attachment from a thread, leaving its file on disk for you to delete",
+          "args": [
+            {
+              "name": "id",
+              "type": "value",
+              "arity": "1"
+            },
+            {
+              "name": "path",
+              "type": "value",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "Issue 0394, allocated by vc 2026-09-14: `st attach` had no inverse, so an attachment could leave a thread only by a hand edit of canon and a `sync --to-store`. The record leaves the store and canon; the file on disk is the operator's to delete, and the output names it and says a running intentd or the next `sync --to-store` carries an authored file left under a thread back in.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the attachment's record is removed from the store and canon"
+              },
+              {
+                "code": 1,
+                "when": "the thread does not exist, or it carries no attachment at that path"
+              }
+            ],
+            "stdout": "`ok: <path> detached from <STID> -- ...`, then a `note:` naming the file when it is still on disk",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way"
+        },
+        {
           "path": "st sync",
           "help": "Synchronize steel_threads.md with individual ST files",
           "args": [],
@@ -9934,8 +9974,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 73,
-      "census_note": "73 since 2026-09-14: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 74,
+      "census_note": "74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10167,6 +10207,7 @@
       "st show",
       "st edit",
       "st attach",
+      "st detach",
       "st sync",
       "st repair",
       "st organize",
@@ -10337,6 +10378,7 @@
       "st show",
       "st edit",
       "st attach",
+      "st detach",
       "st sync",
       "wp",
       "wp new",
@@ -10509,6 +10551,7 @@
       "st show",
       "st edit",
       "st attach",
+      "st detach",
       "st sync",
       "wp",
       "wp new",

@@ -550,8 +550,8 @@ enum Reached {
 ///
 /// Excluded WITH the reason, under the same citation clause [`Expected`] carries:
 /// `hydrate` materialises canon onto disk and `edit` returns a path for an
-/// editor to open. **Neither changes canon at the addressed entity**, so neither
-/// can make a field settable. A bare exclusion here would shrink the surface
+/// editor to open. **Neither sets a field of the addressed entity**, which is
+/// the one thing a door is. A bare exclusion here would shrink the surface
 /// this criterion is about, with a signature on it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Door {
@@ -1215,7 +1215,7 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// # The two exclusions are named, not silent
 ///
 /// `hydrate`, `dehydrate` and `edit` take the same `(&mut self, address:
-/// &Address)` and are not doors: none changes canon at the addressed entity.
+/// &Address)` and are not doors: none sets a field of the addressed entity.
 /// They are listed here so that removing one from the exclusion list is a
 /// visible act rather than a shrug -- the same citation clause [`Expected`]
 /// carries. `hydration` is `hydrate`'s body, returning which paths the call
@@ -1224,8 +1224,8 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// **`dehydrate` REMOVES FILES AND IS STILL NOT A DOOR, WHICH IS THE ONE WORTH
 /// STATING.** It writes `.intentfiles` and deletes realised views; canon is
 /// untouched, which is exactly why re-listing the id and re-running `hydrate`
-/// restores what it removed. A door is about the ADDRESSED ENTITY'S canon, not
-/// about how much a verb writes.
+/// restores what it removed. A door is about SETTING A FIELD of the addressed
+/// entity, not about how much a verb writes.
 ///
 /// `dehydrate_announcing` is that same body with a callback taking every path
 /// before it goes (hv, 2026-09-12: silent deletion), so it is excluded for
@@ -1233,15 +1233,23 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// the day it was added**, which is the behaviour this exclusion list exists to
 /// keep: a door arriving unannounced is the failure, and a door named here is
 /// a decision somebody can read.
+///
+/// **`detach_attachment` DOES change canon at the addressed entity, and is still
+/// not a door for this criterion.** It removes the attachment's record from its
+/// thread, so no field of anything is left to have been set: the matrix these
+/// doors feed asks whether a FIELD is settable, and a removal answers that for
+/// no form. Its own falsifier is
+/// `attachment_path_must_name_a_place_in_the_thread.rs` (0394).
 #[test]
 fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
-  const NOT_DOORS: [&str; 6] = [
+  const NOT_DOORS: [&str; 7] = [
     "hydrate",
     "hydration",
     "hydration_overwriting",
     "dehydrate",
     "dehydrate_announcing",
     "edit",
+    "detach_attachment",
   ];
 
   let source =
@@ -1301,8 +1309,8 @@ fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
      AC-08.5 is about THE MUTATION SURFACE, so a door nobody drives makes the worklist too \
      long and reports built work as unbuilt -- which is what drove three forms into the \
      worklist for as long as this instrument knew only `put`.\n  \
-     Add it to `Door` if it changes canon at the addressed entity, or to `NOT_DOORS` WITH the \
-     reason it does not."
+     Add it to `Door` if it sets a field of the addressed entity, or to `NOT_DOORS` WITH the \
+     reason it sets none."
   );
 }
 

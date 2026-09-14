@@ -255,3 +255,58 @@ fn a_file_that_is_not_an_attachment_is_not_reported() {
      intersection with the attachment list is the only thing keeping this to its subject"
   );
 }
+
+/// **A DELETION IS REPORTED AS A DELETION, AND AN EDIT IS STILL AN EDIT**
+/// (issue 0315). Measured on a nested estate: seven carried attachments deleted
+/// from disk so their closed threads could dehydrate were each reported
+/// `edited in the working tree and not staged`, bytes "no commit contains",
+/// while HEAD held every byte of all seven. Both arms in one tree, because the
+/// defect was one label covering two states.
+#[test]
+fn an_unstaged_deletion_is_reported_as_deleted_with_heads_bytes_and_an_edit_as_modified() {
+  let repo = committed();
+  let edited = "intent/st/ST0001/design.md";
+  repo.write(edited, "# Design\n");
+  repo.git(&["add", "."]);
+  repo.git(&["commit", "-qm", "a second attachment"]);
+
+  std::fs::remove_file(repo.root().join(REL)).expect("delete the committed attachment");
+  repo.write(edited, "# Design\n\nEdited, and never staged.\n");
+
+  let found = repo.found(&[REL, edited]);
+  assert_eq!(
+    found.len(),
+    2,
+    "one deletion and one edit, reported: {found:?}"
+  );
+  let deleted = found
+    .iter()
+    .find(|u| u.path == REL)
+    .expect("the deletion is reported");
+  assert_eq!(
+    deleted.state,
+    NotInIndex::Deleted { in_head: true },
+    "an unstaged deletion of a committed file is labelled as something else"
+  );
+  assert!(
+    deleted.to_string().contains("HEAD holds its bytes"),
+    "the line does not say HEAD holds the bytes, so it still reads as bytes in no commit: {deleted}"
+  );
+  let modified = found
+    .iter()
+    .find(|u| u.path == edited)
+    .expect("the edit is reported");
+  assert_eq!(
+    modified.state,
+    NotInIndex::Modified,
+    "an unstaged edit stopped reading as modified"
+  );
+
+  // The state being reported is NOT STAGED, not "not committed": staging the
+  // deletion answers it, and the line goes.
+  repo.git(&["rm", "-q", "--cached", REL]);
+  assert!(
+    repo.found(&[REL]).is_empty(),
+    "a STAGED deletion is still reported, so the check compares against HEAD rather than the index"
+  );
+}

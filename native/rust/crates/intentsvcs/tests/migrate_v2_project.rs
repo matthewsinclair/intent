@@ -397,3 +397,96 @@ fn a_thread_v2_never_slugged_takes_the_slug_st_new_would_give_it() {
     "a thread v2 never slugged gets the slug st new computes from its title"
   );
 }
+
+/// **A CONVERTED CLOSED ISSUE IS NOT REALISED, SO ORGANIZE HAS NO ISSUE VIEW
+/// TO UNDO** (issue 0320). The default declaration leaves a closed issue out,
+/// and the plan wrote its view anyway -- the thread filter answered for threads
+/// only -- so the next `organize` unclaimed and removed it. Measured on Laksa:
+/// two converted closed issues written, then removed by the preview's `--apply`.
+///
+/// **THE ASSERTION IS ABOUT ISSUE VIEWS, NOT "NOTHING TO REMOVE".** A first
+/// migration leaves the v2 bucket files beside the views, and what the prune
+/// does with those is a separate question with its own issue; this arm's
+/// subject is the realised `intent/issues/<nnnn>.md`.
+#[test]
+fn a_converted_closed_issue_is_not_realised_and_organize_names_no_issue_view() {
+  let fx = v2_estate_in_git();
+  v2_thread(&fx, "ST0001", "WIP");
+  for (bucket, num, status) in [("OPEN", "0001", "OPEN"), ("CLOSED", "0002", "CLOSED")] {
+    fx.write_file(
+      &format!("intent/issues/{bucket}/{num}/{num}-a-slug.md"),
+      &format!(
+        "---\nid: \"{num}\"\ntitle: a title\ndate: 2026-08-05\nreporter: matts\nstatus: \
+         {status}\nseverity: medium\n---\n\n# {num}: a title\n\nBody.\n"
+      ),
+    );
+  }
+  fx.git_commit_all();
+  Facade::upgrade(&fx.project(), &facade_ctx()).expect("a v2 estate with issues converts");
+
+  let project = fx.project();
+  assert!(
+    project.issue_view(1).is_file(),
+    "the OPEN issue's view was not realised"
+  );
+  assert!(
+    !project.issue_view(2).exists(),
+    "the CLOSED issue's view was realised, and the manifest does not declare it"
+  );
+
+  let mut facade = Facade::open(fx.project(), facade_ctx()).expect("open the converted estate");
+  let preview = facade
+    .organize(intentsvcs::organize::Mode::Preview)
+    .expect("organize previews");
+  let issue_views: Vec<&std::path::PathBuf> = preview
+    .dehydrated
+    .iter()
+    .chain(&preview.unclaimed)
+    .filter(|p| *p == &project.issue_view(1) || *p == &project.issue_view(2))
+    .collect();
+  assert!(
+    issue_views.is_empty(),
+    "organize would remove an issue view upgrade just wrote: {issue_views:?}"
+  );
+}
+
+/// **THE v2 PRUNE READS AN ISSUE'S ID AS THE CONVERTER DOES** (issue 0397).
+/// v2 quotes every issue id, and the prune's verdict read it without stripping
+/// the quotes: every issue bucket file was withheld as naming no issue while
+/// the store held each one, and a single withheld file stops the whole prune.
+#[test]
+fn the_v2_prune_holds_issue_bucket_files_whose_quoted_ids_the_converter_read() {
+  let fx = v2_estate_in_git();
+  v2_thread(&fx, "ST0001", "WIP");
+  let buckets = [("OPEN", "0001", "OPEN"), ("CLOSED", "0002", "CLOSED")];
+  for (bucket, num, status) in buckets {
+    fx.write_file(
+      &format!("intent/issues/{bucket}/{num}/{num}-a-slug.md"),
+      &format!(
+        "---\nid: \"{num}\"\ntitle: a title\ndate: 2026-08-05\nreporter: matts\nstatus: \
+         {status}\nseverity: medium\n---\n\n# {num}: a title\n\nBody.\n"
+      ),
+    );
+  }
+  fx.git_commit_all();
+  let done =
+    Facade::upgrade(&fx.project(), &facade_ctx()).expect("a v2 estate with issues converts");
+
+  assert!(
+    done.prune_withheld.is_empty(),
+    "the prune withheld files the store holds: {:?}",
+    done
+      .prune_withheld
+      .iter()
+      .map(|w| (&w.path, &w.reason))
+      .collect::<Vec<_>>()
+  );
+  for (bucket, num, _) in buckets {
+    let path = fx.path(&format!("intent/issues/{bucket}/{num}/{num}-a-slug.md"));
+    assert!(
+      done.pruned.contains(&path),
+      "the prune did not remove {bucket}/{num}, whose issue the store holds: pruned {:?}",
+      done.pruned
+    );
+  }
+}

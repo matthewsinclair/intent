@@ -556,9 +556,21 @@ fn assemble(
     .filter(|t| !realised.declares(&t.id))
     .map(|t| project.thread_dir(&t.id))
     .collect();
+  // **AN UNDECLARED ISSUE IS NOT REALISED EITHER** (issue 0320). The filter
+  // above answers for threads only, so every converted issue's view was
+  // written -- a CLOSED one included, which the default declaration leaves out
+  // -- and the next `organize` unclaimed and removed it. Asked through the one
+  // predicate the projection and the skew check use, so the three cannot
+  // disagree about which issue is realised.
   let views: Vec<views::View> = views::render_all(project, &canon, &ctx_render)
     .into_iter()
     .filter(|v| !unrealised.iter().any(|dir| v.path.starts_with(dir)))
+    .filter(|v| {
+      !matches!(
+        views::undeclared_owner(project, &v.path, &canon, &realised),
+        Some(views::Undeclared::Issue(_))
+      )
+    })
     .collect();
   let Canon {
     threads,
@@ -782,11 +794,11 @@ mod tests {
     .expect("a clean estate plans");
 
     // Canon: two threads, one issue, one event log. Views: info + acceptance
-    // per thread, plus ONE PER ISSUE since ST0069 WP-01, plus the index and the
-    // todo view.
+    // per thread, plus the index and the todo view. The fixture's issue is
+    // CLOSED, and since 0320 a closed issue realises no view, so it plans none.
     assert_eq!(planned.threads.len(), 2);
     assert_eq!(planned.issues.len(), 1);
-    assert_eq!(planned.writes.len(), 4 + 7);
+    assert_eq!(planned.writes.len(), 4 + 6);
     // **The equality below is worthless if `tree` sees nothing**, and a
     // before/after comparison of two empty vectors passes for any behaviour.
     // This is what makes the next line an assertion rather than a shape.
@@ -992,12 +1004,14 @@ mod tests {
       )
       .expect("plan");
 
-      // Views: info + acceptance per thread (no WPs in these fixtures), ONE
-      // PER ISSUE since ST0069 WP-01 gave an issue a realised form, plus the
-      // index and the todo view. Stated here rather than derived, so a change
-      // in what the estate renders has to be acknowledged -- and this is that
-      // acknowledgement rather than a number nudged until it passed.
-      let views = 2 * threads as usize + issues as usize + 2;
+      // Views: info + acceptance per thread (no WPs in these fixtures), plus
+      // the index and the todo view. ST0069 WP-01 gave an issue a realised
+      // form, and 0320 then limited it to OPEN issues: these fixtures' issues
+      // are closed, so they contribute canon and no view. Stated here rather
+      // than derived, so a change in what the estate renders has to be
+      // acknowledged -- and this is that acknowledgement rather than a number
+      // nudged until it passed.
+      let views = 2 * threads as usize + 2;
       let canon = threads as usize + issues as usize + 1;
       assert_eq!(
         planned.writes.len(),

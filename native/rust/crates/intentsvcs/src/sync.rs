@@ -1241,6 +1241,10 @@ fn hex(bytes: &[u8]) -> String {
 pub enum NotInIndex {
   /// Tracked, and the working tree differs from what is staged.
   Modified,
+  /// Tracked, and gone from the working tree without the deletion being staged
+  /// (issue 0315). `in_head` says whether HEAD holds its bytes -- which it
+  /// usually does, and which is exactly what the `Modified` label denied.
+  Deleted { in_head: bool },
   /// Not in the index at all, so no commit can contain these bytes.
   Untracked,
 }
@@ -1249,6 +1253,12 @@ impl NotInIndex {
   fn describe(self) -> &'static str {
     match self {
       Self::Modified => "edited in the working tree and not staged",
+      Self::Deleted { in_head: true } => {
+        "deleted in the working tree and not staged, HEAD holds its bytes"
+      }
+      Self::Deleted { in_head: false } => {
+        "deleted in the working tree and not staged, and no commit holds its bytes"
+      }
       Self::Untracked => "untracked, so no commit contains it",
     }
   }
@@ -1348,15 +1358,30 @@ pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
   // notices until the day it truncates, and a truncated list here reads as
   // "nothing is wrong".
   let modified = git_paths(root, &["diff-files", "--name-only", "-z"])?;
+  // **A DELETION IS NOT AN EDIT** (issue 0315). `diff-files` lists a tracked
+  // file gone from the working tree beside one edited in it, and labelling both
+  // `Modified` told an operator that bytes HEAD holds were in no commit --
+  // measured on seven carried attachments whose every byte HEAD held. git
+  // answers which hits are deletions, so this asks git rather than the disk.
+  let deleted: BTreeSet<String> = git_paths(
+    root,
+    &["diff-files", "--name-only", "--diff-filter=D", "-z"],
+  )?
+  .into_iter()
+  .collect();
   let untracked = git_paths(root, &["ls-files", "--others", "--exclude-standard", "-z"])?;
 
   let mut out = Vec::new();
   for path in modified {
     if wanted.contains(path.as_str()) {
-      out.push(Uncommitted {
-        path,
-        state: NotInIndex::Modified,
-      });
+      let state = if deleted.contains(&path) {
+        NotInIndex::Deleted {
+          in_head: head_holds(root, &path),
+        }
+      } else {
+        NotInIndex::Modified
+      };
+      out.push(Uncommitted { path, state });
     }
   }
   for path in untracked {
@@ -1369,6 +1394,17 @@ pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
   }
   out.sort_by(|a, b| a.path.cmp(&b.path));
   Some(out)
+}
+
+/// Whether HEAD holds a blob at `path` (repository-relative, as `diff-files`
+/// spells it). No HEAD at all -- a repository with no commit -- holds nothing.
+fn head_holds(root: &Path, path: &str) -> bool {
+  std::process::Command::new("git")
+    .args(["cat-file", "-e", &format!("HEAD:{path}")])
+    .current_dir(root)
+    .stderr(std::process::Stdio::null())
+    .status()
+    .is_ok_and(|s| s.success())
 }
 
 /// What git says about the working tree, for the MIGRATION preconditions.

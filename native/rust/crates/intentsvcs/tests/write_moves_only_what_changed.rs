@@ -494,6 +494,15 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      has no opinion on what the verb is called, so a rename does not move this row",
   ),
   (
+    "st detach",
+    "attachment_path_must_name_a_place_in_the_thread.rs \
+     `detach_removes_the_attachment_record_and_leaves_the_file_on_disk` and \
+     `detaching_an_attachment_the_thread_does_not_carry_is_refused_and_changes_nothing` (0394) -- \
+     `st attach`'s inverse, driven beside the attachment tests for `st attach`'s reason: what it \
+     moves is an attachment record leaving a thread rather than a field of a document, so the \
+     whole-row diff this file is built around does not describe it",
+  ),
+  (
     "st edit",
     "edit_prints_a_path_that_exists.rs -- and it ARRIVED in this census by being reclassified \
      rather than by being written. It was declared `read_or_mutate: read` while `Facade::edit` \

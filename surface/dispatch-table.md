@@ -204,6 +204,7 @@ Manage steel threads for the project
 | `st show`                           | <id> [file] | --                                                                       | Show details of a specific steel thread                                                                                            | keep        |
 | `st edit`                           | <id> [file] | --editor, --path                                                         | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
 | `st attach`                         | <id> <path> | --from <file>                                                            | Write an attachment's content from a local file                                                                                    | new-surface |
+| `st detach`                         | <id> <path> | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                     | new-surface |
 | `st sync`                           | --          | --write, --width <n>, --format terminal/md                               | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
 | `st repair`                         | [id]        | --write                                                                  | Repair malformed steel thread metadata                                                                                             | retire      |
 | `st organize` (alias `st organise`) | --          | --write                                                                  | Organize ST files in directories by status                                                                                         | retire      |
@@ -618,6 +619,24 @@ Write an attachment's content from a local file
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
+- **recoverability:** one-way
+
+### `st detach`
+
+Remove an attachment from a thread, leaving its file on disk for you to delete
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (value, arity `1`)
+  - `path` (value, arity `1`)
+- **Exit codes:**
+  - `0` -- the attachment's record is removed from the store and canon
+  - `1` -- the thread does not exist, or it carries no attachment at that path
+- **stdout:** `ok: <path> detached from <STID> -- ...`, then a `note:` naming the file when it is still on disk
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **basis:** Issue 0394, allocated by vc 2026-09-14: `st attach` had no inverse, so an attachment could leave a thread only by a hand edit of canon and a `sync --to-store`. The record leaves the store and canon; the file on disk is the operator's to delete, and the output names it and says a running intentd or the next `sync --to-store` carries an authored file left under a thread back in.
 - **recoverability:** one-way
 
 ### `st sync`

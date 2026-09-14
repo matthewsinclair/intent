@@ -144,6 +144,8 @@ mod dep_graph_guard;
 mod dependency_rationale;
 #[path = "doctor_advisory.rs"]
 mod doctor_advisory;
+#[path = "init_keeps_the_store_out_of_git.rs"]
+mod init_keeps_the_store_out_of_git;
 
 #[path = "doctor_checks.rs"]
 mod doctor_checks;
@@ -298,6 +300,8 @@ mod symbols_come_from_the_grammars_own_tags;
 mod test_target_topology_guard;
 #[path = "the_source_tokeniser_is_measured.rs"]
 mod the_source_tokeniser_is_measured;
+#[path = "upgrade_dehydrates_undeclared_thread_views.rs"]
+mod upgrade_dehydrates_undeclared_thread_views;
 
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;

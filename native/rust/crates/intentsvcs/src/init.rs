@@ -459,8 +459,8 @@ pub fn init(
   // **THE SECOND OF AC-07.6'S TWO DOORS.** The migration converges this for a
   // v2 estate coming across; without it here, a project BORN on v3 is the one
   // shape that never gets it. The two doors call one function on purpose --
-  // `.gitignore` has had exactly this asymmetry (converged on migrate, absent
-  // on init) and it is a filed gap rather than a design.
+  // and `.gitignore` had exactly this asymmetry (converged on migrate, absent
+  // on init) until issue 0323 put it through the same door below.
   //
   // Runs after every write above, so the roster it converges describes a
   // project that fully exists. A `Project` that will not open one line after
@@ -503,6 +503,14 @@ pub fn init(
   crate::facade::converge_formatter_exclusion(&project)
     .map_err(|cause| InitError::Io(root.join(".prettierignore"), cause))?;
   written.push(root.join(".prettierignore"));
+
+  // **THE STORE STAYS OUT OF GIT FROM THE FIRST COMMIT** (issue 0323). A fresh
+  // project had no rule for `intent/.cache/`, so `git add .` staged
+  // `intent.db`, which D34 says never enters history. The one converger the
+  // migration calls, so both doors write the same rules in the same words.
+  crate::facade::converge_gitignore(&project)
+    .map_err(|cause| InitError::Io(root.join(".gitignore"), cause))?;
+  written.push(root.join(".gitignore"));
 
   written.sort();
 

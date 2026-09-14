@@ -118,6 +118,7 @@ pub const KNOWN_OPS: &[&str] = &[
   "at.put",
   "at.set",
   "attachment.put",
+  "attachment.detach",
   "disk.declare_default",
   "disk.dehydrate",
   "disk.hydrate",

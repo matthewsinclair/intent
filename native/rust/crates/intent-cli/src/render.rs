@@ -1247,14 +1247,14 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         Some(found) if found.is_empty() => {}
         Some(found) => {
           eprintln!(
-            "warning: {} attachment(s) carry bytes no commit contains, and this run takes them into canon:",
+            "warning: {} attachment(s) are not as the index holds them, and this run takes the working tree's state into canon:",
             found.len()
           );
           for line in &found {
             eprintln!("  {line}");
           }
           eprintln!(
-            "  commit them first if canon should name bytes a reader can obtain -- this run does not refuse, and the commit gate will"
+            "  stage or commit them first if canon should name bytes a reader can obtain -- this run does not refuse, and neither does the commit gate: doctor reports attachment drift as advisory"
           );
         }
       }
@@ -2589,6 +2589,32 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let outcome = facade.put_attachment(&address, &bytes).map_err(fail)?;
       report_notes(&outcome, &id);
       println!("ok: {path} written to {id}");
+      Ok(())
+    }
+    // Issue 0394: the record leaves the store and canon; the file is the
+    // operator's, and the note says what happens if it stays.
+    Some(("detach", a)) => {
+      let id = thread_arg(a, "id")?;
+      let path = arg(a, "path")?;
+      let address = intentsvcs::address::Address {
+        authority: None,
+        entity: intentsvcs::address::Entity::Attachment {
+          thread: id.clone(),
+          path: path.clone(),
+        },
+        format: None,
+      };
+      let mut facade = open()?;
+      let outcome = facade.detach_attachment(&address).map_err(fail)?;
+      report_notes(&outcome, &id);
+      println!("ok: {path} detached from {id} -- its record is gone from the store and canon");
+      let on_disk = facade.project().st_dir().join(&id).join(&path);
+      if on_disk.exists() {
+        println!(
+          "note: {} is still on disk and is yours to delete -- until it is, a running intentd or the next `intent sync --to-store` carries it back in as an attachment",
+          on_disk.display()
+        );
+      }
       Ok(())
     }
     Some(("show", a)) => {
@@ -4677,6 +4703,14 @@ fn upgrade() -> Result<(), Failure> {
   // matters most, and a total is not a review.
   for path in &done.pruned {
     eprintln!("pruned: {}", path.display());
+  }
+  // **THE VIEWS OF UNDECLARED THREADS, NAMED PATH BY PATH** (issue 0316), and
+  // every refusal in organize's own words.
+  for path in &done.dehydrated {
+    eprintln!("dehydrated: {}", path.display());
+  }
+  for refusal in &done.dehydrate_refused {
+    eprintln!("{refusal}");
   }
   // **AND THE REFUSAL NAMES EVERY FILE, not the first one.** A refusal reporting
   // one of several trains an operator to fix that one and re-run into the next.

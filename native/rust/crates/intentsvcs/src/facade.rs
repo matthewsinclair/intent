@@ -136,6 +136,13 @@ pub struct Upgraded {
   /// Authored files naming a v2 bucket path -- a worklist, never a refusal, and
   /// never rewritten (AC-02.4).
   pub pointers: Vec<crate::legacy::Pointer>,
+  /// Views of threads the manifest leaves undeclared that this run removed
+  /// through organize's own gate (issue 0316), named rather than counted.
+  pub dehydrated: Vec<std::path::PathBuf>,
+  /// Why a view this run would have removed was kept, each in organize's own
+  /// words with its remedy -- a hand edit, an unmet precondition, or a run
+  /// that could not ask.
+  pub dehydrate_refused: Vec<String>,
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -268,7 +275,7 @@ const IGNORED: &[(&str, &str)] = &[
   ),
 ];
 
-fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
+pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
   let dir = project
     .intent_dir()
     .file_name()
@@ -675,6 +682,17 @@ pub enum FacadeError {
     path: String,
     thread: String,
     fault: crate::project::PathFault,
+  },
+  /// A detach naming an attachment the thread does not carry (issue 0394).
+  ///
+  /// Its own variant for `AttachmentPathNotInThread`'s reason: the remedy is a
+  /// place to read the paths the thread DOES carry, and neither neighbour's
+  /// sentence is that.
+  #[error("{thread} carries no attachment at `{path}`, so there is nothing to detach")]
+  NoSuchAttachment {
+    url: String,
+    path: String,
+    thread: String,
   },
   /// A field the narrow setter will not write, and the door that does.
   ///
@@ -1645,6 +1663,9 @@ impl crate::remedy::Remedy for FacadeError {
       // question they have not looked at yet; the copy comes first.
       Self::HydrationWouldOverwrite { id, .. } => format!(
         "copy the version on disk somewhere else first -- then `intent st hydrate {id} --overwrite` discards it and writes what the store renders. If the version on disk is the one you want, it belongs in canon: make the change through the CLI so the store carries it"
+      ),
+      Self::NoSuchAttachment { thread, .. } => format!(
+        "the paths {thread} carries are its canon's `attachments`, in `intent/.canon/st/{thread}.json` -- name one of those, relative to the thread's own directory"
       ),
       Self::AttachmentPathNotInThread { thread, fault, .. } => {
         use crate::project::PathFault;
@@ -3093,7 +3114,35 @@ impl Facade {
     match finish() {
       Ok((pruned, prune_deferred, leftovers)) => {
         applied.keep();
+        // **THE VIEWS OF EVERY UNDECLARED THREAD GO, THROUGH ORGANIZE'S OWN
+        // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
+        // renders no undeclared thread's views and the gate removed only a
+        // byte-identical one, so a view an earlier binary rendered for a thread
+        // this run left undeclared had no owner, and an upgraded estate handed
+        // its operator a hand deletion. The migration has LANDED by this line,
+        // so a failure here is reported beside the refusals rather than
+        // returned: an error now would say the upgrade was not made when it was.
+        let (dehydrated, dehydrate_refused) = match Facade::open(project.clone(), ctx.clone())
+          .and_then(|mut f| f.dehydrate_undeclared_thread_views())
+        {
+          Ok(report) => (
+            report.dehydrated,
+            report
+              .refused
+              .iter()
+              .map(crate::remedy::Remedy::render)
+              .collect(),
+          ),
+          Err(cause) => (
+            Vec::new(),
+            vec![format!(
+              "the views of undeclared threads were not examined: {cause}"
+            )],
+          ),
+        };
         Ok(Upgraded {
+          dehydrated,
+          dehydrate_refused,
           pruned,
           ingested: bucket_ingested,
           not_ingested: bucket_not_ingested,
@@ -4587,6 +4636,30 @@ impl Facade {
     mode: organize::Mode,
     shown: Option<&str>,
   ) -> Result<organize::Report, FacadeError> {
+    self.organize_run(mode, shown, false)
+  }
+
+  /// Remove the views of every thread the manifest leaves undeclared, through
+  /// organize's own plan, gate and record, and nothing else (issue 0316).
+  ///
+  /// `upgrade` is the caller: it is the one verb that knows it has just changed
+  /// the declaration, and the one place a view an earlier binary rendered for a
+  /// now-undeclared thread can be given an owner without a new rule. Its
+  /// refusals are organize's -- a hand edit, an unmet precondition -- and are
+  /// reported, never bypassed.
+  pub fn dehydrate_undeclared_thread_views(&mut self) -> Result<organize::Report, FacadeError> {
+    self.organize_run(organize::Mode::Apply, None, true)
+  }
+
+  /// One run of organize, shared by [`Facade::organize_as_shown`] and
+  /// [`Facade::dehydrate_undeclared_thread_views`], so the second is the first
+  /// with its steps narrowed and never a second implementation of either.
+  fn organize_run(
+    &mut self,
+    mode: organize::Mode,
+    shown: Option<&str>,
+    undeclared_thread_views_only: bool,
+  ) -> Result<organize::Report, FacadeError> {
     let realised = self.manifest_for_action()?;
     // **NOTHING REGENERATES THIS FILE, BY hv's RULING (`d2b63bc3`).** organize
     // is: read the list, hydrate what is in it, dehydrate what is on disk and
@@ -4609,6 +4682,22 @@ impl Facade {
     let plan = {
       let ctx = self.render_ctx()?;
       organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
+    };
+    // Issue 0316: a thread's generated view reaches a Dehydrate step only when
+    // the thread is undeclared, so "a view with a thread owner" is exactly the
+    // undeclared threads' views -- attachments and issues stay out.
+    let plan = if undeclared_thread_views_only {
+      let views: std::collections::BTreeSet<std::path::PathBuf> = {
+        let ctx = self.render_ctx()?;
+        views::render_all(&self.project, &self.canon, &ctx)
+          .into_iter()
+          .map(|v| v.path)
+          .collect()
+      };
+      let canon = &self.canon;
+      plan.only_dehydrating(|p| views.contains(p) && self.owning_thread(p, canon).is_some())
+    } else {
+      plan
     };
 
     // **THE PIN IS TESTED BEFORE THE RUN, NOT INSIDE IT.** `Plan::run` is
@@ -11388,6 +11477,55 @@ impl Facade {
     };
     let (thread, path) = (thread.clone(), path.clone());
     self.place_attachment(&thread, &path, row)
+  }
+
+  /// Remove an attachment from its thread: the record leaves the store and
+  /// canon, and the file on disk is left where it is (issue 0394).
+  ///
+  /// **THE FILE'S FATE IS THE CALLER'S TO STATE, NOT THIS DOOR'S TO DECIDE.**
+  /// Until this door, an attachment could leave a thread only by a hand edit of
+  /// canon and a `sync --to-store`, which is exactly what the CLI exists to
+  /// spare an operator. Deleting the file here as well would destroy authored
+  /// bytes on a verb whose subject is the record, so the file stays and the
+  /// caller names it -- and says that an authored file left under a thread is
+  /// carried back in by the next ingest, which is the one fact that makes
+  /// "left on disk" an instruction rather than a reassurance.
+  ///
+  /// Written through the same [`Facade::apply`] as [`Facade::put_attachment`],
+  /// so the canon, the store and the event log move together.
+  pub fn detach_attachment(&mut self, address: &Address) -> Result<Outcome, FacadeError> {
+    let AddrEntity::Attachment { thread, path } = &address.entity else {
+      return Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: format!(
+          "{} is not an attachment address, and this door removes an attachment",
+          address.entity.form()
+        ),
+      });
+    };
+    let mut next = self.canon.clone();
+    let holder = find_thread_mut(&mut next, thread)?;
+    let before = holder.attachments.len();
+    holder.attachments.retain(|a| a.path != *path);
+    if holder.attachments.len() == before {
+      return Err(FacadeError::NoSuchAttachment {
+        url: address.to_url(),
+        path: path.clone(),
+        thread: thread.clone(),
+      });
+    }
+    let (thread, path) = (thread.clone(), path.clone());
+    self
+      .apply(
+        "attachment.detach",
+        Subject {
+          kind: "attachment".to_string(),
+          id: format!("{thread}/{path}"),
+        },
+        json!({ "via": "address" }),
+        next,
+      )
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
   }
 
   /// **THE NARROW FIELD-SETTER: one named field, on one addressed entity, and

@@ -871,11 +871,8 @@ fn issues(project: &Project, out: &mut Scan) {
       };
       let (front, body) = frontmatter(&text);
 
-      // **The id is QUOTED in v2 -- `id: "0015"` on all 61 -- so the quotes come
-      // off before parsing.** Left on, every issue in the estate fails to parse
-      // and the migration reports an empty tracker with every count agreeing.
       let raw_id = front.get("id").cloned().unwrap_or_default();
-      let Ok(number) = raw_id.trim().trim_matches('"').parse::<u32>() else {
+      let Some(number) = issue_id(&raw_id) else {
         out.record(
           bucket == "CLOSED",
           Finding::new(
@@ -3749,6 +3746,21 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
 /// below the frontmatter verbatim and turns the frontmatter into fields, so a
 /// byte comparison against the whole file would refuse every issue ever
 /// migrated correctly.
+/// A v2 issue's number, read from its frontmatter `id`.
+///
+/// **The id is QUOTED in v2 -- `id: "0015"` on all 61 of Intent's own, and
+/// v2's issue template writes `id: "NNNN"` -- so the quotes come off before
+/// parsing.** Left on, every issue fails to parse.
+///
+/// **ONE READER FOR THE CONVERTER AND THE PRUNE** (issue 0397). The converter
+/// stripped the quotes and the prune's verdict did not, so every real
+/// migration carried each issue into the store and then withheld every issue
+/// bucket file as naming no issue -- and one withheld file stops the whole v2
+/// prune. Two spellings of one parse drift; one cannot.
+fn issue_id(raw: &str) -> Option<u32> {
+  raw.trim().trim_matches('"').parse::<u32>().ok()
+}
+
 fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
   let Ok(text) = std::fs::read_to_string(path) else {
     return Holding::NotHeld(
@@ -3756,7 +3768,7 @@ fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
     );
   };
   let (front, body) = frontmatter(&text);
-  let Some(number) = front.get("id").and_then(|id| id.trim().parse::<u32>().ok()) else {
+  let Some(number) = front.get("id").and_then(|id| issue_id(id)) else {
     return Holding::NotHeld(
       "carries no readable `id` in its frontmatter, so it names no issue this store could hold"
         .to_string(),

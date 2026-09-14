@@ -809,6 +809,23 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a repo-relative attachment path names nowhere in the thread"),
   ));
 
+  // **`0394`'s REFUSAL, PROVOKED.** A detach naming an attachment the thread
+  // does not carry: nothing is removed, and the remedy says where the paths it
+  // does carry are.
+  out.push((
+    "a detach of an attachment the thread does not carry",
+    facade
+      .detach_attachment(&intentsvcs::address::Address {
+        authority: None,
+        entity: intentsvcs::address::Entity::Attachment {
+          thread: "ST0056".to_string(),
+          path: "never-attached.md".to_string(),
+        },
+        format: None,
+      })
+      .expect_err("ST0056 carries no attachment at never-attached.md"),
+  ));
+
   // **`0270`'s REFUSAL, AND IT NEEDS A FIXTURE OF ITS OWN** -- the same reason
   // 0206's does, one paragraph up. Every provocation above runs against one
   // facade in sequence, so by this point `AT-03.1` has already been driven to
@@ -928,6 +945,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::VerdictWrongForKind { .. } => "VerdictWrongForKind",
     FacadeError::OpenWorkPackages { .. } => "OpenWorkPackages",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
+    FacadeError::NoSuchAttachment { .. } => "NoSuchAttachment",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
@@ -1042,6 +1060,7 @@ const ALL_VARIANTS: &[&str] = &[
   "DehydrationRefused",
   "NotEditable",
   "NoSuchEditable",
+  "NoSuchAttachment",
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",

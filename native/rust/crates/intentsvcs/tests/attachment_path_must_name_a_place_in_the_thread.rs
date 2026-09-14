@@ -197,3 +197,62 @@ fn an_interior_dot_segment_is_refused_by_the_same_rule() {
   assert!(why.contains("not written plainly"), "{why}");
   assert!(remedy.contains("write `parity/probe.txt`"), "{remedy}");
 }
+
+/// **DETACH REMOVES THE RECORD AND LEAVES THE FILE** (issue 0394). The record
+/// leaves the store and canon; an authored file on disk is the operator's.
+#[test]
+fn detach_removes_the_attachment_record_and_leaves_the_file_on_disk() {
+  let fx = fixture();
+  fx.write_file("intent/st/ST0001/design.md", "# original\n");
+  let mut f = fx.facade();
+  assert_eq!(
+    paths(&mut f),
+    vec!["design.md".to_string()],
+    "the fixture carries design.md"
+  );
+
+  f.detach_attachment(&address("design.md"))
+    .expect("a carried attachment detaches");
+
+  assert!(
+    paths(&mut f).is_empty(),
+    "design.md is still in the thread's record"
+  );
+  assert!(
+    !fx.read_canon("ST0001").contains("design.md"),
+    "design.md is still in ST0001's canon"
+  );
+  assert_eq!(
+    fx.read("intent/st/ST0001/design.md"),
+    "# original\n",
+    "detach touched the file on disk, which is the operator's"
+  );
+}
+
+/// **A DETACH NAMING NOTHING THE THREAD CARRIES IS REFUSED BY NAME, AND
+/// CHANGES NOTHING**, and its remedy says where the carried paths are.
+#[test]
+fn detaching_an_attachment_the_thread_does_not_carry_is_refused_and_changes_nothing() {
+  let fx = fixture();
+  let mut f = fx.facade();
+  let err = f
+    .detach_attachment(&address("never-attached.md"))
+    .expect_err("there is nothing to detach");
+  assert!(
+    matches!(
+      err,
+      intentsvcs::facade::FacadeError::NoSuchAttachment { .. }
+    ),
+    "the refusal is not NoSuchAttachment: {err:?}"
+  );
+  assert!(
+    err.remedy().contains("intent/.canon/st/ST0001.json"),
+    "the remedy does not say where the carried paths are: {}",
+    err.remedy()
+  );
+  assert_eq!(
+    paths(&mut f),
+    vec!["design.md".to_string()],
+    "a refused detach changed the record"
+  );
+}
