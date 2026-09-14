@@ -1823,6 +1823,15 @@ pub fn wb_inbox_body(
   }
   for m in mine {
     out.push_str(&format!("## ({})", board_stamp(&m.recorded_at)));
+    // **A CARRIED ENTRY SHOWS THE STAMP IT WAS WRITTEN WITH, AS CLAIMED TEXT**
+    // (vc, ruled 2026-09-14). A migration stamps every entry it carries with one
+    // `recorded_at`, so the heading alone loses the inbox's order. The written
+    // stamp rides beside it verbatim and is never parsed (D33), after the
+    // heading's own stamp, where nothing reads a time.
+    // Issue 0382: a carried entry rendered only the moment of the carry.
+    if let Some(claimed) = &m.authored_at {
+      out.push_str(&format!(" claimed {claimed}"));
+    }
     if let Some(re) = &m.re {
       out.push_str(&format!(" Re: {re}"));
     }
@@ -2286,6 +2295,20 @@ mod tests {
     assert!(
       empty.starts_with("# inbox: ic -> cc\n\n_(empty)_\n"),
       "{empty}"
+    );
+  }
+
+  #[test]
+  fn a_carried_entry_shows_the_stamp_it_was_written_with_as_claimed_text() {
+    // Issue 0382: a carried entry rendered only the carry's recorded_at, so a migrated inbox lost its order.
+    let mut b = board();
+    b.messages[0].authored_at = Some("2026-09-12 08:59Z".to_string());
+    let out = wb_inbox("vc", "cc", &b.messages, &ctx());
+    assert!(
+      out.starts_with(
+        "# inbox: vc -> cc\n\n## (2026-09-12 19:02Z) claimed 2026-09-12 08:59Z (handled)\n\nthe order\n"
+      ),
+      "{out}"
     );
   }
 
