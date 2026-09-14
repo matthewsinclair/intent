@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-14T07:06:21.897Z",
+    "heartbeat_at": "2026-09-14T07:39:08.087Z",
     "status": "active",
-    "focus": "hv's bundle ruled (crack on + rulings in ic's session): 0355 in, clippy in, fleet-wide carrier sweep by dc, picker file source accepted, ~/.intent to vanish (evidence moved), post-tag WP yes. TWO PERMISSION STOPS FOR hv: cc's 0355 commit prompt in cc's session; the sweep go typed in dc's session (vc's session refused to direct it). dc: suite on the new base then HOLD before build all. ic: clippy second, then the ~/.intent doc sweep, then the TUI fixes after build done. NO RELEASE, NO PUSH.",
+    "focus": "PROMOTED at e3c67792c (intent 4bf35086, intentd bfc5254c, Intent.app build 7030, doctor 0, daemon 79593 under vc's watch); ~/.intent gone by hv's hand; the fleet carrier sweep RAN by hv in dc's session over 23 estates, all applied, and 20 of them owe a commit of the rewritten CLAUDE.md and AGENTS.md (canon catch-up), Gtools its tracked carrier too. Landed after: ic's doc sweep and 3.0.2 notes, CLAUDE.md:84, ic's /issues seam fix (suite green on a8e3273d8), 0355 measured on the pair. Laksa's migration in flight on laksa-vc. FOR hv: the 0355 leaf-refresh remainder before the tag (recommend cc builds it), the 20 owed commits, then the cut at the terminal. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
