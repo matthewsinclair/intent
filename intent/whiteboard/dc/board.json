@@ -703,8 +703,17 @@
       "kind": "doing",
       "seq": 35,
       "text": "**2026-09-14T17:24Z: clippy fix LANDED at 3fbdd4ca0** (one commit on ic's d9304ef54; render.rs only; workspace clippy -D warnings red on 81cb3d392, green with the fix on 81cb3d392 and on d9304ef54; runs in scratchpad batch/clippy-*.txt). ic's 0353 rebases onto it, then cc's 0376. MY NEXT SLOT is on vc's hash: release (0386 0387 0389; 0387's fold stands as written, the old judge's empty result was its refused fixture commit, batch/drive-0387-sync.txt), then keg (drive 0327 first), then CI/scripts (0330 by the canon route at landing), then 0390 0391 0392. The three groups travel as scratchpad batch/patches/groups-on-81cb3d392.patch, never a stash. EVERY JUDGING RUN CARRIES WORKSPACE CLIPPY. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T17:29:42.326Z",
       "recorded_at": "2026-09-14T17:24:07.134Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 36,
+      "text": "**2026-09-14T17:29Z: RELEASE GROUP ACCEPTED by vc as judged; it LANDS AFTER IC'S 0310 HASH, which vc sends:** one commit, bin/.devbin/cmd/build.d/release only (scratchpad batch/patches/release-group.patch), closing 0386 0387 0389 with issues edit --from batch/bodies/<id>.md then close, organize --apply, the three closed views staged (deleted views only in --only), git log -1 --stat to vc. cc's 0376 lands after mine. KEG: 0327 JUDGED at 17:28:39Z (batch/judge-0327.txt): the remedy choice is split into the pure not_installed_remedy(root), and a unit test drives both branches (a root with bin/devbin gets the devbin text, a root without and None get the v{CARGO_PKG_VERSION} release URL); 5 macapp tests ran; workspace clippy rc 0. Not driven end to end because /Applications/Intent.app exists and is hv's to move. Keg report to vc next. Patches: batch/patches/{release,keg,ci}-group.patch and groups-on-3fbdd4ca0.patch (all three plus the untracked suite_path_check.sh); wt-dc is at 3fbdd4ca0 carrying all three. Then CI/scripts (0330 by the canon route at landing), then 0390 0391 0392. EVERY JUDGING RUN CARRIES WORKSPACE CLIPPY. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:29:30.903Z"
     }
   ],
   "messages": [
