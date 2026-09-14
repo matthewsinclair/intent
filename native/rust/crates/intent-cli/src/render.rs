@@ -2818,8 +2818,15 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       // `show` commands cannot drift into two vocabularies again -- the defect
       // 0047 named -- and the resource emits the same bytes. `st` is the
       // caller's because the model is identified within its thread.
-      print!("{}", crate::show::work_package(&st, wp));
+      let criteria = f.wp_criteria(&st, seq).map_err(fail)?;
+      print!("{}", crate::show::work_package(&st, wp, &criteria));
       Ok(())
+    }
+    // Issue 0310: the package's verdict on its own, by the computation
+    // `ac gate <ST>/<NN>` already runs, through the one gate renderer.
+    Some(("gate", a)) => {
+      let (st, seq) = wp_target(a)?;
+      gate_verdict(&format!("{st}/{seq:02}"))
     }
     Some((verb, _)) => unwired("wp", verb),
     None => Err("error: a work package command is required".into()),
@@ -2830,17 +2837,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("gate", a)) => {
       let target = thread_arg(a, "stid")?;
-      let (st, scope) = scope_of(&target);
-      let f = open()?;
-      let verdict = f.gate(&st, scope).map_err(fail)?;
-      println!("{}", verdict.line(&target));
-      if verdict.is_pass() {
-        Ok(())
-      } else {
-        // The gate's own line IS the message; it went to stdout because the
-        // gate is read by machines via the exit code (v2 does the same).
-        Err(Failure::Verdict)
-      }
+      gate_verdict(&target)
     }
     // **CREATE, AC-08.6.** The nine arms beside this one are all TRANSITIONS on
     // a row that already exists; until this landed, the only route to a new
@@ -2965,16 +2962,9 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
     Some(("list", a)) => {
       let st = thread_arg(a, "stid")?;
       let f = open()?;
-      // v2's shape verbatim (`bin/intent_acceptance:909`), including the
-      // absent space after `covered-by:` -- the ids arrive space-prefixed, so
-      // an uncovered criterion renders `covered-by:` with nothing after it.
+      // The line is `show::ac_row_line`'s, shared with `wp show`.
       for row in f.ac_list(&st).map_err(fail)? {
-        let covering = row
-          .covered_by
-          .iter()
-          .map(|id| format!(" {id}"))
-          .collect::<String>();
-        println!("ac: {}  covered-by:{covering}  {}", row.id, row.state);
+        println!("{}", crate::show::ac_row_line(&row));
       }
       Ok(())
     }
@@ -7596,6 +7586,23 @@ fn print_versions(faces: &[intentsvcs::faces::SchemaFace]) {
 }
 
 /// `ST0000` or `ST0000/03`.
+/// The close gate's verdict for a thread or `<ST>/<NN>`, printed as the gate's
+/// own line: `ac gate` and `wp gate` both answer through here, so the two doors
+/// cannot drift (issue 0310).
+fn gate_verdict(target: &str) -> Result<(), Failure> {
+  let (st, scope) = scope_of(target);
+  let f = open()?;
+  let verdict = f.gate(&st, scope).map_err(fail)?;
+  println!("{}", verdict.line(target));
+  if verdict.is_pass() {
+    Ok(())
+  } else {
+    // The gate's own line IS the message; it went to stdout because the
+    // gate is read by machines via the exit code (v2 does the same).
+    Err(Failure::Verdict)
+  }
+}
+
 pub(crate) fn scope_of(target: &str) -> (String, Scope) {
   match target.split_once('/') {
     Some((st, wp)) => match wp.parse::<u32>() {

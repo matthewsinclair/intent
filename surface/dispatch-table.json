@@ -1957,6 +1957,30 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "read",
           "facade": "wp_show"
+        },
+        {
+          "path": "wp gate",
+          "help": "Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria are unsatisfied",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "Issue 0310, on vc's batch order: a work package's verdict and reasoning were visible only as `wp done`'s refusal, and no verb named the package. **A DOOR ONTO AN EXISTING COMPUTATION, NOT A SECOND ONE.** `ac gate <ST>/<NN>` already runs `Facade::gate` over `Scope::WorkPackage`; this arm reaches the same call through `render.rs`'s `gate_verdict`, the one gate renderer both doors share, so the two cannot drift in what they judge or how they print it. Exit 0 on a pass, 1 on BLOCKED, the gate's line on stdout in both cases, exactly as `ac gate`. **`wp show` lists the same package's criteria**, by the id group the gate reads (`Facade::wp_criteria`), so the listing and the verdict agree about what is in scope.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "note": "**CLOSED BECAUSE THE TOOL TIER ALREADY HAS THIS VERDICT.** `ac gate` is exposed and takes `<ST>/<NN>`, so an agent reaches a work package's gate there by the same computation. A second tool for one answer would be two names an agent has to choose between."
+          },
+          "facade": "gate"
         }
       ],
       "bats_coverage": {
@@ -9859,8 +9883,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 72,
-      "census_note": "72 since 2026-09-14: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 73,
+      "census_note": "73 since 2026-09-14: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10106,6 +10130,7 @@
       "wp rescope",
       "wp list",
       "wp show",
+      "wp gate",
       "ac",
       "ac list",
       "ac show",
@@ -10272,6 +10297,7 @@
       "wp rescope",
       "wp list",
       "wp show",
+      "wp gate",
       "ac",
       "ac list",
       "ac show",
@@ -10443,6 +10469,7 @@
       "wp rescope",
       "wp list",
       "wp show",
+      "wp gate",
       "ac",
       "ac list",
       "ac show",

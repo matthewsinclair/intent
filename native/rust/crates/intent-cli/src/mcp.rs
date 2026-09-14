@@ -1780,7 +1780,12 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
       let seq = wp
         .parse::<u32>()
         .map_err(|_| bad("a work-package address ends in a whole-number sequence".to_string()))?;
-      Ok(crate::show::work_package(&thread, f.wp_show(&thread, seq)?))
+      let criteria = f.wp_criteria(&thread, seq)?;
+      Ok(crate::show::work_package(
+        &thread,
+        f.wp_show(&thread, seq)?,
+        &criteria,
+      ))
     }
     Entity::Issue { id } => {
       let number = id

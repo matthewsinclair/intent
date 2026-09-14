@@ -52,7 +52,7 @@ pub fn thread(t: &Thread) -> String {
 /// `intent wp show <st> <seq>`'s text. The parent `st` is the caller's — the
 /// model is identified within a thread and carries no parent id — matching the
 /// arm, which takes `st` from its argument.
-pub fn work_package(st: &str, wp: &WorkPackage) -> String {
+pub fn work_package(st: &str, wp: &WorkPackage, criteria: &[AcRow]) -> String {
   let mut s = String::new();
   let _ = writeln!(s, "{st}/WP-{:02}: {}", wp.seq, wp.title);
   let _ = writeln!(s, "status: {}", wp.status.display());
@@ -60,7 +60,28 @@ pub fn work_package(st: &str, wp: &WorkPackage) -> String {
     let _ = writeln!(s, "reason: {reason}");
   }
   let _ = writeln!(s, "scope: {}", wp.scope_display());
+  // Issue 0310: the criteria this package is judged on, in `ac list`'s own
+  // line, and said outright when there are none rather than left blank.
+  if criteria.is_empty() {
+    let _ = writeln!(s, "criteria: none scoped to {st}/{:02}", wp.seq);
+  }
+  for row in criteria {
+    let _ = writeln!(s, "{}", ac_row_line(row));
+  }
   s
+}
+
+/// One `ac list` line: v2's shape verbatim (`bin/intent_acceptance:909`),
+/// including the absent space after `covered-by:` -- the ids arrive
+/// space-prefixed, so an uncovered criterion renders `covered-by:` with nothing
+/// after it. Shared by `ac list` and `wp show` so the two cannot drift.
+pub fn ac_row_line(row: &AcRow) -> String {
+  let covering = row
+    .covered_by
+    .iter()
+    .map(|id| format!(" {id}"))
+    .collect::<String>();
+  format!("ac: {}  covered-by:{covering}  {}", row.id, row.state)
 }
 
 /// `intent ac show <st> <ac>`'s text (0168): the header, `kind`, the state in

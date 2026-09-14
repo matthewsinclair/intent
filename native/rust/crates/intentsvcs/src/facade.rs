@@ -3168,6 +3168,23 @@ impl Facade {
   /// for a test-backed AC it is not stored anywhere: satisfaction comes from a
   /// covering green test, and storing it too would be the double truth
   /// data-model.md forbids.
+  /// The criteria scoped to one work package, as `ac list` composes them
+  /// (issue 0310). A criterion belongs to a package by its id's group --
+  /// `AC-03.x` to package 3 -- which is the same grouping the close gate's
+  /// `Scope::WorkPackage` reads, so `wp show` lists exactly what `wp gate` and
+  /// `wp done` judge. Refuses a package the thread does not have.
+  pub fn wp_criteria(&self, st: &str, seq: u32) -> Result<Vec<AcRow>, FacadeError> {
+    self.wp_show(st, seq)?;
+    let group = format!("{seq:02}");
+    Ok(
+      self
+        .ac_list(st)?
+        .into_iter()
+        .filter(|row| crate::contract::group_of(&row.id) == group)
+        .collect(),
+    )
+  }
+
   pub fn ac_list(&self, st: &str) -> Result<Vec<AcRow>, FacadeError> {
     let thread = self.st_show(st)?;
     Ok(thread.criteria.iter().map(|c| ac_row(thread, c)).collect())

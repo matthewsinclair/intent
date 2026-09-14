@@ -735,19 +735,20 @@ Manage work packages within steel threads
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
 
-| command        | args               | flags                             | help                                                              | disposition |
-| -------------- | ------------------ | --------------------------------- | ----------------------------------------------------------------- | ----------- |
-| `wp`           | <command>          | help/--help/-h                    | Manage work packages within steel threads                         | keep        |
-| `wp new`       | <stid> <title>     | --                                | Create a new work package                                         | keep        |
-| `wp start`     | <specifier>        | --                                | Mark a work package as WIP                                        | keep        |
-| `wp done`      | <specifier>        | --                                | Mark a work package as Done                                       | keep        |
-| `wp reopen`    | <specifier>        | --reason <text>                   | Reopen a done work package back into Wip, with a reason           | new-surface |
-| `wp cancel`    | <specifier>        | --reason <text>                   | Mark a work package as cancelled, with a reason                   | new-surface |
-| `wp reinstate` | <specifier>        | --reason <text>                   | Reinstate a cancelled work package into NotStarted, with a reason | new-surface |
-| `wp unstart`   | <specifier>        | --                                | Return a started work package to NotStarted                       | new-surface |
-| `wp rescope`   | <specifier> <size> | --                                | Change a work package's T-shirt size                              | new-surface |
-| `wp list`      | <stid>             | --width <n>, --format terminal/md | List work packages for a steel thread                             | keep        |
-| `wp show`      | <specifier>        | --                                | Show work package info.md                                         | keep        |
+| command        | args               | flags                             | help                                                                                            | disposition |
+| -------------- | ------------------ | --------------------------------- | ----------------------------------------------------------------------------------------------- | ----------- |
+| `wp`           | <command>          | help/--help/-h                    | Manage work packages within steel threads                                                       | keep        |
+| `wp new`       | <stid> <title>     | --                                | Create a new work package                                                                       | keep        |
+| `wp start`     | <specifier>        | --                                | Mark a work package as WIP                                                                      | keep        |
+| `wp done`      | <specifier>        | --                                | Mark a work package as Done                                                                     | keep        |
+| `wp reopen`    | <specifier>        | --reason <text>                   | Reopen a done work package back into Wip, with a reason                                         | new-surface |
+| `wp cancel`    | <specifier>        | --reason <text>                   | Mark a work package as cancelled, with a reason                                                 | new-surface |
+| `wp reinstate` | <specifier>        | --reason <text>                   | Reinstate a cancelled work package into NotStarted, with a reason                               | new-surface |
+| `wp unstart`   | <specifier>        | --                                | Return a started work package to NotStarted                                                     | new-surface |
+| `wp rescope`   | <specifier> <size> | --                                | Change a work package's T-shirt size                                                            | new-surface |
+| `wp list`      | <stid>             | --width <n>, --format terminal/md | List work packages for a steel thread                                                           | keep        |
+| `wp show`      | <specifier>        | --                                | Show work package info.md                                                                       | keep        |
+| `wp gate`      | <specifier>        | --                                | Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria are unsatisfied | new-surface |
 
 ### `wp`
 
@@ -990,6 +991,20 @@ Show work package info.md
 - **Note:** WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind. **THAT SENTENCE WAS TRUE OF THE NOTE AND FALSE OF THE BINARY, and it is the reason to keep the correction visible here rather than to quietly amend it.** v2 implements `wp show` by catting `info.md` (`bin/intent_wp:263`), and `views.rs` writes that file's status line with `display()`, so v2 printed `status: WIP`. v3 printed `status: wip` -- `enum_str`, not `display()` -- until cc corrected it at `d0f345b5`. **A test was pinning the divergence as expected output**: `cli_end_to_end.rs` asserted `contains("status: wip")` while measuring something else entirely (that a reopen had moved the package), and captured the wrong spelling on the way. **So the estate simultaneously held a CORRECT statement of the requirement, in this note, and an INCORRECT assertion of it, in a test -- about one command, at one time -- and the assertion is the one with teeth, because it runs on every commit while a note is read once at authoring.** Nothing anywhere compares a row's prose to the test that covers it (vc, 2026-08-17). Found because cc's witness reads state back from the tool rather than from a literal, so `st show` said `WIP` and `wp show` said `wip` in the same run. The row was right and the code was not; the row is now right and so is the code.
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** wp_show
+
+### `wp gate`
+
+Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria are unsatisfied
+
+- **v2:** new-surface
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** **CLOSED BECAUSE THE TOOL TIER ALREADY HAS THIS VERDICT.** `ac gate` is exposed and takes `<ST>/<NN>`, so an agent reaches a work package's gate there by the same computation. A second tool for one answer would be two names an agent has to choose between.
+- **basis:** Issue 0310, on vc's batch order: a work package's verdict and reasoning were visible only as `wp done`'s refusal, and no verb named the package. **A DOOR ONTO AN EXISTING COMPUTATION, NOT A SECOND ONE.** `ac gate <ST>/<NN>` already runs `Facade::gate` over `Scope::WorkPackage`; this arm reaches the same call through `render.rs`'s `gate_verdict`, the one gate renderer both doors share, so the two cannot drift in what they judge or how they print it. Exit 0 on a pass, 1 on BLOCKED, the gate's line on stdout in both cases, exactly as `ac gate`. **`wp show` lists the same package's criteria**, by the id group the gate reads (`Facade::wp_criteria`), so the listing and the verdict agree about what is in scope.
+- **facade:** gate
 
 ## Family: `ac`
 
