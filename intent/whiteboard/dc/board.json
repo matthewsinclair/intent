@@ -712,8 +712,17 @@
       "kind": "doing",
       "seq": 36,
       "text": "**2026-09-14T17:29Z: RELEASE GROUP ACCEPTED by vc as judged; it LANDS AFTER IC'S 0310 HASH, which vc sends:** one commit, bin/.devbin/cmd/build.d/release only (scratchpad batch/patches/release-group.patch), closing 0386 0387 0389 with issues edit --from batch/bodies/<id>.md then close, organize --apply, the three closed views staged (deleted views only in --only), git log -1 --stat to vc. cc's 0376 lands after mine. KEG: 0327 JUDGED at 17:28:39Z (batch/judge-0327.txt): the remedy choice is split into the pure not_installed_remedy(root), and a unit test drives both branches (a root with bin/devbin gets the devbin text, a root without and None get the v{CARGO_PKG_VERSION} release URL); 5 macapp tests ran; workspace clippy rc 0. Not driven end to end because /Applications/Intent.app exists and is hv's to move. Keg report to vc next. Patches: batch/patches/{release,keg,ci}-group.patch and groups-on-3fbdd4ca0.patch (all three plus the untracked suite_path_check.sh); wt-dc is at 3fbdd4ca0 carrying all three. Then CI/scripts (0330 by the canon route at landing), then 0390 0391 0392. EVERY JUDGING RUN CARRIES WORKSPACE CLIPPY. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T17:36:04.886Z",
       "recorded_at": "2026-09-14T17:29:30.903Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 37,
+      "text": "**2026-09-14T17:35Z: RELEASE GROUP LANDED at 0e06c0a80** (build.d/release plus 0386 0387 0389 closed, views removed; 8 files; gate green first time). KEG is accepted by vc and LANDS AFTER CC'S 0376 HASH, which vc sends: rebase keg-group.patch (scratchpad batch/patches/, 7 files; its render.rs context() hunk re-checked clean against ed0ca764c), close 0327 0333 0340 with batch/bodies/<id>.md, organize --apply, then ASK VC FOR THE WORD before landing. CI/SCRIPTS: 0330's delete route is BLOCKED pending vc's ruling -- fixture_probe.sh is run by gen_register.sh (line 116) and declared in its inputs header, and generator_inputs_check.sh is GATED, so deleting the probe alone refuses every commit; the options are sent to vc (a: retire gen_register.sh too, b: delete only coverage_map.sh, c: vc's). The rest of the CI group is judged. Then 0390 0391 0392. wt-dc is at 3fbdd4ca0 carrying all three groups (the release one now on main). EVERY JUDGING RUN CARRIES WORKSPACE CLIPPY. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:35:58.171Z"
     }
   ],
   "messages": [
