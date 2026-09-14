@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 397,
+  "slug": "the-v2-prune-reads-an-issue-id-without-stripping",
+  "title": "the v2 prune reads an issue id without stripping v2's quotes, so it withholds every issue bucket file and prunes nothing",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "Found 2026-09-14 by dc, working 0320, and driven once in a private worktree on the `migrate_v2_project` fixture: a WIP thread plus v2 issues OPEN 0001 and CLOSED 0002, their ids quoted exactly as v2 writes them.\n\n**Two spellings of one parse.** `legacy.rs`'s converter reads an issue id as `raw_id.trim().trim_matches('\"').parse::<u32>()`, and says why beside it: v2 quotes the id, `id: \"0015\"`, on all 61 of Intent's own issues. The v2 prune's `issue_verdict` reads the same field as `id.trim().parse::<u32>()`, which leaves the quotes on, so the parse fails. v2 always quotes: its own template, `lib/templates/issues/_ISSUE.md`, writes `id: \"NNNN\"`, and Intent's history carries `id: \"0001\"`.\n\n**The effect.** On every real v2 migration the prune withholds every issue bucket file, reason `carries no readable id in its frontmatter, so it names no issue this store could hold`, while the store holds each of those issues. A single withheld file stops the whole v2 prune (`leftovers.refuses()`: an estate with an unheld file removes nothing). So a first migration of an estate with v2 issues prunes none of its v2 tree, thread buckets included, and states a reason that is false. Nothing is lost; the v2 tree just stays.\n\n**Evidence.** `Upgraded.pruned` was `[]`, `prune_deferred` `[]`, and `prune_withheld` listed both `intent/issues/OPEN/0001/0001-a-slug.md` and `intent/issues/CLOSED/0002/0002-a-slug.md` with that reason. The organize preview then listed the same two paths as unclaimed.\n\n**The fix, ruled medium and riding dc's batch:** one issue-id reader shared by the converter and the prune, so the two cannot drift again. The arm is the same fixture: the prune names both bucket files and withholds nothing, red on the base. Conflab is the one v2 estate left that meets it.\n"
+}
