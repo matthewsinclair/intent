@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-14T14:50:52.600Z",
+    "heartbeat_at": "2026-09-14T15:29:48.533Z",
     "status": "active",
-    "focus": "LOCALFOLDED for hv's compact after v3.0.3 shipped (46599d145). Keg unlinked, not pinned; daemon 58916 on the dev-tree pair under the watch. ON THE BOUNCE: the issue triage table for hv (72 open of 368, 71 from the last four days' audits and cutovers; rulings by family), then hv's items (brew pin, v3.0.2 annotation, stranger-machine install), ic's Console thread, the explorer TUI list. NO RELEASE, NO PUSH.",
+    "focus": "THE AGGRESSIVE ISSUE PASS (hv, 2026-09-14): 72 open -> 6 closed on evidence (0341 0342 0352 0362 0365 0368) and 63 doled: cc 27 (board cutover + engine), dc 20 (search + release tooling + CI + keg), ic 16 after WP-01 (interface + acceptance verbs); 0177 0344 0345 and the deletions in 0331 and the contract rows in 0338 are hv's. Seven rulings taken under the pen for hv to overrule: 0303 0347 0350 0374 0375 0382 0389. Landings sequenced by vc, one lane at a time. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
