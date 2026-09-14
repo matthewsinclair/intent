@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 396,
+  "slug": "at-edit-s-register-row-says-kind-is-deliberately",
+  "title": "at edit's register row says --kind is deliberately absent, and the verb has taken it since 0146",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "`surface/dispatch-table.json`'s `at edit` row says, in its `target.consequence`: \"`--status` and `--kind` ARE DELIBERATELY ABSENT\". The verb has taken `--kind` since issue 0146, and issues 0324 and 0337 made `--kind` the single edge of `AcceptanceTest.kind`: a re-kind re-enters the status at `AtStatus::entry`. The register row therefore denies a flag the row itself declares, and the rendered `dispatch-table.md` repeats the denial.\n\nFound by ic on 2026-09-14 while building vc's re-kind ruling for 0324+0337; vc ruled it filed as its own XS issue rather than folded into that commit.\n\nThe fix: correct the consequence forward. `--status` stays absent (`at green` / `at red` / `at na` own status). `--kind` is present and re-enters the entry status. Regenerate `dispatch-table.md` in the same commit.\n"
+}
