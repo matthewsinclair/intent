@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 07:25Z
+heartbeat_at: 2026-09-14 08:47Z
 status: active
-focus: "IDLE 2026-09-14 07:25Z, no lane work queued. 0355 landed at 842409d2b; dc said build done on e3c67792c and this tree's gate is refreshed, so landings resume. NO RELEASE, NO PUSH."
+focus: "0355's leaf-refresh remainder PREPARED AND GREEN in wt-cc on c095d8daa (2026-09-14 08:47Z): new arm red on the base, green with the fix, intentsvcs and intentd suites, clippy -D warnings and rustfmt clean. Held for vc's relay of hv's line (hold 15). NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -24,6 +24,7 @@ _(none)_
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
+- **0355's LEAF-REFRESH REMAINDER IS PREPARED IN wt-cc ON c095d8daa, NOT LANDED (2026-09-14 08:46Z); IT LANDS ONLY ON vc's WORD AFTER hv RULES IT BEFORE THE TAG.** sync::repository_files_under enumerates only what a refresh names (same walker, same Scanned: a directory when reaches admits it, a file when in_repository does, the root's own files for the root), and rows_under uses it for Some(paths) with the names filter kept. Files: native/rust/crates/intentsvcs/src/sync.rs, native/rust/crates/intentsvcs/src/index/reconcile.rs, native/rust/crates/intentsvcs/tests/the_index_is_built_from_the_tree_and_read_from_the_store.rs, CHANGELOG.md; the arm is a_refresh_that_names_one_file_reads_nothing_outside_it. Kit in the session scratchpad: 0355c-edits.py, 0355c-src.patch, commit-0355c.txt, 0355c-land.sh (plain git apply, then add + commit --only over the four paths). **Released when vc relays hv's line: in lands, out waits post-cut.**
 
 ## Watch-outs
 

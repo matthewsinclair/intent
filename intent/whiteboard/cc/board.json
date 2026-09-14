@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T07:25:44.012Z",
+    "heartbeat_at": "2026-09-14T08:47:55.842Z",
     "status": "active",
-    "focus": "IDLE 2026-09-14 07:25Z, no lane work queued. 0355 landed at 842409d2b; dc said build done on e3c67792c and this tree's gate is refreshed, so landings resume. NO RELEASE, NO PUSH.",
+    "focus": "0355's leaf-refresh remainder PREPARED AND GREEN in wt-cc on c095d8daa (2026-09-14 08:47Z): new arm red on the base, green with the fix, intentsvcs and intentd suites, clippy -D warnings and rustfmt clean. Held for vc's relay of hv's line (hold 15). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -447,6 +447,14 @@
       "text": "**BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.",
       "state": "live",
       "recorded_at": "2026-09-14T07:25:42.875Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 15,
+      "text": "**0355's LEAF-REFRESH REMAINDER IS PREPARED IN wt-cc ON c095d8daa, NOT LANDED (2026-09-14 08:46Z); IT LANDS ONLY ON vc's WORD AFTER hv RULES IT BEFORE THE TAG.** sync::repository_files_under enumerates only what a refresh names (same walker, same Scanned: a directory when reaches admits it, a file when in_repository does, the root's own files for the root), and rows_under uses it for Some(paths) with the names filter kept. Files: native/rust/crates/intentsvcs/src/sync.rs, native/rust/crates/intentsvcs/src/index/reconcile.rs, native/rust/crates/intentsvcs/tests/the_index_is_built_from_the_tree_and_read_from_the_store.rs, CHANGELOG.md; the arm is a_refresh_that_names_one_file_reads_nothing_outside_it. Kit in the session scratchpad: 0355c-edits.py, 0355c-src.patch, commit-0355c.txt, 0355c-land.sh (plain git apply, then add + commit --only over the four paths). **Released when vc relays hv's line: in lands, out waits post-cut.**",
+      "state": "live",
+      "recorded_at": "2026-09-14T08:46:08.978Z"
     }
   ],
   "messages": [
