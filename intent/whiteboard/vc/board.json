@@ -414,6 +414,14 @@
       "text": "(2026-09-14) EIGHTH RULING UNDER THE PEN, for hv to overrule with a line: a register State row for Criterion.kind (0346, d9304ef54) and for AcceptanceTest.kind (ic's 0324+0337) is a faithful transcription of hv's 2026-08-17 fold (one machine, kind a dimension of its state, a re-kind the pair's transition into the entry state), because the register classifies fields and has no closer word; each row's comment cites the fold by name and data-model.md's as-built column is corrected forward in the same landing. The other seven: 0303 0347 0350 0374 0375 0382 0389.",
       "state": "live",
       "recorded_at": "2026-09-14T17:31:22.021Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 17,
+      "text": "(2026-09-14) NINTH RULING UNDER THE PEN, for hv who ratified the table: data-model.md's Machine 5 (AcceptanceTest.status) moves its green edge from (any) -> green to red -> green under a dated note naming 0337 and the batch ruling (red first); at.set is a mixed verb walked edge by edge. HELD FOR hv, NOT RULED: 0321's log stamp collides with one_clock (SELECT strftime is banned outside INSERT/UPDATE, EXEMPT is hv's and empty); cc's options (a) INSERT RETURNING into a one-row memory table, (b) a real lifecycle table with a DEFAULT stamp (M, schema bump), (c) an exemption for the daemon log with a stated reason, (d) no stamp; vc's lean (c).",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:51:31.052Z"
     }
   ],
   "messages": [
