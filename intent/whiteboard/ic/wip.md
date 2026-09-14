@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-14 16:26Z
-status: active
-focus: "2026-09-14: LOCALFOLDED for hv's compact, mid-batch. Landed today: 0336 15c3be955, 0325 131d306ad, b94fd9c03 (unmigrated_surface), ST0075 WP-01. Worktrees wt-b2 (0346), wt-b3 (0324+0337), wt-b4 (0353), wt-b5 (0310) with judging runs queued; resume from scratchpad batch/STATE.md. See doing 23. NO RELEASE, NO PUSH."
+heartbeat_at: 2026-09-14 21:56Z
+status: paused
+focus: "2026-09-14 21:51Z: WRAPPED for the day on hv's word. Landed today and reported: 0346 d9304ef54, 0353 e28011e83, 0310 ed0ca764c, 0324+0337 b510c2ae1, 0332 af7501075, 0312+0328 8019a242c, 0303 b6f0ef070, 0307 3ad4df12b, 0350+0329 d2491639b. Next: 0334 (researched, not written, wt-b10 clean), then 0339, 0396, ST0075 WP-02/03. Resume from scratchpad batch/STATE.md. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,16 +13,19 @@ claims: []
 
 ## DOING
 
-- **LOCALFOLDED for hv's compact, mid-batch (vc's 15-issue pass).** Landed: 0336 15c3be955, 0325 131d306ad, unmigrated_surface re-rule b94fd9c03, plus ST0075 WP-01 (a0b92c365, 4c3a30972, bdcd205d7). In worktrees, all rebased onto e705e5365: 0346 in wt-b2 (one red, fixed by attaching ST0056 data-model.md; re-run queued); 0324+0337 in wt-b3 (18 fixture reds after the ruled behaviour; packages check now after the gate; the fixtures settle through the verbs, per vc); 0353 in wt-b4 and 0310 in wt-b5, both written and queued for full judging. 0332 reproduced, to build after 0353+0310. Landing waits for dc's hash from vc. The resume procedure is in scratchpad batch/STATE.md. NO RELEASE, NO PUSH.
+_(none)_
 
 ## TODO
 
 - **The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.
+- **0334, NEXT (2026-09-14 21:51Z): researched, NOTHING WRITTEN; wt-b10 clean at d2491639b.** vc's six rulings: (1) an ac/at address resolves to acceptance.md and `edit` and `--path` both refuse NotEditable naming `intent ac` / `intent at`, printing nothing; (2) the `edit wp` remedy names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`; (3)(a) `issue` leaves edit's kind roster (browse keeps it) and `edit issue <id>` names `intent issues edit <id>`; (4) `set` refuses Thread.acceptance, read from its Immutable declaration, canon unchanged; (5) carried by 0376; (6) the info.md Acceptance paragraph names the ac/at verbs, landing as code plus canon, with the 53 views re-rendered in one mechanical commit after the next `build all`. Every site and each test it moves are in scratchpad batch/STATE.md. Each arm red on base, ONE full run, report every file before landing.
+- **0339 (2026-09-14 21:51Z): the six as-built bullets, each fixed or ruled out with a line in the design** (window_hours; the export schema; the migrator's last line; the clippy arm behind IN-RS-CODE-001; `at new --status` / `st list --status tbc` / AcceptanceTest.kind; the `st/ST0056` address and shell.html's palette). Rulings in scratchpad batch/rulings.md. After 0334.
+- **0396 (2026-09-14 21:51Z): `at edit`'s register consequence line denies `--kind`, which exists.** XS, register text plus regenerated dispatch-table.md. After 0339.
+- **ST0075 WP-02 and WP-03 (2026-09-14 21:51Z).** WP-01 landed (a0b92c365, 4c3a30972). wt-console holds the base; reset it to main's head before starting. After the issue batch.
 
 ## Holds
 
-- 2. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.
-3. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.
+- **The palette `Home`/`End` flip and `subagents/.manifest/global-agents.json` (three bats tests assert it)** -- RELEASES WHEN hv rules either in or out. (0303, which shared this hold, is ruled and landed at b6f0ef070.)
 
 ## Watch-outs
 
@@ -47,7 +50,6 @@ claims: []
 - **AN ARGUMENT FROM THE CORPUS IS UNDERDETERMINED UNTIL YOU LOOK FOR THE ROWS THAT CONTRADICT IT.** I refused three `recoverability: reversible` rows by generalising from the pairs that fit (`st done` against `st reopen`) and never checked for rows that would break the rule. cc found three -- `ac new`, `at new`, `issues add` -- all `reversible` with no removal verb, so the same argument reaches the opposite conclusion. **The authority was one grep away**: `guide.rs:271` renders the field as _another command on this surface undoes it_, which settles it without an inference. Right answer, wrong route, and the route was the part I was confident about. (The counter-examples then dissolved -- each of those three has a RETIRING verb, `ac withdraw`, `at na`, `issues close` -- which only shows how much work the unchecked half of an argument is doing.)
 - **A TEMPLATE IN THIS TREE IS NOT A DRAFT, AND EDITING ONE IS A DEPLOYMENT.** `~/.intent/home` points at this working copy and the installed shim execs `lib/templates/hooks/pre-commit.sh` from it, so my half-finished gate arm refused every commit on ANOTHER estate, mid-deploy, until I reverted it. Uncommitted is not private. Hook and template work happens in a worktree, always.
 - **EVERY REPLACE ASSERTS ITS MATCH COUNT, AND THIS IS NOT A MARKDOWN RULE.** A blind swap of `2 => Err(Failure::Unavailable(` hit `doctor_verdict` AND the critic's verdict match, so a rules-less install went from refusing at 2 to sealing a clean verdict at 0 with no output. The arm directly above it warns about that exact fall-through in its own comment. A test caught it; I proved the cause by reverting my own patch and re-running rather than reasoning about it.
-- **A PASS THAT PRINTS NOTHING IS INDISTINGUISHABLE FROM AN ARM THAT NEVER RAN** (vc). The doctor arm was silent on 0, so its silence after landing was evidence of nothing -- the same shape as this estate's `0 of 0` digest, one level up. A gate arm you have only ever seen silent must be driven red before it is believed.
 - **VERIFY THE PRODUCER YOURSELF BEFORE LANDING THE CONSUMER.** The gate calls `intent` from PATH, so the arm had to land after the pair was rebuilt at its producer -- and I read the pair's own version and doctor's 0 and 4 in my own shell rather than taking the broadcast. Two commits with a rebuild between them, deliberately, instead of one clean-looking landing.
 - **A CODE ALREADY CARRYING FOUR MEANINGS DOES NOT TAKE A FIFTH.** Exit 2 is the unbuilt population's predicate, and `retirement_is_enumerable` refused to let doctor answer there. The ruled shape said 2; the estate's own record said 2 was full. Bringing the name and the evidence beat implementing the ruling as given.
 - **`cmd | tail` ANSWERS `tail`'s EXIT CODE, AND IT BIT ME TWICE IN ONE SESSION** -- once reading `intent doctor` as rc=0 when it was 1, once reading a background suite as green when it had a failure. Capture without a pipe before reading `$?`, and read a suite's raw output rather than a tail of it.
@@ -67,6 +69,7 @@ claims: []
 - **AN EDIT DURING AN IN-FLIGHT BUILD IN THE SAME WORKTREE MAKES THE RUN A TEST OF OTHER BYTES, AND I DID IT TWICE IN ONE HOUR.** Both menubar app-test runs were compiling while I applied critic fixes; each green or red would have been about code I was no longer landing. Stop the run, finish the edits, then run once on the bytes that land -- and never edit a register a cargo build in that worktree compiles in. The same change carried a test doc claiming to catch a Rust-side format change its Swift literals could never see (critic-swift, red-control): **a test's comment is a claim about what it can fail on, and it gets the same check as the test.**
 - **A SILENT ERROR IN MY OWN SHELL DELETED A DOCUMENT, AND A GUARD I WROTE STOPPED A CORRECT COMMIT, IN THE SAME HOUR.** A perl substitution read its replacement from an environment variable I never set, `|| true` swallowed the die, and the substitution ran anyway with an empty replacement: ST0074's design lost a whole section on disk while canon still held it, and hv's doctor saw the divergence first. Separately, a count of aggregator lines not containing ST0074 read 10, but they were ST0074's own WP rows, which do not repeat the thread id. **Never `|| true` a write, pass data by file rather than an unset variable, and read a diff before trusting a count over it.** And `st attach` writes store and canon, never the realised file: edit an attachment at its own path, attach from that path, and commit in the same call.
 - **A GATE REFUSAL IS A STAGED INDEX, AND A QUIET WINDOW IS A MESSAGE THAT CAN ARRIVE AFTER THE COMMIT.** ST0074 met three gate refusals in one day (IN-RS-CODE-004 on a Result<_, String>, prettier on an attachment, a mutator in no write bucket): each time unstage my own paths at once, fix in the worktree, re-prove the one arm, re-copy, re-commit the same path list. And 363b18db1 landed inside dc's window because the window-start message reached me after the commit: before any commit, read dc's board DOING for an announced window, not only the inbox. A mutation for a red run is written against the FORMATTED text (rustfmt split the call and the first red never ran), and its drive script must say DID NOT APPLY rather than run the green as if red happened.
+- **A STORE WRITE ON THIS TREE WAITS FOR THE STORE TO BE FREE, AND A RETRY IS NOT A WAIT** (2026-09-14 21:51Z). 0307's closure was refused three times on `database is locked` while peers' post-compact `wb pickup` loops held the store for 5+ minutes at load 269; each refusal wrote nothing, and a 300s wait for five free seconds never got them. The fourth attempt waited for `lsof intent/.cache/intent.db` to list intentd alone and went through in 15s. But lsof cannot see intentd's own write transaction: at 99% CPU it refused a board write with intentd the only holder. So check whether a refused write landed, then retry, never blind. And `organize --apply` still exits 1 on the lock while removing the views, so verify past it (canon, `issues show`, .intentfiles), every time.
 
 ## Decisions
 

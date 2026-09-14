@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-14T16:26:59.100Z",
-    "status": "active",
-    "focus": "2026-09-14: LOCALFOLDED for hv's compact, mid-batch. Landed today: 0336 15c3be955, 0325 131d306ad, b94fd9c03 (unmigrated_surface), ST0075 WP-01. Worktrees wt-b2 (0346), wt-b3 (0324+0337), wt-b4 (0353), wt-b5 (0310) with judging runs queued; resume from scratchpad batch/STATE.md. See doing 23. NO RELEASE, NO PUSH.",
+    "heartbeat_at": "2026-09-14T21:56:03.336Z",
+    "status": "paused",
+    "focus": "2026-09-14 21:51Z: WRAPPED for the day on hv's word. Landed today and reported: 0346 d9304ef54, 0353 e28011e83, 0310 ed0ca764c, 0324+0337 b510c2ae1, 0332 af7501075, 0312+0328 8019a242c, 0303 b6f0ef070, 0307 3ad4df12b, 0350+0329 d2491639b. Next: 0334 (researched, not written, wt-b10 clean), then 0339, 0396, ST0075 WP-02/03. Resume from scratchpad batch/STATE.md. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -72,7 +72,8 @@
       "kind": "hold",
       "seq": 3,
       "text": "2. **The palette `Home`/`End` flip** -- RELEASES WHEN hv sets post-3.0.1 work and names it.\n3. **The unruled ic-lane defects** -- issue 0303 (the register's `as-observed` rows) and `subagents/.manifest/global-agents.json` (three bats tests assert it). RELEASES WHEN hv rules either in or out.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:55:52.117Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -312,7 +313,8 @@
       "kind": "watchout",
       "seq": 29,
       "text": "**A PASS THAT PRINTS NOTHING IS INDISTINGUISHABLE FROM AN ARM THAT NEVER RAN** (vc). The doctor arm was silent on 0, so its silence after landing was evidence of nothing -- the same shape as this estate's `0 of 0` digest, one level up. A gate arm you have only ever seen silent must be driven red before it is believed.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:55:04.045Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -769,8 +771,66 @@
       "kind": "doing",
       "seq": 23,
       "text": "**LOCALFOLDED for hv's compact, mid-batch (vc's 15-issue pass).** Landed: 0336 15c3be955, 0325 131d306ad, unmigrated_surface re-rule b94fd9c03, plus ST0075 WP-01 (a0b92c365, 4c3a30972, bdcd205d7). In worktrees, all rebased onto e705e5365: 0346 in wt-b2 (one red, fixed by attaching ST0056 data-model.md; re-run queued); 0324+0337 in wt-b3 (18 fixture reds after the ruled behaviour; packages check now after the gate; the fixtures settle through the verbs, per vc); 0353 in wt-b4 and 0310 in wt-b5, both written and queued for full judging. 0332 reproduced, to build after 0353+0310. Landing waits for dc's hash from vc. The resume procedure is in scratchpad batch/STATE.md. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:14:53.163Z",
       "recorded_at": "2026-09-14T16:27:06.949Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 24,
+      "text": "LOCALFOLDED for hv's compact, 2026-09-14. Landed and reported today: 0346 d9304ef54, 0353 e28011e83, 0310 ed0ca764c, 0324+0337 b510c2ae1, 0396 filed bcd5bf0db, 0332 af7501075, 0312+0328 8019a242c, 0303 b6f0ef070. ON THE BOUNCE, vc's word: 0307 closure-only commit (fresh stamp), then critic seam 0350+0329 rebased onto main's head; dc lands after. Then 0334 (wt-b10), 0339, 0396. Resume from scratchpad batch/STATE.md. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:55:41.105Z",
+      "recorded_at": "2026-09-14T21:14:33.130Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 7,
+      "text": "**0334, NEXT (2026-09-14 21:51Z): researched, NOTHING WRITTEN; wt-b10 clean at d2491639b.** vc's six rulings: (1) an ac/at address resolves to acceptance.md and `edit` and `--path` both refuse NotEditable naming `intent ac` / `intent at`, printing nothing; (2) the `edit wp` remedy names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`; (3)(a) `issue` leaves edit's kind roster (browse keeps it) and `edit issue <id>` names `intent issues edit <id>`; (4) `set` refuses Thread.acceptance, read from its Immutable declaration, canon unchanged; (5) carried by 0376; (6) the info.md Acceptance paragraph names the ac/at verbs, landing as code plus canon, with the 53 views re-rendered in one mechanical commit after the next `build all`. Every site and each test it moves are in scratchpad batch/STATE.md. Each arm red on base, ONE full run, report every file before landing.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:52:02.516Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 8,
+      "text": "**0339 (2026-09-14 21:51Z): the six as-built bullets, each fixed or ruled out with a line in the design** (window_hours; the export schema; the migrator's last line; the clippy arm behind IN-RS-CODE-001; `at new --status` / `st list --status tbc` / AcceptanceTest.kind; the `st/ST0056` address and shell.html's palette). Rulings in scratchpad batch/rulings.md. After 0334.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:52:58.768Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 9,
+      "text": "**0396 (2026-09-14 21:51Z): `at edit`'s register consequence line denies `--kind`, which exists.** XS, register text plus regenerated dispatch-table.md. After 0339.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:53:09.809Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 10,
+      "text": "**ST0075 WP-02 and WP-03 (2026-09-14 21:51Z).** WP-01 landed (a0b92c365, 4c3a30972). wt-console holds the base; reset it to main's head before starting. After the issue batch.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:53:20.853Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 5,
+      "text": "**The palette `Home`/`End` flip and `subagents/.manifest/global-agents.json` (three bats tests assert it)** -- RELEASES WHEN hv rules either in or out. (0303, which shared this hold, is ruled and landed at b6f0ef070.)",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:53:32.472Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 57,
+      "text": "**A STORE WRITE ON THIS TREE WAITS FOR THE STORE TO BE FREE, AND A RETRY IS NOT A WAIT** (2026-09-14 21:51Z). 0307's closure was refused three times on `database is locked` while peers' post-compact `wb pickup` loops held the store for 5+ minutes at load 269; each refusal wrote nothing, and a 300s wait for five free seconds never got them. The fourth attempt waited for `lsof intent/.cache/intent.db` to list intentd alone and went through in 15s. But lsof cannot see intentd's own write transaction: at 99% CPU it refused a board write with intentd the only holder. So check whether a refused write landed, then retry, never blind. And `organize --apply` still exits 1 on the lock while removing the views, so verify past it (canon, `issues show`, .intentfiles), every time.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:55:30.420Z"
     }
   ],
   "messages": [
