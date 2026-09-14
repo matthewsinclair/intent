@@ -1972,6 +1972,27 @@ fn section_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<DocSection> {
   })
 }
 
+/// Load `paths` into the connection's scratch table `temp.gone`, emptied
+/// first, so a scoped delete is ONE statement per table (issue 0393).
+///
+/// **A DELETE PER PATH SCANNED THE WHOLE FTS5 TABLE PER PATH.** Neither section
+/// table can look a row up by path, so each `WHERE path = ?` read every row, and
+/// a directory of ~190k indexed paths vanishing turned a refresh into 190k full
+/// scans in three tables -- 8+ minutes at a core without finishing, where a
+/// wholesale rebuild of the same tree took about a minute. Staging the paths
+/// is one B-tree insert each; the delete that follows is one pass per table.
+/// Temporary, so it is per-connection and never reaches the committed store.
+fn stage_gone(tx: &rusqlite::Transaction<'_>, paths: &[String]) -> Result<(), StoreError> {
+  tx.execute_batch(
+    "CREATE TEMP TABLE IF NOT EXISTS gone (path TEXT PRIMARY KEY); DELETE FROM temp.gone;",
+  )?;
+  let mut stage = tx.prepare_cached("INSERT OR IGNORE INTO temp.gone (path) VALUES (?1)")?;
+  for path in paths {
+    stage.execute(params![path])?;
+  }
+  Ok(())
+}
+
 /// The one upsert into `file_index`, shared by the whole-index replace and the
 /// per-projection record. `created_at` is the row's own, so a conflict keeps it.
 /// THE ONE PLACE AN INDEX ROW BECOMES A ROW, so the full rebuild and the
@@ -4806,9 +4827,11 @@ impl Store {
     removed: &[String],
   ) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    for path in removed {
-      tx.execute("DELETE FROM index_file WHERE path = ?1", params![path])?;
-    }
+    stage_gone(&tx, removed)?;
+    tx.execute(
+      "DELETE FROM index_file WHERE path IN (SELECT path FROM temp.gone)",
+      [],
+    )?;
     for r in upserts {
       upsert_index_row(&tx, r)?;
     }
@@ -4838,13 +4861,15 @@ impl Store {
     source: &[crate::index::source::Section],
   ) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    for path in paths {
-      tx.execute(
-        "DELETE FROM doc_sections WHERE owner_type = ?1 AND file = ?2",
-        params![crate::prose::FILE_OWNER, path],
-      )?;
-      tx.execute("DELETE FROM src_sections WHERE path = ?1", params![path])?;
-    }
+    stage_gone(&tx, paths)?;
+    tx.execute(
+      "DELETE FROM doc_sections WHERE owner_type = ?1 AND file IN (SELECT path FROM temp.gone)",
+      params![crate::prose::FILE_OWNER],
+    )?;
+    tx.execute(
+      "DELETE FROM src_sections WHERE path IN (SELECT path FROM temp.gone)",
+      [],
+    )?;
     for s in prose {
       insert_doc_section(&tx, s)?;
     }
@@ -5097,9 +5122,11 @@ impl Store {
     symbols: &[crate::index::symbols::Symbol],
   ) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    for path in paths {
-      tx.execute("DELETE FROM symbols WHERE path = ?1", params![path])?;
-    }
+    stage_gone(&tx, paths)?;
+    tx.execute(
+      "DELETE FROM symbols WHERE path IN (SELECT path FROM temp.gone)",
+      [],
+    )?;
     for s in symbols {
       tx.execute(
         "INSERT INTO symbols (path, lang, name, kind, start_line, end_line)
