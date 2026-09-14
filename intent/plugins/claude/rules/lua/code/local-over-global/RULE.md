@@ -55,6 +55,8 @@ Static signals:
 
 Linters: `luacheck` reports unused and unscoped globals out of the box; `.luacheckrc` can enforce a strict global policy.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

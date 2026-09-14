@@ -52,6 +52,8 @@ Static signals:
 - Chained metatables where each level is an extension of the previous — frequently a sign of inheritance ceremony copied from other languages.
 - Proxy patterns (`__index` returning values from another object) in code that has no documentation of the proxying.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

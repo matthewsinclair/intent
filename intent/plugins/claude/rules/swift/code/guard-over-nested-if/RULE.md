@@ -51,6 +51,8 @@ Static signals:
 - `else { return nil }` or `else { throw ... }` at the tail of an `if let` block — this is literally what `guard` was designed for.
 - SwiftLint rule `early_exit` enforces the guard preference.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
+
 ## Bad
 
 ```swift

@@ -63,9 +63,10 @@ Signals:
 Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
-grep -rn 'def user_fixture' test/
 grep -rnE '"(alice|bob|admin)@[^"]*\.(com|test)"' test/
 ```
+
+The fixture's definition is not in the proxy. The Good form defines `user_fixture` once, so a grep for the definition fires on the pattern this rule prescribes; only a count of definitions across files tells one home from two, and a single grep cannot count.
 
 The reliable structural signal is "if I changed `user_fixture` today, how many files would I have to edit?" The answer must be one.
 

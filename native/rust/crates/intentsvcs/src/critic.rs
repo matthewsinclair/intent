@@ -269,6 +269,11 @@ pub struct Report {
   /// language produced an empty census and was told its install had no rule
   /// library.
   pub disabled: Vec<String>,
+  /// STAGED files the run did not read because they sit under the rule library it
+  /// loaded, sorted. A file named with `--files` is always read: that is an ask. A library's example files are fixtures for its
+  /// rules, and a gate that linted them refused the library's own commits; they
+  /// are named here so the skip is never silent.
+  pub skipped_library: Vec<String>,
 }
 
 impl Report {
@@ -980,6 +985,7 @@ pub fn run(
   files: &[PathBuf],
   severity_min: Severity,
   disabled: &BTreeSet<String>,
+  staged: bool,
 ) -> Result<Report, CriticError> {
   let all = lib.rules()?;
   let mut census = Vec::new();
@@ -989,8 +995,25 @@ pub fn run(
   // Read each candidate file ONCE rather than once per rule. Twelve armed rules
   // against a staged set is twelve reads of the same bytes otherwise, and the
   // gate runs on every commit.
+  // A STAGED file under the rule library this run loaded is one of its rules'
+  // own examples -- a fixture, not the project's code -- so the gate skips and
+  // names it. A file named with `--files` was asked for and is read.
+  let library_roots: Vec<PathBuf> = [Some(lib.canon_root()), lib.ext_root()]
+    .into_iter()
+    .flatten()
+    .filter_map(|root| std::fs::canonicalize(root).ok())
+    .collect();
+  let mut skipped_library: Vec<String> = Vec::new();
   let mut contents: Vec<(PathBuf, String)> = Vec::new();
   for f in files {
+    let under_library = staged
+      && std::fs::canonicalize(f)
+        .map(|real| library_roots.iter().any(|root| real.starts_with(root)))
+        .unwrap_or(false);
+    if under_library {
+      skipped_library.push(f.display().to_string());
+      continue;
+    }
     match std::fs::read_to_string(f) {
       Ok(text) => contents.push((f.clone(), text)),
       // **A FILE THAT IS NOT UTF-8 IS SKIPPED, NOT AN ERROR.** A staged binary
@@ -1186,6 +1209,10 @@ pub fn run(
     census,
     refused: refused.into_iter().collect(),
     disabled: disabled.into_iter().collect(),
+    skipped_library: {
+      skipped_library.sort();
+      skipped_library
+    },
   })
 }
 
@@ -1511,6 +1538,7 @@ mod tests {
       census: Vec::new(),
       refused: Vec::new(),
       disabled: Vec::new(),
+      skipped_library: Vec::new(),
     };
 
     let absent = Report {
@@ -1594,6 +1622,7 @@ mod tests {
       }],
       refused: Vec::new(),
       disabled: Vec::new(),
+      skipped_library: Vec::new(),
     };
     assert_eq!(base.exit_code(), 0);
 

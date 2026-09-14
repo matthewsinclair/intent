@@ -53,6 +53,8 @@ Static signals:
 - Files relying on the side effect of being `require`d rather than its return value.
 - Inconsistent return shapes inside a single project: some modules return tables, some return functions, some return nil.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

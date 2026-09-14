@@ -54,6 +54,8 @@ Static signals:
 - Shared mutable state protected by `DispatchQueue` "sync queues" — these are actors-in-disguise.
 - `dispatch_semaphore` or `DispatchGroup` used to aggregate parallel work — `async let` and `TaskGroup` replace both.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
+
 ## Bad
 
 ```swift

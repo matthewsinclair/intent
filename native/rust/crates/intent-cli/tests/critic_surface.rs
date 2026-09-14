@@ -380,6 +380,13 @@ fn staged_is_refused_outside_a_repository_and_clean_inside_one_with_nothing_stag
       .expect("git");
     assert!(st.success(), "fixture setup failed: git {args:?}");
   }
+  // A project, because critic refuses outside one like every other verb.
+  std::fs::create_dir_all(dir.path().join("intent/.config")).expect("config dir");
+  std::fs::write(
+    dir.path().join("intent/.config/config.json"),
+    r#"{"intent_version":"3.0.0","project_name":"CriticStaged","author":"t","created_date":"2026-04-24T00:00:00Z"}"#,
+  )
+  .expect("project marker");
 
   let inside = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(["critic", "elixir", "--staged"])
@@ -616,5 +623,73 @@ fn a_bare_language_answers_clean_and_an_undeclared_format_is_refused() {
     sev.status.code(),
     Some(2),
     "`--severity-min` and `--format` now agree: a declared value set is enforced"
+  );
+}
+
+/// **The gate does not lint a rule library's own examples; a named file is still
+/// read.** A staged file under the library the run loaded is one of its rules'
+/// fixtures, and critiquing it refused the library's own commits. It is skipped
+/// and named in `skipped_library`. The same file handed over with `--files` is an
+/// ask, and fires.
+#[test]
+fn a_staged_rule_example_is_skipped_and_named_while_a_named_one_is_read() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  std::fs::create_dir_all(root.join("intent/.config")).expect("config dir");
+  std::fs::write(
+    root.join("intent/.config/config.json"),
+    r#"{"intent_version":"3.0.0","project_name":"CriticLibrary","author":"t","created_date":"2026-04-24T00:00:00Z"}"#,
+  )
+  .expect("project marker");
+  let rule_dir = root.join("rules/elixir/test/strong-assertions");
+  std::fs::create_dir_all(&rule_dir).expect("rule dir");
+  for name in ["RULE.md", "bad_test.exs"] {
+    std::fs::copy(fixture(name), rule_dir.join(name)).expect("copy the shipped rule");
+  }
+  for args in [
+    vec!["init", "-q", "."],
+    vec!["add", "rules/elixir/test/strong-assertions/bad_test.exs"],
+  ] {
+    let st = Command::new("git")
+      .args(&args)
+      .current_dir(root)
+      .status()
+      .expect("git");
+    assert!(st.success(), "fixture setup failed: git {args:?}");
+  }
+  let rules = root.join("rules");
+  let drive = |extra: &[&str]| {
+    let mut args = vec!["critic", "elixir", "--rules", rules.to_str().unwrap()];
+    args.extend_from_slice(extra);
+    args.extend_from_slice(&["--severity-min", "critical", "--format", "json"]);
+    Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(&args)
+      .current_dir(root)
+      .output()
+      .expect("run the v3 binary")
+  };
+
+  let staged = drive(&["--staged"]);
+  assert_eq!(
+    staged.status.code(),
+    Some(0),
+    "a staged rule example is not the project's code.\nstderr: {}",
+    err(&staged)
+  );
+  let v: serde_json::Value = serde_json::from_str(&out(&staged)).expect("json");
+  assert_eq!(
+    v["skipped_library"],
+    serde_json::json!(["rules/elixir/test/strong-assertions/bad_test.exs"]),
+    "and the skip is named, not silent: {v}"
+  );
+  assert!(v["findings"].as_array().is_some_and(Vec::is_empty), "{v}");
+
+  let bad = rule_dir.join("bad_test.exs");
+  let named = drive(&["--files", bad.to_str().unwrap()]);
+  assert_eq!(
+    named.status.code(),
+    Some(1),
+    "the same file named with --files is an ask, and fires.\nstdout: {}",
+    out(&named)
   );
 }

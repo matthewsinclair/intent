@@ -51,6 +51,8 @@ Static signals:
 - Call sites that compare against sentinel constants: `if result != -1 { ... }`, `if !name.isEmpty { ... }` where "empty" means "absent".
 - Objective-C bridges: `firstIndex(of:)` returns `NSNotFound` in Obj-C; Swift's overlay returns `Int?`.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
+
 ## Bad
 
 ```swift

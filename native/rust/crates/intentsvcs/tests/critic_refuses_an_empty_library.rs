@@ -95,8 +95,15 @@ fn files() -> Vec<PathBuf> {
 fn an_empty_library_produces_an_empty_census() {
   let empty = tempfile::tempdir().expect("tempdir");
   let lib = Library::new(empty.path(), None);
-  let report = run(&lib, "shell", &files(), Severity::Warning, &BTreeSet::new())
-    .expect("an absent rules tree is an ordinary state, not an error");
+  let report = run(
+    &lib,
+    "shell",
+    &files(),
+    Severity::Warning,
+    &BTreeSet::new(),
+    false,
+  )
+  .expect("an absent rules tree is an ordinary state, not an error");
 
   assert_eq!(
     report.total(),
@@ -115,8 +122,15 @@ fn an_empty_library_produces_an_empty_census() {
 #[test]
 fn the_real_library_produces_a_populated_census() {
   let lib = Library::new(&repo_root(), None);
-  let report = run(&lib, "shell", &files(), Severity::Warning, &BTreeSet::new())
-    .expect("the repo's own rule library must load");
+  let report = run(
+    &lib,
+    "shell",
+    &files(),
+    Severity::Warning,
+    &BTreeSet::new(),
+    false,
+  )
+  .expect("the repo's own rule library must load");
 
   assert!(
     report.total() > 0,
@@ -132,8 +146,15 @@ fn the_real_library_produces_a_populated_census() {
 fn a_run_that_armed_nothing_refuses_rather_than_reporting_clean() {
   let empty = tempfile::tempdir().expect("tempdir");
   let lib = Library::new(empty.path(), None);
-  let report = run(&lib, "shell", &files(), Severity::Warning, &BTreeSet::new())
-    .expect("an absent rules tree is an ordinary state, not an error");
+  let report = run(
+    &lib,
+    "shell",
+    &files(),
+    Severity::Warning,
+    &BTreeSet::new(),
+    false,
+  )
+  .expect("an absent rules tree is an ordinary state, not an error");
 
   assert_eq!(
     report.exit_code(),
@@ -152,8 +173,15 @@ fn a_run_that_armed_nothing_refuses_rather_than_reporting_clean() {
 #[test]
 fn a_loaded_library_never_reports_the_empty_library_refusal() {
   let lib = Library::new(&repo_root(), None);
-  let report = run(&lib, "shell", &files(), Severity::Warning, &BTreeSet::new())
-    .expect("the repo's own rule library must load");
+  let report = run(
+    &lib,
+    "shell",
+    &files(),
+    Severity::Warning,
+    &BTreeSet::new(),
+    false,
+  )
+  .expect("the repo's own rule library must load");
 
   assert_ne!(
     report.exit_code(),
@@ -175,8 +203,15 @@ fn a_loaded_library_never_reports_the_empty_library_refusal() {
 fn a_language_that_arms_nothing_from_a_loaded_library_still_does_not_refuse() {
   let lib = Library::new(&repo_root(), None);
   for lang in ["swift", "lua"] {
-    let report = run(&lib, lang, &files(), Severity::Warning, &BTreeSet::new())
-      .expect("the repo's own rule library must load");
+    let report = run(
+      &lib,
+      lang,
+      &files(),
+      Severity::Warning,
+      &BTreeSet::new(),
+      false,
+    )
+    .expect("the repo's own rule library must load");
 
     assert!(
       report.total() > 0,

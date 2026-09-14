@@ -96,6 +96,8 @@ Negative signals (rule does not apply):
 - Conditions test different fields or derived booleans (guard clauses).
 - Only one `if` branch — no dispatch.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

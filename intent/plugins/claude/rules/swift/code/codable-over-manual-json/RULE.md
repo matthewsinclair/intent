@@ -54,6 +54,8 @@ Static signals:
 - Models that are `class` or `struct` with no `Codable` conformance despite flowing through JSON at some boundary.
 - Helpers named `dictionary(for:)` / `from(_:Dictionary)` on model types — they exist because `Codable` was skipped.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
+
 ## Bad
 
 ```swift

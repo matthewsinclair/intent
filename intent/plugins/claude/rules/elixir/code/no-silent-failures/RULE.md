@@ -65,9 +65,11 @@ Signals:
 Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
-grep -rnE 'rescue _ -> (\:ok|nil)' lib/
+grep -rnE '^[[:space:]]+_ -> (:ok|nil)$' lib/
 grep -rnE '^[[:space:]]+_ = [a-z_]+' lib/
 ```
+
+The catch-all clause is matched on its own line because formatted Elixir puts `rescue` and its `_ ->` clause on separate lines, which is how the Bad form writes them. It also matches a `case` fallback returning `:ok` or `nil`, which Signals lists.
 
 The reliable structural signal is "if this call fails, does anything in the system know it failed?"
 

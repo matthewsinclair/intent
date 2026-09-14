@@ -54,6 +54,8 @@ Static signals:
 
 SwiftLint rule: `private_over_fileprivate`, `no_extension_access_modifier`.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-swift` subagent applies it by reading.
+
 ## Bad
 
 ```swift

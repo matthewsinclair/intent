@@ -171,6 +171,13 @@ impl Library {
     &self.canon
   }
 
+  /// Where this library's EXTENSION rules are, when extensions are on. Read by
+  /// the critic, which skips files under either root: a rule library's example
+  /// files are fixtures for its rules, not the code being checked.
+  pub fn ext_root(&self) -> Option<&Path> {
+    self.ext.as_deref()
+  }
+
   /// Every rule, canon first, then each extension.
   ///
   /// **A MISSING ROOT IS EMPTY, A PRESENT-BUT-UNREADABLE ROOT IS AN ERROR.** No

@@ -50,6 +50,8 @@ Static signals:
 - Tables with method fields but no genuine variation in behaviour across instances.
 - OOP idioms (`self`, `super`, `instance_of`) in code that only ever instantiates one subtype.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

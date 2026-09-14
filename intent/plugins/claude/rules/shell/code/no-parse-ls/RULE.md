@@ -35,7 +35,7 @@ related_rules:
 aliases: []
 critic_tool: shellcheck
 critic_tool_context: per-file
-critic_tool_codes: [SC2012]
+critic_tool_codes: [SC2012, SC2045, SC2011, SC2010]
 status: active
 version: 1
 ---
@@ -64,9 +64,9 @@ Static signals:
 - `$(ls -l ... | awk ...)` pipelines trying to extract filenames from formatted output.
 - Counting with `$(ls | wc -l)` — use `find . -maxdepth 1 -type f | wc -l` instead, or a glob loop.
 
-ShellCheck: SC2012.
+ShellCheck: SC2012, SC2045, SC2011, SC2010.
 
-**TOOL-ARMED: shellcheck, SC2012 -- _"Use find instead of ls to better handle non-alphanumeric filenames"_, which covers the `ls | ...` pipe and `$(ls ...)` substitution forms.** shellcheck reports the other signals above under codes this rule does not claim -- `for ... in $(ls ...)` is SC2045, `ls | xargs` SC2011, `ls | grep` SC2010 -- so the headless run does not report them.
+**TOOL-ARMED: shellcheck, SC2012 -- _"Use find instead of ls to better handle non-alphanumeric filenames"_, which covers the `ls | ...` pipe and `$(ls ...)` substitution forms.** The other signals above arrive under their own codes -- `for ... in $(ls ...)` is SC2045, `ls | xargs` SC2011, `ls | grep` SC2010 -- and the rule claims all four, so the headless run reports each.
 
 **shellcheck refuses zsh** (SC1071, recorded in IN-SH-CODE-004), so a `.zsh` file is not checked by this rule here. **The census says so rather than reporting the rule `ran`** -- it names the rule and the file under `ARMED but NOT RUN ... which the tool DECLINED to read`, and the run is not counted among those ASKED (fixed 2026-09-12; before that a zsh file passed every shellcheck-armed rule at exit 0, examined by nothing, with the census asserting it had been). It is reported and never a refusal: the tool is present and declined ONE FILE, and blocking a commit over that would be a gate outage in answer to a reporting defect. Apply it to zsh via the `critic-shell` subagent during `/in-review`.
 

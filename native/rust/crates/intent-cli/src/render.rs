@@ -12021,65 +12021,6 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
     ))
   })?;
 
-  let mut files: Vec<std::path::PathBuf> = m
-    .get_many::<String>("files")
-    .map(|v| v.map(std::path::PathBuf::from).collect())
-    .unwrap_or_default();
-
-  if m.get_flag("staged") {
-    files.extend(staged_files()?);
-  }
-
-  // **THE PROJECT IS OPTIONAL AND THAT IS DELIBERATE.** v2 runs this command
-  // outside a project (`PROJECT_ROOT` may be empty) and only consults
-  // `.intent_critic.yml` when there is one. Requiring a project would make the
-  // critic unusable in exactly the place a fresh checkout needs it.
-  //
-  // **NO PROJECT IS SILENT; A PROJECT WHOSE CONFIG WILL NOT READ IS NOT
-  // (AC-00.6, vc).** A bare `.ok()` here folded both into "no project", so a
-  // config missing `intent_version` dropped every rule `.intent_critic.yml`
-  // disables and the run reported findings the project had opted out of, with
-  // nothing saying why. It WARNS rather than refuses: the gate runs this verb in
-  // every estate, and a new refusal would wedge a commit on a config quirk.
-  let project = std::env::current_dir()
-    .ok()
-    .and_then(|cwd| match intentsvcs::project::Project::discover(&cwd) {
-      Ok(p) => Some(p),
-      Err(intentsvcs::project::ProjectError::NotFound(_)) => None,
-      Err(e) => {
-        eprintln!(
-          "warning: {e}\n  so .intent_critic.yml was not read, and no rule it disables is disabled in this run\n  remedy: {}",
-          e.remedy()
-        );
-        None
-      }
-    });
-  let disabled = project
-    .and_then(|p| std::fs::read_to_string(p.root().join(".intent_critic.yml")).ok())
-    .map(|t| intentsvcs::critic::parse_disabled(&t))
-    .unwrap_or_default();
-
-  // **`--rules` REPLACES CANON, AS IT IS DECLARED TO (AC-00.6).** It was
-  // parsed and never read, so a run given a rules tree ran canon's rules
-  // instead and reported clean at rc 0 -- a declared flag failing in silence in
-  // the gate's own verb. A root that is not a directory is refused by name:
-  // left to the empty-library refusal below, it would be told to reinstall
-  // Intent for a path the operator typed.
-  let lib = match m.get_one::<String>("rules") {
-    Some(dir) => {
-      let root = std::path::Path::new(dir);
-      if !root.is_dir() {
-        return Err(Failure::Unavailable(format!(
-          "error: --rules {dir} is not a directory\n  remedy: name a rules root laid out as canon's is (`<lang>/<category>/<slug>/RULE.md`)"
-        )));
-      }
-      intentsvcs::rules::Library::at(root, intentsvcs::userstate::ext_base())
-    }
-    None => library()?,
-  };
-  let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
-    .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
-
   // **A `--format` THIS VERB DOES NOT SERVE IS REFUSED, NOT QUIETLY TREATED AS
   // `text`** (`intent/wip.md` item 8, hv ruled the fix 2026-09-12). The test
   // was `f == "json"`, so every other value -- a typo, a format another verb
@@ -12114,6 +12055,75 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
       )));
     }
   };
+
+  let mut files: Vec<std::path::PathBuf> = m
+    .get_many::<String>("files")
+    .map(|v| v.map(std::path::PathBuf::from).collect())
+    .unwrap_or_default();
+
+  if m.get_flag("staged") {
+    files.extend(staged_files()?);
+  }
+
+  // **OUTSIDE A PROJECT THIS VERB REFUSES, LIKE EVERY OTHER VERB** (vc's ruling).
+  // It answered there before, from the install's rule library, with output a
+  // reader could not tell from a project's. The refusal is the one `context()`
+  // gives, the project error's own rendering, so the remedy matches. It comes
+  // AFTER the usage refusals above, so an unknown language, severity or format
+  // still exits 2 anywhere, and before any rule runs.
+  //
+  // **A PROJECT WHOSE CONFIG WILL NOT READ IS NOT REFUSED (AC-00.6, vc).** It
+  // WARNS: the gate runs this verb in every estate, and a new refusal would
+  // wedge a commit on a config quirk.
+  let cwd = std::env::current_dir()
+    .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
+  let project = match intentsvcs::project::Project::discover(&cwd) {
+    Ok(p) => Some(p),
+    Err(e @ intentsvcs::project::ProjectError::NotFound(_)) => {
+      use intentsvcs::remedy::Remedy;
+      return Err(e.render().into());
+    }
+    Err(e) => {
+      eprintln!(
+        "warning: {e}\n  so .intent_critic.yml was not read, and no rule it disables is disabled in this run\n  remedy: {}",
+        e.remedy()
+      );
+      None
+    }
+  };
+  let disabled = project
+    .and_then(|p| std::fs::read_to_string(p.root().join(".intent_critic.yml")).ok())
+    .map(|t| intentsvcs::critic::parse_disabled(&t))
+    .unwrap_or_default();
+
+  // **`--rules` REPLACES CANON, AS IT IS DECLARED TO (AC-00.6).** It was
+  // parsed and never read, so a run given a rules tree ran canon's rules
+  // instead and reported clean at rc 0 -- a declared flag failing in silence in
+  // the gate's own verb. A root that is not a directory is refused by name:
+  // left to the empty-library refusal below, it would be told to reinstall
+  // Intent for a path the operator typed.
+  let lib = match m.get_one::<String>("rules") {
+    Some(dir) => {
+      let root = std::path::Path::new(dir);
+      if !root.is_dir() {
+        return Err(Failure::Unavailable(format!(
+          "error: --rules {dir} is not a directory\n  remedy: name a rules root laid out as canon's is (`<lang>/<category>/<slug>/RULE.md`)"
+        )));
+      }
+      intentsvcs::rules::Library::at(root, intentsvcs::userstate::ext_base())
+    }
+    None => library()?,
+  };
+  let report = intentsvcs::critic::run(
+    &lib,
+    lang,
+    &files,
+    severity_min,
+    &disabled,
+    m.get_flag("staged"),
+  )
+  .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+
   if json {
     render_critic_json(&report);
   } else {
@@ -12230,6 +12240,15 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     println!(
       "  {} rule(s) disabled by .intent_critic.yml and not asked",
       report.disabled.len()
+    );
+  }
+  // Files under the rule library this run loaded are its rules' own examples,
+  // skipped rather than checked, and named so the skip is never silent.
+  if !report.skipped_library.is_empty() {
+    println!(
+      "  {} file(s) under the rule library not checked, because they are its rules' own examples: {}",
+      report.skipped_library.len(),
+      report.skipped_library.join(" ")
     );
   }
 
@@ -12640,6 +12659,7 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
     "census": census,
     "refused": report.refused,
     "disabled": report.disabled,
+    "skipped_library": report.skipped_library,
   });
   println!("{}", serde_json::to_string_pretty(&doc).unwrap_or_default());
 }

@@ -856,3 +856,37 @@ fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
      distinguishes them anywhere"
   );
 }
+
+/// **`intent critic` refuses outside a project, like every other verb** (vc's
+/// ruling). It answered there from the install's rule library, with output a
+/// reader could not tell from a project's. The refusal comes after critic's
+/// own usage refusals, so an unknown language still exits 2 anywhere.
+#[test]
+fn critic_refuses_outside_a_project_after_its_usage_refusals() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  std::fs::write(dir.path().join("x.sh"), "echo hi\n").expect("write a file to critique");
+
+  let out = run_in(dir.path(), &["critic", "shell", "--files", "x.sh"]);
+  let stderr = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(
+    out.status.code(),
+    Some(1),
+    "outside a project critic refuses like every other verb.\nstderr: {stderr}"
+  );
+  assert!(
+    stderr.starts_with("error:"),
+    "the refusal speaks the error voice: {stderr}"
+  );
+  assert!(
+    !String::from_utf8_lossy(&out.stdout).contains("ASKED"),
+    "and no census is printed as though a project had been checked"
+  );
+
+  let lang = run_in(dir.path(), &["critic", "klingon"]);
+  assert_eq!(
+    lang.status.code(),
+    Some(2),
+    "an unknown language is critic's own usage refusal and still fails open, even outside a project.\nstderr: {}",
+    String::from_utf8_lossy(&lang.stderr)
+  );
+}

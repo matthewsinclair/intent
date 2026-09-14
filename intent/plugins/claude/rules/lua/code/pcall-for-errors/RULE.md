@@ -56,6 +56,8 @@ Static signals:
 - Error messages passed as bare strings with no structure: `error("bad")` vs `error({code = "bad_input", msg = "..."})`.
 - `xpcall` without a handler that actually inspects the error.
 
+**No greppable proxy is authoritative for this rule.** Its signals are about structure -- which scope, which code path, which call shape -- that a single line match cannot see without also firing on the forms this rule allows, so the headless runner declares it rather than guessing. The `critic-lua` subagent applies it by reading.
+
 ## Bad
 
 ```lua

@@ -59,12 +59,7 @@ Signals:
 - A test named "creates user" that mocks `get_user!/1`, `register_user/1`, or similar — the thing it is testing.
 - `MyApp.Accounts.Mock` being used in tests that are _not_ testing the `@behaviour MyApp.Accounts` contract.
 
-Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
-
-```bash
-grep -rnE '(expect|stub)\(Mock[A-Z]' test/
-grep -rnE 'with_mock\(' test/
-```
+**No greppable proxy is authoritative for this rule.** Whether a mocked module is an external boundary or another module in this app is the whole question, and a line match sees neither: the Bad form stubs an internal module by hand under no `Mock` name, and the Good form mocks an external mailer under one. The `critic-elixir` subagent applies it by reading.
 
 The reliable structural signal is "is the mocked boundary genuinely external — network, disk, time, randomness, hardware — or is it just another module in this app?"
 
