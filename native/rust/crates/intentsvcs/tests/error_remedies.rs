@@ -381,6 +381,24 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .at_edit("ST0056", "AT-03.1", None, None, None, None, None)
       .expect_err("an edit with nothing to change is refused, not reported unchanged"),
   ));
+  // Issue 0325: a row covering a criterion that does not exist breaks the
+  // contract, and the refusal carries its own remedy rather than the `put`
+  // door's.
+  out.push((
+    "a test covering a criterion that does not exist",
+    facade
+      .at_new(
+        "ST0056",
+        "AT-99.1",
+        AtKind::Test,
+        None,
+        None,
+        vec!["AC-99.9".to_string()],
+        AtStatus::ToWrite,
+        None,
+      )
+      .expect_err("a row covering no criterion is refused"),
+  ));
   // **PROVOKED RATHER THAN EXEMPTED, because it is provokable and an exemption
   // is a claim nobody re-drives** (issue 0207). The refusal needs a row whose
   // note is longer than the incoming one and not contained in it, so the setup
@@ -886,6 +904,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
 fn variant(err: &FacadeError) -> &'static str {
   match err {
     FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
+    FacadeError::RowBreaksContract { .. } => "RowBreaksContract",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
@@ -1038,6 +1057,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
+  "RowBreaksContract",
   "ExportRoundTripFailed",
   "NoSuchIssue",
   "MalformedIssueId",

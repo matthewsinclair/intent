@@ -84,6 +84,7 @@ use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract;
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion};
+use intentsvcs::remedy::Remedy;
 
 const NEW_AC: &str = "AC-09.1";
 const NEW_AT: &str = "AT-09.1";
@@ -422,6 +423,16 @@ fn at_new_refuses_a_row_whose_covers_matches_no_criterion() {
   assert!(
     said.contains("AC-99.9"),
     "the refusal must NAME the offending id or the operator cannot act on it: {said}"
+  );
+  // Issue 0325: the remedy names the terminal doors, never the `put` door's HTTP one.
+  let remedy = err.remedy().to_string();
+  assert!(
+    remedy.contains("intent ac list ST0001") && remedy.contains("intent at edit ST0001"),
+    "the remedy must name the verbs that fix a missing criterion: {remedy}"
+  );
+  assert!(
+    !remedy.contains("PUT"),
+    "the remedy must not send a terminal caller to PUT: {remedy}"
   );
 }
 

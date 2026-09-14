@@ -578,6 +578,19 @@ pub enum FacadeError {
   /// not a taxonomy of refusals.
   #[error("`{url}` cannot be written: {why}")]
   WriteNotAddressable { url: String, why: String },
+  /// An acceptance-test row that would break its thread's contract (issue
+  /// 0325). **ITS OWN VARIANT BECAUSE THE REMEDY IS.** It borrowed
+  /// `WriteNotAddressable`, whose remedy is the `put` door's -- `PUT` json,
+  /// `POST` to the collection -- which tells a terminal caller nothing about a
+  /// `--covers` naming a criterion that does not exist.
+  #[error(
+    "`intent:///threads/{st}/at/{at}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}"
+  )]
+  RowBreaksContract {
+    st: String,
+    at: String,
+    findings: String,
+  },
   /// The SQL door was handed more than one statement (AC-17.1).
   ///
   /// **ITS OWN VARIANT BECAUSE THE OPERATOR'S NEXT MOVE IS DIFFERENT.** A batch
@@ -1631,6 +1644,12 @@ impl crate::remedy::Remedy for FacadeError {
           "write `{path}` first, then set the verdict -- or point the row at the file that exists with `intent at edit {st} {at} --file <path>`. \
            This is refused rather than warned because the finding it would create refuses EVERY commit in this repository, not just yours, \
            and `intent at` has no spelling that returns a row to `to-write` afterwards."
+        )
+      }
+      Self::RowBreaksContract { st, at, .. } => {
+        format!(
+          "`intent at lint {st}` names each finding; `intent ac list {st}` shows the criteria that exist. \
+           Create a missing criterion first with `intent ac new {st} <AC-ID> --text \"...\"`, or point the row at one that exists with `intent at edit {st} {at} --covers <AC-ID>`"
         )
       }
       Self::WriteNotAddressable { .. } => {
@@ -9061,12 +9080,10 @@ impl Facade {
       .collect();
 
     if !introduced.is_empty() {
-      return Err(FacadeError::WriteNotAddressable {
-        url: format!("intent:///threads/{st}/at/{}", row.id),
-        why: format!(
-          "the row would not satisfy the acceptance-test contract: {}",
-          introduced.join("; ")
-        ),
+      return Err(FacadeError::RowBreaksContract {
+        st: st.to_string(),
+        at: row.id.clone(),
+        findings: introduced.join("; "),
       });
     }
     Ok(())

@@ -3,9 +3,10 @@
   "number": 325,
   "slug": "at-new-covers-missing-ac-refuses-correctly-but-w",
   "title": "at new --covers <missing AC> refuses correctly but with a PUT/POST remedy unrelated to the error",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "The refusal is right; the remedy it prints is an HTTP one that does not describe what the caller can do at the terminal. (vc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
+  "body": "The refusal is right; the remedy it prints is an HTTP one that does not describe what the caller can do at the terminal. (vc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n\n\n**CLOSED 2026-09-14 15:50Z (ic, on vc's batch order).** Fixed in the commit carrying this note. The contract refusal has its own variant, `FacadeError::RowBreaksContract`, whose remedy names `intent at lint`, `intent ac list`, `intent ac new` and `intent at edit --covers`; `WriteNotAddressable` and its `PUT`/`POST` remedy stay with the `put` door. The error text is unchanged. Reproduced first with the delivered 3.0.3 pair: `at new ST0001 AT-01.1 --covers AC-99.9` printed the `PUT` json remedy. Proved by `at_new_refuses_a_row_whose_covers_matches_no_criterion` (the remedy names the verbs and no `PUT`) and a provocation in `error_remedies.rs`. `at edit` shares the refusal, so its remedy changed too.\n"
 }
