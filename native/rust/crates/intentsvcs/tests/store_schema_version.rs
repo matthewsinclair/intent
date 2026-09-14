@@ -314,8 +314,13 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 25 is `wb_node.migrated_at` (0317): a rebuild of `wb_node` with the column
   // at its tail, so that no board write lands a render over a board that is
   // still hand-authored markdown.
+  // 26 is FTS5 `secure-delete` on `doc_sections` and `src_sections` (0355): a
+  // configuration row in each table's `%_config`, set by the rung and the
+  // create arm rather than by the DDL, which is why this hash is unchanged. It
+  // lets the scoped refresh door delete a file's sections without rebuilding
+  // the whole index.
   const PINNED_SCHEMA_HASH: u64 = 0x1800_483b_49ea_0a6d;
-  const PINNED_FOR_VERSION: i32 = 25;
+  const PINNED_FOR_VERSION: i32 = 26;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

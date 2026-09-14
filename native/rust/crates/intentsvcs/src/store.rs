@@ -705,7 +705,19 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 25;
+pub const SCHEMA_VERSION: i32 = 26;
+
+/// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
+/// out of the inverted index rather than writing a tombstone for them.
+///
+/// A configuration row in each table's `%_config`, not a change of shape, so
+/// it is not in [`DDL`], which runs on every open: rung 26 sets it on an
+/// existing store and the create arm of [`Store::init`] on a fresh one.
+// Issue 0355: without it the scoped refresh door had to rebuild the whole index
+// after each delete to clear the tombstones issue 0234 measured.
+const FTS_SECURE_DELETE: &str =
+  "INSERT INTO doc_sections(doc_sections, rank) VALUES('secure-delete', 1);
+INSERT INTO src_sections(src_sections, rank) VALUES('secure-delete', 1);";
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1650,6 +1662,14 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      DROP TABLE wb_node;
      ALTER TABLE wb_node_rebuilt RENAME TO wb_node;",
   ),
+  (
+    26,
+    // 25 -> 26: FTS5 `secure-delete` on `doc_sections` and `src_sections`
+    // (0355), so a scoped delete leaves no tombstones and the refresh door need
+    // not rebuild the whole index. Tombstones an older store already carries
+    // stay until the next wholesale write, whose rebuild clears them.
+    FTS_SECURE_DELETE,
+  ),
 ];
 
 /// Which of the two write acts is happening (D42).
@@ -2500,6 +2520,7 @@ impl Store {
         let tx = conn.transaction()?;
         tx.pragma_update(None, "user_version", SCHEMA_VERSION)?;
         tx.execute_batch(DDL)?;
+        tx.execute_batch(FTS_SECURE_DELETE)?;
         tx.commit()?;
       }
       // Written before the stamp existed, so its shape is not knowable.
@@ -4770,9 +4791,13 @@ impl Store {
   /// given could never delete anything; the caller names every path it is
   /// reconciling, and whatever it did not supply rows for is emptied.
   ///
-  /// The FTS5 `rebuild` is [`Store::write_doc_sections`]'s, for the reason
-  /// recorded there -- a scoped delete leaves a tombstone per row exactly as a
-  /// wholesale one does.
+  /// **NO FTS5 `rebuild` HERE, WHERE THE WHOLESALE WRITERS KEEP ONE.** A
+  /// rebuild re-derives the index from the whole content table, which after a
+  /// scoped delete is the whole corpus, so every refresh re-read every section
+  /// in the project. Both tables carry FTS5 `secure-delete` (schema 26), so the
+  /// scoped delete writes none of the tombstones the rebuild cleared.
+  // Issue 0355: as built 2026-09-14, a one-file refresh spent 717 ms here
+  // rebuilding both tables.
   pub fn replace_sections_for(
     &mut self,
     paths: &[String],
@@ -4787,14 +4812,6 @@ impl Store {
       )?;
       tx.execute("DELETE FROM src_sections WHERE path = ?1", params![path])?;
     }
-    tx.execute(
-      "INSERT INTO doc_sections(doc_sections) VALUES('rebuild')",
-      [],
-    )?;
-    tx.execute(
-      "INSERT INTO src_sections(src_sections) VALUES('rebuild')",
-      [],
-    )?;
     for s in prose {
       insert_doc_section(&tx, s)?;
     }
