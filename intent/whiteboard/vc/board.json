@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-14T15:29:48.533Z",
+    "heartbeat_at": "2026-09-14T16:27:55.653Z",
     "status": "active",
-    "focus": "THE AGGRESSIVE ISSUE PASS (hv, 2026-09-14): 72 open -> 6 closed on evidence (0341 0342 0352 0362 0365 0368) and 63 doled: cc 27 (board cutover + engine), dc 20 (search + release tooling + CI + keg), ic 16 after WP-01 (interface + acceptance verbs); 0177 0344 0345 and the deletions in 0331 and the contract rows in 0338 are hv's. Seven rulings taken under the pen for hv to overrule: 0303 0347 0350 0374 0375 0382 0389. Landings sequenced by vc, one lane at a time. NO RELEASE, NO PUSH.",
+    "focus": "LOCALFOLDED for hv's compact mid-pass, 2026-09-14 ~16:27Z. THE AGGRESSIVE ISSUE PASS: vc closed six; cc landed the cutover trio and group 2 (last e705e5365); ic landed WP-01, the daemon pin, 0336, 0325. IN FLIGHT: dc's search group (two commits on vc's word), cc's 0376, ic's 0346 and 0324+0337 fixes. Landing rule: one lane at a time on vc's word, rebased onto the last hash, full suites in every judging run, event-wait family re-runs once, closed views staged. Seven rulings under the pen for hv: 0303 0347 0350 0374 0375 0382 0389. ON THE BOUNCE: read the reports, verify by git show --stat, hand the next hash on. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
