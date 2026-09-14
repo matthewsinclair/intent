@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-14T07:39:08.087Z",
+    "heartbeat_at": "2026-09-14T08:43:25.672Z",
     "status": "active",
-    "focus": "PROMOTED at e3c67792c (intent 4bf35086, intentd bfc5254c, Intent.app build 7030, doctor 0, daemon 79593 under vc's watch); ~/.intent gone by hv's hand; the fleet carrier sweep RAN by hv in dc's session over 23 estates, all applied, and 20 of them owe a commit of the rewritten CLAUDE.md and AGENTS.md (canon catch-up), Gtools its tracked carrier too. Landed after: ic's doc sweep and 3.0.2 notes, CLAUDE.md:84, ic's /issues seam fix (suite green on a8e3273d8), 0355 measured on the pair. Laksa's migration in flight on laksa-vc. FOR hv: the 0355 leaf-refresh remainder before the tag (recommend cc builds it), the 20 owed commits, then the cut at the terminal. NO RELEASE, NO PUSH.",
+    "focus": "DELIVERED SET c095d8daa (hv's full cycle): intent c8363b27, intentd b0c5247f, Intent.app build 7042, doctor 0, daemon 60171 under vc's watch; verified by hash from vc. Code unchanged since a8e3273d8 (dc's suite green there). The fleet is finished: every swept estate commits current canon and carrier, nothing pushed anywhere. FOR hv: the 0355 leaf-refresh remainder (cc has it built and held in wt-cc; recommend in before the tag), Laksa's guard fix (laksa-vc holds its migration on it), then the cut at the terminal: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
