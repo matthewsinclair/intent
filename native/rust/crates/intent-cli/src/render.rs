@@ -5233,11 +5233,12 @@ impl tui::run::Source for Live {
     // view. One call, both outputs, no second query to disagree with the first.
     if let intentsvcs::nav::View::Search { query } = view {
       // Issue 0372: the pane reconciles before it answers, as the CLI does.
-      let answer = self.facade.index_refresh(None).and_then(|_| {
-        self
+      let answer = match self.facade.index_refresh(None) {
+        Ok(_) => self
           .facade
-          .search_all(query, &intentsvcs::search::SearchQuery::default())
-      });
+          .search_all(query, &intentsvcs::search::SearchQuery::default()),
+        Err(why) => Err(why),
+      };
       return match answer {
         Ok(answer) => {
           self.note = tui::views::freshness_note(&answer);
