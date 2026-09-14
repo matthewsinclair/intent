@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T16:28:54.477Z",
+    "heartbeat_at": "2026-09-14T17:40:26.358Z",
     "status": "active",
-    "focus": "LOCALFOLDED 2026-09-14 16:26Z for the user's compact. Landed today: 7a3b90270 (issues 0379-0389), f2c2f335c/ed88af639/6e8c1f675 (0388), 41d349d04 (0379-0381), fd553e846..e705e5365 (0374 0382 0383 0384 0385). In flight: 0376 in wt-cc, five reds to fix then re-judge (see doing). Queue ruled by vc (see todo). NO RELEASE, NO PUSH.",
+    "focus": "0376 landed at c2eb98ac1 (a step failing after the store write warns at exit 0, a torn rollback stays an error naming its files). Now 0326+0363 in wt-cc on c2eb98ac1, judging run in flight; then 0364, 0321 and the engine list, each landing between dc's groups on vc's word. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -506,7 +506,8 @@
       "kind": "doing",
       "seq": 2,
       "text": "**0376 IN FLIGHT IN wt-cc ON e705e5365, NOT LANDED.** Built as vc ruled: a warning after the store commit (apply_envelopes render/write/index steps, every board verb via land_board_write_noting, organize event-log receipt), the manifest restored before it (one restore_manifest shared by the thread path, issue_add, set_issue_status), notes to the CLI via print_notes and to MCP via notes_json. Its three arms were red on the base and are green. **The judging run left five reds to fix:** (1) the note carries cause.to_string() and drops the cause chain, so a_wrapped_failure_renders_its_full_cause_chain loses its caused-by lines; carry the chain (remedy.rs render walks source()) and reuse ViewsNotWritten remedy as one home, not RERENDER_REMEDY; (2) event_log_envelopes a_file_write_failure_still_records_the_envelope, facade_st_wp a_failed_creation_leaves_no_directory_behind and a_mid_write_failure_leaves_no_torn_state pin the old Err contract: move each to Ok plus the note, keeping every other assertion; (3) command_rosters: the \"wb register\" literal, already fixed in wt-cc to \"the roster\". Then one judging run (full intentsvcs, intent-cli, intentd), the word request, and name TornRollback-through-a-verb-is-now-a-warning to vc. Scripts: scratchpad/g376.py, g376-run.sh.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T17:39:06.357Z",
       "recorded_at": "2026-09-14T16:26:48.548Z"
     },
     {
@@ -514,7 +515,8 @@
       "kind": "todo",
       "seq": 3,
       "text": "**AFTER 0376, ALL RULED BY vc 2026-09-14, EACH ITS OWN COMMIT, vc SEQUENCES THE LANDINGS.** 0326+0363: the whiteboard leaves sync::NOT_YET_BUILT, mechanism kept, member-dependent arms deleted, one red arm (scratchpad/g326.py ready); data-model.md:534 moves with ST0056 canon in the same commit, and the commit says the set is empty by delivery. 0364: legacy::pointers skips paths with a .history component; arm in legacy_leftovers.rs. 0321: the stamp is SQLite strftime over one process-wide in-memory connection in intentsvcs daemon.rs (intentd may not depend on rusqlite), a logln macro before intentd main.rs mods, --help/--version/argument refusals unstamped; asker left out and said in the close; file the Op::Shutdown wire field as its own XS issue. Then 0351, 0378, 0349, 0347, 0323, 0315, 0316, 0320, 0343+0367+0338, 0377, 0331 comments half. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T17:39:14.307Z",
       "recorded_at": "2026-09-14T16:28:31.336Z"
     },
     {
@@ -532,6 +534,22 @@
       "text": "vc, 2026-09-14, on 0376: A TORN ROLLBACK STAYS AN ERROR. The rc 0 warning is only for views that are stale and whole (not written, still the previous render). When the WriteSet unwind itself fails (WriteError::TornRollback), the verb returns Err: the message says the store write landed and names the torn files, and the remedy is the one that rewrites them. Two states, two reports. Also ruled: the note carries the cause chain whole, and ViewsNotWritten remedy is the one home for the re-render sentence.",
       "state": "live",
       "recorded_at": "2026-09-14T16:33:16.886Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 3,
+      "text": "**0326+0363 IN FLIGHT IN wt-cc ON c2eb98ac1, NOT LANDED.** The whiteboard leaves sync::NOT_YET_BUILT (empty by delivery, the mechanism kept; migration_not_yet_built checks the collected list so clippy has no const_is_empty), the member-dependent arms and their helper estate_with_member_files deleted, and one arm, a_project_with_a_whiteboard_gets_no_not_yet_carried_report, red on the base. scratchpad/g326-run.sh runs the red arm, the fix and one judging run (intentsvcs, intent-cli, intentd, --no-fail-fast, workspace clippy, rustfmt). At landing, on main: data-model.md:536 says the set is empty by delivery (issues 0326 and 0363), with intent/.canon/st/ST0056.json settled past the ingest, in the same commit, which names the base it was judged on. Then the word request.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:39:48.979Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 4,
+      "text": "**AFTER 0326+0363, IN vc ORDER (2026-09-14), EACH ITS OWN COMMIT, EACH WITH THE WORD REQUEST AFTER ITS FULL RUN.** dc is on the tree for its keg group and then its CI group; mine land between dc's. 0364: legacy::pointers skips paths with a .history component; arm in legacy_leftovers.rs. 0321: the stamp is SQLite strftime over one process-wide in-memory connection in intentsvcs daemon.rs (intentd may not depend on rusqlite), a logln macro before intentd main.rs mods, --help/--version/argument refusals unstamped; asker left out and said in the close; file the Op::Shutdown wire field as its own XS issue. Then 0351, 0378, 0349, 0347, 0323, 0315, 0316, 0320, 0343+0367+0338 (0338 left open naming the hv contract rows), 0377 (NoCache on the canon registration, measured on one board commit), 0331 comments half. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:39:58.232Z"
     }
   ],
   "messages": [
