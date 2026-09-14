@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 381,
+  "slug": "wb-migrate-s-remedy-for-an-unregistered-sender-c",
+  "title": "wb migrate's remedy for an unregistered sender cannot be followed: the re-run it names is refused once the board is carried",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "When `intent wb migrate <node>` meets an inbox from a sender the roster does not know, it skips that file and reports \"Register the sender and re-run, or leave the file where it is\". The re-run is refused: `wb_migrate` opens by refusing any node whose board already holds items or messages (`FacadeError::WbAlreadyCarried`). So once the rest of the board is carried, the skipped entries cannot be carried by any command, and the remedy sends the reader to a door that is shut. Found in Gtools (gtools-vc, 2026-09-14): `intent wb migrate vc` ran before cc was registered, and cc's three entries in vc/inbox.cc.md are left in git at 773f9ff (all three handled).\n\nRead against the source at v3.0.2 (e75708756). The refusal is deliberate and its reason stands: a second run cannot tell its own earlier work from a live write made since. So the fix is not a partial re-run. Migrate refuses an unregistered sender BEFORE it writes anything, naming every such inbox and the `wb register` that admits it, so the order cannot be got wrong and nothing is half carried.\n"
+}

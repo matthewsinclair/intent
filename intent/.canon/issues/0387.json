@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 387,
+  "slug": "the-release-commit-stamps-the-version-without-re",
+  "title": "the release commit stamps the version without re-rendering the realised views, so every view's footer trails the cut until its next write rewrites it",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "The release commit bumps VERSION and the declared sidecars without re-rendering the generated views, so every realised view on the tag still says it was rendered by the previous version. Each view's footer then flips to the new version on its next write, whatever that write was for, so footer-only diffs trail every cut: after v3.0.2 they surfaced as a mechanical commit of footer-only paths (06fa152e4); on v3.0.3 the daemon did not re-render at start (dc, 2026-09-14), so each view carries the old version until something writes it. Raised by vc on the v3.0.3 cut, 2026-09-14.\n\nRead against `bin/.devbin/cmd/build.d/release` at v3.0.3. The stamp step runs `bin/devbin version set`, then regenerates the schema faces, `intent agents sync` and `intent claude upgrade --apply`, and commits the sidecar list. No step re-renders the thread, issue and board views whose footer names the version.\n\nThis is the release half of issue 0342, which names this fix among its two (\"the stamp step re-renders every realised view, the schema-faces shape\"). doctor's half was answered by issue 0309's footer-only `StaleRender` class, which stops the gate refusing, but the tag still ships views a version behind and the next write still rewrites all of them. Fix: the stamp step re-renders every realised view with the built binary and folds those paths into the release commit, the way it already folds the schema faces.\n"
+}

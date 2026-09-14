@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 383,
+  "slug": "wb-migrate-carries-a-header-claim-verbatim-in-a",
+  "title": "wb migrate carries a header claim verbatim in a form wb claim refuses",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent wb migrate <node>` carries the header's `claims:` verbatim, including forms `intent wb claim` refuses. Found on Laksa's cutover (laksa-ic, 2026-09-14): a board claiming `ST0112/WP-07` carried that string, where the verb takes a work package as `ST0112/09` and refuses anything else with `WbClaimMalformed` (\"a claim names what the board can point at, so free text here would be a claim nothing can resolve\").\n\nRead against the source at v3.0.2 (e75708756): `wbmigrate::read_board` splits the bracketed list on commas and keeps every non-empty entry. It never asks `Facade::is_claim_address`, the check `wb_claim` applies, so migrate is a second door into the claims column that admits what the first refuses. `wb unclaim` does not validate, so the carried string can be dropped by hand.\n\nFix: migrate applies the claim check to each carried claim, carrying the ones it passes. A claim it cannot read goes into the uncarried report with the form the verb takes, and if a spelling such as `ST0000/WP-07` maps to one address, migrate may normalise it and say so.\n"
+}

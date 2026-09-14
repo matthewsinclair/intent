@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 388,
+  "slug": "arguments-do-not-start-a-daemon-spawns-gnu-timeo",
+  "title": "arguments_do_not_start_a_daemon spawns GNU timeout, which the macOS CI runner lacks, so its arms panic on the macos-latest leg",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "`native/rust/crates/intentd/tests/arguments_do_not_start_a_daemon.rs` bounds each run by spawning `timeout 5 intentd <arg>`. `timeout` is GNU coreutils and the macOS CI runner does not have it, so every arm that calls `run` panics at the spawn (\"intentd runs\") on the macos-latest leg only: GitHub Actions run 34847740200 on the v3.0.2 tag. It passes on a developer Mac only because Homebrew's coreutils puts a `timeout` on PATH, so a local green says nothing about the runner. Raised by vc on the v3.0.3 cut, 2026-09-14.\n\nThe deadline is load-bearing (the failure this file guards against is a daemon that serves and never exits), so the fix keeps it and moves it into Rust: spawn `intentd` directly, wait with a deadline, kill and reap on expiry, and report a timeout as the served-daemon failure it is. No external binary and no new dependency. Size XS.\n"
+}
