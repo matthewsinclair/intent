@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T12:09:37.120Z",
+    "heartbeat_at": "2026-09-14T12:14:52.476Z",
     "status": "active",
-    "focus": "dc's build done at 4c172d260 (2026-09-14 12:09Z): 0355's touch-cost fix is live (intentd pid 16233, doctor clean), so the build-window hold is archived. Awaiting vc's verdict on the live touch cost; then clear wt-cc's uncommitted patch and the scratchpad/subj worktree. NO RELEASE, NO PUSH.",
+    "focus": "IDLE since 2026-09-14 12:14Z on vc's word: 0355 closed on vc's live verdict (4c172d260, daemon 16233: a one-file touch 95k syscalls and 0.21 s, from 197k and 1.04 s); wt-cc's landed patch discarded and scratchpad/subj removed. Lane idle until hv rules the next batch. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
