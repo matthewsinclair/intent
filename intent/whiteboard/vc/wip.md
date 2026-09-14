@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-14 08:43Z
+heartbeat_at: 2026-09-14 12:14Z
 status: active
-focus: "DELIVERED SET c095d8daa (hv's full cycle): intent c8363b27, intentd b0c5247f, Intent.app build 7042, doctor 0, daemon 60171 under vc's watch; verified by hash from vc. Code unchanged since a8e3273d8 (dc's suite green there). The fleet is finished: every swept estate commits current canon and carrier, nothing pushed anywhere. FOR hv: the 0355 leaf-refresh remainder (cc has it built and held in wt-cc; recommend in before the tag), Laksa's guard fix (laksa-vc holds its migration on it), then the cut at the terminal: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall. NO RELEASE, NO PUSH."
+focus: "THE CUT IS READY on delivered set 4c172d260 (intent 4d3b8fa9, intentd b0db7ab5, Intent.app 7052, doctor 0, store schema 26, daemon 16233 under the watch). 0355 CLOSED on the verdict: a source-file touch 0.21 s from 1.04 s, directory and .git events at the floor. Fleet finished, ~/.intent gone, Laksa migrated. hv at the terminal: build release --patch, build all, int macos prepare, build formula, build publish, build smoke --reinstall, each its own approval; then ic's reference regeneration and skills sync. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- CUT (3.0.2, hv at the terminal, nothing batched): delivered set 363b18db1 (intent 5b66b264, intentd 677b9c5b, Intent.app build 7013, doctor 0; daemon 87652 idle under vc's watch). hv's rulings carried: 0355 lands (cc, its commit waiting on hv's permission prompt in cc's session), ic's clippy lands second (13 lints, one commit), dc runs the suite once on that base then HOLDS before build all until hv authorises the fleet-wide carrier sweep in dc's session (vc's session refused to direct it; hv: 'fix those fleet-wide'); then build all, promotion, the sweep, ~/.intent/evidence moved so ~/.intent vanishes, app-install, daemon restart, doctor, hashes and pid to vc; vc re-arms the watch and probes once; ic then lands the ~/.intent doc sweep, then the explorer TUI fixes (/issues seam built and held), dc reruns the suite; Laksa when hv starts laksa-vc; then the cut. NO RELEASE, NO PUSH.
+- CUT, one verdict away (hv at the terminal, nothing batched): dc's last full cycle on base 4c172d260 (code 743247d8a: cc's 0355 touch-cost fix, FTS5 secure-delete by rung 25 to 26, one-way, over d9703ba8f). On build done: vc commits its fold, verifies the pair by hash, re-arms the CPU watch on the new pid, runs scratchpad/probe5-0355.sh once with the pid substituted for the verdict (touch arm was 197k syscalls and 1.04 s on 35471), records it in 0355 (close if the arm fell), then hv cuts: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall; then ic's reference regeneration and skills sync. Fleet finished, ~/.intent gone, Laksa migrated at 4a629219b (its findings are 0374 and 0375). NO RELEASE, NO PUSH.
 
 ## TODO
 
