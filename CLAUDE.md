@@ -81,7 +81,7 @@ Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 The canon Critic dispatch section above already points at `intent/docs/critics.md`. More authoring guides live alongside:
 
 - `intent/docs/rules.md` -- rule-library authoring guide (schema, Detection heuristics, attribution).
-- `intent/docs/writing-extensions.md` -- user-extension authoring guide (subagents, skills, rule packs at `~/.intent/ext/`). Extensions are declared and not built in this release: `intent ext` refuses and nothing reads `~/.intent/ext/`.
+- `intent/docs/writing-extensions.md` -- user-extension authoring guide (subagents, skills, rule packs at `~/.local/share/intent/ext/`). Extensions are declared and not built in this release: `intent ext` refuses and nothing reads `~/.local/share/intent/ext/`.
 
 ### Commit conventions
 
