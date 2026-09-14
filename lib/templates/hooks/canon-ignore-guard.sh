@@ -108,7 +108,38 @@ done <<< "$ignore_files"
 # answer is about the RULES and not about what happens to be tracked: a tracked
 # file is not "ignored" for add purposes, and reading it that way would report a
 # clean tree while the rule that orphans every FUTURE artefact sits there.
-matches="$(git check-ignore -v --no-index -- "${PROBES[@]}" 2>/dev/null || true)"
+#
+# **BOTH HALVES READ ONE DOCUMENT: THE STAGED ONE** (issue 0392). The
+# attribution above comes from the INDEX, and `check-ignore` reads the rules of
+# whatever work tree it is pointed at -- by default the checkout's. Those differ
+# whenever an ignore file is staged and then edited again, which on a shared
+# tree is routine (`git commit --only`, a re-staging formatter), and the
+# `source:line` comparison below then compared line numbers across two
+# documents: a staged rule reaching canon that the worktree lacked was never
+# matched at all, and passed. So every ignore file the INDEX holds is written
+# into a scratch work tree and git's own matcher is pointed there. The rules are
+# the commit's, and so are the line numbers they are attributed by.
+#
+# A scratch tree that cannot be built REFUSES: checking the wrong rules, or
+# none, and exiting 0 is the silent pass this guard exists to prevent.
+refuse_unbuilt() {
+  echo "BLOCKED: canon-ignore-guard could not build the staged ignore rules to check ($1)." >&2
+  echo "  Nothing was checked, so nothing is allowed. Re-run the commit; if it repeats, report it." >&2
+  exit 1
+}
+git_dir="$(git rev-parse --absolute-git-dir 2>/dev/null)" || refuse_unbuilt "no git directory"
+staged_rules="$(mktemp -d "${TMPDIR:-/tmp}/canon-ignore-XXXXXX")" || refuse_unbuilt "mktemp"
+trap 'rm -rf "$staged_rules"' EXIT
+staged_ignores="$(git ls-files -- '.gitignore' '*/.gitignore' 2>/dev/null)"
+if [ -n "$staged_ignores" ]; then
+  printf '%s\n' "$staged_ignores" | git checkout-index --prefix="$staged_rules/" --stdin ||
+    refuse_unbuilt "checkout-index"
+fi
+matches="$(
+  cd "$staged_rules" &&
+    git --git-dir="$git_dir" --work-tree="$staged_rules" \
+      check-ignore -v --no-index -- "${PROBES[@]}" 2>/dev/null || true
+)"
 [ -n "$matches" ] || exit 0
 
 # `check-ignore -v` emits `<source>:<linenum>:<pattern>\t<pathname>`, one line
