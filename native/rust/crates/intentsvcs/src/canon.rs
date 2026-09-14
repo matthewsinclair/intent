@@ -364,6 +364,15 @@ fn write_if_changed(
   Ok(())
 }
 
+/// A template to seed and what renders it: the install it is read from, its
+/// path there, and the project's config and render context for its tokens.
+struct Template<'a> {
+  home: &'a Path,
+  rel: &'a str,
+  cfg: &'a Config,
+  ctx: &'a RenderContext<'a>,
+}
+
 /// Seed `rel` at `dest` only when `dest` is absent.
 ///
 /// **USER-OWNED FILES ARE SEEDED, NEVER SYNCED.** `usage-rules.md` is a
@@ -371,8 +380,7 @@ fn write_if_changed(
 /// configuration; overwriting either to cure variation destroys the thing the
 /// project actually decided. v2's canon installer draws the same line.
 fn seed_if_absent(
-  home: &Path,
-  rel: &str,
+  template: Template<'_>,
   dest: &Path,
   force: bool,
   report: bool,
@@ -382,7 +390,18 @@ fn seed_if_absent(
     applied.preserved.push(dest.to_path_buf());
     return Ok(());
   }
-  let body = template(home, rel)?;
+  // Every seed goes through the one token expander, so a template that gains a
+  // `[[TOKEN]]` renders it rather than shipping it literally (issue 0336: the
+  // seeded `usage-rules.md` carried `[[PROJECT_NAME]]`). A template with no
+  // tokens comes back unchanged.
+  let Template {
+    home,
+    rel,
+    cfg,
+    ctx,
+  } = template;
+  let body = crate::rootfiles::substitute(&self::template(home, rel)?, cfg, ctx)
+    .map_err(|e| CanonError::RootFile(format!("{rel}: {e:?}")))?;
   write_if_changed(dest, &body, report, applied)
 }
 
@@ -488,8 +507,12 @@ pub fn apply(
     applied.skipped.push(mcp_path);
   } else {
     seed_if_absent(
-      home,
-      "_mcp.json",
+      Template {
+        home,
+        rel: "_mcp.json",
+        cfg,
+        ctx,
+      },
       &mcp_path,
       false,
       opts.report,
@@ -528,8 +551,12 @@ pub fn apply(
 
   // 3. User-owned. Seeded when absent, preserved otherwise.
   seed_if_absent(
-    home,
-    "llm/_usage-rules.md",
+    Template {
+      home,
+      rel: "llm/_usage-rules.md",
+      cfg,
+      ctx,
+    },
     &root.join("usage-rules.md"),
     // NOT force-overwritable. `--force`'s own help names `CLAUDE.md` and
     // `.intent_critic.yml` and stops there, and v2 writes this one only when
@@ -540,8 +567,12 @@ pub fn apply(
     &mut applied,
   )?;
   seed_if_absent(
-    home,
-    "_intent_critic.yml",
+    Template {
+      home,
+      rel: "_intent_critic.yml",
+      cfg,
+      ctx,
+    },
     &root.join(".intent_critic.yml"),
     opts.force,
     opts.report,

@@ -106,6 +106,8 @@ mod canon_resolver_singularity;
 mod canon_round_trip;
 #[path = "canon_seeds_the_mcp_declaration_once.rs"]
 mod canon_seeds_the_mcp_declaration_once;
+#[path = "canon_seeds_usage_rules_with_the_project_name.rs"]
+mod canon_seeds_usage_rules_with_the_project_name;
 #[path = "carrier_is_installed_beside_the_block.rs"]
 mod carrier_is_installed_beside_the_block;
 #[path = "close_gate_parity.rs"]

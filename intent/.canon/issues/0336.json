@@ -3,9 +3,10 @@
   "number": 336,
   "slug": "a-seeded-usage-rules-md-carries-a-literal-projec",
   "title": "A seeded usage-rules.md carries a literal [[PROJECT_NAME]]",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "`canon.rs:350-364` (as at the audit) copies `_usage-rules.md` raw, with no token substitution, so the seeded file carries the literal token. (cc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
+  "body": "`canon.rs:350-364` (as at the audit) copies `_usage-rules.md` raw, with no token substitution, so the seeded file carries the literal token. (cc)\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n\n\n**CLOSED 2026-09-14 15:50Z (ic, on vc's batch order).** Fixed in the commit carrying this note. `canon::seed_if_absent` now passes every seeded template through `rootfiles::substitute`, the one token expander, so a seeded `usage-rules.md` names the project instead of carrying `[[PROJECT_NAME]]`; the token-free `_mcp.json` and `_intent_critic.yml` come back unchanged. Reproduced first with the delivered 3.0.3 pair: `claude upgrade --apply --skip-settings` in a scratch project seeded `[[PROJECT_NAME]]` on lines 1, 3 and 5. Proved by `canon_seeds_usage_rules_with_the_project_name.rs`. Existing estates that already carry the literal token own their copy and are not rewritten.\n"
 }
