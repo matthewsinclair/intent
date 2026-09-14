@@ -14,7 +14,7 @@
       "seq": 1,
       "title": "The verb: intent daemon logs, with --lines and --follow, its register row and tests",
       "scope": "S",
-      "status": "not-started",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
@@ -132,34 +132,38 @@
     {
       "id": "AT-01.1",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs",
       "covers": [
         "AC-01.1"
       ],
-      "status": "to-write"
+      "status": "green"
     },
     {
       "id": "AT-01.2",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs",
       "covers": [
         "AC-01.2"
       ],
-      "status": "to-write"
+      "status": "green"
     },
     {
       "id": "AT-01.3",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs",
       "covers": [
         "AC-01.3"
       ],
-      "status": "to-write"
+      "status": "green"
     },
     {
       "id": "AT-01.4",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs",
       "covers": [
         "AC-01.4"
       ],
-      "status": "to-write"
+      "status": "green"
     },
     {
       "id": "AT-02.1",
