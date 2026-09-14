@@ -71,6 +71,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 - (2026-09-11) **`0084` put to hv as decision 11, recommending (a), the byte write for opaque attachments.** vc drove the migrator hole: a Latin-1 `notes.txt` migrates with no sidecar, and the next restore refuses `broken-reference`.
 - (2026-09-11) **`0114`, `0220` and `0065` put to hv as decisions 12, 13 and 14.** Each issue reserves its question for hv, or needs a policy value.
 - (2026-09-13) hv, verbatim: NO UNNECESSARY OVERTESTING, NO TESTING TESTS, NO YAK-SHAVING. Expeditious delivery of working code; do not relitigate the speed of light for every decision; be RUTHLESS. New code, good code, good tests, done. Applied: build the cheap fix and let the live system judge it; one run decides a question; never a positive control of an instrument; ACs one line per user-facing behaviour, ATs the test that proves it once.
+- (2026-09-14) EIGHTH RULING UNDER THE PEN, for hv to overrule with a line: a register State row for Criterion.kind (0346, d9304ef54) and for AcceptanceTest.kind (ic's 0324+0337) is a faithful transcription of hv's 2026-08-17 fold (one machine, kind a dimension of its state, a re-kind the pair's transition into the entry state), because the register classifies fields and has no closer word; each row's comment cites the fold by name and data-model.md's as-built column is corrected forward in the same landing. The other seven: 0303 0347 0350 0374 0375 0382 0389.
 
 ---
 

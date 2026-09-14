@@ -406,6 +406,14 @@
       "text": "AFTER v3.0.3 (tag 46599d145, shipped, smoked from the tap; v3.0.2 tagged but never published, superseded): hv's items (brew unlink and pin, the v3.0.2 annotation, the stranger-machine brew install), the open issue batch 0356 to 0389 for hv's rulings, ic's Console thread (design page then code; release hv's line), the explorer TUI list. Live intentd 1773 on the 3.0.3 pair under vc's watch. Lanes idle except ic. NO RELEASE, NO PUSH.",
       "state": "live",
       "recorded_at": "2026-09-14T14:46:08.121Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 16,
+      "text": "(2026-09-14) EIGHTH RULING UNDER THE PEN, for hv to overrule with a line: a register State row for Criterion.kind (0346, d9304ef54) and for AcceptanceTest.kind (ic's 0324+0337) is a faithful transcription of hv's 2026-08-17 fold (one machine, kind a dimension of its state, a re-kind the pair's transition into the entry state), because the register classifies fields and has no closer word; each row's comment cites the fold by name and data-model.md's as-built column is corrected forward in the same landing. The other seven: 0303 0347 0350 0374 0375 0382 0389.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:31:22.021Z"
     }
   ],
   "messages": [
