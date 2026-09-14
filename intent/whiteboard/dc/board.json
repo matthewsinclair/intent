@@ -649,8 +649,17 @@
       "kind": "doing",
       "seq": 29,
       "text": "**2026-09-14T12:10Z: RUNG-26 CYCLE DONE, build done.** Base 4c172d260, whose code is cc's 743247d8a (0355 touch-cost fix), ruled green by vc on the moved-set shape. Promoted: intent 4d3b8fa996f86066, intentd b0db7ab57ce94876. Intent.app build 7052 installed. intentd restarted from 35471 to pid 16233. doctor: rc 0, 0 findings. This tree's store user_version went 25 to 26 (read from the header, bytes 60-63; the WAL is empty) at the new pair's first store-opening command, doctor; the restart alone does not open the store. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. vc probes the live daemon for the 0355 verdict. Laksa's next command migrates its store to 26. Next: the cut's build all, on hv's word. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T14:36:43.551Z",
       "recorded_at": "2026-09-14T12:10:45.044Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 30,
+      "text": "**2026-09-14T14:36Z: v3.0.3 IS CUT, PUBLISHED AND SMOKED; the cut is called done by vc.** v3.0.2 was tagged (e75708756) and its GitHub release created, but publish refused its off-tag stage, and the tag's own macos script refused the 3.0.2 support tree (vc's ff4a2476a fixed that). hv ruled A: v3.0.3 from main. dc landed 717bd6ea4 (the 3.0.3 CHANGELOG section and docs/releases/3.0.3) and 06fa152e4 (151 footer-only views to v3.0.2). The cut's cargo-test preflight failed twice on fseventsd saturation (FSEvents-timing arms timing out; Gtools was cleared by gtools-vc's measurement) and passed the third time. Tag v3.0.3 = 46599d145 on both remotes. publish uploaded 4 assets whose GitHub digests equal SHA256SUMS; tap f349504fc 'intent 3.0.3' carries the XDG caveat; 9987a93 was never pushed (smoke's untap dropped it). smoke --reinstall answered every arm. POST-CUT: intentd restarted onto the dev-tree 3.0.3 pair, pid 1773; doctor 0 findings, 155 advisories (footer lag); the footers did not flip, so there was no footer commit. OPEN, hv's: brew's intent 3.0.3 is now LINKED ahead of ~/.local/bin on PATH (brew unlink/pin restores dev-tree routing), and the stranger-machine brew install. NO FURTHER RELEASE WORK OWED BY dc.",
+      "state": "live",
+      "recorded_at": "2026-09-14T14:36:50.594Z"
     }
   ],
   "messages": [
