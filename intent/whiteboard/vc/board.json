@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-13T18:11:05.034Z",
+    "heartbeat_at": "2026-09-14T06:53:02.181Z",
     "status": "active",
-    "focus": "Delivered set verified at 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0); the live daemon 18592 carries the 0354 fix (669cf00ee) and 0366 and is under vc's CPU watch; the verdict is whether the old daemon's ten-minute burst cadence returns after the first burst (the index build at open), decided after two quiet windows. ic codes ST0074 WP-05, WP-03, WP-04 for 3.0.2 before the tag; cc audits ST0056's three attachments; Laksa gets the pair's hash on a cool verdict; then the cut, hv at the terminal. NO RELEASE, NO PUSH.",
+    "focus": "LOCALFOLDED for hv's compact. 0354 FIXED and closed on 363b18db1 (daemon 87652 idle). Final pre-tag rebuild HELD before build all on base 013f5da81 (suite green) pending hv's rulings, bundled in restart.md: 0355 (cc's three-file cut green, held), the carrier sweep (intent claude upgrade --apply --skip-settings per estate after promotion, dc runs it), ic's five clippy lints before the tag, Laksa on the final pair, the picker's registry-file source, ~/.intent/evidence survives, a post-tag WP for carrier refresh, the tap push reminder. On the bounce: read hv's answers in this session, carry them to cc, ic and dc, then dc's sequence, the watch, Laksa, the cut. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
