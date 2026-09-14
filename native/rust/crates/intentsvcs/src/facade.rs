@@ -12216,7 +12216,19 @@ impl Facade {
     Ok(
       candidates
         .into_iter()
-        .filter(|(path, disk)| before.get(path).is_some_and(|prior| prior != disk))
+        // **A VIEW AN OLDER INTENT RENDERED IS NOT A HAND EDIT** (issue 0309's
+        // predicate, the one doctor asks). Its footer names the version that
+        // wrote it and nothing else differs, so nobody's work is under it.
+        // Issue 0385: the first write after an upgrade warned for every such view.
+        .filter(|(path, disk)| {
+          before.get(path).is_some_and(|prior| {
+            prior != disk
+              && !views::differs_only_in_banner_version(
+                &String::from_utf8_lossy(disk),
+                &String::from_utf8_lossy(prior),
+              )
+          })
+        })
         .map(|(path, _)| self.project.relative(&path))
         .collect(),
     )

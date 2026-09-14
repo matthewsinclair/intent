@@ -818,7 +818,7 @@ fn first_difference(a: &str, b: &str) -> usize {
 /// must match, both sides must actually carry a banner, and the two banner lines
 /// must become identical once the versions are equalised -- so a REWORDED banner
 /// is not this class, and neither is a body edit that happens to sit beside one.
-fn differs_only_in_banner_version(on_disk: &str, rendered: &str) -> bool {
+pub fn differs_only_in_banner_version(on_disk: &str, rendered: &str) -> bool {
   let (Some(disk_at), Some(rendered_at)) =
     (on_disk.rfind(BANNER_MARKER), rendered.rfind(BANNER_MARKER))
   else {
