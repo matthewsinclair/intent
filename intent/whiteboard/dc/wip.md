@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-13 18:11Z
+heartbeat_at: 2026-09-14 06:52Z
 status: active
 focus: "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/22, ST0069/24]
@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-_(none)_
+- **LOCALFOLDED 2026-09-14T06:52Z for hv's compact. FINAL PRE-TAG REBUILD, HELD BEFORE bin/devbin build all ON hv's RULING OF THE CARRIER SWEEP** (the question is bundled to vc for hv, per hv). Base 013f5da81 (ST0074 WP-05 2f29401b6, WP-03 2123f7c08, WP-04 2a121e359). The workspace suite is GREEN on it (wt-dc, isolated HOME; scratchpad suite-pretag/run1.log), and the lines are with vc. The quiet window is OPEN: cc, ic and vc hold commits; cc may cargo test in its private worktree with an isolated HOME. Nothing is promoted: the live set is 363b18db1 (intent 5b66b264, intentd 677b9c5b, app build 7013), daemon 87652, where 0354 is ruled fixed and Laksa is released. ~/.intent/home names the project and the XDG pointer is absent. WHY HELD: intent-cli main.rs:17 migrates ~/.intent/home to XDG on ANY run; carriers (.githooks/pre-commit.intent:59 here) read ~/.intent/home and refuse when it is absent; ~/.local/bin/intent resolves into target/release; the verify reads stamps with strings (artefact.lib:59) and never execs, so PROMOTION is the point of no return; the gate's intent info (pre-commit.sh:94) migrates on the first commit after it. vc's shape for hv: build all, refresh carriers (bin/devbin hooks --install here, the narrowest door per discovered estate) before any lane runs intent, then app-install, restart, doctor. ON THE BOUNCE: wait for vc's go carrying hv's ruling; re-check that nothing under native/, surface/, bin/ or lib/ moved from 013f5da81; build all (re-run once on a mid-window stamp refusal); the ruled carrier step; bin/int macos app-install (re-issue on -600); intent daemon restart; check ~/.intent/home or its XDG successor names the project and say which file was read; intent doctor 0; the hashes, the app build and the new pid to vc; build done to every lane. Never run intent claude upgrade --apply without the ruling. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -24,7 +24,6 @@ _(none)_
 
 - **The tap formula commit `9987a93` is local and unpushed.** Condition: hv approves that push, as its own action.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD.** Re-drive a hold's condition when you quote it; never read it off this line.
-- **The next rebuild of the delivered set.** Condition: ic's ST0074 WP-03 and WP-04 are both on main (WP-05, the XDG layout, landed at 2f29401b6 after the last window). Then run the same sequence once: the suite once in wt-dc; announce the quiet window to cc, ic AND vc, and wait for all three to acknowledge before build all (a commit already queued refused the stamp twice); bin/devbin build all; bin/int macos app-install (on LaunchServices -600 at open after the swap, re-issue the same command); intent daemon restart; intent doctor 0; the hashes and the new pid to vc. 0354 is RULED FIXED by vc on the set at 363b18db1 (a target/ directory event is priced at 0.10 s against 9 s before, and the daemon idles), and Laksa is released on that hash. NO RELEASE, NO PUSH.
 
 ## Watch-outs
 
