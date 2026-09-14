@@ -8,6 +8,8 @@ use intentsvcs::facade::FacadeError;
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::WbItemKind;
 
+const HAND_BOARD: &str = "---\nnode: dc\nname: DevX Claude\nrole: worker\nheartbeat_at: 2026-09-12 18:31Z\nstatus: active\nfocus: \"the migration verb\"\nclaims: []\n---\n\n# DevX Claude (dc)\n\n## DOING\n\n- The busiest section on every real board.\n";
+
 fn whiteboard_findings(fx: &Fixture) -> Vec<Finding> {
   intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All)
     .findings
@@ -113,7 +115,7 @@ fn a_node_registered_from_its_header_refuses_a_board_write_until_it_is_migrated(
   let fx = Fixture::new();
   let dir = fx.path("intent/whiteboard/dc");
   std::fs::create_dir_all(&dir).expect("node dir");
-  let hand = "---\nnode: dc\nname: DevX Claude\nrole: worker\nheartbeat_at: 2026-09-12 18:31Z\nstatus: active\nfocus: \"the migration verb\"\nclaims: []\n---\n\n# DevX Claude (dc)\n\n## DOING\n\n- The busiest section on every real board.\n";
+  let hand = HAND_BOARD;
   std::fs::write(dir.join("wip.md"), hand).expect("a hand-authored board");
   let mut f = fx.facade_on_disk();
   f.register_roster().expect("register by header");
@@ -136,4 +138,26 @@ fn a_node_registered_from_its_header_refuses_a_board_write_until_it_is_migrated(
   );
   let findings = whiteboard_findings(&fx);
   assert!(findings.is_empty(), "and the render is clean: {findings:?}");
+}
+
+#[test]
+fn a_migration_lands_the_carried_board_on_disk() {
+  // Issue 0380: migrate refreshed the index only, so the carried board stayed hand-authored on disk and doctor reported it as skew.
+  let fx = Fixture::new();
+  let dir = fx.path("intent/whiteboard/dc");
+  std::fs::create_dir_all(&dir).expect("node dir");
+  std::fs::write(dir.join("wip.md"), HAND_BOARD).expect("a hand-authored board");
+  let mut f = fx.facade_on_disk();
+  f.register_roster().expect("register by header");
+  f.wb_migrate("dc").expect("carry the board");
+  let board = fx.read("intent/whiteboard/dc/wip.md");
+  assert!(
+    board != HAND_BOARD && board.contains("- The busiest section on every real board.\n"),
+    "the migration itself lands the render of what it carried: {board}"
+  );
+  let findings = whiteboard_findings(&fx);
+  assert!(
+    findings.is_empty(),
+    "and the tree agrees with the store: {findings:?}"
+  );
 }

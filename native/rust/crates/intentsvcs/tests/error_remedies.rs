@@ -110,6 +110,20 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .wb_touch("dc")
       .expect_err("an unmigrated node's board is its markdown, and a render would erase it"),
   ));
+  // A stranger's inbox refuses the carry before it writes, and is removed again
+  // so `dc`'s directory is as it was for every call after this one.
+  std::fs::write(
+    dc.join("inbox.zz.md"),
+    "# inbox: zz -> dc\n\n## (2026-09-14 12:00Z)\n\na message from nowhere\n",
+  )
+  .expect("a stranger's inbox");
+  out.push((
+    "a migration that meets an inbox from an unregistered sender",
+    facade
+      .wb_migrate("dc")
+      .expect_err("a message row names its sender, so a stranger's inbox refuses the carry"),
+  ));
+  std::fs::remove_file(dc.join("inbox.zz.md")).expect("remove the stranger's inbox");
   // **ONE BYTE OVER, which is the criterion's own discriminating case.** A
   // refusal provoked with a wildly oversized body passes whether the
   // comparison is `>` or `>=` and whether the bound is the configured one or
@@ -952,6 +966,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
+    FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
     FacadeError::WbNotMigrated { .. } => "WbNotMigrated",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
@@ -1042,6 +1057,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbItemsFull",
   "WbClaimMalformed",
   "WbAlreadyCarried",
+  "WbSendersNotRegistered",
   "WbNotMigrated",
   "WbKindHasItsOwnVerb",
   "WbRegisteredDifferently",

@@ -7,11 +7,13 @@
 //! stamps survived, which documents came across, and what came back named
 //! instead. The fixture is built from the estate's own board shape -- prose
 //! DOING, bullet TODO, a `## Holds` section, a section the model maps to
-//! nothing, two inboxes, one of them from a sender the roster does not carry,
-//! and a `.history/` fold beside a file that is not a document.
+//! nothing, an inbox from a registered peer, and a `.history/` fold beside a
+//! file that is not a document. An inbox from a sender the roster does not
+//! carry refuses the whole carry, and has its own arm.
 
 use crate::common::Fixture;
 use intentsvcs::model::{WbItemKind, WbMessageState};
+use intentsvcs::remedy::Remedy;
 
 const BOARD: &str = r#"---
 node: dc
@@ -83,8 +85,6 @@ fn carried() -> (
   std::fs::create_dir_all(home.join(".history/20260912")).expect("the node's directories");
   std::fs::write(home.join("wip.md"), BOARD).expect("the board");
   std::fs::write(home.join("inbox.vc.md"), FROM_VC).expect("an inbox from a registered peer");
-  std::fs::write(home.join("inbox.laksa-vc.md"), FROM_A_STRANGER)
-    .expect("an inbox from a stranger");
   std::fs::write(home.join(".history/20260912/wip-prefold-1400Z.md"), FOLD).expect("a fold");
   std::fs::write(home.join(".history/20260912/board.png"), b"not a document").expect("not a doc");
   let vc = fx.root().join("intent/whiteboard/vc");
@@ -152,11 +152,10 @@ fn the_board_lands_with_its_holds_and_its_untrusted_stamp() {
 }
 
 /// The message half: entries land under their sender, in source order, with
-/// the heading's claimed stamp verbatim -- and an inbox from a sender the
-/// roster does not know is reported by file rather than written.
+/// the heading's claimed stamp verbatim.
 #[test]
-fn messages_land_under_a_registered_sender_and_a_stranger_is_named() {
-  let (_fx, facade, carried) = carried();
+fn messages_land_under_their_registered_sender() {
+  let (_fx, facade, _carried) = carried();
   let board = facade.board("dc").expect("the board");
 
   let senders: Vec<&str> = board.messages.iter().map(|m| m.sender.as_str()).collect();
@@ -183,22 +182,6 @@ fn messages_land_under_a_registered_sender_and_a_stranger_is_named() {
       .all(|m| m.state == WbMessageState::Live && m.handled_at.is_none()),
     "the migration marks nothing handled: the bound is a refusal on the next write, not a state \
      the carry gets to declare on its owner's behalf"
-  );
-
-  let stranger = carried
-    .uncarried
-    .iter()
-    .find(|u| u.at.ends_with("inbox.laksa-vc.md"))
-    .expect("the stranger's inbox is named by file");
-  assert!(
-    stranger.text.contains("1 entry"),
-    "with what it holds, so a reader knows whether anything is at stake: {stranger:?}"
-  );
-  assert!(
-    stranger.reason.contains("laksa-vc"),
-    "and why: a message row names its sender, so carrying this would address it from a node the \
-     roster does not have: {}",
-    stranger.reason
   );
 }
 
@@ -291,5 +274,49 @@ fn every_line_the_board_offered_is_on_one_side_or_the_other() {
     carried.snapshots.len(),
     carried.uncarried.len(),
     carried.offered
+  );
+}
+
+/// An inbox from a sender the roster does not carry refuses the whole carry
+/// before anything is written, naming the file and the registration that
+/// admits its sender, so the re-run it asks for is not refused as a second
+/// carry.
+#[test]
+fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes() {
+  // Issue 0381: the stranger's inbox was skipped with "register the sender and re-run", and the re-run was refused as already carried.
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(&home).expect("the node's directory");
+  std::fs::write(home.join("wip.md"), BOARD).expect("the board");
+  std::fs::write(home.join("inbox.laksa-vc.md"), FROM_A_STRANGER)
+    .expect("an inbox from a stranger");
+  let mut facade = fx.facade();
+  facade.register_roster().expect("register the roster");
+
+  let refusal = facade
+    .wb_migrate("dc")
+    .expect_err("a sender the roster does not carry refuses the carry")
+    .render();
+  assert!(
+    refusal.contains("intent/whiteboard/dc/inbox.laksa-vc.md")
+      && refusal.contains("intent wb register laksa-vc"),
+    "the refusal names the inbox and the registration that admits its sender: {refusal}"
+  );
+  let board = facade.board("dc").expect("the board");
+  assert!(
+    board.items.is_empty() && board.messages.is_empty() && board.node.migrated_at.is_none(),
+    "and nothing was carried"
+  );
+
+  facade
+    .wb_register("laksa-vc", "Laksa VC", "validation")
+    .expect("register the sender");
+  facade
+    .wb_migrate("dc")
+    .expect("the re-run after the registration carries the board");
+  assert_eq!(
+    facade.board("dc").expect("the board").messages.len(),
+    1,
+    "with the stranger's entry"
   );
 }

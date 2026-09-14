@@ -1420,6 +1420,17 @@ pub enum FacadeError {
     items: usize,
     messages: usize,
   },
+  /// A migration that meets an inbox from a sender the roster does not carry.
+  ///
+  /// **REFUSED BEFORE ANYTHING IS WRITTEN, SO THE RE-RUN STAYS OPEN.** Carrying
+  /// the rest and naming the inbox would leave a board [`Self::WbAlreadyCarried`]
+  /// refuses to carry again, with entries no command could then carry.
+  #[error("`{node}`'s board holds inboxes from senders the roster does not carry: {inboxes}")]
+  WbSendersNotRegistered {
+    node: String,
+    inboxes: String,
+    senders: Vec<String>,
+  },
   /// No acting node: nothing said who is writing.
   ///
   /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
@@ -1555,6 +1566,14 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbAlreadyCarried { node, .. } => format!(
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
+      ),
+      Self::WbSendersNotRegistered { node, senders, .. } => format!(
+        "nothing was carried. Register each sender that is a node on this project -- {} -- then re-run `intent wb migrate {node}`; an inbox from a node that is not on this project moves out of `intent/whiteboard/{node}/` first",
+        senders
+          .iter()
+          .map(|s| format!("`intent wb register {s} --name <name> --role <role>`"))
+          .collect::<Vec<_>>()
+          .join(", ")
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbRegisteredDifferently { node, .. } => format!(
@@ -5204,14 +5223,31 @@ impl Facade {
         held_role: held.node.role,
       });
     }
+    // **A NODE WITH A HAND-AUTHORED BOARD IS NEITHER BORN MIGRATED NOR
+    // RENDERED.** Its row is not the board while markdown stands beside it:
+    // `wb migrate` carries that, and until then every board write refuses
+    // rather than rendering the empty row over it. A node with no board IS its
+    // row, and lands its view now, because doctor reads a migrated node's
+    // absent view as a missing one.
+    // Issue 0379: this rendered every registration, so a register before the migrate erased the board the migrate reads.
+    let hand_authored = self
+      .project
+      .whiteboard_dir()
+      .join(moniker)
+      .join("wip.md")
+      .is_file();
     let written = self
       .store
       .register_nodes(
         &[(moniker.to_string(), name.to_string(), role.to_string())],
-        true,
+        !hand_authored,
       )
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    if hand_authored {
+      self.reindex_boards()?;
+    } else {
+      self.land_board_write()?;
+    }
     Ok(written)
   }
 
@@ -5264,13 +5300,14 @@ impl Facade {
   /// facade whose boards are a write behind the store reads its own last render
   /// as a hand edit and never writes that board again.
   ///
-  /// **THE TWO VERBS THAT READ HAND-AUTHORED MARKDOWN DO NOT CALL THIS.**
-  /// [`Self::register_roster`] reads every node's header and
-  /// [`Self::wb_migrate`] reads a whole board, so landing a render from either
-  /// would write over the file the verb had just read -- the registration step
-  /// would erase the board the migration after it exists to carry. They refresh
-  /// the index only, and a migrated board's views come from the regeneration
-  /// that follows the migration.
+  /// **A REGISTRATION BESIDE HAND-AUTHORED MARKDOWN DOES NOT CALL THIS, AND
+  /// THE MIGRATION CALLS IT ONLY AFTER ITS CARRY.** [`Self::register_roster`]
+  /// reads every node's header, and [`Self::wb_register`] on a node that has a
+  /// `wip.md` stands beside a board nobody has carried; a render from either
+  /// would erase the board the migration exists to carry, so they refresh the
+  /// index only. [`Self::wb_migrate`] reads every file first and lands its
+  /// views once the carry is written, which is when the tree and the store can
+  /// agree.
   fn land_board_write(&mut self) -> Result<(), FacadeError> {
     self.reindex_boards()?;
     let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
@@ -5554,9 +5591,6 @@ impl Facade {
     }
 
     let home = self.project.whiteboard_dir().join(node);
-    let wip = home.join("wip.md");
-    let text = Self::read_board_file(&wip)?;
-    let source = crate::wbmigrate::read_board(node, &text, &self.project.relative(&wip));
 
     // **INBOXES IN SENDER ORDER AND ENTRIES IN SOURCE FILE ORDER**, because
     // every message migrated in one pass shares one `recorded_at`: the stamp
@@ -5575,37 +5609,45 @@ impl Facade {
     }
     inboxes.sort();
 
+    // **AN INBOX FROM A SENDER THE ROSTER DOES NOT KNOW REFUSES THE WHOLE
+    // CARRY, BEFORE ANYTHING IS READ OR WRITTEN** (vc, ruled 2026-09-14). A
+    // message row names its sender, so those entries cannot be written, and
+    // carrying the rest would leave a board this verb refuses to carry a second
+    // time: the skipped entries could then never be carried by any command.
+    // Refusing first keeps the re-run open once the sender is registered.
+    // Issue 0381: this skipped the inbox and told the operator to register the sender and re-run, which the already-carried refusal then refused.
+    let mut strangers: Vec<(String, String)> = Vec::new();
+    for (sender, path) in &inboxes {
+      if !self
+        .store
+        .wb_node_exists(sender)
+        .map_err(FacadeError::Store)?
+      {
+        strangers.push((sender.clone(), self.project.relative(path)));
+      }
+    }
+    if !strangers.is_empty() {
+      return Err(FacadeError::WbSendersNotRegistered {
+        node: node.to_string(),
+        inboxes: strangers
+          .iter()
+          .map(|(_, at)| at.as_str())
+          .collect::<Vec<_>>()
+          .join(", "),
+        senders: strangers.into_iter().map(|(sender, _)| sender).collect(),
+      });
+    }
+
+    let wip = home.join("wip.md");
+    let text = Self::read_board_file(&wip)?;
+    let source = crate::wbmigrate::read_board(node, &text, &self.project.relative(&wip));
+
     let mut messages: Vec<crate::wbmigrate::SourceMessage> = Vec::new();
     let mut message_uncarried: Vec<crate::wbmigrate::Uncarried> = Vec::new();
     for (sender, path) in &inboxes {
       let text = Self::read_board_file(path)?;
       let rel = self.project.relative(path);
       let read = crate::wbmigrate::read_inbox(sender, node, &text, &rel);
-      // **AN INBOX FROM A SENDER THE ROSTER DOES NOT KNOW IS REPORTED BY FILE
-      // AND NEVER INSERTED** (vc, ruled 2026-09-13). A message row names its
-      // sender, and writing one under a moniker with no `wb_node` row would put
-      // a message on a board from a node that does not exist on it -- readable
-      // by nothing, addressed by nobody, and invisible to the renderer, which
-      // renders inboxes only for registered pairs. This estate has two such
-      // files today, both empty; an empty one is still named, because "no rows
-      // were dropped" and "the file was empty" are different facts and a reader
-      // cannot tell them apart from silence.
-      if !self
-        .store
-        .wb_node_exists(sender)
-        .map_err(FacadeError::Store)?
-      {
-        message_uncarried.push(crate::wbmigrate::Uncarried {
-          at: rel,
-          text: format!("{} entry(s) from `{sender}`", read.messages.len()),
-          reason: format!(
-            "no `{sender}` is registered on this board, and a message row names its sender: \
-             carrying these would address them from a node the roster does not have. Register \
-             the sender and re-run, or leave the file where it is"
-          ),
-        });
-        continue;
-      }
       messages.extend(read.messages);
       message_uncarried.extend(read.uncarried);
     }
@@ -5658,8 +5700,12 @@ impl Facade {
       .store
       .replace_wb_sections_for(node, &sections)
       .map_err(FacadeError::Store)?;
-    // Index only: the board this read stays on disk until the regeneration.
-    self.reindex_boards()?;
+    // **THE CARRY LANDS ITS OWN VIEWS, NOW THAT NOTHING IT READ IS LEFT TO
+    // PROTECT.** Every file was read before the first write, and the header
+    // write above stamped the node migrated, so the projection renders this
+    // board and its inboxes and leaves every unmigrated peer's markdown alone.
+    // Issue 0380: this refreshed the index only, so the carried board stayed hand-authored and doctor refused every commit as skew.
+    self.land_board_write()?;
 
     Ok(WbMigration {
       node: node.to_string(),

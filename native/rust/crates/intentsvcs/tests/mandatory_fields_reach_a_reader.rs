@@ -236,6 +236,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::WbItemsFull { .. }
     | FacadeError::WbClaimMalformed { .. }
     | FacadeError::WbAlreadyCarried { .. }
+    | FacadeError::WbSendersNotRegistered { .. }
     | FacadeError::WbNotMigrated { .. }
     // A kind another verb owns: the caller supplied everything, and the remedy
     // is a different VERB rather than a field they left out.
