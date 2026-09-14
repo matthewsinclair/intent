@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-14 12:09Z
+heartbeat_at: 2026-09-14 16:26Z
 status: active
-focus: "2026-09-14: clippy, the ~/.intent doc sweep and /issues all landed and green (dc's suite 2589/0 on a8e3273d8); dc's 4c172d260 cycle is built and promoted. NOW: holding for hv's next explorer TUI items via vc. See doing 20. NO RELEASE, NO PUSH."
+focus: "2026-09-14: LOCALFOLDED for hv's compact, mid-batch. Landed today: 0336 15c3be955, 0325 131d306ad, b94fd9c03 (unmigrated_surface), ST0075 WP-01. Worktrees wt-b2 (0346), wt-b3 (0324+0337), wt-b4 (0353), wt-b5 (0310) with judging runs queued; resume from scratchpad batch/STATE.md. See doing 23. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **2026-09-14 LANDED AND GREEN: clippy e3c67792c (13 lints), doc sweep 940d84f23 (~/.intent paths, ST0074 release notes and CHANGELOG, Upgrading), /issues a8e3273d8 (open newest first, a rule, then closed); dc's suite 2589 passed 0 failed on a8e3273d8; dc's 4c172d260 cycle built and promoted (intentd 16233, app 7052, doctor 0). NOW: hold for hv's next explorer TUI items via vc; one follow-up notes line if dc's per-estate carrier table contradicts Upgrading.** Scratchpad worktrees are all removed. NO RELEASE, NO PUSH.
+- **LOCALFOLDED for hv's compact, mid-batch (vc's 15-issue pass).** Landed: 0336 15c3be955, 0325 131d306ad, unmigrated_surface re-rule b94fd9c03, plus ST0075 WP-01 (a0b92c365, 4c3a30972, bdcd205d7). In worktrees, all rebased onto e705e5365: 0346 in wt-b2 (one red, fixed by attaching ST0056 data-model.md; re-run queued); 0324+0337 in wt-b3 (18 fixture reds after the ruled behaviour; packages check now after the gate; the fixtures settle through the verbs, per vc); 0353 in wt-b4 and 0310 in wt-b5, both written and queued for full judging. 0332 reproduced, to build after 0353+0310. Landing waits for dc's hash from vc. The resume procedure is in scratchpad batch/STATE.md. NO RELEASE, NO PUSH.
 
 ## TODO
 
