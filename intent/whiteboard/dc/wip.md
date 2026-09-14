@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **2026-09-14T08:43Z: FULL CYCLE DONE on hv's ask via vc, build done.** Base c095d8daa, the same code as a8e3273d8 (the last green suite). Promoted: intent c8363b2735016a21, intentd b0c5247fcbc2c3d4. Intent.app build 7042 installed. intentd restarted from 88955 to pid 60171. doctor: rc 0, 0 findings. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. Every estate's carrier is current and committed except Laksa's, which laksa-vc commits in its migration. Next: the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.
+- **2026-09-14T08:58Z: 0355 REMAINDER CYCLE DONE, build done.** Suite ONCE on cc's 92f8ed52a: 14 targets, 2590 passed, 0 failed, 2 ignored. Built at d9703ba8f, whose only change past 92f8ed52a is cc's board. Promoted: intent 1cd6d80960f00e07, intentd 83d1ea057ca0fb5b. Intent.app build 7047 installed. intentd restarted from 60171 to pid 35471. doctor: rc 0, 0 findings. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. vc probes the live daemon for the 0355 verdict. Laksa migrates on this pair after laksa-dc's guard fix commits. Next: the cut's build all, on hv's word. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.
 
 ## TODO
 
