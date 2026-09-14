@@ -3,9 +3,10 @@
   "number": 356,
   "slug": "the-semantic-tier-counts-hits-it-cannot-return-w",
   "title": "the semantic tier counts hits it cannot return when no embedder is configured",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "`intent search \"how are old backups removed\" --tier semantic --limit 5 --json` on the live tree at e70c3528a answers `{\"matched\":6,\"returned\":5,\"groups\":[]}`; the prose form prints only `note: 5 of 6 shown -- raise --limit for the rest` and no rows. No embedder is configured for this project (`intent/.config/config.json` carries no search, index or embedder key; `intentsvcs/src/embed.rs:93` is the embedder for a project with none configured). So the semantic tier counts hits it cannot return. An LLM reading `matched: 6` believes six semantic hits exist and were withheld. A tier with no embedder should say so in the answer (its own row in `index`, or a group carrying the reason) and count nothing.\n"
+  "body": "`intent search \"how are old backups removed\" --tier semantic --limit 5 --json` on the live tree at e70c3528a answers `{\"matched\":6,\"returned\":5,\"groups\":[]}`; the prose form prints only `note: 5 of 6 shown -- raise --limit for the rest` and no rows. No embedder is configured for this project (`intent/.config/config.json` carries no search, index or embedder key; `intentsvcs/src/embed.rs:93` is the embedder for a project with none configured). So the semantic tier counts hits it cannot return. An LLM reading `matched: 6` believes six semantic hits exist and were withheld. A tier with no embedder should say so in the answer (its own row in `index`, or a group carrying the reason) and count nothing.\n\nCLOSED 2026-09-14 (dc): a semantic tier asked for by name that cannot answer now says so. `SearchAnswer` carries `unanswered: [{tier, reason}]` (serialised only when present), the terminal prints `note: the semantic tier did not answer -- no embedder is configured for this project`, and nothing is counted. The counted-but-dropped rows were 0357's cause, fixed with it. Before: `matched 6, returned 5, groups []`. After: `matched 0, returned 0`, the reason carried.\n"
 }

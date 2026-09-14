@@ -148,10 +148,16 @@ pub fn changed_under(
   // event cannot delete a row it would not have visited. They were a separate
   // expression until this function learned to take `None`, and the two would
   // have disagreed about the root the moment either moved.
+  // Issue 0360: a path indexed before the store came to carry it is removed as
+  // well. The walk no longer visits it, so without this its `file` rows stayed
+  // beside the store's own sections and one line answered a search twice.
   let removed = previous
     .iter()
     .filter(|p| names(root, under, &root.join(&p.path)))
-    .filter(|p| !root.join(&p.path).exists())
+    .filter(|p| {
+      let path = root.join(&p.path);
+      !path.exists() || carried.contains(&path)
+    })
     .map(|p| p.path.clone())
     .collect();
   Ok(Change { upserts, removed })
@@ -321,7 +327,21 @@ pub fn read_content(root: &Path, rows: &[Row], declared: &[String]) -> Content {
       && declared.iter().any(|d| d == lang)
     {
       match super::symbols::symbols_of(lang, &row.path, &bytes) {
-        Ok(symbols) => out.symbols.extend(symbols),
+        Ok(symbols) => {
+          // Issue 0371: the words inside the names this file defines, so a
+          // part of a CamelCase or snake_case name finds the file.
+          if let Some(section) = out.source.last_mut()
+            && section.path == row.path
+          {
+            section.name_parts = super::source::name_parts(
+              symbols
+                .iter()
+                .filter(|s| s.kind == super::symbols::SymbolKind::Def)
+                .map(|s| s.name.as_str()),
+            );
+          }
+          out.symbols.extend(symbols)
+        }
         Err(why) => out.unparsed.push((row.path.clone(), why)),
       }
     }

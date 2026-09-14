@@ -1182,7 +1182,11 @@ pub fn serve(
         ));
       }
       if let Some(path_arg) = outline {
-        return val(path, &f.outline(path_arg)?);
+        let refs = map
+          .get("kind")
+          .and_then(|v| v.as_array())
+          .is_some_and(|kinds| kinds.iter().any(|k| k.as_str() == Some("ref")));
+        return val(path, &f.outline(path_arg, refs)?);
       }
       if let Some(name) = context {
         return val(path, &f.context(name)?);
@@ -1249,6 +1253,9 @@ pub fn serve(
           )
         })?),
       };
+      // Issue 0372: reconcile first, as the CLI's in-process path does, so a
+      // daemonless answer is not a confident subset of a tree that has moved.
+      f.index_refresh(None)?;
       let answer = f.search_all(query, &ask)?;
       // The AC-06.4 distinction travels, and it is now READ OFF THE ENVELOPE
       // rather than asked as a second question: an empty result over an

@@ -82,6 +82,7 @@ fn answer() -> SearchAnswer {
         },
       ],
     }],
+    unanswered: Vec::new(),
     matched: 2,
     returned: 2,
   }

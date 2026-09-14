@@ -3596,7 +3596,10 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
 
   if let Some(path) = outline {
     let f = open()?;
-    let answer = f.outline(&path).map_err(fail)?;
+    let refs = search_ask(m)?
+      .kinds
+      .contains(&intentsvcs::search::HitKind::Ref);
+    let answer = f.outline(&path, refs).map_err(fail)?;
     return report_search(m, &answer);
   }
   if let Some(name) = context {
@@ -3672,6 +3675,15 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
       serde_json::to_string_pretty(answer).expect("the envelope is plain data")
     );
     return Ok(());
+  }
+  // Issue 0356: a tier asked for by name that could not answer is said, on
+  // stderr, so an empty stdout is not read as that tier finding nothing.
+  for gap in &answer.unanswered {
+    eprintln!(
+      "note: the {} tier did not answer -- {}",
+      gap.tier.as_str(),
+      gap.reason
+    );
   }
   // **An unpopulated index answers every query exactly the way a genuine miss
   // does**: exit 0, zero bytes, byte-identical. So a user whose prose has never
@@ -3775,7 +3787,18 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
       // apart. It also meant `--kind def` filtered on something the terminal
       // never showed, so an operator could not see what their own filter had
       // done.
-      println!("{place}  {}  {owner}  {}", hit.kind.as_str(), hit.name);
+      // Issue 0361: the name says where, the snippet says what matched, so the
+      // row carries both when they differ.
+      if hit.snippet.is_empty() || hit.snippet == hit.name {
+        println!("{place}  {}  {owner}  {}", hit.kind.as_str(), hit.name);
+      } else {
+        println!(
+          "{place}  {}  {owner}  {}  {}",
+          hit.kind.as_str(),
+          hit.name,
+          hit.snippet
+        );
+      }
     }
   }
   Ok(())
@@ -5209,10 +5232,13 @@ impl tui::run::Source for Live {
     // them -- and `rows_for` is a pure map from a view to rows for every other
     // view. One call, both outputs, no second query to disagree with the first.
     if let intentsvcs::nav::View::Search { query } = view {
-      return match self
-        .facade
-        .search_all(query, &intentsvcs::search::SearchQuery::default())
-      {
+      // Issue 0372: the pane reconciles before it answers, as the CLI does.
+      let answer = self.facade.index_refresh(None).and_then(|_| {
+        self
+          .facade
+          .search_all(query, &intentsvcs::search::SearchQuery::default())
+      });
+      return match answer {
         Ok(answer) => {
           self.note = tui::views::freshness_note(&answer);
           tui::views::search_rows(&answer)

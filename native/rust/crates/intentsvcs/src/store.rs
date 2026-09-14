@@ -5281,7 +5281,9 @@ impl Store {
   /// the index is where the saving is, not in racing grep.
   pub fn symbols_in(&self, path: &str) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     self.symbol_rows(
-      "SELECT path, lang, name, kind, start_line, end_line
+      // Issue 0358: DISTINCT, because two tags patterns matching one node store
+      // one symbol twice.
+      "SELECT DISTINCT path, lang, name, kind, start_line, end_line
          FROM symbols WHERE path = ?1 ORDER BY start_line, name",
       path,
     )
@@ -5292,7 +5294,7 @@ impl Store {
     name: &str,
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     self.symbol_rows(
-      "SELECT path, lang, name, kind, start_line, end_line
+      "SELECT DISTINCT path, lang, name, kind, start_line, end_line
          FROM symbols WHERE name = ?1 ORDER BY path, start_line",
       name,
     )

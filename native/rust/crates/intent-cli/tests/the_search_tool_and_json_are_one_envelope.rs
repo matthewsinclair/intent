@@ -95,8 +95,23 @@ fn the_mcp_tool_and_json_answer_the_same_envelope() {
   let text = answer["result"]["content"][0]["text"]
     .as_str()
     .expect("the tool answers text-wrapped JSON");
-  let from_mcp: serde_json::Value =
+  let mut from_mcp: serde_json::Value =
     serde_json::from_str(text).expect("the tool's envelope is JSON");
+
+  // Each face reconciles before it answers (issue 0372), and each reconcile
+  // stamps the index (issue 0369), so the two envelopes carry two stamps. The
+  // stamp is when the index was reconciled, not part of the answer's shape.
+  let mut from_cli = from_cli;
+  for envelope in [&mut from_cli, &mut from_mcp] {
+    assert!(
+      envelope["index"]["reconciled_at"].is_string(),
+      "each face's envelope carries its reconcile stamp: {envelope}"
+    );
+    envelope["index"]
+      .as_object_mut()
+      .expect("the freshness block is an object")
+      .remove("reconciled_at");
+  }
 
   assert_eq!(
     from_cli, from_mcp,

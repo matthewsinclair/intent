@@ -60,9 +60,47 @@ pub fn whole_file(path: &str, text: &str) -> Section {
   }
 }
 
+/// The words inside the given names, space-separated and each once: a
+/// CamelCase or snake_case name split at its boundaries (issue 0371).
+pub fn name_parts<'a>(names: impl Iterator<Item = &'a str>) -> String {
+  let mut words: Vec<String> = Vec::new();
+  for name in names {
+    let mut word = String::new();
+    let mut previous_lower = false;
+    for ch in name.chars() {
+      if !ch.is_alphanumeric() {
+        if !word.is_empty() {
+          words.push(std::mem::take(&mut word));
+        }
+        previous_lower = false;
+        continue;
+      }
+      if ch.is_uppercase() && previous_lower && !word.is_empty() {
+        words.push(std::mem::take(&mut word));
+      }
+      previous_lower = ch.is_lowercase() || ch.is_numeric();
+      word.push(ch);
+    }
+    if !word.is_empty() {
+      words.push(word);
+    }
+  }
+  let mut seen = std::collections::BTreeSet::new();
+  words.retain(|w| seen.insert(w.to_lowercase()));
+  words.join(" ")
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn name_parts_splits_camel_and_snake_case() {
+    assert_eq!(
+      name_parts(["SkipRemoval", "forget_snapshot", "skip"].into_iter()),
+      "Skip Removal forget snapshot"
+    );
+  }
 
   #[test]
   fn a_whole_file_row_spans_the_lines_the_file_has() {

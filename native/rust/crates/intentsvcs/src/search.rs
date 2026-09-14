@@ -62,10 +62,21 @@ pub struct SearchAnswer {
   /// One group per tier PRESENT. A tier with no hits is an EMPTY group and
   /// never an absent one: absence would say the tier does not exist.
   pub groups: Vec<TierGroup>,
-  /// What the index matched, before any cap.
+  /// A tier the caller asked for by name that this project cannot answer, with
+  /// the reason (issue 0356).
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub unanswered: Vec<Unanswered>,
+  /// What the index matched across the groups carried, before any cap.
   pub matched: usize,
-  /// What came back.
+  /// The rows the answer carries: the length of every group's hits.
   pub returned: usize,
+}
+
+/// A tier asked for by name that did not answer, and why.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Unanswered {
+  pub tier: Tier,
+  pub reason: String,
 }
 
 /// **FRESHNESS IS PART OF EVERY ANSWER** (S5, AC-19.3), not a separate

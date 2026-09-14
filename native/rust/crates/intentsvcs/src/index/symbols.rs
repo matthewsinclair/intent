@@ -161,7 +161,9 @@ impl Readiness {
       Readiness::Ready => "ready",
       Readiness::NoGrammar { .. } => "no-grammar",
       Readiness::NoTagsQuery => "no-tags-query",
-      Readiness::Unknown => "unknown",
+      // Issue 0359: no grammar is declared for it, which is `no-grammar`;
+      // `unknown` read as a lookup that failed.
+      Readiness::Unknown => "no-grammar",
     }
   }
 }

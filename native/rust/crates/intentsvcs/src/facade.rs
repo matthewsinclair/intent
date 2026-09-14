@@ -3225,7 +3225,8 @@ impl Facade {
     ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
     use crate::search::{
-      Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier, TierGroup, snippet,
+      Hit, HitKind, IndexFreshness, Located, SearchAnswer, Span, Tier, TierGroup, Unanswered,
+      snippet,
     };
 
     // **AN UNASKED TIER IS NOT QUERIED AT ALL** -- narrowing the question
@@ -3252,6 +3253,31 @@ impl Facade {
     // Issue 0369: the age of the index this answer read, as its reconcile
     // stamped it.
     index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
+
+    // Issue 0370: a file the index holds as skipped is part of the answer's
+    // freshness, scoped by the filters as staleness is, so a miss inside one is
+    // never a confident miss.
+    if Tier::Lexical.asked(&ask.tiers)
+      && (ask.kinds.is_empty() || ask.kinds.contains(&HitKind::File))
+    {
+      for row in self.store.index_files().map_err(FacadeError::Store)? {
+        let Some(reason) = row.skipped_reason else {
+          continue;
+        };
+        let in_path = ask
+          .path
+          .as_deref()
+          .is_none_or(|glob| crate::search::glob_matches(glob, &row.path));
+        let in_lang = ask.langs.is_empty()
+          || row
+            .lang
+            .as_deref()
+            .is_some_and(|lang| ask.langs.iter().any(|asked| asked == lang));
+        if in_path && in_lang {
+          index.mark_skipped(row.path, reason.as_str());
+        }
+      }
+    }
 
     let mut hits = Vec::new();
     for row in rows {
@@ -3290,11 +3316,19 @@ impl Facade {
     // is a group and a corpus is an entry: the source table is a second corpus
     // answered by the same lexical question, with a tokeniser chosen for
     // identifiers rather than prose.
-    for row in self
-      .store
-      .search_source(&expression)
-      .map_err(FacadeError::Store)?
-    {
+    //
+    // Issue 0357: this loop ran whatever `--tier` said, so `--tier structural`
+    // counted the code rows into `matched` and then dropped the lexical group
+    // that held them.
+    let source_rows = if Tier::Lexical.asked(&ask.tiers) {
+      self
+        .store
+        .search_source(&expression)
+        .map_err(FacadeError::Store)?
+    } else {
+      Vec::new()
+    };
+    for row in source_rows {
       let section = row.section;
       let located = self.locate_body(&section.path, &section.body, row.at);
       let hit = Hit {
@@ -3320,16 +3354,6 @@ impl Facade {
       }
     }
 
-    // **BOTH DENOMINATORS, AND `matched` IS COUNTED AFTER THE FILTERS.** The
-    // filters are part of the question -- `--kind issue` asks how many ISSUES
-    // matched -- while the limit is a cap on the answer. Counting before them
-    // would report a denominator for a question nobody asked.
-    let matched = hits.len();
-    if let Some(limit) = ask.limit {
-      hits.truncate(limit);
-    }
-    let returned = hits.len();
-
     // **THE STRUCTURAL TIER IS A GROUP AND NOT MORE ENTRIES IN THE LEXICAL
     // ONE** (the design's claim, and ic's on the envelope side): a tier is a
     // group, a corpus is an entry in `index.corpora`. The group is present
@@ -3354,10 +3378,23 @@ impl Facade {
         structural.push(hit);
       }
     }
-    let semantic = self.semantic_hits(query, ask)?;
-    let in_semantic = semantic.as_ref().map_or(0, Vec::len);
-    let matched = matched + structural.len() + in_semantic;
-    let returned = returned + structural.len() + in_semantic;
+    // Issue 0356: a semantic tier asked for BY NAME that cannot answer says why,
+    // rather than leaving an absent group to be read as "found nothing".
+    let (semantic, unanswered) = if Tier::Semantic.asked(&ask.tiers) {
+      match self.semantic_hits(query, ask)? {
+        Ok(hits) => (Some(hits), Vec::new()),
+        Err(reason) if ask.tiers.contains(&Tier::Semantic) => (
+          None,
+          vec![Unanswered {
+            tier: Tier::Semantic,
+            reason: reason.to_string(),
+          }],
+        ),
+        Err(_) => (None, Vec::new()),
+      }
+    } else {
+      (None, Vec::new())
+    };
 
     // **THE SEMANTIC GROUP APPEARS WHEN THE TIER DOES, WHICH IS WHEN THIS
     // PROJECT HAS AN EMBEDDER AND SOMETHING HAS BEEN EMBEDDED.** The other two
@@ -3370,30 +3407,50 @@ impl Facade {
     // nobody asked about is absent because the question was narrowed, and a
     // tier this project does not have is absent because there is nothing to
     // ask. The two compose here rather than one shadowing the other.
+    let mut groups: Vec<TierGroup> = [
+      (Tier::Lexical, Some(hits)),
+      (Tier::Structural, Some(structural)),
+      (Tier::Semantic, semantic),
+    ]
+    .into_iter()
+    .filter_map(|(tier, hits)| hits.map(|hits| (tier, hits)))
+    .filter(|(tier, _)| tier.asked(&ask.tiers))
+    .map(|(tier, hits)| TierGroup { tier, hits })
+    .collect();
+
+    // **BOTH DENOMINATORS, AND `matched` IS COUNTED AFTER THE FILTERS.** The
+    // filters are part of the question -- `--kind issue` asks how many ISSUES
+    // matched -- while the limit is a cap on the answer. Counting before them
+    // would report a denominator for a question nobody asked.
+    //
+    // Issue 0357: both are taken from the groups the answer carries, so
+    // `returned` is the length of the body. The cap applies per group because
+    // tiers are ranked within themselves and never blended.
+    let mut matched = 0;
+    let mut returned = 0;
+    for group in &mut groups {
+      matched += group.hits.len();
+      if let Some(limit) = ask.limit {
+        group.hits.truncate(limit);
+      }
+      returned += group.hits.len();
+    }
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
-      groups: [
-        (Tier::Lexical, Some(hits)),
-        (Tier::Structural, Some(structural)),
-        (Tier::Semantic, semantic),
-      ]
-      .into_iter()
-      .filter_map(|(tier, hits)| hits.map(|hits| (tier, hits)))
-      .filter(|(tier, _)| tier.asked(&ask.tiers))
-      .map(|(tier, hits)| TierGroup { tier, hits })
-      .collect(),
+      groups,
+      unanswered,
       matched,
       returned,
     })
   }
 
-  /// The semantic tier's hits, or `None` when this project has no such tier.
+  /// The semantic tier's hits, or the reason this project has no such tier.
   ///
-  /// **`None` AND AN EMPTY VECTOR ARE DIFFERENT ANSWERS.** `None` is "there is
-  /// no semantic tier here" -- no embedder configured, or nothing embedded --
-  /// and it produces no group at all. An empty vector would be "the tier ran
-  /// and matched nothing", which is a claim this build cannot make yet.
+  /// **A REASON AND AN EMPTY VECTOR ARE DIFFERENT ANSWERS.** The reason is
+  /// "there is no semantic tier here" -- no embedder configured, or nothing
+  /// embedded -- and it produces no group at all. An empty vector would be "the
+  /// tier ran and matched nothing", which is a claim this build cannot make yet.
   ///
   /// **AND A CONFIGURED EMBEDDER THAT FAILS IS A REFUSAL, NEVER A QUIET
   /// ABSENCE** (IN-AG-NO-SILENT-001). An operator who configured an endpoint
@@ -3403,24 +3460,28 @@ impl Facade {
     &self,
     query: &str,
     ask: &crate::search::SearchQuery,
-  ) -> Result<Option<Vec<crate::search::Hit>>, FacadeError> {
+  ) -> Result<Result<Vec<crate::search::Hit>, &'static str>, FacadeError> {
     use crate::embed::{EmbedError, cosine};
     use crate::search::{Hit, HitKind};
 
     let asked = match self.embedder.embed(&[query.to_string()]) {
       Ok(vectors) => vectors,
-      Err(EmbedError::NotConfigured) => return Ok(None),
+      Err(EmbedError::NotConfigured) => {
+        return Ok(Err("no embedder is configured for this project"));
+      }
       Err(other) => return Err(FacadeError::Embed(other)),
     };
     let Some(asked) = asked.first() else {
-      return Ok(None);
+      return Ok(Err("the embedder returned no vector for the query"));
     };
     let stored = self
       .store
       .embeddings_of(self.embedder.model())
       .map_err(FacadeError::Store)?;
     if stored.is_empty() {
-      return Ok(None);
+      return Ok(Err(
+        "nothing has been embedded for this project's model yet",
+      ));
     }
 
     let mut hits: Vec<Hit> = stored
@@ -3449,7 +3510,7 @@ impl Facade {
     // the lexical tier publishes FTS5's rank, where lower is better, which is
     // why the envelope never blends tiers.
     hits.sort_by(|a, b| b.score.total_cmp(&a.score));
-    Ok(Some(hits))
+    Ok(Ok(hits))
   }
 
   /// The language the index recorded for a path.
@@ -3597,8 +3658,21 @@ impl Facade {
   /// names a PATH, not words, so there is nothing for the lexical tier to
   /// answer -- and an empty lexical group here would say that a text search ran
   /// and found nothing, which is a different and false claim.
-  pub fn outline(&self, path: &str) -> Result<crate::search::SearchAnswer, FacadeError> {
-    let symbols = self.store.symbols_in(path).map_err(FacadeError::Store)?;
+  ///
+  /// Issue 0358: an outline is what the file DEFINES; the names it merely uses
+  /// are listed only when `refs` asks for them.
+  pub fn outline(
+    &self,
+    path: &str,
+    refs: bool,
+  ) -> Result<crate::search::SearchAnswer, FacadeError> {
+    let symbols = self
+      .store
+      .symbols_in(path)
+      .map_err(FacadeError::Store)?
+      .into_iter()
+      .filter(|s| refs || s.kind == crate::index::symbols::SymbolKind::Def)
+      .collect();
     self.structural_answer(path, symbols)
   }
 
@@ -3647,6 +3721,7 @@ impl Facade {
         tier: Tier::Structural,
         hits,
       }],
+      unanswered: Vec::new(),
       matched,
       returned: matched,
     })
