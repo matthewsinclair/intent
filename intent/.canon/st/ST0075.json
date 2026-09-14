@@ -1,0 +1,213 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0075",
+  "title": "The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools",
+  "slug": "the-intent-app-console-daemon-logs-and-one-off-v",
+  "status": "triage",
+  "created": "2026-09-14",
+  "objective": "Intent.app gets a Console that works just like the Gtools CMS Console, copied from ../Gtools, and Run Doctor writes its output to the Console. In hv's words, 2026-09-14: \"we need a Console that works _just_ like the Gtools CMS Console ... quickly implement that by copying the ../Gtools console. Then when 'Doctor' is run, it outputs to the Console log.\" The trigger: Run Doctor ran `intent doctor` and discarded its output on a pass, so a clean doctor looked like a click that did nothing.\n",
+  "context": "",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "The verb: intent daemon logs, with --lines and --follow, its register row and tests",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "intent daemon logs prints a header naming both daemon logs, then the last lines of each (40 by default, --lines N), and exits 0",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "a daemon log that intentd has not written yet is named as absent in the header, never skipped in silence",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "intent daemon logs --follow prints lines the daemon appends after it started, until it is terminated",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "Console (Cmd-L) opens a window tailing intent daemon logs --follow while it is visible, and its footer names the files being tailed",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "Console lines are coloured by kind: error, caused by and intentd could-not lines as errors, remedy lines as warnings, the markers as the accent",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "the Console keeps the last lines up to its capacity and drops the oldest, so a command run while the window is closed is there when it opens",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "Run Doctor streams intent doctor into the Console between a marker naming the command and a marker carrying its exit and duration, and brings the Console forward, so a clean pass is visible",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "Rebuild Search Index streams intent index rebuild into the Console the same way",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "Start, Stop and Restart intentd write a marked block with their command and result into the Console",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.4",
+      "text": "a second one-off while one is running is refused with an alert naming the running command, not queued",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "covers": [
+        "AC-03.4"
+      ],
+      "status": "to-write"
+    }
+  ],
+  "attachments": [
+    {
+      "path": "design.md",
+      "text": "# Design: the Intent.app Console\n\n## What hv asked for\n\nRun Doctor in Intent.app's menu runs `intent doctor` and discards its output when the doctor passes, so a clean pass is indistinguishable from a click that did nothing. hv's ruling, 2026-09-14: Intent.app gets a Console that works like the Gtools CMS Console, copied from ../Gtools, and Run Doctor streams its output into it.\n\n## The shape being copied\n\nGtools' Console is a dark monospaced window over a CLI verb, `gtools cms logs`, streamed line by line. The verb owns the tailing and the filtering; the app only classifies lines for colour. One-off commands (doctor, the index rebuild) stream into the same view between `»` markers: `» gtools doctor`, then the command's lines, then `» exit 0 · 1.2s`. The runner owns a bounded backlog, so a command that runs while the window is closed is there when it opens. The footer carries Follow, Clear, Copy and the file being tailed. One one-off command runs at a time; a second is refused, not queued.\n\nIntent.app already carries the lineage's `ContinuousObservation`, `RunningProcess` and `IntentCLI.stream`, so the copy is the three console files (`ConsoleLine`, `ConsoleRunner`, `ConsoleWindowController`), their test, the brand palette in `Theme` (whose own comment says the palette lands with the console), and the menu wiring.\n\n## `intent daemon logs`\n\nThe verb the Console tails, and a terminal verb in its own right.\n\n- It prints one header line, `tailing <intentd.log> and <intentd.err.log>`, then the last lines of each file (40 by default, `--lines N`), stdout's log first, then stderr's.\n- A file the daemon has not written yet is named as absent in the header rather than skipped in silence. With neither file present and no `--follow`, it says so and exits 0.\n- **Without `--follow` it exits 0 after printing.** With `--follow` it keeps printing lines as the daemon appends them, from either file, until it is terminated. The app always passes `--follow` and treats the exit a terminate produces as normal.\n- **This is one deliberate divergence from Gtools**, whose `cms logs` always follows. An agent or a script running `intent daemon logs` must not hang, so following is asked for rather than assumed.\n- Following is done by `tail`, not by a loop in Rust, so nothing in the workspace reads a clock.\n- There is no Verbose filter. intentd writes no request lines today, so there is nothing to filter, and the Console's Verbose box is dropped with it.\n- Register row: `read`, not on MCP (a follow never returns, and machine-level daemon verbs are withheld as a family), probeable without `--follow`.\n\n## The Console in Intent.app\n\n- A \"Console…\" item on ⌘L at the top of the menu opens and closes the window. The window tails `intent daemon logs --follow` while it is visible and stops the tail when it closes.\n- The app's main menu, which already carries Edit, gains File → Close (⌘W) and View → Clear Console (⌘K), reaching the window through the responder chain as Gtools does.\n- Lines are classified for colour: `error:`, `caused by:` and `intentd: could not` as errors, `remedy:` as a warning, `»` lines as markers, the rest as log.\n- **Run Doctor** runs `intent doctor` in the Console and brings the window forward, so a clean pass is seen. Gtools makes bringing it forward a preference; Intent.app has no settings window, and the operator who clicks Run Doctor has asked to see the result.\n- **Rebuild Search Index** is a new item running `intent index rebuild` the same way. intentd's error log already tells the operator to run it.\n- **Start, Stop and Restart intentd** write their command and its result into the Console as a marked block, without bringing it forward. They already run through `DaemonService.lifecycle`, which captures each command's output and today sends it only to the system log; that output goes to the runner's note instead.\n- Every one-off still raises an alert when it cannot run at all (the binary is missing, the project root is invalid, another command is running).\n\n## Acceptance criteria\n\nOne line per user-facing behaviour, each proved by one test.\n\n1. `intent daemon logs` prints the header and the last lines of both logs, then exits 0. AT: an intent-cli test under a temporary HOME with both logs planted.\n2. A log intentd has not written yet is named as absent, not skipped. AT: the same test with one file planted, then none.\n3. `intent daemon logs --follow` prints a line appended after it started. AT: an intent-cli test that appends a line, reads it from the child, and terminates the child.\n4. Console… (⌘L) opens a window tailing the daemon logs, and its footer names the files being tailed. AT: a Swift test that the tailing header is parsed into the footer path; the window is driven by hand once.\n5. Console lines are classified for colour as described above. AT: a Swift test over intentd's own line shapes.\n6. The backlog keeps the last lines up to its capacity and says how many it dropped. AT: the copied ring test.\n7. Run Doctor streams `intent doctor` into the Console between `» intent doctor` and `» exit N · Ts`, and brings the Console forward. AT: a Swift test of the runner's marker sequence over a stub stream.\n8. Rebuild Search Index streams `intent index rebuild` the same way. AT: the same test shape.\n9. Start, Stop and Restart intentd write a marked block with their result into the Console. AT: a Swift test of the runner's note over a canned result.\n10. A second one-off while one is running is refused with an alert naming the running command. AT: a Swift test that the runner throws busy.\n\n## Work packages\n\n- **WP-01, the verb:** `intent daemon logs` with `--lines` and `--follow`, its register row, and the tests for criteria 1 to 3.\n- **WP-02, the window:** the three console files copied and renamed, the palette in `Theme`, the Console… item on ⌘L, File → Close and View → Clear Console, and the tests for criteria 4 to 6. Depends on WP-01.\n- **WP-03, the streaming items:** Run Doctor and Rebuild Search Index into the Console, Start, Stop and Restart noted there, and the tests for criteria 7 to 10. Depends on WP-02.\n\n## Copied, not shared\n\nThe console code will live in two repos. That is accepted for two apps; if a third app wants it, it becomes a shared Swift package.\n",
+      "bytes": 6305,
+      "sha256": "c5a5d90b126ece973981ca0850a5ee7f6b02b6401dbe7dca268f3e0936d4c62d"
+    }
+  ]
+}

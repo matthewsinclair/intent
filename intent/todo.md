@@ -63,6 +63,10 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [ ] ST0070: LLM config rationalisation -- one home per fact
+- [?] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
+  - [ ] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
+  - [ ] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
+  - [ ] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ## DONE:2026-09-10T00:00:51Z
 

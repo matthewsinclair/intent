@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0075 | The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools                                                         | Triage      | 2026-09-14 |                      |
 | ST0074 | Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line     | WIP         | 2026-09-13 |                      |
 | ST0070 | LLM config rationalisation -- one home per fact                                                                                                 | Not Started | 2026-09-03 |                      |
 | ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | WIP         | 2026-08-30 |                      |
