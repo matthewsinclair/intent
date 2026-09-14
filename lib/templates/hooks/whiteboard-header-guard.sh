@@ -132,7 +132,67 @@
 # to learn the format is not YAML. The repaired form is PRINTED so the fix is a
 # copy-paste.
 #
-# Exit codes: 0 clean or not applicable; 1 an added header value is escaped.
+# ---------------------------------------------------------------------------
+# CHECK 2 -- A VALUE DETACHED FROM ITS KEY, and the author is usually this gate
+#
+# Added 2026-09-12 by dc on vc's allocation, after ic found it at their own fold
+# and vc verified it from the artefact. The defect: a header line stops being
+# `key: value` and becomes a bare key with its value on the NEXT line --
+#
+#   claims:
+#     [ST0112/WP-07, ST0112/WP-08 (with cc, by file), ST0112/WP-09, ST0112/WP-10]
+#
+# `fm_get` reads everything after the first `: ` on the KEY's line, so the value
+# reads as EMPTY and `ws list` prints nothing for that key. RUN-VERIFIED rather
+# than reasoned (Laksa, 2026-09-12, a throwaway clone, the real `intent claude ws list`):
+# a board with four claims detached exactly as above rendered `claims=`, while
+# every other field rendered perfectly. Nothing about the board looks wrong.
+#
+# THAT DIRECTION IS WHY IT IS WORTH A GUARD. The value does not degrade, it
+# DISAPPEARS -- a node claiming four work packages reads as a node claiming none,
+# and peer claims are what a coordinating node allocates against. Same shape as
+# the escape check above: a failure produced by something competent, with no
+# natural corrective, in the false-clean direction.
+#
+# THE USUAL AUTHOR IS THE FORMATTER, NOT A NODE. prettier formats the block as
+# YAML frontmatter, and a bracketed flow sequence longer than printWidth is
+# broken across lines. It reaches a commit two ways: a gate that runs `prettier
+# --write` and re-stages BEFORE its guards (devbin's `gate_markdown`, where Laksa
+# found this) hands the guards the reflowed bytes; a gate that only runs
+# `prettier --check` (Intent's own) refuses the long line, and the `prettier
+# --write` a node runs to clear that refusal is what detaches the value. Either
+# way the bytes this guard reads are the formatter's.
+#
+# MEASURED in Laksa, not inherited (2026-09-12, prettier 3.9.6, printWidth at
+# its default 80):
+#
+#   claims: at 80 chars   ->  untouched
+#   claims: at 81 chars   ->  broken, value on 1 continuation line
+#   claims: at 88+ chars  ->  broken, value expanded over 3+ lines
+#   focus:  at 209 chars  ->  UNTOUCHED
+#
+# `focus:` is exempt because a QUOTED scalar is not a breakable construct, which
+# is why every live board survives header lines of 211-338 characters. The only
+# exposed key today is `claims:`, and any future unquoted value joins it.
+#
+# SO THE REMEDY IS "SHORTEN", NOT "REJOIN", AND THE GUARD SAYS SO WITH A NUMBER.
+# A rejoined line over printWidth is broken again by the next commit, so a
+# guard that printed it as the fix would wedge the node with its own repair --
+# the `an-unrun-remedy-is-the-default-output` trap, arriving through the remedy
+# text rather than the code. The rejoined form IS printed, with its length and
+# the limit, and it is labelled unsafe to paste when it exceeds the limit.
+#
+# The unit is the DETACHED LINE, not the empty key. A bare `key:` with nothing
+# after it is legal -- an optional value a node has not filled -- and refusing
+# it would punish the honest empty case. A continuation line is unambiguous:
+# there is no legal header line that is not `key: value`.
+#
+# SAME CORPUS AND SAME ADDED-LINES-ONLY RULE as check 1, deliberately: a board
+# already carrying a detached value is not this commit's to answer for, so the
+# arm wedges nothing that exists when it is armed.
+#
+# Exit codes: 0 clean or not applicable; 1 an added header line escapes a value
+# (check 1) or detaches one from its key (check 2).
 
 set -uo pipefail
 
@@ -159,6 +219,24 @@ header_block() { # stdin: a wip.md
 }
 
 violations=0
+detached_count=0
+
+# The formatter's line limit. The number only means anything as the limit the
+# consumer's prettier actually applies, so it is READ, not assumed: a
+# `printWidth` declared in the repo root's `.prettierrc.json` or `.prettierrc`
+# (JSON or YAML), else prettier's default of 80.
+PRINTWIDTH=80
+for _rc in .prettierrc.json .prettierrc; do
+  [ -f "$_rc" ] || continue
+  _w="$(sed -n 's/^[[:space:]]*"\{0,1\}printWidth"\{0,1\}[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$_rc")"
+  if [ -n "$_w" ]; then
+    PRINTWIDTH="${_w%%$'\n'*}"
+    break
+  fi
+done
+readonly PRINTWIDTH
+TAB="$(printf '\t')"
+readonly TAB
 
 report_header() {
   if [ "$violations" -eq 0 ]; then
@@ -167,6 +245,45 @@ report_header() {
     echo "         The header block is NOT YAML -- quotes inside a value are literal." >&2
     echo "" >&2
   fi
+}
+
+report_detached() {
+  if [ "$detached_count" -eq 0 ]; then
+    echo "" >&2
+    echo "BLOCKED: a whiteboard header value is DETACHED from its key." >&2
+    echo "         One line per key -- a value on a line of its own reads as EMPTY." >&2
+    echo "" >&2
+  fi
+}
+
+# Every non-blank header line that is not `key: value`, tagged with the key it
+# has been detached from (the nearest key line above it).
+detached_lines() { # stdin: a header block
+  awk '
+    /^[[:space:]]*$/ { next }
+    /^[A-Za-z][A-Za-z0-9_]*:([[:space:]]|$)/ { k = $0; sub(/:.*/, "", k); next }
+    { printf "%s\t%s\n", (k == "" ? "(nothing above it)" : k), $0 }
+  '
+}
+
+# One key's line plus its continuation lines, folded back into the single line
+# the format requires. Whitespace-collapsed, because the formatter's indentation
+# is not part of the value.
+rejoin_key() { # $1: key; stdin: a header block
+  awk -v want="$1" '
+    /^[[:space:]]*$/ { next }
+    /^[A-Za-z][A-Za-z0-9_]*:([[:space:]]|$)/ {
+      k = $0; sub(/:.*/, "", k)
+      if (k == want) { out = $0; sub(/[[:space:]]+$/, "", out); collecting = 1; next }
+      if (collecting) { exit }
+      next
+    }
+    collecting {
+      v = $0; sub(/^[[:space:]]+/, "", v); sub(/[[:space:]]+$/, "", v)
+      out = out " " v
+    }
+    END { if (collecting) print out }
+  '
 }
 
 boards="$(git diff --cached --name-only --diff-filter=ACM -- "${WB_BOARDS[@]}" 2>/dev/null || true)"
@@ -211,6 +328,52 @@ while IFS= read -r f; do
   done <<EOF
 $hdr
 EOF
+
+  # CHECK 2 -- see the block comment. A value that has left its key's line.
+  detached="$(printf '%s\n' "$hdr" | detached_lines || true)"
+  if [ -n "$detached" ]; then
+    reported=""
+    while IFS="$TAB" read -r key line; do
+      [ -n "$line" ] || continue
+
+      # Inherited breakage is not this commit's to answer for -- check 1's rule,
+      # for check 1's reason: otherwise one detached value wedges every future
+      # heartbeat commit on that board.
+      grep -qxF -- "$line" <<<"$added" || continue
+
+      # One report per KEY, however many lines its value sprawls over.
+      grep -qxF -- "$key" <<<"$reported" && continue
+      reported="$reported
+$key"
+
+      report_detached
+      printf '  %s\n' "$f" >&2
+      printf '    key:      %s\n' "$key" >&2
+      printf '%s\n' "$detached" |
+        awk -F"$TAB" -v k="$key" '$1 == k { printf "    detached: %s\n", $2 }' >&2
+
+      rejoined="$(printf '%s\n' "$hdr" | rejoin_key "$key" || true)"
+      if [ -n "$rejoined" ]; then
+        printf '    reads as: %s -> EMPTY\n' "$key" >&2
+        printf '    rejoined: %s\n' "$rejoined" >&2
+        # A BYTE count (LC_ALL=C), where prettier counts characters. Equal for
+        # the ASCII these values are; for non-ASCII it over-estimates, which can
+        # only advise a SHORTER line and never wrongly call a long one safe.
+        if [ "${#rejoined}" -gt "$PRINTWIDTH" ]; then
+          printf '    *** %s chars, over printWidth %s -- REJOINING IS NOT THE FIX.\n' \
+            "${#rejoined}" "$PRINTWIDTH" >&2
+          printf '        The formatter runs before this guard and will break it again.\n' >&2
+          printf '        SHORTEN the value to %s chars or fewer, key and all.\n' "$PRINTWIDTH" >&2
+        else
+          printf '    (%s chars, inside printWidth %s -- safe to paste back.)\n' \
+            "${#rejoined}" "$PRINTWIDTH" >&2
+        fi
+      fi
+      detached_count=$((detached_count + 1))
+    done <<EOF
+$detached
+EOF
+  fi
 done <<EOF
 $boards
 EOF
@@ -233,6 +396,36 @@ if [ "$violations" -gt 0 ]; then
   Rule: the `in-whiteboard` skill, "The header block is NOT YAML".
 
 EOF
+fi
+
+if [ "$detached_count" -gt 0 ]; then
+  cat >&2 <<'EOF'
+
+  The header block is one line per key. `fm_get` reads everything after the
+  first `: ` on the KEY's line, so a value sitting on its own line reads as
+  EMPTY and `ws list` prints nothing for that key. Run-verified 2026-09-12:
+  a board with four claims detached rendered `claims=`, every other field
+  perfect. The value does not degrade, it disappears -- a node claiming four
+  work packages reads as a node claiming none.
+
+  YOU PROBABLY DID NOT WRITE THIS. prettier formats this block as YAML, and a
+  bracketed `claims:` list longer than its printWidth is broken across lines --
+  by a gate that runs `prettier --write` before its guards, or by the `prettier
+  --write` run to clear a `--check` refusal. Measured at printWidth 80: 80 chars
+  survives, 81 breaks. A QUOTED value such as `focus:` is never broken however
+  long, because a quoted scalar is not a breakable construct.
+
+  SO SHORTEN THE VALUE; DO NOT JUST REJOIN IT. A rejoined line over printWidth
+  is broken again by the next commit and the board is wedged by its own repair.
+  The `rejoined:` line above carries its length and says which case it is.
+
+  Rule: the `in-whiteboard` skill, "The header block is NOT YAML" -- one line
+  per key, no continuation lines.
+
+EOF
+fi
+
+if [ $((violations + detached_count)) -gt 0 ]; then
   exit 1
 fi
 

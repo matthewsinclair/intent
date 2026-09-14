@@ -260,3 +260,247 @@ big_body() { # $1 path -- append a realistic whole-board payload
   assert_staged intent/whiteboard/dc/wip.md
   assert_guard PASS
 }
+
+# --- CHECK 2: A VALUE DETACHED FROM ITS KEY (issue 0390) ----------------------
+#
+# Ported from Laksa's `bin/hooks/guards/whiteboard-header-guard.test.sh`, where
+# check 2 was built (Laksa bf69ab268, f25531ecf). Laksa's check-1 cases are not
+# repeated: the cases above already cover both escape forms, the prose and
+# archive exemptions, inherited breakage and the pipe buffer.
+#
+# THE FIRST THREE ARE REAL HISTORY, NOT FIXTURES WRITTEN TO FIT, because a
+# fixture can manufacture the defect it then detects. Laksa's ic board broke,
+# broke differently, and was repaired; the four header blocks are vendored
+# verbatim under tests/fixtures/whiteboard-header/, each named by the Laksa
+# revision it was read from. The third is the node's OWN repair, which the guard
+# must not refuse.
+#
+#   430eda077 -> bc66ddbc1   clean -> value expanded over several lines   BLOCK
+#   bc66ddbc1 -> 09e4819c5   one continuation line, still detached        BLOCK
+#   09e4819c5 -> a0077c605   reattached AND shortened                     PASS
+#
+# EVERY BLOCK CASE HERE WAS RUN AGAINST THE GUARD BEFORE CHECK 2 AND WENT RED,
+# which is what shows it reaches check 2 rather than some other refusal. The
+# PASS cases were not mutation-tested one by one the way the controls above
+# were: they are boundaries check 2 must not cross, each asserted staged.
+
+# The canonical good header, so each case shows only its own deviation.
+detach_good() {
+  printf '%s' 'node: zz
+name: Test Node
+role: test
+session_id: 11111111-2222-3333-4444-555555555555
+heartbeat_at: 2026-09-12 16:00Z
+status: active
+focus: "a quoted value, which prettier never breaks however long it runs"
+claims: [ST0001]'
+}
+
+# A board from a header-block body: $1 path, $2 header body, $3 prose below.
+header_board() {
+  mkdir -p "$(dirname "$1")"
+  {
+    printf -- '---\n'
+    printf '%s\n' "$2"
+    printf -- '---\n\n# Node\n\n%s\n' "${3:-body}"
+  } > "$1"
+}
+
+# A vendored real header block, fences included, with prose below it.
+real_board() { # $1 path, $2 Laksa revision
+  mkdir -p "$(dirname "$1")"
+  {
+    cat "${INTENT_PROJECT_ROOT}/tests/fixtures/whiteboard-header/laksa-ic-$2.md"
+    printf '\n# Interface Claude (ic)\n\nbody\n'
+  } > "$1"
+}
+
+commit_before() {
+  git add -A && git commit -qm before
+}
+
+# Stage everything, prove something WAS staged, then hold the guard to its
+# exit-code contract through the assert_guard above.
+assert_staged_guard() { # $1 BLOCK|PASS
+  git add -A
+  if [ -z "$(git diff --cached --name-only)" ]; then
+    echo "HARNESS DEAD: nothing staged, so any exit code is meaningless"
+    return 1
+  fi
+  assert_guard "$1"
+}
+
+@test "check 2, real: Laksa 430eda077 -> bc66ddbc1, claims over several lines, is refused and named" {
+  real_board intent/whiteboard/ic/wip.md 430eda077
+  commit_before
+  real_board intent/whiteboard/ic/wip.md bc66ddbc1
+  assert_staged_guard BLOCK
+  [[ "$output" == *"key:      claims"* ]]
+}
+
+@test "check 2, real: Laksa bc66ddbc1 -> 09e4819c5, still detached on one line, is refused" {
+  real_board intent/whiteboard/ic/wip.md bc66ddbc1
+  commit_before
+  real_board intent/whiteboard/ic/wip.md 09e4819c5
+  assert_staged_guard BLOCK
+}
+
+@test "check 2, real: Laksa 09e4819c5 -> a0077c605, the node's own repair, passes" {
+  real_board intent/whiteboard/ic/wip.md 09e4819c5
+  commit_before
+  real_board intent/whiteboard/ic/wip.md a0077c605
+  assert_staged_guard PASS
+}
+
+@test "check 2: a claims value on one continuation line is refused" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:
+  [ST0001, ST0002]'
+  assert_staged_guard BLOCK
+}
+
+@test "check 2: a detached value short enough to rejoin is refused, and is safe to paste" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:
+  [ST0001]'
+  assert_staged_guard BLOCK
+  [[ "$output" == *"safe to paste back"* ]]
+}
+
+@test "check 2: a detached value over the width says rejoining is not the fix" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:
+  [ST0001/WP-01, ST0001/WP-02, ST0001/WP-03, ST0001/WP-04, ST0001/WP-05, ST0001/WP-06]'
+  assert_staged_guard BLOCK
+  [[ "$output" == *"REJOINING IS NOT THE FIX"* ]]
+}
+
+@test "check 2: the consumer's own printWidth decides whether a rejoin is safe to paste" {
+  printf '{\n  "printWidth": 120\n}\n' > .prettierrc.json
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:
+  [ST0001/WP-01, ST0001/WP-02, ST0001/WP-03, ST0001/WP-04, ST0001/WP-05, ST0001/WP-06]'
+  assert_staged_guard BLOCK
+  [[ "$output" == *"inside printWidth 120 -- safe to paste back"* ]]
+}
+
+@test "check 2: a continuation line with no key above it is refused" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md '  [ST0001, ST0002]
+node: zz'
+  assert_staged_guard BLOCK
+}
+
+@test "check 2: a new board born with a detached value is refused" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/yy/wip.md 'node: yy
+claims:
+  [ST0009]'
+  assert_staged_guard BLOCK
+}
+
+@test "check 2: a detached value in a commit past the pipe buffer is refused" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:
+  [ST0001, ST0002]' "$(seq 1 16384 | awk '{ print "padding: board prose, never a header line" }')"
+  assert_staged_guard BLOCK
+}
+
+@test "check 2: an escaped and a detached value in one commit are both reported" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+focus: "the \"counted\" body"
+claims:
+  [ST0001]'
+  assert_staged_guard BLOCK
+  [[ "$output" == *"DETACHED"* ]]
+  [[ "$output" == *"key:      claims"* ]]
+}
+
+@test "check 2 FP: a bare key with an empty value passes -- the honest unfilled case" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+claims:'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: a blank line inside the header block passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+
+claims: [ST0001]'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: an inherited detachment passes when only the heartbeat changes" {
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+heartbeat_at: 2026-09-12 15:00Z
+claims:
+  [ST0001, ST0002]'
+  commit_before
+  header_board intent/whiteboard/zz/wip.md 'node: zz
+heartbeat_at: 2026-09-12 16:00Z
+claims:
+  [ST0001, ST0002]'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: a continuation-shaped line in the prose below the fence passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)" 'ic wrote:
+
+claims:
+  [ST0001]
+
+and the board showed nothing.'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: an archived board with a detached value passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/.history/20260912/wip.md 'node: zz
+claims:
+  [ST0001]'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: a non-whiteboard markdown file with detached frontmatter passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/wip.md 'title: x
+claims:
+  [ST0001]'
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: a board with no header block at all passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  printf '# Node\n\nclaims:\n  [ST0001]\n' > intent/whiteboard/zz/wip.md
+  assert_staged_guard PASS
+}
+
+@test "check 2 FP: a long quoted focus on one line passes" {
+  header_board intent/whiteboard/zz/wip.md "$(detach_good)"
+  commit_before
+  header_board intent/whiteboard/zz/wip.md "node: zz
+focus: \"$(printf 'word %.0s' $(seq 40))\""
+  assert_staged_guard PASS
+}
