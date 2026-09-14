@@ -1723,7 +1723,43 @@ fn acceptance(
   // Same placement and the same reason: the row arrived, so this is a report
   // and not a refusal. It used to BE a refusal, and refusing deleted 19
   // criteria across 8 threads.
+  // **THE THREAD DECIDES WHAT THE ROW CANNOT** (vc, 2026-09-14, issue 0353). A
+  // row carrying authored-only fields with no `(non-test)` marker is re-read as
+  // non-test when no acceptance test covers it AND its own text names none --
+  // Courses `ST0003` had nine such rows, no ATs at all, and every one arrived as
+  // test-backed with its evidence dropped. A row that names or is covered by an
+  // AT keeps the test-backed reading below, which is Conflab `AC-01.5`, promoted
+  // and saying so. See the final arm of `criterion_read` for why this is a rule
+  // over the thread rather than the row.
+  let lines: Vec<&str> = text.lines().collect();
   for (id, line_no, keys) in &authored_on_test {
+    let covered = tests.iter().any(|t| t.covers.iter().any(|c| c == id));
+    let row = lines
+      .get((*line_no as usize).saturating_sub(1))
+      .and_then(|l| l.strip_prefix("- "))
+      .unwrap_or("");
+    if !covered && !row.contains("AT-") {
+      // A row that parsed as test-backed re-parses as non-test; if it somehow
+      // does not, it falls through to the test-backed finding below rather than
+      // disappearing.
+      if let Ok(read) = criterion_read(row, true)
+        && let Some(slot) = criteria.iter_mut().find(|c| c.id == *id)
+      {
+        *slot = read;
+        out.record(
+            closed,
+            Finding::new(
+              &rel,
+              FindingClass::UnreadField,
+              format!(
+                "{id} carries `{keys}` with no `(non-test)` marker, and no acceptance test covers it or is named in it -- so it is read as non-test and those fields are kept. If it is genuinely test-backed, re-kind it with `intent set <address> kind test`"
+              ),
+            )
+            .at_line(*line_no),
+          );
+        continue;
+      }
+    }
     out.record(
       closed,
       Finding::new(
@@ -1776,6 +1812,12 @@ fn acceptance(
 
 /// `- AC-<gg>.<n> [(non-test)] <text> [-- evidence: <e>] [-- satisfied: yes|no]`
 fn criterion(row: &str) -> Result<Criterion, RowRejection> {
+  criterion_read(row, false)
+}
+
+/// [`criterion`], with the file reader able to say the THREAD makes the row
+/// non-test when the row's own text cannot (issue 0353, vc's ruling).
+fn criterion_read(row: &str, non_test_by_thread: bool) -> Result<Criterion, RowRejection> {
   let (id, rest) = row.split_once(' ').ok_or_else(|| {
     (
       FindingClass::UnparseableRow,
@@ -1787,7 +1829,7 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
   }
   // Leading marker only; an embedded one is picked up from the prose below,
   // once the prose half's boundary is known.
-  let non_test = rest.trim_start().starts_with("(non-test)");
+  let non_test = non_test_by_thread || rest.trim_start().starts_with("(non-test)");
   let body = rest.trim_start().trim_start_matches("(non-test)").trim();
 
   // The two PROSE fields run to the next keyed field (0124); the rest are
@@ -2021,6 +2063,16 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
     // **`satisfied:` ALONE IS NOT A SIGNAL and is not reported.** v2 wrote it
     // onto test-backed rows as a matter of course: 789 estate rows carry it
     // with nothing else, against 20 carrying a genuine authored field.
+
+    //
+    // **RULED 2026-09-14 (vc, issue 0353): THE ROW STILL CANNOT SAY, BUT THE
+    // THREAD CAN.** The file reader re-reads such a row as non-test when no
+    // acceptance test covers it and its text names none (`criterion_read(row,
+    // true)`), so this arm is now the reading for rows the thread does not
+    // settle. The twenty rows and the 19-row deletion above are why the rule is
+    // over the thread and not the row: nothing in the row's own text separates
+    // the two readings, and a reading with `intent set <ac> kind` behind it is a
+    // one-line repair where the refusal deleted.
 
     // A test-backed criterion's satisfaction is COMPUTED from its covering
     // tests, so nothing is carried onto the row.

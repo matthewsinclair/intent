@@ -297,6 +297,49 @@ fn a_non_test_only_field_with_no_marker_is_named_rather_than_dropped() {
   );
 }
 
+/// **Issue 0353: a row the THREAD shows is authored arrives non-test.** Courses
+/// `ST0003` carried nine unmarked rows with an evidence clause and no ATs at all,
+/// and every one arrived test-backed with its evidence dropped. No acceptance test
+/// covers this row and its text names none, so the thread settles what the row
+/// cannot, and the evidence rides as the unsatisfied criterion's note.
+#[test]
+fn an_unmarked_evidence_row_no_test_covers_or_names_arrives_non_test() {
+  let fixture = Fixture::new();
+  v2_estate(
+    &fixture,
+    &FIXTURE.replace(
+      "- AC-90.1 A plain test-backed row whose v2 `satisfied:` is noise nobody should read. -- satisfied: yes\n",
+      "- AC-90.1 Restructure the day hubs. -- evidence: day-1..5.md hubs + syllabus.md arc table -- satisfied: no\n",
+    ),
+  );
+  let scan = scan(&fixture);
+
+  let ac = criterion(&scan, "AC-90.1").expect("the row must survive the scan");
+  assert_eq!(
+    ac.kind,
+    AcKind::NonTest,
+    "no test covers or names it, so it is authored"
+  );
+  match &ac.state {
+    intentsvcs::model::AcState::Unsatisfied { note: Some(note) } => assert!(
+      note.contains("syllabus.md arc table"),
+      "the evidence clause must ride as the note, not be dropped: {note}"
+    ),
+    other => {
+      panic!("`satisfied: no` with evidence must arrive unsatisfied with a note, got {other:?}")
+    }
+  }
+
+  let all = findings(&scan);
+  assert!(
+    all
+      .iter()
+      .any(|f| f.detail.contains("AC-90.1") && f.detail.contains("read as non-test")),
+    "the reclassification must be named, not done in silence: {:?}",
+    all.iter().map(|f| &f.detail).collect::<Vec<_>>()
+  );
+}
+
 /// **A MARKER MIS-PLACED IS STILL A MARKER, and refusing it costs more than the
 /// mis-reading.**
 ///

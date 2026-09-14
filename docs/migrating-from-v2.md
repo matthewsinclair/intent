@@ -34,6 +34,8 @@ Then read a thread you know well and check it against what you remember writing.
 
 **A project already migrated with v3.0.0 does not recover by re-running `intent upgrade`.** On a project with committed canon, `upgrade` re-emits each thread from that canon rather than converting the v2 markdown again, so the lost clause stays lost. Your v2 source in git history still holds it: read the pre-hop `acceptance.md`, and write each clause back with `intent ac edit <ID> <AC> --note "<clause>"`.
 
+**If that criterion also arrived test-backed, `ac edit --note` refuses it, so re-kind it first.** A v2 row with an evidence clause and no `(non-test)` marker was read as test-backed, and a test-backed criterion carries no note. Re-kind each one with `intent set intent:///threads/<ID>/ac/<AC> kind non-test`, which lands it unsatisfied, then write the clause back with `intent ac edit`. They are the rows the upgrade named with `only an authored criterion can hold`, or test-backed rows that no acceptance test covers. A migration from this build on reads such a row as non-test, with its clause as the note, whenever no acceptance test covers it or is named in it.
+
 ### How to tell whether you are affected
 
 **Count rows whose pre-hop authored form carried an evidence clause together with `satisfied: no`.** Read your own v2 source out of git history at the path the migration read; you do not need to compare against anything v3 produced, and you do not need to trust anyone's number but your own.
