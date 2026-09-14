@@ -8114,6 +8114,7 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
     Some(("stop", sm)) => daemon_stop(given(sm, "at-login")),
     Some(("restart", _)) => daemon_restart(),
     Some(("status", sm)) => daemon_status(sm),
+    Some(("logs", sm)) => daemon_logs(sm),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
   }
@@ -8280,6 +8281,120 @@ fn daemon_run() -> Result<(), Failure> {
     "error: `{}` could not be executed: {failed}\n  remedy: the file was found and the kernel refused to run it. Check that it is executable and built for this architecture.",
     path.display()
   )))
+}
+
+/// `intent daemon logs` -- intentd's two logs: the last lines of each, and with
+/// `--follow` every line written after.
+///
+/// **THE FIRST LINE NAMES BOTH FILES AND IS A CONTRACT.** Intent.app's Console
+/// reads it to say what it is tailing, as Gtools' reads `cms logs`'s, so the app
+/// derives no log path of its own. A log intentd has not written yet is named as
+/// absent on the next line, never skipped: a quiet log and a missing one would
+/// otherwise print the same nothing.
+///
+/// **`tail` DOES THE READING, IN BOTH MODES.** `-F` follows and waits for a file
+/// that does not exist yet, so nothing here reads a clock, and the bounded form
+/// goes through the same program so "the last n lines" has one implementation.
+/// `-q` drops tail's per-file headers, which the first line already carries.
+///
+/// **THE FOLLOWING `tail` DIES WITH THIS PROCESS HOWEVER IT DIES, AND THAT IS
+/// ISSUE 0281's RULING, BUILT.** It runs under a shell that reads its own stdin,
+/// and this process holds the write end, so SIGKILL closes the pipe as surely as
+/// an orderly exit: the shell reads end-of-file and kills the tail by the pid it
+/// recorded. No process group is signalled, so nothing rests on who leads one.
+/// This process in turn ends when ITS stdin closes, which is how Intent.app's
+/// Console, holding that pipe, takes the whole chain down even if the app itself
+/// is killed. A plain `exec` of `tail -F` was the first version, and a
+/// `terminate()` from the app would have left every tail it ever started running.
+fn daemon_logs(m: &ArgMatches) -> Result<(), Failure> {
+  use std::io::Write;
+  use std::os::unix::process::CommandExt;
+
+  let lines = match m.get_one::<String>("lines") {
+    None => 40,
+    Some(raw) => raw.parse::<usize>().map_err(|_| {
+      Failure::Error(format!(
+        "error: `--lines {raw}` is not a number of lines\n  remedy: give a whole number, eg `--lines 100`"
+      ))
+    })?,
+  };
+  let dirs = intentsvcs::userstate::dirs().map_err(|e| Failure::Error(e.render()))?;
+  let logs = [
+    intentsvcs::userstate::daemon_log_under(&dirs),
+    intentsvcs::userstate::daemon_error_log_under(&dirs),
+  ];
+  println!("tailing {} and {}", logs[0].display(), logs[1].display());
+  for log in logs.iter().filter(|p| !p.is_file()) {
+    println!(
+      "absent: {} -- intentd has not written it yet",
+      log.display()
+    );
+  }
+  let follow = given(m, "follow");
+  let present: Vec<&std::path::PathBuf> = logs.iter().filter(|p| p.is_file()).collect();
+  if !follow && present.is_empty() {
+    return Ok(());
+  }
+  std::io::stdout().flush().map_err(|e| {
+    Failure::Error(format!(
+      "error: the header could not be written before handing over to `tail`: {e}"
+    ))
+  })?;
+  if follow {
+    return daemon_logs_follow(lines, &logs);
+  }
+  let mut tail = std::process::Command::new(TAIL);
+  tail.args(["-q", "-n", &lines.to_string()]).args(&present);
+  // `exec` returns ONLY on failure.
+  let failed = tail.exec();
+  Err(Failure::Error(format!(
+    "error: `{TAIL}` could not be executed: {failed}\n  remedy: `intent daemon logs` reads the logs through `tail`, which every macOS and Linux install carries at that path. Read the files named above directly meanwhile."
+  )))
+}
+
+/// The one `tail` this verb runs, by absolute path so a PATH that shadows it
+/// cannot change what the Console shows.
+const TAIL: &str = "/usr/bin/tail";
+
+/// The shell `--follow` runs its tail under: the tail in the background, then a
+/// loop that ends only when stdin closes, then the tail killed by its own pid.
+/// `$1` is the line count and the rest are the logs. A tail already gone (eg
+/// by SIGPIPE when nothing reads its output) makes the `kill` a no-op, which is
+/// why its refusal is not an error.
+const FOLLOW: &str = r#"/usr/bin/tail -q -n "$1" -F "$2" "$3" &
+t=$!
+while IFS= read -r _; do :; done
+kill -TERM "$t" 2>/dev/null
+wait "$t" 2>/dev/null
+exit 0
+"#;
+
+/// `--follow`: the shell above, with this process holding its stdin, until this
+/// process's own stdin closes.
+fn daemon_logs_follow(lines: usize, logs: &[std::path::PathBuf; 2]) -> Result<(), Failure> {
+  let mut shell = std::process::Command::new("/bin/sh")
+    .args(["-c", FOLLOW, "sh", &lines.to_string()])
+    .args(logs)
+    .stdin(std::process::Stdio::piped())
+    .spawn()
+    .map_err(|e| Failure::Error(format!("error: the follow shell could not be started: {e}")))?;
+  let held = shell.stdin.take();
+  std::io::copy(&mut std::io::stdin().lock(), &mut std::io::sink()).map_err(|e| {
+    Failure::Error(format!(
+      "error: stdin could not be read while following: {e}"
+    ))
+  })?;
+  drop(held);
+  let status = shell
+    .wait()
+    .map_err(|e| Failure::Error(format!("error: the follow shell could not be reaped: {e}")))?;
+  if status.success() {
+    Ok(())
+  } else {
+    Err(Failure::Error(format!(
+      "error: the follow shell ended with {status}"
+    )))
+  }
 }
 
 /// Report whether a daemon is answering, using the same call the store door

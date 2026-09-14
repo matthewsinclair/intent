@@ -80,6 +80,8 @@ mod critic_surface;
 mod daemon_and_local_agree;
 #[path = "daemon_lifecycle.rs"]
 mod daemon_lifecycle;
+#[path = "daemon_logs_prints_and_follows.rs"]
+mod daemon_logs_prints_and_follows;
 #[path = "daemon_run_execs.rs"]
 mod daemon_run_execs;
 #[path = "daemon_status_answers_a_machine.rs"]

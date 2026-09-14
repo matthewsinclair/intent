@@ -3682,16 +3682,17 @@ Manage the machine-level intentd
 
 - **NEW SURFACE, AND A FAMILY RATHER THAN ONE ROW BECAUSE ONE ROW COULD NOT STATE A TRUE FACT ABOUT ITS VERBS** (vc's ruling, 2026-08-30, on ic's measurement; wanted by cc, who owns WP-08). It shipped as a single `new_surface` entry with a `subcommand` slot listing `start|stop|status|run`, which carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs with different answers.
 - **THE TWO ALTERNATIVES WERE BOTH DEFECTS ALREADY NAMED ON THIS ESTATE.** A `--format` on the head row lands on `start`, `stop`, `run` and `status` alike, which is a FLAG ACCEPTED AND IGNORED -- worse than one refused, because the caller believes they got the behaviour and the exit code agrees. And a child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`: measured, that produced TESTS DISAGREEING about whether the command exists, one saying it was missing from the surface and one saying it was present with no row behind it. That is what two homes look like from outside.
-- `daemon status` is the only READ in the family and the only member whose exposure question is open.
+- `daemon status` and `daemon logs` are the family's READS. `daemon status` is the only member whose exposure question is open; `daemon logs` is closed for a reason of its own, recorded on its row.
 
-| command          | args      | flags                  | help                                                             | disposition |
-| ---------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
-| `daemon`         | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
-| `daemon start`   | --        | --at-login             | Start intentd for this machine                                   | new-surface |
-| `daemon stop`    | --        | --at-login             | Stop the running intentd                                         | new-surface |
-| `daemon restart` | --        | --                     | Restart intentd: stop it, then start it                          | new-surface |
-| `daemon status`  | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
-| `daemon run`     | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
+| command          | args      | flags                  | help                                                                   | disposition |
+| ---------------- | --------- | ---------------------- | ---------------------------------------------------------------------- | ----------- |
+| `daemon`         | <command> | --                     | Manage the machine-level intentd                                       | new-surface |
+| `daemon start`   | --        | --at-login             | Start intentd for this machine                                         | new-surface |
+| `daemon stop`    | --        | --at-login             | Stop the running intentd                                               | new-surface |
+| `daemon restart` | --        | --                     | Restart intentd: stop it, then start it                                | new-surface |
+| `daemon status`  | --        | --format terminal/json | Report whether intentd is running, and the address it answers on       | new-surface |
+| `daemon logs`    | --        | --lines <n>, --follow  | Print intentd's recent log lines, and keep printing them with --follow | new-surface |
+| `daemon run`     | --        | --                     | Run intentd in the foreground, without daemonising                     | new-surface |
 
 ### `daemon`
 
@@ -3766,6 +3767,22 @@ Report whether intentd is running, and the address it answers on
 - **MCP:** not exposed -- read-only
 - **MCP note:** **CLOSED CONSERVATIVELY AND THE QUESTION IS RECORDED RATHER THAN SETTLED.** This family is closed because `start|stop|run` is machine-level process control -- and that justification, in its own words, does NOT name `status`. This row is a READ and is the one member the stated reason does not reach, so it is a candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings. Closed until then, because a wrongly-open row is the expensive direction.
 - **basis:** AC-01.5, D56. **IT MUST ANSWER FROM `intentsvcs::daemon` -- `health()`, which composes `candidates()`, `route()` and `running_pid_under()` -- AND FROM NOTHING ELSE** (cc, who owns the write side and landed it at `b9d16dcc`). hv's D6 has the daemon bind `127.0.0.1:0` and PUBLISH what the kernel gave it, so there is no port literal anywhere to read and `candidates()` is the one reader of that address file. **A second resolver here would let the menubar app and the CLI disagree about where the daemon is, SILENTLY, because both answers look like addresses.** One door, so ST0064's app asks the same question the store-routing door asks rather than a second implementation that agrees today. **IT ANSWERED FROM `route()` DIRECTLY UNTIL 2026-08-31**, which collapsed STALE into ABSENT because `Route` has no third variant, and that absence is its stated invariant. `ST0064` `AC-01.6` needs three, so the third is a PROJECTION ABOVE the routing rule and never a widening of it (vc's ruling, on cc's six-case measurement). The discriminator is the KERNEL LOCK rather than a bare `connect()`, so an orphaned listening descriptor lands on ABSENT: it has no holder to investigate, and STALE would declare a remedy nobody can carry out.
+
+### `daemon logs`
+
+Print intentd's recent log lines, and keep printing them with --follow
+
+- **v2:** new-surface
+- **Flags:**
+  - `--lines` `<n>` (string) -- How many of the most recent lines to print from each log (default 40)
+    - **disposition:** keep
+  - `--follow` (bool) -- Keep printing lines as intentd writes them, until interrupted
+    - **disposition:** keep
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** **CLOSED, AND FOR A REASON OF ITS OWN RATHER THAN THE FAMILY'S.** This is a READ, so the family's stated ground, machine-level process control, does not reach it, exactly as it does not reach `daemon status`. It is closed because `--follow` never returns: a tool-tier call that asked for it would block its caller for as long as the daemon lives. The bounded form could be exposed on a ruling; until then the expensive direction is the one kept shut.
+- **basis:** hv, 2026-09-14 (ST0075 AC-01.1 to AC-01.3): Intent.app gets a Console that works like the Gtools CMS Console, and this is the verb it tails, as `gtools cms logs` is for Gtools. **THE VERB OWNS THE TAIL AND THE APP ONLY COLOURS LINES**, so the app derives no log path and a terminal gets the same answer the Console shows. **IT READS BOTH OF `userstate`'s LOG PATHS AND NAMES THEM IN ITS FIRST LINE**, `daemon_log_under` and `daemon_error_log_under`, whose own comment says whoever answers _where are the logs_ must produce the same path without reading the plist back. **A LOG INTENTD HAS NOT WRITTEN YET IS NAMED AS ABSENT, NEVER SKIPPED**, because a quiet file and a missing one would otherwise print the same nothing. **`--follow` IS ASKED FOR, NOT ASSUMED, AND THAT IS THE ONE DIVERGENCE FROM `gtools cms logs`**, which always follows: an agent or a script running `intent daemon logs` must not hang. **FOLLOWING IS `tail -F`'S, NOT A LOOP IN RUST**, so nothing in the workspace reads a clock, and `-F` waits for a log that does not exist yet rather than refusing it. **AND THE FOLLOWING TAIL DIES WITH THE VERB HOWEVER THE VERB DIES, WHICH IS ISSUE 0281 BUILT**: it runs under a shell that reads its own stdin while the verb holds the write end, so SIGKILL closes the pipe as surely as an exit and the shell kills the tail by its recorded pid. The verb itself ends when ITS stdin closes, which is how the Console, holding that pipe, takes the chain down even when the app is killed. Gtools paid for this in `Cms.Logs`; the lesson crossed estates in prose first and is code here.
 
 ### `daemon run`
 
