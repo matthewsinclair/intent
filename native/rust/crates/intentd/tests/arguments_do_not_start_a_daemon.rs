@@ -20,9 +20,11 @@
 //! home while proving it would be the guard-that-hangs-proving-it-detects-hangs
 //! shape, which this estate has already met once today.
 
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::{Duration, Instant};
 
 fn isolated_home(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
@@ -47,18 +49,57 @@ fn isolated_home(tag: &str) -> PathBuf {
 /// never exits. Without the deadline a regression here does not fail the test --
 /// it hangs the suite, which is exactly the defect class this crate spent the
 /// morning on.
+///
+/// **THE DEADLINE IS KEPT HERE, NOT IN A `timeout` BINARY.** `timeout` is GNU
+/// coreutils: a Mac has one only through Homebrew, and the macOS CI runner has
+/// none, so every arm panicked at the spawn on that leg alone while passing on
+/// every developer machine. A code of `None` is the deadline's kill.
 fn run(home: &PathBuf, arg: &str) -> (Option<i32>, String, String) {
-  let out = Command::new("timeout")
-    .arg("5")
-    .arg(env!("CARGO_BIN_EXE_intentd"))
+  // Issue 0388: this spawned `timeout 5 intentd <arg>`.
+  let mut child = Command::new(env!("CARGO_BIN_EXE_intentd"))
     .arg(arg)
     .env("HOME", home)
-    .output()
+    .stdin(Stdio::null())
+    .stdout(Stdio::piped())
+    .stderr(Stdio::piped())
+    .spawn()
     .expect("intentd runs");
+  // Drained on their own threads, so a chatty child cannot fill a pipe and
+  // stall while the loop below waits for it to exit.
+  let mut stdout = child.stdout.take().expect("stdout is piped");
+  let mut stderr = child.stderr.take().expect("stderr is piped");
+  let out = std::thread::spawn(move || {
+    let mut text = String::new();
+    stdout
+      .read_to_string(&mut text)
+      .expect("read intentd's stdout");
+    text
+  });
+  let err = std::thread::spawn(move || {
+    let mut text = String::new();
+    stderr
+      .read_to_string(&mut text)
+      .expect("read intentd's stderr");
+    text
+  });
+  let deadline = Instant::now() + Duration::from_secs(5);
+  let code = loop {
+    if let Some(status) = child.try_wait().expect("poll intentd") {
+      break status.code();
+    }
+    if Instant::now() >= deadline {
+      child
+        .kill()
+        .expect("kill the intentd that outran the deadline");
+      child.wait().expect("reap the killed intentd");
+      break None;
+    }
+    std::thread::sleep(Duration::from_millis(20));
+  };
   (
-    out.status.code(),
-    String::from_utf8_lossy(&out.stdout).to_string(),
-    String::from_utf8_lossy(&out.stderr).to_string(),
+    code,
+    out.join().expect("the stdout reader"),
+    err.join().expect("the stderr reader"),
   )
 }
 
@@ -81,8 +122,8 @@ fn an_unrecognised_argument_refuses_and_serves_nothing() {
     assert_eq!(
       code,
       Some(1),
-      "`intentd {arg}` did not refuse cleanly. Exit 124 means it SERVED and the deadline killed \
-       it, which is the incident this file exists for: an argument nobody recognised started a \
+      "`intentd {arg}` did not refuse cleanly. No exit code means it SERVED and the deadline \
+       killed it, which is the incident this file exists for: an argument nobody recognised started a \
        daemon. stderr: {err}"
     );
     assert!(
