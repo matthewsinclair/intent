@@ -324,8 +324,8 @@ pub fn insert_chain_block(existing: &str) -> Option<String> {
 }
 
 /// Read a canon template out of the install home.
-fn template(home: &Path, rel: &str) -> Result<String, CanonError> {
-  let path = home.join("lib/templates").join(rel);
+fn template(install: &Path, rel: &str) -> Result<String, CanonError> {
+  let path = install.join("lib/templates").join(rel);
   std::fs::read_to_string(&path).map_err(|source| CanonError::Unreadable { path, source })
 }
 

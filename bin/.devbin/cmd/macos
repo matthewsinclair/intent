@@ -461,7 +461,7 @@ install_path_chains() {
   local src="$ROOT/native/rust/crates"
   [ -d "$src" ] || return 0
   find "$src" -path '*/src/*' -name '*.rs' -exec perl -0777 -ne '
-    while (/\b(?:install_root|install|home)((?:\s*\.join\(\s*"[^"]+"\s*\))+)(\s*\.join\(\s*[^\s")])?/g) {
+    while (/\b(?:install_root|install)((?:\s*\.join\(\s*"[^"]+"\s*\))+)(\s*\.join\(\s*[^\s")])?/g) {
       my ($chain, $more) = ($1, $2);
       my $p = join("/", $chain =~ /"([^"]+)"/g);
       $p =~ s{^/+}{};

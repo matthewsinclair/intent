@@ -366,8 +366,8 @@ pub fn hook_script(home: &Path, name: &str) -> PathBuf {
 /// working standalone under a v3 binary before this door was wired -- so
 /// wiring is reachability, not a port, and a port would be the Highlander
 /// violation rather than the fix.
-pub fn cwi_script(home: &Path) -> PathBuf {
-  home.join("intent/plugins/claude/bin/intent_claude_cwi")
+pub fn cwi_script(install: &Path) -> PathBuf {
+  install.join("intent/plugins/claude/bin/intent_claude_cwi")
 }
 
 /// Read a `[intent-source-<key>:...]` marker out of a binary ON DISK.
