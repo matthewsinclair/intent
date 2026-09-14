@@ -89,6 +89,9 @@ jobs:
         # verdict. Put the project's bin/ on PATH so the
         # critic gate is exercisable in CI.
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+        # Issue 0335: the v3 `intent` the suite builds below, so a test that
+        # resolves `intent` from PATH runs the built binary rather than nothing.
+        echo "${{ github.workspace }}/native/rust/target/release" >> $GITHUB_PATH
 
     - name: Configure git identity
       run: |
@@ -216,6 +219,9 @@ jobs:
         # See ubuntu job for rationale -- pre_commit_hook.bats needs
         # `intent` resolvable for the critic gate to fire.
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+        # Issue 0335: the v3 `intent` the suite builds below, so a test that
+        # resolves `intent` from PATH runs the built binary rather than nothing.
+        echo "${{ github.workspace }}/native/rust/target/release" >> $GITHUB_PATH
 
     - name: Configure git identity
       run: |
@@ -256,7 +262,9 @@ jobs:
       run: |
         echo "Running ShellCheck on Intent scripts..."
         # Run shellcheck on all shell scripts, but don't fail the build
-        find bin -type f -name "intent*" | while read -r script; do
+        # Issue 0335: the v2 `bin/intent*` scripts are gone, so that selector
+        # matched nothing. These are the shell scripts the repository ships.
+        { printf '%s\n' bin/devbin bin/int; find bin/.devbin/cmd lib/templates/hooks -type f; } | while read -r script; do
           if file "$script" | grep -q "shell script"; then
             echo "Checking: $script"
             shellcheck "$script" || echo "  ShellCheck found issues (non-blocking)"

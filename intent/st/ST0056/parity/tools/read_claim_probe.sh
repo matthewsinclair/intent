@@ -42,7 +42,8 @@ PARITY_DIR="$(cd "$HERE/.." && pwd)"
 ST_DIR="$(cd "$PARITY_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$ST_DIR/../../.." && pwd)"
 
-BIN="${BIN:-$REPO_ROOT/bin/intent}"
+# Issue 0330: the v3 binary. `bin/intent` was the v2 shell, deleted under AC-00.6.
+BIN="${BIN:-$REPO_ROOT/native/rust/target/release/intent}"
 TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
 
 die() { echo "error: $1" >&2; exit 2; }

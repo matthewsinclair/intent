@@ -197,8 +197,18 @@ enum IntentCLI {
       throw IntentCLIError.failedToLaunch(underlying: error.localizedDescription)
     }
     // Read both before waiting: a chatty child fills a pipe and blocks.
+    // Issue 0335: and read them AT THE SAME TIME. Reading stdout to EOF first
+    // deadlocks a child that fills its stderr pipe before it closes stdout.
+    let errBox = DataBox()
+    let errRead = DispatchGroup()
+    errRead.enter()
+    DispatchQueue.global(qos: .userInitiated).async {
+      errBox.set(stderr.fileHandleForReading.readDataToEndOfFile())
+      errRead.leave()
+    }
     let outData = stdout.fileHandleForReading.readDataToEndOfFile()
-    let errData = stderr.fileHandleForReading.readDataToEndOfFile()
+    errRead.wait()
+    let errData = errBox.get()
     process.waitUntilExit()
 
     return CLIRunResult(
@@ -206,6 +216,24 @@ enum IntentCLI {
       stdout: String(data: outData, encoding: .utf8) ?? "",
       stderr: String(data: errData, encoding: .utf8) ?? ""
     )
+  }
+
+  /// One pipe's bytes, handed from the reading queue to the caller.
+  private final class DataBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var data = Data()
+
+    func set(_ value: Data) {
+      lock.lock()
+      defer { lock.unlock() }
+      data = value
+    }
+
+    func get() -> Data {
+      lock.lock()
+      defer { lock.unlock() }
+      return data
+    }
   }
 
   /// Line assembly for the streaming pipe. `readabilityHandler` fires on a

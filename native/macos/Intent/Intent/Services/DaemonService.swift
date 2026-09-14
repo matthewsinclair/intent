@@ -57,10 +57,10 @@ final class DaemonService {
     try await lifecycle("Stopping…", [["daemon", "stop"]])
   }
 
-  /// `daemon stop` then `daemon start`, run as separate verbs from here; the
-  /// CLI's own `intent daemon restart` is not called.
+  /// The CLI's own `intent daemon restart`, which sequences the stop and the
+  /// start and waits for the new daemon to answer (issue 0335).
   func restart() async throws {
-    try await lifecycle("Restarting…", [["daemon", "stop"], ["daemon", "start"]])
+    try await lifecycle("Restarting…", [["daemon", "restart"]])
   }
 
   private func lifecycle(_ label: String, _ commands: [[String]]) async throws {

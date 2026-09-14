@@ -3,9 +3,10 @@
   "number": 348,
   "slug": "a-registered-test-module-whose-file-is-not-in-th",
   "title": "A registered test module whose file is not in the commit builds nowhere but on the machine that has it",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Found 2026-09-12: d4d7aec2b carried a `suite.rs` registration for a file only one node had, and HEAD could not build its test target until 5746e02e. A pre-commit arm that refuses a `suite.rs` naming a `#[path]` the index does not carry is small. hv's to rule; cc's if ruled. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "Found 2026-09-12: d4d7aec2b carried a `suite.rs` registration for a file only one node had, and HEAD could not build its test target until 5746e02e. A pre-commit arm that refuses a `suite.rs` naming a `#[path]` the index does not carry is small. hv's to rule; cc's if ruled. Carried in `intent/wip.md` until 2026-09-13.\n\n\nCLOSED 2026-09-14 (dc): `intent/st/ST0056/parity/tools/suite_path_check.sh` refuses a commit whose staged `suite.rs` registers a `#[path]` the commit does not carry. It reads the index, so the answer is about what lands, not what one machine has. It carries a red and a green control on every run and exits 0, 1 or 2. It is rostered gated in `runner_roster_check.sh` and runs in `bin/devbin precommit` after the shared-build guard. Judged on edc9af155 plus the CI group (scratchpad batch/judge-ci-edc9af155.txt): \"every #[path] a staged suite.rs registers is in the commit (both controls fired)\", and the roster reads every disposition as matching the runner.\n"
 }

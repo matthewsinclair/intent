@@ -125,22 +125,21 @@ if [ "$CHECK_ONLY" = "1" ]; then
     exit 1
   fi
 
-  # Guard 2: no unchecked acceptance criteria in info.md.
-  # Same pure-shell counter pattern as guard 1b, for the same pipefail reason.
-  if [ -f "$TCA_DIR/info.md" ]; then
-    unchecked=0
-    while IFS= read -r line; do
-      if [[ "$line" == "- [ ]"* ]]; then
-        unchecked=$((unchecked + 1))
-      fi
-    done < "$TCA_DIR/info.md"
-    if [ "$unchecked" -gt 0 ]; then
-      echo "error: $unchecked unchecked acceptance criteria in $TCA_DIR/info.md" >&2
-      echo "" >&2
-      echo "Close all - [ ] boxes in info.md before running in-tca-finish." >&2
-      echo "Unchecked criteria indicate TCA work that has not been completed." >&2
-      exit 1
-    fi
+  # Guard 2: every acceptance criterion is satisfied, by the thread's own close
+  # gate. Issue 0335: v3 renders info.md from the model and it carries no
+  # `- [ ]` checkboxes, so counting them could never fire.
+  ST_ID="$(basename "$TCA_DIR")"
+  if ! command -v intent >/dev/null 2>&1; then
+    echo "error: intent is not on PATH -- the acceptance criteria are read through it" >&2
+    exit 1
+  fi
+  if ! gate_out="$(intent ac gate "$ST_ID" 2>&1)"; then
+    echo "error: $ST_ID's acceptance criteria are not all satisfied:" >&2
+    printf '%s\n' "$gate_out" | sed 's/^/  /' >&2
+    echo "" >&2
+    echo "Satisfy, descope or withdraw every criterion before running in-tca-finish." >&2
+    echo "Unsatisfied criteria indicate TCA work that has not been completed." >&2
+    exit 1
   fi
 
   echo "ok: pre-flight guards passed for $TCA_DIR" >&2

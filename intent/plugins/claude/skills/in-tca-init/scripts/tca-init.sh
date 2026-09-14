@@ -99,15 +99,22 @@ if [ -d "$TCA_DIR/WP" ]; then
   fi
 fi
 
-# ---- Create WP directories ----
+# ---- Create the work packages ----
+#
+# Issue 0335: through `intent wp new`, so the store registers each one. This
+# used to `mkdir` WP/NN and write info.md by hand, which v3 never reads: the
+# directories existed and no work package did. The body goes through `intent
+# set`, and socrates.md stays the auditor's working file beside the realised view.
 
+command -v intent >/dev/null 2>&1 || {
+  echo "error: intent is not on PATH -- the work packages are created through it" >&2
+  exit 1
+}
+ST_ID="$(basename "$TCA_DIR")"
 WP_DIR="$TCA_DIR/WP"
-
-if [ ! -d "$WP_DIR" ]; then
-  mkdir -p "$WP_DIR"
-fi
-
 SYNTHESIS_WP="$WP_COUNT"
+BODY_FILE="$(mktemp)"
+trap 'rm -f "$BODY_FILE"' EXIT
 
 i=1
 while [ "$i" -le "$WP_COUNT" ]; do
@@ -118,39 +125,34 @@ while [ "$i" -le "$WP_COUNT" ]; do
     WP_NUM="$i"
   fi
 
-  WP_PATH="$WP_DIR/$WP_NUM"
-
-  if [ -d "$WP_PATH" ]; then
-    echo "warning: WP/$WP_NUM already exists, skipping" >&2
+  if intent wp show "$ST_ID/$WP_NUM" >/dev/null 2>&1; then
+    echo "warning: $ST_ID/$WP_NUM already exists, skipping" >&2
     i=$((i + 1))
     continue
   fi
-
-  mkdir -p "$WP_PATH"
 
   # Determine if this is the synthesis WP
   if [ "$i" -eq "$SYNTHESIS_WP" ]; then
     WP_TITLE="Cross-Component Synthesis"
     WP_SCOPE="Synthesis of all component audit findings into a prioritized remediation backlog."
-    WP_SIZE="Large"
   else
     WP_TITLE="Component $WP_NUM"
     WP_SCOPE="[Component description -- fill in during provisioning]"
-    WP_SIZE="Medium"
   fi
 
-  # Write info.md
-  cat > "$WP_PATH/info.md" << HEREDOC
----
-wp_id: WP-${WP_NUM}
-title: "${WP_TITLE}"
-scope: ${WP_SIZE}
-status: Not Started
-project: ${PROJECT_NAME}
----
+  created="$(intent wp new "$ST_ID" "$WP_TITLE" 2>&1)" || {
+    echo "error: intent wp new $ST_ID failed: $created" >&2
+    exit 1
+  }
+  case "$created" in
+    *"created: $ST_ID/$WP_NUM"*) ;;
+    *)
+      echo "error: expected $ST_ID/$WP_NUM, and intent answered: $created" >&2
+      exit 1
+      ;;
+  esac
 
-# WP-${WP_NUM}: ${WP_TITLE}
-
+  cat > "$BODY_FILE" << HEREDOC
 ## Scope
 
 ${WP_SCOPE}
@@ -167,11 +169,16 @@ All rules. Special focus: [identify 3-4 rules most likely to surface violations]
 
 - WP-XX: [what might be duplicated and why]
 HEREDOC
+  intent set "intent:///threads/$ST_ID/wp/$WP_NUM" body --from "$BODY_FILE" >/dev/null || {
+    echo "error: could not write $ST_ID/$WP_NUM's body" >&2
+    exit 1
+  }
 
-  # Write empty socrates.md
-  touch "$WP_PATH/socrates.md"
+  # The auditor's working file, beside the realised view.
+  mkdir -p "$WP_DIR/$WP_NUM"
+  touch "$WP_DIR/$WP_NUM/socrates.md"
 
-  echo "created: WP/$WP_NUM/"
+  echo "created: $ST_ID/$WP_NUM"
 
   i=$((i + 1))
 done

@@ -169,6 +169,12 @@ for _ in $(seq 1 25); do
 done
 [ -s "$DIR/tail.pid" ] || { echo "probe-error: no tail pid -- the arm never started"; exit 2; }
 RT=$(cat "$DIR/rt.pid"); TL=$(cat "$DIR/tail.pid"); PG=$(cat "$DIR/rt.pgid")
+# Issue 0335: the tail's ORIGINAL parent, read before any signal. In the plain
+# arm it is the runtime; in the guarded arm it is the WRAPPER, which is never the
+# runtime, so a predicate against RT read LEAKED on the first poll of a guarded
+# run that was about to come out clean.
+TP=$(ps -o ppid= -p "$TL" 2>/dev/null | tr -d ' ')
+[ -n "$TP" ] || { echo "probe-error: could not read the tail's parent before the signal"; exit 2; }
 
 [ "$RT" = "$PG" ] || {
   echo "probe-refuse: runtime pid=$RT pgid=$PG -- not a group leader, so a group kill names someone else"
@@ -183,7 +189,7 @@ for _ in $(seq 1 "$SETTLE_TRIES"); do
   PPID_SEEN=$(ps -o ppid= -p "$TL" 2>/dev/null | tr -d ' ')
   # SETTLED only when the original parent is demonstrably gone -- not when a
   # timer expired. `1` is what that looks like here; the claim is `!= RT`.
-  if [ -n "$PPID_SEEN" ] && [ "$PPID_SEEN" != "$RT" ]; then VERDICT="LEAKED"; break; fi
+  if [ -n "$PPID_SEEN" ] && [ "$PPID_SEEN" != "$TP" ]; then VERDICT="LEAKED"; break; fi
   sleep 0.4
 done
 

@@ -18,7 +18,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 - `test-linux` (Test on Ubuntu): installs bats-core v1.12.0 from its GitHub release tarball and jq from apt, clones the bats libraries into `tests/lib`, builds `-p intent-cli -p intentd` in release mode, then runs `tests/run_tests.sh`
 - `test-macos` (Test on macOS): the same, with bats-core, jq and shellcheck from Homebrew
-- `shellcheck` (Shell Script Analysis): runs `shellcheck` on every file under `bin/` named `intent*` that `file` reports as a shell script; findings never fail the job. No tracked file under `bin/` matches that selector (`find bin -type f -name 'intent*'`), so the job has nothing to check.
+- `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job.
 - `test-summary` (Test Summary): runs after `test-linux` and `test-macos` whatever their result, and fails unless both succeeded. It does not wait on `shellcheck`.
 
 `tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) in one `bats` invocation and exits non-zero if any test fails, so a failing test fails the job.

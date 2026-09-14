@@ -71,7 +71,7 @@ jobs:
         CHANGED_FILES="${{ github.event.pull_request.changed_files }}"
         
         # Check if any scripts were modified
-        if git diff --name-only origin/main..HEAD | grep -q "bin/"; then
+        if git diff --name-only origin/main..HEAD | grep -qE "^(bin|native)/"; then
           echo "Scripts were modified - checking for documentation updates"
           
           # Check if any documentation was also updated
@@ -95,7 +95,7 @@ jobs:
         echo "Checking test coverage for changes..."
         
         # Check if any source files were modified
-        if git diff --name-only origin/main..HEAD | grep -q "bin/"; then
+        if git diff --name-only origin/main..HEAD | grep -qE "^(bin|native)/"; then
           echo "Source files were modified - checking for test updates"
           
           # Check if any tests were also updated

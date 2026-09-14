@@ -100,6 +100,7 @@ G_MACHINE="ratified machines: transitions.rs implements data-model.md exactly (e
 G_DECLKIND="declared kind: every AT row whose cited artefact EXISTS cites the kind of thing the row declared"
 G_ABSENTAT="absent citation: every AT row claiming a VERDICT (green or red) cites an artefact that is actually there"
 G_PIPEFAIL="pipefail/SIGPIPE: no instrument ends a pipeline in an early-exiting reader (it reads FALSE on a TRUE input)"
+G_SUITEPATH="suite paths: every #[path] a staged suite.rs registers is in the commit (issue 0348)"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -137,6 +138,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_DECLKIND" "intent/st/ST0056/parity/tools/declared_kind_check.sh"
   printf '%s\t%s\n' "$G_ABSENTAT" "intent/st/ST0056/parity/tools/absent_at_check.sh"
   printf '%s\t%s\n' "$G_PIPEFAIL" "intent/st/ST0056/parity/tools/pipefail_sigpipe_check.sh"
+  printf '%s\t%s\n' "$G_SUITEPATH" "intent/st/ST0056/parity/tools/suite_path_check.sh"
   exit 0
 fi
 
@@ -564,6 +566,22 @@ elif ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
   rc=1
   failed="${failed}  shared_artefact_build_guard.sh -- the shared-artefact build guard is not intact: a dirty
     native/rust tree could reach native/rust/target/release/, which four nodes invoke.
+"
+fi
+
+# Issue 0348: a suite.rs registration whose file the commit does not carry
+# builds on the machine that has the file and nowhere else. The guard reads the
+# INDEX, and runs its own red and green controls before its verdict.
+step "$G_SUITEPATH"
+bash "$TOOLS/suite_path_check.sh"
+sp_rc=$?
+if [ "$sp_rc" -eq 1 ]; then
+  rc=1
+  failed="${failed}  suite_path_check.sh -- a suite.rs registers a test module this commit does not carry; the finding above names it
+"
+elif [ "$sp_rc" -ne 0 ]; then
+  rc=1
+  failed="${failed}  suite_path_check.sh -- could not measure (exit $sp_rc): a control did not fire, so it offered no verdict
 "
 fi
 
