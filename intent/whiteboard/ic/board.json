@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-13T17:14:55.744Z",
+    "heartbeat_at": "2026-09-14T07:10:13.962Z",
     "status": "active",
-    "focus": "Localfolded for hv's compact; dc's quiet window is open (no commits, no builds until dc says build done). hv overruled 3.1.0: ALL of ST0074 is 3.0.2. On the bounce, after dc's build done: (1) design.md's 3.1.0 wording becomes 3.0.2 (edit at its path, attach from that path, commit in the same call) and ac satisfy ST0074 AC-05.1 --evidence f2452077a; (2) build WP-05 (XDG layout + migration + XDG_* ALLOWED rows), then WP-03 (registry + discover), then WP-04 (picker, /projects) in a private worktree, each landing on main as its own commit on its own green run before the tag. Ruthless: one-line ACs already written, one proving run each. Commit my ic board views first. Done so far: WP-01 793984a50, WP-02 133061d7f, WP-05 design f2452077a, 0368 64d272688; hv restored ~/.intent/config.json. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-14: clippy (13 lints) proved and staged, lands on cc's 0355-landed signal inside dc's rebuild base; then hold for dc's build done; then the ~/.intent doc sweep (wt-sweep) and the /issues fix (wt-issues) land in that order. See doing 17. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -378,7 +378,8 @@
       "kind": "watchout",
       "seq": 37,
       "text": "**A REFUSAL MUST NAME WHERE TO GO, NOT WHERE IT LOOKED.** Three entities share one table, so `absent from wb_node` sent a reader to a table holding two others. It names `wb_node#wb_message` now.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T06:52:35.184Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -679,8 +680,61 @@
       "kind": "doing",
       "seq": 15,
       "text": "**ST0074 for 3.0.2: all three build WPs are on main.** WP-05 2f29401b6 (Done 7018aab1e), WP-03 2123f7c08 (Done 338451e3d), WP-04 2a121e359 (its ATs and Done being committed now). They reach the machine at dc's next rebuild before the cut. Open with hv via vc: the old pre-commit carriers read ~/.intent/home, and every estate needs intent claude upgrade --apply after the 3.0.2 install (option a, built) unless hv rules (b). Do not stop or restart live daemon 87652; ~/.intent/home stays this tree. Hold every commit the moment dc announces a window.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T06:52:21.188Z",
       "recorded_at": "2026-09-13T18:26:16.573Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 16,
+      "text": "**POST-COMPACT BOUNCE (localfolded 2026-09-14 for hv's compact).** ST0074 is DONE on main for 3.0.2: WP-05 2f29401b6 (status 7018aab1e), WP-03 2123f7c08 (338451e3d), WP-04 2a121e359 (013f5da81); design at d64e9eca8. dc's QUIET WINDOW for the final pre-tag rebuild at base 013f5da81 is OPEN: I replied holding; no commits of any file (board views included) and no builds until dc says build done. My board views stay uncommitted until then. hv's questions are bundled at vc (Q1 old pre-commit carriers: a sweep of intent claude upgrade --apply --skip-settings per estate vs b pointer stays; Q2 picker reads the registry file not the wire; Q3 five pre-existing clippy lints under clippy 1.98, XS each, mine if assigned; Q4 ~/.intent kept when evidence/ remains; Q5 FYI explore writes the registry). Next: act on vc's relay of hv's answers; after the tag, the reference regeneration (todo 1). Do not stop or restart the live daemon; ~/.intent/home stays this tree. Worktrees wt-xdg, wt-wp03, wt-wp04 in the scratchpad are landed and disposable.",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:10:03.892Z",
+      "recorded_at": "2026-09-14T06:52:22.384Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 56,
+      "text": "**A GATE REFUSAL IS A STAGED INDEX, AND A QUIET WINDOW IS A MESSAGE THAT CAN ARRIVE AFTER THE COMMIT.** ST0074 met three gate refusals in one day (IN-RS-CODE-004 on a Result<_, String>, prettier on an attachment, a mutator in no write bucket): each time unstage my own paths at once, fix in the worktree, re-prove the one arm, re-copy, re-commit the same path list. And 363b18db1 landed inside dc's window because the window-start message reached me after the commit: before any commit, read dc's board DOING for an announced window, not only the inbox. A mutation for a red run is written against the FORMATTED text (rustfmt split the call and the first red never ran), and its drive script must say DID NOT APPLY rather than run the green as if red happened.",
+      "state": "live",
+      "recorded_at": "2026-09-14T06:52:36.372Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 17,
+      "text": "**2026-09-14, hv's Q1-Q5 answered in session and relayed to vc; vc's order: clippy, then build done, then the ~/.intent doc sweep, then /issues.** CLIPPY: thirteen lints (hv's five, then eight clippy reached once those compiled), clean under clippy --workspace --all-targets -D warnings; the exact landing bytes (13 files, views.rs as main plus the board_stamp guard only) proved in wt-clippy. Lands on cc's '0355 landed at <sha>', ONE commit, msg at scratchpad issues/msg-clippy.txt, files staged at issues/stage/; then 'clippy landed at <sha>' to vc and dc, then HOLD all commits and builds until dc says build done. DOC SWEEP (hv Q4): built in wt-sweep, 5 files, prettier-clean, lands after build done; includes drafted ST0074 release-notes and CHANGELOG entries, pending vc's word on lane; CLAUDE.md:84 flagged to hv. /issues (hv direct): open newest first, a rule, then closed; built and green in wt-issues, lands after the sweep, msg at issues/msg-issues.txt. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:12:18.845Z",
+      "recorded_at": "2026-09-14T07:10:05.054Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 6,
+      "text": "**The doc sweep landing (wt-sweep, 5 files, one commit), vc's conditions 2026-09-14:** after dc's build done and before /issues; (a) diff CHANGELOG.md against HEAD and rebase my [3.0.2] hunks onto cc's 0355 sentence before git add; (b) read dc's per-estate carrier-sweep report first and fix any Upgrading claim it contradicts; no counts in the notes; send dc the file list with the landing report (build release --patch reads docs/releases/ at the cut). CLAUDE.md:84 is hv's, via vc.",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:31:06.773Z",
+      "recorded_at": "2026-09-14T07:10:51.267Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 18,
+      "text": "**CLIPPY LANDED at e3c67792c (2026-09-14, on cc's 0355 at 842409d2b), reported to vc and dc with the file list. NOW HOLDING every commit and build until dc says build done.** Then todo 6 (the doc sweep, wt-sweep, vc's conditions), then the /issues fix (wt-issues, msg issues/msg-issues.txt). NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:31:05.630Z",
+      "recorded_at": "2026-09-14T07:12:17.646Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 19,
+      "text": "**2026-09-14 LANDED: clippy e3c67792c (13 lints, in dc's promoted base), doc sweep 940d84f23 (~/.intent paths plus ST0074 release notes and CHANGELOG, Upgrading section), /issues a8e3273d8 (open newest first, a rule, then closed). CLAUDE.md:84 landed by vc at 23897a979 on hv's word. dc reruns the suite on a8e3273d8. NOW: hold for hv's next explorer TUI items; one follow-up notes line if dc's per-estate carrier table contradicts Upgrading.** Worktrees wt-issues, wt-issues2, wt-clippy, wt-sweep, wt-xdg, wt-wp03, wt-wp04 in the scratchpad are landed and disposable. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T07:31:07.893Z"
     }
   ],
   "messages": [
