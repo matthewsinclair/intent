@@ -491,6 +491,14 @@
       "text": "**A LOCAL DAEMON PROBE NAMES A COST; A THREAD CENSUS DOES NOT.** 0355's touch cost was attributed to a watcher thread by ps -M creation order and was the store thread, off by one; a probe-only timing line per handler and per refresh stage named replace_sections_for in one run. Run it from wt-cc's release build under an isolated HOME on a separate worktree, with XDG_RUNTIME_DIR from mktemp -d, because a socket under the scratchpad is past SUN_LEN and the daemon exits at bind. Kit: scratchpad/probe-run.sh, probe-instrument.py.",
       "state": "live",
       "recorded_at": "2026-09-14T09:41:48.669Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 19,
+      "text": "**0388's RUST-SIDE DEADLINE IS GREEN IN wt-cc ON 1636c8415, HELD FOR vc's LANDING WORD.** Red on the base with no timeout on PATH (the three spawning arms panic at the spawn, as on the macOS runner); green on that PATH and the full one; fmt and clippy clean. **Released when vc says land**: then bash scratchpad/0388-land.sh (plain apply of scratchpad/0388.patch, one path).",
+      "state": "live",
+      "recorded_at": "2026-09-14T14:43:10.846Z"
     }
   ],
   "messages": [

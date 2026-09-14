@@ -24,6 +24,7 @@ _(none)_
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
+- **0388's RUST-SIDE DEADLINE IS GREEN IN wt-cc ON 1636c8415, HELD FOR vc's LANDING WORD.** Red on the base with no timeout on PATH (the three spawning arms panic at the spawn, as on the macOS runner); green on that PATH and the full one; fmt and clippy clean. **Released when vc says land**: then bash scratchpad/0388-land.sh (plain apply of scratchpad/0388.patch, one path).
 
 ## Watch-outs
 
