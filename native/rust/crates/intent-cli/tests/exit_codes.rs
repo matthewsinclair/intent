@@ -185,31 +185,30 @@ fn the_unavailable_exception_is_not_flattened_by_the_override() {
     String::from_utf8_lossy(&out.stderr)
   );
 
-  // **THE CONTROL, AND IT MUST COME BACK 1.** Without it a build that had
-  // simply STOPPED overriding clap would satisfy the assertion above and look
-  // correct -- clap's own default for a usage error is 2, so "2 survived" and
-  // "2 was never converted in the first place" are indistinguishable from one
-  // measurement. This one is a usage error clap raises, and INV-02 still turns
-  // it into 1.
-  //
-  // **AND THE PAIR RECORDS A DIVERGENCE INSIDE `critic` THAT IS dc's TO RULE,
-  // NOT MINE TO ENCODE AS CORRECT.** Both invocations are usage errors and they
-  // exit differently: `critic klingon` is 2 (fail-open, language named
-  // UNENFORCED) while `critic --no-such-flag` is 1, which the shipped gate
-  // reads as FINDINGS and blocks on, printing a remedy for findings that do not
-  // exist -- issue 0038's exact symptom through a different door. It is LATENT
-  // rather than live: measured on 2026-08-20, the installed
-  // `.git/hooks/pre-commit.intent` and `lib/templates/hooks/pre-commit.sh` pass
-  // the same four flags, so nothing reaches this arm today. It becomes
-  // reachable on hook/binary flag skew, and that skew is this repo's normal
-  // state -- the installed hook is an install-time COPY.
+  // **AND `critic`'S OWN USAGE ERRORS EXIT 2 TOO, RULED (vc, issue 0328).** A
+  // critic that cannot parse its own invocation is the gate's breakage, so a
+  // bad flag fails open exactly as an unknown language does. This pair used to
+  // record the divergence -- `critic --no-such-flag` at 1, which the gate read
+  // as FINDINGS -- as dc's to rule. It is ruled, and it is asserted.
   let flag = run(&["critic", "shell", "--no-such-flag"]);
   assert_eq!(
     flag.status.code(),
-    Some(1),
-    "the blanket override is no longer converting clap's usage codes, so the assertion above \
-     proves nothing about INV-04 surviving it.\nstderr: {}",
+    Some(2),
+    "critic's usage error fails open like its unknown-language refusal.\nstderr: {}",
     String::from_utf8_lossy(&flag.stderr)
+  );
+
+  // **THE CONTROL, AND IT MUST COME BACK 1.** Without it a build that had
+  // simply STOPPED overriding clap would satisfy both assertions above -- clap's
+  // own default for a usage error is 2. A usage error on any OTHER command is
+  // one INV-02 still turns into 1.
+  let control = run(&["st", "list", "--no-such-flag"]);
+  assert_eq!(
+    control.status.code(),
+    Some(1),
+    "the blanket override is no longer converting clap's usage codes, so the assertions above \
+     prove nothing about INV-04 surviving it.\nstderr: {}",
+    String::from_utf8_lossy(&control.stderr)
   );
 }
 

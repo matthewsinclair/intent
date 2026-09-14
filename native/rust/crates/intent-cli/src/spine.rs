@@ -881,7 +881,15 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
             eprintln!("{refusal}");
             return Err(EXIT_ERROR);
           }
+          // **A USAGE ERROR IN `critic` EXITS 2** (issue 0328, vc's ruling), as the
+          // critic arm documents: a critic that cannot parse its own invocation
+          // is the gate's breakage, and the gate fails open on 2. Every other
+          // command keeps INV-02's 1.
           eprintln!("error: {}", first_line(&e.render().to_string()));
+          let command = argv.iter().skip(1).find(|a| !a.starts_with('-'));
+          if command.map(String::as_str) == Some("critic") {
+            return Err(EXIT_UNAVAILABLE);
+          }
           Err(EXIT_ERROR)
         }
       }

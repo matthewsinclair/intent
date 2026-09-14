@@ -56,9 +56,11 @@ enum Disposition {
   /// operator's spelling without saying what the spellings are, so naming the
   /// set is part of the requirement rather than a nicety.
   Enforced,
-  /// Exit 2 -- the command is not built, so there is nothing to enforce yet. It
-  /// owes the arm when it is wired, and this reds then.
-  Unwired,
+  /// Exit 2, and the message names the permitted set: the command refuses the
+  /// value as its OWN breakage, deliberately, so the gate fails open on it
+  /// (INV-04). `critic <lang>` is the one such slot, and it is wired; it was
+  /// recorded as unbuilt until issue 0312, because an exit 2 read the same.
+  FailsOpen,
   /// **The value is ACCEPTED.** The issue number is the referent; without one
   /// this row would be an exemption wearing a disposition.
   Unenforced(&'static str),
@@ -244,7 +246,7 @@ const DECLARED: &[Slot] = &[
     arg: "lang",
     lead: &[],
     trail: &[],
-    disposition: Disposition::Unwired,
+    disposition: Disposition::FailsOpen,
   },
   Slot {
     // A config KEY, not an argument -- `target.keys_backup.keys` on the `config`
@@ -451,15 +453,20 @@ fn each_disposition_is_what_the_binary_actually_does() {
           );
         }
       }
-      Disposition::Unwired => {
+      Disposition::FailsOpen => {
         assert_eq!(
           code,
           Some(2),
-          "`intent {}` is recorded here as unbuilt. If it has been wired, it now owes the exit-1 \
-           arm its row's `values` declares -- move this row to Enforced rather than relaxing the \
-           assertion: {text}",
+          "`intent {}` refuses a value it does not know as its own breakage, at the fail-open \
+           code: {text}",
           argv.join(" ")
         );
+        for value in &values {
+          assert!(
+            text.contains(value),
+            "the refusal must name the permitted set and `{value}` is missing: {text}"
+          );
+        }
       }
       Disposition::Unenforced(issue) => {
         assert_eq!(

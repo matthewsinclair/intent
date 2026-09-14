@@ -12285,6 +12285,23 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
       unrunnable.join(" ")
     );
   }
+  // A rule whose proxy ran IN PART (issue 0328): its simple lines were asked,
+  // the rest is outside the runner contract, and saying nothing would read as
+  // the whole proxy having run.
+  let mut partial: Vec<&str> = report
+    .refused
+    .iter()
+    .map(String::as_str)
+    .filter(|id| !unrunnable.contains(id))
+    .collect();
+  partial.sort_unstable();
+  if !partial.is_empty() {
+    println!(
+      "critic: {} -- PARTLY RUN, some proxy lines are outside the runner contract and were not asked: {}",
+      report.lang,
+      partial.join(" ")
+    );
+  }
 
   let mut ooc: Vec<String> = report
     .census

@@ -898,7 +898,11 @@ fn tool_available(tool: &str) -> bool {
 }
 
 /// Classify one rule on both axes, and collect its patterns if it has any.
-fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>) {
+///
+/// The last value says whether any line of the rule's proxy was refused
+/// (issue 0328): a mixed block runs its simple lines AND reports the rest, where
+/// it used to drop the refusal whenever one line survived.
+fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>, bool) {
   if let Some(tool) = frontmatter_scalar(body, "critic_tool") {
     let ctx = frontmatter_scalar(body, "critic_tool_context").unwrap_or_else(|| "per-file".into());
     // **CONTEXT IS TESTED BEFORE AVAILABILITY AND THE ORDER IS THE RULING.**
@@ -913,20 +917,27 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>) {
     } else {
       Disposition::Ran
     };
-    return (Arming::Armed, disposition, tool, Vec::new());
+    return (Arming::Armed, disposition, tool, Vec::new(), false);
   }
 
   let block = extract_greppable_block(body);
   if !block.trim().is_empty() {
-    let (patterns, _refused) = patterns_from_block(&block);
+    let (patterns, refused) = patterns_from_block(&block);
     if !patterns.is_empty() {
-      return (Arming::Armed, Disposition::Ran, "grep".into(), patterns);
+      return (
+        Arming::Armed,
+        Disposition::Ran,
+        "grep".into(),
+        patterns,
+        refused,
+      );
     }
     return (
       Arming::Unrunnable,
       Disposition::NotApplicable,
       "-".into(),
       Vec::new(),
+      true,
     );
   }
 
@@ -939,6 +950,7 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>) {
       Disposition::NotApplicable,
       "-".into(),
       Vec::new(),
+      false,
     )
   } else {
     (
@@ -946,6 +958,7 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>) {
       Disposition::NotApplicable,
       "-".into(),
       Vec::new(),
+      false,
     )
   }
 }
@@ -1001,9 +1014,11 @@ pub fn run(
     let Some((_, body)) = lib.show(&rule.id)? else {
       continue;
     };
-    let (arming, mut disposition, by, patterns) = classify(&body);
+    let (arming, mut disposition, by, patterns, partly_refused) = classify(&body);
 
-    if arming == Arming::Unrunnable {
+    // A mixed block ran its simple lines, and its refused ones are reported as
+    // well rather than dropped (issue 0328).
+    if arming == Arming::Unrunnable || partly_refused {
       refused.insert(rule.id.clone());
     }
 
@@ -1465,6 +1480,19 @@ mod tests {
     let (patterns, refused) = patterns_from_block("grep -rn 'ok' lib/\ngrep -A2 'no' lib/\n");
     assert_eq!(patterns, ["ok"]);
     assert!(refused);
+  }
+
+  #[test]
+  fn a_mixed_block_arms_the_rule_and_still_reports_it_refused() {
+    // Issue 0328: `classify` dropped the refusal whenever any line survived, so
+    // the rule ran as armed and never reached `Report::refused`.
+    let body =
+      "## Detection\n\nGreppable proxy:\n\n```bash\ngrep -rn 'ok' lib/\ngrep -A2 'no' lib/\n```\n";
+    let (arming, _, by, patterns, refused) = classify(body);
+    assert_eq!(arming, Arming::Armed);
+    assert_eq!(by, "grep");
+    assert_eq!(patterns, ["ok"]);
+    assert!(refused, "the refused line is reported, not dropped");
   }
 
   // ---- the exit contract --------------------------------------------------
