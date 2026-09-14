@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 17:40Z
+heartbeat_at: 2026-09-14 21:06Z
 status: active
-focus: "0376 landed at c2eb98ac1 (a step failing after the store write warns at exit 0, a torn rollback stays an error naming its files). Now 0326+0363 in wt-cc on c2eb98ac1, judging run in flight; then 0364, 0321 and the engine list, each landing between dc's groups on vc's word. NO RELEASE, NO PUSH."
+focus: "Landed today after the compact: 0376 c2eb98ac1, 0326+0363 a9106f647, 0364 5ac835392, 0351 fbef01a1b, 0349 closed 485cbd967, 0378 88c426163, 0347 c3b61e707, ST0058/ST0066 unlisted 01c996197, 0343+0367 31e6cd78e. Now 0338 (ii) in wt-cc; then 0338 (i), 0377, 0331 comments. 0321 held for hv. NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -13,12 +13,12 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-- **0326+0363 IN FLIGHT IN wt-cc ON c2eb98ac1, NOT LANDED.** The whiteboard leaves sync::NOT_YET_BUILT (empty by delivery, the mechanism kept; migration_not_yet_built checks the collected list so clippy has no const_is_empty), the member-dependent arms and their helper estate_with_member_files deleted, and one arm, a_project_with_a_whiteboard_gets_no_not_yet_carried_report, red on the base. scratchpad/g326-run.sh runs the red arm, the fix and one judging run (intentsvcs, intent-cli, intentd, --no-fail-fast, workspace clippy, rustfmt). At landing, on main: data-model.md:536 says the set is empty by delivery (issues 0326 and 0363), with intent/.canon/st/ST0056.json settled past the ingest, in the same commit, which names the base it was judged on. Then the word request.
+- **0338 (ii) IN FLIGHT IN wt-cc ON 01c996197, NOT LANDED (vc go, M).** intentfiles.rs loses the two-region grammar: Region, BEGIN_MARKER/END_MARKER, their parse, pinned()/generated(), the insert-before-BEGIN path and the three region errors, so a marker line refuses as an unknown line with a remedy. The census found no marker in any of the 24 live registers on this machine. 37 fixture uses across 18 intentsvcs test files migrate in the same commit: "declares none" becomes an empty manifest, and the tests that pin region semantics (intentfiles_grammar unbalanced_markers, unpin generated region, realisation_is_recorded:260, lifecycle:516, pin_writes ordering) are deleted or rewritten deliberately. Each arm red on its base, a workspace check before the full run, then the word request.
 
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
-- **AFTER 0326+0363, IN vc ORDER (2026-09-14), EACH ITS OWN COMMIT, EACH WITH THE WORD REQUEST AFTER ITS FULL RUN.** dc is on the tree for its keg group and then its CI group; mine land between dc's. 0364: legacy::pointers skips paths with a .history component; arm in legacy_leftovers.rs. 0321: the stamp is SQLite strftime over one process-wide in-memory connection in intentsvcs daemon.rs (intentd may not depend on rusqlite), a logln macro before intentd main.rs mods, --help/--version/argument refusals unstamped; asker left out and said in the close; file the Op::Shutdown wire field as its own XS issue. Then 0351, 0378, 0349, 0347, 0323, 0315, 0316, 0320, 0343+0367+0338 (0338 left open naming the hv contract rows), 0377 (NoCache on the canon registration, measured on one board commit), 0331 comments half. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.
+- **AFTER 0338 (ii), IN vc ORDER (2026-09-14), EACH ITS OWN COMMIT, THE WORD REQUEST AFTER ITS FULL RUN, AND THE REPORT SENT IN THE TURN THAT LANDS.** 0338 (i): organize and st hydrate carry bytes, text or the opaque blob, and a blob that cannot be loaded is a refusal naming the path, never "hydrated"; the contract rows stay open on 0338 naming hv. Then 0377 (NoCache on the canon registration, measured on one board commit) and 0331 comments half. 0321 is held for hv (the log stamp against D42). An attach in a worktree starts with an unscoped sync --to-store from the worktree build. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.
 
 ## Holds
 
