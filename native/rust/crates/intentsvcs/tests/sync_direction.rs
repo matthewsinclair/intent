@@ -24,9 +24,9 @@ use intentsvcs::model::ThreadStatus;
 /// Put the store ahead of the files: mutate with the tree read-only, so the
 /// change lands in truth and the projection is refused.
 ///
-/// This is not a contrived state. It is precisely what
-/// `FacadeError::ViewsNotWritten` reports, so the fixture is the situation an
-/// operator is actually in when they reach for `sync`.
+/// This is not a contrived state. It is precisely what a landed write's note
+/// reports (`Note::StepFailedAfterWrite`, 0376), so the fixture is the situation
+/// an operator is actually in when they reach for `sync`.
 #[cfg(unix)]
 fn store_ahead_of_disk(fx: &Fixture) -> intentsvcs::facade::Facade {
   let mut facade = fx.facade();
@@ -38,9 +38,14 @@ fn store_ahead_of_disk(fx: &Fixture) -> intentsvcs::facade::Facade {
   let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
 
+  let outcome = result.expect("precondition: the change landed, so the verb reports it");
   assert!(
-    result.is_err(),
-    "precondition: the projection must have failed, or the store is not ahead"
+    outcome
+      .notes()
+      .iter()
+      .any(|n| matches!(n, intentsvcs::facade::Note::StepFailedAfterWrite { .. })),
+    "precondition: the projection must have failed after the write, or the store is not ahead: {:?}",
+    outcome.notes()
   );
   assert_eq!(
     facade.st_show("ST0056").expect("thread").status,

@@ -172,3 +172,117 @@ fn a_view_rendered_by_an_older_intent_is_rewritten_without_a_warning() {
     "a footer-only difference was reported as a lost hand edit: {err:?}"
   );
 }
+
+#[cfg(unix)]
+fn read_only(path: &Path) -> u32 {
+  use std::os::unix::fs::PermissionsExt;
+  let mode = std::fs::metadata(path)
+    .expect("the directory exists")
+    .permissions()
+    .mode();
+  std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o555)).expect("read-only");
+  mode
+}
+
+#[cfg(unix)]
+fn restore(path: &Path, mode: u32) {
+  use std::os::unix::fs::PermissionsExt;
+  std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode)).expect("restore");
+}
+
+/// **A BOARD WRITE THAT LANDS SAYS SO, EVEN WHEN ITS VIEW CANNOT BE WRITTEN.**
+/// The store holds the row, so the exit code says the write happened and the
+/// failed step is a warning.
+#[cfg(unix)]
+#[test]
+fn a_board_write_whose_view_cannot_land_exits_zero_and_names_the_step() {
+  // Issue 0376: the row committed and the view write's failure came back as the verb's own, so a retry doubled the row.
+  let dir = estate();
+  let root = dir.path();
+  let (_, err, code) = run(
+    &[
+      "wb",
+      "register",
+      "cc",
+      "--name",
+      "Control Claude",
+      "--role",
+      "control",
+    ],
+    root,
+  );
+  assert_eq!(code, 0, "precondition: the node registers: {err}");
+  let board = root.join("intent/whiteboard/cc");
+  let mode = read_only(&board);
+  let (_, err, code) = run(
+    &[
+      "wb",
+      "add",
+      "hold",
+      "held until the view can land",
+      "--node",
+      "cc",
+    ],
+    root,
+  );
+  restore(&board, mode);
+  assert_eq!(code, 0, "the row landed, so the verb exits zero: {err}");
+  assert!(
+    err.contains("the write landed"),
+    "and the step that did not run is named: {err}"
+  );
+  let (out, err, code) = run(&["wb", "show", "cc"], root);
+  assert_eq!(code, 0, "{err}");
+  assert!(
+    out.contains("held until the view can land"),
+    "the store holds the row: {out}"
+  );
+}
+
+/// **A MUTATION THAT LANDS SAYS SO, EVEN WHEN ITS VIEW CANNOT BE WRITTEN.**
+#[cfg(unix)]
+#[test]
+fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
+  // Issue 0376: the store committed the edit and the view write's failure came back as the verb's own.
+  let dir = estate();
+  let root = dir.path();
+  let (_, err, code) = run(
+    &[
+      "issues",
+      "add",
+      "a title before the edit",
+      "--body",
+      "the body",
+    ],
+    root,
+  );
+  assert_eq!(code, 0, "precondition: the issue files: {err}");
+  let issues = root.join("intent/issues");
+  assert!(
+    issues.join("0001.md").is_file(),
+    "precondition: the issue's view is realised, so the edit has a view to write"
+  );
+  let mode = read_only(&issues);
+  let (_, err, code) = run(
+    &[
+      "issues",
+      "edit",
+      "0001",
+      "--title",
+      "a title after the edit",
+    ],
+    root,
+  );
+  restore(&issues, mode);
+  assert_eq!(code, 0, "the edit landed, so the verb exits zero: {err}");
+  assert!(
+    err.contains("the write landed"),
+    "and the step that did not run is named: {err}"
+  );
+  let (out, err, code) = run(&["issues", "show", "0001"], root);
+  assert_eq!(code, 0, "{err}");
+  assert!(
+    out.contains("a title after the edit"),
+    "the store holds the edit: {out}"
+  );
+}

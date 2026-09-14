@@ -2675,6 +2675,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let seq = f
         .wp_new(&st, &title, intentsvcs::model::DEFAULT_WP_SCOPE)
         .map_err(fail)?;
+      print_notes(&f.take_notes(), &st);
       println!("created: {st}/{seq:02}");
       Ok(())
     }
@@ -3886,6 +3887,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           ));
         }
       };
+      print_notes(&f.take_notes(), "the roster");
       // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** The verb is idempotent by
       // moniker, so a second run over an existing roster registers nothing --
       // and reporting the roster's SIZE either time would say a write happened
@@ -3920,6 +3922,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         m.get_flag("fyi"),
       )
       .map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {me} -> {to}");
       Ok(())
     }
@@ -3928,6 +3931,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let body = m.get_one::<String>("body").expect("declared required");
       let mut f = open()?;
       let reached = f.wb_announce(&me, body).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       // **WHAT IT REACHED, NOT THE ROSTER'S SIZE.** An announce goes to every
       // node but the sender, so on a one-node board it reaches nobody, and
       // printing the roster size would report a delivery that did not happen.
@@ -3938,6 +3942,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let me = acting_node(m)?;
       let mut f = open()?;
       f.wb_touch(&me).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {me} touched");
       Ok(())
     }
@@ -3945,6 +3950,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let me = acting_node(m)?;
       let mut f = open()?;
       f.wb_release(&me).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {me} paused");
       Ok(())
     }
@@ -3960,6 +3966,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           all,
         )
         .map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       if m.get_flag("json") {
         println!(
           "{}",
@@ -3995,6 +4002,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let text = m.get_one::<String>("text").expect("declared required");
       let mut f = open()?;
       let seq = f.wb_add(&me, kind, text).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {me} {} {seq}", item_kind_word(&kind));
       Ok(())
     }
@@ -4003,6 +4011,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let text = m.get_one::<String>("text").expect("declared required");
       let mut f = open()?;
       let seq = f.wb_decide(&me, text).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {me} decision {seq}");
       Ok(())
     }
@@ -4015,6 +4024,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let node = m.get_one::<String>("node").expect("declared required");
       let mut f = open()?;
       let carried = f.wb_migrate(node).map_err(fail)?;
+      print_notes(&f.take_notes(), node);
       report_wb_migration(&carried)
     }
     Some(("archive", m)) => {
@@ -4045,6 +4055,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // archived, or a number no item carries, moves nothing -- and saying
       // `archived` either way would report a write that did not happen.
       let moved = f.wb_archive(&me, kind, seq).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       let word = item_kind_word(&kind);
       println!(
         "ok: {me} {}",
@@ -4064,6 +4075,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // is the normal case at pickup and is not an error, but saying `claimed`
       // either way would report a write that did not happen.
       let moved = f.wb_claim(&me, what).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!(
         "ok: {me} {} {what}",
         if moved { "claims" } else { "already claimed" }
@@ -4075,6 +4087,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let what = m.get_one::<String>("id").expect("declared required");
       let mut f = open()?;
       let moved = f.wb_unclaim(&me, what).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!(
         "ok: {me} {} {what}",
         if moved { "drops" } else { "was not claiming" }
@@ -4086,6 +4099,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let from = m.get_one::<String>("sender").expect("declared required");
       let mut f = open()?;
       let moved = f.wb_clear(&me, from).map_err(fail)?;
+      print_notes(&f.take_notes(), &me);
       println!("ok: {moved} message(s) from {from} marked handled");
       Ok(())
     }
@@ -4848,6 +4862,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   let report = facade
     .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&planned.digest))
     .map_err(fail)?;
+  print_notes(&facade.take_notes(), "organize");
   // Performed tense, and a refusal moves the exit code exactly as it does under
   // `--apply` -- the same act reported by the same code, including the part
   // where something asked to be removed and was not.
@@ -5912,6 +5927,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   let report = facade
     .organize_as_shown(intentsvcs::organize::Mode::Apply, Some(&shown))
     .map_err(fail)?;
+  print_notes(&facade.take_notes(), "organize");
   render_organize_report(&project, &report, Tense::Performed, verbosity)
 }
 
@@ -7109,6 +7125,7 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
     (None, true) => {
       let mut f = open()?;
       let flushed = f.todo_flush().map_err(fail)?;
+      print_notes(&f.take_notes(), "todo");
       if prune {
         // **The archiving payload FIRST, then the effect.** A caller
         // redirecting this -- `intent todo done --prune >> intent/done.md`, the
@@ -9461,6 +9478,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let number = f
         .issue_add(&title, severity.as_deref(), reporter.as_deref(), &body)
         .map_err(fail)?;
+      print_notes(&f.take_notes(), &format!("{number:04}"));
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
       // then `<id>:<title>`.
       //
@@ -9864,6 +9882,18 @@ fn print_notes(notes: &[Note], subject: &str) {
         eprintln!(
           "  remedy: `intent st hydrate {subject}` writes them back from the store, and `--keep` closes without unlisting"
         );
+      }
+      Note::StepFailedAfterWrite {
+        step,
+        cause,
+        caused_by,
+        remedy,
+      } => {
+        eprintln!("warning: the write landed, and {step} did not: {cause}");
+        for link in caused_by {
+          eprintln!("{}{link}", intentsvcs::remedy::CAUSED_BY_PREFIX);
+        }
+        eprintln!("{}{remedy}", intentsvcs::remedy::REMEDY_PREFIX);
       }
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"

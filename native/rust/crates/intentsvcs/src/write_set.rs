@@ -32,10 +32,11 @@ pub enum WriteError {
   /// Reported distinctly because it is the one case where the estate really is
   /// torn, and a caller that cannot tell it from an ordinary failure would
   /// retry into the damage.
-  #[error("writing {path} failed, and rolling back left {unrestored} file(s) modified: {source}")]
+  #[error("writing {path} failed, and rolling back left {} file(s) modified ({}): {source}", .unrestored.len(), .unrestored.join(", "))]
   TornRollback {
     path: String,
-    unrestored: usize,
+    /// The files left modified, so the report names them (0376).
+    unrestored: Vec<String>,
     #[source]
     source: io::Error,
   },
@@ -54,7 +55,9 @@ impl crate::remedy::Remedy for WriteError {
       // The one case where that is NOT true, which is why it is its own
       // variant. A retry into a torn estate compounds it.
       Self::TornRollback { unrestored, .. } => format!(
-        "DO NOT RETRY YET: {unrestored} file(s) were modified and could not be restored. Inspect with `git status` and restore them before running anything else"
+        "DO NOT RETRY YET: {} file(s) were modified and could not be restored ({}). Inspect with `git status` and restore them before running anything else",
+        unrestored.len(),
+        unrestored.join(", ")
       ),
     }
   }
@@ -187,14 +190,15 @@ pub struct Applied {
 impl Applied {
   /// Undo the batch. Used when a later step fails after the files landed.
   pub fn rollback(self) -> Result<(), WriteError> {
-    match restore_all(self.priors) {
-      0 => Ok(()),
-      unrestored => Err(WriteError::TornRollback {
-        path: "(rollback)".to_string(),
-        unrestored,
-        source: io::Error::other("one or more files could not be restored"),
-      }),
+    let unrestored = restore_all(self.priors);
+    if unrestored.is_empty() {
+      return Ok(());
     }
+    Err(WriteError::TornRollback {
+      path: "(rollback)".to_string(),
+      unrestored,
+      source: io::Error::other("one or more files could not be restored"),
+    })
   }
 
   /// The paths this batch actually WROTE, in commit order.
@@ -225,7 +229,7 @@ impl Applied {
 /// Wrap the triggering error, restoring what already landed.
 fn unwind(priors: Vec<Prior>, path: &Path, source: WriteError) -> WriteError {
   let unrestored = restore_all(priors);
-  if unrestored == 0 {
+  if unrestored.is_empty() {
     return source;
   }
   let inner = match source {
@@ -239,10 +243,10 @@ fn unwind(priors: Vec<Prior>, path: &Path, source: WriteError) -> WriteError {
   }
 }
 
-/// Put every recorded path back, newest first. Returns how many could not be
-/// restored -- zero means the estate is exactly as it was.
-fn restore_all(priors: Vec<Prior>) -> usize {
-  let mut failed = 0;
+/// Put every recorded path back, newest first. Returns the paths that could
+/// not be restored -- none means the estate is exactly as it was.
+fn restore_all(priors: Vec<Prior>) -> Vec<String> {
+  let mut failed = Vec::new();
   for prior in priors.into_iter().rev() {
     if !prior.written {
       // Nothing to put back. Directories below are still ours to remove.
@@ -260,7 +264,7 @@ fn restore_all(priors: Vec<Prior>) -> usize {
       },
     };
     if !restored {
-      failed += 1;
+      failed.push(prior.path.display().to_string());
     }
     // Deepest first, and only if empty -- never remove a directory that
     // something else has since put a file into.

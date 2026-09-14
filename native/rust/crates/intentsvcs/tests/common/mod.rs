@@ -810,3 +810,25 @@ pub fn fake_install(dir: &Path, plugin_rel: &str) {
   std::fs::create_dir_all(dir.join(plugin_rel)).expect("plugin dir");
   std::fs::create_dir_all(dir.join(intentsvcs::install::MARKER)).expect("marker");
 }
+
+/// The note a verb carries when a step after its store write failed (0376):
+/// the step, the cause, the cause's chain and the remedy.
+///
+/// **PANICS WHEN THERE IS NONE, NAMING THE NOTES THERE WERE**: every caller
+/// injected a failure, and running as root defeats the injection.
+pub fn landed_note(notes: &[intentsvcs::facade::Note]) -> (String, String, Vec<String>, String) {
+  notes
+    .iter()
+    .find_map(|note| match note {
+      intentsvcs::facade::Note::StepFailedAfterWrite {
+        step,
+        cause,
+        caused_by,
+        remedy,
+      } => Some((step.clone(), cause.clone(), caused_by.clone(), remedy.clone())),
+      _ => None,
+    })
+    .unwrap_or_else(|| {
+      panic!("no step failed after the write -- the failure was not injected (running as root?): {notes:?}")
+    })
+}

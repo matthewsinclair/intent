@@ -124,7 +124,10 @@ fn the_commit_unwind_cannot_be_torn_without_concurrent_interference() {
   // tell it from an ordinary failure would retry into the damage.
   let err = WriteError::TornRollback {
     path: "intent/st/ST0001/info.md".to_string(),
-    unrestored: 2,
+    unrestored: vec![
+      "intent/todo.md".to_string(),
+      "intent/st/steel_threads.md".to_string(),
+    ],
     source: std::io::Error::other("permission denied"),
   };
   let text = err.to_string();
@@ -132,6 +135,10 @@ fn the_commit_unwind_cannot_be_torn_without_concurrent_interference() {
   assert!(
     text.contains('2'),
     "the count of unrestored files is named: {text}"
+  );
+  assert!(
+    text.contains("intent/todo.md") && text.contains("intent/st/steel_threads.md"),
+    "and so is each unrestored file (0376): {text}"
   );
   assert!(
     text.contains("intent/st/ST0001/info.md"),
@@ -184,8 +191,9 @@ fn a_rollback_that_cannot_restore_reports_the_estate_as_torn() {
   match torn {
     Err(WriteError::TornRollback { unrestored, .. }) => {
       assert_eq!(
-        unrestored, 1,
-        "the count is the operator's whole picture of the damage -- how many files are NOT as they were"
+        unrestored,
+        vec![dir.join("info.md").display().to_string()],
+        "the torn files are the operator's whole picture of the damage -- which files are NOT as they were"
       );
     }
     other => panic!(

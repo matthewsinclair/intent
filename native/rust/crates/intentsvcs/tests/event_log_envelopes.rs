@@ -245,7 +245,13 @@ fn a_file_write_failure_still_records_the_envelope() {
   let mode = fx.make_readonly("intent");
   let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
-  assert!(result.is_err(), "precondition: the file write failed");
+  // Issue 0376: the write landed, so the verb reports it with a note.
+  let outcome = result.expect("the write landed, so the verb reports it rather than refusing");
+  let (step, ..) = crate::common::landed_note(outcome.notes());
+  assert_eq!(
+    step, "writing the views",
+    "precondition: the file write failed after the store write"
+  );
 
   assert_eq!(
     ops(&facade).len(),

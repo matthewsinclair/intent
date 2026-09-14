@@ -348,3 +348,38 @@ fn two_facades_holding_one_issue_snapshot_do_not_both_get_to_write() {
     "the title that survives"
   );
 }
+
+/// **A WRITE THE STORE REFUSES LEAVES NOTHING BEHIND, ITS MANIFEST EDIT
+/// INCLUDED.** `issues close` unpins the issue before the store write, because
+/// the projection inside that write reads the manifest, so a refusal has to put
+/// the line back or "the change was not made" is false.
+#[test]
+fn a_close_the_locked_store_refuses_leaves_the_manifest_as_it_found_it() {
+  // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of .intentfiles.
+  let fx = Fixture::new();
+  fx.write_file("intent/.intentfiles", "");
+  let mut f = fx.facade_on_disk();
+  let number = f
+    .issue_add("closed under a lock", None, None, "the body")
+    .expect("add");
+  let before = fx.read("intent/.intentfiles");
+  assert!(
+    before.contains(&format!("ISSUE:{number:04}")),
+    "precondition: the add declared it: {before:?}"
+  );
+  let lock = rusqlite::Connection::open(fx.project().db_path()).expect("a second connection");
+  lock
+    .execute_batch("BEGIN EXCLUSIVE")
+    .expect("hold the store");
+  let closed = f.issue_close(number);
+  lock.execute_batch("ROLLBACK").expect("release the store");
+  assert!(
+    closed.is_err(),
+    "precondition: the locked store refused the close"
+  );
+  assert_eq!(
+    fx.read("intent/.intentfiles"),
+    before,
+    "and the manifest is as the refusal found it"
+  );
+}

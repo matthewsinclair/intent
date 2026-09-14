@@ -1304,7 +1304,9 @@ pub fn serve(
       let node = str_arg(args, "node", path)?;
       let sender = str_arg(args, "sender", path)?;
       let handled = f.wb_clear(node, sender)?;
-      Ok(json!({ "recipient": node, "sender": sender, "handled": handled }))
+      Ok(
+        json!({ "recipient": node, "sender": sender, "handled": handled, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     // **`wb ask`, `wb announce` AND `wb decide` ARE NOT SERVED HERE, AND THE
     // FIELD DECIDES IT RATHER THAN THIS MATCH.** All three are `one-way` in the
@@ -1321,17 +1323,21 @@ pub fn serve(
       let session = args.get("session").and_then(Value::as_str);
       let focus = args.get("focus").and_then(Value::as_str);
       let all = opt_b(path, map, "all")?;
-      Ok(json!(f.wb_pickup(node, session, focus, all)?))
+      let mut picked = json!(f.wb_pickup(node, session, focus, all)?);
+      picked["notes"] = intentsvcs::facade::notes_json(&f.take_notes());
+      Ok(picked)
     }
     "wb touch" => {
       let node = str_arg(args, "node", path)?;
       f.wb_touch(node)?;
-      Ok(json!({ "node": node }))
+      Ok(json!({ "node": node, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }))
     }
     "wb release" => {
       let node = str_arg(args, "node", path)?;
       f.wb_release(node)?;
-      Ok(json!({ "node": node, "status": "paused" }))
+      Ok(
+        json!({ "node": node, "status": "paused", "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     "wb archive" => {
       let node = str_arg(args, "node", path)?;
@@ -1340,17 +1346,26 @@ pub fn serve(
       let seq: u32 = str_arg(args, "seq", path)?
         .parse()
         .map_err(|_| args_err(path, "`seq` is the item's number on the board"))?;
-      Ok(json!({ "node": node, "moved": f.wb_archive(node, kind, seq)? }))
+      let moved = f.wb_archive(node, kind, seq)?;
+      Ok(
+        json!({ "node": node, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     "wb claim" => {
       let node = str_arg(args, "node", path)?;
       let id = str_arg(args, "id", path)?;
-      Ok(json!({ "node": node, "id": id, "moved": f.wb_claim(node, id)? }))
+      let moved = f.wb_claim(node, id)?;
+      Ok(
+        json!({ "node": node, "id": id, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     "wb unclaim" => {
       let node = str_arg(args, "node", path)?;
       let id = str_arg(args, "id", path)?;
-      Ok(json!({ "node": node, "id": id, "moved": f.wb_unclaim(node, id)? }))
+      let moved = f.wb_unclaim(node, id)?;
+      Ok(
+        json!({ "node": node, "id": id, "moved": moved, "notes": intentsvcs::facade::notes_json(&f.take_notes()) }),
+      )
     }
     "index status" => {
       let status = f.index_status()?;
@@ -1426,6 +1441,7 @@ pub fn serve(
       };
       let applied = mode == intentsvcs::organize::Mode::Apply;
       let report = f.organize_as_shown(mode, shown)?;
+      let notes = intentsvcs::facade::notes_json(&f.take_notes());
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
         paths.iter().map(|p| p.display().to_string()).collect()
       };
@@ -1445,6 +1461,7 @@ pub fn serve(
         // Refusals travel WITH the act (never silent) -- each rendered through
         // its own remedy, the one rendering.
         "refused": report.refused.iter().map(|e| e.render()).collect::<Vec<_>>(),
+        "notes": notes,
       }))
     }
     "events" => {

@@ -9,7 +9,7 @@
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::Scope;
-use intentsvcs::facade::FacadeError;
+use intentsvcs::facade::{FacadeError, ListEdit};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus, WpStatus};
 
 #[test]
@@ -177,19 +177,21 @@ fn a_mid_write_failure_leaves_no_torn_state() {
 
   fx.restore_mode("intent", mode);
 
-  let Err(err) = result else {
-    // Running as root defeats the injection. Say so rather than passing.
-    panic!(
-      "the write into a read-only directory SUCCEEDED -- the failure was not injected, so this test proved nothing (running as root?)"
-    );
-  };
+  // Running as root defeats the injection, and `landed_note` says so rather
+  // than passing.
+  let outcome = result.expect("the write landed, so the verb reports it rather than refusing");
+  let (step, cause, ..) = crate::common::landed_note(outcome.notes());
   // D01 REVERSED (hv, 2026-08-15): the DB is the SSOT, so by the time the file
-  // write fails the mutation has ALREADY landed in truth. The variant says so
-  // -- `Write` would tell the operator the mutation failed, which is now the
-  // opposite of what happened, and a retry is the hazard.
+  // write fails the mutation has ALREADY landed in truth. The note says so,
+  // and since 0376 the verb exits clean with it (vc, ruled 2026-09-14): a
+  // refusal sent the operator to retry a write that had landed.
+  assert_eq!(
+    step, "writing the views",
+    "expected a projection failure, got: {cause}"
+  );
   assert!(
-    matches!(err, FacadeError::ViewsNotWritten { .. }),
-    "expected a projection failure, got: {err}"
+    cause.contains("the change is recorded"),
+    "the note leads with what succeeded: {cause}"
   );
 
   assert_eq!(
@@ -237,13 +239,15 @@ fn a_failed_creation_leaves_no_directory_behind() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
   let mode = fx.make_readonly("intent");
-  let result = facade.st_new("doomed");
+  let result = facade.st_new_listing_reported("doomed", ListEdit::AsDeclared);
   fx.restore_mode("intent", mode);
 
-  assert!(result.is_err(), "precondition: the write failed");
+  // Issue 0376: the store holds the thread, so the verb reports it with a note.
+  let (_, notes) = result.expect("the write landed, so the verb reports it rather than refusing");
+  crate::common::landed_note(&notes);
   assert!(
     !fx.path("intent/st/ST0001").exists(),
-    "no directory survives a thread that was never created"
+    "no directory survives the write the batch unwound"
   );
   let strays: Vec<String> = walk(fx.root())
     .into_iter()

@@ -1370,10 +1370,14 @@ fn a_wrapped_failure_renders_its_full_cause_chain() {
   let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
 
-  let err = result.expect_err("the write must fail");
-  let rendered = err.render();
+  // Issue 0376: the write landed, so the verb reports it with a note rather
+  // than refusing (vc, ruled 2026-09-14), and the note carries what this
+  // error carried: the message, its whole chain, and the one remedy.
+  let outcome = result.expect("the write landed, so the verb reports it rather than refusing");
+  let (_, cause, caused_by, remedy) = crate::common::landed_note(outcome.notes());
+  let rendered = format!("{cause}\n{}\n{remedy}", caused_by.join("\n"));
   assert!(
-    rendered.contains("caused by:"),
+    !caused_by.is_empty(),
     "the underlying I/O failure is reported, not swallowed by the outer message: {rendered}"
   );
   assert!(

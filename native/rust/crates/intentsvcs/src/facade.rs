@@ -1764,7 +1764,7 @@ impl crate::remedy::Remedy for FacadeError {
         // successful mutation" was the honest answer. It stopped being the
         // best one the same day, which is the same class as the first edit --
         // a remedy outliving the estate it was written against.
-        "the change is safe in the store -- do NOT retry it. Clear the filesystem cause, then run `intent st sync` to rewrite the files from the store. Do NOT reach for the disk -> db direction, which reads the FILES into the database and would overwrite the change with the stale copy".to_string()
+        RERENDER_REMEDY.to_string()
       }
       Self::IllegalTransition { verb, legal, .. } => {
         format!(
@@ -2228,6 +2228,61 @@ pub enum Note {
   /// itself removes nothing, so this is the moment the operator can still
   /// decide otherwise.
   DehydratesOnNextOrganize(Vec<String>),
+  /// The write landed, and a step after it did not.
+  ///
+  /// **A WARNING AND NOT A REFUSAL, BECAUSE THE WRITE HAPPENED** (vc, ruled
+  /// 2026-09-14). The store holds the change, so the exit code says so. A
+  /// refusal here sent the caller to retry a write that had already landed, and
+  /// `wb add`, `wb ask` and `wb decide` each append a row, so the retry doubled
+  /// it. The note names the step that did not run, why, and what to run.
+  ///
+  /// **A ROLLBACK THAT TORE THE FILES IS NOT THIS NOTE** (vc, ruled
+  /// 2026-09-14): the files are then neither the old render nor the new, and
+  /// the verb returns [`FacadeError::ViewsNotWritten`] naming them.
+  StepFailedAfterWrite {
+    step: String,
+    cause: String,
+    /// The cause's own chain, each link as `Remedy::render` prints it.
+    caused_by: Vec<String>,
+    remedy: String,
+  },
+}
+
+impl Note {
+  /// The note for a step that failed after the store committed.
+  fn after_write(step: &str, cause: &FacadeError, remedy: &str) -> Self {
+    Self::StepFailedAfterWrite {
+      step: step.to_string(),
+      cause: cause.to_string(),
+      caused_by: std::iter::successors(std::error::Error::source(cause), |link| link.source())
+        .map(ToString::to_string)
+        .collect(),
+      remedy: remedy.to_string(),
+    }
+  }
+}
+
+/// The remedy when the views a landed write renders could not be written:
+/// [`FacadeError::ViewsNotWritten`]'s and the landed-write note's, in one home
+/// (0376).
+const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry it. Clear the filesystem cause, then run `intent st sync` to rewrite the files from the store. Do NOT reach for the disk -> db direction, which reads the FILES into the database and would overwrite the change with the stale copy";
+
+/// The remedy when a landed write's views are on disk and the file index was not told.
+const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and its views are on disk. The file index was not told about them, so `intent sync --to-disk` records them; until then the daemon can read them back as an edit";
+
+/// The remedy when an organize run's acts landed and the event log did not record them.
+const UNRECORDED_REMEDY: &str = "do not re-run to record it: the acts listed above are on disk, and `git status` shows them. The event log has no entry for this run, and no command writes one after the fact";
+
+/// What a mutation's projection hands back to the verb that asked for it.
+///
+/// **THE OVERWRITES AND THE LANDED-WRITE NOTE TRAVEL TOGETHER** (0376), so the
+/// one fold every transition reports through, [`Outcome::with_overwrites`],
+/// carries both, and a verb that returns no `Outcome` parks its note for
+/// [`Facade::take_notes`] rather than dropping it.
+#[derive(Debug, Default)]
+pub struct Applied {
+  foreign: Vec<String>,
+  after_write: Option<Note>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2290,7 +2345,8 @@ impl Outcome {
     }
   }
 
-  /// Fold the paths whose bytes were not the store's render into this outcome.
+  /// Fold a mutation's overwrites, and the note for a step that failed after its
+  /// write landed, into this outcome.
   ///
   /// **ONE FOLD RATHER THAN A NOTE BUILT AT EVERY VERB.** Thirteen call sites
   /// turn the projection's result into an `Outcome`, and a note assembled at
@@ -2303,8 +2359,13 @@ impl Outcome {
   /// rendered has overwritten nobody's work, so there is nothing to say --
   /// the same objection the event log makes to recording a no-op.
   #[must_use]
-  pub fn with_overwrites(self, foreign: Vec<String>) -> Self {
-    if foreign.is_empty() {
+  pub fn with_overwrites(self, applied: Applied) -> Self {
+    let mut folded = Vec::new();
+    if !applied.foreign.is_empty() {
+      folded.push(Note::OverwroteForeignBytes(applied.foreign));
+    }
+    folded.extend(applied.after_write);
+    if folded.is_empty() {
       return self;
     }
     match self {
@@ -2313,11 +2374,9 @@ impl Outcome {
       // write -- and stated rather than left to `unreachable!`, which would
       // turn a future refactor's harmless case into a panic.
       Self::AlreadyThere { state } => Self::AlreadyThere { state },
-      Self::Moved => Self::MovedWith {
-        notes: vec![Note::OverwroteForeignBytes(foreign)],
-      },
+      Self::Moved => Self::MovedWith { notes: folded },
       Self::MovedWith { mut notes } => {
-        notes.push(Note::OverwroteForeignBytes(foreign));
+        notes.extend(folded);
         Self::MovedWith { notes }
       }
     }
@@ -2340,8 +2399,18 @@ impl Outcome {
 /// them; that is a different concern with a different reader, not a divergent
 /// spelling of this one.
 pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
-  let notes: Vec<serde_json::Value> = outcome
-    .notes()
+  serde_json::json!({
+    "subject": subject,
+    "moved": outcome.moved(),
+    "already": outcome.already(),
+    "notes": notes_json(outcome.notes()),
+  })
+}
+
+/// Notes as the machine faces carry them: one mapping for [`outcome_json`] and
+/// for the verbs that hand theirs over through [`Facade::take_notes`].
+pub fn notes_json(notes: &[Note]) -> serde_json::Value {
+  let notes: Vec<serde_json::Value> = notes
     .iter()
     .map(|note| match note {
       Note::UnsyncedAttachments(paths) => serde_json::json!({
@@ -2365,14 +2434,17 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
       } => serde_json::json!({
         "kind": "held-by-v2-bucket", "thread": thread, "dir": dir, "home": home, "files": files,
       }),
+      Note::StepFailedAfterWrite {
+        step,
+        cause,
+        caused_by,
+        remedy,
+      } => serde_json::json!({
+        "kind": "step-failed-after-write", "step": step, "cause": cause, "caused_by": caused_by, "remedy": remedy,
+      }),
     })
     .collect();
-  serde_json::json!({
-    "subject": subject,
-    "moved": outcome.moved(),
-    "already": outcome.already(),
-    "notes": notes,
-  })
+  serde_json::Value::from(notes)
 }
 
 /// What the SQL door denied, in the words a person types.
@@ -2587,6 +2659,9 @@ pub struct Facade {
   /// that the semantic tier plugs in without the surfaces above it changing,
   /// which is the claim AC-23.1 makes about staged tiers.
   embedder: Box<dyn crate::embed::Embedder>,
+  /// Notes from steps that failed after a write landed, held for a verb that
+  /// returns no [`Outcome`] until [`Facade::take_notes`] hands them over.
+  after_write: Vec<Note>,
 }
 
 /// What [`Facade::projection`] builds: the writes, and which of them are canon.
@@ -2747,6 +2822,7 @@ impl Facade {
       canon,
       ctx,
       embedder,
+      after_write: Vec::new(),
     })
   }
 
@@ -2763,6 +2839,7 @@ impl Facade {
       canon,
       ctx,
       embedder,
+      after_write: Vec::new(),
     })
   }
 
@@ -4463,7 +4540,11 @@ impl Facade {
         && dehydrated.is_empty()
         && pruned.is_empty())
       {
-        self.record_disk_act(
+        // **A RECEIPT THAT FAILS AFTER A CORRECT ACT DOES NOT UNDO THE ACT**
+        // (vc, ruled 2026-09-14). The removals and hydrations above are done,
+        // so this run reports them, and the event log's failure is the note.
+        // Issue 0376: a locked event log reported "the change was not made" over removals already on disk.
+        if let Err(cause) = self.record_disk_act(
           "disk.organize",
           serde_json::json!({
             "hydrated": hydrated,
@@ -4472,7 +4553,13 @@ impl Facade {
             "pruned": pruned,
             "refused": report.refused.len(),
           }),
-        )?;
+        ) {
+          self.after_write.push(Note::after_write(
+            "recording this run in the event log",
+            &cause,
+            UNRECORDED_REMEDY,
+          ));
+        }
       }
     }
     Ok(report)
@@ -5361,7 +5448,7 @@ impl Facade {
     if hand_authored {
       self.reindex_boards()?;
     } else {
-      self.land_board_write()?;
+      self.land_board_write_noting()?;
     }
     Ok(written)
   }
@@ -5397,6 +5484,47 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     self.canon.sections = sections;
     Ok(())
+  }
+
+  /// The notes steps raised after a write landed, taken so each prints once.
+  ///
+  /// **FOR THE VERBS THAT RETURN NO [`Outcome`]** (0376): the board verbs,
+  /// `organize`, `issues add`, `wp new` and `todo flush`. A verb that returns
+  /// an `Outcome` carries its notes in it, through [`Outcome::with_overwrites`].
+  pub fn take_notes(&mut self) -> Vec<Note> {
+    std::mem::take(&mut self.after_write)
+  }
+
+  /// Keep a landed write's note for [`Self::take_notes`], for a verb with no
+  /// [`Outcome`] to carry it.
+  fn park(&mut self, applied: Applied) {
+    self.after_write.extend(applied.after_write);
+  }
+
+  /// Land a board write's views, keeping a failure as a note rather than a
+  /// refusal, save a torn rollback, which stays one.
+  ///
+  /// **EVERY CALLER HAS COMMITTED ITS ROW BEFORE THIS RUNS** (vc, ruled
+  /// 2026-09-14). Returning the failure as the verb's own sent the caller to
+  /// retry a write the store already held, and `wb add` doubled a row that way.
+  fn land_board_write_noting(&mut self) -> Result<(), FacadeError> {
+    // Issue 0376: this failure was returned as the write's own.
+    match self.land_board_write() {
+      Ok(()) => Ok(()),
+      Err(
+        torn @ FacadeError::ViewsNotWritten {
+          cause: WriteError::TornRollback { .. },
+        },
+      ) => Err(torn),
+      Err(cause) => {
+        self.after_write.push(Note::after_write(
+          "landing the board's views",
+          &cause,
+          RERENDER_REMEDY,
+        ));
+        Ok(())
+      }
+    }
   }
 
   /// Refresh the index for a board write, then land the write's views on disk.
@@ -5518,7 +5646,8 @@ impl Facade {
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_migrated(node)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
-    self.land_board_write()
+    self.land_board_write_noting()?;
+    Ok(())
   }
 
   /// Pause the acting node, and stamp its heartbeat on the way out.
@@ -5538,7 +5667,8 @@ impl Facade {
       )
       .map_err(FacadeError::Store)?;
     self.store.wb_touch(node).map_err(FacadeError::Store)?;
-    self.land_board_write()
+    self.land_board_write_noting()?;
+    Ok(())
   }
 
   /// What a node needs at the start of a session: it is marked active with its
@@ -5573,7 +5703,7 @@ impl Facade {
         focus,
       )
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     let boards = self.canon.boards.clone();
     let board = boards
       .iter()
@@ -5659,7 +5789,7 @@ impl Facade {
       .store
       .wb_insert_item(node, &wire, text, None)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(seq)
   }
 
@@ -5820,7 +5950,7 @@ impl Facade {
     // write above stamped the node migrated, so the projection renders this
     // board and its inboxes and leaves every unmigrated peer's markdown alone.
     // Issue 0380: this refreshed the index only, so the carried board stayed hand-authored and doctor refused every commit as skew.
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
 
     Ok(WbMigration {
       node: node.to_string(),
@@ -5964,7 +6094,7 @@ impl Facade {
       .store
       .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(moved)
   }
 
@@ -5991,7 +6121,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &claims)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(true)
   }
 
@@ -6012,7 +6142,7 @@ impl Facade {
       .store
       .wb_set_claims(node, &kept)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(true)
   }
 
@@ -6070,7 +6200,8 @@ impl Facade {
       .store
       .wb_insert_message(sender, recipient, body, re, fyi, None)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()
+    self.land_board_write_noting()?;
+    Ok(())
   }
 
   /// Send one message to every OTHER registered node, and say how many boards
@@ -6124,7 +6255,7 @@ impl Facade {
         .wb_insert_message(sender, r, body, None, true, None)
         .map_err(FacadeError::Store)?;
     }
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(recipients.len())
   }
 
@@ -6142,7 +6273,7 @@ impl Facade {
       .store
       .wb_clear_inbox(sender, recipient)
       .map_err(FacadeError::Store)?;
-    self.land_board_write()?;
+    self.land_board_write_noting()?;
     Ok(cleared)
   }
 
@@ -6620,7 +6751,7 @@ impl Facade {
     // it, so the flush simply appeared not to have happened while history said
     // it did. Measured and repaired 2026-08-27; the criterion was not
     // uncovered, it was unbuilt.
-    self.apply_with_state(
+    let applied = self.apply_with_state(
       crate::event::TODO_FLUSH,
       Subject {
         kind: "todo".to_string(),
@@ -6630,6 +6761,7 @@ impl Facade {
       next,
       crate::store::ProjectStateEdit::SetTodoWatermark,
     )?;
+    self.park(applied);
     // Re-read AFTER the event, so `remaining` is measured rather than assumed.
     let after = self.todo_buckets()?;
     Ok(TodoFlush {
@@ -8356,13 +8488,7 @@ impl Facade {
         Ok(foreign) => foreign,
         Err(refused) => {
           // The status did not move, so neither may the list it follows.
-          if let Some(text) = before
-            && std::fs::read_to_string(&manifest).ok().as_deref() != Some(text.as_str())
-          {
-            let mut set = WriteSet::new();
-            set.add(manifest, text);
-            set.commit()?.keep();
-          }
+          self.restore_manifest(before)?;
           return Err(refused);
         }
       };
@@ -8591,7 +8717,7 @@ impl Facade {
       // not a placeholder. A brand-new package has not been closed at all.
       fiat: None,
     });
-    self.apply(
+    let applied = self.apply(
       "wp.new",
       Subject {
         kind: "wp".to_string(),
@@ -8600,6 +8726,7 @@ impl Facade {
       json!({"title": title, "scope": crate::model::enum_str(&scope)}),
       next,
     )?;
+    self.park(applied);
     Ok(seq)
   }
 
@@ -11435,10 +11562,12 @@ impl Facade {
     // projection asked the manifest whether this issue was declared BEFORE the
     // line declaring it existed, decided no, and skipped the view. Nothing
     // failed; the file simply never appeared.
+    let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
     self.edit_list("issues.add", &format!("{number:04}"), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
-    self.apply(
+    // Issue 0376: a refused add left its ISSUE row in the manifest, and a landed add's failed step went unreported.
+    match self.apply(
       "issues.add",
       Subject {
         kind: "issue".to_string(),
@@ -11446,7 +11575,13 @@ impl Facade {
       },
       json!({"title": title, "severity": severity}),
       next,
-    )?;
+    ) {
+      Ok(applied) => self.park(applied),
+      Err(refused) => {
+        self.restore_manifest(before)?;
+        return Err(refused);
+      }
+    }
     Ok(number)
   }
 
@@ -11615,7 +11750,8 @@ impl Facade {
       payload.insert("severity".to_string(), json!(s));
     }
 
-    self.apply(
+    // Issue 0376: this reported `Moved` whatever the projection said, so a landed edit's failed step went unreported.
+    let applied = self.apply(
       "issues.edit",
       Subject {
         kind: "issue".to_string(),
@@ -11624,7 +11760,7 @@ impl Facade {
       serde_json::Value::Object(payload),
       next,
     )?;
-    Ok(Outcome::Moved)
+    Ok(Outcome::Moved.with_overwrites(applied))
   }
 
   /// Close an issue.
@@ -11689,22 +11825,28 @@ impl Facade {
     // Before `apply` for the reason `issue_add` records: the projection runs
     // inside it and reads the manifest, so an edit made afterwards is invisible
     // to the very write it is supposed to govern.
+    let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
     self.edit_list(op, &format!("{number:04}"), ListEdit::AsDeclared)?;
-    let outcome = self
-      .apply(
-        op,
-        Subject {
-          kind: "issue".to_string(),
-          id: format!("{number:04}"),
-        },
-        json!({
-          "from": crate::model::enum_str(&from),
-          "to": crate::model::enum_str(&status),
-        }),
-        next,
-      )
-      .map(|foreign| Outcome::Moved.with_overwrites(foreign))?;
-    Ok(outcome)
+    // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of the manifest.
+    let applied = match self.apply(
+      op,
+      Subject {
+        kind: "issue".to_string(),
+        id: format!("{number:04}"),
+      },
+      json!({
+        "from": crate::model::enum_str(&from),
+        "to": crate::model::enum_str(&status),
+      }),
+      next,
+    ) {
+      Ok(applied) => applied,
+      Err(refused) => {
+        self.restore_manifest(before)?;
+        return Err(refused);
+      }
+    };
+    Ok(Outcome::Moved.with_overwrites(applied))
   }
 
   /// The next free issue number.
@@ -11746,7 +11888,7 @@ impl Facade {
     subject: Subject,
     payload: serde_json::Value,
     next: Canon,
-  ) -> Result<Vec<String>, FacadeError> {
+  ) -> Result<Applied, FacadeError> {
     self.apply_with_state(
       op,
       subject,
@@ -11763,7 +11905,7 @@ impl Facade {
     payload: serde_json::Value,
     next: Canon,
     project_state: crate::store::ProjectStateEdit,
-  ) -> Result<Vec<String>, FacadeError> {
+  ) -> Result<Applied, FacadeError> {
     let envelope = Envelope::minted(
       &self.ctx.principal,
       &self.ctx.project_id,
@@ -11930,7 +12072,7 @@ impl Facade {
     envelopes: Vec<Envelope>,
     mut next: Canon,
     project_state: crate::store::ProjectStateEdit,
-  ) -> Result<Vec<String>, FacadeError> {
+  ) -> Result<Applied, FacadeError> {
     // What gets written is DIFFED, not declared. The caller used to hand in a
     // list of touched ids, which made "the mutation did not persist" reachable
     // by naming the wrong id -- a silent failure, since the DB and the return
@@ -12275,15 +12417,30 @@ impl Facade {
       .iter()
       .filter(|i| changed_issue_numbers.contains(&i.number))
       .collect();
-    let Projection { set, canon_files } = self.projection(
+    let projected = self.projection(
       &next,
       &changed_threads,
       &changed_issues,
       None,
       Some(&self.canon),
-    )?;
+    );
     drop(changed_threads);
     drop(changed_issues);
+    // Issue 0376: every step below returned its failure as the write's own, and a failed render left the canon behind the store.
+    let Projection { set, canon_files } = match projected {
+      Ok(projection) => projection,
+      Err(cause) => {
+        self.canon = next;
+        return Ok(Applied {
+          foreign: Vec::new(),
+          after_write: Some(Note::after_write(
+            "rendering the views",
+            &cause,
+            RERENDER_REMEDY,
+          )),
+        });
+      }
+    };
 
     // Truth has landed. The files are a projection of it, so a failure here is
     // REPORTED AND RECOVERABLE rather than corrupting: `intent sync` writes
@@ -12298,17 +12455,60 @@ impl Facade {
     // `that`: once the bytes are gone, the prior contents cannot be compared
     // against anything. A list assembled afterwards could say WHICH paths were
     // written and never whose work was on them.
-    let foreign = self.foreign_bytes(&set)?;
+    let foreign = match self.foreign_bytes(&set) {
+      Ok(foreign) => foreign,
+      Err(cause) => {
+        self.canon = next;
+        return Ok(Applied {
+          foreign: Vec::new(),
+          after_write: Some(Note::after_write(
+            "rendering the views",
+            &cause,
+            RERENDER_REMEDY,
+          )),
+        });
+      }
+    };
     let projected = set.commit();
     self.canon = next;
-    let applied = projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    let applied = match projected {
+      Ok(applied) => applied,
+      // A torn rollback stays the verb's error (vc, ruled 2026-09-14): the
+      // files are neither the old render nor the new, so a warning would
+      // report a state that is not the one on disk.
+      Err(cause @ WriteError::TornRollback { .. }) => {
+        return Err(FacadeError::ViewsNotWritten { cause });
+      }
+      Err(cause) => {
+        return Ok(Applied {
+          foreign,
+          after_write: Some(Note::after_write(
+            "writing the views",
+            &FacadeError::ViewsNotWritten { cause },
+            RERENDER_REMEDY,
+          )),
+        });
+      }
+    };
     // **READ BEFORE `keep`, BECAUSE `keep` CONSUMES IT.** The mutation path is
     // the one a fixture and a user both take, so a view written here that the
     // index never learned about is the same feedback loop by the commonest door.
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
-    self.record_landed(&canon_files, &landed)?;
-    Ok(foreign)
+    let after_write = self
+      .record_landed(&canon_files, &landed)
+      .err()
+      .map(|cause| {
+        Note::after_write(
+          "recording the written views in the file index",
+          &cause,
+          UNINDEXED_REMEDY,
+        )
+      });
+    Ok(Applied {
+      foreign,
+      after_write,
+    })
   }
 
   /// The write set's paths that hold bytes the store did not render.
@@ -12552,6 +12752,25 @@ impl Facade {
     if after != before {
       let mut set = WriteSet::new();
       set.add(path, after);
+      set.commit()?.keep();
+    }
+    Ok(())
+  }
+
+  /// Put `.intentfiles` back as it was, when a write that edited it first did
+  /// not land.
+  ///
+  /// **A REFUSAL SAYS THE CHANGE WAS NOT MADE, SO NOTHING OF IT MAY STAY.** A
+  /// manifest edit made ahead of the store write, because the projection inside
+  /// that write reads it, is the one piece of such a write already on disk when
+  /// the store refuses. `None` is a manifest that was not there to edit.
+  fn restore_manifest(&self, before: Option<String>) -> Result<(), FacadeError> {
+    let manifest = self.project.intentfiles_path();
+    if let Some(text) = before
+      && std::fs::read_to_string(&manifest).ok().as_deref() != Some(text.as_str())
+    {
+      let mut set = WriteSet::new();
+      set.add(manifest, text);
       set.commit()?.keep();
     }
     Ok(())
