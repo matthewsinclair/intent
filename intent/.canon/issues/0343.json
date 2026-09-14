@@ -3,9 +3,10 @@
   "number": 343,
   "slug": "organize-apply-leaves-a-tree-half-dehydrated-vie",
   "title": "organize --apply leaves a tree half-dehydrated, views kept and attachments gone",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Found by hv on 2026-09-12 while driving `organize --apply`: the tree is left half-dehydrated, views kept and attachments gone. Its two siblings from the same drive are handled: the one-finding-printed-many-times half is fixed by 0318, and naming removals only afterwards was batch 4's trigger. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "Found by hv on 2026-09-12 while driving `organize --apply`: the tree is left half-dehydrated, views kept and attachments gone. Its two siblings from the same drive are handled: the one-finding-printed-many-times half is fixed by 0318, and naming removals only afterwards was batch 4's trigger. Carried in `intent/wip.md` until 2026-09-13.\n\nCLOSED 2026-09-14 21:04Z: organize --apply gates every dehydrate step before it removes any, and a thread's files are one set: when any file of a thread is refused (a hand-edited or skewed view, say), none of that thread's removals run, and OrganizeError::ThreadWithheld names the thread and the files withheld beside the refusal that stopped it. Issue views stay per file, since an issue has one. So a run can no longer leave a tree with its views kept and its attachments gone. With 0367 in the same commit, a thread's files are a set on both the dehydrate and the realise path. Fixed in the commit that closes this issue.\n"
 }

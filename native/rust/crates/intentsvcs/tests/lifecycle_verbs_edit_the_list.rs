@@ -1035,3 +1035,38 @@ fn keep_stays_silent_even_when_there_are_uncommitted_bytes_to_warn_about() {
      was measured on the wrong situation"
   );
 }
+
+/// Issue 0367: `st reopen` re-listed a dehydrated thread and realised its views
+/// but not its attachment, so the canon gate refused the next commit until
+/// `organize` wrote it.
+#[test]
+fn st_reopen_realises_the_attachments_with_the_views() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0056");
+  thread.attachments.push(intentsvcs::model::Attachment::new(
+    "design.md",
+    "# Design\n",
+  ));
+  write_settled(&fx, &thread);
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  let mut facade = fx.facade();
+  facade.st_done("ST0056").expect("done");
+  facade
+    .organize(intentsvcs::organize::Mode::Apply)
+    .expect("organize dehydrates the closed thread");
+  assert!(
+    !fx.path("intent/st/ST0056/info.md").exists(),
+    "precondition: the closed thread is dehydrated"
+  );
+
+  facade
+    .st_reopen("ST0056", "the contract grew after it closed")
+    .expect("reopen");
+  assert_eq!(
+    std::fs::read_to_string(fx.path("intent/st/ST0056/design.md"))
+      .ok()
+      .as_deref(),
+    Some("# Design\n"),
+    "the attachment is realised with the views, so the next commit's canon gate has it"
+  );
+}

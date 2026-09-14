@@ -109,3 +109,70 @@ fn the_refusal_tells_the_operator_where_the_edit_belongs() {
     "the refusal must say what removal would cost, not merely that it declined: {text}"
   );
 }
+
+/// Issue 0343: hv drove `organize --apply` and found a tree half-dehydrated,
+/// views kept and attachments gone, because each removal was gated alone. A
+/// thread's files are one set, so one refused file withholds every removal of
+/// its thread.
+#[test]
+fn one_refused_file_withholds_every_removal_of_its_thread() {
+  let fx = Fixture::new();
+  let mut thread = crate::common::sample_thread("ST0001");
+  thread.attachments.push(intentsvcs::model::Attachment::new(
+    "design.md",
+    "# Design\n",
+  ));
+  fx.write_thread(&thread);
+  fx.write_file("intent/st/ST0001/design.md", "# Design\n");
+  let project = fx.project();
+  let canon = intentsvcs::ingest::read(&project).expect("canon reads");
+  intentsvcs::views::write_all(&project, &canon, &crate::common::ctx()).expect("write views");
+  let cover = fx.path("intent/st/ST0001/info.md");
+  let edited = format!(
+    "{}\n<!-- a hand edit -->\n",
+    fx.read("intent/st/ST0001/info.md")
+  );
+  std::fs::write(&cover, edited).expect("hand-edit the cover");
+
+  // A manifest declaring none, so every file of ST0001 is planned for removal.
+  let realised =
+    intentsvcs::intentfiles::realised_for_action("").expect("an empty manifest parses");
+  let (tree, digest) = intentsvcs::organize::observe(&project, &[]).expect("observes the tree");
+  let plan = intentsvcs::organize::plan(
+    &project,
+    &canon,
+    &realised,
+    &crate::common::ctx(),
+    &tree,
+    digest.clone(),
+  );
+  let report = plan
+    .run(intentsvcs::organize::Mode::Apply, &|| digest.clone())
+    .expect("the run completes");
+
+  assert!(
+    cover.exists(),
+    "precondition: the hand-edited cover is refused"
+  );
+  assert!(
+    fx.path("intent/st/ST0001/design.md").exists(),
+    "the attachment stays with the thread's refused cover: removed {:?}",
+    report.dehydrated
+  );
+  assert!(
+    report
+      .dehydrated
+      .iter()
+      .all(|p| !p.starts_with(fx.path("intent/st/ST0001"))),
+    "no file of the thread is removed: {:?}",
+    report.dehydrated
+  );
+  assert!(
+    report
+      .refused
+      .iter()
+      .any(|r| r.to_string().contains("ST0001") && r.to_string().contains("withheld")),
+    "and the run says the rest of the thread was withheld: {:?}",
+    report.refused
+  );
+}

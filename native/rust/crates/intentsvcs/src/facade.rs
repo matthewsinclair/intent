@@ -8408,6 +8408,27 @@ impl Facade {
     }
   }
 
+  /// Realise the files of a thread a state verb has just listed again, through
+  /// the one realise path (issue 0367).
+  ///
+  /// **AFTER THE WRITE, SO A FAILURE IS A NOTE** (0376's rule): the status and
+  /// the list edit have landed, and `intent organize --apply` writes what this
+  /// could not.
+  fn realise_relisted(&mut self, id: &str) -> Option<Note> {
+    let address = Address {
+      authority: None,
+      entity: AddrEntity::Thread { id: id.to_string() },
+      format: None,
+    };
+    self.hydration(&address).err().map(|cause| {
+      Note::after_write(
+        "realising the thread's attachments",
+        &cause,
+        "the status and the list edit are recorded; `intent organize --apply` writes the thread's files",
+      )
+    })
+  }
+
   fn set_thread_status(
     &mut self,
     id: &str,
@@ -8641,6 +8662,10 @@ impl Facade {
       };
     if !adds {
       self.edit_list(op, id, list)?;
+    }
+    // Issue 0367: a re-listed thread's views were realised and its attachments left to organize, so the canon gate refused the next commit.
+    if adds {
+      notes.extend(self.realise_relisted(id));
     }
     // **ASKED AFTER THE PIN, BECAUSE THE PIN IS WHAT MAKES IT HELD** (issue
     // 0209). A thread this verb has just declared, with a v2 bucket copy and

@@ -296,6 +296,22 @@ pub enum OrganizeError {
   )]
   HandEdited { path: PathBuf, bytes: usize },
 
+  /// A thread's other files, withheld because one of them was refused (issue
+  /// 0343).
+  ///
+  /// **A THREAD'S FILES ARE ONE SET.** Each removal used to be gated alone, so a
+  /// thread whose cover the gate refused lost its attachments and kept its
+  /// views: a tree neither realised nor dehydrated. The refusal beside this one
+  /// names the file that stopped it.
+  #[error(
+    "withheld {} other file(s) of {thread} from dehydration, because a file of the thread was refused: a thread is dehydrated whole or not at all",
+    withheld.len()
+  )]
+  ThreadWithheld {
+    thread: String,
+    withheld: Vec<PathBuf>,
+  },
+
   /// A v2 leftover whose content the store does not hold (WP-02, AC-02.2).
   ///
   /// **ONE OF THESE REFUSES THE WHOLE PRUNE**, because the usual cause is the
@@ -408,6 +424,9 @@ impl crate::remedy::Remedy for OrganizeError {
       Self::HandEdited { path, .. } => format!(
         "decide which copy is right. `intent doctor` names the difference and the command that regenerates it. If nobody edited the file at {}, the store is right: delete it and re-run. If it holds an edit you want, make the change through the CLI so it lands in the model, then re-run.",
         path.display()
+      ),
+      Self::ThreadWithheld { thread, .. } => format!(
+        "clear the refusal naming a file of {thread}, then re-run `intent organize --apply`, and its files are removed together. Nothing of {thread} was removed."
       ),
       // **The action is to run it again, and saying so is only honest because
       // re-running re-plans from scratch.** A guard whose remedy is "retry"
@@ -1236,16 +1255,38 @@ impl Plan {
     }
 
     if removals_permitted {
-      for step in self.with(Action::Dehydrate) {
-        match gate(step) {
-          Ok(()) => {
-            if mode.performs() {
-              std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
-            }
-            report.dehydrated.push(step.path.clone());
-          }
+      // Issue 0343: each removal was gated alone, so a thread whose cover was refused lost its attachments and kept its views.
+      // Every step is gated first, and one refusal withholds the rest of its thread; an issue view stays per file.
+      let gated: Vec<(&Step, Result<(), OrganizeError>)> = self
+        .with(Action::Dehydrate)
+        .map(|step| (step, gate(step)))
+        .collect();
+      let refused_threads: BTreeSet<String> = gated
+        .iter()
+        .filter(|(_, verdict)| verdict.is_err())
+        .filter_map(|(step, _)| thread_of(&self.estate_root, &step.path))
+        .collect();
+      let mut withheld: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
+      for (step, verdict) in gated {
+        match verdict {
           Err(refusal) => report.refused.push(refusal),
+          Ok(()) => {
+            match thread_of(&self.estate_root, &step.path).filter(|t| refused_threads.contains(t)) {
+              Some(thread) => withheld.entry(thread).or_default().push(step.path.clone()),
+              None => {
+                if mode.performs() {
+                  std::fs::remove_file(&step.path).map_err(|e| io_err(&step.path, e))?;
+                }
+                report.dehydrated.push(step.path.clone());
+              }
+            }
+          }
         }
+      }
+      for (thread, withheld) in withheld {
+        report
+          .refused
+          .push(OrganizeError::ThreadWithheld { thread, withheld });
       }
       prune_emptied(
         &self.estate_root,
