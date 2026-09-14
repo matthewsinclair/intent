@@ -328,3 +328,19 @@ fn a_claim_the_verb_would_refuse_is_named_with_the_form_it_takes() {
     "and counted, so the reconciliation holds"
   );
 }
+
+#[test]
+fn an_entry_written_in_its_heading_carries_that_text_as_its_body() {
+  // Issue 0384: heading text that was neither `Re:` nor the FYI marker was discarded, so the entry carried with an empty body.
+  const INBOX: &str = "# inbox: vc -> dc\n\n## (2026-09-14 10:00Z) the whole message sat up here\n\n## (2026-09-14 10:05Z) a lead in the heading\n\nand the rest below it\n";
+  let read = wbmigrate::read_inbox("vc", "dc", INBOX, "intent/whiteboard/dc/inbox.vc.md");
+  let bodies: Vec<&str> = read.messages.iter().map(|m| m.body.as_str()).collect();
+  assert_eq!(
+    bodies,
+    vec![
+      "the whole message sat up here",
+      "a lead in the heading\n\nand the rest below it"
+    ],
+    "text in the heading is carried, never dropped"
+  );
+}

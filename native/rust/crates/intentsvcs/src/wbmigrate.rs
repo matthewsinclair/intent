@@ -359,7 +359,14 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> Sour
   let finish =
     |pending: &mut Option<SourceMessage>, body: &mut Vec<&str>, out: &mut Vec<SourceMessage>| {
       if let Some(mut message) = pending.take() {
-        message.body = body.join("\n").trim().to_string();
+        // The heading's own prose, when it had any, leads the body.
+        let lead = std::mem::take(&mut message.body);
+        let below = body.join("\n").trim().to_string();
+        message.body = match (lead.is_empty(), below.is_empty()) {
+          (_, true) => lead,
+          (true, false) => below,
+          (false, false) => format!("{lead}\n\n{below}"),
+        };
         out.push(message);
       }
       body.clear();
@@ -386,7 +393,9 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> Sour
       pending = Some(SourceMessage {
         sender: sender.to_string(),
         recipient: recipient.to_string(),
-        body: String::new(),
+        // Prose in the heading that is neither field leads the body.
+        // Issue 0384: it was discarded, so an entry written in its heading carried with an empty body.
+        body: heading_prose(tail),
         re,
         fyi: tail.contains("FYI only"),
         authored_at: Some(stamp),
@@ -418,4 +427,27 @@ pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> Sour
     messages: out,
     uncarried,
   }
+}
+
+/// The prose an inbox heading carries after its stamp that is neither the
+/// `Re:` field nor the FYI marker.
+///
+/// **CARRIED, NEVER DROPPED.** Protocol headings carry only those two fields,
+/// but a hand-authored inbox is what it is, and text read off a heading and
+/// thrown away leaves no record that it was ever there.
+fn heading_prose(tail: &str) -> String {
+  const FYI: &str = "FYI only -- no response needed.";
+  let cut = [tail.find("Re: "), tail.find("FYI only")]
+    .into_iter()
+    .flatten()
+    .min()
+    .unwrap_or(tail.len());
+  let mut parts = vec![tail[..cut].trim()];
+  if !tail.contains("Re: ")
+    && let Some((_, after)) = tail.split_once(FYI)
+  {
+    parts.push(after.trim());
+  }
+  parts.retain(|p| !p.is_empty());
+  parts.join(" ")
 }
