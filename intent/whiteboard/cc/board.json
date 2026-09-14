@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T21:06:52.483Z",
+    "heartbeat_at": "2026-09-14T21:13:09.688Z",
     "status": "active",
-    "focus": "Landed today after the compact: 0376 c2eb98ac1, 0326+0363 a9106f647, 0364 5ac835392, 0351 fbef01a1b, 0349 closed 485cbd967, 0378 88c426163, 0347 c3b61e707, ST0058/ST0066 unlisted 01c996197, 0343+0367 31e6cd78e. Now 0338 (ii) in wt-cc; then 0338 (i), 0377, 0331 comments. 0321 held for hv. NO RELEASE, NO PUSH.",
+    "focus": "Landed today after the compact: 0376 c2eb98ac1, 0326+0363 a9106f647, 0364 5ac835392, 0351 fbef01a1b, 0349 closed 485cbd967, 0378 88c426163, 0347 c3b61e707, ST0058/ST0066 unlisted 01c996197, 0343+0367 31e6cd78e. LOCALFOLDED for the user compact: 0338 (ii) planned in full on the board (doing), not yet written, wt-cc clean on 48d78bc65; then 0338 (i), 0377, 0331 comments; 0321 held for hv. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -558,7 +558,8 @@
       "kind": "doing",
       "seq": 4,
       "text": "**0338 (ii) IN FLIGHT IN wt-cc ON 01c996197, NOT LANDED (vc go, M).** intentfiles.rs loses the two-region grammar: Region, BEGIN_MARKER/END_MARKER, their parse, pinned()/generated(), the insert-before-BEGIN path and the three region errors, so a marker line refuses as an unknown line with a remedy. The census found no marker in any of the 24 live registers on this machine. 37 fixture uses across 18 intentsvcs test files migrate in the same commit: \"declares none\" becomes an empty manifest, and the tests that pin region semantics (intentfiles_grammar unbalanced_markers, unpin generated region, realisation_is_recorded:260, lifecycle:516, pin_writes ordering) are deleted or rewritten deliberately. Each arm red on its base, a workspace check before the full run, then the word request.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:12:38.526Z",
       "recorded_at": "2026-09-14T21:06:38.640Z"
     },
     {
@@ -568,6 +569,22 @@
       "text": "**AFTER 0338 (ii), IN vc ORDER (2026-09-14), EACH ITS OWN COMMIT, THE WORD REQUEST AFTER ITS FULL RUN, AND THE REPORT SENT IN THE TURN THAT LANDS.** 0338 (i): organize and st hydrate carry bytes, text or the opaque blob, and a blob that cannot be loaded is a refusal naming the path, never \"hydrated\"; the contract rows stay open on 0338 naming hv. Then 0377 (NoCache on the canon registration, measured on one board commit) and 0331 comments half. 0321 is held for hv (the log stamp against D42). An attach in a worktree starts with an unscoped sync --to-store from the worktree build. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.",
       "state": "live",
       "recorded_at": "2026-09-14T21:06:45.595Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 5,
+      "text": "**0338 (ii) NOT STARTED IN CODE: wt-cc is clean on 48d78bc65 (contains 31e6cd78e), every read done, vc go at M.** Plan, in order. (1) Tests phase alone: intentfiles_grammar.rs gains a_retired_marker_line_is_refused_with_its_line (\"# BEGIN INTENT\" or \"# END INTENT\" between two entries refuses as NotAnEntry at line 2, remedy naming D57-9); it compiles on the base, where the markers raise the region errors instead, so it is red there. (2) Src: intentfiles.rs loses BEGIN_MARKER/END_MARKER, Region, Entry.region, Manifest::pinned()/generated(), UnopenedRegion/NestedRegion/UnclosedRegion with their line() and remedy arms. parse refuses an exact marker line as NotAnEntry, whose remedy drops \"a BEGIN/END marker\" and says the markers were retired with the two-region design (D57-9). pin early-returns on entries.iter().any and APPENDS its line. Module doc \"Two regions\" becomes one flat list; the doc at intentfiles.rs ~500-660 about pinned/generated regions changes with it. (3) Fixtures: remove whole lines \"# BEGIN INTENT\"/\"# END INTENT\" in multi-line consts (organize_five_rows, organize_preview_polarity, edit_prints_a_path_that_exists, realisation_is_recorded, facade_hydrate, lifecycle_verbs_edit_the_list, dehydration_ship_gate MANIFEST) and the inline \"# BEGIN INTENT\\n# END INTENT\\n\" substrings (organize_idempotent_mtime:34, dehydration_ship_gate:696, write_path_canon_always:67/157/264, organize_moment_of_act_digest:138, legacy_leftovers:277, text_realisation:184, migrator_population_is_canon:102, view_skew_check:294, organize_attachment_divergence:25/28, realisation_is_recorded:260, lifecycle:516, pin_writes:98). (4) Rewrite by hand: grammar valid_lines/the_valid_manifest_parses (no pinned/generated counts, no region assert), delete unbalanced_markers_are_refused_with_their_line, every_error_variant_is_exercised drops the three marker arms, comments_are_inert drops the BEGIN/END_MARKER lines and the Region in shape (keep the \"# BEGIN INTENT is a marker; this is not\" comment line); facade_hydrate is_pinned uses entries; pin_writes: STARTING flat, delete pinning_an_artefact_already_present_still_pins_it, order from entries excluding ST0056, module doc; unpin: BOTH_REGIONS flat, rename the generated-region test to removing an entry leaves its neighbours, drop the markers-survive assertion, round trip holds because pin appends; organize_five_rows a_pinned_declaration_realises_exactly_as_a_generated_one becomes a commented and a bare entry both realising. (5) ST0057 design.md line ~289 \"AS BUILT, THIS RULING IS NOT YET CARRIED OUT\" becomes as-built, landed with ST0057 canon: worktree sync --to-store FIRST, then st attach, stop if anything beyond ST0057.json moves. (6) cargo check workspace before the full run; red run; full intentsvcs, intent-cli, intentd; clippy; rustfmt; the word request. Scratch: g343.py is the pattern.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:12:47.962Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 36,
+      "text": "**2026-09-14 LESSONS, EACH COST A STOP.** (a) A worktree store is disposable and usually stale: an st attach from a worktree build projects everything that store renders differently (53 files once). Start with an unscoped sync --to-store from the worktree build, confirm git status shows only your files, then attach, and stop if anything beyond the one canon moves. (b) A landing symbol check must survive rustfmt: grep a short token such as `ThreadWithheld {`, never a whole struct line rustfmt may split. A failed check after an apply leaves main dirty, so prove main diff equals the judged patch, then git apply -R. (c) A test red on the base must COMPILE on the base: assert on Display text, not on a variant the fix adds. (d) Scripts: `${1:?word}` with an apostrophe in the word opens a quote to end of file; zsh treats a bare `====` separator as a command, so use echo \"--\". (e) A moved-since-base guard excludes .intentfiles, a register every landing edits; its exact diff against HEAD is checked instead. (f) vc: a turn that lands something ends with its report sent.",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:12:58.513Z"
     }
   ],
   "messages": [
