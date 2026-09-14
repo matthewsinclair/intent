@@ -137,6 +137,23 @@ pub fn is_thread_id(name: &str) -> bool {
       .all(|b| b.is_ascii_digit())
 }
 
+/// Is this a thing a board can claim: a steel thread, or one of its work
+/// packages?
+///
+/// **ONE HOME FOR EVERY DOOR THAT ADMITS A CLAIM.** `wb claim` asks it of a
+/// value typed at the verb and `wb migrate` of a value read off a board's
+/// header, and a second spelling at either door would be the one that admits
+/// what the other refuses. The thread half is [`is_thread_id`], not a second
+/// spelling of it.
+pub fn is_claim_address(claim: &str) -> bool {
+  match claim.split_once('/') {
+    None => is_thread_id(claim),
+    Some((thread, seq)) => {
+      is_thread_id(thread) && seq.len() == 2 && seq.chars().all(|c| c.is_ascii_digit())
+    }
+  }
+}
+
 /// The canonical id for the nth issue.
 ///
 /// **THE COUNTERPART [`thread_id`] HAS ALWAYS HAD, AND THE ASYMMETRY WAS THE

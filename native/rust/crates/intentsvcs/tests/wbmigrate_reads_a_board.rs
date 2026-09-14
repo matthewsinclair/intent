@@ -294,3 +294,37 @@ fn a_rendered_board_reads_back_without_carrying_its_empty_sections() {
     "and the sentinel is not a unit the source offered"
   );
 }
+
+#[test]
+fn a_claim_the_verb_would_refuse_is_named_with_the_form_it_takes() {
+  // Issue 0383: claims were carried verbatim, including forms `wb claim` refuses.
+  let board = BOARD.replace(
+    "claims: [ST0069/02, ST0069/14]",
+    "claims: [ST0069/02, ST0112/WP-07, the whole thread]",
+  );
+  let read = wbmigrate::read_board("dc", &board, "intent/whiteboard/dc/wip.md");
+  assert_eq!(
+    read.claims,
+    vec!["ST0069/02"],
+    "only an address the verb takes is carried"
+  );
+  let refused: Vec<&wbmigrate::Uncarried> = read
+    .uncarried
+    .iter()
+    .filter(|u| u.reason.starts_with("not a claim address"))
+    .collect();
+  assert_eq!(refused.len(), 2, "each refused claim is named: {refused:?}");
+  assert!(
+    refused
+      .iter()
+      .any(|u| u.text == "ST0112/WP-07" && u.reason.contains("`ST0112/07` here"))
+      && refused
+        .iter()
+        .all(|u| u.at == "intent/whiteboard/dc/wip.md:9"),
+    "with the address the verb takes, where the header said it: {refused:?}"
+  );
+  assert!(
+    read.reconciles(),
+    "and counted, so the reconciliation holds"
+  );
+}

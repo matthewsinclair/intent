@@ -5837,24 +5837,6 @@ impl Facade {
     Ok((carried, sections, uncarried))
   }
 
-  /// Is this a thing a board can claim: a steel thread, or one of its work
-  /// packages?
-  ///
-  /// **IT DELEGATES THE THREAD HALF RATHER THAN RE-SPELLING IT.**
-  /// [`crate::model::is_thread_id`] is the one answer to what a thread id looks
-  /// like, and a second regex here would be the copy that drifts when the
-  /// prefix changes.
-  fn is_claim_address(claim: &str) -> bool {
-    match claim.split_once('/') {
-      None => crate::model::is_thread_id(claim),
-      Some((thread, seq)) => {
-        crate::model::is_thread_id(thread)
-          && seq.len() == 2
-          && seq.chars().all(|c| c.is_ascii_digit())
-      }
-    }
-  }
-
   /// Move one of the acting node's live items to archived, and say whether it
   /// moved.
   ///
@@ -5899,7 +5881,7 @@ impl Facade {
   /// `wb register` and `wb clear` already answer to.
   pub fn wb_claim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
     self.require_migrated(node)?;
-    if !Self::is_claim_address(claim) {
+    if !crate::model::is_claim_address(claim) {
       return Err(FacadeError::WbClaimMalformed {
         claim: claim.to_string(),
       });

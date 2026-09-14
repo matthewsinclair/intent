@@ -167,7 +167,7 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
     Some("active") => Some(WbNodeStatus::Active),
     _ => None,
   };
-  out.claims = field("claims")
+  let claims: Vec<String> = field("claims")
     .map(|v| {
       v.trim_start_matches('[')
         .trim_end_matches(']')
@@ -177,6 +177,38 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
         .collect()
     })
     .unwrap_or_default();
+  // **A CLAIM `wb claim` WOULD REFUSE IS NOT CARRIED** (vc, ruled 2026-09-14).
+  // The verb admits only an address the board can point at, so carrying any
+  // other spelling would put in the column a value no command could have
+  // written. It is named with the form the verb takes, and counted, so the
+  // reconciliation still accounts for every unit the header offered.
+  // Issue 0383: claims were carried verbatim, and `ST0112/WP-07` reached a board `wb claim` refuses.
+  let claims_line = wip_md
+    .lines()
+    .take(header_end + 1)
+    .position(|l| l.starts_with("claims: "))
+    .map_or(1, |i| i + 1);
+  for claim in claims {
+    if crate::model::is_claim_address(&claim) {
+      out.claims.push(claim);
+      continue;
+    }
+    let spelled = claim
+      .split_once("/WP-")
+      .map(|(thread, seq)| format!("{thread}/{seq}"))
+      .filter(|address| crate::model::is_claim_address(address))
+      .map(|address| format!(" -- `{address}` here"))
+      .unwrap_or_default();
+    out.source_items += 1;
+    out.uncarried.push(Uncarried {
+      at: format!("{file}:{claims_line}"),
+      reason: format!(
+        "not a claim address: `wb claim` takes a thread as `ST0000` or a work package as \
+         `ST0000/01`{spelled}"
+      ),
+      text: claim,
+    });
+  }
 
   // The body, section by section. Blocks are separated by blank lines; a block
   // opening with `- ` yields one item per TOP-LEVEL bullet, and any other block
