@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 391,
+  "slug": "devbin-s-log-wrapper-cannot-be-declined-project",
+  "title": "devbin's log wrapper cannot be declined project-side: every value of log: wraps, and the - sentinel is scoped to the catalogue's value",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "Raised upstream on hv's ruling of 2026-09-14 (relayed by laksa-vc), filed by vc at 2026-09-14 17:03Z.\n\ndevbin's log wrapper cannot be declined project-side. dc's four-value sweep in Laksa (2026-09-12, recorded in Laksa's `intent/whiteboard/vc/.history/20260914/inbox.dc-premigration.md`): `log:` absent inherits the catalogue row and wraps; `log: false` is the non-empty string `false` and wraps; `log: \"\"` is empty, so the catalogue fallback reinstates the suffix and wraps (the fallback is deliberate: a project overriding a gate's `run:` without declaring `log:` would otherwise silently stop sealing); `log: \"-\"` is non-empty, so it skips the fallback and wraps anyway with the suffix `-`, because the `[ \"$log_suffix\" = \"-\" ]` mapping sits inside the fallback branch and applies only to what `builtin_option_suffix` returns, the catalogue's value and never the project's.\n\nFix, vendored in Laksa's `lib/resolve` as one line: honour an explicit project-side `-` BEFORE the fallback. The fallback protects a project that forgot to declare `log:`; an explicit sentinel is not forgetting. Upstream home: `bin/.devbin/lib/resolve`. Laksa's config.yaml carries the sweep inline as the record. Lane: dc.\n"
+}
