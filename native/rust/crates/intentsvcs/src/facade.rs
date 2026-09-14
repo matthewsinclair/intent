@@ -8959,10 +8959,7 @@ impl Facade {
       id: ac.to_string(),
       text: text.to_string(),
       kind,
-      state: match kind {
-        AcKind::Test => AcState::Computed {},
-        AcKind::NonTest => AcState::Unsatisfied { note: None },
-      },
+      state: AcState::entry(kind),
     };
     let body = serde_json::to_string(&row).map_err(|e| FacadeError::WriteNotAddressable {
       url: format!("intent:///threads/{st}/ac/{ac}"),
@@ -11140,11 +11137,14 @@ impl Facade {
       }
       AddrEntity::Ac { thread, ac } => {
         let existing = find_criterion_mut(&mut next, thread, ac)?;
-        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+        let Some(mut row) = Self::splice_one_field(existing, field, value, &refuse)? else {
           return Ok(Outcome::AlreadyThere {
             state: "unchanged".to_string(),
           });
         };
+        if field == "kind" && !row.state.permitted_for(row.kind) {
+          row.state = Self::rekinded_state(ac, &row, &refuse)?;
+        }
         *existing = row;
         (
           "ac.set",
@@ -11237,6 +11237,41 @@ impl Facade {
   /// second field moved. Going out to `Value` and back means the before and
   /// after are directly comparable, so limb 2 is checked on every single call
   /// rather than asserted about the code by a reader.
+  /// **THE STATE A CRITERION TAKES WHEN ITS KIND FLIPS UNDER IT** (issue 0346).
+  ///
+  /// `set <ac> kind` wrote the kind and kept the state, so a `computed` row
+  /// flipped to `non-test` became the pair `AcState::permitted_for` forbids:
+  /// doctor refused the canon and `ac satisfy` refused the row, leaving it stuck.
+  /// A state the new kind cannot hold re-enters at `AcState::entry`, which is
+  /// the state a criterion of that kind is created in -- but only where nothing
+  /// is lost. A recorded satisfaction or an unsatisfied note has no home on a
+  /// test-backed criterion, so those flips are refused with the verb that
+  /// clears them, rather than dropped without a word.
+  fn rekinded_state(
+    ac: &str,
+    row: &Criterion,
+    refuse: &dyn Fn(&str, String) -> FacadeError,
+  ) -> Result<AcState, FacadeError> {
+    match &row.state {
+      AcState::Computed {} | AcState::Unsatisfied { note: None } => Ok(AcState::entry(row.kind)),
+      AcState::Satisfied { .. } => Err(refuse(
+        "kind",
+        format!(
+          "{ac} is satisfied, and a test-backed criterion's satisfaction is computed rather than recorded -- \
+           reopen it with `intent ac unsatisfy` first, then set its kind"
+        ),
+      )),
+      AcState::Unsatisfied { note: Some(note) } => Err(refuse(
+        "kind",
+        format!(
+          "{ac} carries the note `{note}`, and a test-backed criterion has nowhere to keep it -- \
+           record it elsewhere and clear it with `intent ac edit` first, then set its kind"
+        ),
+      )),
+      other => Ok(other.clone()),
+    }
+  }
+
   fn splice_one_field<T>(
     current: &T,
     field: &str,

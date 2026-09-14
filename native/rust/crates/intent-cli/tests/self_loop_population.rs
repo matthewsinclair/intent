@@ -88,6 +88,10 @@ use intentsvcs::transitions;
 /// excuse an absent row. Every entry here names rows that EXIST.
 const FANS_OUT: &[(&str, &[&str])] = &[
   ("at.set", &["at green", "at red", "at na"]),
+  // `Criterion.kind`'s edge (issue 0346). The verb is `ac.set` because that is
+  // the op `intent set` records on a criterion, and the row is `set` because
+  // that is the command: one generic door, with the address naming the field.
+  ("ac.set", &["set"]),
   ("ac.fc", &["fc"]),
   ("at.fc", &["fc"]),
   // **THE THIRD AND FOURTH MACHINES, ARRIVING AS THEIR EDGES LANDED** (dc,

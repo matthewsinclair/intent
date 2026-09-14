@@ -489,12 +489,22 @@ pub const FIELDS: &[Field] = &[
   Field {
     entity: "Criterion",
     field: "kind",
-    disposition: Disposition::Unbuilt {
-      note: "test-backed against non-test. Converting one to the other when its test gets written is ordinary workflow and currently needs a hand-edit",
-      // The note already names the hand-edit, which IS the trap: `legacy.rs`
-      // decides the kind on the way in, so every criterion in the estate holds
-      // a value authored canon chose and no verb can revise.
-      entry: Entry::Authored,
+    // **BUILT BY ISSUE 0346, AND IT IS `set`'s EDGE.** `intent set <ac> kind`
+    // wrote this field and left the state, which made a `computed` row flipped
+    // to `non-test` the pair `AcState::permitted_for` forbids. The flip now
+    // re-enters the state at `AcState::entry` where nothing is lost, and
+    // refuses a satisfied or noted row with the verb that clears it
+    // (`Facade::rekinded_state`). Converting a criterion when its test gets
+    // written is ordinary workflow, and it no longer needs a hand-edit.
+    disposition: Disposition::State {
+      initial: &["test", "non-test"],
+      edges: &[
+        // From any value, which is what makes this the trivial machine
+        // `data-model.md` ratifies in prose: any value, one verb, any value.
+        Edge::direct("ac.set", &[], "test"),
+        Edge::direct("ac.set", &[], "non-test"),
+      ],
+      orphans: &[],
     },
   },
   Field {

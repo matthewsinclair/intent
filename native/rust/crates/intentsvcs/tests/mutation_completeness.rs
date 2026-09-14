@@ -1028,6 +1028,26 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       // there is no state in which the pair can disagree.
       state_name_of(&c.state).to_string()
     }
+    ("Criterion", "kind") => {
+      let fx = Fixture::new();
+      // Issue 0346. The criterion is authored at `from` in the state that kind
+      // is created in, so every flip starts from a legal pair and the walk
+      // measures the edge rather than a fixture the model would refuse.
+      let kind: AcKind = parse(from);
+      fx.write_thread(&thread_with(|t| {
+        t.criteria[1].kind = kind;
+        t.criteria[1].state = AcState::entry(kind);
+      }));
+      let id = thread_with(|_| {}).criteria[1].id.clone();
+      let mut facade = fx.facade();
+      let address = intentsvcs::address::parse(&format!("intent:///threads/{ST}/ac/{id}"))
+        .expect("the criterion's address resolves");
+      let outcome = facade
+        .set(&address, "kind", serde_json::json!(edge.to))
+        .expect("set kind");
+      assert_movement(entity, field, edge, from, outcome);
+      enum_str(&criterion(&facade).kind).to_string()
+    }
     ("Issue", "status") => {
       let fx = Fixture::new();
       // **The fixture's issue is authored at `from`, and the number is 21 rather
@@ -1493,13 +1513,20 @@ const RATIFIED: &[RatifiedMachine] = &[
 /// guard has stopped being "any value, one verb, any value" and needs a table --
 /// and that test is what says so, rather than the machine quietly becoming
 /// non-trivial with nothing comparing it to anything.
-const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[(
-  "WorkPackage",
-  "scope",
-  "data-model.md: \"six T-shirt values, all six initial ... with `wp rescope` the single exit. \
+const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[
+  (
+    "WorkPackage",
+    "scope",
+    "data-model.md: \"six T-shirt values, all six initial ... with `wp rescope` the single exit. \
      The reasoning lives in the code comment; it does not need a table because the graph is 'any \
      value, one verb, any value'.\"",
-)];
+  ),
+  (
+    "Criterion",
+    "kind",
+    "data-model.md: \"Criterion.kind: test and non-test, both initial, with `intent set <ac> kind` the single edge between them; the state re-enters at AcState::entry, where nothing is lost, and a satisfied or noted criterion refuses the re-kind naming the verb that clears it. No table: any value, one verb, any value.\"",
+  ),
+];
 
 /// Machines with NO undeclared (verb, state) pair, declared with the reason.
 ///

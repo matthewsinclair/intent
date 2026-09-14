@@ -4845,6 +4845,7 @@ Walk the index scope and rewrite what the index holds, then report it
 - **Flags:**
   - `--from` `<file>` (string) -- Read the value from a file, for prose that spans lines
     - **disposition:** keep
+- **no op:** `ok: <address> already unchanged`, exit 0 -- driven 2026-09-14 through the delivered 3.0.3 pair (ic, issue 0346): a criterion's text set to the value it already held, then its kind set to the kind it already had, each printed that line at rc 0. `set` joins `populations.self_loop` because `Criterion.kind` became a machine whose single edge is this door (vc's ruling B).
 - **rulings:**
   - `0.state`: ratified
   - `0.authority`: vc

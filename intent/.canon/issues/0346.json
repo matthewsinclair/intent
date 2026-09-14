@@ -3,9 +3,10 @@
   "number": 346,
   "slug": "set-ac-kind-non-test-leaves-state-computed-which",
   "title": "set <ac> kind non-test leaves state computed, which is illegal for a non-test criterion",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "`intent set <ac> kind non-test` leaves the criterion's state `computed`, illegal for a non-test row, and only withdraw-then-reinstate moves it. Surfaced at the 3.0.1 cut. It is the re-kind half of the finding courses-vc reported on 2026-09-13 (a migration that wrote v2 non-test rows as kind test, filed beside this one): the flip has no verb that leaves a legal state behind. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "`intent set <ac> kind non-test` leaves the criterion's state `computed`, illegal for a non-test row, and only withdraw-then-reinstate moves it. Surfaced at the 3.0.1 cut. It is the re-kind half of the finding courses-vc reported on 2026-09-13 (a migration that wrote v2 non-test rows as kind test, filed beside this one): the flip has no verb that leaves a legal state behind. Carried in `intent/wip.md` until 2026-09-13.\n\n\n**CLOSED 2026-09-14 16:12Z (ic, on vc's batch order).** Fixed in the commit carrying this note. `intent set <ac> kind` now leaves a legal pair: a state the new kind cannot hold re-enters at `AcState::entry` (a computed criterion flipped to non-test lands unsatisfied, a noteless unsatisfied one flipped to test lands computed), and a satisfied or noted criterion is refused naming the verb that clears it (`Facade::rekinded_state`). `ac new` takes its entry state from the same `AcState::entry`. `Criterion.kind` moved from Unbuilt to a State machine ratified in prose in `data-model.md` (vc's wording), and `set` joined `populations.self_loop` with its driven no-op line. Reproduced first with the delivered 3.0.3 pair: the flip landed `(non-test, computed)`, doctor refused the canon, and `ac satisfy` was refused. Proved by `rekinding_a_criterion_re_enters_its_state.rs`.\n"
 }

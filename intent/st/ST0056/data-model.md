@@ -247,6 +247,8 @@ Measured on this repository's own corpus (vc, 2026-08-15, on cc's WP-06 finding)
 
 **Replaces the pre-ratification `scope` object + `satisfied: bool?` pair** (2026-08-15). The ratified Machine 3 collapses two fields into one enum, which is what kills "three stored values, two meanings, one never written" by construction.
 
+**RATIFIED IN PROSE (vc, 2026-09-14, issue 0346):** Criterion.kind: test and non-test, both initial, with `intent set <ac> kind` the single edge between them; the state re-enters at AcState::entry, where nothing is lost, and a satisfied or noted criterion refuses the re-kind naming the verb that clears it. No table: any value, one verb, any value.
+
 #### The JSON form differs by AC kind, and `kind` is the discriminator (ruling, vc, 2026-08-15)
 
 **Asked by cc before cutting the collapse, which is the cheap moment.** Two candidate forms were put to me: an **absent `state` key** on a test-backed AC (smaller diff), or a **discriminated shape** where the absence is structural. **Ruled: discriminated, on `kind`.** Three grounds, and the first is decisive on its own.

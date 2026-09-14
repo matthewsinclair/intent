@@ -245,6 +245,7 @@ MACHINE_MAP='
 # the document is where it has to be defended.
 UNTABLED='
 WorkPackage scope
+Criterion kind
 '
 
 # COMPUTED, never transcribed: this line used to read "the four ratified

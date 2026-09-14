@@ -282,6 +282,8 @@ mod mutation_roundtrip_complete;
 mod nav_is_the_shared_path_contract;
 #[path = "no_function_takes_a_time.rs"]
 mod no_function_takes_a_time;
+#[path = "rekinding_a_criterion_re_enters_its_state.rs"]
+mod rekinding_a_criterion_re_enters_its_state;
 #[path = "rules_validate_reaches_an_ext_pack.rs"]
 mod rules_validate_reaches_an_ext_pack;
 #[path = "search_answers_one_envelope.rs"]

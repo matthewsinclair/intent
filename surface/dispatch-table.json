@@ -9705,6 +9705,7 @@
       "acceptance": null,
       "target": {
         "state": "new-surface",
+        "no_op": "`ok: <address> already unchanged`, exit 0 -- driven 2026-09-14 through the delivered 3.0.3 pair (ic, issue 0346): a criterion's text set to the value it already held, then its kind set to the kind it already had, each printed that line at rc 0. `set` joins `populations.self_loop` because `Criterion.kind` became a machine whose single edge is this door (vc's ruling B).",
         "ratification": "vc, 2026-09-11, ruling option (1) of ic's design for 0154 + 0185 together: one scriptable door over `Facade::set` rather than per-family flags, because `intent edit` prints or opens a PATH, a different concern from writing a model field, and per-family flags would be two surfaces for one model door. Spelled `set` under vc's pen and reported to hv; a rename before the cut is this one row.",
         "behaviour": "Writes one field through `Facade::set` and reports what moved. Every refusal is the facade's own: an unknown field names the fields the entity will set, an unsettable one names the verb that writes it, and a value that does not re-parse is refused by name. Writing the value the field already holds reports `already` and writes nothing.",
         "rulings": [
@@ -10572,6 +10573,7 @@
       "fc",
       "issues close",
       "issues open",
+      "set",
       "st cancel",
       "st done",
       "st hold",
