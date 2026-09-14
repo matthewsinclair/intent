@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T21:13:09.688Z",
-    "status": "active",
-    "focus": "Landed today after the compact: 0376 c2eb98ac1, 0326+0363 a9106f647, 0364 5ac835392, 0351 fbef01a1b, 0349 closed 485cbd967, 0378 88c426163, 0347 c3b61e707, ST0058/ST0066 unlisted 01c996197, 0343+0367 31e6cd78e. LOCALFOLDED for the user compact: 0338 (ii) planned in full on the board (doing), not yet written, wt-cc clean on 48d78bc65; then 0338 (i), 0377, 0331 comments; 0321 held for hv. NO RELEASE, NO PUSH.",
+    "heartbeat_at": "2026-09-14T22:01:20.175Z",
+    "status": "paused",
+    "focus": "FOLDED FOR THE DAY 2026-09-14: 0338 (ii) BANKED, landing on tomorrow's matched control of the index arm, wt-cc as judged on d2491639b; then 0338 (i), 0377, 0331 comments, 0375; 0321 held for hv. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/06",
       "ST0056/10"
@@ -64,7 +64,8 @@
       "kind": "watchout",
       "seq": 1,
       "text": "**LEANED 2026-09-12 06:07Z ON hv's INSTRUCTION.** One line each, and only what bears on work in front of cc. The families whose subject is gone or which a guard now enforces -- population and denominator, one name two artefacts, the unfelt claim, the reachable-but-unread artefact, canon past the daemon's ingest, folding this board, counting a migration's blast radius -- are in `.history/20260912/wip-prelean-0606Z.md` with their full text. Read them there before arguing with one.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:39:42.889Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -105,7 +106,8 @@
       "kind": "watchout",
       "seq": 6,
       "text": "**`cargo test --workspace` STOPS AT THE FIRST FAILING TARGET**, so a run with one red measures nothing after it -- I claimed a green twice today over a suite the run never reached, with a real red behind it. `--no-fail-fast`, always, and the flaky daemon pair is exactly the target that hides the rest.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:39:52.737Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -113,7 +115,8 @@
       "kind": "watchout",
       "seq": 7,
       "text": "**`alone` MEANS ONE TEST TARGET, NOT AN IDLE HOST.** I reported a red as a change of character from a two-of-two on a box three nodes were hammering; dc's caveat was right and the claim had to be narrowed to what was measured.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:03.910Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -121,7 +124,8 @@
       "kind": "watchout",
       "seq": 8,
       "text": "**`cargo test -p intent-cli` DOES NOT BUILD `intentd`, AND THE DAEMON TESTS SPAWN IT FROM THE TARGET DIR.** In a target dir that has never built the sibling it is ABSENT, not stale, and 37 tests across daemon, web, graphql, routing and edit-and-browse fail deterministically at any load. `cargo build -p intentd` first, then the suite: 614 passed, 0 failed. **This is not the load-sensitive daemon family** -- that is a real and separate thing, three arms, dc's characterisation. A stable 37 means a missing precondition; a moving two or three means the box.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:15.654Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -129,7 +133,8 @@
       "kind": "watchout",
       "seq": 9,
       "text": "**A `tail -n` ON A FAILURES BLOCK IS A SILENT NARROWING, AND I READ ONE AS A COMPLETE LIST.** `tail -40` cut three names off a 37-name block; comparing that against a later full capture produced a \"composition shift\" I reported to vc as the signature of a load-flaky family. The set was IDENTICAL every run -- deterministic, not flaky -- which is the opposite character. Capture a failures block WHOLE, or say the capture was bounded when quoting it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:24.906Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -137,7 +142,8 @@
       "kind": "watchout",
       "seq": 10,
       "text": "**`git stash` IS A REPOSITORY-WIDE STACK, INCLUDING FROM A WORKTREE.** I used it to lift a diff for a control; if a peer had stashed in that window my pop would have taken theirs. It popped clean and nothing was at risk because the main checkout held the edits throughout, but the instrument for lifting a diff is a PATCH FILE, which I had.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:36.276Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -145,7 +151,8 @@
       "kind": "watchout",
       "seq": 11,
       "text": "**\"MEASURED\" MUST NOT DRIFT INTO \"PROVEN TO RUN\"** (dc, on my own Local table). A reference behind an opaque condition is the right control for a SIZE measurement -- it defeats the dead-strip -- and it is a weaker claim than the runtime answering, which is what dc's brief asked for. The table says reached-and-not-executed and must keep saying it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:44.654Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -153,7 +160,8 @@
       "kind": "watchout",
       "seq": 12,
       "text": "**A SCHEMA BUMP MIGRATES THE WORKTREE'S OWN STORE, AND REVERTING THE BUMP STRANDS IT.** Building at `SCHEMA_VERSION` 24 migrated `wt-cc/intent/.cache/intent.db` to 24; reverting to 23 left the binary refusing its own store, which surfaced as THIRTY red daemon tests that read exactly like the absent-sibling signature and were nothing of the kind. There is no downgrade rung by design. Delete the worktree's cache and let it rebuild. The live store was untouched and still read 23, which is the isolation rule doing its job.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:40:55.394Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -161,7 +169,8 @@
       "kind": "watchout",
       "seq": 13,
       "text": "**NEVER RESERIALISE `surface/dispatch-table.json`; INSERT TEXTUALLY.** A `json.dumps` round trip to add two rows reformatted unrelated entries, re-escaped `\\u0027` back to `'`, and moved a whole `daemon restart` row -- 127 insertions against 60 deletions for a 31-line addition. The register keeps its own formatting and is never run through a reformatter. Its generator also refuses a hand-edited `populations` block and compares ORDER, and it refuses an idempotent verb withheld from MCP unless `recoverability_anomaly` says why.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:05.727Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -169,7 +178,8 @@
       "kind": "watchout",
       "seq": 14,
       "text": "**schemars LIFTS `///` INTO THE PUBLISHED FACE, so a criterion id in a doc comment SHIPS.** `no_pm_state_in_output` caught this twice in one commit -- first in the DDL comments, which are published in `ddl.sql`, then again in `board.schema.json` after I had fixed the first. A consumer holding that face has no AC to look up. Ids belong in `//` comments, which do not ship.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:18.063Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -177,7 +187,8 @@
       "kind": "watchout",
       "seq": 15,
       "text": "**THE GATE REFUSES UNFORMATTED MARKDOWN AND THE DAEMON RE-INGESTS THE FORMATTED BYTES UNDER YOUR STAGE.** A refused commit, `prettier --write`, and the canon went `MM` while my index already held the old bytes. Settle past the ingest, then re-stage; committing the half you had is the failure available here.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:27.503Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -185,7 +196,8 @@
       "kind": "watchout",
       "seq": 16,
       "text": "**`git apply -3` IMPLIES `--index`, SO IT STAGES INTO THE SHARED INDEX, AND ITS PER-FILE LINES ARE NARRATION RATHER THAN EVIDENCE.** It prints `Applied patch to '<file>' cleanly.` for every file on `--check` and on a run that then REFUSES, so a `tail -3` of them says nothing about whether anything landed -- I read three and believed an apply that had not happened, which is my own truncation watch-out arriving from a new direction. Worse in a shared tree: for a minute my arms and a peer's uncommitted work were in one file, and either side's `commit --only` would have swept the other's in invisibly. **Check the TREE for a symbol you know you added**, and back out with `git apply -R` rather than by unstaging anything of theirs.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:36.973Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -193,7 +205,8 @@
       "kind": "watchout",
       "seq": 17,
       "text": "**`git commit --only <paths>` TAKES THE WORKING TREE, so a path a peer is mid-commit on is not yours to name.** Find out WHOSE it is and wait; do not stash, unstage or reset around it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:47.438Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -201,7 +214,8 @@
       "kind": "watchout",
       "seq": 18,
       "text": "**A NUMBER DEFENSIBLE IN A SENTENCE IS WHAT A MEASUREMENT IS A CORRECTIVE TO** (ic, on my 2000-byte bound). I picked it as \"a long paragraph\" against the 32KB inbox in the design; ic parsed the 45 entries the bound would actually govern -- median 2423, 28 over 2000 -- so it refused the MEDIAN case. **A bound is set from the corpus it governs, and the setting records which corpus and when it was read.** The failure it would have caused is not one anybody debugs: a node finding mid-report that its escalation will not fit, whose cheapest way out is to say less.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:41:58.883Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -209,7 +223,8 @@
       "kind": "watchout",
       "seq": 19,
       "text": "**CHECK WHICH OF TWO CITATIONS IS RIGHT BEFORE MAKING THEM AGREE.** Asked to reconcile two `basis` spellings, both turned out wrong: `ST0069 design.md` says of ITSELF that it is the search leg and that this leg keeps its inherited design elsewhere, and the directory I then cited holds no `design.md`. Agreement is not correctness.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:42:09.630Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -217,7 +232,8 @@
       "kind": "watchout",
       "seq": 20,
       "text": "**A REGISTER THAT VALIDATES IS NOT A SURFACE THAT EXISTS.** Both `wb` rows were inserted textually inside the WRONG family's `entries[]`, and every arm of the generator passed -- the census, the pair count, the populations, the vocabularies -- because each reads ROWS and the rows were well-formed. `families` did not move, so the shape assertion passed too. The binary refused: `intent wb --help` said `unrecognized subcommand 'wb'`, because `spine::build` names a family's clap command from `family.name`. Textual insertion is the rule for that file and is also how a row lands in the wrong parent. **Type the command.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:42:19.518Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -225,7 +241,8 @@
       "kind": "watchout",
       "seq": 21,
       "text": "**`cargo test` DOES NOT CHECK FORMATTING, SO A GREEN SUITE IS NOT A COMMITTABLE TREE.** 2530 tests passed and the gate then refused four unformatted Rust files. `rustfmt --edition 2024` on the named files, rebuild, re-run the arms that touch them, re-issue the SAME command.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:42:31.404Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -233,7 +250,8 @@
       "kind": "watchout",
       "seq": 22,
       "text": "**`git add` LOSES THE LOCK RACE TOO, AND ITS FAILURE SURFACES DOWNSTREAM AS SOMETHING ELSE.** A retry loop that classifies only the COMMIT's output reads the add's silent failure as `pathspec 'x' did not match any file(s) known to git` and stops on what looks like a real refusal. Retry the add and the commit as ONE unit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:42:41.539Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -241,7 +259,8 @@
       "kind": "watchout",
       "seq": 23,
       "text": "**A CLAIM NAMES THE ARTEFACT IT EXAMINED AND THE INSTRUMENT THAT READ IT**, and a green counts only beside a red the same instrument produced.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:42:52.697Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -249,7 +268,8 @@
       "kind": "watchout",
       "seq": 24,
       "text": "**A CLOCK VALUE COMES FROM A `date -u` READ IN THIS TURN.** Boards are guarded; messages and file names are not -- I mis-stamped a banked file this morning and renamed it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:04.850Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -257,7 +277,8 @@
       "kind": "watchout",
       "seq": 25,
       "text": "**A PEER CHANNEL'S WRITE IS NOT ITS DELIVERY.** An ask carries its terminating condition, and a CODE-WRONG goes to vc rather than into my own diff.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:13.419Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -265,7 +286,8 @@
       "kind": "watchout",
       "seq": 26,
       "text": "**AN ARM ON AN IN-MEMORY STORE CANNOT SEE A DEFECT THAT LIVES IN THE OPEN PATH.** AC-14.8's facade arm was green while `intent search` found nothing: the next process's open erased the board sections, `load_fresh` held no boards, and `board.json` answered as a file. Measure through the surface the criterion names, on a store that outlives the facade.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:22.085Z",
       "recorded_at": "2026-09-13T10:24:35.658Z"
     },
     {
@@ -273,7 +295,8 @@
       "kind": "watchout",
       "seq": 27,
       "text": "**AFTER A THREE-WAY APPLY THE LANDING PATCH IS `git diff HEAD`.** The apply stages into the worktree's index, so a bare `git diff` is empty and the landing refused with \"no valid patches\"; a new file needs `git add -N` before it shows at all.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:30.365Z",
       "recorded_at": "2026-09-13T10:24:35.659Z"
     },
     {
@@ -281,7 +304,8 @@
       "kind": "watchout",
       "seq": 28,
       "text": "**`reset --hard` KEEPS UNTRACKED FILES.** A script's new test file survived onto the next base without its `suite.rs` line, and `no_orphan_suite_member` refused it; a red that names a file outside the change is residue, and the file says so.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:38.122Z",
       "recorded_at": "2026-09-13T10:24:35.659Z"
     },
     {
@@ -289,7 +313,8 @@
       "kind": "watchout",
       "seq": 29,
       "text": "**`Failure::Unavailable` EXITS 2, WHICH A GATE READS AS FAIL-OPEN.** A refusal that is a plain no is `Failure::Error`, exit 1; the CLI drive caught the first build of the register form getting this wrong.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:46.705Z",
       "recorded_at": "2026-09-13T10:24:35.659Z"
     },
     {
@@ -323,7 +348,8 @@
       "kind": "watchout",
       "seq": 30,
       "text": "**A RULE CHANGE APPLIED TO MAIN BEFORE ITS COMMIT BLOCKS EVERY NODE.** The gate reads its guards from the working copy, so while the stamp ruling sat applied and uncommitted, arm 6c of shared_artefact_build_guard.sh, which pinned the reversed rule, refused dc's and ic's commits too. Find the guard that pins the old rule before applying, and land both in one commit. And a parity tool under intent/st/ is a thread ATTACHMENT: the daemon ingests the edit into canon, and that canon lands in the same commit or canon-commit refuses.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:43:53.448Z",
       "recorded_at": "2026-09-13T13:17:19.831Z"
     },
     {
@@ -357,7 +383,8 @@
       "kind": "watchout",
       "seq": 31,
       "text": "**A SAMPLE CANNOT TELL A THREAD BLOCKED IN A WAIT FROM ONE SPINNING THROUGH IT.** Both show the same leaf in every sample, so the hot thread is named by ps -M CPU per row, and an inlined frame is resolved by disassembling the binary whose UUID matches the sample's Binary Images line (dwarfdump --uuid, then objdump at the return address), not by symbol names.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:44:00.542Z",
       "recorded_at": "2026-09-13T15:56:45.594Z"
     },
     {
@@ -392,7 +419,8 @@
       "kind": "watchout",
       "seq": 32,
       "text": "**CONCURRENT intent WRITES REFUSE ON database is locked AND CHANGE NOTHING, AND A RACING SIBLING CAN PRINT overwrote bytes that were not the store's render.** A batch of set / ac edit calls against a store other nodes are writing lost a third of its writes to the lock. Re-issue only the writes whose canon still differs from the draft, then check canon against every draft past the ingest and diff the canon against HEAD for fields nobody meant to touch.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:44:07.433Z",
       "recorded_at": "2026-09-13T16:35:47.953Z"
     },
     {
@@ -489,7 +517,8 @@
       "kind": "watchout",
       "seq": 34,
       "text": "**A LOCAL DAEMON PROBE NAMES A COST; A THREAD CENSUS DOES NOT.** 0355's touch cost was attributed to a watcher thread by ps -M creation order and was the store thread, off by one; a probe-only timing line per handler and per refresh stage named replace_sections_for in one run. Run it from wt-cc's release build under an isolated HOME on a separate worktree, with XDG_RUNTIME_DIR from mktemp -d, because a socket under the scratchpad is past SUN_LEN and the daemon exits at bind. Kit: scratchpad/probe-run.sh, probe-instrument.py.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:44:14.232Z",
       "recorded_at": "2026-09-14T09:41:48.669Z"
     },
     {
@@ -532,7 +561,8 @@
       "kind": "decision",
       "seq": 3,
       "text": "vc, 2026-09-14, on 0376: A TORN ROLLBACK STAYS AN ERROR. The rc 0 warning is only for views that are stale and whole (not written, still the previous render). When the WriteSet unwind itself fails (WriteError::TornRollback), the verb returns Err: the message says the store write landed and names the torn files, and the remedy is the one that rewrites them. Two states, two reports. Also ruled: the note carries the cause chain whole, and ViewsNotWritten remedy is the one home for the re-render sentence.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:44:28.485Z",
       "recorded_at": "2026-09-14T16:33:16.886Z"
     },
     {
@@ -567,7 +597,8 @@
       "kind": "todo",
       "seq": 5,
       "text": "**AFTER 0338 (ii), IN vc ORDER (2026-09-14), EACH ITS OWN COMMIT, THE WORD REQUEST AFTER ITS FULL RUN, AND THE REPORT SENT IN THE TURN THAT LANDS.** 0338 (i): organize and st hydrate carry bytes, text or the opaque blob, and a blob that cannot be loaded is a refusal naming the path, never \"hydrated\"; the contract rows stay open on 0338 naming hv. Then 0377 (NoCache on the canon registration, measured on one board commit) and 0331 comments half. 0321 is held for hv (the log stamp against D42). An attach in a worktree starts with an unscoped sync --to-store from the worktree build. Landing rule: issues edit (whole body + dated CLOSED note), close, organize --apply, own paths only, .intentfiles checked exact.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T22:00:34.714Z",
       "recorded_at": "2026-09-14T21:06:45.595Z"
     },
     {
@@ -575,7 +606,8 @@
       "kind": "doing",
       "seq": 5,
       "text": "**0338 (ii) NOT STARTED IN CODE: wt-cc is clean on 48d78bc65 (contains 31e6cd78e), every read done, vc go at M.** Plan, in order. (1) Tests phase alone: intentfiles_grammar.rs gains a_retired_marker_line_is_refused_with_its_line (\"# BEGIN INTENT\" or \"# END INTENT\" between two entries refuses as NotAnEntry at line 2, remedy naming D57-9); it compiles on the base, where the markers raise the region errors instead, so it is red there. (2) Src: intentfiles.rs loses BEGIN_MARKER/END_MARKER, Region, Entry.region, Manifest::pinned()/generated(), UnopenedRegion/NestedRegion/UnclosedRegion with their line() and remedy arms. parse refuses an exact marker line as NotAnEntry, whose remedy drops \"a BEGIN/END marker\" and says the markers were retired with the two-region design (D57-9). pin early-returns on entries.iter().any and APPENDS its line. Module doc \"Two regions\" becomes one flat list; the doc at intentfiles.rs ~500-660 about pinned/generated regions changes with it. (3) Fixtures: remove whole lines \"# BEGIN INTENT\"/\"# END INTENT\" in multi-line consts (organize_five_rows, organize_preview_polarity, edit_prints_a_path_that_exists, realisation_is_recorded, facade_hydrate, lifecycle_verbs_edit_the_list, dehydration_ship_gate MANIFEST) and the inline \"# BEGIN INTENT\\n# END INTENT\\n\" substrings (organize_idempotent_mtime:34, dehydration_ship_gate:696, write_path_canon_always:67/157/264, organize_moment_of_act_digest:138, legacy_leftovers:277, text_realisation:184, migrator_population_is_canon:102, view_skew_check:294, organize_attachment_divergence:25/28, realisation_is_recorded:260, lifecycle:516, pin_writes:98). (4) Rewrite by hand: grammar valid_lines/the_valid_manifest_parses (no pinned/generated counts, no region assert), delete unbalanced_markers_are_refused_with_their_line, every_error_variant_is_exercised drops the three marker arms, comments_are_inert drops the BEGIN/END_MARKER lines and the Region in shape (keep the \"# BEGIN INTENT is a marker; this is not\" comment line); facade_hydrate is_pinned uses entries; pin_writes: STARTING flat, delete pinning_an_artefact_already_present_still_pins_it, order from entries excluding ST0056, module doc; unpin: BOTH_REGIONS flat, rename the generated-region test to removing an entry leaves its neighbours, drop the markers-survive assertion, round trip holds because pin appends; organize_five_rows a_pinned_declaration_realises_exactly_as_a_generated_one becomes a commented and a bare entry both realising. (5) ST0057 design.md line ~289 \"AS BUILT, THIS RULING IS NOT YET CARRIED OUT\" becomes as-built, landed with ST0057 canon: worktree sync --to-store FIRST, then st attach, stop if anything beyond ST0057.json moves. (6) cargo check workspace before the full run; red run; full intentsvcs, intent-cli, intentd; clippy; rustfmt; the word request. Scratch: g343.py is the pattern.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T22:00:24.911Z",
       "recorded_at": "2026-09-14T21:12:47.962Z"
     },
     {
@@ -583,8 +615,41 @@
       "kind": "watchout",
       "seq": 36,
       "text": "**2026-09-14 LESSONS, EACH COST A STOP.** (a) A worktree store is disposable and usually stale: an st attach from a worktree build projects everything that store renders differently (53 files once). Start with an unscoped sync --to-store from the worktree build, confirm git status shows only your files, then attach, and stop if anything beyond the one canon moves. (b) A landing symbol check must survive rustfmt: grep a short token such as `ThreadWithheld {`, never a whole struct line rustfmt may split. A failed check after an apply leaves main dirty, so prove main diff equals the judged patch, then git apply -R. (c) A test red on the base must COMPILE on the base: assert on Display text, not on a variant the fix adds. (d) Scripts: `${1:?word}` with an apostrophe in the word opens a quote to end of file; zsh treats a bare `====` separator as a command, so use echo \"--\". (e) A moved-since-base guard excludes .intentfiles, a register every landing edits; its exact diff against HEAD is checked instead. (f) vc: a turn that lands something ends with its report sent.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T21:44:21.290Z",
       "recorded_at": "2026-09-14T21:12:58.513Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 6,
+      "text": "**0375, LAST, AFTER 0338 (ii), 0338 (i), 0377 AND 0331 COMMENTS (vc, ruled at the fold).** At S: a sixth WbItemKind `directive`, legal on hv only (`wb add directive --node hv`; any other node refuses naming hv and the protocol's `## Standing directives` section). Views render it under `## Standing directives` on hv's board only. `wb migrate hv` carries the section's lines as directive items; a non-hv board carrying the section refuses at migrate naming it. A fold never archives a directive. No DDL (kind has no CHECK). Register rows: the kind's value row and `wb add`'s roster row. in-whiteboard SKILL.md hv section names the kind and verb, through the skill's own canon path. Close note names the Laksa follow-up (laksa-vc re-carries hv's seven directives).",
+      "state": "live",
+      "recorded_at": "2026-09-14T21:29:08.497Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 7,
+      "text": "**0338 (ii) BANKED, NOT LANDED (2026-09-14).** Patch scratchpad/0338ii-banked-d2491639b.patch, wt-cc left exactly as judged on d2491639b. Judged: red arm on base; intentsvcs 1635/0; intent-cli 932/0; clippy and rustfmt clean; guarded worktree sync-then-attach (only the 12 inbox renders restored, ST0057 canon diff attachment-only); intentd 50/1 on a_source_edit_reaches_the_index_and_costs_canon_nothing (vc's matched-control test) at load 344, so it did not land under vc's fully-green rule. Kit: 0338ii-land.sh, commit-0338ii.txt, 0338ii-note.txt (0338 stays OPEN with a dated (ii) note). TOMORROW'S FIRST ACT (vc, 2026-09-14): the matched control, as the index's owner: the arm alone on the base and on the banked tree, same host state, one run each, no third. (ii) lands on its result, with a fresh full run only if a code file moved under it.",
+      "state": "live",
+      "recorded_at": "2026-09-14T22:00:44.894Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 8,
+      "text": "**THEN, IN vc ORDER, EACH ITS OWN COMMIT, THE WORD REQUEST AFTER ITS FULL RUN, THE REPORT SENT IN THE LANDING TURN.** 0338 (i): organize and st hydrate carry bytes, text or the opaque blob, and an unloadable blob is a refusal naming the path, never hydrated; the contract rows stay open on 0338 naming hv. Then 0377 (NoCache on the canon registration, measured on one board commit), 0331's comments half, and 0375 (its ruled shape is the todo below). 0321 held for hv (the log stamp against D42).",
+      "state": "live",
+      "recorded_at": "2026-09-14T22:00:54.884Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 37,
+      "text": "**2026-09-14 LESSONS, EACH COST A STOP.** (a) NO STORE WRITE DURING A LANDING WINDOW WITHOUT vc's WORD, AND NEVER A RETRY LOOP ON database is locked: cc's wb loops held the store against ic's 0307 closure and dc's 0393 chain; one attempt, report, wait; a stop lifts on its named word, not on a condition that looks met. (b) A worktree store is disposable and stale: unscoped sync --to-store from the worktree build first, then st attach, restoring only whiteboard inbox renders and stopping on anything else. The claimed-stamp heading difference is expected (vc): 0382 renders through a worktree build while the committed files came from the delivered 3.0.3 pair, and the re-render is one mechanical commit after the next build all. (c) no_pm_state_in_output refuses internal ids (ST0057, and keep D57-9 out too) in any shipped string literal, remedies included; doc comments are not scanned. (d) A red arm must COMPILE on its base: assert on Display text or an existing variant. (e) A leftover-code grep uses -F: an unescaped .generated() matched fn generated(). (f) A landing symbol check greps a short token rustfmt cannot split. (g) Scripts: no apostrophe inside ${1:?word}; zsh runs a bare ==== as a command.",
+      "state": "live",
+      "recorded_at": "2026-09-14T22:01:04.117Z"
     }
   ],
   "messages": [
