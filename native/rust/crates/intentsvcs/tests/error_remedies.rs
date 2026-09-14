@@ -998,6 +998,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::FileOnANonTestRow { .. } => "FileOnANonTestRow",
     FacadeError::Install(_) => "Install",
     FacadeError::RootFile(_) => "RootFile",
+    FacadeError::Canon(_) => "Canon",
     FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
     FacadeError::NoFormForEntity { .. } => "NoFormForEntity",
     FacadeError::EntityUnserialisable { .. } => "EntityUnserialisable",
@@ -1094,6 +1095,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Realise",
   "Install",
   "RootFile",
+  "Canon",
   "RecordMovedUnderTheWrite",
   "WbNodeNotRegistered",
   "WbBodyOverBound",
@@ -1177,6 +1179,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // texts themselves are read by no test yet, which is stated rather than
   // implied by a citation that could not go red.
   "RootFile",
+  // `Canon` reaches the facade through `claude_upgrade` alone (0351), and only
+  // when the WORLD refuses: a template in the install unreadable, or a project
+  // path unwritable. Like `RootFile`, a property of the filesystem rather than
+  // of the call.
+  "Canon",
   // **DECLARED BY ic, NOT BY ITS AUTHOR, AND THEY SHOULD OVERTURN IT IF IT IS
   // WRONG.** The variant landed in HEAD without this arm, so the workspace did
   // not compile for any node; the arm is mechanical and the exemption is the

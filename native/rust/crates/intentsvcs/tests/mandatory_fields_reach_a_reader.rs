@@ -201,6 +201,8 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // behind either to carry to a reader.
     | FacadeError::Install(_)
     | FacadeError::RootFile(_)
+    // 0351: canon's apply, the same install-or-filesystem fault as the two above.
+    | FacadeError::Canon(_)
     // Issue 0206's refusal. It reports that the RECORD moved, so there is no
     // field the caller failed to supply -- the remedy is to re-run, not to
     // make a fuller call.

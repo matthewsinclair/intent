@@ -1467,6 +1467,10 @@ pub enum FacadeError {
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
+  /// `intent claude upgrade`'s canon apply failed, once the verb reached the
+  /// facade (0351). By message: `CanonError` carries no `source` chain.
+  #[error("could not apply canon: {0}")]
+  Canon(crate::canon::CanonError),
 }
 
 /// What [`Facade::wb_migrate`] carried off one node's board, and what it would
@@ -1992,6 +1996,17 @@ impl crate::remedy::Remedy for FacadeError {
       Self::Intentfiles(cause) => cause.remedy(),
       Self::Install(cause) => cause.remedy(),
       Self::RootFile(cause) => cause.remedy(),
+      Self::Canon(cause) => match cause {
+        crate::canon::CanonError::Unreadable { path, .. } => format!(
+          "check that {} is readable, then re-run `intent claude upgrade --apply`",
+          path.display()
+        ),
+        crate::canon::CanonError::Unwritable { path, .. } => format!(
+          "check that {}'s directory is writable, then re-run `intent claude upgrade --apply`; what it already wrote is canonical, so the re-run converges",
+          path.display()
+        ),
+        crate::canon::CanonError::RootFile(_) => "a root-file template in the Intent install could not be rendered; restore the install's `lib/templates/`, then re-run `intent claude upgrade --apply`".to_string(),
+      },
       // **THE REMEDY THIS REPLACES STATED hv's RULE BACKWARDS, AND IT WAS THE
       // FIRST MESSAGE A NEW v3 PROJECT SHOWED ANYBODY** (AC-04.7 arm (c)). It
       // read *"an absent manifest declares nothing, so `organize` would read
@@ -3932,6 +3947,65 @@ impl Facade {
   /// generated content is a services concern (vc ruling (c), 2026-08-30).
   pub fn agents_validate(&self) -> crate::rootfiles::AgentsValidation {
     crate::rootfiles::validate(self.project.root())
+  }
+
+  /// `intent agents sync` and `intent agents init` -- write `AGENTS.md` from
+  /// current project state and record it in the file index, in one act.
+  ///
+  /// **THE WRITER INDEXES WHAT IT WRITES** (issue 0351). Written by the CLI
+  /// alone, the file reached disk and not the index, so a running daemon's
+  /// canon watch read the rewrite as an external edit and ingested it.
+  pub fn agents_sync(&mut self) -> Result<std::path::PathBuf, FacadeError> {
+    let path = crate::rootfiles::generate(
+      self.project.root(),
+      "AGENTS.md",
+      self.project.config(),
+      &self.ctx.version,
+    )?;
+    self.record_written(std::slice::from_ref(&path))?;
+    Ok(path)
+  }
+
+  /// `intent claude upgrade` -- apply canon, then record in the file index
+  /// what it wrote into the corpus the index covers, in one act (0351). A dry
+  /// run writes nothing, so it records nothing.
+  pub fn claude_upgrade(
+    &mut self,
+    git_hooks: Option<&std::path::Path>,
+    opts: crate::canon::Options,
+  ) -> Result<crate::canon::Applied, FacadeError> {
+    let home = crate::install::home()?;
+    let ctx = RenderContext {
+      version: &self.ctx.version,
+      todo_watermark: None,
+    };
+    let applied = crate::canon::apply(
+      self.project.root(),
+      &home,
+      self.project.config(),
+      &ctx,
+      git_hooks,
+      opts,
+    )
+    .map_err(FacadeError::Canon)?;
+    if !opts.report {
+      self.record_written(&applied.written)?;
+    }
+    Ok(applied)
+  }
+
+  /// Record in the file index what a writer outside the projection put on
+  /// disk, keeping only the paths the canon corpus covers
+  /// ([`crate::sync::Scanned::includes`]): canon also writes hooks and
+  /// settings the index holds no row for.
+  fn record_written(&mut self, written: &[std::path::PathBuf]) -> Result<(), FacadeError> {
+    let scope = crate::sync::Scanned::for_root(self.project.root());
+    let paths: Vec<std::path::PathBuf> = written
+      .iter()
+      .filter(|path| scope.includes(path))
+      .cloned()
+      .collect();
+    ingest::record_canon_files(&self.project, &mut self.store, &paths).map_err(FacadeError::Ingest)
   }
 
   /// Re-read committed canon and rebuild the store from it -- `intent sync`.

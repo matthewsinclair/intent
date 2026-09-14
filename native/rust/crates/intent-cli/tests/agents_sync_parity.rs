@@ -586,3 +586,66 @@ fn the_four_rule_index_is_byte_identical_in_every_template_that_carries_it() {
     "the extracted index should be exactly four bullets: {first_block}"
   );
 }
+
+/// The file index's sha for a root file, and the sha of the bytes on disk.
+fn indexed_and_on_disk(root: &Path, name: &str) -> (Option<String>, String) {
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let store = intentsvcs::store::Store::open(&project.db_path()).expect("the store opens");
+  let indexed = store
+    .file_index()
+    .expect("the file index reads")
+    .into_iter()
+    .find(|entry| entry.path == name)
+    .map(|entry| entry.sha256);
+  let bytes = std::fs::read(root.join(name)).expect("the root file is on disk");
+  (indexed, intentsvcs::model::sha256_hex(&bytes))
+}
+
+/// **THE WRITER INDEXES WHAT IT WRITES** (issue 0351). `agents sync` put
+/// `AGENTS.md` on disk and not in the index, so a running daemon's canon watch
+/// read the rewrite as an external edit and ingested it.
+#[test]
+fn agents_sync_records_the_file_it_wrote_in_the_index() {
+  // A declared language changes what AGENTS.md renders, so this sync writes
+  // bytes the index has not seen. Without it the sync rewrites the bytes init
+  // already indexed, and the lag cannot show.
+  let (dir, _) = synced();
+  let config = dir.path().join("intent/.config/config.json");
+  let text = std::fs::read_to_string(&config).expect("read config");
+  let mut value: serde_json::Value = serde_json::from_str(&text).expect("config is json");
+  value["languages"] = serde_json::json!(["rust"]);
+  std::fs::write(&config, value.to_string()).expect("write config");
+  let before = std::fs::read(dir.path().join("AGENTS.md")).expect("AGENTS.md before");
+  let (out, rc) = run(dir.path(), &["agents", "sync"]);
+  assert_eq!(rc, 0, "agents sync: {out}");
+  assert_ne!(
+    std::fs::read(dir.path().join("AGENTS.md")).expect("AGENTS.md after"),
+    before,
+    "precondition: the declared language changed what AGENTS.md renders"
+  );
+  let (indexed, on_disk) = indexed_and_on_disk(dir.path(), "AGENTS.md");
+  assert_eq!(
+    indexed.as_deref(),
+    Some(on_disk.as_str()),
+    "the index describes the AGENTS.md `agents sync` wrote"
+  );
+}
+
+/// Issue 0351's other writer: `claude upgrade --apply` rewrites the root files
+/// canon owns, and the index has to describe the bytes it left.
+#[test]
+fn claude_upgrade_records_the_root_file_it_wrote_in_the_index() {
+  let dir = unsynced();
+  std::fs::write(dir.path().join("AGENTS.md"), "stale\n").expect("a stale AGENTS.md");
+  let (out, rc) = run(
+    dir.path(),
+    &["claude", "upgrade", "--apply", "--skip-settings"],
+  );
+  assert_eq!(rc, 0, "claude upgrade --apply: {out}");
+  let (indexed, on_disk) = indexed_and_on_disk(dir.path(), "AGENTS.md");
+  assert_eq!(
+    indexed.as_deref(),
+    Some(on_disk.as_str()),
+    "the index describes the AGENTS.md canon rewrote: {out}"
+  );
+}

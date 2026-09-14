@@ -27,7 +27,6 @@ use intentsvcs::nav;
 use intentsvcs::output::{Format, Output};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
-use intentsvcs::views;
 use intentsvcs::wire::{self, Op, Request, Response, ThreadSummary};
 
 /// Everything a rendered failure says. The facade's own rendering already
@@ -10145,15 +10144,9 @@ fn claude_cwi(m: &ArgMatches) -> Result<(), Failure> {
 /// writes into a project's `.claude/`, its root canon and its pre-commit hook;
 /// a verb that does that on a bare invocation is one nobody can explore safely.
 fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
-  let f = open()?;
+  let mut f = open()?;
   let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
-  let ctx = views::RenderContext {
-    version: env!("CARGO_PKG_VERSION"),
-    // Root files only; `todo.md` is not rendered here.
-    todo_watermark: None,
-  };
-  let root = f.project().root();
-  let hooks = intentsvcs::canon::hooks_dir(root);
+  let hooks = intentsvcs::canon::hooks_dir(f.project().root());
   // **ONE COMPUTATION, TWO RENDERINGS** (issue `0115`). The dry run used to
   // print canon's ROSTER -- every file canon covers, headed "would apply" --
   // which is byte-identical whether every file is stale or none is, so the
@@ -10161,19 +10154,18 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // runs the same `canon::apply` with writes suppressed, and the verdicts are
   // the ones `--apply` would reach.
   let report = !m.get_flag("apply");
-  let applied = intentsvcs::canon::apply(
-    root,
-    &home,
-    f.project().config(),
-    &ctx,
-    hooks.as_deref(),
-    intentsvcs::canon::Options {
-      force: m.get_flag("force"),
-      skip_settings: m.get_flag("skip-settings"),
-      report,
-    },
-  )
-  .map_err(|e| Failure::Error(e.to_string()))?;
+  // Issue 0351: canon wrote the root files and the file index never learned of them, so a running daemon read them back as an edit.
+  let applied = f
+    .claude_upgrade(
+      hooks.as_deref(),
+      intentsvcs::canon::Options {
+        force: m.get_flag("force"),
+        skip_settings: m.get_flag("skip-settings"),
+        report,
+      },
+    )
+    .map_err(fail)?;
+  let root = f.project().root();
 
   if report {
     println!(
@@ -11846,7 +11838,7 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("sync", _)) => {
-      let f = open()?;
+      let mut f = open()?;
       // **THIS VOICE IS v2's AND IT IS NOT TIDIED.** A bare capitalised progress
       // line with a trailing ellipsis, then a line carrying a full stop -- both
       // against the house style issue 0023 spent a release enforcing, both
@@ -11862,13 +11854,8 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // half (vc ruling (c), 2026-08-30). `intentsvcs::init` is now a third
       // caller and cannot see this crate at all, so the composition had to
       // live below both of us.
-      intentsvcs::rootfiles::generate(
-        f.project().root(),
-        "AGENTS.md",
-        f.project().config(),
-        env!("CARGO_PKG_VERSION"),
-      )
-      .map_err(|e| Failure::Error(e.render()))?;
+      // Issue 0351: the file index learns of the file in the same act.
+      f.agents_sync().map_err(fail)?;
       println!("ok: AGENTS.md updated at project root.");
       Ok(())
     }
@@ -11879,7 +11866,7 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     // and the v3 surface dropped it, which makes `sync` the only path that
     // rewrites a file somebody may have edited.
     Some(("init", _)) => {
-      let f = open()?;
+      let mut f = open()?;
       let path = f.project().root().join("AGENTS.md");
       if path.exists() {
         return Err(Failure::Error(format!(
@@ -11892,13 +11879,8 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // canonical form is how the two start disagreeing about trailing bytes --
       // and that is now literally one function rather than two call sites
       // agreeing by inspection.
-      intentsvcs::rootfiles::generate(
-        f.project().root(),
-        "AGENTS.md",
-        f.project().config(),
-        env!("CARGO_PKG_VERSION"),
-      )
-      .map_err(|e| Failure::Error(e.render()))?;
+      // Issue 0351: the file index learns of the file in the same act.
+      f.agents_sync().map_err(fail)?;
       println!("ok: AGENTS.md created at project root.");
       Ok(())
     }

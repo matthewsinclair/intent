@@ -3,9 +3,10 @@
   "number": 351,
   "slug": "an-ingest-rewrites-agents-md-and-claude-md-witho",
   "title": "An ingest rewrites AGENTS.md and CLAUDE.md without updating file_index in the same step",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "dc, 2026-09-12, found while widening the watcher: the index lags its own writer for the root files. On the leaf path it is masked by byte-identity (the rewrite is byte-identical and the write set skips it), and the two-registration ruling means no reconcile meets it, so it was a finding for the 3.0.2 cut and not a fix. The fix is the writer indexing what it writes before it releases. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "dc, 2026-09-12, found while widening the watcher: the index lags its own writer for the root files. On the leaf path it is masked by byte-identity (the rewrite is byte-identical and the write set skips it), and the two-registration ruling means no reconcile meets it, so it was a finding for the 3.0.2 cut and not a fix. The fix is the writer indexing what it writes before it releases. Carried in `intent/wip.md` until 2026-09-13.\n\nCLOSED 2026-09-14 18:38Z: The body named the wrong writer. No ingest rewrites AGENTS.md or CLAUDE.md: the ingest door projects through views::render_all, which emits no root file, and indexes what it lands. The writers that left the index behind were the CLI's: `intent claude upgrade --apply` (canon::apply) and `intent agents sync` and `agents init` (rootfiles::generate). Under a running daemon the canon watch then read their rewrite as an external edit, which is what dc saw. Both now go through the facade, which writes and records in the file index in one act: Facade::claude_upgrade and Facade::agents_sync record what they wrote, keeping only the paths the canon corpus covers (sync::Scanned::includes), since canon also writes hooks and settings the index has no row for. A dry run records nothing. Every door is reached through a facade with its store open, so there is no store-less case to skip (vc's ruling allowed a skip; nothing reaches one). FacadeError::Canon carries canon's failure, with a remedy per kind. Fixed in the commit that closes this issue.\n"
 }
