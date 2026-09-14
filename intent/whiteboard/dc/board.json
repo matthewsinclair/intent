@@ -551,7 +551,8 @@
       "kind": "doing",
       "seq": 22,
       "text": "**2026-09-14T07:26Z: BUILD DONE for this tree; the FLEET SWEEP and the ~/.intent removal are BLOCKED on hv's permission in this session.** The suite ran once on base e3c67792c: 14 targets, 2588 passed, 0 failed, 2 ignored. build all promoted the pair: intent 4bf350861a34de09, intentd bfc5254c52dcd9d9. The migration ran at promotion from an intent call that was not dc's. The pointer is now ~/.local/share/intent/home and names the project. This tree's carrier is refreshed (the dry run showed only the gitignored carrier; --where gives OK). Intent.app build 7030 is installed. intentd is pid 79593 under ~/.local/state/intent/run. doctor: rc 0, 0 findings. BLOCKED: this session's permission classifier refused (a) sweep.sh apply over scratchpad sweep/list.txt (discover's 22 plus Courses/002, Intentv2 excluded) and (b) moving ~/.intent (evidence/ only, 5 files) out of HOME, which hv ruled via vc. Neither is split or run from another session. Until the sweep runs, the 10 shim estates refuse commits. Laksa and Gtools carriers are tracked, and each is owed a commit after the sweep. ON hv's PERMISSION: run the sweep, send the table to vc, vc relays sweep done to laksa-vc; then remove ~/.intent and report ls absent. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T07:38:46.216Z",
       "recorded_at": "2026-09-14T07:26:05.924Z"
     },
     {
@@ -562,6 +563,14 @@
       "state": "archived",
       "archived_at": "2026-09-14T07:34:31.260Z",
       "recorded_at": "2026-09-14T07:28:27.072Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 23,
+      "text": "**2026-09-14T07:38Z: FINAL PRE-TAG REBUILD COMPLETE, and the FLEET SWEEP HAS RUN (hv ran it in dc's session, 07:37Z).** Promoted pair e3c67792c (intent 4bf350861a34de09, intentd bfc5254c52dcd9d9), Intent.app build 7030, intentd pid 79593, doctor 0 findings, pointer at ~/.local/share/intent/home. ~/.intent was removed by hv's hand and is absent. SWEEP: 23 estates, all rc 0, 0 held or refused, every --where OK; Intentv2 excluded. 20 estates also got tracked CLAUDE.md and AGENTS.md rewritten (canon catch-up), so each owes its owner a commit. The tracked carriers are owed commits by Gtools and Laksa. Table sent to vc; evidence in scratchpad sweep/apply/. Suite also green on a8e3273d8 (ic /issues); vc ruled no fresh build all. WAITING: vc relays sweep done to laksa-vc. The next promotion is the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T07:38:47.373Z"
     }
   ],
   "messages": [
