@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "e089236a-72ea-4b23-87e7-c318ef8f0ac5",
-    "heartbeat_at": "2026-09-14T14:46:14.969Z",
+    "heartbeat_at": "2026-09-14T14:50:52.600Z",
     "status": "active",
-    "focus": "v3.0.3 SHIPPED at 46599d145 (v3.0.2 superseded, never published). Post-ship: hv's three items (brew unlink and pin, v3.0.2 annotation, stranger-machine install), rulings on 0356 to 0389, ic's Console thread, the explorer TUI list. 0355 closed on the live verdict; fleet on current carriers; Laksa migrated. Lanes idle except ic. NO RELEASE, NO PUSH.",
+    "focus": "LOCALFOLDED for hv's compact after v3.0.3 shipped (46599d145). Keg unlinked, not pinned; daemon 58916 on the dev-tree pair under the watch. ON THE BOUNCE: the issue triage table for hv (72 open of 368, 71 from the last four days' audits and cutovers; rulings by family), then hv's items (brew pin, v3.0.2 annotation, stranger-machine install), ic's Console thread, the explorer TUI list. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
