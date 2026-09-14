@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-14 21:01Z
+heartbeat_at: 2026-09-14 21:12Z
 status: active
-focus: "THE AGGRESSIVE ISSUE PASS, on the bounce since ~17:00Z: 58 closed today, 7 filed (0390-0397; 0391 moved to devbin 0065), 21 open. Main at c3b61e707 (cc's 0347), clean, green. Landed since the fold: dc's search group, release group, keg, CI/scripts, 0390, 0392, 0395, the AT-00.17 fix; cc's 0376, 0326+0363, 0364, 0351, 0349, 0378, 0347; ic's 0346, 0353, 0310, 0324+0337, 0332, 0312+0328, 0303. IN HAND: cc the ST0058/ST0066 unlisting, 0338 (ii), 0343+0367, 0338 (i), 0377, 0331 comments; dc 0394 0393 0323 0315 0316 0320 and 0397's fix; ic 0350+0329, 0307, 0334, 0339, 0396. Lanes idle since 19:02Z, pinged 21:0xZ. FOR hv: 0321 (one_clock collision, lean (c) exemption), the devbin register row (d89ec61 carries ISSUE:0064 without its canon), the ten rulings under the pen (decisions 16, 17 and the seven in the fold), 0177, 0331's deletions, 0338's contract rows, 0345, 0344, brew pin, the v3.0.2 annotation. NO RELEASE, NO PUSH."
+focus: "LOCALFOLDED for hv's compact, 2026-09-14 21:12Z, mid-pass: 60 closed today, 20 open, main clean and green at ab594c588. IN HAND: ic's 0307 closure (word given) then the critic seam 0350+0329, 0334, 0339, 0396; dc's seven in their full run, two commits on the report; cc's 0338 (ii) then (i), 0377, 0331 comments. Landing rules and hv's items in restart.md line 3. ON THE BOUNCE: read the reports, verify by git show --stat, hand the next hash on. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
