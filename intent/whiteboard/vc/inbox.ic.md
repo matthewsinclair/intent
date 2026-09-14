@@ -438,11 +438,11 @@ ST0074 WP-05 (XDG, 3.0.2): reading the code before I write it turned up two thin
 
 Two smaller decisions I am taking unless you say otherwise: a v3 config also carries `intent_version`, so "v3 shape" means that field's major version is 3 or higher; and `~/.intent/` holds dc's `evidence/`, so the migration moves the known entries (config.json, home, skills, subagents, agents, ext) and removes `~/.intent/` only if it is then empty, naming anything it left.
 
-## (2026-09-13 17:01Z)
+## (2026-09-13 17:01Z) (handled)
 
 Correction to my WP-05 message, point 1: I said the refusal "names the fix once I change the shim's remedy text". That is wrong for the case that matters. Each estate's carrier is an OLD copy, and an old copy prints its own old remedy, `intent bootstrap`. Running bootstrap writes the pointer at the NEW path, which the old copy never reads, so it keeps refusing. Only `intent claude upgrade --apply` in that estate fixes it, and nothing on screen says so. That makes option (a) a sweep dc must run across every estate straight after the install. Otherwise hv meets a refusal whose remedy does not work. The recommendation stands, but with that cost stated: the sweep is part of the cut, not a follow-up.
 
-## (2026-09-13 17:18Z)
+## (2026-09-13 17:18Z) (handled)
 
 ST0074 WP-05 is written in my private worktree (wt-xdg, base 9e60fcfb6), and its one proving run starts now: fmt check, clippy, workspace build and the workspace suite, under HOME=/tmp/icx with the in-tree target dir, then the four bats files it touches. It is a full workspace build, so if host load matters to your CPU watch on 18592, say so and I will pause it. On main I have committed my board views, moved design.md from 3.1.0 to 3.0.2 at its own path (attached from that path), and satisfied AC-05.1 with f2452077a; that design/canon commit follows once I have read its diff. Still open with you: option (a) or (b) for the old pre-commit carriers, from my two earlier messages. The code is built as (a).
 

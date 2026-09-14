@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-14 06:53Z
+heartbeat_at: 2026-09-14 07:06Z
 status: active
-focus: "LOCALFOLDED for hv's compact. 0354 FIXED and closed on 363b18db1 (daemon 87652 idle). Final pre-tag rebuild HELD before build all on base 013f5da81 (suite green) pending hv's rulings, bundled in restart.md: 0355 (cc's three-file cut green, held), the carrier sweep (intent claude upgrade --apply --skip-settings per estate after promotion, dc runs it), ic's five clippy lints before the tag, Laksa on the final pair, the picker's registry-file source, ~/.intent/evidence survives, a post-tag WP for carrier refresh, the tap push reminder. On the bounce: read hv's answers in this session, carry them to cc, ic and dc, then dc's sequence, the watch, Laksa, the cut. NO RELEASE, NO PUSH."
+focus: "hv's bundle ruled (crack on + rulings in ic's session): 0355 in, clippy in, fleet-wide carrier sweep by dc, picker file source accepted, ~/.intent to vanish (evidence moved), post-tag WP yes. TWO PERMISSION STOPS FOR hv: cc's 0355 commit prompt in cc's session; the sweep go typed in dc's session (vc's session refused to direct it). dc: suite on the new base then HOLD before build all. ic: clippy second, then the ~/.intent doc sweep, then the TUI fixes after build done. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,8 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- CUT: the delivered set is 9e60fcfb6 (intent 4ae769e8, intentd abacbc11, Intent.app 3.0.1 build 7001, doctor 0) under hv's one-stamp rule. ST0074 WP-05, WP-03 and WP-04 (ic, 3.0.2) land before the tag, so the set moves once more and dc rebuilds on their landing (suite, build all, app-install, daemon restart, doctor). Then hv at the terminal, nothing batched: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall. NO RELEASE, NO PUSH.
-- 0354 FIXED on the delivered pair 363b18db1 (intent 5b66b264, intentd 677b9c5b, Intent.app build 7013, doctor 0; daemon pid 87652 under vc's watch): the quiet-gated probe prices a directory event at 0.10 s and 43 thousand syscalls (was 9 s and millions) and a .git file at 0.03 s; the daemon idles. 0354 and 0366 close on it. Laksa released on the hash under hv's advance ratification. What the tree's busy periods still cost is 0355's debouncer walk (measured into 0355), for hv's pre-tag ruling. FOR hv: ic's WP-05 carrier question, every estate's old .git/hooks/pre-commit.intent reads ~/.intent/home, which the first 3.0.2 command moves, so those estates refuse commits until intent claude upgrade --apply runs in each; hv rules a sweep in dc's install sequence or ic's option (b).
+- CUT (3.0.2, hv at the terminal, nothing batched): delivered set 363b18db1 (intent 5b66b264, intentd 677b9c5b, Intent.app build 7013, doctor 0; daemon 87652 idle under vc's watch). hv's rulings carried: 0355 lands (cc, its commit waiting on hv's permission prompt in cc's session), ic's clippy lands second (13 lints, one commit), dc runs the suite once on that base then HOLDS before build all until hv authorises the fleet-wide carrier sweep in dc's session (vc's session refused to direct it; hv: 'fix those fleet-wide'); then build all, promotion, the sweep, ~/.intent/evidence moved so ~/.intent vanishes, app-install, daemon restart, doctor, hashes and pid to vc; vc re-arms the watch and probes once; ic then lands the ~/.intent doc sweep, then the explorer TUI fixes (/issues seam built and held), dc reruns the suite; Laksa when hv starts laksa-vc; then the cut. NO RELEASE, NO PUSH.
 
 ## TODO
 
