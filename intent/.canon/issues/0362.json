@@ -3,9 +3,10 @@
   "number": 362,
   "slug": "a-board-verb-can-return-before-its-views-are-re",
   "title": "a board verb can return before its views are re-rendered, so the commit after it carries the stale view",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "`intent wb pickup --node vc --focus \"...\"` at 2026-09-13 15:22Z reported ok and the store carried the new focus (`intent wb show vc` read it, heartbeat 15:22:55Z), but `intent/whiteboard/vc/wip.md` and `board.json` on disk still carried the previous focus: a `git add` of the two views in the same call found them unchanged, so the commit that was meant to carry the verb's views (087dc7c32) carried none. Two minutes later `intent wb touch --node vc` re-rendered both views with the 15:22Z focus. The live daemon was mid-0354 (bursts of one core in its store thread) at the time, which is the likely reason the render lagged, but the rule \"re-rendered views land in the verb's commit\" assumes the render is synchronous with the verb, and here it was not. Either the verb renders its own views before returning, or it says that the render is pending so the caller does not commit the stale view.\n"
+  "body": "`intent wb pickup --node vc --focus \"...\"` at 2026-09-13 15:22Z reported ok and the store carried the new focus (`intent wb show vc` read it, heartbeat 15:22:55Z), but `intent/whiteboard/vc/wip.md` and `board.json` on disk still carried the previous focus: a `git add` of the two views in the same call found them unchanged, so the commit that was meant to carry the verb's views (087dc7c32) carried none. Two minutes later `intent wb touch --node vc` re-rendered both views with the 15:22Z focus. The live daemon was mid-0354 (bursts of one core in its store thread) at the time, which is the likely reason the render lagged, but the rule \"re-rendered views land in the verb's commit\" assumes the render is synchronous with the verb, and here it was not. Either the verb renders its own views before returning, or it says that the render is pending so the caller does not commit the stale view.\n\n\n---\n\nCLOSED 2026-09-14 15:24Z (vc): not reproducible on the delivered 3.0.3 pair (46599d145, daemon 58916): intent wb touch --node vc had both views rewritten on disk in the same call (git diff: 2 files, 2 lines). The lag was observed under 0354's store spin with 0216's ingest revert still live; both are closed.\n"
 }

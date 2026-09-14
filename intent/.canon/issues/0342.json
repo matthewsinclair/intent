@@ -3,9 +3,10 @@
   "number": 342,
   "slug": "view-skew-rot-doctor-compares-the-generator-bann",
   "title": "View-skew rot: doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it, and the next preflight refuses again. Either doctor ignores the version stamp when comparing, or the stamp step re-renders every realised view (the schema-faces shape). A structural candidate; hv's to rule the shape. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "Doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it, and the next preflight refuses again. Either doctor ignores the version stamp when comparing, or the stamp step re-renders every realised view (the schema-faces shape). A structural candidate; hv's to rule the shape. Carried in `intent/wip.md` until 2026-09-13.\n\n\n---\n\nCLOSED 2026-09-14 15:24Z (vc): split and superseded: the doctor half (the banner comparison) closed with 0309's footer-only StaleRender class; the release half (the stamp step re-renders every realised view) is 0387.\n"
 }

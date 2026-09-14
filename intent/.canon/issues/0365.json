@@ -3,9 +3,10 @@
   "number": 365,
   "slug": "a-migrated-message-s-heading-renders-recorded-at",
   "title": "a migrated message's heading renders recorded_at, so the view loses when it was sent",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Reported by courses-vc on e70c3528a, possibly by design (D33): a migrated message's rendered heading carries its `recorded_at`, not the time it was sent. The entry Courses' vc sent to cc at 14:51Z renders as `## (2026-09-13 15:22Z)` in `cc/inbox.vc.md` after the migration; the sent time survives only as `authored_at` in `cc/board.json`. A reader of the view can no longer tell when a message was sent, and the heading is the anchor replies thread against, so a reply written before the migration now cites a stamp the view does not show. If D33 intends the heading to be the recorded time, the view should carry the authored time beside it; if not, the heading should render `authored_at`.\n"
+  "body": "Reported by courses-vc on e70c3528a, possibly by design (D33): a migrated message's rendered heading carries its `recorded_at`, not the time it was sent. The entry Courses' vc sent to cc at 14:51Z renders as `## (2026-09-13 15:22Z)` in `cc/inbox.vc.md` after the migration; the sent time survives only as `authored_at` in `cc/board.json`. A reader of the view can no longer tell when a message was sent, and the heading is the anchor replies thread against, so a reply written before the migration now cites a stamp the view does not show. If D33 intends the heading to be the recorded time, the view should carry the authored time beside it; if not, the heading should render `authored_at`.\n\n\n---\n\nCLOSED 2026-09-14 15:24Z (vc): duplicate of 0382, which names the same rendering (recorded_at in the heading, authored_at kept in the store) with the D33 ruling it needs. 0382 stays the record.\n"
 }
