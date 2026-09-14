@@ -236,6 +236,30 @@ fn an_authored_file_naming_a_bucket_path_is_reported_and_left_alone() {
   );
 }
 
+/// Issue 0364. **An archive is a record, not a pointer to reword**: the
+/// append-only guard refuses any change under `.history/`, so a worklist line
+/// there asks for an edit no commit can make.
+#[test]
+fn a_pointer_under_a_history_archive_is_not_on_the_worklist() {
+  let fx = Fixture::new();
+  bucketed(&fx);
+  let line = "The old design is at `intent/st/COMPLETED/ST0002/design.md`.\n";
+  fx.write_file("intent/whiteboard/cc/.history/20260913/wip.md", line);
+  fx.write_file("intent/docs/notes.md", line);
+  let canon = canon_with(vec![Attachment::new("design.md", DESIGN)]);
+
+  let named: Vec<String> = legacy::leftovers(&fx.project(), &canon)
+    .pointers
+    .iter()
+    .map(|p| fx.project().relative(&p.path))
+    .collect();
+  assert_eq!(
+    named,
+    vec!["intent/docs/notes.md".to_string()],
+    "the archived line is left off the worklist, and a live file naming the same path stays on it"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // AC-02.2: the two doors, and the refusal that stands in front of both
 // ---------------------------------------------------------------------------

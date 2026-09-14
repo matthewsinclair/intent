@@ -3,9 +3,10 @@
   "number": 364,
   "slug": "upgrade-s-pointer-worklist-names-hits-under-hist",
   "title": "upgrade's pointer worklist names hits under .history that the append-only guard refuses to let anyone reword",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-14",
   "reporter": "Matthew Sinclair",
-  "body": "Reported by courses-vc on e70c3528a. `intent upgrade`'s pointer worklist tells the reader to read and reword the legacy pointers it found, and every one of Courses' hits (7, all `st/COMPLETED/` names) is under `intent/whiteboard/*/.history/**`, which `append-only-guard.sh` refuses to let a commit change. So the worklist's remedy cannot be followed for those hits. `legacy::pointers` (legacy.rs:3728 at e70c3528a) scans every file under `intent/` except v2 leftovers; it should skip `.history/` (an archive is a record, not a pointer to reword), or the worklist should say those hits are archival and need no action.\n"
+  "body": "Reported by courses-vc on e70c3528a. `intent upgrade`'s pointer worklist tells the reader to read and reword the legacy pointers it found, and every one of Courses' hits (7, all `st/COMPLETED/` names) is under `intent/whiteboard/*/.history/**`, which `append-only-guard.sh` refuses to let a commit change. So the worklist's remedy cannot be followed for those hits. `legacy::pointers` (legacy.rs:3728 at e70c3528a) scans every file under `intent/` except v2 leftovers; it should skip `.history/` (an archive is a record, not a pointer to reword), or the worklist should say those hits are archival and need no action.\n\nCLOSED 2026-09-14 17:59Z: legacy::pointers now skips any path with a `.history` component, so upgrade's and organize's pointer worklist no longer names archived lines under a whiteboard `.history/`: an archive is a record, not a pointer to reword, and the append-only guard refuses the reword the worklist asked for. A live file naming the same v2 path stays on the worklist. Fixed in the commit that closes this issue.\n"
 }

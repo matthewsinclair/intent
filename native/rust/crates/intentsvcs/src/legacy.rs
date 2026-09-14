@@ -3781,6 +3781,10 @@ fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
 /// **THE LEFTOVERS THEMSELVES ARE EXCLUDED FROM THE SEARCH**, because a bucket
 /// file naturally names its own neighbours and a worklist mostly made of files
 /// that are about to be removed is a worklist nobody can act on.
+///
+/// **AND SO IS ANYTHING UNDER A `.history/`.** An archive is a record, not a
+/// pointer to reword, and the append-only guard refuses the reword the
+/// worklist asks for.
 fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer> {
   const NAMES: [&str; 5] = [
     "st/COMPLETED/",
@@ -3794,6 +3798,10 @@ fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer>
   for rel in Project::files_in(&root) {
     let path = root.join(&rel);
     if leftovers.contains(&path) {
+      continue;
+    }
+    // Issue 0364: every hit Courses' upgrade listed was under a whiteboard `.history/`, which no commit may change.
+    if rel.components().any(|c| c.as_os_str() == ".history") {
       continue;
     }
     let Ok(text) = std::fs::read_to_string(&path) else {
