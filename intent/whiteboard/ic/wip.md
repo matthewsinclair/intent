@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-14 07:10Z
+heartbeat_at: 2026-09-14 12:09Z
 status: active
-focus: "2026-09-14: clippy (13 lints) proved and staged, lands on cc's 0355-landed signal inside dc's rebuild base; then hold for dc's build done; then the ~/.intent doc sweep (wt-sweep) and the /issues fix (wt-issues) land in that order. See doing 17. NO RELEASE, NO PUSH."
+focus: "2026-09-14: clippy, the ~/.intent doc sweep and /issues all landed and green (dc's suite 2589/0 on a8e3273d8); dc's 4c172d260 cycle is built and promoted. NOW: holding for hv's next explorer TUI items via vc. See doing 20. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **2026-09-14 LANDED: clippy e3c67792c (13 lints, in dc's promoted base), doc sweep 940d84f23 (~/.intent paths plus ST0074 release notes and CHANGELOG, Upgrading section), /issues a8e3273d8 (open newest first, a rule, then closed). CLAUDE.md:84 landed by vc at 23897a979 on hv's word. dc reruns the suite on a8e3273d8. NOW: hold for hv's next explorer TUI items; one follow-up notes line if dc's per-estate carrier table contradicts Upgrading.** Worktrees wt-issues, wt-issues2, wt-clippy, wt-sweep, wt-xdg, wt-wp03, wt-wp04 in the scratchpad are landed and disposable. NO RELEASE, NO PUSH.
+- **2026-09-14 LANDED AND GREEN: clippy e3c67792c (13 lints), doc sweep 940d84f23 (~/.intent paths, ST0074 release notes and CHANGELOG, Upgrading), /issues a8e3273d8 (open newest first, a rule, then closed); dc's suite 2589 passed 0 failed on a8e3273d8; dc's 4c172d260 cycle built and promoted (intentd 16233, app 7052, doctor 0). NOW: hold for hv's next explorer TUI items via vc; one follow-up notes line if dc's per-estate carrier table contradicts Upgrading.** Scratchpad worktrees are all removed. NO RELEASE, NO PUSH.
 
 ## TODO
 
