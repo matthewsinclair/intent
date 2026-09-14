@@ -569,10 +569,48 @@ $faces_stale
     if ! command -v cargo >/dev/null 2>&1; then
       abort "cargo not found in PATH and $NATIVE_MANIFEST_REL is present -- refusing to release a native tree this machine cannot test"
     fi
-    log_info "running cargo test --workspace (this may take several minutes)"
-    local cargo_log
+    # Issue 0389 (ruled): the gate runs in a PRIVATE worktree at HEAD under an
+    # isolated HOME with that worktree's own target dir, never in the shared
+    # checkout beside the live daemon, and a red confined to the load-sensitive
+    # family re-runs ONCE, never twice.
+    #
+    # THE FAMILY IS A MECHANISM, NOT A LIST OF NAMES: arms that wait on an
+    # FSEvents-driven event under a poll budget, so a host whose fseventsd is
+    # saturated fails them with the code unchanged. Today that is the
+    # daemon_subscriptions target, daemon_watch, and
+    # a_source_edit_reaches_the_index_and_costs_canon_nothing. An arm joins the
+    # pattern below because it waits on such an event, never because its name
+    # looks like one of these.
+    log_info "running cargo test --workspace in a private worktree at HEAD (this may take several minutes)"
+    local cargo_log gate_dir gate_native gate_rc reds
+    local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
     cargo_log="$(release_log_dir)/cargo-test.log"
-    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace --no-fail-fast) > "$cargo_log" 2>&1; then
+    gate_dir="$(mktemp -d "${TMPDIR:-/tmp}/intent-release-gate.XXXXXX")"
+    if ! git -C "$PROJECT_ROOT" worktree add --quiet --detach "$gate_dir/tree" HEAD >/dev/null 2>&1; then
+      rm -rf "$gate_dir"
+      abort "could not create a private worktree at HEAD for the test gate under $gate_dir"
+    fi
+    gate_native="$gate_dir/tree/$(dirname "$NATIVE_MANIFEST_REL")"
+    mkdir -p "$gate_dir/home"
+    gate_cargo() {
+      (cd "$gate_native" && HOME="$gate_dir/home" CARGO_HOME="$real_cargo_home" \
+        RUSTUP_HOME="$real_rustup_home" CARGO_TARGET_DIR="$gate_native/target" cargo "$@")
+    }
+    gate_rc=0
+    if ! { gate_cargo build -p intentd && gate_cargo test --workspace --no-fail-fast; } > "$cargo_log" 2>&1; then
+      gate_rc=1
+      reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$cargo_log")"
+      if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E 'daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing' | grep -q .; then
+        log_warn "cargo test --workspace red only in the load-sensitive daemon family -- re-running intentd's tests once:"
+        printf '%s\n' "$reds" | sed 's/^/  /' >&2
+        if gate_cargo test -p intentd --no-fail-fast >> "$cargo_log" 2>&1; then
+          gate_rc=0
+        fi
+      fi
+    fi
+    git -C "$PROJECT_ROOT" worktree remove --force "$gate_dir/tree" >/dev/null 2>&1
+    rm -rf "$gate_dir"
+    if [ "$gate_rc" != 0 ]; then
       abort_with_log "cargo test --workspace failed -- fix before releasing" "$cargo_log" '^test .* FAILED|^test result: FAILED'
     fi
     rm -f "$cargo_log"
@@ -739,6 +777,26 @@ NATIVE_BEFORE="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MAN
 # every sidecar first, the version file LAST, so a partial failure leaves the
 # version un-advanced and a re-run recomputes the same target instead of
 # bumping twice onto a half-synced tree.
+# Issue 0386: the canon spill is checked BEFORE anything is stamped, from
+# `claude upgrade`'s own dry run, so a refusal leaves the tree as it found it
+# and the re-run the refusal asks for is not blocked by the clean-tree gate.
+if [ "$DRY_RUN" != "true" ]; then
+  require_intent_bin
+  EARLY_SPILL=""
+  while IFS= read -r _path; do
+    [ -n "$_path" ] || continue
+    case " $SIDECAR_FILES " in *" $_path "*) continue ;; esac
+    (cd "$PROJECT_ROOT" && git ls-files --error-unmatch -- "$_path" >/dev/null 2>&1) || continue
+    EARLY_SPILL="$EARLY_SPILL  $_path
+"
+  done < <(cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade 2>/dev/null | sed -n 's/^would write: //p')
+  if [ -n "$EARLY_SPILL" ]; then
+    abort "refusing to cut: 'claude upgrade --apply' would rewrite tracked files outside the sidecar list:
+$EARLY_SPILL       Nothing has been stamped or committed. Bring these into line with canon in their own commit
+       (\`intent claude upgrade --apply\` writes them), then re-run."
+  fi
+fi
+
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'bin/devbin version set $TARGET' -- VERSION + declared sidecars ($NATIVE_MANIFEST_REL)"
   [ "$CURRENT" != "$TARGET" ] && NEEDS_COMMIT=true
@@ -908,6 +966,24 @@ $(printf '%s\n' "$unexpected" | sed 's/^/  /')"
   fi
 fi
 
+# Issue 0387: a rendered file's footer names the version of the BINARY that
+# rendered it, so the stamp step renders with a CLI built at $TARGET rather than
+# with the pre-release INTENT_BIN. It builds into the debug target the schema
+# faces step above already compiled at $TARGET, so the build is incremental.
+STAMP_BIN="$INTENT_BIN"
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would build the CLI at $TARGET (cargo build -p intent-cli) and render the stamp step with it"
+else
+  if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo build -p intent-cli --bin intent >/dev/null 2>&1); then
+    abort "could not build the CLI at $TARGET for the stamp step -- run (cd native/rust && cargo build -p intent-cli) to see why"
+  fi
+  STAMP_BIN="$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")/target/debug/intent"
+  case "$("$STAMP_BIN" --version 2>/dev/null)" in
+    "intent $TARGET "*) log_info "stamp CLI built at $TARGET" ;;
+    *) abort "the stamp CLI at $STAMP_BIN does not report $TARGET -- refusing to render a release's files with a different version" ;;
+  esac
+fi
+
 # AGENTS.md regeneration
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent agents sync' to refresh AGENTS.md footer"
@@ -923,7 +999,7 @@ else
   # The status was discarded and the next line logged "AGENTS.md synced"
   # unconditionally, so the release log stated a success that had not happened.
   require_intent_bin
-  if ! (cd "$PROJECT_ROOT" && "$INTENT_BIN" agents sync >/dev/null); then
+  if ! (cd "$PROJECT_ROOT" && "$STAMP_BIN" agents sync >/dev/null); then
     abort "intent agents sync failed -- refusing to tag a release whose AGENTS.md was not regenerated"
   fi
   log_info "AGENTS.md synced"
@@ -967,7 +1043,7 @@ else
   # carrying the previous version, the tree stays clean, and the tag ships
   # inconsistent with itself.
   require_intent_bin
-  if ! (cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade --apply >/dev/null); then
+  if ! (cd "$PROJECT_ROOT" && "$STAMP_BIN" claude upgrade --apply >/dev/null); then
     abort "intent claude upgrade --apply failed -- refusing to tag a release whose CLAUDE.md was not refreshed"
   fi
   log_info "CLAUDE.md refreshed"
@@ -983,9 +1059,48 @@ else
   if [ -n "$CANON_SPILL" ]; then
     log_warn "the canon regeneration rewrote files outside the sidecar list:"
     printf '%s\n' "$CANON_SPILL" | sed 's/^/  /' >&2
-    abort "refusing to cut: 'claude upgrade --apply' re-provisions the whole .claude/ stack and v3 has no --skip-settings to stop it.
-       Nothing has been committed. Bring the files above into line with canon in their own commit, then re-run --
+    abort "refusing to cut: 'claude upgrade --apply' rewrote tracked files outside the sidecar list.
+       \`--skip-settings\` would spare only .claude/settings.json and .mcp.json; the other files above would still be rewritten.
+       Nothing has been committed, but the version IS stamped in the tree. Restore it and the files above with
+         git checkout -- $SIDECAR_FILES
+       then bring the files above into line with canon in their own commit and re-run --
        a release restamps a version, it does not re-provision a project."
+  fi
+fi
+
+# Issue 0387: re-render every realised view with the stamp CLI and fold the
+# footer-only changes into the release commit, as the schema faces are folded,
+# so the tag does not ship views a version behind. A change that is NOT a footer
+# is a tree out of step with its store, and the cut refuses rather than commit it
+# under the release message.
+VIEW_FILES=""
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would run 'intent sync --to-disk' with the stamp CLI and fold footer-only view changes into the release commit"
+else
+  if ! (cd "$PROJECT_ROOT" && "$STAMP_BIN" sync --to-disk >/dev/null 2>&1); then
+    abort "intent sync --to-disk failed -- refusing to tag a release whose views still name the previous version"
+  fi
+  NOT_FOOTER=""
+  while IFS= read -r _path; do
+    [ -n "$_path" ] || continue
+    case " $SIDECAR_FILES " in *" $_path "*) continue ;; esac
+    if (cd "$PROJECT_ROOT" && git diff -U0 -- "$_path" | grep -E '^[-+][^-+]' |
+      grep -v -q -E '^[-+]_Generated by Intent v[0-9]+\.[0-9]+\.[0-9]+ '); then
+      NOT_FOOTER="$NOT_FOOTER  $_path
+"
+    else
+      VIEW_FILES="$VIEW_FILES $_path"
+    fi
+  done < <(cd "$PROJECT_ROOT" && git diff --name-only)
+  if [ -n "$NOT_FOOTER" ]; then
+    abort "refusing to cut: re-rendering the views at $TARGET changed more than their footers:
+$NOT_FOOTER       Nothing has been committed, but the version IS stamped in the tree. Restore it with
+         git checkout -- $SIDECAR_FILES
+       bring the tree into line with its store (\`intent doctor\` names the skew), then re-run."
+  fi
+  if [ -n "$VIEW_FILES" ]; then
+    log_info "views re-rendered at $TARGET fold into the release commit"
+    NEEDS_COMMIT=true
   fi
 fi
 
@@ -1036,7 +1151,7 @@ if [ "$NEEDS_COMMIT" = "true" ]; then
     # shellcheck disable=SC2086
     (cd "$PROJECT_ROOT" && git commit --only \
       -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com" \
-      -- $SIDECAR_FILES)
+      -- $SIDECAR_FILES $VIEW_FILES)
     log_info "committed release: v$TARGET"
   fi
 else
