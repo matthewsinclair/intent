@@ -240,6 +240,6 @@
   ],
   "title": "Board",
   "type": "object",
-  "x-intent-ver": "3.0.2",
+  "x-intent-ver": "3.0.3",
   "x-schema-json-ver": 20
 }

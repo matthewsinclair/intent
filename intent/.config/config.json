@@ -6,7 +6,7 @@
   "created": "2025-07-16",
   "dft_width": 120,
   "intent_dir": "intent",
-  "intent_version": "3.0.2",
+  "intent_version": "3.0.3",
   "languages": [
     "elixir",
     "author",
