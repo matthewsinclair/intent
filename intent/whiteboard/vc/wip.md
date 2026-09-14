@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-14 21:12Z
+heartbeat_at: 2026-09-14 22:04Z
 status: active
-focus: "LOCALFOLDED for hv's compact, 2026-09-14 21:12Z, mid-pass: 60 closed today, 20 open, main clean and green at ab594c588. IN HAND: ic's 0307 closure (word given) then the critic seam 0350+0329, 0334, 0339, 0396; dc's seven in their full run, two commits on the report; cc's 0338 (ii) then (i), 0377, 0331 comments. Landing rules and hv's items in restart.md line 3. ON THE BOUNCE: read the reports, verify by git show --stat, hand the next hash on. NO RELEASE, NO PUSH."
+focus: "HOLDING for hv, wrapped for the day 2026-09-14 22:04Z: the pass at c4c4880c2, 70 closed today, 11 open (+1 filed at the wrap), every lane released and holding, main clean and green. Next session's order in restart.md line 3 and wip.md. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,16 +13,17 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- AFTER v3.0.3 (tag 46599d145, shipped, smoked from the tap; v3.0.2 tagged but never published, superseded): hv's items (brew unlink and pin, the v3.0.2 annotation, the stranger-machine brew install), the open issue batch 0356 to 0389 for hv's rulings, ic's Console thread (design page then code; release hv's line), the explorer TUI list. Live intentd 1773 on the 3.0.3 pair under vc's watch. Lanes idle except ic. NO RELEASE, NO PUSH.
+- THE AGGRESSIVE ISSUE PASS (hv, 2026-09-14), wrapped for the day at c4c4880c2 with every node holding: 70 closed today, 11 open plus the st show file-argument issue filed at the wrap. Next session, one lane on the tree AND the store at a time on vc's word: cc's matched control on the index event-wait arm then 0338 (ii) banked on d2491639b, 0338 (i), 0377, 0331 comments, 0375 (directive kind); ic's 0334 (ruled in full), 0339, 0396; then the quiet-window build all, daemon restart, app-install and the one view re-render commit on hv's word. NO RELEASE, NO PUSH.
 
 ## TODO
 
 - **ST0056 AC-00.5 and AC-11.1** still need a brew install on a clean Mac. Then WP-11 and ST0056 close.
 - **hv's rulings** on the cut's surfaced items and on the audit's defect list, both in `intent/wip.md`.
+- hv's items at the wrap: 0321's ruling (vc's lean (c)); the rulings under the pen (0303 0347 0350 0374 0375 0382 0389, decisions 16 and 17, 0334's readings, the store rule); 0177, 0331's six deletions, 0338's contract rows, 0345, 0344; brew pin; the v3.0.2 annotation; the stranger-machine install; ic's explorer TUI list.
 
 ## Holds
 
-- None. The hydrate that was held for hv landed as a proven banner-only patch from a scratch clone (8a2f2273a); doctor reports nothing at live scope and organize's preview removes nothing.
+_(none)_
 
 ## Watch-outs
 
@@ -47,29 +48,17 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 - **`sync --to-store` REPLACES the store from the extract.** Edit canon first, drive state verbs after.
 - **Count `intentd` by executable**, `ps -axo pid=,command=` on argv[0]'s basename.
 - **A timestamp goes on a board or in a message only from a `date -u` read in the same turn.**
-- **A test run can rewrite the machine's install pointer** (`dual_path_conformance` runs `intent bootstrap` under the REAL HOME). Every build and test run goes under an isolated HOME. If commits refuse with "the recorded Intent install root is not an install", read `~/.intent/home` first.
+- THE STORE LOCK IS SHARED LIKE THE GIT INDEX. During a peer's landing chain no other lane runs any intent wb write, pickups included; a refused write gets ONE re-issue after lsof -- intent/.cache/intent.db lists intentd alone, never a retry loop (two lanes' loops refused ic's close three times on 2026-09-14). After a landing commit intentd's ingest holds the lock for tens of seconds and lsof cannot see it: the next chain waits for the daemon to go cool. Attribute a holder only by lsof on THIS store's path; a machine-wide ps shows every estate's wb processes (a laksa-cc pickup was read as ours). The word names the store as well as the tree.
 
 ## Decisions
 
 - **NO OVERTESTING, NO YAK-SHAVING** (2026-09-12, on handing vc the pen): build what the STs need; tests are the AC rows; never a test that tests a test. Applies to every lane and to the director.
-- **`0196` RULED BY hv 2026-09-05 15:23Z, TWO RULINGS, `authority: hv`.**
-  1. REMEDY: **staging + atomic mv** -- build into a third target dir, `verify_pair` THERE, and rename the verified pair into `target/release/` only on pass.
-  2. SEQUENCING: **fix FIRST, then rebuild through it** -- the fix's own first real run IS the rebuild to HEAD, and **there is no separate supervised window.** Assigned to dc as WP-11's precondition.
 - **WATCH THE RUST FOR HIGHLANDER, THIN COORDINATOR AND PFIC on every review.** A posture, not a gate. **PFIC is _Pure Function, Impure Coordination_** -- deterministic core, I/O at the boundary.
-- **THE MENUBAR ICON IS THE INTENT TURTLE**, state DERIVED at paint time.
-- **FULLY SHIP v3. intentd is a priority. Then tree-sitter and full search. Push.**
-- **DO NOT REINVENT THE WHEEL** -- port from `../Gtools`, `../Conflab`. **Read the thread's own attachments first.**
-- **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 - (2026-09-12) **hv handed the pen over without ruling the six ST0069 decisions, so they are taken under it and listed in `intent/wip.md` for hv to overrule with a line:** four grammars on by default; omnibox out; `intent modules find` stays as the registry fallback (AC-20.6 withdrawn naming AC-24.5); the Local runtime ruled on cc's table with the lean being no new runtime in 3.0.2; ST0073's AC-05.1 re-keyed to AC-00.1; no TLS for the HTTP embedder. hv's own rebuild order the same hour was executed by vc: the delivered pair at 92df64d, the daemon restarted on it, the app reinstalled.
-- (2026-09-12) **A watcher event naming the project root reconciles the root's own in-scope files and never descends**; a directory event reconciles the subtree it names; the pre-dating rule holds inside whatever an event names. dc attributed the loop four-of-four with and none without: a coalesced root event answered by a whole-corpus reconcile against a lagging index published everything, ingested, rewrote views and coalesced to the root again. Then measured again with the bound: the loop narrowed to exactly the root files an ingest rewrites, so the widening was on the wrong watcher. **Ruled two registrations**: the canon watch byte-for-byte as the tests pin it (root non-recursive, `intent/` recursive, leaf events for root files), and a second registration over the index scope whose events reach only the index reconcile and `index_file`, never canon ingest; the root bound applies on the index side. Per-directory registration and a lowered ingest bound were rejected.
-- (2026-09-12) **D29 amendment WITHDRAWN**: the corpus is the committed `.gitignore` rules; `.git/info/exclude` and the global excludes stay off, and `ignored_paths_corpus.rs` is the record. **`intent index status` and `rebuild`**: cc owns the facade operations, ic the register rows, rendering and MCP arms. **Watcher reconcile**: the store's index is the one baseline; a directory event reconciles the scan's own candidates under the event's path, never a second walk of the root.
-- (2026-09-11) **hv's doc audit ran and is DONE**, every lane verified and pushed; its orders are in `intent/history/20260911-doc-audit.md`. **hv then ruled fix batch 1 (release + install) to dc**; the rest of the defect list in `intent/wip.md` is unruled. The 3.0.1 rulings this section carried, all executed in the cut, are in `.history/20260912/`.
 - (2026-09-11) **NOT WORKABLE IN 3.0.1, kept open as constraints, lane `--`:**
   - `0177` -- all of `ext` is unbuilt;
   - `0141` -- no instance today, and the only fix is a guard.
     Closing either would lose the finding.
-- (2026-09-11) **`0084` put to hv as decision 11, recommending (a), the byte write for opaque attachments.** vc drove the migrator hole: a Latin-1 `notes.txt` migrates with no sidecar, and the next restore refuses `broken-reference`.
-- (2026-09-11) **`0114`, `0220` and `0065` put to hv as decisions 12, 13 and 14.** Each issue reserves its question for hv, or needs a policy value.
 - (2026-09-13) hv, verbatim: NO UNNECESSARY OVERTESTING, NO TESTING TESTS, NO YAK-SHAVING. Expeditious delivery of working code; do not relitigate the speed of light for every decision; be RUTHLESS. New code, good code, good tests, done. Applied: build the cheap fix and let the live system judge it; one run decides a question; never a positive control of an instrument; ACs one line per user-facing behaviour, ATs the test that proves it once.
 - (2026-09-14) EIGHTH RULING UNDER THE PEN, for hv to overrule with a line: a register State row for Criterion.kind (0346, d9304ef54) and for AcceptanceTest.kind (ic's 0324+0337) is a faithful transcription of hv's 2026-08-17 fold (one machine, kind a dimension of its state, a re-kind the pair's transition into the entry state), because the register classifies fields and has no closer word; each row's comment cites the fold by name and data-model.md's as-built column is corrected forward in the same landing. The other seven: 0303 0347 0350 0374 0375 0382 0389.
 - (2026-09-14) NINTH RULING UNDER THE PEN, for hv who ratified the table: data-model.md's Machine 5 (AcceptanceTest.status) moves its green edge from (any) -> green to red -> green under a dated note naming 0337 and the batch ruling (red first); at.set is a mixed verb walked edge by edge. HELD FOR hv, NOT RULED: 0321's log stamp collides with one_clock (SELECT strftime is banned outside INSERT/UPDATE, EXEMPT is hv's and empty); cc's options (a) INSERT RETURNING into a one-row memory table, (b) a real lifecycle table with a DEFAULT stamp (M, schema bump), (c) an exemption for the daemon log with a stated reason, (d) no stamp; vc's lean (c).
