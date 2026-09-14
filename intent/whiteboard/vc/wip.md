@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-14 12:18Z
+heartbeat_at: 2026-09-14 14:46Z
 status: active
-focus: "THE CUT IS READY on delivered set 4c172d260 (intent 4d3b8fa9, intentd b0db7ab5, Intent.app 7052, doctor 0, store schema 26, daemon 16233 under the watch). 0355 CLOSED on the verdict: a source-file touch 0.21 s from 1.04 s, directory and .git events at the floor. Fleet finished, ~/.intent gone, Laksa migrated. hv at the terminal: build release --patch, build all, int macos prepare, build formula, build publish, build smoke --reinstall, each its own approval; then ic's reference regeneration and skills sync. NO RELEASE, NO PUSH."
+focus: "v3.0.3 SHIPPED at 46599d145 (v3.0.2 superseded, never published). Post-ship: hv's three items (brew unlink and pin, v3.0.2 annotation, stranger-machine install), rulings on 0356 to 0389, ic's Console thread, the explorer TUI list. 0355 closed on the live verdict; fleet on current carriers; Laksa migrated. Lanes idle except ic. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- CUT, one verdict away (hv at the terminal, nothing batched): dc's last full cycle on base 4c172d260 (code 743247d8a: cc's 0355 touch-cost fix, FTS5 secure-delete by rung 25 to 26, one-way, over d9703ba8f). On build done: vc commits its fold, verifies the pair by hash, re-arms the CPU watch on the new pid, runs scratchpad/probe5-0355.sh once with the pid substituted for the verdict (touch arm was 197k syscalls and 1.04 s on 35471), records it in 0355 (close if the arm fell), then hv cuts: build release --patch, build all, int macos prepare, build formula, build publish as its own approval, build smoke --reinstall; then ic's reference regeneration and skills sync. Fleet finished, ~/.intent gone, Laksa migrated at 4a629219b (its findings are 0374 and 0375). NO RELEASE, NO PUSH.
+- AFTER v3.0.3 (tag 46599d145, shipped, smoked from the tap; v3.0.2 tagged but never published, superseded): hv's items (brew unlink and pin, the v3.0.2 annotation, the stranger-machine brew install), the open issue batch 0356 to 0389 for hv's rulings, ic's Console thread (design page then code; release hv's line), the explorer TUI list. Live intentd 1773 on the 3.0.3 pair under vc's watch. Lanes idle except ic. NO RELEASE, NO PUSH.
 
 ## TODO
 
