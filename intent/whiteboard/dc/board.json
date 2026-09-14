@@ -5,7 +5,7 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "b9e78c72-479d-4984-9df9-ac1bedfe7f2d",
-    "heartbeat_at": "2026-09-14T06:58:56.142Z",
+    "heartbeat_at": "2026-09-14T17:05:00.090Z",
     "status": "active",
     "focus": "LOCALFOLDED for hv's compact, mid-task: 0354 reproduction for vc. Run 1 reproduced the spin with no client; run 2 (no warm-up, then one open) is running detached; run 3 (the 3.0.1 keg control) launches when run 2 ends. The plan and every evidence path are in DOING. The pre-tag suite gap on e70c3528a is green and accepted. Nothing under native/, surface/, lib/ or bin/. NO RELEASE, NO PUSH.",
     "claims": [
@@ -676,8 +676,17 @@
       "kind": "doing",
       "seq": 32,
       "text": "**LOCALFOLDED 2026-09-14T16:29Z for hv's compact. hv's AGGRESSIVE ISSUE PASS, dc's 20 (vc directing); the tree is dc's through search commit 2.** LANDED: search commit 1 b7df8e9f2 (rung 27 + 0369 + 0373; 13 files; issues closed, views removed by organize). ON THE BOUNCE, IN ORDER: (1) COMMIT 2 on main: git apply scratchpad batch/patches/c2-search.patch (based on C1 before rustfmt; the store.rs hunks are the DISTINCT reads), rustfmt --edition 2024 facade.rs and store.rs, issues edit --from batch/bodies/<id>.md and close for 0356 0357 0358 0359 0360 0361 0370 0371 0372, organize preview (must remove only those views) then --apply, git add the EXISTING paths and commit --only ALL paths (the deleted views only in --only, never in add), log -1 --stat to vc. (2) FILE the two new issues from batch/close-notes.md: low 'a large indexed directory vanishing costs a refresh one delete per path', XS 'st attach has no detach'. (3) The other groups, uncommitted in wt-dc at e705e5365, need rebasing onto main: RELEASE build.d/release (0386 early spill check JUDGED green in a clone; 0389 private-worktree gate JUDGED: mechanics and classifier green, and vc ruled the family is a mechanism, a_source_edit arm added with the comment; 0387 stamp CLI + fold: the README abort is JUDGED green, but the FOLD IS A GAP: sync --to-disk skips footer-only-stale views via views::differs_only_in_banner_version, so the fold needs a door that rewrites them using that ONE predicate, per vc). KEG (0333 JUDGED: pre-v2.10 refusal plus render.rs context() now renders the error's own remedy, userstate::home(), and the two intent@2 tests re-pointed; 0340 JUDGED: SUPPORT_PATHS carries agents plugin.json, the keg lists agents, shim remedies name intent bootstrap; 0327 NOT DRIVEN because /Applications/Intent.app exists). CI/SCRIPTS (0335: Swift compiles (Debug 7091); TCA scripts JUDGED (wp new registers, ac gate refuses); probe fix by construction, the false LEAKED NOT reproduced; workflows PATH, shellcheck selector, pr-checks native/ and README not drivable here. 0348: suite_path_check.sh installed, controls fire, rostered gated, in precommit. 0330: read_claim_probe BIN + of_n_population REACH done; coverage_map.sh and fixture_probe.sh to DELETE by vc's canon route AT LANDING: store snapshot, remove the two attachment rows from intent/.canon/st/ST0056.json, sync --to-store ST0056 then --to-disk, git rm both, fix the roster rows, doctor 0 and organize -v 0, CLOSED note naming the AC-00.6 commit). Evidence throughout: scratchpad batch/. Slip owned: the carrier commits used --no-verify; undone by exporting patches and resetting wt-dc. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-14T17:12:06.859Z",
       "recorded_at": "2026-09-14T16:29:21.405Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 33,
+      "text": "**2026-09-14T17:11Z: the tree is handed back to vc.** LANDED on the bounce: search commit 2 c36abdbb2 (0356 0357 0358 0359 0360 0361 0370 0371 0372 closed, views removed by organize; the applied files match the judged wt-dc tree byte for byte after rustfmt, render.rs aside by the keg group's 0333 hunk) and issues 0393 0394 filed ae180aa41. NEXT, ON VC'S WORD, one group at a time, rebased onto the last hash: RELEASE build.d/release (0386 and 0389 judged; 0387's fold is a GAP: sync --to-disk skips footer-only views via views::differs_only_in_banner_version, so it needs a door that rewrites them on that one predicate); KEG (0333 and 0340 judged, 0327 not driven because /Applications/Intent.app exists); CI/SCRIPTS (0335 Swift compiles and the TCA scripts are judged, the probe's false LEAKED not reproduced, the workflows not drivable here; 0348 guard rostered and green; 0330's two parity tools are deleted by vc's canon route at landing); then 0390 0391 0392 (hooks and devbin). Evidence: scratchpad batch/. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-14T17:12:00.097Z"
     }
   ],
   "messages": [
