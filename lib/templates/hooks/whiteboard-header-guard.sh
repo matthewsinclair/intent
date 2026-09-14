@@ -140,7 +140,7 @@
 # `key: value` and becomes a bare key with its value on the NEXT line --
 #
 #   claims:
-#     [ST0112/WP-07, ST0112/WP-08 (with cc, by file), ST0112/WP-09, ST0112/WP-10]
+#     [<thread>/<wp>, <thread>/<wp> (shared, by file), <thread>/<wp>, <thread>/<wp>]
 #
 # `fm_get` reads everything after the first `: ` on the KEY's line, so the value
 # reads as EMPTY and `ws list` prints nothing for that key. RUN-VERIFIED rather
