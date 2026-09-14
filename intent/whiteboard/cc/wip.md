@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-heartbeat_at: 2026-09-14 12:14Z
+heartbeat_at: 2026-09-14 14:47Z
 status: active
-focus: "IDLE since 2026-09-14 12:14Z on vc's word: 0355 closed on vc's live verdict (4c172d260, daemon 16233: a one-file touch 95k syscalls and 0.21 s, from 197k and 1.04 s); wt-cc's landed patch discarded and scratchpad/subj removed. Lane idle until hv rules the next batch. NO RELEASE, NO PUSH."
+focus: "IDLE on vc's word: the eleven-issue batch landed at 7a3b90270, and 0388's Rust-side deadline landed at f2c2f335c with the issue closed at ed88af639. Lane idle until hv rules the next batch; two rulings are hv's (0382 the carried stamp, 0389 the release gate under load). NO RELEASE, NO PUSH."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -24,7 +24,6 @@ _(none)_
 - **THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
 - **0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**
-- **0388's RUST-SIDE DEADLINE IS GREEN IN wt-cc ON 1636c8415, HELD FOR vc's LANDING WORD.** Red on the base with no timeout on PATH (the three spawning arms panic at the spawn, as on the macOS runner); green on that PATH and the full one; fmt and clippy clean. **Released when vc says land**: then bash scratchpad/0388-land.sh (plain apply of scratchpad/0388.patch, one path).
 
 ## Watch-outs
 
