@@ -566,7 +566,14 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
     // restart` holds the family's stated ground unchanged -- it composes `stop`
     // and `start`, never opens an estate, and so has nothing to refuse an
     // unmigrated project about.
-    ("daemon", &["restart", "run", "start", "status", "stop"]),
+    // **RE-RULED 2026-09-14 WHEN `logs` LANDED (vc, on a0b92c365 turning main red here).**
+    // `daemon logs` is a v3-only verb with no v2 counterpart, exactly as its five
+    // siblings are, so the family-wide exemption covers it and it is ruled INTO
+    // this equality rather than the pin being loosened.
+    (
+      "daemon",
+      &["logs", "restart", "run", "start", "status", "stop"],
+    ),
     ("mcp", &[]),
     ("plugin", &["list", "show"]),
   ];
