@@ -1080,6 +1080,12 @@ fn default_intent_dir() -> String {
 pub enum ProjectError {
   #[error("no Intent project found at or above {0} (looked for intent/.config/config.json)")]
   NotFound(String),
+  /// Issue 0333: a project from before v2.10, named as that rather than as no
+  /// project at all.
+  #[error(
+    "{0} is an Intent project from before v2.10 (its config is .intent/config.json), which this build cannot open"
+  )]
+  PreV210(String),
   #[error("reading {path}: {source}")]
   Io {
     path: String,
@@ -1100,6 +1106,7 @@ impl crate::remedy::Remedy for ProjectError {
       Self::NotFound(_) => {
         "run `intent init` here, or change to a directory inside an Intent project".to_string()
       }
+      Self::PreV210(_) => "bring it to v2.19.0 with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then run `intent upgrade` with v3".to_string(),
       Self::Io { path, .. } => {
         format!("check that {path} exists and that this user can read it")
       }
@@ -1354,7 +1361,8 @@ impl Pending {
     if self.below_floor {
       let (major, minor, patch) = MIGRATION_FLOOR;
       format!(
-        "this project is below the v{major}.{minor}.{patch} migration floor -- run `install intent@2 && intent upgrade` first, then migrate it with v3"
+        // Issue 0333: no tap carries `intent@2`; the v2 line's last release does.
+        "this project is below the v{major}.{minor}.{patch} migration floor -- bring it to that version with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then migrate it with v3"
       )
     } else {
       "run `intent upgrade` to migrate this project to Intent v3".to_string()
@@ -1490,12 +1498,27 @@ impl Project {
   /// meaning "am I in a project?", and those agree often enough to look correct
   /// and differ exactly when it matters (issue 0025).
   pub fn discover(start: &Path) -> Result<Self, ProjectError> {
+    // Issue 0333: a pre-v2.10 project keeps `.intent/config.json` beside
+    // `intent/st` or `stp/`. HOME's own `~/.intent` is user state, never a
+    // project, so it is passed over.
+    let home = crate::userstate::home().ok();
+    let mut pre_v210: Option<&Path> = None;
     for dir in start.ancestors() {
       if Self::config_path(dir).is_file() {
         return Self::open(dir);
       }
+      if pre_v210.is_none()
+        && home.as_deref() != Some(dir)
+        && dir.join(".intent/config.json").is_file()
+        && (dir.join("intent/st").is_dir() || dir.join("stp").is_dir())
+      {
+        pre_v210 = Some(dir);
+      }
     }
-    Err(ProjectError::NotFound(start.display().to_string()))
+    match pre_v210 {
+      Some(dir) => Err(ProjectError::PreV210(dir.display().to_string())),
+      None => Err(ProjectError::NotFound(start.display().to_string())),
+    }
   }
 
   pub fn root(&self) -> &Path {

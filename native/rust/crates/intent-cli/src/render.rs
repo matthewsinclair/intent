@@ -675,8 +675,11 @@ fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<boo
 pub(crate) fn context() -> Result<(Project, FacadeContext), Failure> {
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
+  // Issue 0333: the error's own remedy, so a pre-v2.10 project is told its route
+  // rather than to run `intent init` over it.
   let project = Project::discover(&cwd).map_err(|e| {
-    format!("error: {e}\n  remedy: run `intent init` here, or change to a directory inside an Intent project")
+    use intentsvcs::remedy::Remedy;
+    e.render()
   })?;
   let ctx = FacadeContext {
     principal: "local".to_string(),

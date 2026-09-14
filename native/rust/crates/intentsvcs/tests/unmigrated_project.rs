@@ -387,8 +387,8 @@ fn below_the_floor_the_remedy_is_the_two_hop_not_the_v3_migrator() {
     "the floor is named, not just missed: {rendered}"
   );
   assert!(
-    rendered.contains("intent@2"),
-    "the two-hop instruction names the v2 tool: {rendered}"
+    rendered.contains("v2.19.0 release"),
+    "the two-hop instruction names the v2 release, a route that exists (issue 0333): {rendered}"
   );
 
   let at_floor = legacy("2.19.0", &["ST0001"]);

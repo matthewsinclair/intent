@@ -496,9 +496,10 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
      is what the operator has to go and change: {err}"
   );
   assert!(
-    err.contains("intent@2"),
-    "and the remedy is the TWO-HOP -- naming the v3 migrator here would send \
-     the operator back to the command that just refused them: {err}"
+    err.contains("v2.19.0 release"),
+    "and the remedy is the TWO-HOP, through a v2 route that exists (issue 0333) \
+     -- naming the v3 migrator here would send the operator back to the command \
+     that just refused them: {err}"
   );
 
   assert_eq!(

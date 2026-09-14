@@ -169,13 +169,30 @@ pub enum AppError {
   StillRunning { pid: u32, waited: Duration },
 }
 
+/// What to run when no bundle is found, given the install root this binary
+/// resolved.
+///
+/// **NOT "install it" AS A BARE INSTRUCTION.** Two different commands produce a
+/// bundle and they are not interchangeable: one builds a Debug app for this
+/// tree, the other installs a Release one for the machine. Issue 0327:
+/// `bin/devbin` exists only in a source tree, so an installed Intent is sent to
+/// the release's own bundle instead. The root is a parameter so both branches
+/// can be driven; [`crate::install::home`] is the one ambient read, at the call.
+fn not_installed_remedy(root: Option<&std::path::Path>) -> String {
+  if root.is_some_and(|root| root.join("bin/devbin").is_file()) {
+    "`bin/devbin macos app-build` builds the app for this tree; `bin/devbin macos app-install` builds Release and installs it to /Applications. `intent app status` will then say where it found it.".to_string()
+  } else {
+    format!(
+      "download `Intent.app.zip` from the v{v} release (https://github.com/matthewsinclair/intent/releases/tag/v{v}), unzip it and move `Intent.app` to /Applications. `intent app status` will then say where it found it.",
+      v = env!("CARGO_PKG_VERSION")
+    )
+  }
+}
+
 impl crate::remedy::Remedy for AppError {
   fn remedy(&self) -> String {
     match self {
-      // **NOT "install it" AS A BARE INSTRUCTION.** Two different commands
-      // produce a bundle and they are not interchangeable: one builds a Debug
-      // app for this tree, the other installs a Release one for the machine.
-      Self::NotInstalled => "`bin/devbin macos app-build` builds the app for this tree; `bin/devbin macos app-install` builds Release and installs it to /Applications. `intent app status` will then say where it found it.".to_string(),
+      Self::NotInstalled => not_installed_remedy(crate::install::home().ok().as_deref()),
       Self::Launch { bundle, .. } => format!(
         "LaunchServices refused to open `{}`. Check the bundle is complete -- `bin/devbin macos app-verify` reports a missing executable or Info.plist -- and rebuild it with `bin/devbin macos app-build` if it is not.",
         bundle.display()
@@ -310,6 +327,22 @@ mod tests {
     assert_eq!(running.code(), 0);
     assert_eq!(installed.code(), 1);
     assert_eq!(State::NotInstalled.code(), 2);
+  }
+
+  #[test]
+  fn a_source_tree_is_sent_to_devbin_and_an_install_to_the_release_bundle() {
+    let tree = tempfile::tempdir().expect("tempdir");
+    std::fs::create_dir_all(tree.path().join("bin")).expect("bin");
+    std::fs::write(tree.path().join("bin/devbin"), "").expect("devbin");
+    let dev = not_installed_remedy(Some(tree.path()));
+    assert!(dev.contains("`bin/devbin macos app-build`"), "{dev}");
+
+    let keg = tempfile::tempdir().expect("tempdir");
+    let installed = not_installed_remedy(Some(keg.path()));
+    let release = format!("releases/tag/v{}", env!("CARGO_PKG_VERSION"));
+    assert!(installed.contains(&release), "{installed}");
+    assert!(!installed.contains("devbin"), "{installed}");
+    assert_eq!(not_installed_remedy(None), installed);
   }
 
   #[test]

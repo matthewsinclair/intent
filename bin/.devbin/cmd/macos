@@ -183,7 +183,9 @@ APP_ASSET="Intent.app.zip"
 # It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
 # `chmod` in the formula exists only for the BINARIES, which GitHub serves as
 # bare 644 files. Verified in the archive, not assumed.
-SUPPORT_PATHS="lib/templates intent/plugins/claude"
+# Issue 0340: `intent plugin list` reads each plugin's `plugin.json`, and the
+# agents plugin's manifest did not ship, so the keg listed only `claude`.
+SUPPORT_PATHS="lib/templates intent/plugins/claude intent/plugins/agents/plugin.json"
 
 # THE WRAPPER DIRECTORY, AND IT EXISTS BECAUSE HOMEBREW UNPACKS WITH A HEURISTIC.
 #

@@ -123,7 +123,8 @@ if [ -z "$_root" ] || [ ! -d "$_root/lib/templates" ]; then
   echo "  NOT repairing it here: the installer owns that pointer, and a shim that" >&2
   echo "  rewrote it would be choosing an install root on your behalf." >&2
   echo "  refusing rather than skipping: a declared gate that cannot run is a failure." >&2
-  echo "  remedy: reinstall Intent so the pointer is rewritten, then re-commit." >&2
+  echo "  remedy: run \`intent bootstrap\` from the Intent install this pointer should name --" >&2
+  echo "  it rewrites the pointer -- then re-commit." >&2
   echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
   exit 1
 fi
@@ -142,7 +143,8 @@ if [ ! -f "$_gate" ]; then
   echo "  the root is an install (it has lib/templates/), so this is an incomplete" >&2
   echo "  or partially-removed one rather than a wrong pointer." >&2
   echo "  refusing rather than skipping: a declared gate that cannot run is a failure." >&2
-  echo "  remedy: reinstall Intent, then re-commit." >&2
+  echo "  remedy: restore that install's lib/templates/hooks/, or run \`intent bootstrap\` from a" >&2
+  echo "  complete Intent install to point at it instead -- then re-commit." >&2
   echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
   exit 1
 fi
