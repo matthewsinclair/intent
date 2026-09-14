@@ -13,7 +13,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058, ST0069/02, ST0069/14, ST0069/2
 
 ## DOING
 
-- **2026-09-14T08:09Z: FLEET FINISHED.** Pair e3c67792c promoted, app 7030, intentd 79593, doctor 0; ~/.intent absent. The carrier sweep ran on all 23 estates (rc 0, every --where OK). The sweep's CLAUDE.md and AGENTS.md changes are committed in 20 estates and Gtools' tracked carrier in 6f90439, via scratchpad sweep/commit-sweep.sh, each estate's own gate, no --no-verify. Four estates refused first on stale pre-v3.0.1 steel_threads.md views: regenerated with intent sync --to-disk and committed (A3 828d10f, arca_config 4b46b22, arca_notionex edaaa72, arca_cli 358c2e1 with the monopic moved to docs/), then their canon. hv fixed Lamplight. Final check: 0 staged, canon clean, --where OK everywhere. Laksa's carrier waits for laksa-vc after vc's sweep done. All local, nothing pushed. Next: the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. NO RELEASE, NO PUSH.
+- **2026-09-14T08:43Z: FULL CYCLE DONE on hv's ask via vc, build done.** Base c095d8daa, the same code as a8e3273d8 (the last green suite). Promoted: intent c8363b2735016a21, intentd b0c5247fcbc2c3d4. Intent.app build 7042 installed. intentd restarted from 88955 to pid 60171. doctor: rc 0, 0 findings. Pointer ~/.local/share/intent/home names the project; ~/.intent absent. Every estate's carrier is current and committed except Laksa's, which laksa-vc commits in its migration. Next: the cut's build all, or a pre-tag rebuild if hv rules the 0355 remainder in. Tap 9987a93 is local, awaiting hv. NO RELEASE, NO PUSH.
 
 ## TODO
 
