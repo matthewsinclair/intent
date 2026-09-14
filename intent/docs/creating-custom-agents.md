@@ -18,7 +18,7 @@ Intent agents are specialized AI assistants with domain-specific knowledge and f
 
 ## Canon vs extension subagents
 
-Subagents ship in canon, in `intent/plugins/claude/subagents/<name>/` of the Intent install. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family. The extension layout `~/.intent/ext/<name>/subagents/` is declared and not built: nothing in this build reads it (see `intent/docs/writing-extensions.md`).
+Subagents ship in canon, in `intent/plugins/claude/subagents/<name>/` of the Intent install. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family. The extension layout `~/.local/share/intent/ext/<name>/subagents/` is declared and not built: nothing in this build reads it (see `intent/docs/writing-extensions.md`).
 
 The choice between them is one question: **is this useful to every Intent user, or only to some?**
 

@@ -43,7 +43,7 @@ Every invocation re-reads the rule files; caches are not used. The load order fo
 
 1. **Agnostic rules**: `intent/plugins/claude/rules/agnostic/*/RULE.md`.
 2. **Language rules, mode-filtered**: `intent/plugins/claude/rules/<lang>/<code-or-test>/**/RULE.md` (for `critic-elixir` in `code` mode this expands across `code/`, `ash/`, `phoenix/`, and `lv/`).
-3. **Extension rules**: not read in v3. `userstate::ext_base()` answers `None`, so `intent claude rules list`/`show` serve canon only and nothing under `~/.intent/ext/` is reached or can shadow a canon rule.
+3. **Extension rules**: not read in v3. `userstate::ext_base()` answers `None`, so `intent claude rules list`/`show` serve canon only and nothing under `~/.local/share/intent/ext/` is reached or can shadow a canon rule.
 4. **Upstream interop** (Elixir only): if `~/.claude/plugins/elixir-test-critic/rules/` exists, its RULE.md files are loaded and deduped against Intent rules by the `upstream_id` frontmatter field. Absence is silent.
 
 Malformed rule files never hard-fail the run. One broken RULE.md emits a single warning line at the top of the report and is skipped; the rest of the run proceeds.

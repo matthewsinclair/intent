@@ -53,6 +53,14 @@
 
 **`intent claude upgrade --apply` declares Intent's MCP server to Claude Code.** A `.mcp.json` naming `intent mcp` is seeded when the project has none, so a session reaches the tools without anyone configuring it. **A project that already has one keeps it untouched, including under `--force`**, and `--skip-settings` now declines this file as well as `.claude/settings.json` -- one flag for the wiring Claude Code reads, because deleting a seeded file is not a way to decline it when the next run seeds it again.
 
+**`intent discover [fromdir]` registers the Intent projects under a directory, and `intent explore` registers the one it opens.** Both write one per-user file, `~/.config/intent/projects.json` (under `$XDG_CONFIG_HOME` when that is set), which is plain JSON a person can read and edit; a key this build does not know is carried through a rewrite. `discover` walks up to `--depth` levels, 4 by default, honours `.gitignore`, skips `.git`, `target` and `node_modules`, and does not descend into a project it has found. It prints one line per project: registered, already registered, or not registered with the reason -- a config that does not parse, or a project that still needs migrating. Running it again changes nothing. **A running `intentd` watches the file** and lists every project in it, including ones it has not opened.
+
+**The explorer moves between projects.** `/projects` opens a picker of the registered projects: Enter opens the one under the cursor, and Esc returns to the project you were in. `intent explore` run outside an Intent project starts at the picker, and Esc there returns to the shell. A registered project that is no longer on disk is shown as missing and is not opened. The picker reads the registry file, so it works with no daemon running.
+
+**`/threads` and `/issues` open their lists inside the explorer**, rather than lending the terminal to the CLI. `/issues` with arguments still runs `intent issues`.
+
+**The menubar app says where the daemon is and what it is doing on one line**: its port, its state and the project's thread count, where it used to take two rows. A daemon that is not running, stale or unknown gets a line saying so, with no port and no count beside it.
+
 ## Changed
 
 **The documentation says what v3.0.1 does.** The README, the install, migration and known-defects pages, the command reference, the concept pages, the guides under `intent/docs/`, the skills, the subagents, the rule library, and the comments in the release scripts, the workflows and the menubar app were each measured against the build and rewritten where they were wrong. **Hardcoded counts are gone from all of them**: where the tool reports a figure about itself, the page now names the command that reports it, because a number written into a page is true on the day it is typed and unfalsifiable afterwards.
@@ -64,6 +72,8 @@
 **The command register's prose** -- which the command reference is generated from -- is corrected: the exit codes stated for `INV-04`, argument notes that claimed behaviour the build does not have, and the `intent claude` verb list, which still named the retired `prime`. None of the changed text reaches a command's help or output, so no command behaves or reads differently.
 
 **The published schema faces carry 3.0.1.** At the v3.0.1 tag they still said 3.0.0. Their generator re-stamped them and only the version line changed.
+
+**Intent's per-user files follow the XDG Base Directory Specification.** Configuration (`config.json`, `projects.json`) lives under `~/.config/intent/`; data (the install pointer `home`, the skill and subagent manifests, `ext/`) under `~/.local/share/intent/`; `intentd`'s logs under `~/.local/state/intent/`; its socket, address, token and lock under `$XDG_RUNTIME_DIR/intent/` when that is set, and `~/.local/state/intent/run/` otherwise. Each `XDG_*` variable is honoured when it holds an absolute path and ignored otherwise. Nothing reads `~/.intent/` any more.
 
 ## Fixed
 
@@ -99,7 +109,7 @@
 
 **A Homebrew install carries the subagents.** The v3.0.1 keg shipped without `intent/plugins/claude/subagents`, so `intent claude subagents list` answered `no subagents in this install` at exit 0 and there was nothing for `intent claude subagents install` to install -- the `critic-<lang>` family included. The support archive now carries that tree, and **the release refuses to build one that omits a directory the binary resolves by name at run time.**
 
-**A fresh install says how to finish it.** The pre-commit gate a project installs finds Intent through `~/.intent/home`, which only `intent bootstrap` writes, so every commit was refused after a first install -- and the refusal said to reinstall, which writes no pointer. It now names `intent bootstrap`, and the formula says the same in a caveat. **Homebrew cannot do it for you**: its `post_install` runs with a throwaway HOME and cannot write yours.
+**A fresh install says how to finish it.** The pre-commit gate a project installs finds Intent through a pointer file (`~/.local/share/intent/home` from this release), which only `intent bootstrap` writes, so every commit was refused after a first install -- and the refusal said to reinstall, which writes no pointer. It now names `intent bootstrap`, and the formula says the same in a caveat. **Homebrew cannot do it for you**: its `post_install` runs with a throwaway HOME and cannot write yours.
 
 **A release cannot be tagged with schema faces stamped for another version.** The v3.0.1 tag carried `schema/*` reading `INTENT_VER: 3.0.0`, because the published faces are generated from the crate's own version at compile time and the release stamped the version without regenerating them. The release now regenerates the faces through their own generator, in the release commit, and refuses to tag unless every published face carries the version being cut. It also refuses at pre-flight if a tree's faces disagree with its own `VERSION` before anything moves.
 
@@ -136,3 +146,9 @@
 **If you run more than one v3 install, the first v3.0.2 command to touch a shared project ends the older install's access to it** -- an older machine, a colleague who has not upgraded, a pinned CI image. The refusal that install then gives names the store and both version numbers, which is enough to diagnose, and does not say that an upgrade elsewhere caused it.
 
 **The fixes to the destructive verbs stop the loss; they do not recover one.** If a realisation verb, an `organize --apply`, or an `uninstall` has already removed bytes on v3.0.1, this release cannot reconstruct them. What it changes is that the next such run names what it is about to remove, first.
+
+**The first v3.0.2 command moves `~/.intent/` into the new layout, once.** It moves `config.json`, `home`, `skills`, `subagents`, `agents` and `ext`, prints one `note:` naming each move, and then removes `~/.intent/` entirely. **It stays only when something Intent does not own is left in it**: the note names what, and leaves it where it is. A configuration already at `~/.config/intent/config.json` is kept, unless it predates v3.
+
+**Then reinstall each project's pre-commit gate.** The `.git/hooks/pre-commit.intent` an earlier build installed reads `~/.intent/home`, which the move takes away, so that project's commits are refused until it is reinstalled. Run `intent claude upgrade --apply --skip-settings` in each project: it reinstalls the gate and regenerates `AGENTS.md` and `CLAUDE.md`, and `--skip-settings` leaves `.claude/settings.json` and `.mcp.json` as they are. `intent bootstrap` does not reinstall it.
+
+**A v3.0.1 `intentd` still running after the upgrade is stopped by `intent daemon stop` or `intent daemon restart`**, which find it at its old lock and clear the runtime files it left behind.
