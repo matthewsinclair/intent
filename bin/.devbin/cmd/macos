@@ -2559,7 +2559,17 @@ cmd_app_install() {
 # EXPECTED to fail the ticket arm; that is the check telling the truth about an
 # un-notarised bundle, not a defect in it.
 cmd_app_verify() {
-  local config="${1:-Debug}" bundle plist exe v
+  local config bundle plist exe v
+  # Issue 0395: the configuration is validated the way app-build validates its
+  # own, so a flag or a typo is refused by name instead of becoming a bundle
+  # path (`--help` became `.../Products/--help/Intent.app`, and a lowercase
+  # `debug` named a directory the build never writes).
+  case "${1:-}" in
+    release | Release) config="Release" ;;
+    "" | debug | Debug) config="Debug" ;;
+    dist) config="dist" ;;
+    *) die "app-verify: unknown config '$1' (debug|release|dist)" ;;
+  esac
   case "$config" in
     dist) bundle="$(app_dist)"
       [ -d "$bundle" ] || die "no distributable bundle at $bundle -- run: int macos app-sign" ;;
@@ -2954,28 +2964,46 @@ bin/devbin macos <subcommand>        (int macos <subcommand>)
 USAGE
 }
 
+# Issue 0395: help is answered wherever it is asked, BEFORE any subcommand
+# runs. `macos prepare --help` used to match `prepare)` and run the whole sign,
+# notarise and stage chain, because that arm passed nothing on and the flag was
+# dropped without a word. The flag a person or an agent types to learn a
+# command must never be the one that runs it.
+for _arg in "$@"; do
+  case "$_arg" in -h | --help) usage; exit 0 ;; esac
+done
+
+# A subcommand that takes no arguments REFUSES one, and names it (0395): an
+# argument dropped without a word is how a request for help became a signing
+# run.
+no_args() { # $1 the subcommand as typed, then whatever followed it
+  local sub="$1"
+  shift
+  [ $# -eq 0 ] || die "macos $sub takes no arguments, got: $* (try: bin/devbin macos --help)"
+}
+
 case "${1:-}" in
   "" | -h | --help) usage; exit 0 ;;
-  env) cmd_env ;;
-  doctor) cmd_doctor ;;
-  stage) cmd_stage ;;
-  sign) cmd_sign ;;
-  notarize | notarise) cmd_notarize ;;
-  verify) cmd_verify ;;
-  checksum) cmd_checksum ;;
-  prepare) cmd_prepare ;;
+  env) no_args "$@"; cmd_env ;;
+  doctor) no_args "$@"; cmd_doctor ;;
+  stage) no_args "$@"; cmd_stage ;;
+  sign) no_args "$@"; cmd_sign ;;
+  notarize | notarise) no_args "$@"; cmd_notarize ;;
+  verify) no_args "$@"; cmd_verify ;;
+  checksum) no_args "$@"; cmd_checksum ;;
+  prepare) no_args "$@"; cmd_prepare ;;
   formula) shift; cmd_formula "$@" ;;
   publish) shift; cmd_publish "${1:-}" ;;
   smoke) shift; cmd_smoke "$@" ;;
-  store-creds) cmd_store_creds ;;
-  app-doctor)  cmd_app_doctor ;;
-  app-icons)   cmd_app_icons ;;
+  store-creds) no_args "$@"; cmd_store_creds ;;
+  app-doctor)  no_args "$@"; cmd_app_doctor ;;
+  app-icons)   no_args "$@"; cmd_app_icons ;;
   app-build)   shift; cmd_app_build "${1:-}" ;;
-  app-run)     cmd_app_run ;;
-  app-test)    cmd_app_test ;;
-  app-install) cmd_app_install ;;
+  app-run)     no_args "$@"; cmd_app_run ;;
+  app-test)    no_args "$@"; cmd_app_test ;;
+  app-install) no_args "$@"; cmd_app_install ;;
   app-verify)  shift; cmd_app_verify "${1:-}" ;;
-  app-sign)    cmd_app_sign ;;
-  app-notarize | app-notarise) cmd_app_notarize ;;
+  app-sign)    no_args "$@"; cmd_app_sign ;;
+  app-notarize | app-notarise) no_args "$@"; cmd_app_notarize ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac
