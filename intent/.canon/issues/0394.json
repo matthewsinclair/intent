@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 394,
+  "slug": "st-attach-has-no-detach-so-an-attachment-can-onl",
+  "title": "st attach has no detach, so an attachment can only leave through canon",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-14",
+  "reporter": "Matthew Sinclair",
+  "body": "Found 2026-09-14 by dc working issue 0330. Two ST0056 attachments (`parity/tools/coverage_map.sh`, `parity/tools/fixture_probe.sh`) name instruments that measured the v2 estate removed under AC-00.6, and the ruling was to delete them. The CLI has `intent st attach <ID> <name> --from <file>` and no verb that removes an attachment row, so the only route is the store document's: a store snapshot, the rows removed from `intent/.canon/st/ST0056.json` by hand, `intent sync --to-store ST0056`, then `--to-disk`. A hand edit of canon is exactly what the CLI exists to spare an operator, and a deletion that can only happen that way is one nobody will reach for.\n\nNot built in this batch. The gap is a verb: remove an attachment from a thread, with the file's fate stated (kept on disk or removed) rather than implied.\n"
+}
