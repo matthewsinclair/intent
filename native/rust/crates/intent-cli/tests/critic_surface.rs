@@ -522,7 +522,7 @@ fn a_file_shellcheck_declines_is_reported_not_counted_as_asked() {
     out(&declined)
   );
   assert!(
-    out(&control).contains("DECLINED") == false && !out(&control).contains("0 of "),
+    !out(&control).contains("DECLINED") && !out(&control).contains("0 of "),
     "THE CONTROL: identical content in a .sh file is still asked, or a fix that \
      stopped running shellcheck at all would pass the arm above: {}",
     out(&control)

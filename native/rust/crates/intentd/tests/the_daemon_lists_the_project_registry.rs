@@ -32,7 +32,7 @@ fn a_project_added_to_the_registry_is_listed_without_a_restart() {
   );
 
   let file = userstate::project_registry_under(&Dirs::at_home(daemon.home()));
-  projects::add(&file, &[alpha.clone()], AddedBy::Discover).expect("register");
+  projects::add(&file, std::slice::from_ref(&alpha), AddedBy::Discover).expect("register");
 
   let mut seen = Vec::new();
   for _ in 0..100 {

@@ -9,7 +9,7 @@
 //! the second is gated on the feature and runs in a build that carries the
 //! grammar.
 
-mod common;
+use crate::common;
 
 use common::Fixture;
 use intentsvcs::index::symbols::{Span, Symbol, SymbolKind};

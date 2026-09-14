@@ -16,7 +16,7 @@
 //! last deleted the other's rows. `a_rebuild_leaves_the_change_detectors_table
 //! _alone` is what keeps that true.
 
-mod common;
+use crate::common;
 
 use std::process::Command;
 

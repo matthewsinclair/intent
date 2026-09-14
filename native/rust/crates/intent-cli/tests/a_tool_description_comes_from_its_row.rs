@@ -29,7 +29,7 @@ fn tools(root: &Path) -> Vec<serde_json::Value> {
   let home = testkit::fixture_home();
   let (out, frames) = crate::common::mcp_session(
     root,
-    Some(&home),
+    Some(home),
     &[
       r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
       r#"{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}"#,

@@ -7,7 +7,7 @@
 //! the endpoint, the comparison and the group -- with the vectors planted,
 //! rather than pretending a tier is running.
 
-mod common;
+use crate::common;
 
 use std::io::{Read, Write};
 

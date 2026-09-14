@@ -1668,7 +1668,7 @@ fn whiteboard_owner(project: &Project, path: &std::path::Path) -> Option<String>
 /// them into a form indistinguishable from a real reading.
 fn board_stamp(iso: &str) -> String {
   match (iso.find('T'), iso.len() >= 16) {
-    (Some(t), true) if t == 10 => format!("{} {}Z", &iso[..10], &iso[11..16]),
+    (Some(10), true) => format!("{} {}Z", &iso[..10], &iso[11..16]),
     _ => iso.to_string(),
   }
 }

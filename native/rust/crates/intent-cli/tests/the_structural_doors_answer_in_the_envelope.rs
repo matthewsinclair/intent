@@ -150,7 +150,7 @@ fn the_tool_and_json_answer_the_same_outline() {
   let home = testkit::fixture_home();
   let (out, frames) = crate::common::mcp_session(
     root,
-    Some(&home),
+    Some(home),
     &[
       r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
       r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"intent_search","arguments":{"outline":"src/lib.rs"}}}"#,

@@ -1161,10 +1161,12 @@ impl Plan {
   /// where the run would perform 517 and refuse 27, which is the one number the
   /// operator is consulting the preview for.
   pub fn run(&self, mode: Mode, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
-    let mut report = Report::default();
     // **THE REPORT SAYS WHICH PLAN IT IS OF**, so a caller that rendered one can
     // pin the act to it. See [`Report::digest`].
-    report.digest = self.digest.clone();
+    let mut report = Report {
+      digest: self.digest.clone(),
+      ..Report::default()
+    };
 
     // **REPORTED IN BOTH MODES, AND THE RUN CONTINUES** (issue 0209), for the
     // reason `refused` gives: one held thread must not make every other

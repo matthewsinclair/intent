@@ -1182,10 +1182,10 @@ pub fn serve(
         ));
       }
       if let Some(path_arg) = outline {
-        return Ok(val(path, &f.outline(path_arg)?)?);
+        return val(path, &f.outline(path_arg)?);
       }
       if let Some(name) = context {
-        return Ok(val(path, &f.context(name)?)?);
+        return val(path, &f.context(name)?);
       }
       let query = need_s(path, map, "query")?;
       // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
@@ -1418,7 +1418,7 @@ pub fn serve(
         intentsvcs::organize::Mode::Preview
       };
       let applied = mode == intentsvcs::organize::Mode::Apply;
-      let report = f.organize_as_shown(mode, shown.as_deref())?;
+      let report = f.organize_as_shown(mode, shown)?;
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
         paths.iter().map(|p| p.display().to_string()).collect()
       };

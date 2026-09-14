@@ -187,7 +187,7 @@ mod tests {
       Some(&vec!["vendor/huge.json".to_string()])
     );
     assert!(
-      status.skipped.get("symlink").is_none(),
+      !status.skipped.contains_key("symlink"),
       "a reason with nothing under it is absent"
     );
     assert!(!status.is_empty());

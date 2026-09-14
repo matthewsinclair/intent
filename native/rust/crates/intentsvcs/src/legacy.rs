@@ -677,7 +677,7 @@ fn accounted_attachments(
   project: &Project,
   id: &str,
   dir: &Path,
-) -> Result<(Vec<Attachment>, Vec<(String, String)>), std::io::Error> {
+) -> Result<Accounted, std::io::Error> {
   let (carried, refused) = project.collect_attachments_in(id, dir);
 
   // **THE POPULATION IS COUNTED FROM `dir`, INDEPENDENTLY OF THE CARRY.**
@@ -2107,6 +2107,10 @@ type ParsedTest = (AcceptanceTest, Vec<(String, String)>, Vec<String>);
 /// Why a row could not be read, in the two parts the residue report needs: the
 /// class it is filed under, and the detail naming the row and the reason.
 type RowRejection = (FindingClass, String);
+
+/// What `accounted_attachments` returns: the attachments carried, and the
+/// refused pairs beside them.
+type Accounted = (Vec<Attachment>, Vec<(String, String)>);
 
 fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   let space = row.find(' ').ok_or_else(|| {
