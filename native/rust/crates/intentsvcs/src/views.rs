@@ -842,6 +842,40 @@ pub fn differs_only_in_banner_version(on_disk: &str, rendered: &str) -> bool {
     == banner_line(rendered, rendered_at)
 }
 
+/// Whether a generated view differs from its render only as a formatter
+/// leaves it: a run of blank lines collapsed to one, or single-asterisk
+/// emphasis rewritten with underscores (issue 0378).
+///
+/// **A HINT, NOT A VERDICT.** Asked once skew is decided, it names the likely
+/// second writer in the finding and changes nothing about whether the view is
+/// skewed, because a hand edit can take the same shape.
+pub fn differs_as_a_formatter_would(on_disk: &str, rendered: &str) -> bool {
+  on_disk != rendered && formatter_normal(on_disk) == formatter_normal(rendered)
+}
+
+/// A text with the two rewrites [`differs_as_a_formatter_would`] asks about
+/// applied, so a view and its render compare equal when those are the only
+/// difference.
+fn formatter_normal(text: &str) -> String {
+  static EMPHASIS: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+  let emphasis = EMPHASIS.get_or_init(|| {
+    regex::Regex::new(r"(^|[^*\w`])\*([^*\s`](?:[^*`]*[^*\s`])?)\*($|[^*\w`])")
+      .expect("the emphasis pattern compiles")
+  });
+  let mut out = String::with_capacity(text.len());
+  let mut blank_run = false;
+  for line in text.lines() {
+    let blank = line.trim().is_empty();
+    if blank && blank_run {
+      continue;
+    }
+    blank_run = blank;
+    out.push_str(&emphasis.replace_all(line, "${1}_${2}_${3}"));
+    out.push('\n');
+  }
+  out
+}
+
 /// The inverse of [`section_body`], as far as it has one.
 ///
 /// **THE PLACEHOLDER MUST NOT ROUND-TRIP.** `section_body` renders an empty
@@ -2028,12 +2062,18 @@ pub fn skew(
           &rel,
           FindingClass::ViewSkew,
           format!(
-            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model",
+            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model{}",
             on_disk.len(),
             view.content.len(),
             first_difference(&on_disk, &view.content),
             if unlisted.is_some() {
               " (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind)"
+            } else {
+              ""
+            },
+            // Issue 0378: a formatter's rewrite read as a hand edit, with nothing naming the second writer.
+            if differs_as_a_formatter_would(&on_disk, &view.content) {
+              "; the difference is one a formatter makes (a collapsed blank-line run, or `*x*` become `_x_`), so a formatter is the likely second writer -- `intent claude upgrade --apply` adds the generated views to `.prettierignore`"
             } else {
               ""
             }
@@ -2078,6 +2118,33 @@ pub fn skew(
 
 #[cfg(test)]
 mod tests {
+  /// Issue 0378: the formatter hint answers for the two rewrites and nothing
+  /// else.
+  #[test]
+  fn a_formatter_shaped_difference_is_told_from_an_edit() {
+    use super::differs_as_a_formatter_would as formatter;
+    assert!(
+      formatter("a\n\nb\n", "a\n\n\nb\n"),
+      "a collapsed blank-line run"
+    );
+    assert!(
+      formatter("keep _this_\n", "keep *this*\n"),
+      "emphasis rewritten"
+    );
+    assert!(
+      !formatter("keep this\n", "keep *this*\n"),
+      "removed emphasis is an edit"
+    );
+    assert!(
+      !formatter("a\n\nb\n", "a\n\nb\n"),
+      "identical texts are not skew at all"
+    );
+    assert!(
+      !formatter("__bold__\n", "**bold**\n"),
+      "strong emphasis is not the rewrite asked about"
+    );
+  }
+
   /// **`open_run` MARKS THE SEAM `index_order` ALREADY SORTS TO**, so the two
   /// cannot disagree about where the open threads stop.
   ///

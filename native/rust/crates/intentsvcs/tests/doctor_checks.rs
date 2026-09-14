@@ -574,6 +574,65 @@ fn a_hand_edited_generated_view_is_reported_as_skew() {
   );
 }
 
+/// Issue 0378: a view a formatter rewrote read as a hand edit, and Utilz's gate
+/// refused every commit with nothing naming the second writer. When the
+/// difference is one a formatter makes, the finding says so and names the
+/// converge that keeps the formatter off.
+#[test]
+fn a_view_a_formatter_rewrote_names_the_formatter() {
+  let fx = Fixture::new();
+  let mut thread = clean_thread("ST0001");
+  thread.objective = "Keep the *emphasis* the author wrote.".to_string();
+  seed(&fx, &thread);
+  let rendered = fx.read("intent/st/ST0001/info.md");
+  assert!(
+    rendered.contains("*emphasis*"),
+    "precondition: the view carries the author's emphasis: {rendered}"
+  );
+  std::fs::write(
+    fx.path("intent/st/ST0001/info.md"),
+    rendered.replace("*emphasis*", "_emphasis_"),
+  )
+  .expect("a formatter's rewrite");
+
+  let skew: Vec<Finding> = run(&fx)
+    .into_iter()
+    .filter(|f| f.class == FindingClass::ViewSkew)
+    .collect();
+  let text = details(&skew);
+  assert!(
+    text.contains("formatter"),
+    "the finding names a formatter as the likely second writer: {text}"
+  );
+  assert!(
+    text.contains("intent claude upgrade --apply"),
+    "and the converge that keeps it off: {text}"
+  );
+}
+
+/// The control for the arm above: a hand edit is still a hand edit.
+#[test]
+fn a_hand_edit_is_not_blamed_on_a_formatter() {
+  let fx = Fixture::new();
+  seed(&fx, &clean_thread("ST0001"));
+  let edited = format!(
+    "{}\n<!-- a hand edit -->\n",
+    fx.read("intent/st/ST0001/info.md")
+  );
+  std::fs::write(fx.path("intent/st/ST0001/info.md"), edited).expect("hand-edit the view");
+
+  let skew: Vec<Finding> = run(&fx)
+    .into_iter()
+    .filter(|f| f.class == FindingClass::ViewSkew)
+    .collect();
+  let text = details(&skew);
+  assert!(!skew.is_empty(), "precondition: the edit is skew");
+  assert!(
+    !text.contains("formatter"),
+    "a hand edit is not blamed on a formatter: {text}"
+  );
+}
+
 #[test]
 fn a_file_with_conflict_markers_is_reported_unparsed() {
   let fx = Fixture::new();

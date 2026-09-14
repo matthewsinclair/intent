@@ -317,22 +317,20 @@ fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
 /// Missing patterns are appended and everything already there is left alone, so
 /// a consumer who has tuned theirs keeps it and a second run changes nothing.
 /// Intent excludes what IT generates and has no business switching off a
-/// consumer's formatter anywhere else -- which is why this writes five patterns
-/// and never `*`.
+/// consumer's formatter anywhere else -- which is why this writes only the
+/// generated views' patterns and never `*`.
 ///
 /// The patterns come from [`Project::generated_view_patterns`], beside the
 /// methods that produce the real paths, so this function holds no roster of its
 /// own to drift.
-pub(crate) fn converge_formatter_exclusion(project: &Project) -> Result<(), std::io::Error> {
+pub(crate) fn converge_formatter_exclusion(
+  project: &Project,
+) -> Result<Vec<String>, std::io::Error> {
   let path = project.root().join(".prettierignore");
   let current = std::fs::read_to_string(&path).unwrap_or_default();
-  let missing: Vec<String> = project
-    .generated_view_patterns()
-    .into_iter()
-    .filter(|pattern| !current.lines().any(|l| l.trim() == pattern))
-    .collect();
+  let missing = formatter_exclusion_missing(project);
   if missing.is_empty() {
-    return Ok(());
+    return Ok(missing);
   }
   let mut next = current;
   if !next.is_empty() && !next.ends_with('\n') {
@@ -343,11 +341,24 @@ pub(crate) fn converge_formatter_exclusion(project: &Project) -> Result<(), std:
      # editing these rewrites markup the author wrote, and `intent doctor` then\n\
      # reports the drift as a hand-edit on a file nobody touched.\n",
   );
-  for pattern in missing {
-    next.push_str(&pattern);
+  for pattern in &missing {
+    next.push_str(pattern);
     next.push('\n');
   }
-  std::fs::write(&path, next)
+  std::fs::write(&path, next)?;
+  Ok(missing)
+}
+
+/// The generated views' formatter-ignore patterns a project's `.prettierignore`
+/// does not carry: what [`converge_formatter_exclusion`] appends, asked without
+/// writing so a dry run can report it (0378).
+pub(crate) fn formatter_exclusion_missing(project: &Project) -> Vec<String> {
+  let current = std::fs::read_to_string(project.root().join(".prettierignore")).unwrap_or_default();
+  project
+    .generated_view_patterns()
+    .into_iter()
+    .filter(|pattern| !current.lines().any(|l| l.trim() == pattern))
+    .collect()
 }
 
 /// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
@@ -2303,6 +2314,15 @@ const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and i
 /// The remedy when an organize run's acts landed and the event log did not record them.
 const UNRECORDED_REMEDY: &str = "do not re-run to record it: the acts listed above are on disk, and `git status` shows them. The event log has no entry for this run, and no command writes one after the fact";
 
+/// What `intent claude upgrade` did: canon's dispositions, and the
+/// formatter-ignore patterns it added to `.prettierignore` -- or, on a dry run,
+/// would add (0378).
+#[derive(Debug)]
+pub struct ClaudeUpgraded {
+  pub applied: crate::canon::Applied,
+  pub excluded: Vec<String>,
+}
+
 /// What a mutation's projection hands back to the verb that asked for it.
 ///
 /// **THE OVERWRITES AND THE LANDED-WRITE NOTE TRAVEL TOGETHER** (0376), so the
@@ -3968,12 +3988,13 @@ impl Facade {
 
   /// `intent claude upgrade` -- apply canon, then record in the file index
   /// what it wrote into the corpus the index covers, in one act (0351). A dry
-  /// run writes nothing, so it records nothing.
+  /// run writes nothing, so it records nothing. It also converges the
+  /// formatter exclusion and names each pattern it adds (0378).
   pub fn claude_upgrade(
     &mut self,
     git_hooks: Option<&std::path::Path>,
     opts: crate::canon::Options,
-  ) -> Result<crate::canon::Applied, FacadeError> {
+  ) -> Result<ClaudeUpgraded, FacadeError> {
     let home = crate::install::home()?;
     let ctx = RenderContext {
       version: &self.ctx.version,
@@ -3988,10 +4009,19 @@ impl Facade {
       opts,
     )
     .map_err(FacadeError::Canon)?;
-    if !opts.report {
+    // Issue 0378: a consumer that took canon before the exclusion covered every generated view never received the rest, and no verb converged it.
+    let excluded = if opts.report {
+      formatter_exclusion_missing(&self.project)
+    } else {
       self.record_written(&applied.written)?;
-    }
-    Ok(applied)
+      converge_formatter_exclusion(&self.project).map_err(|source| {
+        FacadeError::Canon(crate::canon::CanonError::Unwritable {
+          path: self.project.root().join(".prettierignore"),
+          source,
+        })
+      })?
+    };
+    Ok(ClaudeUpgraded { applied, excluded })
   }
 
   /// Record in the file index what a writer outside the projection put on

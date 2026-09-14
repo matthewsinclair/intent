@@ -10155,7 +10155,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // the ones `--apply` would reach.
   let report = !m.get_flag("apply");
   // Issue 0351: canon wrote the root files and the file index never learned of them, so a running daemon read them back as an edit.
-  let applied = f
+  let upgraded = f
     .claude_upgrade(
       hooks.as_deref(),
       intentsvcs::canon::Options {
@@ -10165,6 +10165,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       },
     )
     .map_err(fail)?;
+  let applied = upgraded.applied;
   let root = f.project().root();
 
   if report {
@@ -10200,6 +10201,11 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // canon forgot (issue `0143`).
   for p in &applied.skipped {
     println!("skipped: {} (--skip-settings)", rel(root, p));
+  }
+  // Issue 0378: each generated-view pattern the formatter exclusion gained, named.
+  for pattern in &upgraded.excluded {
+    let verb = if report { "would exclude" } else { "excluded" };
+    println!("{verb}: {pattern} in .prettierignore");
   }
   // NOT SILENCE. A step that cannot run is named, or the report reads as a
   // plan that never included it.

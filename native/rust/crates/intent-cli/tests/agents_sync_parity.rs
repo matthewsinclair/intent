@@ -649,3 +649,38 @@ fn claude_upgrade_records_the_root_file_it_wrote_in_the_index() {
     "the index describes the AGENTS.md canon rewrote: {out}"
   );
 }
+
+/// Issue 0378: a consumer that took canon before the exclusion covered every
+/// generated view never received the rest, and no verb converged it, so its
+/// formatter kept rewriting views after the doctor gate. `claude upgrade
+/// --apply` is the verb a consumer takes canon by.
+#[test]
+fn claude_upgrade_restores_the_formatter_exclusion_a_consumer_is_missing() {
+  let dir = unsynced();
+  let ignore = dir.path().join(".prettierignore");
+  let full = std::fs::read_to_string(&ignore).expect("init writes .prettierignore");
+  assert!(
+    full.lines().any(|l| l == "intent/issues/*.md"),
+    "precondition: init excludes the issue views: {full}"
+  );
+  let older: String = full
+    .lines()
+    .filter(|l| !l.starts_with("intent/issues/") && !l.starts_with("intent/whiteboard/"))
+    .map(|l| format!("{l}\n"))
+    .collect();
+  std::fs::write(&ignore, &older).expect("a consumer's older exclusion");
+  let (out, rc) = run(
+    dir.path(),
+    &["claude", "upgrade", "--apply", "--skip-settings"],
+  );
+  assert_eq!(rc, 0, "claude upgrade --apply: {out}");
+  let after = std::fs::read_to_string(&ignore).expect("re-read .prettierignore");
+  assert!(
+    after.lines().any(|l| l == "intent/issues/*.md"),
+    "the issue views are excluded again: {after}"
+  );
+  assert!(
+    out.contains("intent/issues/*.md"),
+    "and the run names the pattern it added: {out}"
+  );
+}

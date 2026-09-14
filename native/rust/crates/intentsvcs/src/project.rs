@@ -1818,8 +1818,8 @@ impl Project {
   /// resolution is the oracle that joins the two**, so neither side has to
   /// model the other.
   ///
-  /// **FOUR OF THE FIVE ARE DERIVED FROM THE METHOD THAT PRODUCES THE REAL
-  /// PATH**, with `*` standing in for the thread id, so a view whose path moves
+  /// **EACH IS DERIVED FROM THE METHOD THAT PRODUCES THE REAL PATH WHERE A
+  /// WILDCARD CAN PASS THROUGH IT**, with `*` standing in for the id, so a view whose path moves
   /// takes its pattern with it and cannot drift silently. The work-package one
   /// is assembled by hand because [`Self::wp_info_view`] formats its sequence
   /// as `{seq:02}` and no wildcard can pass through that -- stated rather than
