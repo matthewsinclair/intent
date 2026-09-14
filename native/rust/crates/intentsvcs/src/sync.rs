@@ -610,6 +610,17 @@ impl Scanned {
     }
     true
   }
+
+  /// Does the index's scope reach this directory, or this path that has gone?
+  ///
+  /// [`Scanned::in_repository`] with the path's own name held to the walk's
+  /// directory rule too. An event naming a directory or a vanished path cannot
+  /// be classified as a file, so `.git`, an ignored directory and a skipped one
+  /// are refused as themselves, and anything beneath them by their ancestors.
+  // Issue 0355.
+  pub fn reaches(&self, path: &Path) -> bool {
+    self.in_repository(path) && self.descends(path)
+  }
 }
 
 /// The in-scope files under `under` whose bytes differ from `previous`.

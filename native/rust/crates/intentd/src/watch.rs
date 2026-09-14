@@ -36,7 +36,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use notify_debouncer_full::notify::RecursiveMode;
-use notify_debouncer_full::{DebounceEventResult, Debouncer, RecommendedCache, new_debouncer};
+use notify_debouncer_full::{
+  DebounceEventResult, Debouncer, NoCache, RecommendedCache, new_debouncer, new_debouncer_opt,
+};
 
 use intentsvcs::wire::{Event, Response};
 
@@ -69,7 +71,7 @@ pub struct Watch {
   /// at three of four full-suite runs red against none of four, and the second
   /// stream's cost buys the property WP-18 promised: the canon path is
   /// untouched by the index.
-  _index_debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, RecommendedCache>,
+  _index_debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, NoCache>,
 }
 
 /// Start watching a project, driving ingest through its store handle.
@@ -151,9 +153,22 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
   // strategy FITS under `max_user_watches` and no evidence about its rate.
   let index_root = root.to_path_buf();
   let index_handle = Arc::clone(&handle_for_index);
-  let mut index_debouncer = new_debouncer(QUIET, None, move |result: DebounceEventResult| {
-    on_index_batch(&index_root, &index_handle, result)
-  })
+  //
+  // **AND IT KEEPS NO FILE-ID CACHE, WHICH THE CANON REGISTRATION DOES.** The
+  // default cache walks each created directory and, on each removal, retains
+  // over every path it holds, so a deletion burst under a build directory held
+  // half a core in that bookkeeping alone. What the cache buys is a rename
+  // stitched into one event; without it a rename arrives as a removal and a
+  // creation, which `index_paths_to_refresh` already hands over as a vanished
+  // path and a leaf.
+  // Issue 0355.
+  let mut index_debouncer = new_debouncer_opt::<_, notify_debouncer_full::notify::RecommendedWatcher, NoCache>(
+    QUIET,
+    None,
+    move |result: DebounceEventResult| on_index_batch(&index_root, &index_handle, result),
+    NoCache::new(),
+    notify_debouncer_full::notify::Config::default(),
+  )
   .map_err(|e| {
     Response::error(
       format!("the index watcher for `{}` could not start: {e}", root.display()),
@@ -186,13 +201,23 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
 /// of one rule, which is the defect this thread has already paid for twice.
 ///
 /// What this decides is only what the DISPATCH hands over: a directory or a
-/// vanished path goes as itself, a leaf goes only if the index scope admits it,
+/// vanished path goes as itself only when the index scope reaches it (the root
+/// always does), a leaf goes only if the index scope admits it,
 /// and the daemon's own store writes are refused before they cost a round trip.
 fn index_paths_to_refresh(root: &Path, paths: &[&Path]) -> Vec<std::path::PathBuf> {
   let scope = intentsvcs::sync::Scanned::for_root(root);
   let mut out: Vec<std::path::PathBuf> = Vec::new();
   for path in paths {
-    if path.is_dir() || !path.exists() || scope.in_repository(path) {
+    // **A DIRECTORY OR A VANISHED PATH GOES ONLY WHEN THE SCOPE REACHES IT.**
+    // Handed over regardless, a deletion burst under an ignored build directory
+    // cost the store thread a whole-repository walk per debounced batch.
+    // Issue 0355.
+    let admitted = if path.is_dir() || !path.exists() {
+      *path == root || scope.reaches(path)
+    } else {
+      scope.in_repository(path)
+    };
+    if admitted {
       out.push(path.to_path_buf());
     }
   }
@@ -644,6 +669,31 @@ mod tests {
       index_paths_to_refresh(root, &[leaf.as_path()]),
       vec![leaf.clone()],
       "a leaf in the index scope must reach the reconcile"
+    );
+  }
+
+  #[test]
+  fn a_removal_under_an_ignored_directory_and_a_directory_under_git_reach_no_refresh() {
+    // Issue 0355: a deletion burst under `target/` reached the store thread as
+    // a whole-repository walk per debounced batch.
+    let (dir, _recorded) = project();
+    let root = dir.path();
+    let ok = std::process::Command::new("git")
+      .args(["init", "-q"])
+      .current_dir(root)
+      .status()
+      .expect("run git")
+      .success();
+    assert!(ok, "git init failed");
+    std::fs::write(root.join(".gitignore"), b"target/\n").expect("gitignore");
+    std::fs::create_dir_all(root.join("native/rust/target/debug/deps")).expect("mkdir");
+    let removed = root.join("native/rust/target/debug/deps/lib.rcgu.o");
+    let created = root.join(".git/refs/scratch");
+    std::fs::create_dir_all(&created).expect("mkdir under .git");
+
+    assert!(
+      index_paths_to_refresh(root, &[removed.as_path(), created.as_path()]).is_empty(),
+      "a removal under an ignored directory or a directory under `.git` reached the index refresh"
     );
   }
 
