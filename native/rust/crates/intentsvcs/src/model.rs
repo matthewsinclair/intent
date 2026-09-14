@@ -1996,6 +1996,13 @@ impl IssueStatus {
       Self::Closed => "CLOSED",
     }
   }
+
+  /// Whether the issue has reached its end state, beside
+  /// [`ThreadStatus::is_closed`] so the explorer's two collections ask the
+  /// same question the same way.
+  pub fn is_closed(self) -> bool {
+    matches!(self, Self::Closed)
+  }
 }
 
 /// The severity an issue may carry.

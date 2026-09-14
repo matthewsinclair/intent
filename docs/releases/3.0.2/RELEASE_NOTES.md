@@ -57,7 +57,7 @@
 
 **The explorer moves between projects.** `/projects` opens a picker of the registered projects: Enter opens the one under the cursor, and Esc returns to the project you were in. `intent explore` run outside an Intent project starts at the picker, and Esc there returns to the shell. A registered project that is no longer on disk is shown as missing and is not opened. The picker reads the registry file, so it works with no daemon running.
 
-**`/threads` and `/issues` open their lists inside the explorer**, rather than lending the terminal to the CLI. `/issues` with arguments still runs `intent issues`.
+**`/threads` and `/issues` open their lists inside the explorer**, rather than lending the terminal to the CLI. `/issues` with arguments still runs `intent issues`. **`/issues` lists open issues first, newest first, with a rule above the closed ones**, the way `/threads` lists threads; `intent issues list` keeps number order.
 
 **The menubar app says where the daemon is and what it is doing on one line**: its port, its state and the project's thread count, where it used to take two rows. A daemon that is not running, stale or unknown gets a line saying so, with no port and no count beside it.
 

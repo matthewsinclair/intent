@@ -5475,6 +5475,22 @@ fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Valu
     .ok()
 }
 
+/// A collection's rows with a rule where its open run ends: the one home for
+/// the seam `/threads` and `/issues` both draw.
+fn seamed(open: usize, rows: impl IntoIterator<Item = tui::layout::Row>) -> Vec<tui::layout::Row> {
+  let mut out = Vec::new();
+  for (i, row) in rows.into_iter().enumerate() {
+    // **A RULE SEPARATING NOTHING FROM SOMETHING IS DECORATION**, which this
+    // module refuses elsewhere in as many words: no open members, or no closed
+    // ones, and there are not two groups to divide.
+    if i == open && open > 0 {
+      out.push(tui::layout::Row::rule());
+    }
+    out.push(row);
+  }
+  out
+}
+
 /// Read the rows one view shows.
 ///
 /// **EVERY ARM GOES THROUGH THE FACADE AND NONE TOUCHES SQLite** (`AC-17.3`):
@@ -5548,34 +5564,33 @@ fn rows_for(
     View::Collection { kind } if kind == "thread" => {
       let threads = facade.st_list();
       let open = intentsvcs::views::open_run(&threads);
-      let mut rows: Vec<Row> = Vec::with_capacity(threads.len() + 1);
-      for (i, t) in threads.iter().enumerate() {
-        // **A RULE SEPARATING NOTHING FROM SOMETHING IS DECORATION**, which
-        // this module refuses elsewhere in as many words: no open threads, or
-        // no closed ones, and there are not two groups to divide.
-        if i == open && open > 0 {
-          rows.push(Row::rule());
-        }
-        rows.push(
+      seamed(
+        open,
+        threads.iter().map(|t| {
           Row::new(t.id.clone(), t.title.clone(), "button").opening(View::Item {
             kind: "thread".into(),
             id: t.id.clone(),
-          }),
-        );
-      }
-      rows
+          })
+        }),
+      )
     }
-    View::Collection { kind } if kind == "issue" => facade
-      .issue_list()
-      .into_iter()
-      .map(|i| {
-        let id = format!("{:04}", i.number);
-        Row::new(id.clone(), i.title.clone(), "button").opening(View::Item {
-          kind: "issue".into(),
-          id,
-        })
-      })
-      .collect(),
+    // **`/issues` DRAWS WHAT `/threads` DRAWS** (hv, 2026-09-14): open issues
+    // first, newest first, a rule, then the closed ones. The order and the
+    // boundary come from `views`, as the thread arm's do.
+    View::Collection { kind } if kind == "issue" => {
+      let issues = facade.issue_index();
+      let open = intentsvcs::views::issue_open_run(&issues);
+      seamed(
+        open,
+        issues.iter().map(|i| {
+          let id = format!("{:04}", i.number);
+          Row::new(id.clone(), i.title.clone(), "button").opening(View::Item {
+            kind: "issue".into(),
+            id,
+          })
+        }),
+      )
+    }
     View::Item { kind, id } => {
       let Some(form) = declaration.form(kind) else {
         return Vec::new();

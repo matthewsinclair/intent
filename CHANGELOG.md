@@ -33,7 +33,7 @@ Every document in the repository was checked against v3.0.1 as built and correct
 
 - **`intent discover [fromdir]` registers the Intent projects under a directory, and `intent explore` registers the one it opens**, in one per-user file, `~/.config/intent/projects.json`. `discover` walks `--depth` levels (4 by default), honours `.gitignore`, does not descend into a project it found, and names each project it did not register with the reason. A running `intentd` watches the file and lists every project in it.
 - **The explorer moves between projects.** `/projects` opens a picker of the registered projects, and `intent explore` outside an Intent project starts there. Enter opens a project, Esc goes back, and a project no longer on disk is shown as missing rather than opened.
-- **`/threads` and `/issues` open their lists inside the explorer**, rather than lending the terminal to the CLI; `/issues` with arguments still runs `intent issues`.
+- **`/threads` and `/issues` open their lists inside the explorer**, rather than lending the terminal to the CLI; `/issues` with arguments still runs `intent issues`. `/issues` lists open issues newest first, a rule, then closed ones, as `/threads` does.
 - **The menubar app shows the daemon's port, state and thread count on one line**, where it used to take two rows, and shows no port or count beside a daemon that is not live.
 
 ### Changed

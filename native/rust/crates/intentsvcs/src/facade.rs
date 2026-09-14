@@ -2996,6 +2996,13 @@ impl Facade {
     out
   }
 
+  /// Every issue in the explorer's collection order: open first, then newest
+  /// first ([`views::issue_index_order`]), beside [`Self::issue_list`]'s
+  /// number order.
+  pub fn issue_index(&self) -> Vec<&crate::model::Issue> {
+    views::issue_index_order(&self.canon.issues)
+  }
+
   /// One issue by number.
   ///
   /// The NUMBER rather than the rendered id, because zero-padding is a display

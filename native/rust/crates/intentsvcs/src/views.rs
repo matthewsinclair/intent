@@ -1081,13 +1081,40 @@ pub fn open_run(ordered: &[&Thread]) -> usize {
 }
 
 pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
-  let mut ordered: Vec<&Thread> = threads.iter().collect();
-  ordered.sort_by(|a, b| {
-    a.status
-      .is_closed()
-      .cmp(&b.status.is_closed())
-      .then_with(|| b.id.cmp(&a.id))
-  });
+  open_then_newest(threads, |t| t.status.is_closed(), |a, b| b.id.cmp(&a.id))
+}
+
+/// THE issue ordering for the explorer: open issues first, then newest number
+/// first, which is the thread rule applied one entity over (hv, 2026-09-14:
+/// `/issues` listed oldest first with no seam, where `/threads` has both).
+///
+/// **NOT `Facade::issue_list`'s NUMBER ORDER, WHICH STAYS AS IT IS.** That is
+/// the order `intent issues list`, the MCP tool and the GraphQL face print;
+/// this is the collection order [`issue_open_run`] marks the seam in.
+pub fn issue_index_order(issues: &[Issue]) -> Vec<&Issue> {
+  open_then_newest(
+    issues,
+    |i| i.status.is_closed(),
+    |a, b| b.number.cmp(&a.number),
+  )
+}
+
+/// How many of an [`issue_index_order`] run are still OPEN, for the reason
+/// [`open_run`] gives for threads.
+pub fn issue_open_run(ordered: &[&Issue]) -> usize {
+  ordered.iter().take_while(|i| !i.status.is_closed()).count()
+}
+
+/// Open before closed, then `newest` within each group. **One sort for both
+/// entities**, so threads and issues cannot come to disagree about what open
+/// first means.
+fn open_then_newest<T>(
+  items: &[T],
+  closed: impl Fn(&T) -> bool,
+  newest: impl Fn(&T, &T) -> std::cmp::Ordering,
+) -> Vec<&T> {
+  let mut ordered: Vec<&T> = items.iter().collect();
+  ordered.sort_by(|a, b| closed(a).cmp(&closed(b)).then_with(|| newest(a, b)));
   ordered
 }
 
@@ -2080,6 +2107,48 @@ mod tests {
       open,
       threads.iter().filter(|t| !t.status.is_closed()).count(),
       "the seam does not account for every open thread"
+    );
+  }
+
+  /// **`/issues` ORDERS AND DRAWS ITS SEAM AS `/threads` DOES** (hv,
+  /// 2026-09-14): open issues newest first, then closed issues newest first,
+  /// and the open run ends at the first closed one. The statuses interleave by
+  /// number, so number order and collection order differ at every position and
+  /// the old order cannot pass.
+  #[test]
+  fn issues_list_open_newest_first_then_closed_newest_first() {
+    let issues: Vec<Issue> = [
+      (1, "open"),
+      (2, "closed"),
+      (3, "open"),
+      (4, "closed"),
+      (5, "open"),
+      (6, "closed"),
+    ]
+    .iter()
+    .map(|(number, status)| {
+      serde_json::from_value(serde_json::json!({
+        "schema": crate::model::ISSUE_SCHEMA,
+        "number": number,
+        "slug": format!("issue-{number}"),
+        "title": format!("issue {number}"),
+        "status": status,
+        "created": "2026-09-14",
+      }))
+      .expect("issue fixture")
+    })
+    .collect();
+
+    let ordered = issue_index_order(&issues);
+    assert_eq!(
+      ordered.iter().map(|i| i.number).collect::<Vec<_>>(),
+      vec![5, 3, 1, 6, 4, 2],
+      "the collection is not open newest first, then closed newest first"
+    );
+    assert_eq!(
+      issue_open_run(&ordered),
+      3,
+      "the seam is not where the closed issues begin"
     );
   }
 
