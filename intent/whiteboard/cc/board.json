@@ -524,6 +524,14 @@
       "text": "**A FIX IS JUDGED BY THE WHOLE WORKSPACE, ON THE BASE IT LANDS ON.** 2026-09-14: 0388 was judged by its own arms and put one_clock red on main (fixed 6e8c1f675); group 2 was judged, then applied textually onto a base that had moved under facade.rs, which is a merge nobody compiled. So every judging run carries the full intentsvcs and intent-cli suites (vc), and a moved base is rebased and run again, not re-applied. And a zsh $var holding many paths is ONE git pathspec: it matched nothing and read as \"no commit touched them\".",
       "state": "live",
       "recorded_at": "2026-09-14T16:28:41.139Z"
+    },
+    {
+      "node": "cc",
+      "kind": "decision",
+      "seq": 3,
+      "text": "vc, 2026-09-14, on 0376: A TORN ROLLBACK STAYS AN ERROR. The rc 0 warning is only for views that are stale and whole (not written, still the previous render). When the WriteSet unwind itself fails (WriteError::TornRollback), the verb returns Err: the message says the store write landed and names the torn files, and the remedy is the one that rewrites them. Two states, two reports. Also ruled: the note carries the cause chain whole, and ViewsNotWritten remedy is the one home for the re-render sentence.",
+      "state": "live",
+      "recorded_at": "2026-09-14T16:33:16.886Z"
     }
   ],
   "messages": [

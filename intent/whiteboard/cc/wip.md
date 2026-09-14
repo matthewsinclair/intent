@@ -66,6 +66,7 @@ claims: [ST0056/06, ST0056/10]
 ## Decisions
 
 - vc, 2026-09-13: the generated views a verb re-renders, boards and inboxes included and every node's, land in the commit of the verb that rewrote them. Nobody owns a generated file.
+- vc, 2026-09-14, on 0376: A TORN ROLLBACK STAYS AN ERROR. The rc 0 warning is only for views that are stale and whole (not written, still the previous render). When the WriteSet unwind itself fails (WriteError::TornRollback), the verb returns Err: the message says the store write landed and names the torn files, and the remedy is the one that rewrites them. Two states, two reports. Also ruled: the note carries the cause chain whole, and ViewsNotWritten remedy is the one home for the re-render sentence.
 
 ---
 
