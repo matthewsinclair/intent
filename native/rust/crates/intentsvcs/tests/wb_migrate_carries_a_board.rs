@@ -320,3 +320,43 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
     "with the stranger's entry"
   );
 }
+
+#[test]
+fn a_migrated_inbox_over_the_bound_does_not_refuse_its_sender() {
+  // Issue 0374: every carried entry counted toward the bound, so an inbox migrated over it refused its sender's next ask.
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(&home).expect("the node's directory");
+  std::fs::write(home.join("wip.md"), BOARD).expect("the board");
+  let mut facade = fx.facade();
+  let bound = facade.project().config().whiteboard.live_messages;
+  let entries: String = (0..=bound)
+    .map(|i| format!("## (2026-09-12 10:{i:02}Z)\n\nentry {i}\n\n"))
+    .collect();
+  std::fs::write(
+    home.join("inbox.vc.md"),
+    format!("# inbox: vc -> dc\n\n{entries}"),
+  )
+  .expect("an inbox over the bound");
+  facade
+    .register_roster()
+    .expect("register dc from its header");
+  facade
+    .wb_register("vc", "Validation Claude", "validation")
+    .expect("register the sender");
+  facade.wb_migrate("dc").expect("carry the board");
+  assert_eq!(
+    facade.board("dc").expect("the board").messages.len(),
+    bound + 1,
+    "every entry is carried"
+  );
+  facade
+    .wb_ask(
+      "vc",
+      "dc",
+      "the first message after the cutover",
+      None,
+      false,
+    )
+    .expect("rows the sender never sent through the bound do not refuse it");
+}

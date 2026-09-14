@@ -4390,11 +4390,19 @@ impl Store {
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
-  /// How many LIVE messages one inbox holds -- an inbox being one ordered
-  /// (sender, recipient) pair, which is the shape the file form already has.
+  /// How many LIVE messages one inbox holds against its bound -- an inbox being
+  /// one ordered (sender, recipient) pair, which is the shape the file form
+  /// already has.
+  ///
+  /// **A CARRIED ENTRY DOES NOT COUNT** (vc, ruled 2026-09-14). The bound is
+  /// backpressure on a live conversation, and a migration is not one: only a
+  /// carried row holds an `authored_at`, and it stays out of the count until the
+  /// recipient's first `wb clear`, which marks it handled with the rest.
   pub fn wb_live_message_count(&self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
+    // Issue 0374: carried rows counted, so an inbox migrated over the bound refused its sender's next ask.
     let n: i64 = self.conn.query_row(
-      "SELECT count(*) FROM wb_message WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
+      "SELECT count(*) FROM wb_message WHERE sender = ?1 AND recipient = ?2 AND state = 'live' \
+       AND authored_at IS NULL",
       params![sender, recipient],
       |r| r.get(0),
     )?;
