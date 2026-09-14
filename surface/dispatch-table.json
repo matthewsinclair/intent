@@ -9,7 +9,7 @@
     {
       "state": "as-observed",
       "is_parity_class": false,
-      "gloss": "v3 reproduces what v2 was measured doing. The default and the largest class; it asserts no deviation, so there is nothing for parity.md to ratify.",
+      "gloss": "v2 was measured doing this, and the row claims nothing about v3: a v3 claim is ruled on a `corrected` or `deviate` row, which carries it in `target.behaviour`. The default and the largest class; it asserts no deviation, so there is nothing for parity.md to ratify.",
       "provenance": "The parity contract's baseline -- parity.md's `In scope (parity holds)` bullet"
     },
     {
@@ -119,8 +119,17 @@
       "rule": "Every failure writes `error: <message>` to STDERR. Every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.",
       "v2": "bin/intent_helpers:7-11 (`error()` -- the single authority; v2.19.0 moved its callers to the lowercase voice)",
       "target": {
-        "state": "as-observed",
-        "ratification": "D17 -- binary voice and exit codes carry over from v2"
+        "state": "corrected",
+        "ratification": "D17, read as the ratification of v3's own voice and exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs.",
+        "behaviour": "Every failure writes `error: <message>` to STDERR, and every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "vc",
+            "date": "2026-09-14",
+            "record": "design.md:225"
+          }
+        ]
       }
     },
     {
@@ -134,8 +143,17 @@
         "pinned_by": "WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)"
       },
       "target": {
-        "state": "as-observed",
-        "ratification": "D17"
+        "state": "corrected",
+        "ratification": "D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs.",
+        "behaviour": "A missing required argument, an unknown option, or an unknown subcommand exits 1. The one exception is `intent critic`, whose own usage errors exit 2 so the gate fails open on its own breakage (INV-04).",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "vc",
+            "date": "2026-09-14",
+            "record": "design.md:225"
+          }
+        ]
       },
       "implementation_note": "clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception, and the wording matters because the old form was read as saying critic uses 2 for FINDINGS: `intent critic` exits **2 for a USAGE error** rather than 1 -- not for findings, which are exit 1. It is the one command in the shipped surface that does, deliberately, because it is invoked BY A GATE that reads 2 as `the gate is broken, fail open` -- and a critic that cannot parse its own invocation is exactly that. Kept in v3 rather than corrected to 1. See INV-04's `why_2_is_correct_for_critic`."
     },
@@ -173,7 +191,17 @@
       "corrected_2026_08_20": "**THIS ROW HAD `intent critic`'s EXIT 2 EXACTLY BACKWARDS AND WOULD HAVE SHIPPED A PERMANENT SILENT GATE BYPASS** (dc, who found it reading the contract before building the v3 critic, and refused to build to it; ic verified at zero hops and reworded). The row said _2 only from `intent critic` (findings-present)_, citing `:89,95` -- **but those two lines are the USAGE paths, findings-present is `exit 1` at `:348`, and exit 3 has two live sites the row did not mention at all.** The harm is specific and it is in `lib/templates/hooks/pre-commit.sh:350-369`: `1` blocks, `3` blocks, and `*)` -- where 2 lands -- prints `invocation error; fail-open` and never sets `AGGREGATE`. **A v3 critic built to the old wording would have exited 2 on every finding, the gate would have failed open every time, and the commit would have proceeded unchecked -- here and in every consumer project through one symlink -- while the binary remained CONFORMANT TO THIS TABLE.** A gate bypass that passes its own surface check. **AND THE EVIDENCE CLAUSE IS THE LESSON: `measured across 108 probes` could establish that exit 2 OCCURS and can never establish what it MEANS**, which needs the branch that produces it read. A count of occurrences reported as a semantics -- the same shape as `1 refused` standing for 423 files, and the first instance that would have propagated into a BUILD rather than into a report.",
       "why_2_is_correct_for_critic": "**`intent critic` exiting 2 on a USAGE error is deliberate and right, and it is NOT an exception grudgingly tolerated** (ic ruling, 2026-08-20, on dc's question of whether it is a v2 defect worth a `corrected` row). The gate states the principle itself at `pre-commit.sh:349`: _a gate should fail open on its own breakage and closed on yours._ **A critic that cannot parse its own invocation is the gate's breakage, not the developer's code**, so fail-open is the correct disposition and 2 is the code that produces it. `guide.rs` already teaches the same reading -- _2 means this build cannot answer the question at all_. So v3 keeps it: 0 clean, 1 findings, 2 usage, 3 refused.",
       "target": {
-        "state": "as-observed"
+        "state": "corrected",
+        "ratification": "D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs.",
+        "behaviour": "0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here. The rule above states each in full.",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "vc",
+            "date": "2026-09-14",
+            "record": "design.md:225"
+          }
+        ]
       }
     },
     {
@@ -9900,7 +9928,7 @@
       "disposition": "keep",
       "target_state": "as-observed",
       "n": 47,
-      "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin.",
+      "gloss": "The v2 command survives, and the row records what v2 was measured doing without claiming anything about v3. The default, and the largest class by a wide margin.",
       "census_note": "47 since 2026-09-13: `claude ws` retired by ST0069 AC-14.12, the whiteboard cutover -- the only member so far to leave this pair for having SHIPPED and been withdrawn rather than for never having been built. 48 since 2026-09-11: `claude prime` retired by hv's decision 3. 49 since 2026-09-04: `claude subagents` moved to keep/corrected when vc's canon-names-it rule took `init` and `status` off the row. The pair below gained the same row, so the TOTAL is unchanged and only this per-pair census sees the move -- which is why the generator checks pairs rather than totals."
     },
     {

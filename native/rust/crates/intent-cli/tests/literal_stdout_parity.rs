@@ -1,37 +1,15 @@
-//! **The `observed` column is v2's bytes, and until now nothing ever read it back.**
+//! **A `corrected` row is held to the v3 bytes its ratification declares.**
 //!
-//! An `as-observed` row is a claim that v3's stdout equals v2's. 60 rows make
-//! that claim and **the claim is delegated to prose** -- `observed.stdout`, a
-//! sentence written by whoever read v2 at the time. Nothing anywhere compares
-//! that sentence to v2, and nothing compares it to v3.
+//! `observed.stdout_exact` records what v2 was measured printing, and it claims
+//! nothing about v3: an `as-observed` row says v2 was measured doing this, as the
+//! register's own gloss for the state now says. A row whose v3 behaviour is ruled
+//! is `corrected`, carries `target.stdout_exact`, and is held to those bytes
+//! here. That is the one v3 claim this file asserts.
 //!
-//! **On 2026-08-17 the only subset anyone checked came back 4 wrong out of 8.**
-//! Three had dropped a suffix -- `ok: <AC> back in scope` where v2 prints `ok:
-//! <AC> back in scope (unsatisfied)`, and the dropped word is the whole question
-//! an undo raises. **The fourth was `at na`, carrying `n-a`: v3's own token, in
-//! the column that records v2.** That row is `as-observed`, so a check comparing
-//! v3 against that column would have found agreement and **certified issue 0056
-//! as correct parity.** The defect reached the register built to catch it,
-//! before anyone knew there was a defect.
-//!
-//! **So the point of this file is not that one requirement should have one
-//! statement. It is that a field a test EXECUTES gets measured, and measuring is
-//! what found the four.** Prose drifts because nothing reads it back.
-//!
-//! # Two columns, two different kinds of red
-//!
-//! A row is held to exactly one template, chosen by its `target.state`:
-//!
-//! - **`as-observed`** -> held to `observed.stdout_exact.template`, v2's MEASURED
-//!   bytes. A difference is a **parity break**: fix the binary, or ratify the
-//!   deviation and move the row to `corrected`.
-//! - **`corrected`** -> held to `target.stdout_exact.template`, v3's RULED bytes.
-//!   A difference is an **unimplemented ratification**: build the ruled voice.
-//!
-//! **The two reds have different remedies, which is why they are two tests.**
-//! Reporting "5 rows disagree" without saying which column each disagreed with
-//! would hand the reader one number covering two unrelated obligations -- the
-//! same collapse as a row pretending to one stdout when it has two.
+//! It used to hold `as-observed` rows to v2's bytes too, reading the state as a
+//! claim that v3 reproduces v2. Sampled against 3.0.1, most of those claims were
+//! false, so the reading went (vc's ruling) rather than the rows being edited
+//! one by one to match the binary.
 //!
 //! # Why a `corrected` row is asserted at all
 //!
@@ -56,34 +34,7 @@
 //! difference-check drives the declaration onto the test-backed criterion, which
 //! is the only invocation where the correction is observable at all.
 //!
-//! # What is EXPECTED to be red, and why a green would be the alarm
-//!
-//! - **`at na`** -- template is v2's `n/a`; issue 0056 is open with the fix
-//!   designed. **The token has already moved once without reaching v2's**: 0056
-//!   records `n-a`, and at `34c6a3ae` it prints `na`. A row can be wrong in more
-//!   than one spelling over its life, so an issue naming the wrong value is not
-//!   evidence the row is right now.
-//! - **`ac satisfy`, `at red`** -- the other two ruled parity breaks.
-//! - **`ac rescope`, `ac reinstate`** -- ruled voice not yet built.
-//!
-//! **Measured against a `git archive` extract of `34c6a3ae`, not the worktree.**
-//! The worktree run of this same file came back GREEN on all three as-observed
-//! breaks -- because a peer had uncommitted fixes in `render.rs`, `facade.rs`,
-//! `model.rs` and `views.rs` at the time. Reporting that would have declared the
-//! canary green while the thing it guards was still broken at HEAD, and credited
-//! a peer with work they had not landed.
-//!
-//! **A green on any of these would mean the template had been written from the
-//! binary**, which is how `at na` came to carry `n-a` in the column that records
-//! v2 in the first place.
-//!
-//! # What this file does NOT cover, stated so its green is not over-read
-//!
-//! Only nine rows carry a template -- the `ac`/`at`/`issues` literals. The other
-//! ~51 `as-observed` rows are prose (`the table`, `the info.md contents`) and
-//! cannot be asserted this way; their coverage question is the differential,
-//! AT-00.1, and it is red. **Nine of 60 is not parity coverage and this file
-//! must never be cited as though it were.**
+//! # What this file does NOT cover
 //!
 //! A `new-surface` row has no v2 invocation to inherit and is deliberately NOT
 //! handled here. Stated rather than half-generalised.
@@ -228,8 +179,6 @@ fn run(root: &Path, argv: &[String]) -> (String, String, bool) {
 /// fields happen to be present.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Held {
-  /// v2's measured bytes. A difference is a parity break.
-  V2Record,
   /// v3's ruled bytes. A difference is an unimplemented ratification.
   V3Ruling,
 }
@@ -283,10 +232,6 @@ fn declarations(raw: &serde_json::Value, held: Held) -> Vec<Decl> {
     let tgt = e.get("target").and_then(|t| t.get("stdout_exact"));
 
     let template = match (held, state.as_str()) {
-      (Held::V2Record, "as-observed") => match obs {
-        Some(x) => x["template"].as_str().expect("template is a string"),
-        None => continue,
-      },
       (Held::V3Ruling, "corrected") => match tgt {
         Some(x) => x["template"].as_str().expect("template is a string"),
         None => continue,
@@ -360,34 +305,6 @@ fn mismatches(decls: &[Decl]) -> Vec<String> {
     }
   }
   wrong
-}
-
-/// **v3's stdout must equal the bytes v2 printed, for every row that claims it does.**
-#[test]
-fn every_literal_as_observed_row_matches_the_v2_bytes_it_declares() {
-  let raw = table();
-  let decls = declarations(&raw, Held::V2Record);
-  assert!(
-    !decls.is_empty(),
-    "no `as-observed` row carries `observed.stdout_exact`, so this test would pass \
-     by having nothing to compare -- which is the exact failure it exists to prevent"
-  );
-
-  let wrong = mismatches(&decls);
-  assert!(
-    wrong.is_empty(),
-    "{} of {} literal `as-observed` row(s) do NOT reproduce v2's stdout:\n\n  {}\n\n\
-     Each of these rows declares `target.state: as-observed`, which IS the claim \
-     that v3's output equals v2's. A difference here is a PARITY BREAK, not a \
-     failing test -- fix the binary, or ratify the deviation and move the row to \
-     `corrected` (which re-asserts it against the ruling, it does not drop it). \
-     **Do not edit the template to match v3**: the template is v2's measured bytes, \
-     and rewriting it to match the binary is how `at na` came to carry `n-a` in the \
-     column that records v2.",
-    wrong.len(),
-    decls.len(),
-    wrong.join("\n  ")
-  );
 }
 
 /// **A ratified row is held to its RULING, which is the obligation ratifying buys

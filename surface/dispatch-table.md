@@ -40,10 +40,10 @@ Rules that hold across the whole command surface. They are stated once here rath
 
 | id     | invariant                                                                           | v3 target   |
 | ------ | ----------------------------------------------------------------------------------- | ----------- |
-| INV-01 | Voice: lowercase `ok:` / `error:` prefixes, no banners                              | as-observed |
-| INV-02 | Usage errors exit 1, NOT clap's default 2                                           | as-observed |
+| INV-01 | Voice: lowercase `ok:` / `error:` prefixes, no banners                              | corrected   |
+| INV-02 | Usage errors exit 1, NOT clap's default 2                                           | corrected   |
 | INV-03 | The project-context gate                                                            | corrected   |
-| INV-04 | Exit codes observed in the shipped surface are 0, 1, 2 and 3                        | as-observed |
+| INV-04 | Exit codes observed in the shipped surface are 0, 1, 2 and 3                        | corrected   |
 | INV-05 | `error ...; usage` -- the second call is unreachable, everywhere                    | pending-hv  |
 | INV-06 | About a fifth of v2 failure paths write to the wrong stream                         | corrected   |
 | INV-07 | `--help` reports failure                                                            | corrected   |
@@ -56,7 +56,12 @@ Rules that hold across the whole command surface. They are stated once here rath
 Every failure writes `error: <message>` to STDERR. Every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.
 
 - **v2:** bin/intent_helpers:7-11 (`error()` -- the single authority; v2.19.0 moved its callers to the lowercase voice)
-- **Target:** `as-observed` -- ratified: D17 -- binary voice and exit codes carry over from v2
+- **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own voice and exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: Every failure writes `error: <message>` to STDERR, and every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-09-14
+  - `0.record`: design.md:225
 
 ### INV-02 -- Usage errors exit 1, NOT clap's default 2
 
@@ -65,7 +70,12 @@ A missing required argument, an unknown option, or an unknown subcommand exits 1
 - **v2:** bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`
 - **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `native/rust/crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
   - Pinned by: WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)
-- **Target:** `as-observed` -- ratified: D17
+- **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: A missing required argument, an unknown option, or an unknown subcommand exits 1. The one exception is `intent critic`, whose own usage errors exit 2 so the gate fails open on its own breakage (INV-04).
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-09-14
+  - `0.record`: design.md:225
 - **Implementation constraint:** clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception, and the wording matters because the old form was read as saying critic uses 2 for FINDINGS: `intent critic` exits **2 for a USAGE error** rather than 1 -- not for findings, which are exit 1. It is the one command in the shipped surface that does, deliberately, because it is invoked BY A GATE that reads 2 as `the gate is broken, fail open` -- and a critic that cannot parse its own invocation is exactly that. Kept in v3 rather than corrected to 1. See INV-04's `why_2_is_correct_for_critic`.
 
 ### INV-03 -- The project-context gate
@@ -91,7 +101,12 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error (INV-02). 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. `intent claude hook` propagates the hook's own code by design. The codes are `EXIT_UNAVAILABLE` and `EXIT_REFUSED` in `native/rust/crates/intent-cli/src/spine.rs`.
 
 - **v2:** bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: 0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here. The rule above states each in full.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-09-14
+  - `0.record`: design.md:225
 
 ### INV-05 -- `error ...; usage` -- the second call is unreachable, everywhere
 
