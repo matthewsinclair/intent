@@ -497,7 +497,7 @@ fn served<T>(
 /// *this build cannot answer* in the estate.
 fn graphql(m: &ArgMatches) -> Result<(), Failure> {
   let query = arg(m, "query")?;
-  let variables = crate::hatch::variables(opt(m, "variables").as_deref())
+  let variables = crate::hatch::variables(opt(m, "variables")?.as_deref())
     .map_err(crate::hatch::HatchError::failure)?;
   let (project, _ctx) = context()?;
   let answer = crate::hatch::graphql(project.root(), &query, variables)
@@ -938,7 +938,7 @@ fn st_table_from(
   a: &ArgMatches,
   project: &Project,
 ) -> Result<String, Failure> {
-  let wanted = match opt(a, "status") {
+  let wanted = match opt(a, "status")? {
     Some(spec) => status_filter(&spec)?,
     // v2's default: WIP only. NOT the same as `--status all`.
     None => Some(vec![ThreadStatus::Wip]),
@@ -1612,9 +1612,10 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   // The rule itself is small and closed: **IF THE FIRST POSITIONAL IS AN
   // ADDRESS, IT IS THE WHOLE ADDRESS**, and the next positional is the FILE.
   let (address, file) = {
-    let first = opt(m, "kind");
-    let second = opt(m, "id");
-    let third = opt(m, "file");
+    // `edit` and `st edit` both reach here, and `st edit` declares no `kind`.
+    let first = probe_undeclared_ok(m, "kind")?;
+    let second = probe_undeclared_ok(m, "id")?;
+    let third = probe_undeclared_ok(m, "file")?;
     match (first, second.clone()) {
       // **`intent st edit <id>` SHARES THIS FUNCTION AND HAS NO `kind`
       // POSITIONAL AT ALL.** It is thread-scoped and learns its collection from
@@ -1751,11 +1752,13 @@ pub(crate) fn artefact_path(
 /// caller reaching for an explicit spelling precisely so they do not have to
 /// guess which one wins, and answering with a guess defeats the reach.
 fn browsed(m: &ArgMatches, address: &intentsvcs::address::Address) -> Result<(), Failure> {
-  // `--editor` takes an optional value and `--path` does not, so presence is
-  // asked two ways. Both go through the file's own accessors rather than a
-  // third spelling of the same question.
+  // Presence is asked of [`given`] alone, which answers for a valued flag and a
+  // `SetTrue` one without reading either's value. This also asked `opt`, which
+  // could never say `Some` for `--path`: a `SetTrue` flag holds a `bool`, so the
+  // `String` read failed clap's type check and was swallowed as absent (measured
+  // 2026-09-15, when a strict `opt` refused `edit --browser` on it).
   for other in ["editor", "path"] {
-    if given(m, other) || opt(m, other).is_some() {
+    if given(m, other) {
       return Err(Failure::Error(format!(
         "error: `--browser` and `--{other}` ask for opposite things\n  \
          remedy: name one of them, or neither and let stdout decide"
@@ -1775,14 +1778,14 @@ fn browsed(m: &ArgMatches, address: &intentsvcs::address::Address) -> Result<(),
 /// promise, and the agreement this row needs is about behaviour as well as
 /// presence.
 fn browse_verb(m: &ArgMatches) -> Result<(), Failure> {
-  let kind = opt(m, "kind").ok_or_else(|| {
+  let kind = opt(m, "kind")?.ok_or_else(|| {
     Failure::Error(
       "error: `browse` needs a kind and an id\n  remedy: `intent browse <st|wp|issue> <id>`"
         .to_string(),
     )
   })?;
   let kind = check_enum(&kind, "browse", "kind")?;
-  let id = opt(m, "id").ok_or_else(|| {
+  let id = opt(m, "id")?.ok_or_else(|| {
     Failure::Error(format!(
       "error: `{kind}` names a kind and nothing to open\n  remedy: `intent browse {kind} <id>`"
     ))
@@ -2388,7 +2391,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // no default to mistake for a choice.
       reported(
         &open()?
-          .st_done_listing(&id, list, opt(a, "date").as_deref())
+          .st_done_listing(&id, list, opt(a, "date")?.as_deref())
           .map_err(fail)?,
         &id,
         "done",
@@ -2403,7 +2406,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // is ic's lane, so an absent one must not crash the renderer. When it is
       // absent the facade's `ReasonRequired` says exactly what is missing,
       // instead of cancelling a thread with no record of why.
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       // **`--keep` IS ON BOTH CLOSING VERBS SINCE hv's 2026-08-20 RULING.** It
       // was on `st done` alone because AC-05.2 named only that one; two
       // identical acts with the override on one of them is a surface that has
@@ -2418,7 +2421,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // has to be memorised rather than understood.
       reported(
         &open()?
-          .st_cancel_listing(&id, &reason, list, opt(a, "date").as_deref())
+          .st_cancel_listing(&id, &reason, list, opt(a, "date")?.as_deref())
           .map_err(fail)?,
         &id,
         "cancelled",
@@ -2448,7 +2451,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("hold", a)) => {
       let id = thread_arg(a, "id")?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.st_hold(&id, &reason).map_err(fail)?,
         &id,
@@ -2463,7 +2466,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("reopen", a)) => {
       let id = thread_arg(a, "id")?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.st_reopen(&id, &reason).map_err(fail)?,
         &id,
@@ -2473,7 +2476,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("reinstate", a)) => {
       let id = thread_arg(a, "id")?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.st_reinstate(&id, &reason).map_err(fail)?,
         &id,
@@ -2741,7 +2744,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     // file the CLI exists to own.
     Some(("reopen", a)) => {
       let (st, seq) = wp_target(a)?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.wp_reopen(&st, seq, &reason).map_err(fail)?,
         &format!("{st}/{seq:02}"),
@@ -2758,7 +2761,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     // data in a field the gate reads.
     Some(("cancel", a)) => {
       let (st, seq) = wp_target(a)?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.wp_cancel(&st, seq, &reason).map_err(fail)?,
         &format!("{st}/{seq:02}"),
@@ -2768,7 +2771,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("reinstate", a)) => {
       let (st, seq) = wp_target(a)?;
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       reported(
         &open()?.wp_reinstate(&st, seq, &reason).map_err(fail)?,
         &format!("{st}/{seq:02}"),
@@ -2888,7 +2891,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       let text = arg(a, "text")?;
-      let kind = match opt(a, "kind").as_deref() {
+      let kind = match opt(a, "kind")?.as_deref() {
         Some("test") => AcKind::Test,
         // The table declares the default, so an absent flag and an explicit
         // `non-test` are the same VALUE and the same EVENT here. They were once
@@ -2936,8 +2939,8 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
     Some(("edit", a)) => {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      let text = opt(a, "text");
-      let note = opt(a, "note");
+      let text = opt(a, "text")?;
+      let note = opt(a, "note")?;
       let moved = match (&text, &note) {
         (Some(_), Some(_)) => "reworded, note written",
         (None, Some(_)) => "note written",
@@ -2957,7 +2960,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // package verbs that owe a reason: the facade's `EvidenceRecorded` guard
       // is what refuses it, and it refuses `--evidence ""` as well as an absent
       // flag -- which re-checking the flag here could not do.
-      let evidence = opt(a, "evidence").unwrap_or_default();
+      let evidence = opt(a, "evidence")?.unwrap_or_default();
       // **`by evidence`, restored -- issue 0056, and it is the one of the five
       // that cannot be argued as tidying.** v2 prints `ok: <AC> satisfied by
       // evidence`, and the phrase is MORE load-bearing in v3 than it was in v2:
@@ -3044,7 +3047,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // to fix the refusal, not to keep re-checking the flag here:
       // `DescopeTargetRequired` now says a thread was not named, and clap
       // refuses an absent `--to` from the declared `required` before either.
-      let to = opt(a, "to").unwrap_or_default();
+      let to = opt(a, "to")?.unwrap_or_default();
       let by = arg(a, "by").ok();
       let reason = arg(a, "reason").ok();
       // **ONE OF THE TWO ARMS ISSUE 0050's ENUMERATION MISSED, and the reason is
@@ -3073,7 +3076,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // `satisfy` read as a simple oversight rather than as a missing guard:
       // two arms hand-implementing a rule that belonged in one place, and
       // nothing able to say which of them was right.
-      let reason = opt(a, "reason").unwrap_or_default();
+      let reason = opt(a, "reason")?.unwrap_or_default();
       let by = arg(a, "by").ok();
       // The second arm 0050's line-oriented count could not see -- see `descope`
       // above.
@@ -3159,7 +3162,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         .get_many::<String>("covers")
         .map(|v| v.cloned().collect())
         .unwrap_or_default();
-      let kind = match opt(a, "kind").as_deref() {
+      let kind = match opt(a, "kind")?.as_deref() {
         None | Some("test") => AtKind::Test,
         Some("non-test") => AtKind::NonTest,
         Some(other) => {
@@ -3174,10 +3177,10 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
             &st,
             &id,
             kind,
-            opt(a, "file"),
-            opt(a, "prose"),
+            opt(a, "file")?,
+            opt(a, "prose")?,
             covers,
-            opt(a, "note"),
+            opt(a, "note")?,
           )
           .map_err(fail)?,
         &id,
@@ -3206,7 +3209,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       // Parsed here rather than in the facade because this is where a
       // MISTYPED value is a usage error; the facade's job is refusing a
       // well-formed kind the contract cannot hold.
-      let kind = match opt(a, "kind").as_deref() {
+      let kind = match opt(a, "kind")?.as_deref() {
         None => None,
         Some("test") => Some(intentsvcs::model::AtKind::Test),
         Some("non-test") => Some(intentsvcs::model::AtKind::NonTest),
@@ -3228,10 +3231,10 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
           .at_edit(
             &st,
             &id,
-            opt(a, "file"),
-            opt(a, "prose"),
+            opt(a, "file")?,
+            opt(a, "prose")?,
             covers,
-            opt(a, "note"),
+            opt(a, "note")?,
             kind,
           )
           .map_err(fail)?,
@@ -3282,7 +3285,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       };
       reported(
         &open()?
-          .at_set(&st, &id, status, opt(a, "note"))
+          .at_set(&st, &id, status, opt(a, "note")?)
           .map_err(fail)?,
         &id,
         &format!("-> {}", status.display()),
@@ -3386,7 +3389,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
 fn set_verb(m: &ArgMatches) -> Result<(), Failure> {
   let raw = arg(m, "address")?;
   let field = arg(m, "field")?;
-  let value = match (opt(m, "value"), opt(m, "from")) {
+  let value = match (opt(m, "value")?, opt(m, "from")?) {
     (Some(_), Some(_)) => {
       return Err(Failure::Error(
         "error: a value and --from both give the field its new value, so passing both says nothing about which one you meant\n  remedy: pass one of them"
@@ -6995,7 +6998,7 @@ fn doctor_verdict(report: &intentsvcs::doctor::Report) -> Result<(), Failure> {
 /// require the project to be migrated before it could be migrated.
 ///
 /// **`--from-md` IS WITHDRAWN, AND THIS COMMENT USED TO ASSERT THAT THIS ARM
-/// READ IT.** It did not. `fn ingest` reads exactly one thing, `opt(a, "path")`
+/// READ IT.** It did not. `fn ingest` reads exactly one thing, `opt(a, "path")?`
 /// -- and the only `from_md` token in the body is `Facade::ingest_from_md`, a
 /// FUNCTION NAME, so a grep for the flag "confirmed" the false sentence by
 /// matching the call. **A mention-versus-use error asserting the exact property
@@ -7014,7 +7017,7 @@ fn doctor_verdict(report: &intentsvcs::doctor::Report) -> Result<(), Failure> {
 /// occurrences of the flag and ratify the capability's BEHAVIOUR rather than the
 /// flag's EXISTENCE. `disposition: retire`, with the basis at the table row.
 fn ingest(a: &ArgMatches) -> Result<(), Failure> {
-  let project = match opt(a, "path") {
+  let project = match opt(a, "path")? {
     Some(path) => Project::open(std::path::Path::new(&path)).map_err(|e| {
       format!(
         "error: {e}\n  remedy: give `intent ingest` the root of an Intent project -- the directory holding `intent/`, not the markdown itself"
@@ -7150,7 +7153,7 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
     // withdrawn -- belongs to the table's owner, and a refusal that says so is
     // what makes it visible rather than a silently missing verb.
     Some((verb @ ("notdone" | "toggle"), a)) => {
-      let spec = opt(a, "specifier").unwrap_or_default();
+      let spec = opt(a, "specifier")?.unwrap_or_default();
       let target = if spec.is_empty() {
         "the thread".to_string()
       } else {
@@ -7182,7 +7185,7 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
 fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
   let flush = given(a, "flush");
   let prune = given(a, "prune");
-  let spec = opt(a, "specifier");
+  let spec = opt(a, "specifier")?;
 
   match (spec, flush || prune) {
     (Some(spec), false) => {
@@ -7299,7 +7302,7 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // The directory name is the table's declared default for `project_name`, and
   // it is read here rather than defaulted in the surface so the fallback and
   // the declaration cannot disagree.
-  let name = opt(a, "project_name").unwrap_or_else(|| {
+  let name = opt(a, "project_name")?.unwrap_or_else(|| {
     cwd
       .file_name()
       .map(|n| n.to_string_lossy().into_owned())
@@ -7528,7 +7531,7 @@ fn export(a: &ArgMatches) -> Result<(), Failure> {
   // declared default. Not defaulted here: the default is a fact about the
   // format roster, and a copy of it in the renderer is a second place for it
   // to be wrong.
-  match f.export(opt(a, "format").as_deref()).map_err(fail)? {
+  match f.export(opt(a, "format")?.as_deref()).map_err(fail)? {
     Exported::Document(text) => print!("{text}"),
     // **THE DENOMINATOR IS PRINTED, NOT THE COUNT (AC-06.1).** A partial
     // realisation that reads as complete is worse than no realisation, and a
@@ -7797,7 +7800,7 @@ fn plugin_list() -> Result<(), Failure> {
 }
 
 fn plugin_show(m: &ArgMatches) -> Result<(), Failure> {
-  let name = match opt(m, "name") {
+  let name = match opt(m, "name")? {
     Some(name) => name,
     None => {
       return Err(Failure::Error(
@@ -9459,7 +9462,9 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     // for this family.
     None | Some(("list", _)) => {
       let a = m.subcommand().map(|(_, a)| a).unwrap_or(m);
-      let kind = opt(a, "kind").unwrap_or_else(|| "open".to_string());
+      // Bare `issues` arrives with the family's own matches, which declare no
+      // `kind`, so this read is the probe rather than `opt`.
+      let kind = probe_undeclared_ok(a, "kind")?.unwrap_or_else(|| "open".to_string());
       let wanted = match kind.to_ascii_lowercase().as_str() {
         "open" => Some(IssueStatus::Open),
         "closed" => Some(IssueStatus::Closed),
@@ -9524,7 +9529,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       // `issues list` renders as `?`. Reading it through `opt` keeps the default
       // where the surface declares it -- if the table's default is ever removed,
       // the facade records the absence rather than this arm inventing one.
-      let severity = opt(a, "severity");
+      let severity = opt(a, "severity")?;
       // **THE ROSTER IS ENFORCED HERE, ON THE WAY IN, AND IT WAS ENFORCED
       // NOWHERE BEFORE.** The table has declared `critical|high|medium|low`
       // all along and `--help` printed it, but nothing parsed it: `--severity
@@ -9592,9 +9597,9 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     // instances were in the record of a finding ABOUT the missing verb.
     Some(("edit", a)) => {
       let number = issue_arg(a, "id")?;
-      let title = opt(a, "title");
-      let severity = opt(a, "severity");
-      let prose_given = opt(a, "body").is_some() || opt(a, "from").is_some();
+      let title = opt(a, "title")?;
+      let severity = opt(a, "severity")?;
+      let prose_given = opt(a, "body")?.is_some() || opt(a, "from")?.is_some();
 
       // **"NOTHING TO CHANGE" AND "A VALUE THAT IS EMPTY" ARE DIFFERENT
       // MISTAKES AND MUST NOT SHARE A MESSAGE** -- the same-text-for-different-
@@ -9799,13 +9804,13 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
   // requiredness is CLAP's and is not re-checked here. Removed rather than
   // underscore-prefixed: the argument against it is the paragraph below, not
   // the compiler warning.
-  let child = opt(m, "child");
+  let child = opt(m, "child")?;
   // **REQUIREDNESS IS CLAP'S, ASSERTED FROM THE ROW, AND IS NOT RE-CHECKED
   // HERE.** `ac withdraw`'s arm records why: it used to re-check with `arg(..)?`
   // and that looked like the careful choice, while the identical hole in
   // `satisfy` read as an oversight rather than as a missing guard -- two arms
   // hand-implementing a rule that belongs in one place.
-  let because = opt(m, "because").unwrap_or_default();
+  let because = opt(m, "because")?.unwrap_or_default();
 
   // **THE AUTHOR COMES FROM THE CONFIG FILE, NEVER FROM `$USER`.** AC-11.3
   // holds the shipped surface to exactly one environment read and guards it;
@@ -11034,7 +11039,7 @@ fn rules(m: &ArgMatches) -> Result<(), Failure> {
 /// did not run.
 fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
   let lib = library()?;
-  let subject = opt(m, "id");
+  let subject = opt(m, "id")?;
   let (findings, examined) = lib
     .validate(subject.as_deref())
     .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
@@ -11658,17 +11663,17 @@ fn example(kind: model::IdKind) -> &'static str {
 /// **THE ONE PLACE A COMMAND'S OUTPUT SHAPE IS DECIDED.**
 ///
 /// Reads every spelling and hands back a resolved [`Output`]. It is safe on a
-/// verb declaring none of them, because [`opt`] and [`flag`] are absent-not-fatal
-/// for an undeclared name -- so a verb opts in by declaring the flag in the
-/// dispatch table and needs no arm here.
+/// verb declaring none of them, because [`probe_undeclared_ok`] and [`given`]
+/// read an undeclared name as absent -- so a verb opts in by declaring the flag
+/// in the dispatch table and needs no arm here.
 ///
 /// **THE TERMINAL WIDTH IS DISCOVERED HERE AND NOWHERE DEEPER.** AC-11.3 permits
 /// the shipped surface exactly one environment variable, `COLUMNS`; a services
 /// module reaching for it would put that permission somewhere nothing checks.
 fn output_of(m: &ArgMatches) -> Result<Output, Failure> {
   Output::resolve(
-    opt_explicit(m, "format").as_deref(),
-    opt(m, "width").as_deref(),
+    opt_explicit(m, "format")?.as_deref(),
+    probe_undeclared_ok(m, "width")?.as_deref(),
     given(m, "json"),
     given(m, "markdown"),
     terminal_width(),
@@ -11689,20 +11694,23 @@ fn output_of(m: &ArgMatches) -> Result<Output, Failure> {
 /// which is also why the earlier hand-driven pass came back clean -- that binary
 /// predated the default. `ValueSource` is the only thing that can separate the
 /// two, so the question is asked of clap rather than inferred from the value.
-fn opt_explicit(m: &ArgMatches, name: &str) -> Option<String> {
+fn opt_explicit(m: &ArgMatches, name: &str) -> Result<Option<String>, Failure> {
   // **`value_source` PANICS ON AN UNDECLARED ID, WHERE `try_get_one` RETURNS
-  // `Err`.** That asymmetry is the whole reason [`opt`] and [`flag`] exist -- a
-  // verb that does not declare a flag must not crash the renderer -- and
-  // reaching for a sibling API that does not share the property put a panic on
-  // every verb without `--format`. Measured: `intent issues` exited 101 with
+  // `Err`.** A verb that does not declare a flag must not crash the renderer,
+  // and reaching for a sibling API that does not share the property put a panic
+  // on every verb without `--format`. Measured: `intent issues` exited 101 with
   // *`"format"` is not an id of an argument or a group*.
   //
-  // Asking [`opt`] first makes the second call safe by construction rather than
-  // by a list of which verbs declare what: a `Some` here means the id exists.
-  let value = opt(m, name)?;
+  // Asking [`probe_undeclared_ok`] first makes the second call safe by
+  // construction rather than by a list of which verbs declare what: a `Some`
+  // here means the id exists. It is the probe rather than [`opt`] because the
+  // one caller, [`output_of`], is reached by every verb with an output shape.
+  let Some(value) = probe_undeclared_ok(m, name)? else {
+    return Ok(None);
+  };
   match m.value_source(name) {
-    Some(clap::parser::ValueSource::CommandLine) => Some(value),
-    _ => None,
+    Some(clap::parser::ValueSource::CommandLine) => Ok(Some(value)),
+    _ => Ok(None),
   }
 }
 
@@ -11720,13 +11728,6 @@ fn table_out(out: &Output, headers: &[&str], rows: &[Vec<String>]) -> Result<Str
   })
 }
 
-/// An optional value, ABSENT rather than fatal when this subcommand does not
-/// declare it.
-///
-/// `get_one` panics on an undeclared id -- exit 101, neither a v2 code nor an
-/// Intent error -- so a helper shared by two subcommands cannot use it. That
-/// is not hypothetical: `st list` and `st sync` share a renderer, `st sync`
-/// declares no `--markdown`, and the shared code panicked the moment it asked.
 /// The body an `issues add` invocation gives the new issue.
 ///
 /// **`--body` AND `--from` TOGETHER REFUSE RATHER THAN ONE WINNING** (hv,
@@ -11746,7 +11747,8 @@ fn table_out(out: &Output, headers: &[&str], rows: &[Vec<String>]) -> Result<Str
 /// Neither flag is the ordinary case and gives an empty body: nobody wrote one,
 /// which is a state.
 fn issue_body(m: &ArgMatches) -> Result<String, Failure> {
-  match (opt(m, "body"), opt(m, "from")) {
+  // Two `issues` verbs reach here, so both reads are the probe.
+  match (probe_undeclared_ok(m, "body")?, probe_undeclared_ok(m, "from")?) {
     (Some(_), Some(_)) => Err(Failure::Error(
       "error: --body and --from both give the issue its prose, so passing both says nothing about which one you meant\n  remedy: pass one of them"
         .to_string(),
@@ -11761,8 +11763,45 @@ fn issue_body(m: &ArgMatches) -> Result<String, Failure> {
   }
 }
 
-fn opt(m: &ArgMatches, name: &str) -> Option<String> {
-  m.try_get_one::<String>(name).ok().flatten().cloned()
+/// An optional value read by code only one verb reaches: `Ok(None)` when the
+/// verb declares the argument and the caller left it off, and a REFUSAL when the
+/// id is one this subcommand does not declare (IN-AG-NO-SILENT-001).
+///
+/// **AN UNDECLARED ID READ AS ABSENT HERE UNTIL 2026-09-15, SO A MISSPELT ID IN A
+/// VERB'S OWN ARM READ AS AN ARGUMENT NOBODY GAVE.** The silence existed for a
+/// real case: `get_one` panics on an undeclared id, and a helper shared by two
+/// subcommands asks about ids one of them does not declare -- `st list` and
+/// `st sync` shared a renderer, `st sync` declared no `--markdown`, and the
+/// shared code panicked the moment it asked. That case keeps the silence, by
+/// name, in [`probe_undeclared_ok`]; here the same id is a typo.
+fn opt(m: &ArgMatches, name: &str) -> Result<Option<String>, Failure> {
+  m.try_get_one::<String>(name)
+    .map(|value| value.cloned())
+    .map_err(|e| undeclared_arg(name, e))
+}
+
+/// An optional value read by code MORE THAN ONE VERB REACHES, where an id this
+/// subcommand does not declare reads as absent: the contract rather than a
+/// swallow, because the caller asks on behalf of verbs that do not all declare
+/// it.
+///
+/// **THE TOLERANCE IS NAMED BECAUSE SHARED CODE RELIES ON IT, AND THAT WAS
+/// MEASURED.** With every read strict, the intent-cli suite failed on shared
+/// reads alone: [`output_of`]'s `width` on `issues show`, [`edited`]'s `kind` on
+/// `st edit`, and bare `issues`, which reads `kind` from a family that declares
+/// none. So the split is by who reaches the code (vc's ruling, 2026-09-15): a fn
+/// more than one verb reaches reads here, and a verb's own arm reads [`opt`].
+///
+/// **ONLY AN UNDECLARED ID IS ABSENT.** A declared id read as the wrong type -- a
+/// `String` asked of a `SetTrue` flag -- is the renderer disagreeing with the
+/// table, and refuses here exactly as it does in [`opt`].
+fn probe_undeclared_ok(m: &ArgMatches, name: &str) -> Result<Option<String>, Failure> {
+  match m.try_get_one::<String>(name) {
+    Err(clap::parser::MatchesError::UnknownArgument { .. }) => Ok(None),
+    read => read
+      .map(|value| value.cloned())
+      .map_err(|e| undeclared_arg(name, e)),
+  }
 }
 
 /// Was this flag GIVEN on the command line, whatever it carries?
@@ -12759,6 +12798,62 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **`opt` REFUSES AN UNDECLARED ID, AND THE CONTROL IS A DECLARED ONE THE
+  /// CALLER LEFT OFF** (vc's ruling, 2026-09-15): without the control, an `opt`
+  /// that refused everything would pass the refusal arm. [`probe_undeclared_ok`]
+  /// is the named tolerance, so it answers absent for the same undeclared id,
+  /// still returns a value that was given, and refuses a type mismatch, which is
+  /// not the absence it tolerates.
+  #[test]
+  fn opt_refuses_an_undeclared_id_and_the_probe_reads_it_as_absent() {
+    let table = dispatch::table();
+    let parsed = |argv: &[&str]| {
+      crate::spine::build(&table)
+        .try_get_matches_from(argv.iter().copied())
+        .expect("the argv parses against the shipped table")
+    };
+
+    let bare = parsed(&["intent", "issues", "add", "a title"]);
+    let (_, add) = bare
+      .subcommand()
+      .and_then(|(_, family)| family.subcommand())
+      .expect("`issues add` is a subcommand of `issues`");
+    let refused = opt(add, "no-such-argument").expect_err("an undeclared id refuses");
+    assert_eq!(refused.code(), 1, "a renderer/table disagreement exits 1");
+    assert!(
+      refused
+        .message()
+        .is_some_and(|message| message.contains("`no-such-argument`")),
+      "the refusal names the id it was asked for"
+    );
+    assert!(
+      matches!(opt(add, "body"), Ok(None)),
+      "`--body` is declared on `issues add` and was not given, so it is absent, not refused"
+    );
+    assert!(
+      matches!(probe_undeclared_ok(add, "no-such-argument"), Ok(None)),
+      "the probe reads an undeclared id as absent"
+    );
+
+    let with_body = parsed(&["intent", "issues", "add", "a title", "--body", "prose"]);
+    let (_, add) = with_body
+      .subcommand()
+      .and_then(|(_, family)| family.subcommand())
+      .expect("`issues add` is a subcommand of `issues`");
+    assert_eq!(
+      probe_undeclared_ok(add, "body").ok().flatten().as_deref(),
+      Some("prose"),
+      "the probe returns a value that was given"
+    );
+
+    let edit = parsed(&["intent", "edit", "st", "ST0001", "--path"]);
+    let (_, edit) = edit.subcommand().expect("`edit` is a subcommand");
+    assert!(
+      probe_undeclared_ok(edit, "path").is_err(),
+      "a `String` read of the `SetTrue` `--path` is a type mismatch, not an undeclared id"
+    );
+  }
 
   /// **A HOLD THAT ASSERTS THE OPERATOR HAS EDITS IS WHAT MADE 0280 A TRAP,
   /// AND NOTHING PINNED THE SENTENCE** (vc's ruling, 2026-09-08).
