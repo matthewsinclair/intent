@@ -637,13 +637,10 @@ fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
 /// **THE EXEMPTION IS PROVEN, NOT ASSERTED** -- see
 /// [`the_template_exemption_covers_only_real_templates`]. It is also NARROW: it
 /// reaches thread-relative ids only, so a resolving `STnnnn` in one of these
-/// files still fires. That matters because the template DID carry one
-/// (`Exemption (ST0048)`) and an exemption keyed to the file rather than to the
-/// id class would have swallowed it.
-const FORMAT_TEMPLATES: [&str; 2] = [
-  "lib/templates/prj/st/ST####/acceptance.md",
-  "intent/plugins/claude/skills/in-tca-synthesize/SKILL.md",
-];
+/// files still fires. That mattered because the acceptance template, deleted
+/// under issue 0331, DID carry one (`Exemption (ST0048)`), and an exemption
+/// keyed to the file rather than to the id class would have swallowed it.
+const FORMAT_TEMPLATES: [&str; 1] = ["intent/plugins/claude/skills/in-tca-synthesize/SKILL.md"];
 
 /// Every AT id that CITES a given payload file, read from the register.
 ///

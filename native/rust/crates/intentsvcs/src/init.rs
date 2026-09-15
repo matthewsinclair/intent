@@ -82,44 +82,6 @@ use Destination::{At, Generated, NotByInit};
 const DESTINATIONS: &[(&str, Destination)] = &[
   ("prj/_wip.md", At("intent/wip.md")),
   ("llm/_CLAUDE.md", At("CLAUDE.md")),
-  // **NOT SEEDED. A HAND-MAINTAINED INDEX OF THE SOURCE TREE IS THE ONE THING
-  // THIS PROJECT'S OWN HIGHLANDER RULE FORBIDS.**
-  //
-  // MODULES.md exists to answer "does something already do this?" That job is
-  // real. The artefact is not: it is a manually-kept index of a tree the store
-  // already indexes, so the registry that exists to enforce Highlander is
-  // itself the duplicate. Retiring it now rather than after the search work
-  // lands is deliberate (hv, 2026-08-24) -- prune first, then build only what
-  // is needed, rather than carrying dross across the rewrite.
-  //
-  // Measured 2026-08-24 across the estate: Intent's own copy had grown to
-  // ~354KB over ~367 rows while CLAUDE.md instructed the reader to check it
-  // before creating any module -- an instruction nobody can follow, and the
-  // verb that should answer it (`intent modules find`) is unimplemented here.
-  // Lamplight had already retired its copy to a 790-byte placeholder by hv
-  // ruling in June, for drift. Two estates reached the same verdict
-  // independently, from opposite ends: too big to read, and too stale to trust.
-  //
-  // The template stays EMBEDDED rather than deleted: a project that wants a
-  // registry can still be given one. What ends is `init` deciding that every
-  // project has one before anybody has written a module.
-  (
-    "llm/_MODULES.md",
-    NotByInit("a hand-maintained index of a tree the store already indexes"),
-  ),
-  // **NOT SEEDED, FOR THE OPPOSITE REASON TO THE PAIR BELOW** (issue `0224`,
-  // vc ruling (a), 2026-09-11). The body is Elixir/Phoenix placement advice --
-  // its first section is `## Elixir/Phoenix Decision Tree` -- and `init` wrote
-  // it into every project whatever its language, so a Rust or Swift project
-  // carried a file that looked chosen and was not. A `[[#lang elixir]]` wrap
-  // through `Generated` was ruled out: it still lands a file in every other
-  // project, and `init` renders once, so a later `lang init elixir` would never
-  // see it. The template stays EMBEDDED, as `MODULES.md`'s does, for when a
-  // language pack can lay it down. Existing copies are not pruned.
-  (
-    "llm/_DECISION_TREE.md",
-    NotByInit("Elixir/Phoenix-specific, and init cannot tell whether the project is"),
-  ),
   // **SEEDED, AND THE OPPOSITE CALL TO THE TEN PER-LANGUAGE FILES ABOVE.**
   //
   // Measured 2026-08-24 across four estates: every one had AUTHORED its
@@ -163,36 +125,11 @@ const DESTINATIONS: &[(&str, Destination)] = &[
     "llm/_usage-rules.md",
     NotByInit("user-owned; the canon installer seeds it"),
   ),
-  (
-    "llm/_ARCHETYPES.md",
-    NotByInit(
-      "a language pack's, and NOTHING IN v3 LAYS IT DOWN -- v2's `intent_st_zero` was the only writer and goes at the cut",
-    ),
-  ),
-  (
-    "llm/_DEPENDENCY_GRAPH.md",
-    NotByInit(
-      "an umbrella-app artefact, and NOTHING IN v3 WRITES IT -- v2's `intent_st_zero` was the only writer and goes at the cut",
-    ),
-  ),
   // **THE STEEL-THREAD TEMPLATES ARE v2's VIEW RENDERER AND v3 HAS ANOTHER.**
   // Under D02 these files are GENERATED VIEWS of canon; the generator reads
   // canon and owns their shape. Laying down a template copy at init would be a
   // second source for a view, which is the defect this thread exists to remove.
   ("prj/st/ST####/info.md", NotByInit("a generated view (D02)")),
-  (
-    "prj/st/ST####/design.md",
-    NotByInit("a generated view (D02)"),
-  ),
-  ("prj/st/ST####/impl.md", NotByInit("a generated view (D02)")),
-  (
-    "prj/st/ST####/tasks.md",
-    NotByInit("a generated view (D02)"),
-  ),
-  (
-    "prj/st/ST####/acceptance.md",
-    NotByInit("a generated view (D02)"),
-  ),
   ("prj/st/WP/info.md", NotByInit("a generated view (D02)")),
 ];
 
@@ -573,13 +510,16 @@ mod tests {
   /// of those pass vacuously on an empty table -- no template can be missing a
   /// disposition if there are no templates. The build script already refuses a
   /// zero-length walk; this is the same property asserted where a reader of the
-  /// tests can see it.
+  /// tests can see it. **The floor is the table, never a number**: one embedded
+  /// template per declared destination, so a template deleted with its row
+  /// moves both sides at once (a fixed floor went red when issue 0331 deleted
+  /// the dead templates), and the second assertion keeps the table non-empty.
   #[test]
   fn the_embed_is_not_empty() {
-    assert!(
-      EMBEDDED_TEMPLATES.len() >= 10,
-      "only {} template(s) embedded -- the walk found almost nothing",
-      EMBEDDED_TEMPLATES.len()
+    assert_eq!(
+      EMBEDDED_TEMPLATES.len(),
+      DESTINATIONS.len(),
+      "the walk embedded a different number of templates than DESTINATIONS declares"
     );
     assert!(
       DESTINATIONS.iter().any(|(_, d)| matches!(d, At(_))),

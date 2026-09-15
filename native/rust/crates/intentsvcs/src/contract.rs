@@ -68,7 +68,7 @@ pub fn group_of(id: &str) -> String {
 /// and EVERY covering AT is green.
 ///
 /// **AND, not OR -- issue 0032, classified `corrected` rather than
-/// `as-observed`.** v2 short-circuits (`bin/intent_acceptance:454`: `[
+/// `as-observed`.** v2 short-circuited (the deleted `bin/intent_acceptance`: `[
 /// "$(at_status "$atline")" = "green" ] && return 0`), so a criterion
 /// decomposed across several tests reported green as soon as its easiest arm
 /// landed. **That is not a v2 behaviour to reproduce faithfully, because it was

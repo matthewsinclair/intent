@@ -39,8 +39,8 @@ setup() {
 }
 
 @test "the shipped hook dispatches the guard runner" {
-  # LINK ONE. The hook is the file COPIED into a consumer's .git/hooks/, so if
-  # it does not reach the runner nothing else here matters.
+  # LINK ONE. A consumer's `.git/hooks/pre-commit.intent` shim runs this hook live
+  # from the install, so if it does not reach the runner nothing else here matters.
   grep -qF 'pre-commit-guards.sh' "$HOOK"
   grep -qE '^[[:space:]]*bash "\$GUARD_RUNNER"' "$HOOK"
 }
@@ -72,11 +72,11 @@ setup() {
     [ -f "$g" ] || continue
     name="$(basename "$g")"
     # **A GUARD MAY DECLARE ITSELF DELIBERATELY ABSENT, AND THE CHECK THEN
-    # INVERTS RATHER THAN LAPSING.** `critic-guard.sh` landed inert on purpose:
-    # every installed carrier still contains the whole critic gate, so rostering
-    # it today would run the critic twice in fifteen estates and print every
-    # finding twice -- the permanently-noisy-aggregate failure, where the real
-    # finding hides inside its own duplicate. The roster line is hv's to time.
+    # INVERTS RATHER THAN LAPSING.** A guard body can land before the roster line
+    # that runs it: rostering it while a carrier still does its job runs the check
+    # twice and prints every finding twice -- the permanently-noisy-aggregate
+    # failure, where the real finding hides inside its own duplicate. The critic
+    # guard landed that way and was retired unrostered under issue 0331.
     #
     # **THE EXCLUSION IS READ FROM THE GUARD RATHER THAN LISTED HERE**, so a
     # second guard landing inert tomorrow is covered without anyone remembering

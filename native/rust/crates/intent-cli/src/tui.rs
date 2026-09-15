@@ -1,4 +1,4 @@
-//! `intent tui` -- the terminal realiser (WP-17 piece 3).
+//! `intent explore` -- the terminal realiser (WP-17 piece 3).
 //!
 //! **THE MACHINE LANDS BEFORE THE REALISER, AND SEPARATELY.** [`mode`] is the
 //! declared mode graph and its invariants; it compiles against nothing new, so

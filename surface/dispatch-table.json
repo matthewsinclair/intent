@@ -5678,7 +5678,7 @@
             ],
             "stdout": "the subagent table or detail",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "notes": "`intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.",
+            "notes": "`intent/plugins/claude/subagents/.manifest/` tracks nothing since global-agents.json was deleted (issue 0331), and .gitignore does not name its sibling installed-agents.json, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.",
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -5831,14 +5831,12 @@
               "values": [
                 "list",
                 "show",
-                "validate",
-                "index"
+                "validate"
               ],
                  "value_help": {
                    "list": "List all rules across canon and extensions",
                    "show": "Print a rule's Markdown body",
-                   "validate": "Validate frontmatter and required sections",
-                   "index": "Regenerate rules/index.json (canon only)"
+                   "validate": "Validate frontmatter and required sections"
                  }
             },
             {
@@ -5873,20 +5871,14 @@
             "stdout": "the rule table, or one rule's full text",
             "stderr": "`error: ...` on stderr (INV-01)",
             "notes": "Bare `intent claude rules` LISTS rather than printing usage -- measured.",
-            "defects": [
-              {
-                "id": "local",
-                "detail": "`intent claude rules index` MUTATES `INTENT_HOME` -- it rewrote a tracked file (intent/plugins/claude/rules/index.json) in the worktree under test. A verb that reads like a query modifies the installation."
-              }
-            ],
             "evidence_class": {
               "class": "measured",
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
             }
           },
           "target": {
-            "state": "pending-hv",
-            "question": "In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut."
+            "state": "as-observed",
+            "note": "hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`."
           },
           "disposition": "keep",
           "exposed_on_mcp": false,
@@ -9968,9 +9960,9 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 47,
+      "n": 48,
       "gloss": "The v2 command survives, and the row records what v2 was measured doing without claiming anything about v3. The default, and the largest class by a wide margin.",
-      "census_note": "47 since 2026-09-13: `claude ws` retired by ST0069 AC-14.12, the whiteboard cutover -- the only member so far to leave this pair for having SHIPPED and been withdrawn rather than for never having been built. 48 since 2026-09-11: `claude prime` retired by hv's decision 3. 49 since 2026-09-04: `claude subagents` moved to keep/corrected when vc's canon-names-it rule took `init` and `status` off the row. The pair below gained the same row, so the TOTAL is unchanged and only this per-pair census sees the move -- which is why the generator checks pairs rather than totals."
+      "census_note": "48 since 2026-09-15: `claude rules` joined from keep/pending-hv when hv's ruling retired its `index` verb with the rules-index trio (issue 0331). 47 since 2026-09-13: `claude ws` retired by ST0069 AC-14.12, the whiteboard cutover -- the only member so far to leave this pair for having SHIPPED and been withdrawn rather than for never having been built. 48 since 2026-09-11: `claude prime` retired by hv's decision 3. 49 since 2026-09-04: `claude subagents` moved to keep/corrected when vc's canon-names-it rule took `init` and `status` off the row. The pair below gained the same row, so the TOTAL is unchanged and only this per-pair census sees the move -- which is why the generator checks pairs rather than totals."
     },
     {
       "disposition": "new-surface",
@@ -9989,7 +9981,7 @@
     {
       "disposition": "keep",
       "target_state": "pending-hv",
-      "n": 5,
+      "n": 4,
       "gloss": "The command survives; what v3 does with it is waiting on hv. The survival question is answered and the behaviour question is not, which is why two fields are better than one here."
     },
     {

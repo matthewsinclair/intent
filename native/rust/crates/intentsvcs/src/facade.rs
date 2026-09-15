@@ -11369,8 +11369,8 @@ impl Facade {
             "`{path}` is generated from the model rather than authored on disk -- author it with {author_with}"
           )));
         }
-        // **`edit_disposition` HANDS OVER `Unattached` TOO, AND `put` MUST
-        // NOT.** They are the same answer to different questions: `edit` may
+        // **`edit_disposition` OPENS A PATH CANON DOES NOT CARRY, AND `put`
+        // MUST NOT.** They are the same answer to different questions: `edit` may
         // open any file in the directory, because the estate holds files Intent
         // does not model and never claimed to. Canon CARRIES only the
         // attachment extensions -- so writing an unattached path here would put

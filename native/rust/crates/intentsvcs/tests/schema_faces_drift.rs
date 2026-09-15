@@ -3,7 +3,7 @@
 //! faces").
 //!
 //! Regenerate deliberately with:
-//!   INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift
+//!   INTENT_BLESS=1 cargo test -p intentsvcs --test suite -- schema_faces_drift
 //! and commit the face change WITH the type change that caused it.
 
 use std::fs;
@@ -36,7 +36,7 @@ fn committed_faces_match_the_types() {
   }
   assert!(
     drifted.is_empty(),
-    "schema faces drifted from the model types:\n  {}\nregenerate deliberately: INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift",
+    "schema faces drifted from the model types:\n  {}\nregenerate deliberately: INTENT_BLESS=1 cargo test -p intentsvcs --test suite -- schema_faces_drift",
     drifted.join("\n  ")
   );
 }

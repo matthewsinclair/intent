@@ -91,15 +91,10 @@ pub const EXIT_ERROR: i32 = 1;
 /// failure sitting in the exact layer somebody would reach for to catch the
 /// first. Assert on OUTPUT there, never on the code.
 ///
-/// Two things deliberately NOT in the table, because a record is worth only
-/// what its exclusions are worth. **`bin/.devbin/cmd/build.d/release:373` calls
-/// `$PROJECT_ROOT/bin/intent doctor` by absolute path** -- that is v2's frozen
-/// shell entry point, not this binary, so it is a caller of `intent` and not a
-/// consumer of these codes; it would become one the day that path is
-/// repointed. And **`int prepush` does not invoke the binary at all** (checked
-/// rather than inherited: its only occurrence of the word is devbin's own usage
-/// line), so the fourth caller named on the issue does not hold as stated
-/// though its premise -- that the list is longer than two -- does.
+/// **The table declares the shipped consumers its scan reaches** -- the
+/// executable files of the canon a consumer project receives, as
+/// `exit_code_consumers.rs` reads it -- **and the repository's own dev tooling
+/// under `bin/.devbin` is outside it by that scope.**
 ///
 /// **The general rule the table exists to make unmissable: an exit code is a
 /// property of the CALLER's contract, not of this tool.** Before changing any

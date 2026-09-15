@@ -44,8 +44,9 @@ pub const BUNDLE_SCHEMA: &str = "intent/export@3.0";
 /// The whole estate as ONE document -- what a projection projects.
 ///
 /// **This is a different shape from the canon, not a different encoding of
-/// it.** The canon is a tree: one `thread.json` per thread, one `issue.json`
-/// per issue, and `events.jsonl` beside them. The bundle is a single artefact
+/// it.** The canon is a tree: one `.canon/st/<ID>.json` per thread, one
+/// `.canon/issues/<id>.json` per issue, and `project.json` beside them. The
+/// bundle is a single artefact
 /// carrying all of it, which is what makes it the thing that travels (D34) and
 /// the thing a stranger's script can open without knowing our directory
 /// layout. `--format json` is therefore a real projection and not a copy: the

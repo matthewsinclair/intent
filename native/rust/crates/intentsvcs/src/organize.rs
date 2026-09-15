@@ -37,7 +37,7 @@
 //! first.
 //!
 //! **IT REUSES `Project::classify` RATHER THAN RESTATING THE ELIGIBILITY
-//! CONTRACT.** `ThreadFile::Unattached` already IS D57-3's fifth row. A second
+//! CONTRACT.** `ThreadFile::Attachment` already IS D57-3's fifth row. A second
 //! expression of "what counts as a view" -- here, or in a shell tool -- would be
 //! the fourth list in the estate, and the one that goes stale is always the one
 //! nobody is looking at when a new view kind lands.
@@ -746,7 +746,7 @@ pub fn plan(
     // **`classify` TAKES A PATH RELATIVE TO THE THREAD DIRECTORY, NOT TO
     // `st_dir`.** Its view arms are `depth == 1` for `info.md` and `depth == 3`
     // for `WP/NN/info.md`, so handing it `ST0001/info.md` makes every view read
-    // as depth 2 and fall through to `Unattached` -- which would report every
+    // as depth 2 and fall through to `Attachment` -- which would report every
     // generated view in the estate as something a human put there, and dehydrate
     // none of them. Silent, and in the direction that looks safe.
     // **THE ISSUES ARM THE PARAGRAPH BELOW USED TO DEFER TO (AC-01.2).** A file
@@ -759,7 +759,7 @@ pub fn plan(
     // a path in this directory that it does not know is a file no issue
     // renders -- somebody else's, and this verb removes nothing it cannot
     // regenerate. That keeps the rule identical to the thread side, where
-    // `classify` answers `Unattached` rather than `GeneratedView` for the same
+    // `classify` answers `Attachment` rather than `GeneratedView` for the same
     // case.
     if path.starts_with(project.issues_view_dir()) {
       if renderable.contains_key(path) {

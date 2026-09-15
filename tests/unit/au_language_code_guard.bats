@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 # WP01 guard (ST0052): the AU (author) language code is admitted by the rule-id
 # validator. A well-formed IN-AU-* id validates; a malformed one still fails.
-# Guards the enum/regex widening across rule-schema.md, id-scheme.md,
-# index-generator.md, and intent_claude_rules against silent regression.
+# Guards the enum/regex widening across rule-schema.md, id-scheme.md and
+# intent_claude_rules against silent regression.
 
 load "../lib/test_helper.bash"
 

@@ -138,7 +138,3 @@ EOF
   [ -f "$critic_dir/metadata.json" ]
 }
 
-@test "critic-shell registered in global-agents.json" {
-  local manifest="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/.manifest/global-agents.json"
-  jq -r '.agents[].name' "$manifest" | grep -qx "critic-shell"
-}

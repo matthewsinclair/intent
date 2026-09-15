@@ -1167,7 +1167,7 @@ fn open_then_newest<T>(
 /// **The last view v3 was missing, and the one D22 never got applied to.**
 /// v2's `WP/<NN>/info.md` is the same mixed authored/generated file that D22
 /// split at thread level: template sections beside prose a human wrote. D28
-/// reified the prose into `thread.json` as `objective` and `body`; this is the
+/// reified the prose into the thread canon as `objective` and `body`; this is the
 /// other end of that, and without it AC-06.7's canon -> view -> canon has no
 /// view to pass through.
 ///
@@ -2317,7 +2317,7 @@ mod tests {
   use crate::model::{THREAD_SCHEMA, ThreadStatus, WpStatus};
 
   /// The wire spelling is kebab-case (`#[serde(rename_all)]`), so these are the
-  /// status values as `thread.json` carries them.
+  /// status values as the thread canon carries them.
   fn thread(id: &str, status: &str) -> Thread {
     serde_json::from_value(serde_json::json!({
       "schema": THREAD_SCHEMA,

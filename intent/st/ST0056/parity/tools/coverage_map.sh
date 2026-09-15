@@ -20,8 +20,9 @@
 #
 # RUNS AT THE MEASURED REV, NOT AT HEAD: run it FROM a worktree at the measured
 # v2 revision (`git worktree add <dir> <sha>`, then cd there), as gen_register.sh
-# runs fixture_probe.sh under ROOT="$WT". At HEAD tests/ is gone and the corpus
-# guard below refuses, by design and not as a defect (issue 0330).
+# runs fixture_probe.sh under ROOT="$WT". At HEAD the v2 bats estate it measured
+# is gone and the corpus guard below refuses, by design and not as a defect
+# (issue 0330).
 
 set -euo pipefail
 

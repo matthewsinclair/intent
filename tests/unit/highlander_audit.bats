@@ -63,12 +63,3 @@ EOF
   }
 }
 
-@test "canon manifest does not list elixir subagent" {
-  local manifest="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/.manifest/global-agents.json"
-  assert_file_exists "$manifest"
-  if grep -q '"name": "elixir"' "$manifest"; then
-    echo "elixir still listed in $manifest" >&2
-    echo "WP03 requires the entry be removed" >&2
-    return 1
-  fi
-}

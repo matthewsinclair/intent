@@ -318,33 +318,31 @@ When authoring a new rule, a quick check: `grep -nE '^    [^ ]' <rule-dir>/RULE.
 
 Anti-bloat invariant: no field in this schema exists without a named consumer. The consumers are:
 
-The `intent claude rules index` column describes a verb that is declared and not built: it exits 2 as not implemented, nothing regenerates or reads `index.json`, and whether it retires is an open hv decision.
-
-| Field                 | Claude reads | `intent claude rules` reads | `intent claude rules index` reads | Critic subagent reads  |       `intent critic` reads       |
-| --------------------- | :----------: | :-------------------------: | :-------------------------------: | :--------------------: | :-------------------------------: |
-| `id`                  |      ✓       |              ✓              |                 ✓                 |           ✓            |                 ✓                 |
-| `title`               |      ✓       |              ✓              |                 ✓                 |           ✓            |                --                 |
-| `language`            |      ✓       |              ✓              |                 ✓                 |      ✓ (dispatch)      |       ✓ (selects the pack)        |
-| `category`            |      ✓       |              ✓              |                 ✓                 |           ✓            |                --                 |
-| `severity`            |      ✓       |              ✓              |                 ✓                 |       ✓ (filter)       | ✓ (filter; unknown value refused) |
-| `summary`             |      ✓       |             --              |                --                 |           --           |                --                 |
-| `principles`          |      ✓       |             --              |                 ✓                 |           ✓            |                --                 |
-| `applies_when`        |      ✓       |             --              |                --                 |           ✓            |                --                 |
-| `upstream_id`         |      --      |    ✓ (attribution check)    |                 ✓                 |  ✓ (upstream dedupe)   |                --                 |
-| `applies_to`          |      --      |             --              |                 ✓                 |    ✓ (file filter)     |          ✓ (file filter)          |
-| `references`          |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           ✓            |                --                 |
-| `concretised_by`      |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
-| `aliases`             |      ✓       |             --              |                 ✓                 |           --           |                --                 |
-| `tags`                |      --      |             --              |                 ✓                 |           --           |                --                 |
-| `related_rules`       |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
-| `sources`             |      ✓       |             --              |                --                 |           --           |                --                 |
-| `conflicts_with`      |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
-| `does_not_apply_when` |      ✓       |             --              |                --                 |       ✓ (filter)       |                --                 |
-| `status`              |      --      |             --              |                 ✓                 | ✓ (skip if not active) |    ✓ (non-active never fires)     |
-| `version`             |      --      |             --              |                --                 |           --           |                --                 |
-| `critic_tool`         |      --      |             --              |                --                 |           --           |           ✓ (dispatch)            |
-| `critic_tool_context` |      --      |             --              |                --                 |           --           |  ✓ (per-file or out of context)   |
-| `critic_tool_codes`   |      --      |             --              |                --                 |           --           |   ✓ (narrows the tool's output)   |
+| Field                 | Claude reads | `intent claude rules` reads | Critic subagent reads  |       `intent critic` reads       |
+| --------------------- | :----------: | :-------------------------: | :--------------------: | :-------------------------------: |
+| `id`                  |      ✓       |              ✓              |           ✓            |                 ✓                 |
+| `title`               |      ✓       |              ✓              |           ✓            |                --                 |
+| `language`            |      ✓       |              ✓              |      ✓ (dispatch)      |       ✓ (selects the pack)        |
+| `category`            |      ✓       |              ✓              |           ✓            |                --                 |
+| `severity`            |      ✓       |              ✓              |       ✓ (filter)       | ✓ (filter; unknown value refused) |
+| `summary`             |      ✓       |             --              |           --           |                --                 |
+| `principles`          |      ✓       |             --              |           ✓            |                --                 |
+| `applies_when`        |      ✓       |             --              |           ✓            |                --                 |
+| `upstream_id`         |      --      |    ✓ (attribution check)    |  ✓ (upstream dedupe)   |                --                 |
+| `applies_to`          |      --      |             --              |    ✓ (file filter)     |          ✓ (file filter)          |
+| `references`          |      ✓       |    ✓ (validate resolves)    |           ✓            |                --                 |
+| `concretised_by`      |      ✓       |    ✓ (validate resolves)    |           --           |                --                 |
+| `aliases`             |      ✓       |             --              |           --           |                --                 |
+| `tags`                |      --      |             --              |           --           |                --                 |
+| `related_rules`       |      ✓       |    ✓ (validate resolves)    |           --           |                --                 |
+| `sources`             |      ✓       |             --              |           --           |                --                 |
+| `conflicts_with`      |      ✓       |    ✓ (validate resolves)    |           --           |                --                 |
+| `does_not_apply_when` |      ✓       |             --              |       ✓ (filter)       |                --                 |
+| `status`              |      --      |             --              | ✓ (skip if not active) |    ✓ (non-active never fires)     |
+| `version`             |      --      |             --              |           --           |                --                 |
+| `critic_tool`         |      --      |             --              |           --           |           ✓ (dispatch)            |
+| `critic_tool_context` |      --      |             --              |           --           |  ✓ (per-file or out of context)   |
+| `critic_tool_codes`   |      --      |             --              |           --           |   ✓ (narrows the tool's output)   |
 
 Fields with zero ✓s are candidates for removal.
 

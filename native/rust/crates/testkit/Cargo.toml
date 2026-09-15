@@ -26,6 +26,6 @@ path = "tests/suite.rs"
 
 # DELIBERATELY NO DEPENDENCIES. Everything here is std. A testkit that grows a
 # dependency graph becomes a thing to reason about rather than a thing to reach
-# for -- and dep_graph_guard.rs walks every manifest under crates/, so anything
-# added here is on the D06 surface.
+# for. Only review holds that line: dep_graph_guard.rs walks every manifest
+# under crates/ for rusqlite alone (D06).
 [dependencies]

@@ -10,10 +10,9 @@ load "../lib/test_helper.bash"
 CRITIC_DIR="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/critic-prose"
 AGENT_MD="$CRITIC_DIR/agent.md"
 METADATA="$CRITIC_DIR/metadata.json"
-MANIFEST="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/.manifest/global-agents.json"
 
 # ====================================================================
-# Rename + registration (AC-03.1): critic-prose, no critic-author
+# Rename (AC-03.1): critic-prose, no critic-author
 # ====================================================================
 
 @test "critic-prose: directory has agent.md and metadata.json" {
@@ -26,20 +25,14 @@ MANIFEST="${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/.manifest/globa
   assert_file_contains "$AGENT_MD" 'name: critic-prose'
 }
 
-@test "critic-prose: registered in global-agents.json" {
-  jq -r '.agents[].name' "$MANIFEST" | grep -qx "critic-prose"
-}
-
 @test "critic-prose: metadata.json is valid JSON naming critic-prose" {
   run jq -r '.name' "$METADATA"
   assert_success
   assert_output "critic-prose"
 }
 
-@test "critic-prose: the old critic-author is fully retired (no dir, no manifest entry)" {
+@test "critic-prose: the old critic-author is fully retired (no dir)" {
   [ ! -d "${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents/critic-author" ]
-  run bash -c "jq -r '.agents[].name' '$MANIFEST' | grep -x 'critic-author'"
-  assert_failure
 }
 
 # ====================================================================

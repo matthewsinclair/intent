@@ -13,11 +13,12 @@
 //! Read at mode granularity, its two proof points split: conflabd proves rmcp
 //! for streamable HTTP -- the 3.x multi-agent tier -- while the OTHER pattern
 //! the same section cites, Lamplight's `mcp.rs`, is a depless hand loop over
-//! exactly the stdio mode that ships now (339 lines, serde_json only, rmcp
-//! nowhere in its manifest). The 3.0.0 scope is tools-only stdio: initialize,
-//! `notifications/initialized`, `tools/list`, `tools/call`, `ping`. rmcp buys
-//! protocol breadth this scope does not use, at the price of tokio and a
-//! large subtree entering a lock four nodes build against, and async entering
+//! exactly the stdio mode that ships now (serde_json only, rmcp nowhere in its
+//! manifest). The 3.0.0 scope was tools-only stdio: initialize,
+//! `notifications/initialized`, `tools/list`, `tools/call`, `ping`; since then
+//! `resources/list` and `resources/read` have joined it. rmcp buys protocol
+//! breadth this scope does not use, at the price of tokio and a large subtree
+//! entering a lock every node builds against, and async entering
 //! a crate whose facade contract is synchronous open-per-call. The loop goes
 //! when the MCP face routes through `dispatch(op)`/intentd -- the same 3.x
 //! destination `mcp.rs`'s header already records -- which is where rmcp

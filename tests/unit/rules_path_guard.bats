@@ -12,13 +12,10 @@
 load "../lib/test_helper.bash"
 
 # Surfaces that leave the Intent repo: skills + subagents (installed into
-# ~/.claude), canon templates (instantiated into consumer projects), agent
-# templates, and the AGENTS.md generator's heredocs.
+# ~/.claude) and canon templates (instantiated into consumer projects).
 PROPAGATED_SURFACES=(
   "intent/plugins/claude/skills"
   "intent/plugins/claude/subagents"
-  "intent/plugins/agents/templates"
-  "intent/plugins/agents/bin/intent_agents"
   "lib/templates"
 )
 
@@ -26,6 +23,7 @@ PROPAGATED_SURFACES=(
   local hits=""
   local surface
   for surface in "${PROPAGATED_SURFACES[@]}"; do
+    [ -e "${INTENT_HOME}/${surface}" ] || fail "propagated surface ${surface} is gone, so the grep below would pass without reading it"
     hits="$hits$(grep -rn 'intent/plugins/claude/rules' "${INTENT_HOME}/${surface}" 2>/dev/null || true)"
   done
   [ -z "$hits" ] || fail "local rules path in propagated artefact(s): $hits"

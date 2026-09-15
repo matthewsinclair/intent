@@ -2,8 +2,8 @@
 # WP01 guard (ST0053): the PR (prose) language code is admitted by the rule-id
 # validator, and `prose` is registered in the canon-enumeration LANG_SUBDIRS.
 # A well-formed IN-PR-* id validates; a malformed one still fails. Guards the
-# enum/regex widening across rule-schema.md, id-scheme.md, index-generator.md,
-# and intent_claude_rules against silent regression -- the same 5-site plumbing
+# enum/regex widening across rule-schema.md, id-scheme.md and
+# intent_claude_rules against silent regression -- the same plumbing
 # the AU code taught us (au_language_code_guard.bats).
 
 load "../lib/test_helper.bash"

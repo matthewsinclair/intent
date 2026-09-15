@@ -7,7 +7,7 @@
 //!
 //! # Roots come from the INSTALL, never the environment
 //!
-//! The same rule `rules.rs` and `skills.rs` follow, and for the same reason: a
+//! The same rule `rules.rs` follows, and for the same reason: a
 //! v2 `$INTENT_HOME` left in an operator's environment would otherwise point a
 //! v3 binary at v2's manifests, and the answer would look entirely normal. The
 //! caller passes the install root it resolved; nothing here reads a variable.

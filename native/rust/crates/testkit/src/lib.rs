@@ -104,8 +104,8 @@ pub fn workspace_root() -> PathBuf {
 /// `/tmp` where nothing prunes it. Per-process, so parallel test binaries do not
 /// share one.
 ///
-/// **std ONLY.** This crate declares no dependencies and `dep_graph_guard.rs`
-/// enforces that, so no `tempfile` here.
+/// **std ONLY.** This crate declares no dependencies, so no `tempfile` here.
+/// Only review holds that: `dep_graph_guard.rs` checks rusqlite alone (D06).
 pub fn fixture_home() -> &'static Path {
   static DIR: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
   DIR

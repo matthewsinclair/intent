@@ -2,8 +2,8 @@
 # WP02 guard (ST0053): the CO (content) language code is admitted by the rule-id
 # validator, and `content` is registered in the canon-enumeration LANG_SUBDIRS.
 # A well-formed IN-CO-* id validates; a malformed one still fails. Guards the
-# enum/regex widening across rule-schema.md, id-scheme.md, index-generator.md,
-# and intent_claude_rules -- the same 5-site plumbing as PR/AU.
+# enum/regex widening across rule-schema.md, id-scheme.md and
+# intent_claude_rules -- the same plumbing as PR/AU.
 
 load "../lib/test_helper.bash"
 

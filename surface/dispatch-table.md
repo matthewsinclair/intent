@@ -2681,7 +2681,7 @@ Manage Claude Code subagents
   - `1` -- named subagent not found
 - **stdout:** the subagent table or detail
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
+- **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks nothing since global-agents.json was deleted (issue 0331), and .gitignore does not name its sibling installed-agents.json, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
 - **Target:** `corrected` -- ratified: **vc, 2026-09-04, ONE RULE OVER THREE OPEN QUESTIONS: canon names it -> it stays declared and refuses at rc=2; canon does not name it -> it comes OFF the table.** `status` left canon under dc's B1 the same day, so it comes off here. `init` was never in canon at all -- it survives only in `lib/help/claude.help.md` and an example README, and `lib/help/` is a v2 artefact the v3 binary does not read (verified: the only reference in the Rust tree is a prose comment in `guide.rs`). **Both rows removed rather than left to fall through to `unwired`** -- there is nothing to explain once the row is gone, which is why the deliberate-oversight comment dc had planned is NOT written. After A1 both families are exactly `list / install / sync / uninstall / show`. **NOT A DE-SCOPING OF `rules validate`, which canon DOES name (`usage-rules.md:140`) and which therefore stays declared and refuses honestly.**
 - **rulings:**
   - `0.state`: ratified
@@ -2739,7 +2739,7 @@ List and show rule-library rules
 
 - **v2:** bin/intent claude arm
 - **Arguments:**
-  - `verb` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`, `validate`, `index`
+  - `verb` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`, `validate`
   - `id` (rule-id, arity `0..1`)
 - **Flags:**
   - `--lang` `<lang>` (string) -- Filter to one language
@@ -2750,10 +2750,8 @@ List and show rule-library rules
 - **stdout:** the rule table, or one rule's full text
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Bare `intent claude rules` LISTS rather than printing usage -- measured.
-- **Defects observed in v2:**
-  - `intent claude rules index` MUTATES `INTENT_HOME` -- it rewrote a tracked file (intent/plugins/claude/rules/index.json) in the worktree under test. A verb that reads like a query modifies the installation.
-- **Target:** `pending-hv`
-- **Open question for hv:** In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut.
+- **Target:** `as-observed`
+- **Note:** hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`.
 - **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `read_or_mutate`

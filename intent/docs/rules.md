@@ -44,9 +44,7 @@ intent/plugins/claude/rules/
 ├── shell/<...>/<slug>/RULE.md
 ├── prose/style/<slug>/RULE.md
 ├── author/{craft,style}/<slug>/RULE.md
-├── content/{craft,style}/<slug>/RULE.md
-├── index.json              # Nothing regenerates or reads it; see "Index regeneration"
-└── index.json.template     # Shape for the unbuilt `intent claude rules index`
+└── content/{craft,style}/<slug>/RULE.md
 ```
 
 Agnostic rules omit example files and cite `concretised_by:` language-specific rules. Elixir rules have runnable `.exs` examples. Rust / Swift / Lua / Shell rules are textual-only — examples are fenced code blocks inside `RULE.md`. See `_schema/CI-LIMITATIONS.md` for the rationale.
@@ -223,10 +221,6 @@ Findings go to stderr as `error: <path>: <message>`. Stdout prints `<N> ok`, or 
 
 Run before every rule commit. The validator is fast (whole library validates in well under a second) so there is no excuse to skip it.
 
-## Index regeneration
-
-`intent claude rules index` is declared and not built: it exits 2 with `is a known command that is not implemented yet`. Nothing regenerates or reads `intent/plugins/claude/rules/index.json`, so the committed file is not kept in step with the RULE.md files; `intent claude rules list` reads the RULE.md files directly. Whether the verb and the file retire is an open hv decision.
-
 ## How skills reference rules
 
 Skills cite rules by ID. The rule file owns the prose; the skill is a thin pointer. Example from `in-elixir-essentials/SKILL.md`:
@@ -295,7 +289,6 @@ Schema changes are proposed via a new ST, not a WP inside an existing ST.
 - `intent/plugins/claude/rules/_schema/attribution-policy.md` — full attribution policy
 - `intent/plugins/claude/rules/_schema/critic-contract.md` — how Critics consume rules
 - `intent/plugins/claude/rules/_schema/CI-LIMITATIONS.md` — runnable (Elixir) vs textual (other languages) examples
-- `intent/plugins/claude/rules/_schema/index-generator.md` -- spec for `intent claude rules index`, which is declared and not built (exits 2); whether it retires is an open hv decision
 - `intent/docs/critics.md` — Critic subagent contract and report format
 - `intent/docs/writing-extensions.md` — author rule packs as extensions
 - `intent claude rules --help` -- `intent claude rules` command reference
