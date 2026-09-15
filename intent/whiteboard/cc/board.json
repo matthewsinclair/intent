@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-15T18:55:40.143Z",
+    "heartbeat_at": "2026-09-15T20:35:12.290Z",
     "status": "active",
-    "focus": "0377 (a) on refs/bank/cc/0377-wip: lifeline re-run green, cost run next, then bank for vc's train; then 0331 whole, 0321 (c), 0375. NO RELEASE, NO PUSH.",
+    "focus": "0331 (a) in wt-0331 ready to judge, footer bank in wt-footer, (b) counts sweep with a subagent; then 0321 (c), 0375. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -767,7 +767,8 @@
       "kind": "todo",
       "seq": 16,
       "text": "**IN FLIGHT: RESUME HERE (cc, 2026-09-15, evening).** **1. 0377, ruled (a) by vc: NoCache on the canon registration, S.** The change (intentd watch.rs only) is on refs/bank/cc/0377-wip on 23118bc0c. With it and no test touched, intent-cli whole is green and intentd reads 9/0, 5/0 and 36/1, and no event-shape test went red. The one red, a_daemon_outlives_nobody's owner-killed arm, starts a daemon that registers no project, so no watch exists in it; it ran at load 325 to 654 and re-ran green at load 83, with all six of that file's arms. The one cost run on vc's protocol (regen/0377-cost.sh: the worktree's own debug pair, a private intentd under an isolated HOME, a hookless shallow clone as the estate, one small board commit, ps -M per thread before and after, one sample for thread names) is read against the issue's ~8 s of system time on the canon fsevents thread; listed.rs follows as its own XS only if that run convicts it. Then bank on refs/bank/cc/0377 with the base named and send vc the hash; the judge is whole suites in vc's train, and the watcher family re-runs once. **2. 0331 whole** (hv item 3, with todo 13's strings and the issue's stale comments; ic reviews the register row): module_check_hook.json and its exit_code_consumers row; critic-guard.sh with its exit_code_consumers row and guard_dispatch.bats's declared-absent case; the rules-index trio under intent/plugins/claude/rules with the unwired `claude rules index` register row; the dead llm and prj templates with their init.rs DESTINATIONS rows and every test list that names them; global-agents.json with the critic_prose, rule_pack_shell and highlander_audit bats assertions that read it; and the MODULES.md rows for all of them. **3. 0321 (c)**, the daemon log exempt from one_clock with its reason, XS. **4. 0375 last (todo 6).** Every lander runs `intent at lint <ST>` and `intent ac gate <ST>` after its store writes and before its commit (vc).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T20:35:03.423Z",
       "recorded_at": "2026-09-15T18:55:16.254Z"
     },
     {
@@ -777,6 +778,14 @@
       "text": "**TRAPS FROM THE EVENING (cc, 2026-09-15).** A new AT row's cited file must carry the row's literal id, and `at new` and `at green` never read a citation (issue 0267), so only `at lint` and the gate see a missing one: 0338 (i)'s landing took ST0057's gate from PASS to BLOCKED on exactly that until a header line named the row. A new row starts `to-write`, and `at green` is legal only from `red` (issue 0337); `at green --note` on a row already green is accepted and its text must contain the old note. A daemon cost run needs an estate the size of the real one, so neither a fresh `init` (too small to show a walk) nor a worktree commit (the gate refuses it under an isolated HOME): a hookless clone of the repo is the scratch estate.",
       "state": "live",
       "recorded_at": "2026-09-15T18:55:28.021Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 17,
+      "text": "**IN FLIGHT: RESUME HERE (cc, 2026-09-15, night).** 0377 landed at 33990b80b and is closed. **1. 0331 (a), built in wt-0331 on 55c933916, NOT YET JUDGED OR BANKED**: the dead artefacts with their rows, bats assertions and MODULES.md rows; the `claude rules index` register row settled to as-observed (ic confirms in the train's review) with the legal_pairs census and a regenerated dispatch-table.md; the rules docs; the routed stale comments; todo 13's doc-comment strings (regen/0331-g1.py, g23.py, g23b.py, g4.py; the plan is regen/kit/0331-plan.md). Left: run tests/unit/rules_path_guard.bats red with its new existence check, then drop its two gone surfaces; then judge (intentsvcs and intent-cli whole, workspace clippy, the IN-RS-CODE-001 step, rustfmt, prettier on the changed docs, the touched bats files through tests/run_tests.sh), bank on refs/bank/cc/0331-a with the base named, and send vc the hash. of_n_population.sh's REACH item 3 and read_claim_probe.sh's BIN are already true at HEAD, so (a) leaves them. **2. The footer bank (vc's ruling (i))**, in wt-footer on 78ba5bbf8: views.rs `info` and `acceptance` pass \"the thread canon\", as the other thread views do. Judge, bank on refs/bank/cc/0331-footer, and it lands right before a rebuild, then `organize --apply` from the new pair and vc's views commit. **3. 0331 (b), the counts sweep, is with a background subagent** in wt-0331b on 33990b80b, reading every line of regen/kit/0331-count-figures.txt against vc's rule (drop an episode's figure and keep the claim; keep a count that states the file's own design decision); it returns regen/0331b-counts.patch and regen/0331b-decisions.md for my review before banking. 0331 closes when (a) and (b) have landed. **4. 0321 (c)**, the daemon log exempt from one_clock with its reason, XS. **5. 0375 last (todo 6).** Every lander runs `intent at lint <ST>` and `intent ac gate <ST>` after its store writes and before its commit (vc).",
+      "state": "live",
+      "recorded_at": "2026-09-15T20:35:07.869Z"
     }
   ],
   "messages": [
