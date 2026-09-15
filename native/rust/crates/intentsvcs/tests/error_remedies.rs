@@ -824,6 +824,16 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("ST0056 carries no attachment at never-attached.md"),
   ));
 
+  // **`0398`'s REFUSAL, PROVOKED.** A read naming a document the thread does not
+  // carry: `ST0056` carries `reference.md` and `parity/cmd-st.md`, so the remedy
+  // is the door that attaches an `impl.md` rather than a list to pick from.
+  out.push((
+    "a read of a document the thread does not carry",
+    facade
+      .st_attachment("ST0056", "impl.md")
+      .expect_err("ST0056 carries no impl.md"),
+  ));
+
   // **`0270`'s REFUSAL, AND IT NEEDS A FIXTURE OF ITS OWN** -- the same reason
   // 0206's does, one paragraph up. Every provocation above runs against one
   // facade in sequence, so by this point `AT-03.1` has already been driven to
@@ -944,6 +954,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::OpenWorkPackages { .. } => "OpenWorkPackages",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::NoSuchAttachment { .. } => "NoSuchAttachment",
+    FacadeError::NotCarried { .. } => "NotCarried",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
@@ -1059,6 +1070,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NotEditable",
   "NoSuchEditable",
   "NoSuchAttachment",
+  "NotCarried",
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",

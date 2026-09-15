@@ -40,10 +40,11 @@ use intent_cli::dispatch;
 ///
 /// **`Scheduled` is a classification, not an exemption** -- it pins the held
 /// value to the issue that would release it, so the exposure cannot be silence,
-/// and it reds the moment the note stops naming that issue. The shape is
+/// and it reds the moment the note stops naming that issue. The shape was
 /// `declared_values_are_enforced.rs`'s, whose `Unenforced(issue)` disposition
-/// solves the neighbouring problem the same way; the vocabulary differs because
-/// a note is not a slot and `Unwired` / `Planned` say nothing about prose.
+/// solved the neighbouring problem the same way until its last slot was enforced
+/// and the variant went with it (issue 0398); the vocabulary differs because a
+/// note is not a slot, and a slot's dispositions say nothing about prose.
 #[derive(Debug)]
 enum Note {
   /// Explains a spelling that is settled. Nothing about it expires.

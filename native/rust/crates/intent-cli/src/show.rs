@@ -58,6 +58,25 @@ pub fn thread(t: &Thread) -> String {
   s
 }
 
+/// `intent st show <id> all`'s bytes: [`thread`]'s cover, then each file the
+/// caller hands in under a `-- <name>` line, in the order given (issue 0398).
+///
+/// **BYTES RATHER THAN A `String`, BECAUSE AN ATTACHMENT IS NOT PROMISED TO BE
+/// TEXT.** The one-file form prints an attachment as the store holds it, so the
+/// composition is not the place that decodes one. A file that does not end in a
+/// newline gets one, so the next separator starts its own line.
+pub fn thread_all(t: &Thread, files: &[(String, Vec<u8>)]) -> Vec<u8> {
+  let mut out = thread(t).into_bytes();
+  for (name, body) in files {
+    out.extend_from_slice(format!("\n-- {name}\n").as_bytes());
+    out.extend_from_slice(body);
+    if !body.ends_with(b"\n") {
+      out.push(b'\n');
+    }
+  }
+  out
+}
+
 /// `intent wp show <st> <seq>`'s text. The parent `st` is the caller's — the
 /// model is identified within a thread and carries no parent id — matching the
 /// arm, which takes `st` from its argument.

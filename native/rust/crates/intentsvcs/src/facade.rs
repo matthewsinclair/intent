@@ -694,6 +694,15 @@ pub enum FacadeError {
     path: String,
     thread: String,
   },
+  /// A read naming a document the thread does not carry (issue 0398).
+  ///
+  /// **BESIDE `NoSuchAttachment` AND `NoSuchEditable`, AND NEITHER, BECAUSE THE
+  /// REMEDY IS NEITHER.** A detach that misses wants the paths it could have
+  /// named, and an edit that misses lists what the artefact carries; a read that
+  /// misses is asking for a document that does not exist yet, and the door that
+  /// makes one exist is `st attach`.
+  #[error("{thread} carries no `{path}`, so there is nothing to show")]
+  NotCarried { thread: String, path: String },
   /// A field the narrow setter will not write, and the door that does.
   ///
   /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE SUBJECT IS DIFFERENT.**
@@ -1666,6 +1675,9 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::NoSuchAttachment { thread, .. } => format!(
         "the paths {thread} carries are its canon's `attachments`, in `intent/.canon/st/{thread}.json` -- name one of those, relative to the thread's own directory"
+      ),
+      Self::NotCarried { thread, path } => format!(
+        "a thread carries a document once it is attached -- `intent st attach {thread} {path} --from <file>` writes one into the store"
       ),
       Self::AttachmentPathNotInThread { thread, fault, .. } => {
         use crate::project::PathFault;
@@ -3241,6 +3253,43 @@ impl Facade {
       .threads
       .iter()
       .find(|t| t.id == id)
+      .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
+  }
+
+  /// One attachment a thread carries, by its path relative to the thread's own
+  /// directory (issue 0398).
+  ///
+  /// **THE RECORD, NEVER THE FILE.** An attachment's content is in the store
+  /// whether or not its file is on disk -- a dehydrated thread has none -- so a
+  /// read answering from the tree would answer for fewer threads than the store
+  /// holds, and for the thread the finder met not at all.
+  pub fn st_attachment(&self, id: &str, path: &str) -> Result<&Attachment, FacadeError> {
+    self
+      .st_show(id)?
+      .attachments
+      .iter()
+      .find(|a| a.path == path)
+      .ok_or_else(|| FacadeError::NotCarried {
+        thread: id.to_string(),
+        path: path.to_string(),
+      })
+  }
+
+  /// A thread's acceptance contract: the bytes its `acceptance.md` is hydrated
+  /// with, whether or not that file is on disk (issue 0398).
+  ///
+  /// **SELECTED FROM [`views::render_all`], NEVER RENDERED HERE**, for the reason
+  /// [`crate::address::serve_md`] gives: calling the per-view renderer would
+  /// produce bytes that merely equal the hydrated ones rather than being them.
+  /// And because `render_all` renders a contract for every thread canon holds,
+  /// a thread with none is a thread this estate does not hold.
+  pub fn st_contract(&self, id: &str) -> Result<String, FacadeError> {
+    let want = self.project.acceptance_view(id);
+    let ctx = self.render_ctx()?;
+    views::render_all(&self.project, &self.canon, &ctx)
+      .into_iter()
+      .find(|view| view.path == want)
+      .map(|view| view.content)
       .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
   }
 

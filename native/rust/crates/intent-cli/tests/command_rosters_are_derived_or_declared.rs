@@ -130,6 +130,20 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/render.rs",
+    "st show",
+    Why::NotARoster(
+      "`wb archive`'s shape at BOTH of its sites (issue 0398): the LOOKUP KEY \
+     `enum_arg(a, \"st show\", \"file\")` uses to find the row's declared files, and the literal \
+     that names the row back in the refusal; and the same key \
+     `dispatch::arg_values(&dispatch::table(), \"st show\", \"file\")` uses so `all` walks the \
+     declared files in the table's own order. Both ASK the table for one row; neither is a list \
+     kept beside it. The `enum_arg` site goes when the spine applies an enum positional's \
+     `values` itself; the `arg_values` site stays while `all` needs that order, and it is still \
+     the table asked by key.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "daemon status",
     Why::CheckedBy(
       "NOT A ROSTER AND NOT A COINCIDENCE: it is the LOOKUP KEY `enum_flag(a, \"daemon status\", \

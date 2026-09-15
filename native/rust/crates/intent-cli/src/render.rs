@@ -2619,15 +2619,57 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("show", a)) => {
       let id = thread_arg(a, "id")?;
+      // **`file` IS READ, AND A VALUE OUTSIDE ITS DECLARED SET IS REFUSED AT
+      // EXIT 1 BEFORE THE PROJECT OPENS** (issue 0398). Until then this arm read
+      // only `id`, so `design`, `acceptance` and `nonsense` all printed the cover
+      // at exit 0 -- a request discarded and reported as served.
+      let file = enum_arg(a, "st show", "file")?;
       let f = open()?;
       let t = f.st_show(&id).map_err(fail)?;
-      // **ONE RENDERER, shared with the MCP resource read (`AC-09.5`).** The
-      // field order and the present-only lines that used to live here inline
-      // are `crate::show::thread`, so this arm and `intent:///thread/<id>`
-      // emit byte-identical text by construction rather than by two copies
-      // agreeing today.
-      print!("{}", crate::show::thread(t));
-      Ok(())
+      let out = match file.as_str() {
+        // **ONE RENDERER, shared with the MCP resource read (`AC-09.5`).** The
+        // field order and the present-only lines that used to live here inline
+        // are `crate::show::thread`, so this arm and `intent:///thread/<id>`
+        // emit byte-identical text by construction rather than by two copies
+        // agreeing today.
+        "info" => crate::show::thread(t).into_bytes(),
+        "acceptance" => f.st_contract(&id).map_err(fail)?.into_bytes(),
+        // **EVERY OTHER DECLARED FILE, IN THE ORDER THE TABLE DECLARES IT**, so a
+        // value added to the row joins `all` without an edit here. A file the
+        // thread does not carry is left out rather than refused: `all` asks for
+        // what there is.
+        "all" => {
+          let mut files = Vec::new();
+          for name in dispatch::arg_values(&dispatch::table(), "st show", "file") {
+            let path = format!("{name}.md");
+            let body = match name.as_str() {
+              "info" | "all" => continue,
+              "acceptance" => f.st_contract(&id).map_err(fail)?.into_bytes(),
+              _ => match f.st_attachment(&id, &path) {
+                Ok(attachment) => attachment_bytes(&id, attachment)?,
+                Err(FacadeError::NotCarried { .. }) => continue,
+                Err(e) => return Err(fail(e)),
+              },
+            };
+            files.push((path, body));
+          }
+          crate::show::thread_all(t, &files)
+        }
+        name => {
+          let attachment = f.st_attachment(&id, &format!("{name}.md")).map_err(fail)?;
+          attachment_bytes(&id, attachment)?
+        }
+      };
+      use std::io::Write as _;
+      let mut stdout = std::io::stdout().lock();
+      stdout
+        .write_all(&out)
+        .and_then(|()| stdout.flush())
+        .map_err(|e| {
+          Failure::Error(format!(
+            "error: {id}'s `{file}` could not be written to stdout: {e}"
+          ))
+        })
     }
     // `intent st sync` is v2's INDEX sync, and it is NOT the top-level
     // `intent sync`. I had wired it as an alias for the store reconciliation
@@ -12608,6 +12650,21 @@ fn enum_arg(a: &ArgMatches, path: &str, name: &str) -> Result<String, Failure> {
       declared.join(" or ")
     )))
   }
+}
+
+/// An attachment's bytes as the store holds them, for `st show` (issue 0398).
+///
+/// **AN OPAQUE ATTACHMENT WHOSE CONTENT WAS NOT LOADED IS REFUSED, NEVER PRINTED
+/// AS NOTHING.** [`model::Attachment::as_bytes`] gives the reason an empty
+/// stand-in is how a missing file becomes a zero-byte write, and an empty print
+/// at exit 0 is the same fault on stdout.
+fn attachment_bytes(id: &str, attachment: &model::Attachment) -> Result<Vec<u8>, Failure> {
+  attachment.as_bytes().map(<[u8]>::to_vec).ok_or_else(|| {
+    Failure::Unavailable(format!(
+      "error: {id} carries `{}` as an opaque file whose content this read did not load, so this build cannot print it",
+      attachment.path
+    ))
+  })
 }
 
 /// `doctor`'s machine face.

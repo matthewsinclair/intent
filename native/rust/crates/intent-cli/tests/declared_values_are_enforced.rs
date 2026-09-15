@@ -24,6 +24,11 @@
 //! someone fixes it this file reds and they have to move the row. A test that
 //! quietly skipped the broken case would read as coverage.
 //!
+//! **ITS LAST ROW MOVED ON 2026-09-15 AND THE VARIANT WENT WITH IT**, as
+//! `Unwired` went before it: `st show`'s `file` is now read and refused at exit
+//! 1 (issue 0398), which is this paragraph's exit condition executed. A slot
+//! found accepting an unpermitted value brings `Unenforced` back beside its issue.
+//!
 //! **Measured at `b7e60fc5`: FIVE. The note says three and my own first probe
 //! said four.** `arg_values_note` enumerates `critic`'s `lang`, `st show`'s `file`
 //! and `wp rescope`'s `size`; `st edit`'s `file` is the fourth and is missing from
@@ -61,9 +66,6 @@ enum Disposition {
   /// (INV-04). `critic <lang>` is the one such slot, and it is wired; it was
   /// recorded as unbuilt until issue 0312, because an exit 2 read the same.
   FailsOpen,
-  /// **The value is ACCEPTED.** The issue number is the referent; without one
-  /// this row would be an exemption wearing a disposition.
-  Unenforced(&'static str),
   /// Not an argv slot -- a declared vocabulary for a surface that does not exist
   /// yet, so there is nothing to hand a bad value to. The named command must
   /// still be unbuilt; when it is built this reds and someone decides who reads
@@ -132,11 +134,11 @@ const DECLARED: &[Slot] = &[
     arg: "file",
     lead: &["ST0001"],
     trail: &[],
-    // Issue 0055: the arm never reads the slot at all, so a correct value and an
-    // incorrect one produce the same output. Three of the row's four declared
-    // exit codes are unreachable, and `st show ST0001 design` prints the info
-    // summary at exit 0 -- a `keep` row answering a different question.
-    disposition: Disposition::Unenforced("0055"),
+    // **MOVED FROM `Unenforced("0055")` TO `Enforced` ON 2026-09-15** (issue 0398,
+    // the same defect met again from Devbin). The arm read only `id`, so `st show
+    // ST0001 design` printed the cover at exit 0; it now reads the slot through
+    // `enum_arg`, the table's own roster, as `wb archive` above does.
+    disposition: Disposition::Enforced,
   },
   // **BOTH `edit` ROWS MOVED FROM `Unwired` TO `Unenforced` ON 2026-08-20**
   // (ic, ruling 3). `st edit` was unbuilt and owed the arm when it was wired;
@@ -467,16 +469,6 @@ fn each_disposition_is_what_the_binary_actually_does() {
             "the refusal must name the permitted set and `{value}` is missing: {text}"
           );
         }
-      }
-      Disposition::Unenforced(issue) => {
-        assert_eq!(
-          code,
-          Some(0),
-          "`intent {}` is recorded here as accepting an unpermitted value (issue {issue}). This \
-           passing at any other code means the defect has been fixed or has changed shape -- move \
-           the row, do not widen it: {text}",
-          argv.join(" ")
-        );
       }
       Disposition::Planned { via } => {
         // The declared value is not reachable from argv at all, so the assertion

@@ -223,6 +223,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // the thread carries none at that path. Nothing was LEFT OUT; the remedy is
     // one of the paths the thread does carry.
     | FacadeError::NoSuchAttachment { .. }
+    // `0398`'s refusal, the same argument again: the caller named a document and
+    // the thread carries none by that name. Nothing was LEFT OUT; the remedy is
+    // the door that attaches one.
+    | FacadeError::NotCarried { .. }
     // `0270`'s refusal. The caller supplied everything the verb takes; what is
     // missing is a FILE ON DISK, which is not a field of the call and cannot be
     // carried to a reader as one.
