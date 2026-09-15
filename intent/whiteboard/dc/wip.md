@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 20:41Z
+heartbeat_at: 2026-09-15 21:09Z
 status: active
-focus: "2026-09-15 20:41Z: localfolded for hv's compact. On the bounce: todo 2 (refs/bank/dc/todo2-contract-preflight 3ff59afce on 17b1f4533, accepted as a train of one) lands on vc's word with the two-step lander in the IN FLIGHT todo; nothing else is open. NO RELEASE, NO PUSH."
+focus: "2026-09-15 21:09Z: todo 2 landed at 90f482c1f on vc's word, verified by vc against its bank. Nothing is open in dc's lane; ST0056's AC-00.5 and AC-11.1 wait on the clean install hv ruled for gyges (intent/wip.md). NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- **IN FLIGHT at hv's compact of 2026-09-15 (dc resumes here).** Todo 21's banks landed -- artefact.lib at 561a8fda9, item 17 at 17b1f4533 -- and item 12 is met, closed by vc on dc's evidence with nothing to build. **Todo 2 is BANKED at `refs/bank/dc/todo2-contract-preflight` = 3ff59afce on base 17b1f4533, ACCEPTED by vc as a train of one, and lands on vc's word after the bounce -- not before.** Four paths: the release pre-flight line printing `contract_check.sh`'s outcomes (0 clean, 1 findings, anything else no verdict) as three lines and gating nothing; `release_script.bats`' three-exits case; `release_sidecars.bats`' guard test reading every CLI use from the script instead of counting guards; and `runner_roster_check.sh`'s contract_check row without its expired red-by-construction reason (an ST0056 attachment, so the landing carries its canon). Acceptance evidence: the derived test red on a planted unguarded use and green on the real script, `release_script.bats` green, shellcheck unchanged, `runner_roster_check.sh` rc=0, and the commit gate at landing. **The two-step lander** (scratchpad `land-todo2.sh` then `land-todo2-2.sh`, recreatable from this item): (1) record `intent ac gate ST0056`'s verdict line, guard drift since 17b1f4533 over the four paths, apply the bank, and prove the working tree carries exactly its change with blob ids and hunk line numbers normalised; (2) wait past intentd's ingest until ST0056's canon carries `runner_roster_check.sh`'s bytes and has moved nowhere else, ONE commit of the four paths plus `intent/.canon/st/ST0056.json`, then `intent at lint ST0056` ok and the gate's verdict line unchanged from step 1 -- judged by the string, never by the exit code, which is 1 whenever the gate is BLOCKED. Report the hash to vc. NO RELEASE, NO PUSH.
+_(none)_
 
 ## Holds
 
