@@ -2,7 +2,7 @@
 
 ## Implementation
 
-v3 is built and released as 3.0.0 and then 3.0.1: the `intent` and `intentd` binaries in the Rust workspace at `native/rust/`, and the menubar app at `native/macos/`. Each spec (`design.md`, `data-model.md`, `migration.md` and the rest) states the as-built behaviour against its own design; `design.md` carries the stack as built, with provenance (Lamplight / Conflab). This document keeps the reference implementations the build drew on and the records below.
+v3 is built and released as 3.0.0, 3.0.1 and 3.0.3 (3.0.2 was tagged and never published): the `intent` and `intentd` binaries in the Rust workspace at `native/rust/`, and the menubar app at `native/macos/`. Each spec (`design.md`, `data-model.md`, `migration.md` and the rest) states the as-built behaviour against its own design; `design.md` carries the stack as built, with provenance (Lamplight / Conflab). This document keeps the reference implementations the build drew on and the records below.
 
 ## Technical Details
 
@@ -39,10 +39,10 @@ Revision read off `estate_corpus.sh list`, not chosen: the `canary` pin is `42fb
 
 ### THE FINDING THIS EXERCISE PRODUCED: there is no migration commit to revert
 
-**`intent upgrade` WRITES THE MIGRATION AND DOES NOT COMMIT IT.** Measured: after a successful `rc=0` migration, `HEAD` was unchanged, the tree object was unchanged, and the migration's paths sat dirty, modified and untracked. Its closing line is `ok: this project is now Intent v<version> -- commit the canon and the generated views`, and 3.0.1 still behaves this way (`render.rs`, the `upgrade` arm).
+**`intent upgrade` WRITES THE MIGRATION AND DOES NOT COMMIT IT.** Measured: after a successful `rc=0` migration, `HEAD` was unchanged, the tree object was unchanged, and the migration's paths sat dirty, modified and untracked. Its closing line is `ok: this project is now Intent v<version> -- commit the canon and the generated views`, and 3.0.3 still behaves this way (`render.rs`, the `upgrade` arm).
 
 That contradicted `migration.md`'s Phase B, which then promised one commit from the tool (it now says the operator commits), and it still contradicts `AC-00.8`, which says a project _migrates in one visible commit_.
 
 **THE CONSEQUENCE IS PRECISE: the documented rollback has no subject.** `git revert <migration-commit>` presumes a commit the migrator does not create. The exercise above only has one because cc made it by hand, which is what an operator does -- so _one visible commit_ is an OPERATOR CONVENTION, not a migrator guarantee, and nothing enforces that the commit is one, or that it contains only the migration. It reads as satisfied because operators have happened to do it correctly.
 
-Not changed through 3.0.1: whether the migrator should commit is a behaviour change and is hv's call.
+Not changed through 3.0.3. vc ruled on 2026-09-15, under D47, that `AC-00.8` is reworded to what is built, with no behaviour change; the reword lands with issue 0339. Making the migrator commit would be a behaviour change, and that is for hv to ask for.
