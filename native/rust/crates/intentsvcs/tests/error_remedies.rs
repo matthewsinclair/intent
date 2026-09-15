@@ -823,6 +823,15 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       })
       .expect_err("ST0056 carries no attachment at never-attached.md"),
   ));
+  out.push((
+    "an address naming another project",
+    facade
+      .post(
+        &intentsvcs::address::parse("intent://elsewhere/threads").expect("resolves"),
+        "{}",
+      )
+      .expect_err("another project's address is refused"),
+  ));
 
   // **`0398`'s REFUSAL, PROVOKED.** A read naming a document the thread does not
   // carry: `ST0056` carries `reference.md` and `parity/cmd-st.md`, so the remedy
@@ -955,6 +964,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::NoSuchAttachment { .. } => "NoSuchAttachment",
     FacadeError::NotCarried { .. } => "NotCarried",
+    FacadeError::CrossProjectAddress { .. } => "CrossProjectAddress",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
@@ -1071,6 +1081,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchEditable",
   "NoSuchAttachment",
   "NotCarried",
+  "CrossProjectAddress",
   "Organize",
   "Intentfiles",
   "ManifestUnreadable",

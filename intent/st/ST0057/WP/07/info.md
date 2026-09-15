@@ -29,7 +29,7 @@ intent:///nodes/{moniker}/inbox/{sender}/{stamp}
 intent:///events/{id}
 ```
 
-**Empty authority means THIS project.** Cross-project references carry the slug and resolve against intentd's registry.
+**Empty authority means THIS project.** A cross-project reference carries the slug, parses and round-trips, and every door that takes an address refuses it by name before resolving anything against this project, with a remedy that spells this project's own address; no door resolves another project's address.
 
 **VIEWS GET NO URL.** A view is derivable from its entity, so a reference to a view is a reference to its source. Giving views addresses re-creates, inside the scheme, the conditionality the scheme exists to remove. `?format=` selects a REPRESENTATION; a path segment would name a separate thing.
 

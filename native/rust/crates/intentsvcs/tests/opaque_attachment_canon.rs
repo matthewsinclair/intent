@@ -34,22 +34,13 @@
 //! below is byte equality against the bytes that went in, and the sidecar's
 //! own on-disk bytes are compared to the source file directly.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, NOT_UTF8, sample_thread};
+use intentsvcs::address::parse;
 use intentsvcs::export::{self, Bundle};
 use intentsvcs::ingest;
 use intentsvcs::model::Attachment;
 use intentsvcs::project::Project;
 use testkit::repo_root;
-
-/// Bytes no `String` can hold: a lone `0xff`, which is not a legal UTF-8 lead
-/// byte in any position.
-///
-/// **Spelled as a constant with a reason, because the first version of a
-/// fixture like this used `\x00\x01` -- which ARE valid UTF-8 control
-/// characters, so the file decoded fine, was carried inline, and the test
-/// passed while proving nothing.** `ignored_paths_corpus.rs` records the same
-/// trap from the other side.
-const NOT_UTF8: &[u8] = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\xff\xdb";
 
 const ID: &str = "ST0001";
 const REL: &str = "reference.md";
@@ -348,5 +339,47 @@ fn a_non_utf8_attachment_survives_a_restore_then_a_restore() {
   assert_eq!(
     std::fs::read(&sidecar).expect("canon holds the attachment's bytes"),
     LATIN1
+  );
+}
+
+/// Canon for `bundle` on disk the way an estate holds it: the JSON parts, and
+/// every opaque attachment's sidecar file beside them.
+fn write_canon(fx: &Fixture, bundle: &Bundle) {
+  for (rel, body) in export::canon_parts(bundle).expect("canon serialises") {
+    fx.write_file(&format!("intent/{rel}"), &body);
+  }
+  for (rel, bytes) in export::canon_blobs(bundle) {
+    let path = fx.path(&format!("intent/{rel}"));
+    std::fs::create_dir_all(path.parent().expect("a sidecar has a parent")).expect("mkdir");
+    std::fs::write(&path, bytes).expect("write the sidecar");
+  }
+}
+
+/// **AND HYDRATION WRITES THOSE BYTES BACK OUT: AC-03.1's working-copy half,
+/// through the door an operator uses** (issue 0338 (i)).
+///
+/// Canon holding the bytes was never the whole claim. `st hydrate` reported
+/// this file and wrote nothing, because realisation passed only an attachment's
+/// text, so the round trip stopped one step short of the disk.
+#[test]
+fn hydrating_the_thread_writes_its_opaque_attachment_byte_for_byte() {
+  let fx = Fixture::new();
+  write_canon(
+    &fx,
+    &Bundle::new("opaque", vec![opaque_thread()], Vec::new(), Vec::new()),
+  );
+  fx.write_file("intent/.intentfiles", &format!("STEELTHREAD:{ID}\n"));
+
+  let mut facade = fx.facade();
+  facade
+    .hydrate(&parse(&format!("intent:///threads/{ID}")).expect("resolves"))
+    .expect("the thread hydrates");
+
+  assert_eq!(
+    std::fs::read(fx.path(&format!("intent/st/{ID}/{REL}")))
+      .ok()
+      .as_deref(),
+    Some(NOT_UTF8),
+    "hydration did not reproduce the opaque attachment's bytes on disk"
   );
 }

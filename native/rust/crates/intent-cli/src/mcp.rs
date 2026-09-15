@@ -1777,6 +1777,11 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
     why,
   };
   let address = intentsvcs::address::parse(uri).map_err(|e| bad(e.render()))?;
+  // **ANOTHER PROJECT'S ADDRESS IS REFUSED BY NAME BEFORE THE ENTITY IS
+  // CONSULTED** (issue 0338 (i)). This read answered from THIS project for
+  // `intent://other/threads/ST0001`, byte for byte: the silent form of the
+  // defect, a wrong answer that looks exactly like a right one.
+  intentsvcs::facade::require_local(&address)?;
   match address.entity {
     Entity::Thread { id } => Ok(crate::show::thread(f.st_show(&id)?)),
     Entity::Wp { thread, wp } => {

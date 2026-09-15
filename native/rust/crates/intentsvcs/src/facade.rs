@@ -703,6 +703,23 @@ pub enum FacadeError {
   /// makes one exist is `st attach`.
   #[error("{thread} carries no `{path}`, so there is nothing to show")]
   NotCarried { thread: String, path: String },
+  /// An address naming ANOTHER project, handed to a door of this one (issue
+  /// 0338 (i); hv's ruling 4 on AC-07.6, 2026-09-15).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE REMEDY IS.** The doors borrowed
+  /// `NotHydratable`, whose remedy sends the operator to address an artefact --
+  /// which a thread address already is -- and `WriteNotAddressable`, whose
+  /// remedy is the `put` door's and whose reason promised a project registry
+  /// that does not exist. What someone holding another project's address needs
+  /// is this project's own spelling of it, which [`require_local`] builds.
+  #[error(
+    "`{url}` names the project `{authority}`, and a door of this project acts on this project only"
+  )]
+  CrossProjectAddress {
+    url: String,
+    authority: String,
+    local: String,
+  },
   /// A field the narrow setter will not write, and the door that does.
   ///
   /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE SUBJECT IS DIFFERENT.**
@@ -1604,6 +1621,30 @@ impl BoardRead {
   }
 }
 
+/// Refuse an address naming another project, before a door resolves anything
+/// against this one (issue 0338 (i); hv's ruling 4 on AC-07.6, 2026-09-15).
+///
+/// **ONE CHECK, RUN FIRST BY EVERY DOOR THAT TAKES AN ADDRESS, AND A PURE
+/// FUNCTION OF THE ADDRESS.** A refusal that ran after a lookup depended on
+/// what this project carries: `edit` answered `no steel thread ST0009 in this
+/// project` for `intent://other/threads/ST0009`, a true sentence about the wrong
+/// project. intent-cli's `mcp::resource_read` and `browser_url` call it too, so
+/// the facade, MCP and the terminal refuse in one voice.
+pub fn require_local(address: &Address) -> Result<(), FacadeError> {
+  match &address.authority {
+    None => Ok(()),
+    Some(authority) => Err(FacadeError::CrossProjectAddress {
+      url: address.to_url(),
+      authority: authority.clone(),
+      local: Address {
+        authority: None,
+        ..address.clone()
+      }
+      .to_url(),
+    }),
+  }
+}
+
 impl crate::remedy::Remedy for FacadeError {
   /// What the operator should DO. Every variant has one, and no two variants
   /// share a remedy text -- a remedy that fits two different causes is telling
@@ -1678,6 +1719,11 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::NotCarried { thread, path } => format!(
         "a thread carries a document once it is attached -- `intent st attach {thread} {path} --from <file>` writes one into the store"
+      ),
+      Self::CrossProjectAddress {
+        authority, local, ..
+      } => format!(
+        "address this project's own artefact as `{local}` -- the same address with no authority -- and reach `{authority}`'s artefacts from inside that project; no door here resolves another project's address"
       ),
       Self::AttachmentPathNotInThread { thread, fault, .. } => {
         use crate::project::PathFault;
@@ -4918,14 +4964,7 @@ impl Facade {
     overwrite: bool,
     announce: &mut dyn FnMut(&[std::path::PathBuf]),
   ) -> Result<Hydration, FacadeError> {
-    if let Some(authority) = &address.authority {
-      return Err(FacadeError::NotHydratable {
-        form: address.entity.form(),
-        why: format!(
-          "the address names the project `{authority}` rather than this one, and realising another project's artefact into this tree is not something an empty authority would have meant"
-        ),
-      });
-    }
+    require_local(address)?;
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
@@ -5108,7 +5147,7 @@ impl Facade {
             // is not evidence that somebody's work is under it, and refusing
             // there would block a realisation over a permissions problem the
             // operator would then have to diagnose from the wrong message.
-            std::fs::read_to_string(&step.path).is_ok_and(|disk| disk != *rendered)
+            std::fs::read(&step.path).is_ok_and(|disk| disk != *rendered)
           })
         })
         .map(|step| self.project.relative(&step.path))
@@ -5192,6 +5231,15 @@ impl Facade {
       .filter(|p| run.hydrated.contains(p) || run.rewritten.contains(p))
       .cloned()
       .collect();
+    // **A FILE THE RUN COULD NOT WRITE IS A REFUSAL, NOT A QUIET GAP** (issue
+    // 0338 (i)). The run refuses by path a step it holds no bytes for -- an
+    // opaque attachment whose sidecar was never loaded -- and this door dropped
+    // the run's refusals, so `st hydrate` reported a thread realised with a file
+    // missing. What the run did write is recorded above first: a refusal must
+    // not erase the record of an act that completed.
+    if let Some(refusal) = run.refused.into_iter().next() {
+      return Err(FacadeError::Organize(refusal));
+    }
     Ok(Hydration {
       paths: owned,
       wrote,
@@ -5346,14 +5394,7 @@ impl Facade {
     address: &Address,
     announce: &mut dyn FnMut(&[std::path::PathBuf], &[std::path::PathBuf]),
   ) -> Result<Dehydrated, FacadeError> {
-    if let Some(authority) = &address.authority {
-      return Err(FacadeError::NotHydratable {
-        form: address.entity.form(),
-        why: format!(
-          "the address names the project `{authority}` rather than this one, and removing another project's files from this tree is not something an empty authority would have meant"
-        ),
-      });
-    }
+    require_local(address)?;
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
@@ -6593,7 +6634,7 @@ impl Facade {
       canon_files,
     } = self.projection(&canon, &all_threads, &all_issues, None, None)?;
     for (path, content) in self.attachments_the_disk_lacks(&canon, scope)? {
-      set.add(path, content);
+      set.add_bytes(path, content);
     }
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
     self.refuse_if_canon_moved_under_the_store(&set, &canon_files)?;
@@ -7399,32 +7440,36 @@ impl Facade {
   /// the store's copy over it would be 0260's loss arriving by another door.
   ///
   /// Declared threads only, as the views are, and only within `scope`. A step
-  /// with no bytes -- an opaque attachment whose sidecar was never loaded --
-  /// is skipped, as `organize` skips it: absent beats present and wrong.
+  /// with no bytes -- an opaque attachment whose sidecar was never loaded -- is
+  /// REFUSED by path, as `organize` refuses it (issue 0338 (i)): skipping it
+  /// here projected an estate with the file missing and said nothing.
   fn attachments_the_disk_lacks(
     &self,
     canon: &Canon,
     scope: &SyncScope,
-  ) -> Result<Vec<(std::path::PathBuf, String)>, FacadeError> {
+  ) -> Result<Vec<(std::path::PathBuf, Vec<u8>)>, FacadeError> {
     let realised = self.manifest_for_action()?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
     let ctx = self.render_ctx()?;
     let plan = organize::plan(&self.project, canon, &realised, &ctx, &tree, digest);
-    Ok(
-      plan
-        .steps
-        .into_iter()
-        .filter(|step| step.action == organize::Action::HydrateAttachment)
-        .filter(|step| {
-          self
-            .owning_thread(&step.path, canon)
-            .is_some_and(|id| scope.selects(&id))
-        })
-        .filter_map(|step| step.content.map(|content| (step.path, content)))
-        .collect(),
-    )
+    plan
+      .steps
+      .into_iter()
+      .filter(|step| step.action == organize::Action::HydrateAttachment)
+      .filter(|step| {
+        self
+          .owning_thread(&step.path, canon)
+          .is_some_and(|id| scope.selects(&id))
+      })
+      .map(|step| match step.content {
+        Some(content) => Ok((step.path, content)),
+        None => Err(FacadeError::Organize(
+          organize::OrganizeError::NothingToWrite { path: step.path },
+        )),
+      })
+      .collect()
   }
 
   /// **Record the canon files a projection just landed** (0260), through
@@ -7918,6 +7963,11 @@ impl Facade {
   /// (hv, 2026-08-19). The disposition comes from [`Project::edit_disposition`]
   /// so there is no second answer to what a file is.
   pub fn edit(&mut self, address: &Address, file: &str) -> Result<std::path::PathBuf, FacadeError> {
+    // **ANOTHER PROJECT'S ADDRESS IS REFUSED BEFORE ANY CHECK BELOW** (issue
+    // 0338 (i)): each of them answers about THIS project, and `edit` told
+    // `intent://other/threads/ST0009` that this project has no ST0009 -- a true
+    // answer to a question nobody asked.
+    require_local(address)?;
     let rel = std::path::PathBuf::from(format!("{file}.md"));
 
     // **THIS REFUSAL IS DECIDED BEFORE ANYTHING IS WRITTEN, AND THE ORDER IS
@@ -10739,12 +10789,7 @@ impl Facade {
   /// surface that silently ignored the collections it cannot create into would
   /// report the same success as one that handles them all.
   pub fn post(&mut self, address: &Address, body: &str) -> Result<Address, FacadeError> {
-    if !address.is_local() {
-      return Err(FacadeError::WriteNotAddressable {
-        url: address.to_url(),
-        why: "a cross-project write resolves against intentd's project registry".to_string(),
-      });
-    }
+    require_local(address)?;
     match &address.entity {
       AddrEntity::Threads => {
         let value = Self::posted_json(address, body)?;
@@ -10889,12 +10934,7 @@ impl Facade {
   /// the day one appears, this contract needs re-deciding rather than
   /// re-reading.
   pub fn put(&mut self, address: &Address, body: &str) -> Result<Outcome, FacadeError> {
-    if !address.is_local() {
-      return Err(FacadeError::WriteNotAddressable {
-        url: address.to_url(),
-        why: "a cross-project write resolves against intentd's project registry".to_string(),
-      });
-    }
+    require_local(address)?;
     let is_attachment = matches!(address.entity, AddrEntity::Attachment { .. });
     if address.format == Some(AddrFormat::Md) && !is_attachment {
       return Err(FacadeError::WriteNotAddressable {
@@ -11474,6 +11514,7 @@ impl Facade {
     address: &Address,
     bytes: &[u8],
   ) -> Result<Outcome, FacadeError> {
+    require_local(address)?;
     let AddrEntity::Attachment { thread, path } = &address.entity else {
       return Err(FacadeError::WriteNotAddressable {
         url: address.to_url(),
@@ -11545,6 +11586,7 @@ impl Facade {
   /// Written through the same [`Facade::apply`] as [`Facade::put_attachment`],
   /// so the canon, the store and the event log move together.
   pub fn detach_attachment(&mut self, address: &Address) -> Result<Outcome, FacadeError> {
+    require_local(address)?;
     let AddrEntity::Attachment { thread, path } = &address.entity else {
       return Err(FacadeError::WriteNotAddressable {
         url: address.to_url(),
@@ -11624,12 +11666,7 @@ impl Facade {
     field: &str,
     value: Value,
   ) -> Result<Outcome, FacadeError> {
-    if !address.is_local() {
-      return Err(FacadeError::WriteNotAddressable {
-        url: address.to_url(),
-        why: "a cross-project write resolves against intentd's project registry".to_string(),
-      });
-    }
+    require_local(address)?;
 
     let url = address.to_url();
     let refuse = |field: &str, why: String| FacadeError::FieldNotWritable {

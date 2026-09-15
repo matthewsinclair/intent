@@ -3,9 +3,10 @@
   "number": 338,
   "slug": "st0057-s-projection-hydrate-writes-nothing-for-a",
   "title": "ST0057's projection: hydrate writes nothing for an opaque attachment, the two-region manifest code survives, cross-project addresses parse and every door refuses them while AC-07.6 reads green",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-15",
   "reporter": "Matthew Sinclair",
   "body": "Found auditing ST0057's design (vc). ST0057 is out of the 3.0.x line by ruling; these are contract findings against rows that read satisfied:\n\n- `organize --apply` and `st hydrate` report `hydrated:` for an opaque attachment and write nothing, because they pass only inline `text` (`organize.rs:577`, `:589`, `:1075`). The dehydration gate then fails on the working copy with a UTF-8 error and a misleading remedy.\n- D57-9's two-region manifest code is not removed (`intentfiles.rs:52`, `:135`, `:164`), and the parser still accepts a BEGIN/END pair.\n- Cross-project addresses parse but are refused by every door (`facade.rs:7235`, `:7385`, `:8071`, `:3072`), while AC-07.6 reads green. AC-03.1 likewise claims a working-copy round trip that fails for opaque attachments. A satisfied row the as-built does not meet is a contract finding.\n- ST0057 cannot close: its gate is BLOCKED only on AC-12.x and AC-13.x, whose WPs are both cancelled.\n\nLine numbers as at the audit.\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
 }

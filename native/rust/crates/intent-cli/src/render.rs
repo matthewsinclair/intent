@@ -1564,27 +1564,6 @@ fn refuse_unwired(path: &str, remedy: &str) -> Result<(), Failure> {
   )))
 }
 
-/// `st hydrate` and `issues hydrate`: ONE implementation behind two doors.
-///
-/// **Two family verbs, not two behaviours.** `Facade::hydrate` dispatches on
-/// the address's ENTITY, so a thread and an issue reach the same code by
-/// construction -- and a second copy here would be the Highlander defect in the
-/// one place the estate can least afford it, since the two would agree on the
-/// day they were written and drift the first time a view kind lands.
-///
-/// **THE WHOLE ARGUMENT GOES TO `promote`, NEVER AN ID LIFTED OUT OF IT.** The
-/// verb takes an ADDRESS because the SERVICE refuses in address terms: two of
-/// `Facade::hydrate`'s three refusal arms -- a foreign authority, and an entity
-/// that is not an artefact -- are unreachable from a bare id. Extracting the id
-/// and rebuilding `intent:///threads/<id>` is the spelling that reads fine and
-/// silently converts a cross-project reference into a local one, and the
-/// authority refusal never fires because the authority is gone before it is
-/// called.
-///
-/// A malformed argument is a USAGE error naming both accepted forms, never a
-/// not-found: `AddressError::NotAddressable` exists for exactly that, so an
-/// operator who typed `ST57` is not sent into the estate hunting a thread that
-/// was never addressed.
 /// `intent edit <address> [file]` and `intent st edit <id> [file]`, which are
 /// one function because AC-05.3 says path-printing has one home.
 ///
@@ -1757,44 +1736,13 @@ pub(crate) fn artefact_path(
 
 /// `--browser`: open the ENTITY in a browser served by `intentd`.
 ///
-/// **IT REFUSES UNCONDITIONALLY, AND UNTIL 2026-09-04 IT BLAMED A MISSING
-/// DAEMON FOR DOING SO.** There is no success path in this function. Whatever
-/// the daemon is doing, nothing here opens a page.
-///
-/// **AND THE SERVING HALF IS NOT WP-08's, WHICH THIS COMMENT ASSERTED UNTIL ic
-/// CHECKED IT.** All twelve `AC-08.*` rows read satisfied; WP-08's contract is
-/// complete. The page `--browser` would open is required by **`AC-17.6`**
-/// (`edit` and `browse` reach ONE MODEL through ONE SERVICE), which is a
-/// different row with a different owner. *WP-08 and unbuilt* conflated a work
-/// package with an area, and a satisfied criterion sitting under an in-flight
-/// comment calling the same ground unbuilt is the two-homes shape this thread
-/// keeps finding.
-///
-/// **THE OLD MESSAGE WAS FALSE IN BOTH ITS CLAUSES BY THE TIME ANYONE READ
-/// IT.** It said `--browser` needs a running daemon and none is running: one
-/// WAS running (`intent daemon status`, rc=0, same minute), and a running one
-/// would not have helped anyway. **The premise that rotted is recorded here
-/// rather than quietly dropped** -- this comment read *no daemon runs today, so
-/// this path is complete for every case that currently exists*, which was true
-/// when written. WP-08 then shipped enough daemon to run continuously, and
-/// nothing watched the join: the reason and the refusal sat four lines apart
-/// and only the reason expired.
-///
-/// **SO THE MESSAGE NAMES WHAT THIS BUILD DOES NOT DO, NEVER WHAT THE WORLD
-/// IS.** A refusal asserting an unmeasured state eventually asserts a false
-/// one, and this one also carried an unkeepable remedy: it told the operator to
-/// run `intent daemon start` while one was already running, so doing the single
-/// thing they were told to do changed nothing.
-///
-/// **THE PROBE IS DELIBERATELY NOT CALLED YET AND THAT IS NOT AN OVERSIGHT.**
-/// [`running_daemon_pid`] is in this file and would answer correctly, but with
-/// no serving half BOTH of its branches refuse identically -- so calling it
-/// today computes an answer this function discards, which is machinery
-/// pretending to be a check. It goes in with the arm that can act on it.
-///
-/// **`tui-design.md` §9 still governs the shape WP-08 must land**: the verb does
-/// not spawn a process the operator did not ask for. When it lands, this arm
-/// ASKS the daemon and serves, and its no-daemon branch says what it TRIED.
+/// **IT DECIDES THE OUTPUT MODE AND HANDS OFF; IT OPENS NOTHING ITSELF.**
+/// [`open_in_browser`] is the one implementation behind this flag and `intent browse`,
+/// and it is what refuses another project's address, checks the entity, probes
+/// for an answering daemon and serves the page. This doc said *it refuses
+/// unconditionally* and *the probe is deliberately not called yet* until
+/// 2026-09-15 (issue 0338), long after both spellings were wired to a working
+/// page: a comment describing the code it replaced.
 ///
 /// **INV-10 lives here in its pairwise form.** The four output modes -- the
 /// terminal's default, `--editor`, `--browser`, `--path` -- are mutually
@@ -1893,6 +1841,10 @@ fn open_in_browser(address: &intentsvcs::address::Address) -> Result<(), Failure
 /// shape in `nav.rs` -- is a change to the ratified contract and is vc's, not
 /// this function's.**
 fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure> {
+  // **ANOTHER PROJECT'S ADDRESS IS REFUSED FIRST** (issue 0338 (i)): ahead of the
+  // view, the entity check and the daemon probe, each of which answers about
+  // THIS project.
+  intentsvcs::facade::require_local(address).map_err(fail)?;
   let other = &address.entity;
   let view = {
     // **THE WORK-PACKAGE REFUSAL THAT STOOD HERE IS GONE, AND THE COMMENT IT
@@ -2214,6 +2166,16 @@ pub(crate) fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Fail
   Ok(())
 }
 
+/// `st hydrate <id>`: realise one thread's files, and report which of them this
+/// run wrote.
+///
+/// **IT TAKES AN ID, NOT AN ADDRESS.** The argument reaches here through
+/// `thread_arg`, which normalises it as a thread id and refuses anything else,
+/// URLs included, before a store is opened; `promote` then builds this project's
+/// own address from the id. So a cross-project address never arrives at this
+/// verb: the door that takes one, `intent edit <address>`, is refused by
+/// `Facade::require_local` (issue 0338 (i)). Until 2026-09-15 a doc here said
+/// the opposite, and named a retired `issues hydrate` as a second door.
 fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;

@@ -16,11 +16,11 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use crate::common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, NOT_UTF8, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::Attachment;
-use intentsvcs::organize::{Action, Step, TreeState, plan};
+use intentsvcs::organize::{Action, Mode, OrganizeError, Plan, Step, TreeState, gate, plan};
 
 const DECLARED: &str = "STEELTHREAD:ST0001\n\n";
 /// Declares a thread that is not in the canon, so ST0001's attachments are
@@ -56,9 +56,15 @@ fn step_for<'a>(steps: &'a [Step], path: &PathBuf) -> Option<&'a Step> {
 /// failed against correct code. A helper that constructs the world it is asked to
 /// measure cannot be handed a world.
 fn plan_in(fx: &Fixture, manifest: &str, tree: TreeState) -> Vec<Step> {
+  plan_of(fx, &canon(), manifest, tree).steps
+}
+
+/// [`plan_in`] over a canon the test supplies, returning the whole [`Plan`] so
+/// a test can RUN it: a step list cannot say what the write loop did with it.
+fn plan_of(fx: &Fixture, canon: &Canon, manifest: &str, tree: TreeState) -> Plan {
   plan(
     &fx.project(),
-    &canon(),
+    canon,
     // **`realised_for_action` RATHER THAN `realised_from`, TO KEEP THE
     // `expect`.** The fail-open door answers `Unreadable` for a manifest that
     // does not parse, and `Unreadable` realises everything -- so a typo in a
@@ -70,7 +76,6 @@ fn plan_in(fx: &Fixture, manifest: &str, tree: TreeState) -> Vec<Step> {
     &tree,
     "d".to_string(),
   )
-  .steps
 }
 
 #[test]
@@ -159,7 +164,7 @@ fn a_declared_attachment_absent_from_disk_hydrates_from_the_store() {
   assert_eq!(step.action, Action::HydrateAttachment);
   assert_eq!(
     step.content.as_deref(),
-    Some("# Reference\n\nA quokka.\n"),
+    Some("# Reference\n\nA quokka.\n".as_bytes()),
     "it hydrates from the store's carried bytes, not from a render -- nothing renders an attachment"
   );
 }
@@ -198,5 +203,131 @@ fn an_undeclared_attachment_dehydrates_through_the_gate() {
   assert!(
     step.content.is_some(),
     "the gate compares against these bytes; without them every removal is unproven and must be refused"
+  );
+}
+
+/// ST0001 carrying `reference.md` as an OPAQUE attachment. `blob` is what the
+/// store holds for it: `Some` once its sidecar is loaded, `None` for the
+/// half-formed state `model::Attachment::blob` names.
+fn opaque_canon(blob: Option<&[u8]>) -> Canon {
+  let mut thread = sample_thread("ST0001");
+  let mut attachment = Attachment::opaque("reference.md", NOT_UTF8);
+  attachment.blob = blob.map(<[u8]>::to_vec);
+  thread.attachments = vec![attachment];
+  Canon {
+    threads: vec![thread],
+    ..Default::default()
+  }
+}
+
+/// Writes `on_disk` at `path` under an undeclared ST0001 whose store copy is
+/// `NOT_UTF8`, and returns the removal step `plan` decides for it.
+fn opaque_removal(fx: &Fixture, path: &PathBuf, on_disk: &[u8]) -> Step {
+  std::fs::create_dir_all(path.parent().expect("a thread directory")).expect("mkdir");
+  std::fs::write(path, on_disk).expect("write the working copy");
+  let tree = TreeState {
+    present: [path.clone()].into_iter().collect(),
+    sha256: BTreeMap::from([(path.clone(), intentsvcs::model::sha256_hex(on_disk))]),
+  };
+  let steps = plan_of(
+    fx,
+    &opaque_canon(Some(NOT_UTF8)),
+    DECLARES_NOTHING_PRESENT,
+    tree,
+  )
+  .steps;
+  let step = step_for(&steps, path).expect("an undeclared opaque attachment must be decided");
+  assert_eq!(step.action, Action::Dehydrate);
+  step.clone()
+}
+
+/// **AN OPAQUE ATTACHMENT HYDRATES BYTE FOR BYTE, AND `hydrated` MEANS WRITTEN**
+/// (issue 0338 (i)).
+///
+/// The attachment arm handed the write loop `att.text`, which is `None` for an
+/// opaque attachment, and the loop skips a step with no content -- while the
+/// report still listed it as hydrated. So `organize --apply` and `st hydrate`
+/// said `hydrated:` and wrote nothing. Running the plan is the only thing that
+/// can see the difference.
+#[test]
+fn a_declared_opaque_attachment_absent_from_disk_is_written_byte_for_byte() {
+  let fx = Fixture::new();
+  let path = reference_md(&fx.project());
+  let report = plan_of(
+    &fx,
+    &opaque_canon(Some(NOT_UTF8)),
+    DECLARED,
+    TreeState::default(),
+  )
+  .run(Mode::Apply, &|| "d".to_string())
+  .expect("a run that removes nothing applies");
+  assert_eq!(
+    std::fs::read(&path).ok().as_deref(),
+    Some(NOT_UTF8),
+    "the working copy is not the store's bytes"
+  );
+  assert!(
+    report.hydrated.contains(&path),
+    "the file was written but not reported: {:?}",
+    report.hydrated
+  );
+}
+
+/// **BYTES NOBODY HOLDS ARE REFUSED BY PATH, NEVER REPORTED AS HYDRATED.** An
+/// opaque attachment whose sidecar was never loaded has neither half, so the
+/// honest answer is a refusal naming the file, not a zero-byte write and not a
+/// `hydrated:` line over nothing.
+#[test]
+fn an_opaque_attachment_with_no_loaded_bytes_is_refused_by_path() {
+  let fx = Fixture::new();
+  let path = reference_md(&fx.project());
+  let report = plan_of(&fx, &opaque_canon(None), DECLARED, TreeState::default())
+    .run(Mode::Apply, &|| "d".to_string())
+    .expect("the run completes and reports its refusals");
+  assert!(
+    !path.exists(),
+    "a file was written for bytes the store does not hold"
+  );
+  assert!(
+    !report.hydrated.contains(&path),
+    "reported hydrated for a file that was never written"
+  );
+  let refusals: Vec<String> = report.refused.iter().map(ToString::to_string).collect();
+  assert!(
+    refusals
+      .iter()
+      .any(|r| r.contains(&path.display().to_string())),
+    "no refusal names {}: {refusals:?}",
+    path.display()
+  );
+}
+
+/// **THE GATE PROVES AN OPAQUE REMOVAL BY ITS BYTES.** It read the working copy
+/// as a string, so a non-UTF-8 file failed as an I/O error before any
+/// comparison, and its step carried no bytes to compare against anyway.
+#[test]
+fn an_undeclared_opaque_attachment_matching_the_store_passes_the_gate() {
+  let fx = Fixture::new();
+  let path = reference_md(&fx.project());
+  let step = opaque_removal(&fx, &path, NOT_UTF8);
+  let verdict = gate(&step).map_err(|e| e.to_string());
+  assert!(
+    verdict.is_ok(),
+    "the working copy is exactly the store's bytes, so its removal is proven safe: {verdict:?}"
+  );
+}
+
+/// And a working copy that differs is an EDIT the gate refuses, not an I/O
+/// failure that says nothing about the file.
+#[test]
+fn a_changed_opaque_working_copy_is_refused_as_an_edit() {
+  let fx = Fixture::new();
+  let path = reference_md(&fx.project());
+  let step = opaque_removal(&fx, &path, b"\xff\xfe a changed binary copy");
+  let verdict = gate(&step);
+  assert!(
+    matches!(verdict, Err(OrganizeError::HandEdited { .. })),
+    "a differing opaque copy must be refused as an edit: {:?}",
+    verdict.map_err(|e| e.to_string())
   );
 }

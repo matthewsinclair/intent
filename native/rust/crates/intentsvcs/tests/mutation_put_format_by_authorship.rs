@@ -92,10 +92,11 @@ fn a_body_that_names_a_different_row_is_refused() {
   assert!(err.to_string().contains("AT-03.8"), "{err}");
 }
 
-/// A cross-project write is refused here rather than attempted: it resolves
-/// against intentd's project registry, which this in-process surface does not
-/// have. Refused with the reason, not silently treated as local -- writing to
-/// the wrong project is unrecoverable.
+/// A cross-project write is refused here rather than attempted, and refused BY
+/// NAME: the address names another project, and no door of this one resolves it
+/// (issue 0338 (i); this said the write resolved against intentd's project
+/// registry, which no door ever did). Silently treating it as local would write
+/// to the wrong project, which is unrecoverable.
 #[test]
 fn a_cross_project_address_is_not_written_locally() {
   let fx = Fixture::new();
@@ -105,5 +106,10 @@ fn a_cross_project_address_is_not_written_locally() {
   let err = facade
     .put(&address, &body_for("AT-03.9"))
     .expect_err("a slug must not be written to the local project");
-  assert!(err.to_string().contains("registry"), "{err}");
+  let message = err.to_string();
+  assert!(
+    message.contains("`intent://elsewhere/threads/ST0001/at/AT-03.9`")
+      && message.contains("`elsewhere`"),
+    "the refusal must name the address and the project it names: {err}"
+  );
 }

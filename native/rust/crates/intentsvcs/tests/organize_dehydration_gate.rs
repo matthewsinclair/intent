@@ -22,7 +22,7 @@ fn step_at(fx: &Fixture, rel: &str, content: Option<&str>) -> Step {
   Step {
     path: fx.path(rel),
     action: Action::Dehydrate,
-    content: content.map(str::to_string),
+    content: content.map(|text| text.as_bytes().to_vec()),
   }
 }
 

@@ -56,6 +56,8 @@ mod acceptance_surface;
 mod agents_sync_parity;
 #[path = "an_absent_rule_library_is_visible_at_the_process_surface.rs"]
 mod an_absent_rule_library_is_visible_at_the_process_surface;
+#[path = "another_projects_address_is_refused_by_name.rs"]
+mod another_projects_address_is_refused_by_name;
 #[path = "bootstrap_door.rs"]
 mod bootstrap_door;
 #[path = "canon_keys_are_read.rs"]

@@ -277,7 +277,7 @@ fn another_project_s_address_is_refused_rather_than_ignored() {
     })
     .expect_err("a foreign authority must refuse");
   assert!(
-    matches!(err, FacadeError::NotHydratable { .. }),
+    matches!(err, FacadeError::CrossProjectAddress { .. }),
     "got {err:?}"
   );
   assert!(

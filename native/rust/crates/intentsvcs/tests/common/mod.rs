@@ -832,3 +832,14 @@ pub fn landed_note(notes: &[intentsvcs::facade::Note]) -> (String, String, Vec<S
       panic!("no step failed after the write -- the failure was not injected (running as root?): {notes:?}")
     })
 }
+
+/// Bytes no `String` can hold: a lone `0xff`, which is not a legal UTF-8 lead
+/// byte in any position.
+///
+/// **Spelled as a constant with a reason, because the first version of a
+/// fixture like this used `\x00\x01` -- which ARE valid UTF-8 control
+/// characters, so the file decoded fine, was carried inline, and the test
+/// passed while proving nothing.** `ignored_paths_corpus.rs` records the same
+/// trap from the other side. One home, so the opaque-attachment tests in canon
+/// and in `organize` measure the same bytes.
+pub const NOT_UTF8: &[u8] = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\xff\xdb";

@@ -166,9 +166,13 @@ impl Mode {
 pub struct Step {
   pub path: PathBuf,
   pub action: Action,
-  /// The rendered bytes, for the rows that have any. `None` for [`Action::Unclaimed`]
-  /// -- the renderer cannot produce those, which is what makes them unclaimed.
-  pub content: Option<String>,
+  /// The bytes this step writes or is gated against, for the rows that have
+  /// any: a view's render as UTF-8, an attachment's carried bytes in whichever
+  /// form the store holds them. `None` for [`Action::Unclaimed`] -- the renderer
+  /// cannot produce those, which is what makes them unclaimed -- and for an
+  /// opaque attachment whose bytes were never loaded, which [`Plan::run`]
+  /// refuses by path rather than skipping (issue 0338 (i)).
+  pub content: Option<Vec<u8>>,
 }
 
 /// What [`plan`] needs to know about the tree.
@@ -406,6 +410,15 @@ pub enum OrganizeError {
     source: crate::sync::SyncError,
   },
 
+  /// A file realisation has to write and holds no bytes for (issue 0338 (i)).
+  ///
+  /// **REFUSED BY PATH RATHER THAN SKIPPED.** The write loop passed over a step
+  /// with no bytes while the report still listed it as hydrated, so an opaque
+  /// attachment whose sidecar was never loaded read as realised and was never
+  /// written. Writing an empty file instead would be worse: present, and wrong.
+  #[error("nothing was written to {path}: the store holds no bytes for it")]
+  NothingToWrite { path: PathBuf },
+
   #[error("could not read {path}: {source}")]
   Io {
     path: PathBuf,
@@ -475,6 +488,10 @@ impl crate::remedy::Remedy for OrganizeError {
         home.display()
       ),
       Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
+      Self::NothingToWrite { path } => format!(
+        "run `intent sync --to-store`, which loads canon again and reads an opaque attachment's bytes from its sidecar under `intent/.canon/st/`; if that sidecar is missing, restore it from git first. Nothing was written to {}.",
+        path.display()
+      ),
       Self::Io { path, .. } => format!(
         "check that {} exists and is readable. This is a file `organize` had already decided about, so the tree moved or a permission changed between the plan and the act.",
         path.display()
@@ -592,9 +609,9 @@ pub fn plan(
   // of hydration bytes and the denominator for "unclaimed" -- a path absent from
   // this map is one the renderer cannot make, which is the fifth row's exact
   // definition rather than a proxy for it.
-  let renderable: BTreeMap<PathBuf, String> = views::render_all(project, canon, ctx)
+  let renderable: BTreeMap<PathBuf, Vec<u8>> = views::render_all(project, canon, ctx)
     .into_iter()
-    .map(|View { path, content }| (path, content))
+    .map(|View { path, content }| (path, content.into_bytes()))
     .collect();
 
   let exempt: BTreeSet<PathBuf> = [project.steel_threads_view(), project.todo_view()]
@@ -663,20 +680,19 @@ pub fn plan(
       if !declared_thread {
         // Undeclared and present: row four, through the same gate. The store
         // carries this file's bytes, so removing it is safe EXACTLY WHEN the
-        // gate proves the copy matches -- which is why the attachment's text
-        // travels on the step, as the view's rendered bytes do.
+        // gate proves the copy matches -- which is why the attachment's bytes
+        // travel on the step, as the view's rendered bytes do.
         if present.contains(&path) {
           steps.push(Step {
             path,
             action: Action::Dehydrate,
-            // **`None` for an OPAQUE attachment, and that is AC-03.1's
-            // precondition arriving for free rather than a gap.** `gate` reads
-            // a `None` as _no bytes to compare against, and unproven is not
-            // permission_, so an opaque attachment is REFUSED removal until its
-            // bytes can travel here. Writing `Some(String::new())` to satisfy
-            // the type would turn that refusal into a byte comparison against
-            // nothing, which passes for an empty file and destroys every other.
-            content: att.text.clone(),
+            // **THE STORE'S BYTES, WHICHEVER FORM THEY ARE CARRIED IN** (issue
+            // 0338 (i)). This was `att.text`, so an opaque attachment reached
+            // `gate` with nothing to compare against and its removal was refused
+            // as unproven for good. `None` now means only that the bytes were
+            // never loaded, and `gate` still refuses that: unproven is not
+            // permission, and an empty comparison would pass for an empty file.
+            content: att.as_bytes().map(<[u8]>::to_vec),
           });
         }
         continue;
@@ -685,10 +701,13 @@ pub fn plan(
         steps.push(Step {
           path,
           action: Action::HydrateAttachment,
-          // Same `None`, the other direction: the write loop skips a step with
-          // no content, so an opaque attachment is not hydrated as a zero-byte
-          // file. Absent and reported beats present and wrong.
-          content: att.text.clone(),
+          // The same bytes, the other direction (issue 0338 (i)). This was
+          // `att.text`, and the write loop skipped the `None` an opaque
+          // attachment produced while the report called it hydrated. `None` is
+          // now only bytes never loaded, and `Plan::run` refuses that step by
+          // path: never a zero-byte file, and never a `hydrated:` line over
+          // nothing.
+          content: att.as_bytes().map(<[u8]>::to_vec),
         });
         continue;
       }
@@ -1359,15 +1378,23 @@ impl Plan {
     // beside the real path reached nothing at all.
     let mut set = WriteSet::new();
     for step in &self.steps {
-      let Some(content) = &step.content else {
-        continue;
-      };
-      if !matches!(
-        step.action,
-        Action::Hydrate | Action::HydrateAttachment | Action::Verify
-      ) {
+      let writes = matches!(step.action, Action::Hydrate | Action::HydrateAttachment);
+      if !writes && step.action != Action::Verify {
         continue;
       }
+      let Some(content) = &step.content else {
+        // **A STEP THAT MUST WRITE AND HOLDS NO BYTES IS REFUSED BY PATH**
+        // (issue 0338 (i)). It was skipped here and then reported `hydrated`
+        // below, so `organize --apply` and `st hydrate` said an opaque attachment
+        // was realised and wrote nothing. A `Verify` with no render writes
+        // nothing and is reported as nothing, as before; it is not this case.
+        if writes {
+          report.refused.push(OrganizeError::NothingToWrite {
+            path: step.path.clone(),
+          });
+        }
+        continue;
+      };
       // **A `Verify` IS CLASSIFIED HERE, BEFORE THE WRITE, AND THE ORDER IS THE
       // WHOLE MEASUREMENT.** The first version read the file AFTER the commit and
       // asked whether it matched the render -- by which point every file matches,
@@ -1376,12 +1403,12 @@ impl Plan {
       // the positive control in AT-04.4, not by review: the quiet arm was green
       // and the arm that MUST see movement was the one that failed.
       if step.action == Action::Verify {
-        match std::fs::read_to_string(&step.path) {
+        match std::fs::read(&step.path) {
           Ok(disk) if disk == *content => report.unchanged.push(step.path.clone()),
           _ => report.rewritten.push(step.path.clone()),
         }
       }
-      set.add(step.path.clone(), content.clone());
+      set.add_bytes(step.path.clone(), content.clone());
     }
     if !set.is_empty() && mode.performs() {
       set
@@ -1395,7 +1422,12 @@ impl Plan {
 
     for step in &self.steps {
       match step.action {
-        Action::Hydrate | Action::HydrateAttachment => report.hydrated.push(step.path.clone()),
+        // Only what was WRITTEN: a write step with no bytes was refused above,
+        // by path, and listing it here as well is the defect 0338 (i) found.
+        Action::Hydrate | Action::HydrateAttachment if step.content.is_some() => {
+          report.hydrated.push(step.path.clone())
+        }
+        Action::Hydrate | Action::HydrateAttachment => {}
         Action::Unclaimed => report.unclaimed.push(step.path.clone()),
         Action::AttachmentDiverged => report.diverged.push(step.path.clone()),
         // `Verify` was classified above, against the bytes as they were BEFORE
@@ -1430,14 +1462,26 @@ impl Plan {
 /// carries this" is unproven, and unproven is not permission.
 pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   debug_assert!(step.action.is_destructive(), "gate is for removals only");
-  let on_disk = std::fs::read_to_string(&step.path).map_err(|e| io_err(&step.path, e))?;
+  // **READ AS BYTES** (issue 0338 (i)). `read_to_string` failed a non-UTF-8
+  // working copy as an I/O error before any comparison, which told the operator
+  // the file could not be read when the question was whether it matched.
+  let on_disk = std::fs::read(&step.path).map_err(|e| io_err(&step.path, e))?;
   match &step.content {
-    Some(rendered) if *rendered == on_disk => Ok(()),
-    Some(rendered) if crate::views::differs_only_in_banner_version(&on_disk, rendered) => Ok(()),
+    Some(carried) if *carried == on_disk => Ok(()),
+    Some(carried) if only_the_banner_moved(&on_disk, carried) => Ok(()),
     _ => Err(OrganizeError::HandEdited {
       path: step.path.clone(),
       bytes: on_disk.len(),
     }),
+  }
+}
+
+/// Whether two byte strings are one view but for the version its banner names.
+/// Asked only where both sides are text, since a banner is a line of prose.
+fn only_the_banner_moved(on_disk: &[u8], carried: &[u8]) -> bool {
+  match (std::str::from_utf8(on_disk), std::str::from_utf8(carried)) {
+    (Ok(disk), Ok(rendered)) => crate::views::differs_only_in_banner_version(disk, rendered),
+    _ => false,
   }
 }
 
