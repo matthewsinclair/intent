@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-15 22:18Z
+heartbeat_at: 2026-09-15 22:32Z
 status: active
 focus: "0331 (b) revising in wt-0331b, then onto HEAD in wt-0331, judged and banked; 0331 closes when it lands. NO RELEASE, NO PUSH."
 claims: []
