@@ -21,7 +21,7 @@ A project that wants the human in the loop gives them a node, conventionally `hv
 
 - **No session loop.** `hv` is not driven by `/in-session` / `pickup`, so its `session_id` is optional and conventionally `none`. Peers therefore never match it on the "different `session_id`" active-peer test; they read it for its directives and route escalations to `hv/inbox.<you>.md`.
 - **Heartbeat is advisory.** A stale `hv` heartbeat does not mark anything reclaimable -- the human is always authoritative -- so the 7-day reclaim rule does not apply to `hv`.
-- **Standing directives.** Beyond the canonical `wip.md` body, `hv` may carry a `## Standing directives` section: durable instructions every node honours (sequencing, scope rulings, release policy). Peers read it at pickup the way they read `## Decisions`.
+- **Standing directives.** Beyond the canonical `wip.md` body, `hv` may carry a `## Standing directives` section: durable instructions every node honours (sequencing, scope rulings, release policy). Peers read it at pickup the way they read `## Decisions`. On a generated board a standing directive is its own item kind, `directive`: `intent wb add directive "<text>" --node hv` writes one, the board view renders it under `## Standing directives` on `hv`'s board alone, the same verb on any other node is refused by name, and a fold never archives one.
 
 #### What the hv inbox is FOR, and who is obliged to read it
 
@@ -264,11 +264,13 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `add <kind> <text>`
 
-`intent wb add <doing|todo|watchout|hold> "<text>" --node <you>`. The service assigns the `seq`.
+`intent wb add <doing|todo|watchout|hold|directive> "<text>" --node <you>`. The service assigns the `seq`.
 
 **A HOLD CARRIES THE CONDITION THAT RELEASES IT, AND THE CONDITION IS THE CONTENT.** _Holding 0162 until the shared daemon is free_ is a hold; _holding 0162_ is an item that left DOING and entered nothing, indistinguishable at every later reading from work that was quietly dropped. The verb cannot check this. Nothing can -- it is judgement, and it is yours.
 
 `decision` is refused here by name and redirected to `wb decide`, so there is one door per kind.
+
+**`directive` IS `hv`'s, AND NO OTHER NODE WRITES ONE.** A standing directive is an instruction every node honours, so it lives on the hypervisor's board, and `wb add directive` from any other node is refused by name. A call a node made itself is a `decision`, which `wb decide` writes.
 
 ### `decide <text>`
 
@@ -288,7 +290,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `archive <kind> <seq>`
 
-`intent wb archive <doing|todo|decision|watchout|hold> <seq> --node <you>` -- one item of your own leaves the live count.
+`intent wb archive <doing|todo|decision|watchout|hold|directive> <seq> --node <you>` -- one item of your own leaves the live count.
 
 **ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its number and its text and stays readable; it just stops counting, which is how a board that has started refusing a write begins accepting again. It reports what MOVED, so archiving something already archived says so rather than lying.
 
@@ -319,6 +321,8 @@ The human may say "localfold" or "globalfold" (terms from Lamplight; defined in 
 **AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping an archive is discoverable by nobody. Buried directives were found days later, one of them shipping the option the human had explicitly DECLINED.
 
 **A HOLD IS NOT ARCHIVED WHILE ITS CONDITION STANDS UNMET.** Check every hold when you pick up and move the released ones back into TODO -- which is `wb archive hold <seq>` and then `wb add todo`, because the condition being met is a third thing, neither DONE nor retirement.
+
+**A FOLD NEVER ARCHIVES A DIRECTIVE.** `wb archive directive <seq> --node hv` exists because `hv` retires a directive once it is spent, and the verb cannot tell that act from a fold tidying the board, so the rule lives here rather than in the verb. A directive leaves `hv`'s board when `hv` says it is spent, never because a fold is making room.
 
 ## Node roles
 

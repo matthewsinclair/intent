@@ -176,6 +176,16 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("`decision` has one writer and it is `wb decide`"),
   ));
   out.push((
+    "a directive on a board that is not hv's",
+    facade
+      .wb_add(
+        "cc",
+        intentsvcs::model::WbItemKind::Directive,
+        "a directive",
+      )
+      .expect_err("a standing directive is written on hv's board alone"),
+  ));
+  out.push((
     "a registered moniker named again with other values",
     facade
       .wb_register("cc", "Someone Else", "control")
@@ -1048,6 +1058,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
     FacadeError::WbNotMigrated { .. } => "WbNotMigrated",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
+    FacadeError::WbDirectiveOffHv { .. } => "WbDirectiveOffHv",
+    FacadeError::WbDirectivesOnAnotherBoard { .. } => "WbDirectivesOnAnotherBoard",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
@@ -1146,6 +1158,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbSendersNotRegistered",
   "WbNotMigrated",
   "WbKindHasItsOwnVerb",
+  "WbDirectiveOffHv",
+  "WbDirectivesOnAnotherBoard",
   "WbRegisteredDifferently",
   "WbNoActingNode",
 ];
@@ -1161,6 +1175,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // next to; provoking it here would mean constructing the value rather than
   // reaching it, which asserts nothing about a path the estate takes.
   "WbNoActingNode",
+  // **PROVOKED WHERE A HAND-AUTHORED BOARD IS.** `wb migrate` reads a board off
+  // disk, and this refusal needs one carrying `## Standing directives` on a node
+  // that is not `hv`: `wb_migrate_carries_a_board.rs` has that fixture and
+  // drives it, and building one here would be a second copy of that fixture.
+  "WbDirectivesOnAnotherBoard",
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
   // WP-01's `issue_home` turns a manifest id into an issue's view path.

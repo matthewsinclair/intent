@@ -104,12 +104,22 @@ impl SourceBoard {
 /// indistinguishable from work that was quietly dropped. The fifth kind landed
 /// (vc's ruling of 2026-09-12, built by cc) and the refusal arm is now pointed
 /// at the sections nothing maps, which is where the remaining loss lives.
+///
+/// **`## Standing directives` MAPS TO `WbItemKind::Directive` ON EVERY BOARD,
+/// AND WHOSE BOARD MAY CARRY ONE IS THE DOOR'S QUESTION** (issue 0375). A reader
+/// that dropped the section off a board that is not `hv`'s would be the silent
+/// loss this function exists to end; `Facade::wb_migrate` refuses that carry by
+/// name before it writes.
 fn kind_of(heading: &str) -> Option<WbItemKind> {
   // Matched on the heading's leading word rather than the whole line, because
   // a board's headings carry trailing prose -- `## DOING -- WP-02` is one of
   // this estate's own -- and an equality test would silently classify every
   // such section as unknown while looking perfectly correct.
   let head = heading.trim_start_matches('#').trim().to_ascii_lowercase();
+  // The one section named by two words, so it is matched before the leading one.
+  if head.starts_with("standing directive") {
+    return Some(WbItemKind::Directive);
+  }
   let first = head.split_whitespace().next().unwrap_or_default();
   match first.trim_end_matches(':') {
     "doing" => Some(WbItemKind::Doing),

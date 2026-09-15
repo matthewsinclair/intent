@@ -49,7 +49,7 @@ It runs to more than one line.
 
 - Ruled on 2026-09-12.
 
-## Standing directives
+## Parking lot
 
 - A section the model maps to no kind.
 "#;
@@ -73,6 +73,29 @@ A message from a node that is not on this project's roster.
 "#;
 
 const FOLD: &str = "# DevX Claude (dc)\n\n## DOING\n\nWhat the board said before the fold.\n";
+
+const HV_BOARD: &str = r#"---
+node: hv
+name: Hypervisor
+role: hypervisor
+session_id: none
+heartbeat_at: 2026-09-15 09:00Z
+status: active
+focus: "the close-out"
+claims: []
+---
+
+# Hypervisor (hv)
+
+## Standing directives
+
+- NO RELEASE, NO PUSH without hv at the terminal.
+- A second directive in force.
+
+## Decisions
+
+- Ruled on 2026-09-15.
+"#;
 
 /// Write the node's whole directory, register the roster, and carry it.
 fn carried() -> (
@@ -318,6 +341,81 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
     facade.board("dc").expect("the board").messages.len(),
     1,
     "with the stranger's entry"
+  );
+}
+
+/// Issue 0375: `hv`'s standing directives carry as the sixth kind, each one a
+/// directive rather than a line named uncarried.
+#[test]
+fn hv_s_standing_directives_carry_as_directives() {
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/hv");
+  std::fs::create_dir_all(&home).expect("hv's directory");
+  std::fs::write(home.join("wip.md"), HV_BOARD).expect("hv's board");
+  let mut facade = fx.facade();
+  facade.register_roster().expect("register the roster");
+
+  let carried = facade.wb_migrate("hv").expect("hv's board carries");
+  let directives: Vec<String> = facade
+    .board("hv")
+    .expect("the board")
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Directive)
+    .map(|i| i.text.clone())
+    .collect();
+  assert_eq!(
+    directives,
+    vec![
+      "NO RELEASE, NO PUSH without hv at the terminal.",
+      "A second directive in force."
+    ],
+    "each standing directive lands as a directive, in the board's order"
+  );
+  assert!(
+    carried.uncarried.is_empty() && carried.reconciles(),
+    "and nothing on the board is left uncarried: {:?}",
+    carried.uncarried
+  );
+}
+
+/// Issue 0375: a board that is not `hv`'s and carries `## Standing directives`
+/// refuses the whole carry before anything is written, naming the section and
+/// where its lines are. Carrying the rest would leave lines no command could
+/// carry afterwards, which is the unregistered sender's case again.
+#[test]
+fn standing_directives_on_a_board_that_is_not_hv_s_refuse_the_migration_before_it_writes() {
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(&home).expect("the node's directory");
+  std::fs::write(
+    home.join("wip.md"),
+    format!("{BOARD}\n## Standing directives\n\n- An instruction only hv issues.\n"),
+  )
+  .expect("the board");
+  let mut facade = fx.facade();
+  facade.register_roster().expect("register the roster");
+
+  let refusal = facade
+    .wb_migrate("dc")
+    .expect_err("a standing directive on dc's board refuses the carry");
+  assert!(
+    matches!(
+      refusal,
+      intentsvcs::facade::FacadeError::WbDirectivesOnAnotherBoard { .. }
+    ),
+    "{refusal:?}"
+  );
+  let rendered = refusal.render();
+  assert!(
+    rendered.contains("## Standing directives")
+      && rendered.contains("intent/whiteboard/dc/wip.md:"),
+    "the refusal names the section and where its lines are: {rendered}"
+  );
+  let board = facade.board("dc").expect("the board");
+  assert!(
+    board.items.is_empty() && board.messages.is_empty() && board.node.migrated_at.is_none(),
+    "and nothing was carried"
   );
 }
 

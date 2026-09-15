@@ -8509,13 +8509,13 @@
         {
           "path": "wb add",
           "help": "Add an item to the acting node's own board",
-          "when_to_use": "USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout`. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.",
+          "when_to_use": "USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout` -- or, on `hv`'s board alone, a standing `directive`, an instruction every node honours, which this refuses by name from any other node. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.",
           "args": [
             {
               "name": "kind",
               "type": "enum",
               "arity": "1",
-              "values": ["doing", "todo", "watchout", "hold"]
+              "values": ["doing", "todo", "watchout", "hold", "directive"]
             },
             { "name": "text", "type": "string", "arity": "1" }
           ],
@@ -8543,13 +8543,13 @@
         {
           "path": "wb archive",
           "help": "Move one of the acting node's live items to archived",
-          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
+          "when_to_use": "USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent, and a fold never does it. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.",
           "args": [
             {
               "name": "kind",
               "type": "enum",
               "arity": "1",
-              "values": ["doing", "todo", "decision", "watchout", "hold"]
+              "values": ["doing", "todo", "decision", "watchout", "hold", "directive"]
             },
             { "name": "seq", "type": "string", "arity": "1" }
           ],

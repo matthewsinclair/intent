@@ -1783,6 +1783,9 @@ fn board_header(node: &crate::model::WbNode) -> String {
 /// the truth is that nobody can see. Empty sections carry `_(none)_`, the same
 /// sentinel shape the inboxes already use for the same reason.
 ///
+/// **ONE SECTION BELONGS TO ONE BOARD.** `## Standing directives` is `hv`'s, so
+/// every other board omits it rather than printing it empty (issue 0375).
+///
 /// **ARCHIVED ITEMS DO NOT RENDER.** The extract carries them because the round
 /// trip is lossless, and a board that only ever grew would defeat the bound this
 /// model exists to enforce. What they said stays in the store and in the
@@ -1806,15 +1809,25 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
     (crate::model::WbItemKind::Doing, "DOING"),
     (crate::model::WbItemKind::Todo, "TODO"),
     (crate::model::WbItemKind::Hold, "Holds"),
+    (crate::model::WbItemKind::Directive, "Standing directives"),
     (crate::model::WbItemKind::Watchout, "Watch-outs"),
     (crate::model::WbItemKind::Decision, "Decisions"),
   ] {
-    out.push_str(&format!("## {heading}\n\n"));
     let live: Vec<&crate::model::WbItem> = board
       .items
       .iter()
       .filter(|i| i.kind == kind && i.state == crate::model::WbItemState::Live)
       .collect();
+    // `hv`'s board carries the section empty or not; any other board carries it
+    // only if it holds a live directive no door could have written, which is then
+    // shown rather than hidden.
+    if kind == crate::model::WbItemKind::Directive
+      && board.node.moniker != crate::model::HYPERVISOR
+      && live.is_empty()
+    {
+      continue;
+    }
+    out.push_str(&format!("## {heading}\n\n"));
     if live.is_empty() {
       out.push_str(&format!("{EMPTY_ITEMS}\n\n"));
       continue;

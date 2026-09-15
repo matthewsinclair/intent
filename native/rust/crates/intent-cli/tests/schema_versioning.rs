@@ -331,7 +331,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 15 -> 16 is the board reads: `board(node)` and `boards` on the query
     // root, and the four coordination types they return. The JSON face already
     // carries those types and the DDL already stores them, so neither moves.
-    ("SCHEMA_SDL_VER", 17, 0x400e_d940_cd2b_5581),
+    // 17 -> 18 is the sixth item kind, `directive` (issue 0375). The board reads
+    // gave `WbItemKind` an SDL face, so unlike `hold` the enum gains a member here.
+    ("SCHEMA_SDL_VER", 18, 0x78c1_005c_4abb_55b4),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -343,7 +345,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 18 -> 19 is the fifth item kind, `hold`, on `board.schema.json`; the DDL
     // stores the kind as text and the board has no SDL face yet, so neither
     // of the other two moves.
-    ("SCHEMA_JSON_VER", 20, 0x0082_cdc1_c6bf_051a),
+    // 20 -> 21 is the sixth item kind, `directive`, on `board.schema.json` (issue
+    // 0375). The DDL stores the kind as text with no CHECK, so it does not move.
+    ("SCHEMA_JSON_VER", 21, 0x1c82_5f82_c2ea_c0f1),
   ];
 
   let mut moved = Vec::new();

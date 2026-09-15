@@ -519,7 +519,7 @@ fn default_wb_live_items() -> usize {
 }
 
 fn default_wb_unbounded() -> Vec<String> {
-  vec!["hv".to_string()]
+  vec![crate::model::HYPERVISOR.to_string()]
 }
 
 impl Default for WhiteboardConfig {

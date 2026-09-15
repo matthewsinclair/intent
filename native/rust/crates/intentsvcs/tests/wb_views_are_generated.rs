@@ -161,3 +161,42 @@ fn a_migration_lands_the_carried_board_on_disk() {
     "and the tree agrees with the store: {findings:?}"
   );
 }
+
+/// Issue 0375: a directive renders under `## Standing directives` on `hv`'s
+/// board, no other board carries the section, and no other node can write one.
+#[test]
+fn standing_directives_render_on_hv_s_board_and_no_other() {
+  let fx = Fixture::new();
+  {
+    let mut f = fx.facade_on_disk();
+    f.wb_register("hv", "Hypervisor", "hypervisor")
+      .expect("register hv");
+    f.wb_register("cc", "Control Claude", "control")
+      .expect("register cc");
+    f.wb_add(
+      "hv",
+      WbItemKind::Directive,
+      "no release without hv at the terminal",
+    )
+    .expect("a directive on hv's board");
+    assert!(
+      matches!(
+        f.wb_add("cc", WbItemKind::Directive, "a node issuing a directive"),
+        Err(FacadeError::WbDirectiveOffHv { .. })
+      ),
+      "a directive on any board but hv's is refused by name"
+    );
+    f.sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect("project the views");
+  }
+  let hv = fx.read("intent/whiteboard/hv/wip.md");
+  assert!(
+    hv.contains("## Standing directives\n\n- no release without hv at the terminal\n"),
+    "hv's board renders its directive under the protocol's section: {hv}"
+  );
+  let cc = fx.read("intent/whiteboard/cc/wip.md");
+  assert!(
+    !cc.contains("## Standing directives"),
+    "and a board that is not hv's carries no such section, empty or not: {cc}"
+  );
+}

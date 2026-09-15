@@ -61,5 +61,5 @@
   "title": "Envelope",
   "type": "object",
   "x-intent-ver": "3.0.3",
-  "x-schema-json-ver": 20
+  "x-schema-json-ver": 21
 }

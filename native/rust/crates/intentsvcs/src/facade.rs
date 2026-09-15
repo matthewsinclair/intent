@@ -1474,6 +1474,15 @@ pub enum FacadeError {
   /// A kind this verb will not write, because another verb owns it.
   #[error("`{kind}` items are not written by this verb")]
   WbKindHasItsOwnVerb { kind: String, verb: String },
+  /// A standing directive written on a board that is not the hypervisor's.
+  #[error("`directive` items are written on `hv`'s board, and `{node}` is not `hv`")]
+  WbDirectiveOffHv { node: String },
+  /// A hand-authored board that is not the hypervisor's carries a
+  /// `## Standing directives` section.
+  #[error(
+    "`{node}`'s board carries a `## Standing directives` section, at {at}, and only `hv`'s board carries one"
+  )]
+  WbDirectivesOnAnotherBoard { node: String, at: String },
   /// A board write on a node whose board is still its hand-authored markdown.
   #[error("`{node}` is registered and not migrated, so its board is still the markdown on disk")]
   WbNotMigrated { node: String },
@@ -1691,6 +1700,10 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbKindHasItsOwnVerb { kind, verb } => format!(
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
+      ),
+      Self::WbDirectiveOffHv { .. } => "a standing directive is the hypervisor's: an instruction every node honours, kept under the protocol's `## Standing directives` section on `hv`'s board, where `intent wb add directive <text> --node hv` writes it on hv's word. A call this node made itself is a decision: `intent wb decide <text>`".to_string(),
+      Self::WbDirectivesOnAnotherBoard { node, .. } => format!(
+        "nothing was written, so this carry can run again once those lines have a home. A directive still in force belongs on `hv`'s board: under `## Standing directives` in `intent/whiteboard/hv/wip.md` before `hv` is carried, or through `intent wb add directive <text> --node hv` after. A call `{node}` made itself belongs under `## Decisions` on its own board"
       ),
       Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
@@ -6045,6 +6058,14 @@ impl Facade {
         verb: "intent wb decide".to_string(),
       });
     }
+    // **A DIRECTIVE IS WRITTEN ON `hv`'s BOARD AND NOWHERE ELSE** (vc, 2026-09-15,
+    // issue 0375). A standing directive is the hypervisor's instruction to every
+    // node, so the same row on any other board would be a node issuing one.
+    if kind == WbItemKind::Directive && node != crate::model::HYPERVISOR {
+      return Err(FacadeError::WbDirectiveOffHv {
+        node: node.to_string(),
+      });
+    }
     self.wb_add_item(node, kind, text)
   }
 
@@ -6189,6 +6210,26 @@ impl Facade {
     let wip = home.join("wip.md");
     let text = Self::read_board_file(&wip)?;
     let source = crate::wbmigrate::read_board(node, &text, &self.project.relative(&wip));
+
+    // **STANDING DIRECTIVES ON ANY BOARD BUT `hv`'s REFUSE THE WHOLE CARRY, BEFORE
+    // ANYTHING IS WRITTEN** (vc, 2026-09-15, issue 0375), for the reason an
+    // unregistered sender does: carrying the rest would leave a board this verb
+    // refuses to carry a second time, and those lines could then reach the model
+    // by no command at all.
+    if node != crate::model::HYPERVISOR {
+      let at: Vec<&str> = source
+        .items
+        .iter()
+        .filter(|i| i.kind == WbItemKind::Directive)
+        .map(|i| i.at.as_str())
+        .collect();
+      if !at.is_empty() {
+        return Err(FacadeError::WbDirectivesOnAnotherBoard {
+          node: node.to_string(),
+          at: at.join(", "),
+        });
+      }
+    }
 
     let mut messages: Vec<crate::wbmigrate::SourceMessage> = Vec::new();
     let mut message_uncarried: Vec<crate::wbmigrate::Uncarried> = Vec::new();

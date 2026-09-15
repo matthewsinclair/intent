@@ -2334,7 +2334,26 @@ pub enum WbItemKind {
   // that was quietly abandoned, and a fold is forbidden from archiving one
   // while its condition stands.
   Hold,
+  // A standing directive: an instruction in force that every node honours.
+  //
+  // **THE SIXTH KIND, AND ONLY THE HYPERVISOR'S BOARD CARRIES IT** (vc, ruled at
+  // the fold of 2026-09-15 and standing under hv's ruling 15; issue 0375). The
+  // protocol gives `hv`'s board a `## Standing directives` section, and with no
+  // kind for it a carry of that board could only name every directive
+  // uncarried -- measured on Laksa's cutover, where seven survived only in a
+  // `.history/` copy. Carrying them as decisions would lose the distinction the
+  // protocol draws: a decision records a call that was made, a directive is an
+  // instruction still in force. A fold never archives one.
+  Directive,
 }
+
+/// The hypervisor's moniker: the human's node, and the one board a
+/// [`WbItemKind::Directive`] is written on.
+///
+/// **ONE HOME FOR THE NAME.** `wb add` and `wb migrate` refuse a directive on
+/// any other board, the board view renders the section on this one alone, and
+/// the whiteboard bounds exempt it by default.
+pub const HYPERVISOR: &str = "hv";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]

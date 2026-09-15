@@ -4079,7 +4079,7 @@ Add an item to the acting node's own board
 
 - **v2:** new-surface
 - **Arguments:**
-  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `watchout`, `hold`
+  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `watchout`, `hold`, `directive`
   - `text` (string, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
@@ -4088,7 +4088,7 @@ Add an item to the acting node's own board
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout`. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.
+- **when to use:** USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout` -- or, on `hv`'s board alone, a standing `directive`, an instruction every node honours, which this refuses by name from any other node. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The board's sections are DOING, TODO, Holds, Watch-outs and Decisions; this writes the four a node states directly. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.2
@@ -4102,7 +4102,7 @@ Move one of the acting node's live items to archived
 
 - **v2:** new-surface
 - **Arguments:**
-  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`
+  - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`
   - `seq` (string, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
@@ -4111,7 +4111,7 @@ Move one of the acting node's live items to archived
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.
+- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent, and a fold never does it. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds, and AC-14.6 read as vc ruled it 2026-09-12. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.6

@@ -55,7 +55,11 @@ A second paragraph is a second item.
 
 ## Standing directives
 
-- A section the protocol names for one node and the model maps to no kind.
+- A directive in force, which the model carries as the sixth kind.
+
+## Parking lot
+
+- A section the protocol does not name, which the model maps to no kind.
 "#;
 
 #[test]
@@ -142,8 +146,8 @@ fn a_hold_carries_as_a_hold_and_an_unmapped_section_is_named() {
 
   // **THE REFUSAL ARM NOW POINTS AT WHERE THE LOSS ACTUALLY IS.** Two things on
   // this board have no kind: the lead paragraph above the first section, and a
-  // section the protocol names for one node and the model maps to nothing. Both
-  // are named; neither is passed over, which is what the count means.
+  // section the protocol does not name and the model maps to nothing. Both are
+  // named; neither is passed over, which is what the count means.
   let named: Vec<&str> = board.uncarried.iter().map(|u| u.text.as_str()).collect();
   assert_eq!(named.len(), 2, "{:?}", board.uncarried);
   assert!(
@@ -161,7 +165,7 @@ fn a_hold_carries_as_a_hold_and_an_unmapped_section_is_named() {
     unmapped.at
   );
   assert!(
-    unmapped.reason.contains("Standing directives"),
+    unmapped.reason.contains("Parking lot"),
     "the reason names the section, so the reader knows which one to decide about: {}",
     unmapped.reason
   );
@@ -172,6 +176,27 @@ fn a_hold_carries_as_a_hold_and_an_unmapped_section_is_named() {
     board.uncarried.len(),
     board.source_items
   );
+}
+
+/// Issue 0375: `## Standing directives` carries as the sixth kind. The reader
+/// maps it on every board; whose board may carry one is the migration door's
+/// question, and `wb_migrate_carries_a_board.rs` holds that refusal.
+#[test]
+fn a_standing_directive_carries_as_a_directive() {
+  let board = wbmigrate::read_board("hv", BOARD, "intent/whiteboard/hv/wip.md");
+  let directives: Vec<&str> = board
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Directive)
+    .map(|i| i.text.as_str())
+    .collect();
+  assert_eq!(
+    directives,
+    vec!["A directive in force, which the model carries as the sixth kind."],
+    "the section's lines carry as directives rather than being named uncarried: {:?}",
+    board.uncarried
+  );
+  assert!(board.reconciles());
 }
 
 /// The inbox half: entries are the `## (...)` headings and nothing else.

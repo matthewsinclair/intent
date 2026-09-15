@@ -257,6 +257,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A kind another verb owns: the caller supplied everything, and the remedy
     // is a different VERB rather than a field they left out.
     | FacadeError::WbKindHasItsOwnVerb { .. }
+    // A directive on a board that is not `hv`'s, written or carried: the caller
+    // supplied everything, and the remedy is a different BOARD.
+    | FacadeError::WbDirectiveOffHv { .. }
+    | FacadeError::WbDirectivesOnAnotherBoard { .. }
     // A moniker registered with other values: the caller supplied every field,
     // and the remedy is a different moniker rather than one they left out.
     | FacadeError::WbRegisteredDifferently { .. }

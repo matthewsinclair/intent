@@ -4319,6 +4319,7 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
     "decision" => Ok(intentsvcs::model::WbItemKind::Decision),
     "watchout" => Ok(intentsvcs::model::WbItemKind::Watchout),
     "hold" => Ok(intentsvcs::model::WbItemKind::Hold),
+    "directive" => Ok(intentsvcs::model::WbItemKind::Directive),
     other => Err(Failure::Unavailable(format!(
       "error: the table declares `{other}` as an item kind and this build has no arm for it"
     ))),
@@ -4394,6 +4395,7 @@ fn item_kind_word(k: &intentsvcs::model::WbItemKind) -> &'static str {
     intentsvcs::model::WbItemKind::Decision => "decision",
     intentsvcs::model::WbItemKind::Watchout => "watchout",
     intentsvcs::model::WbItemKind::Hold => "hold",
+    intentsvcs::model::WbItemKind::Directive => "directive",
   }
 }
 

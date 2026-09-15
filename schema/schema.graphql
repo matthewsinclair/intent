@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.3
-# SCHEMA_SDL_VER: 17
+# SCHEMA_SDL_VER: 18
 
 enum AcKind {
   TEST
@@ -636,6 +636,7 @@ enum WbItemKind {
   DECISION
   WATCHOUT
   HOLD
+  DIRECTIVE
 }
 
 enum WbItemState {
