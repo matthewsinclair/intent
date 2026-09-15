@@ -1528,9 +1528,9 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
 }
 
 /// **A ROW IS CREATED IN A STATUS ITS KIND CAN HOLD** (issues 0324 and 0337).
-/// `at new --kind non-test` with no `--status` landed `to-write`, a pair `doctor`
-/// then reported as model-inconsistent. It now starts at the kind's entry, `n/a`,
-/// and an explicit status the kind cannot hold is refused by the facade.
+/// `at new --kind non-test` once landed `to-write`, a pair `doctor` then reported
+/// as model-inconsistent. It now starts at the kind's entry, `n/a`, and since
+/// issue 0339 `at new` takes no status at all.
 #[test]
 fn at_new_with_no_status_starts_a_non_test_row_at_n_a() {
   let dir = project();

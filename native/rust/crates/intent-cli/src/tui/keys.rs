@@ -353,10 +353,10 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // have; binding them today would teach a meaning tomorrow's cursor
     // contradicts.
     (Mode::Omni, KeyCode::Up | KeyCode::Down) => Some("Move"),
-    // `/` is the MENU key ONLY on an empty buffer -- `st/ST0056` is a legal
-    // address (`tui-design.md` §3). The guard is the app's, the way the pane
-    // guard is: this map cannot see the buffer, so it offers the trigger and
-    // the app reroutes a mid-address `/` to `Typing`.
+    // `/` is the MENU key ONLY on an empty buffer -- `intent:///threads/ST0056`
+    // is a legal address (`tui-design.md` §3). The guard is the app's, the way
+    // the pane guard is: this map cannot see the buffer, so it offers the
+    // trigger and the app reroutes a mid-address `/` to `Typing`.
     (Mode::Omni, KeyCode::Char('/')) => Some("/"),
     // **Backspace FOLLOWS `/`'s RULE, and it has to.** With NAV folded in, one
     // key must both pop the view stack and delete a character. The

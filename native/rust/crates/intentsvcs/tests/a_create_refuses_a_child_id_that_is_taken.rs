@@ -149,7 +149,6 @@ fn the_refusal_names_the_verb_that_can_do_what_the_caller_wanted() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect_err("refused");

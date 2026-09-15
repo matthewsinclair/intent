@@ -240,8 +240,8 @@ impl Omnibox {
   }
 
   /// Insert one typed character at the caret. `/` arrives here too when the
-  /// buffer is non-empty -- the app's guard routes it -- because `st/ST0056`
-  /// is a legal spelling.
+  /// buffer is non-empty -- the app's guard routes it -- because
+  /// `intent:///threads/ST0056` is a legal spelling.
   pub fn type_char(&mut self, c: char) {
     let at = self.byte_at(self.cursor);
     self.buffer.insert(at, c);

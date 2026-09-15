@@ -370,7 +370,6 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
         None,
         None,
         vec!["AC-03.1".to_string()],
-        AtStatus::ToWrite,
         None,
       )
       .expect_err("a create must not replace"),
@@ -414,7 +413,6 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
         None,
         None,
         vec!["AC-99.9".to_string()],
-        AtStatus::ToWrite,
         None,
       )
       .expect_err("a row covering no criterion is refused"),

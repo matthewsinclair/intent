@@ -429,8 +429,9 @@ impl App {
       return Step::Continue;
     };
     // **THE BUFFER GUARD, ONE RULE ASKED OF TWO KEYS** (`tui-design.md` §3).
-    // Mid-query, `/` is a character -- `st/ST0056` is a legal spelling -- and
-    // `Backspace` deletes one rather than walking up the model. The keymap
+    // Mid-query, `/` is a character -- `intent:///threads/ST0056` is a legal
+    // spelling -- and `Backspace` deletes one rather than walking up the
+    // model. The keymap
     // cannot see the buffer, so it offers the mode-significant trigger and
     // this downgrades it. **They are guarded TOGETHER on purpose**: two keys
     // sharing one rule should not grow two copies of it.
@@ -2811,7 +2812,7 @@ mod tests {
     );
   }
 
-  /// A composer under the vi keymap holding `st/ST0056`, caret at the end.
+  /// A composer under the vi keymap holding `typed`, caret at the end.
   fn in_vi(typed: &str) -> App {
     let mut app = App::explore();
     app.keymap = keys::Keymap::Vi;

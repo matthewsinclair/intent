@@ -49,7 +49,8 @@
 //! three-way ring (`NAV -> OMNIBOX -> MENU`) is retired: it cost the Lotus menu
 //! two keystrokes and gave `/` a meaning that depended on where you already
 //! were. The empty-buffer guard is unchanged and is what keeps it safe --
-//! `st/ST0056` is a legal address, so mid-address `/` is a character.
+//! `intent:///threads/ST0056` is a legal address, so mid-address `/` is a
+//! character.
 
 /// The modes. Four, since `NAV` folded into the composer -- and the composer
 /// is named `Omni` rather than `Omnibox` because it is no longer one widget

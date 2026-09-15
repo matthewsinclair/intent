@@ -922,26 +922,11 @@ pub fn serve(
           ));
         }
       };
-      let status = match opt_s(path, map, "status")? {
-        None => AtStatus::entry(kind),
-        Some("to-write") => AtStatus::ToWrite,
-        Some("red") => AtStatus::Red,
-        Some("green") => AtStatus::Green,
-        Some("n-a") | Some("n/a") => AtStatus::Na,
-        Some(other) => {
-          return Err(args_err(
-            path,
-            format!(
-              "`{other}` is not an acceptance-test status -- expected `to-write`, `red`, `green` or `n/a`"
-            ),
-          ));
-        }
-      };
       let file = opt_s(path, map, "file")?.map(str::to_string);
       let prose = opt_s(path, map, "prose")?.map(str::to_string);
       let note = opt_s(path, map, "note")?.map(str::to_string);
       Ok(outcome_json(
-        &f.at_new(&st, id, kind, file, prose, covers, status, note)?,
+        &f.at_new(&st, id, kind, file, prose, covers, note)?,
         id,
       ))
     }

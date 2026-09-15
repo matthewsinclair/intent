@@ -9445,7 +9445,6 @@ impl Facade {
     file: Option<String>,
     prose: Option<String>,
     covers: Vec<String>,
-    status: AtStatus,
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     // **THE REFUSAL, AND IT RETIRES A MITIGATION RATHER THAN JOINING IT.** This
@@ -9472,19 +9471,13 @@ impl Facade {
       });
     }
 
-    // **A ROW IS CREATED IN A STATUS ITS KIND CAN HOLD** (vc, 2026-09-14, issues
-    // 0324 and 0337, the mirror of `ac_new` taking `AcState::entry`). `at new
-    // --kind non-test` landed `to-write`, a pair `doctor` then reported as
-    // model-inconsistent. A caller that names no status gets `AtStatus::entry`;
-    // one that names a status the kind cannot hold is refused here.
-    if !status.permitted_for(kind) {
-      return Err(FacadeError::VerdictWrongForKind {
-        st: st.to_string(),
-        at: at.to_string(),
-        kind: crate::model::enum_str(&kind).to_string(),
-        status: status.display().to_string(),
-      });
-    }
+    // **A ROW IS CREATED AT ITS KIND'S ENTRY, AND NO OTHER STATUS CAN BE ASKED
+    // FOR** (vc, 2026-09-14 and 2026-09-15, issues 0324, 0337 and 0339, the
+    // mirror of `ac_new` taking `AcState::entry`). A create that could name a
+    // status could name `green`, and green is reachable only from red: a row
+    // nobody had seen fail would read as passing. So the status is not a
+    // parameter, and a verdict is recorded afterwards with `at red|green|na`.
+    let status = AtStatus::entry(kind);
 
     let row = AcceptanceTest {
       id: at.to_string(),

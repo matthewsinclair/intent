@@ -1113,18 +1113,18 @@ pub fn run(
             }
           }
         }
-        // v2 no-ops clippy here too. It is unreachable in practice: all three
-        // clippy rules declare `workspace` context and are caught by the
-        // out-of-context arm before they ever arrive.
-        "clippy" => {}
         // **AN UNDRIVABLE TOOL IS A REFUSAL, WHICH FOLLOWS v2'S COMMENT RATHER
         // THAN v2'S CODE, AND THE DIVERGENCE IS DELIBERATE AND STATED.** v2
         // prints a stderr note and returns 0, while the comment directly above
         // that function says an unknown tool "is a REFUSAL and never a silent
         // skip". The gate's own definition of 3 is the same sentence: the
         // project armed a rule, it could not be enforced, and the remedies are
-        // the developer's. **Blast radius today is nil -- the library names
-        // exactly two tools, shellcheck and clippy, so this arm has NO live
+        // the developer's. **Clippy is one of those tools in a per-file run,
+        // and no arm pretends otherwise** (issue 0339): this run cannot compile
+        // a workspace, so a clippy rule reaching this match is armed and
+        // unenforced. **Blast radius today is nil -- every clippy rule declares
+        // `workspace` context and is dispositioned out of context before this
+        // match, and shellcheck has its own arm, so this arm has NO live
         // population** and needs a fixture rather than an estate run.
         _ => {
           refused.insert(rule.id.clone());

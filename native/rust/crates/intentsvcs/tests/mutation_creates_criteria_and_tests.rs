@@ -294,7 +294,6 @@ fn at_new_creates_an_acceptance_test_that_did_not_exist() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect("the verb creates it");
@@ -325,7 +324,6 @@ fn at_new_refuses_the_repeat_and_leaves_one_row() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
   };
@@ -380,7 +378,6 @@ fn at_new_reaches_what_a_canon_hand_edit_reaches() {
       minted.file.clone(),
       minted.prose.clone(),
       minted.covers.clone(),
-      minted.status,
       None,
     )
     .expect("the surface creates it");
@@ -414,7 +411,6 @@ fn at_new_refuses_a_row_whose_covers_matches_no_criterion() {
       None,
       None,
       vec!["AC-99.9".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect_err("a row covering a criterion that does not exist must be refused");
@@ -459,7 +455,6 @@ fn at_new_refuses_the_unclosable_pairing() {
       None,
       Some("eyeballed".to_string()),
       vec!["AC-03.1".to_string()],
-      AtStatus::Na,
       None,
     )
     .expect_err("a non-test AT covering a test-backed AC must be refused");
@@ -495,7 +490,6 @@ fn at_new_refuses_before_it_writes() {
       None,
       None,
       vec!["AC-99.9".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect_err("refused");
@@ -580,7 +574,6 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect("a clean row is creatable on a thread that carries somebody else's finding");

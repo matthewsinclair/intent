@@ -1590,7 +1590,8 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
     - **disposition:** keep
   - `--status` `to-write|red|green|n-a` (enum) -- Initial status; omitted, the kind's entry: to-write for a test row, n-a for a non-test one
     - Accepts: to-write | red | green | n-a
-    - **disposition:** keep
+    - **disposition:** retire
+    - **disposition basis:** RETIRED 2026-09-15 (vc, issue 0339). A create that can name a status can name green, and green is reachable only from red (issue 0337), so `at new --status green` minted a passing row nobody had seen fail. Left off, the flag already gave the kind's entry, to-write for a test row and n-a for a non-test one, which is now the only status a new row can have; a verdict is recorded afterwards with `at red`, `at green` or `at na`.
   - `--note` `<text>` (string) -- Why the row is in this state -- carried onto the row as its note; absent, an existing note is kept
     - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run

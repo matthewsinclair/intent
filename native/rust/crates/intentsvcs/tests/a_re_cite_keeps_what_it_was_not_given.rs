@@ -195,7 +195,6 @@ fn a_genuinely_new_row_carries_no_note_from_anywhere() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect("the verb creates it");
@@ -230,7 +229,6 @@ fn the_create_door_can_no_longer_reach_a_stored_row_at_all() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect_err("a create on a taken id must refuse");

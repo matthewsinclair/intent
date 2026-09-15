@@ -32,7 +32,6 @@ fn green_is_reachable_only_from_red() {
       None,
       None,
       vec!["AC-03.1".to_string()],
-      AtStatus::ToWrite,
       None,
     )
     .expect("a to-write test row");
@@ -143,41 +142,5 @@ fn a_close_on_an_unwritten_objective_warns() {
     warned,
     "no unwritten-objective warning: {:?}",
     outcome.notes()
-  );
-}
-
-/// **`at new` creates a row in a status its kind can hold** (issues 0324 and
-/// 0337, the mirror of `ac_new` taking `AcState::entry`). A non-test row named
-/// `to-write` is refused, and nothing is written.
-#[test]
-fn at_new_refuses_a_status_the_kind_cannot_hold() {
-  let fx = Fixture::new();
-  fx.write_thread(&sample_thread("ST0001"));
-  let mut facade = fx.facade();
-  let refused = facade.at_new(
-    "ST0001",
-    "AT-09.2",
-    AtKind::NonTest,
-    None,
-    Some("the render was eyeballed".to_string()),
-    vec!["AC-03.2".to_string()],
-    AtStatus::ToWrite,
-    None,
-  );
-  assert!(
-    matches!(
-      &refused,
-      Err(intentsvcs::facade::FacadeError::VerdictWrongForKind { .. })
-    ),
-    "a non-test row cannot start at to-write: {refused:?}"
-  );
-  assert!(
-    facade
-      .st_show("ST0001")
-      .expect("thread")
-      .tests
-      .iter()
-      .all(|t| t.id != "AT-09.2"),
-    "and nothing was written"
   );
 }

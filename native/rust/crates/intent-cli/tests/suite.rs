@@ -29,6 +29,8 @@
 
 #[path = "all_flag_reaches_every_unit.rs"]
 mod all_flag_reaches_every_unit;
+#[path = "at_new_takes_no_status.rs"]
+mod at_new_takes_no_status;
 #[path = "common/mod.rs"]
 mod common;
 

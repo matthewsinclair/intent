@@ -3160,23 +3160,6 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
           )));
         }
       };
-      let status = match opt(a, "status").as_deref() {
-        // No status named: the kind's entry, so a non-test row starts `n/a`
-        // rather than at a pair `doctor` reports (issues 0324 and 0337).
-        None => AtStatus::entry(kind),
-        Some("to-write") => AtStatus::ToWrite,
-        Some("red") => AtStatus::Red,
-        Some("green") => AtStatus::Green,
-        // `n-a` is the wire spelling and `n/a` is what every authored row in
-        // every estate says, so both are accepted -- refusing the spelling the
-        // corpus uses would be a door nobody could find.
-        Some("n-a") | Some("n/a") => AtStatus::Na,
-        Some(other) => {
-          return Err(Failure::Error(format!(
-            "`{other}` is not an acceptance-test status -- expected `to-write`, `red`, `green` or `n/a`"
-          )));
-        }
-      };
       reported(
         &open()?
           .at_new(
@@ -3186,7 +3169,6 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
             opt(a, "file"),
             opt(a, "prose"),
             covers,
-            status,
             opt(a, "note"),
           )
           .map_err(fail)?,
@@ -7102,11 +7084,10 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
             .map_err(|e| format!("error: the view could not be rendered as JSON: {e}"))?
         );
       } else {
-        // **The WINDOWED view, and this is the one place the two differ**
-        // (D44, vc's surface ruling). `intent/todo.md` carries every
-        // completion because a committed artefact is a record; what a person
-        // reads at a terminal is a moment, and DONE is trimmed to
-        // `todo.window_hours`. Same generator, one parameter apart.
+        // **The terminal view and `intent/todo.md` are one generator with one
+        // DONE bucket**: the completions at or after the flush watermark
+        // (`todo done --flush`, D44). `todo.window_hours` is declared and
+        // `doctor` validates it, but nothing applies it (D44, D51).
         print!("{}", f.todo_view().map_err(fail)?);
       }
       Ok(())

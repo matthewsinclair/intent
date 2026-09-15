@@ -292,13 +292,17 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
       "AC-01.1",
       "--file",
       "tests/first.rs",
-      "--status",
-      "green",
       "--note",
       "green on the first run is not evidence",
     ],
   );
   assert_eq!(code, 0, "the fixture test row must exist: {err:?}");
+  // A create enters at its kind's entry (issue 0339), so the verdict the re-cite
+  // must keep is reached the way an operator reaches it: red first, then green.
+  for verdict in ["red", "green"] {
+    let (_, err, code) = run(dir.path(), &["at", verdict, "ST0001", "AT-01.1"]);
+    assert_eq!(code, 0, "`at {verdict}` must move the fixture row: {err:?}");
+  }
 
   let (out, err, code) = run(
     dir.path(),
