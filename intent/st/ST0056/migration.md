@@ -6,7 +6,7 @@ The migrator is the v3 binary's `intent upgrade` detecting a v2 project. Its par
 
 All three are checked only while the project is still unmigrated; a re-run over a project that already declares v3 is the convergent re-run and skips them (`facade.rs`, `Facade::upgrade`). Each refusal exits 1.
 
-1. **Floor: `intent_version >= 2.19.0`** in config.json (`MIGRATION_FLOOR`, `project.rs:904`). Below the floor the refusal names the declared version and its remedy reads _run `install intent@2 && intent upgrade` first, then migrate it with v3_. No tap provides an `intent@2` formula: v2 is installed from a checkout of the Intent repository at `v2.19.0`. The v2 ledger is never reimplemented in Rust (D09).
+1. **Floor: `intent_version >= 2.19.0`** in config.json (`MIGRATION_FLOOR`, `project.rs:1126`). Below the floor the refusal names the declared version and its remedy reads _bring it to that version with Intent v2.19.0 first (the v2.19.0 release, then its `intent upgrade`), then migrate it with v3_. No tap provides an `intent@2` formula, so the remedy points at the v2.19.0 release instead (issue 0333). The v2 ledger is never reimplemented in Rust (D09).
 2. **Clean git tree.** The migrator does not commit; it refuses to start over dirt, naming each uncommitted path, so that the operator's commit of its output holds the migration and nothing else (the `bin/release` lesson: a half-done abort over a dirty tree is worse than an early refusal).
 3. **A git repository.** A project with no work tree is refused with the reason (rollback is git; migrating without an undo is a lossy operation by construction).
 
@@ -75,6 +75,8 @@ The first two are the migration describing its own REACH and are composed from `
 
 **The third is per-artefact because this estate already held that standard and was applying it to the smaller class.** `legacy.rs` names each oversized attachment individually, by path, with its own reason, while the entire whiteboard once reached the same report as a single directory noun. A collapse is least defensible in exactly the direction it was being applied, and "the report is the point, not the carry" is the rule the attachment path already states.
 
+**`NOT_YET_BUILT` IS EMPTY TODAY, AND THE MECHANISM STAYS** (vc, ruled 2026-09-14; `sync.rs:172`). The whiteboard was its one member until `intent wb register` and `intent wb migrate` carried it into the model (ST0069), so an upgrade now prints neither not-yet-carried line and reports no board file as owed (issues 0326 and 0363). The next class the model covers before a build carries it becomes a member again, and every reader of the set already answers nothing for an empty one.
+
 **One more stdout block sits beside these: `sections not carried as-is:`.** It names, per section, what the migration decided about a section it did not simply carry -- `dropped` (template boilerplate no author wrote, verified byte-identical to the template it came from) or `deferred` (a section the thread authors under a heading the renderer also generates, so the generated copy stands down) -- one line per section as `<file> -- ## <heading> -- <verdict> -- <reason>`, never a count.
 
 **Its class is `modelled-not-built`, and it is deliberately NOT in the residue table above.** Residue is something a v2 AUTHOR left behind, and every row of that table owes a fix environment; nothing here is anyone's mistake, no v2 command touches it, and the gap is discharged by a build rather than by an operator. It is equally not `advisory`, which is the class of what is worth doing when an artefact is next touched -- touching one of these changes nothing. `residue_class_check.sh` reads `legacy.rs`, so the class correctly stays outside that check's population, exactly as `advisory` and `gate-not-running` do.
@@ -103,16 +105,18 @@ The forcing fact: the sweep program is dead. Lamplight's hv ruled AT remediation
 - **LIVE threads keep BLOCKED-until-clean.** Residue in a live thread is fixed under v2 tooling, then re-run.
 - **Neither class ever gets a lossy path.**
 
-**Model consequence:** carrying needs an explicit marked-legacy form on the AT row -- the raw v2 reference preserved verbatim beside the parsed fields, never reformatted. Built as `AcceptanceTest.legacy: Option<Legacy>` (`model.rs:1715`, the `Legacy` type at `:1729`), published in `schema/thread.schema.json`.
+**Model consequence:** carrying needs an explicit marked-legacy form on the AT row -- the raw v2 reference preserved verbatim beside the parsed fields, never reformatted. Built as `AcceptanceTest.legacy: Option<Legacy>` (`model.rs:1732`, the `Legacy` type at `:1746`), published in `schema/thread.schema.json`.
 
 ## What the migrator does not do
 
 - Reformat, reflow or "improve" prose.
 - Invent missing data (an absent date stays absent; an empty objective stays empty and keeps its 0010 warning).
-- Migrate the whiteboard -- boards and inboxes stay on disk untouched and are reported as `not-yet-carried`.
-- Relocate or remove v2's bucketed thread directories (`intent/st/COMPLETED/`, `CANCELLED/`, `NOT-STARTED/`). Canon is written at `intent/.canon/`, and the v2 files stay where they were; `intent organize` reports them as unclaimed and never removes them.
+- Migrate the whiteboard. Boards and inboxes stay on disk untouched, `intent wb register` and `intent wb migrate` carry them into the model (ST0069), and the upgrade reports none of them as owed.
+- Relocate v2's bucketed thread directories (`intent/st/COMPLETED/`, `CANCELLED/`, `NOT-STARTED/`). Canon is written at `intent/.canon/`, and the v2 files the store now holds are removed rather than moved -- below.
 - Commit. The operator commits the output.
 - Touch anything outside `intent/**`, `.gitignore` and `.prettierignore`. `.claude/**` and `AGENTS.md` are untouched; converging skills and `AGENTS.md` is `intent claude upgrade --apply` and `intent agents sync`, not the migration.
+
+**IT DOES REMOVE THE v2 TREE THE STORE NOW HOLDS** (WP-02, AC-02.2; `Facade::upgrade`). After the store is built, `legacy::leftovers` takes the files under the three thread buckets, the two issue buckets (`OPEN`, `CLOSED`) and `.treeindex`, and the upgrade deletes them only when the store holds every one: a single file it does not hold withholds the removal, and nothing is removed. A run that ingested bucket files defers the removal instead (issue 0319), printing `prune deferred:` and one `deferred:` line per file, and `intent organize --apply` is the other door that removes them. The operator's migration commit carries the deletions, so reverting it restores them.
 
 ## The store's migration ladder starts at 1, and there is no rung below it (recorded 2026-08-15)
 

@@ -20,9 +20,9 @@ That is the whole install story for v3, and it replaces v2's clone-and-symlink m
 intent bootstrap
 ```
 
-**The formula has no post-install step, so this is yours to run.** `intent bootstrap` records the install root in `~/.intent/home` and the operator's author identity in `~/.intent/config.json`. The recorded root is the keg's own versioned path -- driven, `created: install root recorded -- /opt/homebrew/Cellar/intent/3.0.1/libexec` -- so run it again after every `brew upgrade`.
+**The formula has no post-install step, so this is yours to run.** Its caveat names `intent bootstrap` instead, because Homebrew runs a post-install inside its sandbox under a throwaway HOME, where the file this writes cannot be reached. `intent bootstrap` records the install root in `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) and the operator's author identity in `$XDG_CONFIG_HOME/intent/config.json` (by default `~/.config/intent/config.json`). The recorded root is the keg's own versioned path -- a first run prints `created: install root recorded -- /opt/homebrew/Cellar/intent/<version>/libexec` -- so run it again after every `brew upgrade`.
 
-**Every project's pre-commit gate depends on it.** The gate each project carries is a shim (`.git/hooks/pre-commit.intent`) that reads `~/.intent/home` and execs the gate that install ships. With the file absent, empty or naming a removed keg, the shim refuses every commit in that project. `intent claude upgrade --apply` checks the pointer after installing the shim and says so, with `remedy: intent bootstrap`.
+**Every project's pre-commit gate depends on it.** The gate each project carries is a shim (`.git/hooks/pre-commit.intent`) that reads `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) and execs the gate that install ships. With the file absent, empty or naming a removed keg, the shim refuses every commit in that project. `intent claude upgrade --apply` checks the pointer after installing the shim and says so, with `remedy: intent bootstrap`.
 
 ### The daemon and the menubar app
 
@@ -49,7 +49,7 @@ That is correct behaviour and the point at which to run the migration below -- b
 
 `intent claude hook <name>` does not reimplement the hooks -- it **execs `lib/templates/.claude/scripts/<name>.sh` out of the install root**, so the script's exit code is the one Claude Code sees. The binary resolves that root by walking up from its symlink-resolved `current_exe()` to the first directory containing `lib/templates/` (`install.rs:129`), and `intent info` prints it as `INTENT_HOME:`. **There is no `INTENT_HOME` fallback and that is deliberate** (AC-11.3, and stronger than the AC asks): the environment is not read at all, because a stale v2 export would otherwise make a v3 binary exec v2's hook scripts with nothing reporting the mismatch. When the root cannot be resolved, `intent info` exits 1 and `intent claude hook` fails at exit 1 naming the missing install.
 
-**So the support tree has to ship beside the binary.** A release carries these assets: `intent-aarch64-apple-darwin`, `intentd-aarch64-apple-darwin`, `intent-support.tar.gz` and `Intent.app.zip`. The support archive is built from `SUPPORT_PATHS` in `bin/.devbin/cmd/macos` and carries `lib/templates`, the rule library (`intent/plugins/claude/rules`), the skills (`intent/plugins/claude/skills`) and `intent/plugins/claude/bin/intent_claude_cwi`. It does not carry `intent/plugins/claude/subagents`, so a brew install answers `intent claude subagents list` with `no subagents in this install`.
+**So the support tree has to ship beside the binary.** A release carries these assets: `intent-aarch64-apple-darwin`, `intentd-aarch64-apple-darwin`, `intent-support.tar.gz` and `Intent.app.zip`. The support archive is built from `SUPPORT_PATHS` in `bin/.devbin/cmd/macos`, which names `lib/templates`, the whole `intent/plugins/claude` tree and `intent/plugins/agents/plugin.json`. So it carries the rule library, the skills, the subagents and `intent/plugins/claude/bin/intent_claude_cwi` alike: measured on 2026-09-15, the 3.0.3 keg's `libexec/intent/plugins/claude` holds `rules`, `skills` and `subagents`, and that keg's `intent claude subagents list`, run outside any project, lists every subagent it ships.
 
 - **The archive is rooted at the INSTALL ROOT**, not at the templates directory, so the formula's install line is "put everything in this archive into `libexec`". A new shipped path is a content change rather than a formula change.
 - **`libexec`, not `prefix/lib`, and not on taste.** Both layouts resolve. `lib` is a brew-LINKED directory, so `prefix/lib/templates` would publish a directory called `templates` into the shared prefix under about as generic a name as exists. `libexec` is not linked. The binary must still sit beside the marker, so `bin` gets a symlink; `bats-core` ships this exact shape.
@@ -83,14 +83,14 @@ intent upgrade
 
 ```
 error: this project declares Intent 2.18.0 and is below the migration floor, so it cannot be converted directly
-  remedy: this project is below the v2.19.0 migration floor -- run `install intent@2 && intent upgrade` first, then migrate it with v3
+  remedy: this project is below the v2.19.0 migration floor -- bring it to that version with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then migrate it with v3
 ```
 
-The v2 ledger is never reimplemented in Rust. The tap carries no `intent@2` formula, so the first hop is run with a v2 clone checked out at the `v2.19.0` tag.
+The v2 ledger is never reimplemented in Rust. The tap carries no `intent@2` formula, so the first hop is run with Intent v2.19.0 from its release, which is where the remedy points (issue 0333).
 
 **It refuses over a dirty git tree**, naming each uncommitted path, because a migration commit assembled over someone's work could not be reverted without taking that work too.
 
-**It writes the migration and does not commit it.** Its closing line is `ok: this project is now Intent v3.0.1 -- commit the canon and the generated views`; making that one commit, containing only the migration, is the operator's step, and it is the commit a rollback reverts.
+**It writes the migration and does not commit it.** Its closing line is `ok: this project is now Intent v<version> -- commit the canon and the generated views`; making that one commit, containing only the migration, is the operator's step, and it is the commit a rollback reverts.
 
 Everything else about what converts, what is carried, what is refused, and what the residue report contains: **`migration.md`**. That is the single source; this section exists only to say which verb to type and what will stop you.
 
@@ -114,7 +114,7 @@ brew uninstall intent
 brew untap matthewsinclair/intent
 ```
 
-The first line matters only if the daemon was enrolled with `intent daemon start --at-login`; it unenrols the LaunchAgent, which brew does not know about. None of the three touches a v2 clone, a v2 symlink, `~/.intent/`, or any project's `intent/` directory.
+The first line matters only if the daemon was enrolled with `intent daemon start --at-login`; it unenrols the LaunchAgent, which brew does not know about. None of the three touches a v2 clone, a v2 symlink, Intent's per-user files under its XDG base directories, or any project's `intent/` directory.
 
 ## What is checked, and what is not
 

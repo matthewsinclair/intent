@@ -1,5 +1,5 @@
 ---
-verblock: "11 Sep 2026:v0.2: synced to the gate as built in v3.0.1"
+verblock: "15 Sep 2026:v0.3: citations and the install-root pointer re-synced to the tree at a0c7300eb"
 ---
 
 # The pre-commit critic gate
@@ -23,7 +23,7 @@ Nothing there was a bug on its own. The version guard was right, exit 2 was a le
 
 ### As built
 
-The v2 dispatcher and its version guard are gone, so the refusal half of the composition no longer exists. The gate chain is: `.git/hooks/pre-commit` chains to `.git/hooks/pre-commit.intent`, a shim installed by `intent claude upgrade --apply` (`canon.rs:511`), which reads the install root from `~/.intent/home` and execs `<root>/lib/templates/hooks/pre-commit.sh`. That hook runs `intent critic "$lang" --staged --severity-min "$SEVERITY" --format text` for each declared language (`lib/templates/hooks/pre-commit.sh:543`) and branches on the exit code the critic defines (`critic.rs:331`):
+The v2 dispatcher and its version guard are gone, so the refusal half of the composition no longer exists. The gate chain is: `.git/hooks/pre-commit` chains to `.git/hooks/pre-commit.intent`, a shim installed by `intent claude upgrade --apply` (`canon.rs:608`), which reads the install root from `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`, `pre-commit-shim.sh:59`) and execs `<root>/lib/templates/hooks/pre-commit.sh`. That hook runs `intent critic "$lang" --staged --severity-min "$SEVERITY" --format text` for each declared language (`lib/templates/hooks/pre-commit.sh:557`) and branches on the exit code the critic defines (`critic.rs:361`):
 
 | code | meaning (`intent critic`)                        | gate                                                 |
 | ---- | ------------------------------------------------ | ---------------------------------------------------- |
@@ -32,7 +32,7 @@ The v2 dispatcher and its version guard are gone, so the refusal half of the com
 | 2    | the critic is broken (eg no rule library loaded) | fails open, and the language is recorded UNENFORCED  |
 | 3    | refused -- an armed rule's tool is absent here   | BLOCKS, with the remedy "install the tool or disarm" |
 
-**The gate fails open on its own breakage and closed on yours.** Any unrecognised code prints `intent critic (<lang>) did not check (exit <rc>) -- <lang> is UNENFORCED in this commit.` (`pre-commit.sh:601`), and the run ends with one digest carrying its denominator, `intent critic gate: <n> of <m> declared language(s) went UNENFORCED (...)` (`:638`). A project that declares no languages is told so on every commit (`:632`) rather than getting silence.
+**The gate fails open on its own breakage and closed on yours.** Any unrecognised code prints `intent critic (<lang>) did not check (exit <rc>) -- <lang> is UNENFORCED in this commit.` (`pre-commit.sh:615`), and the run ends with one digest carrying its denominator, `intent critic gate: <n> of <m> declared language(s) went UNENFORCED (...)` (`:652`). A project that declares no languages is told so on every commit (`:645`) rather than getting silence.
 
 ### Proving a gate means making it fail on purpose
 
@@ -44,7 +44,7 @@ The shell and rust packs shipped untriaged from ST0034 and had never carried a `
 
 ### The proxy contract is an INJECTION BOUNDARY, not a capability ceiling
 
-`proxy_is_simple` (`critic.rs:386`) admits one shape only:
+`proxy_is_simple` (`critic.rs:416`) admits one shape only:
 
 ```
 grep [-r|-n|-E|--include=GLOB ...] '<pattern>' [<path>...]
@@ -56,11 +56,11 @@ One `grep`. No pipes, no chains. Flag clusters drawn from `{r,n,E}` only -- `-L`
 
 ### THE RULING -- a named-tool declaration, and the boundary does not move
 
-- **The rule names WHICH tool answers it; the runner owns HOW it is invoked, in the runner's own code.** A rule's frontmatter carries `critic_tool`, `critic_tool_context` and `critic_tool_codes`; the runner alone builds the command line (`shellcheck --format=gcc <file>`, `critic.rs:733`, with no rule-supplied flags). **Rule files never contribute shell, ever.**
+- **The rule names WHICH tool answers it; the runner owns HOW it is invoked, in the runner's own code.** A rule's frontmatter carries `critic_tool`, `critic_tool_context` and `critic_tool_codes`; the runner alone builds the command line (`shellcheck --format=gcc <file>`, `critic.rs:795`, with no rule-supplied flags). **Rule files never contribute shell, ever.**
 - **A tool-armed rule REFUSES when its tool is absent. It never degrades to skipped** (`IN-AG-NO-SILENT-001`). Driven with shellcheck off `PATH`: the census lists the rule as `ARMED but NOT RUN HERE, the tool is not on this machine`, and the run exits 3 with `remedy: install the missing tool, or disarm that rule in .intent_critic.yml`.
-- **Opting out is a property of the PROJECT, not of the RULE.** The seam is the `disabled:` list in `.intent_critic.yml` (`critic.rs:574`). A rule author cannot exempt their own rule; a project owner disabling one is a visible, reviewable act, and the run counts disabled rules beside the census. There is no separate "optional" arming mode: disabling is the project's one opt-out.
+- **Opting out is a property of the PROJECT, not of the RULE.** The seam is the `disabled:` list in `.intent_critic.yml` (`critic.rs:592`). A rule author cannot exempt their own rule; a project owner disabling one is a visible, reviewable act, and the run counts disabled rules beside the census. There is no separate "optional" arming mode: disabling is the project's one opt-out.
 - **UNARMED IS NEVER INVISIBLE.** The census is printed on every run, including a clean one: how many rules were ASKED, how many are armed, and which could not be armed at all, split into declared, undeclared and unrunnable. The gate can distinguish CHECKED AND CLEAN from CHECKED NOTHING.
-- **Arming and RUN CONTEXT are separate axes.** A rule with `critic_tool_context: workspace` is armed and reported `not-run:out-of-context` in every per-file run (`critic.rs:831`). A whole-workspace `cargo clippy` does not belong in a per-commit hook; it belongs where the compile already happens.
+- **Arming and RUN CONTEXT are separate axes.** A rule with `critic_tool_context: workspace` is armed and reported `not-run:out-of-context` in every per-file run (`critic.rs:918`). A whole-workspace `cargo clippy` does not belong in a per-commit hook; it belongs where the compile already happens.
 
 ### Per-rule verdicts
 
@@ -90,7 +90,7 @@ Rules added to either pack since carry their own classification; the census is t
 
 ### BOUNDARY -- `.bats` files are invisible to the shell critic
 
-`--staged` passes every added, copied or modified path (`git diff --cached --name-only --diff-filter=ACM`, `render.rs:10293`), and each rule's `applies_to` globs then select the files it sees (`critic.rs:706`). No shell rule's globs admit `*.bats`. Driven: the same unquoted-expansion fixture is reported at exit 1 as `t.sh` and passes at exit 0 as `tests/t.bats`. **The `.bats` suite -- the largest body of shell-adjacent code in this repository -- never reaches the shell critic**, so nobody should measure the shell pack's effect against a denominator that includes it.
+`--staged` passes every added, copied or modified path (`git diff --cached --name-only --diff-filter=ACM`, `render.rs:12235`), and each rule's `applies_to` globs then select the files it sees (`critic.rs:757`). No shell rule's globs admit `*.bats`. Driven: the same unquoted-expansion fixture is reported at exit 1 as `t.sh` and passes at exit 0 as `tests/t.bats`. **The `.bats` suite -- the largest body of shell-adjacent code in this repository -- never reaches the shell critic**, so nobody should measure the shell pack's effect against a denominator that includes it.
 
 ### What this project actually is
 
@@ -102,9 +102,9 @@ Intent is a Rust workspace plus shell: the devbin, the shipped hooks and guards,
 
 ## The release pre-flight runs the Rust suite
 
-**`preflight()` in `bin/.devbin/cmd/build.d/release` now runs `cargo test --workspace --no-fail-fast` after the bats suite and aborts on failure** (`:469-473` at HEAD), and refuses to release when the native manifest is present and `cargo` is not on `PATH` (`:466-468`). On a product whose shipped artefacts ARE the Rust binaries, the tag path no longer skips the Rust suite.
+**`preflight()` in `bin/.devbin/cmd/build.d/release` now runs `cargo build -p intentd` and `cargo test --workspace --no-fail-fast` after the bats suite and aborts on failure** (`:600`), and refuses to release when the native manifest is present and `cargo` is not on `PATH` (`:569-571`). The gate runs in a private worktree at HEAD under an isolated HOME with its own target directory, never in the shared checkout beside the live daemon, and a red confined to the arms that wait on an FSEvents-driven event re-runs intentd's tests once (issue 0389, `:572-604`). On a product whose shipped artefacts ARE the Rust binaries, the tag path no longer skips the Rust suite.
 
-**`--skip-tests` still returns from `preflight()` before doctor, the bats suite and the cargo gate** (`:430-433`). The dirty-tree refusal on the tag path no longer recommends it (`:917-923`): its message is `refusing to tag a dirty tree -- commit or revert the above, then re-run`, because following an instruction to re-run with every correctness gate off, on exactly the run that tags, was the realistic failure.
+**`--skip-tests` still returns from `preflight()` before doctor, the bats suite and the cargo gate** (`:530-533`). The dirty-tree refusal on the tag path no longer recommends it (`:1176`): its message is `refusing to tag a dirty tree -- commit or revert the above, then re-run`, because following an instruction to re-run with every correctness gate off, on exactly the run that tags, was the realistic failure.
 
 **Boundary worth stating with it: the dirty-tree check reads `git status --porcelain`, so it structurally cannot see a writer that only writes GITIGNORED paths** -- the runtime store being the live example. That is the limit of what that gate can be asked to prove, not an argument against it.
 
