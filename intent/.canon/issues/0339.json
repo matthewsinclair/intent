@@ -3,9 +3,10 @@
   "number": 339,
   "slug": "st0056-s-design-docs-versus-the-build-todo-windo",
   "title": "ST0056's design docs versus the build: todo.window_hours applied by nothing, an export schema nothing publishes, a no-op clippy arm behind a critical rule",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-13",
+  "closed": "2026-09-15",
   "reporter": "Matthew Sinclair",
   "body": "Found auditing ST0056's design docs (vc, `120c8b2ae`):\n\n- `todo.window_hours` is validated by doctor and applied by nothing (`doctor.rs:369`, `facade.rs:2289`).\n- The export bundle claims schema `intent/export@3.0`, which nothing publishes (`export.rs:42`).\n- The migrator's last line tells the user to commit, while AC-00.8 promises one visible commit (`render.rs:3558`).\n- `IN-RS-CODE-001` (critical) is enforced by nothing: the critic's clippy arm is a no-op (`critic.rs:987`).\n- `at new --status red|green|n-a` creates a row at a non-initial state; `st list --status tbc` is accepted; `AcceptanceTest.kind` is still marked Unbuilt.\n- `st/ST0056` is documented as an address and refused by the resolver; `intentd`'s `shell.html` carries its own palette.\n\nLine numbers as at the audit.\n\nFound by hv's estate-wide doc audit of 2026-09-11 (the audit's orders are in `intent/history/20260911-doc-audit.md`), where it is described as built. Carried in `intent/wip.md` as an unruled defect until 2026-09-13, when that file was leaned and every open defect became an issue. Not worked until hv rules it; a ruled one gets a lane.\n"
 }
