@@ -11377,6 +11377,14 @@ fn thread_arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
 /// take, whose thread half is normalised and whose tail is passed through
 /// UNTOUCHED because a work-package number is not this function's to interpret.
 pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
+  // **AN ADDRESS IS REFUSED WHOLE, BEFORE THE SPLIT** (vc, 2026-09-15). The
+  // split below takes everything before the first `/` as the thread, so an
+  // address reached the id check as its scheme's head, and the refusal named
+  // `intent:`: a fragment nobody had typed as an id. `://` is in every URL and
+  // in no id spelling, and the scheme itself stays `address`'s to spell.
+  if raw.contains("://") {
+    return Err(address_refusal(raw, model::IdKind::Thread));
+  }
   let (head, tail) = match raw.split_once('/') {
     Some((h, t)) => (h, Some(t)),
     None => (raw, None),
@@ -11644,6 +11652,18 @@ fn id_refusal(raw: &str, e: model::IdError, wanted: model::IdKind) -> Failure {
       "error: `{raw}` names both a steel thread and an issue\n  remedy: `s{seq}` names the steel thread, `i{seq}` the issue"
     ),
   })
+}
+
+/// **AN ADDRESS WHERE THE VERB TAKES AN ID, NAMED WHOLE.** The remedy shows the
+/// id's own spelling from [`example`], never an id read out of the address,
+/// which can name another project's thread (issue 0338).
+fn address_refusal(raw: &str, wanted: model::IdKind) -> Failure {
+  Failure::Error(format!(
+    "error: `{raw}` is an address, and this verb takes {} id\n  remedy: name the {} by its id, eg `{}`",
+    wanted.with_article(),
+    wanted.as_str(),
+    example(wanted)
+  ))
 }
 
 /// A worked example in the reader's own vocabulary. `ST0000` is the STZero
