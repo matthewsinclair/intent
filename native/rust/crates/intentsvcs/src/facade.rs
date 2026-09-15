@@ -6919,6 +6919,17 @@ impl Facade {
     Ok(views::todo(&self.canon.threads, &self.render_ctx()?))
   }
 
+  /// A thread's file as the model holds it, with nothing written (issue 0399):
+  /// the explorer's pane reads an attached document through this.
+  pub fn read_thread_file(
+    &self,
+    id: &str,
+    file: &str,
+  ) -> Result<views::ThreadFileRead, FacadeError> {
+    let thread = self.st_show(id)?;
+    Ok(views::read_thread_file(thread, file, &self.render_ctx()?))
+  }
+
   /// The same three buckets, structured, for `intent todo --json`.
   pub fn todo_buckets(&self) -> Result<views::TodoBuckets, FacadeError> {
     Ok(views::todo_buckets(

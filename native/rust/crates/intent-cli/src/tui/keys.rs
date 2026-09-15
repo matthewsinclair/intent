@@ -272,6 +272,25 @@ pub const VI_KEYS: &[(char, &str)] = &[
   ('C', "kill to the end and insert"),
 ];
 
+/// The keys that act on the PANE below the fields, for `/help` (issue 0399).
+///
+/// **`Tab` IS A GUARD AND NOT AN EDGE**, which is why [`super::mode::EDGES`]
+/// never carried it and `/help`, walking that table, never named the one key
+/// that crosses into the pane. So the pane's keys are declared here beside the
+/// other rosters `/help` reads, and [`super::app`]'s pane tests drive each row's
+/// key against what it says.
+pub const PANE_KEYS: &[(&str, &str)] = &[
+  ("Tab", "cross between the fields and the pane below them"),
+  (
+    "arrows, PgUp, PgDn, Home, End",
+    "in the pane: scroll what it shows",
+  ),
+  (
+    "Enter",
+    "in the pane: edit the field it shows, as Enter on the field does",
+  ),
+];
+
 /// The trigger `key` produces in `mode`, or `None` when the keymap says nothing.
 ///
 /// **`None` MEANS "NOT A KEY WE BIND", and the caller must not invent a

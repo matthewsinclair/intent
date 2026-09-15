@@ -91,6 +91,32 @@ impl Motion {
   }
 }
 
+/// Where a READING scrolls to: line `at` after `motion`, over `len` lines shown
+/// `page` at a time (issue 0399).
+///
+/// **A READING STOPS AT ITS ENDS WHERE A FORM WRAPS, AND BOTH ARE RIGHT.**
+/// [`Focus`] wraps a step so an operator tabbing through a form is never
+/// trapped on its last row; a document scrolled past its end would show its
+/// first line again, which reads as the text repeating. So this clamps, and its
+/// furthest position keeps the LAST PAGE on screen rather than a last line alone
+/// at the top of an otherwise empty pane.
+///
+/// **`page` OF ZERO IS A REAL VIEWPORT** here as it is for [`Focus::moved`], and
+/// a page move on it travels one line rather than none.
+pub fn scrolled(at: usize, motion: Motion, page: usize, len: usize) -> usize {
+  let page = page.max(1);
+  let last = len.saturating_sub(page);
+  match motion {
+    Motion::Back => at.saturating_sub(1),
+    Motion::Forward => at.saturating_add(1),
+    Motion::PageBack => at.saturating_sub(page),
+    Motion::PageForward => at.saturating_add(page),
+    Motion::First => 0,
+    Motion::Last => last,
+  }
+  .min(last)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Focus {
   at: usize,

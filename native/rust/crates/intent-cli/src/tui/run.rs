@@ -245,17 +245,31 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
       .focused_row(rows)
       .filter(|r| r.has_detail())
       .and_then(|r| r.detail.as_ref())
-      .map(|d| layout::plan(d, width)),
+      .map(|d| d.plan(width)),
+    // **A READING SCROLLS AND A ROW LIST DOES NOT, YET** (issue 0399). A field's
+    // contents are drawn from the line the operator has scrolled to; rows keep
+    // the pane's top-anchored treatment.
+    detail_first: match app.focused_row(rows).and_then(|r| r.detail.as_ref()) {
+      Some(layout::Detail::Contents(_)) => app.detail_scroll,
+      _ => 0,
+    },
     omnibox: omnibox_row(app),
     caret: caret_at(app),
     hint: hint_row(app, rows),
     dropdown: dropdown(app),
     mode: app.mode,
-    // The overlay follows the LIST cursor only: the detail pane keeps its own
-    // focus and its own (future) treatment.
-    selected: matches!(app.pane(rows), super::app::Pane::List)
-      .then(|| app.focus.map(|f| f.index()))
-      .flatten(),
+    // **THE LIST'S ROW STAYS MARKED WHICHEVER HALF HAS THE KEYBOARD** (issue
+    // 0399), so the operator can see which field the pane shows; the layout
+    // draws it reversed or underlined by `detail_focused`.
+    selected: app.focus.map(|f| f.index()),
+    detail_focused: matches!(app.pane(rows), super::app::Pane::Detail),
+    // **THE RULE NAMES WHAT THE PANE SHOWS** (hv, 2026-09-15, issue 0399).
+    detail_label: app
+      .focused_row(rows)
+      .map(|r| r.title.trim())
+      .filter(|t| !t.is_empty())
+      .unwrap_or(layout::DETAIL_LABEL)
+      .to_string(),
     noticed: !app.notice.is_empty(),
   }
 }
@@ -405,9 +419,17 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
           parts.push(verb.into());
         }
       }
-      parts.push(
-        "\u{2191}\u{2193} browse \u{b7} / menu \u{b7} \u{232b} back \u{b7} type to find".into(),
-      );
+      // The arrows scroll a field's contents and browse everything else.
+      let arrows = match (
+        app.pane(rows),
+        app.focused_row(rows).and_then(|r| r.detail.as_ref()),
+      ) {
+        (Pane::Detail, Some(layout::Detail::Contents(_))) => "scroll",
+        _ => "browse",
+      };
+      parts.push(format!(
+        "\u{2191}\u{2193} {arrows} \u{b7} / menu \u{b7} \u{232b} back \u{b7} type to find"
+      ));
       if let Some(hint) = pane_hint(app, rows) {
         parts.push(hint);
       }
@@ -551,6 +573,10 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     // key. A resize repaints through this same line before another keystroke
     // can arrive, so it has no window in which to go stale.
     app.page_rows = Screen::body_height(area.height as usize);
+    // **HOW LONG THE PANE'S READING IS, FROM THE SAME FRAME, FOR THE SAME
+    // REASON** (issue 0399): the text wrapped to this width, so the scroll's
+    // furthest line is a fact about this frame and nothing earlier.
+    app.detail_rows = screen.detail.as_ref().map_or(0, |d| d.rows.len());
     draw_frame(&mut term, |f| {
       draw::render(&screen, first, f.area(), f.buffer_mut())
     })?;
@@ -1155,8 +1181,87 @@ mod tests {
     assert!(
       lines
         .iter()
-        .any(|l| l.contains(layout::DETAIL_LABEL.trim())),
+        .any(|l| *l == layout::labelled_rule(60, "status")),
       "the detail pane has no rule naming it"
+    );
+  }
+
+  /// **ISSUE 0399: A FIELD'S CONTENTS REACH THE PANE RENDERED, FROM WHERE THE
+  /// READING IS SCROLLED TO.** The heading's marker is gone from the screen, and
+  /// scrolling moves the pane's first line rather than the list.
+  #[test]
+  fn a_fields_contents_reach_the_pane_rendered_and_scrolled() {
+    let paragraphs: Vec<String> = (1..=10).map(|n| format!("paragraph {n}")).collect();
+    let body = format!("# Heading\n\n{}", paragraphs.join("\n\n"));
+    let rows = vec![
+      Row::new("title", "ST0056", "text").reading("ST0056"),
+      Row::new("body", "a document", "prose").reading(body),
+    ];
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let pane_top = |lines: &[String]| {
+      let rule = lines
+        .iter()
+        .position(|l| *l == layout::labelled_rule(60, "body"))
+        .expect("the body did not split");
+      lines[rule + 1].clone()
+    };
+
+    let top = screen_for(&app, &rows, 60).compose(0, 24);
+    assert_eq!(
+      pane_top(&top),
+      "Heading",
+      "the pane did not open on the rendered heading"
+    );
+    assert!(
+      !top.iter().any(|l| l.contains("# Heading")),
+      "the heading's marker reached the screen: {top:?}"
+    );
+
+    app.detail_scroll = 2;
+    let scrolled = screen_for(&app, &rows, 60).compose(0, 24);
+    assert_eq!(
+      pane_top(&scrolled),
+      "paragraph 1",
+      "scrolling by two did not move the pane's first line"
+    );
+  }
+
+  /// **ISSUE 0399: TAB MOVES WHAT THE SCREEN MARKS, NOT ONLY WHERE THE KEYS
+  /// GO.** hv drove the first build and could not tell which half was active.
+  #[test]
+  fn crossing_into_the_pane_is_visible_on_the_screen() {
+    let rows = vec![
+      Row::new("title", "ST0056", "text").reading("ST0056"),
+      Row::new("body", "a document", "prose").reading("one\n\ntwo"),
+    ];
+    let mut app = App::explore();
+    app.mode = Mode::Omni;
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let list = screen_for(&app, &rows, 60);
+    assert!(
+      !list.detail_focused,
+      "the list has the keys and the screen says the pane does"
+    );
+    assert_eq!(list.selected, Some(1));
+
+    app.wants_detail = true;
+    let pane = screen_for(&app, &rows, 60);
+    assert!(
+      pane.detail_focused,
+      "the pane has the keys and the screen does not say so"
+    );
+    assert_eq!(
+      pane.selected,
+      Some(1),
+      "the field the pane shows lost its mark"
+    );
+    assert!(
+      pane.hint.contains("scroll"),
+      "the hint still says the arrows browse: {:?}",
+      pane.hint
     );
   }
 

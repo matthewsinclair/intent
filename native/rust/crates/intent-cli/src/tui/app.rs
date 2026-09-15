@@ -172,6 +172,17 @@ pub struct App {
   pub wants_detail: bool,
   /// The cursor inside the detail pane.
   pub detail_focus: Option<Focus>,
+  /// The first line shown while the pane holds a field's CONTENTS (issue 0399).
+  /// A reading scrolls rather than moving a cursor, so this is a position in
+  /// the rendered text, clamped by [`super::focus::scrolled`].
+  pub detail_scroll: usize,
+  /// How many lines the pane's contents rendered to in the LAST DRAWN frame.
+  ///
+  /// **[`App::page_rows`]'s shape, for its reason**: how many lines a text wraps
+  /// to depends on the width, which only the run loop has, so the loop writes
+  /// this one statement before the draw. Zero headless, where nothing has been
+  /// drawn and a scroll has nowhere to go until a test says how long the text is.
+  pub detail_rows: usize,
   /// News from the last thing that happened, for the INFO row. Empty most of
   /// the time.
   ///
@@ -246,6 +257,8 @@ impl App {
       focus: None,
       wants_detail: false,
       detail_focus: None,
+      detail_scroll: 0,
+      detail_rows: 0,
       notice: String::new(),
       project: String::new(),
       page_rows: 0,
@@ -369,18 +382,17 @@ impl App {
   /// the keystroke teaches the operator the key does not work rather than that
   /// this row has no detail.
   fn cross_panes(&mut self, rows: &[Row]) {
-    let Some(detail) = self
-      .focused_row(rows)
-      .and_then(|r| r.detail.as_ref())
-      .filter(|d| !d.is_empty())
-    else {
+    let Some(row) = self.focused_row(rows).filter(|r| r.has_detail()) else {
       return;
     };
     if self.wants_detail {
       self.wants_detail = false;
     } else {
       self.wants_detail = true;
-      self.detail_focus = Focus::first(detail.len());
+      // A row list gets a cursor; a reading keeps where it was scrolled to.
+      if let Some(super::layout::Detail::Rows(detail)) = &row.detail {
+        self.detail_focus = Focus::first(detail.len());
+      }
     }
   }
 
@@ -784,6 +796,11 @@ impl App {
       ) else {
         return Step::Continue;
       };
+      // **THE EDIT IS DRAWN IN THE LIST, SO THE KEYS GO THERE** (hv's drive,
+      // 2026-09-15, issue 0399). Started from the pane, a one-line edit left
+      // the keys in a pane showing one line that could not scroll: after Esc
+      // the arrows did nothing and the explorer read as locked.
+      self.wants_detail = false;
       self.mode = Mode::Field;
       return Step::ReadField(Handoff {
         kind,
@@ -851,14 +868,23 @@ impl App {
         // `PageDown` would quietly behave as `End` and look like it worked.
         // Asking `divide` rather than halving `page_rows` keeps one home for
         // how the split is sized.
-        Pane::Detail => {
-          let shown = self
-            .focused_row(rows)
-            .and_then(|r| r.detail.as_ref())
-            .map_or(0, |d| d.len());
-          let (_, pane) = super::layout::divide(self.page_rows, shown);
-          self.detail_focus = self.detail_focus.map(|f| f.moved(motion, pane));
-        }
+        Pane::Detail => match self.focused_row(rows).and_then(|r| r.detail.as_ref()) {
+          // **A READING SCROLLS AND STOPS AT ITS ENDS** (issue 0399): the pane is
+          // half the body, and the text is as long as the last frame drew it.
+          Some(super::layout::Detail::Contents(_)) => {
+            let (_, pane) = super::layout::divide(self.page_rows, self.detail_rows);
+            self.detail_scroll =
+              super::focus::scrolled(self.detail_scroll, motion, pane, self.detail_rows);
+          }
+          detail => {
+            let shown = match detail {
+              Some(super::layout::Detail::Rows(d)) => d.len(),
+              _ => 0,
+            };
+            let (_, pane) = super::layout::divide(self.page_rows, shown);
+            self.detail_focus = self.detail_focus.map(|f| f.moved(motion, pane));
+          }
+        },
         Pane::List => {
           self.focus = self
             .focus
@@ -869,6 +895,7 @@ impl App {
           // reopen a pane over somebody else's detail -- or over none.
           self.wants_detail = false;
           self.detail_focus = None;
+          self.detail_scroll = 0;
         }
       }
     }
@@ -970,6 +997,7 @@ impl App {
     self.focus = Focus::first(n);
     self.wants_detail = false;
     self.detail_focus = None;
+    self.detail_scroll = 0;
   }
 
   /// Re-read the same view: keep the cursor where the operator left it.
@@ -1922,6 +1950,117 @@ mod tests {
       "a new row set kept the old pane"
     );
     assert!(app.detail_focus.is_none());
+  }
+
+  /// Field rows carrying their CONTENTS, as every item-view field now does.
+  fn reading_rows() -> Vec<Row> {
+    vec![
+      Row::named("title", "title", "ST0056", "text").reading("ST0056"),
+      Row::named("body", "body", "a document", "prose").reading("one\n\ntwo\n\nthree"),
+    ]
+  }
+
+  /// **ISSUE 0399: TAB CROSSES INTO A FIELD'S CONTENTS, THE ARROWS SCROLL THEM,
+  /// AND THE READING STOPS AT BOTH ENDS.** Driven with the text as long as a
+  /// frame would have drawn it, because only the run loop knows how it wraps.
+  #[test]
+  fn tab_crosses_into_a_fields_contents_and_the_arrows_scroll_them() {
+    let rows = reading_rows();
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.page_rows = 4;
+    app.detail_rows = 5;
+    app.on_key(tab(), &rows);
+    assert_eq!(
+      app.pane(&rows),
+      Pane::Detail,
+      "Tab did not cross into the contents"
+    );
+
+    app.on_key(key(KeyCode::Down), &rows);
+    assert_eq!(app.detail_scroll, 1, "Down did not scroll the reading");
+    app.on_key(key(KeyCode::End), &rows);
+    assert_eq!(
+      app.detail_scroll, 3,
+      "End did not leave the last page of a five-line text in a two-line pane"
+    );
+    app.on_key(key(KeyCode::Down), &rows);
+    assert_eq!(app.detail_scroll, 3, "the reading scrolled past its end");
+    app.on_key(key(KeyCode::Home), &rows);
+    assert_eq!(app.detail_scroll, 0, "Home did not return to the top");
+    app.on_key(key(KeyCode::Up), &rows);
+    assert_eq!(app.detail_scroll, 0, "the reading scrolled past its start");
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(1),
+      "scrolling the pane moved the list cursor"
+    );
+  }
+
+  /// **ISSUE 0399: ENTER IN THE PANE DOES WHAT ENTER ON THE FIELD DOES** -- the
+  /// editor for a document field, an in-place edit for a one-line one -- so the
+  /// operator never has to Tab back to the list to change what they are reading.
+  #[test]
+  fn enter_in_the_pane_edits_the_field_the_pane_shows() {
+    let rows: Vec<Row> = item_rows()
+      .into_iter()
+      .map(|r| r.reading("contents"))
+      .collect();
+    let handoff = |field: &str| Handoff {
+      kind: "thread".to_string(),
+      id: "ST0056".to_string(),
+      field: field.to_string(),
+    };
+    for (at, want) in [
+      (2usize, Step::Hand(handoff("objective"))),
+      (0usize, Step::ReadField(handoff("title"))),
+    ] {
+      let mut app = on_item();
+      app.focus = app.focus.and_then(|f| f.at(at));
+      app.on_key(tab(), &rows);
+      assert_eq!(
+        app.pane(&rows),
+        Pane::Detail,
+        "row {at} did not open its pane"
+      );
+      assert_eq!(
+        app.on_key(key(KeyCode::Enter), &rows),
+        want,
+        "Enter in row {at}'s pane did not act on the field it shows"
+      );
+    }
+  }
+
+  /// **ISSUE 0399, hv's DRIVE: AN EDIT STARTED IN THE PANE LEAVES THE KEYS IN THE
+  /// LIST.** The sequence hv typed -- Tab into a one-line field's pane, Enter,
+  /// Esc -- then Down, which must move to the next field rather than scroll a
+  /// reading that has nowhere to go.
+  #[test]
+  fn an_in_place_edit_started_in_the_pane_hands_the_keys_to_the_list() {
+    let rows: Vec<Row> = item_rows()
+      .into_iter()
+      .map(|r| r.reading("one line"))
+      .collect();
+    let mut app = on_item();
+    app.focus = app.focus.and_then(|f| f.at(0));
+    app.on_key(tab(), &rows);
+    assert_eq!(app.pane(&rows), Pane::Detail, "Tab did not reach the pane");
+    let Step::ReadField(handoff) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("Enter on a one-line field did not open an in-place edit");
+    };
+    app.begin_edit(handoff, "one line".to_string());
+    app.on_key(key(KeyCode::Esc), &rows);
+    assert_eq!(
+      app.pane(&rows),
+      Pane::List,
+      "after the edit the keys stayed in the pane"
+    );
+    app.on_key(key(KeyCode::Down), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(1),
+      "Down after the edit did not move to the next field"
+    );
   }
 
   /// **hv's THREE FINDINGS, DRIVEN AS THE OPERATOR DROVE THEM.** hv rebuilt at

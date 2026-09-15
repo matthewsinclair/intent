@@ -53,6 +53,15 @@ ratatui = { version = "0.30.2", default-features = false, features = [
   "layout-cache",
   "underline-color",
 ] }
+# **THE WORKSPACE'S FIRST MARKDOWN PARSER, SO THE NEXT ONE REUSES IT** (issue
+# 0399). The explorer's contents pane renders a field as markdown, and
+# `tui::markdown` turns this crate's events into lines and role spans inside the
+# pure layout layer. `tui-markdown` was the obvious component and was not taken:
+# it returns ratatui's own styled `Text`, which the layout layer, carrying no
+# `ratatui` by design, could not compose or assert. hv's condition was Rust with
+# no Python dependency; this is MIT-licensed Rust, and `default-features = false`
+# drops the `getopts` and `html` features, leaving bitflags, memchr and unicase.
+pulldown-cmark = { version = "0.13.4", default-features = false }
 
 [lib]
 name = "intent_cli"

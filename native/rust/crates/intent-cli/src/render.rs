@@ -5687,9 +5687,34 @@ fn rows_for(
             id: id.clone(),
             field: d.field.clone(),
           });
+          // **A COLLECTION ROW PREVIEWS ITS MEMBERS IN THE PANE** (issue 0399):
+          // the rows its own list shows, so the split holds its place as the
+          // cursor moves from a field onto a count. Enter still descends.
+          if let Some(members) =
+            children_of(facade, declaration, kind, id, &d.field).filter(|m| !m.is_empty())
+          {
+            row.detail = Some(tui::layout::Detail::Rows(members));
+          }
         }
       }
       rows.extend(artefact_rows(table, kind));
+      // **AN ATTACHED DOCUMENT IS READ IN THE PANE** (hv, 2026-09-15, issue
+      // 0399), from the model with nothing written. Enter still opens the file.
+      for row in rows.iter_mut().filter(|r| r.kind == "artefact") {
+        use intentsvcs::views::ThreadFileRead;
+        let contents = match facade.read_thread_file(id, &row.title) {
+          Ok(ThreadFileRead::Text(text)) => text,
+          Ok(ThreadFileRead::Opaque) => {
+            format!("`{}` is opaque: it carries no text to show", row.title)
+          }
+          Ok(ThreadFileRead::Absent) => format!(
+            "{id} carries no `{0}` -- `intent st attach {id} {0} --from <file>` adds one",
+            row.title
+          ),
+          Err(e) => format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)),
+        };
+        row.detail = Some(tui::layout::Detail::Contents(contents));
+      }
       rows
     }
     View::Children { kind, id, field } if kind == "thread" => {
@@ -5728,13 +5753,14 @@ fn rows_for(
       // two together are why a bad `/thread/ST0056/wps/99` reads as an error
       // rather than as a work package with no fields.
       Some(rows) => match rows.into_iter().find(|r| r.name == *item) {
-        Some(row) => row.detail.unwrap_or_else(|| {
-          vec![tui::layout::Row::new(
+        Some(row) => match row.detail {
+          Some(tui::layout::Detail::Rows(fields)) => fields,
+          _ => vec![tui::layout::Row::new(
             "error",
             format!("`{item}` carries no declared form in this build"),
             "text",
-          )]
-        }),
+          )],
+        },
         None => vec![tui::layout::Row::new(
           "error",
           format!("`{item}` is not in `{field}`"),

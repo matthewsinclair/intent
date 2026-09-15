@@ -211,17 +211,22 @@ Inlining them makes a form in which most rows are files, and it breaks the align
 
 ### List + detail
 
-Where the selected row carries detail, the BODY splits: list above, detail below, focus shown on the rule between them.
+Where the selected row carries detail, the BODY splits: list above, detail below, focus shown on the rule between them. **A split body divides in half** (hv, 2026-09-15, issue 0399), so the pane holds its place as the cursor moves. It used to take what the detail needed, capped at half, and once the pane held a field's contents it jumped each time the cursor crossed from a one-line field to a long one.
 
-**The split is triggered by the row CARRYING detail, not by a hardcoded list of view kinds.** A list of kinds is a second place to update when a new view arrives, and it is the half that gets forgotten.
+**The split is triggered by the row CARRYING detail, not by a hardcoded list of view kinds.** A list of kinds is a second place to update when a new view arrives, and it is the half that gets forgotten. A row's detail takes one of two shapes (`layout::Detail`):
 
-- **Criteria** — state, covered by, and the full text.
-- **Tests** — status, kind, covers, file, note.
-- **Work packages** — the `wp` form's own rows, the same walk the item view uses, so the two cannot disagree about a work package.
+- **Rows**, one line each in the pane's own columns:
+  - **Criteria** — state, covered by, and the full text.
+  - **Tests** — status, kind, covers, file, note.
+  - **Work packages** — the `wp` form's own rows, the same walk the item view uses, so the two cannot disagree about a work package.
+  - **A collection row on an item view** — its members, the rows its own list shows. Enter still descends into the list.
+- **Contents**: every field row of an item view carries its raw value (`form::raw`, the bytes the editor is handed), rendered as markdown in the pane (`tui::markdown`, on pulldown-cmark). Heading markers, emphasis marks and code fences are read, not shown; bullets, quote gutters, rules and table columns are drawn. An empty field says so rather than leaving the pane blank. A thread's attached documents -- `info.md`, `design.md` and the rest -- are read the same way through `Facade::read_thread_file`: a generated view as it renders, an attachment as the store holds it, front matter hidden, and a file the thread does not carry named as absent. Enter on one still opens the file.
+
+`Tab` crosses between the list and the pane, and **the screen says which half has the keyboard**: the rule between them names the row the pane shows at its left edge (`── body ───`), and is dim while the list holds the keyboard and lit in the accent while the pane does, and the list's row stays marked -- reversed where the keys go, underlined while the pane has them, so the field the pane shows is never lost. In a pane of contents the arrows, Page Up/Down and Home/End scroll, stopping at both ends, and **Enter edits the field the pane shows**, exactly as Enter on the field does: the editor for a `prose` field, in place otherwise. An in-place edit is drawn in the list row, so starting one moves the keys to the list; left in a pane showing one line, the arrows had nothing to scroll after Esc and the explorer read as locked. `/help` lists these keys from `keys::PANE_KEYS`, because `Tab` is a guard and the edge table the page walks cannot name it.
 
 Criteria and tests have no declared form, so their detail set is named in the realiser (`render.rs` `children_of`); a declared form for each is the durable fix.
 
-**Not built:** a row that cites a project file showing THE FILE read-only (a test's detail shows the cited path, not its contents), and markdown rendering. Every value in the list and the detail pane is drawn on one row and clipped, markup included; the design's rule stands for when it is built -- one renderer for list and detail, since stripping markup in one place and parsing it in the other is two encodings of one fact.
+**Not built:** a row that cites a project file showing THE FILE read-only (a test's detail shows the cited path, not its contents), and syntax highlighting inside a rendered code block. List rows are still drawn on one line and clipped, markup included: the list shows the stored value and the pane shows what it means, so no value is stripped in one place and parsed in another.
 
 ## 7. Editing
 

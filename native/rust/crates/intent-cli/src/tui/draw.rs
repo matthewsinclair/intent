@@ -60,6 +60,19 @@ fn style(role: Role) -> Style {
     Role::Selected => d.add_modifier(Modifier::REVERSED),
     Role::Match => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     Role::Title => d.add_modifier(Modifier::BOLD),
+    // **A RENDERED FIELD SPENDS THE PALETTE THE SCREEN ALREADY HAS** (issue
+    // 0399). A heading is the accent, bold; a link is the accent, underlined,
+    // because it names somewhere else the way a door does; code takes magenta,
+    // which nothing in the body uses. Emphasis and strong are modifiers only, so
+    // they compose with the role they sit inside -- the printer patches a cell's
+    // style rather than replacing it.
+    Role::Heading => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
+    Role::Strong => d.add_modifier(Modifier::BOLD),
+    Role::Emphasis => d.add_modifier(Modifier::ITALIC),
+    Role::Code => d.fg(Color::Magenta),
+    Role::Link => d.fg(Color::Cyan).add_modifier(Modifier::UNDERLINED),
+    Role::Focused => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
+    Role::Chosen => d.add_modifier(Modifier::UNDERLINED),
     Role::OmniActive => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     // **THE COLOUR FOLLOWS THE LAMP, NOT THE MODE, and that is why `Field` and
     // `Embed` share one.** [`Mode::lamp`] shows both as `EDIT`; painting them
@@ -132,6 +145,9 @@ mod tests {
   fn screen() -> Screen {
     Screen {
       detail: None,
+      detail_first: 0,
+      detail_focused: false,
+      detail_label: layout::DETAIL_LABEL.to_string(),
       app: "ST0056   Add a Rust-based CLI".into(),
       project: String::new(),
       body: plan(&rows(), W as usize),
@@ -298,7 +314,7 @@ mod tests {
   #[test]
   fn only_the_declared_rules_are_ever_painted_and_no_border_is() {
     let plain: String = std::iter::repeat_n(RULE, W as usize).collect();
-    let labelled = layout::labelled_rule(W as usize);
+    let labelled = layout::labelled_rule(W as usize, layout::DETAIL_LABEL);
     assert_ne!(
       plain, labelled,
       "the labelled rule is indistinguishable from a plain one, so the split case below proves \

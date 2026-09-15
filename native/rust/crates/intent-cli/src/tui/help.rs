@@ -205,6 +205,12 @@ pub fn rows(keymap: keys::Keymap, cli: &clap::Command, of: Option<&str>) -> Vec<
     out.push(entry(format!("Ctrl-{c}"), *says));
   }
 
+  out.push(gap());
+  out.push(heading("the pane below the fields"));
+  for (k, says) in keys::PANE_KEYS {
+    out.push(entry(k.to_string(), *says));
+  }
+
   if keymap == keys::Keymap::Vi {
     out.push(gap());
     out.push(heading(
@@ -277,6 +283,20 @@ mod tests {
         "{} + {} is a declared edge and `/help` does not mention it",
         edge.from.lamp(),
         edge.on
+      );
+    }
+  }
+
+  /// **THE PANE'S KEYS REACH THE PAGE** (issue 0399). `Tab` is a guard, so the
+  /// edge walk above can never find it, and before this roster `/help` said
+  /// nothing about the one key that crosses into the pane.
+  #[test]
+  fn every_pane_key_is_on_the_page() {
+    let page = rows(keys::Keymap::Emacs, &cli(), None);
+    for (key, says) in keys::PANE_KEYS {
+      assert!(
+        page.iter().any(|r| r.title == *key && r.value == *says),
+        "`{key}` acts on the pane and `/help` does not mention it"
       );
     }
   }

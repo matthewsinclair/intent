@@ -132,8 +132,9 @@ pub const SPLIT_RULE: usize = 1;
 /// The chrome of a screen whose BODY is split.
 pub const SPLIT_CHROME: usize = CHROME + SPLIT_RULE;
 
-/// The label on the rule between the panes.
-pub const DETAIL_LABEL: &str = " detail ";
+/// The name on the rule between the panes when the row the pane shows has none
+/// of its own.
+pub const DETAIL_LABEL: &str = "detail";
 
 /// Stands in for "a rule goes here" while the degraded screen is assembled, so
 /// the priority order reads as a list of sections rather than as arithmetic.
@@ -172,10 +173,12 @@ pub struct Row {
   /// has no detail pane. As a field on the row there is nothing to remember: a
   /// row that has detail shows detail.
   ///
-  /// Detail rows are ROWS, so the two panes share one renderer. Stripping
-  /// markup in one place and parsing it in the other is two encodings of one
-  /// fact.
-  pub detail: Option<Vec<Row>>,
+  /// A row's detail is ROWS -- a criterion's state and text, a work package's
+  /// own form -- or a field's CONTENTS, rendered as markdown ([`Detail`]).
+  /// **Every field row of an item view carries its contents** (issue 0399), so
+  /// an issue's `body` is read in the pane under the fields rather than clipped
+  /// to one line of the list.
+  pub detail: Option<Detail>,
   /// Where Enter on this row descends, if anywhere.
   ///
   /// **DECLARED ON THE ROW, NEVER INFERRED FROM ITS KIND** -- `tui-design.md`
@@ -184,6 +187,30 @@ pub struct Row {
   /// `intent edit st 68` misparse. The builders that know the model set it;
   /// a door-less `button` visibly opens nothing rather than guessing.
   pub door: Option<super::nav::View>,
+}
+
+/// What a row expands into, in the pane below the list.
+///
+/// **TWO SHAPES, ONE TRIGGER.** The split is still triggered by the row
+/// carrying detail, whichever shape it carries; only the pane's layout differs
+/// -- rows through [`plan`], contents through [`super::markdown::render`] --
+/// and [`Detail::plan`] is the one place that choice is made.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Detail {
+  /// Rows, one line each, in the pane's own aligned columns.
+  Rows(Vec<Row>),
+  /// A field's raw value, rendered as markdown and scrolled as a reading.
+  Contents(String),
+}
+
+impl Detail {
+  /// The pane, laid out at `width`.
+  pub fn plan(&self, width: usize) -> Plan {
+    match self {
+      Detail::Rows(rows) => plan(rows, width),
+      Detail::Contents(text) => super::markdown::render(text, width),
+    }
+  }
 }
 
 /// The kind of a row that is a BOUNDARY rather than a thing.
@@ -239,40 +266,55 @@ impl Row {
     }
   }
 
-  /// The same row, carrying what it expands into.
+  /// The same row, carrying the rows it expands into.
   pub fn expanding_to(mut self, detail: Vec<Row>) -> Self {
-    self.detail = Some(detail);
+    self.detail = Some(Detail::Rows(detail));
     self
   }
 
-  /// Whether this row splits the BODY.
-  ///
-  /// **EMPTY DETAIL IS NOT DETAIL.** A `Some(vec![])` would open a pane with
-  /// nothing in it, delimited by a rule separating nothing from nothing --
-  /// which section 2 allows nowhere.
+  /// The same row, carrying its field's contents to be read in the pane.
+  pub fn reading(mut self, contents: impl Into<String>) -> Self {
+    self.detail = Some(Detail::Contents(contents.into()));
+    self
+  }
+
   /// Declare where Enter on this row descends.
   pub fn opening(mut self, view: super::nav::View) -> Self {
     self.door = Some(view);
     self
   }
 
+  /// Whether this row splits the BODY.
+  ///
+  /// **EMPTY ROWS ARE NOT DETAIL, AND EMPTY CONTENTS ARE.** A `Rows(vec![])`
+  /// would open a pane with nothing in it, delimited by a rule separating
+  /// nothing from nothing -- which section 2 allows nowhere. A field with
+  /// nothing in it is different: its pane says so ([`super::markdown::EMPTY`]),
+  /// and the split holding its place as the cursor crosses an empty field is
+  /// what keeps the pane from jumping.
   pub fn has_detail(&self) -> bool {
-    self.detail.as_ref().is_some_and(|d| !d.is_empty())
+    match &self.detail {
+      Some(Detail::Rows(rows)) => !rows.is_empty(),
+      Some(Detail::Contents(_)) => true,
+      None => false,
+    }
   }
 }
 
 /// How the BODY divides between the list and the detail pane.
 ///
-/// **THE DETAIL PANE TAKES WHAT IT NEEDS AND NEVER MORE THAN HALF.** A fixed
-/// split wastes lines on a two-row detail and starves a long one. An UNCAPPED
-/// one is worse: a criterion whose detail runs to a dozen rows would push the
-/// list it was selected from off the screen, and the operator loses the thing
-/// they were navigating in order to look at one item of it.
+/// **A SPLIT BODY DIVIDES IN HALF** (hv, 2026-09-15, issue 0399). It took what
+/// the detail needed, capped at half, until the pane began holding a field's
+/// contents: then it jumped each time the cursor crossed from a one-line field
+/// to a long one, and the list moved under the operator's eye. The cap's reason
+/// stands -- the list is never smaller than the pane it opened -- and half is
+/// where the cap already put every long detail.
 ///
-/// **A DETAIL PANE OF ZERO LINES IS NO SPLIT AT ALL**, which is why this
-/// returns the whole body to the list rather than a rule with nothing under it.
+/// **A DETAIL PANE OF ZERO LINES IS NO SPLIT AT ALL**, which is why a row with
+/// nothing to show returns the whole body to the list rather than a rule with
+/// nothing under it.
 pub fn divide(body: usize, detail_rows: usize) -> (usize, usize) {
-  let for_detail = detail_rows.min(body / 2);
+  let for_detail = if detail_rows == 0 { 0 } else { body / 2 };
   (body - for_detail, for_detail)
 }
 
@@ -281,16 +323,23 @@ pub fn divide(body: usize, detail_rows: usize) -> (usize, usize) {
 /// **THE LABEL IS DROPPED RATHER THAN CLIPPED ON A NARROW VIEWPORT.** A rule
 /// reading `── deta` is a rule that looks broken; a plain rule looks like the
 /// two the screen already carries, which is what it is.
-pub fn labelled_rule(width: usize) -> String {
-  if width < DETAIL_LABEL.chars().count() + 4 {
+///
+/// **THE LABEL IS THE NAME OF THE ROW THE PANE SHOWS, AT THE LEFT EDGE** (hv,
+/// 2026-09-15, issue 0399): `── body ──────` says what the pane holds and reads
+/// as a heading over it, where a centred ` detail ` named only the mechanism.
+pub fn labelled_rule(width: usize, label: &str) -> String {
+  const LEAD: usize = 2;
+  let name = label.trim();
+  let n = name.chars().count();
+  // The lead, a space, the name, a space, and at least one rule after it.
+  if n == 0 || width < LEAD + n + 3 {
     return std::iter::repeat_n(RULE, width).collect();
   }
-  let label = DETAIL_LABEL.chars().count();
-  let left = (width - label) / 2;
-  let right = width - label - left;
-  let mut out: String = std::iter::repeat_n(RULE, left).collect();
-  out.push_str(DETAIL_LABEL);
-  out.extend(std::iter::repeat_n(RULE, right));
+  let mut out: String = std::iter::repeat_n(RULE, LEAD).collect();
+  out.push(' ');
+  out.push_str(name);
+  out.push(' ');
+  out.extend(std::iter::repeat_n(RULE, width - LEAD - n - 2));
   out
 }
 
@@ -332,6 +381,20 @@ pub enum Role {
   OmniActive,
   /// The APP row's identity.
   Title,
+  /// A heading in a rendered field (issue 0399, [`super::markdown`]).
+  Heading,
+  /// Strong emphasis in a rendered field.
+  Strong,
+  /// Emphasis in a rendered field.
+  Emphasis,
+  /// Code in a rendered field, inline or a block.
+  Code,
+  /// A link's text in a rendered field.
+  Link,
+  /// The rule between the panes while the pane below it has the keyboard.
+  Focused,
+  /// The list row a focused pane is showing: marked, but not where keys go.
+  Chosen,
 }
 
 /// The spans of one composed line: `(start, end, role)` in CHARACTERS,
@@ -583,6 +646,16 @@ pub struct Screen {
   /// the guarantee is about; a shared gutter would be a promise neither pane
   /// made.
   pub detail: Option<Plan>,
+  /// The first line of [`Screen::detail`] to show: where a field's contents have
+  /// been scrolled to (issue 0399), and zero for rows, which do not scroll yet.
+  /// **Clamped when composed**, so a pane that grew shorter under a held scroll
+  /// position shows its last page rather than nothing.
+  pub detail_first: usize,
+  /// The pane below the list holds the keyboard (issue 0399): the rule between
+  /// the halves is lit, and the list's row is marked rather than reversed.
+  pub detail_focused: bool,
+  /// The name on the rule between the panes: the row the pane shows (issue 0399).
+  pub detail_label: String,
   /// The omnibox line: prompt + buffer. **The caret is NOT in it** -- see
   /// [`Screen::caret`].
   pub omnibox: String,
@@ -733,7 +806,15 @@ impl Screen {
         for (i, line) in lines.iter().enumerate() {
           let mut ink = plan.inks.get(from + i).cloned().unwrap_or_default();
           if sel && self.selected == Some(from + i) {
-            ink.push((0, line.chars().count(), Role::Selected));
+            // **REVERSED MEANS THE KEYBOARD IS HERE** (issue 0399). While the
+            // pane holds it the row is still marked, underlined, so the field
+            // the pane shows stays visible without the bar claiming the keys.
+            let role = if self.detail_focused {
+              Role::Chosen
+            } else {
+              Role::Selected
+            };
+            ink.push((0, line.chars().count(), role));
           }
           out.push((line.clone(), ink));
         }
@@ -745,10 +826,22 @@ impl Screen {
     match split {
       Some((list_h, detail_h, detail)) => {
         body_rows(&mut out, &self.body, first, list_h, true);
-        let labelled = labelled_rule(w);
-        let ink = whole(&labelled, Role::Chrome);
+        let labelled = labelled_rule(w, &self.detail_label);
+        // **THE RULE SAYS WHICH HALF HAS THE KEYBOARD** (hv, 2026-09-15, issue
+        // 0399), as section 6 always said it would: dim while the list holds
+        // it, the accent while the pane does. Two halves that looked the same
+        // whichever one Tab had reached left the operator guessing.
+        let role = if self.detail_focused {
+          Role::Focused
+        } else {
+          Role::Chrome
+        };
+        let ink = whole(&labelled, role);
         out.push((labelled, ink));
-        body_rows(&mut out, detail, 0, detail_h, false);
+        let from = self
+          .detail_first
+          .min(detail.rows.len().saturating_sub(detail_h));
+        body_rows(&mut out, detail, from, detail_h, false);
       }
       None => {
         let body_h = height - CHROME - frame_cost;
@@ -977,6 +1070,9 @@ mod tests {
 
   fn screen() -> Screen {
     Screen {
+      detail_first: 0,
+      detail_focused: false,
+      detail_label: DETAIL_LABEL.to_string(),
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       project: String::new(),
@@ -1479,24 +1575,19 @@ mod tests {
     }
   }
 
-  /// **NEVER MORE THAN HALF, AND NEVER LESS THAN THE LIST NEEDS.** An uncapped
-  /// detail pane pushes the list it was selected from off the screen, so the
-  /// operator loses the thing they were navigating in order to look at one item
-  /// of it.
+  /// **A SPLIT BODY DIVIDES IN HALF, AND A ROW WITH NOTHING TO SHOW DOES NOT
+  /// SPLIT** (issue 0399), and the list is never smaller than the pane it opened.
   #[test]
-  fn the_detail_pane_takes_what_it_needs_and_never_more_than_half() {
+  fn a_split_body_divides_in_half_and_nothing_to_show_does_not_split() {
     let mut examined = 0usize;
     for body in 0..40usize {
       for wanted in 0..40usize {
         let (list, detail) = divide(body, wanted);
         assert_eq!(list + detail, body, "divide({body}, {wanted}) lost a line");
-        assert!(
-          detail <= body / 2,
-          "divide({body}, {wanted}) gave the detail more than half"
-        );
-        assert!(
-          detail <= wanted,
-          "divide({body}, {wanted}) gave the detail more lines than it has rows"
+        let half = if wanted == 0 { 0 } else { body / 2 };
+        assert_eq!(
+          detail, half,
+          "divide({body}, {wanted}) did not give the pane half the body"
         );
         assert!(
           list >= detail,
@@ -1518,13 +1609,18 @@ mod tests {
     let mut carried = 0usize;
     let mut plain = 0usize;
     for w in 0..60usize {
-      let r = labelled_rule(w);
+      let r = labelled_rule(w, "body");
       assert_eq!(
         r.chars().count(),
         w,
         "the rule at width {w} is not {w} wide"
       );
-      if r.contains(DETAIL_LABEL.trim()) {
+      if r.contains(" body ") {
+        let lead: String = std::iter::repeat_n(RULE, 2).collect();
+        assert!(
+          r.starts_with(&format!("{lead} body ")),
+          "the name is not at the left edge of the rule: {r:?}"
+        );
         carried += 1;
       } else {
         assert!(
@@ -1592,6 +1688,41 @@ mod tests {
       !split().compose(0, CHROME).iter().any(|l| l.contains(label)),
       "a body with no room for a detail pane still opened one"
     );
+  }
+
+  /// **ISSUE 0399: THE SCREEN SAYS WHICH HALF HAS THE KEYBOARD.** The rule is
+  /// lit while the pane holds it, and the list's row stays marked -- underlined
+  /// rather than reversed -- so the reversed bar only ever means where the keys
+  /// go and the field the pane shows is never lost.
+  #[test]
+  fn the_screen_shows_which_half_has_the_keyboard() {
+    let label = DETAIL_LABEL.trim();
+    for focused in [false, true] {
+      let mut sc = split();
+      sc.selected = Some(1);
+      sc.detail_focused = focused;
+      let painted = sc.painted(0, 24);
+      let (_, rule_ink) = painted
+        .iter()
+        .find(|(line, _)| line.contains(label))
+        .expect("the fixture did not split");
+      let (rule, row) = if focused {
+        (Role::Focused, Role::Chosen)
+      } else {
+        (Role::Chrome, Role::Selected)
+      };
+      assert_eq!(
+        rule_ink.first().map(|&(_, _, r)| r),
+        Some(rule),
+        "the rule between the halves, focused={focused}"
+      );
+      let (_, row_ink) = &painted[3];
+      assert_eq!(
+        row_ink.last().map(|&(_, _, r)| r),
+        Some(row),
+        "the list's marked row, focused={focused}"
+      );
+    }
   }
 
   /// **EMPTY DETAIL IS NOT DETAIL.** `Some(vec![])` would open a pane with

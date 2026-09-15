@@ -1883,21 +1883,97 @@ pub fn wb_inbox_body(
 }
 
 /// Every view the model implies, in a stable order.
+/// Which of a thread's generated files a view is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThreadView {
+  Info,
+  Acceptance,
+  WpInfo(u32),
+}
+
+impl ThreadView {
+  /// The file's path within the thread's own directory.
+  pub fn file(self) -> String {
+    match self {
+      ThreadView::Info => "info.md".to_string(),
+      ThreadView::Acceptance => "acceptance.md".to_string(),
+      ThreadView::WpInfo(seq) => format!("WP/{seq:02}/info.md"),
+    }
+  }
+
+  /// Where the file lives in `project`.
+  pub fn path(self, project: &Project, id: &str) -> std::path::PathBuf {
+    match self {
+      ThreadView::Info => project.info_view(id),
+      ThreadView::Acceptance => project.acceptance_view(id),
+      ThreadView::WpInfo(seq) => project.wp_info_view(id, seq),
+    }
+  }
+}
+
+/// Every file one thread renders, with its text.
+///
+/// **ONE LIST, TWO READERS** (issue 0399): [`render_all`] writes these to their
+/// paths and [`read_thread_file`] reads one back by name, so which views a
+/// thread has is said once rather than in the walk and again in the explorer.
+pub fn thread_views(thread: &Thread, ctx: &RenderContext<'_>) -> Vec<(ThreadView, String)> {
+  let mut out = vec![
+    (ThreadView::Info, info(thread, ctx)),
+    (ThreadView::Acceptance, acceptance(thread, ctx)),
+  ];
+  for wp in &thread.wps {
+    out.push((ThreadView::WpInfo(wp.seq), wp_info(thread, wp, ctx)));
+  }
+  out
+}
+
+/// What one of a thread's files holds, read from the model with nothing written.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ThreadFileRead {
+  /// A generated view as it renders, or an attachment's text as the store holds it.
+  Text(String),
+  /// An attachment the thread carries whose content is not text.
+  Opaque,
+  /// A file the thread does not carry.
+  Absent,
+}
+
+/// The file `file` of `thread`, relative to its directory (issue 0399).
+///
+/// **WHAT KIND OF FILE IT IS IS `Project::classify`'s TO SAY** -- the one
+/// classifier ingest, doctor and the renderer already ask -- and this only reads
+/// what that answer names. **Absence is said**: a pane showing nothing for
+/// `impl.md` would read as an empty file on a thread that has no such file.
+pub fn read_thread_file(thread: &Thread, file: &str, ctx: &RenderContext<'_>) -> ThreadFileRead {
+  use crate::project::ThreadFile;
+  match Project::classify(std::path::Path::new(file)) {
+    ThreadFile::GeneratedView => thread_views(thread, ctx)
+      .into_iter()
+      .find(|(view, _)| view.file() == file)
+      .map_or(ThreadFileRead::Absent, |(_, text)| {
+        ThreadFileRead::Text(text)
+      }),
+    ThreadFile::Canon => match serde_json::to_string_pretty(thread) {
+      Ok(json) => ThreadFileRead::Text(json),
+      Err(e) => ThreadFileRead::Text(format!("error: the thread would not serialise: {e}")),
+    },
+    ThreadFile::Attachment => match thread.attachments.iter().find(|a| a.path == file) {
+      Some(attachment) => attachment
+        .text
+        .clone()
+        .map_or(ThreadFileRead::Opaque, ThreadFileRead::Text),
+      None => ThreadFileRead::Absent,
+    },
+  }
+}
+
 pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> Vec<View> {
   let mut views = Vec::new();
   for thread in &canon.threads {
-    views.push(View {
-      path: project.info_view(&thread.id),
-      content: info(thread, ctx),
-    });
-    views.push(View {
-      path: project.acceptance_view(&thread.id),
-      content: acceptance(thread, ctx),
-    });
-    for wp in &thread.wps {
+    for (view, content) in thread_views(thread, ctx) {
       views.push(View {
-        path: project.wp_info_view(&thread.id, wp.seq),
-        content: wp_info(thread, wp, ctx),
+        path: view.path(project, &thread.id),
+        content,
       });
     }
   }
@@ -2261,6 +2337,38 @@ mod tests {
       version: "3.0.0-test",
       todo_watermark: None,
     }
+  }
+
+  /// **ISSUE 0399: A THREAD'S FILE IS READ FROM THE MODEL, AND ABSENCE IS SAID.**
+  /// A generated view reads as it renders, an attachment as the store holds it,
+  /// an opaque one says so, and a file the thread does not carry is absent.
+  #[test]
+  fn a_threads_file_is_read_from_the_model_and_absence_is_said() {
+    let mut t = thread("ST0075", "wip");
+    t.attachments
+      .push(crate::model::Attachment::new("design.md", "# the design"));
+    t.attachments.push(crate::model::Attachment::opaque(
+      "diagram.png",
+      vec![0u8, 1, 2],
+    ));
+    let c = ctx();
+    assert_eq!(
+      read_thread_file(&t, "info.md", &c),
+      ThreadFileRead::Text(info(&t, &c))
+    );
+    assert_eq!(
+      read_thread_file(&t, "acceptance.md", &c),
+      ThreadFileRead::Text(acceptance(&t, &c))
+    );
+    assert_eq!(
+      read_thread_file(&t, "design.md", &c),
+      ThreadFileRead::Text("# the design".to_string())
+    );
+    assert_eq!(
+      read_thread_file(&t, "diagram.png", &c),
+      ThreadFileRead::Opaque
+    );
+    assert_eq!(read_thread_file(&t, "impl.md", &c), ThreadFileRead::Absent);
   }
 
   /// A board as the store hands it over: a live item of four kinds, one

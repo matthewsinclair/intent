@@ -66,10 +66,23 @@ pub struct Rendered {
 /// its `{label, value, widget}` into the TUI's row type and does nothing else,
 /// which is what keeps the terminal face and the web face agreeing by
 /// construction rather than by two people reading the same design section.
+///
+/// **EVERY FIELD CARRIES ITS OWN CONTENTS AS DETAIL** (issue 0399), read through
+/// [`form::raw`] -- the uncollapsed bytes the editor is handed -- so the pane
+/// under the list shows the paragraph breaks the row collapses. A collection has
+/// no text (`raw` answers `None`) and carries nothing here; its members are the
+/// item view builder's to attach.
 pub fn rows_for(form: &Form, entity: &Value) -> Vec<Row> {
   form::triples(form, entity)
     .into_iter()
-    .map(|t| Row::named(t.name, t.label, t.value, t.widget))
+    .map(|t| {
+      let contents = form::raw(entity, &t.name);
+      let row = Row::named(t.name, t.label, t.value, t.widget);
+      match contents {
+        Some(text) => row.reading(text),
+        None => row,
+      }
+    })
     .collect()
 }
 
@@ -294,6 +307,38 @@ mod tests {
       checked > 0,
       "no form was examined, so this test asserted nothing"
     );
+  }
+
+  /// **ISSUE 0399: A TEXT FIELD CARRIES ITS OWN CONTENTS, UNCOLLAPSED.** The row
+  /// shows the objective on one line and the pane must get its paragraph breaks
+  /// back, so the detail is the raw value and never the row's rendering. A
+  /// collection has no text and carries none.
+  #[test]
+  fn a_text_field_carries_its_raw_contents_for_the_pane() {
+    use crate::tui::layout::Detail;
+    let l = loaded();
+    let form = l.form("thread").expect("the thread form is declared");
+    let rows = rows_for(form, &a_thread());
+    let objective = rows
+      .iter()
+      .find(|r| r.name == "objective")
+      .expect("the thread form has an objective row");
+    assert_eq!(
+      objective.detail,
+      Some(Detail::Contents(
+        "line one\nline two\n\nline four".to_string()
+      )),
+      "the pane was handed something other than the raw objective"
+    );
+    assert_ne!(
+      objective.value, "line one\nline two\n\nline four",
+      "the ROW must stay one line"
+    );
+    let wps = rows
+      .iter()
+      .find(|r| r.name == "wps")
+      .expect("the thread form has a wps row");
+    assert_eq!(wps.detail, None, "a collection carried text contents");
   }
 
   #[test]

@@ -21,6 +21,7 @@ pub mod focus;
 pub mod help;
 pub mod keys;
 pub mod layout;
+pub mod markdown;
 pub mod mode;
 pub mod nav;
 pub mod omnibox;
