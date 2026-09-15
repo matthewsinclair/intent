@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 09:57Z
+heartbeat_at: 2026-09-15 13:26Z
 status: active
-focus: "2026-09-15 09:54Z: LOCALFOLDED on hv's word, HOLDING for vc's unified plan. Lane proposed to vc: 0398 (S), then ST0056 install.md + migration.md as-written pass (M), then the WP-11 stranger-machine runbook (XS). Pair marker 1929c272b (built 2026-09-14 22:32Z, builder unknown), live store at rung 27, wt-dc lost to the reboot with nothing unlanded. NO RELEASE, NO PUSH."
+focus: "2026-09-15 13:26Z: on vc's word, 0398 (S) in flight and banked test-first at refs/bank/dc/0398 on base 11ea62689; then the ST0056 attachments pass, item 12 (S), item 17 (XS) and the Devbin filing (XS). Localfolded for hv's bounce. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,15 +13,16 @@ claims: [ST0056/11]
 
 ## DOING
 
-_(none)_
+- **0398 (S), st show honours its declared `file`, IN FLIGHT on vc's word; NOT train-ready.** Banked test-first at `refs/bank/dc/0398` on base `11ea62689` (patch blob; `git cat-file -p refs/bank/dc/0398 | git apply` on the base): new `intent-cli/tests/st_show_prints_the_file_it_names.rs` (an arm per value, plus the store-only thread via `st dehydrate`), its `suite.rs` row, and the `st show` row in `declared_values_are_enforced.rs` moved to `Enforced` with the unused `Unenforced` variant removed. Worktree `wt-0398` in this session's scratchpad, in-tree target, `HOME=/tmp/dc98h`, `CARGO_HOME=/Users/matts/.cargo`. Next: the red run; then the fix: facade `st_attachment` refusing a new `FacadeError::NotCarried` whose remedy names `intent st attach <id> <path> --from <file>` (plus its rows in `error_remedies.rs` and `mandatory_fields_reach_a_reader.rs`), facade `st_contract` rendering `views::acceptance`, the render arm on `enum_arg`, and `show::thread_all` for `all`; then green, fmt and clippy on both crates, re-bank, tell vc the base.
 
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
+- **dc's lane after 0398, in vc's order (vc's word 2026-09-15, hv's rulings applied).** (2) ST0056 `install.md`, `migration.md` and `critic-gate.md` as-written against as-built: drives in a scratch project under an isolated HOME with the delivered pair, never the live store; ONE attachment commit on main on vc's word, no train. (3) Item 12, hv's hold 1: build the pair in a private directory and move it into place in one step, so no estate finds `intent` missing (S, Train 3); hold 2 struck. (4) Item 17: check whether `claude upgrade --apply`'s report points at `organize --apply` when views are stale, and add the line if not (XS). (5) File cc's finding upstream in Devbin: `artefact.lib:61` turns a refused `strings` into "no marker" (XS, whenever). Item 11: no stranger-machine runbook; AC-00.5, AC-11.1 and 0344 wait until the brew-installed Intent works here. Rules until vc announces Phase 0 done: no wb writes and no main commits, banks are patch blobs named with their base, and no new build or suite step inside a host hold vc announces.
 
 ## Holds
 
-- **HOLDING for vc's word on the unified plan (hv, 2026-09-15).** hv asked every node to fold back to vc so vc and hv sync one plan. dc's fold-back is in vc's inbox from dc: the lane 0398 (S), then ST0056 install.md + migration.md in hv's as-written pass (M), then the WP-11 stranger-machine runbook for hv (XS), with hv items a to g. Condition: vc gives dc its order from the unified plan. Nothing starts on the tree or the store before it.
+_(none)_
 
 ## Watch-outs
 
