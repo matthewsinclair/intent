@@ -418,3 +418,44 @@ run_release_src() {
     [[ "$output" == *"$flag"* ]] || fail "flag $flag is accepted by the parser but absent from --help"
   done
 }
+
+# --------------------------------------------------------------------
+# contract_check is printed and gates nothing
+# --------------------------------------------------------------------
+
+# vc's ruling of 2026-09-15: pre-flight runs contract_check.sh, prints each of its
+# three exits as its own line, and the release continues on every one. The stub
+# stands in for the instrument, so what is under test is the release script's
+# handling of 0, 1 and 2 -- never the instrument's own findings.
+@test "release pre-flight prints contract_check's three exits as three lines and continues on each" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  mkdir -p intent/st/ST0056/parity/tools
+  cat > intent/st/ST0056/parity/tools/contract_check.sh <<'EOF'
+#!/usr/bin/env bash
+echo "contract_check stub"
+exit "${CONTRACT_STUB_RC:-0}"
+EOF
+  git add -A
+  git commit -q -m "a contract_check stub"
+
+  export CONTRACT_STUB_RC=0
+  run_release --dry-run --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"contract_check: clean"* ]]
+
+  export CONTRACT_STUB_RC=1
+  run_release --dry-run --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"contract_check: FINDINGS"* ]]
+  [[ "$output" == *"dry-run complete"* ]]
+
+  export CONTRACT_STUB_RC=2
+  run_release --dry-run --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"contract_check: NO VERDICT (rc=2)"* ]]
+  [[ "$output" == *"dry-run complete"* ]]
+  unset CONTRACT_STUB_RC
+}

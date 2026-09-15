@@ -527,6 +527,25 @@ $faces_stale
   fi
   log_info "no frozen remote in the push set"
 
+  # THE CONTRACT CHECK IS PRINTED AND GATES NOTHING (vc, 2026-09-15). It asks whether
+  # data-model.md and the published schema faces describe the same fields, both ways
+  # (ST0069 WP-16). runner_roster_check.sh rosters it manual, and a release gate on it
+  # would be hv's call, which nobody has asked for. Its three exits mean three
+  # different things, so each prints its own line: 0 the two agree, 1 a finding that
+  # wants an author, anything else no verdict at all. It runs before --skip-tests
+  # returns because it is a read of the tree, not a suite.
+  local contract_log contract_rc=0
+  contract_log="$(release_log_dir)/contract_check.log"
+  bash "$PROJECT_ROOT/intent/st/ST0056/parity/tools/contract_check.sh" > "$contract_log" 2>&1 || contract_rc=$?
+  case "$contract_rc" in
+    0)
+      rm -f "$contract_log"
+      log_info "contract_check: clean -- data-model.md and the published schema faces describe the same fields"
+      ;;
+    1) log_warn "contract_check: FINDINGS -- data-model.md and the published schema faces disagree; the release does not wait on it (rostered manual). full output: $contract_log" ;;
+    *) log_warn "contract_check: NO VERDICT (rc=$contract_rc) -- it could not run here; the release does not wait on it. full output: $contract_log" ;;
+  esac
+
   if [ "$SKIP_TESTS" = "true" ]; then
     log_warn "--skip-tests: skipping doctor + test suite"
     return 0

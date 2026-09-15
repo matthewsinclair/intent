@@ -169,12 +169,49 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   run grep -F 'require_intent_bin() {' "$RELEASE"
   assert_success
 
-  # Called at EACH use rather than once at the top: the three calls sit behind
-  # different flags, so a single top-level assertion would refuse runs that never
-  # touch the binary and would let two through when the first is skipped.
-  run bash -c "grep -c '^  require_intent_bin$' '$RELEASE'"
+  # EVERY USE OF THE CLI IS SHOWN TO REFUSE WHEN THE CLI IS ABSENT, AND THE USES ARE
+  # READ FROM THE SCRIPT RATHER THAN COUNTED HERE. This asserted a count of guard
+  # calls until 2026-09-15, and the count went stale the day issue 0386 added a use:
+  # a figure cannot say which use lost its guard, and a new figure dies the same way
+  # at the next use. A use refuses when it runs after `require_intent_bin` in the
+  # same block, or when its own failure aborts -- an `if ! ...; then` whose branch is
+  # an `abort`, or a `case "$(...)"` with an abort arm. Guarded at EACH use rather
+  # than once at the top, because the uses sit behind different flags and a guard at
+  # the first would let the later ones through whenever the first is skipped. A use
+  # with neither is the fallback this test refuses, and the output names its line.
+  run awk '
+    function indent(s) { match(s, /^ */); return RLENGTH }
+    {
+      if ($0 ~ /^[[:space:]]*(#|$)/) next
+      i = indent($0)
+      if (pend == "if") {
+        if ($0 !~ /abort/) { print "UNGUARDED " pline ": " ptext; bad = 1 }
+        pend = ""
+      }
+      if (pend == "case") {
+        if ($0 ~ /abort/) caseabort = 1
+        if ($0 ~ /^[[:space:]]*esac/) {
+          if (!caseabort) { print "UNGUARDED " pline ": " ptext; bad = 1 }
+          pend = ""
+        }
+      }
+      # A guard reaches to the end of its block, and a block ends at its closing
+      # word -- fi, done, esac, else, elif, a brace or ;; -- at a shallower depth. Not
+      # at any shallower line: a multi-line string closes at column 0 inside a block.
+      if (guard && i < gind && $0 ~ /^[[:space:]]*(fi|done|esac|else|elif|\}|;;)([[:space:];]|$)/) guard = 0
+      if ($0 ~ /^[[:space:]]*require_intent_bin[[:space:]]*$/) { guard = 1; gind = i; next }
+      if ($0 ~ /(^|[;&|(]|\$\()[[:space:]]*"\$(INTENT_BIN|STAMP_BIN)"[[:space:]]/) {
+        sites++
+        if (guard) next
+        if ($0 ~ /^[[:space:]]*if ! /) { pend = "if"; pline = NR; ptext = $0; next }
+        if ($0 ~ /case "\$\(/) { pend = "case"; caseabort = 0; pline = NR; ptext = $0; next }
+        print "UNGUARDED " NR ": " $0
+        bad = 1
+      }
+    }
+    END { print "uses of the CLI read from the script: " sites; exit (bad || sites == 0) }
+  ' "$RELEASE"
   assert_success
-  assert_output "3"
 }
 
 # --------------------------------------------------------------------
