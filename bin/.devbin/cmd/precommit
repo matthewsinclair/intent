@@ -256,10 +256,17 @@ fi
 #    group is exactly when the group can be split, so narrowing it to the staged
 #    set would blind it to the failure it exists to catch.
 if [ "$HAVE_TOOLS" -eq 1 ]; then
+  # A TOOL NAMES ITS OWN REFUSAL, AND A LABEL BELOW SAYS ONLY WHAT EVERY NON-ZERO
+  # EXIT OF THAT TOOL MEANS (vc's ruling, 2026-09-15). A label naming one finding
+  # read any refusal as that finding: `provenance_check.sh` was labelled "a
+  # measurement group names more than one revision" while it refused a stamp that
+  # belonged to no group, and the label sent the committer after a split group that
+  # did not exist. Where a tool's exit codes do mean different things, the label
+  # splits on them.
   step "$G_PROV"
   if ! bash "$TOOLS/provenance_check.sh"; then
     rc=1
-    failed="${failed}  provenance_check.sh -- a measurement group names more than one revision
+    failed="${failed}  provenance_check.sh -- refused; its message above names why
 "
   fi
 
@@ -280,7 +287,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   fi
   if ! "${skew_run[@]}"; then
     rc=1
-    failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
+    failed="${failed}  view_skew_check.sh -- refused; its message above names why
 "
   fi
 
@@ -329,7 +336,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   step "$G_GENIN"
   if ! bash "$TOOLS/generator_inputs_check.sh"; then
     rc=1
-    failed="${failed}  generator_inputs_check.sh -- a committed artefact names an input git cannot hold
+    failed="${failed}  generator_inputs_check.sh -- refused; its message above names why
 "
   fi
 
@@ -350,7 +357,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   step "$G_ROSTER"
   if ! bash "$TOOLS/runner_roster_check.sh"; then
     rc=1
-    failed="${failed}  runner_roster_check.sh -- an instrument's declared disposition disagrees with what this runner does
+    failed="${failed}  runner_roster_check.sh -- refused; its message above names why
 "
   fi
 
@@ -464,7 +471,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   step "$G_STALEAT"
   if ! bash "$TOOLS/stale_at_check.sh"; then
     rc=1
-    failed="${failed}  stale_at_check.sh -- an AT row's status will not parse (exit 2; a stale-row report never gates)
+    failed="${failed}  stale_at_check.sh -- could not report; its message above names why (a stale-row finding never gates)
 "
   fi
 
@@ -480,11 +487,24 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #     fire on the path that ISN'T there. Whole-set; its span is recorded in
   #     runner_roster_check.sh's ROSTER.
   step "$G_SELFPROV"
-  if ! bash "$TOOLS/self_provenance_check.sh"; then
-    rc=1
-    failed="${failed}  self_provenance_check.sh -- the commit's vendored tree disagrees with the manifest committed beside it
+  # Exit 2 is the tool's own hard stop -- a lib it cannot read, and the like -- and
+  # it still stops the commit; only the REASON differs, because "the vendored tree
+  # disagrees" is a finding the tool never reached (vc's ruling, 2026-09-15).
+  sp_rc=0
+  bash "$TOOLS/self_provenance_check.sh" || sp_rc=$?
+  case "$sp_rc" in
+    0) ;;
+    2)
+      rc=1
+      failed="${failed}  self_provenance_check.sh -- could not run; its message above names why
 "
-  fi
+      ;;
+    *)
+      rc=1
+      failed="${failed}  self_provenance_check.sh -- the commit's vendored tree disagrees with the manifest committed beside it
+"
+      ;;
+  esac
 
   # 12. Canon currency (ST0057 AC-03.6). A commit that carries canon must not name
   #     bytes no commit contains -- canon is committed and never sparse, so a canon
@@ -513,7 +533,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   step "$G_CANONCOMMIT"
   if ! bash "$TOOLS/canon_commit_check.sh" --staged; then
     rc=1
-    failed="${failed}  canon_commit_check.sh -- this commit's canon names bytes the commit does not carry
+    failed="${failed}  canon_commit_check.sh -- refused; its message above names why
 "
   fi
 fi
@@ -540,7 +560,7 @@ if [ ! -f "$TOOLS/guard_home_check.sh" ]; then
 "
 elif ! bash "$TOOLS/guard_home_check.sh"; then
   rc=1
-  failed="${failed}  guard_home_check.sh -- the shipped hook template lost the self-hosted GUARD_HOME override
+  failed="${failed}  guard_home_check.sh -- refused; its message above names why
 "
 fi
 
@@ -564,8 +584,7 @@ if [ ! -f "$TOOLS/shared_artefact_build_guard.sh" ]; then
 "
 elif ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
   rc=1
-  failed="${failed}  shared_artefact_build_guard.sh -- the shared-artefact build guard is not intact: a dirty
-    native/rust tree could reach native/rust/target/release/, which four nodes invoke.
+  failed="${failed}  shared_artefact_build_guard.sh -- refused; its message above names why
 "
 fi
 

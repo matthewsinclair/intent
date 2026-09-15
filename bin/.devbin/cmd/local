@@ -203,10 +203,17 @@ EOF
   printf '    It is not one. Migrating it takes the CLI away from everything else.\n'
 
   step "this checkout's release pair"
-  local b
+  local b named mrc
   for b in intent intentd; do
     if [ -f "$RELEASE_DIR/$b" ]; then
-      printf '    %-8s %s\n' "$b" "$(artefact_source_commit "$RELEASE_DIR/$b" || echo '<no marker>')"
+      mrc=0
+      named="$(artefact_source_commit "$RELEASE_DIR/$b")" || mrc=$?
+      case "$mrc" in
+        0) ;;
+        1) named='<no marker>' ;;
+        *) exit 2 ;;
+      esac
+      printf '    %-8s %s\n' "$b" "$named"
     else
       printf '    %-8s not built\n' "$b"
     fi
@@ -248,7 +255,11 @@ EOF
       printf '    currency WARN (target/release) -- %s\n' "${verdict#warn:}" ;;
     refuse:*)
       printf '    currency REFUSING (target/release) -- %s\n' "${verdict#refuse:}"
-      printf '    an actor on the exec path would refuse to run this pair. `int build all` rebuilds it.\n' ;;
+      case "$verdict" in
+        "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) printf '    an actor on the exec path would refuse to run this pair.\n' ;;
+        *) printf '    an actor on the exec path would refuse to run this pair. `int build all` rebuilds it.\n' ;;
+      esac
+      ;;
     *)
       printf '    currency UNREADABLE -- the verdict was %s, which is not a form this renders\n' "$verdict" ;;
   esac
@@ -277,7 +288,14 @@ EOF
   if [ -f "$dbg" ]; then
     printf '    scope: this verdict examined target/release ONLY. `target/debug/` is a SECOND artefact\n'
     printf '           and it is the one the test harness spawns -- `cargo build -p intentd` refreshes it.\n'
-    printf '           debug intentd names %s\n' "$(artefact_source_commit "$dbg" 2>/dev/null || echo '<no marker>')"
+    mrc=0
+    named="$(artefact_source_commit "$dbg")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1) named='<no marker>' ;;
+      *) exit 2 ;;
+    esac
+    printf '           debug intentd names %s\n' "$named"
   fi
 
   # **THE SCOPE BLOCK ABOVE NAMED `target/debug/` AND MEASURED NOTHING ABOUT IT

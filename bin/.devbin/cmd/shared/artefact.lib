@@ -53,13 +53,50 @@
 # row's canary as `intent-source-commit:<sha>unsafe`, with `unsafe` belonging to
 # an unrelated literal. The `[^]]*` stops at the bracket the artefact provides.
 #
-# Returns 1 and prints nothing when there is no marker, so "cannot say" is a
-# distinct answer from any value. A binary built before the embed landed has no
-# marker at all, and that is exactly the state this must not read as a pass.
+# Returns 1 and prints nothing when `strings` read the file and found no marker,
+# so "cannot say" is a distinct answer from any value. A binary built before the
+# embed landed has no marker at all, and that is exactly the state this must not
+# read as a pass.
+#
+# **RETURNS 2, WITH THE REFUSAL AND A REMEDY ON STDERR, WHEN `strings` COULD NOT
+# READ THE FILE AT ALL** -- absent from PATH, refused by the Xcode shim, or a
+# path that is not there. Until 2026-09-15 that case went to /dev/null and
+# returned 1, so an unreadable binary and a binary with no marker gave the same
+# answer: measured with `strings` taken off PATH, a marked release binary came
+# back rc=1 with no output. Every consumer named above keeps its no-marker answer
+# for rc 1 and never prints or records one for rc 2: a caller that decides stops
+# non-zero with this refusal already printed, and a diagnostic says the binary was
+# not read (vc's ruling, 2026-09-15).
+#
+# The scan goes through a file rather than a pipe so each tool's exit status is
+# its own: `strings` piped into `head` can die of SIGPIPE on a marker found
+# early, and `pipefail` would report that success as a failure.
 artefact_source_commit() {
-  local bin="$1" marker
-  marker="$(strings "$bin" 2>/dev/null | grep -o '\[intent-source-commit:[^]]*\]' | head -1)"
-  [ -n "$marker" ] || return 1
+  local bin="$1" scan rc marker
+  scan="$(mktemp "${TMPDIR:-/tmp}/artefact-strings.XXXXXX")" || {
+    printf 'error: no temporary file to read %s through\n  remedy: make %s writable, or point TMPDIR at a directory that is\n' "$bin" "${TMPDIR:-/tmp}" >&2
+    return 2
+  }
+  if strings "$bin" > "$scan" 2>&1; then rc=0; else rc=$?; fi
+  if [ "$rc" -ne 0 ]; then
+    # The backticks are literal: they quote a command for the reader to run.
+    # shellcheck disable=SC2016
+    printf 'error: strings could not read %s (rc=%s), so its source-commit marker is unknown, not absent\n  caused by: %s\n  remedy: run `strings %s` to see the refusal; `strings` ships with the Xcode command line tools (`xcode-select --install`)\n' \
+      "$bin" "$rc" "$(head -3 "$scan" | tr '\n' ' ')" "$bin" >&2
+    rm -f "$scan"
+    return 2
+  fi
+  if marker="$(grep -o -m 1 '\[intent-source-commit:[^]]*\]' "$scan")"; then rc=0; else rc=$?; fi
+  rm -f "$scan"
+  case "$rc" in
+    0) ;;
+    1) return 1 ;;
+    *)
+      printf 'error: grep could not scan the strings of %s (rc=%s)\n  remedy: re-run; a scan of a file this function just wrote has no expected failure\n' "$bin" "$rc" >&2
+      return 2
+      ;;
+  esac
+  marker="${marker%%$'\n'*}"
   marker="${marker#\[intent-source-commit:}"
   printf '%s' "${marker%\]}"
 }

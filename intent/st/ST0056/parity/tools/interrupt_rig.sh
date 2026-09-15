@@ -476,10 +476,14 @@ $(tail -5 "$WORKDIR/build.log" 2>/dev/null | sed 's/^/    /')"
   # produce that today, which is precisely why it is worth naming -- if it ever
   # appears, the failure is upstream of every check either of us owns, and the
   # wrong instinct will be to debug the checker.
-  # `|| true` because the empty case is a REAL arm below ("NO MARKER"), not an
-  # error: the lib reports absence by rc=1 and no output, and `set -e` must not
-  # turn that answer into a death.
-  EMBEDDED="$(artefact_source_commit "$BIN" || true)"
+  # rc 1 is a REAL arm below ("NO MARKER"), not an error: the lib reports absence
+  # by rc=1 and no output. rc 2 is the lib saying `strings` could not read the
+  # binary at all, its refusal already printed, and the rig stops there rather
+  # than report a marker nobody looked for (vc's ruling, 2026-09-15).
+  _mrc=0
+  EMBEDDED="$(artefact_source_commit "$BIN")" || _mrc=$?
+  [ "$_mrc" -le 1 ] || exit 2
+  [ "$_mrc" -eq 0 ] || EMBEDDED=""
   case "$EMBEDDED" in
     "$REV_SHA") say "  binary provenance: bare sha matching --rev ($REV_SHORT) -- clean-tree build confirmed" ;;
     "")         say "  binary provenance: NO MARKER -- this binary cannot name the commit it was built from" ;;

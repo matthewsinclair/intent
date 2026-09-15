@@ -100,20 +100,30 @@
 # artefact_pair_marker <release_dir>
 #
 # Prints the ONE marker both binaries carry and returns 0, or prints a reason on
-# stderr and returns 1. This is the primitive `verify_pair` also needs; it is
-# here rather than there so the next spelling of "do the two agree" has a home to
-# be added to instead of a place to be copied from.
+# stderr and returns 1. Returns 2 and adds nothing when `strings` could not read
+# a binary: `artefact_source_commit` has already printed that refusal, and no
+# sentence about a marker is true of bytes nobody read.
+#
+# This is the primitive `verify_pair` also needs; it is here rather than there so
+# the next spelling of "do the two agree" has a home to be added to instead of a
+# place to be copied from.
 artefact_pair_marker() {
-  local dir="$1" b sc first="" first_bin=""
+  local dir="$1" b sc mrc first="" first_bin=""
   for b in intent intentd; do
     if [ ! -f "$dir/$b" ]; then
       printf 'no %s binary at %s\n' "$b" "$dir/$b" >&2
       return 1
     fi
-    if ! sc="$(artefact_source_commit "$dir/$b")"; then
-      printf '%s carries NO source-commit marker -- it cannot say what it is\n' "$b" >&2
-      return 1
-    fi
+    mrc=0
+    sc="$(artefact_source_commit "$dir/$b")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1)
+        printf '%s carries NO source-commit marker -- it cannot say what it is\n' "$b" >&2
+        return 1
+        ;;
+      *) return 2 ;;
+    esac
     if [ -z "$first" ]; then
       first="$sc"
       first_bin="$b"
@@ -189,17 +199,26 @@ _build_inputs_changed() {
   printf '%s\n' "$kept" | awk 'NF' | wc -l | tr -d ' '
 }
 
+# ARTEFACT_CURRENCY_UNREAD -- the reason prefix a `refuse:` verdict carries when
+# `strings` could not read the pair, so a reader tells a refusal with no answer
+# from a refusal about the answer without parsing prose: rebuilding the pair fixes
+# a stale marker and cannot fix an unreadable one.
+ARTEFACT_CURRENCY_UNREAD="unread: "
+
 # artefact_currency_verdict <release_dir> <repo>
 #
 # Prints exactly one of `ok`, `warn:<reason>`, `refuse:<reason>` and returns 0.
 # The CALLER decides what a verdict costs -- this function never exits, because a
 # library that kills its host cannot be used by a reporter and an actor both.
 artefact_currency_verdict() {
-  local dir="$1" repo="$2" marker base dirty=0 n
-  if ! marker="$(artefact_pair_marker "$dir" 2>&1)"; then
-    printf 'refuse:%s' "$marker"
-    return 0
-  fi
+  local dir="$1" repo="$2" marker base dirty=0 n mrc
+  mrc=0
+  marker="$(artefact_pair_marker "$dir" 2>&1)" || mrc=$?
+  case "$mrc" in
+    0) ;;
+    1) printf 'refuse:%s' "$marker"; return 0 ;;
+    *) printf 'refuse:%s%s' "$ARTEFACT_CURRENCY_UNREAD" "$marker"; return 0 ;;
+  esac
   base="$marker"
   case "$marker" in
     dirty-*) dirty=1; base="${marker#dirty-}" ;;

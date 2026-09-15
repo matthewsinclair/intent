@@ -209,10 +209,16 @@ verify_pair() {
     die "cannot read the checkout's HEAD"
 
   # One call, and its stderr IS the report: absent binary, absent marker and
-  # disagreement all come back as a refusal that names what it found.
-  if ! sc="$(artefact_pair_marker "$dir")"; then
-    die "the release pair does not describe one state of this repo -- refusing to call this installable"
-  fi
+  # disagreement all come back as a refusal that names what it found -- and a
+  # `strings` that could not read a binary comes back as rc 2, already reported,
+  # which stops here without claiming anything about the pair (2026-09-15).
+  local mrc=0
+  sc="$(artefact_pair_marker "$dir")" || mrc=$?
+  case "$mrc" in
+    0) ;;
+    1) die "the release pair does not describe one state of this repo -- refusing to call this installable" ;;
+    *) exit 2 ;;
+  esac
   for b in intent intentd; do
     printf '    %-8s %s\n' "$b" "$sc"
   done

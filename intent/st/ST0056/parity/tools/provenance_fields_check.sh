@@ -178,13 +178,13 @@ check_record() {
   return "$bad"
 }
 
-# marker_of <file> -- the source commit the BYTES name, read off the bytes.
-# One of the two readers of the marker contract; the other is
-# `artefact_source_commit()` in bin/.devbin/cmd/macos.
+# marker_of <file> -- the source commit the BYTES name, read off the bytes by the
+# one extraction site: rc 0 with the commit, rc 1 and nothing printed for no
+# marker, rc 2 with the refusal printed when `strings` could not read the file.
+# This paragraph used to describe the `|| true` of the old local body, under which
+# a broken `strings` and an absent marker were indistinguishable; the lib now keeps
+# them apart, and `check_artefact_set` stops on rc 2 (2026-09-15).
 #
-# `|| true` guards `pipefail`: `grep -o` exits 1 on no match and would otherwise
-# make the assignment itself non-zero, so the absent-marker case would be
-# indistinguishable from a broken `strings`.
 # marker_of -- DELEGATES to the one extraction site as of 2026-08-22.
 #
 # THIS BODY WAS BYTE-FOR-BYTE `artefact_source_commit`, UNDER A DIFFERENT NAME,
@@ -230,7 +230,7 @@ record_artefact_commit() {
 }
 
 check_artefact_set() {
-  local rec="$1" dir="$2" bad=0 present=0 first="" first_name="" name f m rec_commit checkout warned=""
+  local rec="$1" dir="$2" bad=0 present=0 first="" first_name="" name f m mrc rec_commit checkout warned=""
   checkout="$(sed -n 's/^commit: //p' "$rec" 2>/dev/null | head -1)" || true
   grep -qE '^checkout_clean: *no' "$rec" 2>/dev/null && warned="yes"
 
@@ -238,11 +238,17 @@ check_artefact_set() {
     f="$dir/$name"
     [ -f "$f" ] || continue
     present=$((present + 1))
-    if ! m="$(marker_of "$f")"; then
-      printf '  %s carries NO source-commit marker -- its bytes name no commit, so no record can be shown to be about them.\n' "$name"
-      bad=1
-      continue
-    fi
+    mrc=0
+    m="$(marker_of "$f")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1)
+        printf '  %s carries NO source-commit marker -- its bytes name no commit, so no record can be shown to be about them.\n' "$name"
+        bad=1
+        continue
+        ;;
+      *) return 2 ;;
+    esac
     if [ -z "$first" ]; then
       first="$m"
       first_name="$name"
@@ -530,6 +536,9 @@ out="$(check_record "$RECORD")"
 rc_fields=$?
 set_out="$(check_artefact_set "$RECORD" "$ARTEFACT_DIR")"
 rc_set=$?
+# rc 2 is `strings` unable to read an artefact, its refusal already printed by the
+# lib: the set was never examined, so no verdict below would be true of it.
+[ "$rc_set" -ne 2 ] || exit 2
 
 # BOTH ARMS ALWAYS RUN AND ARE ALWAYS REPORTED SEPARATELY, because they have
 # DIFFERENT SUBJECTS: the record's own shape, and the record's relationship to

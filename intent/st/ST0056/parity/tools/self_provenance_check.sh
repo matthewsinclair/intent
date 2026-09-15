@@ -336,9 +336,18 @@ else
     # branch below tests emptiness, never the brackets. The lib returns 1 and
     # prints nothing when there is no marker, so "cannot say" stays distinct
     # from any value -- which is the property this branch depends on.
-    if embedded="$(artefact_source_commit "$BIN")"; then marker="present"; else marker=""; fi
+    #
+    # rc 2 is the lib saying `strings` could not read the binary, its refusal
+    # already printed. This arm DECIDES NOTHING, so it does not fail on that
+    # either: it says the line was not read and never that the marker is absent
+    # (vc's ruling, 2026-09-15). `int macos publish` stops on the same refusal.
+    mrc=0
+    embedded="$(artefact_source_commit "$BIN")" || mrc=$?
+    if [ "$mrc" -eq 0 ]; then marker="present"; else marker=""; fi
 
-    if [ -z "$marker" ]; then
+    if [ "$mrc" -ge 2 ]; then
+      echo "self-provenance: $BIN [sha256 $binsha] was NOT READ -- \`strings\` could not read it (the refusal above says why), so this line says nothing about its marker."
+    elif [ -z "$marker" ]; then
       echo "self-provenance: $BIN [sha256 $binsha] carries NO source-commit marker -- it cannot name the commit it was built from."
       # WHICH OF THE TWO CAUSES, DERIVED RATHER THAN ASSERTED (ic, 2026-08-17).
       # What this branch OBSERVES is an absent marker. It used to PRINT "this
@@ -416,7 +425,12 @@ else
         # four -- an actor on the exec path refuses on this verdict -- and the
         # reason is passed through verbatim rather than re-narrated.
         echo "self-provenance: currency REFUSING -- an actor on the exec path would refuse to run this pair: ${_cur#refuse:}"
-        echo "    remedy: \`bin/devbin build all\` -- it forces the provenance embeds and verifies the SET."
+        # A rebuild fixes a stale marker and cannot fix a `strings` that could not
+        # read the pair, whose refusal above already names its own remedy.
+        case "$_cur" in
+          "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) ;;
+          *) echo "    remedy: \`bin/devbin build all\` -- it forces the provenance embeds and verifies the SET." ;;
+        esac
         echo "    AND THE ROUTE MOST PEOPLE TYPE DOES NOT CHECK THIS (ST0058). \`bin/devbin cli\` runs this same verdict and REFUSES on it; \`~/.local/bin/intent\` is a symlink straight into the release directory and passes through nothing. This line is the only place a stale delivered pair is currently reported." ;;
       *)
         # An unrecognised verdict is not a pass -- the same contract `cmd/cli`

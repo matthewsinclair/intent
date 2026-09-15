@@ -107,7 +107,12 @@ case "$verdict" in
     # the others say currency CANNOT BE DECIDED, and the prose contradicted them
     # in the confident direction. A caller must not conclude
     # what its library declined to conclude (issue 0294).
-    printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2
+    # A rebuild fixes a stale marker and cannot fix a `strings` that could not
+    # read the pair, whose refusal above already names its own remedy.
+    case "$verdict" in
+      "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) ;;
+      *) printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2 ;;
+    esac
     exit 1
     ;;
   *)

@@ -624,17 +624,25 @@ provenance_blockers() {
 # an earlier commit -- measured -- and that is exactly the disagreement this
 # refuses on. A `cargo build` at the tag is the remedy, and it is one command.
 artefact_commit_blockers() {
-  local dir="$1" triple="$2" want="$3" b bin embedded
+  local dir="$1" triple="$2" want="$3" b bin embedded mrc
   for b in $BINARIES; do
     bin="$dir/$b-$triple"
     if [ ! -f "$bin" ]; then
       printf '%s is not staged, so it cannot be asked what it was built from\n' "$b-$triple"
       continue
     fi
-    if ! embedded="$(artefact_source_commit "$bin")"; then
-      printf '%s carries NO source-commit marker -- its bytes name no commit at all, so nothing here can attach them to one\n' "$b-$triple"
-      continue
-    fi
+    # rc 2 is `strings` unable to read the bytes, already reported by the lib:
+    # the question was never asked, so no blocker line about its answer is true.
+    mrc=0
+    embedded="$(artefact_source_commit "$bin")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1)
+        printf '%s carries NO source-commit marker -- its bytes name no commit at all, so nothing here can attach them to one\n' "$b-$triple"
+        continue
+        ;;
+      *) return 2 ;;
+    esac
     if [ "$embedded" = "unknown" ]; then
       printf '%s says its source commit is UNKNOWN -- built where git could not answer\n' "$b-$triple"
     elif [ "${embedded#dirty-}" != "$embedded" ]; then
@@ -643,6 +651,27 @@ artefact_commit_blockers() {
       printf '%s was built at %s, which is not %s -- these are bytes from an earlier tree\n' "$b-$triple" "$embedded" "$want"
     fi
   done
+}
+
+# artefact_commit_lines <stage-dir> <triple> -- the stage record's `artefact_commit:`
+# rows, one per binary: the commit its bytes name, or `NO MARKER` when `strings`
+# read them and found none. Returns 2 having printed nothing when `strings` could
+# not read one, so `cmd_stage` asks for every row before it opens the record and a
+# refusal writes no record at all: `NO MARKER` written for bytes nobody read is a
+# false claim that outlives the terminal it was printed to (vc, 2026-09-15).
+artefact_commit_lines() {
+  local dir="$1" triple="$2" b sc mrc rows=""
+  for b in $BINARIES; do
+    mrc=0
+    sc="$(artefact_source_commit "$dir/$b-$triple")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1) sc="NO MARKER" ;;
+      *) return 2 ;;
+    esac
+    rows="${rows}$(printf '  %-30s %s' "$b-$triple" "$sc")"$'\n'
+  done
+  printf '%s' "$rows"
 }
 
 # --- subcommands -------------------------------------------------------------
@@ -1043,6 +1072,8 @@ cmd_stage() {
   # how much uncommitted code the artefact holds, and nothing here can check that
   # an embedded marker is HONEST about the bytes carrying it. A hold with a named
   # condition is a covered property; a hold without one is a permanent exemption.
+  local artefact_commits
+  artefact_commits="$(artefact_commit_lines "$STAGE_DIR" "$triple")" || exit 2
   {
     printf 'artefact_sha256:\n'
     printf '  answers: IDENTITY -- which of several builds these bytes are; one line per staged artefact\n'
@@ -1051,9 +1082,7 @@ cmd_stage() {
     done
     printf 'artefact_commit:\n'
     printf '  answers: PROVENANCE -- the source commit each staged binary NAMES IN ITS OWN BYTES; one line per staged artefact\n'
-    for b in $BINARIES; do
-      printf '  %-30s %s\n' "$b-$triple" "$(artefact_source_commit "$STAGE_DIR/$b-$triple" || printf 'NO MARKER')"
-    done
+    printf '%s\n' "$artefact_commits"
     printf 'commit: %s\n' "$head"
     printf '  answers: CURRENCY -- which commit THE CHECKOUT was on when these bytes were staged. NOT what the bytes name -- that is artefact_commit, and the two diverge whenever anything lands between the build and the stage.\n'
     printf 'drift: HELD\n'
@@ -1085,16 +1114,21 @@ cmd_stage() {
   # The shas are printed and the match is DERIVED from them -- a label that states
   # the expected result is a comment, and a comment cannot notice.
   step "what the staged bytes say they were built from"
+  local mrc
   for b in $BINARIES; do
-    if sc="$(artefact_source_commit "$STAGE_DIR/$b-$triple")"; then
-      if [ "$sc" = "$head" ]; then
-        printf '    %-34s %s (the commit above)\n' "$b" "$sc"
-      else
-        printf '    %-34s %s (NOT the commit above)\n' "$b" "$sc"
-      fi
-    else
-      printf '    %-34s no marker -- these bytes name no commit at all\n' "$b"
-    fi
+    mrc=0
+    sc="$(artefact_source_commit "$STAGE_DIR/$b-$triple")" || mrc=$?
+    case "$mrc" in
+      0)
+        if [ "$sc" = "$head" ]; then
+          printf '    %-34s %s (the commit above)\n' "$b" "$sc"
+        else
+          printf '    %-34s %s (NOT the commit above)\n' "$b" "$sc"
+        fi
+        ;;
+      1) printf '    %-34s no marker -- these bytes name no commit at all\n' "$b" ;;
+      *) exit 2 ;;
+    esac
   done
 
   # The support tree. Built HERE, with the binaries, rather than in a later step,
@@ -1781,7 +1815,7 @@ $(sed 's/^/       /' "$PROVENANCE_FILE")
   # several. The number of controls says nothing -- the number of distinct
   # subjects does.
   local artefact_blockers
-  artefact_blockers="$(artefact_commit_blockers "$STAGE_DIR" "$(host_triple)" "$tag_commit")"
+  artefact_blockers="$(artefact_commit_blockers "$STAGE_DIR" "$(host_triple)" "$tag_commit")" || exit 2
   [ -z "$artefact_blockers" ] ||
     die "the staged BYTES cannot be shown to have come from $tag ($tag_commit):
 $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
@@ -1793,9 +1827,15 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   # nothing because it examined nothing reads exactly like one that passed, and
   # this file already carries that lesson about `provenance_blockers`. Naming
   # each binary and the commit it claims is what says the check ran.
-  local pb pbc
+  local pb pbc mrc
   for pb in $BINARIES; do
-    pbc="$(artefact_source_commit "$STAGE_DIR/$pb-$(host_triple)")" || pbc="<none>"
+    mrc=0
+    pbc="$(artefact_source_commit "$STAGE_DIR/$pb-$(host_triple)")" || mrc=$?
+    case "$mrc" in
+      0) ;;
+      1) pbc="<none>" ;;
+      *) exit 2 ;;
+    esac
     printf '    %-34s names %s\n' "$pb" "$pbc"
   done
 
