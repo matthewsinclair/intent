@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-15T13:49:13.181Z",
+    "heartbeat_at": "2026-09-15T15:13:19.439Z",
     "status": "active",
-    "focus": "2026-09-15: 0399 BANKED at refs/bank/ic/0399 and judged once -- green but for five intentd waits under load, one re-run owed -- and it lands on vc's word. Then, in vc's order: 0334 with 0396 and the `ac gate` ratification, 0339, 0177, ST0075 WP-02/03, ic's share of ST0056's as-written pass; review cc's 0331 when it lands. 0398's stray title held for hv. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-15: 0399 LANDED at a0c7300eb; vc builds and restarts intentd so hv sees it. Banked for vc's next train after cc's control: 0177, 0339's design lines and code commit (0339 closes with dc's IN-RS-CODE-001 enforcement), and tui-design.md's as-written edit. In flight: the TUI fix commit (F01, F15, F25, F27), and the scope of parity.md's and the proposal docs' findings with vc. Then 0334 with 0396 and `ac gate`, ST0075 WP-02/03, and a review of cc's 0331. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0075"
     ],
@@ -901,7 +901,8 @@
       "kind": "todo",
       "seq": 13,
       "text": "**0339 (S to M), after 0334.** Each bullet fixed or ruled out with a line in ST0056's design, edited through `st attach` under vc's ST0056 claim. RULED (vc, 2026-09-14): the migrator's last line against AC-00.8, fix whichever is false and say which; the no-op `clippy` arm in critic.rs goes, the enforcer being `cargo clippy --workspace -D warnings` in the gate and CI; `intent/export@3.0` and the `st list --status tbc` alias close on design lines. RE-DRIVE FIRST: `todo.window_hours` (project.rs now checks it and a render.rs generator names it); `at new --status` and AcceptanceTest.kind Unbuilt (likely fixed by b510c2ae1). UNRULED, to vc if a choice arises: `st/ST0056` as a documented address; intentd's shell.html palette. ONE run if code moves.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:13:01.568Z",
       "recorded_at": "2026-09-15T10:02:17.779Z"
     },
     {
@@ -1000,7 +1001,8 @@
       "kind": "hold",
       "seq": 6,
       "text": "**Issue 0398's title on the live store ends \"...every values\"**, a stray \"s\" saved by hv's drive of 0399's in-place edit, and its canon and view are dirty on main -- RELEASES WHEN hv says restore it (`intent issues edit 0398 --title` back to \"...every value\", canon and view committed) or keep it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:13:14.950Z",
       "recorded_at": "2026-09-15T13:05:51.861Z"
     },
     {
@@ -1032,7 +1034,8 @@
       "kind": "todo",
       "seq": 17,
       "text": "**0177 (XS), after 0339: the finding moves onto the register's ext rows and the issue closes** (hv's rulings of 2026-09-15, item 6). `ext`, `learn` and `config` stay declared and unbuilt (hv, 2026-08-31). Locate each row by ROW and regenerate dispatch-table.md in the same commit (watch-out 58).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:13:06.015Z",
       "recorded_at": "2026-09-15T13:33:57.213Z"
     },
     {
@@ -1048,7 +1051,8 @@
       "kind": "todo",
       "seq": 19,
       "text": "**ST0056's as-written pass, ic's share (L), after ST0075.** The files: tui-design.md, tui-redesign-proposal.md, parity.md and the parity/ docs, each read against the build and fixed through `st attach` under vc's ST0056 claim. hv ratified D43 and the `new-surface` scope (rulings of 2026-09-15, item 16), so parity.md's provisional marking of `new-surface` changes in this pass. tui-design.md §6 was rewritten for 0399 and lands with it, so the pass reads the rest of that file.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:13:10.501Z",
       "recorded_at": "2026-09-15T13:34:06.733Z"
     },
     {
@@ -1064,8 +1068,41 @@
       "kind": "doing",
       "seq": 26,
       "text": "**ISSUE 0399, hv's INLINE EXPLORER CHANGE: BANKED AND JUDGED ONCE, NOT LANDED.** BANK: `refs/bank/ic/0399` is patch blob 81ae8943 on base b2b06c2ba; re-applied at 13:25Z it gives the worktree's own tree c784b5a4, so the bank is the whole of the work. Recover with `git cat-file -p refs/bank/ic/0399 | git apply` on b2b06c2ba; the worktree dies with a reboot and the ref does not. FULL RUN (a train of one in wt-0399, 13:11Z to 13:16Z, isolated HOME, in-tree target), ACCEPTED BY vc: intentsvcs 1645 passed 0 failed, intent-cli 946 passed 0 failed, workspace clippy `-D warnings` and rustfmt clean, install pointer unchanged. NOT YET DECIDED: intentd 46 passed and 5 failed, every failure a wait on a watch that timed out -- `daemon_subscriptions`' three event arms (no event within 20s), `the_daemon_lists_the_project_registry` and `a_source_edit_reaches_the_index_and_costs_canon_nothing` -- with the load read after the run at 98/167/124 (13:19Z). LOGS: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/7f9cf959-3635-42f2-bfdd-d88cdad6a90a/scratchpad/run-0399/` (`summary`, one log per step; `rerun-intentd/rerun.sh` carries the first run's environment), gone on a reboot. vc's DECISION RULE: after the bounce and outside cc's host hold, record `uptime`, then run `cargo test -p intentd --no-fail-fast` ONCE in wt-0399. Green: 0399 lands on vc's word, rebased onto the post-fold HEAD. Only wait arms red again, with the load recorded: judged by its cause (0399 touches no intentd code) and it lands the same way. Any other red goes back to vc. LANDING: attach tui-design.md in main first, apply the bank, close 0399 with a CLOSED note correcting its body's \"highlighted code blocks\" (code renders in one colour; no syntect), `organize --apply`, commit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:12:57.074Z",
       "recorded_at": "2026-09-15T13:34:16.344Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 27,
+      "text": "**0177 (XS): BANKED AND APPROVED BY vc FOR THE TRAIN.** `refs/bank/ic/0177` (a7fbe19be, taken against a0c7300eb): the finding is a third string in the `ext` family's `family_notes` in `surface/dispatch-table.json` (the family declares list, show, validate and new and no `ext remove`; completeness is settled when ext is built), with `surface/dispatch-table.md` regenerated in the same patch. Control: the generator reproduces the committed view byte-identical from base, and the draft adds exactly one bullet. `ext`, `learn` and `config` stay declared and unbuilt (hv, 2026-08-31). LANDING: rebased onto vc's hash, regenerate dispatch-table.md rather than hand-merge it (0338 (ii) and 0398 also touch the register), close 0177 citing hv's rulings of 2026-09-15 item 6 and the row, commit.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:12:38.826Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 28,
+      "text": "**0339, ST0056's design docs versus the build: THE DESIGN LINES AND THE CODE COMMIT ARE BANKED AND APPROVED BY vc; THE ISSUE CLOSES WITH dc's IN-RS-CODE-001 ENFORCEMENT (hv, 2026-09-15).** DESIGN: `refs/bank/ic/0339-design` (24f23e8f5, taken against a0c7300eb) rides vc's train with 0399 and 0177. It carries design.md D46 `[VOID]`, closed on `intent/export@3.0` being an internal id (hv's rulings of 2026-09-15, item 16); a Parity contract paragraph keeping `st list --status tbc` as `not-started` and never `Triage` (vc, 2026-09-14); an intentd bullet saying each surface's palette lives apart (vc's pick); deferred.md's D46 row citing ruling 16; and data-model.md's `tbc` rule. CODE: `refs/bank/ic/0339-code` (04ba2ba46, a patch against the stack a0c7300eb + 0177 + 0339-design) retires `at new --status` on the register, removes the status from `Facade::at_new` and from the CLI and MCP parses, adds `intent-cli/tests/at_new_takes_no_status.rs`, and deletes the test `at_new_refuses_a_status_the_kind_cannot_hold` and at_new's `permitted_for` refusal (both deletions approved). It also removes the no-op `\"clippy\"` critic arm and RULE.md's clause about it, rewrites critic-gate.md line 89's parenthetical and CI cite (that sentence is ic's, the rest of the file dc's), and moves render.rs's `todo` comment, five TUI comments (to `intent:///threads/ST0056`), data-model.md's `at new` paragraph and a cli_end_to_end.rs comment to the build. Worktree wt-0339, run script run-0339/run.sh and the commit message draft draft-0339/commit-msg-code.txt live in the scratchpad and die on a reboot; the refs do not. CLOSED ON EVIDENCE OR RULING: AcceptanceTest.kind is built (0324, 0337); the migrator's last line closes on AC-00.8's withdrawal of 2026-09-11, with no reword; `todo.window_hours` stays declared and inert on D44 and D51. LANDING: after hv's rebuild and cc's control, rebase 0339-code onto the train as it landed, regenerate dispatch-table.md rather than hand-merge it, one judging run, then land on vc's word.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:12:43.322Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 29,
+      "text": "**ST0056's as-written pass, ic's share: THE READS ARE DONE AND tui-design.md's EDIT IS BANKED.** `refs/bank/ic/aswritten-tui-design` (a56085a41, taken against a0c7300eb, where 0399 landed) carries tui-design.md's doc-only findings, each verified against the code: the screen and palette mocks, the APP and HINT rows' right-hand groups, the dropdown's rule, vi's two-press Esc, the palette's resting page, `/search` among the reserved views, the file rows, the explorer's config path, the browser's collapsed values and the TUI's markdown pane, plus vc's rulings on F06 (the composer's text dims in MENU) and F11 (Ctrl-C inside FIELD discards the edit). The three reading reports are in the scratchpad under aswritten/ and die on a reboot. parity.md, and tui-redesign-proposal.md with the authored parity/ docs, wait on vc's scope ruling before any draft: most of their findings sit inside dated records, and two are code-facing (O4's status segments and O2's `:w`, ratified on 2026-09-02 and never built).",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:12:47.872Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 21,
+      "text": "**THE TUI FIX COMMIT, on vc's rulings of 2026-09-15 on the tui-design.md audit, after 0399 and the tui-design.md edit.** One commit citing the finding ids, with no new issue. F01: rows carry `Triple::editable`, and Enter on a non-editable row opens no edit (drive `set`'s refusal once and name the result in the commit). F15: one `keys::typed` predicate for the composer and an in-place edit (drafted). F25: a rows pane draws `detail_focus` and scrolls `detail_first` to keep it on screen. F27: an entity that fails to load renders the error row. It carries ic's stale comments (nav.rs, layout.rs, commands.rs, keys.rs, form.rs, run.rs and render.rs's detail sets, drafted) and F15's sentence in tui-design.md section 4; render.rs's `--browser` comment is cc's, in 0338 (i). Worktree wt-tui in the scratchpad, stacked on 0399, 0177, 0339-design, 0339-code and aswritten-tui-design; a red-on-base arm for each fix, then one judging run on vc's word.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:12:52.505Z"
     }
   ],
   "messages": [
