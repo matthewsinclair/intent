@@ -4,11 +4,13 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "b148e605-2046-46b1-9830-53a81fc2d54f",
-    "heartbeat_at": "2026-09-14T21:56:03.336Z",
-    "status": "paused",
-    "focus": "2026-09-14 21:51Z: WRAPPED for the day on hv's word. Landed today and reported: 0346 d9304ef54, 0353 e28011e83, 0310 ed0ca764c, 0324+0337 b510c2ae1, 0332 af7501075, 0312+0328 8019a242c, 0303 b6f0ef070, 0307 3ad4df12b, 0350+0329 d2491639b. Next: 0334 (researched, not written, wt-b10 clean), then 0339, 0396, ST0075 WP-02/03. Resume from scratchpad batch/STATE.md. NO RELEASE, NO PUSH.",
-    "claims": [],
+    "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
+    "heartbeat_at": "2026-09-15T10:03:11.071Z",
+    "status": "active",
+    "focus": "2026-09-15: localfolded on hv's word, plan folded back to vc for its sync with hv. Now: hv's explorer UX change, inline, as an issue. Then on vc's word: 0334 (M, first landing; 0396 rides with it if vc rules so), 0339, ST0075 WP-02/03, ic's share of ST0056's as-written pass. NO RELEASE, NO PUSH.",
+    "claims": [
+      "ST0075"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -37,7 +39,8 @@
       "kind": "todo",
       "seq": 1,
       "text": "**The batched reference regeneration, after the tag, on vc's signal.** Both halves `--rev v3.0.2 --baseline v3.0.1`, and **`--baseline` must be passed because both generators hardcode `v3.0.0`**. Neither needs a build.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:58:40.173Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -81,7 +84,8 @@
       "kind": "watchout",
       "seq": 1,
       "text": "**A CHANGE THAT IS CORRECT AGAINST A RULING CAN STILL BE RED AGAINST AN INVARIANT, AND I LANDED ONE WITHOUT RUNNING THE SUITE.** The skill rewrite named `intent wb register --name` and `--role` -- exactly the spelling vc ruled -- and `no_skill_names_an_unshipped_verb` refused it because cc had not built them yet. cc measured main red before my own run did. **A peer's ruling is not a green**, and the instrument that catches this IS the criterion: for AC-14.10, a document naming an unbuilt flag is the requirement failing rather than a test being early. Run the arms that read what you just wrote, before landing, every time.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:04.264Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -89,7 +93,8 @@
       "kind": "watchout",
       "seq": 2,
       "text": "**A SHARED AGGREGATOR GOES STALE UNDER YOU BETWEEN THE READ AND THE JUDGEMENT, AND THE STALE READ LOOKS EXACTLY LIKE A FINDING.** I had `wb archive`'s four-value enum from earlier in the session and a written finding that `wb add` could create a hold nothing could archive -- mechanism named, consequence named, wrong. `c9f40c79e` had added the fifth value in between. Driving it (`intent wb archive hold 1 --node ic` against its `watchout` control) refuted it in one call. **Re-read the row at the moment you judge it, and drive the refusal rather than reasoning about it.**\n  THE SHARED TREE, which is where the near-misses were:",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:09.104Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -124,7 +129,8 @@
       "kind": "watchout",
       "seq": 6,
       "text": "**`git commit --only <path>` commits the WORKING TREE version, not the staged one** -- a peer's staged edit in a file you are writing lands in YOUR commit under YOUR message. Check `git status` for `MM` before adding.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:13.973Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -132,7 +138,8 @@
       "kind": "watchout",
       "seq": 7,
       "text": "**Never `git stash` here**: the stash list holds other sessions' entries back to v2.3.0 and a pop can apply a stranger's work. Mutate in place and restore.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:18.866Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -140,7 +147,8 @@
       "kind": "watchout",
       "seq": 8,
       "text": "**A text edit in a shared aggregator is located by its ROW, never by a pattern** -- a replace on two common field lines put my row's note on `st hydrate`. Verify by parsing the file back and asking which row carried it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:23.666Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -148,7 +156,8 @@
       "kind": "watchout",
       "seq": 9,
       "text": "**Never write the register back through a serialiser**: it reformats lines nobody touched. Insert as TEXT.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:28.496Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -156,7 +165,8 @@
       "kind": "watchout",
       "seq": 10,
       "text": "Diff a shared aggregator (`tests/suite.rs`, `CHANGELOG.md`, the register) before `git add`; a `mod` registration lands in the same commit as the file it names.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:33.350Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -173,7 +183,8 @@
       "kind": "watchout",
       "seq": 12,
       "text": "A new ROW moves `populations.{declared,shipped,probeable}`, `legal_pairs`'s `n` and `census_note`, and the new-surface family count in `dispatch::tests`; a FAMILY needs `flags: []` on its own row; a new KEY must be classified in `key_classes`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:38.258Z",
       "recorded_at": "2026-09-13T10:24:38.645Z"
     },
     {
@@ -181,7 +192,8 @@
       "kind": "watchout",
       "seq": 13,
       "text": "A shipped mutation needs `recoverability`, and one withheld from MCP while recoverable needs `recoverability_anomaly` -- the generator refuses the silence and says do not bend the label.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:43.134Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -189,7 +201,8 @@
       "kind": "watchout",
       "seq": 14,
       "text": "A generated view is regenerated by its tool in the same commit and never hand-edited; the rendered markdown must be a formatter fixed point, so no `*emphasis*` in register prose.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:48.030Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -197,7 +210,8 @@
       "kind": "watchout",
       "seq": 15,
       "text": "An exact command literal in shipped source must be declared in `command_rosters_are_derived_or_declared`, and a shipped mutator must sit in exactly one bucket of `write_moves_only_what_changed`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:52.890Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -214,7 +228,8 @@
       "kind": "watchout",
       "seq": 17,
       "text": "Private detached worktree, its OWN IN-TREE target dir, isolated `HOME`; read `cat ~/.intent/home` afterwards.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:59:57.788Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -231,7 +246,8 @@
       "kind": "watchout",
       "seq": 19,
       "text": "**A worktree carries a STAGED copy across `checkout --detach`** (`git checkout -- .` restores from the INDEX): use `git reset --hard <new head>`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:02.686Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -248,7 +264,8 @@
       "kind": "watchout",
       "seq": 21,
       "text": "An AT row citing a file is a citation only if the FILE carries the row's literal id.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:07.570Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -256,7 +273,8 @@
       "kind": "watchout",
       "seq": 22,
       "text": "Nothing in this workspace may read a clock; bound work in SQLite instructions, not seconds.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:12.411Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -264,7 +282,8 @@
       "kind": "watchout",
       "seq": 23,
       "text": "**A RUN THAT NEVER REACHED THE TEST IS NOT A PASS, AND IT WEARS A PASS'S SHAPE.** My control reported _patched: 0 subscription arms red_ and the patched side had never run `daemon_subscriptions` at all -- the lib arm failed first and cargo stopped. `grep -c <arm name>` was 4 on a base log and 0 on every patched log. **The runner's positive control is now that both sides show the arm NAMES before any verdict is read**, and a zero count is a VOID run reported as one (vc). I nearly reported the absence as the result, one hour after putting the same question to two other nodes.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:17.288Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -281,7 +300,8 @@
       "kind": "watchout",
       "seq": 25,
       "text": "**THE SAME FAILURE TWICE IS n=2, NOT A MECHANISM** (cc, on their own run, and worth holding because I read peers' suite results all day). Two daemon arms red twice with the same two names reads exactly like determinism; the control at the base commit was green once and then red with the SAME shape, so the family reds at base too and the difference is not established at that sample size. **A repeated name is a hypothesis with a denominator of two.** The answer is a matched run, not a louder reading of the first one.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:22.175Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -289,7 +309,8 @@
       "kind": "watchout",
       "seq": 26,
       "text": "**AN ARGUMENT FROM THE CORPUS IS UNDERDETERMINED UNTIL YOU LOOK FOR THE ROWS THAT CONTRADICT IT.** I refused three `recoverability: reversible` rows by generalising from the pairs that fit (`st done` against `st reopen`) and never checked for rows that would break the rule. cc found three -- `ac new`, `at new`, `issues add` -- all `reversible` with no removal verb, so the same argument reaches the opposite conclusion. **The authority was one grep away**: `guide.rs:271` renders the field as _another command on this surface undoes it_, which settles it without an inference. Right answer, wrong route, and the route was the part I was confident about. (The counter-examples then dissolved -- each of those three has a RETIRING verb, `ac withdraw`, `at na`, `issues close` -- which only shows how much work the unchecked half of an argument is doing.)",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:27.060Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -297,7 +318,8 @@
       "kind": "watchout",
       "seq": 27,
       "text": "**A TEMPLATE IN THIS TREE IS NOT A DRAFT, AND EDITING ONE IS A DEPLOYMENT.** `~/.intent/home` points at this working copy and the installed shim execs `lib/templates/hooks/pre-commit.sh` from it, so my half-finished gate arm refused every commit on ANOTHER estate, mid-deploy, until I reverted it. Uncommitted is not private. Hook and template work happens in a worktree, always.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:31.908Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -305,7 +327,8 @@
       "kind": "watchout",
       "seq": 28,
       "text": "**EVERY REPLACE ASSERTS ITS MATCH COUNT, AND THIS IS NOT A MARKDOWN RULE.** A blind swap of `2 => Err(Failure::Unavailable(` hit `doctor_verdict` AND the critic's verdict match, so a rules-less install went from refusing at 2 to sealing a clean verdict at 0 with no output. The arm directly above it warns about that exact fall-through in its own comment. A test caught it; I proved the cause by reverting my own patch and re-running rather than reasoning about it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:36.817Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -322,7 +345,8 @@
       "kind": "watchout",
       "seq": 30,
       "text": "**VERIFY THE PRODUCER YOURSELF BEFORE LANDING THE CONSUMER.** The gate calls `intent` from PATH, so the arm had to land after the pair was rebuilt at its producer -- and I read the pair's own version and doctor's 0 and 4 in my own shell rather than taking the broadcast. Two commits with a rebuild between them, deliberately, instead of one clean-looking landing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:41.691Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -330,7 +354,8 @@
       "kind": "watchout",
       "seq": 31,
       "text": "**A CODE ALREADY CARRYING FOUR MEANINGS DOES NOT TAKE A FIFTH.** Exit 2 is the unbuilt population's predicate, and `retirement_is_enumerable` refused to let doctor answer there. The ruled shape said 2; the estate's own record said 2 was full. Bringing the name and the evidence beat implementing the ruling as given.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:46.458Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -338,7 +363,8 @@
       "kind": "watchout",
       "seq": 32,
       "text": "**`cmd | tail` ANSWERS `tail`'s EXIT CODE, AND IT BIT ME TWICE IN ONE SESSION** -- once reading `intent doctor` as rc=0 when it was 1, once reading a background suite as green when it had a failure. Capture without a pipe before reading `$?`, and read a suite's raw output rather than a tail of it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:51.246Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -355,7 +381,8 @@
       "kind": "watchout",
       "seq": 34,
       "text": "**A MEASUREMENT'S POPULATION IS PART OF THE SENTENCE, AND MINE WAS NOT.** I wrote \"the six `1..n` rows\" into the register off a jq that selected objects carrying `flags` and never looked at `args`. Eight declarations exist; two are positionals. A claim wider than the thing it measured, written into the surface in the commit whose subject was the surface telling the truth. **Say what the query walked, in the sentence, or do not quantify.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:00:56.043Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -363,7 +390,8 @@
       "kind": "watchout",
       "seq": 35,
       "text": "**A NAME SEARCH REPORTED AS A CONCLUSION.** I told vc four entities were homeless; `Envelope` had a complete table at `event_log` all along. Two artefacts describing one thing in two naming conventions cannot be joined by name, and the failure LOOKS like a finding rather than like an error.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:00.904Z",
       "recorded_at": "2026-09-13T10:24:38.646Z"
     },
     {
@@ -389,7 +417,8 @@
       "kind": "watchout",
       "seq": 38,
       "text": "**THE STALE CLAIM IS USUALLY BESIDE THE ONE YOU WERE SENT FOR.** vc sent me to `organize --default`'s help; the `disposition_basis` under it stated the definition-by-exclusion hv had rejected in as many words, on the very date the basis carries. The code was fixed that day and the register was not. **Read the whole row, not the field you were pointed at.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:05.737Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -406,7 +435,8 @@
       "kind": "watchout",
       "seq": 40,
       "text": "**READ THE LANDED CODE, NEVER THE ANNOUNCEMENT.** A release-note paragraph said a rebuild was required before a first search; the door's own doc comment said the daemonless query reconciles, and every caller was a daemon or a test. Both readings were defensible and only the call sites settled it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:10.564Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -414,7 +444,8 @@
       "kind": "watchout",
       "seq": 41,
       "text": "**A PEER'S LANDING SILENTLY FALSIFIES DOCUMENTATION, and nothing reports it.** WP-22 made one Upgrading paragraph wrong; the hydrate refusal made a known-defects remedy send the reader to a refusal. When a verb's behaviour moves, the pages that tell a reader to run it are the defect surface -- go and look, they will not tell you.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:15.324Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -430,7 +461,8 @@
       "kind": "watchout",
       "seq": 43,
       "text": "**A fixture that drops an argument it was handed tests a shape its caller cannot produce** -- every green it gives is about a different row from the one the test says it built.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:20.196Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -501,7 +533,8 @@
       "kind": "watchout",
       "seq": 48,
       "text": "**A RETIREMENT IS A REGISTER ACT, NOT A CODE DELETION, AND THE ESTATE ALREADY HAD THE MECHANISM.** Deleting the `cmd_ws_*` functions made the script's arms unreachable and left `intent claude ws` a live clap subcommand. `Entry::is_shipped()` reads `disposition` AND `target.state` and fails OPEN, so retiring either field strikes the door, and `legal_pairs` makes (retire, retire) the only legal pairing. I had banked a bespoke rc=1 refusal beside a matcher that answers rc=2, names the replacement and is classifiable without reading prose. **Read the register's own rules before inventing a refusal.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:24.966Z",
       "recorded_at": "2026-09-13T11:00:08.274Z"
     },
     {
@@ -509,7 +542,8 @@
       "kind": "watchout",
       "seq": 49,
       "text": "**A GREEN AT IS COVERAGE, NOT SATISFACTION.** A `non-test` AC stays `satisfied: no` beside a green AT and a landed requirement until `intent ac satisfy --evidence` names what met it. AT-14.10 sat that way until vc caught it. And the AT on a non-test row stays `n/a`: doctor refuses a test result there, so the model's word beats a signal's.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:29.780Z",
       "recorded_at": "2026-09-13T11:00:09.407Z"
     },
     {
@@ -517,7 +551,8 @@
       "kind": "watchout",
       "seq": 50,
       "text": "**BOARDS ARE STORE ROWS NOW: EVERY WRITE IS A `wb` VERB WITH `--node ic`, AND A HAND EDIT IS OVERWRITTEN.** My inbox append after the 10:24Z migration was lost to the regeneration; vc had it only because the socket copy existed. Any store write can re-render a PEER's stale view on disk (`ac edit` rewrote dc's board and issue 0317's view): those files are theirs, never in my `--only` paths. Bounds refuse: a peer inbox at 20 refuses `wb ask` (the socket is then the only channel), and my own watch-outs stop at 40 -- the migration carried section HEADINGS in as items, and archiving those was the first room to make.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:34.599Z",
       "recorded_at": "2026-09-13T11:00:10.535Z"
     },
     {
@@ -533,7 +568,8 @@
       "kind": "watchout",
       "seq": 52,
       "text": "**A COMPLETED THREAD'S ROWS ARE CORRECTED FORWARD, NEVER WITHDRAWN** (vc, citing hv 2026-08-21). Retiring a capability later does not make a closed thread's green rows false: each keeps its status and gains a note saying where its arm went and at which sha. And a count in a ruling that came from MY report is still mine to check -- it was twelve rows, not eleven. (`cmd | tail -1` hid a refusal's bound from me during this very fold: read the HEAD of an error, where the numbers are.)",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:39.386Z",
       "recorded_at": "2026-09-13T11:00:12.716Z"
     },
     {
@@ -568,7 +604,8 @@
       "kind": "watchout",
       "seq": 53,
       "text": "**A GATE REFUSAL FROM A PEER'S DIRT PLUS MY STAGED FILES IS A DEADLOCK, AND I HID THE FIRST ONE.** cc's uncommitted stamp work left the shared-artefact guard not intact, so my board commit was refused; cc then would not add over my staged paths. The exit was to `git restore --staged` MY OWN two paths (store already held the change, nothing lost), let cc land, re-issue the same commit -- never `--no-verify`. And I first ran that commit with `>/dev/null 2>&1`, which printed the previous HEAD as if it had landed: **capture a commit's output to a file and read rc and the head of the refusal, every time.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:44.227Z",
       "recorded_at": "2026-09-13T13:20:21.300Z"
     },
     {
@@ -585,7 +622,8 @@
       "kind": "watchout",
       "seq": 54,
       "text": "**AN EDIT DURING AN IN-FLIGHT BUILD IN THE SAME WORKTREE MAKES THE RUN A TEST OF OTHER BYTES, AND I DID IT TWICE IN ONE HOUR.** Both menubar app-test runs were compiling while I applied critic fixes; each green or red would have been about code I was no longer landing. Stop the run, finish the edits, then run once on the bytes that land -- and never edit a register a cargo build in that worktree compiles in. The same change carried a test doc claiming to catch a Rust-side format change its Swift literals could never see (critic-swift, red-control): **a test's comment is a claim about what it can fail on, and it gets the same check as the test.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:49.011Z",
       "recorded_at": "2026-09-13T14:53:34.606Z"
     },
     {
@@ -647,7 +685,8 @@
       "kind": "watchout",
       "seq": 55,
       "text": "**A SILENT ERROR IN MY OWN SHELL DELETED A DOCUMENT, AND A GUARD I WROTE STOPPED A CORRECT COMMIT, IN THE SAME HOUR.** A perl substitution read its replacement from an environment variable I never set, `|| true` swallowed the die, and the substitution ran anyway with an empty replacement: ST0074's design lost a whole section on disk while canon still held it, and hv's doctor saw the divergence first. Separately, a count of aggregator lines not containing ST0074 read 10, but they were ST0074's own WP rows, which do not repeat the thread id. **Never `|| true` a write, pass data by file rather than an unset variable, and read a diff before trusting a count over it.** And `st attach` writes store and canon, never the realised file: edit an attachment at its own path, attach from that path, and commit in the same call.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:53.929Z",
       "recorded_at": "2026-09-13T16:34:40.434Z"
     },
     {
@@ -700,7 +739,8 @@
       "kind": "watchout",
       "seq": 56,
       "text": "**A GATE REFUSAL IS A STAGED INDEX, AND A QUIET WINDOW IS A MESSAGE THAT CAN ARRIVE AFTER THE COMMIT.** ST0074 met three gate refusals in one day (IN-RS-CODE-004 on a Result<_, String>, prettier on an attachment, a mutator in no write bucket): each time unstage my own paths at once, fix in the worktree, re-prove the one arm, re-copy, re-commit the same path list. And 363b18db1 landed inside dc's window because the window-start message reached me after the commit: before any commit, read dc's board DOING for an announced window, not only the inbox. A mutation for a red run is written against the FORMATTED text (rustfmt split the call and the first red never ran), and its drive script must say DID NOT APPLY rather than run the green as if red happened.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:01:58.769Z",
       "recorded_at": "2026-09-14T06:52:36.372Z"
     },
     {
@@ -789,7 +829,8 @@
       "kind": "todo",
       "seq": 7,
       "text": "**0334, NEXT (2026-09-14 21:51Z): researched, NOTHING WRITTEN; wt-b10 clean at d2491639b.** vc's six rulings: (1) an ac/at address resolves to acceptance.md and `edit` and `--path` both refuse NotEditable naming `intent ac` / `intent at`, printing nothing; (2) the `edit wp` remedy names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`; (3)(a) `issue` leaves edit's kind roster (browse keeps it) and `edit issue <id>` names `intent issues edit <id>`; (4) `set` refuses Thread.acceptance, read from its Immutable declaration, canon unchanged; (5) carried by 0376; (6) the info.md Acceptance paragraph names the ac/at verbs, landing as code plus canon, with the 53 views re-rendered in one mechanical commit after the next `build all`. Every site and each test it moves are in scratchpad batch/STATE.md. Each arm red on base, ONE full run, report every file before landing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:58:45.033Z",
       "recorded_at": "2026-09-14T21:52:02.516Z"
     },
     {
@@ -797,7 +838,8 @@
       "kind": "todo",
       "seq": 8,
       "text": "**0339 (2026-09-14 21:51Z): the six as-built bullets, each fixed or ruled out with a line in the design** (window_hours; the export schema; the migrator's last line; the clippy arm behind IN-RS-CODE-001; `at new --status` / `st list --status tbc` / AcceptanceTest.kind; the `st/ST0056` address and shell.html's palette). Rulings in scratchpad batch/rulings.md. After 0334.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:58:49.810Z",
       "recorded_at": "2026-09-14T21:52:58.768Z"
     },
     {
@@ -805,7 +847,8 @@
       "kind": "todo",
       "seq": 9,
       "text": "**0396 (2026-09-14 21:51Z): `at edit`'s register consequence line denies `--kind`, which exists.** XS, register text plus regenerated dispatch-table.md. After 0339.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:58:54.613Z",
       "recorded_at": "2026-09-14T21:53:09.809Z"
     },
     {
@@ -813,7 +856,8 @@
       "kind": "todo",
       "seq": 10,
       "text": "**ST0075 WP-02 and WP-03 (2026-09-14 21:51Z).** WP-01 landed (a0b92c365, 4c3a30972). wt-console holds the base; reset it to main's head before starting. After the issue batch.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:58:59.440Z",
       "recorded_at": "2026-09-14T21:53:20.853Z"
     },
     {
@@ -829,8 +873,113 @@
       "kind": "watchout",
       "seq": 57,
       "text": "**A STORE WRITE ON THIS TREE WAITS FOR THE STORE TO BE FREE, AND A RETRY IS NOT A WAIT** (2026-09-14 21:51Z). 0307's closure was refused three times on `database is locked` while peers' post-compact `wb pickup` loops held the store for 5+ minutes at load 269; each refusal wrote nothing, and a 300s wait for five free seconds never got them. The fourth attempt waited for `lsof intent/.cache/intent.db` to list intentd alone and went through in 15s. But lsof cannot see intentd's own write transaction: at 99% CPU it refused a board write with intentd the only holder. So check whether a refused write landed, then retry, never blind. And `organize --apply` still exits 1 on the lock while removing the views, so verify past it (canon, `issues show`, .intentfiles), every time.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T10:02:03.519Z",
       "recorded_at": "2026-09-14T21:55:30.420Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 11,
+      "text": "**0334 (M), FIRST LANDING in vc's unified plan (2026-09-15).** vc's six rulings, on hv's list to overrule: (1) an ac/at address resolves to acceptance.md and `edit` and `--path` both refuse NotEditable naming `intent ac` / `intent at`, printing nothing; (2) the `edit wp` remedy names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`; (3)(a) `issue` leaves edit's kind roster (browse keeps it) and `edit issue <id>` names `intent issues edit <id>`; (4) `set` refuses Thread.acceptance, read from its Immutable declaration, canon unchanged; (5) closes citing 0376; (6) the thread and WP cover Acceptance paragraphs name the ac/at verbs, landing as code plus canon, the 53 views re-rendered in vc's mechanical commit after a rebuild that carries 0334. SITES BY SYMBOL (recorded at d2491639b, re-anchor at HEAD): `Facade::edit`'s `match &address.entity` gains the Ac/At arm; `Project::edit_disposition`'s `_ =>` remedy; the register `edit` row's kind values and render.rs's edit parse ahead of `check_enum`; facade.rs `unsettable` gains an Immutable arm (kind Never) through `transitions::find`; views.rs's two cover paragraphs. TESTS THAT MOVE: edit_prints_a_path_that_exists (every_address_form_is_edited_or_refused_by_name), edit_answers_about_the_entity_you_named (the kind vocabulary and the issue case), mutation_every_writable_field (a_different_legal_thread_value and the unsettable kind table), plus a new refusal test for `set <thread> acceptance`. Full notes: the 2026-09-14 ic transcript b148e605, its WRAP section. Fresh private worktree at HEAD; each arm red on base; ONE full run; every file reported before landing.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:08.318Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 12,
+      "text": "**0396 (XS), proposed to ride in 0334's commit (vc to rule).** `surface/dispatch-table.json`'s `at edit` row `target.consequence`: `--status` stays absent (`at green|red|na` own status); `--kind` is present and re-enters `AtStatus::entry`. Regenerate dispatch-table.md with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh` in the same commit.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:13.044Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 13,
+      "text": "**0339 (S to M), after 0334.** Each bullet fixed or ruled out with a line in ST0056's design, edited through `st attach` under vc's ST0056 claim. RULED (vc, 2026-09-14): the migrator's last line against AC-00.8, fix whichever is false and say which; the no-op `clippy` arm in critic.rs goes, the enforcer being `cargo clippy --workspace -D warnings` in the gate and CI; `intent/export@3.0` and the `st list --status tbc` alias close on design lines. RE-DRIVE FIRST: `todo.window_hours` (project.rs now checks it and a render.rs generator names it); `at new --status` and AcceptanceTest.kind Unbuilt (likely fixed by b510c2ae1). UNRULED, to vc if a choice arises: `st/ST0056` as a documented address; intentd's shell.html palette. ONE run if code moves.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:17.779Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 14,
+      "text": "**ST0075 WP-02 then WP-03 (S each), after the issues; the design is ST0075's design.md.** `st start ST0075` first (Triage). WP-02: copy Gtools' ConsoleLine, ConsoleRunner, ConsoleWindowController and ConsoleTests; the brand palette into Theme; Console on Cmd-L, File > Close Cmd-W, View > Clear Console Cmd-K; the follow child's stdin pipe; AT-02.1 to 02.3 as Swift tests; `bin/int macos app-test` and critic-swift; correct the stale no-console comments in IntentApp.swift and IntentCLI.swift. WP-03: Run Doctor and Rebuild Search Index stream between markers and bring the Console forward; Start, Stop and Restart write a marked block through DaemonService.lifecycle; a second one-off is refused with an alert; AT-03.1 to 03.4. Driven by hand once after an app-install (hv's quiet window). Release is hv's line (vc's lean 3.1.0).",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:22.671Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 15,
+      "text": "**ST0056's as-written pass, ic's share (L): the file set and its place in the order come from vc's sync with hv.** Candidates: tui-design.md, tui-redesign-proposal.md, parity.md and the parity/ docs, each read against the build and fixed through `st attach` under vc's claim.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:27.457Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 58,
+      "text": "**THE REGISTER IS TEXT WITH RULES, NOT A FILE TO REWRITE.** Locate an edit by its ROW, never by a pattern, and verify by parsing back which row carried it; insert as text, never through a serialiser; regenerate dispatch-table.md in the same commit (a formatter fixed point, so no `*emphasis*` in register prose). A new row moves `populations.{declared,shipped,probeable}`, `legal_pairs`' `n` and `census_note`, and the new-surface family count in `dispatch::tests`; a family needs `flags: []` on its own row; a new key is classified in `key_classes`. A shipped mutation needs `recoverability` (plus `recoverability_anomaly` when withheld from MCP while recoverable) and sits in exactly one bucket of `write_moves_only_what_changed`; an exact command literal in shipped source is declared in `command_rosters_are_derived_or_declared`. A retirement is `disposition` plus `target.state`, never a code deletion: `Entry::is_shipped()` fails open and `legal_pairs` allows only (retire, retire). Before landing a `transitions.rs` State change run `parity/tools/machine_table_check.sh`, before any `target.state` change `corrected_check.sh`, and attach any file under `intent/st/` before committing it.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:32.241Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 59,
+      "text": "**JUDGE FROM A FRESH READ, AND DRIVE THE REFUSAL RATHER THAN REASON ABOUT IT.** A shared aggregator moves between the read and the judgement, and the stale read looks exactly like a finding (`wb archive`'s enum gained its fifth value at c9f40c79e under my written finding). Read the whole row, not the field you were sent to: the stale claim is usually beside it. Verify a producer in your own shell before landing the consumer that calls it, with a rebuild between the two commits when the consumer calls `intent` from PATH.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:37.025Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 60,
+      "text": "**EVERY REPLACE ASSERTS ITS MATCH COUNT, AND NO WRITE IS EVER `|| true`.** A blind swap hit two verdict matches and turned a refusal into a silent clean seal; a perl substitution fed from an unset variable emptied a design section while `|| true` swallowed the die. Pass data by file, report to STDERR, read a diff before trusting a count over it, and write a red-run mutation against the FORMATTED text with a driver that says DID NOT APPLY.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:41.846Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 61,
+      "text": "**NEVER EDIT BYTES A RUNNING BUILD IN THAT WORKTREE IS COMPILING**: the run then judges code you are not landing (twice in one hour, both menubar app-tests), and a test's comment about what it can fail on gets the same check as the test. **A GATE REFUSAL LEAVES YOUR PATHS STAGED ON THE SHARED INDEX**: unstage your own at once, fix in the worktree, re-prove the one arm, re-issue the same path list; capture the commit's output to a file and read rc, `git log -1` and the head of the refusal. Before any commit read dc's board DOING for an announced window: the window's message can arrive after your commit.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:46.702Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 62,
+      "text": "**A LANDING SILENTLY FALSIFIES THE DOCS THAT TELL A READER TO RUN WHAT IT MOVED, AND NOTHING REPORTS IT.** WP-22 made an Upgrading paragraph wrong; the hydrate refusal sent a known-defects remedy to a refusal; on 2026-09-15 `~/.intent/home` was still named by restart.md and two boards after 2f29401b6 had moved the pointer to `~/.local/share/intent/home`. When a verb's behaviour or a path moves, go and read the pages that name it.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:51.652Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 63,
+      "text": "**A SUITE RUN WRITES THE ESTATE IT RUNS IN, AND /private/tmp DOES NOT SURVIVE A REBOOT.** Every run: a private detached worktree, its own in-tree target dir, `HOME=<scratch>` written as a command, `cargo build -p intentd` first; afterwards `~/.local/share/intent/home` still names this tree. On 2026-09-15 a reboot took every worktree and scratchpad, and only the session transcript under `~/.claude/projects/` still held the notes (heredoc writes in the command text, large reads under `tool-results/`): anything that must outlive a session goes on this board, into a commit, or into the store.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:02:56.517Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 64,
+      "text": "**A GREEN AT IS COVERAGE, NOT SATISFACTION.** A non-test AC stays unsatisfied beside a green AT until `intent ac satisfy --evidence` names what met it, and its AT stays `n/a`; an AT citing a file counts only if the FILE carries the row's literal id; a completed thread's rows are corrected forward with a note naming where the arm went and at which sha, never withdrawn (vc, citing hv 2026-08-21).",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:03:01.353Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 65,
+      "text": "**BOARDS ARE STORE ROWS: EVERY WRITE IS A `wb` VERB WITH `--node ic`, AND A HAND EDIT IS OVERWRITTEN.** Any store write can re-render a PEER's stale view on disk: those files are theirs, never in my `--only` paths. A peer inbox at 20 refuses `wb ask` (the socket is then the only channel), and my watch-outs stop at 40.",
+      "state": "live",
+      "recorded_at": "2026-09-15T10:03:06.198Z"
     }
   ],
   "messages": [
