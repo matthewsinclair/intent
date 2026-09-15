@@ -58,15 +58,15 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
   - [x] 04: The explorer's project picker: /projects, and intent explore outside a project
   - [x] 05: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
+- [-] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
+  - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
+  - [ ] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
+  - [ ] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ## TODO
 
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [ ] ST0070: LLM config rationalisation -- one home per fact
-- [?] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
-  - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
-  - [ ] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
-  - [ ] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ## DONE:2026-09-10T00:00:51Z
 
