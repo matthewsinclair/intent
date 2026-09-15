@@ -36,9 +36,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use notify_debouncer_full::notify::RecursiveMode;
-use notify_debouncer_full::{
-  DebounceEventResult, Debouncer, NoCache, RecommendedCache, new_debouncer, new_debouncer_opt,
-};
+use notify_debouncer_full::{DebounceEventResult, Debouncer, NoCache, new_debouncer_opt};
 
 use intentsvcs::wire::{Event, Response};
 
@@ -61,7 +59,7 @@ const QUIET: Duration = Duration::from_millis(250);
 /// serving, which on a long-lived process is a slow descriptor leak whose only
 /// symptom is the daemon eventually failing to watch anything new.
 pub struct Watch {
-  _debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, RecommendedCache>,
+  _debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, NoCache>,
   /// The INDEX scope's own registration and its own debounced stream.
   ///
   /// **TWO REGISTRATIONS, NOT ONE WIDENED ONE** (vc, 2026-09-12, on a
@@ -103,9 +101,22 @@ pub struct Watch {
 pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response> {
   let handle_for_index = Arc::clone(&handle);
   let watched_root = root.to_path_buf();
-  let mut debouncer = new_debouncer(QUIET, None, move |result: DebounceEventResult| {
-    on_batch(&watched_root, &handle, result)
-  })
+  // **NO FILE-ID CACHE ON THE CANON REGISTRATION EITHER** (vc's ruling on issue
+  // 0377, 2026-09-15). The default cache walked what every Create named, a stat
+  // per entry and before any ignore rule applied, and a commit's gate and
+  // ingest produce exactly that burst: measured at about eight seconds of
+  // system time on this loop per commit on the pair of 2026-09-14. What the
+  // cache bought is a rename stitched into one event; without it a rename
+  // arrives as a removal and a creation, which `on_batch` reconciles as a
+  // vanished path and a leaf. The scope is untouched: the same two
+  // registrations below.
+  let mut debouncer = new_debouncer_opt::<_, notify_debouncer_full::notify::RecommendedWatcher, NoCache>(
+    QUIET,
+    None,
+    move |result: DebounceEventResult| on_batch(&watched_root, &handle, result),
+    NoCache::new(),
+    notify_debouncer_full::notify::Config::default(),
+  )
   .map_err(|e| {
     Response::error(
       format!("the filesystem watcher for `{}` could not start: {e}", root.display()),
@@ -154,7 +165,8 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
   let index_root = root.to_path_buf();
   let index_handle = Arc::clone(&handle_for_index);
   //
-  // **AND IT KEEPS NO FILE-ID CACHE, WHICH THE CANON REGISTRATION DOES.** The
+  // **AND IT KEEPS NO FILE-ID CACHE** (issue 0355; the canon registration
+  // followed under 0377). The
   // default cache walks each created directory and, on each removal, retains
   // over every path it holds, so a deletion burst under a build directory held
   // half a core in that bookkeeping alone. What the cache buys is a rename
