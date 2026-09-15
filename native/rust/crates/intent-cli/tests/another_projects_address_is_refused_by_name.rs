@@ -1,5 +1,5 @@
-//! `AC-07.6`'s intent-cli half: **the doors this crate owns refuse another
-//! project's address by name** (hv's ruling 4, 2026-09-15; issue 0338).
+//! AT-07.8 / AC-07.6, the intent-cli half: **the doors this crate owns refuse
+//! another project's address by name** (hv's ruling 4, 2026-09-15; issue 0338).
 //!
 //! The facade's doors are driven in `intentsvcs/tests/address_empty_authority.rs`.
 //! These are the doors that read an address in THIS crate before any facade door
