@@ -707,6 +707,22 @@
       "text": "**TWO MORE TRAPS (cc, 2026-09-15).** `grep` on this machine is ugrep, and a long `.{0,N}` repetition fails with \"exceeds complexity limits\" instead of matching. `.gitignore` ignores `target/` only, so a worktree build must use the in-tree `native/rust/target`: a `target-cc` directory is not ignored and would ride into a `git add -A` bank patch.",
       "state": "live",
       "recorded_at": "2026-09-15T13:28:30.743Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 12,
+      "text": "**0338 (i) DRIVEN 15:14Z; the evidence and the proposed shape went to vc; the build waits on vc's word on the base.** The drive ran wt-0338ii's build in a scratch project under an isolated HOME; nothing was written and no daemon started. Doors handed another project's address: `edit <address> <file>` names the slug only when the id and file exist here, as NotHydratable with a head and remedy that do not fit, and says `no steel thread ... in this project` otherwise; `set` names the URL, promises a registry that does not exist, and gives the PUT/POST remedy; `browse st` and `edit st --browser` resolve the id here and reach the daemon probe; MCP `resources/read` answers from this project byte for byte. By static read, intentd Op::Set goes through Facade::set, and put_attachment and detach_attachment check nothing (no caller passes them a slug). Not address doors, since a local-URL control refuses identically: CLI and MCP `st hydrate`/`st dehydrate` and MCP `st edit` refuse any URL through thread_spec. Stale docs for the same commit: render.rs's doc on `browsed`, and the doc before `edited`. In the scratchpad: regen/0338i-static-map.md, regen/drive-0338i.sh, regen/drive-0338i-local.sh.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:20:02.734Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 13,
+      "text": "**0331's stale-comments pass also takes four strings ic found (vc routed them, 2026-09-15; confirmed at a0c7300eb).** views.rs passes `thread.json` as the footer's source at :437 and :948, where canon is `intent/.canon/st/<ST>.json`; every thread view renders that footer, so the fix re-renders them all and the landing carries that mechanical diff. export.rs:47 says one `thread.json` per thread and one `issue.json`. contract.rs:71 cites the deleted `bin/intent_acceptance:454`. intent/st/ST0056/parity/tools/coverage_map.sh:23 says tests/ is gone, and it is not. `thread.json` also stands in views.rs doc comments at :1160 and :2311.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:20:07.269Z"
     }
   ],
   "messages": [

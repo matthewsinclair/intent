@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 13:26Z
+heartbeat_at: 2026-09-15 15:13Z
 status: active
-focus: "2026-09-15 13:26Z: on vc's word, 0398 (S) in flight and banked test-first at refs/bank/dc/0398 on base 11ea62689; then the ST0056 attachments pass, item 12 (S), item 17 (XS) and the Devbin filing (XS). Localfolded for hv's bounce. NO RELEASE, NO PUSH."
+focus: "2026-09-15 15:13Z: host hold for cc's control (vc); 0398's fix banked source-only at refs/bank/dc/0398-fix (base 11ea62689, applies on a0c7300eb), red and green after the lift; drafting the ST0056 as-written pass in a worktree; then hv's IN-RS-CODE-001 (M), the artefact.lib strings fix (S), the Devbin fullcycle filing (XS), items 12 and 17. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,12 +13,12 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **0398 (S), st show honours its declared `file`, IN FLIGHT on vc's word; NOT train-ready.** Banked test-first at `refs/bank/dc/0398` on base `11ea62689` (patch blob; `git cat-file -p refs/bank/dc/0398 | git apply` on the base): new `intent-cli/tests/st_show_prints_the_file_it_names.rs` (an arm per value, plus the store-only thread via `st dehydrate`), its `suite.rs` row, and the `st show` row in `declared_values_are_enforced.rs` moved to `Enforced` with the unused `Unenforced` variant removed. Worktree `wt-0398` in this session's scratchpad, in-tree target, `HOME=/tmp/dc98h`, `CARGO_HOME=/Users/matts/.cargo`. Next: the red run; then the fix: facade `st_attachment` refusing a new `FacadeError::NotCarried` whose remedy names `intent st attach <id> <path> --from <file>` (plus its rows in `error_remedies.rs` and `mandatory_fields_reach_a_reader.rs`), facade `st_contract` rendering `views::acceptance`, the render arm on `enum_arg`, and `show::thread_all` for `all`; then green, fmt and clippy on both crates, re-bank, tell vc the base.
+- **IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED, shape approved by vc; rides TRAIN 2 after the TUI fix and cc's 0338 (i).** Worktree `wt-rscode` = `7517619ba` plus the six train-1 banks; safety blob `refs/bank/dc/rscode001-draft` over that stack. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason, which vc reads against the rule's exemption at bank time, the compiled-in table ones hardest. A rust.yml step over `-p intentsvcs -p intent-cli --lib`; crate-level allows in both build.rs; RULE.md, critic-gate.md's finding and the workflows README corrected. Next: once train 1 has landed and cc's (i) is banked, rebase onto (i) (where edit() meets it, keep (i)'s cross-project variant; NotHydratable only for an entity that cannot be realised), re-run, bank, blob to vc, tell ic when it lands.
 
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
-- **dc's lane after 0398, in vc's order (vc's word 2026-09-15, hv's rulings applied).** (2) ST0056 `install.md`, `migration.md` and `critic-gate.md` as-written against as-built: drives in a scratch project under an isolated HOME with the delivered pair, never the live store; ONE attachment commit on main on vc's word, no train. (3) Item 12, hv's hold 1: build the pair in a private directory and move it into place in one step, so no estate finds `intent` missing (S, Train 3); hold 2 struck. (4) Item 17: check whether `claude upgrade --apply`'s report points at `organize --apply` when views are stale, and add the line if not (XS). (5) File cc's finding upstream in Devbin: `artefact.lib:61` turns a refused `strings` into "no marker" (XS, whenever). Item 11: no stranger-machine runbook; AC-00.5, AC-11.1 and 0344 wait until the brew-installed Intent works here. Rules until vc announces Phase 0 done: no wb writes and no main commits, banks are patch blobs named with their base, and no new build or suite step inside a host hold vc announces.
+- **dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** `opt()` in render.rs reads an undeclared argument id as absent (No Silent Errors, vc): its OWN XS commit right after the rscode commit, no issue; make it refuse through `undeclared_arg` as `arg()` does, with one arm added to an existing test that is red on base. The swallowed `strings` refusal in `bin/.devbin/cmd/shared/artefact.lib` (S, no issue): already shown on HEAD; fix it so the refusal surfaces with its remedy, before-and-after in the commit message; past S, tell vc first. Item 12, the atomic pair install (S, Train 3). Item 17 (XS). Item 11: no runbook; AC-00.5, AC-11.1 and 0344 wait on the brew install working here.
 
 ## Holds
 

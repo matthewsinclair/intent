@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "85e09f85-a542-4730-a80c-727ada01c1d9",
-    "heartbeat_at": "2026-09-15T13:26:32.975Z",
+    "heartbeat_at": "2026-09-15T15:13:35.917Z",
     "status": "active",
-    "focus": "2026-09-15 13:26Z: on vc's word, 0398 (S) in flight and banked test-first at refs/bank/dc/0398 on base 11ea62689; then the ST0056 attachments pass, item 12 (S), item 17 (XS) and the Devbin filing (XS). Localfolded for hv's bounce. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-15 15:13Z: host hold for cc's control (vc); 0398's fix banked source-only at refs/bank/dc/0398-fix (base 11ea62689, applies on a0c7300eb), red and green after the lift; drafting the ST0056 as-written pass in a worktree; then hv's IN-RS-CODE-001 (M), the artefact.lib strings fix (S), the Devbin fullcycle filing (XS), items 12 and 17. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/11"
     ],
@@ -856,7 +856,8 @@
       "kind": "doing",
       "seq": 46,
       "text": "**0398 (S), st show honours its declared `file`, IN FLIGHT on vc's word; NOT train-ready.** Banked test-first at `refs/bank/dc/0398` on base `11ea62689` (patch blob; `git cat-file -p refs/bank/dc/0398 | git apply` on the base): new `intent-cli/tests/st_show_prints_the_file_it_names.rs` (an arm per value, plus the store-only thread via `st dehydrate`), its `suite.rs` row, and the `st show` row in `declared_values_are_enforced.rs` moved to `Enforced` with the unused `Unenforced` variant removed. Worktree `wt-0398` in this session's scratchpad, in-tree target, `HOME=/tmp/dc98h`, `CARGO_HOME=/Users/matts/.cargo`. Next: the red run; then the fix: facade `st_attachment` refusing a new `FacadeError::NotCarried` whose remedy names `intent st attach <id> <path> --from <file>` (plus its rows in `error_remedies.rs` and `mandatory_fields_reach_a_reader.rs`), facade `st_contract` rendering `views::acceptance`, the render arm on `enum_arg`, and `show::thread_all` for `all`; then green, fmt and clippy on both crates, re-bank, tell vc the base.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:16:55.508Z",
       "recorded_at": "2026-09-15T13:26:18.247Z"
     },
     {
@@ -864,8 +865,97 @@
       "kind": "todo",
       "seq": 12,
       "text": "**dc's lane after 0398, in vc's order (vc's word 2026-09-15, hv's rulings applied).** (2) ST0056 `install.md`, `migration.md` and `critic-gate.md` as-written against as-built: drives in a scratch project under an isolated HOME with the delivered pair, never the live store; ONE attachment commit on main on vc's word, no train. (3) Item 12, hv's hold 1: build the pair in a private directory and move it into place in one step, so no estate finds `intent` missing (S, Train 3); hold 2 struck. (4) Item 17: check whether `claude upgrade --apply`'s report points at `organize --apply` when views are stale, and add the line if not (XS). (5) File cc's finding upstream in Devbin: `artefact.lib:61` turns a refused `strings` into \"no marker\" (XS, whenever). Item 11: no stranger-machine runbook; AC-00.5, AC-11.1 and 0344 wait until the brew-installed Intent works here. Rules until vc announces Phase 0 done: no wb writes and no main commits, banks are patch blobs named with their base, and no new build or suite step inside a host hold vc announces.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:17:11.211Z",
       "recorded_at": "2026-09-15T13:26:23.168Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 47,
+      "text": "**0398 (S), st show honours its declared `file`: shape APPROVED by vc, NOT YET RUN.** `refs/bank/dc/0398` = test-first `4eee7cbdd`; `refs/bank/dc/0398-fix` = tests plus fix `0d137250e`; both on base `11ea62689`, both apply cleanly on `a0c7300eb`, where 0399 landed over render.rs and facade.rs. The fix: facade `st_attachment` refusing a new `FacadeError::NotCarried` whose remedy names `intent st attach`, facade `st_contract` selecting `acceptance.md` from `views::render_all`, the render arm on `enum_arg`, `show::thread_all`; the register note corrected with the exit-2 refusal declared, its view regenerated; stacked with ic's 0177 byte-identical. Next, when vc lifts cc's host hold: rebase both banks onto main, red on the test-first bank, apply the fix, green, fmt, clippy on intentsvcs and intent-cli, final blob at `refs/bank/dc/0398`, blob and base to vc, re-run the 0177 stack check.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:23:58.979Z",
+      "recorded_at": "2026-09-15T15:16:50.676Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 13,
+      "text": "**ST0056 as-written pass over `install.md`, `migration.md` and `critic-gate.md` (M; first after 0398 in vc's order).** Drafting in a private worktree off main, because intentd ingests an attachment edit made on main. Found so far: the XDG move of the home pointer and the per-user config, the support archive now shipping subagents, the floor remedy reworded by 0333, `NOT_YET_BUILT` empty since the whiteboard was carried, the upgrade's v2 prune, and drifted line citations. Drives with the delivered pair under an isolated HOME wait for the lift of cc's hold. ONE attachment commit on vc's word, rebuilt on HEAD. **LEAVE `critic-gate.md`'s sentence on the no-op clippy arm to ic's 0339**; whoever lands second rebases onto the other's hash.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:24:07.844Z",
+      "recorded_at": "2026-09-15T15:17:00.261Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 14,
+      "text": "**dc's lane after 0398 (vc's word 2026-09-15, with hv's rulings).** hv: ENFORCE `IN-RS-CODE-001` (M): measure first with one clippy run over the library crates (`unwrap_used`, `expect_used`, `panic`, no `--all-targets`), then ONE commit carrying a rust.yml step and every site fixed to a Result or allowed with its reason, RULE.md's sentence corrected, rebased on ic's 0339; tell ic when it lands. The swallowed `strings` refusal in `bin/.devbin/cmd/shared/artefact.lib` (S, Intent's own code, no issue): show it on HEAD, fix it, before-and-after in the message; past S, tell vc first. Devbin: file fullcycle's false stop message (XS). Item 12, the atomic pair install (S, Train 3). Item 17 (XS). Item 11: no runbook; AC-00.5, AC-11.1 and 0344 wait on the brew install working here.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:50:56.180Z",
+      "recorded_at": "2026-09-15T15:17:05.865Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 48,
+      "text": "**0398 (S), st show honours its declared `file`: GREEN, banked for vc's next train.** `refs/bank/dc/0398` = `4d0dc557b` on base `87f4feecf`, tests plus fix; the test-first blob is superseded and `refs/bank/dc/0398-fix` deleted. Red on the test-first bank: 7 of 10 arms failing, the six file values and the declared-values `st show` row. Green with the fix: intent-cli suite 11/11, intentsvcs arms 16/16, remedy_coverage 4/4; fmt --check clean; clippy -D warnings over intentsvcs and intent-cli, all targets, clean. Stacked with ic's 0177 on `87f4feecf`, both orders, view byte-identical. Next: vc's train; if main moves under native/rust or surface first, rebase and re-run before it rides.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:50:42.717Z",
+      "recorded_at": "2026-09-15T15:23:54.419Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 15,
+      "text": "**ST0056 as-written pass over `install.md`, `migration.md` and `critic-gate.md` (M): DRAFTED AND BANKED, waiting for vc's word.** `refs/bank/dc/aswritten-st0056` = `753107e71` on `a0c7300eb`, drafted in the worktree `wt-aswritten` off main. Corrections: the XDG pointer and config paths (bootstrap driven on a fresh HOME), the support archive shipping subagents (the 3.0.3 keg's `claude subagents list` driven), the floor remedy reworded by 0333, `NOT_YET_BUILT` empty since the whiteboard was carried, the upgrade's v2 prune, the release gate in a private worktree (0389), and drifted line citations. Applies with ic's `0339-code` in both orders. ONE attachment commit on vc's word, rebuilt on HEAD; **`critic-gate.md`'s no-op clippy sentence stays ic's**.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:32:27.769Z",
+      "recorded_at": "2026-09-15T15:24:03.423Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 49,
+      "text": "**0398 (S), st show honours its declared `file`: IN TRAIN 1 (vc), landing last after ic's banks.** `refs/bank/dc/0398` = `d4b380bde` on `7517619ba`, now carrying the `command_rosters_are_derived_or_declared` DECLARED entry (`st show`, `NotARoster`, covering both lookup sites) that vc's train found missing. Whole intent-cli suite green in the private worktree: lib 305, dual_path_conformance 1, suite 647; fmt --check and clippy -D warnings clean. vc re-runs the intent-cli suite on the landed train plus 0398 before the word; 0398's close lands with it, its title already restored on hv's ruling.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:56:19.609Z",
+      "recorded_at": "2026-09-15T15:50:38.212Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 50,
+      "text": "**IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED on the train-1 stack, banked after train 1 lands.** Worktree `wt-rscode` = `7517619ba` plus the six train-1 banks; safety blob `refs/bank/dc/rscode001-draft` over that stack. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason. A rust.yml step denying `unwrap_used`, `expect_used` and `panic` over `-p intentsvcs -p intent-cli --lib`; crate-level allows in both build.rs (build scripts out, vc's scope); RULE.md's sentence, critic-gate.md's finding and the workflows README corrected. Both clippy steps and fmt clean; the only test reds are the stack's stale 0398 and ST0056 attachment drift from stacked banks carrying no canon. Next: rebase onto the landed train, re-run, bank, send vc the blob, tell ic when it lands.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:52:27.455Z",
+      "recorded_at": "2026-09-15T15:50:47.211Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 16,
+      "text": "**dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** The swallowed `strings` refusal in `bin/.devbin/cmd/shared/artefact.lib` (S, Intent's own code, no issue): already shown on HEAD (a refused `strings` and a marker-less binary both return rc 1 with nothing printed); fix it so the refusal surfaces with its remedy, before-and-after in the commit message; past S, tell vc before starting. Item 12, the atomic pair install (S, Train 3). Item 17 (XS). Item 11: no runbook; AC-00.5, AC-11.1 and 0344 wait on the brew install working here.",
+      "state": "archived",
+      "archived_at": "2026-09-15T15:52:36.506Z",
+      "recorded_at": "2026-09-15T15:50:51.674Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 51,
+      "text": "**IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED, shape approved by vc; rides TRAIN 2 after the TUI fix and cc's 0338 (i).** Worktree `wt-rscode` = `7517619ba` plus the six train-1 banks; safety blob `refs/bank/dc/rscode001-draft` over that stack. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason, which vc reads against the rule's exemption at bank time, the compiled-in table ones hardest. A rust.yml step over `-p intentsvcs -p intent-cli --lib`; crate-level allows in both build.rs; RULE.md, critic-gate.md's finding and the workflows README corrected. Next: once train 1 has landed and cc's (i) is banked, rebase onto (i) (where edit() meets it, keep (i)'s cross-project variant; NotHydratable only for an entity that cannot be realised), re-run, bank, blob to vc, tell ic when it lands.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:52:22.970Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 17,
+      "text": "**dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** `opt()` in render.rs reads an undeclared argument id as absent (No Silent Errors, vc): its OWN XS commit right after the rscode commit, no issue; make it refuse through `undeclared_arg` as `arg()` does, with one arm added to an existing test that is red on base. The swallowed `strings` refusal in `bin/.devbin/cmd/shared/artefact.lib` (S, no issue): already shown on HEAD; fix it so the refusal surfaces with its remedy, before-and-after in the commit message; past S, tell vc first. Item 12, the atomic pair install (S, Train 3). Item 17 (XS). Item 11: no runbook; AC-00.5, AC-11.1 and 0344 wait on the brew install working here.",
+      "state": "live",
+      "recorded_at": "2026-09-15T15:52:31.977Z"
     }
   ],
   "messages": [
