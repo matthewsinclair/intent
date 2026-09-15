@@ -31,7 +31,7 @@ use crate::ingest::Canon;
 use crate::model::{
   AcState, AcceptanceTest, AtKind, Criterion, Issue, Thread, ThreadStatus, WorkPackage,
 };
-use crate::project::{Project, canon_thread_rel};
+use crate::project::Project;
 use crate::write_set::WriteSet;
 
 /// The line an EMPTY item list renders as: a `todo` bucket with nothing in it,
@@ -418,8 +418,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   if !carries_heading(&thread.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
     out.push_str(&format!(
-      "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `{}`, then `intent sync --to-store`. This cover never restates them.\n\n",
-      canon_thread_rel(&thread.id)
+      "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n"
     ));
   }
 
@@ -498,6 +497,13 @@ pub const INFO_ROUND_TRIP_SECTIONS: &[&str] = &["Objective", "Context"];
 /// [`carries_heading`]. An author who writes their own `## Work Packages` owns
 /// those bytes, and the renderer defers to them, so the reader must too.
 const INFO_GENERATED_SECTIONS: &[&str] = &["Work Packages", "Acceptance", "Related Steel Threads"];
+
+/// **THE VERBS THAT WRITE A CONTRACT ROW, SAID ONCE FOR BOTH COVERS** (issue
+/// 0334). The thread's and the work package's `## Acceptance` paragraphs sent a
+/// reader to mint or reword a row in the thread's canon file and run `intent
+/// sync --to-store`, as though these verbs did not exist -- a hand-edit of
+/// canon, the route they retired. Every spelling here is a shipped verb.
+const CONTRACT_VERBS: &str = "`intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state";
 
 /// What [`info_read_back`] recovered: the two authored sections, as edited.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1236,10 +1242,9 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   if !carries_heading(&wp.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
     out.push_str(&format!(
-      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `WP-{:02}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model: change a state with the `intent ac` / `intent at` verbs, and mint or reword a row in `{}`, then `intent sync --to-store`. This cover never restates them.\n\n",
+      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `WP-{:02}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n",
       thread.id,
-      wp.seq,
-      canon_thread_rel(&thread.id)
+      wp.seq
     ));
   }
 

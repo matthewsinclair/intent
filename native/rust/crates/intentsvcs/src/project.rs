@@ -2248,7 +2248,11 @@ impl Project {
             // need different verbs, and "this is generated" sends both to the
             // same dead end.
             "acceptance.md" => "`intent ac` for criteria and `intent at` for test rows",
-            _ => "`intent st` for thread fields and `intent wp` for work packages",
+            // **THE ONE OTHER VIEW THIS ARM REACHES IS A WORK PACKAGE'S COVER**
+            // (`classify` names three, and the thread cover opens above). Its
+            // remedy named `intent wp`, which has no writer for a package's prose
+            // (issue 0334); `set` is the verb that writes it.
+            _ => "`intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`",
           },
         }
       }
@@ -2322,10 +2326,15 @@ mod tests {
     // is the arm that would go quiet if `is_thread_info` ever stopped checking
     // depth -- both files are called `info.md`, and only the depth tells them
     // apart.
-    assert!(matches!(
-      Project::edit_disposition(&PathBuf::from("WP").join("01").join("info.md")),
-      EditDisposition::Refuse { .. }
-    ));
+    // **AND ITS REMEDY NAMES THE VERB THAT WRITES A PACKAGE'S PROSE** (issue
+    // 0334): it named `intent wp`, and no `intent wp` verb writes a body.
+    match Project::edit_disposition(&PathBuf::from("WP").join("01").join("info.md")) {
+      EditDisposition::Refuse { author_with } => assert!(
+        author_with.contains("intent set") && !author_with.contains("intent wp"),
+        "a work package's cover must name `intent set`, said `{author_with}`"
+      ),
+      other => panic!("a work package's cover is GENERATED and must be refused, got {other:?}"),
+    }
     assert!(matches!(
       Project::edit_disposition(Path::new("thread.json")),
       EditDisposition::Refuse { .. }

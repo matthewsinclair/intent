@@ -1640,6 +1640,22 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
         // it. The FILE moves up one slot -- clap put it in `id`.
         (address_of(None, &one)?, second.or(third))
       }
+      // **`issue` IS NOT A KIND THIS VERB OPENS, AND NAMING ONE IS ANSWERED ABOUT
+      // AN ISSUE** (issue 0334). It left the table's roster -- an issue carries
+      // no file `edit` can open, and `browse` keeps it -- so without this arm the
+      // enum check below would answer *name one of st, wp*: true, and silent
+      // about the verb that does correct an issue. It sits ahead of the
+      // lone-token arm, so `edit issue` with no id is not read as an id called
+      // `issue`; the address spelling still reaches the facade's own refusal.
+      (Some(kind), id) if kind == "issue" => {
+        let named = id
+          .as_deref()
+          .filter(|id| !id.starts_with(intentsvcs::address::SCHEME))
+          .unwrap_or("<id>");
+        return Err(Failure::Error(format!(
+          "error: an issue has no file for `edit` to open -- its one file is a view rendered from the store\n  remedy: `intent issues edit {named}` corrects the record it is rendered from"
+        )));
+      }
       // **A LONE TOKEN THAT IS NOT A KIND IS A BARE ID, AND SAYING SO IS THE
       // WHOLE VALUE OF THIS ARM.** `intent edit 0056` is the natural thing to
       // type; routing it through the enum check answers *`0056` is not a kind*,
@@ -11488,11 +11504,13 @@ fn resolved_against_the_project(raw: &str) -> Result<intentsvcs::address::Addres
 /// of `0189` is that answering confidently about the entity the caller did not
 /// name is worse than refusing.
 ///
-/// **`browse` DECLARES THE IDENTICAL `kind` + `id: address-or-id` SHAPE AND IS
-/// UNWIRED (rc=2), SO IT CARRIES NO DEFECT TODAY.** Whoever wires it calls
-/// THIS, rather than writing a second door -- two spellings of one verb that
-/// disagree about which forms they accept is the drift the aliasing was meant
-/// to prevent (vc raised it).
+/// **`browse` DECLARES THE SAME `kind` + `id: address-or-id` SHAPE AND CALLS
+/// THIS**, rather than a second door -- two spellings of one verb that disagree
+/// about which forms they accept is the drift the aliasing was meant to prevent
+/// (vc raised it). **ITS KIND ROSTER IS ONE WIDER THAN `edit`'s, DELIBERATELY**
+/// (issue 0334): an issue carries no file `edit` opens, so `issue` left `edit`'s
+/// roster and `browse` keeps it. The `issue` arm below is `browse`'s, and
+/// `edit`'s parse refuses the kind before it reaches here.
 pub(crate) fn address_of(
   kind: Option<&str>,
   raw: &str,

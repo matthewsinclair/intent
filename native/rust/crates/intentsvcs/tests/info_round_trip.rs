@@ -406,3 +406,47 @@ fn invariant_a_reworded_banner_does_not_reach_the_model() {
   assert_eq!(got.objective, thread.objective);
   assert_eq!(got.context, thread.context);
 }
+
+/// **BOTH COVERS NAME THE VERBS THAT WRITE A CONTRACT ROW** (issue 0334).
+///
+/// The thread's and the work package's `## Acceptance` paragraphs sent a reader
+/// to mint or reword a row in the thread's canon file and then run `intent sync
+/// --to-store`, as though `intent ac` and `intent at` could not -- a hand-edit of
+/// canon, the route those verbs retired. The sample thread and its packages
+/// carry no authored `## Acceptance` section, so the generated paragraph is what
+/// renders; finding it is asserted, so an absent paragraph cannot pass.
+#[test]
+fn both_covers_name_the_verbs_that_write_a_contract_row() {
+  let thread = sample_thread("ST0056");
+  let wp = thread
+    .wps
+    .first()
+    .expect("the sample thread carries a work package");
+  for (cover, rendered) in [
+    ("thread", views::info(&thread, &ctx())),
+    ("work package", views::wp_info(&thread, wp, &ctx())),
+  ] {
+    let paragraph = rendered
+      .split("## Acceptance\n\n")
+      .nth(1)
+      .and_then(|rest| rest.split("\n\n").next())
+      .unwrap_or_else(|| {
+        panic!("the {cover} cover renders no `## Acceptance` paragraph:\n{rendered}")
+      });
+    for verb in [
+      "`intent ac new`",
+      "`intent at new`",
+      "`intent ac edit`",
+      "`intent at edit`",
+    ] {
+      assert!(
+        paragraph.contains(verb),
+        "the {cover} cover's paragraph must name {verb}: {paragraph}"
+      );
+    }
+    assert!(
+      !paragraph.contains("sync --to-store"),
+      "the {cover} cover still sends a reader to hand-edit canon and sync: {paragraph}"
+    );
+  }
+}

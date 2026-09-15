@@ -473,6 +473,7 @@ fn every_address_form_is_edited_or_refused_by_name() {
 
   let mut editable = 0;
   let mut refused = Vec::new();
+  let mut generated = Vec::new();
   for entity in forms {
     let form = entity.form();
     let fx = fixture();
@@ -486,14 +487,34 @@ fn every_address_form_is_edited_or_refused_by_name() {
         assert_eq!(named, form, "a refusal must name the form it refused");
         refused.push(form);
       }
-      Err(other) => panic!("{form} must be editable or NotHydratable, got {other:?}"),
+      // **A CRITERION AND A TEST ROW NAME THE VIEW THEY RENDER INTO** (issue
+      // 0334). They were answered with the thread's own file, which the row is
+      // not in; the view they are in is generated, so the answer is a refusal
+      // naming the verbs that write the row, whichever file was asked for.
+      Err(FacadeError::NotEditable { path, author_with }) => {
+        assert!(
+          path.ends_with("/acceptance.md"),
+          "{form} must resolve to the view its row renders into: {path}"
+        );
+        assert!(
+          author_with.contains("intent ac") && author_with.contains("intent at"),
+          "{form}'s refusal must name the verbs that write the row: {author_with}"
+        );
+        generated.push(form);
+      }
+      Err(other) => panic!("{form} must be editable, NotHydratable or NotEditable, got {other:?}"),
     }
   }
 
   assert_eq!(
-    editable + refused.len(),
+    editable + refused.len() + generated.len(),
     13,
-    "the partition must cover every form: {editable} editable, refused {refused:?}"
+    "the partition must cover every form: {editable} editable, refused {refused:?}, generated {generated:?}"
+  );
+  assert_eq!(
+    generated,
+    vec!["ac", "at"],
+    "the forms whose file is a generated view are declared, so a form moving into or out of this bucket is visible"
   );
   assert_eq!(
     refused,

@@ -8110,6 +8110,16 @@ impl Facade {
       // Resolved here, an absent one fails the membership check below, which
       // names what the thread does carry.
       crate::address::Entity::Attachment { path, .. } => std::path::PathBuf::from(path),
+      // **A CRITERION AND A TEST ROW RENDER INTO THE THREAD'S `acceptance.md`, SO
+      // THAT IS THE FILE THEIR ADDRESS NAMES** (issue 0334). `edit
+      // intent:///threads/ST0001/ac/AC-01.1 --path` printed the thread's `info.md`
+      // at rc=0, a file the row is not in. Resolved here, the disposition below
+      // refuses the generated view and names `intent ac` and `intent at` -- the
+      // answer `edit st <id> acceptance` already gets -- so no spelling prints a
+      // view the next render overwrites.
+      crate::address::Entity::Ac { .. } | crate::address::Entity::At { .. } => {
+        std::path::PathBuf::from(crate::views::ThreadView::Acceptance.file())
+      }
       _ => rel,
     };
 

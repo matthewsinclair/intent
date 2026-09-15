@@ -208,8 +208,10 @@ const DECLARED: &[Slot] = &[
     //
     // AC-17.6's argument for the slot stands unchanged: `intent edit 1` refuses
     // with `1 names both a steel thread and an issue`, so the kind resolves an
-    // ambiguity the tool ALREADY reports -- and a caller who types `issue` has
-    // supplied that answer.
+    // ambiguity the tool ALREADY reports -- and a caller who types `st` has
+    // supplied that answer. `issue` left this roster with issue 0334: an issue
+    // carries no file `edit` opens, and `edit issue <id>` names the verb that
+    // corrects one.
     path: "edit",
     arg: "kind",
     lead: &[],

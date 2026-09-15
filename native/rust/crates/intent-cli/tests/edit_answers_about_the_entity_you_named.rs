@@ -75,6 +75,22 @@ fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
     !issue.contains("ST0001/info.md"),
     "naming `issue` returned the THREAD's file -- 0189, the wrong subject at rc={rc}: {issue}"
   );
+  // **AND THE REMEDY NAMES THE VERB THAT CORRECTS AN ISSUE** (issue 0334).
+  // `issue` left `edit`'s kind roster -- an issue carries no file this verb
+  // opens -- and a refusal that stopped at *not a kind* would leave the operator
+  // one lookup short of the door they came for.
+  assert_ne!(
+    rc, 0,
+    "an issue has no file `edit` opens, so this refuses: {issue}"
+  );
+  let remedy = issue
+    .lines()
+    .find(|l| l.trim_start().starts_with("remedy:"))
+    .unwrap_or_default();
+  assert!(
+    remedy.contains("intent issues edit 0001"),
+    "the remedy names `intent issues edit <id>`: {issue}"
+  );
 }
 
 #[test]
@@ -86,8 +102,14 @@ fn the_kind_vocabulary_the_table_declares_is_enforced() {
   let (out, rc) = run(dir.path(), &["edit", "banana", "0001", "--path"]);
   assert_ne!(rc, 0, "an undeclared kind was accepted: {out}");
   assert!(
-    out.contains("st") && out.contains("issue"),
+    out.contains("st") && out.contains("wp"),
     "the refusal must name the vocabulary it is enforcing: {out}"
+  );
+  // **`issue` IS NOT IN IT** (issue 0334): the roster offered `issue` and the
+  // verb then refused it, so the vocabulary named a kind the verb does not open.
+  assert!(
+    !out.contains("issue"),
+    "the refusal offers `issue`, which this verb does not open: {out}"
   );
 }
 
