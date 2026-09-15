@@ -111,5 +111,13 @@ jobs:
         run: cargo fmt --check
       - name: clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: clippy, IN-RS-CODE-001 (no unwrap, expect or panic in library code)
+        # The library targets of intentsvcs and intent-cli, and NEVER --all-targets:
+        # the rule governs src/lib.rs and its descendants, so colocated #[cfg(test)]
+        # code stays out, and the build scripts stay out behind a crate-level allow
+        # because a build-script panic fails the build the way main.rs exits (vc,
+        # 2026-09-15). The three lints are in clippy's restriction group, so this
+        # step is the only thing that turns them on.
+        run: cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
       - name: test (includes the schema-face drift check and the dep-graph guard)
         run: cargo test --workspace --no-fail-fast

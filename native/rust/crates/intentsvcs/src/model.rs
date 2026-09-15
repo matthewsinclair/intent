@@ -414,6 +414,10 @@ pub fn normalise_id(raw: &str) -> Result<(IdKind, u32), IdError> {
 /// which is what this doc claimed while `AcState` was already a counter-example:
 /// it is reachable by calling this on the wrong type, and the message names the
 /// value it was handed.
+#[allow(
+  clippy::panic,
+  reason = "INVARIANT: called only with enums that serialise to a string; any other value is a programming error, never input"
+)]
 pub fn enum_str<T: Serialize>(value: &T) -> String {
   match serde_json::to_value(value) {
     Ok(serde_json::Value::String(s)) => s,

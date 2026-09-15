@@ -56,6 +56,10 @@ impl Stack {
     })
   }
 
+  #[allow(
+    clippy::expect_used,
+    reason = "INVARIANT: a Stack is built with its root and pop refuses to remove it"
+  )]
   pub fn current(&self) -> &View {
     // **THE STACK IS NEVER EMPTY BY CONSTRUCTION**: it is built with a bottom
     // and `pop` refuses to remove it. That invariant is what lets this return a

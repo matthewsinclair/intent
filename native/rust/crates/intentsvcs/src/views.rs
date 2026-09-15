@@ -856,6 +856,10 @@ pub fn differs_as_a_formatter_would(on_disk: &str, rendered: &str) -> bool {
 /// A text with the two rewrites [`differs_as_a_formatter_would`] asks about
 /// applied, so a view and its render compare equal when those are the only
 /// difference.
+#[allow(
+  clippy::expect_used,
+  reason = "INVARIANT: the emphasis pattern is a constant that compiles"
+)]
 fn formatter_normal(text: &str) -> String {
   static EMPHASIS: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
   let emphasis = EMPHASIS.get_or_init(|| {

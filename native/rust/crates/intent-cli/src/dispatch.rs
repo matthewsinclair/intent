@@ -769,6 +769,11 @@ impl Entry {
 
 /// Parse the compiled-in table. Panics on a malformed table because the table
 /// is compiled in: a failure here is a broken build, never bad user input.
+#[allow(
+  clippy::expect_used,
+  clippy::panic,
+  reason = "INVARIANT: the table is compiled in, so a table that fails to parse or to check is a build defect, never input"
+)]
 pub fn table() -> Table {
   let table: Table = serde_json::from_str(TABLE).expect(
     "the compiled-in dispatch table parses; a failure here means the committed table is malformed, which is a build defect rather than anything a user did",

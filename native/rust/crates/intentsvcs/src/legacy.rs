@@ -524,6 +524,10 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     // PRECONDITION of that work rather than a companion to it. Landing
     // `related` alone would run a renderer path never once exercised on a
     // migrated estate and double 52 threads in the same commit.
+    #[allow(
+      clippy::expect_used,
+      reason = "INVARIANT: the thread was pushed onto out.threads just above"
+    )]
     let thread = out.threads.last().expect("just pushed");
     let deferrals: Vec<Disposition> = [
       ("Work Packages", !thread.wps.is_empty()),

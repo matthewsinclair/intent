@@ -240,6 +240,10 @@ pub fn face_names() -> Vec<&'static str> {
 /// `schema_faces_drift.rs` guards.
 /// Render one type's JSON Schema in canonical form (2-space pretty, trailing
 /// newline).
+#[allow(
+  clippy::expect_used,
+  reason = "INVARIANT: a schemars schema serialises to JSON by construction"
+)]
 fn schema_json<T: schemars::JsonSchema>() -> String {
   let schema = schema_for!(T);
   let mut value =

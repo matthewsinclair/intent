@@ -286,6 +286,10 @@ pub fn surface() -> Command {
 }
 
 /// Build the whole surface from the table.
+#[allow(
+  clippy::panic,
+  reason = "INVARIANT: check_vocabularies refuses this table shape at load, so reaching the panic is a build defect"
+)]
 pub fn build(table: &Table) -> Command {
   let mut root = Command::new("intent")
     // **ONE CAPABILITY, TWO SPELLINGS, PRINTING THE SAME BYTES BY
@@ -666,6 +670,10 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
   cmd
 }
 
+#[allow(
+  clippy::panic,
+  reason = "INVARIANT: a flag with no usable spelling is refused as a table defect, so reaching the panic is a build defect"
+)]
 fn flags(mut cmd: Command, entry: &Entry) -> Command {
   for flag in &entry.flags {
     // `help` spellings are clap's own; re-declaring them collides. This is a

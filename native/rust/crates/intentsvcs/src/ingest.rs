@@ -1184,6 +1184,10 @@ trait Validated: DeserializeOwned + schemars::JsonSchema {
 /// Compile a type's schemars output -- the same generator the committed face
 /// is rendered from, so the thing that validates and the thing that is
 /// committed cannot be different things.
+#[allow(
+  clippy::expect_used,
+  reason = "INVARIANT: a schemars schema serialises and compiles; a failure is a version break between schemars and jsonschema, never input"
+)]
 fn compile<T: schemars::JsonSchema>() -> jsonschema::Validator {
   let schema = serde_json::to_value(schemars::schema_for!(T))
     .expect("a schemars schema serialises to JSON by construction");

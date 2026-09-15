@@ -53,6 +53,10 @@ pub const SCHEME: &str = "intent://";
 const COLLECTIONS: &[&str] = &["threads", "issues", "nodes", "events"];
 
 fn collections() -> String {
+  #[allow(
+    clippy::expect_used,
+    reason = "INVARIANT: COLLECTIONS is a non-empty const, so split_last always has a last"
+  )]
   let (last, rest) = COLLECTIONS.split_last().expect("collections is not empty");
   format!("{} and {last}", rest.join(", "))
 }

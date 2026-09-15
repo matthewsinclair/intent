@@ -6004,6 +6004,10 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     let boards = self.canon.boards.clone();
+    #[allow(
+      clippy::expect_used,
+      reason = "INVARIANT: require_registered passed above, and a registered node always has a board in canon"
+    )]
     let board = boards
       .iter()
       .find(|b| b.node.moniker == node)
@@ -8090,11 +8094,15 @@ impl Facade {
         let view = self.project.wp_info_view(thread, seq);
         // Never a fallback to the thread-relative `rel`: that fallback IS the
         // defect, so a layout that broke this would have to fail loudly.
-        view
+        #[allow(
+          clippy::expect_used,
+          reason = "INVARIANT: wp_info_view is under thread_dir by construction, and falling back to the thread-relative path is the defect"
+        )]
+        let under = view
           .parent()
           .and_then(|dir| dir.strip_prefix(self.project.thread_dir(thread)).ok())
-          .expect("wp_info_view is under thread_dir by construction")
-          .join(&rel)
+          .expect("wp_info_view is under thread_dir by construction");
+        under.join(&rel)
       }
       // **AN ATTACHMENT ADDRESS NAMES ITS OWN FILE** (issue 0240), already
       // thread-relative, as `Attachment.path` is. It printed the thread's
@@ -8141,7 +8149,10 @@ impl Facade {
     let (_, id) = address
       .entity
       .artefact()
-      .expect("hydrate refuses any address without an artefact");
+      .ok_or_else(|| FacadeError::NotHydratable {
+        form: address.entity.form(),
+        why: "the address names no artefact, so there is no file of it to open".to_string(),
+      })?;
 
     let wanted = self.project.thread_dir(id).join(&rel);
     if !realised.contains(&wanted) {
@@ -13278,6 +13289,10 @@ fn article_for(form: &str) -> &'static str {
 }
 
 fn schema_properties<T: schemars::JsonSchema>() -> std::collections::BTreeSet<String> {
+  #[allow(
+    clippy::expect_used,
+    reason = "INVARIANT: a schemars schema serialises to JSON by construction"
+  )]
   let schema = serde_json::to_value(schemars::schema_for!(T))
     .expect("a schemars schema serialises to JSON by construction");
   schema

@@ -2121,6 +2121,10 @@ pub(crate) fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Fail
   // a space cannot be named this way, and the refusal below at least names the
   // program it actually tried.
   let mut words = spelling.split_whitespace();
+  #[allow(
+    clippy::expect_used,
+    reason = "INVARIANT: every source of the spelling is trimmed or filtered non-blank, so it has a first word"
+  )]
   let program = words
     .next()
     .expect("a non-blank value has at least one word");
@@ -3616,7 +3620,7 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
     return report_search(m, &answer);
   }
 
-  match (&text, &statement) {
+  let query = match (text, statement) {
     (Some(_), Some(_)) => {
       return Err(Failure::Error(
         "error: a text query and `--sql` are two different questions, and this takes one\n  \
@@ -3632,12 +3636,9 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
           .to_string(),
       ));
     }
-    _ => {}
-  }
-  if let Some(statement) = statement {
-    return search_sql(m, &statement);
-  }
-  let query = text.expect("both-or-neither was checked above");
+    (None, Some(statement)) => return search_sql(m, &statement),
+    (Some(query), None) => query,
+  };
   let ask = search_ask(m)?;
 
   // **ONE QUERY ENGINE, TWO PLACES IT CAN RUN, AND THE ENVELOPE IS THE SAME
@@ -3678,10 +3679,12 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
   // tool serialises the value this same call returns, so the two surfaces
   // cannot answer differently: there is no second assembly to drift.
   if m.get_flag("json") {
-    println!(
-      "{}",
-      serde_json::to_string_pretty(answer).expect("the envelope is plain data")
-    );
+    let rendered = serde_json::to_string_pretty(answer).map_err(|e| {
+      Failure::Error(format!(
+        "error: the search envelope could not be rendered: {e}\n  remedy: this is a fault in the CLI rather than in the query or the store."
+      ))
+    })?;
+    println!("{rendered}");
     return Ok(());
   }
   // Issue 0356: a tier asked for by name that could not answer is said, on
@@ -3919,22 +3922,20 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("show", m)) => {
       let f = open()?;
-      let node = m
-        .get_one::<String>("node")
-        .expect("the table declares `node` as required, so clap has already refused an absent one");
+      let node = arg(m, "node")?;
       let all = m.get_flag("all");
-      let board = intentsvcs::facade::BoardRead::of(f.board(node).map_err(fail)?, all);
+      let board = intentsvcs::facade::BoardRead::of(f.board(&node).map_err(fail)?, all);
       report_wb_board(&board, m.get_flag("json"), all)
     }
     Some(("ask", m)) => {
       let me = acting_node(m)?;
-      let to = m.get_one::<String>("recipient").expect("declared required");
-      let body = m.get_one::<String>("body").expect("declared required");
+      let to = arg(m, "recipient")?;
+      let body = arg(m, "body")?;
       let mut f = open()?;
       f.wb_ask(
         &me,
-        to,
-        body,
+        &to,
+        &body,
         m.get_one::<String>("re").map(String::as_str),
         m.get_flag("fyi"),
       )
@@ -3945,9 +3946,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("announce", m)) => {
       let me = acting_node(m)?;
-      let body = m.get_one::<String>("body").expect("declared required");
+      let body = arg(m, "body")?;
       let mut f = open()?;
-      let reached = f.wb_announce(&me, body).map_err(fail)?;
+      let reached = f.wb_announce(&me, &body).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       // **WHAT IT REACHED, NOT THE ROSTER'S SIZE.** An announce goes to every
       // node but the sender, so on a one-node board it reaches nobody, and
@@ -4016,18 +4017,18 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     Some(("add", m)) => {
       let me = acting_node(m)?;
       let kind = wb_item_kind(enum_arg(m, "wb add", "kind")?.as_str())?;
-      let text = m.get_one::<String>("text").expect("declared required");
+      let text = arg(m, "text")?;
       let mut f = open()?;
-      let seq = f.wb_add(&me, kind, text).map_err(fail)?;
+      let seq = f.wb_add(&me, kind, &text).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} {} {seq}", item_kind_word(&kind));
       Ok(())
     }
     Some(("decide", m)) => {
       let me = acting_node(m)?;
-      let text = m.get_one::<String>("text").expect("declared required");
+      let text = arg(m, "text")?;
       let mut f = open()?;
-      let seq = f.wb_decide(&me, text).map_err(fail)?;
+      let seq = f.wb_decide(&me, &text).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {me} decision {seq}");
       Ok(())
@@ -4038,10 +4039,10 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // as the acting node; a cutover is performed ON a board by whoever runs
       // it, so the board being carried is the argument and there is a human
       // behind the act rather than a session claiming a moniker.
-      let node = m.get_one::<String>("node").expect("declared required");
+      let node = arg(m, "node")?;
       let mut f = open()?;
-      let carried = f.wb_migrate(node).map_err(fail)?;
-      print_notes(&f.take_notes(), node);
+      let carried = f.wb_migrate(&node).map_err(fail)?;
+      print_notes(&f.take_notes(), &node);
       report_wb_migration(&carried)
     }
     Some(("archive", m)) => {
@@ -4056,17 +4057,13 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // driven). `enum_arg` reads the roster the table declares, so the
       // vocabulary has one home and this match cannot outlive it.
       let kind = wb_item_kind(enum_arg(m, "wb archive", "kind")?.as_str())?;
-      let seq: u32 = m
-        .get_one::<String>("seq")
-        .expect("declared required")
-        .parse()
-        .map_err(|_| {
-          Failure::Error(
-            "error: `seq` is the item's number on the board\n  remedy: `intent wb show <node>` \
+      let seq: u32 = arg(m, "seq")?.parse().map_err(|_| {
+        Failure::Error(
+          "error: `seq` is the item's number on the board\n  remedy: `intent wb show <node>` \
              prints each item as `[kind] seq text`"
-              .to_string(),
-          )
-        })?;
+            .to_string(),
+        )
+      })?;
       let mut f = open()?;
       // **WHAT MOVED, NOT WHAT WAS ASKED FOR.** Archiving something already
       // archived, or a number no item carries, moves nothing -- and saying
@@ -4086,12 +4083,12 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("claim", m)) => {
       let me = acting_node(m)?;
-      let what = m.get_one::<String>("id").expect("declared required");
+      let what = arg(m, "id")?;
       let mut f = open()?;
       // **WHAT MOVED, NOT WHAT IS THERE.** Claiming something already claimed
       // is the normal case at pickup and is not an error, but saying `claimed`
       // either way would report a write that did not happen.
-      let moved = f.wb_claim(&me, what).map_err(fail)?;
+      let moved = f.wb_claim(&me, &what).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!(
         "ok: {me} {} {what}",
@@ -4101,9 +4098,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("unclaim", m)) => {
       let me = acting_node(m)?;
-      let what = m.get_one::<String>("id").expect("declared required");
+      let what = arg(m, "id")?;
       let mut f = open()?;
-      let moved = f.wb_unclaim(&me, what).map_err(fail)?;
+      let moved = f.wb_unclaim(&me, &what).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!(
         "ok: {me} {} {what}",
@@ -4113,9 +4110,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("clear", m)) => {
       let me = acting_node(m)?;
-      let from = m.get_one::<String>("sender").expect("declared required");
+      let from = arg(m, "sender")?;
       let mut f = open()?;
-      let moved = f.wb_clear(&me, from).map_err(fail)?;
+      let moved = f.wb_clear(&me, &from).map_err(fail)?;
       print_notes(&f.take_notes(), &me);
       println!("ok: {moved} message(s) from {from} marked handled");
       Ok(())
@@ -4435,18 +4432,20 @@ fn report_index(
         (reason.as_str().to_string(), serde_json::json!(paths))
       })
       .collect();
-    println!(
-      "{}",
-      serde_json::to_string_pretty(&serde_json::json!({
-        "held": held,
-        "grammars": status.grammars,
-        "skipped": skipped,
-        "sizes": status.sizes,
-        "empty": status.is_empty(),
-        "rebuilt": rebuilt,
-      }))
-      .expect("the summary is plain data")
-    );
+    let rendered = serde_json::to_string_pretty(&serde_json::json!({
+      "held": held,
+      "grammars": status.grammars,
+      "skipped": skipped,
+      "sizes": status.sizes,
+      "empty": status.is_empty(),
+      "rebuilt": rebuilt,
+    }))
+    .map_err(|e| {
+      Failure::Error(format!(
+        "error: the index summary could not be rendered: {e}\n  remedy: this is a fault in the CLI rather than in the index or the store."
+      ))
+    })?;
+    println!("{rendered}");
     return Ok(());
   }
 
@@ -7408,7 +7407,7 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
 fn init_langs(a: &ArgMatches) -> Result<Vec<String>, Failure> {
   let raw = a
     .try_get_one::<String>("lang")
-    .unwrap_or_else(|e| panic!("`init` reads a flag id the surface does not build: lang ({e})"));
+    .map_err(|e| undeclared_arg("lang", e))?;
   let Some(raw) = raw else {
     return Ok(Vec::new());
   };
@@ -9235,10 +9234,10 @@ fn family_help(family: &str) -> Result<(), Failure> {
       print!("{}", cmd.render_help());
       Ok(())
     }
-    None => panic!(
-      "`{family}` parsed as a subcommand and is absent from the rebuilt spine; the parse tree and \
+    None => Err(Failure::Unavailable(format!(
+      "error: `{family}` parsed as a subcommand and is absent from the rebuilt spine; the parse tree and \
        the render tree disagree, which is a build defect rather than anything a user did"
-    ),
+    ))),
   }
 }
 
@@ -11342,10 +11341,17 @@ fn arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
   match m.try_get_one::<String>(name) {
     Ok(Some(value)) => Ok(value.clone()),
     Ok(None) => Err(Failure::Error(format!("error: {name} is required"))),
-    Err(e) => Err(Failure::Error(format!(
-      "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
-    ))),
+    Err(e) => Err(undeclared_arg(name, e)),
   }
+}
+
+/// The refusal for an argument id the dispatch table does not declare: ONE home
+/// for [`arg`]'s seam check and for any reader that asks clap for an OPTIONAL
+/// value, which must refuse the same way rather than panic (IN-RS-CODE-001).
+fn undeclared_arg(name: &str, cause: impl std::fmt::Display) -> Failure {
+  Failure::Error(format!(
+    "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {cause}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
+  ))
 }
 
 /// An operator's spelling of a THREAD id, canonicalised, or a refusal that says

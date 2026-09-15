@@ -185,6 +185,10 @@ impl Registry {
     );
     // A `Value` built from maps, strings and numbers has no failing case in
     // `serde_json`'s serialiser: its errors are for `Serialize` impls and I/O.
+    #[allow(
+      clippy::expect_used,
+      reason = "INVARIANT: a Value built from maps, strings and numbers has no failing case in serde_json's serialiser"
+    )]
     let mut text =
       serde_json::to_string_pretty(&Value::Object(doc)).expect("a JSON value serialises");
     text.push('\n');

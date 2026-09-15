@@ -31,7 +31,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 - Installs the stable toolchain with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
-- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings` and `cargo test --workspace --no-fail-fast`
+- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), and `cargo test --workspace --no-fail-fast`
 
 ### 3. PR Checks (`pr-checks.yml`)
 
@@ -63,6 +63,7 @@ cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p in
 cd native/rust
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
 cargo test --workspace --no-fail-fast
 ```
 

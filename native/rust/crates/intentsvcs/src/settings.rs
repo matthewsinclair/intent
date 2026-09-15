@@ -283,6 +283,10 @@ fn put(doc: &mut Map<String, Value>, dotted: &str, value: &str) {
     if !at.is_object() {
       *at = Value::Object(Map::new());
     }
+    #[allow(
+      clippy::expect_used,
+      reason = "INVARIANT: the line above made this value an object"
+    )]
     let map = at.as_object_mut().expect("just made it an object");
     if i + 1 == segments.len() {
       map.insert((*segment).to_string(), Value::String(value.to_string()));

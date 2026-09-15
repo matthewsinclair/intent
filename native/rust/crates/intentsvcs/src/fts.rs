@@ -91,8 +91,8 @@ fn tokenize(query: &str) -> Vec<Token> {
           if q == '"' {
             // A doubled `""` is an escaped quote INSIDE the phrase, not the
             // end of it.
-            if chars.peek() == Some(&'"') {
-              span.push(chars.next().expect("peeked"));
+            if let Some(escaped) = chars.next_if_eq(&'"') {
+              span.push(escaped);
               continue;
             }
             closed = true;
@@ -102,8 +102,8 @@ fn tokenize(query: &str) -> Vec<Token> {
         if !closed {
           span.push('"');
         }
-        if chars.peek() == Some(&'*') {
-          span.push(chars.next().expect("peeked"));
+        if let Some(star) = chars.next_if_eq(&'*') {
+          span.push(star);
         }
         tokens.push(Token::Quoted(span));
       }
