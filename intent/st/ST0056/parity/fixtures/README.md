@@ -15,7 +15,7 @@ Issue 0056's closing section states the requirement and the reason:
 - **`display()` itself.** `view_determinism.rs`'s first regression test asserted `view.contains(format!("status: {}", status.display()))` -- comparing the renderer to the function that _defines_ the renderer's spelling. `display()` returning `n@a` passed it. True, and unable to discriminate.
 - **A hand-authored seed.** vc generated one for the manual pairing on 2026-08-17: a real v2.19.0 project, real v2 templates, linting clean at 4/4. **Rejected as a committed fixture by its own author**, because it was written _for this test_ -- one degree closer to the thing under test than a fixture may be. Its authority would be vc's judgement about v2's grammar rather than v2's own output.
 
-**The rows below have an authority neither node supplied: they were authored under v2, they have lived in this repository's committed canon, and every one of them predates issue 0056.**
+**The captured rows -- the three sources in the provenance table -- have an authority neither node supplied: they were authored under v2, they have lived in this repository's committed canon, and every one of them predates issue 0056.** The rows added on 2026-08-26 came from other estates and make no such claim (see Provenance).
 
 ## Provenance
 
@@ -26,6 +26,8 @@ Issue 0056's closing section states the requirement and the reason:
 | `intent/st/COMPLETED/ST0045/acceptance.md`   | `ee44f63b` | 2026-08-14 | `green`    | 2    |
 
 Issue 0056 was filed **2026-08-17**. `AtStatus::display()` landed at **`d14cd0b5`**, the same day. **Every row here was last written before either event**, so no row can have been shaped by the defect or by its fix.
+
+**The corpus has grown since capture.** `e696de15a` (cc, 2026-08-26) added `AT-04.3` and `AT-04.4`, `to-write` rows that name no test file, from another estate's migration. `80cb85098` (cc, 2026-08-26) added four `green` rows from other estates, `AT-00.1`, `AT-02.5`, `AT-02.2` and `AT-1.3`, whose test citations carry a trailing annotation.
 
 ## `red` IS ABSENT AND THAT IS A DECLARED GAP, NOT AN OVERSIGHT
 
@@ -43,7 +45,7 @@ Measured across the estate at `3ce298c3`, constrained to column-0 `- AT-` rows: 
 -- status: to-write -- red-first; modules check -- unregistered fixture flagged
 ```
 
-The note is introduced by a spaced `--` and then **contains another spaced `--`**. v2's grammar handles this by never parsing the note (`AT_G_NOTE='( -- .*)?'` is greedy to end-of-line). **Any v3 reader that splits on `--` rather than anchoring the status will round-trip this row wrongly**, and it will do so silently, because the two halves still look like a note. **Nine of nine ST0046 rows carry the same shape** -- corrected from "eight of the nine" by cc, 2026-08-17, and re-measured here: every `to-write` row is `status: to-write -- red-first; modules <check|sync> -- <text>`. It changes nothing about the hazard and it is recorded because a count in a fixture README is a claim someone will scope a test to.
+The note is introduced by a spaced `--` and then **contains another spaced `--`**. v2's grammar handles this by never parsing the note (`AT_G_NOTE='( -- .*)?'` is greedy to end-of-line). **Any v3 reader that splits on `--` rather than anchoring the status will round-trip this row wrongly**, and it will do so silently, because the two halves still look like a note. **Nine of nine ST0046 rows carry the same shape** -- corrected from "eight of the nine" by cc, 2026-08-17, and re-measured here: every ST0046 `to-write` row is `status: to-write -- red-first; modules <check|sync> -- <text>`. It changes nothing about the hazard and it is recorded because a count in a fixture README is a claim someone will scope a test to.
 
 This is the row most likely to fail and therefore the row worth keeping. **Do not "simplify" the fixture by dropping it.**
 
@@ -51,7 +53,9 @@ This is the row most likely to fail and therefore the row worth keeping. **Do no
 
 **Parse each line through the v2 reader, render it through `views`, and require the output byte to equal the input byte.** Not `contains`, not a status-token comparison: the whole line. A status check would pass on a row whose coverage list or note had been reordered, and the covers list and the note are the two fields issue 0033 already destroys elsewhere.
 
-The rows live in `rows.txt`, one per line, verbatim, no trailing edits. Regenerate by re-capturing from the commits above -- never by rendering them.
+Built as `native/rust/crates/intentsvcs/tests/authored_row_round_trip.rs`: each row is read through `legacy`, rendered through `views` and compared as a whole line. Rows matched by its `DIVERGES_BY_RULING` are declared divergences (vc, 2026-08-26) that retire when the annotation-beside-`file` model field lands, and the test fails when a declared divergence stops firing. `a_note_containing_the_row_separator_survives_whole` takes every row whose note contains the separator, the discriminating row among them, and requires the note to come back verbatim.
+
+The rows live in `rows.txt`, one per line, verbatim, no trailing edits. Re-capture the captured rows from the commits above and keep the rows added at `e696de15a` and `80cb85098` -- never render any of them.
 
 ## Verification of the capture itself
 

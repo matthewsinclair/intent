@@ -1,12 +1,12 @@
 # AC-09.5 — MCP resources design
 
-**Criterion:** _MCP resources serve the read surfaces (wip, whiteboard boards, ST docs) and their contents match what the equivalent CLI read returns._
-**Test:** `AT-09.5` → `native/rust/crates/intent-cli/tests/mcp_resources.rs` (to-write).
-**Status:** bound as option (A) by vc, 2026-08-31, under hv's standing pen; the wip/boards scope half goes to hv costed. Build on this.
+**Criterion:** `AC-09.5` (`intent ac show ST0056 AC-09.5`), reworded by vc at `f27829df` to the read surfaces that have a CLI read to agree with; the last section quotes the wording it replaced.
+**Test:** `AT-09.5` → `native/rust/crates/intent-cli/tests/mcp_resources.rs` (landed; `intent at list ST0056` reports its status).
+**Status: built.** Bound as option (A) by vc, 2026-08-31, under hv's standing pen, and served by `resource_list` and `resource_read` in `intent-cli/src/mcp.rs` through the shared `crate::show` renderer (`451b4d7f`). The wip/boards scope half went to hv costed.
 
 ## The measurement that shapes the design
 
-AC-09.5's second clause — _contents match the equivalent CLI read_ — is only satisfiable for a surface that HAS an equivalent CLI read behind a facade door. Measured at HEAD:
+AC-09.5's second clause — _contents match the equivalent CLI read_ — is only satisfiable for a surface that HAS an equivalent CLI read behind a facade door. Measured at HEAD on 2026-08-31:
 
 | surface                      | facade read door                             | CLI read                                                                  | match target exists? |
 | ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- | -------------------- |
@@ -14,7 +14,7 @@ AC-09.5's second clause — _contents match the equivalent CLI read_ — is only
 | **wip.md** (`intent/wip.md`) | none                                         | none — `todo` reads todo.md, `info` reads the overview, neither is wip.md | **NO**               |
 | **whiteboard boards**        | none                                         | none — `claude ws` manages boards, no read-a-board verb                   | **NO**               |
 
-**And what `st show` actually returns is the ENTITY MODEL, not a doc file** (measured 2026-08-31): `intent st show ST0056` and `intent st show ST0056 design` print the SAME thing — `id: title / status / reason / created / completed` — because the show arm calls `f.st_show(&id)` and never reads the `FILE` argument. `FILE` is `st edit`'s argument (it selects a doc file to open), not `st show`'s. So "ST docs" here means the ST ENTITY read through `st_show`, and the equivalent CLI read is `st show <ID>`. The doc FILES (design.md, impl.md) have no CLI read that returns their content — `st edit` returns a path — so they are not a resource with a match target either.
+**And what `st show` actually returns is the ENTITY MODEL, not a doc file** (measured 2026-08-31): `intent st show ST0056` and `intent st show ST0056 design` print the SAME thing — `id: title / status / reason / created / completed` — because the show arm calls `f.st_show(&id)` and never reads the `FILE` argument. `FILE` is `st edit`'s argument (it selects a doc file to open), not `st show`'s. So "ST docs" here means the ST ENTITY read through `st_show`, and the equivalent CLI read is `st show <ID>`. The doc FILES (design.md, impl.md) have no CLI read that returns their content — `st edit` returns a path — so they are not a resource with a match target either. **Since measured:** the whiteboard boards gained a facade door and a CLI read on 2026-09-12 (`Facade::board(node)` and `intent wb show <node>`, `de03d227e`) and are still not served as resources; and since 0398 (`b2fe12043`, 2026-09-15) `st show` reads its `file` argument -- `info` prints the cover, and `design`, `impl` and `tasks` print the thread's attachment from the store -- while the MCP `st show` tool still refuses `file` and each thread resource serves the cover.
 
 So the resource set is exactly the entities with a `*_show` facade door, and "contents match the CLI read" is a comparison against `<entity> show`. wip.md and the boards have no door and no CLI read, so serving them would leave the row asserting agreement between a resource and nothing — the register-overclaim class, and the reason (C) below is rejected.
 
@@ -42,9 +42,9 @@ The URIs are the `intent://` address scheme's own — **plural, four-digit issue
 
 ## The one build decision: the render seam
 
-"Contents match `st show`" is strongest as byte-identity, and byte-identity needs ONE renderer. Today the entity→text rendering lives inside `render.rs`'s show arms; the MCP tier cannot call `render.rs` (it calls the facade). So the entity→text renderer is extracted to one shared function both faces call:
+"Contents match `st show`" is strongest as byte-identity, and byte-identity needs ONE renderer. The entity→text renderer was extracted to `crate::show` (`intent-cli/src/show.rs`, `451b4d7f`), and both faces call it:
 
-- a `fn` taking `&Thread` (`&WorkPackage`, `&Issue`) and returning the exact text `st show` prints,
+- `thread(&Thread)`, `work_package(st, &WorkPackage, &[AcRow])` and `issue(&Issue)`, each returning the exact text its `show` verb prints,
 - `render.rs`'s show arm rewired to call it (Highlander — the CLI keeps one renderer),
 - `mcp.rs`'s resource read calling `st_show` then the same function.
 
@@ -55,8 +55,8 @@ Then `mcp_resources.rs` asserts the resource's content equals `intent st show <i
 - `resources/list` over a real stdio session enumerates one resource per entity the facade can `*_show`, and every listed URI round-trips through `address::parse` (the plural `intent://` grammar), not a grammar spelled by this surface.
 - `resources/read(uri)` returns content byte-identical to the equivalent CLI read (`st show <id>`), driven for a thread, a work package and an issue.
 - list and read agree both ways (no listed-but-unreadable, no readable-but-unlisted).
-- **Scope stated, not discovered:** wip.md and the whiteboard boards are NOT resources under this bound, because they have no facade door and no CLI read to match; they are the hv-costed follow-on.
+- **Scope stated, not discovered:** wip.md and the whiteboard boards are NOT resources under this bound, and `mcp_resources.rs` asserts their absence. wip.md has no facade door and no CLI read; the boards gained both on 2026-09-12 (`Facade::board`, `intent wb show`) and are still not served.
 
 ## The criterion reword — landed
 
-**AC-09.5's TEXT read "wip, whiteboard boards, ST docs" until 2026-08-31.** Greening AT-09.5 against a test that covers only entity docs would have marked the criterion satisfied by a test that does not touch two of the three surfaces it named — the overclaim class. vc reworded it under the pen at `f27829df`, before the green rather than after: the row now scopes to _the read surfaces THAT HAVE A CLI READ TO AGREE WITH — ST/WP/issue docs_, with the `wip`/boards half named as a CLI-gap follow-on (they need `Facade::wip` / `Facade::board(node)` and their verbs, which is a product question about the CLI, not an MCP gap). The build does not depend on the reword; the green does, and the reword is landed, so `AT-09.5` is clear to green when `mcp_resources.rs` lands.
+**AC-09.5's TEXT read "wip, whiteboard boards, ST docs" until 2026-08-31.** Greening AT-09.5 against a test that covers only entity docs would have marked the criterion satisfied by a test that does not touch two of the three surfaces it named — the overclaim class. vc reworded it under the pen at `f27829df`, before the green rather than after: the row now scopes to _the read surfaces THAT HAVE A CLI READ TO AGREE WITH — ST/WP/issue docs_, with the `wip`/boards half named as a CLI-gap follow-on (the wip half needs `Facade::wip` and a verb, a product question about the CLI rather than an MCP gap; the boards half has had `Facade::board(node)` and `intent wb show` since 2026-09-12). The build does not depend on the reword; the green does, and the reword is landed, and `mcp_resources.rs` has landed with `AT-09.5` green.
