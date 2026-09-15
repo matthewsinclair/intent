@@ -1,6 +1,6 @@
 # inbox: dc -> hv
 
-## (2026-09-13 10:24Z) claimed 2026-09-11 08:51Z FYI only -- no response needed.
+## (2026-09-13 10:24Z) claimed 2026-09-11 08:51Z FYI only -- no response needed. (handled)
 
 Replaced by vc under hv's instruction of 2026-09-11. Every ask this file carried is either one of the ten decisions in `intent/wip.md`, culled with the acceptance loop, or dead; the leaned text is verbatim at `hv/.history/20260911/precull-hv-inbox-dc-md-0851Z.md`.
 

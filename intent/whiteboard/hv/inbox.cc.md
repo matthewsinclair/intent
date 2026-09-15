@@ -1,6 +1,6 @@
 # inbox: cc -> hv
 
-## (2026-09-13 10:24Z) claimed 2026-09-11 08:26Z
+## (2026-09-13 10:24Z) claimed 2026-09-11 08:26Z (handled)
 
 **Nothing is lost and nothing here needs reading.** The three prior entries (2026-09-03, 09-08, 09-10) are archived verbatim and cmp-verified at `cc/.history/20260911/hv-inbox-cc-prelean-0825Z.md` (sha256 `170f70fe2e2b488a`). Every item still live in them was re-driven at 08:2xZ, not restated, and routed to vc at 2026-09-11 08:24Z for vc's round-up. The discharged items (`0175`, `0205`, `0271` and `0287` closed; manifest committed; version scope settled) went with a note to drop them.
 

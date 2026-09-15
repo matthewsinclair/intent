@@ -21,10 +21,7 @@ _(none)_
 
 ## Holds
 
-- **(2026-08-26 20:38Z, held for hv) The staging-dir build dangles the delivered pair for the length of a rebuild**, and consumers refuse in that window. Condition: hv rules on dc's item (2), build private then move into place, and on whether gates refuse while the pair dangles.
-- **(2026-08-27 17:11Z, held for hv) dc's `bin/int` to `bin/devbin` rename goes after the carrier sweep.** Condition: hv orders the rename; both spellings exist today.
-- **(2026-08-26 20:49Z, held for hv) Lamplight's 3,738 stranded bucket files are not carried per file by `st attach`.** Condition: hv chooses between the WP-02 bulk ingest now landed on Intent, an overnight per-file run, or the buckets staying as history.
-- **(2026-08-26 20:35Z, held for hv) Lamplight triage's store half is blocked by 22 non-UTF-8 files refusing `sync --to-store` estate-wide.** Condition: hv moves or renames them, rules they leave the tree, or takes the ingest fix.
+_(none)_
 
 ## Watch-outs
 
@@ -49,7 +46,6 @@ _(none)_
 - (2026-08-19, restated 2026-08-21) The hv inbox's reader is vc: a write is the durable half and never the delivery; hv needs context, a question and options in the live channel.
 - (2026-08-21) Open items go back to the workstreams; there is no hv gate on them.
 - (2026-08-21) A false claim in a landed commit is corrected forward, never rewritten.
-- (2026-08-27 16:54Z, hv first-hand) Delivery while in development is the dev tree: brew stays installed and unlinked, the install root is `~/.intent/`, and making brew the delivery mechanism again is hv's to choose.
 - (2026-08-21, hv verbatim) The word `intentdb` is retired corpus-wide; the SQLite db is the durable SSOT and the crates are `intent-cli`, `intentd`, `intentsvcs`.
 - (2026-08-21, provenance unverified, advisory until hv confirms) Every node prunes its own `target/<node>` at fold.
 - (2026-08-21, state verified, authorship not) `upstream` is pushable; the freeze lift of 2026-08-20 is standing.
@@ -57,6 +53,8 @@ _(none)_
 - (2026-08-29 16:30Z, vc, a docs call) Prose pages use em dashes; generated reference pages use `--`.
 - (2026-08-25 21:33Z, hv first-hand) The `claude ws` family survived the 3.0.0 cut with an expiry enforced by AC-14.12; that expiry is discharged at the ST0069 WP-14 cutover of 2026-09-13.
 - (2026-09-13) **ONE STAMP RULE FOR EVERY DEV-BUILT ARTEFACT: intent, intentd and Intent.app carry the repository HEAD current when they are built, so a manual check is one equality; the brew-installed release carries the tag's hash.** Reverses the 2026-08-26 scoped identity in build-support/source_commit.rs with its cost taken: a commit landing mid-build marks a correct pair behind, and byte-identical Rust at two HEADs carries two stamps. dirty- stays scoped to the Rust tree. cc lands it; vc rebuilds the set after.
+- (2026-09-15, hv first-hand in prose, after the menu answers were read back) The close-out rulings: the plan with its bank, train and host-hold rules; 0331 deleted whole; AC-07.6 reworded to the refusal; 0321 exempted from one_clock; 0177 onto the register; ST0070 cancelled and ST0060 kept; 0345 ruled out of 3.x; the palette Home/End kept; no version until the close-out; the clean install waits until Intent works properly on this machine, then gyges; hold 1 fixed and hold 2 struck; brew pinned and v3.0.2 annotated; the quiet window at end of day; every call under the pen stands; D43 and new-surface ratified, D46 internal, withheld-13 struck; organize is the one door for stale views; the menubar tooltip dropped; the exit-code line struck. The record: intent/history/20260915-hv-rulings.md
+- (2026-09-15, corrects decision 8 forward) The install root is XDG since ST0074 WP-05: the home pointer is ~/.local/share/intent/home, and ~/.intent/home no longer exists. Brew stays installed and unlinked, and is now pinned; the dev tree remains the delivery.
 
 ---
 

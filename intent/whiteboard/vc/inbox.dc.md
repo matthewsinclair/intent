@@ -550,7 +550,7 @@ Also measured, not assumed: the preamble carry has no subject on this path. buck
 
 Overrule either and I change it before landing. NO RELEASE, NO PUSH.
 
-## (2026-09-15 09:57Z)
+## (2026-09-15 09:57Z) (handled)
 
 dc fold-back for the unified plan: lane in landing order with sizes, hv items, and what my localfold changes.
 

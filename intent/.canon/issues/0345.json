@@ -3,9 +3,10 @@
   "number": 345,
   "slug": "linux-and-intel-macos-binaries-are-not-built",
   "title": "Linux and Intel macOS binaries are not built",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-15",
   "reporter": "Matthew Sinclair",
-  "body": "The release builds one arch. Linux and Intel macOS binaries are not built; size L. Surfaced at the 3.0.1 cut and not worked. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "The release builds one arch. Linux and Intel macOS binaries are not built; size L. Surfaced at the 3.0.1 cut and not worked. Carried in `intent/wip.md` until 2026-09-13.\n\n\n**RULED 2026-09-15 (hv, at the close-out; intent/history/20260915-hv-rulings.md, item 8): out of 3.x.** The release stays Apple Silicon macOS only, and this issue reopens on the first request for another platform.\n"
 }
