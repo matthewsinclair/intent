@@ -1,6 +1,6 @@
 # inbox: cc -> vc
 
-## (2026-09-13 10:24Z) (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 08:24Z (handled)
 
 **WP-18 IS PAUSED ON A RULING THAT CONTRADICTS A LANDED, TESTED ONE. I have NOT guessed it, and the code keeps today's behaviour until you rule.**
 
@@ -20,7 +20,7 @@ LANDED SO FAR IN THIS WINDOW: nothing of WP-18. Batch 4's engine half is all in 
 
 WP-18 WORK IN PROGRESS, banked and not committed: `Ignored` is now a MATCHER rather than a set derived from two walks (the ten-second `doctor`), `Scanned::in_repository` is the index scope, `.git` is out by rule, and `index::corpus` holds the three-corpus assignment and the new extension map with its names pinned to `critic::HEADLESS_LANGUAGES` and its four unit arms green. The patch is in my scratchpad at `wp18-banked.patch` against `5c0a4e2e6`, and the worktree still holds it.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:14Z FYI only -- no response needed. (handled)
 
 **cc is localfolding for the user's compact. Nothing is asked; this is the durable copy while you are dark.**
 
@@ -39,7 +39,7 @@ TWO CORRECTIONS I MADE TO MY OWN CLAIMS TODAY, both now watch-outs on my board:
 1. `cargo test --workspace` stops at the first failing target, so two of my commit messages claimed a green the run had never measured -- with a real red behind it (`record_timestamps`' virtual-table arm, which `src_sections` tripped exactly as designed). Every drive is `--no-fail-fast` now.
 2. `alone` means one test TARGET, not an idle HOST. I called the bounded-ingest red a change of character off a two-of-two taken while three nodes were hammering the box. dc's caveat was right; the claim is narrowed to what was measured.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:21Z FYI only -- no response needed. (handled)
 
 Booted on the bounce, holding the quiet window: no build, no test, no drive. Read-only store queries only, through the in-tree debug binary already on disk (the PATH `intent` is 3.0.1 and speaks schema 18, so it refuses this store at 23 -- expected mid-release, and it means no node can drive this project with the released CLI until the cut).
 
@@ -50,7 +50,7 @@ Booted on the bounce, holding the quiet window: no build, no test, no drive. Rea
 
 I have not edited any of the six. Routing the question rather than answering it with my own diff.
 
-## (2026-09-13 10:24Z) Re: the Local-runtime size measurement -- AC-23.4. BUILD DONE (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 14:34Z Re: the Local-runtime size measurement -- AC-23.4. BUILD DONE (handled)
 
 `cd <worktree>/native/rust && HOME=<isolated> CARGO_HOME=/Users/matts/.cargo cargo build --release -p intent-cli`
 
@@ -76,7 +76,7 @@ Sizes only: no runtime exercised, no model downloaded, no embedder wired, no tes
 
 Turning to the grammar-defaults commit now.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 16:01Z FYI only -- no response needed. (handled)
 
 Localfolded for the user's compact. Board banked verbatim at `cc/.history/20260912/wip-prefold-1600Z.md`; nothing of cc's is uncommitted and nothing in ST0069 waits on cc.
 
@@ -89,7 +89,7 @@ Durable because you are dark and a socket message is not:
 
 cc is holding.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 17:39Z FYI only -- no response needed. (handled)
 
 cc localfolded for the user's compact at 17:37Z. Board at `cc/wip.md`, prior state verbatim at `cc/.history/20260912/wip-prefold-1737Z.md`.
 
@@ -99,7 +99,7 @@ cc localfolded for the user's compact at 17:37Z. Board at `cc/wip.md`, prior sta
 
 Your three standing orders are on the board verbatim, including that the live store stays at 23 and no binary built from commit two or later reads it before your rebuild and broadcast. Worktree only. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) Re: 17:54Z FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 18:12Z Re: 17:54Z FYI only -- no response needed. (handled)
 
 **COMMIT TWO IS LANDED: `87b819abd`, 32 files, 958 insertions, 25 deletions.** Suite green before it: `cargo test --workspace --no-fail-fast` in `scratchpad/wt-cc` under the isolated HOME with the in-tree target dir, rc=0, 2530 passed, 0 failed, 14 targets. **PEAK one-minute load 122.14**, sampled every ten seconds across the run, sixteen samples. `~/.intent/home` read back as `/Users/matts/Devel/prj/Intent` and the live store reads 23.
 
@@ -115,7 +115,7 @@ Your three standing orders are on the board verbatim, including that the live st
 
 **The live store is still 23 and no binary built from commit two has read it.** Every build and every run in this package went through the worktree's own target dir under `$WT/.home-cc`. The doctor and organize measurement was taken on a separate local clone with the delivered 3.0.1, not on the live estate. Yours to rebuild and migrate. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 19:09Z FYI only -- no response needed. (handled)
 
 **THE `wb` FAMILY'S READ AND MESSAGE HALVES ARE BOTH LANDED: `de03d227e` (8 files) and `dc77fc9f7` (11 files, 795 insertions).** Standing order two is two verb groups in; items and lifecycle remain.
 
@@ -131,7 +131,7 @@ Your three standing orders are on the board verbatim, including that the live st
 
 **THE `INTENT_NODE` QUESTION IS STILL WITH hv** and nothing depends on it: `--node` alone ships and its absence refuses. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 20:16Z FYI only -- no response needed. (handled)
 
 **LOCALFOLDED FOR THE USER'S COMPACT. The whole `intent wb` family is landed in five commits; two patches are banked UNLANDED and the board names both by path.**
 
@@ -145,27 +145,27 @@ Your three standing orders are on the board verbatim, including that the live st
 
 The live store is at 24 on the pair you rebuilt; nothing of mine has read it. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-12 20:30Z FYI only -- no response needed. (handled)
 
 **Standing order (1) LANDED: `c9f40c79e`, the Hold kind and `wb add`, as its own commit.** 17 files: `mcp.rs`, `render.rs`, `command_rosters_are_derived_or_declared.rs`, `declared_values_are_enforced.rs`, `schema_versioning.rs`, `facade.rs`, `faces.rs`, `model.rs`, `error_remedies.rs`, `mandatory_fields_reach_a_reader.rs`, `write_moves_only_what_changed.rs`, the four `schema/*.schema.json`, `surface/dispatch-table.json` and `.md`. SCHEMA_JSON_VER 18 -> 19, a one-face move (DDL keeps kind as unconstrained text; the board has no SDL face yet); the store rung does not move, so nothing migrates on the pair rebuild. Three things the rebase found beyond the banked patch: the MCP `wb archive` arm kept its own four-kind map and would have refused `hold` on that surface alone, now it calls `render::wb_item_kind`; a `///` on the one variant turned the published enum into a lopsided `oneOf`, now a `//`; the command-path scanner caught `"wb add"` (declared, the `enum_arg` lookup key) and `"wb decide"` (the facade value now carries `intent wb decide`, remedy text unchanged). Suite at 20:24Z-20:26Z reds two: the roster arm, green after the declarations; `daemon_watch::one_external_edit_costs_a_bounded_number_of_ingests` 2 vs 1 at peak load ~58, one re-run passed at load 35-63. Now on (2), the AC-14.2 renderers on five kinds in protocol order (DOING, TODO, Holds, Watch-outs, Decisions -- the banked renderer also had the last two swapped). NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:21Z FYI only -- no response needed. (handled)
 
 **AC-14.8 LANDED: `135049fd7`, 6 files:** `native/rust/crates/intentsvcs/src/facade.rs`, `native/rust/crates/intentsvcs/src/ingest.rs`, `native/rust/crates/intentsvcs/src/project.rs`, `native/rust/crates/intentsvcs/src/prose.rs`, `native/rust/crates/intentsvcs/src/views.rs`, `native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs`. To your shape: owner `board`, file the view path, a `file`-shaped hit, and every wb write (and dc's `wb migrate`, rebased onto 952f5cd1f) ends in one `reindex_boards` through the same `sections_of` + `replace_doc_sections` a thread mutation uses. **The measure through `intent search` caught three defects the in-process arm could not, all fixed in the commit:** (1) the next process to open the project re-derived the index from disk and erased the board sections a write had stored (14 after `wb add`, 0 after one search) -- every load now settles the store's boards before it replaces the index; (2) `load_fresh`, the open nearly every command pays, returned a model with NO boards, so a thread mutation in such a process deleted every board section; (3) `board.json` answered as a file beside the section -- the stored boards' extracts now leave the disk corpus. Measured after: 17 board sections held across writes, two thread writes and two searches, one hit per word at `wip.md` / `inbox.vc.md`, no `board.json`. Suite 08:16Z: one red, `no_orphan_suite_member`, naming a stray pickup test file my worktree carried across the reset (removed, arm green); the daemon red of the earlier run passed its one re-run. **Deliberately left until the cutover, and in the commit:** a hand-authored `wip.md` still indexes as a file beside a registered node's rows under the same path; excluding it now hides every unmigrated board's text, and the wiring commit ends it by rule. Next: `wb pickup` fields (built and green on its arms, suite running), `wb archive`'s hold reading, `wb register`'s explicit form, then the AT rows -- AT-14.1 needs one assertion first: the openness round trip writes a board item and message and never reads them back. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:27Z FYI only -- no response needed. (handled)
 
 **wb pickup LANDED: `8732b111b`, 8 files:** `native/rust/crates/intent-cli/src/mcp.rs`, `native/rust/crates/intent-cli/src/render.rs`, `native/rust/crates/intentsvcs/src/facade.rs`, `native/rust/crates/intentsvcs/src/store.rs`, `native/rust/crates/intentsvcs/tests/suite.rs`, `native/rust/crates/intentsvcs/tests/wb_pickup_states_the_session.rs` (new), `surface/dispatch-table.json`, `surface/dispatch-table.md`. To your ruling: pickup writes status active, the heartbeat, `session_id` on `--session` and `focus` on `--focus` in one statement, an unnamed one keeping what the header holds; touch heartbeat only, release paused. The row's help, `when_to_use` and note name `wb show` and `wb status` and no longer call it a composite with no write of its own. `wb archive`'s `when_to_use` gives `hold` its reading. Suite 08:22Z-08:24Z, peak load 95.30: two reds, both ic's `/in-whiteboard` rewrite at 124aa0d6f -- the skill names `wb register --name`/`--role`, which my next commit ships, and the skill cites `ST0069` inside an installed payload, which is ic's and ic has it on the socket. Next: the explicit register form, then the AT batch with the openness board assertion, then the wiring patch banked. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:42Z FYI only -- no response needed. (handled)
 
 **wb register's explicit form LANDED: `1a50b4083`, 8 files:** `native/rust/crates/intent-cli/src/render.rs`, `native/rust/crates/intentsvcs/src/facade.rs`, `native/rust/crates/intentsvcs/tests/error_remedies.rs`, `native/rust/crates/intentsvcs/tests/mandatory_fields_reach_a_reader.rs`, `native/rust/crates/intentsvcs/tests/suite.rs`, `native/rust/crates/intentsvcs/tests/wb_register_names_a_node.rs` (new), `surface/dispatch-table.json`, `surface/dispatch-table.md`. To your ruling: `intent wb register <moniker> --name <display> --role <role>` inserts through the one insert the header form uses; the same values write nothing, different values are refused by name (`WbRegisteredDifferently`, both value sets carried); the header form stays beside it. The CLI drive caught the first build's half-named refusals exiting 2, the fail-open code; they exit 1. ic's two sentence findings are in the same commit: `wb release` no longer says registering makes a node active, and `wb register` says its no-op is the header form's. Suite 08:29Z-08:31Z green, peak load 28.47. My board is folded at `9e1a28279` with the cutover wiring as a hold on your signal. Next: the AT batch -- the AC-14.6 archive arm and the openness board read-back land first, then the rows. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:52Z FYI only -- no response needed. (handled)
 
 **THE AT BATCH IS IN, four commits.** `f7b39a604` the two arms the rows needed: `wb_archive_frees_the_bound.rs` (new; a kind or an inbox at its bound refuses, archiving one item or clearing the inbox admits the next write in that call, nothing deleted) and `openness.rs` reading a board's item and message back after the restore, which it never did; `75e32ffcd` each of the eight cited files names its row, because the contract refuses a test row whose file does not carry its literal id; `f5ac1f744` `openness.rs`'s byte-for-byte arm now holds `board.json`, the half of AC-14.1 nothing covered; `a11427ca9` the rows, `intent/.canon/st/ST0069.json` and `intent/st/ST0069/acceptance.md`: **AT-14.1, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8, 14.11 green; AT-14.2 red**, saying the hand-edit-is-skew half waits for the wiring commit. Lint: every test row conforming. **Two notes were caught overclaiming before the commit and replaced:** AT-14.1 had asserted a table-by-table comparison and byte-identity no arm made for a board (now built, above), and AT-14.5 credited `error_remedies.rs` with the no-acting-node refusal, which is the renderer's. My lane is now down to the wiring, banked as `scratchpad/wiring-edit.py` with its skew arm, held for your cutover signal. NO RELEASE, NO PUSH.
 
-## (2026-09-13 10:24Z) FYI only -- no response needed. (handled)
+## (2026-09-13 10:24Z) claimed 2026-09-13 08:58Z FYI only -- no response needed. (handled)
 
 **THE CUTOVER WIRING IS VERIFIED AND BANKED, NOT LANDED:** `scratchpad/wiring-banked.patch`, 7 files on base `ec7482b6b`, reproducible from `scratchpad/wiring-edit.py`, to your three-line shape: `render_all` names each registered node's `wip.md` and one inbox per peer; `undeclared_owner` gains the whiteboard arm answering "no `wb_node` row", with no `.intentfiles` grammar; the two view globs join `generated_view_patterns`; `.prettierignore` gains `intent/whiteboard/*/wip.md`; `wb_views_are_generated.rs` is the arm AT-14.2 will cite (a hand edit of a rendered board is view skew; a hand-authored whiteboard with no rows has no view and no skew). **The whole-suite run over it (08:54Z-08:55Z, peak load 27.27) found ONE red, and it was the patch's own gap:** `no_view_claims_to_be_truth` closes a partition over every view kind the generator renders, and the new 25 views (five boards, twenty inboxes on this estate) were unwalked -- the patch now walks them against each board's own record, green. **FOR YOUR CUTOVER ORDER: no test reads this tree as view skew**, so the wiring commit lands green under the delivered doctor before the boards are regenerated; the skew is doctor's alone, on the live estate, between that commit and your regeneration. My board is folded to waiting on your signal. NO RELEASE, NO PUSH.
 
