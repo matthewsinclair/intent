@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-15T17:11:53.917Z",
+    "heartbeat_at": "2026-09-15T19:31:04.136Z",
     "status": "active",
-    "focus": "2026-09-15: localfolded for hv's compact. On main: train 1 (0177, 0339's design and code, tui-design.md) and train 2 (tui-fix fe978ec7b, the proposal 465d508cc). Resume at the IN FLIGHT todo: parity.md and the parity/ docs banked for vc's next train, then 0334 with 0396.",
+    "focus": "2026-09-15: the parity pair landed at 23118bc0c (AC-09.5 reworded, AT-09.5's note extended, ac-09_6's count dated to d978d8c83). 0334 part A is re-taken and banked green at refs/bank/ic/0334 (5daa36583, on 23118bc0c) for the next train; reading (4) is banked apart at refs/bank/ic/0334-4 and becomes its own issue for hv. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0075"
     ],
@@ -1026,7 +1026,8 @@
       "kind": "todo",
       "seq": 16,
       "text": "**0334 (M) WITH 0396 (XS) IN ONE COMMIT, AND THAT COMMIT RATIFIES `ac gate`: ic's first landing after 0399.** 0334 follows vc's six rulings, which stand (hv's rulings of 2026-09-15, item 15): (1) an ac/at address resolves to acceptance.md and `edit` and `--path` both refuse NotEditable naming `intent ac` / `intent at`, printing nothing; (2) the `edit wp` remedy names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`; (3)(a) `issue` leaves edit's kind roster (browse keeps it) and `edit issue <id>` names `intent issues edit <id>`; (4) `set` refuses Thread.acceptance, read from its Immutable declaration, canon unchanged; (5) closes citing 0376; (6) the thread and WP cover Acceptance paragraphs name the ac/at verbs, landing as code plus canon, the views re-rendered in vc's mechanical commit after a rebuild that carries 0334. SITES BY SYMBOL (recorded at d2491639b, re-anchor at HEAD): `Facade::edit`'s `match &address.entity` gains the Ac/At arm; `Project::edit_disposition`'s `_ =>` remedy; the register `edit` row's kind values and render.rs's edit parse ahead of `check_enum`; facade.rs `unsettable` gains an Immutable arm (kind Never) through `transitions::find`; views.rs's two cover paragraphs. TESTS THAT MOVE: edit_prints_a_path_that_exists (every_address_form_is_edited_or_refused_by_name), edit_answers_about_the_entity_you_named (the kind vocabulary and the issue case), mutation_every_writable_field (a_different_legal_thread_value and the unsettable kind table), plus a new refusal test for `set <thread> acceptance`. 0396: `surface/dispatch-table.json`'s `at edit` row `target.consequence`: `--status` stays absent (`at green|red|na` own status); `--kind` is present and re-enters `AtStatus::entry`. `ac gate`: satisfy-on-first-green is ratified by vc under D47 (item 16), so the register's ruling state for it moves from provisional to ratified. Regenerate dispatch-table.md with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh` in the same commit. Full notes: the 2026-09-14 ic transcript b148e605, its WRAP section. Fresh private worktree at HEAD; each arm red on base; bank as a patch blob on `refs/bank/ic/0334` and tell vc, whose train runs the one judging run (item 1); every file reported before landing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T19:30:43.845Z",
       "recorded_at": "2026-09-15T13:33:52.495Z"
     },
     {
@@ -1113,7 +1114,8 @@
       "kind": "hold",
       "seq": 7,
       "text": "**0339 CLOSES WHEN dc's IN-RS-CODE-001 ENFORCEMENT COMMIT IS ON MAIN (hv, 2026-09-15; dc tells ic).** Everything else 0339 names is on main: the design lines at a41bb0c1f (design.md D46 `[VOID]` on ruling 16, the Parity contract's `st list --status tbc` paragraph, the intentd palette bullet, deferred.md's D46 row, data-model.md's `tbc` rule) and the code commit at 199de583d (`at new` takes no status on the register, the facade, the CLI and MCP, with `at_new_takes_no_status.rs`; the no-op `\"clippy\"` critic arm and RULE.md's clause gone; critic-gate.md's parenthetical and CI cite; the comments and data-model.md's `at new` paragraph). When the enforcement lands: `intent issues close 0339` with a closing note naming those commits and dc's, then `organize --apply` for its view, committed with the issue canon on vc's word.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T19:30:59.623Z",
       "recorded_at": "2026-09-15T16:02:48.919Z"
     },
     {
@@ -1148,8 +1150,33 @@
       "kind": "todo",
       "seq": 23,
       "text": "**IN FLIGHT (ic resumes here after the bounce).** Trains 1 and 2 are on main; train 2 is tui-fix at fe978ec7b (hv's FieldEdit cursor keys, with F01, F25 and F27) and the proposal at 465d508cc, whose O4 note stays open as written until hv answers. NEXT, IN ORDER: (1) parity.md and the parity/ docs ride vc's next train. `refs/bank/ic/aswritten-parity` (64ba375b0, a patch against 6509c2ce5) takes parity.md's lines 5-123 to as-built, line-neutral so the citations of `parity.md:7`, `:13` and `:338` elsewhere stay true, and `corrected_check.sh` and `class_vocab_check.sh` read it exactly as they read HEAD. `refs/bank/ic/aswritten-parity-docs` (f479db828, against 465d508cc) carries README, ac-06_1, ac-09_5, ac-09_6 and fixtures/README, with README.md:39, which the register cites, unmoved. `refs/bank/ic/aswritten-parity-docs-ac095` (b6e4347c9) holds AC-09.5's reword (`nav.rs`'s kinds to `address.rs`) as JSON with the old and new text: at landing, check the store's text equals `.old`, run `intent ac edit ST0056 AC-09.5 --text \"$(jq -r .new)\"`, and commit the canon and acceptance.md with the docs. Each lands with ST0056's canon, checked after the ingest settles, on vc's word; the lander is land-train2/land-bank.sh in the scratchpad, which dies on a reboot while the refs do not. (2) Then 0334 with 0396 (todo 16). (3) In the same parity/ commit, vc's ruling of 2026-09-15 on AT-09.5, which is LIVE and green: EXTEND its note, never replace it, with `intent at green ST0056 AT-09.5 --note \"2026-09-15 (ic): URI kinds resolve through address.rs, not nav.rs; the boards have had a CLI read since de03d227e and stay outside this row, whose surfaces AC-09.5 names as ST, WP and issue docs.\"` (`at edit --note` would overwrite it). AC-09.5's enumeration stands: serving boards as MCP resources is a new surface, not close-out work. (4) The proposal's O4 note waits on hv through vc; 0339's close waits on dc (hold 7).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T19:30:55.069Z",
       "recorded_at": "2026-09-15T16:22:37.349Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 24,
+      "text": "**0334 PART A (M) WITH 0396 (XS) AND `ac gate`'s RATIFICATION: RE-TAKEN AND GREEN ON 23118bc0c, FOR THE NEXT TRAIN ON vc's WORD.** `refs/bank/ic/0334` = 5daa36583, a patch blob against 23118bc0c and the durable copy (the scratchpad is not). It carries vc's readings (1) an ac/at address refuses NotEditable naming `acceptance.md`, (2) a work package's cover names `intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`, (3)(a) `issue` leaves `edit`'s kind roster and `edit issue <id>` names `intent issues edit <id>` (`browse` keeps it; `edit issue <id> --browser` now refuses, ruled intended), (5) the raw lock is 0376's, and (6) both covers' Acceptance paragraphs name the contract verbs through views.rs's CONTRACT_VERBS; 0396's `at edit` consequence; `ac gate` ratified by vc on 2026-09-15 under D47 (record `intent/history/20260915-hv-rulings.md`); dispatch-table.md regenerated; known-defects.md's `intent#0081` entry corrected forward. Every changed arm was red on base; on 23118bc0c both crates' whole suites, workspace clippy, CI's IN-RS-CODE-001 clippy step and fmt are green. At landing: close 0334 citing 0376 for the lock and the reading-(4) issue, and close 0396.",
+      "state": "live",
+      "recorded_at": "2026-09-15T19:30:07.101Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 25,
+      "text": "**0334's READING (4) BECOMES ITS OWN ISSUE (vc's ruling (b), 2026-09-15); ITS RESOLUTION IS hv's.** `set` writes `Thread.acceptance`, which `transitions.rs` declares Immutable (hv, 2026-08-17, data-model.md:778), and that write is the only verb route to the exemption the close gate's refusal names (contract.rs:687; docs/known-defects.md:85 gives users the command). Refusing it, as (4) did, leaves the gate's remedy naming a declaration no verb writes; vc put the conflict to hv. (4) is banked apart at `refs/bank/ic/0334-4` = 3b4d4df6c, a patch against part A's tree. Measured under it: intentsvcs has one real consequence, `form_declares_layout_not_the_field_set` (the TUI thread form offers an edit on `acceptance` that (4) refuses, so (4) must lock that row too); intent-cli is green, its 28 daemon-driven tests passing on a re-run with intentd built. NEXT, after the board pass: file the issue from the drafted body (repro and measurement in it), and cite its number in 0334's close.",
+      "state": "live",
+      "recorded_at": "2026-09-15T19:30:22.336Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 8,
+      "text": "**tui-redesign-proposal.md's O4 NOTE STAYS OPEN AS WRITTEN UNTIL hv ANSWERS O4 (the status-segment row); vc carries the question.** The rest of the proposal's as-written pass landed at 465d508cc. When hv answers: correct the note forward to the answer, and commit it with ST0056's canon on vc's word.",
+      "state": "live",
+      "recorded_at": "2026-09-15T19:30:30.708Z"
     }
   ],
   "messages": [
