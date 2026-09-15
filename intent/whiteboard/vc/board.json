@@ -574,8 +574,17 @@
       "kind": "decision",
       "seq": 18,
       "text": "(2026-09-15) vc, under the close-out pen: after 0321, every intentd.log line, remedy: lines included, opens with an RFC 3339 UTC timestamp with a Z suffix, then one space, then the line byte-identical to today; ST0075's ConsoleLine skips exactly that token before it classifies (in WP-02's bank), so 0321 lands with no Swift change. The intentd notices that carry a remedy: line but no severity token get intentd's existing warning: or error: token in dc's 0321 bank, which closes ic's new issue with 0321 (the critic advisory's option (iii); the Console does not guess). Two banks that share a file (MODULES.md, dispatch-table.json and its view) stack in the order they bank green, nobody holds a bank for the other, and the second proves its bank on top.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T21:20:49.735Z",
       "recorded_at": "2026-09-15T21:18:53.140Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 19,
+      "text": "(2026-09-15) vc, under the close-out pen: after 0321, every line intentd writes to intentd.log or intentd.err.log, remedy: lines included, opens with an RFC 3339 UTC timestamp with a Z suffix, then one space, then the line byte-identical to today, through one writer module whose clock read is one_clock.rs's single exemption, its reason recorded once in ST0056 design.md's D42; ST0075's ConsoleLine skips exactly that token, when present, before it classifies a line from either log (in WP-02's bank), so 0321 lands with no Swift change. The intentd notices that carry a remedy: line but no severity token get intentd's existing warning: or error: token in dc's 0321 bank, which closes ic's new issue with 0321 (the critic advisory's option (iii); the Console does not guess). Two banks that share a file (MODULES.md, dispatch-table.json and its view) stack in the order they bank green, nobody holds a bank for the other, and the second proves its bank on top.",
+      "state": "live",
+      "recorded_at": "2026-09-15T21:21:06.318Z"
     }
   ],
   "messages": [
