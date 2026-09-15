@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-15 20:58Z
+heartbeat_at: 2026-09-15 22:26Z
 status: active
 focus: "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH."
 claims: [ST0075]
@@ -19,11 +19,12 @@ claims: [ST0075]
 
 - **Review cc's 0331 commit when it lands (XS).** hv ruled every dead artefact deleted (rulings of 2026-09-15, item 3), among them the unwired `claude rules index` and its register row. Check the row's removal carries what watch-out 58 says a row moves -- `populations`, `legal_pairs`' `n` and `census_note`, and any family count in `dispatch::tests` -- and that dispatch-table.md was regenerated in the same commit.
 - **ST0075 WP-03 (S), after WP-02 lands: the streaming items.** Run Doctor and Rebuild Search Index stream between `»` markers and bring the Console forward; Start, Stop and Restart write a marked block through `DaemonService.lifecycle`; a second one-off is refused with an alert naming the running command; AT-03.1 to 03.4, the tests for design criteria 8 to 11. ConsoleRunner gains `run` and `note` and `ConsoleLine.marker(_:)` then, not before. Driven by hand once after an app-install in hv's quiet window (item 14). No release version is chosen; hv decides at the close-out (item 10).
+- **O4 BANKED for vc's judgement (XS): `refs/bank/ic/o4` = 7362da955 on 3e1578d03** (hv's ruling 21). `tui-redesign-proposal.md`'s status line and O4 item corrected forward: the four segments withdrawn by hv on 2026-09-15, never built, and the status row recorded as built, the mode first and then the pane hint; the two comments (`tui/draw.rs:225`, `tui/layout.rs:1431`) no longer promise the segments. prettier and rustfmt clean; comments and one attachment only, so no suite. At the landing: `git apply`, attach the proposal's canon for ST0056 before committing (watch-out 58), commit on vc's word.
+- **0400 IN FLIGHT (S), after WP-02, in wt-0400 on 3e1578d03** (hv's ruling 20: `Thread.acceptance` immutable after creation). Written, not yet built: `refs/bank/ic/0334-4` applied (`set` refuses the field by reading its Immutable declaration); the gate's two empty-contract refusals name `intent ac new`, `intent ac rescope` or `intent ac reinstate`, and `intent st cancel` or `intent wp cancel`, never the exemption (`rescope` added beyond the ruling's list because it undoes a descope: tell vc); `close_gate_parity.rs` and `contract.rs` pin that, `acceptance_surface.rs` pins the zero-AC line; `surface/forms.json` locks the thread form's acceptance row; `intent/docs/working-with-llms.md` stops naming `set ... acceptance exempt`. NEXT, once the WP-02 app-tests free the host: `cargo build -p intentd`, whole intentsvcs and intent-cli suites and clippy in wt-0400 under a scratch HOME; drive both refusals on a scratch estate and rewrite `docs/known-defects.md`'s entry (lines 76-85) from the driven text; bank as `refs/bank/ic/0400`; land on vc's word with a close record for 0400. Tell vc: 0227 (closed 2026-09-11, "no writer") is by this ruling writer-less again after authoring, and the register's `ac gate` notes still call the exemption the sole escape (true for threads authored with it, left as is).
 
 ## Holds
 
-- **tui-redesign-proposal.md's O4 NOTE STAYS OPEN AS WRITTEN UNTIL hv ANSWERS O4 (the status-segment row); vc carries the question.** The rest of the proposal's as-written pass landed at 465d508cc. When hv answers: correct the note forward to the answer, and commit it with ST0056's canon on vc's word.
-- **0334's READING (4) WAITS ON hv's RULING OF ISSUE 0400.** `refs/bank/ic/0334-4` = 3b4d4df6c, a patch against 0334 part A's tree, makes `set` refuse a field `transitions.rs` declares Immutable. Landed as drafted it would leave the close gate's remedy (contract.rs:687) naming a declaration no verb writes. When hv rules 0400, rework (4) to the ruling: if Immutable stands, the gate's remedy and docs/known-defects.md:85 move with it and the TUI thread form's `acceptance` row is locked (`form_declares_layout_not_the_field_set` names it); if it falls, `transitions.rs` reclassifies the field and (4) is withdrawn. Land on vc's word.
+_(none)_
 
 ## Watch-outs
 

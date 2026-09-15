@@ -5,7 +5,7 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-15T20:58:02.198Z",
+    "heartbeat_at": "2026-09-15T22:26:44.109Z",
     "status": "active",
     "focus": "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH.",
     "claims": [
@@ -1178,7 +1178,8 @@
       "kind": "hold",
       "seq": 8,
       "text": "**tui-redesign-proposal.md's O4 NOTE STAYS OPEN AS WRITTEN UNTIL hv ANSWERS O4 (the status-segment row); vc carries the question.** The rest of the proposal's as-written pass landed at 465d508cc. When hv answers: correct the note forward to the answer, and commit it with ST0056's canon on vc's word.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T22:37:25.684Z",
       "recorded_at": "2026-09-15T19:30:30.708Z"
     },
     {
@@ -1186,7 +1187,8 @@
       "kind": "hold",
       "seq": 9,
       "text": "**0334's READING (4) WAITS ON hv's RULING OF ISSUE 0400.** `refs/bank/ic/0334-4` = 3b4d4df6c, a patch against 0334 part A's tree, makes `set` refuse a field `transitions.rs` declares Immutable. Landed as drafted it would leave the close gate's remedy (contract.rs:687) naming a declaration no verb writes. When hv rules 0400, rework (4) to the ruling: if Immutable stands, the gate's remedy and docs/known-defects.md:85 move with it and the TUI thread form's `acceptance` row is locked (`form_declares_layout_not_the_field_set` names it); if it falls, `transitions.rs` reclassifies the field and (4) is withdrawn. Land on vc's word.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T22:37:39.927Z",
       "recorded_at": "2026-09-15T20:37:17.763Z"
     },
     {
@@ -1231,6 +1233,22 @@
       "text": "**IN FLIGHT (ic resumes here after hv's compact): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 restacked onto 9cd639e46 with 0321 in and the registry rows rewritten on top; banked WIP at `refs/bank/ic/st0075-wp02-wip` on 9cd639e46, the landing scripts at `refs/bank/ic/st0075-wp02-scripts` (a tgz blob: `git cat-file -p <ref> | tar xzf -` in the scratchpad). Not banked for landing, and no app-test since the critic fixes (held by vc's windows).** critic-swift's first review is fixed as vc dispositioned it. Its second pass found the code clean and three test defects, fixed as vc ruled: the ring test renamed to the ring method it tests (no launcher seam; close-and-reopen is proved by the hand drive); the terminate test replaced by three tests that each fail on their own deletion; ending at both EOF and exit made deterministic; every drain bounded. A failed launch now keeps the earlier tail's lines; the negative stamp arm uses the milliseconds shape. A probe (`probes/fd_inherit2.swift`) shows a sibling child inherits no descriptor beyond 0-2, so no close-on-exec change: report it with the bank. Issue 0401 is committed at b86d24b0e. NEXT, on vc's rebuild end and views commit: `restack-with-registry.sh <HEAD>`; `step3-red.sh` (exactly five named failures); `step4-green.sh 49`; `bank.sh st0075-wp02`; `finish-notes.sh <red run> <green run> 49`; `land-wp02.sh <HEAD> <blob> dry`; the bank report to vc with the store writes, the expected gate (7/11, unsatisfied AC-03.1 to AC-03.4), the probe's answer, what only `hand-drive.md` proves, and WP-02 left WIP until that drive. Hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.",
       "state": "live",
       "recorded_at": "2026-09-15T22:12:58.178Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 27,
+      "text": "**O4 BANKED for vc's judgement (XS): `refs/bank/ic/o4` = 7362da955 on 3e1578d03** (hv's ruling 21). `tui-redesign-proposal.md`'s status line and O4 item corrected forward: the four segments withdrawn by hv on 2026-09-15, never built, and the status row recorded as built, the mode first and then the pane hint; the two comments (`tui/draw.rs:225`, `tui/layout.rs:1431`) no longer promise the segments. prettier and rustfmt clean; comments and one attachment only, so no suite. At the landing: `git apply`, attach the proposal's canon for ST0056 before committing (watch-out 58), commit on vc's word.",
+      "state": "live",
+      "recorded_at": "2026-09-15T22:37:05.347Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 28,
+      "text": "**0400 IN FLIGHT (S), after WP-02, in wt-0400 on 3e1578d03** (hv's ruling 20: `Thread.acceptance` immutable after creation). Written, not yet built: `refs/bank/ic/0334-4` applied (`set` refuses the field by reading its Immutable declaration); the gate's two empty-contract refusals name `intent ac new`, `intent ac rescope` or `intent ac reinstate`, and `intent st cancel` or `intent wp cancel`, never the exemption (`rescope` added beyond the ruling's list because it undoes a descope: tell vc); `close_gate_parity.rs` and `contract.rs` pin that, `acceptance_surface.rs` pins the zero-AC line; `surface/forms.json` locks the thread form's acceptance row; `intent/docs/working-with-llms.md` stops naming `set ... acceptance exempt`. NEXT, once the WP-02 app-tests free the host: `cargo build -p intentd`, whole intentsvcs and intent-cli suites and clippy in wt-0400 under a scratch HOME; drive both refusals on a scratch estate and rewrite `docs/known-defects.md`'s entry (lines 76-85) from the driven text; bank as `refs/bank/ic/0400`; land on vc's word with a close record for 0400. Tell vc: 0227 (closed 2026-09-11, \"no writer\") is by this ruling writer-less again after authoring, and the register's `ac gate` notes still call the exemption the sole escape (true for threads authored with it, left as is).",
+      "state": "live",
+      "recorded_at": "2026-09-15T22:37:15.184Z"
     }
   ],
   "messages": [
@@ -1305,6 +1323,15 @@
       "handled_at": "2026-09-13T11:29:45.711Z",
       "recorded_at": "2026-09-13T10:24:38.647Z",
       "authored_at": "2026-09-13 08:08Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "ic",
+      "body": "hv ruled 0400 and O4 on vc's recommendations (rulings 20 and 21 in intent/history/20260915-hv-rulings.md). 0400, after WP-02: Thread.acceptance stays immutable after creation. Carry 0334's reading (4) from refs/bank/ic/0334-4 onto HEAD so set refuses the field, lock the TUI thread form's acceptance row with it, make the close gate's emptied-contract refusal name the routes that exist (intent ac new, intent ac reinstate, or cancelling the thread or work package) instead of the exemption, correct docs/known-defects.md to match, and close 0400 with that landing; your hold 9 is released. O4: the four ratified status segments are withdrawn and the row is recorded as built; correct tui-redesign-proposal.md's O4 note forward to that, with the comments at tui/draw.rs:225 and tui/layout.rs:1431. Bank each for vc's judgement.",
+      "fyi": false,
+      "state": "handled",
+      "handled_at": "2026-09-15T22:37:45.754Z",
+      "recorded_at": "2026-09-15T22:28:00.666Z"
     }
   ]
 }
