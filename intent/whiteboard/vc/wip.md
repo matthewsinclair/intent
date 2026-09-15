@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: dfdab637-30f3-45c6-adcb-28fc683918e2
-heartbeat_at: 2026-09-15 18:25Z
+heartbeat_at: 2026-09-15 20:33Z
 status: active
-focus: "THE CLOSE-OUT (hv, 2026-09-15): train 3 is landed and in the pair at 23118bc0c; resume at todo 9 -- thread-spec-url lands as a train of one, then train 4 (dc artefact-lib, ic 0334 part A, cc 0377 if banked); hv owes 0334 (4) and O4. NO RELEASE, NO PUSH."
+focus: "THE CLOSE-OUT (hv, 2026-09-15): train 4 is landed and in the pair at 33990b80b, covers re-rendered at 939af5167; resume at the newest todo -- board passes, then train 5 (dc todo 2, cc 0331 (a) and the footer, ic ST0075 WP-02); hv owes 0400 and O4. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060]
 ---
 
@@ -17,7 +17,7 @@ claims: [ST0056, ST0057, ST0060]
 
 ## TODO
 
-- IN FLIGHT after train 3 (2026-09-15, vc resumes here). LANDED, verified against their banks, in the pair built at 23118bc0c and in the restarted intentd: cc's 0338 (i) at 67165bcfc plus 21c4116c2 (the test file names AT-07.8, so ST0057's gate is PASS again); dc's IN-RS-CODE-001 at ca3edf2ad, 0339 closed at 9bfdc5d11, dc's opt() split at 8bb1c24bc; ic's parity docs with the AC-09.5 reword and AT-09.5's extended note at 23118bc0c. NEXT, in order: (1) cc's thread-spec-url (refs/bank/cc/thread-spec-url, 28eaa9f22 on 8bb1c24bc) lands as a train of one on vc's word; it is judged by cc's whole intent-cli suite, both clippy steps and fmt, and nothing depends on intent-cli. (2) Train 4 in wt-train1: scratchpad train-restack.sh <HEAD> <refs>, then train-judge.sh train4, which stages the attached canon and runs bin/int precommit over the stack as well as the whole suites, both clippy steps and fmt. Its banks: dc's artefact-lib (11a31eb33 on 23118bc0c, one M of shell and docs, including three ST0056 parity-tool attachments); ic's 0334 part A re-taken onto 23118bc0c, with part (4) held apart at refs/bank/ic/0334-4; and cc's 0377 (a) if it is banked by then. (3) Then the lanes: cc 0331, 0321 (c) and 0375; ic files the 0334 (4) conflict as an issue; dc items 12 and 17. hv owes two answers: 0334 (4), where vc recommends keeping the immutable-after-creation ruling and routing the gate's refusal to st cancel, and O4, where vc recommends dropping the status row. After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.
+- IN FLIGHT after train 4 (2026-09-15, vc resumes here). LANDED, verified against their banks, in the pair built at 33990b80b and the restarted intentd, with 0334's covers re-rendered by organize at 939af5167: cc's thread-spec-url at 51628d447; dc's artefact-lib at 561a8fda9 and item 17 at 17b1f4533; ic's 0334 part A with 0396 at 6be7545b4 (0334 and 0396 closed, 0400 filed for hv); cc's 0377 (a) at 33990b80b (closed; its cost run found the canon fsevents loops moving nothing across a commit). NEXT, in order: (1) the board-pass queue after vc's end message: cc, then ic, then dc, relayed one at a time. (2) Train 5 in wt-train1, scratchpad train-restack.sh <HEAD> <refs> then train-judge.sh train5: dc's todo 2 (refs/bank/dc/todo2-contract-preflight, being re-banked with a derived release_sidecars test and contract_check's roster row); cc's 0331 (a); cc's footer bank, landed right before a rebuild and then organize --apply and a views commit; ic's ST0075 WP-02, with AC-02.2 reworded to colour warning: as a warning. cc's 0331 (b) counts sweep comes from a subagent as its own bank. (3) hv owes 0400 (vc recommends keeping immutable-after-creation, routing the gate's refusal to st cancel and locking the TUI form's acceptance row) and O4 (vc recommends dropping the status row); Decision A, the accent, is open in docs/design/design-system.md. After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.
 
 ## Holds
 
