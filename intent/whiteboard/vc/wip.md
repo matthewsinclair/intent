@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: dfdab637-30f3-45c6-adcb-28fc683918e2
-heartbeat_at: 2026-09-15 14:06Z
+heartbeat_at: 2026-09-15 16:23Z
 status: active
-focus: "THE CLOSE-OUT (hv, 2026-09-15), folded for the bounce: resume at the IN FLIGHT todo; lanes in intent/wip.md, rulings in intent/history/20260915-hv-rulings.md; banks are patch blobs on refs/bank; one lane lands at a time on the word of vc. NO RELEASE, NO PUSH."
+focus: "THE CLOSE-OUT (hv, 2026-09-15), folded for the second bounce: resume at the IN FLIGHT todo; next train is cc's 0338 (i), dc's IN-RS-CODE-001 and opt() split, ic's parity banks; one lane lands at a time on the word of vc. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060]
 ---
 
@@ -17,7 +17,7 @@ claims: [ST0056, ST0057, ST0060]
 
 ## TODO
 
-- IN FLIGHT (vc resumes here). Train 1 is judged in vc's scratchpad worktree wt-train1 on a0c7300eb: 0338-ii, 0177, 0339-design, 0339-code, aswritten-tui-design, in that order. Clippy, fmt and the intentd suite are green; the two estate tests are green once the stack's canon is attached with the worktree's own binary (doc banks carry no canon by design, and main's intentd ingests at landing). Two reds in 0339-code (a fixture still passing at new --status; at_new_takes_no_status.rs undeclared in suite.rs) wait on ic's re-bank, then vc reverse-applies the old blob, applies the new one and re-runs the intent-cli suite. Green lands in stack order, rebased on the hash vc sends, then vc runs build all and restarts intentd. cc's matched control on 0338 (ii) was clean on a quiet host, so (ii) rides. Next train: dc's 0398 (red and green now) and ic's TUI fixes F01, F15, F25, F27. Lanes: cc builds 0338 (i) on the train stack (shape approved; a second AT on AC-07.6 for the intent-cli arms), then thread_spec's URL refusal (XS); dc 0398, then IN-RS-CODE-001 enforcement (hv ruled enforce), the Devbin filing of fullcycle's false stop message, and the artefact.lib swallow fixed in Intent; ic's as-written passes (parity.md contract and inventory to the build with the records verbatim under a banner; AC-09.5 reworded to address.rs with its AT). hv dropped :w on 2026-09-15; the status-segments question is still open.
+- IN FLIGHT at the second bounce of 2026-09-15 (vc resumes here). On main and in the pair (built at 465d508cc, intentd restarted): train 1 (0338-ii; 0177, closed; 0339-design; 0339-code, partial; aswritten-tui-design; 0398, closed), then tui-fix and aswritten-proposal; dc's ST0056 as-written pass is at 7517619ba. The next train is judged by vc in wt-train1 on HEAD: scratchpad train-restack.sh <HEAD> <refs>, then train2-judge.sh. That run attaches the stack's canon, regenerates the register view, runs the whole suites, and re-runs the watcher family once. In order: (1) cc's 0338 (i), re-taken on 465d508cc. Its landing store writes are ruled: AC-07.6's text with the rationale sentence kept; AT-07.8 covering AC-07.6; AT-07.6 extended with at green --note; WP-07's body; 0338 closes. AC-03.1 is covered. (2) dc's IN-RS-CODE-001, rebased onto (i); it closes 0339. (3) dc's opt() split: helpers and issues() kind on probe_undeclared_ok, arms strict. (4) ic's parity banks: aswritten-parity 64ba375b0, aswritten-parity-docs f479db828, and the AC-09.5 reword b6e4347c9, with AT-09.5's note extended as ruled. After each train, lanes land in order on vc's word, then vc runs build all, restarts intentd and makes a view commit. Then the lanes: cc thread_spec's URL refusal (XS), 0377, 0331 (with ic's four stale strings), 0321, 0375; ic 0334 with 0396, and ST0075 WP-02 and WP-03; dc the artefact.lib swallow fix. hv owes the explorer status segments (build them, or record them dropped). Then the rest of the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is stale and is refreshed at the next globalfold.
 
 ## Holds
 
