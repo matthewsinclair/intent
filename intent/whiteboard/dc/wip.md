@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 17:14Z
+heartbeat_at: 2026-09-15 19:00Z
 status: active
-focus: "2026-09-15 16:11Z: localfolded for hv's compact. On the bounce: IN-RS-CODE-001 waits for vc's tui-fix and 0338 (i) hashes to rebase and bank (refs/bank/dc/rscode001-draft, wt-rscode); then opt() as vc ruled (a), landing after rscode; then artefact.lib's strings refusal, items 12 and 17. NO RELEASE, NO PUSH."
+focus: "2026-09-15 19:00Z: IN-RS-CODE-001, 0339's close and the opt() split landed; artefact.lib and item 17 in vc's train 4, each landing on vc's word; item 12 met; todo 2 on vc's signal. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,12 +13,12 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED and REBASED onto main plus ic's tui-fix; rides the train AFTER tui-fix, together with cc's 0338 (i).** vc's order of 2026-09-15: tui-fix lands alone first; then (i) and this form the next train. Worktree `wt-rscode`; safety blob `refs/bank/dc/rscode001-draft` over that stack. On the real base: fmt --check clean, the new IN-RS-CODE-001 step clean with no diagnostics, workspace clippy -D warnings clean. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason, which vc reads against the rule's exemption at bank time. Next: when vc sends the tui-fix and (i) hashes, rebase onto main (where edit() meets (i), keep (i)'s cross-project variant), run both crates' suites, bank, blob to vc, tell ic when it lands.
+_(none)_
 
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
-- **dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** `opt()` (No Silent Errors): vc RULED (a), S, landing after rscode, neither waiting on the other: every literal `opt()` read inside a verb's own arm goes strict (`Result<Option<String>, Failure>` through `undeclared_arg`, a `?` each); every read inside a shared helper (the fns outside the arms) and issues()'s `kind` goes through a new `probe_undeclared_ok` whose doc says why; `opt_explicit` follows its shared caller. One #[test] in render.rs `mod tests`: strict opt() refuses an undeclared id, returns Ok(None) for a declared id not passed, and `probe_undeclared_ok` returns None for an undeclared id; base shown by a probe in the commit message. Whole intent-cli suite before banking: the 29 measured failures to zero, no probe beyond the helpers and issues(). `wt-opt` holds the all-sites measurement, unbanked. Then `artefact.lib`'s strings refusal (S), item 12 (S), item 17 (XS).
+- **dc's lane after the second landing sequence (vc's order, 2026-09-15).** (1) artefact.lib's strings refusal, one M on vc's rulings -- rc 2 for a refusal, every reader keeping rc 1's no-marker answer and never printing or recording one for rc 2, self_provenance_check.sh's diagnostic arm saying NOT READ, the rebuild remedy dropped for an unread pair in its three readers, precommit's fixed labels corrected -- is BANKED at `refs/bank/dc/artefact-lib` on 23118bc0c and in vc's train 4, restacked on 51628d447 with ic's 0334 part A (alone on ca3c8a07d it was green on the whole suites), and the train attaches the three parity tools' canon; land on vc's word. (2) Item 17 (XS, hv's ruling 17): `claude upgrade --apply`'s report names `intent organize --apply` as the one door for stale views, with one test, BANKED at `refs/bank/dc/item17` on ca3c8a07d, applying whole on 51628d447, in vc's train 4 after ic's 0334 part A (vc: the targeted arms, fmt and both clippy steps are the lane's evidence); land on vc's word. (3) Item 12 MET, closed by vc on dc's evidence with nothing to build: `bin/devbin build all` stages in target/staging/release, verifies the set and promotes by back-to-back renames, so `intent` is never absent; the two-syscall mixed-pair window is refused by name, and fullcycle's clean phase, which does darken every estate, is fullcycle and not the build door the ruling names. (4) Todo 2 only on vc's signal.
 
 ## Holds
 
