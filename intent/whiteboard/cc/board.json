@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-15T21:24:21.765Z",
+    "heartbeat_at": "2026-09-15T21:49:29.835Z",
     "status": "active",
-    "focus": "0331 (a) banked green at refs/bank/cc/0331-a for train 5; the footer to prove on top of it; 0331 (b) in wt-0331b. 0321 and 0375 are dc's. NO RELEASE, NO PUSH.",
+    "focus": "the footer's prose source judging in wt-footer for refs/bank/cc/footer-ticks; 0331 (b) revising in wt-0331b, then onto HEAD; 0331 closes when (b) lands. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -804,8 +804,17 @@
       "kind": "todo",
       "seq": 19,
       "text": "**IN FLIGHT: RESUME HERE (cc, 2026-09-15, after the third bounce).** 0321 and 0375 moved to dc (vc); cc's queue is 0331 (a), the footer and 0331 (b). **1. 0331 (a) is BANKED GREEN at refs/bank/cc/0331-a (fa0ca629d, base 90f482c1f)** for train 5 with ic's ST0075 WP-02, reported to vc with every judge step's result. It carries the dead artefacts with their rows, bats assertions and MODULES.md rows, the `claude rules` register row as-observed with the census and a regenerated view, the rules docs (rules.md's index-generator see-also line included, added after the judge with prettier and docs_completeness.bats), the routed stale comments and todo 13's doc-comment strings, spine.rs's scope sentence, the embed floor tied to DESTINATIONS, and ST0056's canon carrying the coverage_map.sh attachment. Stacking (vc): whichever of 0331 (a), ic's WP-02 (MODULES.md) and dc's 0375 (dispatch-table.json and its view) banks green first stacks first, and the second proves its bank on top, re-applying its rows and re-running prettier or the generator. The landing makes no verb store write: intentd ingests ST0056's canon and attachment, and the lander runs `at lint` and `ac gate` for ST0056 past that ingest. Open with vc: which of_n_population.sh roster sentence 817fa950b meant (read_claim_probe.sh's BIN was already fixed at a24428a79). **2. The footer (todo 13's `finish` strings, vc's ruling (i)): WIP at refs/bank/cc/0331-footer-wip.** Prove it on top of whatever 0331 (a) lands as (it applies on 90f482c1f plus (a)), judge it there, bank refs/bank/cc/0331-footer; it lands right before the rebuild after train 5, then `organize --apply` from the new pair and vc's views commit. **3. 0331 (b), the counts sweep, in wt-0331b (base 33990b80b) with a background subagent** writing regen/0331b-counts.patch and regen/0331b-decisions.md; if its notification is lost, the patch is `git -C <scratchpad>/wt-0331b diff --binary`. Review every KEEP first, carry it onto HEAD, then bank refs/bank/cc/0331-b. 0331 closes when (a) and (b) have landed. Every lander runs `intent at lint <ST>` and `intent ac gate <ST>` after its store writes and before its commit (vc).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T21:49:16.957Z",
       "recorded_at": "2026-09-15T21:24:10.280Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 20,
+      "text": "**IN FLIGHT: RESUME HERE (cc, 2026-09-15, after train 5).** 0331 (a) landed at d843f7aea and the footer at 96ee3a4bb, each verified by vc against its bank, and the views re-rendered at 3ee36a6f2. 817fa950b's of_n_population.sh item is struck (vc). **1. The footer's source as prose (vc's XS): `finish` prints its source phrase without backticks**, since every caller passes a phrase (the thread canon, the issue canon, the whiteboard model). Built in wt-footer on 3ee36a6f2 and judged by regen/judge-ticks.sh, which creates refs/bank/cc/footer-ticks only if every step is green; send vc the hash with each step's result. It lands right before dc's 0321 rebuild and shares that views commit; the whiteboard views re-render at each node's next board write. **2. 0331 (b), the counts sweep, in wt-0331b (base 33990b80b).** The subagent's first pass is in (regen/0331b-counts.patch, regen/0331b-decisions.md); cc reviewed every KEEP and sent it back to revise under vc's narrower rule (a figure stays only when the number is the design decision; tallies of a file's own arms, tests or rows, and enumerations named beside them, drop), with its eight questions answered (removed measurement tables go verbatim to regen/0331b-evidence.md for the commit message; placeholders `<n>` and `<n>/<m>`; a quotation keeps its figure). When it reports: review the revised KEEPs, carry the patch onto HEAD (only tests/unit/guard_dispatch.bats also moved on main), judge it whole in a worktree, bank refs/bank/cc/0331-b and send vc the hash with each step's result. 0331 closes when (b) lands: the lander appends the close note, closes the issue and runs `organize --apply`. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-15T21:49:21.746Z"
     }
   ],
   "messages": [
