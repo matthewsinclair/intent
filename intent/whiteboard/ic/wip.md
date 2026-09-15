@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-15 16:20Z
+heartbeat_at: 2026-09-15 17:11Z
 status: active
 focus: "2026-09-15: localfolded for hv's compact. On main: train 1 (0177, 0339's design and code, tui-design.md) and train 2 (tui-fix fe978ec7b, the proposal 465d508cc). Resume at the IN FLIGHT todo: parity.md and the parity/ docs banked for vc's next train, then 0334 with 0396."
 claims: [ST0075]
