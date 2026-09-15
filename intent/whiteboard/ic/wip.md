@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-15 10:03Z
+heartbeat_at: 2026-09-15 13:06Z
 status: active
-focus: "2026-09-15: localfolded on hv's word, plan folded back to vc for its sync with hv. Now: hv's explorer UX change, inline, as an issue. Then on vc's word: 0334 (M, first landing; 0396 rides with it if vc rules so), 0339, ST0075 WP-02/03, ic's share of ST0056's as-written pass. NO RELEASE, NO PUSH."
+focus: "2026-09-15: 0399 (hv's inline explorer change) BANKED at refs/bank/ic/0399, a patch blob on b2b06c2ba, hv-driven; awaiting vc's judging slot, then landing. Localfolded for hv's bounce. Then, in vc's order: 0334, 0396, 0339, ST0075 WP-02/03, ic's share of ST0056's as-written pass. 0398's stray title edit held for hv. NO RELEASE, NO PUSH."
 claims: [ST0075]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0075]
 
 ## DOING
 
-_(none)_
+- **ISSUE 0399, hv's INLINE EXPLORER CHANGE: BANKED 2026-09-15, NOT LANDED.** hv drove it in wt-0399 over three rounds: the split with the selected row's contents rendered as markdown below, Tab across, arrows scrolling a reading, Enter editing from either half, the rule naming the row at its left edge and lit while the pane has the keys, an in-place edit handing the keys back to the list, and a thread's attached documents read in the pane through `Facade::read_thread_file`. BANK: `refs/bank/ic/0399` is a PATCH BLOB on base b2b06c2ba, 18 files, verified by reverse-apply; recover with `git cat-file -p refs/bank/ic/0399 | git apply`. The worktree lives in /private/tmp and dies with a reboot; the ref does not. NEXT, on vc's slot: ONE full judging run (`views::render_all` now walks `views::thread_views`, so the intentsvcs view byte-identity arms judge it), land in main with tui-design.md attached there first, close 0399 with a CLOSED note correcting its body's "highlighted code blocks" (code renders in one colour; no syntect).
 
 ## TODO
 
@@ -26,6 +26,7 @@ _(none)_
 ## Holds
 
 - **The palette `Home`/`End` flip and `subagents/.manifest/global-agents.json` (three bats tests assert it)** -- RELEASES WHEN hv rules either in or out. (0303, which shared this hold, is ruled and landed at b6f0ef070.)
+- **Issue 0398's title on the live store ends "...every values"**, a stray "s" saved by hv's drive of 0399's in-place edit, and its canon and view are dirty on main -- RELEASES WHEN hv says restore it (`intent issues edit 0398 --title` back to "...every value", canon and view committed) or keep it.
 
 ## Watch-outs
 
@@ -39,6 +40,8 @@ _(none)_
 - **A SUITE RUN WRITES THE ESTATE IT RUNS IN, AND /private/tmp DOES NOT SURVIVE A REBOOT.** Every run: a private detached worktree, its own in-tree target dir, `HOME=<scratch>` written as a command, `cargo build -p intentd` first; afterwards `~/.local/share/intent/home` still names this tree. On 2026-09-15 a reboot took every worktree and scratchpad, and only the session transcript under `~/.claude/projects/` still held the notes (heredoc writes in the command text, large reads under `tool-results/`): anything that must outlive a session goes on this board, into a commit, or into the store.
 - **A GREEN AT IS COVERAGE, NOT SATISFACTION.** A non-test AC stays unsatisfied beside a green AT until `intent ac satisfy --evidence` names what met it, and its AT stays `n/a`; an AT citing a file counts only if the FILE carries the row's literal id; a completed thread's rows are corrected forward with a note naming where the arm went and at which sha, never withdrawn (vc, citing hv 2026-08-21).
 - **BOARDS ARE STORE ROWS: EVERY WRITE IS A `wb` VERB WITH `--node ic`, AND A HAND EDIT IS OVERWRITTEN.** Any store write can re-render a PEER's stale view on disk: those files are theirs, never in my `--only` paths. A peer inbox at 20 refuses `wb ask` (the socket is then the only channel), and my watch-outs stop at 40.
+- **A GUARD ON EXIT CODES PASSED A RUN THAT CHANGED NOTHING** (2026-09-15). A prior-art check refused before the heredoc that would have written an edit script; the next command transformed that missing file into an empty script, python ran it at rc 0, and fmt, both suites, clippy and the build all went green on the unchanged code. Guard on the EFFECT: after an edit script, check each new symbol is in its file before anything builds, and read the new test's name in the run's log.
+- **DRIVING A TUI CHANGE THROUGH THE REAL BINARY WRITES THE LIVE STORE** (2026-09-15): hv's drive of an in-place edit saved a stray "s" into issue 0398's title. Drive edits on a scratch estate (`intent init` in the scratchpad under an isolated HOME, `explore intent:///issues/0001`, a pty for scripted keys), and say twice that saves are real before handing hv the live one. And a worktree has no gate shim (`.githooks/pre-commit.intent` is gitignored installer canon), so a bank there is a patch blob under `refs/bank/`, never a gate-less commit.
 
 ## Decisions
 
