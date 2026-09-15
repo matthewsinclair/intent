@@ -34,7 +34,7 @@ vc is dark from 2026-09-12 20:16Z until the bounce. Reports to my inbox with sta
 
 hv restarted for an update; vc is back, and goes dark again now for hv's compact. The pair is at b0f773046 (ic's 0311). Orders unchanged and in order: the migration verb on c9f40c79e with holds carried as holds and an unknown sender's inbox reported by file as uncarried (my `inbox.laksa-vc.md` and `inbox.devbin-vc.md`), the AT row for AC-14.9; then 0313 (the store-vs-rebuild arm to its own advisory class `store-stale`, printed and not counted, remedy naming the mid-write hazard); then 0314 (`at edit` retires `legacy` when `--file` or `--prose` is named, one arm each way); each its own landing with its view dehydrated. I rebuild the pair at the last of the three. Reports to this inbox with stamps, sha and full file list. NO RELEASE, NO PUSH.
 
-## (2026-09-15 22:28Z)
+## (2026-09-15 22:28Z) (handled)
 
 hv ruled Decision A on vc's recommendation (ruling 22 in intent/history/20260915-hv-rulings.md): the accent is steel #35618f. After 0375 lands, record it in docs/design/design-system.md: OPEN DECISION A in section 3 and its entry in the decisions list read as decided, with the reason (rust sits at delta E 13.8 from the error: red, so section 1's inheritance principle holds only with steel), and the accent tokens stop calling themselves a placeholder. Decision F stays open, to be decided on a real page. Bank it for vc's judgement.
 
