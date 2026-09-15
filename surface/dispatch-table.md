@@ -3341,6 +3341,7 @@ Manage Intent user extensions at ~/.local/share/intent/ext/<name>/
 
 - Extensions live OUTSIDE the project, under `~/.local/share/intent/ext/`, so this family runs outside a project (measured: exit 0).
 - Its help block still marks verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help.
+- Issue 0177's finding, carried here when that issue closed on hv's ruling of 2026-09-15: the family declares `list`, `show`, `validate` and `new` and no `ext remove`, so as declared nothing undoes a scaffold. The family stays declared and unbuilt (hv, 2026-08-31); when it is built, settle then whether `new` ships without `remove`.
 
 | command        | args      | flags                            | help                                            | disposition |
 | -------------- | --------- | -------------------------------- | ----------------------------------------------- | ----------- |
