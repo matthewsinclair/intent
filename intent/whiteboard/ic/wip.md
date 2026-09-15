@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-15 20:37Z
+heartbeat_at: 2026-09-15 20:42Z
 status: active
-focus: "2026-09-15: 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) banked at refs/bank/ic/0334-4 and held on hv's ruling. ST0075 WP-02, the Console, is in flight in a private worktree. NO RELEASE, NO PUSH."
+focus: "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH."
 claims: [ST0075]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0075]
 
 ## DOING
 
-- **ST0075 WP-02 (S), THE CONSOLE, IN FLIGHT IN A PRIVATE WORKTREE (wt-st0075), ON vc's GO OF 2026-09-15.** Copied from Gtools: `ConsoleLine` (classify and the bounded `LineRing`), `ConsoleRunner` (the tail over `intent daemon logs --follow`, with the child's stdin held so closing it ends the verb and its tail), `ConsoleWindowController` without Gtools' Verbose box; Console on Cmd-L, File > Close on Cmd-W, View > Clear Console on Cmd-K; `IntentCLI.stream` gains `holdStdin` and `RunningProcess` closes the held pipe. The palette is docs/design/design-system.md's dark tokens and IBM Plex Mono (vc agreed), the accent marked as hv's open Decision A. AC-02.2 is vc's ruling (b): `warning:` lines take the warning colour, and the criterion's text is reworded at landing with `intent ac edit ST0075 AC-02.2 --text`. hv's item 18 is in it: the version row's failure tooltip and `VersionState.failure`, its one reader, are gone. AT-02.1 to 02.3 are XCTest cases in `ConsoleTests.swift`. NEXT: the app-test run green, critic-swift, bank as a patch blob, tell vc; at landing the WP objective, `wp start`, the ATs cited and greened, and the AC-02.2 reword; the window is driven by hand in hv's quiet window (item 14).
+- **IN FLIGHT (ic resumes here after the bounce): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 on 17b1f4533, banked WIP at `refs/bank/ic/st0075-wp02-wip` = da6ae82c4.** The bank carries 11 paths: `ConsoleLine` (classify and the bounded `LineRing`); `ConsoleRunner` (the tail over `intent daemon logs --follow`, the child's stdin held so closing it ends the verb and its tail, the header parsed into the footer's two paths and split where they share a directory); `ConsoleWindowController` (Gtools' without the Verbose box); Theme on docs/design/design-system.md's dark tokens and IBM Plex Mono, the accent marked as hv's open Decision A (vc agreed); `IntentCLI.stream`'s `holdStdin` with `RunningProcess` and `HeldInput`; IntentApp's Console on Cmd-L with File > Close and View > Clear Console; hv's item 18 (the version row's failure tooltip and `VersionState.failure` gone); `ConsoleTests.swift` (AT-02.1 to 02.3); the regenerated project; and ST0075 design.md's classification line. AC-02.2 is vc's ruling (b): `warning:` coloured as a warning, AT-02.2 on intentd's real `warning:` lines (a unix or loopback connection it could not accept, the LaunchAgent it could not regenerate), and at landing `intent ac edit ST0075 AC-02.2 --text` rewords "remedy lines as warnings" to "warning and remedy lines as warnings". STANDS: IntentTests green, 38 of 38 with ConsoleTests' six among them (counted, because devbin's app-test prints summaries only), no compiler diagnostics; critic-swift was still reviewing the files when this fold ran. NEXT: read critic-swift's findings and fix them, re-run app-test with INTENT_MACOS_STATE_DIR private, re-bank as `refs/bank/ic/st0075-wp02`, tell vc; at landing the WP objective, `wp start`, the three ATs cited to `native/macos/Intent/IntentTests/ConsoleTests.swift` and greened, and the AC-02.2 reword; the window is driven by hand in hv's quiet window (item 14). Todo 20 waits on cc's 0331; hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.
 
 ## TODO
 
