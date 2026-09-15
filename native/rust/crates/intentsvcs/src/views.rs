@@ -433,7 +433,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
     out.push('\n');
   }
 
-  finish(out, ctx, "thread.json")
+  finish(out, ctx, "the thread canon")
 }
 
 /// Does this carried body already carry `## <heading>` of its own?
@@ -955,7 +955,7 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
     out.push('\n');
   }
 
-  finish(out, ctx, "thread.json")
+  finish(out, ctx, "the thread canon")
 }
 
 /// Every AC/AT group present, in id order -- `00` (ST-level) first.
