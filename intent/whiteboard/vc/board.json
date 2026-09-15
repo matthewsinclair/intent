@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "dfdab637-30f3-45c6-adcb-28fc683918e2",
-    "heartbeat_at": "2026-09-15T21:14:31.944Z",
+    "heartbeat_at": "2026-09-15T21:54:34.888Z",
     "status": "active",
-    "focus": "THE CLOSE-OUT (hv, 2026-09-15): dc's todo 2 landed at 90f482c1f; next train 5 (cc 0331 (a), ic ST0075 WP-02), the footer before the rebuild, dc on 0321 then 0375; hv owes 0400 and O4. NO RELEASE, NO PUSH.",
+    "focus": "THE CLOSE-OUT (hv, 2026-09-15): train 5 landed, pair at 96ee3a4bb; next train 6 (dc 0321 with 0401), cc's footer-ticks, the rebuild and a views commit; then ic ST0075 WP-02; hv owes 0400, O4 and A. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
@@ -566,7 +566,8 @@
       "kind": "todo",
       "seq": 12,
       "text": "IN FLIGHT after dc's todo 2 landed (vc resumes here). LANDED and verified since the third bounce: dc's todo 2, the release pre-flight, at 90f482c1f -- its tree is 267aaeb33 plus its bank with ST0056's canon ingest and nothing else, and ST0056's gate verdict line is unchanged; dc's board pass at eff7f09c6. Nothing compiled has changed since 33990b80b, so the pair and intentd stand. NEXT, in order: (1) Train 5 in wt-train1 (scratchpad train-restack.sh <HEAD> <refs>, then train-judge.sh train5): cc's 0331 (a) once banked at refs/bank/cc/0331-a (wt-0331 rebased onto 90f482c1f; three of its four fixes in, the coverage_map.sh canon attach and the whole judge left), and ic's ST0075 WP-02 once re-banked green at refs/bank/ic/st0075-wp02 (MODULES.md rows for the Console files, the tailPaths reset, critic-swift's findings, prettier, app-test; AC-02.2 reworded at its landing to colour warning: as a warning, and every AT row the landing creates carrying its literal id in the cited test). Stacking rule for two banks sharing a file (MODULES.md, dispatch-table.json and its view): whichever banks green first goes first, nobody holds a bank for the other, and the second proves its bank on top and re-runs prettier or the generator. (2) cc's footer bank, re-proven on top of 0331 (a) because both change views.rs, lands right before the rebuild after train 5; then organize --apply and a vc views commit. (3) cc's 0331 (b) counts sweep, from its subagent's patch in wt-0331b, as its own bank with its own review. (4) dc takes 0321 (every intentd.log line stamped in UTC and a wire stop naming its asker where the wire carries one, exempt from D42 as hv ruled) and then 0375 (the hv-only directive kind, in the shape ruled at the fold), each its own bank through a train judge; both moved from cc's queue because dc is free. (5) ic's WP-03 and todo 20 (the 0331 review). hv owes 0400 (vc recommends keeping immutable-after-creation, routing the gate's refusal to st cancel and locking the TUI form's acceptance row), O4 (vc recommends dropping the status row) and Decision A, the accent, which blocks nothing (the Console carries the placeholder). precommit's guard-home NOTE is the per-machine gate shim predating edc9af155's remedy text; --where reads state OK, so nothing is owed. After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T21:54:24.540Z",
       "recorded_at": "2026-09-15T21:14:26.859Z"
     },
     {
@@ -585,6 +586,14 @@
       "text": "(2026-09-15) vc, under the close-out pen: after 0321, every line intentd writes to intentd.log or intentd.err.log, remedy: lines included, opens with an RFC 3339 UTC timestamp with a Z suffix, then one space, then the line byte-identical to today, through one writer module whose clock read is one_clock.rs's single exemption, its reason recorded once in ST0056 design.md's D42; ST0075's ConsoleLine skips exactly that token, when present, before it classifies a line from either log (in WP-02's bank), so 0321 lands with no Swift change. The intentd notices that carry a remedy: line but no severity token get intentd's existing warning: or error: token in dc's 0321 bank, which closes ic's new issue with 0321 (the critic advisory's option (iii); the Console does not guess). Two banks that share a file (MODULES.md, dispatch-table.json and its view) stack in the order they bank green, nobody holds a bank for the other, and the second proves its bank on top.",
       "state": "live",
       "recorded_at": "2026-09-15T21:21:06.318Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 13,
+      "text": "IN FLIGHT after train 5 (vc resumes here). LANDED and verified since dc's todo 2: cc's 0331 (a) at d843f7aea and the footer at 96ee3a4bb, each tree-identical to its bank; the pair rebuilt at 96ee3a4bb, intentd restarted on it, and the six realised thread views re-rendered at 3ee36a6f2; ic's issue 0401 filed at b86d24b0e. BANKED and next, in order: (1) Train 6 in wt-train1 (train-restack.sh <HEAD> refs/bank/dc/0321, then SKIP_SUITES=1 train-judge.sh train6, because dc's run covered the whole suites, both clippy steps and fmt on the exact banked tree a0b7255dd): dc's 0321 with 0401 in the same bank (74511351e on 3ee36a6f2) -- every intentd.log and intentd.err.log line stamped YYYY-MM-DDTHH:MM:SS.mmmZ through daemon_log.rs, one_clock.rs's single exemption with its reason in ST0056 design.md's D42, and 0401's thirteen notices given warning:; its landing edits and closes 0321 and 0401. (2) Right after it, in the same window, cc's footer-ticks (e3a53657c on 3ee36a6f2, views.rs only: the footer prints its source as a phrase, without backticks), accepted on cc's stack judge. (3) Then the rebuild, intentd's restart, organize --apply over the six thread views, the six issue views and intent/todo.md, and a vc views commit; every node's next board pass carries a footer-only diff. (4) ic's ST0075 WP-02 once banked green, proven on top of 0321 for MODULES.md, with ConsoleLine skipping the millisecond stamp and AC-02.2 reworded at its landing to colour warning: as a warning. (5) cc's 0331 (b) counts sweep as its own bank; dc's 0375 on HEAD after 0321. (6) ic's WP-03 and todo 20. hv owes three calls, with vc's recommendations given in chat: 0400 (keep immutable-after-creation: set refuses, the TUI form's acceptance row locks, and the gate's emptied-contract refusal names ac new, ac reinstate and cancel), O4 (withdraw the four unbuilt status segments and record the row as built) and Decision A (steel; Decision F follows on a real page). After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.",
+      "state": "live",
+      "recorded_at": "2026-09-15T21:54:29.985Z"
     }
   ],
   "messages": [
