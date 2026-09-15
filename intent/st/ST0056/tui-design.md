@@ -75,7 +75,7 @@ OMNI  k/n  ⏎ $EDITOR  ↑↓ browse · / menu · ⌫ back · type to find  TAB
 | MENU  | Typing / Move      | MENU  | filter the palette; pick among the hits                                  |
 | MENU  | Enter              | OMNI  | run the picked command                                                   |
 | MENU  | Esc / Cancel / `/` | OMNI  | close the palette                                                        |
-| FIELD | Typing             | FIELD | in-place edit, one keymap                                                |
+| FIELD | Typing             | FIELD | in-place edit, the composer's line editor                                |
 | FIELD | Enter              | OMNI  | commit                                                                   |
 | FIELD | Esc                | OMNI  | discard                                                                  |
 | EMBED | Typing             | EMBED | forwarded to the child                                                   |
@@ -134,7 +134,7 @@ The composer takes readline's emacs chords (`C-a`, `C-e`, `C-b`, `C-f`, `C-d`, `
 
 **`:` IS RETIRED AS A LIVE SIGIL** (hv's `/commands`). `:q` and `:q!` survive as **hidden aliases** -- typed into the composer like any other text, honoured by the resolver, and advertised nowhere; any other `:` command is answered as unknown. The vi muscle memory for leaving keeps working for the people who have it; the surface teaches only `/`.
 
-**The vi FIELD keymap is retired** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_). In-place field editing keeps ONE keymap -- characters and Backspace -- and everything longer goes to `$EDITOR`. The composer's chords above are a different surface: the composer is the input the operator lives in.
+**An in-place edit uses the composer's line editor** (hv, 2026-09-15, after the cursor keys did nothing while editing a title): the arrows, `Home` and `End`, the emacs chords above and vi's normal mode under the vi keymap act on the field exactly as they act on the composer, and a chord nothing binds types nothing. Under vi the first Esc enters normal mode and the second discards the edit, as it closes the palette. **What stays retired is a SEPARATE field keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_): one line editor serves both inputs, and anything longer than a line still goes to `$EDITOR`.
 
 ## 5. The command palette
 

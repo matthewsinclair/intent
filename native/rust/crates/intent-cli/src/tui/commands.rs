@@ -5,8 +5,9 @@
 //! along a bar, accelerators coloured in place, `[<-]` and `[X]` as selectable
 //! positions. hv tested the shipped machine and reached for `/quit`, which is
 //! the other shape entirely: **`/` opens a FILTERED LIST of commands, typing
-//! narrows it, the arrows pick, Enter runs.** The Lotus tree survives as the
-//! GROUPING of this vocabulary and not as a widget.
+//! narrows it, the arrows pick, Enter runs.** Nothing of the Lotus tree
+//! survives: the vocabulary is one flat list with the TUI's own acts first
+//! (`tui-design.md` §5 records the `group` field's removal).
 //!
 //! # Only what is wired is declared
 //!
@@ -137,10 +138,11 @@ pub enum Act {
 ///   still run it; it does not get to be one keystroke from every session.
 /// - `init` / `bootstrap` / `upgrade` -- one-time or whole-tree setup. `init`
 ///   refuses inside a project by design, so offering it is a menu of errors.
-/// - `graphql` / `browse` -- **nothing implements them yet.** vc measured the
-///   GraphQL escape hatch as a schema document with no executor; `browse`
-///   waits on cc's WP-08 stub. This module's own rule: the vocabulary grows
-///   when the act behind it lands.
+/// - `graphql` / `browse` -- **left out when nothing implemented them**: vc
+///   measured the GraphQL escape hatch as a schema document with no executor,
+///   and `browse` waited on cc's WP-08 stub. Both are verbs now (`graphql`
+///   runs a read-only query); whether the palette offers either has not been
+///   decided, so they stay out until it has.
 /// - `help` -- claimed by [`Act::Help`]. See [`vocabulary`].
 /// - `search` -- claimed by [`Act::Search`] at WP-21. It was here, and what it
 ///   bought was a lend: the hits printed to the real screen and vanished on the

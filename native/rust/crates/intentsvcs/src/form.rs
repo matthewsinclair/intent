@@ -613,11 +613,11 @@ fn scalar(v: &Value) -> String {
 
 /// Collapse whitespace so a value cannot become two rows.
 ///
-/// Criterion prose reaches 59,061 characters with paragraph breaks in it. Each
-/// face clips to its own width, but only after this has made the value one
-/// line -- collapsing at the renderer instead would put the reason somewhere
-/// the next reader would not look, and would have to be done identically in
-/// three places.
+/// A stored value can run to tens of kilobytes, and prose fields carry line
+/// breaks. Each face clips to its own width, but only after this has made the
+/// value one line -- collapsing at the renderer instead would put the reason
+/// somewhere the next reader would not look, and would have to be done
+/// identically in every face.
 fn one_line(s: &str) -> String {
   s.split_whitespace().collect::<Vec<_>>().join(" ")
 }

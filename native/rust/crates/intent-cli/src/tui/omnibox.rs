@@ -220,6 +220,12 @@ pub const BEST_IS_NEAREST_THE_INPUT: bool = true;
 
 impl Omnibox {
   /// Where the caret is, in chars.
+  /// The buffer on either side of the caret, for a line drawn with its caret
+  /// inside it -- an in-place edit's value, which has no cell overlay.
+  pub fn around_cursor(&self) -> (&str, &str) {
+    self.buffer.split_at(self.byte_at(self.cursor))
+  }
+
   pub fn cursor(&self) -> usize {
     self.cursor
   }

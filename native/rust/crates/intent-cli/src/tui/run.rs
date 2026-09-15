@@ -222,7 +222,8 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
         .map(|r| {
           if r.name == edit.handoff.field {
             let mut shown = r.clone();
-            shown.value = format!("{}\u{258f}", edit.buffer);
+            let (before, after) = edit.line.around_cursor();
+            shown.value = format!("{before}\u{258f}{after}");
             shown
           } else {
             r.clone()
@@ -246,9 +247,8 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
       .filter(|r| r.has_detail())
       .and_then(|r| r.detail.as_ref())
       .map(|d| d.plan(width)),
-    // **A READING SCROLLS AND A ROW LIST DOES NOT, YET** (issue 0399). A field's
-    // contents are drawn from the line the operator has scrolled to; rows keep
-    // the pane's top-anchored treatment.
+    // **A READING SCROLLS BY ITS OWN OFFSET** (issue 0399); a rows pane follows
+    // its cursor instead (`detail_selected`), so it needs none.
     detail_first: match app.focused_row(rows).and_then(|r| r.detail.as_ref()) {
       Some(layout::Detail::Contents(_)) => app.detail_scroll,
       _ => 0,
@@ -263,6 +263,10 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
     // draws it reversed or underlined by `detail_focused`.
     selected: app.focus.map(|f| f.index()),
     detail_focused: matches!(app.pane(rows), super::app::Pane::Detail),
+    detail_selected: match app.focused_row(rows).and_then(|r| r.detail.as_ref()) {
+      Some(layout::Detail::Rows(_)) => app.detail_focus.map(|f| f.index()),
+      _ => None,
+    },
     // **THE RULE NAMES WHAT THE PANE SHOWS** (hv, 2026-09-15, issue 0399).
     detail_label: app
       .focused_row(rows)
@@ -305,11 +309,11 @@ fn app_row(app: &App) -> String {
 fn omnibox_row(app: &App) -> String {
   match app.mode {
     super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
-    // **ALWAYS THERE, AND NOW ALWAYS LIT** -- the one home's whole point: the
+    // **ALWAYS THERE, CARET INCLUDED** -- the one home's whole point: the
     // composer holds the keyboard in every state the TUI owns, so it carries
-    // the cursor rather than standing dim waiting to be selected. **MENU
-    // carries it too, because the palette COLLECTS**: the sigil in the buffer
-    // is what tells the two apart, not the presence of a cursor.
+    // the cursor in OMNI and MENU alike, and the sigil in the buffer is what
+    // tells the two apart. **Its text is lit only in OMNI**: `layout` dims it
+    // in MENU, where brightness is the focus signal, and a layout test pins it.
     // **THE CARET IS NOT IN THIS STRING, AND THAT IS THE FIX FOR A REAL
     // DEFECT hv DROVE INTO.** It used to be a glyph SPLICED INTO the buffer at
     // the cursor, which reads correctly at the end of the line -- where it
@@ -412,6 +416,7 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
           "artefact" => "\u{23ce} open file",
           "button" if row.door.is_some() => "\u{23ce} open",
           "button" => "",
+          "select" | "text" | "number" if !row.editable => "",
           "select" => "\u{23ce} choose",
           _ => "\u{23ce} edit",
         };

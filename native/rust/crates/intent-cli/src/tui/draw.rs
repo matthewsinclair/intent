@@ -147,6 +147,7 @@ mod tests {
       detail: None,
       detail_first: 0,
       detail_focused: false,
+      detail_selected: None,
       detail_label: layout::DETAIL_LABEL.to_string(),
       app: "ST0056   Add a Rust-based CLI".into(),
       project: String::new(),

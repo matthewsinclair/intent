@@ -77,7 +77,7 @@ pub fn rows_for(form: &Form, entity: &Value) -> Vec<Row> {
     .into_iter()
     .map(|t| {
       let contents = form::raw(entity, &t.name);
-      let row = Row::named(t.name, t.label, t.value, t.widget);
+      let row = Row::named(t.name, t.label, t.value, t.widget).editable(t.editable);
       match contents {
         Some(text) => row.reading(text),
         None => row,

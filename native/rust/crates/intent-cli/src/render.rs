@@ -5231,7 +5231,7 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // absent item on an error row, the same shape an unbuilt level already
     // gets, so a child that does not exist SAYS SO rather than painting empty.
     View::Item { kind, id } | View::Children { kind, id, .. } | View::Child { kind, id, .. } => {
-      entity_json(facade, kind, id).is_some()
+      matches!(entity_json(facade, kind, id), Ok(Some(_)))
     }
   }
 }
@@ -5463,12 +5463,21 @@ impl tui::edit::Model for Live {
   /// fit one screen line and would hand `$EDITOR` a form of the operator's
   /// prose with every paragraph break already gone.
   fn read(&mut self, h: &tui::edit::Handoff) -> Result<String, tui::edit::Refused> {
-    let entity = entity_json(&self.facade, &h.kind, &h.id).ok_or_else(|| {
-      tui::edit::Refused::new(format!(
-        "error: {} {} would not load, so there is nothing to edit",
-        h.kind, h.id
-      ))
-    })?;
+    let entity = match entity_json(&self.facade, &h.kind, &h.id) {
+      Ok(Some(entity)) => entity,
+      Ok(None) => {
+        return Err(tui::edit::Refused::new(format!(
+          "error: {} {} would not load, so there is nothing to edit",
+          h.kind, h.id
+        )));
+      }
+      Err(e) => {
+        return Err(tui::edit::Refused::new(format!(
+          "error: {} {} would not load: {e}",
+          h.kind, h.id
+        )));
+      }
+    };
     intentsvcs::form::raw(&entity, &h.field).ok_or_else(|| {
       tui::edit::Refused::new(format!(
         "error: `{}` is not a text field of {} {} -- only text fields hand off to an editor",
@@ -5546,7 +5555,7 @@ fn handed_address(
 /// second walk would be a second answer to *what does this entity look like*,
 /// and the field the editor opened would not have to be the field the screen
 /// showed.
-fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Value> {
+fn entity_json(facade: &Facade, kind: &str, id: &str) -> Result<Option<serde_json::Value>, String> {
   // **A THIN ADAPTER NOW, AND IT USED TO BE THE HOME.** This function held its
   // own `match kind` over `thread` and `issue` until 2026-09-04. That was one
   // crate too high: `intentd` depends on `intentsvcs` and NOT on the CLI, so
@@ -5565,13 +5574,21 @@ fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Valu
   // `/{kind}/{id}/{field}` shape. The wire reaches work packages through
   // `intent://` addresses, which are not positional in that way. Two path
   // contracts, one entity vocabulary, and this is where they meet.
+  //
+  // **A LOOKUP THAT FAILS IS AN `Err`, AND IT IS NEVER FOLDED INTO THAT
+  // `None`.** A `.ok()` here once made a thread that would not load paint its
+  // form with empty values; the item view now puts the refusal on an error row.
   let view = intentsvcs::nav::View::Item {
     kind: kind.to_string(),
     id: id.to_string(),
   };
+  let Some(entity) = intentsvcs::nav::entity_for_item(&view) else {
+    return Ok(None);
+  };
   facade
-    .entity_json(&intentsvcs::nav::entity_for_item(&view)?)
-    .ok()
+    .entity_json(&entity)
+    .map(Some)
+    .map_err(|e| format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)))
 }
 
 /// A collection's rows with a rule where its open run ends: the one home for
@@ -5694,11 +5711,20 @@ fn rows_for(
       let Some(form) = declaration.form(kind) else {
         return Vec::new();
       };
-      let entity = entity_json(facade, kind, id);
-      // **A VIEW THAT CANNOT LOAD STILL RENDERS ITS FIELD NAMES**, because the
-      // form is declared and the values are what is missing. An empty screen
-      // would say the entity has no fields, which is a different and false
-      // claim.
+      // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER A FORM OF EMPTY
+      // VALUES** (`tui-design.md` section 8). Blank values under real field
+      // names read as an entity that exists and says nothing, which is a silent
+      // failure wearing a form.
+      let entity = match entity_json(facade, kind, id) {
+        Ok(entity) => entity,
+        Err(e) => {
+          return vec![tui::layout::Row::new(
+            "error",
+            format!("{kind} {id} would not load: {e}"),
+            "text",
+          )];
+        }
+      };
       let mut rows = tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null));
       // **THE DOORS COME FROM THE DECLARATION, NOT FROM ROW SHAPE** --
       // `nav::descents` is the shared contract both faces walk (`AC-17.12`),
@@ -5802,9 +5828,9 @@ fn rows_for(
 /// DOES NOT.** A work package has a declared form, so its detail pane is that
 /// form's own triples -- the same walk the item view uses, which is what keeps
 /// the two from disagreeing about a work package. Criteria and tests have no
-/// declared form, so their detail is `tui-design.md` section 6's named set
-/// verbatim (*Criteria -- kind, state, evidence, and the full text; Tests --
-/// status, covers, file, note*). **The durable fix is a declared form for each,
+/// declared form, so their detail follows `tui-design.md` section 6's named
+/// sets (*Criteria -- state, covered by, and the text; Tests -- status, kind,
+/// covers, file, note*). **The durable fix is a declared form for each,
 /// resolved through `#/$defs/Criterion` and `#/$defs/AcceptanceTest` exactly as
 /// `wp` resolves through `#/$defs/WorkPackage`** -- that is new authored canon
 /// and is with vc rather than taken here.
@@ -13350,6 +13376,50 @@ mod tests {
       "the schema descends into levels this realiser does not build (or names levels the schema \
        no longer has). An unbuilt level renders as an empty collection, which is a bug wearing \
        the costume of data."
+    );
+  }
+
+  /// **AN ITEM THAT WILL NOT LOAD RENDERS AN ERROR ROW, NEVER A FORM OF EMPTY
+  /// VALUES** (F27 of the 2026-09-15 tui-design audit; `tui-design.md` section
+  /// 8). A thread id with no thread behind it is the load failure a fresh project
+  /// can produce.
+  #[test]
+  fn an_item_that_will_not_load_renders_an_error_row_rather_than_empty_values() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    intentsvcs::init::init(
+      dir.path(),
+      "explorer-fixture",
+      "tester",
+      env!("CARGO_PKG_VERSION"),
+    )
+    .expect("a fresh project initialises");
+    let project = intentsvcs::project::Project::open(dir.path()).expect("the fresh project opens");
+    let ctx = FacadeContext {
+      principal: "local".to_string(),
+      project_id: project.config().project_id.clone().unwrap_or_default(),
+      version: env!("CARGO_PKG_VERSION").to_string(),
+    };
+    // Through the one door, `engine`, which `cli_routing` holds to be this
+    // crate's only construction of the facade.
+    let Ok(facade) = engine(project, ctx, StoreNeed::Shared) else {
+      panic!("the engine refused a fresh project");
+    };
+    let loaded = intentsvcs::form::Loaded::load().expect("the shipped form declaration loads");
+    let view = intentsvcs::nav::View::Item {
+      kind: "thread".to_string(),
+      id: "ST9999".to_string(),
+    };
+    let rows = rows_for(&facade, &loaded, &crate::dispatch::table(), &view);
+    assert_eq!(
+      rows.len(),
+      1,
+      "an item that will not load painted {} row(s) instead of one error row: {rows:?}",
+      rows.len()
+    );
+    assert_eq!(rows[0].title, "error", "{rows:?}");
+    assert!(
+      rows[0].value.contains("ST9999"),
+      "the error row must name what would not load: {rows:?}"
     );
   }
 

@@ -13,27 +13,21 @@
 //! [`super::terminal`] and [`super::focus`] carry no terminal: the realiser is
 //! what these invariants CHECK.
 //!
-//! # The foot, and where its shape came from
+//! # The screen, and where its shape came from
 //!
 //! `AC-17.11` originally said *one modeline at the foot above a single rule*.
-//! `tui-design.md` §2 -- ratified with hv on 2026-08-29, a day later, by
-//! driving a strawman against real ST0056 data -- says **three sections
-//! separated by two rules**, with the foot carrying a STATUS row, a COMMAND row
-//! and an INFO row rather than one modeline. **vc ruled the design wins and
-//! reworded the criterion**: a criterion that contradicts a ratified design is
-//! the criterion being stale. This module follows the design.
+//! `tui-design.md` §2 overruled it by driving a strawman against real ST0056
+//! data (hv, 2026-08-29), and **vc ruled the design wins and reworded the
+//! criterion**: a criterion that contradicts a ratified design is the
+//! criterion being stale. This module follows the design, and §2 is where the
+//! shape is described -- the APP row, the BODY, the OMNIBOX row and the HINT
+//! row, with a labelled rule when the body splits. The foot's earlier forms
+//! are that section's history rather than this module's.
 //!
-//! The five sections, and what each is for:
-//!
-//! - **APP** -- the entity's id and name. When nested it carries the view trail
-//!   and the key that leaves. *A way back that is wired and unlabelled is a way
-//!   back nobody finds* -- a real strawman defect, where `Backspace` worked and
-//!   nothing on screen said so.
-//! - **BODY** -- the flat `{name, value, type}` column ([`Plan`]).
-//! - **STATUS** -- mode, field, kind, editability, row position, pane hint.
-//! - **COMMAND** -- the command in play, the `:` line while composing, the menu
-//!   in MENU, the child's name in EMBED.
-//! - **INFO** -- help for whatever is under the cursor, changing per row.
+//! One strawman lesson stays here because the APP row still carries it: *a way
+//! back that is wired and unlabelled is a way back nobody finds* -- `Backspace`
+//! worked and nothing on screen said so -- so a nested view draws its trail and
+//! `⌫ back`.
 //!
 //! **REVISED AGAIN 2026-09-02 (hv's O1): THE COMPOSER IS FRAMED**, and it is
 //! the one bordered element on the screen. The frame is paid for out of the
@@ -187,6 +181,13 @@ pub struct Row {
   /// `intent edit st 68` misparse. The builders that know the model set it;
   /// a door-less `button` visibly opens nothing rather than guessing.
   pub door: Option<super::nav::View>,
+  /// Whether Enter may open an in-place edit on this row.
+  ///
+  /// **THE DECLARATION DECIDES, NOT THE WIDGET.** `forms.json` marks rows such
+  /// as a thread's `created` `editable: false`, and a text widget there must not
+  /// offer an edit the store would refuse. A row built without a declaration is
+  /// editable, and no FIELD edge reaches one.
+  pub editable: bool,
 }
 
 /// What a row expands into, in the pane below the list.
@@ -246,6 +247,7 @@ impl Row {
       kind: kind.into(),
       detail: None,
       door: None,
+      editable: true,
     }
   }
 
@@ -263,6 +265,7 @@ impl Row {
       kind: kind.into(),
       detail: None,
       door: None,
+      editable: true,
     }
   }
 
@@ -281,6 +284,12 @@ impl Row {
   /// Declare where Enter on this row descends.
   pub fn opening(mut self, view: super::nav::View) -> Self {
     self.door = Some(view);
+    self
+  }
+
+  /// The same row, as editable as its declaration says it is.
+  pub fn editable(mut self, editable: bool) -> Self {
+    self.editable = editable;
     self
   }
 
@@ -654,6 +663,13 @@ pub struct Screen {
   /// The pane below the list holds the keyboard (issue 0399): the rule between
   /// the halves is lit, and the list's row is marked rather than reversed.
   pub detail_focused: bool,
+  /// The pane's own cursor, while the pane holds the keyboard and shows rows.
+  ///
+  /// **A ROWS PANE DRAWS ITS CURSOR AND KEEPS IT ON SCREEN.** Without it the
+  /// arrows moved a cursor nothing drew, over rows the pane never scrolled to,
+  /// and the explorer read as locked. `None` for a reading, which scrolls by its
+  /// own offset.
+  pub detail_selected: Option<usize>,
   /// The name on the rule between the panes: the row the pane shows (issue 0399).
   pub detail_label: String,
   /// The omnibox line: prompt + buffer. **The caret is NOT in it** -- see
@@ -800,32 +816,45 @@ impl Screen {
 
     // **THE SELECTION IS AN OVERLAY, PUSHED LAST**, so the row builders know
     // nothing about cursors and the printer resolves overlap by order.
-    let body_rows =
-      |out: &mut Vec<(String, Ink)>, plan: &Plan, from: usize, h: usize, sel: bool| {
-        let lines = plan.visible(from, h);
-        for (i, line) in lines.iter().enumerate() {
-          let mut ink = plan.inks.get(from + i).cloned().unwrap_or_default();
-          if sel && self.selected == Some(from + i) {
-            // **REVERSED MEANS THE KEYBOARD IS HERE** (issue 0399). While the
-            // pane holds it the row is still marked, underlined, so the field
-            // the pane shows stays visible without the bar claiming the keys.
-            let role = if self.detail_focused {
-              Role::Chosen
-            } else {
-              Role::Selected
-            };
-            ink.push((0, line.chars().count(), role));
-          }
-          out.push((line.clone(), ink));
-        }
-        for _ in lines.len()..h {
-          out.push((String::new(), Ink::new()));
-        }
+    // **REVERSED MEANS THE KEYBOARD IS HERE** (issue 0399). While the pane holds
+    // it the list's row is still marked, underlined, so the field the pane shows
+    // stays visible without the bar claiming the keys -- and a rows pane draws its
+    // own cursor reversed.
+    let list_cursor = self.selected.map(|at| {
+      let role = if self.detail_focused {
+        Role::Chosen
+      } else {
+        Role::Selected
       };
+      (at, role)
+    });
+    let pane_cursor = self
+      .detail_selected
+      .filter(|_| self.detail_focused)
+      .map(|at| (at, Role::Selected));
+    let body_rows = |out: &mut Vec<(String, Ink)>,
+                     plan: &Plan,
+                     from: usize,
+                     h: usize,
+                     cursor: Option<(usize, Role)>| {
+      let lines = plan.visible(from, h);
+      for (i, line) in lines.iter().enumerate() {
+        let mut ink = plan.inks.get(from + i).cloned().unwrap_or_default();
+        if let Some((at, role)) = cursor
+          && at == from + i
+        {
+          ink.push((0, line.chars().count(), role));
+        }
+        out.push((line.clone(), ink));
+      }
+      for _ in lines.len()..h {
+        out.push((String::new(), Ink::new()));
+      }
+    };
 
     match split {
       Some((list_h, detail_h, detail)) => {
-        body_rows(&mut out, &self.body, first, list_h, true);
+        body_rows(&mut out, &self.body, first, list_h, list_cursor);
         let labelled = labelled_rule(w, &self.detail_label);
         // **THE RULE SAYS WHICH HALF HAS THE KEYBOARD** (hv, 2026-09-15, issue
         // 0399), as section 6 always said it would: dim while the list holds
@@ -838,14 +867,18 @@ impl Screen {
         };
         let ink = whole(&labelled, role);
         out.push((labelled, ink));
-        let from = self
-          .detail_first
-          .min(detail.rows.len().saturating_sub(detail_h));
-        body_rows(&mut out, detail, from, detail_h, false);
+        // **A ROWS PANE FOLLOWS ITS CURSOR** the way the list does; a reading
+        // keeps the offset it was scrolled to.
+        let from = match pane_cursor {
+          Some((at, _)) => scroll_to(Some(at), detail_h),
+          None => self.detail_first,
+        }
+        .min(detail.rows.len().saturating_sub(detail_h));
+        body_rows(&mut out, detail, from, detail_h, pane_cursor);
       }
       None => {
         let body_h = height - CHROME - frame_cost;
-        body_rows(&mut out, &self.body, first, body_h, true);
+        body_rows(&mut out, &self.body, first, body_h, list_cursor);
       }
     }
 
@@ -1072,6 +1105,7 @@ mod tests {
     Screen {
       detail_first: 0,
       detail_focused: false,
+      detail_selected: None,
       detail_label: DETAIL_LABEL.to_string(),
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),

@@ -238,11 +238,17 @@ pub struct App {
   pub vi_normal: bool,
 }
 
-/// One in-place edit: where it writes, and what has been typed.
+/// One in-place edit: where it writes, and the line being edited.
+///
+/// **THE LINE IS THE COMPOSER'S OWN LINE EDITOR** (hv, 2026-09-15: the cursor
+/// keys did nothing while editing a title). It was a bare `String` that could
+/// only grow at its end, so every key but a character and Backspace was lost;
+/// one editor for both lines is what lets the arrows, the emacs chords and vi's
+/// normal mode mean the same thing wherever the operator is typing.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FieldEdit {
   pub handoff: Handoff,
-  pub buffer: String,
+  pub line: super::omnibox::Omnibox,
 }
 
 impl App {
@@ -470,7 +476,8 @@ impl App {
     // CLOSER to rest than insert, so the first press leaves insert and the
     // second does what Esc always did -- clear the query, or close the palette.
     // Two presses, still terminating, no second job for the key.
-    if self.keymap == keys::Keymap::Vi && matches!(self.mode, Mode::Omni | Mode::Menu) {
+    if self.keymap == keys::Keymap::Vi && matches!(self.mode, Mode::Omni | Mode::Menu | Mode::Field)
+    {
       if trigger == "Esc" && !self.vi_normal {
         self.vi_normal = true;
         return Step::Continue;
@@ -495,7 +502,7 @@ impl App {
     if self.mode == Mode::Omni {
       match trigger {
         "Typing" => {
-          self.edit_composer(key);
+          self.edit_line(key);
           return Step::Continue;
         }
         // **ESC CLEARS THE QUERY, AND ON AN ALREADY-EMPTY COMPOSER IT IS A
@@ -569,7 +576,7 @@ impl App {
     if self.mode == Mode::Menu {
       match trigger {
         "Typing" => {
-          self.edit_composer(key);
+          self.edit_line(key);
           // **ERASING THE SIGIL LEAVES THE PALETTE**, which is why MENU needs
           // no exit key of its own and why `Back` was retired from its edges.
           if commands::query_of(&self.omnibox.buffer).is_none() {
@@ -685,21 +692,19 @@ impl App {
     if self.mode == Mode::Field {
       match trigger {
         "Typing" => {
-          if let Some(edit) = &mut self.editing {
-            match key.code {
-              KeyCode::Char(c) => edit.buffer.push(c),
-              KeyCode::Backspace => {
-                edit.buffer.pop();
-              }
-              _ => {}
-            }
+          // **AN IN-PLACE EDIT IS EDITED BY THE COMPOSER'S OWN LINE EDITOR**
+          // (hv, 2026-09-15): the arrows, Home/End and the emacs chords reach
+          // this line through the one dispatcher, and vi's normal mode through
+          // the guard above.
+          if self.editing.is_some() {
+            self.edit_line(key);
           }
           return Step::Continue;
         }
         "Enter" => {
           self.mode = Mode::Omni;
           return match self.editing.take() {
-            Some(edit) => Step::WriteField(edit.handoff, edit.buffer),
+            Some(edit) => Step::WriteField(edit.handoff, edit.line.buffer),
             None => Step::Continue,
           };
         }
@@ -797,6 +802,13 @@ impl App {
       ) else {
         return Step::Continue;
       };
+      // **A ROW ITS FORM MARKS NOT EDITABLE OPENS NO EDIT**: the store would
+      // refuse the write, so the edit would be a promise the surface cannot
+      // keep. The info row says why instead.
+      if !row.editable {
+        self.notice = format!("`{}` is not editable", row.title);
+        return Step::Continue;
+      }
       // **THE EDIT IS DRAWN IN THE LIST, SO THE KEYS GO THERE** (hv's drive,
       // 2026-09-15, issue 0399). Started from the pane, a one-line edit left
       // the keys in a pane showing one line that could not scroll: after Esc
@@ -922,7 +934,8 @@ impl App {
     commands::matches(&self.commands, query, MATCH_CAP)
   }
 
-  /// Apply one editing keystroke to the composer.
+  /// Apply one editing keystroke to the line being edited: the composer's, or an
+  /// in-place edit's while FIELD holds the keyboard.
   ///
   /// **ONE DISPATCHER FOR BOTH VOCABULARIES.** OMNI and MENU collect into the
   /// same buffer, so the editing keymap is applied in one place rather than
@@ -934,7 +947,7 @@ impl App {
   /// Before it existed, `C-a` inserted an `a`, which is the defect hv drove
   /// into: a key that appears to be understood and quietly means something
   /// else.
-  fn edit_composer(&mut self, key: KeyEvent) {
+  fn edit_line(&mut self, key: KeyEvent) {
     if let Some(action) = keys::edit(key) {
       self.apply_edit(action);
     }
@@ -965,19 +978,29 @@ impl App {
   /// IT** -- emacs and vi differ in which key means what, never in what the
   /// buffer can do, so the second keymap arrived without a second copy of this.
   fn apply_edit(&mut self, action: keys::Edit) {
+    let line = self.line_mut();
     match action {
-      keys::Edit::Insert(c) => self.omnibox.type_char(c),
-      keys::Edit::Backspace => self.omnibox.erase(),
-      keys::Edit::DeleteForward => self.omnibox.delete_forward(),
-      keys::Edit::Home => self.omnibox.home(),
-      keys::Edit::End => self.omnibox.end(),
-      keys::Edit::Left => self.omnibox.left(),
-      keys::Edit::Right => self.omnibox.right(),
-      keys::Edit::WordForward => self.omnibox.word_forward(),
-      keys::Edit::WordBack => self.omnibox.word_back(),
-      keys::Edit::KillToEnd => self.omnibox.kill_to_end(),
-      keys::Edit::KillToStart => self.omnibox.kill_to_start(),
-      keys::Edit::KillWordBack => self.omnibox.kill_word_back(),
+      keys::Edit::Insert(c) => line.type_char(c),
+      keys::Edit::Backspace => line.erase(),
+      keys::Edit::DeleteForward => line.delete_forward(),
+      keys::Edit::Home => line.home(),
+      keys::Edit::End => line.end(),
+      keys::Edit::Left => line.left(),
+      keys::Edit::Right => line.right(),
+      keys::Edit::WordForward => line.word_forward(),
+      keys::Edit::WordBack => line.word_back(),
+      keys::Edit::KillToEnd => line.kill_to_end(),
+      keys::Edit::KillToStart => line.kill_to_start(),
+      keys::Edit::KillWordBack => line.kill_word_back(),
+    }
+  }
+
+  /// The line the editing keys act on: an in-place edit's while FIELD holds the
+  /// keyboard, the composer's otherwise.
+  fn line_mut(&mut self) -> &mut super::omnibox::Omnibox {
+    match (self.mode, self.editing.as_mut()) {
+      (Mode::Field, Some(edit)) => &mut edit.line,
+      _ => &mut self.omnibox,
     }
   }
 
@@ -1021,10 +1044,10 @@ impl App {
 
   /// The loop read the field: the edit is live, seeded with the RAW value.
   pub fn begin_edit(&mut self, handoff: Handoff, value: String) {
-    self.editing = Some(FieldEdit {
-      handoff,
-      buffer: value,
-    });
+    let mut line = super::omnibox::Omnibox::default();
+    line.buffer = value;
+    line.end();
+    self.editing = Some(FieldEdit { handoff, line });
   }
 
   /// The read refused, so the edit never opened: back to the composer with
@@ -1593,6 +1616,172 @@ mod tests {
         row.kind
       );
     }
+  }
+
+  /// **A ROW ITS FORM MARKS NOT EDITABLE OPENS NO EDIT** (F01 of the 2026-09-15
+  /// tui-design audit). The rows come from the real declaration, so the arm holds
+  /// only while `forms.json` keeps `created` locked, and it says so if it stops.
+  #[test]
+  fn enter_on_a_row_its_form_marks_not_editable_opens_no_edit() {
+    let declaration = intentsvcs::form::Loaded::load().expect("the compiled-in declaration loads");
+    let form = declaration
+      .form("thread")
+      .expect("a thread form is declared");
+    let entity = serde_json::json!({"id": "ST0056", "title": "Intent v3", "created": "2026-08-14"});
+    let rows = super::super::views::rows_for(form, &entity);
+    let at = rows
+      .iter()
+      .position(|r| r.name == "created")
+      .expect("the thread form declares `created`");
+    assert_eq!(
+      rows[at].kind, "text",
+      "`created` is no longer a text row, so this arm no longer reaches the FIELD edge"
+    );
+    let mut app = App::at_item("thread", "ST0056");
+    app.mode = Mode::Omni;
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(at));
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::Continue,
+      "Enter on a locked row asked to edit it"
+    );
+    assert_eq!(app.mode, Mode::Omni, "a locked row opened an in-place edit");
+    assert!(
+      app.notice.contains("not editable"),
+      "the refusal must say why: {:?}",
+      app.notice
+    );
+  }
+
+  /// **THE CURSOR KEYS MOVE AN IN-PLACE EDIT'S CARET** (hv, 2026-09-15: only
+  /// typing and Backspace worked). Left moves it back, Home to the start, and what
+  /// is typed lands at the caret.
+  #[test]
+  fn the_cursor_keys_move_the_caret_in_an_in_place_edit() {
+    let rows = item_rows();
+    let mut app = on_item();
+    let Step::ReadField(h) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("the title row did not open an edit");
+    };
+    app.begin_edit(h.clone(), "raw".into());
+    for k in [
+      KeyCode::Left,
+      KeyCode::Char('X'),
+      KeyCode::Home,
+      KeyCode::Char('Y'),
+    ] {
+      app.on_key(key(k), &rows);
+    }
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::WriteField(h, "YraXw".into()),
+      "the cursor keys did not move the caret the typing landed at"
+    );
+  }
+
+  /// **AN EMACS CHORD EDITS THE FIELD, AND A CHORD NOTHING BINDS TYPES NOTHING**
+  /// (F15, and hv's report). `C-a` goes to the start; `C-x` is unbound and must
+  /// not insert its letter.
+  #[test]
+  fn an_emacs_chord_edits_an_in_place_edit_and_an_unbound_chord_types_nothing() {
+    let rows = item_rows();
+    let mut app = on_item();
+    let Step::ReadField(h) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("the title row did not open an edit");
+    };
+    app.begin_edit(h.clone(), "raw".into());
+    let chord = |c| KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL);
+    app.on_key(chord('a'), &rows);
+    app.on_key(key(KeyCode::Char('X')), &rows);
+    app.on_key(chord('x'), &rows);
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::WriteField(h, "Xraw".into()),
+      "C-a did not reach the start, or C-x typed its letter"
+    );
+  }
+
+  /// **vi's NORMAL MODE REACHES AN IN-PLACE EDIT, AND A SECOND ESC DISCARDS IT.**
+  /// The first Esc enters normal mode, `0` goes to the start and `i` inserts; from
+  /// normal mode the next Esc discards the edit, the way it closes the palette.
+  #[test]
+  fn vi_normal_mode_edits_an_in_place_edit_and_a_second_esc_discards_it() {
+    let rows = item_rows();
+    let mut app = on_item();
+    app.keymap = keys::Keymap::Vi;
+    let Step::ReadField(h) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("the title row did not open an edit under vi");
+    };
+    app.begin_edit(h.clone(), "raw".into());
+    app.on_key(esc(), &rows);
+    assert_eq!(
+      app.mode,
+      Mode::Field,
+      "the first Esc discarded the edit instead of entering normal mode"
+    );
+    for c in ['0', 'i', 'X'] {
+      app.on_key(key(KeyCode::Char(c)), &rows);
+    }
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::WriteField(h, "Xraw".into()),
+      "normal mode's `0` and `i` did not act on the field's line"
+    );
+
+    let Step::ReadField(h2) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("re-entry did not open");
+    };
+    app.begin_edit(h2, "raw".into());
+    app.on_key(esc(), &rows);
+    app.on_key(esc(), &rows);
+    assert_eq!(
+      app.mode,
+      Mode::Omni,
+      "the second Esc did not discard the edit"
+    );
+    assert!(
+      app.notice.contains("discarded"),
+      "a discard must say so: {:?}",
+      app.notice
+    );
+  }
+
+  /// **A ROWS PANE DRAWS ITS CURSOR AND FOLLOWS IT** (F25). Walking past the
+  /// pane's height must bring the cursor's row into view, reversed, rather than
+  /// move a cursor nothing draws.
+  #[test]
+  fn a_rows_pane_draws_its_cursor_and_scrolls_to_keep_it_on_screen() {
+    let members: Vec<Row> = (0..30)
+      .map(|i| Row::new(format!("m{i:02}"), "member", "text"))
+      .collect();
+    let rows = vec![
+      Row::named("title", "title", "ST0056", "text"),
+      Row::named("wps", "work pkgs", "30", "button").expanding_to(members),
+    ];
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.on_key(tab(), &rows);
+    assert_eq!(
+      app.pane(&rows),
+      Pane::Detail,
+      "Tab did not reach the rows pane"
+    );
+    for _ in 0..20 {
+      app.on_key(key(KeyCode::Down), &rows);
+    }
+    assert_eq!(app.detail_focus.map(Focus::index), Some(20));
+    let screen = super::super::run::screen_for(&app, &rows, 60);
+    let painted = screen.painted(0, 24);
+    let Some((line, ink)) = painted.iter().find(|(line, _)| line.starts_with("m20")) else {
+      panic!("the pane never scrolled to the cursor's row: {painted:#?}");
+    };
+    assert!(
+      ink.iter().any(|&(from, to, role)| from == 0
+        && to == line.chars().count()
+        && role == super::super::layout::Role::Selected),
+      "the cursor's row is on screen but not drawn as the cursor: {ink:?}"
+    );
   }
 
   /// The whole in-place round trip, driven: the loop seeds the RAW value,

@@ -155,7 +155,12 @@ pub const EDGES: &[Edge] = &[
   Edge::new(Mode::Menu, "Cancel", Mode::Omni, "close the palette"),
   Edge::new(Mode::Menu, "Esc", Mode::Omni, "close the palette"),
   Edge::new(Mode::Menu, "/", Mode::Omni, "close the palette"),
-  Edge::new(Mode::Field, "Typing", Mode::Field, "one keymap"),
+  Edge::new(
+    Mode::Field,
+    "Typing",
+    Mode::Field,
+    "the composer's line editor",
+  ),
   Edge::new(Mode::Field, "Enter", Mode::Omni, "commit"),
   Edge::new(Mode::Field, "Esc", Mode::Omni, "discard"),
   Edge::new(Mode::Embed, "Typing", Mode::Embed, "forwarded to the child"),

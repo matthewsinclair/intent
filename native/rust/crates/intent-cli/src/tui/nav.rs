@@ -21,9 +21,9 @@
 
 pub use intentsvcs::nav::View;
 
-/// The view stack. `⏎` pushes, `Backspace`/`ESC` pops, and **popping the root
-/// is what quits** -- `tui-design.md` §3: *ESC always walks toward NORMAL, and
-/// at the root it QUITS*.
+/// The view stack. `⏎` pushes and `Back` pops (`Backspace` on an empty
+/// composer). **Popping at the root does nothing**: no key reaches quit by
+/// walking, and quitting is an act -- `Ctrl-C` or `/quit` (`tui-design.md` §3).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Stack {
   views: Vec<View>,
@@ -75,8 +75,9 @@ impl Stack {
     self.views.push(view);
   }
 
-  /// Pop one level. **`false` means the root was reached, which the realiser
-  /// reads as QUIT** -- it does not mean the pop failed.
+  /// Pop one level. **`false` means the root was reached and nothing was
+  /// popped**; the realiser does not read it as a quit, because walking never
+  /// quits.
   pub fn pop(&mut self) -> bool {
     if self.at_root() {
       return false;

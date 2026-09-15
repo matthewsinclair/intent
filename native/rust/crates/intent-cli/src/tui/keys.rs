@@ -128,6 +128,20 @@ pub enum Vi {
   Insert(Option<Edit>),
 }
 
+/// The character a keystroke TYPES, if it types one.
+///
+/// **A CONTROL CHORD TYPES NOTHING.** `C-x` inserting an `x` is the defect hv
+/// reported in the composer, and an in-place edit met it a second time because
+/// it had its own copy of "a character is typed". One predicate for every
+/// place a keystroke becomes text, so the rule cannot be fixed in one of them
+/// and left behind in another.
+pub fn typed(key: KeyEvent) -> Option<char> {
+  match key.code {
+    KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => Some(c),
+    _ => None,
+  }
+}
+
 /// The composer's editing keymap: readline's emacs bindings, which are the
 /// terminal default nearly everywhere.
 ///
@@ -163,11 +177,9 @@ pub fn edit(key: KeyEvent) -> Option<Edit> {
     (KeyCode::Char('w'), true) => Edit::KillWordBack,
     (KeyCode::Char('h'), true) => Edit::Backspace,
     // **A CONTROL CHORD THIS MAP DOES NOT KNOW IS SWALLOWED, NEVER TYPED.**
-    // `C-x` inserting an `x` is the defect hv reported, and the arm below is
-    // what stops the next unbound chord doing it again.
-    (KeyCode::Char(_), true) => return None,
-    (KeyCode::Char(c), false) => Edit::Insert(c),
-    _ => return None,
+    // `C-x` inserting an `x` is the defect hv reported; [`typed`] is the one
+    // predicate that says so, for this map and for an in-place edit alike.
+    _ => return typed(key).map(Edit::Insert),
   })
 }
 
@@ -349,9 +361,8 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // empty buffer the arrows browse the body, with a query typed they pick
     // among the matches. One trigger covers both because both are `OMNI Move
     // -> OMNI` -- the difference is the app's guard, not the machine's edge.
-    // Left and Right stay reserved against a cursor the buffer does not yet
-    // have; binding them today would teach a meaning tomorrow's cursor
-    // contradicts.
+    // Left and Right are not browse keys: they reach the composer as `Typing`
+    // (the arm above) and move its caret.
     (Mode::Omni, KeyCode::Up | KeyCode::Down) => Some("Move"),
     // `/` is the MENU key ONLY on an empty buffer -- `intent:///threads/ST0056`
     // is a legal address (`tui-design.md` §3). The guard is the app's, the way
@@ -383,7 +394,18 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // RETIRED rather than given a handler. Backspace erases, and erasing back
     // past the sigil is how you leave -- no separate exit key to declare.
     (Mode::Menu, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
-    (Mode::Field, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
+    // **AN IN-PLACE EDIT TAKES THE COMPOSER'S EDITING KEYS** (hv, 2026-09-15): they
+    // arrive as `Typing` and the app applies them to the field's own line.
+    (
+      Mode::Field,
+      KeyCode::Char(_)
+      | KeyCode::Backspace
+      | KeyCode::Delete
+      | KeyCode::Left
+      | KeyCode::Right
+      | KeyCode::Home
+      | KeyCode::End,
+    ) => Some("Typing"),
     _ => None,
   }
 }
