@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 15:13Z
+heartbeat_at: 2026-09-15 16:11Z
 status: active
-focus: "2026-09-15 15:13Z: host hold for cc's control (vc); 0398's fix banked source-only at refs/bank/dc/0398-fix (base 11ea62689, applies on a0c7300eb), red and green after the lift; drafting the ST0056 as-written pass in a worktree; then hv's IN-RS-CODE-001 (M), the artefact.lib strings fix (S), the Devbin fullcycle filing (XS), items 12 and 17. NO RELEASE, NO PUSH."
+focus: "2026-09-15 16:11Z: localfolded for hv's compact. On the bounce: IN-RS-CODE-001 waits for vc's tui-fix and 0338 (i) hashes to rebase and bank (refs/bank/dc/rscode001-draft, wt-rscode); then opt() as vc ruled (a), landing after rscode; then artefact.lib's strings refusal, items 12 and 17. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,12 +13,12 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED, shape approved by vc; rides TRAIN 2 after the TUI fix and cc's 0338 (i).** Worktree `wt-rscode` = `7517619ba` plus the six train-1 banks; safety blob `refs/bank/dc/rscode001-draft` over that stack. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason, which vc reads against the rule's exemption at bank time, the compiled-in table ones hardest. A rust.yml step over `-p intentsvcs -p intent-cli --lib`; crate-level allows in both build.rs; RULE.md, critic-gate.md's finding and the workflows README corrected. Next: once train 1 has landed and cc's (i) is banked, rebase onto (i) (where edit() meets it, keep (i)'s cross-project variant; NotHydratable only for an entity that cannot be realised), re-run, bank, blob to vc, tell ic when it lands.
+- **IN-RS-CODE-001 enforced (M, hv's ruling via vc): DRAFTED and REBASED onto main plus ic's tui-fix; rides the train AFTER tui-fix, together with cc's 0338 (i).** vc's order of 2026-09-15: tui-fix lands alone first; then (i) and this form the next train. Worktree `wt-rscode`; safety blob `refs/bank/dc/rscode001-draft` over that stack. On the real base: fmt --check clean, the new IN-RS-CODE-001 step clean with no diagnostics, workspace clippy -D warnings clean. The 38 library sites: 19 fixed, 19 allowed with an INVARIANT reason, which vc reads against the rule's exemption at bank time. Next: when vc sends the tui-fix and (i) hashes, rebase onto main (where edit() meets (i), keep (i)'s cross-project variant), run both crates' suites, bank, blob to vc, tell ic when it lands.
 
 ## TODO
 
 - **Later, on vc's signal only**: one preflight line running ic's `contract_check.sh` (`intent/st/ST0056/parity/tools/contract_check.sh`; 0 clean, 1 findings, 2 environment/usage). **ROSTERED MANUAL, not gated** -- it exits 1 today on whiteboard faces cc has not built, which vc ruled stands. Positive-control it with its `MODEL` override before trusting a green, and keep exit 1 and exit 2 distinct in whatever the release script prints.
-- **dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** `opt()` in render.rs reads an undeclared argument id as absent (No Silent Errors, vc): its OWN XS commit right after the rscode commit, no issue; make it refuse through `undeclared_arg` as `arg()` does, with one arm added to an existing test that is red on base. The swallowed `strings` refusal in `bin/.devbin/cmd/shared/artefact.lib` (S, no issue): already shown on HEAD; fix it so the refusal surfaces with its remedy, before-and-after in the commit message; past S, tell vc first. Item 12, the atomic pair install (S, Train 3). Item 17 (XS). Item 11: no runbook; AC-00.5, AC-11.1 and 0344 wait on the brew install working here.
+- **dc's lane after IN-RS-CODE-001 (vc's order, with hv's rulings of 2026-09-15).** `opt()` (No Silent Errors): vc RULED (a), S, landing after rscode, neither waiting on the other: every literal `opt()` read inside a verb's own arm goes strict (`Result<Option<String>, Failure>` through `undeclared_arg`, a `?` each); every read inside a shared helper (the fns outside the arms) and issues()'s `kind` goes through a new `probe_undeclared_ok` whose doc says why; `opt_explicit` follows its shared caller. One #[test] in render.rs `mod tests`: strict opt() refuses an undeclared id, returns Ok(None) for a declared id not passed, and `probe_undeclared_ok` returns None for an undeclared id; base shown by a probe in the commit message. Whole intent-cli suite before banking: the 29 measured failures to zero, no probe beyond the helpers and issues(). `wt-opt` holds the all-sites measurement, unbanked. Then `artefact.lib`'s strings refusal (S), item 12 (S), item 17 (XS).
 
 ## Holds
 
@@ -27,6 +27,7 @@ _(none)_
 ## Watch-outs
 
 - **dc's unhomed landing lessons, folded into one item (2026-09-15).** (1) A new dispatch row moves `legal_pairs` n in `surface/dispatch-table.json`: bump n with its `census_note` and regenerate `surface/dispatch-table.md` with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh` in the SAME change; only the commit gate's view_skew_check sees it. (2) `cargo test -p intent-cli --bins <filter>` runs ZERO tests at exit 0: in-crate tests are `--lib`, the integration arms `--test suite`; read `running N tests` before trusting a green. (3) Guard a landing on nothing under `native/rust` having moved since the measured base, never on HEAD equality; never `commit --only` a path a peer has uncommitted edits in. (4) Under an isolated HOME, set `CARGO_HOME` to the real one; a daemon probe's HOME must be short (`/tmp/<short>`, `sockaddr_un` holds about 104 bytes); in zsh `pgrep` can return two pids, so kill the literal pid and bound every wait. (5) Re-drive a hold's condition whenever you quote it: on 2026-09-15 todo 8's hook premise and hold 2's tap commit were both false on re-drive. (6) A reboot clears `/private/tmp`, and every scratchpad and worktree with it: bank anything unlanded as a patch outside it before a fold.
+- **dc's landing lessons of 2026-09-15, second half.** (1) Before banking a crate change, run that crate's WHOLE suite: a targeted green on 0398 missed `command_rosters_are_derived_or_declared`, which vc's train caught. (2) Removing a swallow means first measuring what it swallows: `opt()`'s read-as-absent was load-bearing for four shared probes, so a mechanical `?` at every site would have broken bare `issues`, `issues show`, `st edit` and `browse`. (3) Count call sites with a script, not the Bash tool's grep: an alternation pattern reported 4 `opt(` calls where there are 53. (4) A bank that edits an ST attachment carries no canon, so `attachment_drift_detected` and `thread_prose_carried` red on any stack holding it until the landing's ingest; land an attachment with its canon in one commit, verified after intentd settles.
 
 ## Decisions
 
