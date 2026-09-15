@@ -5,7 +5,7 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-15T20:42:55.420Z",
+    "heartbeat_at": "2026-09-15T20:58:02.198Z",
     "status": "active",
     "focus": "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH.",
     "claims": [
@@ -1211,8 +1211,17 @@
       "kind": "doing",
       "seq": 33,
       "text": "**IN FLIGHT (ic resumes here after the bounce): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 on 17b1f4533, banked WIP at `refs/bank/ic/st0075-wp02-wip` = da6ae82c4.** The bank carries 11 paths: `ConsoleLine` (classify and the bounded `LineRing`); `ConsoleRunner` (the tail over `intent daemon logs --follow`, the child's stdin held so closing it ends the verb and its tail, the header parsed into the footer's two paths and split where they share a directory); `ConsoleWindowController` (Gtools' without the Verbose box); Theme on docs/design/design-system.md's dark tokens and IBM Plex Mono, the accent marked as hv's open Decision A (vc agreed); `IntentCLI.stream`'s `holdStdin` with `RunningProcess` and `HeldInput`; IntentApp's Console on Cmd-L with File > Close and View > Clear Console; hv's item 18 (the version row's failure tooltip and `VersionState.failure` gone); `ConsoleTests.swift` (AT-02.1 to 02.3); the regenerated project; and ST0075 design.md's classification line. AC-02.2 is vc's ruling (b): `warning:` coloured as a warning, AT-02.2 on intentd's real `warning:` lines (a unix or loopback connection it could not accept, the LaunchAgent it could not regenerate), and at landing `intent ac edit ST0075 AC-02.2 --text` rewords \"remedy lines as warnings\" to \"warning and remedy lines as warnings\". STANDS: IntentTests green, 38 of 38 with ConsoleTests' six among them (counted, because devbin's app-test prints summaries only), no compiler diagnostics; critic-swift was still reviewing the files when this fold ran. NEXT: read critic-swift's findings and fix them, re-run app-test with INTENT_MACOS_STATE_DIR private, re-bank as `refs/bank/ic/st0075-wp02`, tell vc; at landing the WP objective, `wp start`, the three ATs cited to `native/macos/Intent/IntentTests/ConsoleTests.swift` and greened, and the AC-02.2 reword; the window is driven by hand in hv's quiet window (item 14). Todo 20 waits on cc's 0331; hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T21:45:44.801Z",
       "recorded_at": "2026-09-15T20:42:46.533Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 34,
+      "text": "**IN FLIGHT (ic resumes here): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 restacked onto 3ee36a6f2 with 0331 (a) in; not banked yet.** critic-swift's first review (4 critical, 6 warnings) is fixed as vc dispositioned it: registry rows for the three Console files, `AppLog` and ProjectService's missing row, with four falsified rows corrected; lines carry a source and a tail's start drops the lines an earlier tail supplied, so a reopen shows no replayed line twice; `String(decoding:as:)` at every IntentCLI decode; `AppLog.logger(_:)` names the logging subsystem once; `TailHeader`, with only the verb's first line read as its header; `IntentCLI.stream` returns an AsyncStream of events read by one task that `stopTail()` cancels, so no pool thread waits on the child; `HeldInput` fileprivate on `OSAllocatedUnfairLock`. W4 is skipped as vc ruled. ConsoleLine skips one leading RFC 3339 UTC stamp (vc's decision with dc's 0321), and design.md records the reopen rule and the stamp. Issue 0401 (the thirteen intentd notices with a remedy and no severity token) is committed at b86d24b0e; dc's 0321 fixes and closes it. The gate's Swift critic arms none of its six rules, so it can neither refuse this landing nor vouch for it. NEXT: critic-swift's second pass (running) and its fixes; the red run (one mutation per AT subject, because green is reachable only from red, issue 0337), then the green run (45 tests); bank as `refs/bank/ic/st0075-wp02`; `land-wp02.sh` dry; report to vc with the store writes and the expected gate (7/11, unsatisfied AC-03.1 to AC-03.4), proposing WP-02 stays WIP until hv's quiet-window drive. Hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.",
+      "state": "live",
+      "recorded_at": "2026-09-15T21:45:40.353Z"
     }
   ],
   "messages": [
