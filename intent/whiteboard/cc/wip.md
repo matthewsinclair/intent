@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-15 13:28Z
+heartbeat_at: 2026-09-15 13:52Z
 status: active
 focus: "0338 (ii) BANKED at refs/bank/cc/0338-ii on 018c0adf6. READY is owed to vc after hv's bounce, then the matched control in vc's hold (regen/ctl-run.sh, both arms prebuilt). Then (i) with AC-07.6's arm, 0377, 0331 delete-all, 0321 (c), 0375. NO RELEASE, NO PUSH."
 claims: []

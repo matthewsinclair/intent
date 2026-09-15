@@ -3,10 +3,10 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: dfdab637-30f3-45c6-adcb-28fc683918e2
-heartbeat_at: 2026-09-15 13:40Z
+heartbeat_at: 2026-09-15 14:06Z
 status: active
 focus: "THE CLOSE-OUT (hv, 2026-09-15), folded for the bounce: resume at the IN FLIGHT todo; lanes in intent/wip.md, rulings in intent/history/20260915-hv-rulings.md; banks are patch blobs on refs/bank; one lane lands at a time on the word of vc. NO RELEASE, NO PUSH."
-claims: [ST0056, ST0057, ST0060, ST0070]
+claims: [ST0056, ST0057, ST0060]
 ---
 
 # Validation Claude (vc)
@@ -17,7 +17,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## TODO
 
-- IN FLIGHT at the 2026-09-15 bounce (vc resumes here). Banks: cc refs/bank/cc/0338-ii (blob e1d6caee on 018c0adf6), control prebuilt; on the READY from cc, vc announces the host hold (no builds or suites anywhere), cc runs HEAD then HEAD+(ii) with uptime recorded, vc lifts the hold. ic refs/bank/ic/0399 (blob 81ae8943 on b2b06c2ba): intentsvcs, intent-cli, clippy and fmt green; ic re-runs cargo test -p intentd once outside the hold, and it lands on the word of vc if green or if only wait arms red with the load recorded. dc refs/bank/dc/0398 (blob 4eee7cbdd on 11ea62689): test-first, fix unwritten; its commit corrects the st show register note. 0338 (i) adds the slug refusal at mcp::resource_read and Facade::detach_attachment and rewords AC-07.6 in the same commit. hv owes: whether the 0398 title is restored; the gh release edit v3.0.2 annotation. First train: whichever of 0338 (ii), 0399 and 0398 are banked green.
+- IN FLIGHT after the 2026-09-15 bounce (vc resumes here). Everything waits on hv's full-cycle rebuild; nothing builds, lands or commits until hv says it is done, then in order. (1) The impl.md correction, prepared as st56-impl-fix.pl in vc's scratchpad: AC-00.8 has been withdrawn since 2026-09-11, so the reword ruling in 01dfc5756 is retracted; commit it with its canon. (2) cc re-checks both prebuilt arms and sends READY; vc announces the host hold to cc, dc and ic; cc runs HEAD then HEAD+(ii); vc lifts the hold on the report. (3) One train on HEAD, judged once: ic 0399 (intentd re-run green), cc 0338 (ii) if its control is clean, ic 0177 (approved), ic 0339-design (approved once deferred.md's D46 row names the rulings file), dc 0398 if its red and green are banked in time (shape approved). 0177 and 0398 both regenerate dispatch-table.md, so vc regenerates it on the stack and requires byte-identity. Banks land in stack order, rebased onto the hash vc sends. ic's 0339-ac-00.8 bank is dropped. hv owes: 0398's title (restore recommended) and the gh release edit for v3.0.2.
 
 ## Holds
 
