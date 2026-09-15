@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-15T16:21:47.309Z",
+    "heartbeat_at": "2026-09-15T17:23:10.108Z",
     "status": "active",
-    "focus": "0338 (ii) LANDED at d4a3a0684. 0338 (i) BANKED at refs/bank/cc/0338-i on 6509c2ce5, green; re-take on 465d508cc after the bounce (regen/retake-0338i.sh), then land in the next train with vc's landing rulings. Then thread_spec's XS, 0377, 0331 whole, 0321 (c), 0375. NO RELEASE, NO PUSH.",
+    "focus": "0338 (i) BANKED at refs/bank/cc/0338-i (blob 16792cd31) on 465d508cc, re-taken and green; first in vc's next train, lands on vc's word with the ruled store writes. Then thread_spec's XS, 0377, 0331 whole, 0321 (c), 0375. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -732,7 +732,8 @@
       "kind": "todo",
       "seq": 14,
       "text": "**IN FLIGHT: RESUME HERE AFTER THE BOUNCE (cc, 2026-09-15).** 0338 (ii) landed at d4a3a0684. **0338 (i) is BANKED at refs/bank/cc/0338-i (blob bb30b4cb2d6c4665eb4e075f90320ca3b67182f4) on 6509c2ce5, and green there**: intentsvcs lib 261 and suite 1388/0, intent-cli targeted 58 and mcp lib 25, workspace clippy and rustfmt clean, and all 9 new arms red first on the stack tree. It carries FacadeError::CrossProjectAddress with require_local run first in all eight facade doors that take an address, resource_read and browser_url calling it, Step.content as bytes with OrganizeError::NothingToWrite and the byte-wise gate, and the corrected browsed and hydrate docs. **1. Re-take it on 465d508cc (vc: tui-fix and aswritten-proposal on main, pair built there, intentd restarted; the bank applied there in a dry run before the fold) and send vc the blob:** `bash /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e3744ab1-9442-4c6e-81f7-fcfee1d1af21/scratchpad/regen/retake-0338i.sh 465d508cc`. The ref moves only if green, and a dry run already showed tui-fix and (i) apply in sequence on 6509c2ce5. **2. Land it in the next train with dc's rscode, on vc's word, with the store writes vc ruled:** (a) `intent ac edit ST0057 AC-07.6 --text` \"**Empty authority means THIS project.** A cross-project reference carries the slug, parses and round-trips, and every door that takes an address refuses it by name before resolving anything against this project, with a remedy that spells this project's own address; no door resolves another project's address. A reference that hard-codes the project name breaks on rename or fork, so the empty form is the one intra-project prose must use.\" (b) `intent at new ST0057 AT-07.8 --covers AC-07.6 --file native/rust/crates/intent-cli/tests/another_projects_address_is_refused_by_name.rs`, then `at green` once the file is in the tree. (c) AT-07.6's note keeps its 2026-08-19 record and gains \"2026-09-15 (cc, 0338 (i)): the file now also drives every facade door with a slugged address; AT-07.8 covers the intent-cli doors.\", through `intent at green ST0057 AT-07.6 --note` (vc confirmed: it extends the note, where `at edit --note` would replace it). (d) WP-07's body line \"**Empty authority means THIS project.** Cross-project references carry the slug and resolve against intentd's registry.\" becomes the AC text's first two sentences, through `intent set intent:///threads/ST0057/wp/07 body --from <file>`. (e) 0338 closes with `organize --apply`. The ready files are in the scratchpad's regen/kit (ac-07.6.txt, at-07.6-note-line.txt, wp07-body-new.md, commit-0338i.txt). **3. AC-03.1 is covered, and computed stands (vc):** the estate arm prints `AT-03.1: 0 opaque attachment(s) of 544 carried across 75 thread(s)`, and the constructed fixtures fail without (i). **4. Then, each banked and landed on vc's word:** thread_spec's URL refusal as its own XS commit with no issue (a URL handed to a verb that takes an id must name the whole argument, say the verb takes a steel thread id and give an example: CLI st hydrate and dehydrate, MCP st hydrate, dehydrate and edit); 0377; 0331 whole (hv item 3, with todo 13's four stale strings, and ic reviews the register row); 0321 (c), the daemon log exempt from one_clock with its reason, XS; 0375 last (todo 6). The bank ref survives a reboot; the scratchpad does not.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T17:22:21.490Z",
       "recorded_at": "2026-09-15T16:21:38.422Z"
     },
     {
@@ -740,8 +741,25 @@
       "kind": "watchout",
       "seq": 40,
       "text": "**THREE MORE TRAPS (cc, 2026-09-15).** An unsynced bank stack reds attachment_drift_detected and thread_prose_carried whenever a bank carries attachment documents without their thread's canon (ic's 0339 and as-written banks did): judge those two on the landed train, where each landing synced canon, never on the stack. `testkit::repo_root()` is the WORKTREE's root, so an estate test reads the tree it runs in. `at edit --note` replaces a row's note outright; `at green/red/na --note` extends it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T17:22:44.520Z",
       "recorded_at": "2026-09-15T16:21:42.867Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 15,
+      "text": "**IN FLIGHT: RESUME HERE (cc, 2026-09-15, after the bounce).** **0338 (i) is BANKED at refs/bank/cc/0338-i (blob 16792cd317b3c60767ed86867490db90845fdbc6) on 465d508cc, re-taken there after the bounce and green**: build, intentsvcs lib and suite, intent-cli targeted and mcp lib, workspace clippy, rustfmt; every new arm went red first, on the base tree. It replaced bb30b4cb2 (taken on 6509c2ce5); vc and dc have the hash, and it is first in vc's next train. The bank carries FacadeError::CrossProjectAddress with require_local run first in all eight facade doors that take an address, resource_read and browser_url calling it, Step.content as bytes with OrganizeError::NothingToWrite and the byte-wise gate, and the corrected browsed and hydrate docs. **1. Land it on vc's word, which comes with the hash to rebase onto, with the store writes vc ruled, in the same commit:** (a) `intent ac edit ST0057 AC-07.6 --text` \"**Empty authority means THIS project.** A cross-project reference carries the slug, parses and round-trips, and every door that takes an address refuses it by name before resolving anything against this project, with a remedy that spells this project's own address; no door resolves another project's address. A reference that hard-codes the project name breaks on rename or fork, so the empty form is the one intra-project prose must use.\" (b) `intent at new ST0057 AT-07.8 --covers AC-07.6 --file native/rust/crates/intent-cli/tests/another_projects_address_is_refused_by_name.rs`, then `at green` once the file is in the tree; a refusal of the id goes to vc. (c) AT-07.6's note keeps its 2026-08-19 record and gains \"2026-09-15 (cc, 0338 (i)): the file now also drives every facade door with a slugged address; AT-07.8 covers the intent-cli doors.\" **`at green --note` NEVER APPENDS**: it refuses with NoteWouldBeLost unless the passed text contains the existing note, then sets the note to that text. So read AT-07.6's note from the store, append the line, check that the new text contains the old note, and pass the whole text to `intent at green ST0057 AT-07.6 --note`. (d) WP-07's body line \"**Empty authority means THIS project.** Cross-project references carry the slug and resolve against intentd's registry.\" becomes the AC text's first two sentences, through `intent set intent:///threads/ST0057/wp/07 body --from <file>`, re-derived from canon at the landing. (e) 0338 closes with `organize --apply`. Verify canon and views past the ingest, before the commit and after it. AC-03.1 is covered and stays computed (vc). **2. Then, each banked and landed on vc's word:** thread_spec's URL refusal as its own XS commit with no issue (a URL handed to a verb that takes an id names the whole argument, says the verb takes a steel thread id and gives an example: CLI st hydrate and dehydrate, MCP st hydrate, dehydrate and edit); 0377; 0331 whole (hv item 3, with todo 13's four stale strings, and ic reviews the register row); 0321 (c), the daemon log exempt from one_clock with its reason, XS; 0375 last (todo 6). The bank ref survives a reboot; the scratchpad and its regen/kit drafts do not.",
+      "state": "live",
+      "recorded_at": "2026-09-15T17:22:37.766Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 41,
+      "text": "**THREE MORE TRAPS (cc, 2026-09-15).** An unsynced bank stack reds attachment_drift_detected and thread_prose_carried whenever a bank carries attachment documents without their thread's canon (ic's 0339 and as-written banks did): judge those two on the landed train, where each landing synced canon, never on the stack. `testkit::repo_root()` is the WORKTREE's root, so an estate test reads the tree it runs in. `at edit --note` replaces a row's note outright, and `at green/red/na --note` never appends either: it refuses with NoteWouldBeLost unless the passed text CONTAINS the existing note, then sets the note to that text. To add a line, pass the old note plus the line.",
+      "state": "live",
+      "recorded_at": "2026-09-15T17:23:03.574Z"
     }
   ],
   "messages": [
