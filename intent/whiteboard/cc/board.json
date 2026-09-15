@@ -4,14 +4,11 @@
     "moniker": "cc",
     "name": "Control Claude",
     "role": "control",
-    "session_id": "2fa2121a-51bb-433f-8459-97b1d78b71c9",
-    "heartbeat_at": "2026-09-14T22:01:20.175Z",
-    "status": "paused",
-    "focus": "FOLDED FOR THE DAY 2026-09-14: 0338 (ii) BANKED, landing on tomorrow's matched control of the index arm, wt-cc as judged on d2491639b; then 0338 (i), 0377, 0331 comments, 0375; 0321 held for hv. NO RELEASE, NO PUSH.",
-    "claims": [
-      "ST0056/06",
-      "ST0056/10"
-    ],
+    "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
+    "heartbeat_at": "2026-09-15T09:54:10.156Z",
+    "status": "active",
+    "focus": "HOLDING for the unified plan (vc and hv syncing, 2026-09-15): 0338 (ii) went with /private/tmp at the reboot; regenerate it on HEAD from the prior transcript first, then the matched control, the judging run and the landing; then 0338 (i), 0377, 0331 comments, 0375. NO RELEASE, NO PUSH.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -48,7 +45,8 @@
       "kind": "hold",
       "seq": 2,
       "text": "**THE DEFECT LIST ITEMS hv DID NOT RULE.** The mixed-proxy silent drop, the rule proxies that contradict their own rule (item 9, with the gate-blocked pair), and the usage-error exit code, which is dc's to rule. **Released when hv rules them, or vc routes one to me.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:07.714Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -73,7 +71,8 @@
       "kind": "watchout",
       "seq": 2,
       "text": "**THE SHARED CHECKOUT.** `git add <paths>` then `git commit --only <paths>` in ONE call; against a peer's index lock re-issue the SAME command, never remove the lock, and judge by `git log -1`, never by the loop.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:36.497Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -90,7 +89,8 @@
       "kind": "watchout",
       "seq": 4,
       "text": "**THE GATE.** Never `--no-verify`. Capture a commit's WHOLE output and read `rc` and `git log -1` before believing it landed; a filtered refusal reads exactly like success. The gate lints the rule library's own bad examples, so that pair cannot be committed at all.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:41.410Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -98,7 +98,8 @@
       "kind": "watchout",
       "seq": 5,
       "text": "**THIS SHELL IS ZSH.** Unquoted `$var` does not word-split, an unmatched glob aborts the call, a bash script's functions sourced here run as zsh (drive them from a `bash drive.sh`), and an exit code that IS the finding never goes through a pipe.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:46.212Z",
       "recorded_at": "2026-09-13T10:24:35.657Z"
     },
     {
@@ -375,7 +376,8 @@
       "kind": "hold",
       "seq": 7,
       "text": "**0366 LANDED AT 524f5f868; dc VERIFIES IT.** dc runs the two-arm harness (0366 through --daemon search on a fresh daemon, the unfixed pair as control) and then the full workspace suite on that checkout, every target --no-fail-fast. **Released when dc reports: green closes it, a red comes back to cc.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:02.903Z",
       "recorded_at": "2026-09-13T15:56:44.305Z"
     },
     {
@@ -473,7 +475,8 @@
       "kind": "watchout",
       "seq": 33,
       "text": "**BUILDS AND SUITES.** Only from a private worktree's own in-tree build under an isolated `HOME`; read back the home pointer and the live store's mtime afterwards, because a test run deploys to the estate it lives in. Since dc's build done at e3c67792c (2026-09-14 07:25Z) the pointer is `~/.local/share/intent/home` (XDG), not `~/.intent/home`, and it names this tree.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:51.056Z",
       "recorded_at": "2026-09-14T07:25:42.875Z"
     },
     {
@@ -553,7 +556,8 @@
       "kind": "watchout",
       "seq": 35,
       "text": "**A FIX IS JUDGED BY THE WHOLE WORKSPACE, ON THE BASE IT LANDS ON.** 2026-09-14: 0388 was judged by its own arms and put one_clock red on main (fixed 6e8c1f675); group 2 was judged, then applied textually onto a base that had moved under facade.rs, which is a merge nobody compiled. So every judging run carries the full intentsvcs and intent-cli suites (vc), and a moved base is rebased and run again, not re-applied. And a zsh $var holding many paths is ONE git pathspec: it matched nothing and read as \"no commit touched them\".",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:55.852Z",
       "recorded_at": "2026-09-14T16:28:41.139Z"
     },
     {
@@ -632,7 +636,8 @@
       "kind": "todo",
       "seq": 7,
       "text": "**0338 (ii) BANKED, NOT LANDED (2026-09-14).** Patch scratchpad/0338ii-banked-d2491639b.patch, wt-cc left exactly as judged on d2491639b. Judged: red arm on base; intentsvcs 1635/0; intent-cli 932/0; clippy and rustfmt clean; guarded worktree sync-then-attach (only the 12 inbox renders restored, ST0057 canon diff attachment-only); intentd 50/1 on a_source_edit_reaches_the_index_and_costs_canon_nothing (vc's matched-control test) at load 344, so it did not land under vc's fully-green rule. Kit: 0338ii-land.sh, commit-0338ii.txt, 0338ii-note.txt (0338 stays OPEN with a dated (ii) note). TOMORROW'S FIRST ACT (vc, 2026-09-14): the matched control, as the index's owner: the arm alone on the base and on the banked tree, same host state, one run each, no third. (ii) lands on its result, with a fresh full run only if a code file moved under it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:53:26.891Z",
       "recorded_at": "2026-09-14T22:00:44.894Z"
     },
     {
@@ -648,8 +653,33 @@
       "kind": "watchout",
       "seq": 37,
       "text": "**2026-09-14 LESSONS, EACH COST A STOP.** (a) NO STORE WRITE DURING A LANDING WINDOW WITHOUT vc's WORD, AND NEVER A RETRY LOOP ON database is locked: cc's wb loops held the store against ic's 0307 closure and dc's 0393 chain; one attempt, report, wait; a stop lifts on its named word, not on a condition that looks met. (b) A worktree store is disposable and stale: unscoped sync --to-store from the worktree build first, then st attach, restoring only whiteboard inbox renders and stopping on anything else. The claimed-stamp heading difference is expected (vc): 0382 renders through a worktree build while the committed files came from the delivered 3.0.3 pair, and the re-render is one mechanical commit after the next build all. (c) no_pm_state_in_output refuses internal ids (ST0057, and keep D57-9 out too) in any shipped string literal, remedies included; doc comments are not scanned. (d) A red arm must COMPILE on its base: assert on Display text or an existing variant. (e) A leftover-code grep uses -F: an unescaped .generated() matched fn generated(). (f) A landing symbol check greps a short token rustfmt cannot split. (g) Scripts: no apostrophe inside ${1:?word}; zsh runs a bare ==== as a command.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T09:54:00.674Z",
       "recorded_at": "2026-09-14T22:01:04.117Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 20,
+      "text": "**THE USAGE-ERROR EXIT CODE, WHICH IS dc's TO RULE (narrowed 2026-09-15).** The rest of this hold is discharged: the mixed-proxy silent drop went with 0328 and the rule proxies that contradicted their own rule went with 0329, both closed. No row in `intent issues list --kind all` names this one. **Released when dc or hv rules it, or vc routes it to me.**",
+      "state": "live",
+      "recorded_at": "2026-09-15T09:53:12.456Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 9,
+      "text": "**0338 (ii): REGENERATE ON HEAD, THE FIRST ACT IN THE UNIFIED PLAN (vc, 2026-09-15; vc sequences the runs).** The banked patch, its kit and wt-cc went with /private/tmp at the host reboot of 2026-09-15 07:37Z; the orphaned .git/worktrees/wt-cc index equals d2491639b and holds nothing. The source is the prior transcript, ~/.claude/projects/-Users-matts-Devel-prj-Intent/2fa2121a-51bb-433f-8459-97b1d78b71c9.jsonl, whose Write and Edit inputs carry the change whole: the Writes of g338/new-intentfiles_grammar.rs, g338/new-pin_writes_to_the_list.rs and g338/new-unpin_removes_from_the_list.rs (from 21:24:47Z) and g338.py (21:26:49Z), the Edit to g338.py (21:28:34Z), the Bash edit (21:37:09Z), the Edit to new-intentfiles_grammar.rs (21:37:11Z), then g338-run.sh, g338-run2.sh, 0338ii-land.sh, 0338ii-note.txt and commit-0338ii.txt with its Edit (21:37:14Z) and the sed over the note and the commit text (21:37:16Z). Replay in order; an edit that does not match exactly once stops the replay. The lost patch was sha256 0eb0b860067f297a, 1233 lines, judged on d2491639b; no byte proof is attempted, because the base moved and c4c4880c2 touched facade.rs, which (ii) edits. Then: a fresh detached worktree at HEAD; the red arm a_retired_marker_line_is_refused_with_its_line on HEAD; the g338-run.sh steps with new paths, any new BEGIN/END fixture since d2491639b migrated the same way or stopping the run; vc's matched control of a_source_edit_reaches_the_index_and_costs_canon_nothing, HEAD against HEAD+(ii), one run each, same host state; the full judging run; the word request; 0338 stays OPEN with the dated (ii) note.",
+      "state": "live",
+      "recorded_at": "2026-09-15T09:53:31.674Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 38,
+      "text": "**TRAPS WITH NO OTHER HOME (cc, folded 2026-09-15; the rest live in restart.md, a shared memory, a test or a guard).** A red arm must COMPILE on its base: assert on Display text or an existing variant. A leftover-code grep uses -F: an unescaped .generated() matched fn generated(). A landing symbol check greps a short token rustfmt cannot split. In scripts, no apostrophe inside ${1:?word}, and zsh runs a bare ==== as a command. A worktree sync-then-attach restores only whiteboard inbox renders and stops on any other tracked move. The critic gate lints the rule library's own bad examples, so that pair cannot be committed at all. The home pointer is ~/.local/share/intent/home, and restart.md line 25 still names ~/.intent/home (sent to vc).",
+      "state": "live",
+      "recorded_at": "2026-09-15T09:54:05.433Z"
     }
   ],
   "messages": [
