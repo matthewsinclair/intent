@@ -684,3 +684,19 @@ fn claude_upgrade_restores_the_formatter_exclusion_a_consumer_is_missing() {
     "and the run names the pattern it added: {out}"
   );
 }
+
+/// hv's ruling 17 (2026-09-15): `intent organize --apply` stays the one door for
+/// stale views, and `claude upgrade --apply`'s report names it.
+#[test]
+fn claude_upgrade_names_the_one_door_for_stale_views() {
+  let dir = unsynced();
+  let (out, rc) = run(
+    dir.path(),
+    &["claude", "upgrade", "--apply", "--skip-settings"],
+  );
+  assert_eq!(rc, 0, "claude upgrade --apply: {out}");
+  assert!(
+    out.contains("`intent organize --apply` is the one door for a stale one"),
+    "the report names the door for stale views: {out}"
+  );
+}

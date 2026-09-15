@@ -10325,6 +10325,10 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     applied.held.len(),
     applied.skipped.len()
   );
+  // hv's ruling 17 (2026-09-15): `intent organize --apply` stays the one door for stale views, and this report names it.
+  println!(
+    "note: this writes no generated view -- `intent organize --apply` is the one door for a stale one"
+  );
 
   // **WHETHER THE GATE JUST INSTALLED CAN ACTUALLY RUN.** Everything above is a
   // claim about bytes on disk. The carrier is a shim whose entire behaviour is
