@@ -1,6 +1,6 @@
 # TUI redesign proposal -- lower bar + mode model (Claude Code alignment)
 
-**Status: PROPOSAL, awaiting hv + vc ratification. Nothing here is landed.** Authored by ic 2026-09-02 on hv's direct instruction to make `intent explore` "much more like the Claude Code UX/UI", aimed at the lower bar. It revises `tui-design.md` sections 2 (screen), 3 (mode machine), 4 (keys) and 5 (menus, one line).
+**Status, checked against the build on 2026-09-15: ACCEPTED by hv on 2026-09-02 with every open call ruled as written, then SUPERSEDED by `tui-design.md` sections 2 to 5, which are the current design; this file is kept as the record of the proposal.** Built: the OMNI, MENU, FIELD and EMBED machine behind the OMNI, MENU and EDIT lamps, `/` opening the palette in one press, Esc back to the composer, and the framed composer (O1). Built differently: bare triggers with the buffer guard in the notes column (section 3), and a filtered command palette in place of the Lotus menu (section 5). Not built: the status-segment row (O4, with hv). `:w` was dropped by hv on 2026-09-15, and `:q` and `:q!` stay as built (O2). Authored by ic 2026-09-02 on hv's direct instruction to make `intent explore` "much more like the Claude Code UX/UI", aimed at the lower bar. It revises `tui-design.md` sections 2 (screen), 3 (mode machine), 4 (keys) and 5 (menus, one line).
 
 **Why a separate file and not an edit to `tui-design.md`.** Section 3's table is parsed by `mode.rs`'s `the_transcription_carries_every_row_the_design_ratifies`, and section 2's shape is pinned by `AC-17.11`. Editing either in place breaks the suite the moment it lands and before the code follows -- the coupled-change hazard. So this is ruled on paper first and executed as ONE coordinated commit (design + code + criteria) second.
 
@@ -18,16 +18,21 @@ hv, 2026-09-02: operations are right and the edit window is sound; it is the low
 
 The current machine is five modes (OMNIBOX, NAV, MENU, FIELD, EMBED) with two clever devices: `/` cycles a ring NAV -> OMNIBOX -> MENU -> NAV, and Esc toggles the home pair {OMNIBOX, NAV}. Both are coherent and both cost the operator: the Lotus menu is TWO `/` presses from the body, and Esc does double duty as a mode toggle. Claude Code's coherence comes from three things this trades away -- ONE input that is always home, ONE meaning for `/` (open the menu), and editing being a place you go and return from rather than a mode you steer between.
 
+_STALE: the five-mode machine is retired. The machine is OMNI, MENU, FIELD and EMBED (`Mode` in `tui/mode.rs`; `tui-design.md` section 3)._
+
 **The simplification, stated as the operator sees it:**
 
 - **OMNI is the one home.** The composer always holds the text cursor. This is unchanged from hv's 2026-08-30 ruling that the omnibox is the rest state -- the new part is that it is the ONLY home, with no NAV to toggle to.
 - **The body is browsed, not entered.** A row in the body is always "current" (highlighted). When the composer buffer is EMPTY, the arrows move the current row -- you browse the list without leaving home. When the buffer is NON-EMPTY, the arrows pick among the fuzzy matches, exactly as today. One guard -- buffer empty or not -- drives the difference, and it is the same guard that already governs `/`.
 - **`/` opens MENU in a single press**, always, from an empty composer. The ring is gone. `st/ST0056` stays a legal address because the empty-buffer guard already distinguishes the menu key from a slash mid-spelling.
+  _STALE: `st/ST0056` is not an address the resolver accepts; the legal address containing a slash is `intent:///threads/ST0056`._
 - **Enter means "act on the current selection."** With a query in the buffer, that selection is the picked match, so Enter navigates to it. With an empty buffer, the selection is the current body row, so Enter descends (door row), edits in place (FIELD), or hands off to `$EDITOR` (EMBED) -- the guarded triple, resolved by the ROW exactly as it is today.
 - **Esc means "back to the composer", never a mode toggle and never quit.** In MENU it closes the palette; in EDIT it discards; with a query typed it clears the buffer; on an already-empty composer it is a no-op because you are already home. `Ctrl-C` quits from anywhere; `:q` survives as an omnibox command. (Open call O3 below: whether Esc on an empty composer should instead pop the view stack for a faster "back out".)
 - **The chip shows three lamps, not five: OMNI / MENU / EDIT.** FIELD and EMBED are both "editing a row" to the operator, so they share the EDIT lamp; the machine keeps them as distinct internal states because their exits differ (EMBED's is the child exiting, and that exemption stays).
 
 **Revised section 3 edge table (replaces the current one):**
+
+_STALE: not built as drawn. `tui-design.md` section 3 (`EDGES` in `tui/mode.rs`) spells its triggers bare with the guard in the notes column, replaces `MENU Hotkey` and `MENU Move` with `MENU Typing` and `MENU Move`, and declares no `Hotkey`._
 
 ```
 | from  | trigger              | to    | notes                                             |
@@ -58,6 +63,8 @@ The current machine is five modes (OMNIBOX, NAV, MENU, FIELD, EMBED) with two cl
 ## 2. The lower bar -- revised section 2
 
 hv wants the Claude Code look, which is three stacked pieces: a framed composer, a persistent status-segment row, and a mode line. The current foot is the omnibox line plus one hint line. The proposal grows the foot back out, but as SEGMENTS matching Claude Code rather than the old STATUS/COMMAND/INFO trio.
+
+_STALE: the foot is the rule, the framed composer and the hint row (`FOOT` and `FRAME_COST` in `tui/layout.rs`; `tui-design.md` section 2)._
 
 **Proposed screen (foot mirrors Claude Code's composer -> status -> mode order):**
 
@@ -96,7 +103,11 @@ hv wants the Claude Code look, which is three stacked pieces: a framed composer,
 
 **Keys.** The `/`-ring row is gone; `/` from an empty composer opens MENU in one press, and `/` from MENU closes it. Esc is "clear the buffer, else no-op" rather than a toggle. Arrows are buffer-guarded (browse the body when empty, pick matches when set). `:` is retired as a live command sigil in favour of `/` (hv's `/commands`), keeping `:q`/`:w`/`:q!` only as omnibox spellings for muscle memory -- open call O2 on whether to keep them at all. Everything hv already ruled STAYS: typing anywhere seeds the composer, one in-place keymap, `C-w` and the vi field keymap retired, `Ctrl-C` quits.
 
+_STALE: `C-w` is bound in the composer as kill-word-back (`tui-design.md` section 4), and typing lands in the always-focused composer rather than seeding it._
+
 **Menus (section 5) are almost untouched.** The nested Lotus tree, the coloured-in-place accelerator found by position, the selectable `[←]`/`[X]` positions, unique-accelerators-per-level, and destinations-not-directions all stay. The only change is how you get here: one `/` from the composer instead of a ring stop. The palette can reuse the existing fuzzy dropdown mechanism -- a `/` filters COMMANDS the way a bare query filters ENTITIES -- which is the most direct read of hv's "`/commands` fire up the menus".
+
+_STALE: superseded the same day by hv's filtered command palette, and the Lotus tree was never built (`tui-design.md` section 5). The palette does reuse the fuzzy dropdown, as proposed here._
 
 ## 4. What is explicitly KEPT (so the review is about the delta, not the whole design)
 
@@ -114,6 +125,7 @@ Total: roughly L, and it is the TUI-divergence rework hv flagged on 2026-08-30, 
 
 - **O1 -- framed composer, or a lighter prompt line?** The framed box is the Claude Code look and the recommendation, but it costs the foot two extra lines (top and bottom border), which matters on a short terminal and re-opens the degradation order. The lighter option is a single prompt line with a distinct background/underline -- less Claude-Code, one line instead of three. Recommendation: framed, and revisit degradation.
 - **O2 -- retire `:` entirely, or keep `:q`/`:w`/`:q!` as omnibox spellings?** hv said `/commands`; `:` muscle memory is cheap to keep and cheap to drop. Recommendation: keep the three as hidden aliases, advertise only `/`.
+  _Ruled by hv on 2026-09-15: `:w` is dropped, and `:q` and `:q!` stay as built._
 - **O3 -- Esc on an empty composer: no-op, or pop the view stack?** No-op is the pure Claude Code reading (Esc clears, does not navigate); pop-stack gives a faster "back out" but overloads Esc with navigation that `⌫`/Back already owns. Recommendation: no-op, keep navigation on Back.
 - **O4 -- the status segments' exact contents.** Proposed: project · branch+diff · gate · binary-currency. The binary-currency segment is the one non-obvious add and I think it earns its place given how often stale-binary bit this estate; hv may want it, cut it, or swap in thread counts.
 
