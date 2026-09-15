@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "dfdab637-30f3-45c6-adcb-28fc683918e2",
-    "heartbeat_at": "2026-09-15T20:33:09.830Z",
+    "heartbeat_at": "2026-09-15T20:46:23.202Z",
     "status": "active",
-    "focus": "THE CLOSE-OUT (hv, 2026-09-15): train 4 is landed and in the pair at 33990b80b, covers re-rendered at 939af5167; resume at the newest todo -- board passes, then train 5 (dc todo 2, cc 0331 (a) and the footer, ic ST0075 WP-02); hv owes 0400 and O4. NO RELEASE, NO PUSH.",
+    "focus": "THE CLOSE-OUT (hv, 2026-09-15), folded for the third bounce: pair at 33990b80b; resume at the newest todo -- dc todo 2 lands, then train 5 (cc 0331 (a), ic ST0075 WP-02), the footer before a rebuild; hv owes 0400 and O4. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0057",
@@ -548,8 +548,17 @@
       "kind": "todo",
       "seq": 10,
       "text": "IN FLIGHT after train 4 (2026-09-15, vc resumes here). LANDED, verified against their banks, in the pair built at 33990b80b and the restarted intentd, with 0334's covers re-rendered by organize at 939af5167: cc's thread-spec-url at 51628d447; dc's artefact-lib at 561a8fda9 and item 17 at 17b1f4533; ic's 0334 part A with 0396 at 6be7545b4 (0334 and 0396 closed, 0400 filed for hv); cc's 0377 (a) at 33990b80b (closed; its cost run found the canon fsevents loops moving nothing across a commit). NEXT, in order: (1) the board-pass queue after vc's end message: cc, then ic, then dc, relayed one at a time. (2) Train 5 in wt-train1, scratchpad train-restack.sh <HEAD> <refs> then train-judge.sh train5: dc's todo 2 (refs/bank/dc/todo2-contract-preflight, being re-banked with a derived release_sidecars test and contract_check's roster row); cc's 0331 (a); cc's footer bank, landed right before a rebuild and then organize --apply and a views commit; ic's ST0075 WP-02, with AC-02.2 reworded to colour warning: as a warning. cc's 0331 (b) counts sweep comes from a subagent as its own bank. (3) hv owes 0400 (vc recommends keeping immutable-after-creation, routing the gate's refusal to st cancel and locking the TUI form's acceptance row) and O4 (vc recommends dropping the status row); Decision A, the accent, is open in docs/design/design-system.md. After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T20:46:14.324Z",
       "recorded_at": "2026-09-15T20:33:05.287Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 11,
+      "text": "IN FLIGHT at the third bounce of 2026-09-15 (vc resumes here). LANDED and verified against their banks since the second bounce: train 3 -- cc's 0338 (i) at 67165bcfc plus 21c4116c2 (AT-07.8 named, ST0057's gate PASS), dc's IN-RS-CODE-001 at ca3edf2ad, 0339 closed at 9bfdc5d11, dc's opt() split at 8bb1c24bc, ic's parity docs with the AC-09.5 reword at 23118bc0c; then cc's thread-spec-url at 51628d447, dc's artefact-lib at 561a8fda9, ic's 0334 part A with 0396 at 6be7545b4 (both closed, 0400 filed for hv), dc's item 17 at 17b1f4533, cc's 0377 (a) at 33990b80b (closed). The pair is rebuilt at 33990b80b, intentd restarted on it, and 0334's covers re-rendered by organize at 939af5167. All four nodes localfolded for hv's compact (dc ffa56b5c7, ic ade07fb10, cc 4331d040a). NEXT after the bounce, in order: (1) dc's todo 2, refs/bank/dc/todo2-contract-preflight (3ff59afce on 17b1f4533), lands as a train of one on vc's word; it is accepted on dc's evidence (the derived release_sidecars test red on a planted unguarded use and green on the script, release_script.bats green, shellcheck unchanged, runner_roster_check green) and nothing compiles it. (2) Train 5 in wt-train1, scratchpad train-restack.sh <HEAD> <refs> then train-judge.sh train5 (it stages the attached canon and runs bin/int precommit): cc's 0331 (a) once banked at refs/bank/cc/0331-a -- not yet green at the fold, with four fixes named on cc's todo 18, and spine.rs's exclusion paragraph replaced by the consumer roster's scope sentence (the scan reads lib/templates and never bin/.devbin); ic's ST0075 WP-02 once re-banked green from refs/bank/ic/st0075-wp02-wip (da6ae82c4 on 17b1f4533; IntentTests green, critic-swift pending at the fold), with AC-02.2 reworded at its landing to colour warning: as a warning. (3) cc's footer bank in wt-footer (views.rs passes \"the thread canon\") lands right before a rebuild, then organize --apply and a vc views commit. (4) cc's 0331 (b) counts sweep, from its subagent's patch in wt-0331b, as its own bank with its own review. (5) Then cc's 0321 (c) and 0375; ic's WP-03 and todo 20 (the 0331 review). hv owes 0400 (vc recommends keeping immutable-after-creation, routing the gate's refusal to st cancel and locking the TUI form's acceptance row), O4 (vc recommends dropping the status row), and Decision A, the accent, open in docs/design/design-system.md. After that, the quiet window on hv's word: app-install, ic drives the Console once, st done for ST0057 and ST0075 on gate PASS, and hv picks the release version. intent/wip.md is refreshed at the next globalfold.",
+      "state": "live",
+      "recorded_at": "2026-09-15T20:46:18.761Z"
     }
   ],
   "messages": [
