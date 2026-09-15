@@ -19,33 +19,33 @@ Covers steel threads, work packages and issues.
 **THIS PARAGRAPH SAID _three sections … separated by two rules_ AND _there are no borders anywhere; those two rules are the only chrome_ UNTIL 2026-09-02, AND BOTH HALVES HAD GONE STALE IN DIFFERENT DIRECTIONS.** The count was never reconciled after the foot collapse — the same revision note that records the collapse sits in a sentence still saying three, while the bullet list immediately below it names four. And the borders clause was overtaken by hv's own ratification of the framed composer (O1, 2026-09-02), which is a border; `draw.rs` had already been corrected to _borders on the composer, nowhere else_ and this section had not. **A design document disagreeing with itself one line apart is the version a reader trusts least, because there is no way to tell which half is current** — and `AC-17.11` was corrected to this section on 2026-08-30, so a stale sentence here propagates into the register rather than staying local.
 
 ```
- ST0056   Add a Rust-based CLI with a local SQLite DB with bidirectional sync…   /thread  <  /thread/ST0056   ⌫ back
+thread  ST0056   /thread  <  /thread/ST0056   ⌫ back                                     <project>
 ──────────────────────────────────────────────────────────────────────────────────────────────────
- ▸ title        Add a Rust-based CLI with a local SQLite DB with bidirectional…
-   status       wip
-   objective    Ship **Intent v3.0.0**: replace the v2 shell implementation with a native Rust…
-   documents    n
-   work pkgs    n
-──────────────────────────────── detail ──────────────────────────────────────────────────────────
-   state        satisfied
-   text         **A CHECKER VERIFIES MEMBERSHIP IN A VOCABULARY** and never that the …
+title        Add a Rust-based CLI with a local SQLite DB with bidirectional…
+status       wip
+objective    Ship **Intent v3.0.0**: replace the v2 shell implementation with a native Rust…
+documents    n
+work pkgs    n
+── objective ─────────────────────────────────────────────────────────────────────────────────────
+Ship Intent v3.0.0: replace the v2 shell implementation with a native Rust
+implementation …
 ──────────────────────────────────────────────────────────────────────────────────────────────────
-╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ ❯ ▏                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- OMNI  4/12  ⏎ open  ↑↓ browse · / menu · ⌫ back · type to find
+╭────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ❯                                                                                              │
+╰────────────────────────────────────────────────────────────────────────────────────────────────╯
+OMNI  k/n  ⏎ $EDITOR  ↑↓ browse · / menu · ⌫ back · type to find  TAB detail               <stamp>
 ```
 
-- **APP ROW** — the entity's id and name; when nested, the view trail (each view's path, joined by `<`) and `⌫ back`, the key that leaves.
-- **BODY** — a flat `{name, value, type}` column. A collection renders as its size and opens its own pane. Splits into list + detail where the selected row has detail. **The dropdown borrows the body's last rows** while the omnibox has matches: best match nearest the input, matched letters highlighted, the pick wearing the caret.
-- **OMNIBOX ROW** — always present and always lit: caret + buffer in a framed composer, in OMNI and MENU alike (the palette types into this line; its leading `/` says which vocabulary the dropdown shows). In EMBED it reads `editor running -- returns when the child exits`.
-- **HINT ROW** — the mode lamp first and unconditional, coloured per lamp (and `NORMAL` beside it under the vi keymap); then a standing notice, or what the keys do right now (position, the one verb ⏎ means on this row, `TAB detail` / `TAB list` where the row has detail).
+- **APP ROW** — where the operator is, as the view names itself (`thread  ST0056`, `thread`, `settings  explorer`, `search  <query>`); when nested, the view trail (each view's path, joined by `<`) and `⌫ back`, the key that leaves. The project's directory name (`Project::directory_name`, not `config.project_name`) sits against the right edge.
+- **BODY** — a flat `{name, value, type}` column. A collection renders as its size and opens its own pane. Splits into list + detail where the selected row has detail. **The dropdown borrows the body's last rows** while the omnibox has matches: best match nearest the input, matched letters highlighted, the pick wearing the caret. While the dropdown shows, a plain rule separates its offers from the body rows above them; where the body cannot afford both, the offers keep the room and the rule is dropped.
+- **OMNIBOX ROW** — always present: caret + buffer in a framed composer, in OMNI and MENU alike (the palette types into this line; its leading `/` says which vocabulary the dropdown shows). Its text is drawn lit in OMNI and dimmed in MENU: brightness is the focus signal, and a layout test pins both. In EMBED it reads `editor running -- returns when the child exits`.
+- **HINT ROW** — the mode lamp first and unconditional, coloured per lamp (and `NORMAL` beside it while vi's normal mode is engaged); then a standing notice, or what the keys do right now (position, the one verb ⏎ means on this row, `TAB detail` / `TAB list` where the row has detail). The tool's stamp -- brand, version and short commit (`layout::stamp`) -- sits against the right edge. Each right-hand group is dropped whole, never clipped, when its row cannot fit it.
 
 ### Layout rules
 
 - **Two aligned columns: names in one, values in another.** That alignment IS the design, so it is asserted, not eyeballed. The gutter is **computed from the row set**, never hardcoded — the first strawman pinned it at 13 and real data collided on the first render.
-- **Values are clipped at RENDER time to the terminal width**, with an ellipsis. Never truncated when the row is built: a value truncated into the model is truncated for every width forever.
-- **A value that does not fit is clipped, never wrapped into a second row** — a wrapped value breaks the one guarantee the layout makes.
+- **A row's value is clipped at RENDER time to the terminal width**, with an ellipsis. Never truncated when the row is built: a value truncated into the model is truncated for every width forever.
+- **A row's value that does not fit is clipped, never wrapped into a second row** — a wrapped value breaks the one guarantee the layout makes. The contents pane (section 6) is a reading, not a row: it wraps prose at spaces and cuts code and table lines at the pane's edge.
 - Unicode box-drawing for the rules. **Colour is carried as ROLES computed by layout and mapped to a palette by the printer** — the mode chip per lamp, reversed and bold (OMNI cyan, MENU magenta, EDIT yellow), doors cyan, field names dim, statuses semantic from the model's own display vocabulary (wip yellow, done green, blocked red), selection reversed, notices yellow, matched dropdown letters bold cyan.
 
 ## 3. The mode machine
@@ -62,24 +62,24 @@ Covers steel threads, work packages and issues.
 
 **THE TRIGGER COLUMN'S SPELLING CHANGED AFTER hv RATIFIED IT, AND HERE IS WHY.** The accepted proposal wrote the buffer guard INTO the trigger cell -- `Enter (buffer set)`, `Enter (buffer empty)`, `Move (buffer empty)`. **That cannot be built.** `keys.rs` rests on a stated invariant -- the keymap cannot see the buffer -- so it emits a bare trigger and the app applies the guard, which is how `/` has always worked here. A guarded trigger is one no keystroke can ever produce: `step(OMNI, "Enter")` would answer _nothing_ on the commonest key on the screen. So **triggers are BARE in this table and the guard is stated in the notes column**; the SEMANTICS hv ratified are unchanged in every particular. The correction also keeps the invariants simpler, which is the argument for it rather than a consolation: spelling the guard in would have split the one guarded pair into two and made _exactly one guarded ambiguity_ stop meaning anything.
 
-| from  | trigger            | to    | notes                                                |
-| ----- | ------------------ | ----- | ---------------------------------------------------- |
-| OMNI  | Typing             | OMNI  | into the composer -- it always holds the keyboard    |
-| OMNI  | Move               | OMNI  | empty buffer browses the body; a query picks matches |
-| OMNI  | Enter              | OMNI  | go to the picked match, or descend a door row        |
-| OMNI  | Enter              | FIELD | edit in place -- editable rows                       |
-| OMNI  | Enter              | EMBED | hand off -- prose rows to `$EDITOR`                  |
-| OMNI  | `/`                | MENU  | open the palette, one press, empty buffer only       |
-| OMNI  | Esc                | OMNI  | clear the query; under emacs a no-op when empty      |
-| OMNI  | Back               | OMNI  | pop the view stack, empty buffer only                |
-| MENU  | Typing / Move      | MENU  | filter the palette; pick among the hits              |
-| MENU  | Enter              | OMNI  | run the picked command                               |
-| MENU  | Esc / Cancel / `/` | OMNI  | close the palette                                    |
-| FIELD | Typing             | FIELD | in-place edit, one keymap                            |
-| FIELD | Enter              | OMNI  | commit                                               |
-| FIELD | Esc                | OMNI  | discard                                              |
-| EMBED | Typing             | EMBED | forwarded to the child                               |
-| EMBED | ChildExit          | OMNI  | read the file back                                   |
+| from  | trigger            | to    | notes                                                                    |
+| ----- | ------------------ | ----- | ------------------------------------------------------------------------ |
+| OMNI  | Typing             | OMNI  | into the composer -- it always holds the keyboard                        |
+| OMNI  | Move               | OMNI  | empty buffer browses the body; a query picks matches                     |
+| OMNI  | Enter              | OMNI  | go to the picked match, or descend a door row                            |
+| OMNI  | Enter              | FIELD | edit in place -- editable rows                                           |
+| OMNI  | Enter              | EMBED | hand off -- prose rows to `$EDITOR`                                      |
+| OMNI  | `/`                | MENU  | open the palette, one press, empty buffer only                           |
+| OMNI  | Esc                | OMNI  | clear the query (under vi, NORMAL first); under emacs a no-op when empty |
+| OMNI  | Back               | OMNI  | pop the view stack, empty buffer only                                    |
+| MENU  | Typing / Move      | MENU  | filter the palette; pick among the hits                                  |
+| MENU  | Enter              | OMNI  | run the picked command                                                   |
+| MENU  | Esc / Cancel / `/` | OMNI  | close the palette                                                        |
+| FIELD | Typing             | FIELD | in-place edit, one keymap                                                |
+| FIELD | Enter              | OMNI  | commit                                                                   |
+| FIELD | Esc                | OMNI  | discard                                                                  |
+| EMBED | Typing             | EMBED | forwarded to the child                                                   |
+| EMBED | ChildExit          | OMNI  | read the file back                                                       |
 
 **MENU'S ROWS WERE REVISED AGAIN ON 2026-09-02, AFTER hv DROVE THE BUILD, AND THE TWO RETIREMENTS ARE STATED AS BEHAVIOURS RATHER THAN AS ABSENCES.**
 
@@ -87,7 +87,7 @@ Covers steel threads, work packages and issues.
 - **`MENU Hotkey -> MENU` is RETIRED, removed rather than rehomed.** It was the Lotus bar's accelerator, and it was **declared, emitted by the keymap, answered by this table, and consumed by no realiser for its entire life** -- a bound, reachable, inert key. In a palette a letter has an obvious job, so the trigger is gone rather than given a handler. A dead trigger rehomed is a dead trigger with an alibi.
 - **`MENU Back -> OMNI` is RETIRED, and what replaces it is affirmative: `Backspace` ERASES in the palette, and erasing back past the `/` IS the exit.** The palette therefore needs no exit key of its own. Stated this way round because a retirement recorded only as a missing row is indistinguishable from one nobody noticed dropping.
 
-**LEAVABILITY SURVIVES THE RETIREMENT, AND IT IS ASSERTED HERE SO THE NEXT READER DOES NOT HAVE TO RE-DERIVE IT.** Removing `MENU Back` removes one of MENU's exits, so the invariant is worth re-checking rather than assuming: MENU still leaves by `Esc`, `Cancel` and `/`, all three landing in OMNI, so **every state that owns its escape still reaches the home mode in ONE press**, and EMBED remains the single named exemption.
+**LEAVABILITY SURVIVES THE RETIREMENT, AND IT IS ASSERTED HERE SO THE NEXT READER DOES NOT HAVE TO RE-DERIVE IT.** Removing `MENU Back` removes one of MENU's exits, so the invariant is worth re-checking rather than assuming: MENU still leaves by `Esc`, `Cancel` and `/`, all three landing in OMNI, so **every state that owns its escape still reaches the home mode in ONE press under the emacs keymap, and in two under vi** (the first Esc enters normal mode, section 7), and EMBED remains the single named exemption.
 
 **FOUR MACHINE STATES, THREE LAMPS.** `FIELD` and `EMBED` stay distinct in the machine because their EXITS differ -- `EMBED`'s is the child exiting -- but the chip shows both as `EDIT`, because which of the two you are in is a fact about who owns the terminal and not something the operator can act on. Showing a lamp per internal state would advertise a distinction nobody can use.
 
@@ -96,39 +96,39 @@ Covers steel threads, work packages and issues.
 - **Every mode is leavable.** A mode you can enter and not leave is the trap `no_state_can_be_entered_and_not_left` already refuses for entities.
 - **Every mode is reachable from OMNI.** An unreachable mode is dead code that reads as a feature.
 
-**ESC IS TOTAL, WITH EMBED AS THE ONE NAMED EXEMPTION, AND IT LANDS IN THE HOME MODE IN ONE PRESS.** Esc means _back to the composer_: in MENU it closes the palette, in FIELD it discards, with a query typed it clears the buffer. **The exemption is EMBED and it is declared rather than filtered out** -- a child process owns the terminal while it runs, so Esc reaches `$EDITOR` and not us, and EMBED's only exit is the child ending. That is the whole narrowing: `total` still means every state the TUI owns the keyboard in, and the one state it does not is named here rather than dropped silently.
+**ESC IS TOTAL, WITH EMBED AS THE ONE NAMED EXEMPTION, AND IT LANDS IN THE HOME MODE IN ONE PRESS UNDER EMACS AND TWO UNDER vi.** Esc means _back to the composer_: in MENU it closes the palette, in FIELD it discards, with a query typed it clears the buffer. **The exemption is EMBED and it is declared rather than filtered out** -- a child process owns the terminal while it runs, so Esc reaches `$EDITOR` and not us, and EMBED's only exit is the child ending. That is the whole narrowing: `total` still means every state the TUI owns the keyboard in, and the one state it does not is named here rather than dropped silently.
 
-**ESC ON AN ALREADY-EMPTY COMPOSER IS A NO-OP, BECAUSE YOU ARE ALREADY HOME.** Stated affirmatively: this is the behaviour, not a case nobody got round to. Esc never navigates -- popping the view stack is `Back`'s job, and overloading Esc with it would give it the second job the retired toggle was retired for. **Home is now ONE mode**, so Esc converges rather than oscillating between two rooms. **Quitting stays an act, never an accident** -- `Ctrl-C` from anywhere, or `/quit` from the palette. There is no unsaved-form state to protect: FIELD commits on `Enter` or discards on `Esc` before the operator is back in the composer.
+**ESC ON AN ALREADY-EMPTY COMPOSER IS A NO-OP, BECAUSE YOU ARE ALREADY HOME.** Stated affirmatively: this is the behaviour, not a case nobody got round to. Esc never navigates -- popping the view stack is `Back`'s job, and overloading Esc with it would give it the second job the retired toggle was retired for. **Home is now ONE mode**, so Esc converges rather than oscillating between two rooms. **Quitting stays an act, never an accident** -- `Ctrl-C` from anywhere, or `/quit` from the palette. The one unsaved state is an in-place edit: FIELD commits on `Enter` or discards on `Esc`, and `Ctrl-C` pressed inside FIELD quits and discards the edit in progress, which is what an explicit quit asks for.
 
 **The `OMNI + Enter` triple is the one guarded ambiguity**, resolved by the ROW and never by table order: a row with a door descends, an editable row edits in place, a prose row hands off. The door arm is the strawman's worst defect fixed -- Enter on a `button` row used to reach FIELD, so the one navigation verb on screen navigated nowhere, which is what hv drove into on 2026-08-30. **That it is still exactly ONE guarded pair after the collapse is the evidence that folding NAV in removed a mode rather than smuggling a second ambiguity in behind it.**
 
-**Pane focus (list / detail) is a GUARD on OMNI's edges, not a fifth mode.** It changes where Move and Enter land; it does not change what the keys mean. The buffer condition is the same species, and it governs every guarded key: mid-query `/` is a character (`intent:///threads/ST0056` is a legal address), `Backspace` deletes rather than walking up the model, the arrows pick among matches rather than browsing the body, and `Home`/`End` move along the line rather than to the ends of the list. **One rule asked at several keystrokes, never one rule per key.**
+**Pane focus (list / detail) is a GUARD on OMNI's edges, not a fifth mode.** It changes where Move lands -- in the list or in the pane -- while Enter acts on the list's row from either half; it does not change what the keys mean. `Tab` crosses only while the composer is empty. The buffer condition is the same species, and it governs every guarded key: mid-query `/` is a character (`intent:///threads/ST0056` is a legal address), `Backspace` deletes rather than walking up the model, the arrows pick among matches rather than browsing the body, and `Home`/`End` move along the line rather than to the ends of the list. **One rule asked at several keystrokes, never one rule per key.**
 
 **vi's NORMAL MODE IS THE THIRD GUARD OF THAT SPECIES**, added when `explorer.editing.mode` landed — see section 7. It governs Esc and every letter, over OMNI and MENU alike, and it is a guard rather than a mode for exactly the reason the other two are: a `ViNormal` state would duplicate every edge those two modes already carry in order to say nothing the table does not already say. **Esc's invariant survives it and is asserted under both keymaps** — see there.
 
-**AND THE `OMNI + Esc` NOTE IS KEYMAP-QUALIFIED BECAUSE THE vi GUARD MADE IT FALSE, WHICH IS THE COST OF A GUARD NOBODY BILLED FOR.** That cell read _a no-op when already empty_ and now reads _under emacs a no-op when empty_: under vi the first Esc on an empty composer ENTERS NORMAL MODE, and only the second one is inert. **The row is unchanged in its from/trigger/to columns, so nothing about the machine moved** — the falsehood was entirely in a notes cell that predated the keymap and was never revisited when it landed. **A guard added over a whole mode changes every affirmative sentence written about that mode's keys, and the sentences do not announce themselves**: this one was found by vc reading the table against the ruling rather than by anything failing, because a notes column is prose and no invariant reads it.
+**AND THE `OMNI + Esc` NOTE IS KEYMAP-QUALIFIED BECAUSE THE vi GUARD MADE IT FALSE, WHICH IS THE COST OF A GUARD NOBODY BILLED FOR.** That cell read _a no-op when already empty_ and now reads _under emacs a no-op when empty_: under vi the first Esc on an empty composer ENTERS NORMAL MODE and the second returns to insert, so repeated Esc there alternates the `NORMAL` lamp; neither press navigates or quits. **The row is unchanged in its from/trigger/to columns, so nothing about the machine moved** — the falsehood was entirely in a notes cell that predated the keymap and was never revisited when it landed. **A guard added over a whole mode changes every affirmative sentence written about that mode's keys, and the sentences do not announce themselves**: this one was found by vc reading the table against the ruling rather than by anything failing, because a notes column is prose and no invariant reads it.
 
 ## 4. Keys
 
 **ONE HOME MEANS THE COLUMNS ARE NO LONGER MODES.** The superseded table split every key by _in OMNIBOX_ against _in NAV_. There is one mode now, so what a key does depends on the composer's BUFFER -- the same guard the machine's notes column states, read from the operator's side.
 
-| key           | composer empty -- browsing                                    | query typed                 |
-| ------------- | ------------------------------------------------------------- | --------------------------- |
-| printable     | into the composer                                             | into the composer           |
-| `⏎`           | act on the row: descend, edit, or hand off                    | go: address or picked match |
-| `↑` `↓`       | browse the body                                               | pick among the matches      |
-| `PgUp` `PgDn` | page the body                                                 | page the matches            |
-| `Home` `End`  | ends of the list                                              | ends of the line            |
-| `←` `→`       | --                                                            | move the caret              |
-| `Tab`         | switch panes (list ⟷ detail)                                  | --                          |
-| `Backspace`   | pop the view stack (a no-op at the root)                      | delete a character          |
-| `ESC`         | under emacs a no-op -- you are already home; under vi, NORMAL | clear the query             |
-| `/`           | open the MENU, one press                                      | (a character)               |
-| `Ctrl-C`      | quit                                                          | quit                        |
+| key           | composer empty -- browsing                                    | query typed                                                                     |
+| ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| printable     | into the composer                                             | into the composer                                                               |
+| `⏎`           | act on the row: descend, edit, or hand off                    | go: address or picked match                                                     |
+| `↑` `↓`       | browse the body                                               | pick among the matches                                                          |
+| `PgUp` `PgDn` | page the body                                                 | page the matches                                                                |
+| `Home` `End`  | ends of the list                                              | ends of the line                                                                |
+| `←` `→`       | --                                                            | move the caret                                                                  |
+| `Tab`         | switch panes (list ⟷ detail)                                  | --                                                                              |
+| `Backspace`   | pop the view stack (a no-op at the root)                      | delete a character                                                              |
+| `ESC`         | under emacs a no-op -- you are already home; under vi, NORMAL | clear the query (under vi, the first press enters NORMAL and the second clears) |
+| `/`           | open the MENU, one press                                      | (a character)                                                                   |
+| `Ctrl-C`      | quit                                                          | quit                                                                            |
 
 The composer takes readline's emacs chords (`C-a`, `C-e`, `C-b`, `C-f`, `C-d`, `C-h`, `C-k`, `C-u`, `C-w`) under emacs and in vi's insert mode, and `C-g` closes the palette; a control chord it does not bind is swallowed, never typed. `/help` lists every key, chord and setting from the keymap itself.
 
-**Typing always lands in the composer** -- the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. **The superseded machine implemented this as a SEED**, carrying a character out of NAV into the omnibox along with a mode change; with the composer permanently focused there is nothing to seed FROM, so the affordance survives and the machinery under it does not. The cost is stated and unchanged: **no single-letter bindings outside MENU** (`e`-to-edit and `hjkl` died for this), because a letter bound to a verb is a letter the composer never receives.
+**Typing always lands in the composer** -- the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. **The superseded machine implemented this as a SEED**, carrying a character out of NAV into the omnibox along with a mode change; with the composer permanently focused there is nothing to seed FROM, so the affordance survives and the machinery under it does not. The cost is stated and unchanged: **no single-letter bindings while the composer is inserting** (`e`-to-edit and `hjkl` died for this), because a letter bound to a verb is a letter the composer never receives: in MENU a letter filters, and the only letters bound to acts are vi's normal-mode keys, reached with Esc under the vi keymap (section 7).
 
 **`/` OPENS THE MENU IN ONE PRESS AND THAT IS ITS ONLY MEANING**, superseding hv Option A's three-way ring (`NAV -> OMNIBOX -> MENU -> NAV`, 2026-08-31), under which the Lotus menu was two `/` away and `/` meant different things from different places. The empty-buffer guard is unchanged and is what keeps it safe: `intent:///threads/ST0056` is a legal address, so mid-address `/` is a character.
 
@@ -141,17 +141,18 @@ The composer takes readline's emacs chords (`C-a`, `C-e`, `C-b`, `C-f`, `C-d`, `
 **RULED BY hv 2026-09-02, AFTER DRIVING THE BUILD, SUPERSEDING THE LOTUS 1-2-3 MENU.** `/` opens a FILTERED LIST of commands: typing narrows it, the arrows pick, `⏎` runs, `esc` closes.
 
 ```
+────────────────────────────────────────────────────────────
+❯ quit leave explore
+────────────────────────────────────────────────────────────
 ╭──────────────────────────────────────────────────────────╮
-│ ❯ /qu▏                                                   │
+│ ❯ /qu                                                    │
 ╰──────────────────────────────────────────────────────────╯
-  quit leave explore
-
- MENU  type to filter · ↑↓ pick · ⏎ run · esc close
+MENU  type to filter · ↑↓ pick · ⏎ run · esc close
 ```
 
 **WHAT WAS HERE, AND WHY IT WENT.** This section specified a nested horizontal bar -- `Go: [←] Back Threads Issues Packages Criteria [X]`, arrows moving along it, the accelerator letter **coloured in place, not bracketed** and **found by position** rather than assumed to be the first character, `[←]` and `[X]` as **selectable POSITIONS** rather than decorations, accelerators **unique within a level, asserted at startup**, and entries naming **DESTINATIONS, never DIRECTIONS** (`Up`/`Down` were removed because `[←]` already moves up the MENU tree while `Up` would mean up the MODEL tree -- one word, two motions). **None of that was wrong, and none of it was ever built.** hv rebuilt at `a8981480`, opened the menu and found three things: the arrows did nothing, `:q` was still the only way out, and `/quit` did not work. All three were one defect -- **the bar was a hardcoded string with no model behind it**, so there was nothing to select, nothing to move, and no command vocabulary in the program at all.
 
-**THE PALETTE IS PREFERRED FOR A REASON, NOT MERELY BECAUSE IT IS EASIER.** It puts the operator's own spelling first: hv reached for `/quit` unprompted, which is what a filtered list rewards and what a bar cannot answer. It reuses the fuzzy matcher, the pick, the dropdown and the composer that already exist, so the palette is a second VOCABULARY rather than a second WIDGET. And it makes discovery cheap in the one place a menu is supposed to be good: pressing `/` shows the whole vocabulary.
+**THE PALETTE IS PREFERRED FOR A REASON, NOT MERELY BECAUSE IT IS EASIER.** It puts the operator's own spelling first: hv reached for `/quit` unprompted, which is what a filtered list rewards and what a bar cannot answer. It reuses the fuzzy matcher, the pick, the dropdown and the composer that already exist, so the palette is a second VOCABULARY rather than a second WIDGET. And it makes discovery cheap in the one place a menu is supposed to be good: pressing `/` shows the TUI's own acts, and `/help` lists every `intent` verb the palette runs.
 
 ### `/threads` and `/issues` are places, and they are acts anyway
 
@@ -163,17 +164,17 @@ The composer takes readline's emacs chords (`C-a`, `C-e`, `C-b`, `C-f`, `C-d`, `
 
 **RULED BY hv 2026-09-13:** _If I run 'intent explore' in a non-intent project, then the explorer should consult intentd and the show a list of intent projects that intentd knows about, provide a simple picker, and then either pick the one that the user picks, or return to the cli ... I'd suggest that /projects should be an explorer command that invokes the project picker in any case, so this is actually available at all times. Starting the explorer *in* an intent project, is just the same as selecting that project from the project picker._
 
-**The picker is its own screen and not a view in the stack**, because the stack reads one project's store and the picker's subject is which store that is. `/projects` ends the project's loop and opens the picker; Enter opens the chosen project, and Esc returns to the project that was open. `intent explore` outside a project opens the picker first, and Esc there returns to the shell. Starting inside a project is the same as choosing it.
+**The picker is its own screen and not a view in the stack**, because the stack reads one project's store and the picker's subject is which store that is. `/projects` ends the project's loop and opens the picker; Enter opens the chosen project, and Esc returns to the project that was open. `intent explore` outside a project opens the picker first, and Esc there returns to the shell. Starting inside a project is the same as choosing it. Returning from the picker, by either key, opens the explorer at the threads list; the view stack of the project left is not kept.
 
-**It lists the project registry, read through `intentsvcs::projects`, rather than asking intentd over the wire.** intentd lists exactly that file and never writes it, so the file is the daemon's answer and it is still there when no daemon is running. A registered root that is no longer a project is shown as missing and refused with the reason, rather than opened into an error. Choosing a project moves the working directory, which is what a project is to every other door: the palette's `/{cmd}` runs the CLI's dispatch in this process and acts on the project chosen.
+**It lists the project registry, read through `intentsvcs::projects`, rather than asking intentd over the wire.** intentd lists exactly that file and never writes it, so the file is the daemon's answer and it is still there when no daemon is running. A registered root that is no longer a project is shown as missing and refused with the reason, rather than opened into an error. Choosing a project moves the working directory, which is what a project is to every other door: the palette's `/{cmd}` runs the CLI's dispatch in this process and acts on the project chosen. `intent explore` adds the project it opens to the registry, and says so on the info row when the registry cannot be written; an empty registry names `intent discover <dir>`.
 
 ### Only what is wired is offered
 
 **A COMMAND THAT CANNOT RUN MUST NOT APPEAR.** The retired tree also listed `Docs` (Browse, Open, New) and `File` (Write, Reload); **none has a realiser**, and declaring them would ship a palette advertising a menu of errors -- which is the defect hv drove into, one layer up. **The small honest set beats the large one with holes.** It grows when an act lands, never before; there is deliberately no `Unimplemented` state for an offer to sit in.
 
-**The vocabulary is two lists, and the TUI's own acts win every collision.** First the TUI's acts -- `quit`, `back`, `help` (the whole reference, every key, command and setting, as a view), `settings`, `search`, `projects`, `threads` and `issues`. Then an ALLOW-LIST of `intent` verbs (`tui/commands.rs` `CLI_ROSTER`), which `/<verb> ...` runs through the CLI's own dispatch with the terminal lent (hv, 2026-09-02: _I should be able to run any `intent {cmd} ...` command via `/{cmd} ...` in the explorer_). Each verb's blurb is its `clap` about-line, the same text `intent <verb> --help` prints. The exclusions are written down in the roster rather than implied: `explore`, `mcp`, `daemon`, `fc`, `init`, `bootstrap`, `upgrade`, `graphql` and `browse` are not offered, and `issues` is the `/issues` act rather than a roster entry.
+**The vocabulary is two lists, and the TUI's own acts win every collision.** First the TUI's acts -- `quit`, `back`, `help` (the whole reference, every key, command and setting, as a view), `settings`, `search`, `projects`, `threads` and `issues`. Then an ALLOW-LIST of `intent` verbs (`tui/commands.rs` `CLI_ROSTER`), which `/<verb> ...` runs through the CLI's own dispatch with the terminal lent (hv, 2026-09-02: _I should be able to run any `intent {cmd} ...` command via `/{cmd} ...` in the explorer_). Each verb's blurb is its `clap` about-line, the same text `intent <verb> --help` prints. The command prints to the real screen and then waits on `-- press enter to return to explore --` before the explorer takes the terminal back; the info row then reads `<command> ok` or `<command> exited <code>`, and the view's rows are re-read. The exclusions with a stated reason are written beside the roster: `explore`, `mcp`, `daemon`, `fc`, `init`, `bootstrap`, `upgrade`, `graphql` and `browse` are not offered, and `help`, `search` and `issues` are the TUI's own acts. A verb absent from `CLI_ROSTER` is not offered whether or not a reason is written; some are absent with none (eg `wb`, `discover`, `index`, `set`, `app`).
 
-**The resting palette lists its whole vocabulary**, which is the opposite of the composer at rest and deliberate: the body is already the listing of the model, but nothing else lists the ACTS.
+**The resting palette shows the first page of its vocabulary (`app::MATCH_CAP`), which is the TUI's own acts**, the opposite of the composer at rest and deliberate: the body is already the listing of the model, but nothing else lists the ACTS. An `intent` verb is reached by typing its name, and `/help` lists them all.
 
 **There is still no `Edit` entry.** Editing a field is `⏎` on the row; reaching it through a menu was scope that did not belong there, and that survives the change unaltered.
 
@@ -195,13 +196,13 @@ Rendering it was the obvious repair and the ranker refuses it: the boosted prefi
 
 Navigation is a **stack**: `⏎` pushes; `Backspace` on an empty composer, or `/back`, pops; popping the root is a no-op. Cursor and scroll reset with the view, because a row index means nothing once the row set changes. `intent explore` roots the stack at the threads list.
 
-Views are one generic ladder derived from the declaration (`intentsvcs::nav::View`), and each has a path: the entity kinds (`/`), a collection (`/thread`), an item (`/thread/ST0056`), a child collection (`/thread/ST0056/wps`) and a child item (`/thread/ST0056/wps/17`), plus the reserved `/settings` and `/help`. The browser's URL is the same path.
+Views are one generic ladder derived from the declaration (`intentsvcs::nav::View`), and each has a path: the entity kinds (`/`), a collection (`/thread`), an item (`/thread/ST0056`), a child collection (`/thread/ST0056/wps`) and a child item (`/thread/ST0056/wps/17`), plus the reserved `/settings`, `/help` (with `/help/<command>`) and `/search` (with `/search/<query>`, the query being the rest of the path). The browser's URL is the same path.
 
-- **A view builder returns the id, the title AND the rows together**, so a view physically cannot render a heading that disagrees with its content.
+- **A view's rows and its heading are both functions of the one `View` the stack holds**: `Source::rows(view)` builds the rows and `views::app_line(view)` names the view on the APP row, so the heading cannot name a different place from its rows. The heading carries the view's kind and id, not the entity's title.
 - **A row's door is DECLARED on the row, not inferred from its kind.** Working out where `documents` goes from the fact that it looks like a pane is the same guess-from-shape that once made `intent edit st 68` parse `st` as the address.
 - **Opening a real file is a separate action from navigating.** Modelling it as a view was wrong and the compiler said so immediately.
 - **When nested, the APP ROW carries the trail and the exit key.** A way back that is wired and unlabelled is a way back nobody finds — this was a real defect in the strawman: `Backspace` worked and nothing on screen said so, so every key a user tried was a reasonable guess and none was the one.
-- **`/settings` and `/help` are the views not derived from the declaration, and their path segments are RESERVED.** Each is a `View` because a `View` is what the stack holds — a settings screen that was not one would need a second place for the face to remember it was there, which is the parallel navigation model `nav.rs` exists to refuse. Being a `View` also buys `AC-17.7`'s no-trap property for free. **The reservation is a real cost, paid deliberately:** `/settings` would otherwise parse as the collection of an entity kind called `settings`, so that kind becomes unaddressable — and silently, since `View::parse` would go on returning a perfectly good view. A test holds the reservation against the REAL declaration, so a form declared with that name fails the suite instead of disappearing from both faces.
+- **`/settings`, `/help` and `/search` are the views not derived from the declaration, and their path segments are RESERVED** (`nav::RESERVED`). Each is a `View` because a `View` is what the stack holds — a settings screen that was not one would need a second place for the face to remember it was there, which is the parallel navigation model `nav.rs` exists to refuse. Being a `View` also buys `AC-17.7`'s no-trap property for free. **The reservation is a real cost, paid deliberately:** `/settings` would otherwise parse as the collection of an entity kind called `settings`, so that kind becomes unaddressable — and silently, since `View::parse` would go on returning a perfectly good view. A test (`no_declared_entity_kind_is_reserved`) holds every reserved segment against the REAL declaration, so a form declared with that name fails the suite instead of disappearing from both faces.
 
 ### Documents are not fields
 
@@ -216,11 +217,11 @@ Where the selected row carries detail, the BODY splits: list above, detail below
 **The split is triggered by the row CARRYING detail, not by a hardcoded list of view kinds.** A list of kinds is a second place to update when a new view arrives, and it is the half that gets forgotten. A row's detail takes one of two shapes (`layout::Detail`):
 
 - **Rows**, one line each in the pane's own columns:
-  - **Criteria** — state, covered by, and the full text.
+  - **Criteria** — state, covered by, and the text, each on one line clipped at the pane's width; a long criterion's text is not readable in full in the pane.
   - **Tests** — status, kind, covers, file, note.
   - **Work packages** — the `wp` form's own rows, the same walk the item view uses, so the two cannot disagree about a work package.
   - **A collection row on an item view** — its members, the rows its own list shows. Enter still descends into the list.
-- **Contents**: every field row of an item view carries its raw value (`form::raw`, the bytes the editor is handed), rendered as markdown in the pane (`tui::markdown`, on pulldown-cmark). Heading markers, emphasis marks and code fences are read, not shown; bullets, quote gutters, rules and table columns are drawn. An empty field says so rather than leaving the pane blank. A thread's attached documents -- `info.md`, `design.md` and the rest -- are read the same way through `Facade::read_thread_file`: a generated view as it renders, an attachment as the store holds it, front matter hidden, and a file the thread does not carry named as absent. Enter on one still opens the file.
+- **Contents**: every field row of an item view carries its raw value (`form::raw`, the bytes the editor is handed), rendered as markdown in the pane (`tui::markdown`, on pulldown-cmark). Heading markers, emphasis marks and code fences are read, not shown; bullets, quote gutters, rules and table columns are drawn. An empty field says so rather than leaving the pane blank. A thread's file rows -- one per file `intent edit` accepts (`info.md`, `design.md`, `impl.md`, `tasks.md`, `acceptance.md`; section 9) -- are read the same way through `Facade::read_thread_file`: a generated view as it renders, an attachment as the store holds it, front matter hidden, an attachment with no text named as opaque, and a file the thread does not carry named as absent with the `intent st attach` spelling that adds it. Enter on one still opens the file. Any other attachment is a row in the `documents` pane, by path and size, and is not read there.
 
 `Tab` crosses between the list and the pane, and **the screen says which half has the keyboard**: the rule between them names the row the pane shows at its left edge (`── body ───`), and is dim while the list holds the keyboard and lit in the accent while the pane does, and the list's row stays marked -- reversed where the keys go, underlined while the pane has them, so the field the pane shows is never lost. In a pane of contents the arrows, Page Up/Down and Home/End scroll, stopping at both ends, and **Enter edits the field the pane shows**, exactly as Enter on the field does: the editor for a `prose` field, in place otherwise. An in-place edit is drawn in the list row, so starting one moves the keys to the list; left in a pane showing one line, the arrows had nothing to scroll after Esc and the explorer read as locked. `/help` lists these keys from `keys::PANE_KEYS`, because `Tab` is a guard and the edge table the page walks cannot name it.
 
@@ -240,7 +241,7 @@ Criteria and tests have no declared form, so their detail set is named in the re
 
 ### Settings — a declared allow-list, not the file's keys
 
-**RULED BY hv 2026-09-02: the editing mode becomes a setting, which necessitates a `/settings` command.** `/settings` shows the settings in the body and they are edited in place; `/settings <path>` says what one of them is. The file is `~/.intent/config.json` — the operator's own configuration, global rather than per-project, because a keymap preference does not change when you change directory. `intentsvcs::userstate::global_config()` already resolves that path, so there was no config system to build, only a reader and a writer.
+**RULED BY hv 2026-09-02: the editing mode becomes a setting, which necessitates a `/settings` command.** `/settings` shows the settings in the body and they are edited in place; `/settings <path>` says what one of them is. The file is `$XDG_CONFIG_HOME/intent/config.json` (`~/.config/intent/config.json` when that variable is unset) — the operator's own configuration, global rather than per-project, because a keymap preference does not change when you change directory. `intentsvcs::userstate::global_config()` already resolves that path, so there was no config system to build, only a reader and a writer.
 
 **`/settings` IS BOUND TO THE `explorer:` SECTION AND NEVER TO THE WHOLE DOCUMENT**, and paths resolve RELATIVE to it: `/settings editing.mode`, never `/settings explorer.editing.mode`. One resolution rule beats two — a surface accepting both spellings has to answer what the second one means the day the section is renamed. A spelling the allow-list does not carry is **refused AS A SPELLING** (section 8), saying what was tried and that `/settings` governs the explorer section, which teaches the scope instead of reading as broken.
 
@@ -263,7 +264,7 @@ Criteria and tests have no declared form, so their detail set is named in the re
 
 **NORMAL MODE IS A GUARD ON OMNI AND MENU, NOT A FIFTH MACHINE STATE** — the same species as pane focus and the buffer condition, and for the reason section 3 already gives: it changes what a key DOES without changing which mode you are in. A `ViNormal` mode would have to duplicate every OMNI and MENU edge to say nothing new, and the chip would start claiming a state the table does not carry.
 
-**ESC IS THE ENTRY, AND THAT IS A DECISION MADE ON hv's BEHALF — flagged, not smuggled.** Esc is load-bearing in section 3 (close the palette, discard, clear the query) and vi needs it, so the two collide. **The resolution keeps the ratified invariant rather than contradicting it:** section 3 requires that repeated Esc always TERMINATES, not that it does so in one press. Normal mode is one step CLOSER to rest than insert, so the first press leaves insert and the second does what Esc always did. Two presses, still converging, and no second job for the key. The escape corpus is now driven under BOTH keymaps with the allowance derived from the keymap rather than widened to cover both — widening it would have stopped saying anything about emacs. **The alternative hv may prefer is a different entry key entirely, leaving Esc single-purpose; that costs the muscle memory of every vi user and is the reason it was not taken.**
+**ESC IS THE ENTRY, AND THAT IS A DECISION MADE ON hv's BEHALF — flagged, not smuggled.** Esc is load-bearing in section 3 (close the palette, discard, clear the query) and vi needs it, so the two collide. **The resolution keeps the ratified invariant rather than contradicting it:** section 3 requires that repeated Esc always TERMINATES, not that it does so in one press. Normal mode is one step CLOSER to rest than insert, so the first press leaves insert for normal mode; the second does what Esc always did -- clear the query, or close the palette -- and returns the composer to insert. Two presses, the machine still converging on OMNI, and no second job for the key. The escape corpus is now driven under BOTH keymaps with the allowance derived from the keymap rather than widened to cover both — widening it would have stopped saying anything about emacs. **The alternative hv may prefer is a different entry key entirely, leaving Esc single-purpose; that costs the muscle memory of every vi user and is the reason it was not taken.**
 
 **NORMAL MODE GETS A LAMP OF ITS OWN, beside the mode chip and not inside it.** The other two guards are legible from what is drawn — there is a query, or there is a detail pane. Normal mode looks identical to insert and swallows letters, which is the oldest complaint about modal editors and the one thing that would make it a trap rather than a feature.
 
@@ -388,7 +389,7 @@ Measured across the corpus, because the design has to survive it: most criteria 
 
 ### Where the renderers legitimately differ
 
-**In the WIDGET, never in the model.** `prose` means _this field is long_, and each renderer answers it in its own idiom: the TUI hands it to `$EDITOR`; the browser keeps its line breaks and wraps it, where every other widget is one line clipped with an ellipsis. **A difference anywhere else is a defect.**
+**In the WIDGET, never in the model.** `prose` means _this field is long_, and each renderer answers it in its own idiom: the TUI hands it to `$EDITOR`, and reads every field's raw value as markdown in the pane below the list (section 6); the browser draws the `Triple::value` the `form` op sends, whose whitespace is already collapsed to one line (`form::triples`), wrapping a `prose` value where every other widget is one line clipped with an ellipsis. **A difference anywhere else is a defect.**
 
 **As built, the browser face renders and does not edit.** It draws one entity's form -- a breadcrumb, the title, and a two-column label/value grid with an empty field drawn as `not set` -- and offers no collections, no list + detail split and no editing. The design's shape for those stands: the browser splits **vertically** -- list left, detail right -- because a browser window is tall, where the TUI splits horizontally because a terminal is short and wide; and a `prose` field edits in a `<textarea>`.
 
@@ -422,7 +423,7 @@ The site renders prose. The renderers render a MODEL at sizes the site never mee
 2. **The list** -- dense, monospace ids, sticky header, and the same truncation rule as the TUI: **clip with an ellipsis, never wrap into a second line.** A long list that reflows is unscannable. Not built.
 3. **List + detail**, split as described in 10a. Not built.
 
-**Markdown renders the same constructs the TUI renders** -- inline code, bold, emphasis, headings, bullets. **The same set, not a superset**, so a criterion cannot read differently in two renderers. Neither renderer renders markdown as built; values are drawn as text.
+**Markdown renders the same constructs the TUI renders.** The TUI's contents pane (`tui::markdown`, section 6) reads headings, emphasis and strong, inline and fenced code, block quotes, bullet and numbered lists, task markers, links, rules and tables; **the browser renders the same set, not a superset**, so a criterion cannot read differently in two renderers. As built the TUI renders markdown in its pane and the browser renders none: its values are drawn as text.
 
 **Semantic HTML, no ARIA theatre.** A form is a definition list (`<dl>`, `<dt>`, `<dd>`) as built, a list is a `<ul>` or `<table>`, and the browser's own affordances survive.
 
