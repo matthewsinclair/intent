@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 85e09f85-a542-4730-a80c-727ada01c1d9
-heartbeat_at: 2026-09-15 21:09Z
+heartbeat_at: 2026-09-15 22:15Z
 status: active
-focus: "2026-09-15 21:09Z: todo 2 landed at 90f482c1f on vc's word, verified by vc against its bank. Nothing is open in dc's lane; ST0056's AC-00.5 and AC-11.1 wait on the clean install hv ruled for gyges (intent/wip.md). NO RELEASE, NO PUSH."
+focus: "2026-09-15 22:15Z: localfolded for hv's second compact. 0321 with 0401 landed at 1461f58ff and closed at 2e838b54b. 0375 is banked (refs/bank/dc/0375 43606355d on 9cd639e46) and accepted as train 7; it lands on vc's word with the lander in the IN FLIGHT todo. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- **IN FLIGHT at hv's compact of 2026-09-15, second bounce (dc resumes here).** 0321 with 0401 is landed and closed: the code at 1461f58ff and the close record at 2e838b54b, both verified by vc. **0375 is BANKED at `refs/bank/dc/0375` = 43606355d on 9cd639e46 (tested tree 5c63a1d13) and ACCEPTED by vc as train 7**: vc restacks it on HEAD after the rebuild window's views commit and runs the canon, `bin/int precommit` over the staged stack and `contract_check.sh` (clean on wt-0375: 16 of 16 entities); dc's run on the exact banked tree stands in for the whole suites, both clippy steps and fmt. It lands on vc's word with the four-step lander (scratchpad `land-0375.sh` to `land-0375-4.sh`, recreatable from this item): (1) guard drift since the bank's base over native, schema, surface and the in-whiteboard skill, read ST0069's gate and lint lines, apply the bank, and require every landing path to be the tested tree's blob; (2) ONE commit of the 21 paths, HEAD's blobs checked against the tested tree, both verdict lines compared as strings; (3) append the close note with `intent issues edit 0375 --from` -- the sixth kind, the fold rule kept in the skill because the verb cannot tell a fold from hv retiring a spent directive, and the Laksa follow-up (laksa-vc re-carries hv's seven standing directives) -- then `intent issues close 0375` and an `intent organize` preview; (4) `intent organize --apply` and ONE close-record commit of 0375's canon, `.intentfiles` and the retired view. Then vc's rebuild, intentd's restart and a views commit carrying hv/wip.md's new empty `## Standing directives` section. Report each hash to vc. NO RELEASE, NO PUSH.
 
 ## Holds
 
