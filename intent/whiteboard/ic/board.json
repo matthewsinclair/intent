@@ -1220,8 +1220,17 @@
       "kind": "doing",
       "seq": 34,
       "text": "**IN FLIGHT (ic resumes here): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 restacked onto 3ee36a6f2 with 0331 (a) in; not banked yet.** critic-swift's first review (4 critical, 6 warnings) is fixed as vc dispositioned it: registry rows for the three Console files, `AppLog` and ProjectService's missing row, with four falsified rows corrected; lines carry a source and a tail's start drops the lines an earlier tail supplied, so a reopen shows no replayed line twice; `String(decoding:as:)` at every IntentCLI decode; `AppLog.logger(_:)` names the logging subsystem once; `TailHeader`, with only the verb's first line read as its header; `IntentCLI.stream` returns an AsyncStream of events read by one task that `stopTail()` cancels, so no pool thread waits on the child; `HeldInput` fileprivate on `OSAllocatedUnfairLock`. W4 is skipped as vc ruled. ConsoleLine skips one leading RFC 3339 UTC stamp (vc's decision with dc's 0321), and design.md records the reopen rule and the stamp. Issue 0401 (the thirteen intentd notices with a remedy and no severity token) is committed at b86d24b0e; dc's 0321 fixes and closes it. The gate's Swift critic arms none of its six rules, so it can neither refuse this landing nor vouch for it. NEXT: critic-swift's second pass (running) and its fixes; the red run (one mutation per AT subject, because green is reachable only from red, issue 0337), then the green run (45 tests); bank as `refs/bank/ic/st0075-wp02`; `land-wp02.sh` dry; report to vc with the store writes and the expected gate (7/11, unsatisfied AC-03.1 to AC-03.4), proposing WP-02 stays WIP until hv's quiet-window drive. Hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-15T22:13:02.689Z",
       "recorded_at": "2026-09-15T21:45:40.353Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 35,
+      "text": "**IN FLIGHT (ic resumes here after hv's compact): ST0075 WP-02 (S), THE CONSOLE, in wt-st0075 restacked onto 9cd639e46 with 0321 in and the registry rows rewritten on top; banked WIP at `refs/bank/ic/st0075-wp02-wip` on 9cd639e46, the landing scripts at `refs/bank/ic/st0075-wp02-scripts` (a tgz blob: `git cat-file -p <ref> | tar xzf -` in the scratchpad). Not banked for landing, and no app-test since the critic fixes (held by vc's windows).** critic-swift's first review is fixed as vc dispositioned it. Its second pass found the code clean and three test defects, fixed as vc ruled: the ring test renamed to the ring method it tests (no launcher seam; close-and-reopen is proved by the hand drive); the terminate test replaced by three tests that each fail on their own deletion; ending at both EOF and exit made deterministic; every drain bounded. A failed launch now keeps the earlier tail's lines; the negative stamp arm uses the milliseconds shape. A probe (`probes/fd_inherit2.swift`) shows a sibling child inherits no descriptor beyond 0-2, so no close-on-exec change: report it with the bank. Issue 0401 is committed at b86d24b0e. NEXT, on vc's rebuild end and views commit: `restack-with-registry.sh <HEAD>`; `step3-red.sh` (exactly five named failures); `step4-green.sh 49`; `bank.sh st0075-wp02`; `finish-notes.sh <red run> <green run> 49`; `land-wp02.sh <HEAD> <blob> dry`; the bank report to vc with the store writes, the expected gate (7/11, unsatisfied AC-03.1 to AC-03.4), the probe's answer, what only `hand-drive.md` proves, and WP-02 left WIP until that drive. Hold 9 waits on hv's ruling of 0400; todo 26 is WP-03.",
+      "state": "live",
+      "recorded_at": "2026-09-15T22:12:58.178Z"
     }
   ],
   "messages": [
