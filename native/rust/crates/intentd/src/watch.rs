@@ -31,6 +31,7 @@
 //! design.md:83 requires the debouncer for this reason: *never raw notify
 //! events*.
 
+use crate::daemon_log::elogln;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
@@ -252,8 +253,8 @@ fn on_index_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEven
     // a repository nobody is editing.
     Err(errors) => {
       for error in errors {
-        eprintln!(
-          "intentd: the index watcher for `{}` reported an error: {error}\n  remedy: source edits may not be reaching `intent search`. Run `intent index rebuild` there, and restart the daemon to re-establish the watch.",
+        elogln!(
+          "warning: intentd: the index watcher for `{}` reported an error: {error}\n  remedy: source edits may not be reaching `intent search`. Run `intent index rebuild` there, and restart the daemon to re-establish the watch.",
           root.display()
         );
       }
@@ -280,11 +281,11 @@ fn on_index_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEven
     // the store said what went wrong and what to do about it, and this module
     // did not diagnose it.
     Err(Response::Error { message, remedy }) => {
-      eprintln!("intentd: {message}\n  remedy: {remedy}");
+      elogln!("warning: intentd: {message}\n  remedy: {remedy}");
     }
     Err(other) => {
-      eprintln!(
-        "intentd: the store refused an index refresh with {other:?}\n  remedy: this is a fault in intentd rather than in the project. Source edits are not reaching `intent search`."
+      elogln!(
+        "warning: intentd: the store refused an index refresh with {other:?}\n  remedy: this is a fault in intentd rather than in the project. Source edits are not reaching `intent search`."
       );
     }
   }
@@ -320,7 +321,7 @@ fn files_that_changed(
         // **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A subtree this
         // cannot read is a subtree whose edits stop reaching the store, and
         // silence there is indistinguishable from nobody editing.
-        Err(error) => eprintln!(
+        Err(error) => elogln!(
           "intentd: could not reconcile `{}` after a directory-level change: {error}\n  remedy: external edits under that path may not be reaching the store. Run `intent sync --to-store` to catch it up.",
           path.display()
         ),
@@ -356,7 +357,7 @@ fn files_that_changed(
         // unreadable as unchanged would drop a real edit silently -- the one
         // outcome worse than a duplicate event.
         Err(error) => {
-          eprintln!(
+          elogln!(
             "intentd: could not compare `{}` against the store's index: {error}\n  remedy: the event is being published unjudged. If this repeats, that file's edits may be reaching subscribers twice.",
             path.display()
           );
@@ -389,8 +390,8 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
     // ingest nothing, forever.
     Err(errors) => {
       for error in errors {
-        eprintln!(
-          "intentd: watching `{}` failed: {error}\n  remedy: external edits are no longer being ingested for this project. Restart the daemon, or run `intent sync --to-store` when you need the store caught up.",
+        elogln!(
+          "warning: intentd: watching `{}` failed: {error}\n  remedy: external edits are no longer being ingested for this project. Restart the daemon, or run `intent sync --to-store` when you need the store caught up.",
           root.display()
         );
       }
@@ -456,10 +457,10 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
     // Rendered, never re-worded: the store said what went wrong and what to do
     // about it, and this module did not diagnose it.
     Err(Response::Error { message, remedy }) => {
-      eprintln!("intentd: {message}\n  remedy: {remedy}")
+      elogln!("warning: intentd: {message}\n  remedy: {remedy}")
     }
-    Err(other) => eprintln!(
-      "intentd: the store refused an ingest with {other:?}\n  remedy: this is a fault in intentd rather than in the project. External edits are not reaching the store."
+    Err(other) => elogln!(
+      "warning: intentd: the store refused an ingest with {other:?}\n  remedy: this is a fault in intentd rather than in the project. External edits are not reaching the store."
     ),
   }
 }

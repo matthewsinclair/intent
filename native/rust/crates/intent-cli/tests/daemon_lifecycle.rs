@@ -399,6 +399,48 @@ fn the_logs_land_where_d19_put_them() {
     "start did not tell the operator where the logs are: {}",
     text(&started)
   );
+
+  // **EVERY LINE OPENS WITH A UTC TIME, ONE SPACE, THEN THE LINE AS IT WAS**
+  // (issue `0321`; the clock read is D42's one exemption). A stop is driven so
+  // the log holds two lines that mean different things, and each is checked for
+  // its text after the stamp as well as for the stamp, because a stamp that
+  // displaced the text would pass a check of the stamp alone. The shape is
+  // checked by position, because this workspace parses no times.
+  let stopped = machine.run(&["daemon", "stop"]);
+  assert_eq!(
+    stopped.status.code(),
+    Some(0),
+    "stop failed: {}",
+    text(&stopped)
+  );
+  let written = std::fs::read_to_string(&log).expect("read intentd.log");
+  let after_stamp = |line: &str| -> Option<String> {
+    let (stamp, rest) = line.split_once(' ')?;
+    let shaped = stamp.len() == 24
+      && stamp.char_indices().all(|(i, c)| match i {
+        4 | 7 => c == '-',
+        10 => c == 'T',
+        13 | 16 => c == ':',
+        19 => c == '.',
+        23 => c == 'Z',
+        _ => c.is_ascii_digit(),
+      });
+    shaped.then(|| rest.to_string())
+  };
+  let lines: Vec<Option<String>> = written.lines().map(after_stamp).collect();
+  assert!(
+    !lines.is_empty() && lines.iter().all(Option::is_some),
+    "every line of intentd.log must open with a `YYYY-MM-DDTHH:MM:SS.mmmZ` stamp and one space: {written}"
+  );
+  for said in [
+    "intentd listening on ",
+    "intentd stopping: asked over the wire",
+  ] {
+    assert!(
+      lines.iter().flatten().any(|rest| rest.starts_with(said)),
+      "no stamped line reads `{said}` after its stamp, so the stamp changed the text or the line is missing: {written}"
+    );
+  }
 }
 
 /// `AC-08.7`: **a stale policy stamp is healed on boot, without a migration.**

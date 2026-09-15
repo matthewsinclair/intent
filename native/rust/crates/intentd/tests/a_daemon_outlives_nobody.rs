@@ -76,9 +76,9 @@ const PAUSE: Duration = Duration::from_millis(50);
 /// How long a daemon gets to finish stopping, counted in `PAUSE` intervals
 /// rather than held as a deadline. See [`Reaped::wait_for_exit`].
 ///
-/// **IT IS A COUNT BECAUSE THIS WORKSPACE HAS NO CLOCK** (hv, 2026-08-15; the
-/// guard is `intentsvcs/tests/one_clock.rs`, whose `EXEMPT` list is empty and
-/// is required to stay empty). This was `Duration::from_secs(60)` read against
+/// **IT IS A COUNT BECAUSE NO TEST IN THIS WORKSPACE READS A CLOCK** (hv,
+/// 2026-08-15; the guard is `intentsvcs/tests/one_clock.rs`, whose `EXEMPT` list
+/// names the daemon log's writer and nothing else). This was `Duration::from_secs(60)` read against
 /// `Instant::now()` until 2026-09-10, and `tests/` is in the guard's
 /// population precisely because a fixture is where "I only need a time for
 /// setup" gets written. It was, here, by me.

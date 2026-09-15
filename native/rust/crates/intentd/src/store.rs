@@ -35,6 +35,7 @@
 //! would have needed a mutex around the facade to achieve the same thing, and
 //! a mutex held across a blocking call is the shape this module exists to avoid.
 
+use crate::daemon_log::{elogln, logln};
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 
@@ -296,7 +297,7 @@ impl ProjectHandle {
       let mut unbuilt: VecDeque<PathBuf> = match facade.index_stale_roots() {
         Ok(roots) => roots.into(),
         Err(error) => {
-          eprintln!(
+          elogln!(
             "intentd: could not survey the index of `{}` when opening it: {error}\n  remedy: files nobody has edited since the daemon started may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
             thread_root.display()
           );
@@ -658,7 +659,7 @@ impl std::task::Wake for ThreadWaker {
 fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
   if let Err(error) = facade.index_refresh(Some(under)) {
     let named: Vec<String> = under.iter().map(|p| p.display().to_string()).collect();
-    eprintln!(
+    elogln!(
       "intentd: could not refresh the index under `{}`: {error}\n  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
       named.join("`, `")
     );
@@ -667,8 +668,8 @@ fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
 
 fn ingest(facade: &mut Facade, root: &Path) {
   if let Err(e) = facade.ingest_from_disk(&intentsvcs::sync::Scope::All) {
-    eprintln!(
-      "intentd: ingesting `{}` after an external edit failed: {}\n  remedy: {}",
+    elogln!(
+      "warning: intentd: ingesting `{}` after an external edit failed: {}\n  remedy: {}",
       root.display(),
       e.render(),
       e.remedy()
@@ -702,7 +703,7 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
       match intentsvcs::backup::cycle(facade.project(), facade.store()) {
         Ok(ran) => {
           let project = facade.project();
-          println!(
+          logln!(
             "intentd: backed up `{}` to {}{}",
             root.display(),
             project.relative(&ran.written),
@@ -712,8 +713,8 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
             }
           );
         }
-        Err(e) => eprintln!(
-          "intentd: the scheduled backup of `{}` failed: {}\n  remedy: {}",
+        Err(e) => elogln!(
+          "warning: intentd: the scheduled backup of `{}` failed: {}\n  remedy: {}",
           root.display(),
           e,
           e.remedy()
@@ -730,7 +731,7 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     Ok(intentsvcs::backup::Due::Disabled) => {
       if !*said_why_it_is_not_backing_up {
         *said_why_it_is_not_backing_up = true;
-        println!(
+        logln!(
           "intentd: `{}` has backup.enabled = false, so no scheduled backup is being taken. `intent backup` still takes one when you ask, and `intent doctor` still reports a stale one.",
           root.display()
         );
@@ -742,8 +743,8 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     Ok(intentsvcs::backup::Due::Unschedulable(value)) => {
       if !*said_why_it_is_not_backing_up {
         *said_why_it_is_not_backing_up = true;
-        eprintln!(
-          "intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of hourly, daily, weekly\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
+        elogln!(
+          "warning: intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of hourly, daily, weekly\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
           root.display()
         );
       }
@@ -751,7 +752,7 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     // The store could not be asked whether a backup was due. Reported rather
     // than retried silently: the sweep comes round again, and a reader of this
     // log needs to know the decision was not made rather than made as `no`.
-    Err(e) => eprintln!(
+    Err(e) => elogln!(
       "intentd: could not tell whether `{}` is due a backup: {}\n  remedy: {}",
       root.display(),
       e,

@@ -197,6 +197,13 @@ axum = "0.8"
 # **D06 SURVIVES**: a watcher reaches no store. It reports paths, and the
 # ingest it triggers goes through the facade like everything else in `intentd`.
 notify-debouncer-full = "0.7"
+# **`intentd` DECLARES THIS FOR ONE READING OF THE CLOCK, AND THAT READING IS
+# D42's ONE EXEMPTION.** `crates/intentd/src/daemon_log.rs` opens every line of
+# the daemon's log with a UTC time read at the write (issue 0321): the log is an
+# operational stream that must write when the store cannot, and ST0056's D42
+# records that reason. `intentsvcs` and `intent-cli` use this crate to format
+# times they were handed by a record, and read no clock with it;
+# `intentsvcs/tests/one_clock.rs` holds both halves.
 time = { version = "0.3", features = ["formatting", "macros"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the

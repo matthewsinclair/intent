@@ -37,12 +37,14 @@ use intentsvcs::userstate;
 use intentsvcs::wire::{self, Event, Op, Response};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
+mod daemon_log;
 mod listed;
 mod registry;
 mod store;
 mod watch;
 mod web;
 
+use daemon_log::{elogln, logln};
 use registry::Registry;
 
 // **THIS CONST'S ABSENCE WAS CORRECT UNTIL A READER EXISTED, AND ONE NOW DOES.**
@@ -224,11 +226,11 @@ async fn main() -> ExitCode {
       );
       return ExitCode::SUCCESS;
     }
-    eprintln!(
+    elogln!(
       "error: intentd takes no arguments and was given {}",
       unknown.join(" ")
     );
-    eprintln!(
+    elogln!(
       "  remedy: run `intentd` with nothing after it to serve, or `intentd --help`. It is deliberate that an unrecognised argument does NOT fall through to serving: starting a daemon on this machine's real HOME makes every session's store verbs refuse, and that is not a thing to do by accident."
     );
     return ExitCode::FAILURE;
@@ -252,8 +254,8 @@ async fn main() -> ExitCode {
 }
 
 fn refuse(e: StartupError) -> ExitCode {
-  eprintln!("error: {e}");
-  eprintln!("  remedy: {}", e.remedy());
+  elogln!("error: {e}");
+  elogln!("  remedy: {}", e.remedy());
   ExitCode::FAILURE
 }
 
@@ -300,20 +302,20 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   ) {
     Ok(watching) => Some(watching),
     Err(Response::Error { message, remedy }) => {
-      eprintln!(
+      elogln!(
         "warning: intentd will not see changes to the project registry: {message}\n  remedy: {remedy}"
       );
       None
     }
     Err(other) => {
-      eprintln!(
+      elogln!(
         "warning: the project registry watch answered a refusal with {other:?}\n  remedy: this is a fault in intentd rather than in the file; the project list is the one read at start"
       );
       None
     }
   };
 
-  println!(
+  logln!(
     "intentd listening on {} and {}",
     bound.endpoint(),
     published.endpoint()
@@ -348,8 +350,8 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
     let here = published.endpoint();
     tokio::spawn(async move {
       if let Err(e) = axum::serve(web::HandedOver::new(http_rx, here), web::router(face)).await {
-        eprintln!(
-          "intentd: the HTTP face stopped answering: {e}\n  remedy: framed clients on this port and the unix socket are unaffected. Restart the daemon to bring the web face back."
+        elogln!(
+          "warning: intentd: the HTTP face stopped answering: {e}\n  remedy: framed clients on this port and the unix socket are unaffected. Restart the daemon to bring the web face back."
         );
       }
     });
@@ -387,7 +389,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
         Err(e) => accept_failed("loopback", e).await,
       },
       reason = shutdown() => {
-        println!("intentd stopping: {reason}");
+        logln!("intentd stopping: {reason}");
         break;
       }
       // **THE SAME EXIT AS A SIGNAL, DELIBERATELY.** It breaks the same loop
@@ -396,7 +398,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
       // released -- rather than becoming a second way to stop that has to be
       // kept in step with the first.
       () = stop.notified() => {
-        println!("intentd stopping: asked over the wire");
+        logln!("intentd stopping: asked over the wire");
         break;
       }
       // **THE SAME EXIT AS A SIGNAL, FOR THE SAME REASON THE ARM ABOVE IS.**
@@ -405,7 +407,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
       // `SIGTERM` does. A lifeline that called `process::exit` would leave the
       // stale socket that the whole guard arrangement exists to prevent.
       reason = &mut lifeline_closed => {
-        println!("intentd stopping: {reason}");
+        logln!("intentd stopping: {reason}");
         break;
       }
       // **THE SAME EXIT AS A SIGNAL, FOR THE THIRD TIME AND FOR THE SAME
@@ -413,7 +415,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
       // `Bound` and `Published`, so a removed state directory releases the lock
       // and unlinks whatever is left of the socket exactly as `SIGTERM` does.
       reason = &mut state_dir_gone => {
-        println!("intentd stopping: {reason}");
+        logln!("intentd stopping: {reason}");
         break;
       }
     }
@@ -498,7 +500,7 @@ async fn state_dir_removed(dir: PathBuf) -> &'static str {
 /// tilt while logging, so the loop yields for long enough that the log is
 /// readable and the machine is usable.
 async fn accept_failed(transport: &str, e: io::Error) {
-  eprintln!("warning: intentd could not accept a {transport} connection: {e}");
+  elogln!("warning: intentd could not accept a {transport} connection: {e}");
   tokio::time::sleep(Duration::from_millis(100)).await;
 }
 
@@ -685,7 +687,7 @@ where
     // parses -- so the connection closes rather than sending something the
     // client would read as an answer.
     let Ok(framed) = wire::frame(&response) else {
-      eprintln!("warning: intentd could not serialise a response and closed the connection");
+      elogln!("warning: intentd could not serialise a response and closed the connection");
       return;
     };
     if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
@@ -757,14 +759,14 @@ where
       // was dropped. Either way there is nothing further to send.
       Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
       Err(tokio::sync::broadcast::error::RecvError::Lagged(missed)) => {
-        eprintln!(
-          "intentd: a subscriber fell {missed} event(s) behind and was disconnected\n  remedy: this is backpressure rather than a fault. The client should reconnect and re-read the project, because the feed it had is now missing events it cannot enumerate."
+        elogln!(
+          "warning: intentd: a subscriber fell {missed} event(s) behind and was disconnected\n  remedy: this is backpressure rather than a fault. The client should reconnect and re-read the project, because the feed it had is now missing events it cannot enumerate."
         );
         return;
       }
     };
     let Ok(framed) = wire::frame(&event) else {
-      eprintln!("warning: intentd could not serialise an event and closed the subscription");
+      elogln!("warning: intentd could not serialise an event and closed the subscription");
       return;
     };
     if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
@@ -1000,9 +1002,7 @@ async fn shutdown() -> &'static str {
     // process without unwinding -- so the honest thing is to say so once, at
     // start, rather than to look like a clean shutdown that never comes.
     Err(e) => {
-      eprintln!(
-        "warning: intentd could not listen for SIGTERM and will not shut down cleanly: {e}"
-      );
+      elogln!("warning: intentd could not listen for SIGTERM and will not shut down cleanly: {e}");
       std::future::pending::<()>().await;
       unreachable!("pending never resolves");
     }
@@ -1010,7 +1010,7 @@ async fn shutdown() -> &'static str {
   let mut interrupt = match signal(SignalKind::interrupt()) {
     Ok(s) => s,
     Err(e) => {
-      eprintln!("warning: intentd could not listen for SIGINT: {e}");
+      elogln!("warning: intentd could not listen for SIGINT: {e}");
       term.recv().await;
       return "SIGTERM";
     }
@@ -1060,18 +1060,18 @@ fn heal_the_policy_stamp() {
   // environment would heal the plist to whatever the environment happened to
   // say, which is how a self-healing artefact starts healing itself wrong.
   let Ok(binary) = std::env::current_exe() else {
-    eprintln!(
+    elogln!(
       "warning: this machine's LaunchAgent was written by {was} and could not be regenerated: this process cannot resolve its own path\n  remedy: `intent daemon start --at-login` rewrites it."
     );
     return;
   };
   match launchagent::write_plist(&dirs, &binary) {
-    Ok(path) => println!(
+    Ok(path) => logln!(
       "intentd: regenerated the LaunchAgent at {} (was {was}, now {})",
       path.display(),
       intentsvcs::faces::INTENT_VER
     ),
-    Err(e) => eprintln!(
+    Err(e) => elogln!(
       "warning: this machine's LaunchAgent was written by {was} and could not be regenerated: {e}\n  remedy: `intent daemon start --at-login` rewrites it. The daemon is running and unaffected; the stale plist only matters at the next login."
     ),
   }

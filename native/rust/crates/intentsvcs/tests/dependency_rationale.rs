@@ -12,7 +12,7 @@
 //!
 //! **THE POPULATION IS `intentd`'S OWN DECLARATIONS, NOT THE WORKSPACE'S.**
 //! AC-08.10 says *each dependency added to `intentd`*, and the difference is
-//! load-bearing rather than pedantic: `serde`, `ulid`, `time`, `thiserror` and
+//! load-bearing rather than pedantic: `serde`, `ulid`, `thiserror` and
 //! others are pinned under `[workspace.dependencies]` with no rationale at all,
 //! and they are not in scope. A check written over the workspace would go red
 //! on its first run against eight innocent rows, and the cheap way to make it

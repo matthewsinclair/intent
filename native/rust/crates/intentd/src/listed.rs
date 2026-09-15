@@ -7,6 +7,7 @@
 //! first contact, so a project somebody lists is not opened until somebody uses
 //! it.
 
+use crate::daemon_log::elogln;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -62,7 +63,7 @@ pub fn start(path: PathBuf, registry: Arc<Registry>) -> Result<Listed, Response>
       Ok(_) => reload(&watched, &registry),
       Err(errors) => {
         for e in errors {
-          eprintln!(
+          elogln!(
             "warning: intentd could not watch `{}`: {e}\n  remedy: {UNWATCHED}",
             watched.display()
           );
@@ -95,6 +96,6 @@ pub fn start(path: PathBuf, registry: Arc<Registry>) -> Result<Listed, Response>
 fn reload(path: &Path, registry: &Registry) {
   match projects::load(path) {
     Ok(listed) => registry.set_listed(listed.roots()),
-    Err(e) => eprintln!("intentd: kept the last good project list\n{}", e.render()),
+    Err(e) => elogln!("intentd: kept the last good project list\n{}", e.render()),
   }
 }

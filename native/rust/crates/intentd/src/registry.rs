@@ -20,6 +20,7 @@
 //! and an entry missing from a list cannot answer it. So a registered project
 //! is always listed, with whether its root still exists.
 
+use crate::daemon_log::elogln;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -149,8 +150,8 @@ impl Registry {
       // whole job -- and a second sentence composed here would be a second
       // opinion about a failure this module did not diagnose.
       Err(Response::Error { message, remedy }) => {
-        eprintln!(
-          "intentd: `{}` is being SERVED and NOT WATCHED: {message}\n  remedy: {remedy}",
+        elogln!(
+          "warning: intentd: `{}` is being SERVED and NOT WATCHED: {message}\n  remedy: {remedy}",
           canonical.display()
         );
         None
@@ -159,8 +160,8 @@ impl Registry {
       // a routing fault inside this crate, and it says so rather than being
       // silently treated as success.
       Err(other) => {
-        eprintln!(
-          "intentd: the watcher for `{}` answered a refusal with {other:?}\n  remedy: this is a fault in intentd rather than in the project. The project is served and not watched.",
+        elogln!(
+          "warning: intentd: the watcher for `{}` answered a refusal with {other:?}\n  remedy: this is a fault in intentd rather than in the project. The project is served and not watched.",
           canonical.display()
         );
         None

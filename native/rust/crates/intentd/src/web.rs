@@ -36,6 +36,7 @@
 //! its own would make `AC-17.12` unsatisfiable by construction**, which is the
 //! reason `nav.rs` sits in the shared crate at all.
 
+use crate::daemon_log::elogln;
 use std::sync::Arc;
 
 use axum::Router;
@@ -188,7 +189,7 @@ fn json(status: StatusCode, response: &intentsvcs::wire::Response) -> HttpRespon
   match intentsvcs::wire::frame(response) {
     Ok(bytes) => (status, [(header::CONTENT_TYPE, "application/json")], bytes).into_response(),
     Err(_) => {
-      eprintln!("warning: intentd could not serialise a response for the HTTP face");
+      elogln!("warning: intentd could not serialise a response for the HTTP face");
       (
         StatusCode::INTERNAL_SERVER_ERROR,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
