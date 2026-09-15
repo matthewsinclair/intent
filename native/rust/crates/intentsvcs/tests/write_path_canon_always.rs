@@ -62,9 +62,9 @@ fn dehydrated(fx: &Fixture) {
     "precondition: ST0001 is on disk before organize is asked to remove it"
   );
 
-  // `organize` reads the manifest, so the file has to exist; its generated
-  // region is what the run is about to rewrite.
-  fx.write_file("intent/.intentfiles", "# BEGIN INTENT\n# END INTENT\n");
+  // `organize` reads the manifest, so the file has to exist; an empty one
+  // declares nothing, so every realised file is a removal.
+  fx.write_file("intent/.intentfiles", "");
   let mut f = fx.facade_on_disk();
   f.organize(Mode::Apply)
     .expect("the gate is open, so the removals happen");
@@ -152,10 +152,7 @@ fn a_write_to_a_realised_artefact_still_updates_its_views() {
   let fx = Fixture::new();
   fx.write_thread(&gate_open());
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file(
-    "intent/.intentfiles",
-    "STEELTHREAD:ST0001\n# BEGIN INTENT\n# END INTENT\n",
-  );
+  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
 
   let mut f = fx.facade_on_disk();
   f.sync_to_disk(&Scope::All).expect("realise");
@@ -259,10 +256,7 @@ fn a_manifest_that_does_not_parse_realises_everything() {
   assert!(fx.project().info_view("ST0001").exists(), "precondition");
 
   // One unknown sigil. The grammar refuses at the first unreadable line.
-  fx.write_file(
-    "intent/.intentfiles",
-    "THREAD:ST0001\n# BEGIN INTENT\n# END INTENT\n",
-  );
+  fx.write_file("intent/.intentfiles", "THREAD:ST0001\n");
 
   let mut f = fx.facade_on_disk();
   f.ac_withdraw(

@@ -24,8 +24,6 @@ use intentsvcs::organize::OrganizeError;
 const MANIFEST: &str = "\
 # .intentfiles
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 fn fixture() -> Fixture {
@@ -57,7 +55,8 @@ fn manifest_of(fx: &Fixture) -> String {
 fn is_pinned(fx: &Fixture, id: &str) -> bool {
   intentfiles::parse(&manifest_of(fx))
     .expect("manifest parses")
-    .pinned()
+    .entries
+    .iter()
     .any(|e| e.id == id)
 }
 

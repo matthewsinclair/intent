@@ -31,7 +31,7 @@ use intentsvcs::model::Attachment;
 use intentsvcs::organize::{Action, Mode, Plan, TreeState, plan};
 use intentsvcs::project::Project;
 
-const MANIFEST: &str = "STEELTHREAD:ST0001\n\n# BEGIN INTENT\n# END INTENT\n";
+const MANIFEST: &str = "STEELTHREAD:ST0001\n\n";
 
 fn canon() -> Canon {
   Canon {

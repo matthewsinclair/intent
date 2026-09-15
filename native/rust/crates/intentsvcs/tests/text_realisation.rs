@@ -180,8 +180,7 @@ fn the_realisation_is_never_seen_by_the_verb_that_reconciles_the_tree() {
   // A manifest that declares NOTHING -- which is somebody saying none, and is
   // not the same state as no manifest at all. Kept as text through the acting
   // door so the distinction stays visible at the call site.
-  let realised =
-    intentsvcs::intentfiles::realised_for_action("# BEGIN INTENT\n# END INTENT\n").expect("parses");
+  let realised = intentsvcs::intentfiles::realised_for_action("").expect("parses");
   let plan = intentsvcs::organize::plan(&fx.project(), &canon, &realised, &ctx(), &tree, digest);
 
   for step in &plan.steps {

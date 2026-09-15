@@ -2010,8 +2010,8 @@ impl crate::remedy::Remedy for FacadeError {
       // carries the LINE NUMBER and the offending text.
       //
       // **THE `#[error]` STRING WAS FIXED, SO EVERY MANIFEST FAULT RENDERED
-      // IDENTICALLY** -- an unknown sigil on line 12 and an unterminated region
-      // on line 40 both came out as `could not read the realisation manifest`.
+      // IDENTICALLY** -- an unknown sigil on line 12 and a malformed id on
+      // line 40 both came out as `could not read the realisation manifest`.
       // The doc comment on the variant itself says folding it into a generic
       // read failure "would drop the one field that makes it actionable", and
       // the variant did precisely that, one line below the sentence forbidding
@@ -4780,20 +4780,18 @@ impl Facade {
   ///
   /// **TWO INDEPENDENT IDEMPOTENT STEPS, NEITHER GUARDING THE OTHER** (ic's
   /// correction, and it killed a defect before it existed). Materialise if
-  /// absent, then pin if not pinned. The obvious shape -- return early when the
-  /// files are already there -- skips the PIN in exactly the ordinary case: the
-  /// artefact is realised because it is currently `wip`, its id sits in the
-  /// GENERATED region, and it is not pinned. **Presence is true and pinned-ness
-  /// is false, and they disagree on the common path rather than in a corner.**
-  /// `pin_writes_to_the_list.rs` already reds that, so the estate had the test
-  /// before it had this caller. (It was `edit_writes_pinned_region.rs` until
-  /// 2026-08-20; the file kept the assertion and lost a name that described a
-  /// design hv had deleted.)
+  /// absent, then list if not listed. The obvious shape -- return early when
+  /// the files are already there -- skips the LIST step in an ordinary case: a
+  /// thread `st done` has just delisted keeps its files until the next
+  /// `organize`, so they are present and the list does not name them. **Files
+  /// on disk and a line in the list are different facts, and `organize`
+  /// answers only to the second.** Until issue 0338 carried out D57-9 the trap
+  /// had a second form, an id in the generated region that was present and
+  /// not pinned; the flat list removed that form and left this one.
   ///
-  /// **Pinning is what makes the decision outlive STATUS.** The generated region
-  /// is a function of today's board; a pin is a durable statement that this
-  /// artefact stays on disk. Hydrating without pinning hands the files straight
-  /// back to the next `organize`.
+  /// **Listing is what makes the decision outlive the run.** A line in the list
+  /// is a durable statement that this artefact stays on disk. Hydrating without
+  /// listing hands the files straight back to the next `organize`.
   ///
   /// **IT DISPATCHES ON `entity` AND IGNORES `format`** (ic). `?format=json` and
   /// `?format=md` name the SAME artefact and must realise identically, so a verb

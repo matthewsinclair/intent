@@ -1,7 +1,7 @@
 //! `.intentfiles` -- the realisation manifest and its REFUSING grammar.
 //!
 //! WP-02 of ST0057. The manifest declares WHICH ARTEFACTS are realised to disk.
-//! It is committed, it has two regions, and its parser refuses rather than
+//! It is committed, it is one flat list, and its parser refuses rather than
 //! skips.
 //!
 //! # The grammar refuses (AC-02.1)
@@ -13,21 +13,19 @@
 //! the two apart afterwards -- the silent-drop shape v2.19.0 already paid for
 //! twice, in `ac gate`'s F1 fix and in the AT row grammar's `at lint`.
 //!
-//! # Two regions (AC-02.2, AC-02.3)
+//! # One flat list (ST0057 D57-9)
 //!
-//! Lines between [`BEGIN_MARKER`] and [`END_MARKER`] are GENERATED from status
-//! by `intent organize`. Lines outside them are PINS and survive a rewrite
-//! byte for byte.
+//! Every entry declares its artefact realised, wherever it sits in the file.
+//! The file once had a generated region between `# BEGIN INTENT` and
+//! `# END INTENT`, rewritten from status, and a pinned region outside it that
+//! survived the rewrite. hv replaced that design on 2026-08-19: commands change
+//! the list and nothing recomputes it, so a hand-added line has no rewrite to
+//! survive. The markers went on 2026-08-20 (D57-9, carried out by issue 0338).
 //!
-//! The generated region is a FUNCTION OF CURRENT STATUS, not a memory of what
-//! realisation last produced. Nothing is remembered, so nothing can go stale --
-//! which is why a hand edit is distinguished from generated content BY POSITION
-//! rather than by content. A hand realisation written to the pinned region
-//! survives; written to the generated region the next run REVERTS it (AC-05.2).
-//!
-//! Without the split: pin `ST0011` to keep reading it, it closes, `organize`
-//! regenerates the block from status, and the pin is gone along with the files
-//! with nothing in the output naming the decision (AC-02.3).
+//! **A line that is exactly one of the old markers is REFUSED**, not admitted
+//! as the comment its `#` would otherwise make it. A manifest written for the
+//! two-region grammar is told why, rather than parsing on with a construct
+//! that no longer means anything.
 //!
 //! # Artefacts, never files (AC-02.5)
 //!
@@ -47,11 +45,9 @@ use crate::model;
 use crate::remedy::Remedy;
 use thiserror::Error;
 
-/// Opens the generated region. Everything after it, up to [`END_MARKER`], is
-/// rewritten from status by `organize`.
-pub const BEGIN_MARKER: &str = "# BEGIN INTENT";
-/// Closes the generated region.
-pub const END_MARKER: &str = "# END INTENT";
+/// The two-region design's markers, retired by D57-9. A line that is exactly
+/// one of them is refused as [`IntentfilesError::NotAnEntry`].
+const RETIRED_MARKERS: [&str; 2] = ["# BEGIN INTENT", "# END INTENT"];
 
 /// What kind of artefact a manifest line names.
 ///
@@ -138,18 +134,6 @@ impl Sigil {
   }
 }
 
-/// Which region a line came from. **The pin/generated distinction is
-/// POSITIONAL**, so it is carried on the entry rather than inferred later from
-/// content -- inferring it from content is exactly the mistake the two-region
-/// design exists to prevent.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Region {
-  /// Outside the markers. Survives an `organize` rewrite byte for byte.
-  Pinned,
-  /// Between the markers. Rewritten from status on every run.
-  Generated,
-}
-
 /// One artefact the manifest names.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
@@ -159,7 +143,6 @@ pub struct Entry {
   /// line carried one. This is where AC-02.3's "nothing names the decision"
   /// gets its answer, so it is preserved rather than discarded at parse.
   pub comment: Option<String>,
-  pub region: Region,
   /// 1-indexed, as a human reads the file.
   pub line: usize,
 }
@@ -168,21 +151,6 @@ pub struct Entry {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Manifest {
   pub entries: Vec<Entry>,
-}
-
-impl Manifest {
-  /// The pinned entries, in file order.
-  pub fn pinned(&self) -> impl Iterator<Item = &Entry> {
-    self.entries.iter().filter(|e| e.region == Region::Pinned)
-  }
-
-  /// The generated entries, in file order.
-  pub fn generated(&self) -> impl Iterator<Item = &Entry> {
-    self
-      .entries
-      .iter()
-      .filter(|e| e.region == Region::Generated)
-  }
 }
 
 /// WHAT IS REALISED TO DISK, as the manifest answers it.
@@ -352,12 +320,6 @@ pub enum IntentfilesError {
     sigil: &'static str,
     id: String,
   },
-  #[error("line {line}: END marker with no matching BEGIN")]
-  UnopenedRegion { line: usize },
-  #[error("line {line}: BEGIN marker inside an already-open generated region")]
-  NestedRegion { line: usize },
-  #[error("line {line}: the generated region opened here is never closed")]
-  UnclosedRegion { line: usize },
 }
 
 impl IntentfilesError {
@@ -369,10 +331,7 @@ impl IntentfilesError {
     match self {
       IntentfilesError::UnknownSigil { line, .. }
       | IntentfilesError::NotAnEntry { line, .. }
-      | IntentfilesError::MalformedId { line, .. }
-      | IntentfilesError::UnopenedRegion { line }
-      | IntentfilesError::NestedRegion { line }
-      | IntentfilesError::UnclosedRegion { line } => *line,
+      | IntentfilesError::MalformedId { line, .. } => *line,
     }
   }
 }
@@ -384,7 +343,7 @@ impl Remedy for IntentfilesError {
         "write STEELTHREAD:<ID> or ISSUE:<NNNN>; the manifest names artefacts, never files".into()
       }
       IntentfilesError::NotAnEntry { .. } => {
-        "each line is blank, a comment, a BEGIN/END marker, or `<SIGIL>:<ID>` with an optional trailing `# comment`".into()
+        "each line is blank, a comment, or `<SIGIL>:<ID>` with an optional trailing `# comment`; `# BEGIN INTENT` and `# END INTENT` are no longer part of the grammar, so delete a marker line and keep the entries around it".into()
       }
       IntentfilesError::MalformedId { sigil, .. } => match *sigil {
         "STEELTHREAD" => "a steel-thread id is ST followed by four digits, eg ST0000".into(),
@@ -399,15 +358,6 @@ impl Remedy for IntentfilesError {
           "`{other}` is a sigil this remedy has no id shape for -- add one beside STEELTHREAD's"
         ),
       },
-      IntentfilesError::UnopenedRegion { .. } => {
-        format!("remove this line, or add `{BEGIN_MARKER}` above the generated block")
-      }
-      IntentfilesError::NestedRegion { .. } => {
-        format!("close the open region with `{END_MARKER}` before opening another")
-      }
-      IntentfilesError::UnclosedRegion { .. } => {
-        format!("add `{END_MARKER}` after the generated block")
-      }
     }
   }
 }
@@ -422,27 +372,18 @@ impl Remedy for IntentfilesError {
 /// offending line -- singular.
 pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
   let mut entries = Vec::new();
-  let mut region = Region::Pinned;
-  let mut opened_at = 0usize;
 
   for (idx, raw) in text.lines().enumerate() {
     let line = idx + 1;
     let trimmed = raw.trim();
 
-    if trimmed == BEGIN_MARKER {
-      if region == Region::Generated {
-        return Err(IntentfilesError::NestedRegion { line });
-      }
-      region = Region::Generated;
-      opened_at = line;
-      continue;
-    }
-    if trimmed == END_MARKER {
-      if region == Region::Pinned {
-        return Err(IntentfilesError::UnopenedRegion { line });
-      }
-      region = Region::Pinned;
-      continue;
+    // Ahead of the comment arm, which would otherwise admit a retired marker
+    // for the `#` it starts with.
+    if RETIRED_MARKERS.contains(&trimmed) {
+      return Err(IntentfilesError::NotAnEntry {
+        line,
+        line_text: trimmed.to_string(),
+      });
     }
 
     // Blank and whole-line comments carry no artefact. They are admitted
@@ -484,13 +425,8 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
       sigil,
       id: id.to_string(),
       comment,
-      region,
       line,
     });
-  }
-
-  if region == Region::Generated {
-    return Err(IntentfilesError::UnclosedRegion { line: opened_at });
   }
 
   Ok(Manifest { entries })
@@ -517,9 +453,9 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
 // that no longer exists. **A red row says work is owed; an unnamed green file
 // says work is done, which is strictly worse.**
 //
-// `Region` and `Manifest::pinned()/generated()` survive because `pin` still
-// uses them. Whether the BEGIN/END marker grammar should survive AT ALL is a
-// separate question, deliberately not folded into this ruling.
+// `Region`, `Manifest::pinned()/generated()` and the BEGIN/END markers
+// outlived them only because `pin` used them, and went on hv's D57-9 ruling of
+// 2026-08-20, carried out by issue 0338: the list is flat.
 
 /// The header a generated default carries, and the ONLY home for that text.
 ///
@@ -641,23 +577,20 @@ pub fn default_declaration(
   out
 }
 
-/// Add a PIN for `id`, so the artefact realises regardless of status.
+/// Add `id` to the list, so the artefact realises regardless of status.
 ///
 /// This is what a hand realisation records (AC-05.2). `intent edit ST0011`
-/// hydrates a thread the estate is not otherwise realising, and the record of
-/// that decision has exactly one correct home: **the pinned region**. Written
-/// to the generated region it would survive until the next `organize` and then
-/// vanish, because that region is a function of status and the thing somebody
-/// opened by hand is typically the thing status does not offer.
+/// hydrates a thread the list does not otherwise declare, and without a line
+/// here the next `organize` would dehydrate what was just opened.
 ///
-/// The pin lands at the END of the pinned region, immediately above the
-/// markers, so hand-added pins accumulate in the order they were made and a
-/// diff shows one added line rather than a reflow.
+/// The line is APPENDED, so added entries accumulate in the order they were
+/// made and a diff shows one added line rather than a reflow.
 ///
-/// **Idempotent.** Pinning an already-pinned id returns the input unchanged
+/// **Idempotent.** An id the list already names returns the input unchanged
 /// rather than adding a second line -- `intent edit` on the same thread twice
 /// is an ordinary thing to do, and a manifest that grows a line each time
-/// turns a no-op into a diff.
+/// turns a no-op into a diff. In a flat list, presence is the whole question:
+/// an entry declares its artefact wherever it sits.
 ///
 /// **A pin whose id the grammar would refuse is refused here**, at the point
 /// of writing, rather than being written and refused on the next read. The
@@ -677,7 +610,11 @@ pub fn pin(
       id: id.to_string(),
     });
   }
-  if existing.pinned().any(|e| e.sigil == sigil && e.id == id) {
+  if existing
+    .entries
+    .iter()
+    .any(|e| e.sigil == sigil && e.id == id)
+  {
     return Ok(original.to_string());
   }
 
@@ -686,20 +623,11 @@ pub fn pin(
     _ => format!("{}:{}", sigil.as_str(), id),
   };
 
-  let mut out: Vec<String> = Vec::new();
-  let mut placed = false;
-  for raw in original.lines() {
-    if raw.trim() == BEGIN_MARKER && !placed {
-      out.push(line.clone());
-      placed = true;
-    }
-    out.push(raw.to_string());
+  let mut text = original.to_string();
+  if !text.is_empty() && !text.ends_with('\n') {
+    text.push('\n');
   }
-  if !placed {
-    out.push(line);
-  }
-
-  let mut text = out.join("\n");
+  text.push_str(&line);
   text.push('\n');
   Ok(text)
 }
@@ -707,13 +635,10 @@ pub fn pin(
 /// Remove an artefact from the manifest -- the inverse of [`pin`], and the
 /// primitive the CLOSING lifecycle verbs need (AC-05.2).
 ///
-/// **IT REMOVES FROM BOTH REGIONS, AND THAT IS THE WHOLE POINT RATHER THAN A
-/// CONVENIENCE.** [`realised`] answers from `manifest.entries` -- every entry,
-/// pinned or generated -- so an `unpin` that only cleared the pinned region
-/// would leave `st done` reporting success while the artefact stayed realised
-/// and `organize` went on writing its files. The asymmetry with `pin` (which
-/// only ever WRITES to the pinned region) is deliberate: **where a line goes
-/// is a decision, and whether a line is there at all is a fact.**
+/// **IT REMOVES EVERY LINE NAMING THE ARTEFACT.** [`realised`] answers from
+/// `manifest.entries`, every entry, so an `unpin` that left one behind would
+/// leave `st done` reporting success while the artefact stayed realised and
+/// `organize` went on writing its files.
 ///
 /// # Refusing a malformed id, when nothing could have matched it anyway
 ///
@@ -733,8 +658,8 @@ pub fn pin(
 /// and a thread created with `--dehydrate` and then closed all arrive here
 /// with nothing to remove, and none of them is an error.
 ///
-/// Everything else in the file survives byte for byte: comments, blank lines,
-/// the markers, and the order of the entries that stay. The lines to drop come
+/// Everything else in the file survives byte for byte: comments, blank lines
+/// and the order of the entries that stay. The lines to drop come
 /// from [`parse`], which owns the grammar -- **re-deciding here which lines are
 /// entries would be a second reader of the same syntax, and the two would
 /// disagree on the first line either got wrong.**

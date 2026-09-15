@@ -35,8 +35,6 @@ use intentsvcs::organize::{Action, Step, TreeState, plan};
 const MANIFEST: &str = "\
 STEELTHREAD:ST0001
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 fn canon() -> Canon {
@@ -179,21 +177,18 @@ fn an_index_view_is_exempt_rather_than_dehydrated() {
 }
 
 #[test]
-fn a_pinned_declaration_realises_exactly_as_a_generated_one() {
-  // AC-02.3's decision, seen from this side. The two regions differ in who writes
-  // them, not in whether they declare -- so consulting the region when deciding
-  // realisation would silently dehydrate every pinned thread, which is the whole
-  // reason pins exist.
-  let pinned_only = "\
+fn a_commented_entry_realises_exactly_as_a_bare_one() {
+  // AC-02.3's decision, seen from this side. A trailing comment is where a line
+  // names the decision behind it, and it must not change what the line declares
+  // -- consulting it when deciding realisation would silently dehydrate every
+  // annotated thread, which is the thread somebody took the trouble to explain.
+  let listed = "\
 STEELTHREAD:ST0002  # kept realised after close
-
-# BEGIN INTENT
 STEELTHREAD:ST0001
-# END INTENT
 ";
   let fx = Fixture::new();
   let project = fx.project();
-  let realised = intentfiles::realised_for_action(pinned_only).expect("manifest parses");
+  let realised = intentfiles::realised_for_action(listed).expect("manifest parses");
   let p = plan(
     &project,
     &canon(),
@@ -207,7 +202,7 @@ STEELTHREAD:ST0001
     assert_eq!(
       step_for(&p.steps, &path).map(|s| s.action),
       Some(Action::Hydrate),
-      "{id} is declared -- pinned or generated -- so it must hydrate"
+      "{id} is declared -- with a comment or without -- so it must hydrate"
     );
   }
 }

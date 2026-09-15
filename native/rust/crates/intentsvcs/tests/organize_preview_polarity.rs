@@ -37,8 +37,6 @@ use intentsvcs::organize::{Action, Mode, OrganizeError, Plan, Report, TreeState,
 const MANIFEST: &str = "\
 STEELTHREAD:ST0057
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 fn canon_of(threads: Vec<Thread>) -> Canon {

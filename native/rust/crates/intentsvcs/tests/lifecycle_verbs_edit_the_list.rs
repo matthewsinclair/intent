@@ -115,10 +115,8 @@ use intentsvcs::model::ThreadStatus;
 /// pass every test in this file.
 const MANIFEST: &str = "\
 # a hand-maintained note that must survive every verb
-# BEGIN INTENT
 STEELTHREAD:ST0056
 STEELTHREAD:ST0099
-# END INTENT
 ";
 
 /// Write a thread with its open work package authored settled, so a close in this
@@ -511,10 +509,7 @@ fn triage_removes_and_start_adds_it_back() {
 #[test]
 fn st_new_then_start_leaves_the_thread_realised_with_no_further_write() {
   let fx = Fixture::new();
-  fx.write_file(
-    "intent/.intentfiles",
-    "# BEGIN INTENT\nSTEELTHREAD:ST0099\n# END INTENT\n",
-  );
+  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0099\n");
 
   let mut facade = fx.facade();
   let id = facade.st_new("started on creation").expect("new");

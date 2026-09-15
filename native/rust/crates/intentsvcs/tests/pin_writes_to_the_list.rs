@@ -8,10 +8,8 @@
 //! here is what was always true -- the properties of `pin` as a function --
 //! and it is a better file for holding only that.
 //!
-//! Its inverse lives in `unpin_removes_from_the_list.rs`. **The two are
-//! deliberately not merged**: `unpin` clears both regions while `pin` writes
-//! to one, and a single file asserting both invites a reader to take the
-//! asymmetry for an inconsistency instead of the correctness condition it is.
+//! Its inverse lives in `unpin_removes_from_the_list.rs`, which also holds the
+//! round trip between the two.
 //!
 //! # The thing that was left to break, broke -- and that was the point
 //!
@@ -29,48 +27,20 @@
 //! not distinguish "pins accumulate in order" from "the two sigils happen to
 //! sort that way", which the same-sigil version cannot confuse.
 
-use intentsvcs::intentfiles::{Region, Sigil, parse, pin};
+use intentsvcs::intentfiles::{Sigil, parse, pin};
 
-/// `ST0011` sits inside the markers; nothing is pinned.
+/// Only `ST0056` is listed.
 const STARTING: &str = "\
-# BEGIN INTENT
+# a hand-maintained note
 STEELTHREAD:ST0056
-STEELTHREAD:ST0011
-# END INTENT
 ";
-
-/// The early-return trap, and it is the reason `pin` cannot test PRESENCE.
-///
-/// `ST0011` is already visible in the file, so a `pin` that returned early on
-/// "the id is here" would do nothing -- and the caller's decision would never be
-/// recorded. **Presence and pinned-ness disagree on the ordinary path**, not in
-/// a corner: `Facade::hydrate` runs its pin step unconditionally for exactly
-/// this reason, and its own doc cites this file as having reddened it first.
-#[test]
-fn pinning_an_artefact_already_present_still_pins_it() {
-  let before = parse(STARTING).expect("parses");
-  assert_eq!(
-    before.pinned().count(),
-    0,
-    "the fixture starts with ST0011 present but NOT pinned -- if it starts pinned, \
-     this test proves nothing"
-  );
-  assert!(before.generated().any(|e| e.id == "ST0011"));
-
-  let after = pin(STARTING, Sigil::SteelThread, "ST0011", None).expect("pins");
-  let m = parse(&after).expect("parses");
-  let pinned = m
-    .pinned()
-    .find(|e| e.id == "ST0011")
-    .expect("a pin must be written even when the id is already visible in the file");
-  assert_eq!(pinned.region, Region::Pinned);
-}
 
 /// `intent edit` on the same thread twice is ordinary. The manifest must not
 /// grow a line for it.
 #[test]
 fn pinning_is_idempotent() {
   let once = pin(STARTING, Sigil::SteelThread, "ST0011", Some("a reason")).expect("pins");
+  assert_ne!(once, STARTING, "precondition: the first pin writes");
   let twice = pin(&once, Sigil::SteelThread, "ST0011", Some("a reason")).expect("pins again");
   assert_eq!(once, twice, "a second edit of the same thread is a no-op");
 
@@ -90,40 +60,44 @@ fn pinning_is_idempotent() {
   );
 }
 
-/// Pins accumulate above the markers in the order they were made, and nothing
-/// else in the file moves.
+/// Pins accumulate at the end of the list in the order they were made, and
+/// nothing else in the file moves.
 #[test]
 fn pins_accumulate_in_order_without_disturbing_the_file() {
-  let with_note =
-    "# hand-maintained: see the 2026-08 ruling\n# BEGIN INTENT\nSTEELTHREAD:ST0056\n# END INTENT\n";
+  let with_note = "# hand-maintained: see the 2026-08 ruling\nSTEELTHREAD:ST0056\n";
   let a = pin(with_note, Sigil::SteelThread, "ST0011", None).expect("pins");
   let b = pin(&a, Sigil::SteelThread, "ST0042", Some("needed offline")).expect("pins");
 
-  let m = parse(&b).expect("parses");
-  let order: Vec<&str> = m.pinned().map(|e| e.id.as_str()).collect();
+  let added = |text: &str| -> Vec<String> {
+    parse(text)
+      .expect("parses")
+      .entries
+      .iter()
+      .filter(|e| e.id != "ST0056")
+      .map(|e| e.id.clone())
+      .collect()
+  };
   // **ST0042 SORTS AFTER ST0011, SO THIS ASSERTION HAS TO EARN ITS KEEP.**
   // Insertion order and ascending id agree on this pair, which means the
   // assertion alone cannot tell them apart -- so the control is the reverse
   // pair below, where they disagree.
   assert_eq!(
-    order,
+    added(&b),
     vec!["ST0011", "ST0042"],
     "in the order they were made"
   );
 
   let later_first = pin(with_note, Sigil::SteelThread, "ST0042", None).expect("pins");
   let reversed = pin(&later_first, Sigil::SteelThread, "ST0011", None).expect("pins");
-  let m = parse(&reversed).expect("parses");
-  let order: Vec<&str> = m.pinned().map(|e| e.id.as_str()).collect();
   assert_eq!(
-    order,
+    added(&reversed),
     vec!["ST0042", "ST0011"],
     "pinned in descending order, the file must hold them that way -- if this comes back sorted, \
-     `pin` is ordering the region and the assertion above was reading a coincidence"
+     `pin` is ordering the list and the assertion above was reading a coincidence"
   );
 
   assert!(
-    b.starts_with("# hand-maintained: see the 2026-08 ruling\n"),
+    b.starts_with(with_note),
     "the file's existing content is not reflowed to make room for a pin"
   );
   assert!(

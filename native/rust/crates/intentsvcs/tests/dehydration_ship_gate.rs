@@ -36,8 +36,6 @@ use intentsvcs::preconditions::{self, Unmet, Unreadable};
 const MANIFEST: &str = "\
 STEELTHREAD:ST0001
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 fn met(evidence: &str) -> AcState {
@@ -692,9 +690,7 @@ fn a_plan_with_no_removals_does_not_report_the_ship_gate() {
     AcKind::NonTest,
     AcState::Unsatisfied { note: None },
   )])]);
-  let realised =
-    intentfiles::realised_for_action("STEELTHREAD:ST0057\n\n# BEGIN INTENT\n# END INTENT\n")
-      .expect("parses");
+  let realised = intentfiles::realised_for_action("STEELTHREAD:ST0057\n\n").expect("parses");
   let p = plan(
     &project,
     &canon,

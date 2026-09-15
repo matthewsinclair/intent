@@ -30,8 +30,6 @@ use intentsvcs::facade::FacadeError;
 const MANIFEST: &str = "\
 # .intentfiles
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 /// **THE FIXTURE CARRIES A `design.md` AND `sample_thread` DOES NOT.**

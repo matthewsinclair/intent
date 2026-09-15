@@ -27,8 +27,6 @@ use intentsvcs::organize;
 const MANIFEST: &str = "\
 # .intentfiles
 
-# BEGIN INTENT
-# END INTENT
 ";
 
 fn fixture() -> Fixture {
@@ -257,7 +255,7 @@ fn syncing_to_disk_records_the_files_it_actually_wrote() {
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_file(
     "intent/.intentfiles",
-    "# .intentfiles\n\n# BEGIN INTENT\nSTEELTHREAD:ST0001\n# END INTENT\n",
+    "# .intentfiles\n\nSTEELTHREAD:ST0001\n",
   );
   let mut facade = fx.facade_on_disk();
 

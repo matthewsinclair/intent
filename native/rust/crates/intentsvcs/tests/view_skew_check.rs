@@ -291,7 +291,7 @@ fn an_absent_or_unreadable_manifest_keeps_every_view_in_scope() {
 fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_last_rendered() {
   use intentsvcs::address::{Address, Entity};
   use intentsvcs::model::{AcKind, ThreadStatus};
-  const NOTHING_DECLARED: &str = "# .intentfiles\n\n# BEGIN INTENT\n# END INTENT\n";
+  const NOTHING_DECLARED: &str = "# .intentfiles\n\n";
 
   // Realise a closed thread, then undeclare it, optionally hand-edit its
   // contract view, then add a criterion. Returns the view before and after the

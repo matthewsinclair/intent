@@ -274,8 +274,7 @@ fn organize(
   let (tree, digest) = intentsvcs::organize::observe(&project, &[]).expect("observes the tree");
   // Declares nothing, which is somebody saying none -- so no view of the
   // thread is realised and every row below is about the v2 leftovers.
-  let realised = intentsvcs::intentfiles::realised_for_action("# BEGIN INTENT\n# END INTENT\n")
-    .expect("the manifest parses");
+  let realised = intentsvcs::intentfiles::realised_for_action("").expect("the manifest parses");
   let plan = intentsvcs::organize::plan(
     &project,
     canon,

@@ -22,10 +22,10 @@ use intentsvcs::intentfiles;
 use intentsvcs::model::Attachment;
 use intentsvcs::organize::{Action, Step, TreeState, plan};
 
-const DECLARED: &str = "STEELTHREAD:ST0001\n\n# BEGIN INTENT\n# END INTENT\n";
+const DECLARED: &str = "STEELTHREAD:ST0001\n\n";
 /// Declares a thread that is not in the canon, so ST0001's attachments are
 /// present-and-undeclared.
-const DECLARES_NOTHING_PRESENT: &str = "STEELTHREAD:ST0009\n\n# BEGIN INTENT\n# END INTENT\n";
+const DECLARES_NOTHING_PRESENT: &str = "STEELTHREAD:ST0009\n\n";
 
 fn canon() -> Canon {
   Canon {

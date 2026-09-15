@@ -99,7 +99,7 @@ fn dehydrated_estate(fx: &Fixture) -> Vec<String> {
 
   // Declaring nothing keeps nothing -- ABSENT IS NOT EMPTY, so the file must
   // exist and be empty rather than be missing.
-  fx.write_file("intent/.intentfiles", "# BEGIN INTENT\n# END INTENT\n");
+  fx.write_file("intent/.intentfiles", "");
   let mut f = fx.facade_on_disk();
   f.organize(Mode::Apply)
     .expect("the gate is open, so the removals happen");

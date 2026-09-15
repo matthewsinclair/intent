@@ -25,7 +25,7 @@
 //! silently stops covering a variant on the day someone adds one, which is the
 //! day they are thinking about anything else.
 
-use intentsvcs::intentfiles::{BEGIN_MARKER, END_MARKER, IntentfilesError, Region, Sigil, parse};
+use intentsvcs::intentfiles::{IntentfilesError, Sigil, parse};
 use intentsvcs::remedy::Remedy;
 use testkit::repo_root;
 
@@ -33,17 +33,15 @@ use testkit::repo_root;
 /// lands in varied company rather than always between two identical rows.
 fn valid_lines() -> Vec<String> {
   vec![
-    "# the pinned region: these survive an organize rewrite".to_string(),
-    "STEELTHREAD:ST0011  # pinned so it still realises after it closes".to_string(),
+    "# a note: whole-line comments are admitted".to_string(),
+    "STEELTHREAD:ST0011  # listed so it still realises after it closes".to_string(),
     String::new(),
     // Was `ISSUE:0042` until hv retired that sigil on 2026-08-20. Kept as a
     // BARE entry with no trailing comment, which is the shape it contributed:
     // this list exists so an injection lands in varied company.
     "STEELTHREAD:ST0042".to_string(),
-    BEGIN_MARKER.to_string(),
     "STEELTHREAD:ST0056".to_string(),
-    "STEELTHREAD:ST0057  # generated from status".to_string(),
-    END_MARKER.to_string(),
+    "STEELTHREAD:ST0057  # a trailing note".to_string(),
   ]
 }
 
@@ -104,16 +102,14 @@ fn bad_lines() -> Vec<BadLine> {
 fn the_valid_manifest_parses() {
   let m = parse(&valid_lines().join("\n")).expect("the fixture itself must parse");
   assert_eq!(m.entries.len(), 4, "four artefacts in the fixture");
-  assert_eq!(m.pinned().count(), 2, "two outside the markers");
-  assert_eq!(m.generated().count(), 2, "two between them");
 
-  let pin = m.pinned().next().unwrap();
-  assert_eq!(pin.sigil, Sigil::SteelThread);
-  assert_eq!(pin.id, "ST0011");
-  assert_eq!(pin.region, Region::Pinned);
+  let first = &m.entries[0];
+  assert_eq!(first.sigil, Sigil::SteelThread);
+  assert_eq!(first.id, "ST0011");
+  assert_eq!(first.line, 2, "the line a human reads it on");
   assert_eq!(
-    pin.comment.as_deref(),
-    Some("pinned so it still realises after it closes"),
+    first.comment.as_deref(),
+    Some("listed so it still realises after it closes"),
     "the trailing comment is PRESERVED -- it is where AC-02.3's decision is named"
   );
 }
@@ -130,8 +126,6 @@ fn every_bad_line_is_refused_and_names_its_own_line() {
       lines.insert(at, bad.to_string());
       let text = lines.join("\n");
 
-      // An injection between BEGIN and END still has to refuse -- the
-      // generated region is not a place where the grammar relaxes.
       let err = parse(&text).expect_err(&format!(
         "`{bad}` injected at index {at} must REFUSE, never parse"
       ));
@@ -175,28 +169,27 @@ fn a_refused_parse_yields_no_entries() {
   );
 }
 
-/// The marker arms, which no injected ENTRY can reach.
+/// **D57-9 RETIRED THE MARKERS, AND A MARKER LINE IS REFUSED RATHER THAN READ
+/// AS A COMMENT** (issue 0338). Both markers start with `#`, so without an arm
+/// of their own the comment rule would admit them, and a manifest written for
+/// the two-region grammar would parse on carrying a construct that no longer
+/// means anything.
 #[test]
-fn unbalanced_markers_are_refused_with_their_line() {
-  let stray_end = format!("STEELTHREAD:ST0011\n{END_MARKER}\n");
-  let err = parse(&stray_end).expect_err("an END with no BEGIN is not readable");
-  assert!(matches!(err, IntentfilesError::UnopenedRegion { .. }));
-  assert_eq!(err.line(), 2);
-
-  let nested = format!("{BEGIN_MARKER}\nSTEELTHREAD:ST0011\n{BEGIN_MARKER}\n{END_MARKER}\n");
-  let err = parse(&nested).expect_err("a BEGIN inside an open region is not readable");
-  assert!(matches!(err, IntentfilesError::NestedRegion { .. }));
-  assert_eq!(err.line(), 3);
-
-  let unclosed = format!("{BEGIN_MARKER}\nSTEELTHREAD:ST0011\n");
-  let err = parse(&unclosed).expect_err("an unclosed region is not readable");
-  assert!(matches!(err, IntentfilesError::UnclosedRegion { .. }));
-  assert_eq!(
-    err.line(),
-    1,
-    "an unclosed region is reported where it OPENED -- the end of the file is\n       \
-     where the reader notices, not where the mistake is"
-  );
+fn a_retired_marker_line_is_refused_with_its_line() {
+  for marker in ["# BEGIN INTENT", "# END INTENT"] {
+    let text = format!("STEELTHREAD:ST0011\n{marker}\nSTEELTHREAD:ST0056\n");
+    let err = parse(&text).expect_err(&format!("`{marker}` must be refused, never admitted"));
+    assert!(
+      matches!(err, IntentfilesError::NotAnEntry { .. }),
+      "`{marker}` refused by the wrong arm -- {err:?}"
+    );
+    assert_eq!(err.line(), 2, "`{marker}` is on line 2");
+    assert!(
+      err.remedy().contains("no longer part of the grammar"),
+      "the remedy says the marker is retired: {}",
+      err.remedy()
+    );
+  }
 }
 
 /// **The corpus must reach every arm the enum declares.**
@@ -224,22 +217,12 @@ fn every_error_variant_is_exercised() {
       }
     }
   }
-  for marker_arm in ["UnopenedRegion", "NestedRegion", "UnclosedRegion"] {
-    seen.push(marker_arm.to_string());
-  }
   seen.sort();
 
-  let mut expected: Vec<String> = [
-    "UnknownSigil",
-    "NotAnEntry",
-    "MalformedId",
-    "UnopenedRegion",
-    "NestedRegion",
-    "UnclosedRegion",
-  ]
-  .iter()
-  .map(|s| s.to_string())
-  .collect();
+  let mut expected: Vec<String> = ["UnknownSigil", "NotAnEntry", "MalformedId"]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
   expected.sort();
 
   assert_eq!(
@@ -292,57 +275,44 @@ fn the_shipped_manifest_parses() {
 /// exactly as long as comments stay inert.
 ///
 /// **The moment a comment carries semantics -- a `# noqa`, a `# type:`, a
-/// pragma, a region marker other than BEGIN/END -- the manifest has a SECOND
-/// DECLARATION CHANNEL**, in the one file whose criterion says a second
-/// enumeration must be unrepresentable rather than discouraged (AC-02.5). Two
-/// declarations of which-artefacts-matter agree for months and then quietly do
-/// not. Every ecosystem that admitted comments acquired one eventually.
+/// pragma, a region marker -- the manifest has a SECOND DECLARATION CHANNEL**,
+/// in the one file whose criterion says a second enumeration must be
+/// unrepresentable rather than discouraged (AC-02.5). Two declarations of
+/// which-artefacts-matter agree for months and then quietly do not. Every
+/// ecosystem that admitted comments acquired one eventually.
 ///
 /// So: stripping every comment must change nothing but the comment field. A
 /// directive smuggled into a `#` line would have to change something else to
 /// do any work, and this is what notices.
 #[test]
 fn comments_are_inert() {
-  // **The same comment vocabulary appears in BOTH regions.** A first version
-  // of this test put every comment in the pinned region only, and a mutant
-  // that flipped `region` on seeing `# noqa` SURVIVED IT -- outside the
-  // markers the flip was a no-op, so the guard could not see a directive that
-  // only does work in the region it was absent from. A guard whose fixture
-  // cannot reach the state the directive changes is decorative.
-  let commented = format!(
-    "# a leading note\n\
-     STEELTHREAD:ST0011  # why this is pinned\n\
+  // **The same comment vocabulary sits before, between and after entries**, so
+  // a directive that changed what follows it has an entry to change. The line
+  // quoting a retired marker is admitted: only a line that is EXACTLY a marker
+  // is refused.
+  let commented = "# a leading note\n\
+     STEELTHREAD:ST0011  # why this is listed\n\
      \n\
      # noqa\n\
      # type: manifest\n\
      STEELTHREAD:ST0042 # another\n\
-     {BEGIN_MARKER}\n\
      # noqa\n\
      # type: manifest\n\
-     # BEGIN INTENT is a marker; this is not\n\
+     # BEGIN INTENT was a marker; this is not\n\
      STEELTHREAD:ST0056\n\
-     # a trailing note inside the region\n\
-     {END_MARKER}\n\
+     # a trailing note\n\
      # noqa\n\
-     STEELTHREAD:ST0057\n"
-  );
-  let stripped = format!(
-    "STEELTHREAD:ST0011\n\
+     STEELTHREAD:ST0057\n";
+  let stripped = "STEELTHREAD:ST0011\n\
      STEELTHREAD:ST0042\n\
-     {BEGIN_MARKER}\n\
      STEELTHREAD:ST0056\n\
-     {END_MARKER}\n\
-     STEELTHREAD:ST0057\n"
-  );
+     STEELTHREAD:ST0057\n";
 
-  let a = parse(&commented).expect("comments are admitted");
-  let b = parse(&stripped).expect("and so is their absence");
+  let a = parse(commented).expect("comments are admitted");
+  let b = parse(stripped).expect("and so is their absence");
 
-  let shape = |m: &intentsvcs::intentfiles::Manifest| -> Vec<(Sigil, String, Region)> {
-    m.entries
-      .iter()
-      .map(|e| (e.sigil, e.id.clone(), e.region))
-      .collect()
+  let shape = |m: &intentsvcs::intentfiles::Manifest| -> Vec<(Sigil, String)> {
+    m.entries.iter().map(|e| (e.sigil, e.id.clone())).collect()
   };
   assert_eq!(
     shape(&a),
@@ -350,10 +320,5 @@ fn comments_are_inert() {
     "a comment must change NOTHING but the comment field -- if these differ,\n       \
      something is reading a `#` line for content and the manifest has grown a\n       \
      second declaration channel"
-  );
-  assert_eq!(
-    a.pinned().count(),
-    b.pinned().count(),
-    "not even the region split may depend on a comment"
   );
 }
