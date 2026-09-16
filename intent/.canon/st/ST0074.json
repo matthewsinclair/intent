@@ -232,22 +232,22 @@
     {
       "id": "AT-04.1",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/src/tui/picker.rs",
+      "file": "native/rust/crates/intent-cli/src/tui/app.rs",
       "covers": [
         "AC-04.1"
       ],
       "status": "green",
-      "note": "tui::picker::tests::enter_opens_the_project_under_the_cursor: red with Enter inert, green at 2a121e359"
+      "note": "tui::app::tests::slash_projects_lists_the_projects_and_enter_chooses_one (issue 0418 moved the arm from tui/picker.rs when /projects became a view): red with /projects not pushing, green in the 0418 landing; first green at 2a121e359 in tui::picker::tests::enter_opens_the_project_under_the_cursor"
     },
     {
       "id": "AT-04.2",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/src/tui/picker.rs",
+      "file": "native/rust/crates/intent-cli/src/tui/app.rs",
       "covers": [
         "AC-04.2"
       ],
       "status": "green",
-      "note": "tui::picker::tests::esc_leaves_and_an_empty_registry_says_how_to_fill_it: red with Esc inert, green at 2a121e359"
+      "note": "tui::app::tests::with_no_project_the_list_is_the_root_and_quit_leaves (issue 0418 moved the arm from tui/picker.rs when explore outside a project opened the projects view): red with a missing root accepted, green in the 0418 landing; first green at 2a121e359 in tui::picker::tests::esc_leaves_and_an_empty_registry_says_how_to_fill_it"
     }
   ],
   "attachments": [

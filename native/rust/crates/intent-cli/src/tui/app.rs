@@ -63,9 +63,6 @@ pub enum Step {
   /// own `Ctrl-C`. **`tui-design.md` §3: quitting is an act, never an
   /// accident** -- no key reaches this by walking.
   Quit,
-  /// `/projects`: leave this project's screen for the project picker (ST0074
-  /// `AC-04.1`). The loop ends and `explore` opens the picker.
-  Projects,
   /// A spelling the omnibox could not match: hand it to the address resolver.
   ///
   /// **A `Step` BECAUSE PRESENCE IS A FACT ONLY THE STORE KNOWS.** `nav::land`
@@ -606,7 +603,14 @@ impl App {
           };
           return match self.commands[at].act.clone() {
             Act::Quit => Step::Quit,
-            Act::Projects => Step::Projects,
+            // **THE PROJECTS LIST IS A VIEW LIKE ANY OTHER LIST** (issue 0418),
+            // and already being on it is not a push, for `/threads`' reason.
+            Act::Projects => {
+              if self.stack.current() != &View::Projects {
+                self.push(View::Projects);
+              }
+              Step::Continue
+            }
             Act::Back => {
               self.pop_view();
               Step::Continue
@@ -3419,6 +3423,80 @@ mod tests {
       );
       assert_eq!(app.stack.depth(), 2, "`/{typed}` did not push one view");
     }
+  }
+
+  /// A directory holding just enough to be an Intent project.
+  fn project_at(root: &std::path::Path) {
+    std::fs::create_dir_all(root.join("intent/.config")).expect("config dir");
+    std::fs::write(
+      intentsvcs::project::Project::config_path(root),
+      r#"{"intent_version": "3.0.3"}"#,
+    )
+    .expect("config");
+  }
+
+  /// `AT-04.1` (ST0074 WP-04, issue 0418): `/projects` opens the registry's
+  /// projects as a list in the explorer, and Enter on one chooses it, which
+  /// the run loop reads as the project to switch to.
+  #[test]
+  fn slash_projects_lists_the_projects_and_enter_chooses_one() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (alpha, beta) = (dir.path().join("alpha"), dir.path().join("beta"));
+    project_at(&alpha);
+    project_at(&beta);
+    let mut app = App::explore();
+    assert_eq!(run_palette(&mut app, "projects"), Step::Continue);
+    assert_eq!(
+      app.stack.current(),
+      &View::Projects,
+      "`/projects` did not open the list"
+    );
+    run_palette(&mut app, "projects");
+    assert_eq!(
+      app.stack.depth(),
+      2,
+      "`/projects` on the list pushed it again"
+    );
+
+    let rows = super::super::views::project_rows(&[alpha.clone(), beta.clone()]);
+    assert_eq!(
+      rows.iter().map(|r| r.title.as_str()).collect::<Vec<_>>(),
+      ["alpha", "beta"]
+    );
+    app.point_at(rows.len());
+    app.on_key(key(KeyCode::Down), &rows);
+    app.on_key(key(KeyCode::Enter), &rows);
+    assert_eq!(
+      super::super::run::chosen_project(&mut app),
+      Some(beta),
+      "Enter on a project row did not choose that project"
+    );
+  }
+
+  /// `AT-04.2` (ST0074 WP-04, issue 0418): with no project open the explorer
+  /// starts on the projects list, a root that is no longer a project is listed
+  /// and refused with the reason, an empty registry says how to fill it, and
+  /// `/quit` leaves for the shell.
+  #[test]
+  fn with_no_project_the_list_is_the_root_and_quit_leaves() {
+    let mut app = App::rooted_at(View::Projects);
+    let empty = super::super::views::project_rows(&[]);
+    assert!(empty[0].value.contains("intent discover"));
+
+    let gone = std::path::PathBuf::from("/nowhere/at/all");
+    let rows = super::super::views::project_rows(std::slice::from_ref(&gone));
+    assert!(rows[0].value.ends_with("(missing)"));
+    app.point_at(rows.len());
+    app.on_key(key(KeyCode::Enter), &rows);
+    assert_eq!(super::super::run::chosen_project(&mut app), None);
+    assert_eq!(
+      app.stack.current(),
+      &View::Projects,
+      "a refused project left the list"
+    );
+    assert!(app.notice.contains("no longer an Intent project"));
+
+    assert_eq!(run_palette(&mut app, "quit"), Step::Quit);
   }
 
   /// **ALREADY THERE MOVES NOTHING**: `/threads` on the threads list must not

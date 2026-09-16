@@ -4920,7 +4920,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
 /// **EVERY PROJECT FOUND IS NAMED, WHATEVER HAPPENED TO IT.** Registered,
 /// already registered, or not registered with the reason: a walk that reported
 /// only what it added would leave an operator whose project is missing from the
-/// picker with no way to learn why.
+/// explorer's projects list with no way to learn why.
 fn discover(m: &ArgMatches) -> Result<(), Failure> {
   let from = match m.get_one::<String>("fromdir") {
     Some(dir) => std::path::PathBuf::from(dir),
@@ -4996,39 +4996,63 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
   loop {
     let cwd = std::env::current_dir()
       .map_err(|e| Failure::Error(format!("error: cannot read the working directory: {e}")))?;
-    // **OUTSIDE A PROJECT THE PICKER COMES FIRST, AND LEAVING IT RETURNS TO THE
-    // SHELL** (ST0074 `AC-04.2`): there is no project to fall back to.
-    if Project::discover(&cwd).is_err() {
-      match pick_project(None)? {
-        Some(root) => enter(&root)?,
-        None => return Ok(()),
-      }
-    }
-    match explore_here(address.take().as_deref())? {
+    // **OUTSIDE A PROJECT THE EXPLORER OPENS ON THE PROJECTS LIST** (ST0074
+    // `AC-04.2`, issue 0418): there is no store to read, so the list is the one
+    // place, and quitting it returns to the shell. An address waits for the
+    // project the operator chooses.
+    let exit = if Project::discover(&cwd).is_err() {
+      explore_without_a_project()?
+    } else {
+      explore_here(address.take().as_deref())?
+    };
+    match exit {
       tui::run::Exit::Quit => return Ok(()),
-      // **`/projects` LEAVES THIS PROJECT'S SCREEN FOR THE PICKER** (`AC-04.1`),
-      // and leaving the picker comes back to the same project.
-      tui::run::Exit::Projects => {
-        let here = context()?.0.root().to_path_buf();
-        if let Some(root) = pick_project(Some(&here))? {
-          enter(&root)?;
-        }
-      }
+      // **CHOOSING A PROJECT MOVES INTO IT AND OPENS IT** (`AC-04.1`), at the
+      // threads list: the view stack of the project left is not kept.
+      tui::run::Exit::Switch(root) => enter(&root)?,
     }
   }
 }
 
-/// The project picker, offering the project registry's roots.
-fn pick_project(current: Option<&Path>) -> Result<Option<std::path::PathBuf>, Failure> {
-  let path = intentsvcs::userstate::project_registry().map_err(|e| Failure::Error(e.render()))?;
-  let registry = intentsvcs::projects::load(&path).map_err(|e| Failure::Error(e.render()))?;
-  let choices = registry
-    .roots()
-    .into_iter()
-    .map(tui::picker::Choice::of)
-    .collect();
-  tui::picker::pick(tui::picker::Picker::new(choices, current))
+/// The project registry's roots, or why they cannot be read.
+fn registered_roots() -> Result<Vec<std::path::PathBuf>, String> {
+  let path = intentsvcs::userstate::project_registry()
+    .map_err(|e| format!("{e} -- {}", Remedy::remedy(&e)))?;
+  let registry =
+    intentsvcs::projects::load(&path).map_err(|e| format!("{e} -- {}", Remedy::remedy(&e)))?;
+  Ok(registry.roots())
+}
+
+/// What every view that needs a project says when none is open.
+const NO_PROJECT: &str = "no project is open -- choose one from `/projects`";
+
+/// The explorer with no project open, until the operator chooses one or quits.
+fn explore_without_a_project() -> Result<tui::run::Exit, Failure> {
+  let mut lobby = Lobby {
+    table: crate::dispatch::table(),
+  };
+  let mut app = tui::app::App::rooted_at(nav::View::Projects);
+  tui::run::run(&mut app, &mut lobby, editor_session())
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
+}
+
+/// **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
+/// `$VISUAL`, cannot fall back and cannot decide that `vi` will do, because it
+/// is handed a closure over the resolver that already exists.
+fn editor_session() -> impl tui::edit::Session {
+  tui::edit::Files::under(tui::edit::Files::<()>::scratch_dir(), |path: &Path| {
+    launch_editor(path, None).map_err(|e| {
+      tui::edit::Refused::new(
+        // **THE LAUNCHER'S OWN WORDS REACH THE OPERATOR.** It already names the
+        // variable that chose the program, and says why a shell alias is not a
+        // thing a process can run; re-wording it here would be a second, worse
+        // copy of a message somebody wrote carefully.
+        e.message()
+          .unwrap_or("the editor could not be started")
+          .to_string(),
+      )
+    })
+  })
 }
 
 /// Make `root` the project every command from here acts on.
@@ -5045,7 +5069,7 @@ fn enter(root: &Path) -> Result<(), Failure> {
   })
 }
 
-/// One project's explorer, until the operator quits or asks for the picker.
+/// One project's explorer, until the operator quits or chooses another project.
 fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   // **THE INDICATOR WRAPS THE SLOW WORK, WHICH IS ALL OF IT.** Measured across
   // five projects: the gap between the terminal being taken and the first frame
@@ -5069,22 +5093,7 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
     tui::progress::Outcome::Cancelled => return Ok(tui::run::Exit::Quit),
     tui::progress::Outcome::Done(loaded) => loaded?,
   };
-  // **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
-  // `$VISUAL`, cannot fall back and cannot decide that `vi` will do, because it
-  // is handed a closure over the resolver that already exists.
-  let session = tui::edit::Files::under(tui::edit::Files::<()>::scratch_dir(), |path: &Path| {
-    launch_editor(path, None).map_err(|e| {
-      tui::edit::Refused::new(
-        // **THE LAUNCHER'S OWN WORDS REACH THE OPERATOR.** It already names the
-        // variable that chose the program, and says why a shell alias is not a
-        // thing a process can run; re-wording it here would be a second, worse
-        // copy of a message somebody wrote carefully.
-        e.message()
-          .unwrap_or("the editor could not be started")
-          .to_string(),
-      )
-    })
-  });
+  let session = editor_session();
   // **THE ADDRESS IS RESOLVED BEFORE THE TERMINAL IS TAKEN**, so a spelling
   // this tool cannot read is reported on the info row of a screen the operator
   // can read, rather than behind a raw-mode switch.
@@ -5095,7 +5104,7 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   // it rather than being left behind in a comment here.
   let project = live.facade.project().directory_name().unwrap_or_default();
   // **`intent explore` KEEPS ITS PROJECT IN THE REGISTRY** (ST0074 `AC-03.2`),
-  // so the picker and intentd know every project somebody has opened. A
+  // so the projects list and intentd know every project somebody has opened. A
   // registry that cannot be written is said on the info row and the project
   // opens anyway: the operator came to explore, not to repair a file.
   let registered = live
@@ -5204,6 +5213,11 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // operator back to the root with no way to see that the search ran -- which
     // is the silent-empty defect wearing navigation's clothes.
     View::Search { .. } => true,
+    // **THE PROJECTS LIST IS ALWAYS PRESENT, AND SO IS A PROJECT CHOSEN FROM
+    // IT** (issue 0418): whether a root can be entered is answered by
+    // `tui::views::switch_to`, in words that say why, rather than here as a
+    // spelling that resolves nothing.
+    View::Projects | View::Project { .. } => true,
     // **A `Child`'s PARENT is what this answers, and the child item's own
     // existence is answered one layer down, DELIBERATELY.** `present` has the
     // facade and not the declaration, so asking whether WP-17 is in
@@ -5215,6 +5229,146 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     View::Item { kind, id } | View::Children { kind, id, .. } | View::Child { kind, id, .. } => {
       matches!(entity_json(facade, kind, id), Ok(Some(_)))
     }
+  }
+}
+
+/// The rows of the views that read no project's store, or `None` for a view
+/// that needs one.
+///
+/// **ONE HOME FOR TWO SOURCES** (issue 0418): the explorer with a project open
+/// and the explorer with none both show help, settings and the projects list,
+/// and a copy of these arms in each would be two answers to one screen.
+fn unprojected_rows(
+  table: &crate::dispatch::Table,
+  view: &intentsvcs::nav::View,
+) -> Option<Vec<tui::layout::Row>> {
+  use intentsvcs::nav::View;
+  use tui::layout::Row;
+  Some(match view {
+    // **DERIVED FROM THE DECLARATIONS IT DESCRIBES, SO IT CANNOT GO STALE.**
+    // Neither the facade nor the store is consulted: help is a fact about the
+    // PROGRAM, not about the model. The keymap is read because the vi section
+    // must not be shown to an operator who cannot use it.
+    View::Help { of } => tui::help::rows(
+      keymap_in_force(),
+      &crate::spine::build(table),
+      of.as_deref(),
+    ),
+    // **ITS STATE IS NOT IN THE STORE.** `AC-17.3` says the TUI is a client of
+    // the facade for the MODEL, and the operator's own configuration is not
+    // part of it -- it lives at `~/.config/intent/config.json` and is the same
+    // on every project.
+    View::Settings => match intentsvcs::userstate::global_config() {
+      Ok(path) => tui::views::settings_rows(&path),
+      // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY FORM**
+      // (`tui-design.md` section 8). With no `$HOME` there is no config path,
+      // and an empty settings screen would say the operator has no settings.
+      Err(why) => vec![Row::new(
+        "settings",
+        format!("unavailable -- {why}"),
+        "label",
+      )],
+    },
+    // **THE REGISTRY FILE, NOT intentd**, for the reason the registry module
+    // gives: intentd lists exactly that file, so it is the daemon's answer and
+    // it is there when no daemon runs. An unreadable registry is an error row,
+    // never an empty list that reads as no projects.
+    View::Projects => match registered_roots() {
+      Ok(roots) => tui::views::project_rows(&roots),
+      Err(why) => vec![Row::new(
+        "projects",
+        format!("unavailable -- {why}"),
+        "label",
+      )],
+    },
+    // Never painted: the run loop switches before rows are read for it.
+    View::Project { root } => vec![Row::new("project", root.clone(), "label")],
+    _ => return None,
+  })
+}
+
+/// The omnibox's project entries, whatever the registry says.
+///
+/// **AN UNREADABLE REGISTRY STILL OFFERS THE LIST**, and the list is where the
+/// reason is shown: dropping the `projects` entry as well would leave the
+/// operator no door to the one screen that says what is wrong.
+fn project_index() -> Vec<tui::omnibox::Entry> {
+  tui::views::project_entries(&registered_roots().unwrap_or_default())
+}
+
+/// One setting's value in force, in the settings module's own words.
+fn read_setting(path: &str) -> Result<String, tui::edit::Refused> {
+  let config = config_path()?;
+  intentsvcs::settings::read_one(&config, path)
+    .map_err(|why| tui::edit::Refused::new(why.to_string()))
+}
+
+/// Put one setting, refused in the settings module's own words.
+fn write_setting(path: &str, value: &str) -> Result<(), tui::edit::Refused> {
+  let config = config_path()?;
+  intentsvcs::settings::write_one(&config, path, value)
+    .map_err(|why| tui::edit::Refused::new(why.to_string()))
+}
+
+/// The explorer's source with no project open (ST0074 `AC-04.2`, issue 0418).
+///
+/// **NO FACADE, BECAUSE THERE IS NO STORE.** It answers the views that read none
+/// -- the projects list, help and settings -- and every other view says that no
+/// project is open, rather than painting an empty list that reads as an empty
+/// project.
+struct Lobby {
+  table: crate::dispatch::Table,
+}
+
+impl tui::edit::Model for Lobby {
+  fn read(&mut self, _h: &tui::edit::Handoff) -> Result<String, tui::edit::Refused> {
+    Err(tui::edit::Refused::new(NO_PROJECT))
+  }
+
+  fn write(&mut self, _h: &tui::edit::Handoff, _value: &str) -> Result<(), tui::edit::Refused> {
+    Err(tui::edit::Refused::new(NO_PROJECT))
+  }
+
+  fn artefact(
+    &mut self,
+    _kind: &str,
+    _id: &str,
+    _name: &str,
+  ) -> Result<std::path::PathBuf, tui::edit::Refused> {
+    Err(tui::edit::Refused::new(NO_PROJECT))
+  }
+}
+
+impl tui::run::Source for Lobby {
+  fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
+    unprojected_rows(&self.table, view)
+      .unwrap_or_else(|| vec![tui::layout::Row::new("project", NO_PROJECT, "label")])
+  }
+
+  fn locate(&mut self, spelling: &str) -> Result<intentsvcs::nav::View, tui::edit::Refused> {
+    let table = &self.table;
+    match nav::land(spelling, |v| unprojected_rows(table, v).is_some()) {
+      nav::Landing::At(view) => Ok(view),
+      nav::Landing::Root(_) => Err(tui::edit::Refused::new(format!(
+        "`{spelling}` needs a project -- {NO_PROJECT}"
+      ))),
+    }
+  }
+
+  fn index(&mut self) -> Vec<tui::omnibox::Entry> {
+    project_index()
+  }
+
+  fn setting(&mut self, path: &str) -> Result<String, tui::edit::Refused> {
+    read_setting(path)
+  }
+
+  fn keymap(&mut self) -> tui::keys::Keymap {
+    keymap_in_force()
+  }
+
+  fn set_setting(&mut self, path: &str, value: &str) -> Result<(), tui::edit::Refused> {
+    write_setting(path, value)
   }
 }
 
@@ -5344,9 +5498,7 @@ impl tui::run::Source for Live {
   /// the spelling that was tried and the section that governs, and a second
   /// author here would produce two wordings of one refusal.
   fn setting(&mut self, path: &str) -> Result<String, tui::edit::Refused> {
-    let config = config_path()?;
-    intentsvcs::settings::read_one(&config, path)
-      .map_err(|why| tui::edit::Refused::new(why.to_string()))
+    read_setting(path)
   }
 
   /// **THE KEYMAP COMES FROM THE SAME READER AS THE ROW THAT SHOWS IT**, so
@@ -5358,9 +5510,7 @@ impl tui::run::Source for Live {
   }
 
   fn set_setting(&mut self, path: &str, value: &str) -> Result<(), tui::edit::Refused> {
-    let config = config_path()?;
-    intentsvcs::settings::write_one(&config, path, value)
-      .map_err(|why| tui::edit::Refused::new(why.to_string()))
+    write_setting(path, value)
   }
 
   /// Every addressable destination, id-first so the omnibox's id-weighted
@@ -5404,6 +5554,7 @@ impl tui::run::Source for Live {
         },
       }
     }));
+    out.extend(project_index());
     out
   }
 }
@@ -5606,15 +5757,6 @@ fn rows_for(
   use tui::layout::Row;
   match view {
     View::Entities => tui::views::entity_rows(declaration),
-    // **THE ONE VIEW THAT DOES NOT GO THROUGH THE FACADE, BECAUSE ITS STATE IS
-    // NOT IN THE STORE.** `AC-17.3` says the TUI is a client of the facade for
-    // the MODEL, and the operator's own configuration is not part of it -- it
-    // lives at `~/.config/intent/config.json` and is the same on every project. A
-    // settings row reaching for the facade would be asking the wrong authority.
-    // **DERIVED FROM THE DECLARATIONS IT DESCRIBES, SO IT CANNOT GO STALE.**
-    // Neither the facade nor the store is consulted: help is a fact about the
-    // PROGRAM, not about the model. The keymap is read because the vi section
-    // must not be shown to an operator who cannot use it.
     // **THE PANE CALLS THE SAME FACADE METHOD THE CLI AND THE MCP TOOL CALL**
     // (AC-21.3). Nothing here filters, ranks or re-shapes: the envelope is the
     // answer and this maps it to rows once.
@@ -5627,22 +5769,9 @@ fn rows_for(
         Err(why) => vec![Row::new("search", format!("{why}"), "label")],
       }
     }
-    View::Help { of } => tui::help::rows(
-      keymap_in_force(),
-      &crate::spine::build(table),
-      of.as_deref(),
-    ),
-    View::Settings => match intentsvcs::userstate::global_config() {
-      Ok(path) => tui::views::settings_rows(&path),
-      // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY FORM**
-      // (`tui-design.md` section 8). With no `$HOME` there is no config path,
-      // and an empty settings screen would say the operator has no settings.
-      Err(why) => vec![Row::new(
-        "settings",
-        format!("unavailable -- {why}"),
-        "label",
-      )],
-    },
+    View::Help { .. } | View::Settings | View::Projects | View::Project { .. } => {
+      unprojected_rows(table, view).unwrap_or_default()
+    }
     // **THE ORDER WAS ALREADY RIGHT AND THE SEAM WAS INVISIBLE** (hv,
     // 2026-09-03, asking for open threads at the top with a line under them).
     // `index_order` has sorted open-before-closed all along, so nothing here

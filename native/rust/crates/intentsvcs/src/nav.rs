@@ -52,6 +52,7 @@ use crate::form::Loaded;
 pub const SETTINGS_SEGMENT: &str = "settings";
 pub const HELP_SEGMENT: &str = "help";
 pub const SEARCH_SEGMENT: &str = "search";
+pub const PROJECTS_SEGMENT: &str = "projects";
 
 /// Every segment the entity namespace may not use.
 ///
@@ -59,7 +60,12 @@ pub const SEARCH_SEGMENT: &str = "search";
 /// A third reserved view added without a row here would be a collision nothing
 /// checks -- which is the whole failure the first reservation was written to
 /// make impossible.
-pub const RESERVED: &[&str] = &[SETTINGS_SEGMENT, HELP_SEGMENT, SEARCH_SEGMENT];
+pub const RESERVED: &[&str] = &[
+  SETTINGS_SEGMENT,
+  HELP_SEGMENT,
+  SEARCH_SEGMENT,
+  PROJECTS_SEGMENT,
+];
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
 /// child.
@@ -149,6 +155,24 @@ pub enum View {
   /// An EMPTY query is the pane before anything was typed, and `/search` is its
   /// path.
   Search { query: String },
+  /// Every project this machine's project registry names (issue 0418).
+  ///
+  /// **A VIEW AND NOT A SCREEN OF ITS OWN** (hv, 2026-09-16): the list of
+  /// projects is read, moved through and searched the way every other list
+  /// is. Like [`View::Settings`] its state is not in any project's store -- it
+  /// is the per-user registry -- which is why it is a reserved segment rather
+  /// than an entity kind.
+  Projects,
+  /// One registered project, named by its root.
+  ///
+  /// **ARRIVING HERE IS CHOOSING THE PROJECT.** A face does not render this
+  /// view; it switches to the project and opens it, because the rest of the
+  /// stack reads one project's store and this names which store that is.
+  ///
+  /// **THE ROOT IS THE REST OF THE PATH, FOR [`View::Search`]'s REASON**: a
+  /// root is an absolute path and carries separators, so it is taken verbatim
+  /// after the segment and put back unchanged.
+  Project { root: String },
 }
 
 impl View {
@@ -170,6 +194,8 @@ impl View {
       View::Search { query } => format!("/{SEARCH_SEGMENT}/{query}"),
       View::Help { of: None } => format!("/{HELP_SEGMENT}"),
       View::Help { of: Some(name) } => format!("/{HELP_SEGMENT}/{name}"),
+      View::Projects => format!("/{PROJECTS_SEGMENT}"),
+      View::Project { root } => format!("/{PROJECTS_SEGMENT}/{root}"),
     }
   }
 
@@ -194,6 +220,14 @@ impl View {
     if let Some(query) = trimmed.strip_prefix(&format!("{SEARCH_SEGMENT}/")) {
       return Some(View::Search {
         query: query.to_string(),
+      });
+    }
+    if trimmed == PROJECTS_SEGMENT {
+      return Some(View::Projects);
+    }
+    if let Some(root) = trimmed.strip_prefix(&format!("{PROJECTS_SEGMENT}/")) {
+      return Some(View::Project {
+        root: root.to_string(),
       });
     }
     let parts: Vec<&str> = trimmed.split('/').collect();

@@ -90,12 +90,13 @@ pub enum Act {
   /// [`Act::Settings`] gives: a constant vocabulary cannot carry an argument
   /// that is still being typed.
   Search,
-  /// `/projects`: the project picker, over this machine's project registry
-  /// (ST0074 `AC-04.1`).
+  /// `/projects`: the list of this machine's registered projects (ST0074
+  /// `AC-04.1`, issue 0418).
   ///
-  /// **IT ENDS THIS PROJECT'S LOOP RATHER THAN PUSHING A VIEW**, because the
-  /// picker's subject is which store the view stack reads, and a view inside
-  /// that stack cannot change it.
+  /// **IT PUSHES A VIEW, AND CHOOSING A PROJECT IN IT ENDS THIS PROJECT'S
+  /// LOOP.** The list is read and searched like every other list; the switch
+  /// itself is the run loop's, because the stack reads one project's store and
+  /// a view inside that stack cannot change which store it is.
   Projects,
   /// One top-level collection: `/threads` and `/issues` (hv, 2026-09-13).
   ///
@@ -254,7 +255,7 @@ fn acts() -> Vec<Command> {
     },
     Command {
       name: "projects".into(),
-      blurb: "pick another project this machine knows".into(),
+      blurb: "every project this machine knows -- Enter switches to one".into(),
       act: Act::Projects,
     },
     Command {

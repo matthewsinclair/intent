@@ -118,6 +118,87 @@ pub fn settings_rows(config: &std::path::Path) -> Vec<Row> {
     .collect()
 }
 
+/// What an empty project registry says, on the projects view and nowhere else.
+const NO_PROJECTS: &str = "no projects are registered -- `intent discover <dir>` registers the ones under a directory, and `intent explore` inside a project registers that one";
+
+/// A registered root's display name and its spelling in a view.
+fn project_named(root: &std::path::Path) -> (String, String) {
+  let path = root.display().to_string();
+  let name = root
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_else(|| path.clone());
+  (name, path)
+}
+
+/// Whether an Intent config is still at `root`. A registry entry outlives the
+/// directory it names, so the list says so rather than dropping the entry.
+fn is_project(root: &std::path::Path) -> bool {
+  intentsvcs::project::Project::config_path(root).is_file()
+}
+
+/// The projects view's rows: one per registered root, in the registry's order
+/// (issue 0418).
+///
+/// **A MISSING PROJECT IS LISTED AND MARKED, NEVER DROPPED**, and its row still
+/// opens [`View::Project`]: choosing it is refused with the reason by
+/// [`switch_to`], the one place that decides whether a root can be entered.
+pub fn project_rows(roots: &[std::path::PathBuf]) -> Vec<Row> {
+  if roots.is_empty() {
+    return vec![Row::new("projects", NO_PROJECTS, "label")];
+  }
+  roots
+    .iter()
+    .map(|root| {
+      let (name, path) = project_named(root);
+      let value = if is_project(root) {
+        path.clone()
+      } else {
+        format!("{path}  (missing)")
+      };
+      Row::new(name, value, "button").opening(View::Project { root: path })
+    })
+    .collect()
+}
+
+/// The omnibox's project entries: the projects list itself, then one entry per
+/// registered root, so typing a project's name anywhere offers it.
+pub fn project_entries(roots: &[std::path::PathBuf]) -> Vec<super::omnibox::Entry> {
+  use super::omnibox::Entry;
+  let mut out = vec![Entry {
+    id: intentsvcs::nav::PROJECTS_SEGMENT.to_string(),
+    title: "every project this machine knows".to_string(),
+    status: String::new(),
+    door: View::Projects,
+  }];
+  out.extend(roots.iter().map(|root| {
+    let (name, path) = project_named(root);
+    Entry {
+      id: name,
+      status: if is_project(root) {
+        String::new()
+      } else {
+        "missing".to_string()
+      },
+      title: path.clone(),
+      door: View::Project { root: path },
+    }
+  }));
+  out
+}
+
+/// The project choosing `root` switches to, or why it cannot be entered.
+pub fn switch_to(root: &str) -> Result<std::path::PathBuf, super::edit::Refused> {
+  let path = std::path::PathBuf::from(root);
+  if is_project(&path) {
+    Ok(path)
+  } else {
+    Err(super::edit::Refused::new(format!(
+      "`{root}` is no longer an Intent project -- restore it, or remove its entry from the project registry"
+    )))
+  }
+}
+
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
@@ -137,6 +218,8 @@ pub fn app_line(view: &View) -> String {
     View::Help { of: Some(name) } => format!("help  intent {name}"),
     View::Search { query } if query.is_empty() => "search".to_string(),
     View::Search { query } => format!("search  {query}"),
+    View::Projects => "projects".to_string(),
+    View::Project { root } => format!("project  {root}"),
   }
 }
 
@@ -434,6 +517,7 @@ mod tests {
       View::Help {
         of: Some("st".into()),
       },
+      View::Projects,
     ];
     let mut seen: Vec<String> = Vec::new();
     for v in &views {

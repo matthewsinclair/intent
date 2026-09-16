@@ -608,10 +608,6 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     let was = app.stack.current().clone();
     match app.on_key(key, &rows) {
       Step::Quit => break,
-      Step::Projects => {
-        exit = Exit::Projects;
-        break;
-      }
       Step::Continue => {}
       // **THE SPELLING LANDS THROUGH THE ONE RESOLVER** (`AC-06.12` -- `56`,
       // `ST0056`, `st56` all name one thread). Failure reaches the info row
@@ -809,6 +805,13 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       // and this is a defect that only exists inside one.
       term.clear()?;
     }
+    // **CHOOSING A PROJECT ENDS THIS PROJECT'S LOOP** (issue 0418), whichever
+    // door reached the choice -- a row, the omnibox, or a typed path -- and it
+    // is answered before any rows are read for a view no face renders.
+    if let Some(root) = chosen_project(app) {
+      exit = Exit::Switch(root);
+      break;
+    }
     // **THE VIEW CHANGED, SO THE ROWS MUST BE RE-READ BEFORE ANYTHING DERIVED
     // FROM THEM IS PAINTED.** Repainting a new view from the old rows is the
     // same class as `AC-17.10`'s stale-model save, one keystroke earlier.
@@ -831,12 +834,33 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
 }
 
 /// Why [`run`] ended.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Exit {
   /// The operator left the explorer.
   Quit,
-  /// `/projects`: the operator asked for the project picker (ST0074 `AC-04.1`).
-  Projects,
+  /// The operator chose this project from the projects list (ST0074
+  /// `AC-04.1`, issue 0418): `explore` enters it and opens it.
+  Switch(std::path::PathBuf),
+}
+
+/// The project the operator has just chosen, if they have.
+///
+/// **ARRIVING AT [`View::Project`] IS THE CHOICE**, so this reads the top of
+/// the stack rather than a key. A root that is no longer a project is taken
+/// back off the stack with the reason on the info row, and the operator stays
+/// on the list they chose it from.
+pub fn chosen_project(app: &mut App) -> Option<std::path::PathBuf> {
+  let View::Project { root } = app.stack.current() else {
+    return None;
+  };
+  match views::switch_to(&root.clone()) {
+    Ok(path) => Some(path),
+    Err(why) => {
+      app.stack.pop();
+      app.notice = why.to_string();
+      None
+    }
+  }
 }
 
 #[cfg(test)]

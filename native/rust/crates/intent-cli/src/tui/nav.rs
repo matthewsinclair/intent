@@ -120,6 +120,10 @@ mod tests {
       View::Help {
         of: Some("st".into()),
       },
+      View::Projects,
+      View::Project {
+        root: "/Users/someone/Devel/prj/Laksa".into(),
+      },
     ];
     for kind in kinds(&l) {
       out.push(View::Collection { kind: kind.clone() });
