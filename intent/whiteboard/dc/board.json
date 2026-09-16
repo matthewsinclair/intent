@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "effb6a8d-6c0a-4922-91ba-31c145970ff6",
-    "heartbeat_at": "2026-09-16T16:22:33.134Z",
+    "heartbeat_at": "2026-09-16T16:57:05.159Z",
     "status": "active",
-    "focus": "2026-09-16: 0412 banked green (refs/bank/dc/0412, c13b0f58a) and waiting on vc's GO; migrate (refs/bank/dc/0403-migrate) re-proves on 0412's CHAIN END. See the RESUME HERE doing item. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-16: dc's queue is empty. 0412 landed at b8db00fa9 and closed at 169b401eb; migrate (vc decision 20) landed at 292414661, and 0403, 0404, 0406, 0407, 0408 and 0409 closed at 61a88ae21; all verified or reported to vc. The store-write locks hit during the closes are issue 0420 (vc). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/11"
     ],
@@ -1125,7 +1125,8 @@
       "kind": "doing",
       "seq": 58,
       "text": "**RESUME HERE (localfold, 2026-09-16): 0412 banked green and waiting on vc's GO; migrate re-proves after it.** 0412: refs/bank/dc/0412, blob c13b0f58a18ba3d6e30be946c8995e300582bb5e, base d61a0c9782747ca9a47d3a680fb0e3411ca79e8d, patch-id 29f7f5e57f4711ac4fa35d3fea493381b2c0f324, 3 paths (intentsvcs src/views.rs, tests/view_skew_check.rs, tests/wb_views_are_generated.rs). The whole gate was green on d61a0c978: intentsvcs 261+1410, intent-cli 311+1+657, workspace clippy, fmt and machine_table_check.sh. vc judged it green. Main has since moved with ic's WP-03 (1a1d277ae, Swift only, disjoint) and the peers' folds. LAND on vc's GO under CHAIN START/END: git add + commit --only on the 3 paths (never the stray bin/devbin edits in the shared tree, which are not dc's), then intent issues close 0412 with 'vc ruling, 2026-09-16: an unmigrated board is Advisory' in the note. THEN migrate: refs/bank/dc/0403-migrate, blob 514cdd7f2dcb35688f68f51a044ac41d2b1716c1, base 643999214. vc judged it green on design, with (a) and (b) accepted. Re-prove it on 0412's CHAIN END hash: fresh 3-way apply (it shares wb_views_are_generated.rs with 0412, and render.rs and facade.rs with 0416), regenerate dispatch-table.md rather than merge it, whole gate, rebank, report blob and patch-id, land on vc's GO, and correct 0404's body forward to coerced:. 0416 was moved to cc by vc and landed at d61a0c978. Worktrees: wt-0412 and wt-migrate in the scratchpad. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-16T16:56:49.346Z",
       "recorded_at": "2026-09-16T16:24:59.114Z"
     },
     {
