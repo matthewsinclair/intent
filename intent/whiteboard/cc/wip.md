@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 16:22Z
+heartbeat_at: 2026-09-16 16:59Z
 status: active
-focus: "Localfolded before hv's compact, 2026-09-16: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba) and 0416 (d61a0c978) landed, all verified by vc. Queue empty until the quiet window: 0402's canon check, todo 25. NO RELEASE, NO PUSH."
+focus: "2026-09-16: 0331-stale (ic's review of 0331) landed at f2f25c57d on vc's GO -- claude rules is a read, the fn rules comment is true and count-free, id-scheme.md's stale parenthetical gone. Queue empty until the quiet window: 0402's canon check, todo 25. NO RELEASE, NO PUSH."
 claims: []
 ---
 
