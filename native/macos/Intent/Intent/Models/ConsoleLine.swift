@@ -14,7 +14,7 @@ struct ConsoleLine: Sendable, Equatable {
   }
 
   /// **A TAIL'S LINES ARE REPLACED WHEN A TAIL STARTS, AND THE APP'S ARE KEPT.**
-  /// The verb replays each log's last lines whenever it starts, so the lines an
+  /// The verb replays the logs' last lines whenever it starts, so the lines an
   /// earlier tail supplied would show twice once the window reopens, and a log
   /// that grew past the replay while it was closed would leave a gap nothing
   /// marked. The app's own lines, such as the notice that a tail exited, are

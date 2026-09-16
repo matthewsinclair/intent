@@ -51,7 +51,7 @@ final class ConsoleRunner {
   /// verb and its `tail` down together.
   ///
   /// **A START REPLACES THE LINES AN EARLIER TAIL SUPPLIED** and keeps the app's
-  /// own (`ConsoleLine.Source`), because the verb replays each log's last lines
+  /// own (`ConsoleLine.Source`), because the verb replays the logs' last lines
   /// whenever it starts. It drops them only once the verb has launched: a verb
   /// that cannot launch replays nothing, so the earlier lines stay beside the
   /// reason. Either way the view renders the backlog again.

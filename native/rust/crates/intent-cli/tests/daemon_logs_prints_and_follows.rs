@@ -68,14 +68,27 @@ fn absent(path: &Path) -> String {
   )
 }
 
-/// AT-01.1: the header names both logs, then the last lines of each, stdout's
-/// log first, and the verb exits 0. `--lines` changes how many.
+/// A line as intentd writes it: a UTC stamp at `minute`:`second` past ten, then
+/// the text.
+fn at(minute: usize, second: usize, text: String) -> String {
+  format!("2026-09-16T10:{minute:02}:{second:02}.000Z {text}")
+}
+
+/// AT-01.1: the header names both logs, then the last lines of both as one list
+/// in the order they were written, and the verb exits 0. `--lines` changes how
+/// many lines of that one list (issue 0425: an error older than a newer
+/// start line is printed above it, not after stdout's whole block).
 #[test]
 fn the_last_lines_of_both_logs_follow_a_header_naming_them() {
   let home = short_dir("logs-last");
   let (out_log, err_log) = logs(&home);
-  plant(&out_log, &numbered("out", 60));
-  plant(&err_log, &numbered("err", 3));
+  let out_line = |i: usize| at(i - 1, 0, format!("out {i}"));
+  let err_line = |i: usize, minute: usize| at(minute, 30, format!("err {i}"));
+  plant(&out_log, &(1..=60).map(out_line).collect::<Vec<_>>());
+  plant(
+    &err_log,
+    &[err_line(1, 19), err_line(2, 39), err_line(3, 58)],
+  );
 
   let out = intent(&home)
     .args(["daemon", "logs"])
@@ -88,8 +101,11 @@ fn the_last_lines_of_both_logs_follow_a_header_naming_them() {
     String::from_utf8_lossy(&out.stderr)
   );
   let mut want = vec![header(&out_log, &err_log)];
-  want.extend(numbered("out", 60).into_iter().skip(20));
-  want.extend(numbered("err", 3));
+  want.extend((23..=40).map(out_line));
+  want.push(err_line(2, 39));
+  want.extend((41..=59).map(out_line));
+  want.push(err_line(3, 58));
+  want.push(out_line(60));
   assert_eq!(stdout_lines(&out), want);
 
   let out = intent(&home)
@@ -99,13 +115,7 @@ fn the_last_lines_of_both_logs_follow_a_header_naming_them() {
   assert!(out.status.success());
   assert_eq!(
     stdout_lines(&out),
-    vec![
-      header(&out_log, &err_log),
-      "out 59".into(),
-      "out 60".into(),
-      "err 2".into(),
-      "err 3".into()
-    ]
+    vec![header(&out_log, &err_log), err_line(3, 58), out_line(60)]
   );
 
   let out = intent(&home)

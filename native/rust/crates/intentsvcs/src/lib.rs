@@ -56,6 +56,7 @@ pub mod canon;
 pub mod contract;
 pub mod critic;
 pub mod daemon;
+pub mod daemon_logs;
 pub mod doctor;
 pub mod embed;
 pub mod event;
