@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-15 22:48Z
-status: paused
-focus: "0331 (b) banked at refs/bank/cc/0331-b and accepted as train 8; land it on vc's word with the train 8 hash. NO RELEASE, NO PUSH."
+heartbeat_at: 2026-09-16 13:36Z
+status: active
+focus: "HOLDING on hv's word after the localfold: 0331 closed (a7a31aa2f). Next, bank 1 (0411, 0415, 0414) then bank 2 (0410, 0417, 0413) under vc decision 21, on hv's release; N waits on vc's carry-versus-diff answer. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -18,11 +18,12 @@ _(none)_
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
-- **IN FLIGHT: RESUME HERE (cc, 2026-09-15, wrap fold with 0331 (b) banked).** 0331 (b), the counts sweep, was revised by hand under vc's rule and judged green in wt-0331 on 1f96c921e: comment-only, the three crates whole, workspace clippy, rustfmt, and the changed bats. The one red, devbin_rust_gates.bats test 5, is HEAD's from ca3edf2ad, and vc routed it to dc. It is banked at refs/bank/cc/0331-b (5aaa601c1). vc accepted it as train 8, stacked on dc's 0375, with the wording ruled as banked; **train 8 is GREEN on 0096f2b1f** (vc: the bank restacked cleanly, the stack's build, bin/int precommit and cargo fmt --check at rc=0, no canon changed). **Resume: land 0331 (b) on vc's word with the train 8 hash, and nothing before it.** `bash regen/land-0331b.sh <hash>` (if the scratchpad is gone, `git cat-file -p refs/bank/cc/0331-b-lander | tar xf -` in a fresh scratchpad restores regen/land-0331b.sh and its kit) applies the bank to the tree, appends kit/0331-close-note.md to 0331's body, closes 0331, runs organize --apply only when the preview is 0331's view alone, compares at lint and ac gate for every declared thread as text, and commits (b) with the close records by literal paths. Then vc's one rebuild covers 0375 and (b). NO RELEASE, NO PUSH.
+- **IN FLIGHT: RESUME HERE (cc, 2026-09-16 localfold before hv's compact; HOLDING on hv's word).** 0331 (b) landed as train 8 at a7a31aa2f and 0331 is closed; vc verified it tree-exact. Next, under vc decision 21, two banks. BANK 1, store and audit: 0411 (J, wb writes absent from event_log), 0415 (O, updated_at kept by no writer), 0414 (N, sync --to-store's false "nothing overwritten"). One store door that stamps updated_at and appends a wb.* event in the same transaction, ops added to KNOWN_OPS (event.rs:105), and wb touch logs. BANK 2, stacked on bank 1: 0410 (H, register reads the found header and refuses a disagreement), 0417 (I, `wb register --correct`, contract in vc decision 21), 0413 (M, intent_claude_cwi:193 shows `--name "Control Claude" --role control` and names --correct). The code read, as at aa80e6917: `Store::append_event` store.rs:4041 and `write_event` :4061 (called inside a transaction at :3084, the pattern to reuse); every wb writer store.rs:4377-4687 sets no updated_at and logs nothing; `replace_boards` store.rs:4688 deletes all three wb tables and re-inserts without id or updated_at; `sync_overwrite` facade.rs:6969 diffs threads and issues only, so `store_restored` sync.rs:314 takes its 0 arm; `wb_register` facade.rs:5718 tests `hand_authored` and reads no header. **OPEN WITH vc, answer before building N:** WbNode, WbItem and WbMessage (model.rs:2233, 2267, 2290) carry no id or updated_at, so "replace_boards carries them through" means either (A) adding both to board.json and bumping BOARD_SCHEMA, or (B) replace_boards applying the difference by natural key, so an unchanged row keeps its id and updated_at and the same diff counts N's board differences; cc recommended (B). Worktree `wt-wbstore` in this session's scratchpad at aa80e6917, NO edits made, nothing to bank; HEAD has since moved, so recreate it at HEAD on resume. dc also touches facade.rs (migrate, doctor's L, pickup fix): the second of us to bank green proves on top of the first. Tell vc as each bank goes green. NO RELEASE, NO PUSH.
 
 ## Holds
 
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
+- Bank 1 (0411, 0415, 0414) and bank 2 (0410, 0417, 0413) are stopped before any code edit. **Released when hv lifts the hold at the terminal in prose**; N (0414) additionally waits on vc's answer to carry-versus-diff (see the IN FLIGHT todo).
 
 ## Watch-outs
 
