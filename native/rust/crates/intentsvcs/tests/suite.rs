@@ -55,6 +55,8 @@ mod a_stale_store_does_not_overwrite_committed_canon;
 mod a_work_packages_criteria_are_its_scoped_rows;
 #[path = "a_write_refuses_a_record_that_moved_under_it.rs"]
 mod a_write_refuses_a_record_that_moved_under_it;
+#[path = "a_write_waits_for_the_lock_rather_than_refusing.rs"]
+mod a_write_waits_for_the_lock_rather_than_refusing;
 #[path = "absent_manifest_is_not_unreadable.rs"]
 mod absent_manifest_is_not_unreadable;
 #[path = "ac_kind_state_invariant.rs"]

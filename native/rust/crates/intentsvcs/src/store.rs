@@ -2993,6 +2993,28 @@ impl Store {
     Ok(())
   }
 
+  /// Open a write transaction -- **the ONE door every transaction in this
+  /// module opens through, and it takes the writer lock before the first
+  /// statement** (issue 0420).
+  ///
+  /// **rusqlite's default transaction is DEFERRED, and a deferred transaction
+  /// that reads before it writes is refused without waiting.** SQLite runs the
+  /// busy handler only for a transaction starting from none; a read
+  /// transaction asking to upgrade gets `database is locked` at once whenever
+  /// another connection holds the writer lock or has committed since the read.
+  /// `commit_mutation` reads first by design (the 0206 compare-and-swap), so
+  /// every edit of an existing record could be refused in milliseconds with no
+  /// holder left to find, while a create waited its five seconds and landed.
+  /// Taken up front, the lock is waited for under the contention wait above,
+  /// and the compare-and-swap reads under it.
+  ///
+  /// Every transaction this store opens writes, so there is no read door
+  /// beside this one; `a_write_waits_for_the_lock_rather_than_refusing.rs`
+  /// holds the module to the one spelling.
+  fn write_tx(conn: &mut Connection) -> Result<rusqlite::Transaction<'_>, rusqlite::Error> {
+    conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+  }
+
   /// A SECOND connection to this same database, opened read-only.
   ///
   /// **THE DOOR `intent search --sql` READS THROUGH** (AC-17.1). It is a
@@ -3063,7 +3085,7 @@ impl Store {
     match found {
       // A fresh database: nothing has been written and nothing can be lost.
       0 if !Self::has_tables(&conn)? => {
-        let tx = conn.transaction()?;
+        let tx = Self::write_tx(&mut conn)?;
         tx.pragma_update(None, "user_version", SCHEMA_VERSION)?;
         tx.execute_batch(DDL)?;
         tx.execute_batch(FTS_SECURE_DELETE)?;
@@ -3153,7 +3175,7 @@ impl Store {
       if *to <= from {
         continue;
       }
-      let tx = conn.transaction()?;
+      let tx = Self::write_tx(conn)?;
       tx.execute_batch(sql)?;
       // **CHECKED INSIDE THE RUNG'S TRANSACTION, BEFORE THE VERSION MOVES.** A
       // migration that left dangling children is a corrupt store that opens
@@ -3538,7 +3560,7 @@ impl Store {
   }
 
   pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<StoredDates, StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     // **THE COMPARE-AND-SWAP, AND ITS BEING INSIDE THIS TRANSACTION IS THE
     // WHOLE DIFFERENCE BETWEEN A CAS AND A CHECK** (issue 0206, vc ruled
     // 2026-09-01). The same comparison in `apply_envelopes` would narrow the
@@ -3736,7 +3758,7 @@ impl Store {
   /// the tree, so replacing everything is what it means. It is no longer on
   /// the mutation path (see [`Store::commit_mutation`]).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     Self::replace_estate(&tx, threads, issues)?;
     tx.commit()?;
     Ok(())
@@ -3757,9 +3779,7 @@ impl Store {
   /// (`IMMEDIATE`): a store that holds anything by the time the lock is held
   /// was warmed or written by someone else, and is left exactly as it is.
   pub fn warm_if_cold(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<bool, StoreError> {
-    let tx = self
-      .conn
-      .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let tx = Self::write_tx(&mut self.conn)?;
     let held: i64 = tx.query_row(
       "SELECT (SELECT count(*) FROM threads) + (SELECT count(*) FROM issues)",
       [],
@@ -3791,9 +3811,7 @@ impl Store {
     &mut self,
     decide: impl FnOnce(Vec<Thread>, Vec<Issue>, Vec<FileEntry>) -> (Vec<Thread>, Vec<Issue>),
   ) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
-    let tx = self
-      .conn
-      .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let tx = Self::write_tx(&mut self.conn)?;
     let held_threads = Self::hydrate_threads(&tx, None)?;
     let held_issues = Self::hydrate_issues(&tx, None)?;
     let index = Self::read_file_index(&tx)?;
@@ -4919,7 +4937,7 @@ impl Store {
     write: impl FnOnce(&mut WbWrite<'_>) -> Result<T, StoreError>,
   ) -> Result<T, StoreError> {
     let mut w = WbWrite {
-      tx: self.conn.transaction()?,
+      tx: Self::write_tx(&mut self.conn)?,
       moved: 0,
     };
     let out = write(&mut w)?;
@@ -5014,7 +5032,7 @@ impl Store {
   /// disk did.
   pub fn replace_boards(&mut self, boards: &[Board]) -> Result<(), StoreError> {
     let mut w = WbWrite {
-      tx: self.conn.transaction()?,
+      tx: Self::write_tx(&mut self.conn)?,
       moved: 0,
     };
     w.restore(boards)?;
@@ -5049,7 +5067,7 @@ impl Store {
   /// changes is whether "when did this store first index this path" survives
   /// the next scan.
   pub fn replace_file_index(&mut self, entries: &[FileEntry]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     let keep = serde_json::to_string(&entries.iter().map(|e| &e.path).collect::<Vec<_>>())?;
     tx.execute(
       "DELETE FROM file_index WHERE path NOT IN (SELECT value FROM json_each(?1))",
@@ -5073,7 +5091,7 @@ impl Store {
   /// which rows are stale. A row this survey did not produce is a path that has
   /// left the index's scope, full stop.
   pub fn replace_index_files(&mut self, rows: &[crate::index::Row]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     let keep = serde_json::to_string(&rows.iter().map(|r| &r.path).collect::<Vec<_>>())?;
     tx.execute(
       "DELETE FROM index_file WHERE path NOT IN (SELECT value FROM json_each(?1))",
@@ -5100,7 +5118,7 @@ impl Store {
     upserts: &[crate::index::Row],
     removed: &[String],
   ) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     stage_gone(&tx, removed)?;
     tx.execute(
       "DELETE FROM index_file WHERE path IN (SELECT path FROM temp.gone)",
@@ -5134,7 +5152,7 @@ impl Store {
     prose: &[DocSection],
     source: &[crate::index::source::Section],
   ) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     stage_gone(&tx, paths)?;
     tx.execute(
       "DELETE FROM doc_sections WHERE owner_type = ?1 AND file IN (SELECT path FROM temp.gone)",
@@ -5190,7 +5208,7 @@ impl Store {
   /// Not [`Store::replace_file_index`]: a projection writes a handful of files,
   /// so deleting the rest would unindex files nobody touched.
   pub fn record_file_entries(&mut self, entries: &[FileEntry]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     upsert_file_entries(&tx, entries)?;
     tx.commit()?;
     Ok(())
@@ -5247,7 +5265,7 @@ impl Store {
   /// the other's rows. Here the row carries its own answer in `owner_type`, so
   /// each writer names its own half in SQL and knows nothing about the other's.
   pub fn replace_doc_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     Self::write_doc_sections(&tx, sections, ProseHalf::Canon)?;
     tx.commit()?;
     Ok(())
@@ -5276,7 +5294,7 @@ impl Store {
         "a section written under this node's scope belongs to this node"
       );
     }
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     Self::write_doc_sections(&tx, sections, ProseHalf::Whiteboard(node))?;
     tx.commit()?;
     Ok(())
@@ -5292,7 +5310,7 @@ impl Store {
         "a file section's owner_type is what tells the two writers apart"
       );
     }
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     Self::write_doc_sections(&tx, sections, ProseHalf::Files)?;
     tx.commit()?;
     Ok(())
@@ -5305,6 +5323,7 @@ impl Store {
     sections: &[DocSection],
     half: ProseHalf,
   ) -> Result<(), StoreError> {
+    Self::secure_delete(conn, "doc_sections", false)?;
     match half {
       ProseHalf::Canon => conn.execute(
         "DELETE FROM doc_sections WHERE owner_type NOT IN (?1, ?2)",
@@ -5350,9 +5369,30 @@ impl Store {
       "INSERT INTO doc_sections(doc_sections) VALUES('rebuild')",
       [],
     )?;
+    Self::secure_delete(conn, "doc_sections", true)?;
     for s in sections {
       insert_doc_section(conn, s)?;
     }
+    Ok(())
+  }
+
+  /// Set FTS5 `secure-delete` on one search table, inside the caller's
+  /// transaction (issue 0420).
+  ///
+  /// **OFF ACROSS A WHOLESALE DELETE AND ITS `rebuild`, AND ON AGAIN BEFORE THE
+  /// TRANSACTION ENDS.** Under `secure-delete` each deleted row rewrites the
+  /// index pages holding its terms, and the `rebuild` that follows re-derives
+  /// the whole index and discards that work, so the index ends identical either
+  /// way and only the time the writer lock is held differs -- and that
+  /// transaction is the writer lock every mutation and every ingest holds (the
+  /// measurement is in issue 0420's landing commit). It is restored inside the same
+  /// transaction, so a rollback cannot leave it off: issue 0355's scoped refresh
+  /// door deletes with no `rebuild` after it and relies on it being on.
+  fn secure_delete(conn: &rusqlite::Connection, table: &str, on: bool) -> Result<(), StoreError> {
+    conn.execute(
+      &format!("INSERT INTO {table}({table}, rank) VALUES('secure-delete', ?1)"),
+      params![i32::from(on)],
+    )?;
     Ok(())
   }
 
@@ -5371,12 +5411,14 @@ impl Store {
     &mut self,
     sections: &[crate::index::source::Section],
   ) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
+    Self::secure_delete(&tx, "src_sections", false)?;
     tx.execute("DELETE FROM src_sections", [])?;
     tx.execute(
       "INSERT INTO src_sections(src_sections) VALUES('rebuild')",
       [],
     )?;
+    Self::secure_delete(&tx, "src_sections", true)?;
     for s in sections {
       insert_src_section(&tx, s)?;
     }
@@ -5395,7 +5437,7 @@ impl Store {
     paths: &[String],
     symbols: &[crate::index::symbols::Symbol],
   ) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     stage_gone(&tx, paths)?;
     tx.execute(
       "DELETE FROM symbols WHERE path IN (SELECT path FROM temp.gone)",
@@ -5504,7 +5546,7 @@ impl Store {
   /// stored at the wrong width is not a smaller vector: it scores, at a
   /// position nobody can account for.
   pub fn record_embeddings(&mut self, rows: &[crate::embed::Stored]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
+    let tx = Self::write_tx(&mut self.conn)?;
     for row in rows {
       let mut bytes = Vec::with_capacity(row.vector.len() * 4);
       for value in &row.vector {
