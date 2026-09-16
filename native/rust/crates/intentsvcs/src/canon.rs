@@ -271,6 +271,32 @@ fn chain_block() -> String {
   )
 }
 
+/// The lines of a pre-commit hook that lie OUTSIDE its chain block, each with
+/// its 1-based line number.
+///
+/// **THE MARKERS HAVE ONE HOME AND IT IS HERE**, so `doctor` asks this rather
+/// than spelling `# intent-chain-block:end` a second time. A block opened and
+/// never closed runs to the end of the file: everything after an unclosed
+/// opener is the block's, never the project's.
+pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
+  let mut inside = false;
+  let mut out = Vec::new();
+  for (i, line) in text.lines().enumerate() {
+    if inside {
+      if line.trim() == CHAIN_END {
+        inside = false;
+      }
+      continue;
+    }
+    if opens_chain_block(line) {
+      inside = true;
+      continue;
+    }
+    out.push((i + 1, line));
+  }
+  out
+}
+
 /// Insert the chain block into an existing pre-commit hook's text.
 ///
 /// **RETURNS `None` WHEN THE BLOCK IS ALREADY THERE**, so the caller writes

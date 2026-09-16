@@ -368,7 +368,7 @@ gate_currency() {
 # it named, or the runner is there and declares no roster. Only the first two
 # are faults and the third is a legitimate state.
 shipped_guards() {
-  local home runner name path when state from
+  local home runner name path when state owner from
   resolve_guard_home
   home="$GUARD_HOME"; from="$GUARD_HOME_FROM"
   if [ -z "$home" ] || [ ! -d "$home" ]; then
@@ -394,12 +394,26 @@ shipped_guards() {
     printf '                 (the shipped runner declares no guard roster)\n'
     return
   fi
-  while IFS="$(printf '\t')" read -r name path when state; do
+  # FIVE FIELDS, AND THE FIFTH IS NAMED (issue 0426). `read` hands its LAST
+  # variable the rest of the line, so a four-name read of a five-column row puts
+  # `present<TAB>intent` in `state` and reports every guard MISSING. The fifth
+  # says whose guard it is: `intent` (shipped) or `project` (declared in
+  # intent/.config/config.json `guards`, and reported against this checkout).
+  while IFS="$(printf '\t')" read -r name path when state owner; do
     [ -n "$name" ] || continue
+    [ "$owner" = project ] && owner="declared" || owner="shipped"
     case "$state" in
-      present) printf '                 shipped: %s  (applies when %s exists)\n' "$name" "$when" ;;
-      not-applicable) printf '                 shipped: %s  -- NOT APPLICABLE here (%s is absent), so nothing goes unchecked\n' "$name" "$when" ;;
-      *) printf '                 shipped: %s  <- MISSING from the install at %s\n' "$name" "$path" ;;
+      present)
+        # A declared guard with no `when` applies to every commit, and its row says `-`.
+        if [ "$when" = "-" ]; then
+          printf '                 %s: %s  (applies to every commit)\n' "$owner" "$name"
+        else
+          printf '                 %s: %s  (applies when %s exists)\n' "$owner" "$name" "$when"
+        fi
+        ;;
+      not-applicable) printf '                 %s: %s  -- NOT APPLICABLE here (%s is absent), so nothing goes unchecked\n' "$owner" "$name" "$when" ;;
+      MISSING) printf '                 %s: %s  <- MISSING at %s\n' "$owner" "$name" "$path" ;;
+      *) printf '                 %s: %s  <- %s (%s)\n' "$owner" "$name" "$state" "$path" ;;
     esac
   done < <(bash "$runner" --list-guards 2>/dev/null)
 }

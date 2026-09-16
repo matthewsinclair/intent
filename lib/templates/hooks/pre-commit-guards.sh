@@ -100,6 +100,79 @@ GUARDS=(
 # are in.
 GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# ---- THE PROJECT'S OWN GUARDS (issue 0426) ----
+#
+# `.git/hooks/` is untracked in every repository, and so is the `core.hooksPath`
+# line in `.git/config` that points git at a tracked hooks directory. A guard a
+# project wires by hand is therefore a property of ONE CHECKOUT: a fresh clone
+# runs Intent's roster above and not the project's own guards, and nothing says
+# so. Lamplight lost four that way.
+#
+# So a project DECLARES its guards in its tracked `intent/.config/config.json`,
+# and they run here, after Intent's roster, through the same dispatch and the
+# same reporting -- a clone runs the set the original checkout ran:
+#
+#   "guards": [
+#     {"run": ["bin/hooks/guards/whiteboard-inbox-guard.sh"], "when": "intent/whiteboard"},
+#     {"run": ["bin/int", "precommit"]}
+#   ]
+#
+# `run` is an argv resolved from the repository root, and its first element is
+# a TRACKED, EXECUTABLE file. `when` is optional and means what the roster's
+# `applies-when` means: a path whose absence makes the guard not applicable.
+#
+# **A DECLARED GUARD THAT CANNOT RUN BLOCKS THE COMMIT** (vc, 2026-09-16), which
+# is stricter than a missing roster guard above. That one is an install older
+# than its roster; this one is a tracked declaration naming a body the tree does
+# not carry, runnable, tracked -- a broken tree, and a commit that passes over
+# it would be the silent loss this block exists to end. An absent `when` path is
+# not applicable and never blocks.
+PROJECT_CONFIG="intent/.config/config.json"
+
+# One line per declared guard: `<index> US <when> US <run as JSON>`, or
+# `! US <reason>` for a declaration that cannot be read. Nothing when the
+# project declares no guards.
+#
+# **US (0x1f), NOT TAB, AND A TAB WAS THE FIRST SPELLING.** Tab is whitespace
+# to `read`, so the empty `when` of a guard that always applies collapsed into
+# the next field: `run` was read as `when`, found absent, and the guard was
+# skipped as not applicable -- silently, which is this block's own defect. A
+# non-whitespace separator keeps an empty field a field.
+P_SEP="$(printf '\037')"
+project_guard_rows() {
+  [ -f "$PROJECT_CONFIG" ] || return 0
+  grep -q '"guards"' "$PROJECT_CONFIG" 2>/dev/null || return 0
+  if ! command -v jq >/dev/null 2>&1; then
+    printf '!%s%s\n' "$P_SEP" "${PROJECT_CONFIG} declares guards and jq is not installed, so they cannot be read"
+    return 0
+  fi
+  jq -r '
+    if .guards == null then empty
+    elif (.guards | type) != "array" then "!\u001fguards in intent/.config/config.json is \(.guards | type), not an array"
+    else .guards | to_entries[] | .key as $i | .value as $g
+      | if ($g | type) != "object"
+          or ($g.run | type) != "array"
+          or ($g.run | length) == 0
+          or ([$g.run[] | type] | any(. != "string"))
+          or (($g.when // "") | type) != "string"
+        then "!\u001fguards[\($i)] in intent/.config/config.json needs `run`, a non-empty array of strings, and an optional string `when`"
+        else "\($i)\u001f\($g.when // "")\u001f\($g.run | @json)"
+        end
+    end' "$PROJECT_CONFIG" 2>/dev/null \
+    || printf '!%s%s\n' "$P_SEP" "${PROJECT_CONFIG} is not valid JSON, so its guards cannot be read"
+}
+
+# Why a declared guard's first element cannot run, or nothing when it can.
+project_guard_fault() {
+  if [ ! -f "$1" ]; then
+    echo "MISSING"
+  elif [ ! -x "$1" ]; then
+    echo "not-executable"
+  elif ! git ls-files --error-unmatch -- "$1" >/dev/null 2>&1; then
+    echo "untracked"
+  fi
+}
+
 # --list-guards -- ANSWER WHAT IS ENFORCED, WITHOUT ENFORCING ANYTHING.
 #
 # **`int hooks` REPORTED THIS GATE AS ONE LINE AND NAMED NONE OF ITS GUARDS**,
@@ -146,8 +219,28 @@ if [ "${1:-}" = "--list-guards" ]; then
     else
       g_state="present"
     fi
-    printf '%s\t%s\t%s\t%s\n' "$g_name" "$GUARD_HOME/$g_name" "$g_when" "$g_state"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$g_name" "$GUARD_HOME/$g_name" "$g_when" "$g_state" "intent"
   done
+  # THE 5TH COLUMN SAYS WHOSE GUARD IT IS (issue 0426). Appended rather than
+  # inserted, so a reader that SPLITS the row keeps its first four fields -- but a
+  # bash `read` of four names hands the fourth the rest of the line, so every
+  # such reader must name the fifth (`int hooks` does).
+  while IFS="$P_SEP" read -r p_index p_when p_run; do
+    if [ "$p_index" = "!" ]; then
+      printf '%s\t%s\t%s\t%s\t%s\n' "-" "-" "-" "unreadable: ${p_when}" "project"
+      continue
+    fi
+    p_first="$(jq -r '.[0]' <<<"$p_run")"
+    p_state="$(project_guard_fault "$p_first")"
+    if [ -z "$p_state" ]; then
+      if [ -n "$p_when" ] && [ ! -e "$p_when" ]; then
+        p_state="not-applicable"
+      else
+        p_state="present"
+      fi
+    fi
+    printf '%s\t%s\t%s\t%s\t%s\n' "$(jq -r 'join(" ")' <<<"$p_run")" "$PWD/$p_first" "${p_when:--}" "$p_state" "project"
+  done < <(project_guard_rows)
   exit 0
 fi
 
@@ -204,8 +297,56 @@ done
 # means there was and no guard was there. The per-guard report above already
 # names each one; this is the total, so a reader who saw no detail lines can
 # still tell the difference between three and zero.
+P_DECLARED=0
+P_RAN=0
+P_SKIPPED=0
+P_REFUSED=0
+while IFS="$P_SEP" read -r p_index p_when p_run; do
+  P_DECLARED=$((P_DECLARED + 1))
+  if [ "$p_index" = "!" ]; then
+    P_REFUSED=$((P_REFUSED + 1))
+    BLOCKED=1
+    echo "intent gate: the project's declared guards cannot be read -- this commit is REFUSED." >&2
+    echo "  ${p_when}." >&2
+    echo "  a guard the project declared and nothing ran is a hole, not a pass." >&2
+    echo "  remedy: correct the \`guards\` declaration (or install jq), then commit again." >&2
+    continue
+  fi
+  if [ -n "$p_when" ] && [ ! -e "$p_when" ]; then
+    P_SKIPPED=$((P_SKIPPED + 1))
+    continue
+  fi
+  # bash 3.2 has no mapfile, and an empty-array expansion under `set -u` is an
+  # error there, so the argv is read line by line and is never empty.
+  p_argv=()
+  while IFS= read -r p_arg; do
+    p_argv+=("$p_arg")
+  done < <(jq -r '.[]' <<<"$p_run")
+  p_first="${p_argv[0]}"
+  p_fault="$(project_guard_fault "$p_first")"
+  if [ -n "$p_fault" ]; then
+    P_REFUSED=$((P_REFUSED + 1))
+    BLOCKED=1
+    echo "intent gate: declared guard \`${p_first}\` is ${p_fault} -- this commit is REFUSED." >&2
+    case "$p_fault" in
+      MISSING) echo "  guards[${p_index}] in ${PROJECT_CONFIG} names a file this tree does not carry." >&2 ;;
+      not-executable) echo "  the file is present and carries no execute bit, so it cannot run." >&2 ;;
+      untracked) echo "  it runs in this checkout and a clone never receives it, which is the loss the declaration exists to end." >&2 ;;
+    esac
+    echo "  remedy: restore the guard (tracked, with its execute bit), or remove guards[${p_index}] from ${PROJECT_CONFIG}; then commit again." >&2
+    continue
+  fi
+  P_RAN=$((P_RAN + 1))
+  p_argv[0]="$PWD/$p_first"
+  "${p_argv[@]}" || BLOCKED=1
+done < <(project_guard_rows)
+
 printf 'guards: %d ran, %d skipped (not applicable)' "$RAN" "$SKIPPED"
 [ "$MISSING" -gt 0 ] && printf ', %d MISSING' "$MISSING"
+if [ "$P_DECLARED" -gt 0 ]; then
+  printf '; project: %d ran, %d skipped (not applicable)' "$P_RAN" "$P_SKIPPED"
+  [ "$P_REFUSED" -gt 0 ] && printf ', %d REFUSED' "$P_REFUSED"
+fi
 printf '\n'
 
 exit "$BLOCKED"

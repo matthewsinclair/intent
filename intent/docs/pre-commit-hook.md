@@ -86,6 +86,28 @@ Each guard file's header says what it refuses and why.
 - **No guard edits a file.** A guard that silently repaired a value would hide the class from the person who needs to learn it. The whiteboard header guard prints the corrected line so the fix is a copy-paste.
 - **The runner and the guards are read from the install, not from the project.** The hook finds the install root through `intent info`, so a new or updated guard reaches every project when the install is updated, with nothing re-run in the project. In an Intent source checkout (a repository carrying `lib/templates/hooks/pre-commit-guards.sh` and `VERSION`) the gate reads the guards from that checkout instead and says so on stderr. When an applicable guard file is missing, the runner says so and names what went unchecked rather than passing in silence.
 
+## Project guards
+
+A project's own guards are declared in `intent/.config/config.json`, and the runner runs them after Intent's roster:
+
+```json
+{
+  "guards": [
+    { "run": ["bin/hooks/inbox-guard"] },
+    { "run": ["bin/hooks/docs-check", "--strict"], "when": "docs" }
+  ]
+}
+```
+
+- **`run` is an argv, not a command line.** It is never handed to a shell. `run[0]` is a path relative to the project root; the remaining entries are its arguments.
+- **`when` is optional.** It names a path, and the guard is skipped as not applicable when that path does not exist, like the shipped guards. A guard with no `when` runs on every commit.
+- **The declaration is tracked, so a fresh clone runs the same guards as the checkout it came from.** A guard wired by hand into `.git/hooks/pre-commit` is not: `.git/hooks` is never cloned, and neither is `core.hooksPath`, which lives in `.git/config`.
+- **A declared guard that cannot run blocks the commit** and says why: its body is missing, it is not executable, it is not tracked (a clone would not receive it), or the `guards` array cannot be read (it is not valid JSON, `run` is not a non-empty array of strings, or `jq` is absent). The summary line counts project guards separately: `project: N ran, M skipped (not applicable)`.
+- `--list-guards` prints the declared guards after the shipped ones, and its fifth column says whose each row is: `intent` or `project`.
+- `intent lang init` and `intent lang remove` rewrite `config.json` and keep the `guards` array as it was written.
+
+`intent doctor` reports three wiring states as advisories, printed and not counted: a line in an untracked pre-commit chain, outside Intent's chain block, that runs something no guard declares; a declared guard that the chain also runs by hand, so it runs twice; and a tracked `.githooks/pre-commit` or `bin/hooks/pre-commit` while `core.hooksPath` is unset, so git never runs it.
+
 ## Language detection
 
 The hook reads the explicit `languages` array from `intent/.config/config.json` and dispatches one critic per entry:

@@ -365,3 +365,176 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
      take the fail-open branch and both guards would be skipped"
   );
 }
+
+// ---- Issue 0426: the project's OWN guards, declared in its tracked config ----
+//
+// These drive the same shipped hook as the arms above, because the defect is the
+// same class one level out: a guard wired by hand into `.git/hooks/` is not in
+// the repository, so a clone runs Intent's roster and not the project's, and
+// nothing says so. The declaration lives in `intent/.config/config.json`.
+
+/// Declare `guards` in the fixture's config, keeping its `languages`.
+fn declare_guards(root: &Path, guards: &str) {
+  fs::write(
+    root.join("intent/.config/config.json"),
+    format!("{{\n  \"languages\": [],\n  \"guards\": {guards}\n}}\n"),
+  )
+  .expect("declare guards");
+}
+
+/// A tracked, executable guard body that prints its name and exits `rc`.
+fn guard_body(root: &Path, rel: &str, rc: i32) {
+  let path = root.join(rel);
+  fs::create_dir_all(path.parent().expect("guard dir")).expect("guard dir");
+  fs::write(
+    &path,
+    format!("#!/usr/bin/env bash\necho \"project guard {rel} ran with: $*\" >&2\nexit {rc}\n"),
+  )
+  .expect("guard body");
+  let mut perms = fs::metadata(&path).expect("guard meta").permissions();
+  std::os::unix::fs::PermissionsExt::set_mode(&mut perms, 0o755);
+  fs::set_permissions(&path, perms).expect("chmod the guard");
+}
+
+#[test]
+fn a_declared_project_guard_runs_with_its_arguments_and_its_refusal_blocks_the_commit() {
+  let home = intent_home();
+  let td = migrated_project(&home);
+  let root = &td.path().join("repo");
+  guard_body(root, "bin/hooks/refuses.sh", 1);
+  declare_guards(root, r#"[{"run": ["bin/hooks/refuses.sh", "precommit"]}]"#);
+  assert!(git(root, &["add", "-A"]).status.success());
+
+  let out = commit_through_hook(root, &td.path().join("install"), "declare a refusing guard");
+  let text = combined(&out);
+  assert!(
+    !out.status.success(),
+    "THE COMMIT WAS NOT REFUSED: a declared project guard exited 1 and the gate let it through:\n{text}"
+  );
+  assert!(
+    text.contains("project guard bin/hooks/refuses.sh ran with: precommit"),
+    "refused, but not by the declared guard running with its argv:\n{text}"
+  );
+}
+
+#[test]
+fn a_declared_guard_whose_body_is_missing_blocks_the_commit_and_names_it() {
+  let home = intent_home();
+  let td = migrated_project(&home);
+  let root = &td.path().join("repo");
+  declare_guards(root, r#"[{"run": ["bin/hooks/gone.sh"]}]"#);
+  assert!(git(root, &["add", "-A"]).status.success());
+
+  let out = commit_through_hook(
+    root,
+    &td.path().join("install"),
+    "declare a guard with no body",
+  );
+  let text = combined(&out);
+  assert!(
+    !out.status.success(),
+    "A DECLARED GUARD WITH NO BODY PASSED: that is the clone's silent loss this declaration exists to end:\n{text}"
+  );
+  assert!(
+    text.contains("bin/hooks/gone.sh") && text.contains("MISSING") && text.contains("remedy:"),
+    "refused, but without naming the missing guard and a remedy:\n{text}"
+  );
+}
+
+#[test]
+fn a_declared_guard_that_is_not_tracked_blocks_because_a_clone_would_not_receive_it() {
+  let home = intent_home();
+  let td = migrated_project(&home);
+  let root = &td.path().join("repo");
+  guard_body(root, "bin/hooks/local.sh", 0);
+  declare_guards(root, r#"[{"run": ["bin/hooks/local.sh"]}]"#);
+  assert!(
+    git(root, &["add", "intent/.config/config.json"])
+      .status
+      .success()
+  );
+
+  let out = commit_through_hook(
+    root,
+    &td.path().join("install"),
+    "declare an untracked guard",
+  );
+  let text = combined(&out);
+  assert!(
+    !out.status.success() && text.contains("untracked"),
+    "an untracked guard body runs here and in no clone, so it must refuse and say so:\n{text}"
+  );
+}
+
+#[test]
+fn the_control_a_passing_guard_and_an_inapplicable_one_let_the_commit_through() {
+  let home = intent_home();
+  let td = migrated_project(&home);
+  let root = &td.path().join("repo");
+  guard_body(root, "bin/hooks/passes.sh", 0);
+  declare_guards(
+    root,
+    r#"[{"run": ["bin/hooks/passes.sh"]}, {"run": ["bin/hooks/refuses-if-run.sh"], "when": "no/such/path"}]"#,
+  );
+  assert!(git(root, &["add", "-A"]).status.success());
+
+  let out = commit_through_hook(root, &td.path().join("install"), "declare a passing guard");
+  let text = combined(&out);
+  assert!(
+    out.status.success(),
+    "a passing declared guard and an inapplicable one (its `when` path absent) must not block:\n{text}"
+  );
+  assert!(
+    text.contains("project: 1 ran, 1 skipped (not applicable)"),
+    "the summary does not count the project's guards:\n{text}"
+  );
+}
+
+#[test]
+fn list_guards_reports_the_projects_declared_guards_beside_intents_in_a_fifth_column() {
+  let home = intent_home();
+  let td = migrated_project(&home);
+  let root = &td.path().join("repo");
+  guard_body(root, "bin/hooks/passes.sh", 0);
+  declare_guards(
+    root,
+    r#"[{"run": ["bin/hooks/passes.sh", "x"]}, {"run": ["bin/hooks/gone.sh"]}]"#,
+  );
+  assert!(git(root, &["add", "-A"]).status.success());
+
+  let out = Command::new("bash")
+    .arg(home.join("lib/templates/hooks/pre-commit-guards.sh"))
+    .arg("--list-guards")
+    .current_dir(root)
+    .output()
+    .expect("run --list-guards");
+  let text = String::from_utf8_lossy(&out.stdout).to_string();
+  assert!(
+    out.status.success(),
+    "--list-guards failed:\n{}",
+    combined(&out)
+  );
+  let rows: Vec<Vec<&str>> = text.lines().map(|l| l.split('\t').collect()).collect();
+  assert!(
+    rows.iter().all(|r| r.len() == 5),
+    "every row carries five columns:\n{text}"
+  );
+  assert!(
+    rows
+      .iter()
+      .any(|r| r[0] == "whiteboard-clock-guard.sh" && r[4] == "intent"),
+    "Intent's roster is still listed, marked `intent`:\n{text}"
+  );
+  assert!(
+    rows
+      .iter()
+      .any(|r| r[0] == "bin/hooks/passes.sh x" && r[3] == "present" && r[4] == "project"),
+    "the declared guard is listed with its argv, present, marked `project`:\n{text}"
+  );
+  assert!(
+    rows
+      .iter()
+      .any(|r| r[0] == "bin/hooks/gone.sh" && r[3] == "MISSING" && r[4] == "project"),
+    "a declared guard with no body is listed MISSING:\n{text}"
+  );
+}

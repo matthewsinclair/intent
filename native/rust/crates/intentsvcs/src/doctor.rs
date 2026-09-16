@@ -1665,7 +1665,7 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
     shim: shim_template.as_deref(),
   };
 
-  match gate_state(carrier.as_deref(), chain.as_deref(), templates) {
+  let mut findings = match gate_state(carrier.as_deref(), chain.as_deref(), templates) {
     GateState::NotInstalled | GateState::Current => Vec::new(),
     GateState::ChainCallsAMissingCarrier => vec![Finding::new(
       shown(&chain_path),
@@ -1692,7 +1692,128 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
         "the hook carrier is {carrier} byte(s) and the template in the resolved install is {template} -- the carrier is a copy taken at install time and nothing re-copies it, so the guards it runs are the generation it was installed with. Reported and NOT counted: measured across the fleet this is true of every estate, and a finding that is permanently true everywhere is one nobody reads"
       ),
     )],
+  };
+
+  // **A PROJECT'S OWN WIRING, beside Intent's** (issue 0426). Both findings are
+  // advisories: the commit still runs every guard this checkout wired, and what
+  // they report is the set a fresh clone will not.
+  let guards = &project.config().guards;
+  if let Some(chain) = chain.as_deref() {
+    let wiring = hook_wiring(chain, guards);
+    let at = shown(&chain_path);
+    if !wiring.doubled.is_empty() {
+      findings.push(Finding::new(
+        at.clone(),
+        FindingClass::Advisory,
+        format!(
+          "the pre-commit chain runs {} by hand and each is also a declared guard, so it runs twice on every commit -- remove the hand-wired line; the declaration in `intent/.config/config.json` is the one a fresh clone receives",
+          listing(&wiring.doubled)
+        ),
+      ));
+    }
+    if !wiring.undeclared.is_empty() && !is_tracked(root, &chain_path) {
+      findings.push(Finding::new(
+        at,
+        FindingClass::Advisory,
+        format!(
+          "the pre-commit chain is untracked, so a fresh clone does not receive it, and it runs {} outside Intent's chain block that no guard declares -- a clone commits without them and nothing says so. Declare each in `intent/.config/config.json` as `\"guards\": [{{\"run\": [\"<tracked path>\", \"<arg>\"]}}]`, so Intent's hook runs it from a tracked declaration, then remove the hand-wired line",
+          listing(&wiring.undeclared)
+        ),
+      ));
+    }
   }
+  if !git_succeeds(root, &["config", "--get", "core.hooksPath"]) {
+    for dir in [".githooks", "bin/hooks"] {
+      let rel = format!("{dir}/pre-commit");
+      // A chain in `.git/hooks` that calls the tracked file already wires it.
+      if chain.as_deref().is_some_and(|c| c.contains(&rel)) || !is_tracked(root, &root.join(&rel)) {
+        continue;
+      }
+      findings.push(Finding::new(
+        rel.clone(),
+        FindingClass::Advisory,
+        format!(
+          "`{rel}` is tracked and `core.hooksPath` is unset, so git never runs it. `core.hooksPath` lives in `.git/config`, which no clone receives, so a tracked hooks directory is lost on a fresh clone exactly as `.git/hooks` is -- run `git config core.hooksPath {dir}` in this checkout, or declare its guards in `intent/.config/config.json` so Intent's hook runs them"
+        ),
+      ));
+    }
+  }
+  findings
+}
+
+/// What a pre-commit chain runs OUTSIDE Intent's chain block, read against the
+/// project's declared guards (issue 0426).
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct HookWiring {
+  /// Command lines that name no declared guard: line number and text.
+  pub undeclared: Vec<(usize, String)>,
+  /// Command lines that run a declared guard by hand, which the hook then runs
+  /// a second time from the declaration.
+  pub doubled: Vec<(usize, String)>,
+}
+
+/// Sort a chain's own command lines into undeclared and doubled.
+///
+/// **SHELL STRUCTURE IS NOT A GUARD.** The shebang, comments, blank lines, `set`
+/// and `exit` discipline and the bare keywords that close an `if` or a loop run
+/// nothing of their own, and listing them would bury the one line that does.
+/// A line names a guard when it contains that guard's `run[0]`, the path the
+/// hook itself would execute.
+pub fn hook_wiring(chain: &str, guards: &[crate::project::GuardDecl]) -> HookWiring {
+  const STRUCTURE: &[&str] = &["fi", "then", "else", "do", "done", "esac", "{", "}", ";;"];
+  let mut wiring = HookWiring::default();
+  for (n, line) in crate::canon::lines_outside_chain_block(chain) {
+    let t = line.trim();
+    if t.is_empty()
+      || t.starts_with('#')
+      || t.starts_with("set ")
+      || t == "exit"
+      || t.starts_with("exit ")
+      || STRUCTURE.contains(&t)
+    {
+      continue;
+    }
+    let names_a_guard = guards
+      .iter()
+      .filter_map(|g| g.run.first())
+      .any(|first| !first.is_empty() && t.contains(first.as_str()));
+    let bucket = if names_a_guard {
+      &mut wiring.doubled
+    } else {
+      &mut wiring.undeclared
+    };
+    bucket.push((n, t.to_string()));
+  }
+  wiring
+}
+
+/// `line 4 `x``, the first three, then how many more.
+fn listing(lines: &[(usize, String)]) -> String {
+  let shown: Vec<String> = lines
+    .iter()
+    .take(3)
+    .map(|(n, t)| format!("line {n} `{t}`"))
+    .collect();
+  match lines.len().saturating_sub(3) {
+    0 => shown.join(", "),
+    more => format!("{} and {more} more", shown.join(", ")),
+  }
+}
+
+fn git_succeeds(root: &std::path::Path, args: &[&str]) -> bool {
+  std::process::Command::new("git")
+    .arg("-C")
+    .arg(root)
+    .args(args)
+    .output()
+    .is_ok_and(|out| out.status.success())
+}
+
+/// Whether git tracks `path`. A path outside the work tree -- `.git/hooks` in a
+/// linked worktree -- is not tracked, which is the answer wanted.
+fn is_tracked(root: &std::path::Path, path: &std::path::Path) -> bool {
+  let path = path.display().to_string();
+  git_succeeds(root, &["ls-files", "--error-unmatch", "--", &path])
 }
 
 fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {

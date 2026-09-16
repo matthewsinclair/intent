@@ -218,6 +218,8 @@ The primary critic cadence is the git `pre-commit` hook, and `intent claude upgr
 
 The gate runs a roster of repository guards, each only when its subject exists — whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, and lines removed from an append-only path — and then `intent critic <lang> --staged --severity-min <sev>` once per declared language. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine). The threshold is `severity_min` from `.intent_critic.yml`.
 
+A project's own guards are declared in `intent/.config/config.json` as a `guards` array (each an argv `run` and an optional `when` path), and the gate runs them after Intent's roster. The declaration is tracked, so a fresh clone runs the same guards as the checkout it came from; a guard wired by hand into `.git/hooks/pre-commit` is lost on every clone, and `intent doctor` reports one as an advisory. The shape and the refusals are in `intent/docs/pre-commit-hook.md` under Project guards.
+
 Why pre-commit: local, deterministic, offline, zero-latency feedback. Every developer sees violations on their own machine before pushing.
 
 Why a headless runner (`intent critic`, compiled into the binary) rather than invoking a Claude subagent for the gate: pre-commit runs on every commit. The runner applies the rules whose Detection heuristic carries a mechanical proxy, deterministically, with no LLM round-trip. The LLM-based `critic-<lang>` subagents remain available for richer reviews via `/in-review` stage 2.

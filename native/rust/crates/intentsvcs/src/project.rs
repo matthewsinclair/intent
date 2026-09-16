@@ -635,6 +635,13 @@ pub struct Config {
   /// has acknowledged something, and never written when empty.
   #[serde(default, skip_serializing_if = "DoctorConfig::is_empty")]
   pub doctor: DoctorConfig,
+  /// The project's OWN pre-commit guards (issue 0426): each an argv `run`,
+  /// resolved from the project root, and an optional `when` path.
+  /// The pre-commit hook reads and dispatches them after Intent's roster;
+  /// typed here so `doctor` can name a hook line that no declaration covers.
+  /// Absent unless a project declares one, and never written when empty.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub guards: Vec<GuardDecl>,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
   ///
@@ -933,6 +940,22 @@ impl DoctorConfig {
   fn is_empty(&self) -> bool {
     self.acknowledged.is_empty()
   }
+}
+
+/// One entry of the `guards` array: a project guard as its author declared it.
+///
+/// **`run` IS AN ARGV, NOT A COMMAND LINE**, so the hook never hands it to a
+/// shell and a path with a space in it means what it says. `run[0]` is a path
+/// relative to the project root, and it must be tracked: a guard a fresh clone
+/// does not receive is refused by the hook rather than skipped.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuardDecl {
+  pub run: Vec<String>,
+  /// A path relative to the project root, NOT a pattern: the hook skips the
+  /// guard as not applicable while nothing exists there. Absent means the guard
+  /// applies to every commit.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub when: Option<String>,
 }
 
 /// The `todo` block: how much of the DONE bucket a TERMINAL render shows.
@@ -2464,6 +2487,7 @@ mod tests {
       index: IndexConfig::default(),
       whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
+      guards: Vec::new(),
       extra: serde_json::Map::new(),
     };
 
@@ -2500,6 +2524,7 @@ mod tests {
       index: IndexConfig::default(),
       whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
+      guards: Vec::new(),
       extra: serde_json::Map::new(),
     };
 
@@ -2570,6 +2595,67 @@ mod tests {
       reread["plugins"]["claude"]["enabled"],
       serde_json::json!(true),
       "and an unmodelled block survives with its contents, not merely its key"
+    );
+  }
+
+  /// **A LANGUAGE WRITE KEEPS THE PROJECT'S GUARDS** (issue 0426).
+  ///
+  /// `lang init` and `lang remove` are the verbs that rewrite `config.json`, and
+  /// a guard they dropped would stop running at the next commit with nothing
+  /// said. Both shapes are driven -- a guard with a `when` and one without --
+  /// and the argv is compared whole, so a reordered or stringified `run` fails.
+  #[test]
+  fn a_language_write_keeps_the_projects_guards_argv_and_when_intact() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    let path = Project::config_path(root);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    let guards = serde_json::json!([
+      { "run": ["bin/hooks/check-docs", "--strict", "a b"], "when": "docs" },
+      { "run": ["bin/hooks/always"] }
+    ]);
+    std::fs::write(
+      &path,
+      format!(r#"{{"intent_version":"3.0.0","languages":["rust"],"guards":{guards}}}"#),
+    )
+    .expect("seed");
+
+    let mut config: Config =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("read")).expect("parse");
+    assert_eq!(
+      config.guards,
+      vec![
+        GuardDecl {
+          run: vec![
+            "bin/hooks/check-docs".into(),
+            "--strict".into(),
+            "a b".into()
+          ],
+          when: Some("docs".into()),
+        },
+        GuardDecl {
+          run: vec!["bin/hooks/always".into()],
+          when: None
+        },
+      ],
+      "the declaration reads as typed guards"
+    );
+
+    assert!(config.declare_language("shell"));
+    write_config(root, &config).expect("lang init's write");
+    assert!(config.undeclare_language("rust"));
+    write_config(root, &config).expect("lang remove's write");
+
+    let reread: serde_json::Value =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("reread")).expect("parse json");
+    assert_eq!(
+      reread["languages"],
+      serde_json::json!(["shell"]),
+      "{reread:#}"
+    );
+    assert_eq!(
+      reread["guards"], guards,
+      "a language write changed the guards:\n{reread:#}"
     );
   }
 
