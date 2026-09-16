@@ -1,9 +1,9 @@
 ---
 st_id: ST0057
 title: Disk as a sparse projection of the store
-status: WIP
+status: Completed
 created: 2026-08-18
-completed:
+completed: 2026-09-16
 ---
 
 # ST0057: Disk as a sparse projection of the store

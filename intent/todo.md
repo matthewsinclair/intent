@@ -23,7 +23,15 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
-- [-] ST0057: Disk as a sparse projection of the store
+
+## TODO
+
+- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
+
+## DONE:2026-09-10T00:00:51Z
+
+- [~] ST0046: Add modules (properly) to the intent cli
+- [x] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
   - [x] 03: Attachment canon: opaque as file, and the naming gate
@@ -38,18 +46,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 12: Issues get a realised form and a sigil, then join the default declaration
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
-- [-] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
-  - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
-  - [x] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
-  - [x] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
-
-## TODO
-
-- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-
-## DONE:2026-09-10T00:00:51Z
-
-- [~] ST0046: Add modules (properly) to the intent cli
 - [x] ST0058: Local cutover: v3 usable across the estate before it is releasable
   - [x] 01: One path to the native CLI: int cli carries the coherence guard
 - [~] ST0059: Rebuild all Intent docs for v3
@@ -89,6 +85,10 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 03: The project registry: explore registers its project, intent discover registers compatible ones, intentd watches the file
   - [x] 04: The explorer's project picker: /projects, and intent explore outside a project
   - [x] 05: Where intentd's durable configuration lives: a standards-compliant home, ruled by hv
+- [x] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
+  - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
+  - [x] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
+  - [x] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ---
 
