@@ -200,3 +200,56 @@ fn standing_directives_render_on_hv_s_board_and_no_other() {
     "and a board that is not hv's carries no such section, empty or not: {cc}"
   );
 }
+
+/// Issue 0412: a registered, unmigrated board is not a generated view. Its
+/// markdown is not compared against the render -- no sync writes over it, so no
+/// sync could clear a skew reported against it -- and it is reported once, as
+/// an advisory naming `wb migrate`, beside a migrated peer whose views are
+/// generated.
+#[test]
+fn a_registered_unmigrated_board_is_an_advisory_naming_the_migration_and_never_skew() {
+  let fx = Fixture::new();
+  let dir = fx.path("intent/whiteboard/dc");
+  std::fs::create_dir_all(&dir).expect("node dir");
+  std::fs::write(dir.join("wip.md"), HAND_BOARD).expect("a hand-authored board");
+  std::fs::write(
+    dir.join("inbox.cc.md"),
+    "# inbox: cc -> dc\n\n## (2026-09-16 10:00Z)\n\na hand-authored entry\n",
+  )
+  .expect("a hand-authored inbox");
+  {
+    let mut f = fx.facade_on_disk();
+    f.register_roster().expect("register dc by its header");
+    f.wb_register("cc", "Control Claude", "control")
+      .expect("register cc");
+    f.wb_add("cc", WbItemKind::Hold, "held until dc migrates")
+      .expect("a row on the migrated peer");
+    f.sync_to_disk(&intentsvcs::sync::Scope::All)
+      .expect("project the views");
+  }
+  assert_eq!(
+    fx.read("intent/whiteboard/dc/wip.md"),
+    HAND_BOARD,
+    "precondition: the projection left the unmigrated board alone"
+  );
+
+  let findings = whiteboard_findings(&fx);
+  assert!(
+    !findings
+      .iter()
+      .any(|f| f.file.starts_with("intent/whiteboard/dc/") && f.class == FindingClass::ViewSkew),
+    "an unmigrated board is not skew against a render nothing writes: {findings:?}"
+  );
+  let advisories: Vec<&Finding> = findings
+    .iter()
+    .filter(|f| f.file.starts_with("intent/whiteboard/dc/"))
+    .collect();
+  assert_eq!(advisories.len(), 1, "once per node: {advisories:?}");
+  assert_eq!(advisories[0].file, "intent/whiteboard/dc/wip.md");
+  assert_eq!(advisories[0].class, FindingClass::Advisory);
+  assert!(
+    advisories[0].detail.contains("`intent wb migrate dc`"),
+    "the remedy is the migration: {}",
+    advisories[0].detail
+  );
+}

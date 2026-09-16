@@ -2111,6 +2111,27 @@ pub fn skew(
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
+    let owner = undeclared_owner(project, &view.path, canon, realised);
+    // **A REGISTERED, UNMIGRATED BOARD IS NOT A GENERATED VIEW AND IS NEVER
+    // COMPARED AGAINST ONE** (issue 0412). Its markdown stays hand-authored and
+    // authoritative until `wb migrate` carries it, the projection writes nothing
+    // over it, and so no sync could clear a skew reported against it: devbin's
+    // commit gate was refused on exactly that, under a remedy that exits 0 and
+    // leaves the file byte-identical. It is reported as what it is, ONCE per
+    // node at its board, and as an advisory: a cutover not yet made is an estate
+    // that is early rather than one that is broken.
+    if let Some(Undeclared::Board(node)) = &owner {
+      if view.path == project.wb_board_view(node) && view.path.exists() {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::Advisory,
+          format!(
+            "`{node}` is registered and not migrated: this board and its inboxes are still hand-authored markdown, and nothing renders over them or compares them against the model -- `intent wb migrate {node}` carries them into the model, after which they are generated views"
+          ),
+        ));
+      }
+      continue;
+    }
     match std::fs::read_to_string(&view.path) {
       Ok(on_disk) if on_disk == view.content => {}
       // **TWO CAUSES, AND THE REMEDY THAT CLEARS THIS FINDING DEPENDS ON THE
@@ -2147,11 +2168,11 @@ pub fn skew(
         // arm additionally needs the id, because `st hydrate` is a thread's
         // verb; an undeclared ISSUE's stale view gets the generic remedy, since
         // there is no thread to pin.
-        let unlisted = match undeclared_owner(project, &view.path, canon, realised) {
-          Some(Undeclared::Thread(id)) => Some(id),
+        let unlisted = match &owner {
+          Some(Undeclared::Thread(id)) => Some(id.clone()),
           Some(Undeclared::Issue(_)) | Some(Undeclared::Board(_)) | None => None,
         };
-        let remedy = match &unlisted {
+        let remedy = match (&unlisted, &owner) {
           // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT
           // IT** (hv, 2026-09-12: silent deletion). `st hydrate` will not write
           // over a view whose bytes differ from the render -- which is this
@@ -2160,10 +2181,19 @@ pub fn skew(
           // finding's own paragraph says the difference has two causes and
           // nothing here can tell them apart, so the remedy names the discard
           // it performs rather than implying a regeneration that loses nothing.
-          Some(id) => format!(
+          (Some(id), _) => format!(
             "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in `.intentfiles`"
           ),
-          None => "`intent sync --to-disk` regenerates it from the store".to_string(),
+          // **AN UNDECLARED ISSUE'S VIEW HAS NO VERB THAT REWRITES IT** (issue
+          // 0412). `sync --to-disk` skips it because the manifest does not
+          // realise it, and `organize --apply` refuses to remove it because it
+          // cannot tell a stale render from a hand edit -- so the remedy this
+          // arm used to name exited 0 and left the finding standing. The two
+          // routes that DO clear it are removing the file or declaring it.
+          (None, Some(Undeclared::Issue(number))) => format!(
+            "issue {number:04} is not declared in `.intentfiles`, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `ISSUE:{number:04}` to `.intentfiles` and run `intent organize --apply`, which rewrites it"
+          ),
+          _ => "`intent sync --to-disk` regenerates it from the store".to_string(),
         };
         findings.push(Finding::new(
           &rel,
@@ -2208,7 +2238,7 @@ pub fn skew(
       // -- a prediction of this exact defect by the author of the sibling path.
       // The two paths now answer the same question the same way.
       Err(_) => {
-        if undeclared_owner(project, &view.path, canon, realised).is_none() {
+        if owner.is_none() {
           findings.push(Finding::new(
             &rel,
             FindingClass::ViewSkew,

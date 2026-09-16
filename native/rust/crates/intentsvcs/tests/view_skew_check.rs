@@ -410,3 +410,42 @@ fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
     findings[0].detail
   );
 }
+
+/// Issue 0412: an undeclared issue's view that differs from its render names a
+/// remedy that clears it. `sync --to-disk` skips an undeclared view and
+/// `organize --apply` refuses to remove one it cannot tell from a hand edit, so
+/// the old remedy exited 0 and left the finding standing -- which wedged a
+/// commit gate. The two routes named are the ones that clear it.
+#[test]
+fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
+  use intentsvcs::intentfiles::{Realised, Sigil, declared_key};
+
+  let fx = Fixture::new();
+  let project = fx.project();
+  let mut canon = canon();
+  canon.issues = vec![crate::common::sample_issue(21)];
+  views::write_all(&project, &canon, &ctx()).expect("write");
+  let edited = format!("{}\na leftover line\n", fx.read("intent/issues/0021.md"));
+  fx.write_file("intent/issues/0021.md", &edited);
+
+  let thread_only = Realised::Declared(
+    [declared_key(Sigil::SteelThread, "ST0056")]
+      .into_iter()
+      .collect(),
+  );
+  let findings = views::skew(&project, &canon, &ctx(), &thread_only);
+  assert_eq!(findings.len(), 1, "{findings:?}");
+  assert_eq!(findings[0].file, "intent/issues/0021.md");
+  assert_eq!(findings[0].class, FindingClass::ViewSkew);
+  let detail = &findings[0].detail;
+  assert!(
+    detail.contains("delete it")
+      && detail.contains("`ISSUE:0021`")
+      && detail.contains("`intent organize --apply`"),
+    "the remedy names removing the file or declaring it: {detail}"
+  );
+  assert!(
+    !detail.contains("`intent sync --to-disk` regenerates it"),
+    "and never the sync that skips an undeclared view: {detail}"
+  );
+}
