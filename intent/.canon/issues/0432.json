@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 432,
+  "slug": "the-explorer-shows-a-blank-screen-after-returnin",
+  "title": "The explorer shows a blank screen after returning from nvim, on hv's terminal",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happened\n\nhv, 2026-09-16: \"Returning from editing a file in the editor (ie nvim) clears the screen and then the TUI isn't redrawn properly; there is nothing but a blank screen.\"\n\n## Measured so far (ic, not reproduced)\n\n- `run.rs` sets `lent_the_terminal` on all four lend paths (OpenFile, Open, Run, Hand) and calls `term.clear()` on return (WP-17's fix, 94cd1047a), so the next draw paints in full.\n- Driven on the installed binary (04a667c7) in a pty under an isolated HOME, answering the terminal queries iTerm would: an issue body through the Hand path (a stand-in editor, and real nvim 0.12.5), and a thread's design.md through the Open path (real nvim). Every run re-entered the alternate screen, cleared and drew a full frame, and the next key diffed normally.\n- Control: with the cursor-position query unanswered, the explorer exits with \"the terminal would not co-operate\" rather than going blank, so a lost reply is not this symptom.\n\n## Not yet known\n\nWhat the real terminal received. Candidates, none measured: iTerm's synchronized-update or alternate-screen state after nvim's exit sequence, tmux in between, a wrapper around `$EDITOR`. The next step is hv's capture (`script -q <file> intent explore`), plus which view and row, whether a key or a resize restores the screen, and whether tmux is involved. Owner: ic, building nothing until the capture names the cause.\n"
+}
