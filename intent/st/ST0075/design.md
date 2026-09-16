@@ -25,10 +25,10 @@ The verb the Console tails, and a terminal verb in its own right.
 
 ## The Console in Intent.app
 
-- A "Console…" item on ⌘L at the top of the menu opens and closes the window. The window tails `intent daemon logs --follow` while it is visible and stops the tail when it closes.
+- A "Console…" item on ⌘L at the top of the menu opens and closes the window. The window tails `intent daemon logs --follow` while it is visible and stops the tail when it closes. Opening it again starts a new tail, and the lines the earlier tail supplied give way to the new one's replay of each log's last lines, so none shows twice; the app's own lines stay.
 - The app's main menu, which already carries Edit, gains File → Close (⌘W) and View → Clear Console (⌘K), reaching the window through the responder chain as Gtools does.
 - **The app gives the follow child a stdin pipe and holds its write end** for as long as the Console tails. Closing it (the window closes, or the app dies however it dies) ends the verb and its tail; `terminate()` does the same. Without the pipe, a GUI app's child inherits an empty stdin and the verb ends at once.
-- Lines are classified for colour: `error:`, `caused by:` and `intentd: could not` as errors, `remedy:` as a warning, `»` lines as markers, the rest as log.
+- Lines are classified for colour: `error:`, `caused by:` and `intentd: could not` as errors, `warning:` and `remedy:` as warnings, `»` lines as markers, the rest as log. `warning:` is intentd's own severity -- a connection it could not accept, a LaunchAgent it could not regenerate -- and joined `remedy:` on vc's ruling of 2026-09-15. A line intentd stamps, with one leading RFC 3339 UTC timestamp and a space on either log (issue 0321), classifies as the line under the stamp.
 - **Run Doctor** runs `intent doctor` in the Console and brings the window forward, so a clean pass is seen. Gtools makes bringing it forward a preference; Intent.app has no settings window, and the operator who clicks Run Doctor has asked to see the result.
 - **Rebuild Search Index** is a new item running `intent index rebuild` the same way. intentd's error log already tells the operator to run it.
 - **Start, Stop and Restart intentd** write their command and its result into the Console as a marked block, without bringing it forward. They already run through `DaemonService.lifecycle`, which captures each command's output and today sends it only to the system log; that output goes to the runner's note instead.

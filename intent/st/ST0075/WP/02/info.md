@@ -2,14 +2,14 @@
 wp_id: WP-02
 title: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
 
 ## Objective
 
-_(not yet written)_
+Intent.app's Console window, copied from Gtools: Console… on ⌘L tails `intent daemon logs --follow` while the window is open, holding the child's stdin so the verb and its tail end with the window or with the app however it dies; the footer names the two files the verb's first line says it is tailing; lines are coloured by intentd's own tokens, after any timestamp intentd stamps on them; a bounded backlog keeps the app's own lines across a close, and a reopened window shows the verb's replay rather than the earlier tail's lines twice; and File → Close and View → Clear Console reach the window through the responder chain.
 
 ## Acceptance
 

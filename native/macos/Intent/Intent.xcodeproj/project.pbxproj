@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1DE37D2FE2B9D3B49132CB41 /* ConsoleWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */; };
 		2997E46680241912D530A7B5 /* HealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29672806305D887EA65656B8 /* HealthTests.swift */; };
 		39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20934AD411AEAE2B4F79A01B /* DaemonService.swift */; };
 		63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */; };
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
 		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
 		7D834CF192226880601F3117 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A196E045968A129A323B3D /* Health.swift */; };
+		828CE0959BBDB3F7A50BFC9D /* ConsoleLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D3EF321345AFA711845E70 /* ConsoleLine.swift */; };
 		8343B7CACA2683B7988F3B85 /* tail-orphan-probe.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */; };
 		8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */; };
 		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
@@ -20,9 +22,13 @@
 		AEC29FC709731DBCD305DDEC /* Poller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8E88CC01798FAF64224EC9 /* Poller.swift */; };
 		B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC383096DF8A7D0628802048 /* VersionServiceTests.swift */; };
 		BA9D8826A2AF602EDE7C694D /* VersionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D295EE684DDA44AB926831B4 /* VersionService.swift */; };
+		C30DECF79FAFD474D4A5EC07 /* IntentCLIStreamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */; };
 		D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1FDFCD2416E01A931378EF /* ProjectService.swift */; };
+		D5124505F2A0C08CD4F41239 /* ConsoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */; };
 		DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
+		EBF3AF03AA3839C2B76908CC /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBD05359383F74A925C859E /* AppLog.swift */; };
+		ED8E98F4A429AF2BE95E19D7 /* ConsoleRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */; };
 		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -37,8 +43,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleWindowController.swift; sourceTree = "<group>"; };
 		20934AD411AEAE2B4F79A01B /* DaemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonService.swift; sourceTree = "<group>"; };
 		29672806305D887EA65656B8 /* HealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTests.swift; sourceTree = "<group>"; };
+		2BBD05359383F74A925C859E /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleRunner.swift; sourceTree = "<group>"; };
 		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -46,6 +55,7 @@
 		5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
+		6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleTests.swift; sourceTree = "<group>"; };
 		6E8E88CC01798FAF64224EC9 /* Poller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Poller.swift; sourceTree = "<group>"; };
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -56,15 +66,18 @@
 		B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectServiceTests.swift; sourceTree = "<group>"; };
 		BD1FDFCD2416E01A931378EF /* ProjectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectService.swift; sourceTree = "<group>"; };
 		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
+		CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLIStreamTests.swift; sourceTree = "<group>"; };
 		D295EE684DDA44AB926831B4 /* VersionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionService.swift; sourceTree = "<group>"; };
 		D9ED4FC1411ABD3535ED4A3F /* Intent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC383096DF8A7D0628802048 /* VersionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionServiceTests.swift; sourceTree = "<group>"; };
+		F8D3EF321345AFA711845E70 /* ConsoleLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleLine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		06F1E41B346A90B5B5929D42 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				2BBD05359383F74A925C859E /* AppLog.swift */,
 				7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */,
 				6E8E88CC01798FAF64224EC9 /* Poller.swift */,
 				894E47351007915CC6F59BBD /* Theme.swift */,
@@ -83,6 +96,7 @@
 				2663181069977861CA08EB95 /* Models */,
 				4C162142A7E052C76D6298ED /* Services */,
 				06F1E41B346A90B5B5929D42 /* Utilities */,
+				5127FADD6735CFE5B4C4987B /* Views */,
 			);
 			path = Intent;
 			sourceTree = "<group>";
@@ -90,6 +104,7 @@
 		2663181069977861CA08EB95 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F8D3EF321345AFA711845E70 /* ConsoleLine.swift */,
 				93A196E045968A129A323B3D /* Health.swift */,
 			);
 			path = Models;
@@ -98,7 +113,9 @@
 		36432786E9DEB6D7808CC402 /* IntentTests */ = {
 			isa = PBXGroup;
 			children = (
+				6C37F14D17BFBF25C00FEFD4 /* ConsoleTests.swift */,
 				29672806305D887EA65656B8 /* HealthTests.swift */,
+				CF08243CA86423DC9F591566 /* IntentCLIStreamTests.swift */,
 				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
 				5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */,
@@ -111,6 +128,7 @@
 		4C162142A7E052C76D6298ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				36D5486CB1EC1784D17369FD /* ConsoleRunner.swift */,
 				20934AD411AEAE2B4F79A01B /* DaemonService.swift */,
 				60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */,
 				9DC7A046D343F9FF30FC56EA /* LoginShell.swift */,
@@ -120,6 +138,14 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		5127FADD6735CFE5B4C4987B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				822893D5597B46204D93B903 /* Console */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		7B5A377AB41B28879377D20A /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +153,14 @@
 				4AF69039A2E9F208B08C436D /* IntentTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		822893D5597B46204D93B903 /* Console */ = {
+			isa = PBXGroup;
+			children = (
+				064AD6E96C572AE9369B3902 /* ConsoleWindowController.swift */,
+			);
+			path = Console;
 			sourceTree = "<group>";
 		};
 		8C961C266FDD3CFBBA3D5CCB = {
@@ -241,6 +275,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBF3AF03AA3839C2B76908CC /* AppLog.swift in Sources */,
+				828CE0959BBDB3F7A50BFC9D /* ConsoleLine.swift in Sources */,
+				ED8E98F4A429AF2BE95E19D7 /* ConsoleRunner.swift in Sources */,
+				1DE37D2FE2B9D3B49132CB41 /* ConsoleWindowController.swift in Sources */,
 				77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */,
 				39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */,
 				7D834CF192226880601F3117 /* Health.swift in Sources */,
@@ -258,7 +296,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5124505F2A0C08CD4F41239 /* ConsoleTests.swift in Sources */,
 				2997E46680241912D530A7B5 /* HealthTests.swift in Sources */,
+				C30DECF79FAFD474D4A5EC07 /* IntentCLIStreamTests.swift in Sources */,
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
 				DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */,

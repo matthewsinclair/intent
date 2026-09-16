@@ -15,8 +15,7 @@ import Observation
 @MainActor @Observable
 final class DaemonService {
   static let shared = DaemonService()
-  private static let logger = Logger(
-    subsystem: "com.matthewsinclair.intent.macos", category: "DaemonService")
+  private static let logger = AppLog.logger("DaemonService")
 
   private(set) var health: Health = .unknown("not yet polled")
   /// "Starting…" / "Stopping…" / "Restarting…" while a lifecycle verb runs, so

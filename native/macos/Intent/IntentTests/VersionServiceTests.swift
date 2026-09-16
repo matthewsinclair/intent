@@ -45,21 +45,17 @@ final class VersionServiceTests: XCTestCase {
     XCTAssertNil(VersionService.menuTitle("  \n"))
   }
 
-  /// **THE FAILED STATE RENDERS DIFFERENTLY FROM THE PENDING ONE**, and carries
-  /// its cause for the tooltip; pending carries none. This pins the rendering
-  /// only: that `refresh()` sets `failed` on a thrown or empty read is not
-  /// reached here, because the CLI call is not injectable.
+  /// **THE FAILED STATE RENDERS DIFFERENTLY FROM THE PENDING ONE.** This pins
+  /// the rendering only: that `refresh()` sets `failed` on a thrown or empty read
+  /// is not reached here, because the CLI call is not injectable.
   func testFailedAndPendingStatesRenderDifferently() {
     XCTAssertEqual(VersionState.pending.menuTitle, "Intent")
-    XCTAssertNil(VersionState.pending.failure)
     let failed = VersionState.failed("intent was not found on the login shell's PATH")
     XCTAssertEqual(failed.menuTitle, "Intent (version unavailable)")
-    XCTAssertEqual(failed.failure, "intent was not found on the login shell's PATH")
   }
 
   func testAnAnsweredReadRendersTheCLIsTitle() {
     let answered = VersionState.answered("intent 3.0.1 (8a48430e)")
     XCTAssertEqual(answered.menuTitle, "intent 3.0.1 (8a48430e)")
-    XCTAssertNil(answered.failure)
   }
 }

@@ -20,12 +20,6 @@ enum VersionState: Sendable, Equatable {
     case .failed: "Intent (version unavailable)"
     }
   }
-
-  /// Why the read failed, for the row's tooltip; nil unless it failed.
-  var failure: String? {
-    if case .failed(let why) = self { return why }
-    return nil
-  }
 }
 
 /// The version of the `intent` this app drives, read through `intent version`
@@ -37,8 +31,7 @@ enum VersionState: Sendable, Equatable {
 @MainActor @Observable
 final class VersionService {
   static let shared = VersionService()
-  private static let logger = Logger(
-    subsystem: "com.matthewsinclair.intent.macos", category: "VersionService")
+  private static let logger = AppLog.logger("VersionService")
 
   private(set) var state: VersionState = .pending
 

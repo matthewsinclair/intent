@@ -2,23 +2,24 @@ import AppKit
 import OSLog
 import ServiceManagement
 
-/// Intent.app: the menubar item, the intent:// handler, and control of intentd.
-/// Every daemon and project action here runs an `intent` verb; every fact shown
-/// comes from the daemon or the CLI, never from a Swift-side derivation
-/// (AC-01.1). The shape is Geodica's AppDelegate, cut to intentd. The intent://
-/// handler is wired below (AC-01.5). There is no console and no settings UI: the
-/// console waits on a log verb the CLI does not have (the ruling for when one is
-/// built sits on `IntentCLI.stream`, AC-01.4).
+/// Intent.app: the menubar item, the intent:// handler, the Console, and control
+/// of intentd. Every daemon and project action here runs an `intent` verb; every
+/// fact shown comes from the daemon or the CLI, never from a Swift-side
+/// derivation (AC-01.1). The shape is Geodica's AppDelegate, cut to intentd. The
+/// intent:// handler is wired below (AC-01.5). The Console (⌘L) tails
+/// `intent daemon logs --follow` while its window is open (ST0075). There is no
+/// settings UI.
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-  static let logger = Logger(subsystem: "com.matthewsinclair.intent.macos", category: "App")
+  static let logger = AppLog.logger("App")
 
   private var statusItem: NSStatusItem?
   private let daemon = DaemonService.shared
   private let project = ProjectService.shared
   private let version = VersionService.shared
   private var observation: ContinuousObservation?
+  private var consoleController: ConsoleWindowController?
 
   static let firstRunKey = "FirstRunDone"
 
@@ -57,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
+    ConsoleRunner.shared.stopTail()
     daemon.stopPolling()
     project.stopPolling()
     version.stopPolling()
@@ -85,8 +87,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     return NSImage(systemSymbolName: "tortoise.fill", accessibilityDescription: "Intent")
   }
 
-  /// Standard Edit menu so Cmd-C/V/X/A work in text fields (an LSUIElement app
-  /// has no menu bar of its own, but the responder chain still needs it).
+  /// Standard Edit menu so Cmd-C/V/X/A work in text fields, and File and View for
+  /// the Console (an LSUIElement app has no menu bar of its own, but the responder
+  /// chain still needs it).
   private func setupMainMenu() {
     let mainMenu = NSMenu()
     let editMenu = NSMenu(title: "Edit")
@@ -99,7 +102,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
     let editMenuItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
     editMenuItem.submenu = editMenu
+
+    // File → Close (⌘W) and View → Clear Console (⌘K) reach the Console window
+    // through the responder chain, as a terminal would expect (ST0075).
+    let fileMenu = NSMenu(title: "File")
+    fileMenu.addItem(
+      NSMenuItem(title: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
+    let fileMenuItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
+    fileMenuItem.submenu = fileMenu
+
+    let viewMenu = NSMenu(title: "View")
+    viewMenu.addItem(
+      NSMenuItem(
+        title: "Clear Console", action: #selector(ConsoleWindowController.clearConsole(_:)),
+        keyEquivalent: "k"))
+    let viewMenuItem = NSMenuItem(title: "View", action: nil, keyEquivalent: "")
+    viewMenuItem.submenu = viewMenu
+
+    mainMenu.addItem(fileMenuItem)
     mainMenu.addItem(editMenuItem)
+    mainMenu.addItem(viewMenuItem)
     NSApp.mainMenu = mainMenu
   }
 
@@ -146,12 +168,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // **THE IDENTITY ROW NAMES THE BUILD** (hv, 2026-09-13): "intent 3.0.1
     // (8a48430e)", read through `intent version` (VersionService). Until the
     // CLI answers the row is the app's name; when it cannot answer the row
-    // says so and its tooltip carries the cause -- never a version remembered
-    // from an earlier read.
+    // says so -- never a version remembered from an earlier read. It carries no
+    // tooltip: the one it showed on a failed read was dropped (hv's rulings of
+    // 2026-09-15, item 18).
     let identityTitle = version.state.menuTitle
     let identity = NSMenuItem(title: identityTitle, action: nil, keyEquivalent: "")
     identity.isEnabled = false
-    identity.toolTip = version.state.failure
     identity.attributedTitle = NSAttributedString(
       string: identityTitle,
       attributes: [.font: NSFont.boldSystemFont(ofSize: 13)]
@@ -187,6 +209,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     menu.addItem(summary)
 
+    menu.addItem(.separator())
+
+    // **THE CONSOLE (ST0075)**: intentd's logs, tailed while its window is open.
+    menu.addItem(NSMenuItem(title: "Console…", action: #selector(toggleConsole), keyEquivalent: "l"))
     menu.addItem(.separator())
 
     if let busy = daemon.busy {
@@ -263,6 +289,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     runLifecycle("Restart failed") { try await self.daemon.restart() }
   }
   @objc private func runDoctorVerb() { runVerb(["doctor"], failing: "Doctor failed") }
+
+  @objc private func toggleConsole() {
+    console.toggle()
+  }
+
+  /// Made on first use and kept for the life of the app.
+  private var console: ConsoleWindowController {
+    if let consoleController { return consoleController }
+    let controller = ConsoleWindowController()
+    consoleController = controller
+    return controller
+  }
 
   /// Open the daemon's web face in whatever the operator's default browser is.
   ///

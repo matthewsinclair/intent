@@ -21,7 +21,7 @@ _(not yet written)_
 | WP    | Title                                                                                                          | Size | Status      |
 | ----- | -------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
 | WP-01 | The verb: intent daemon logs, with --lines and --follow, its register row and tests                            | S    | Done        |
-| WP-02 | The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console             | S    | Not Started |
+| WP-02 | The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console             | S    | WIP         |
 | WP-03 | The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there | S    | Not Started |
 
 ## Acceptance

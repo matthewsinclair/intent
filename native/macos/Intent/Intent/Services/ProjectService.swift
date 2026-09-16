@@ -17,8 +17,7 @@ import Observation
 @MainActor @Observable
 final class ProjectService {
   static let shared = ProjectService()
-  private static let logger = Logger(
-    subsystem: "com.matthewsinclair.intent.macos", category: "ProjectService")
+  private static let logger = AppLog.logger("ProjectService")
 
   /// The number of steel threads intentd reports for the configured project, or
   /// nil when no project is configured or the query has not answered. The menu

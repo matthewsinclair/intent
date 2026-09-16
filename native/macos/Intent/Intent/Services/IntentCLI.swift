@@ -1,4 +1,6 @@
 import Foundation
+import OSLog
+import os
 
 /// Result of a completed `intent` invocation.
 struct CLIRunResult: Sendable {
@@ -131,24 +133,37 @@ enum IntentCLI {
     }.value
   }
 
-  /// Streams stdout and stderr, merged and line by line, to `onLine` (called on
-  /// an arbitrary queue -- hop to the main actor before touching UI), and still
-  /// returns the full result on exit. `onStart` receives a handle so a caller
-  /// can end the child early.
+  /// One thing a streamed child did: printed a line (its stdout and stderr
+  /// merged, in the order they were read), or exited, which is always the last
+  /// event.
+  enum StreamEvent: Sendable, Equatable {
+    case line(String)
+    case exited(Int32)
+  }
+
+  /// A launched child: what it does, as events, and the handle that ends it
+  /// early.
+  struct StreamedChild: Sendable {
+    let events: AsyncStream<StreamEvent>
+    let child: RunningProcess
+  }
+
+  /// Launches `intent <args>` and returns at once: lines arrive on `events` in
+  /// the order the child wrote them, then its exit.
   ///
-  /// **THE TAIL'S LIFECYCLE IS A DECIDED PLAN, NOT A DIVISION OF LABOUR THAT
-  /// ALREADY EXISTS.** This comment used to say the console's tail pipeline was
-  /// *the verb's job, not the app's*, in the present tense -- and there is no
-  /// such verb: `log`, `tail` and `console` are absent from the top level, from
-  /// `daemon` and from `app`. Issue `0281` filed that, because a sentence
-  /// reading as settled is one the next author BUILDS ON, which produces
-  /// exactly the unbounded tail leak `AC-01.4` exists to prevent.
+  /// **NO THREAD WAITS ON THE CHILD.** The pipe's readability handler and the
+  /// process's termination handler feed the events, so a child that runs for as
+  /// long as the Console is open holds no thread of the concurrency pool, and
+  /// the one task reading `events` is what a stop cancels.
   ///
-  /// **RULED 2026-09-09 (vc under hv's pen), option (i): when a log verb is
-  /// built, IT runs its pipeline under a shell that reads its own stdin**, so
-  /// the group goes down when that pipe closes -- and the runtime's death
-  /// closes it however it dies, SIGKILL included. The app then needs no special
-  /// handling and plain `terminate()` below is correct.
+  /// **`holdStdin` IS HOW A FOLLOWING VERB ENDS, AND THE CONSOLE PASSES IT.**
+  /// Issue `0281`'s ruling (option (i), vc under hv's pen, 2026-09-09) is built:
+  /// `intent daemon logs --follow` runs its tail under a shell that reads its
+  /// own stdin, and the verb ends when ITS stdin closes. So the app gives that
+  /// child a stdin pipe and holds the write end: `RunningProcess.terminate()`
+  /// closes it, and the app's death closes it however the app dies, SIGKILL
+  /// included. Without the pipe a GUI app's child inherits an empty stdin, and
+  /// the verb would end the moment it started.
   ///
   /// **THE ALTERNATIVE WAS DECLINED FOR A REASON WORTH KEEPING HERE.** Giving
   /// the app the job means `kill(-pgid, SIGTERM)`, which works only because a
@@ -159,20 +174,11 @@ enum IntentCLI {
   /// reaches for group signalling must assert `child.pgid == child.pid` FIRST,
   /// because a test that only checks the tail is gone PASSES ON A BUILD THAT
   /// KILLED THE APP.**
-  ///
-  /// **NOTHING CALLS THIS TODAY**, so nothing leaks yet; the trap is live for
-  /// the next reader rather than for the current build.
-  static func stream(
-    _ args: [String],
-    onStart: (@Sendable (RunningProcess) -> Void)? = nil,
-    onLine: @Sendable @escaping (String) -> Void
-  ) async throws -> CLIRunResult {
+  static func stream(_ args: [String], holdStdin: Bool = false) throws -> StreamedChild {
     guard let binary = binary() else { throw IntentCLIError.binaryNotFound }
     let env = environment()
     let cwd = try projectDirectory()
-    return try await Task.detached(priority: .userInitiated) {
-      try runProcessStreaming(binary: binary, args: args, env: env, cwd: cwd, onStart: onStart, onLine: onLine)
-    }.value
+    return try launchStreaming(binary: binary, args: args, env: env, cwd: cwd, holdStdin: holdStdin)
   }
 
   // MARK: - Processes
@@ -211,10 +217,12 @@ enum IntentCLI {
     let errData = errBox.get()
     process.waitUntilExit()
 
+    // Bytes that are not valid UTF-8 show as U+FFFD rather than as an empty
+    // answer, which a caller would read as "printed nothing".
     return CLIRunResult(
       exitCode: process.terminationStatus,
-      stdout: String(data: outData, encoding: .utf8) ?? "",
-      stderr: String(data: errData, encoding: .utf8) ?? ""
+      stdout: String(decoding: outData, as: UTF8.self),
+      stderr: String(decoding: errData, as: UTF8.self)
     )
   }
 
@@ -236,85 +244,117 @@ enum IntentCLI {
     }
   }
 
-  /// Line assembly for the streaming pipe. `readabilityHandler` fires on a
-  /// private queue; the lock keeps the buffer honest.
-  private final class StreamState: @unchecked Sendable {
-    private let lock = NSLock()
-    private var buffer = Data()
-    private var full = Data()
+  /// A streamed child's output, assembled into lines and handed to its events.
+  /// The readability handler and the termination handler run on queues of
+  /// their own, and everything here happens under one lock, so the events keep
+  /// the order the bytes arrived in and the exit comes last.
+  ///
+  /// **A LINE THAT IS NOT VALID UTF-8 STILL ARRIVES**, its bad bytes shown as
+  /// U+FFFD: dropping it would lose a log line with nothing to say so.
+  private final class StreamState: Sendable {
+    private struct Progress {
+      var pending = Data()
+      var outputClosed = false
+      var status: Int32?
+      var finished = false
+    }
 
-    func append(_ chunk: Data) -> [String] {
-      lock.lock()
-      defer { lock.unlock() }
-      full.append(chunk)
-      buffer.append(chunk)
-      var lines: [String] = []
-      while let nl = buffer.firstIndex(of: 0x0A) {
-        let lineData = buffer.subdata(in: buffer.startIndex..<nl)
-        buffer.removeSubrange(buffer.startIndex...nl)
-        if let line = String(data: lineData, encoding: .utf8) { lines.append(line) }
+    private let progress = OSAllocatedUnfairLock(initialState: Progress())
+    private let continuation: AsyncStream<StreamEvent>.Continuation
+
+    init(_ continuation: AsyncStream<StreamEvent>.Continuation) {
+      self.continuation = continuation
+    }
+
+    func received(_ chunk: Data) {
+      progress.withLock { progress in
+        progress.pending.append(chunk)
+        while let newline = progress.pending.firstIndex(of: 0x0A) {
+          let line = progress.pending.subdata(in: progress.pending.startIndex..<newline)
+          progress.pending.removeSubrange(progress.pending.startIndex...newline)
+          continuation.yield(.line(String(decoding: line, as: UTF8.self)))
+        }
       }
-      return lines
     }
 
-    func flushTail() -> String? {
-      lock.lock()
-      defer { lock.unlock() }
-      guard !buffer.isEmpty else { return nil }
-      let s = String(data: buffer, encoding: .utf8)
-      buffer.removeAll()
-      return s
+    /// The end of the output: a trailing fragment with no newline is a line too.
+    func outputClosed() {
+      progress.withLock { progress in
+        if !progress.pending.isEmpty {
+          continuation.yield(.line(String(decoding: progress.pending, as: UTF8.self)))
+          progress.pending.removeAll()
+        }
+        progress.outputClosed = true
+        finishIfDone(&progress)
+      }
     }
 
-    func all() -> String {
-      lock.lock()
-      defer { lock.unlock() }
-      return String(data: full, encoding: .utf8) ?? ""
+    func exited(_ status: Int32) {
+      progress.withLock { progress in
+        progress.status = status
+        finishIfDone(&progress)
+      }
+    }
+
+    /// **THE EVENTS END WHEN BOTH ENDS HAVE BEEN SEEN.** Output can outlive the
+    /// exit by a moment, and finishing at the exit alone would lose what the
+    /// child wrote last.
+    private func finishIfDone(_ progress: inout Progress) {
+      guard progress.outputClosed, let status = progress.status, !progress.finished else { return }
+      progress.finished = true
+      continuation.yield(.exited(status))
+      continuation.finish()
     }
   }
 
-  private static func runProcessStreaming(
+  /// `stream` once the binary is found, and the seam its tests drive with
+  /// `/bin/sh`, so they exercise the plumbing rather than a verb.
+  static func launchStreaming(
     binary: String,
     args: [String],
     env: [String: String],
     cwd: URL?,
-    onStart: (@Sendable (RunningProcess) -> Void)?,
-    onLine: @Sendable @escaping (String) -> Void
-  ) throws -> CLIRunResult {
+    holdStdin: Bool
+  ) throws -> StreamedChild {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: binary)
     process.arguments = args
     process.environment = env
     process.currentDirectoryURL = cwd
 
-    let pipe = Pipe()
-    process.standardOutput = pipe
-    process.standardError = pipe
+    let output = Pipe()
+    process.standardOutput = output
+    process.standardError = output
+    // A held stdin is how a following verb learns to end (see `stream`).
+    let input = holdStdin ? Pipe() : nil
+    if let input { process.standardInput = input }
+    let held = input.map { HeldInput($0.fileHandleForWriting) }
 
-    let state = StreamState()
-    pipe.fileHandleForReading.readabilityHandler = { handle in
+    let (events, continuation) = AsyncStream.makeStream(of: StreamEvent.self)
+    let state = StreamState(continuation)
+    output.fileHandleForReading.readabilityHandler = { handle in
       let chunk = handle.availableData
-      guard !chunk.isEmpty else { return }
-      for line in state.append(chunk) { onLine(line) }
+      if chunk.isEmpty {
+        handle.readabilityHandler = nil
+        state.outputClosed()
+      } else {
+        state.received(chunk)
+      }
+    }
+    process.terminationHandler = { process in
+      held?.close()
+      state.exited(process.terminationStatus)
     }
 
     do {
       try process.run()
     } catch {
-      pipe.fileHandleForReading.readabilityHandler = nil
+      output.fileHandleForReading.readabilityHandler = nil
+      process.terminationHandler = nil
+      held?.close()
       throw IntentCLIError.failedToLaunch(underlying: error.localizedDescription)
     }
-    onStart?(RunningProcess(process))
-    process.waitUntilExit()
-    pipe.fileHandleForReading.readabilityHandler = nil
-
-    let trailing = pipe.fileHandleForReading.availableData
-    if !trailing.isEmpty {
-      for line in state.append(trailing) { onLine(line) }
-    }
-    if let tail = state.flushTail() { onLine(tail) }
-
-    return CLIRunResult(exitCode: process.terminationStatus, stdout: state.all(), stderr: "")
+    return StreamedChild(events: events, child: RunningProcess(process, input: held))
   }
 }
 
@@ -322,12 +362,44 @@ enum IntentCLI {
 /// terminate() is all it offers, and Process is safe to signal from anywhere.
 final class RunningProcess: @unchecked Sendable {
   private let process: Process
+  private let input: HeldInput?
 
-  init(_ process: Process) {
+  fileprivate init(_ process: Process, input: HeldInput?) {
     self.process = process
+    self.input = input
   }
 
+  /// Closes the child's stdin when the app holds it, then signals the child. A
+  /// following `intent daemon logs` ends on either; doing both makes the end
+  /// independent of which the child notices first.
   func terminate() {
+    input?.close()
     if process.isRunning { process.terminate() }
+  }
+}
+
+/// The write end of a child's stdin, held open by the app (ST0075). Closing it
+/// is how a following verb learns to end, and the app's death closes it however
+/// the app dies. It is closed once, by whichever of `terminate()` and the
+/// child's own exit comes first.
+fileprivate final class HeldInput: Sendable {
+  private static let logger = AppLog.logger("IntentCLI")
+  private let handle: OSAllocatedUnfairLock<FileHandle?>
+
+  init(_ handle: FileHandle) {
+    self.handle = OSAllocatedUnfairLock(initialState: handle)
+  }
+
+  func close() {
+    let open = handle.withLock { held in
+      defer { held = nil }
+      return held
+    }
+    guard let open else { return }
+    do {
+      try open.close()
+    } catch {
+      Self.logger.error("could not close a child's stdin: \(error.localizedDescription, privacy: .public)")
+    }
   }
 }
