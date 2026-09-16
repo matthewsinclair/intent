@@ -129,11 +129,13 @@ Near-monochrome ground and ink, one accent, and the semantic set from §1. Lift 
 
 **Define every colour on bare `:root` first and redefine only what changes inside the media query.** A token whose only definition lives in a media block vanishes in the other mode. Redefine the same tokens again under `:root[data-theme="dark"]` if a toggle is built, so the toggle wins in both directions.
 
-### OPEN DECISION A — the accent, and whether it can be red at all
+### DECISION A, RULED — the accent is steel, and the accent cannot be red
 
-**This is not settled and it must not be settled by whoever holds the pen on this document.** The `--accent` values above are a placeholder so the spec is buildable; they are one of the candidates, not a ruling.
+**Ruled by hv on 2026-09-15 (ruling 22).** The accent is **steel `#35618f`**, and the `--accent` values above are the decision rather than a placeholder. Everything below is kept as the record of how it was decided, because the reasoning is what makes the ruling checkable rather than a preference somebody asserted.
 
-**The decision.** Is the site's accent **steel `#35618f`** or **rust `#A03E1E`**?
+**The reason is the constraint, not the taste.** Rust sits at ΔE 13.8 from the `error:` red. §1's founding principle inherits the semantic palette from the tool's output vocabulary and a terminal renders errors red, so that principle holds only if the accent is not red — and steel is the consequence rather than the choice. **The question was never which hue; it was whether the accent can be red at all, and the hue follows from answering it.**
+
+**The question, as it was put.** Is the site's accent **steel `#35618f`** or **rust `#A03E1E`**?
 
 **Why it is decidable rather than a preference.** The editorial direction has an obvious accent — **rubrication**, the red ink a scribe used to mark the parts of a manuscript that told you how to read it. That is a good description of what Intent does to a codebase. But `--error` is already red, inherited from the tool (§1). Measured in CIELAB, ΔE76:
 
@@ -150,7 +152,7 @@ Rust sits 14 degrees of hue from the `error:` red at ΔE 13.8 — the bottom of 
 
 **A note on the instrument, because it nearly went the other way.** WCAG contrast ratio was tried first and returned rust-vs-error at 1.09 and steel-vs-error at 1.11 — near-identical, which would have condemned both accents equally. That reading is false on its face: a dark blue and a dark red do not look alike. **WCAG contrast is a lightness metric and is structurally blind to hue, which is the only axis this question is about.** It was caught because both candidates happened to sit in the same comparison table — **the control was a by-product of the format, not a precaution anybody took.** That is the more useful form of the lesson: measure the case you are not arguing for as a habit, because you will not notice you needed it until it contradicts you.
 
-**If the accent moves, `--note` moves with it.** See Decision F.
+**The accent did not move, so `--note` is not forced either way.** Decision F stays open on hv's ruling, to be decided on a real page. What this ruling changed for it is that F can no longer dissolve on its own: its escape hatch was the accent leaving blue, and the accent did not. See §11 F.
 
 ## 4. Typography
 
@@ -378,9 +380,9 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 **A flag that says "open" is not the same as one that says what would close it.** Each decision below carries the decision itself, the constraint it must respect, and what breaks if it goes the other way. A decision presented without those gets resolved on taste, which is the same ambiguity in a tidier format.
 
-### A. The accent, and whether it can be red at all
+### A. The accent, and whether it can be red at all — RULED 2026-09-15
 
-Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint is §1's inheritance principle; the consequence of choosing rust is that either `error:` leaves red or the two collide at ΔE 13.8. **Resolve the red question and the hue follows.** The token values in §3 are a placeholder.
+**Settled: the accent is steel `#35618f`, and the accent cannot be red** (hv, ruling 22; hv ruled this one directly rather than routing it as the preamble above otherwise asks). Specified in full at §3, which carries the ruling, the ΔE measurement it rests on and the instrument lesson that nearly reversed it. The constraint was §1's inheritance principle: rust sits at ΔE 13.8 from the `error:` red, so either `error:` leaves red — which kills the inheritance principle — or the two collide, and steel is what holds §1. **The token values in §3 are the decision, not a placeholder.**
 
 ### B. Search
 
@@ -418,9 +420,9 @@ Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint 
 
 **Decision.** Does `note:` stay a colour, or become a weight or a mark?
 
-**Constraint.** `note:` is the lowest-emphasis prefix in §1 and must not compete with the accent — which, under the steel placeholder, is also blue.
+**Constraint.** `note:` is the lowest-emphasis prefix in §1 and must not compete with the accent — which, now that A is ruled, is steel and so is also blue.
 
-**What breaks if it goes the other way.** Check it against `--accent` and `--ink-muted` side by side on a real page. **If it reads as either of them it is doing no work**, and a colour that carries no distinction is worse than no colour because it implies one. **This decision is downstream of Decision A** — if the accent moves off blue, `--note` may be fine exactly as it is.
+**What breaks if it goes the other way.** Check it against `--accent` and `--ink-muted` side by side on a real page. **If it reads as either of them it is doing no work**, and a colour that carries no distinction is worse than no colour because it implies one. **A ruled Decision A makes this harder rather than moot** — the escape hatch was the accent moving off blue, and it did not, so `--note` has to earn its distinction against a blue accent on a real page.
 
 ### G. The thread figure's composition
 
