@@ -5451,6 +5451,11 @@ impl tui::run::Source for Lobby {
     project_index()
   }
 
+  /// No project is open, so the operator is wherever `explore` was run.
+  fn here(&mut self) -> Option<std::path::PathBuf> {
+    std::env::current_dir().ok()
+  }
+
   fn setting(&mut self, path: &str) -> Result<String, tui::edit::Refused> {
     read_setting(path)
   }
@@ -5553,6 +5558,11 @@ impl tui::run::Source for Live {
   /// What the reader must know before trusting the rows just handed over.
   fn note(&mut self, _view: &intentsvcs::nav::View) -> Option<String> {
     self.note.clone()
+  }
+
+  /// The open project's root, which the projects list starts on.
+  fn here(&mut self) -> Option<std::path::PathBuf> {
+    Some(self.facade.project().root().to_path_buf())
   }
 
   /// An indexed path, resolved against this project and confirmed to be there

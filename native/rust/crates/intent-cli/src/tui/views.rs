@@ -199,6 +199,34 @@ pub fn switch_to(root: &str) -> Result<std::path::PathBuf, super::edit::Refused>
   }
 }
 
+/// The projects row the cursor starts on: the registered root that shares the
+/// most leading path components with `here`, the earliest on a tie (issue
+/// 0419). `None` when no row opens a project.
+///
+/// **ONE RULE FOR BOTH EXPLORERS** (hv, 2026-09-16: *it should start on the
+/// open (or nearest?) project*). With a project open, `here` is its root, so
+/// its own row shares every component and wins; in the lobby `here` is the
+/// working directory, so the project nearest it wins. Where nothing is nearer
+/// than a common prefix every root shares, the tie falls to the first row,
+/// which is where the cursor started before.
+pub fn nearest_project(rows: &[Row], here: &std::path::Path) -> Option<usize> {
+  let mut best: Option<(usize, usize)> = None;
+  for (at, row) in rows.iter().enumerate() {
+    let Some(View::Project { root }) = &row.door else {
+      continue;
+    };
+    let shared = std::path::Path::new(root)
+      .components()
+      .zip(here.components())
+      .take_while(|(a, b)| a == b)
+      .count();
+    if best.is_none_or(|(_, most)| shared > most) {
+      best = Some((at, shared));
+    }
+  }
+  best.map(|(at, _)| at)
+}
+
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
@@ -339,6 +367,79 @@ fn door_for(hit: &intentsvcs::search::Hit) -> Option<View> {
 mod tests {
   use super::*;
   use serde_json::json;
+
+  /// Rows for these roots, as the projects list builds them.
+  fn projects(roots: &[&str]) -> Vec<Row> {
+    project_rows(
+      &roots
+        .iter()
+        .map(std::path::PathBuf::from)
+        .collect::<Vec<_>>(),
+    )
+  }
+
+  /// Issue 0419: the open project's own row, wherever it sits in the
+  /// registry, and from inside it as well as at its root.
+  #[test]
+  fn the_cursor_starts_on_the_open_project() {
+    let rows = projects(&[
+      "/u/m/Devel/prj/Alpha",
+      "/u/m/Devel/prj/Intent",
+      "/u/m/Devel/prj/Laksa",
+    ]);
+    let at = |here: &str| nearest_project(&rows, std::path::Path::new(here));
+    assert_eq!(
+      at("/u/m/Devel/prj/Intent"),
+      Some(1),
+      "not on the open project"
+    );
+    assert_eq!(
+      at("/u/m/Devel/prj/Laksa"),
+      Some(2),
+      "not on the open project"
+    );
+    assert_eq!(
+      at("/u/m/Devel/prj/Intent/native/rust"),
+      Some(1),
+      "a working directory inside a project did not find that project"
+    );
+  }
+
+  /// Issue 0419: in the lobby the nearest project wins, and a
+  /// directory that shares only the home prefix with every project leaves the
+  /// cursor on the first row, as it was before.
+  #[test]
+  fn with_no_project_open_the_cursor_starts_on_the_nearest_one() {
+    let rows = projects(&[
+      "/u/m/Work/Client",
+      "/u/m/Devel/prj/Intent",
+      "/u/m/Devel/lab/Probe",
+    ]);
+    let at = |here: &str| nearest_project(&rows, std::path::Path::new(here));
+    assert_eq!(at("/u/m/Devel/lab"), Some(2), "not on the nearest project");
+    assert_eq!(
+      at("/u/m/Devel"),
+      Some(1),
+      "a tie between two equally near projects did not fall to the earlier"
+    );
+    assert_eq!(
+      at("/u/m/Downloads"),
+      Some(0),
+      "sharing only the home prefix moved the cursor off the first row"
+    );
+  }
+
+  /// Issue 0419: rows that open no project, including the empty
+  /// registry's own row, choose nothing.
+  #[test]
+  fn a_list_with_no_projects_chooses_no_row() {
+    let here = std::path::Path::new("/u/m/Devel/prj/Intent");
+    assert_eq!(nearest_project(&projects(&[]), here), None);
+    assert_eq!(
+      nearest_project(&[Row::new("title", "Intent", "text")], here),
+      None
+    );
+  }
 
   fn loaded() -> Loaded {
     Loaded::load().expect("the shipped form declaration must load")

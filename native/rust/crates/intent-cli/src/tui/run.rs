@@ -59,6 +59,14 @@ pub trait Source: edit::Model {
     None
   }
 
+  /// Where the operator is: the open project's root, or the working directory
+  /// when none is open (issue 0419). The projects list starts its
+  /// cursor on the project nearest it. Default: nowhere, so the cursor starts
+  /// on the first row as it does on every other view.
+  fn here(&mut self) -> Option<std::path::PathBuf> {
+    None
+  }
+
   /// An indexed path, resolved against the project and confirmed present.
   ///
   /// **ON THE SOURCE FOR `locate`'s REASON**: the project root and the disk are
@@ -557,7 +565,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
   let mut rows = source.rows(app.stack.current());
-  app.point_at(rows.len());
+  arrive(app, &rows, source.here().as_deref());
   app.index = source.index();
   app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
@@ -824,13 +832,26 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       if let Some(note) = source.note(app.stack.current()) {
         app.notice = note;
       }
-      app.point_at(rows.len());
+      arrive(app, &rows, source.here().as_deref());
       app.notice.clear();
     }
   }
 
   borrowed.restore();
   Ok(exit)
+}
+
+/// Point the cursor at a view just read: its first row, or on the projects
+/// list the project nearest `here` (issue 0419).
+///
+/// **ONE HOME FOR BOTH ARRIVALS**, the first read and every change of view, so
+/// the list cannot start on the open project when `explore` opens on it and on
+/// the first row when `/projects` reaches it.
+pub fn arrive(app: &mut App, rows: &[Row], here: Option<&std::path::Path>) {
+  app.point_at(rows.len());
+  if let Some(at) = here.and_then(|here| views::nearest_project(rows, here)) {
+    app.focus = app.focus.and_then(|f| f.at(at));
+  }
 }
 
 /// Why [`run`] ended.
@@ -867,6 +888,48 @@ pub fn chosen_project(app: &mut App) -> Option<std::path::PathBuf> {
 mod tests {
   use super::super::mode::Mode;
   use super::*;
+
+  /// Issue 0419: arriving at the projects list puts the cursor on the
+  /// project nearest where the operator is, and arriving anywhere else, or
+  /// from nowhere, puts it on the first row.
+  #[test]
+  fn arriving_at_the_projects_list_starts_on_the_nearest_project() {
+    let roots: Vec<std::path::PathBuf> = ["/u/m/Devel/prj/Alpha", "/u/m/Devel/prj/Intent"]
+      .iter()
+      .map(std::path::PathBuf::from)
+      .collect();
+    let listed = views::project_rows(&roots);
+    let mut app = App::explore();
+
+    arrive(
+      &mut app,
+      &listed,
+      Some(std::path::Path::new("/u/m/Devel/prj/Intent")),
+    );
+    assert_eq!(
+      app.focus.map(|f| f.index()),
+      Some(1),
+      "not on the open project"
+    );
+
+    arrive(&mut app, &listed, None);
+    assert_eq!(
+      app.focus.map(|f| f.index()),
+      Some(0),
+      "with nowhere to start, not on the first row"
+    );
+
+    arrive(
+      &mut app,
+      &rows(),
+      Some(std::path::Path::new("/u/m/Devel/prj/Intent")),
+    );
+    assert_eq!(
+      app.focus.map(|f| f.index()),
+      Some(0),
+      "a view of no projects moved off its first row"
+    );
+  }
 
   fn rows() -> Vec<Row> {
     vec![
