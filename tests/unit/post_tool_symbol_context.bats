@@ -70,6 +70,58 @@ fire() {
   [[ "$output" == *"ref"* ]]
 }
 
+@test "the answer is additionalContext, the one PostToolUse output the model receives" {
+  # Issue 0427, driven: exit-0 plain stdout from a PostToolUse hook is never
+  # shown to the model, so an answer printed that way is an answer nobody reads.
+  run fire '{"tool_name":"Grep","tool_input":{"pattern":"kestrel"}}'
+  [ "$status" -eq 0 ]
+  printf '%s' "$output" | jq -e '.hookSpecificOutput.hookEventName == "PostToolUse"'
+  printf '%s' "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("src/lib.rs")'
+}
+
+@test "a Bash command running one search for a symbol is answered" {
+  for cmd in \
+    'git grep -n kestrel' \
+    'grep -rnw kestrel src 2>/dev/null | head -20' \
+    'rg \"\\bkestrel\\b\" src' \
+    'cd src && git -C . grep -e kestrel -- .'; do
+    run fire "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$cmd\"}}"
+    [ "$status" -eq 0 ]
+    printf '%s' "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("src/lib.rs")' \
+      || { echo "not answered: $cmd -> $output"; return 1; }
+  done
+}
+
+@test "a Bash command is silent unless it is one search with one symbol" {
+  # The control first: the same hook answers a plain one-symbol grep here, so the
+  # silences below are the rule and not a hook that never speaks for Bash.
+  run fire '{"tool_name":"Bash","tool_input":{"command":"grep -rn kestrel src"}}'
+  [ -n "$output" ]
+  for cmd in \
+    'grep -rn \"kes.*el(\" src' \
+    'grep -e kestrel -e caller src' \
+    'grep -rn kestrel src; git grep caller' \
+    'grep -r kestrel src | grep -v test' \
+    'grep -f patterns.txt src' \
+    'grep $(echo kestrel) src' \
+    'echo kestrel'; do
+    run fire "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$cmd\"}}"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ] || { echo "answered, should be silent: $cmd -> $output"; return 1; }
+  done
+}
+
+@test "a Bash command over the length bound is silent even when it is one symbol search" {
+  # The bound exists because the recogniser's walk is quadratic and the hook runs
+  # on every Bash call. The control answers; the only difference below is length.
+  run fire '{"tool_name":"Bash","tool_input":{"command":"grep -rn kestrel src/short"}}'
+  [ -n "$output" ]
+  long="src/$(printf 'a%.0s' $(seq 1 600))"
+  run fire "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"grep -rn kestrel $long\"}}"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 @test "word anchors around the symbol are still a symbol" {
   run fire '{"tool_name":"Grep","tool_input":{"pattern":"\\bkestrel\\b"}}'
   [ "$status" -eq 0 ]
@@ -82,7 +134,7 @@ fire() {
   [ -z "$output" ]
 }
 
-@test "a tool that is not Grep is never answered" {
+@test "a tool that is not Grep or Bash is never answered" {
   run fire '{"tool_name":"Read","tool_input":{"pattern":"kestrel"}}'
   [ "$status" -eq 0 ]
   [ -z "$output" ]

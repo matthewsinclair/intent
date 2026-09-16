@@ -3,9 +3,11 @@
 # post-tool-symbol-context.sh -- Intent PostToolUse index advisory
 #
 # Purpose:
-#   After a Grep whose pattern is one symbol, append what the index knows about
-#   that symbol: where it is defined and where its name occurs, as source spans.
-#   The grep has already run and its result stands; this only ever ADDS.
+#   After a search whose pattern is one symbol, append what the index knows
+#   about that symbol: where it is defined and where its name occurs, as source
+#   spans. The search is the Grep tool, or a Bash command that runs exactly one
+#   `grep`, `rg` or `git grep` (issue 0427). The search has already run and its
+#   result stands; this only ever ADDS.
 #
 # Status:
 #   SHIPS with the canonical `.claude/` template and is NOT referenced by the
@@ -14,13 +16,18 @@
 #   so it is the project's decision rather than one taken on its behalf by an
 #   upgrade.
 #
+# WHY BASH TOO (issue 0427). Measured across this project's session transcripts
+# on 2026-09-16: 3 Grep tool calls against 520 `git grep`s run through Bash and
+# thousands of plain `grep` and `rg` commands. A hook that answers only the Grep
+# tool almost never runs.
+#
 # Opt in:
 #   Add a PostToolUse stanza pointing here in your own
 #   `.claude/settings.local.json`:
 #
 #     "PostToolUse": [
 #       {
-#         "matcher": "Grep",
+#         "matcher": "Grep|Bash",
 #         "hooks": [
 #           { "type": "command",
 #             "command": "intent claude hook post-tool-symbol-context",
@@ -33,6 +40,12 @@
 #   - Invoked by PostToolUse with the tool-use JSON on stdin.
 #   - Exit 0 ALWAYS. It never blocks, never replaces, and its worst outcome is
 #     saying nothing.
+#   - The answer is printed as JSON, `hookSpecificOutput.additionalContext`.
+#     PLAIN STDOUT NEVER REACHES THE MODEL, and until issue 0427 this hook
+#     printed plain stdout. Driven 2026-09-16 with a headless session: a
+#     PostToolUse hook that printed a nonce at exit 0 FIRED (its marker file was
+#     written) and the model reported seeing nothing; the same nonce as
+#     `additionalContext` was quoted back verbatim.
 #
 # WHY AN APPEND AND NOT A REDIRECT. A PreToolUse redirect would replace the
 # model's own tool call before it sees any result, so it can be wrong in a way
@@ -44,7 +57,11 @@
 #   1. A PATTERN THAT IS NOT SYMBOL-SHAPED IS NEVER ANSWERED. grep's job is
 #      literal and regex text; the index answers about NAMES. Guessing at a
 #      regex would answer a question the caller did not ask, quietly. One
-#      identifier, bare or wrapped in word anchors, and nothing else.
+#      identifier, bare or wrapped in word anchors, and nothing else. A Bash
+#      command is answered only when it runs ONE search with ONE pattern:
+#      several searches, several patterns, a pattern file, or a command built
+#      by substitution append nothing, because the question is no longer one
+#      name.
 #   2. IT APPENDS NOTHING WHEN THE INDEX CANNOT ANSWER FOR THE PATHS INVOLVED.
 #      Not `index.complete` -- see `index-freshness.bash` for why that field is
 #      the WHOLE index's claim and not this rule. One function, so no second
@@ -66,10 +83,198 @@ command -v intent >/dev/null 2>&1 || exit 0
 payload="$(cat)"
 [ -z "$payload" ] && exit 0
 
-tool_name="$(printf '%s' "$payload" | jq -r '.tool_name // empty' 2>/dev/null || true)"
-[ "$tool_name" = "Grep" ] || exit 0
+# bash_search_pattern <command> -- print the one pattern of the one search a
+# Bash command runs, or return 1.
+#
+# **A RECOGNISER, NOT A SHELL PARSER, AND IT FAILS CLOSED.** It splits words on
+# quotes and backslashes and commands on `|`, `;`, `&` and newlines, and anything
+# it does not follow is declined rather than guessed at: a command substitution,
+# a process substitution, a pattern file. The worst a wrong reading can cost is
+# an answer about a name nobody asked for, so every doubt resolves to silence.
+# The longest Bash command the recogniser will read. See (b) below.
+SEARCH_COMMAND_MAX_BYTES=512
 
-pattern="$(printf '%s' "$payload" | jq -r '.tool_input.pattern // empty' 2>/dev/null || true)"
+# The case patterns below match a literal backslash and a literal `$(`, which
+# is what shellcheck's two info notes misread as mistakes.
+# shellcheck disable=SC1003,SC2016
+bash_search_pattern() {
+  local cmd="$1" sep n i c q w have redir
+  # **TWO DECLINES BEFORE THE WALK, BECAUSE THE WALK IS QUADRATIC AND THIS RUNS
+  # ON EVERY BASH CALL** (vc, measured 2026-09-17). `${cmd:$i:1}` re-scans from
+  # the start, so a 6 KB command with no search in it took 0.75 s under
+  # Homebrew bash and 3.7 s under /bin/bash 3.2, and 30 KB took 9.2 s, past the
+  # hook's timeout. A commit message written through a heredoc is that size.
+  # (a) No grep-family word at all: a cheap superset, and the walk still decides.
+  case "$cmd" in
+    *grep* | *rg*) ;;
+    *) return 1 ;;
+  esac
+  # (b) One search for one symbol is a short command. Longer is declined unread.
+  [ "${#cmd}" -le "$SEARCH_COMMAND_MAX_BYTES" ] || return 1
+  sep="$(printf '\036')"
+  case "$cmd" in
+    *'$('* | *'`'* | *'<('* | *'>('*) return 1 ;;
+  esac
+  local words=()
+  n=${#cmd}; i=0; q=""; w=""; have=0; redir=0
+  while [ "$i" -lt "$n" ]; do
+    c="${cmd:$i:1}"
+    if [ -n "$q" ]; then
+      if [ "$c" = "$q" ]; then
+        q=""
+      elif [ "$q" = '"' ] && [ "$c" = '\' ]; then
+        # In double quotes a backslash escapes only $ ` " \ -- `\b` stays `\b`.
+        case "${cmd:$((i + 1)):1}" in
+          '$' | '`' | '"' | '\') i=$((i + 1)); w="$w${cmd:$i:1}" ;;
+          *) w="$w$c" ;;
+        esac
+      else
+        w="$w$c"
+      fi
+    else
+      case "$c" in
+        "'" | '"') q="$c"; have=1 ;;
+        '\') i=$((i + 1)); w="$w${cmd:$i:1}"; have=1 ;;
+        '>' | '<') w=""; have=0; redir=1 ;;
+        ' ' | "$(printf '\t')" | '|' | ';' | '&' | "$(printf '\n')")
+          if [ "$redir" = 1 ] && [ "$c" = '&' ]; then
+            w="$w$c"; have=1
+          else
+            if [ "$have" = 1 ]; then
+              [ "$redir" = 1 ] || words+=("$w")
+              redir=0
+            fi
+            w=""; have=0
+            case "$c" in ' ' | "$(printf '\t')") ;; *) words+=("$sep") ;; esac
+          fi
+          ;;
+        *) w="$w$c"; have=1 ;;
+      esac
+    fi
+    i=$((i + 1))
+  done
+  [ -n "$q" ] && return 1
+  if [ "$have" = 1 ] && [ "$redir" != 1 ]; then words+=("$w"); fi
+  words+=("$sep")
+
+  local searches=0 pattern="" start=1 tool="" k word
+  local args=()
+  for word in "${words[@]}"; do
+    if [ "$word" = "$sep" ]; then
+      start=1
+      continue
+    fi
+    if [ "$start" = 1 ]; then
+      # The command word, past `VAR=value` prefixes.
+      case "$word" in
+        [A-Za-z_]*=*) continue ;;
+      esac
+      start=0
+      case "$word" in
+        grep | egrep | fgrep | rg) tool="$word" ;;
+        git) tool="git" ;;
+        *) tool="" ;;
+      esac
+      [ -n "$tool" ] && searches=$((searches + 1))
+    fi
+  done
+  [ "$searches" -eq 1 ] || return 1
+
+  # Re-walk to find that one search's words, now that there is exactly one.
+  args=(); tool=""; start=1
+  for word in "${words[@]}"; do
+    if [ "$word" = "$sep" ]; then
+      [ -n "$tool" ] && break
+      start=1
+      continue
+    fi
+    if [ "$start" = 1 ]; then
+      case "$word" in [A-Za-z_]*=*) continue ;; esac
+      start=0
+      case "$word" in
+        grep | egrep | fgrep | rg | git) tool="$word" ;;
+      esac
+      continue
+    fi
+    [ -n "$tool" ] && args+=("$word")
+  done
+
+  if [ "$tool" = git ]; then
+    # `git [-C dir | -c k=v | --flag]... grep ...`
+    k=0
+    while [ "$k" -lt "${#args[@]}" ]; do
+      case "${args[$k]}" in
+        grep) break ;;
+        -C | -c) k=$((k + 2)) ;;
+        -*) k=$((k + 1)) ;;
+        *) return 1 ;;
+      esac
+    done
+    [ "$k" -lt "${#args[@]}" ] || return 1
+    args=("${args[@]:$((k + 1))}")
+  fi
+
+  # Options that take a separate argument. `-r` is recursive to grep and
+  # `--replace` to rg, so the table is per tool.
+  local takes="ABCmefdD"
+  [ "$tool" = rg ] && takes="ABCmefgtTjMr"
+  local patterns=0 positional="" ended=0 a rest letter
+  k=0
+  while [ "$k" -lt "${#args[@]}" ]; do
+    a="${args[$k]}"
+    k=$((k + 1))
+    if [ "$ended" = 0 ]; then
+      case "$a" in
+        --) ended=1; continue ;;
+        --regexp=*) patterns=$((patterns + 1)); pattern="${a#--regexp=}"; continue ;;
+        --regexp) patterns=$((patterns + 1)); pattern="${args[$k]:-}"; k=$((k + 1)); continue ;;
+        --file | --file=*) return 1 ;;
+        --*=*) continue ;;
+        --after-context | --before-context | --context | --max-count | --include | --exclude | --exclude-dir | --glob | --iglob | --type | --type-not | --threads | --max-columns | --max-depth | --replace | --sort | --sortr | --encoding | --engine | --pre)
+          k=$((k + 1)); continue ;;
+        --*) continue ;;
+        -?*)
+          rest="${a#-}"
+          while [ -n "$rest" ]; do
+            letter="${rest:0:1}"
+            rest="${rest:1}"
+            case "$takes" in
+              *"$letter"*)
+                local value="$rest"
+                if [ -z "$value" ]; then value="${args[$k]:-}"; k=$((k + 1)); fi
+                case "$letter" in
+                  e) patterns=$((patterns + 1)); pattern="$value" ;;
+                  f) return 1 ;;
+                esac
+                rest=""
+                ;;
+            esac
+          done
+          continue
+          ;;
+      esac
+    fi
+    [ -z "$positional" ] && positional="$a" && [ "$patterns" = 0 ] && continue
+  done
+  if [ "$patterns" = 0 ]; then
+    [ -n "$positional" ] || return 1
+    pattern="$positional"
+  fi
+  [ "$patterns" -le 1 ] || return 1
+  printf '%s' "$pattern"
+}
+
+tool_name="$(printf '%s' "$payload" | jq -r '.tool_name // empty' 2>/dev/null || true)"
+case "$tool_name" in
+  Grep)
+    pattern="$(printf '%s' "$payload" | jq -r '.tool_input.pattern // empty' 2>/dev/null || true)"
+    ;;
+  Bash)
+    command="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+    pattern="$(bash_search_pattern "$command")" || exit 0
+    ;;
+  *) exit 0 ;;
+esac
 [ -z "$pattern" ] && exit 0
 
 # **ONE IDENTIFIER, BARE OR IN WORD ANCHORS** (vc, 2026-09-12). The anchors are
@@ -133,5 +338,6 @@ rows="$(printf '%s' "$answer" | jq -r '
 # The backticks are markdown for the reader, so the header is assembled first
 # rather than written into a format string where they read as substitution.
 header="Intent index -- \`$symbol\` (from \`intent search --context $symbol\`):"
-printf '%s\n%s\n' "$header" "$rows"
+jq -n --arg context "$(printf '%s\n%s' "$header" "$rows")" \
+  '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $context}}'
 exit 0
