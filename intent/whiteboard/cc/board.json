@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-16T16:59:20.616Z",
+    "heartbeat_at": "2026-09-16T19:05:12.615Z",
     "status": "active",
-    "focus": "2026-09-16: 0331-stale (ic's review of 0331) landed at f2f25c57d on vc's GO -- claude rules is a read, the fn rules comment is true and count-free, id-scheme.md's stale parenthetical gone. Queue empty until the quiet window: 0402's canon check, todo 25. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-16: queue empty. Landed today, all on vc's word: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba), 0416 (d61a0c978), 0331-stale (f2f25c57d), and 0402's canon normalisation (4802c70d9), which the rebuilt intentd wrote itself and the banked check judged 3/3/10 ok. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -888,7 +888,8 @@
       "kind": "todo",
       "seq": 25,
       "text": "**NEXT (cc, 2026-09-16): cc's wbstore queue is landed; one quiet-window step remains.** Bank 1 (0411, 0415, 0414) at 5b72cb12c, bank 2 (0410, 0417, 0413) at 02411abb0 and 0402 at e899c10ba all landed on vc's word; the seven issues are closed. The OWED step is 0402's canon normalisation, once, in the quiet window on vc's schedule: after `devbin build all`, intentd stopped, `intent sync --to-disk` with the new pair, then `git cat-file -p refs/bank/cc/0402-canon-check > f && bash f <base>` (blob 49919a4b) proves intent/.canon moved only by the end newlines (4 objectives, 3 contexts, 10 WP objectives at df2235e07), committed alone before intentd restarts. docs/reference is regenerated whole in the same window (vc). ic's 0400 follows cc's three. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-16T19:05:06.181Z",
       "recorded_at": "2026-09-16T15:26:05.756Z"
     },
     {
