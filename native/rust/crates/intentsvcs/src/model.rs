@@ -519,10 +519,12 @@ pub struct Thread {
   /// 2026-08-14): `objective` already carries tool opinion -- the 0010
   /// empty-objective warning -- which is the signature of a modelled field.
   /// May be empty; the 0010 warning is COMPUTED from emptiness, never stored.
-  #[serde(default)]
+  #[serde(default, deserialize_with = "authored_section_from")]
+  #[schemars(with = "String")]
   pub objective: String,
   /// Why this thread exists. Markdown, carried verbatim, never reflowed.
-  #[serde(default)]
+  #[serde(default, deserialize_with = "authored_section_from")]
+  #[schemars(with = "String")]
   pub context: String,
   // PUBLISHED (D37): the `///` below becomes a field description in
   // thread.schema.json and the SDL, so the design provenance lives here in a
@@ -873,6 +875,28 @@ pub struct Related {
   pub note: Option<String>,
 }
 
+/// The one stored form of an authored `## Objective` or `## Context` section:
+/// the text with the newlines at either end removed, and nothing else touched.
+///
+/// **ONE NORMALISATION, BECAUSE THERE WERE TWO** (issue 0402). `intent set
+/// --from <file>` kept a file's trailing newline and the `info.md` read-back
+/// `trim()`med, so one field held two values by door and canon churned by a
+/// byte whenever a store was filled from the tree. This is the fixed point of
+/// rendering a section and reading it back: the renderer frames the text in
+/// newlines, so newlines at the ends are framing, while a first line's
+/// indentation and a trailing hard-break's spaces are the author's.
+///
+/// Applied where text ENTERS the model -- deserialising (canon, `put`, the
+/// setter's typed splice), hydrating from the store, and the read-back -- so
+/// nothing downstream holds the other form.
+pub fn authored_section(text: &str) -> String {
+  text.trim_matches('\n').to_string()
+}
+
+fn authored_section_from<'de, D: serde::Deserializer<'de>>(d: D) -> Result<String, D::Error> {
+  String::deserialize(d).map(|text| authored_section(&text))
+}
+
 // ---------------------------------------------------------------------------
 // Work package
 // ---------------------------------------------------------------------------
@@ -971,7 +995,8 @@ pub struct WorkPackage {
   // demoted it when WP-02 closed with `intent schema` unbuilt, and structuring
   // it would re-privilege what the acceptance contract replaced.
   /// What this work package ships: the one section every work package has.
-  #[serde(default)]
+  #[serde(default, deserialize_with = "authored_section_from")]
+  #[schemars(with = "String")]
   pub objective: String,
   /// Every OTHER authored section of the work package, verbatim.
   ///

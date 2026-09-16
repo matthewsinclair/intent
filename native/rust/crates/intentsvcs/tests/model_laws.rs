@@ -19,6 +19,15 @@ fn prose_text() -> impl Strategy<Value = String> {
   "[A-Za-z0-9 \n\"'`#*_-]{0,120}"
 }
 
+/// Prose in the ONE form the model holds it (issue 0402): newlines inside kept,
+/// newlines at the ends removed. A value outside that form cannot be in a
+/// `Thread` -- every door into the model normalises it -- so a round-trip law
+/// over it would test a state the model cannot reach, and
+/// `prose_enters_the_model_in_its_one_form` below holds the door instead.
+fn authored_text() -> impl Strategy<Value = String> {
+  prose_text().prop_map(|text| intentsvcs::model::authored_section(&text))
+}
+
 fn thread_status() -> impl Strategy<Value = ThreadStatus> {
   prop_oneof![
     Just(ThreadStatus::NotStarted),
@@ -282,7 +291,7 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), fiat in fiat_record(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), attachments in prop::collection::vec(attachment(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
+  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), fiat in fiat_record(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in authored_text(), context in authored_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), attachments in prop::collection::vec(attachment(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
       body: String::new(),
       // GENERATED, not blanked. A field pinned to the empty string in the
@@ -322,6 +331,16 @@ proptest! {
     prop_assert_eq!(&parsed, &t);
     // Canonical form is a fixed point: re-render is byte-identical.
     prop_assert_eq!(to_canonical_json(&parsed).expect("re-render"), rendered);
+  }
+
+  #[test]
+  fn prose_enters_the_model_in_its_one_form(mut t in thread(), objective in prose_text(), context in prose_text()) {
+    t.objective = objective.clone();
+    t.context = context.clone();
+    let parsed: Thread =
+      serde_json::from_str(&to_canonical_json(&t).expect("render")).expect("parse");
+    prop_assert_eq!(parsed.objective, intentsvcs::model::authored_section(&objective));
+    prop_assert_eq!(parsed.context, intentsvcs::model::authored_section(&context));
   }
 }
 

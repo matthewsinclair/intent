@@ -91,6 +91,8 @@ mod attachment_path_must_name_a_place_in_the_thread;
 mod attachment_put_refuses_what_it_cannot_carry;
 #[path = "authored_row_round_trip.rs"]
 mod authored_row_round_trip;
+#[path = "authored_sections_have_one_form.rs"]
+mod authored_sections_have_one_form;
 #[path = "backup_retention.rs"]
 mod backup_retention;
 #[path = "backup_snapshot.rs"]

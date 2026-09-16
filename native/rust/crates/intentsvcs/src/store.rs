@@ -3943,8 +3943,9 @@ impl Store {
         created,
         completed,
         acceptance: acceptance.as_deref().map(enum_from).transpose()?,
-        objective,
-        context,
+        // A row written before issue 0402 may hold the other form.
+        objective: crate::model::authored_section(&objective),
+        context: crate::model::authored_section(&context),
       });
     }
     Ok(threads)
@@ -4083,7 +4084,8 @@ impl Store {
             status_legacy: status_legacy.map(|raw| crate::model::Legacy { raw }),
             status_reason,
             fiat: fiat.map(|raw| serde_json::from_str(&raw)).transpose()?,
-            objective,
+            // A row written before issue 0402 may hold the other form.
+            objective: crate::model::authored_section(&objective),
             body,
             preamble,
           })

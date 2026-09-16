@@ -897,10 +897,11 @@ fn formatter_normal(text: &str) -> String {
 /// render would show it as real prose. Trailing layout is dropped for the same
 /// reason it is added: the blank lines are markdown, not content.
 fn undo_section_body(rendered: &str) -> String {
-  let trimmed = rendered.trim();
-  match trimmed == "_(not yet written)_" {
+  match rendered.trim() == "_(not yet written)_" {
     true => String::new(),
-    false => trimmed.to_string(),
+    // The model's one form (issue 0402): the read-back `trim()`med until then,
+    // which took an author's first-line indentation with the framing.
+    false => crate::model::authored_section(rendered),
   }
 }
 
