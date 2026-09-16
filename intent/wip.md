@@ -15,7 +15,7 @@ intent_version: 3.0.3
 
 ## TODO
 
-- The quiet window, on hv's word: `bin/devbin build all`, `intent daemon restart`, `bin/int macos app-install`, ic drives the Console once with close-and-reopen, one mechanical view commit, then `st done` for ST0057 and ST0075 on gate PASS.
+- The quiet window, on hv's word: `bin/devbin build all`; with the daemon stopped, `intent sync --to-disk` normalising the thread and work-package sections 0402 made one form, checked by cc's `refs/bank/cc/0402-canon-check` and committed alone; `intent daemon restart`, `bin/int macos app-install`, ic drives the Console once with close-and-reopen, one mechanical view commit, `intent/st/ST0056/parity/tools/gen_reference.sh` regenerating `docs/reference/` whole as its own commit (the close-out adds flags, eg `wb register --correct`), then `st done` for ST0057 and ST0075 on gate PASS.
 - hv: the prepared `gh release edit v3.0.2` annotation.
 - hv chooses the release version at the close-out.
 - ST0056's clean install (AC-00.5, AC-11.1) and 0344: held until Intent installs and works properly on this machine, then gyges runs dc's runbook (hv, 2026-09-15, low priority).
