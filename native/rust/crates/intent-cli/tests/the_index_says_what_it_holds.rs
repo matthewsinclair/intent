@@ -93,6 +93,74 @@ fn a_skipped_file_is_named_on_the_surface() {
   }
 }
 
+/// Issue 0430: **a skip by policy is listed and leaves the answer whole; a
+/// skip that hid text makes it partial.** A binary file holds nothing a text
+/// query could match, so an answer that reported it as incomplete sent every
+/// whole-tree query to grep. An unreadable file is the control: its text is
+/// unread, and the answer must still say so.
+#[test]
+fn a_binary_skip_is_listed_and_an_unreadable_one_makes_the_answer_partial() {
+  use std::os::unix::fs::PermissionsExt;
+  let dir = estate();
+  let root = dir.path();
+  std::fs::write(root.join("logo.png"), [0u8, 1, 2, 0, 255]).expect("plant a binary file");
+  let (_, err, code) = run(&["index", "rebuild"], root);
+  assert_eq!(code, 0, "rebuild failed: {err}");
+
+  let freshness = |root: &Path| -> (serde_json::Value, String) {
+    let (out, err, code) = run(&["search", "quokka", "--json"], root);
+    assert_eq!(code, 0, "search failed: {err}");
+    let answer: serde_json::Value = serde_json::from_str(&out).expect("the envelope is JSON");
+    let (_, terminal_err, code) = run(&["search", "quokka"], root);
+    assert_eq!(code, 0, "terminal search failed: {terminal_err}");
+    (answer["index"].clone(), terminal_err)
+  };
+  let reason_of = |index: &serde_json::Value, path: &str| -> Option<String> {
+    index["skipped"]
+      .as_array()
+      .expect("skipped is a list")
+      .iter()
+      .find(|skip| skip["path"] == path)
+      .and_then(|skip| skip["reason"].as_str().map(str::to_string))
+  };
+
+  let (index, terminal_err) = freshness(root);
+  assert_eq!(
+    reason_of(&index, "logo.png").as_deref(),
+    Some("binary"),
+    "the binary is still listed: {index}"
+  );
+  assert_eq!(
+    index["complete"], true,
+    "a binary skip leaves the answer whole: {index}"
+  );
+  assert!(
+    !terminal_err.contains("logo.png"),
+    "the terminal does not call a whole answer partial: {terminal_err:?}"
+  );
+
+  let secret = root.join("secret.txt");
+  std::fs::write(&secret, "a quokka nobody can read\n").expect("plant a text file");
+  std::fs::set_permissions(&secret, std::fs::Permissions::from_mode(0o000)).expect("chmod 000");
+  let (_, err, code) = run(&["index", "rebuild"], root);
+  assert_eq!(code, 0, "rebuild failed: {err}");
+
+  let (index, terminal_err) = freshness(root);
+  assert_eq!(
+    reason_of(&index, "secret.txt").as_deref(),
+    Some("unreadable"),
+    "the control needs the file skipped as unreadable: {index}"
+  );
+  assert_eq!(
+    index["complete"], false,
+    "unread text makes the answer partial: {index}"
+  );
+  assert!(
+    terminal_err.contains("secret.txt") && !terminal_err.contains("logo.png"),
+    "the terminal names the gap and not the policy skip: {terminal_err:?}"
+  );
+}
+
 /// AC-19.6's second half: **registered and exposed like every verb** -- and the
 /// register's own decision about the WRITE half is observable, not just written
 /// down: `index status` is a tool, `index rebuild` is withheld.

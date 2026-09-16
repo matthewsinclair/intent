@@ -3770,7 +3770,7 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
     for stale in &answer.index.stale {
       eprintln!("warning: {stale} has changed since it was indexed -- its hits carry no line");
     }
-    for skipped in &answer.index.skipped {
+    for skipped in answer.index.gaps() {
       eprintln!(
         "note: {} was not indexed -- {}",
         skipped.path, skipped.reason

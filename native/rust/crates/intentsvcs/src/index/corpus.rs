@@ -183,6 +183,32 @@ impl SkipReason {
       SkipReason::Unreadable => "unreadable",
     }
   }
+
+  /// The reason a stored spelling names, or `None` for a spelling this build
+  /// does not write.
+  pub fn parse(stored: &str) -> Option<Self> {
+    Some(match stored {
+      "binary" => SkipReason::Binary,
+      "too-large" => SkipReason::TooLarge,
+      "symlink" => SkipReason::Symlink,
+      "unreadable" => SkipReason::Unreadable,
+      _ => return None,
+    })
+  }
+
+  /// **WHETHER A TEXT ANSWER THAT SKIPPED THIS FILE IS PARTIAL** (issue 0430).
+  /// A binary file holds no text a query could match, and a symlink's target
+  /// is indexed at its real path or lies outside the repository, so both are
+  /// skipped by policy and the answer is still whole. An oversized or
+  /// unreadable file holds text the index never read, so an answer that
+  /// skipped one is not. The match is exhaustive so a new reason is decided
+  /// here rather than defaulted.
+  pub fn leaves_a_gap(self) -> bool {
+    match self {
+      SkipReason::Binary | SkipReason::Symlink => false,
+      SkipReason::TooLarge | SkipReason::Unreadable => true,
+    }
+  }
 }
 
 /// How much of a file is read to decide whether it is binary.
@@ -323,6 +349,13 @@ mod tests {
       SkipReason::Symlink,
       SkipReason::Unreadable,
     ];
+    for reason in all {
+      assert_eq!(
+        SkipReason::parse(reason.as_str()),
+        Some(reason),
+        "the spelling reads back"
+      );
+    }
     let mut seen: Vec<&str> = all.iter().map(|r| r.as_str()).collect();
     seen.sort_unstable();
     seen.dedup();

@@ -19,7 +19,7 @@
 //! it needs a group, one of the two halves is wrong and it is an argument
 //! rather than a patch.
 
-use crate::index::corpus::Corpus;
+use crate::index::corpus::{Corpus, SkipReason};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -100,14 +100,16 @@ pub struct IndexFreshness {
   pub corpora: BTreeMap<String, CorpusState>,
   /// What was in scope and deliberately not indexed, each with its reason.
   /// **A named exclusion, never a silent absence** (AC-13.2's rule, applied to
-  /// the answer rather than to the corpus).
+  /// the answer rather than to the corpus). A skip by policy is listed here
+  /// too, and only a skip that [`Skipped::leaves_a_gap`] makes the answer
+  /// incomplete (issue 0430).
   pub skipped: Vec<Skipped>,
   /// Paths whose indexed bytes no longer match the disk.
   pub stale: Vec<String>,
 }
 
 /// **`complete` IS COMPUTED AT SERIALISATION AND IS NOT A FIELD.** It is
-/// `skipped.is_empty() && stale.is_empty()`, and holding it as a field beside
+/// [`IndexFreshness::complete`] over `skipped` and `stale`, and holding it as a field beside
 /// the two lists that determine it would be a second home for one fact whose
 /// failure mode is the flag saying complete while the lists say otherwise.
 /// This is the whole reason `IndexFreshness` writes its own `Serialize` rather
@@ -168,9 +170,21 @@ impl IndexFreshness {
     }
   }
 
-  /// Whether this index answered the whole question it was asked.
+  /// Whether this index answered the whole question it was asked: nothing is
+  /// stale and no skip left a gap.
+  ///
+  /// **A SKIP BY POLICY IS NOT INCOMPLETENESS** (issue 0430). Every whole-tree
+  /// query on this repository answered `complete: false` for its binaries and
+  /// one symlink, which no text query could match, and the tool's description
+  /// sends a reader of `complete: false` to grep -- so the flag sent every
+  /// query to grep while meaning nothing.
   pub fn complete(&self) -> bool {
-    self.skipped.is_empty() && self.stale.is_empty()
+    self.stale.is_empty() && self.gaps().next().is_none()
+  }
+
+  /// The skips that make this answer partial.
+  pub fn gaps(&self) -> impl Iterator<Item = &Skipped> {
+    self.skipped.iter().filter(|skip| skip.leaves_a_gap())
   }
 
   /// Record a path whose indexed bytes no longer match the disk.
@@ -216,6 +230,15 @@ pub struct CorpusState {
 pub struct Skipped {
   pub path: String,
   pub reason: String,
+}
+
+impl Skipped {
+  /// Whether this skip makes a text answer partial. **A reason this build
+  /// cannot read counts as a gap**: the envelope crosses a wire, and a spelling
+  /// nobody here decided is never reported as whole.
+  pub fn leaves_a_gap(&self) -> bool {
+    SkipReason::parse(&self.reason).is_none_or(SkipReason::leaves_a_gap)
+  }
 }
 
 /// The hits of one tier, ranked within it.
@@ -579,6 +602,38 @@ mod tests {
     freshness.mark_stale("intent/wip.md");
     assert!(!freshness.complete(), "a stale path means incomplete");
     assert_eq!(freshness.stale, vec!["intent/wip.md".to_string()]);
+  }
+
+  /// Issue 0430: a skip by policy is listed and leaves the answer whole; a
+  /// skip that hid text, or a reason this build does not know, does not.
+  #[test]
+  fn only_a_skip_that_hid_text_makes_the_answer_incomplete() {
+    let mut freshness = IndexFreshness::new(BTreeMap::new());
+    freshness.mark_skipped("assets/logo.png", SkipReason::Binary.as_str());
+    freshness.mark_skipped("bin/int", SkipReason::Symlink.as_str());
+    assert!(
+      freshness.complete(),
+      "a binary and a symlink hold no text a query could match: {:?}",
+      freshness.skipped
+    );
+    assert_eq!(freshness.skipped.len(), 2, "both are still listed");
+
+    for reason in [
+      SkipReason::TooLarge.as_str(),
+      SkipReason::Unreadable.as_str(),
+      "a-later-reason",
+    ] {
+      let mut partial = freshness.clone();
+      partial.mark_skipped("vendor/huge.json", reason);
+      assert!(!partial.complete(), "`{reason}` leaves a gap");
+      assert_eq!(
+        partial
+          .gaps()
+          .map(|skip| skip.path.as_str())
+          .collect::<Vec<_>>(),
+        vec!["vendor/huge.json"]
+      );
+    }
   }
 
   #[test]

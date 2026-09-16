@@ -329,7 +329,7 @@ pub fn freshness_note(answer: &intentsvcs::search::SearchAnswer) -> Option<Strin
     return None;
   }
   let stale = answer.index.stale.len();
-  let skipped = answer.index.skipped.len();
+  let skipped = answer.index.gaps().count();
   Some(match (stale, skipped) {
     (0, n) => format!("{n} path(s) in scope were not indexed -- this answer is partial"),
     (n, 0) => format!("{n} file(s) changed since they were indexed -- their hits carry no line"),
