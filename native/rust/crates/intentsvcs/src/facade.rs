@@ -1535,6 +1535,36 @@ pub enum FacadeError {
     inboxes: String,
     senders: Vec<String>,
   },
+  /// A migration that meets board content the model cannot carry.
+  ///
+  /// **REFUSED BEFORE ANYTHING IS WRITTEN, UNLESS THE DROP IS ASKED FOR BY
+  /// NAME** (vc decision 20, issues 0403, 0406, 0407 and 0408). A carry that
+  /// wrote the rest and exited 0 left a script unable to tell a complete carry
+  /// from a lossy one, and [`Self::WbAlreadyCarried`] then refused the re-run
+  /// that would have fixed it. Every unit is carried in `units`, with its
+  /// address and its reason, so the refusal is the worklist.
+  #[error(
+    "`{node}`'s board offers {} unit(s) the model cannot carry, at {}",
+    .units.len(),
+    .units.iter().map(|u| u.at.as_str()).collect::<Vec<_>>().join(", ")
+  )]
+  WbUncarried {
+    node: String,
+    units: Vec<crate::wbmigrate::Uncarried>,
+    /// Where `--drop-uncarried` would keep the board verbatim.
+    snapshot: String,
+  },
+  /// A pre-migration snapshot already on disk that is not the board being
+  /// carried.
+  ///
+  /// **THE CARRY WRITES THE BOARD'S VERBATIM COPY AND NEVER OVERWRITES ONE.**
+  /// A file at that path with other bytes is either an earlier board or a
+  /// hand-placed document, and replacing it would lose exactly the record the
+  /// snapshot exists to keep.
+  #[error(
+    "`{at}` already holds a pre-migration snapshot of `{node}`'s board, and it is not this board"
+  )]
+  WbSnapshotInTheWay { node: String, at: String },
   /// No acting node: nothing said who is writing.
   ///
   /// **IT REFUSES RATHER THAN GUESSING, AND THE GUESS IT WILL NOT MAKE IS THE
@@ -1564,15 +1594,25 @@ pub enum FacadeError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WbMigration {
   pub node: String,
-  /// The items carried, in source order, each with its address.
+  /// Every item carried, in source order, each with its address; an item whose
+  /// `coerced` is set was section prose rather than a bullet.
   pub items: Vec<crate::wbmigrate::SourceItem>,
   /// Inbox entries carried. They are not listed per item because each is
   /// already addressed by its own `authored_at` heading and lands whole.
   pub messages: usize,
   /// The `.history/` documents carried, by project-relative path.
   pub snapshots: Vec<String>,
-  /// Everything the source offered and this would not carry, named.
+  /// Everything the source offered and this did not carry, named. **Non-empty
+  /// only when the drop was asked for**: without it these units refuse the carry
+  /// through [`FacadeError::WbUncarried`] before anything is written.
   pub uncarried: Vec<crate::wbmigrate::Uncarried>,
+  /// `.history/` files the carry cannot read as documents and leaves where they
+  /// are.
+  ///
+  /// **A SEPARATE LIST BECAUSE THEY ARE NOT A LOSS** (vc decision 20, issue
+  /// 0409). Reported as `uncarried:`, eighteen files still on disk and tracked
+  /// read as eighteen losses where there were none.
+  pub left_in_place: Vec<crate::wbmigrate::Uncarried>,
   /// Every unit the source offered: item-shaped board lines, inbox entries and
   /// `.history/` files. **Counted where each unit is dispatched**, never
   /// re-derived by a second walk that would be free to disagree.
@@ -1588,7 +1628,12 @@ impl WbMigration {
   /// reading a fixture whose every line is known, finding each one either
   /// carried with its address or refused by name.
   pub fn reconciles(&self) -> bool {
-    self.items.len() + self.messages + self.snapshots.len() + self.uncarried.len() == self.offered
+    self.items.len()
+      + self.messages
+      + self.snapshots.len()
+      + self.uncarried.len()
+      + self.left_in_place.len()
+      == self.offered
   }
 }
 
@@ -1776,6 +1821,12 @@ impl crate::remedy::Remedy for FacadeError {
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
       ),
       Self::WbDirectiveOffHv { .. } => "a standing directive is the hypervisor's: an instruction every node honours, kept under the protocol's `## Standing directives` section on `hv`'s board, where `intent wb add directive <text> --node hv` writes it on hv's word. A call this node made itself is a decision: `intent wb decide <text>`".to_string(),
+      Self::WbUncarried { node, snapshot, .. } => format!(
+        "nothing was written. Each unit is named on an `uncarried:` line with its reason: give it a home the model carries -- a bullet under a section the protocol names, or a heading with nothing after its kind word -- and re-run `intent wb migrate {node}`. Or carry the rest without them: `intent wb migrate {node} --drop-uncarried`, which keeps the whole board byte for byte as the snapshot `{snapshot}`"
+      ),
+      Self::WbSnapshotInTheWay { node, at } => format!(
+        "nothing was written. Read `{at}`: if it is an earlier board of `{node}` worth keeping, move it to another name under `.history/`, where the carry takes it as a snapshot of its own, then re-run `intent wb migrate {node}`"
+      ),
       Self::WbDirectivesOnAnotherBoard { node, .. } => format!(
         "nothing was written, so this carry can run again once those lines have a home. A directive still in force belongs on `hv`'s board: under `## Standing directives` in `intent/whiteboard/hv/wip.md` before `hv` is carried, or through `intent wb add directive <text> --node hv` after. A call `{node}` made itself belongs under `## Decisions` on its own board"
       ),
@@ -6387,7 +6438,17 @@ impl Facade {
   /// which is the one deliberate exception to the single-writer convention this
   /// family otherwise holds: a cutover is performed on every node's board by
   /// whoever is running it, and that is a human act with a human behind it.
-  pub fn wb_migrate(&mut self, node: &str) -> Result<WbMigration, FacadeError> {
+  ///
+  /// **WHAT THE MODEL CANNOT CARRY REFUSES THE CARRY, UNLESS `drop_uncarried`**
+  /// (vc decision 20). Every such unit is named before the first write, the way
+  /// an unregistered sender is, so the re-run stays open. Whichever way it
+  /// goes, the board's `wip.md` is kept byte for byte as a snapshot, so a
+  /// dropped line is out of the model and still in the store's prose.
+  pub fn wb_migrate(
+    &mut self,
+    node: &str,
+    drop_uncarried: bool,
+  ) -> Result<WbMigration, FacadeError> {
     self.require_registered(node)?;
     let standing = self.board(node)?;
     if !standing.items.is_empty() || !standing.messages.is_empty() {
@@ -6480,10 +6541,66 @@ impl Facade {
       message_uncarried.extend(read.uncarried);
     }
 
-    let (snapshots, mut sections, snapshot_uncarried) = self.read_snapshots(node, &home)?;
+    let (mut snapshots, mut sections, left_in_place) = self.read_snapshots(node, &home)?;
+
+    let uncarried: Vec<crate::wbmigrate::Uncarried> = source
+      .uncarried
+      .iter()
+      .cloned()
+      .chain(message_uncarried.iter().cloned())
+      .collect();
+    let snapshot_path = self.project.wb_pre_migration_snapshot(node);
+    let snapshot_rel = self.project.relative(&snapshot_path);
+    if !uncarried.is_empty() && !drop_uncarried {
+      return Err(FacadeError::WbUncarried {
+        node: node.to_string(),
+        units: uncarried,
+        snapshot: snapshot_rel,
+      });
+    }
+
+    // **THE BOARD ITSELF, VERBATIM, AS A SNAPSHOT** (vc decision 20). The carry
+    // renders `wip.md` from the rows it writes, so without this the markdown
+    // every uncoerced, uncarried line came from would be gone from the tree the
+    // moment the carry landed. A copy already there with these bytes is an
+    // earlier attempt and the walk above has carried it; with other bytes it is
+    // refused rather than overwritten.
+    let snapshot_pending = if snapshots.contains(&snapshot_rel) {
+      if Self::read_board_file(&snapshot_path)? != text {
+        return Err(FacadeError::WbSnapshotInTheWay {
+          node: node.to_string(),
+          at: snapshot_rel,
+        });
+      }
+      false
+    } else {
+      true
+    };
 
     // Nothing is written until every file has been read, so a refusal on the
     // third inbox does not leave a board half carried.
+    if snapshot_pending {
+      let write = |path: &std::path::Path| -> Result<(), FacadeError> {
+        let io = |source| {
+          FacadeError::Ingest(IngestError::Io {
+            path: path.display().to_string(),
+            source,
+          })
+        };
+        if let Some(dir) = path.parent() {
+          std::fs::create_dir_all(dir).map_err(io)?;
+        }
+        std::fs::write(path, &text).map_err(io)
+      };
+      write(&snapshot_path)?;
+      sections.extend(crate::wbmigrate::snapshot_sections(
+        node,
+        &snapshot_rel,
+        &text,
+      ));
+      snapshots.push(snapshot_rel);
+      snapshots.sort();
+    }
     // **ONE EVENT FOR THE CARRY, NOT ONE PER ROW.** The verb is the act; what
     // it carried is in the rows, and the counts say how many.
     let event = self.wb_event(
@@ -6545,16 +6662,12 @@ impl Facade {
         + messages.len()
         + message_uncarried.len()
         + snapshots.len()
-        + snapshot_uncarried.len(),
+        + left_in_place.len(),
       items: source.items,
       messages: messages.len(),
       snapshots,
-      uncarried: source
-        .uncarried
-        .into_iter()
-        .chain(message_uncarried)
-        .chain(snapshot_uncarried)
-        .collect(),
+      uncarried,
+      left_in_place,
     })
   }
 
@@ -6594,9 +6707,10 @@ impl Facade {
   /// back on the board as live work and manufacture a second history of the same
   /// node. The walk is recursive because folds archive by date directory.
   ///
-  /// **A FILE THIS CANNOT CARRY IS NAMED RATHER THAN PASSED OVER.** `.gitkeep`
-  /// is the exception and it is a git artefact rather than a document: it exists
-  /// because git does not track an empty directory.
+  /// **A FILE THIS CANNOT CARRY IS NAMED RATHER THAN PASSED OVER**, as left in
+  /// place: it is not read, not moved and not lost. `.gitkeep` is the exception
+  /// and it is a git artefact rather than a document: it exists because git does
+  /// not track an empty directory.
   #[allow(clippy::type_complexity)]
   fn read_snapshots(
     &self,
@@ -6612,7 +6726,7 @@ impl Facade {
   > {
     let mut carried = Vec::new();
     let mut sections = Vec::new();
-    let mut uncarried = Vec::new();
+    let mut left_in_place = Vec::new();
     let mut pending = vec![home.join(".history")];
     while let Some(dir) = pending.pop() {
       if !dir.is_dir() {
@@ -6630,12 +6744,12 @@ impl Facade {
         }
         let rel = self.project.relative(&path);
         if !name.ends_with(".md") {
-          uncarried.push(crate::wbmigrate::Uncarried {
+          left_in_place.push(crate::wbmigrate::Uncarried {
             at: rel.clone(),
             text: name,
             reason: "a `.history/` file that is not markdown: the snapshot carry splits a \
-                     document into prose sections, and there is nothing here that would read \
-                     these bytes back"
+                     document into prose sections and nothing would read these bytes back, so \
+                     the file stays on disk untouched"
               .to_string(),
           });
           continue;
@@ -6646,8 +6760,8 @@ impl Facade {
       }
     }
     carried.sort();
-    uncarried.sort_by(|a, b| a.at.cmp(&b.at));
-    Ok((carried, sections, uncarried))
+    left_in_place.sort_by(|a, b| a.at.cmp(&b.at));
+    Ok((carried, sections, left_in_place))
   }
 
   /// Move one of the acting node's live items to archived, and say whether it

@@ -269,6 +269,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // the plain verb, never a field left out.
     | FacadeError::WbRegisterDisagreesWithHeader { .. }
     | FacadeError::WbCorrectUnregistered { .. }
+    // The carry's refusals of vc decision 20: the caller supplied everything,
+    // and the remedy is an edited board, `--drop-uncarried`, or a snapshot moved
+    // aside -- none of them a field left out.
+    | FacadeError::WbUncarried { .. }
+    | FacadeError::WbSnapshotInTheWay { .. }
     // **A CALL PARAMETER IS MISSING AND A MODEL FIELD IS NOT, and this list is
     // about the second.** `WbNoActingNode` does demand something -- `--node` or
     // `INTENT_NODE` -- but no entity carries it, so there is no read face for

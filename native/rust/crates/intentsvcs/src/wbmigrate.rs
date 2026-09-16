@@ -44,6 +44,15 @@ pub struct SourceItem {
   pub at: String,
   pub kind: WbItemKind,
   pub text: String,
+  /// A paragraph of section prose carried as one item rather than a bullet.
+  ///
+  /// **CARRIED AND SAID, NEVER CARRIED QUIETLY** (vc decision 20, issue 0404).
+  /// A section's prose is how every live board writes DOING, so refusing it
+  /// would refuse the busiest section of every board; but a sentence such as
+  /// `Nothing.` becomes an item the model counts as work, and the operator is
+  /// the only one who can say which paragraphs those are. The report names each
+  /// on a `coerced:` line.
+  pub coerced: bool,
 }
 
 /// One inbox entry read off disk.
@@ -111,24 +120,45 @@ impl SourceBoard {
 /// loss this function exists to end; `Facade::wb_migrate` refuses that carry by
 /// name before it writes.
 fn kind_of(heading: &str) -> Option<WbItemKind> {
+  kind_and_qualifier(heading).map(|(kind, _)| kind)
+}
+
+/// A section heading's kind, and whatever text it carries after the kind's own
+/// word.
+///
+/// **THE QUALIFIER IS RETURNED RATHER THAN DISCARDED** (vc decision 20, issue
+/// 0407). A section renders under the heading its kind names and the model has
+/// no field for anything after it, so `## TODO -- one upstream, the rest
+/// downstream` came back as `## TODO` with nothing said. A trailing colon is
+/// punctuation on the kind word and is not a qualifier.
+fn kind_and_qualifier(heading: &str) -> Option<(WbItemKind, Option<String>)> {
   // Matched on the heading's leading word rather than the whole line, because
   // a board's headings carry trailing prose -- `## DOING -- WP-02` is one of
   // this estate's own -- and an equality test would silently classify every
   // such section as unknown while looking perfectly correct.
-  let head = heading.trim_start_matches('#').trim().to_ascii_lowercase();
+  let original = heading.trim_start_matches('#').trim();
+  let head = original.to_ascii_lowercase();
+  let qualifier = |from: usize| -> Option<String> {
+    // Lowercasing ASCII keeps every byte offset, so `from` indexes both.
+    let rest = original[from..].trim_start_matches(':').trim();
+    (!rest.is_empty()).then(|| rest.to_string())
+  };
   // The one section named by two words, so it is matched before the leading one.
-  if head.starts_with("standing directive") {
-    return Some(WbItemKind::Directive);
+  for words in ["standing directives", "standing directive"] {
+    if head.starts_with(words) {
+      return Some((WbItemKind::Directive, qualifier(words.len())));
+    }
   }
   let first = head.split_whitespace().next().unwrap_or_default();
-  match first.trim_end_matches(':') {
-    "doing" => Some(WbItemKind::Doing),
-    "todo" => Some(WbItemKind::Todo),
-    "decisions" | "decision" => Some(WbItemKind::Decision),
-    "watch-outs" | "watch-out" | "watchouts" => Some(WbItemKind::Watchout),
-    "holds" | "hold" => Some(WbItemKind::Hold),
-    _ => None,
-  }
+  let kind = match first.trim_end_matches(':') {
+    "doing" => WbItemKind::Doing,
+    "todo" => WbItemKind::Todo,
+    "decisions" | "decision" => WbItemKind::Decision,
+    "watch-outs" | "watch-out" | "watchouts" => WbItemKind::Watchout,
+    "holds" | "hold" => WbItemKind::Hold,
+    _ => return None,
+  };
+  Some((kind, qualifier(first.len())))
 }
 
 /// Read one node's board file.
@@ -247,7 +277,30 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
       if taken.len() == 1 && taken[0].1.trim() == crate::views::EMPTY_ITEMS {
         return;
       }
-      for (line_no, text) in blocks_to_items(&taken) {
+      // **A TABLE IS REFUSED WHOLE, WITH THE BLOCK THAT HOLDS IT** (vc decision
+      // 20, issue 0406). An item is a list entry, so a table carried as one
+      // renders as a bullet whose first line is the header row and whose other
+      // rows are continuation lines: the table is gone while every byte of it is
+      // still in the store. **ANY `|`-LED LINE, NOT ONLY THE FIRST**: a table
+      // under a prose line with no blank line between is one block, and testing
+      // the opening line alone carried it as one coerced prose item.
+      if taken.iter().any(|(_, l)| l.trim_start().starts_with('|')) {
+        out.source_items += 1;
+        out.uncarried.push(Uncarried {
+          at: format!("{file}:{}", taken[0].0),
+          text: taken
+            .iter()
+            .map(|(_, l)| l.as_str())
+            .collect::<Vec<_>>()
+            .join("\n"),
+          reason: "a table, with any line in its block: an item is one list entry, so its \
+                   rows would render as the continuation lines of a bullet and the table would \
+                   no longer be one"
+            .to_string(),
+        });
+        return;
+      }
+      for (line_no, text, bullet) in blocks_to_items(&taken) {
         // **COUNTED HERE, WHERE THE LINE IS DISPATCHED, WHATEVER BECOMES OF IT.**
         // A section nothing maps used to return before this line, so its content
         // never entered the denominator and the reconciliation was a claim about
@@ -261,6 +314,7 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
             at: format!("{file}:{line_no}"),
             kind,
             text,
+            coerced: !bullet,
           }),
           None => out.uncarried.push(Uncarried {
             at: format!("{file}:{line_no}"),
@@ -281,7 +335,35 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
   for (i, line) in wip_md.lines().enumerate().skip(header_end + 1) {
     if line.starts_with("## ") {
       flush(&heading, &mut block, &mut out);
+      if let Some((_, Some(qualifier))) = kind_and_qualifier(line) {
+        out.source_items += 1;
+        out.uncarried.push(Uncarried {
+          at: format!("{file}:{}", i + 1),
+          text: line.to_string(),
+          reason: format!(
+            "`{qualifier}` follows the section's kind word, and the section renders under its \
+             kind's own heading: the model has no field for the rest"
+          ),
+        });
+      }
       heading = Some(line.to_string());
+      continue;
+    }
+    // **A SUB-HEADING IS A UNIT OF ITS OWN AND NEVER PART OF AN ITEM** (vc
+    // decision 20, issue 0403). It records whose work the lines under it are,
+    // and an item's `seq` carries no group, so carried inside a block it became
+    // an item reading `###` and the grouping survived only as an order the next
+    // archive can break. It ends the block above it, as a section heading does.
+    if line.starts_with("###") {
+      flush(&heading, &mut block, &mut out);
+      out.source_items += 1;
+      out.uncarried.push(Uncarried {
+        at: format!("{file}:{}", i + 1),
+        text: line.to_string(),
+        reason: "a sub-heading: an item has no field for the group it names, so the grouping \
+                 would survive only as order within a kind"
+          .to_string(),
+      });
       continue;
     }
     // The board's own `# <Name> (<node>)` title, which the header block already
@@ -306,8 +388,9 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
 /// Split one blank-line-delimited block into items.
 ///
 /// A block opening with `- ` is a bullet list: one item per top-level bullet,
-/// with its continuation lines attached. Anything else is one item, verbatim.
-fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String)> {
+/// with its continuation lines attached. Anything else is one item, verbatim,
+/// and the third field says which of the two it was.
+fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String, bool)> {
   let opens_a_list = block
     .first()
     .is_some_and(|(_, l)| l.trim_start().starts_with("- "));
@@ -318,17 +401,17 @@ fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String)> {
       .map(|(_, l)| l.as_str())
       .collect::<Vec<_>>()
       .join("\n");
-    return vec![(line_no, text)];
+    return vec![(line_no, text, false)];
   }
-  let mut out: Vec<(usize, String)> = Vec::new();
+  let mut out: Vec<(usize, String, bool)> = Vec::new();
   for (line_no, line) in block {
     if line.starts_with("- ") {
-      out.push((*line_no, line.trim_start_matches("- ").to_string()));
-    } else if let Some((_, last)) = out.last_mut() {
+      out.push((*line_no, line.trim_start_matches("- ").to_string(), true));
+    } else if let Some((_, last, _)) = out.last_mut() {
       last.push('\n');
       last.push_str(line);
     } else {
-      out.push((*line_no, line.clone()));
+      out.push((*line_no, line.clone(), true));
     }
   }
   out

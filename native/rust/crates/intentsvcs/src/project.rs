@@ -1627,6 +1627,20 @@ impl Project {
     self.whiteboard_dir().join(node).join("wip.md")
   }
 
+  /// The verbatim copy of a node's hand-authored board that `wb migrate` keeps,
+  /// `whiteboard/<node>/.history/pre-migration/wip.md`.
+  ///
+  /// **UNDER `.history/` SO IT IS A SNAPSHOT LIKE EVERY FOLD'S ARCHIVE**, read
+  /// and carried by the same walk, and undated because a board is migrated once.
+  pub fn wb_pre_migration_snapshot(&self, node: &str) -> PathBuf {
+    self
+      .whiteboard_dir()
+      .join(node)
+      .join(".history")
+      .join("pre-migration")
+      .join("wip.md")
+  }
+
   /// One ordered pair's inbox view, `whiteboard/<recipient>/inbox.<sender>.md`:
   /// it sits with the recipient, who reads and clears it.
   pub fn wb_inbox_view(&self, recipient: &str, sender: &str) -> PathBuf {

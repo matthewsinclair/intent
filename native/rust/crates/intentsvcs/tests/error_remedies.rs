@@ -126,7 +126,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "a migration that meets an inbox from an unregistered sender",
     facade
-      .wb_migrate("dc")
+      .wb_migrate("dc", false)
       .expect_err("a message row names its sender, so a stranger's inbox refuses the carry"),
   ));
   std::fs::remove_file(dc.join("inbox.zz.md")).expect("remove the stranger's inbox");
@@ -172,7 +172,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "a migration into a board that already holds rows",
     facade
-      .wb_migrate("cc")
+      .wb_migrate("cc", false)
       .expect_err("a board with items is not carried a second time"),
   ));
   out.push((
@@ -1075,6 +1075,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
     FacadeError::WbRegisterDisagreesWithHeader { .. } => "WbRegisterDisagreesWithHeader",
     FacadeError::WbCorrectUnregistered { .. } => "WbCorrectUnregistered",
+    FacadeError::WbUncarried { .. } => "WbUncarried",
+    FacadeError::WbSnapshotInTheWay { .. } => "WbSnapshotInTheWay",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
@@ -1177,6 +1179,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbRegisteredDifferently",
   "WbRegisterDisagreesWithHeader",
   "WbCorrectUnregistered",
+  "WbUncarried",
+  "WbSnapshotInTheWay",
   "WbNoActingNode",
 ];
 
@@ -1196,6 +1200,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // that is not `hv`: `wb_migrate_carries_a_board.rs` has that fixture and
   // drives it, and building one here would be a second copy of that fixture.
   "WbDirectivesOnAnotherBoard",
+  // The same reading for the carry's two refusals of vc decision 20: one needs a
+  // board holding a unit the model cannot carry, and the other a pre-migration
+  // snapshot already on disk with other bytes. Both fixtures are in
+  // `wb_migrate_carries_a_board.rs`, which drives each.
+  "WbUncarried",
+  "WbSnapshotInTheWay",
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
   // WP-01's `issue_home` turns a manifest id into an issue's view path.

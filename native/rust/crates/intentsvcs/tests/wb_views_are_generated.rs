@@ -129,7 +129,7 @@ fn a_node_registered_from_its_header_refuses_a_board_write_until_it_is_migrated(
     "and the hand-authored board is byte-identical"
   );
 
-  f.wb_migrate("dc").expect("carry the board");
+  f.wb_migrate("dc", false).expect("carry the board");
   f.wb_touch("dc").expect("a board write after the migration");
   let board = fx.read("intent/whiteboard/dc/wip.md");
   assert!(
@@ -149,7 +149,7 @@ fn a_migration_lands_the_carried_board_on_disk() {
   std::fs::write(dir.join("wip.md"), HAND_BOARD).expect("a hand-authored board");
   let mut f = fx.facade_on_disk();
   f.register_roster().expect("register by header");
-  f.wb_migrate("dc").expect("carry the board");
+  f.wb_migrate("dc", false).expect("carry the board");
   let board = fx.read("intent/whiteboard/dc/wip.md");
   assert!(
     board != HAND_BOARD && board.contains("- The busiest section on every real board.\n"),

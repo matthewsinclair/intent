@@ -45,7 +45,7 @@ fn registering_a_node_with_a_hand_authored_board_leaves_the_board_for_its_migrat
     matches!(f.wb_touch("gg"), Err(FacadeError::WbNotMigrated { .. })),
     "and the node is not born migrated, so no board write can render over the board first"
   );
-  f.wb_migrate("gg").expect("carry the board");
+  f.wb_migrate("gg", false).expect("carry the board");
   assert!(
     f.board("gg")
       .expect("the board")

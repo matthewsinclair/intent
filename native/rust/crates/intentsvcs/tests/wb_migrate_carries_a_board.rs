@@ -9,7 +9,9 @@
 //! DOING, bullet TODO, a `## Holds` section, a section the model maps to
 //! nothing, an inbox from a registered peer, and a `.history/` fold beside a
 //! file that is not a document. An inbox from a sender the roster does not
-//! carry refuses the whole carry, and has its own arm.
+//! carry refuses the whole carry, and has its own arm; so does the unmapped
+//! section without `--drop-uncarried` (vc decision 20), which is why the shared
+//! carry below asks for the drop.
 
 use crate::common::Fixture;
 use intentsvcs::model::{WbItemKind, WbMessageState};
@@ -97,7 +99,8 @@ claims: []
 - Ruled on 2026-09-15.
 "#;
 
-/// Write the node's whole directory, register the roster, and carry it.
+/// Write the node's whole directory, register the roster, and carry it with the
+/// drop asked for, since `## Parking lot` is a unit the model cannot carry.
 fn carried() -> (
   Fixture,
   intentsvcs::facade::Facade,
@@ -120,7 +123,7 @@ fn carried() -> (
 
   let mut facade = fx.facade();
   facade.register_roster().expect("register the roster");
-  let carried = facade.wb_migrate("dc").expect("carry the board");
+  let carried = facade.wb_migrate("dc", true).expect("carry the board");
   (fx, facade, carried)
 }
 
@@ -218,7 +221,9 @@ fn a_fold_is_carried_as_a_document_and_never_as_items() {
     .doc_sections()
     .expect("sections")
     .into_iter()
-    .filter(|s| s.owner_type == intentsvcs::prose::WB_OWNER)
+    .filter(|s| {
+      s.owner_type == intentsvcs::prose::WB_OWNER && s.file.ends_with("wip-prefold-1400Z.md")
+    })
     .collect();
 
   assert!(
@@ -250,11 +255,19 @@ fn a_fold_is_carried_as_a_document_and_never_as_items() {
     carried.snapshots
   );
   let not_a_doc = carried
-    .uncarried
+    .left_in_place
     .iter()
     .find(|u| u.at.ends_with("board.png"))
     .expect("a `.history/` file that is not markdown is named rather than passed over");
   assert!(not_a_doc.reason.contains("not markdown"), "{not_a_doc:?}");
+  assert!(
+    !carried
+      .uncarried
+      .iter()
+      .any(|u| u.at.ends_with("board.png")),
+    "and it is LEFT IN PLACE, not uncarried: a tracked file still on disk is not a loss \
+     (vc decision 20, issue 0409)"
+  );
 }
 
 /// AC-14.9's accounting, against a fixture whose every line is known: each one
@@ -317,7 +330,7 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
   facade.register_roster().expect("register the roster");
 
   let refusal = facade
-    .wb_migrate("dc")
+    .wb_migrate("dc", true)
     .expect_err("a sender the roster does not carry refuses the carry")
     .render();
   assert!(
@@ -335,7 +348,7 @@ fn an_inbox_from_an_unregistered_sender_refuses_the_migration_before_it_writes()
     .wb_register("laksa-vc", "Laksa VC", "validation")
     .expect("register the sender");
   facade
-    .wb_migrate("dc")
+    .wb_migrate("dc", true)
     .expect("the re-run after the registration carries the board");
   assert_eq!(
     facade.board("dc").expect("the board").messages.len(),
@@ -355,7 +368,7 @@ fn hv_s_standing_directives_carry_as_directives() {
   let mut facade = fx.facade();
   facade.register_roster().expect("register the roster");
 
-  let carried = facade.wb_migrate("hv").expect("hv's board carries");
+  let carried = facade.wb_migrate("hv", false).expect("hv's board carries");
   let directives: Vec<String> = facade
     .board("hv")
     .expect("the board")
@@ -397,7 +410,7 @@ fn standing_directives_on_a_board_that_is_not_hv_s_refuse_the_migration_before_i
   facade.register_roster().expect("register the roster");
 
   let refusal = facade
-    .wb_migrate("dc")
+    .wb_migrate("dc", true)
     .expect_err("a standing directive on dc's board refuses the carry");
   assert!(
     matches!(
@@ -442,7 +455,7 @@ fn a_migrated_inbox_over_the_bound_does_not_refuse_its_sender() {
   facade
     .wb_register("vc", "Validation Claude", "validation")
     .expect("register the sender");
-  facade.wb_migrate("dc").expect("carry the board");
+  facade.wb_migrate("dc", true).expect("carry the board");
   assert_eq!(
     facade.board("dc").expect("the board").messages.len(),
     bound + 1,
@@ -457,4 +470,131 @@ fn a_migrated_inbox_over_the_bound_does_not_refuse_its_sender() {
       false,
     )
     .expect("rows the sender never sent through the bound do not refuse it");
+}
+
+/// vc decision 20, issue 0408: a unit the model cannot carry refuses the whole
+/// carry before anything is written, naming each unit, so the exit status tells
+/// a lossy carry from a complete one. The re-run with the drop asked for carries
+/// the rest and names the same unit.
+#[test]
+fn a_unit_the_model_cannot_carry_refuses_the_carry_until_the_drop_is_asked_for() {
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(&home).expect("the node's directory");
+  std::fs::write(home.join("wip.md"), BOARD).expect("the board");
+  let mut facade = fx.facade();
+  facade.register_roster().expect("register the roster");
+
+  let refusal = facade
+    .wb_migrate("dc", false)
+    .expect_err("an unmapped section refuses the carry");
+  let intentsvcs::facade::FacadeError::WbUncarried {
+    units, snapshot, ..
+  } = &refusal
+  else {
+    panic!("the refusal is the uncarried one: {refusal:?}");
+  };
+  assert!(
+    units.iter().any(|u| u.text.contains("maps to no kind")),
+    "the refusal names the unit: {units:?}"
+  );
+  assert_eq!(
+    snapshot,
+    "intent/whiteboard/dc/.history/pre-migration/wip.md"
+  );
+  let rendered = refusal.render();
+  assert!(
+    rendered.contains("--drop-uncarried") && rendered.contains(snapshot.as_str()),
+    "the remedy names the flag and where the board would be kept: {rendered}"
+  );
+  let board = facade.board("dc").expect("the board");
+  assert!(
+    board.items.is_empty() && board.node.migrated_at.is_none(),
+    "nothing was carried"
+  );
+  assert!(
+    !home.join(".history/pre-migration/wip.md").exists(),
+    "and nothing was written to disk either"
+  );
+
+  let carried = facade
+    .wb_migrate("dc", true)
+    .expect("the drop carries the rest");
+  assert!(
+    carried
+      .uncarried
+      .iter()
+      .any(|u| u.text.contains("maps to no kind"))
+      && carried.reconciles(),
+    "and names what it dropped: {:?}",
+    carried.uncarried
+  );
+}
+
+/// vc decision 20: the board's `wip.md` is kept byte for byte as a snapshot and
+/// carried as one, so a dropped line is out of the model and still in the store.
+#[test]
+fn the_board_is_kept_verbatim_as_the_pre_migration_snapshot() {
+  let (fx, facade, carried) = carried();
+  let rel = "intent/whiteboard/dc/.history/pre-migration/wip.md";
+  assert_eq!(
+    std::fs::read_to_string(fx.root().join(rel)).expect("the snapshot on disk"),
+    BOARD,
+    "the file is the board as it stood"
+  );
+  assert!(
+    carried.snapshots.iter().any(|f| f == rel),
+    "and it is carried as a snapshot: {:?}",
+    carried.snapshots
+  );
+  let sections: Vec<intentsvcs::prose::DocSection> = facade
+    .store()
+    .doc_sections()
+    .expect("sections")
+    .into_iter()
+    .filter(|s| s.owner_type == intentsvcs::prose::WB_OWNER && s.file == rel)
+    .collect();
+  assert_eq!(
+    intentsvcs::prose::join(&sections),
+    BOARD,
+    "the dropped `## Parking lot` is still in the store's prose"
+  );
+}
+
+/// vc decision 20: a pre-migration snapshot already on disk with other bytes is
+/// refused rather than overwritten, before anything is written.
+#[test]
+fn a_different_snapshot_in_the_way_refuses_the_carry() {
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(home.join(".history/pre-migration")).expect("the directories");
+  std::fs::write(home.join("wip.md"), BOARD).expect("the board");
+  std::fs::write(home.join(".history/pre-migration/wip.md"), FOLD).expect("another board");
+  let mut facade = fx.facade();
+  facade.register_roster().expect("register the roster");
+
+  let refusal = facade
+    .wb_migrate("dc", true)
+    .expect_err("another board's bytes are not overwritten");
+  assert!(
+    matches!(
+      refusal,
+      intentsvcs::facade::FacadeError::WbSnapshotInTheWay { .. }
+    ),
+    "{refusal:?}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(home.join(".history/pre-migration/wip.md")).expect("the file"),
+    FOLD,
+    "the file in the way is untouched"
+  );
+  assert!(
+    facade
+      .board("dc")
+      .expect("the board")
+      .node
+      .migrated_at
+      .is_none(),
+    "and nothing was carried"
+  );
 }

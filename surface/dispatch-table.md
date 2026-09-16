@@ -3959,7 +3959,7 @@ The whiteboard: read the node boards, and send between them
 | `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                                      | new-surface |
 | `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                        | new-surface |
 | `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
-| `wb migrate`  | <node>             | --                                        | Carry one node's hand-authored board into the model                                                    | new-surface |
+| `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                    | new-surface |
 
 ### `wb`
 
@@ -4318,10 +4318,15 @@ Carry one node's hand-authored board into the model
 - **v2:** new-surface
 - **Arguments:**
   - `node` (node, arity `1`)
+- **Flags:**
+  - `--drop-uncarried` (bool) -- Carry what the model holds and drop what it cannot, instead of refusing
+    - **THE DROP IS ASKED FOR, NEVER ASSUMED** (vc decision 20). Without it any unit the model cannot carry -- a `###` sub-heading, a table, a heading's text after its kind word, a board lead -- refuses the whole carry before the first write, each named on an `uncarried:` line, so the exit status tells a script a lossy carry from a complete one. With it the carry proceeds, names every dropped unit the same way, and says so in its closing line. Either way the board's `wip.md` is kept byte for byte at `.history/pre-migration/wip.md` and carried as a snapshot, so a dropped line leaves the model and not the store.
+    - **disposition:** keep
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT once per node at the cutover, to carry a markdown board into the store: its header block, its item sections, every entry in every inbox it owns, and every `.history/` snapshot as a document. It prints every line it carried AND every line it would not, each with its `<file>:<line>`, because a total that reconciles arithmetically tells nobody which line stayed behind. DO NOT USE IT on a board that already holds rows -- it refuses rather than guessing whether those are an earlier carry or work written since -- and do not reach for it to create a node: `wb register` does that, and this needs the row to exist.
+- **when to use:** USE IT once per node at the cutover, to carry a markdown board into the store: its header block, its item sections, every entry in every inbox it owns, and every `.history/` snapshot as a document. It prints every line it carried, each with its `<file>:<line>`, and marks `coerced:` any section prose it carried as an item; anything the model cannot carry (a sub-heading, a table, a heading qualifier, a board lead) REFUSES the carry before the first write, named line by line on `uncarried:`, unless `--drop-uncarried` is passed -- a total that reconciles arithmetically tells nobody which line stayed behind. The board's `wip.md` is kept verbatim as the snapshot `.history/pre-migration/wip.md`, and non-markdown `.history/` files are reported `left in place:`. DO NOT USE IT on a board that already holds rows -- it refuses rather than guessing whether those are an earlier carry or work written since -- and do not reach for it to create a node: `wb register` does that, and this needs the row to exist.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. AC-14.9, read as vc ruled its three lines on 2026-09-12, with hv's bounds ruling of the same day. There is no v2 antecedent: the whiteboard has always been markdown on disk, read and written by hand.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.9

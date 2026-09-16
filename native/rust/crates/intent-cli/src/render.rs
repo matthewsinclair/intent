@@ -4110,8 +4110,16 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // it, so the board being carried is the argument and there is a human
       // behind the act rather than a session claiming a moniker.
       let node = arg(m, "node")?;
+      let drop_uncarried = m.get_flag("drop-uncarried");
       let mut f = open()?;
-      let carried = f.wb_migrate(&node).map_err(fail)?;
+      let result = f.wb_migrate(&node, drop_uncarried);
+      // **THE REFUSAL NAMES ITS UNITS, EACH ON ITS OWN LINE, BEFORE IT FAILS**
+      // (vc decision 20). The error's own line lists the addresses; the
+      // worklist a person acts on is the text and the reason beside each.
+      if let Err(FacadeError::WbUncarried { units, .. }) = &result {
+        print_uncarried(units);
+      }
+      let carried = result.map_err(fail)?;
       print_notes(&f.take_notes(), &node);
       report_wb_migration(&carried)
     }
@@ -4384,8 +4392,10 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
 /// reconcile arithmetically and leave nobody able to say which board line is now
 /// only in a markdown file they are about to stop reading. The refused half is
 /// on stderr because it is a worklist for a person rather than part of the
-/// answer, and it does not fail the run: a migration that carried what it could
-/// and named the rest is the outcome, not an error. **A failed reconciliation
+/// answer. It reaches this report only on `--drop-uncarried`: without the flag
+/// the facade refuses the carry before any write (vc decision 20, issue 0408),
+/// so the exit status tells a complete carry from a lossy one, and with it the
+/// closing line says what was dropped. **A failed reconciliation
 /// DOES fail it**, once everything above is printed -- see the end of the body.
 fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), Failure> {
   for item in &carried.items {
@@ -4399,21 +4409,35 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
   for file in &carried.snapshots {
     println!("carried: [snapshot] {file}");
   }
+  // **PROSE CARRIED AS AN ITEM IS SAID TO BE, NEVER SILENTLY** (vc decision 20,
+  // issue 0404). It is on the carried list above too; this line is the one that
+  // tells a reader a sentence is now counted as a unit of work.
+  for item in carried.items.iter().filter(|i| i.coerced) {
+    eprintln!(
+      "coerced: [{}] {} -- {}\n  reason: section prose, not a list entry, carried as one item",
+      item_kind_word(&item.kind),
+      item.at,
+      first_line(&item.text)
+    );
+  }
+  for file in &carried.left_in_place {
+    println!("left in place: {} -- {}", file.at, file.reason);
+  }
+  print_uncarried(&carried.uncarried);
+  // **A DROP IS STATED IN THE CLOSING LINE** (issue 0408): the run only reaches
+  // here with units uncarried when `--drop-uncarried` asked for it, so rc 0
+  // alone would read as a complete carry.
+  let dropped = match carried.uncarried.len() {
+    0 => String::new(),
+    n => format!(", {n} unit(s) dropped on --drop-uncarried"),
+  };
   println!(
-    "ok: {} carried {} item(s), {} message(s), {} snapshot(s)",
+    "ok: {} carried {} item(s), {} message(s), {} snapshot(s){dropped}",
     carried.node,
     carried.items.len(),
     carried.messages,
     carried.snapshots.len()
   );
-  for refused in &carried.uncarried {
-    eprintln!(
-      "uncarried: {} -- {}\n  reason: {}",
-      refused.at,
-      first_line(&refused.text),
-      refused.reason
-    );
-  }
   // **THE INVARIANT FAILS THE RUN, AFTER EVERYTHING ABOVE IS ON THE RECORD.** It
   // once printed and exited 0, because a debug assertion would have been a crash
   // in the operator's cutover -- and that left the exit code, the one check every
@@ -4429,8 +4453,25 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
        refuses a board that already holds rows, so a re-run will not help. This is a fault in \
        the migration reader rather than in the board: report it with this output",
       carried.offered,
-      carried.items.len() + carried.messages + carried.snapshots.len() + carried.uncarried.len()
+      carried.items.len()
+        + carried.messages
+        + carried.snapshots.len()
+        + carried.uncarried.len()
+        + carried.left_in_place.len()
     ))),
+  }
+}
+
+/// Every unit a migration did not carry, one `uncarried:` line each with its
+/// reason, to stderr: a worklist for a person rather than part of the answer.
+fn print_uncarried(units: &[intentsvcs::wbmigrate::Uncarried]) {
+  for refused in units {
+    eprintln!(
+      "uncarried: {} -- {}\n  reason: {}",
+      refused.at,
+      first_line(&refused.text),
+      refused.reason
+    );
   }
 }
 
@@ -13724,6 +13765,7 @@ mod tests {
       messages: 1,
       snapshots: Vec::new(),
       uncarried: Vec::new(),
+      left_in_place: Vec::new(),
       offered: 1,
     };
     assert_eq!(report_wb_migration(&reconciled), Ok(()));

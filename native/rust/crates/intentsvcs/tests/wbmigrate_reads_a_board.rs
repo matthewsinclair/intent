@@ -113,6 +113,17 @@ fn prose_sections_and_bullet_sections_both_carry() {
     "a bullet's continuation line stays with its bullet: {todo:?}"
   );
 
+  // **PROSE IS CARRIED AND MARKED, BULLETS ARE CARRIED PLAIN** (vc decision 20,
+  // issue 0404): the mark is what puts a paragraph on a `coerced:` line.
+  assert!(
+    board
+      .items
+      .iter()
+      .all(|i| i.coerced == (i.kind == WbItemKind::Doing)),
+    "only the prose DOING paragraphs are coerced: {:?}",
+    board.items
+  );
+
   assert!(
     !board
       .items
@@ -144,15 +155,28 @@ fn a_hold_carries_as_a_hold_and_an_unmapped_section_is_named() {
     "and it carries the CONDITION, which is the field that makes it a hold: {holds:?}"
   );
 
-  // **THE REFUSAL ARM NOW POINTS AT WHERE THE LOSS ACTUALLY IS.** Two things on
-  // this board have no kind: the lead paragraph above the first section, and a
-  // section the protocol does not name and the model maps to nothing. Both are
-  // named; neither is passed over, which is what the count means.
+  // **THE REFUSAL ARM NOW POINTS AT WHERE THE LOSS ACTUALLY IS.** Three things
+  // on this board have no field: the lead paragraph above the first section, the
+  // text after DOING's kind word, and a section the protocol does not name and
+  // the model maps to nothing. All are named; none is passed over, which is what
+  // the count means.
   let named: Vec<&str> = board.uncarried.iter().map(|u| u.text.as_str()).collect();
-  assert_eq!(named.len(), 2, "{:?}", board.uncarried);
+  assert_eq!(named.len(), 3, "{:?}", board.uncarried);
   assert!(
     named.iter().any(|t| t.contains("lead paragraph")),
     "prose above the first `## ` is named rather than carried into a kind: {named:?}"
+  );
+  let qualifier = board
+    .uncarried
+    .iter()
+    .find(|u| u.text.starts_with("## DOING"))
+    .expect("a heading's text after its kind word is named (vc decision 20, issue 0407)");
+  assert!(
+    qualifier
+      .reason
+      .contains("WP-14, with trailing prose in the heading"),
+    "the reason quotes the words that would be lost: {}",
+    qualifier.reason
   );
   let unmapped = board
     .uncarried
@@ -368,4 +392,65 @@ fn an_entry_written_in_its_heading_carries_that_text_as_its_body() {
     ],
     "text in the heading is carried, never dropped"
   );
+}
+
+/// vc decision 20, issues 0403 and 0406: a `###` sub-heading and a table are
+/// each one unit the model cannot carry, named where they stand, and neither
+/// becomes part of an item. The lines under a sub-heading still carry as the
+/// section's kind.
+#[test]
+fn a_sub_heading_and_a_table_are_named_units_and_never_items() {
+  const GROUPED: &str = "---\nnode: dc\nname: DevX Claude\nrole: worker\n---\n\n## TODO\n\n\
+### cc's lane\n- The first bullet under a group.\n\n\
+| lane | item |\n| ---- | ---- |\n| cc   | 0410 |\n\n- A bullet after the table.\n\n\
+The lanes as they stand:\n| lane | item |\n| ---- | ---- |\n";
+  let board = wbmigrate::read_board("dc", GROUPED, "intent/whiteboard/dc/wip.md");
+
+  let todo: Vec<&str> = board.items.iter().map(|i| i.text.as_str()).collect();
+  assert_eq!(
+    todo,
+    vec![
+      "The first bullet under a group.",
+      "A bullet after the table."
+    ],
+    "neither the sub-heading nor any table row reaches an item: {todo:?}"
+  );
+
+  let sub = board
+    .uncarried
+    .iter()
+    .find(|u| u.text == "### cc's lane")
+    .expect("the sub-heading is named");
+  assert_eq!(sub.at, "intent/whiteboard/dc/wip.md:9");
+  assert!(sub.reason.contains("sub-heading"), "{}", sub.reason);
+
+  let table = board
+    .uncarried
+    .iter()
+    .find(|u| u.text.starts_with("| lane"))
+    .expect("the table is named");
+  assert_eq!(table.at, "intent/whiteboard/dc/wip.md:12");
+  assert_eq!(
+    table.text.lines().count(),
+    3,
+    "the table is ONE unit, every row of it: {:?}",
+    table.text
+  );
+  // A table under a prose line with no blank line between is one block, and it
+  // is refused whole rather than carried as one coerced prose item.
+  let under_prose = board
+    .uncarried
+    .iter()
+    .find(|u| u.text.starts_with("The lanes as they stand:"))
+    .expect("a table opened by prose is named too");
+  assert_eq!(under_prose.at, "intent/whiteboard/dc/wip.md:18");
+  assert!(
+    !board
+      .items
+      .iter()
+      .any(|i| i.text.contains("lanes as they stand")),
+    "and none of that block reaches an item"
+  );
+  assert_eq!(board.uncarried.len(), 3, "{:?}", board.uncarried);
+  assert!(board.reconciles());
 }
