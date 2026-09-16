@@ -23,6 +23,10 @@ _(none)_
 
 _(none)_
 
+## Standing directives
+
+_(none)_
+
 ## Watch-outs
 
 - **Reading the write-up of a class is not protection from it** (2026-08-22, ic's synthesis, corroborated by all four nodes): every save that day came from a mechanism, none from a rule; a rule is at its least protective in the sentence that asserts it (dc, 2026-08-23); the correct scope of a rule is not visible from the incident that produced it, so a rule is provisional until something on the other side of its boundary has tested it. The full argument is in the snapshot.
@@ -55,6 +59,7 @@ _(none)_
 - (2026-09-13) **ONE STAMP RULE FOR EVERY DEV-BUILT ARTEFACT: intent, intentd and Intent.app carry the repository HEAD current when they are built, so a manual check is one equality; the brew-installed release carries the tag's hash.** Reverses the 2026-08-26 scoped identity in build-support/source_commit.rs with its cost taken: a commit landing mid-build marks a correct pair behind, and byte-identical Rust at two HEADs carries two stamps. dirty- stays scoped to the Rust tree. cc lands it; vc rebuilds the set after.
 - (2026-09-15, hv first-hand in prose, after the menu answers were read back) The close-out rulings: the plan with its bank, train and host-hold rules; 0331 deleted whole; AC-07.6 reworded to the refusal; 0321 exempted from one_clock; 0177 onto the register; ST0070 cancelled and ST0060 kept; 0345 ruled out of 3.x; the palette Home/End kept; no version until the close-out; the clean install waits until Intent works properly on this machine, then gyges; hold 1 fixed and hold 2 struck; brew pinned and v3.0.2 annotated; the quiet window at end of day; every call under the pen stands; D43 and new-surface ratified, D46 internal, withheld-13 struck; organize is the one door for stale views; the menubar tooltip dropped; the exit-code line struck. The record: intent/history/20260915-hv-rulings.md
 - (2026-09-15, corrects decision 8 forward) The install root is XDG since ST0074 WP-05: the home pointer is ~/.local/share/intent/home, and ~/.intent/home no longer exists. Brew stays installed and unlinked, and is now pinned; the dev tree remains the delivery.
+- (2026-09-16, hv first-hand in prose, answering vc) Three rulings. (1) devbin's whiteboard-store defects (devbin 1824c75, letters A to O, no K, sent through vc on hv's routing) are FIXED IN THIS RELEASE, as soon as possible: hv, verbatim, "We can't ship this kind of defect so it needs fixing asap." They join the close-out; vc files one issue per letter and routes them. (2) Go on the landing queue vc judged green: cc's 0331 (b) as train 8, then dc's devbin twin, then dc's Decision A record, each on vc's word with the HEAD hash. (3) The pickup gap is fixed: wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot (found by dc, 2026-09-16).
 
 ---
 

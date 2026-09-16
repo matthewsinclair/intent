@@ -291,6 +291,14 @@
       "text": "(2026-09-15, corrects decision 8 forward) The install root is XDG since ST0074 WP-05: the home pointer is ~/.local/share/intent/home, and ~/.intent/home no longer exists. Brew stays installed and unlinked, and is now pinned; the dev tree remains the delivery.",
       "state": "live",
       "recorded_at": "2026-09-15T13:22:48.464Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 18,
+      "text": "(2026-09-16, hv first-hand in prose, answering vc) Three rulings. (1) devbin's whiteboard-store defects (devbin 1824c75, letters A to O, no K, sent through vc on hv's routing) are FIXED IN THIS RELEASE, as soon as possible: hv, verbatim, \"We can't ship this kind of defect so it needs fixing asap.\" They join the close-out; vc files one issue per letter and routes them. (2) Go on the landing queue vc judged green: cc's 0331 (b) as train 8, then dc's devbin twin, then dc's Decision A record, each on vc's word with the HEAD hash. (3) The pickup gap is fixed: wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot (found by dc, 2026-09-16).",
+      "state": "live",
+      "recorded_at": "2026-09-16T12:23:19.401Z"
     }
   ],
   "messages": [
