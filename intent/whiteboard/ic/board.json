@@ -1305,7 +1305,8 @@
       "kind": "doing",
       "seq": 40,
       "text": "**RESUME HERE after hv's compact of 2026-09-16 (second): ic's queue is EMPTY; nothing banked, nothing in flight.** Landed today on vc's GO, verified by vc: 0418 (e9877600e, closed 03bd58885), ST0075 WP-02 (408891226), O4 (aa312405d), 0400 (b627dd6dc, closed b73ee3b94 citing hv's ruling 20), ST0075 WP-03 (1a1d277ae, tree-exact to refs/bank/ic/st0075-wp03 45a4e6ebc; gate ST0075 PASS 11/11). WP-02 and WP-03 stay wip until hv's quiet-window hand drive after an app-install: Console on Cmd-L (tail, footer, reopen), Run Doctor and Rebuild Search Index into the Console, Start/Stop/Restart noted there, a second one-off refused with an alert; then both WPs done and ST0075 closed on hv's word. Recorded in WP-03's commit, not changed (Gtools' shape): a one-off cannot be stopped from the app, and a lifecycle note during a one-off lands between its markers; vc noted blank lines are dropped (cosmetic). NEXT: todo 20 (review cc's 0331, both halves on main; candidate: intent/st/ST0056/parity/README.md:31 and :49 still name claude rules index). Held for hv: the /projects cursor starting on the open project (XS). Nothing rebuilt: 0418, WP-02 and WP-03 need devbin build all, daemon restart and app-install to drive. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-16T19:07:27.163Z",
       "recorded_at": "2026-09-16T16:22:55.547Z"
     },
     {
@@ -1315,6 +1316,14 @@
       "text": "**A SUITE LAUNCHED WITH `nohup ... &` IGNORES SIGINT, AND A DAEMON-FAMILY TEST THEN HANGS WITH NO OUTPUT** (2026-09-16): intent-cli's no_tail_survives_follow_however_it_ends sent INT to a verb that inherited SIG_IGN and waited 30 minutes. Launch detached suites through `perl -e '$SIG{INT}=\"DEFAULT\"; exec @ARGV'` or run_in_background, and on a silent stall read the stack and the launch style before theorising (shared memory feedback_background_job_ignores_sigint).",
       "state": "live",
       "recorded_at": "2026-09-16T16:23:09.978Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 41,
+      "text": "**RESUME HERE, 2026-09-16 evening: ic's queue is EMPTY; nothing banked, nothing in flight.** Landed today on vc's GO and verified by vc: 0419, the /projects cursor starting on the open project or the nearest registered one (fe2471b17, closed 17345a14e); ST0075 WP-02 and WP-03 done on hv's word after hv's hand drive of build 7305 at 3e0a87f23 (7a0a6ae30); 0421 and 0422, hv's two explorer bugs from that drive, the in-place edit's caret as an overlay and the list scrolling against the height it is drawn at (4df530f36, closed e30459a36). Reviewed: cc's 0331, whose three stale claims cc landed at f2f25c57d. The delivered pair (3e0a87f23) is behind HEAD's tui code, so hv's drive of 0421 and 0422 needs `bin/devbin build all` (no app-install). `st done ST0075` is vc's, on hv's word. For 0420: hv's Console showed intentd's own ingest and index refresh refused with `database is locked` at 16:46:51Z, 16:46:56Z, 16:47:41Z, 16:53:18Z and 16:55:02Z, so intentd was not the only victim; vc adds these to 0420. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-16T19:07:34.862Z"
     }
   ],
   "messages": [
