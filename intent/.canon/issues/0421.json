@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 421,
+  "slug": "an-in-place-field-edit-shows-an-extra-space-at-t",
+  "title": "An in-place field edit shows an extra space at the cursor -- the caret was a glyph spliced into the value, which took a column",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "hv, 2026-09-16, driving the explorer after the quiet-window rebuild (3.0.3 at 3e0a87f23): \"There are two issues with filed editing: 1. There is a weird spacing thing where there is an extra space to the right of the cursor\". hv's screenshots (CleanShot 2026-09-16 at 19.47.16 and 19.47.19) show issue 0420's title in an in-place edit reading `A st▏ ore write can meet a write lock held over 5s with intentd alone on the store`.\n\nThe cause: `screen_for` in `tui/run.rs` drew the edit by splicing a caret glyph (U+258F) into the value at the cursor. The glyph takes a column, so every character after the cursor moved one cell right and read as an inserted space. The composer had the same defect and was fixed by painting its caret as an overlay on a cell (see `omnibox_row`).\n\nThe fix takes the composer's shape. The edited value gains one trailing cell for the caret to sit on at its end, and the caret is carried on the screen as the edited row and the cursor's cell within the value. It is painted as an overlay, last in the row's ink. On the reversed cursor row the caret un-reverses its one cell, because a second reversal cannot mark a cell the row has already reversed. A known limit, shared with the composer: the caret column is counted in characters, as the composer's is, so a wide glyph before the cursor misplaces the caret by its extra column.\n\nThe list that cannot scroll behind a split pane was reported in the same message and is filed next to this issue; one change fixes both.\n"
+}
