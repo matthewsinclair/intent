@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console

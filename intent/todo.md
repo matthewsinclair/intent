@@ -40,8 +40,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
 - [-] ST0075: The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools
   - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
-  - [-] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
-  - [-] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
+  - [x] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
+  - [x] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ## TODO
 

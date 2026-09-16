@@ -5,7 +5,7 @@
   "slug": "the-intent-app-console-daemon-logs-and-one-off-v",
   "status": "wip",
   "created": "2026-09-14",
-  "objective": "Intent.app gets a Console that works just like the Gtools CMS Console, copied from ../Gtools, and Run Doctor writes its output to the Console. In hv's words, 2026-09-14: \"we need a Console that works _just_ like the Gtools CMS Console ... quickly implement that by copying the ../Gtools console. Then when 'Doctor' is run, it outputs to the Console log.\" The trigger: Run Doctor ran `intent doctor` and discarded its output on a pass, so a clean doctor looked like a click that did nothing.\n",
+  "objective": "Intent.app gets a Console that works just like the Gtools CMS Console, copied from ../Gtools, and Run Doctor writes its output to the Console. In hv's words, 2026-09-14: \"we need a Console that works _just_ like the Gtools CMS Console ... quickly implement that by copying the ../Gtools console. Then when 'Doctor' is run, it outputs to the Console log.\" The trigger: Run Doctor ran `intent doctor` and discarded its output on a pass, so a clean doctor looked like a click that did nothing.",
   "context": "",
   "body": "",
   "preamble": "",
@@ -23,8 +23,8 @@
       "seq": 2,
       "title": "The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console",
       "scope": "S",
-      "status": "wip",
-      "objective": "Intent.app's Console window, copied from Gtools: Console… on ⌘L tails `intent daemon logs --follow` while the window is open, holding the child's stdin so the verb and its tail end with the window or with the app however it dies; the footer names the two files the verb's first line says it is tailing; lines are coloured by intentd's own tokens, after any timestamp intentd stamps on them; a bounded backlog keeps the app's own lines across a close, and a reopened window shows the verb's replay rather than the earlier tail's lines twice; and File → Close and View → Clear Console reach the window through the responder chain.\n",
+      "status": "done",
+      "objective": "Intent.app's Console window, copied from Gtools: Console… on ⌘L tails `intent daemon logs --follow` while the window is open, holding the child's stdin so the verb and its tail end with the window or with the app however it dies; the footer names the two files the verb's first line says it is tailing; lines are coloured by intentd's own tokens, after any timestamp intentd stamps on them; a bounded backlog keeps the app's own lines across a close, and a reopened window shows the verb's replay rather than the earlier tail's lines twice; and File → Close and View → Clear Console reach the window through the responder chain.",
       "body": "",
       "preamble": ""
     },
@@ -32,8 +32,8 @@
       "seq": 3,
       "title": "The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there",
       "scope": "S",
-      "status": "wip",
-      "objective": "Intent.app's streaming items, copied from Gtools: Run Doctor and the new Rebuild Search Index bring the Console forward and stream `intent doctor` and `intent index rebuild` into it between `» intent doctor` and `» exit N · Ts`, so a clean pass is seen; a failing exit is reported in the Console by the command's own lines, and an alert is raised only when the command cannot run at all or its output ends with no exit status; Start, Stop and Restart intentd write their command, output and exit into the Console as a marked block without bringing it forward; and a second one-off while one runs is refused with an alert naming the running command, never queued.\n",
+      "status": "done",
+      "objective": "Intent.app's streaming items, copied from Gtools: Run Doctor and the new Rebuild Search Index bring the Console forward and stream `intent doctor` and `intent index rebuild` into it between `» intent doctor` and `» exit N · Ts`, so a clean pass is seen; a failing exit is reported in the Console by the command's own lines, and an alert is raised only when the command cannot run at all or its output ends with no exit status; Start, Stop and Restart intentd write their command, output and exit into the Console as a marked block without bringing it forward; and a second one-off while one runs is refused with an alert naming the running command, never queued.",
       "body": "",
       "preamble": ""
     }

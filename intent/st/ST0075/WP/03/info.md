@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there

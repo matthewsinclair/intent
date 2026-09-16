@@ -20,13 +20,13 @@ title: The Intent.app Console: daemon logs and one-off verbs in one window, copi
 - AC-01.3 intent daemon logs --follow prints lines the daemon appends after it started, until it is terminated -- satisfied: yes (computed)
 - AC-01.4 intent daemon logs --follow leaves no tail running once it ends, whether it is sent SIGTERM, SIGINT or SIGKILL or its stdin closes (issue 0281's ruling) -- satisfied: yes (computed)
 
-### WP-02 -- The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console (status: WIP)
+### WP-02 -- The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console (status: Done)
 
 - AC-02.1 Console (Cmd-L) opens a window tailing intent daemon logs --follow while it is visible, and its footer names the files being tailed -- satisfied: yes (computed)
 - AC-02.2 Console lines are coloured by kind: error, caused by and intentd could-not lines as errors, warning and remedy lines as warnings, the markers as the accent -- satisfied: yes (computed)
 - AC-02.3 the Console keeps the last lines up to its capacity and drops the oldest, so a command run while the window is closed is there when it opens -- satisfied: yes (computed)
 
-### WP-03 -- The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there (status: WIP)
+### WP-03 -- The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there (status: Done)
 
 - AC-03.1 Run Doctor streams intent doctor into the Console between a marker naming the command and a marker carrying its exit and duration, and brings the Console forward, so a clean pass is visible -- satisfied: yes (computed)
 - AC-03.2 Rebuild Search Index streams intent index rebuild into the Console the same way -- satisfied: yes (computed)
@@ -42,13 +42,13 @@ title: The Intent.app Console: daemon logs and one-off verbs in one window, copi
 - AT-01.3 `native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs` -- covers AC-01.3 -- status: green
 - AT-01.4 `native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs` -- covers AC-01.4 -- status: green
 
-### WP-02 -- The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console (status: WIP)
+### WP-02 -- The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console (status: Done)
 
 - AT-02.1 `native/macos/Intent/IntentTests/ConsoleTests.swift` -- covers AC-02.1 -- status: green -- red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the header's two logs never returned, testTheTailingHeaderNamesBothLogs, testAPathContainingAndSplitsAtTheSharedDirectory and testOnlyTheFirstLineIsReadAsTheHeader failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run
 - AT-02.2 `native/macos/Intent/IntentTests/ConsoleTests.swift` -- covers AC-02.2 -- status: green -- red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with `warning:` not matched, testLinesAreClassifiedOverIntentdsOwnShapes failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run
 - AT-02.3 `native/macos/Intent/IntentTests/ConsoleTests.swift` -- covers AC-02.3 -- status: green -- red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the ring never dropping a line, testTheRingKeepsTheLastLinesAndSaysHowManyItDropped failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run
 
-### WP-03 -- The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there (status: WIP)
+### WP-03 -- The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there (status: Done)
 
 - AT-03.1 `native/macos/Intent/IntentTests/ConsoleTests.swift` -- covers AC-03.1 -- status: green -- red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a command's lines appended as tail lines, testRunDoctorStreamsBetweenItsMarkers failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run
 - AT-03.2 `native/macos/Intent/IntentTests/ConsoleTests.swift` -- covers AC-03.2 -- status: green -- red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a failing exit thrown and never marked, testRebuildSearchIndexStreamsTheSameWayAndReportsItsExit failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run
