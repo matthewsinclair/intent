@@ -8535,29 +8535,23 @@ fn app_start() -> Result<(), Failure> {
   // operator asked for a running app and there is one, and a script's second run
   // must not break. Naming the pid is what stops that silently covering an app
   // nobody meant to leave up.
-  match macapp::start().map_err(|e| Failure::Error(e.to_string()))? {
-    macapp::State::Running { pid, bundle } => {
-      println!(
-        "ok: Intent.app is running (pid {pid}) from {}",
-        bundle.display()
-      );
-      Ok(())
-    }
-    // `open` returned without a process appearing. Reported rather than assumed
-    // successful -- the launch is a request like the quit is.
-    other => Err(Failure::Error(format!(
-      "asked LaunchServices to open Intent.app and no process appeared -- {}",
-      match other {
-        macapp::State::Installed { bundle } =>
-          format!("the bundle at {} did not start", bundle.display()),
-        _ => "no bundle was found afterwards".to_string(),
-      }
-    ))),
-  }
+  let (pid, bundle) = macapp::start().map_err(app_fail)?;
+  println!(
+    "ok: Intent.app is running (pid {pid}) from {}",
+    bundle.display()
+  );
+  Ok(())
+}
+
+/// An app lifecycle error with its remedy. **ONE HOME FOR THE THREE VERBS**, so
+/// `start` and `restart` say the same thing when a launch does not register in
+/// time (issue 0423).
+fn app_fail(e: macapp::AppError) -> Failure {
+  Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
 }
 
 fn app_stop() -> Result<(), Failure> {
-  match macapp::stop().map_err(|e| Failure::Error(e.to_string()))? {
+  match macapp::stop().map_err(app_fail)? {
     Some(pid) => println!("ok: Intent.app stopped (was pid {pid})"),
     // **NOT AN ERROR, AND NOT SILENT EITHER.** The postcondition the operator
     // asked for holds. Saying which of the two happened is what `daemon stop`
@@ -8601,19 +8595,12 @@ fn daemon_restart() -> Result<(), Failure> {
 }
 
 fn app_restart() -> Result<(), Failure> {
-  let state = macapp::restart().map_err(|e| Failure::Error(e.to_string()))?;
-  match state {
-    macapp::State::Running { pid, bundle } => {
-      println!(
-        "ok: Intent.app restarted (pid {pid}) from {}",
-        bundle.display()
-      );
-      Ok(())
-    }
-    _ => Err(Failure::Error(
-      "Intent.app was stopped and did not come back -- `intent app start` to see why".to_string(),
-    )),
-  }
+  let (pid, bundle) = macapp::restart().map_err(app_fail)?;
+  println!(
+    "ok: Intent.app restarted (pid {pid}) from {}",
+    bundle.display()
+  );
+  Ok(())
 }
 
 /// **THE EXIT CODE CARRIES THE STATE, WHICH IS WHY THERE ARE THREE OF THEM.**

@@ -21,17 +21,48 @@ use std::time::Duration;
 /// on this, so it is the address for every question below.
 pub const BUNDLE_ID: &str = "com.matthewsinclair.intent.macos";
 
-/// How long [`start`] and [`stop`] wait for the app to settle, and how often
-/// they look.
+/// How often [`start`] and [`stop`] look for the app while it settles.
 ///
-/// **BOTH DIRECTIONS ARE REQUESTS, NOT ACTS, AND ONE SHARED BUDGET SAYS SO.**
-/// `osascript` returns as soon as the quit is delivered and `open` returns as
-/// soon as LaunchServices accepts the launch; in neither case has the app
-/// finished doing what was asked. Reporting on delivery is IN-AG-NO-SILENT-001
-/// at its most literal, and it was a live defect in the launch half until the
-/// dual-path harness caught `app restart` answering 1 and 0 on timing alone.
-const SETTLE_POLLS: u32 = 10;
+/// **BOTH DIRECTIONS ARE REQUESTS, NOT ACTS.** `osascript` returns as soon as
+/// the quit is delivered and `open` returns as soon as LaunchServices accepts the
+/// launch; in neither case has the app finished doing what was asked. Reporting
+/// on delivery is IN-AG-NO-SILENT-001 at its most literal, and it was a live
+/// defect in the launch half until the dual-path harness caught `app restart`
+/// answering 1 and 0 on timing alone.
 const SETTLE_POLL_INTERVAL: Duration = Duration::from_millis(200);
+
+/// How long a quit may take before [`stop`] reports the app still running.
+const QUIT_DEADLINE: Duration = Duration::from_secs(2);
+
+/// How long a launch may take to register with LaunchServices before [`start`]
+/// says it did not (issue 0423).
+///
+/// **A DEADLINE, NOT A COUNT OF POLLS, AND GENEROUS ON PURPOSE.** It was ten
+/// polls at 200 ms, and a relaunch straight after a quit took longer than those
+/// 2 s to register: `app start` and `app restart` then reported a launch that
+/// had succeeded as a failure (hv, 2026-09-16). The wait returns the moment the
+/// app appears, so the length costs only a launch that is genuinely slow.
+pub const LAUNCH_DEADLINE: Duration = Duration::from_secs(15);
+
+/// The first reading that shows what is awaited, among the readings taken
+/// inside `deadline` at `interval`, or `None` when the deadline passes first
+/// (issue 0423).
+///
+/// **PURE OVER THE READINGS**, so the verdict can be driven without an app: the
+/// callers hand it a lazy sequence that polls and sleeps, and it takes no more
+/// of that sequence than the deadline allows.
+pub fn awaited<T>(
+  readings: impl IntoIterator<Item = Option<T>>,
+  deadline: Duration,
+  interval: Duration,
+) -> Option<T> {
+  let polls = deadline.as_millis() / interval.as_millis().max(1);
+  readings
+    .into_iter()
+    .take(usize::try_from(polls).unwrap_or(usize::MAX))
+    .flatten()
+    .next()
+}
 
 /// What an operator is shown, and what the exit code says.
 ///
@@ -167,6 +198,15 @@ pub enum AppError {
     "a quit was delivered to Intent.app (pid {pid}) and it is still running after {waited:?}"
   )]
   StillRunning { pid: u32, waited: Duration },
+  /// The launch was accepted and the app had not registered when the wait ran
+  /// out (issue 0423). **WHAT WAS MEASURED, NOT A VERDICT**: an app that
+  /// registers a moment later is running, so this never says it did not start.
+  #[error(
+    "asked LaunchServices to open {} and Intent.app did not register with it within {}s",
+    bundle.display(),
+    waited.as_secs()
+  )]
+  NotRegistered { bundle: PathBuf, waited: Duration },
 }
 
 /// What to run when no bundle is found, given the install root this binary
@@ -205,6 +245,7 @@ impl crate::remedy::Remedy for AppError {
       Self::StillRunning { pid, .. } => format!(
         "Intent.app was asked to quit and has not gone. Look at it -- it may be showing a dialog. If it is genuinely wedged, `kill {pid}`, and `kill -9 {pid}` only after that fails."
       ),
+      Self::NotRegistered { .. } => "it may still be starting: `intent app status` says whether it is running now, so look for a failure only if that says it is not".to_string(),
     }
   }
 }
@@ -216,12 +257,12 @@ impl crate::remedy::Remedy for AppError {
 /// gives it a menubar. Executing `Contents/MacOS/Intent` directly starts a
 /// process with no such registration -- which is why `app-run` exists as a
 /// separate developer verb and is deliberately not what this does.
-pub fn start() -> Result<State, AppError> {
+pub fn start() -> Result<(u32, PathBuf), AppError> {
   if let Some(pid) = pid() {
     let bundle = ls_field("bundlepath")
       .map(PathBuf::from)
       .unwrap_or_else(|| PathBuf::from("(unknown)"));
-    return Ok(State::Running { pid, bundle });
+    return Ok((pid, bundle));
   }
   let bundle = installed_bundle().ok_or(AppError::NotInstalled)?;
   Command::new("/usr/bin/open")
@@ -239,14 +280,23 @@ pub fn start() -> Result<State, AppError> {
   // the other, on nothing but timing. **The asymmetry was the defect** -- this
   // module already knew a quit had to be verified, and applied it to only one of
   // the two directions.
-  for _ in 0..SETTLE_POLLS {
-    if let Some(pid) = pid() {
-      let bundle = ls_field("bundlepath").map(PathBuf::from).unwrap_or(bundle);
-      return Ok(State::Running { pid, bundle });
+  let readings = std::iter::from_fn(|| {
+    let reading = pid();
+    if reading.is_none() {
+      std::thread::sleep(SETTLE_POLL_INTERVAL);
     }
-    std::thread::sleep(SETTLE_POLL_INTERVAL);
+    Some(reading)
+  });
+  match awaited(readings, LAUNCH_DEADLINE, SETTLE_POLL_INTERVAL) {
+    Some(pid) => {
+      let bundle = ls_field("bundlepath").map(PathBuf::from).unwrap_or(bundle);
+      Ok((pid, bundle))
+    }
+    None => Err(AppError::NotRegistered {
+      bundle,
+      waited: LAUNCH_DEADLINE,
+    }),
   }
-  Ok(status())
 }
 
 /// Ask the app to quit, then CONFIRM it went.
@@ -264,16 +314,17 @@ pub fn stop() -> Result<Option<u32>, AppError> {
     ])
     .status()
     .map_err(|source| AppError::Quit { source })?;
-  for _ in 0..SETTLE_POLLS {
+  let readings = std::iter::from_fn(|| {
     std::thread::sleep(SETTLE_POLL_INTERVAL);
-    if crate::macapp::pid().is_none() {
-      return Ok(Some(pid));
-    }
+    Some(crate::macapp::pid().is_none().then_some(()))
+  });
+  match awaited(readings, QUIT_DEADLINE, SETTLE_POLL_INTERVAL) {
+    Some(()) => Ok(Some(pid)),
+    None => Err(AppError::StillRunning {
+      pid,
+      waited: QUIT_DEADLINE,
+    }),
   }
-  Err(AppError::StillRunning {
-    pid,
-    waited: SETTLE_POLL_INTERVAL * SETTLE_POLLS,
-  })
 }
 
 /// Stop then start, and **a stopped app restarts rather than refusing**.
@@ -282,7 +333,7 @@ pub fn stop() -> Result<Option<u32>, AppError> {
 /// would be correct about the word and useless about the intent. It goes through
 /// both halves rather than signalling the app to relaunch itself, so a wedged
 /// app is still recovered.
-pub fn restart() -> Result<State, AppError> {
+pub fn restart() -> Result<(u32, PathBuf), AppError> {
   stop()?;
   start()
 }
@@ -343,6 +394,60 @@ mod tests {
     assert!(installed.contains(&release), "{installed}");
     assert!(!installed.contains("devbin"), "{installed}");
     assert_eq!(not_installed_remedy(None), installed);
+  }
+
+  /// Issue 0423: a launch that registers after the old 2 s is reported as
+  /// started, as soon as it appears, and one that never appears inside the
+  /// deadline is not.
+  #[test]
+  fn a_launch_that_registers_late_inside_the_deadline_is_started() {
+    let late = |n: usize| (0..n).map(|_| None).chain(std::iter::once(Some(42u32)));
+    let polls_in_the_old_wait = 10;
+    assert_eq!(
+      awaited(
+        late(polls_in_the_old_wait + 5),
+        LAUNCH_DEADLINE,
+        SETTLE_POLL_INTERVAL
+      ),
+      Some(42),
+      "a launch that registered after 2 s was not reported as started"
+    );
+    assert_eq!(
+      awaited(
+        late(polls_in_the_old_wait + 5),
+        QUIT_DEADLINE,
+        SETTLE_POLL_INTERVAL
+      ),
+      None,
+      "the old 2 s budget should not have seen it, so this arm cannot tell the two apart"
+    );
+    let within = usize::try_from(LAUNCH_DEADLINE.as_millis() / SETTLE_POLL_INTERVAL.as_millis())
+      .expect("a poll count fits");
+    assert_eq!(
+      awaited(late(within), LAUNCH_DEADLINE, SETTLE_POLL_INTERVAL),
+      None,
+      "a reading after the deadline was counted"
+    );
+    assert_eq!(
+      awaited([Some(7u32)], LAUNCH_DEADLINE, SETTLE_POLL_INTERVAL),
+      Some(7),
+      "an app already registered was not taken at once"
+    );
+  }
+
+  /// Issue 0423: when the wait runs out, the message says what was measured
+  /// and the remedy sends the operator to `intent app status` first.
+  #[test]
+  fn a_launch_that_does_not_register_says_what_was_measured_not_that_it_failed() {
+    use crate::remedy::Remedy;
+    let e = AppError::NotRegistered {
+      bundle: PathBuf::from("/Applications/Intent.app"),
+      waited: LAUNCH_DEADLINE,
+    };
+    let said = e.to_string();
+    assert!(said.contains("did not register with it within"), "{said}");
+    assert!(!said.contains("did not start"), "{said}");
+    assert!(e.remedy().contains("`intent app status`"), "{}", e.remedy());
   }
 
   #[test]
