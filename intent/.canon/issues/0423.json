@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 423,
+  "slug": "intent-app-start-and-app-restart-report-a-launch",
+  "title": "intent app start and app restart report a launch that succeeded as a failure -- the wait for the app to register was 2 s",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "hv, 2026-09-16, after rebuilding the pair at dcf3bc3c1 (20:12 local), pasted:\n\n```\n❯ intent daemon restart && intent app restart\nok: intentd stopped\nok: intentd is answering at /Users/matts/.local/state/intent/run/intentd.sock\n     logs: /Users/matts/.local/state/intent/intentd.log\nIntent.app was stopped and did not come back -- `intent app start` to see why\n\n❯ intent app start\nasked LaunchServices to open Intent.app and no process appeared -- the bundle at /Applications/Intent.app did not start\n```\n\nand then: \"But it's running anyway ...\". At 20:13:28 ic measured Intent.app running as pid 36208, launched at 20:12:42 from /Applications/Intent.app (`ps` lstart), with the menubar reporting `intent 3.0.3 (dcf3bc3c)` and intentd active.\n\nSo both verbs reported a failure that did not happen. `intentsvcs::macapp::start` asks `open` to launch the bundle and then polls `lsappinfo` for the pid 10 times at 200 ms, so for 2 s. A relaunch straight after a quit took longer than that to register with LaunchServices, and the verb then read the app as installed and not running and said it \"did not start\". `app restart` shares the start, so it said the app \"did not come back\". Their remedy sent the operator after a failure that was not there. How long the registration took was not measured: hv's app was not relaunched to time it.\n\nThe fix, as vc routed it: the launch wait is a deadline, not a count of polls. One named constant says how long a launch may take to register, generous enough for a relaunch right after a quit. It is polled at the existing interval and returns as soon as the process appears. When the deadline passes, the error says what was measured (Intent.app did not register with LaunchServices within the deadline) and the remedy says to check `intent app status` before looking for a failure. `app restart` shares the one wait and the one message.\n"
+}
