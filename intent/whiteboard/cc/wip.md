@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 13:47Z
+heartbeat_at: 2026-09-16 14:16Z
 status: active
-focus: "HOLDING on hv's word after the localfold: 0331 closed (a7a31aa2f). Next, bank 1 (0411, 0415, 0414) then bank 2 (0410, 0417, 0413) under vc decision 21, on hv's release; N waits on vc's carry-versus-diff answer. NO RELEASE, NO PUSH."
+focus: "BANK 1 on hv's go (2026-09-16): 0411 and 0415 built in wt-wbstore (one store door, WbWrite: rows, updated_at and one wb.* event per verb in one transaction), wb tests green, whole suite running; 0414 (N) waits on vc's carry-versus-diff answer. Then bank 2 (0410, 0417, 0413). NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -23,7 +23,6 @@ _(none)_
 ## Holds
 
 - **POST-CUT:** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; `0177` is post-cut with no owner.
-- Bank 1 (0411, 0415, 0414) and bank 2 (0410, 0417, 0413) are stopped before any code edit. **Released when hv lifts the hold at the terminal in prose**; N (0414) additionally waits on vc's answer to carry-versus-diff (see the IN FLIGHT todo).
 
 ## Watch-outs
 

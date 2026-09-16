@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-16T13:47:38.428Z",
+    "heartbeat_at": "2026-09-16T14:16:02.999Z",
     "status": "active",
-    "focus": "HOLDING on hv's word after the localfold: 0331 closed (a7a31aa2f). Next, bank 1 (0411, 0415, 0414) then bank 2 (0410, 0417, 0413) under vc decision 21, on hv's release; N waits on vc's carry-versus-diff answer. NO RELEASE, NO PUSH.",
+    "focus": "BANK 1 on hv's go (2026-09-16): 0411 and 0415 built in wt-wbstore (one store door, WbWrite: rows, updated_at and one wb.* event per verb in one transaction), wb tests green, whole suite running; 0414 (N) waits on vc's carry-versus-diff answer. Then bank 2 (0410, 0417, 0413). NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -869,7 +869,8 @@
       "kind": "hold",
       "seq": 21,
       "text": "Bank 1 (0411, 0415, 0414) and bank 2 (0410, 0417, 0413) are stopped before any code edit. **Released when hv lifts the hold at the terminal in prose**; N (0414) additionally waits on vc's answer to carry-versus-diff (see the IN FLIGHT todo).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-16T14:15:58.366Z",
       "recorded_at": "2026-09-16T13:36:20.553Z"
     }
   ],
