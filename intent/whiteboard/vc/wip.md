@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: bc2638fd-2828-428f-bdf9-aa7f9a99540d
-heartbeat_at: 2026-09-16 19:47Z
+heartbeat_at: 2026-09-16 19:52Z
 status: active
 focus: "THE CLOSE-OUT (hv, 2026-09-15), folded for hv's compact 2026-09-16: every bank through 0425 landed and verified, ST0075 and ST0057 done; resume at todo 20: judge dc's 0426, then hv's rebuild and drive, docs/reference, then the trawl and the guards adoption pass. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0057, ST0060]
@@ -18,6 +18,7 @@ claims: [ST0056, ST0057, ST0060]
 ## TODO
 
 - IN FLIGHT (2026-09-16). Landed and verified against their banks since todo 19: dc's 0412 (b8db00fa9) and migrate (292414661, closing 0403, 0404 and 0406-0409 at 61a88ae21), cc's 0331-stale (f2f25c57d; vc ruled the claude rules row a read), ic's 0419 cursor (fe2471b17), ic's 0421 and 0422 explorer fixes (4df530f36), cc's 0402 canon normalisation (4802c70d9: intentd had already written it and the banked check judged it 3/3/10), ic's 0423 app start/restart deadline (f330805da), dc's 0424 register refusal (fe982f2e1), and ic's 0425 merged log backlog (8c1252f39). ST0075 and ST0057 are done on hv's word (dcf3bc3c1); ST0057 stays declared in .intentfiles because ST0056's parity tools read its parity/tools. Filed: 0420 (the store write lock, with captures and intentd's own refusals from 2026-09-15T22:42Z onwards). Open: 0344 (the clean install), 0420, and 0426. RESUME: (1) dc is building 0426 (project guards declared as `guards` in config.json and run by the live gate; a missing declared body blocks; --list-guards gains a 5th column; doctor Advisories for a hand-wired hook and an unset core.hooksPath beside a tracked hook dir; adoption is a separate estate pass) under vc's five rulings: judge the bank, GO, verify. (2) Then hv's rebuild and drive: `bin/devbin build all`, `intent daemon restart`, `bin/int macos app-install`, then drive `intent app restart` (0423), the Console order (0425), `wb register` (0424) and 0426's gate. (3) Then gen_reference.sh regenerates docs/reference whole, as its own commit. (4) Then on vc's word the board trawl (dc's trawl.sh in scratch clones, register-then-migrate for every board not in the store) and the guards adoption pass, and vc sends hv one worklist. NO RELEASE, NO PUSH.
+- IN FLIGHT (2026-09-16 20:26Z), beside todo 20: (1) 0427 (filed b48e193da, hv's word): the index's grep hook answers only the Grep tool and is off in Intent; routed to dc AFTER 0426 under vc's four rulings (a Bash grep for one symbol is answered; measure by live drive whether PostToolUse stdout reaches the model, else additionalContext; on in Intent's settings.local.json; one arm per trigger then the drive). Judge dc's bank, GO, verify. (2) 0420: cc routed to read the source for write transactions held across filesystem work (ingest, index refresh, checkpoint, intent mcp), banking at refs/bank/cc/0420 only if S and clear. vc's 19:54Z capture is in the body at 12ed36a53. NO RELEASE, NO PUSH.
 
 ## Holds
 
