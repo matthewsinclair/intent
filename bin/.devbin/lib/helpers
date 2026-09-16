@@ -993,8 +993,82 @@ manifest_field() {
 }
 
 manifest_version() { manifest_field "$1" devbin_version; }
-manifest_source() { manifest_field "$1" source; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
+
+# home_relative <path> -- <path> with a leading $HOME written as `~`.
+# home_expand <value> -- the inverse: `~` and `~/<rest>` expanded against $HOME.
+#
+# ONE DEFINITION OF THE `~` FORM, IN BOTH DIRECTIONS, WHERE THERE WERE FOUR
+# (issue 0069). `install_prefix_configured` expanded a config value, `fleet doc`
+# wrote its paste line one way and its roots another, and the manifest's source
+# needed both directions -- each with its own copy. They disagreed about exactly
+# the two edges below, and the roots were written into a tracked document with
+# no conversion at all.
+#
+# AN EMPTY HOME ENCODES NOTHING AND EXPANDS NOTHING. With HOME empty, "$HOME/"
+# is "/", which every absolute path starts with: the writer would record
+# `~/Users/...` and the reader would expand `~/opt` to `/opt`, a real directory
+# that is not the one meant -- and a publish would write into it. Verbatim is
+# refused downstream BY NAME; a wrong absolute path is not. A HOME of `/` trims
+# to empty and is treated the same way.
+#
+# THE PREFIX TEST IS "$home"/ AND NEVER "$home" ALONE. `/x/Devbi` is a string
+# prefix of `/x/Devbin` and not its parent, and stripping it would write `~n`.
+#
+# SC2088 IS WRONG FOR BOTH, and each directive sits where it applies. The `~` is
+# a CHARACTER in a value -- a config scalar, a manifest line, a line of a
+# document someone pastes into their own shell -- and the whole point is that it
+# did not expand. In `home_expand` the directive sits on the `case` and not on a
+# branch: SC1124 refuses one in front of an individual case item, and putting it
+# there does not merely fail to suppress -- it makes the whole expression
+# unparseable, so every later check in the file is silently skipped. Measured,
+# not assumed (moved here from `install_prefix_configured` with the code).
+home_relative() {
+  local path="$1" home="${HOME:-}"
+  home="${home%/}"
+  if [ -n "$home" ]; then
+    case "$path" in
+      "$home")
+        printf '%s\n' '~'
+        return 0
+        ;;
+      "$home"/*)
+        # shellcheck disable=SC2088
+        printf '%s\n' "~/${path#"$home"/}"
+        return 0
+        ;;
+    esac
+  fi
+  printf '%s\n' "$path"
+}
+
+home_expand() {
+  local v="$1" home="${HOME:-}"
+  home="${home%/}"
+  if [ -n "$home" ]; then
+    # shellcheck disable=SC2088
+    case "$v" in
+      '~') v="$home" ;;
+      '~/'*) v="$home/${v#'~/'}" ;;
+    esac
+  fi
+  printf '%s\n' "$v"
+}
+
+# manifest_source <root> -- the recorded source, as the absolute path it names.
+#
+# RECORDED THROUGH home_relative, READ THROUGH home_expand (issue 0069). The
+# manifest is tracked in the estates that vendor devbin, several of them public,
+# and an absolute source put the operator's home directory -- and with it their
+# login name -- into every one, rewritten on every upgrade so no scrub survived.
+# Every reader comes through here and still gets the absolute path it always
+# got. A manifest written before the change carries an absolute value, which
+# reads back as it is until that estate's next upgrade.
+manifest_source() {
+  local v
+  v="$(manifest_field "$1" source)" || return 1
+  home_expand "$v"
+}
 
 # _devbin_source_head <srcroot> -- the commit the SOURCE currently holds.
 #

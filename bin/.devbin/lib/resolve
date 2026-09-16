@@ -605,7 +605,20 @@ run_option() {
     # there exactly as documented, and an interactive option is still not teed.
     if [ -z "$log_suffix" ]; then
       log_suffix="$(builtin_option_suffix "$cmd" "$opt" 2>/dev/null || true)"
-      [ "$log_suffix" = "-" ] && log_suffix=""
+    fi
+    # RESOLVED BEFORE THE SEAL DECISION BELOW, never after it (issue 0065). That
+    # test read the RAW declaration, so any non-empty value sealed -- `log: "-"`
+    # under the suffix `-` -- and the decline sentinel was honoured only on the
+    # catalogue's value, in a mapping that lived here. gate_log_suffix prints
+    # nothing for a decline from either source, which is what the test reads.
+    #
+    # A resolution that FAILS must not reach that test as a decline: an empty
+    # suffix runs the option bare, the silent demotion described above. REPORT
+    # AND RETURN rather than exit, as at the end of this function, because run_all
+    # calls this in a loop.
+    if ! log_suffix="$(gate_log_suffix "$opt" "$log_suffix")"; then
+      warn "cannot resolve commands.$cmd.options.$opt.log -- not running '$cmd $opt' unsealed"
+      return 1
     fi
     if [ -z "$grammar" ]; then
       grammar="$(builtin_option_grammar "$cmd" "$opt" 2>/dev/null || true)"
@@ -628,7 +641,7 @@ run_option() {
         # parser for both gate paths -- see gate_split_args in lib/runlog).
         gate_split_args "$@"
         run_gate --label "$cmd $opt" \
-          --suffix "$(gate_log_suffix "$opt" "$log_suffix")" \
+          --suffix "$log_suffix" \
           --grammar "$grammar" \
           --out-dir "$(gate_out_dir "$cmd")" \
           --source "config key commands.$cmd.options.$opt.run, word-split unquoted (never eval'd)" \
@@ -735,6 +748,11 @@ run_command() {
 
   if [ -n "$run" ]; then
     log_suffix="$(cfg_get "commands.$cmd.log")"
+    # Resolved before the seal decision, as run_option does and for the same
+    # reason (issue 0065): a declined `log:` has to reach the test below empty,
+    # or `log: "-"` seals a gate named `-`.
+    log_suffix="$(gate_log_suffix "$cmd" "$log_suffix")" ||
+      die "cannot resolve commands.$cmd.log -- refusing to run '$cmd' unsealed"
     if [ -n "$log_suffix" ]; then
       # A command-level gate seals on exactly the terms an option-level one does
       # (D19), including the subshell at the project root -- it has to RETURN so
@@ -742,8 +760,12 @@ run_command() {
       # shellcheck disable=SC2086
       (
         cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+        # The suffix is passed AS RESOLVED. Resolving it again here was the
+        # half of 0065 the first cut missed: harmless for every name in use,
+        # and a refusal for a command named `0`, whose resolved suffix `0` is
+        # itself a decline.
         run_gate --label "$cmd" \
-          --suffix "$(gate_log_suffix "$cmd" "$log_suffix")" \
+          --suffix "$log_suffix" \
           --grammar "$(cfg_get "commands.$cmd.grammar" generic)" \
           --out-dir "$(gate_out_dir "$cmd")" -- $run "$@"
       )

@@ -1416,13 +1416,29 @@ gate_split_args() {
   return 0
 }
 
-# gate_log_suffix <option> <declared> -- resolve a declared `log:` to a suffix.
+# gate_log_suffix <option> <declared> -- resolve a declared `log:` to a suffix,
+# or to NOTHING when the declaration declines a seal. A caller seals exactly
+# when this prints something.
 #
 # `log: true` means "name it after the option", which is what a project wants
 # almost every time and saves it restating the option name in upper case.
+#
+# `-`, `false`, `no` and `0` DECLINE. The negations are the spellings devbin
+# already reads as false for `enabled:`, and `-` is the catalogue's own "no
+# default" sentinel. Until issue 0065 the `-` mapping sat at one call site and
+# applied only to the value the CATALOGUE supplied, so a project writing
+# `log: "-"` sealed its gate under the suffix `-`, and `log: false` under the
+# suffix `false` -- dc's four-value sweep in Laksa found no value that declined
+# at all. One resolver now answers what a declared `log:` means, at option and
+# command level alike.
+#
+# An EMPTY value also prints nothing, but it means SILENCE rather than a
+# decline: run_option falls back to the catalogue row before calling this, so
+# an override that says nothing about sealing does not stop sealing.
 gate_log_suffix() {
   case "$2" in
     true | yes | 1) upper_snake "$1" ;;
+    - | false | no | 0) ;;
     *) printf '%s' "$2" ;;
   esac
 }

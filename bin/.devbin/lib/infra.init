@@ -1,0 +1,363 @@
+#!/usr/bin/env bash
+#
+# lib/infra.init -- `infra init`: propose a profile from a live estate (ST0003
+# WP-03).
+#
+# Sourced, never executed. Three stages, and only the first touches the world:
+#
+#   measure   authoritative reads, one table row per domain facet     (impure)
+#   propose   the table and N in, target + unreviewed lines out        (pure)
+#   render    those lines in, the profile's YAML out                    (pure)
+#
+# THE ONE THING INIT MUST NOT DO IS THE EASY THING. A profile that transcribes
+# the live records makes the estate's drift its target, and `check` then
+# reports that estate green forever -- the exact false green this thread exists
+# to detect, manufactured by the tool built to detect it (AC-3.1). So a value
+# reaches the TARGET only when a source with authority over it determines it,
+# and every other live value goes to `unreviewed:`, where `check` refuses to
+# run until a human has deleted or corrected each entry.
+#
+# THE SOURCES, AND WHAT DECIDES WHICH ONE MAY SPEAK. hv ruled on 2026-09-08
+# that devbin ships NO vendor table: init proposes from the RFC-derived rules
+# and the estate's own majority, and every vendor-derived field goes to
+# `unreviewed:` populated from the live estate. Each facet init can write
+# carries a provenance KIND, and `infra_init_may_propose` reads it:
+#
+#   rfc               versioned by RFC, does not rot     any N, including 1
+#   vendor-stated     the vendor's own documentation     any N (none shipped)
+#   estate-inferred   this run's own majority            only above N=2
+#   none              no source ships at all              never
+#
+# WHY ABOVE TWO. A majority of two is two domains agreeing with each other, and
+# a majority of one is a domain agreeing with itself. Neither is evidence that
+# a value is the estate's intent rather than its drift, so both propose
+# nothing. The population is ONLY the domains named on this run: an inferred
+# value never carries to a different estate, because none is ever stored.
+
+[ -n "${_DEVBIN_INFRA_INIT_LOADED:-}" ] && return 0
+_DEVBIN_INFRA_INIT_LOADED=1
+
+# --- provenance -------------------------------------------------------------
+
+# infra_init_facet_kind <facet> -- the provenance kind of a facet init may
+# write. rc 1 for a facet it does not know.
+#
+# `mail` and `senders` are `none`, and that is the ruling rather than a gap. A
+# mail label names a vendor, and a sender needs a DKIM selector that DNS cannot
+# enumerate and a vendor table would have to supply.
+infra_init_facet_kind() {
+  case "$1" in
+    dmarc_presence) printf 'rfc\n' ;;
+    ttl | dmarc_policy | dmarc_rua) printf 'estate-inferred\n' ;;
+    mail | senders) printf 'none\n' ;;
+    *) return 1 ;;
+  esac
+}
+
+# infra_init_may_propose <kind> <n> -- rc 0 when a source of this kind may
+# propose a target for an estate of N domains, rc 1 when it may not.
+#
+# rc 2 FOR A KIND IT DOES NOT KNOW, and a caller must treat that as a fault.
+# Folding an unknown kind into either answer is a silent decision about
+# authority: into "yes" it writes a target nobody sourced, into "no" it hides a
+# misspelt kind behind a plausible-looking unreviewed entry.
+infra_init_may_propose() {
+  case "$1" in
+    rfc | vendor-stated) return 0 ;;
+    estate-inferred) [ "$2" -gt 2 ] ;;
+    none) return 1 ;;
+    *)
+      printf 'infra init: unknown provenance kind "%s" -- refusing to decide whether it may propose\n' "$1" >&2
+      return 2
+      ;;
+  esac
+}
+
+# _ii_may <facet> <n> -- infra_init_may_propose for a facet, dying on a fault.
+_ii_may() {
+  local kind rc=0
+  kind="$(infra_init_facet_kind "$1")" || die "infra init: facet \`$1\` has no provenance kind"
+  infra_init_may_propose "$kind" "$2" || rc=$?
+  [ "$rc" -ne 2 ] || die "infra init: facet \`$1\` carries an unknown provenance kind"
+  return "$rc"
+}
+
+# _ii_withheld <facet> <n> -- why a facet proposed nothing, as one clause.
+_ii_withheld() {
+  case "$(infra_init_facet_kind "$1")" in
+    none) printf 'devbin ships no vendor table (hv, 2026-09-08)' ;;
+    estate-inferred)
+      if [ "$2" -gt 2 ]; then
+        printf 'no value is held by more than half of the %s domains' "$2"
+      else
+        printf 'an estate value is inferred only above N=2, and this run measured N=%s' "$2"
+      fi
+      ;;
+  esac
+}
+
+# infra_init_majority <n> -- reads one value per voting domain on stdin and
+# prints `<value><TAB><count>` for a value held by MORE THAN HALF of N, or rc 1.
+#
+# N is the number of domains NAMED, not the number that voted. A domain that
+# could not be measured, or that carries no such record, abstains -- and an
+# abstention must not shrink the denominator, or two answers out of four become
+# two out of three and a majority appears that the estate never had. Pure.
+infra_init_majority() {
+  awk -v n="$1" '
+    NF { c[$0]++ }
+    END { for (v in c) if (c[v] * 2 > n) { printf "%s\t%d\n", v, c[v]; found = 1; exit }
+          exit !found }'
+}
+
+# --- handles ------------------------------------------------------------------
+
+# infra_init_handles <fqdn>... -- `<handle><TAB><fqdn>` per domain, lowercased.
+#
+# The handle is the first label, which is what a person would type. Where two
+# domains share it, BOTH take their whole name with the dots dashed, rather than
+# the second gaining a suffix: a numbered handle records the order the domains
+# happened to be named in, and nothing in the profile would say so. Pure.
+infra_init_handles() {
+  printf '%s\n' "$@" | awk '
+    NF { f = tolower($0); l = f; sub(/\..*/, "", l); gsub(/[^a-z0-9_-]/, "-", l)
+         n++; fq[n] = f; lab[n] = l; cnt[l]++ }
+    END { for (i = 1; i <= n; i++) {
+            h = lab[i]
+            if (cnt[h] > 1) { h = fq[i]; gsub(/[^a-z0-9_-]/, "-", h) }
+            printf "%s\t%s\n", h, fq[i] } }'
+}
+
+# --- measure (impure) ---------------------------------------------------------
+#
+# One row per facet: `<handle><TAB><fqdn><TAB><facet><TAB><value>`. A value of
+# `!unread` is a read that FAILED, which is a different fact from an empty value
+# -- a measured absence. Collapsing the two is how an unreachable zone reports
+# as an empty one; see lib/infra.dns.
+
+_ii_row() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4"; }
+
+# infra_init_measure <handle> <fqdn>
+infra_init_measure() {
+  local h="$1" f="$2" ns mx spf dm rec ttls="" unread=0 inc
+
+  if ! ns="$(infra_dns_authority "$f")"; then
+    _ii_row "$h" "$f" authority ""
+    return 0
+  fi
+  _ii_row "$h" "$f" authority "$ns"
+
+  if mx="$(infra_dns_read "$ns" "$f" MX)"; then
+    _ii_row "$h" "$f" mx "$(infra_mx_form "$mx")"
+    ttls="$ttls$(printf '%s\n' "$mx" | cut -f1)
+"
+  else
+    _ii_row "$h" "$f" mx '!unread'; unread=1
+  fi
+
+  if spf="$(infra_dns_spf "$ns" "$f")"; then
+    inc="$(printf '%s\n' "$spf" | cut -f2- | tr ' ' '\n' | sed -n 's/^include://p' | LC_ALL=C sort -u | tr '\n' ' ' | sed 's/ *$//')"
+    _ii_row "$h" "$f" spf_includes "$inc"
+    ttls="$ttls$(printf '%s\n' "$spf" | cut -f1)
+"
+  else
+    _ii_row "$h" "$f" spf_includes '!unread'; unread=1
+  fi
+
+  if dm="$(infra_dns_dmarc "$ns" "$f")"; then
+    if [ -n "$dm" ]; then
+      rec="$(printf '%s' "$dm" | cut -f2-)"
+      _ii_row "$h" "$f" dmarc present
+      _ii_row "$h" "$f" dmarc_policy "$(infra_dmarc_tag "$rec" p)"
+      _ii_row "$h" "$f" dmarc_rua "$(infra_dmarc_tag "$rec" rua | sed 's/mailto://g')"
+      ttls="$ttls$(printf '%s' "$dm" | cut -f1)
+"
+    else
+      _ii_row "$h" "$f" dmarc absent
+    fi
+  else
+    _ii_row "$h" "$f" dmarc '!unread'; unread=1
+  fi
+
+  # ONE TTL PER DOMAIN, OR NONE. A domain whose records disagree has no single
+  # ttl to vote with, and a partial read has not seen all of them.
+  if [ "$unread" -eq 1 ]; then
+    _ii_row "$h" "$f" ttl '!unread'
+  else
+    ttls="$(printf '%s' "$ttls" | grep . | LC_ALL=C sort -un | tr '\n' ',' | sed 's/,$//' || true)"
+    case "$ttls" in
+      *,*) _ii_row "$h" "$f" ttl "mixed($ttls)" ;;
+      *) _ii_row "$h" "$f" ttl "$ttls" ;;
+    esac
+  fi
+}
+
+# --- propose (pure) -----------------------------------------------------------
+#
+# Output lines:
+#   D <key> <value>            a profile default
+#   H <handle> <key> <value>   a domain's own field
+#   U <key> <text>             an unreviewed entry
+
+# _ii_get <table> <handle> <facet> -- one value, empty when absent. Read with
+# awk rather than `read`, because a tab is IFS whitespace and `read` collapses
+# the empty fields this table is built to keep.
+_ii_get() { printf '%s\n' "$1" | awk -F'\t' -v h="$2" -v f="$3" '$1==h && $3==f { print $4; exit }'; }
+
+# _ii_votes <table> <facet> -- every measured, single-valued answer.
+_ii_votes() {
+  printf '%s\n' "$1" | awk -F'\t' -v f="$2" '$3==f && $4 != "" && $4 != "!unread" && $4 !~ /^mixed\(/ { print $4 }'
+}
+
+# _ii_census <table> <facet> -- `[value: h1 h2] [value: h3]`, in first-seen
+# order, so an unreviewed entry shows the live estate rather than a count.
+_ii_census() {
+  printf '%s\n' "$1" | awk -F'\t' -v f="$2" '
+    $3==f && $4 != "" && $4 != "!unread" {
+      if (!($4 in d)) order[++n] = $4
+      d[$4] = d[$4] " " $1 }
+    END { for (i = 1; i <= n; i++) printf "%s[%s:%s]", (i > 1 ? " " : ""), order[i], d[order[i]] }'
+}
+
+# _ii_include_census <table> -- the same, exploded per SPF include.
+_ii_include_census() {
+  printf '%s\n' "$1" | awk -F'\t' '
+    $3=="spf_includes" && $4 != "" && $4 != "!unread" {
+      k = split($4, a, " ")
+      for (j = 1; j <= k; j++) { if (!(a[j] in d)) order[++n] = a[j]; d[a[j]] = d[a[j]] " " $1 } }
+    END { for (i = 1; i <= n; i++) printf "%s[%s:%s]", (i > 1 ? " " : ""), order[i], d[order[i]] }'
+}
+
+# infra_init_propose <table> <n>
+infra_init_propose() {
+  local t="$1" n="$2" handles h v w wv wc census mx d p rua pol=""
+
+  handles="$(printf '%s\n' "$t" | awk -F'\t' '$3=="authority" { print $1 }')"
+
+  # --- what could not be read -------------------------------------------------
+  for h in $handles; do
+    if [ -z "$(_ii_get "$t" "$h" authority)" ]; then
+      printf 'U\t%s\t%s\n' "$h" "could not be measured: no authoritative nameserver answered for $(printf '%s\n' "$t" | awk -F'\t' -v h="$h" '$1==h { print $2; exit }'). Nothing about it was proposed, and it abstained from every majority"
+      continue
+    fi
+    [ "$(_ii_get "$t" "$h" mx)" != '!unread' ] || printf 'U\t%s_mx\t%s\n' "$h" "MX could not be read; this domain abstained from the MX census"
+    [ "$(_ii_get "$t" "$h" spf_includes)" != '!unread' ] || printf 'U\t%s_spf\t%s\n' "$h" "SPF could not be read; this domain abstained from the sender census"
+    [ "$(_ii_get "$t" "$h" dmarc)" != '!unread' ] || printf 'U\t%s_dmarc\t%s\n' "$h" "_dmarc could not be read; nothing about its DMARC was proposed"
+  done
+
+  # --- ttl: estate-inferred -----------------------------------------------------
+  if _ii_may ttl "$n" && w="$(_ii_votes "$t" ttl | infra_init_majority "$n")"; then
+    wv="${w%%	*}"; wc="${w##*	}"
+    printf 'D\tttl\t%s\n' "$wv"
+    for h in $handles; do
+      v="$(_ii_get "$t" "$h" ttl)"
+      case "$v" in "" | '!unread' | "$wv") continue ;; esac
+      printf 'U\t%s_ttl\t%s\n' "$h" "live ttl $v against a majority of $wv ($wc of $n domains); the target is $wv"
+    done
+  else
+    census="$(_ii_census "$t" ttl)"
+    [ -z "$census" ] || printf 'U\tttl\t%s\n' "nothing proposed: $(_ii_withheld ttl "$n"). Live: $census"
+  fi
+
+  # --- mail: no source ships ------------------------------------------------------
+  census="$(_ii_census "$t" mx)"
+  if [ -n "$census" ]; then
+    printf 'U\tmail\t%s\n' "nothing proposed: $(_ii_withheld mail "$n"), so no mail label or MX form is asserted. Live MX: $census. Declaring mail: <label> on the domains sharing a provider makes check assert MX presence and form consistency"
+  fi
+
+  # --- senders: no source ships ---------------------------------------------------
+  census="$(_ii_include_census "$t")"
+  if [ -n "$census" ]; then
+    printf 'U\tsenders\t%s\n' "nothing proposed: $(_ii_withheld senders "$n"), and a DKIM selector cannot be discovered from DNS. Live SPF includes: $census. A third-party sender is declared under senders: with its spf_include and dkim.name"
+  fi
+
+  # --- dmarc policy: the RFC decides presence, the majority decides the phase ---
+  if _ii_may dmarc_policy "$n" && w="$(_ii_votes "$t" dmarc_policy | infra_init_majority "$n")"; then
+    wv="${w%%	*}"; wc="${w##*	}"; pol="$wv"
+    printf 'D\tdmarc.policy\t%s\n' "$wv"
+  fi
+  for h in $handles; do
+    [ -n "$(_ii_get "$t" "$h" authority)" ] || continue
+    d="$(_ii_get "$t" "$h" dmarc)"; p="$(_ii_get "$t" "$h" dmarc_policy)"; mx="$(_ii_get "$t" "$h" mx)"
+    case "$d" in
+      present)
+        if [ -n "$pol" ]; then
+          [ "$p" = "$pol" ] || printf 'U\t%s_dmarc_policy\t%s\n' "$h" "live p=${p:-(no p= tag)} against a majority of $pol ($wc of $n domains); the target is $pol"
+        else
+          printf 'U\t%s_dmarc_policy\t%s\n' "$h" "live p=${p:-(no p= tag)}; nothing proposed: $(_ii_withheld dmarc_policy "$n"). Declaring a policy is also what makes check assert the record exists"
+        fi
+        ;;
+      absent)
+        if [ -n "$pol" ]; then
+          if [ -n "$mx" ] && [ "$mx" != '!unread' ]; then
+            printf 'U\t%s_dmarc\t%s\n' "$h" "carries MX and NO _dmarc record; its target inherits p=$pol, so check reports it until one is published"
+          else
+            printf 'U\t%s_dmarc\t%s\n' "$h" "no MX and NO _dmarc record; its target inherits p=$pol. If it is deliberately outside the reporting estate, spell dmarc: none"
+          fi
+        elif [ -n "$mx" ] && [ "$mx" != '!unread' ] && _ii_may dmarc_presence "$n"; then
+          printf 'H\t%s\tdmarc.policy\tnone\n' "$h"
+          printf 'U\t%s_dmarc\t%s\n' "$h" "carries MX and NO _dmarc record. Proposed p=none: a DMARC record on every mail-carrying domain is RFC-derived (RFC 7489), and none is the one policy that asserts a record without changing delivery"
+        else
+          printf 'U\t%s_dmarc\t%s\n' "$h" "no MX and NO _dmarc record; nothing proposed. If it is deliberately outside the reporting estate, spell dmarc: none"
+        fi
+        ;;
+    esac
+  done
+
+  # --- dmarc rua: estate-inferred ---------------------------------------------------
+  if _ii_may dmarc_rua "$n" && w="$(_ii_votes "$t" dmarc_rua | infra_init_majority "$n")"; then
+    wv="${w%%	*}"; wc="${w##*	}"
+    printf 'D\tdmarc.rua\t%s\n' "$wv"
+    for h in $handles; do
+      [ "$(_ii_get "$t" "$h" dmarc)" = present ] || continue
+      rua="$(_ii_get "$t" "$h" dmarc_rua)"
+      [ "$rua" != "$wv" ] || continue
+      printf 'U\t%s_dmarc_rua\t%s\n' "$h" "live rua ${rua:-(none)} against a majority of $wv ($wc of $n domains); the target is $wv"
+    done
+  else
+    census="$(_ii_census "$t" dmarc_rua)"
+    [ -z "$census" ] || printf 'U\tdmarc_rua\t%s\n' "nothing proposed: $(_ii_withheld dmarc_rua "$n"). Live: $census"
+  fi
+}
+
+# --- render (pure) ------------------------------------------------------------
+
+# infra_init_render <name> <pairs> <proposal> -- the profile, in the block form
+# lib/config reads. Keys carry at most one dot, which is all propose emits.
+infra_init_render() {
+  local name="$1" pairs="$2" prop="$3"
+  printf '# Generated by infra init. NOT A RATIFIED TARGET: check refuses to run\n'
+  printf '# while unreviewed: holds any entry. Each entry is a live value nothing had\n'
+  printf '# the authority to propose. Delete it to accept the target as written, or\n'
+  printf '# edit the target to say what this estate should be.\n'
+  printf 'version: 1\nname: %s\n' "$name"
+  printf '%s\n' "$prop" | awk -F'\t' '
+    function emit(prefix, keys, vals, m,   i, top, sub_, last) {
+      last = ""
+      for (i = 1; i <= m; i++) {
+        top = keys[i]; sub_ = ""
+        if (index(top, ".")) { sub_ = substr(top, index(top, ".") + 1); top = substr(top, 1, index(top, ".") - 1) }
+        if (sub_ == "") { printf "%s%s: %s\n", prefix, top, vals[i]; last = ""; continue }
+        if (top != last) printf "%s%s:\n", prefix, top
+        printf "%s  %s: %s\n", prefix, sub_, vals[i]
+        last = top
+      }
+    }
+    $1=="D" { dn++; dk[dn] = $2; dv[dn] = $3 }
+    END { if (dn) { print "defaults:"; emit("  ", dk, dv, dn) } }'
+  printf 'domains:\n'
+  printf '%s\n' "$pairs" | while IFS="$(printf '\t')" read -r h f; do
+    [ -n "$h" ] || continue
+    printf '  %s:\n    name: %s\n' "$h" "$f"
+    printf '%s\n' "$prop" | awk -F'\t' -v h="$h" '
+      $1=="H" && $2==h {
+        top = $3; sub_ = ""
+        if (index(top, ".")) { sub_ = substr(top, index(top, ".") + 1); top = substr(top, 1, index(top, ".") - 1) }
+        if (sub_ == "") { printf "    %s: %s\n", top, $4; last = ""; next }
+        if (top != last) printf "    %s:\n", top
+        printf "      %s: %s\n", sub_, $4
+        last = top }'
+  done
+  printf '%s\n' "$prop" | awk -F'\t' '
+    $1=="U" { if (!u++) print "unreviewed:"; gsub(/"/, "\047", $3); printf "  %s: \"%s\"\n", $2, $3 }'
+}

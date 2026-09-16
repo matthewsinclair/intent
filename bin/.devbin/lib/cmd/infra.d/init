@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+#
+# `infra init` -- ADOPT AN EXISTING ESTATE WITHOUT MAKING ITS DRIFT THE TARGET.
+#
+# Measures the named domains' authoritative records and prints a profile to
+# stdout. Adoption is the common case and greenfield is rare, so this turns
+# "write a profile from scratch" into "review a generated one" (ST0003 WP-03).
+#
+# THE PROFILE IT PRINTS IS NOT A RATIFIED TARGET, BY CONSTRUCTION. Every live
+# value nothing had the authority to propose lands in `unreviewed:`, and `check`
+# refuses to run while that block holds an entry. What decides authority, and
+# why a majority of two proposes nothing, is in lib/infra.init.
+#
+# STDOUT, NEVER A FILE IT CHOOSES. A generated profile written over a reviewed
+# one would erase the review, which is the only thing standing between it and a
+# false green. The caller redirects, and so the caller decides what is replaced.
+#
+# EXIT CODES follow `check`: 0 every domain measured; 2 something could not be
+# measured, and the profile is still printed with that recorded in
+# `unreviewed:`. A domain that could not be read is a gap in the instrument, and
+# a caller scripting init must not bank it as adopted.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/infra
+. "$DEVBIN_LIB/infra"
+# shellcheck source=lib/infra.dns
+. "$DEVBIN_LIB/infra.dns"
+# shellcheck source=lib/infra.init
+. "$DEVBIN_LIB/infra.init"
+
+usage() {
+  cat <<USAGE
+usage: $DEVBIN_NAME infra init [--name <estate>] <domain>... > infra.yaml
+
+Measure each domain's authoritative DNS and print a profile proposing its
+target. A value reaches the target only when the RFCs or the estate's own
+majority determine it -- a majority needs more than two domains -- and every
+other live value goes to unreviewed:, which check refuses to run past.
+
+  --name <estate>   the profile's name: (default: the first domain's handle)
+  --domains <a,b>   domains as a comma-separated list, alongside or instead
+                    of positional arguments
+
+Nothing is written but stdout, so nothing already reviewed can be replaced.
+USAGE
+}
+
+name=""
+domains=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h | --help) usage; exit 0 ;;
+    --name) name="${2:?--name needs a value}"; shift 2 ;;
+    --domains)
+      IFS=',' read -r -a more <<<"${2:?--domains needs a list}"
+      domains+=("${more[@]}")
+      shift 2
+      ;;
+    -*) die "infra init: unknown option \`$1\` (try: $DEVBIN_NAME infra init --help)" ;;
+    *) domains+=("$1"); shift ;;
+  esac
+done
+
+# AN EMPTY POPULATION IS AN ERROR. A profile with no domains in it checks
+# nothing and refuses nothing, which is a green over an empty set.
+[ "${#domains[@]}" -gt 0 ] || die "infra init: no domains given. Nothing was measured."
+
+pairs="$(infra_init_handles "${domains[@]}")"
+dup="$(printf '%s\n' "$pairs" | cut -f2 | LC_ALL=C sort | uniq -d | head -1)"
+[ -z "$dup" ] || die "infra init: \`$dup\` is named twice. One entry per domain."
+dup="$(printf '%s\n' "$pairs" | cut -f1 | LC_ALL=C sort | uniq -d | head -1)"
+[ -z "$dup" ] || die "infra init: two domains derive the handle \`$dup\`. Name them so their handles differ."
+
+infra_dns_have_tool ||
+  die "infra init: dig not found. init reads AUTHORITATIVE records, and there is
+       deliberately no fallback to the system resolver -- a cached TTL reads as a
+       configured one, and init would propose it as the target."
+
+table=""
+while IFS="$(printf '\t')" read -r h f; do
+  [ -n "$h" ] || continue
+  table="$table$(infra_init_measure "$h" "$f")
+"
+done <<EOF
+$pairs
+EOF
+
+n="$(printf '%s\n' "$pairs" | grep -c .)"
+proposal="$(infra_init_propose "$table" "$n")"
+[ -n "$name" ] || name="$(printf '%s\n' "$pairs" | head -1 | cut -f1)"
+profile="$(infra_init_render "$name" "$pairs" "$proposal")"
+
+# THE OUTPUT IS READ BACK BEFORE IT IS PRINTED. A generated profile its own
+# reader refuses is a devbin defect, and a user would otherwise meet it as a
+# parse error in a file they believe they were handed ready to review.
+scratch="$(mktemp "${TMPDIR:-/tmp}/devbin-infra-init.XXXXXX")"
+trap 'rm -f "$scratch"' EXIT
+printf '%s\n' "$profile" >"$scratch"
+(
+  cfg_load "$scratch" >/dev/null
+  _DEVBIN_INFRA_FILE="$scratch"
+  infra_validate_profile 2>/dev/null
+) || die "infra init: the generated profile does not load or validate. This is a devbin defect; nothing was printed."
+
+printf '%s\n' "$profile"
+
+unmeasured="$(printf '%s\n' "$table" | awk -F'\t' '($3=="authority" && $4=="") || $4=="!unread"' | grep -c . || true)"
+unrev="$(printf '%s\n' "$proposal" | grep -c '^U' || true)"
+printf 'infra init: %s domain(s), %s unreviewed entr%s. check refuses until each is deleted or fixed.\n' \
+  "$n" "$unrev" "$([ "$unrev" -eq 1 ] && printf y || printf ies)" >&2
+if [ "$unmeasured" -gt 0 ]; then
+  printf 'infra init: %s read(s) could not be measured -- recorded in unreviewed:, and nothing was proposed from them.\n' "$unmeasured" >&2
+  exit 2
+fi

@@ -235,6 +235,13 @@ _fullcycle_header() {
 # is sealed and the heartbeat covers its silences -- which is the whole reason
 # this is not a plain handler: the clean is the longest silent operation devbin
 # has, and a silent 35 minutes is indistinguishable from a hang.
+# _fullcycle_rebuild_remedy -- the ONE rebuild remedy line. Two branches print it
+# (the loop's failed-build warning and the link check after a failed clean), and
+# 0071 exists because two remedies for one state had drifted apart.
+_fullcycle_rebuild_remedy() {
+  printf '    Rebuild before doing anything else: %s build all\n' "${DEVBIN_INVOKE:-bin/devbin}"
+}
+
 _fullcycle_launcher() {
   local l="$PROJECT_ROOT/bin/devbin"
   if [ ! -x "$l" ]; then
@@ -288,7 +295,7 @@ _fullcycle_consent_notice() {
 }
 
 _fullcycle_run() {
-  local force="$1" launcher phase rc=0 prc start elapsed cleaned=0 link broken=0 restore_cmd
+  local force="$1" launcher phase rc=0 prc start elapsed cleaned=0 rebuilt="" link broken=0 restore_cmd
   local -a pass=()
   # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, hv: option 3).
   #
@@ -376,8 +383,17 @@ _fullcycle_run() {
     # however that function was defined.
     elapsed=$((SECONDS - start))
     printf '    phase: %-14s %8s  rc=%d\n' "$phase" "$(fmt_duration "$elapsed")" "$prc"
-    case "$phase" in clean*) [ "$prc" -eq 0 ] && cleaned=1 ;; esac
-    if [ "$prc" -ne 0 ]; then
+    # `rebuilt` names the build phase that passed: what the warning below needs
+    # is not "a clean ran" but "a clean ran and nothing has put the trees back
+    # since" (issue 0068). "Since" holds because the phase list runs the clean
+    # first; a list that cleaned after a build would need a reset here, and no
+    # reset is written because no test could reach one.
+    if [ "$prc" -eq 0 ]; then
+      case "$phase" in
+        clean*) cleaned=1 ;;
+        build*) rebuilt="$phase" ;;
+      esac
+    else
       rc="$prc"
       printf '    STOPPING: %s failed. The remaining phases were NOT run.\n' "$phase"
       # SAY WHAT STATE THE TREE IS IN, because "stopping" understates it once
@@ -387,10 +403,45 @@ _fullcycle_run() {
       # binary, it is a pre-commit gate that will not let them commit, with a
       # remedy line telling them to install the very tool that is absent.
       # Reporting "stopped" and letting them discover that is the silent half.
-      if [ "$cleaned" = 1 ]; then
+      #
+      # AND ONLY WHILE IT IS TRUE (issue 0068). This branch asked whether the
+      # clean had passed and never whether a build had passed since, so a TEST
+      # failure -- the one failure that follows a successful build -- printed
+      # the dangling warning every time, two minutes after the build had put
+      # the trees back. A false alarm here teaches the operator to discount it
+      # on the day it is true.
+      #
+      # AFTER A PASSING BUILD IT STATES THE BUILD'S EXIT CODE AND NOTHING MORE.
+      # rc=0 is not evidence that release/ came back -- that is the Conflab
+      # shape -- and the artefact check below runs only on a green cycle, so on
+      # this path nothing measures it. The first cut of this fix said the failure
+      # was "not in the rebuild", which overclaimed in the other direction and
+      # contradicted the link check below whenever a watched link was dark
+      # (critic-shell). The link check still reports what it can see.
+      if [ "$cleaned" = 1 ] && [ -z "$rebuilt" ]; then
         printf '\n    THE BUILD TREES WERE ALREADY REMOVED AND HAVE NOT BEEN REBUILT.\n'
         printf '    Anything on PATH resolving through target/release/ is now dangling.\n'
-        printf '    Rebuild before doing anything else: %s build all\n' "${DEVBIN_INVOKE:-bin/devbin}"
+        _fullcycle_rebuild_remedy
+      elif [ "$cleaned" = 1 ]; then
+        printf '\n    %s passed after the clean; the failure is in %s.\n' "$rebuilt" "$phase"
+        printf '    The artefact check does not run on a failed cycle, so this run\n'
+        printf '    makes NO claim that it restored release/.\n'
+      else
+        # A FAILED CLEAN IS NOT AN UNTOUCHED TREE (issue 0072). `clean` removes
+        # trees one at a time and dies on the first it cannot remove, so this
+        # failure can follow deletions -- and it just as often follows none: its
+        # no-tty refusal dies before any removal, and that is the refusal a cycle
+        # without --force meets (critic-shell). So this names no damage and no
+        # remedy, which would be 0068's false alarm on the commonest failed clean.
+        # It points at the evidence instead: clean prints a `removed` line for
+        # each tree it finished BEFORE it can die on the next, and `rm -rf` can
+        # fail partway through the one it dies on, which gets no such line. The link check below reports
+        # what it can see. Only a failed clean reaches this branch -- every
+        # other phase runs after a clean that passed -- so no `case` on the phase
+        # is written: nothing could tell one from its absence.
+        printf '\n    A failed clean can have removed trees before it failed:\n'
+        printf '    each "removed" line above names one, and the tree it died on\n'
+        printf '    ("could not remove") may be partly gone.\n'
       fi
       break
     fi
@@ -564,7 +615,10 @@ _fullcycle_run() {
     fi
   fi
 
-  if [ "$cleaned" = 1 ] && [ "${#atrisk[@]}" -gt 0 ]; then
+  # NOT GATED ON THE CLEAN PASSING (issue 0072). A link that resolved before
+  # the run and does not now is evidence on its own, and a clean that failed
+  # partway is exactly the run whose exit code cannot say what it removed.
+  if [ "${#atrisk[@]}" -gt 0 ]; then
     for link in "${atrisk[@]}"; do
       [ -e "$link" ] && continue
       [ "$broken" -eq 0 ] && printf '\n    THIS CYCLE DARKENED BINARIES IT DID NOT RESTORE:\n'
@@ -573,8 +627,23 @@ _fullcycle_run() {
     done
     if [ "$broken" -gt 0 ]; then
       printf '    %s link(s) resolved before this run and do not now.\n' "$broken"
-      printf '    The build phase did not repopulate release/ -- a dev-profile build does not.\n'
-      printf '    Rebuild with a RELEASE profile before doing anything else.\n'
+      # THE CAUSE DEPENDS ON WHETHER A BUILD PASSED, AND ONLY ONE BRANCH KNOWS
+      # IT (issue 0071). This check is not gated on rc, so it also runs after a
+      # build that FAILED -- where "a dev-profile build does not" names a
+      # mechanism that did not happen, and "Rebuild with a RELEASE profile" is a
+      # second remedy beside the loop's `build all`. With no passing build the
+      # loop has already said what is wrong and what to run; this lists the links.
+      if [ -n "$rebuilt" ]; then
+        printf '    The build phase did not repopulate release/ -- a dev-profile build does not.\n'
+        printf '    Rebuild with a RELEASE profile before doing anything else.\n'
+      elif [ "$cleaned" = 1 ]; then
+        printf '    No build passed after the clean -- see the remedy above.\n'
+      else
+        # "MAY": the snapshot was taken before the clean, and trees are shared with
+        # other sessions, so a link can go dark in that window by another's hand.
+        printf '    The clean failed and may have removed what these resolved through.\n'
+        _fullcycle_rebuild_remedy
+      fi
       rc=1
     fi
   fi

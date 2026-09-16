@@ -143,5 +143,5 @@ runtime:
 # check.
 #
 # unreviewed:
-#   partner.spf.include: "_spf.mlsend.com (1 other domain uses _spf.mailersend.net)"
-#   legacy: "no SPF, no DMARC, live MX -- outside the reporting estate"
+#   ttl: "nothing proposed: ... Live: [300: example partner] [900: legacy]"
+#   legacy_dmarc: "carries MX and NO _dmarc record; its target inherits p=none"

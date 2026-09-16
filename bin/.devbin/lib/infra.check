@@ -25,10 +25,11 @@
 # WHAT IS DELIBERATELY NOT CHECKED, and it is the decision that unblocked this
 # work. `mail: google` does NOT assert a particular MX value. The STANDARD --
 # the vendor-derived table that would say what Google's current MX form is --
-# was deleted with `docs/infrastructure.md` on hv's ruling, and WP-03 carries an
-# open dependency on where such a claim can live so that it goes stale VISIBLY.
-# Shipping a value here would answer that question by accident, and would ship
-# the exact `estate-inferred` row the ruling removed.
+# was deleted with `docs/infrastructure.md`, and hv ruled on 2026-09-08 that
+# devbin ships no vendor table at all: `init` puts every vendor-derived field in
+# `unreviewed:` instead (lib/infra.init). Shipping a value here would reverse
+# that ruling by accident, and would ship the exact `estate-inferred` row it
+# removed.
 #
 # INTRA-ESTATE CONSISTENCY REPLACES IT AND COSTS NOTHING: every domain declaring
 # the same `mail:` value must carry the same MX form as every other. That fires
@@ -72,14 +73,6 @@ _ic_blind() { _IC_BLIND="$_IC_BLIND$1	$2	$(_ic_flat "$3")
 _ic_manual() { _IC_MANUAL="$_IC_MANUAL$1	$2	$(_ic_flat "$3")
 "; }
 
-# _ic_spf_of <ns> <fqdn> -- the SPF records, one per line. Zero lines is a
-# measured absence; rc 1 is a failure to read.
-_ic_spf_of() {
-  local out
-  out="$(infra_dns_txt_joined "$1" "$2")" || return 1
-  printf '%s\n' "$out" | awk -F'\t' '$2 ~ /^v=spf1/ { print }'
-}
-
 # infra_check_domain <handle> <fqdn> -- every DNS and mail assertion for one
 # domain. Prints nothing; accumulates into the four channels.
 #
@@ -122,7 +115,7 @@ EOF
   fi
 
   # --- SPF --------------------------------------------------------------------
-  if ! spf="$(_ic_spf_of "$ns" "$fqdn")"; then
+  if ! spf="$(infra_dns_spf "$ns" "$fqdn")"; then
     _ic_error "$fqdn" "spf" "TXT could not be read from $ns"
   else
     n="$(printf '%s' "$spf" | grep -c . || true)"
@@ -166,10 +159,9 @@ EOF
   else
     policy="$(infra_effective "$handle" dmarc.policy || true)"
     rua="$(infra_effective "$handle" dmarc.rua || true)"
-    if ! dmarc_txt="$(infra_dns_txt_joined "$ns" "_dmarc.$fqdn")"; then
+    if ! dmarc_txt="$(infra_dns_dmarc "$ns" "$fqdn")"; then
       _ic_error "$fqdn" "dmarc" "_dmarc TXT could not be read from $ns"
     else
-      dmarc_txt="$(printf '%s\n' "$dmarc_txt" | awk -F'\t' '$2 ~ /^v=DMARC1/ {print; exit}')"
       if [ -z "$dmarc_txt" ]; then
         # `if`, NEVER `[ -n "$x" ] && cmd`. As the last statement of a branch
         # that form returns 1 when the test is false, and `set -e` kills the
@@ -215,7 +207,7 @@ _IC_SENDER_SPF=""
 
 _ic_mx_form() {
   local fqdn="$1" mail="$2" form
-  form="$(printf '%s\n' "$3" | cut -f2- | LC_ALL=C sort | tr '\n' ' ' | sed 's/ *$//')"
+  form="$(infra_mx_form "$3")"
   _IC_MXFORM="$_IC_MXFORM$mail	$form	$fqdn
 "
 }
@@ -267,8 +259,8 @@ _ic_sender_pair() {
 
 _ic_dmarc_fields() {
   local fqdn="$1" policy="$2" rua="$3" rec="$4" got_p got_rua
-  got_p="$(printf '%s' "$rec" | tr ';' '\n' | sed -n 's/^ *p= *//p' | head -1)"
-  got_rua="$(printf '%s' "$rec" | tr ';' '\n' | sed -n 's/^ *rua= *//p' | head -1)"
+  got_p="$(infra_dmarc_tag "$rec" p)"
+  got_rua="$(infra_dmarc_tag "$rec" rua)"
   if [ -n "$policy" ] && [ -n "$got_p" ] && [ "$policy" != "$got_p" ]; then
     _ic_drift "$fqdn" "dmarc.p" "live policy is p=$got_p, profile declares $policy"
   fi

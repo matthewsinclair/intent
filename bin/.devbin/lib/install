@@ -126,25 +126,15 @@ is_devbin_dev_tree() {
 # named `~` under the cwd, and every subsequent command finds an install exactly
 # where it looked. The failure is silent and self-consistent, which is the worst
 # combination this project has a name for.
+#
+# Through `home_expand` in lib/helpers, the one definition of the `~` form
+# (issue 0069). The copy that used to sit here turned `~/opt/devbin` into
+# `/opt/devbin` under an empty HOME -- a real directory a publish would write to.
 install_prefix_configured() {
   local v
   v="$(cfg_get install.prefix "")"
   [ -n "$v" ] || return 1
-  # SC2088 IS WRONG HERE AND THE SUPPRESSION SAYS WHY. These are case PATTERNS
-  # matching a literal `~` that a config file contains as a character -- the
-  # whole point is that it did NOT expand, because a YAML scalar is not a shell
-  # word. shellcheck reads them as an attempt to expand a tilde in quotes, which
-  # is the opposite of the intent.
-  # The directive sits on the `case` and not on a branch: SC1124 refuses it in
-  # front of an individual case item, and putting it there does not merely fail
-  # to suppress -- it makes the whole expression unparseable, so every later
-  # check in this file is silently skipped. Measured, not assumed.
-  # shellcheck disable=SC2088
-  case "$v" in
-    '~') v="$HOME" ;;
-    '~/'*) v="$HOME/${v#\~/}" ;;
-  esac
-  printf '%s\n' "$v"
+  home_expand "$v"
   return 0
 }
 
@@ -523,7 +513,8 @@ manifest_write() {
     # because a comment claiming a break that does not happen is the defect this
     # project catalogues.
     if [ -n "$kind" ]; then printf '# kind: %s\n' "$kind"; fi
-    printf '# source: %s\n' "$srcroot"
+    # Relative to HOME when it lies under it -- see manifest_source (issue 0069).
+    printf '# source: %s\n' "$(home_relative "$srcroot")"
     printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
     # Retabbed through the same filter manifest_check uses, so this file has ONE
     # parser for its own line format rather than a second one written inline --

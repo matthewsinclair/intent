@@ -71,6 +71,7 @@ usage() {
   cat <<USAGE
 usage: $DEVBIN_NAME infra <verb> [--profile <path>]
 
+  init      measure live domains and print a profile to review (no --profile)
   show      print the resolved profile and where it was found
   check     verify live DNS and mail records against the profile
   profiles  compare every profile in a directory, refusing a domain claimed twice
@@ -137,7 +138,7 @@ case "$verb" in
           "$(printf '%s\n' "$unrev" | grep -c .)"
         printf '%s\n' "$unrev" | sed 's/^/  /'
         # NOT "proposed by `init`", which is what this said until 2026-09-07:
-        # `infra` accepts show|check and there is NO init verb, so the sentence
+        # `infra` accepted show|check and there was NO init verb, so the sentence
         # named a command the tool refuses, in the same breath as refusing. It
         # also carried the only SC2016 breach left in the tree once lib/infra's
         # was suppressed -- one line, two faults, and the lint one is what made

@@ -385,6 +385,11 @@ commands:
         # launcher rather than a gate -- `server` and `iex` are long-running and
         # never exit, so teeing them would buffer the output you are watching
         # and seal nothing.
+        #
+        # DECLINING A SEAL. An override of a CATALOGUE gate's `run:` that says
+        # nothing about `log:` inherits the row's suffix and grammar, and an
+        # empty `log:` counts as saying nothing. `log: "-"`, `false`, `no` or
+        # `0` declines explicitly and runs the option bare (issue 0065).
         log: MIX            # suffix for the sealed .out/.errors pair
       credo:
         summary: Static analysis

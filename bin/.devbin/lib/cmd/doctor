@@ -117,6 +117,38 @@ check_config() {
   return 0
 }
 
+# check_languages -- which languages this project arms devbin's built-ins for.
+#
+# A NOTE WHEN THERE ARE NONE, NEVER A FAILURE (issue 0062). `project.languages`
+# is GATE SCOPE: what devbin offers to run here. Intent's own list in
+# intent/.config/config.json is PROJECT COMPOSITION, a different fact that is
+# not meant to match (lib/config.reference.yaml says why, ST0002 WP-04).
+# Declaring none is legitimate, and it is also exactly what a fresh install
+# looks like: install writes the block commented out, every built-in scoped by
+# language is then inactive, and until this check nothing said so. Riffle met it
+# at ST0002 close. Utilz met it on 2026-09-09 with rust in its Intent list, and
+# was told its project did not declare rust.
+#
+# IT RE-READS THE CONFIG RATHER THAN TRUSTING THE CACHE. check_config reports a
+# failed load and moves on, so an empty cache here means either "declares none"
+# or "could not read what it declares", and only the first may be said.
+check_languages() {
+  local langs
+  if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1; then
+    _note "languages: not checked -- the config did not load (see config above)"
+    return 0
+  fi
+  langs="$(project_languages | tr '\n' ' ')"
+  langs="${langs% }"
+  if [ -z "$langs" ]; then
+    _note "languages: project.languages declares none -- every built-in devbin scopes by language is inactive here"
+    _detail "declare the languages to arm gates for under project.languages in bin/.devbin/config.yaml; intent/.config/config.json is a separate list and arms nothing here"
+    return 0
+  fi
+  _pass "languages: devbin arms its language-scoped built-ins for $langs (project.languages)"
+  return 0
+}
+
 # check_devbin_version -- the constraint the project declared, enforced.
 check_devbin_version() {
   local want have
@@ -557,6 +589,7 @@ main() {
   check_dispatcher
   check_runtime
   check_config
+  check_languages
   check_devbin_version
   check_manifest
   check_commands
