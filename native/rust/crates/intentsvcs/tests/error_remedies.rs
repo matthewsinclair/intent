@@ -107,6 +107,22 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .wb_register("dc", "devbin-dc", "dc")
       .expect_err("the header on disk says who dc is"),
   ));
+  // A header lacking a field refuses the whole roster, and is removed again so
+  // the roster registered next is `dc` alone.
+  let zz = fx.root().join("intent/whiteboard/zz");
+  std::fs::create_dir_all(&zz).expect("node dir");
+  std::fs::write(
+    zz.join("wip.md"),
+    "---\nnode: zz\nname: Roleless Claude\nstatus: active\n---\n",
+  )
+  .expect("a header without a role");
+  out.push((
+    "a roster registration that meets a board header lacking a field",
+    facade
+      .register_roster()
+      .expect_err("a header without a role cannot be registered"),
+  ));
+  std::fs::remove_dir_all(&zz).expect("remove the roleless board");
   facade
     .register_roster()
     .expect("register dc from its header");
@@ -1068,6 +1084,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
+    FacadeError::WbHeaderIncomplete { .. } => "WbHeaderIncomplete",
     FacadeError::WbNotMigrated { .. } => "WbNotMigrated",
     FacadeError::WbKindHasItsOwnVerb { .. } => "WbKindHasItsOwnVerb",
     FacadeError::WbDirectiveOffHv { .. } => "WbDirectiveOffHv",
@@ -1172,6 +1189,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbClaimMalformed",
   "WbAlreadyCarried",
   "WbSendersNotRegistered",
+  "WbHeaderIncomplete",
   "WbNotMigrated",
   "WbKindHasItsOwnVerb",
   "WbDirectiveOffHv",

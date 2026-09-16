@@ -1535,6 +1535,16 @@ pub enum FacadeError {
     inboxes: String,
     senders: Vec<String>,
   },
+  /// A roster registration that meets a board header lacking a field it reads.
+  ///
+  /// **REFUSED BEFORE ANYTHING IS WRITTEN, FOR THE WHOLE ROSTER** (issue 0424).
+  /// The header form skipped such a board at exit 0, so the roster came out one
+  /// node short with nothing to say so -- indistinguishable from a node nobody
+  /// has created, which is the thing [`Facade::register_roster`] refuses an
+  /// unreadable header to avoid. Every such board is named with the fields it
+  /// lacks, so the refusal is the worklist.
+  #[error("board header(s) lack a field `wb register` reads: {listing}")]
+  WbHeaderIncomplete { listing: String },
   /// A migration that meets board content the model cannot carry.
   ///
   /// **REFUSED BEFORE ANYTHING IS WRITTEN, UNLESS THE DROP IS ASKED FOR BY
@@ -1792,6 +1802,7 @@ impl crate::remedy::Remedy for FacadeError {
           .collect::<Vec<_>>()
           .join(", ")
       ),
+      Self::WbHeaderIncomplete { .. } => "nothing was registered. Give each named header the `key: value` line it lacks -- `node`, `name` and `role` are all read from the header block -- or move a directory that is not a node out of `intent/whiteboard/`, then re-run `intent wb register`".to_string(),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
       Self::WbRegisteredDifferently {
         node,
@@ -5782,10 +5793,13 @@ impl Facade {
       .filter(|p| p.join("wip.md").is_file())
       .collect();
     dirs.sort();
+    let mut incomplete = Vec::new();
     for dir in dirs {
-      // **AN UNREADABLE HEADER REFUSES RATHER THAN SKIPPING THE NODE.** A
-      // silently skipped node is a roster that is quietly short by one, which
-      // is indistinguishable from a node nobody has created yet.
+      // **AN UNREADABLE OR INCOMPLETE HEADER REFUSES RATHER THAN SKIPPING THE
+      // NODE.** A silently skipped node is a roster that is quietly short by
+      // one, which is indistinguishable from a node nobody has created yet.
+      // Until issue 0424 this held for an unreadable header only: a header
+      // lacking a field fell through and was skipped at exit 0.
       let text = std::fs::read_to_string(dir.join("wip.md")).map_err(|e| {
         FacadeError::Ingest(IngestError::Io {
           path: dir.join("wip.md").display().to_string(),
@@ -5810,9 +5824,26 @@ impl Facade {
               .to_string()
           })
       };
-      if let (Some(node), Some(name), Some(role)) = (field("node"), field("name"), field("role")) {
-        nodes.push((node, name, role));
+      match (field("node"), field("name"), field("role")) {
+        (Some(node), Some(name), Some(role)) => nodes.push((node, name, role)),
+        (node, name, role) => {
+          let lacks: Vec<&str> = [("node", node), ("name", name), ("role", role)]
+            .into_iter()
+            .filter(|(_, v)| v.is_none())
+            .map(|(k, _)| k)
+            .collect();
+          let path = dir.join("wip.md");
+          let shown = path.strip_prefix(self.project.root()).unwrap_or(&path);
+          incomplete.push(format!("{} (lacks {})", shown.display(), lacks.join(", ")));
+        }
       }
+    }
+    // **EVERY HEADER IS READ BEFORE THE FIRST WRITE**, so a refusal names every
+    // incomplete board at once and leaves no partial roster behind.
+    if !incomplete.is_empty() {
+      return Err(FacadeError::WbHeaderIncomplete {
+        listing: incomplete.join(", "),
+      });
     }
     let event = Envelope::minted(
       &self.ctx.principal,

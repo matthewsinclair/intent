@@ -253,6 +253,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::WbClaimMalformed { .. }
     | FacadeError::WbAlreadyCarried { .. }
     | FacadeError::WbSendersNotRegistered { .. }
+    // Issue 0424's refusal: the call takes no fields at all. What is missing is
+    // a `key: value` line in a board header ON DISK, which is not a field of the
+    // call and cannot be carried to a reader as one.
+    | FacadeError::WbHeaderIncomplete { .. }
     | FacadeError::WbNotMigrated { .. }
     // A kind another verb owns: the caller supplied everything, and the remedy
     // is a different VERB rather than a field they left out.

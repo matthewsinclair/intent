@@ -93,3 +93,49 @@ fn arguments_that_disagree_with_the_boards_header_are_refused_and_write_nothing(
     1
   );
 }
+
+/// Issue 0424: registering the roster from the headers reads EVERY header
+/// before it writes, and a board whose header lacks `node`, `name` or `role`
+/// refuses the whole roster, naming that board and the field it lacks. Until
+/// it, such a board was skipped at exit 0, so the roster came out one node
+/// short with nothing to say so.
+#[test]
+fn a_header_missing_a_field_refuses_the_roster_naming_the_board_and_registers_nobody() {
+  let fx = Fixture::new();
+  for (node, header) in [
+    (
+      "aa",
+      "---\nnode: aa\nname: Complete Claude\nrole: worker\nstatus: active\n---\n",
+    ),
+    (
+      "zz",
+      "---\nnode: zz\nname: Roleless Claude\nstatus: active\n---\n",
+    ),
+  ] {
+    let dir = fx.path(&format!("intent/whiteboard/{node}"));
+    std::fs::create_dir_all(&dir).expect("node dir");
+    std::fs::write(dir.join("wip.md"), header).expect("a hand-authored header");
+  }
+  let mut f = fx.facade_on_disk();
+
+  let refused = f
+    .register_roster()
+    .expect_err("a header without a role cannot be registered, so the roster refuses");
+  let said = format!("{refused} {}", intentsvcs::remedy::Remedy::remedy(&refused));
+  for value in ["intent/whiteboard/zz/wip.md", "role"] {
+    assert!(
+      said.contains(value),
+      "the refusal does not name `{value}`: {said}"
+    );
+  }
+  assert!(
+    !said.contains("intent/whiteboard/aa/wip.md"),
+    "the complete board is named as if it lacked a field: {said}"
+  );
+  for node in ["aa", "zz"] {
+    assert!(
+      f.board(node).is_err(),
+      "a refused roster registered `{node}` anyway: no partial roster"
+    );
+  }
+}
