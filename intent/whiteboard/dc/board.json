@@ -4,10 +4,10 @@
     "moniker": "dc",
     "name": "DevX Claude",
     "role": "worker",
-    "session_id": "85e09f85-a542-4730-a80c-727ada01c1d9",
-    "heartbeat_at": "2026-09-15T22:46:32.837Z",
-    "status": "paused",
-    "focus": "2026-09-15 22:46Z: EOD on hv's wrap. 0375 is closed and verified (code addd9b5d4, close record 0096f2b1f). dc is held; resume at the RESUME todo: the devbin twin once cc's 0331 (b) lands, then the Decision A record. NO RELEASE, NO PUSH.",
+    "session_id": "effb6a8d-6c0a-4922-91ba-31c145970ff6",
+    "heartbeat_at": "2026-09-16T14:15:08.928Z",
+    "status": "active",
+    "focus": "2026-09-16: the devbin twin (17be3d7e9f5526c1f0779ac5acffc97278d6c77d) and Decision A (fd9ff7f0a69737835525f65f2905428ce3537735) are landed and verified. HELD on hv's word: 0403-0409, 0412 and 0416 -- migrate is partly built and banked at refs/bank/dc/0403-migrate-wip, see hold 11. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/11"
     ],
@@ -1054,8 +1054,34 @@
       "kind": "todo",
       "seq": 25,
       "text": "**RESUME HERE after hv's EOD of 2026-09-15 (dc is held).** 0375 is closed and verified by vc: the code at addd9b5d4 (tree-exact to 8433ae4ad plus the bank) and the close record at 0096f2b1f; vc's rebuild for it waits for cc's 0331 (b) so one rebuild serves both. **In order, once cc's 0331 (b) has landed as train 8:** (1) **The devbin twin (vc's ruling; ranks first because a red on main outranks a doc record).** `tests/unit/devbin_rust_gates.bats` test 5 (`every cargo check CI runs has a devbin twin with the same flags`) is red on main since ca3edf2ad added rust.yml's IN-RS-CODE-001 step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` with no twin in `bin/.devbin/config.yaml`. The fix is the twin, never an exception in the test: ONE new `commands.check.options.<name>` entry on `doc`'s precedent (summary plus run, name still to choose), with `grammar: cargo` like the clippy builtin, and run `bin/.devbin/cmd/measured --exec cargo clippy -p intentsvcs -p intent-cli --lib --manifest-path native/rust/Cargo.toml -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic`; the test's normaliser strips the manifest path, so it matches rust.yml exactly, and the manifest-path and wrapper tests hold by construction. `cmd/prepush` stays out (the 2026-08-29 ruling moved lints to CI). Nothing was edited before the wrap, so there is no WIP bank. Build it in a private worktree under an isolated HOME, prove it with `tests/run_tests.sh tests/unit/devbin_rust_gates.bats` green plus the lint itself, and bank it at `refs/bank/dc/devbin-twin` for vc's judgement. (2) **Decision A (hv's ruling 22 at 3e1578d03, routed by vc).** The accent is steel #35618f. In `docs/design/design-system.md`, OPEN DECISION A in section 3 and its entry in section 11's open decisions read as decided, with the reason (rust sits at delta E 13.8 from the `error:` red, so section 1's inheritance principle holds only with steel), and the accent tokens stop calling themselves a placeholder; Decision F stays open, to be decided on a real page. Bank it at `refs/bank/dc/decision-a` for vc's judgement. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-16T13:36:24.897Z",
       "recorded_at": "2026-09-15T22:46:07.008Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 10,
+      "text": "**0403-0409 (migrate), 0412 (doctor remedies), 0416 (pickup gap) -- routed to dc by vc at aa80e6917e6b97c94bccd303c17d1719b77a996d, HELD until hv lifts hv's own hold given at the terminal on 2026-09-16.** Nothing is edited or banked; only an empty worktree exists (scratchpad wt-migrate at aa80e6917). A go from vc does not lift it. On release: (1) migrate as ONE change under vc decision 20 -- model unchanged; the pre-migration wip.md carried verbatim through snapshot_sections; every uncarried unit (A ### sub-headings, D tables, E heading text after the kind word, F leads, plus unmapped sections and bad claims) named BEFORE any write and the carry refused, the refusal shaped like WbSendersNotRegistered; an explicit drop flag as a new options entry on surface/dispatch-table.json families[29].entries[15] (wb migrate, flags [] today) with dispatch-table.md regenerated; B section prose carried and reported on a coerced: line (vc decision 20 governs 0404's older uncarried: text); G non-markdown .history files get their own left-in-place word. Bank its own ref. (2) 0412 doctor: an unmigrated board is reported as that with wb migrate as its remedy; an undeclared leftover issue view gets a remedy that removes or declares it. Own ref. (3) 0416 pickup (facade.rs:6001, render.rs:4018): return hv's directives, decisions and watch-outs in full and say what is not shown for other peers and which verb shows it. Own ref. cc's vc-decision-21 store door (every wb write logged and dated) meets migrate and pickup in facade.rs's wb ops: whichever banks green second proves on top of the first. Whole intentsvcs and intent-cli suites before each bank. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-16T14:15:04.297Z",
+      "recorded_at": "2026-09-16T13:36:29.330Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 11,
+      "text": "**0403-0409 (migrate), 0412 (doctor remedies), 0416 (pickup gap) -- routed to dc by vc at aa80e6917e6b97c94bccd303c17d1719b77a996d, HELD until hv lifts hv's own hold given at the terminal on 2026-09-16.** CORRECTS hold 10, which said nothing was edited: after hv's compact dc read 'continue on the bounce' as lifting the hold and started 0403-0409 before hv confirmed, and hv re-held it. That partial work is BANKED at refs/bank/dc/0403-migrate-wip (blob 4a2ad63d2f6e8e50fe13220fea29f5357ec9d874, diff against 12bfde803): wbmigrate.rs, facade.rs and project.rs only -- vc decision 20 in the library (sub-headings, tables and heading qualifiers refused as units, section prose flagged coerced, WbUncarried refusal before any write unless drop_uncarried, the board kept verbatim at .history/pre-migration/wip.md, WbSnapshotInTheWay, left_in_place for non-markdown .history files). intentsvcs type-checks; NOT done: the CLI flag and report words, the dispatch row and dispatch-table.md, the error_remedies and mandatory_fields enumerations, the two migrate test files, and every suite run. Recover with git cat-file -p refs/bank/dc/0403-migrate-wip | git apply in a worktree at 12bfde803 or later. On release, the rest as hold 10 set out: migrate as ONE change under vc decision 20 (own ref), then 0412 doctor (own ref), then 0416 pickup (own ref); cc's vc-decision-21 store door meets migrate and pickup in facade.rs's wb ops, and whichever banks green second proves on top of the first. Whole intentsvcs and intent-cli suites before each bank. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-16T14:14:53.818Z"
+    },
+    {
+      "node": "dc",
+      "kind": "watchout",
+      "seq": 24,
+      "text": "**dc's lessons of 2026-09-16.** (1) Read hv's board with wb show hv BEFORE opening any diagnosis: a_daemon_outlives_nobody.rs was already a ruled flake (hv watchout 11), and pickup shows peers as headers only. (2) A load control must be matched: a 1-minute load of 4.8 against a 15-minute load of 13.9 compares nothing. (3) Paste hashes and stamps whole from tool output; a typed 17be3d7e9ae was wrong. (4) A grep -v filter can eat the very lines it is meant to show: positive-control it (a planted unwrap() gave rc=101) before trusting an rc 0. (5) git apply --check against the clean target or a throwaway index (GIT_INDEX_FILE + read-tree + apply --cached), never a worktree the patch is already applied in. (6) A hold hv gives is lifted only by hv's explicit word, and a node's own announced reading of an ambiguous 'continue' is not that word: dc started held work after a compact on exactly that reading and hv re-held it.",
+      "state": "live",
+      "recorded_at": "2026-09-16T14:15:22.479Z"
     }
   ],
   "messages": [
