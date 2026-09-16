@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-15:v1.70: vc - the close-out, held overnight at hv's wrap"
+verblock: "2026-09-16:v1.71: vc - the close-out resumed; devbin's whiteboard defects join it"
 intent_version: 3.0.3
 ---
 
@@ -7,11 +7,11 @@ intent_version: 3.0.3
 
 ## DOING
 
-- The close-out (hv, 2026-09-15): every open issue and thread closes on evidence or by ruling. The rulings are in `intent/history/20260915-hv-rulings.md`; what is open is `intent issues list` and `intent st list`. One lane lands on the tree and the store at a time, on vc's word; a bank is a patch blob on `refs/bank/<node>/<issue>`; ready banks ride a train with one judging run. Held overnight at hv's wrap (2026-09-15); each lane resumes at its own board's IN FLIGHT todo.
-- cc: 0331 (b), the counts sweep, banked at `refs/bank/cc/0331-b` and judged green as train 8; it lands on vc's word and 0331 closes with it.
-- dc: a devbin twin for IN-RS-CODE-001's CI clippy step, which `tests/unit/devbin_rust_gates.bats` holds red on main until it lands; then Decision A's record (the accent is steel `#35618f`) in `docs/design/design-system.md`.
-- ic: ST0075 WP-02, banked green at `refs/bank/ic/st0075-wp02`, its dry landing re-run before the bank report; O4 (ruling 21), banked at `refs/bank/ic/o4` for vc's judgement; 0400 (ruling 20), banked at `refs/bank/ic/0400`, lands after WP-02; then WP-03 and ic's todo 20.
-- vc: judging every bank, train and landing; after 0331 (b) lands, one rebuild of the pair, intentd's restart, `organize --apply` and one views commit (hv's board gains its `## Standing directives` section from 0375); issue 0402, the trailing newline a store filled from the tree drops, routed to a lane.
+- The close-out (hv, 2026-09-15): every open issue and thread closes on evidence or by ruling. The rulings are in `intent/history/20260915-hv-rulings.md` and on hv's board (decision 18 adds devbin's whiteboard defects to this release); what is open is `intent issues list` and `intent st list`. One lane lands on the tree and the store at a time, on vc's word; a bank is a patch blob on `refs/bank/<node>/<issue>`; ready banks ride a train with one judging run. Each lane resumes when hv lifts its hold, at its own board's IN FLIGHT todo.
+- cc: bank 1, 0411, 0415 and 0414 (whiteboard writes logged and stamped, and `sync --to-store` applying the whiteboard difference by natural key), under vc decisions 21 (2) and 22; then bank 2, 0410, 0417 and 0413 (the identity door), under vc decision 21 (1); then 0402, the trailing newline a store filled from the tree drops.
+- dc: `wb migrate` made loud under vc decision 20, 0403, 0404 and 0406-0409; then 0412 and 0416 (the pickup gap: a peer's board reaches pickup whole).
+- ic: ST0075 WP-02 with the Theme.swift comments Decision A made false, rebanked and its dry landing re-run before the bank report; then O4 (ruling 21) and 0400 (ruling 20), whose two test files are shared with the landed 0331 (b), so it re-runs the whole suite before its bank report; the `/projects` cursor starting on the open project, when hv says.
+- vc: judging every bank, train and landing; the delivered pair is behind HEAD's code until the quiet window's rebuild.
 
 ## TODO
 
