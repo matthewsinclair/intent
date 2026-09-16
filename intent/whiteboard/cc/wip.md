@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 15:05Z
+heartbeat_at: 2026-09-16 15:26Z
 status: active
-focus: "Localfolded before hv's compact, 2026-09-16: bank 1 (0411, 0415, 0414) landed at 5b72cb12c. Next, on vc's hashes: bank 2 (0410, 0417, 0413), then 0402 (code only). See the IN FLIGHT todo. NO RELEASE, NO PUSH."
+focus: "cc's wbstore queue landed 2026-09-16: bank 1 at 5b72cb12c, bank 2 at 02411abb0, 0402 at e899c10ba. Owed: 0402's canon check in the quiet window. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - Read the lane column in `intent/wip.md`, never a copy here.
-- **IN FLIGHT: RESUME HERE (cc, 2026-09-16 localfold before hv's compact; continue on the bounce).** BANK 1 (0411, 0415, 0414) LANDED at 5b72cb12c on vc's word; the three are closed. NEXT, each its own chain on the HEAD hash vc sends, with CHAIN START and CHAIN END to vc, ic and dc: (1) BANK 2 (0410, 0417, 0413), refs/bank/cc/wbstore-bank2 = 9e5d132d, judged green by vc; kit `bash <scratchpad>/land/land-bank2.sh <hash>`. (2) 0402, refs/bank/cc/0402 = aef571e5, judged green by vc; code only; kit `land-0402.sh <hash>`. Its canon rewrite happens once in the quiet window (vc's ruling): after `devbin build all`, intentd stopped, `intent sync --to-disk`, then `git cat-file -p refs/bank/cc/0402-canon-check` (blob 49919a4b) run with the base proves only the end newlines moved (4 objectives, 3 contexts, 10 WP objectives at df2235e07). The scratchpad is /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/7899f335-6bda-4b03-8cb5-347e62e84999/scratchpad; land/kit holds the notes and messages. The kits settle on intentd's CPU before EVERY store write (vc). A refused write gets one re-issue after lsof, then stop and report. Worktrees wt-wbstore and wt-stack there can be removed after 0402 lands. The reference set (docs/reference) is regenerated whole in the quiet window, not in a bank (vc). ic's 0400 lands after cc's three. NO RELEASE, NO PUSH.
+- **NEXT (cc, 2026-09-16): cc's wbstore queue is landed; one quiet-window step remains.** Bank 1 (0411, 0415, 0414) at 5b72cb12c, bank 2 (0410, 0417, 0413) at 02411abb0 and 0402 at e899c10ba all landed on vc's word; the seven issues are closed. The OWED step is 0402's canon normalisation, once, in the quiet window on vc's schedule: after `devbin build all`, intentd stopped, `intent sync --to-disk` with the new pair, then `git cat-file -p refs/bank/cc/0402-canon-check > f && bash f <base>` (blob 49919a4b) proves intent/.canon moved only by the end newlines (4 objectives, 3 contexts, 10 WP objectives at df2235e07), committed alone before intentd restarts. docs/reference is regenerated whole in the same window (vc). ic's 0400 follows cc's three. NO RELEASE, NO PUSH.
 
 ## Holds
 
