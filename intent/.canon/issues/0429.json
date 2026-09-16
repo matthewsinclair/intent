@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 429,
+  "slug": "index-references-inside-a-macro-invocation-are-m",
+  "title": "Index references inside a macro invocation are missing from context and ref answers, which still say complete",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happened\n\n`intent search --context <name>` and the `ref` hits leave out every reference inside a macro invocation, and the answer does not say so. Driven by ic on 2026-09-16 at b48e193da: `context nearest_project` is missing `views.rs:437` and `views.rs:439`, both inside `assert_eq!`, which grep finds. tree-sitter parses a macro's arguments as an unstructured token tree, so the tags query never sees a call there.\n\nIn Rust that covers `assert!`, `assert_eq!`, `format!`, `println!`, `vec!` and every test, so the answer to \"who uses this\" is a silent subset in exactly the code that exercises it. The envelope says `complete:true`.\n\n## To decide\n\nEither the index finds identifiers inside token trees (a name match, marked as such), or the answer states that macro bodies are not searched. Owner: the engine (cc), after 0420.\n"
+}
