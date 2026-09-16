@@ -798,7 +798,10 @@ const UNPROVEN: &[&str] = &[
   "backup",
   "bootstrap",
   "claude hook",
-  "claude rules",
+  // **`claude rules` LEFT THIS ROSTER ON 2026-09-16 BY BEING RECLASSIFIED, NOT
+  // BY BEING PROVEN**, as `llm usage_rules` did below. Its only claimed writer
+  // was `index`, retired by hv's ruling of 2026-09-15 (issue 0331); vc ruled
+  // the row a `read`, so it is no longer a shipped mutator.
   "claude skills",
   "claude start",
   "claude subagents",

@@ -11236,27 +11236,24 @@ fn payload_show(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), F
   Ok(())
 }
 
-/// `intent claude rules` -- the highest-traffic verb in the tool.
+/// `intent claude rules` -- how the agentic contract reaches the rule library.
 ///
-/// **125 CALL SITES IN THIS REPO'S OWN MACHINERY**, measured across `.claude/`,
-/// `lib/templates/`, `intent/plugins/`, `AGENTS.md`, `CLAUDE.md` and
-/// `usage-rules.md` -- against 230 for the whole `claude` family. The four rules
-/// of the road are not vendored into a consuming project; every agent reads them
-/// through this command, so while it answered `2` the agentic contract named a
-/// command that could not be run.
+/// **THE CONTRACT NAMES THIS COMMAND, SO IT MUST ANSWER.** `AGENTS.md`,
+/// `CLAUDE.md`, `usage-rules.md`, the skills and the critics all send an agent
+/// here, and the four rules of the road are not vendored into a consuming
+/// project: every agent reads them through this command. While it answered `2`
+/// the agentic contract named a command that could not be run.
 ///
 /// **THE VERB DEFAULTS TO `list`, per the table's `default: "list"` on the
 /// slot.** Bare `intent claude rules` lists, which is what every consumer that
 /// omits the verb already expects.
 ///
-/// **`validate` AND `index` ARE DELIBERATELY LEFT ANSWERING `2`, AND THAT IS NOT
-/// AN OVERSIGHT.** The row's `target.state` is `pending-hv` with a real
-/// question on it -- *in v3 rules are embedded in the binary (WP-07), so `index`
-/// has no installation to mutate and arguably retires with the on-disk rules
-/// root*. `list` and `show` carry no part of that question: they are pure reads
-/// and they are what the 125 call sites use. **Implementing the unquestioned
-/// half does not resolve the questioned half**, and shipping `index` to make the
-/// family look complete would settle a pending ruling by writing code.
+/// **THE VERBS ARE `list`, `show` AND `validate`, AND ALL THREE ARE READS.**
+/// `validate` is wired below. `index` is retired: hv's ruling of 2026-09-15
+/// (issue 0331) took it out with the rules-index trio, because in v3 the rules
+/// are embedded in the binary (WP-07) and `index` had no installation to
+/// mutate. The row's `target.state` is `as-observed` and its `read_or_mutate`
+/// is `read`; an unknown verb still reaches `unwired`.
 fn rules(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("list", a)) => rules_list(a),
