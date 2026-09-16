@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 419,
+  "slug": "the-explorer-s-projects-list-starts-its-cursor-o",
+  "title": "The explorer's projects list starts its cursor on the first row -- start it on the open project, or on the nearest registered one when none is open",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "hv, 2026-09-16, on where the explorer's projects list puts its cursor: \"Yes, it should start on the open (or nearest?) project.\"\n\nSince issue 0418 hoisted the project picker into the explorer, the projects list, reached by `/projects` or by `intent explore` outside a project, always opens with its cursor on the first registered project. With a project open, the operator has to walk down to find the project they are already in.\n\nThe shape, agreed with vc: the explorer's row source answers where the operator is. With a project open that is the open project's root, and with none open it is the working directory. A pure function in `tui::views` puts the cursor on the registered project whose root shares the most leading path components with that place, the earliest on a tie. So the open project's own row wins when a project is open, and the nearest registered project wins when none is. A directory that shares only a common prefix, such as the home directory, with every project leaves the cursor on the first row, which is today's behaviour. The list is asked on its first read and on every arrival at it.\n"
+}
