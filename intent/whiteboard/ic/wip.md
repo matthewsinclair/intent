@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-16 15:12Z
+heartbeat_at: 2026-09-16 16:33Z
 status: active
 focus: "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH."
 claims: [ST0075, ST0075/03]
@@ -17,7 +17,7 @@ claims: [ST0075, ST0075/03]
 
 ## TODO
 
-- **Review cc's 0331 commit when it lands (XS).** hv ruled every dead artefact deleted (rulings of 2026-09-15, item 3), among them the unwired `claude rules index` and its register row. Check the row's removal carries what watch-out 58 says a row moves -- `populations`, `legal_pairs`' `n` and `census_note`, and any family count in `dispatch::tests` -- and that dispatch-table.md was regenerated in the same commit.
+_(none)_
 
 ## Holds
 
