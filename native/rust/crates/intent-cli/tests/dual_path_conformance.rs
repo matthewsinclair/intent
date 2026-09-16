@@ -6,7 +6,7 @@
 //! it (design.md D06, D32). The risk that ruling exists to prevent is a daemon
 //! that grows its OWN implementation, and the moment to catch that is before
 //! there is a daemon -- not after, when the divergence has a caller. So this
-//! file lands while `intentd` is still 83 lines of placeholder, and every
+//! file lands while `intentd` is still a placeholder, and every
 //! later WP-08 criterion lands underneath it.
 //!
 //! **THE PATHS ARE A LIST, AND THAT IS THE WHOLE MECHANISM.** Adding the
@@ -16,7 +16,7 @@
 //! moment the third arrived, which is exactly when nobody is looking.
 //!
 //! **WHAT IT COMPARES TODAY, STATED SO NOBODY READS MORE INTO A GREEN.** The
-//! two live routes are the real `intent` binary in its own process, and
+//! live routes are the real `intent` binary in its own process, and
 //! `intent_cli::dispatch` called in this one. They are genuinely different --
 //! separate compilation unit, separate process, separate environment and
 //! working directory, and only the binary goes through `main`'s
@@ -27,7 +27,7 @@
 //!
 //! **TEMP FIXTURES, NEVER THE LIVE ROOT, AND THAT IS NOT TIDINESS.** Opening a
 //! store runs the migration ladder, so a test that points at the real project
-//! MUTATES SHARED DURABLE STATE. Sixteen files in `intentsvcs` do exactly that
+//! MUTATES SHARED DURABLE STATE. Many files in `intentsvcs` do exactly that
 //! and one of them migrated this machine's store to a schema no committed
 //! binary could read, taking the delivered CLI down for everyone whose build
 //! predated it (dc's finding, 2026-08-29). A harness driving the ENTIRE
@@ -41,12 +41,12 @@
 //! would then disagree for a reason that has nothing to do with conformance,
 //! and the failure would read as a real one.
 //!
-//! **TWO AT ROWS DECLARE THIS ONE FILE, AT TWO DIFFERENT PATHS.** `AT-00.7`
+//! **SEPARATE AT ROWS DECLARE THIS ONE FILE, AT DIFFERENT PATHS.** `AT-00.7`
 //! cites `intent-cli/tests/dual_path_conformance.rs` -- this path -- and its
 //! note describes exactly this test: *in-process vs intentd, identical results
 //! across the verb surface; lands with WP-08*. `AT-08.2` cites
 //! `intentd/tests/dual_path_conformance.rs` for the same job under `AC-08.2`.
-//! One test, two rows, two homes, and neither row mentions the other.
+//! One test, a row at each home, and neither row mentions the other.
 //!
 //! I picked this path for an independent reason -- `env!("CARGO_BIN_EXE_intent")`
 //! is defined only for tests in the crate that DECLARES that binary, and
@@ -54,7 +54,7 @@
 //! spelling this estate avoids everywhere else -- and only the commit gate's
 //! stale-row arm revealed that canon had already named it. **That is the gate
 //! finding a duplicate I would otherwise have reported as my own deviation.**
-//! Reconciling the two rows is canon and therefore vc's pen; raised there
+//! Reconciling the rows is canon and therefore vc's pen; raised there
 //! rather than silently satisfying one and leaving the other dangling.
 //!
 //! **WHAT THIS HARNESS CANNOT SEE, DECLARED BECAUSE A SILENT LIMIT IS WORSE

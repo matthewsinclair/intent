@@ -15,7 +15,7 @@
 //! to green before the type moved, and any red after the move is the move's
 //! doing rather than a new test's. `fiat_state_serde.rs` paid for this lesson
 //! from the other direction -- there the risk was newtype-versus-tag, here it is
-//! that a variant which already exists in twelve estates' canon must keep
+//! that a variant which already exists in canon across the fleet must keep
 //! reading and writing identically.
 //!
 //! # The property that actually protects the estate

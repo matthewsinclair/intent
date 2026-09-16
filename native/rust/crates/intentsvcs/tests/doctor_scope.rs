@@ -2,18 +2,18 @@
 //!
 //! **hv ruled the shape 2026-09-07** -- a narrow default is sensible, "but you
 //! should be able to specify the scope with a `--scope` param" -- after reading
-//! `intent doctor -v` on four estates and asking how hundreds of lines could be
-//! called pristine. The measurement behind it: 96 of 331 fleet findings sat on
-//! CLOSED threads, 50 on Conflab and 46 on Lamplight, and not one was work
-//! anybody was going to do.
+//! `intent doctor -v` on several estates and asking how hundreds of lines could
+//! be called pristine. The measurement behind it: a sizeable share of the
+//! fleet's findings sat on CLOSED threads, split between Conflab and Lamplight,
+//! and not one was work anybody was going to do.
 //!
 //! **THE ARM THAT MATTERS MOST IS NOT THE NARROWING; IT IS
 //! [`Report::out_of_scope`].** `0 finding(s)` over live threads is
 //! byte-identical to `0 finding(s)` over everything, so a default that hid
 //! without counting would be a denominator attack wearing a flag -- the error
-//! vc committed the same morning by reporting "15 of 18 estates pristine" off a
-//! count that could not see 372 lines of output. Every arm below that asserts a
-//! narrowing also asserts the count of what was narrowed away.
+//! vc committed the same morning by reporting most estates as "pristine" off a
+//! count that could not see hundreds of lines of output. Every arm below that
+//! asserts a narrowing also asserts the count of what was narrowed away.
 //!
 //! **EVERY ARM STATES WHAT IT WOULD HAVE TO SEE IN ORDER TO FAIL, AND CHECKS
 //! THE FIXTURE CAN PRODUCE IT.** That is cc's phrasing of the A5 family and it

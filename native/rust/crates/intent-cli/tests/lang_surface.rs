@@ -1,10 +1,11 @@
 //! **`intent lang` -- declaring a language, not installing one (ST0056 WP-06).**
 //!
-//! Four verbs ship and one is retired. `list` is byte-identical to v2 and
-//! derives from somewhere else; `show`, `init` and `remove` are `corrected`
-//! because v2's behaviour was to copy two markdown files per language into
-//! `intent/llm/`, and issue 0068 measured 10 of 10 of those byte-identical to
-//! their templates with zero readers anywhere in Intent's own tree.
+//! The family's verbs ship bar `sync`, which is retired. `list` is
+//! byte-identical to v2 and derives from somewhere else; `show`, `init` and
+//! `remove` are `corrected` because v2's behaviour was to copy markdown files
+//! per language into `intent/llm/`, and issue 0068 measured every one of those
+//! byte-identical to its template with no readers anywhere in Intent's own
+//! tree.
 //!
 //! # The family is MIXED, and the tests are per verb for that reason
 //!

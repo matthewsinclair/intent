@@ -24,7 +24,7 @@
 //!
 //! **THAT CLAUSE IS UNCOVERED BY EVERY ROW ON THE THREAD RATHER THAN DELEGATED
 //! TO ONE, AND IT IS FILED AS `0278`.** This file first handed it to `AC-01.4`;
-//! vc read all nine rows on 2026-09-08 and none of them observes execution.
+//! vc read every row on 2026-09-08 and none of them observes execution.
 //! `AC-01.4` is the tail-orphan trap -- a live drive, but of leaked `tail`
 //! processes against three signals, and it would not notice an app that shells
 //! the verb and ignores the answer. **A hand-off to a row that does not accept
@@ -44,7 +44,7 @@
 //! The app's own source discusses this criterion by name: `IntentApp.swift`
 //! says *the socket has an owner to investigate, not remove*, and `Health.swift`
 //! renders *holds the socket but is not answering*. **A scanner that read prose
-//! would be red on day one for three files whose only offence is explaining the
+//! would be red on day one for files whose only offence is explaining the
 //! rule they obey** -- the same trap `whiteboard-header-guard.sh` names, where
 //! scanning prose would make reporting a defect an offence.
 //!

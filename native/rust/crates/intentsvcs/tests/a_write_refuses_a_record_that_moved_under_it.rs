@@ -9,7 +9,7 @@
 //! whole thing, and the second carries the first's field at its **pre-edit**
 //! value. No error, no conflict, valid canon afterwards.
 //!
-//! Measured on the shipping binary before this fix: **9 of 15 concurrent pairs
+//! Measured on the shipping binary before this fix: **most concurrent pairs
 //! lost a write**, every one `rc=0` with no error text and a 0.01s wall time --
 //! the two writes never even contended at the SQLite level, because two
 //! well-formed serialised transactions is exactly what the store saw and it was

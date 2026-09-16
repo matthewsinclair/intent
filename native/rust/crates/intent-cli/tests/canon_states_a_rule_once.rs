@@ -2,7 +2,7 @@
 //! document that needs another's rule POINTS rather than copies.**
 //!
 //! The rule library owns the text; a canon document cites the ID. `CLAUDE.md`
-//! argues this against itself -- the four cross-language principles are stated
+//! argues this against itself -- the cross-language principles are stated
 //! in `AGENTS.md` and deliberately not restated, *because a second copy would be
 //! a Highlander violation in the document that defines the rule.*
 //!

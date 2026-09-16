@@ -13,9 +13,9 @@
 //! dispatch table* -- is witnessed in `src/guide.rs`'s own tests, where
 //! `7ecb1e62` proved DERIVATION rather than agreement by mutation: point
 //! `command_reference` at the compiled-in table instead of the one it was
-//! handed and 13 pass while 1 fails. A row citing one file for a two-clause
-//! criterion names the clause the file carries and where the other lives, so
-//! the green cannot be read as this file proving both.
+//! handed and a test goes red while the rest stay green. A row citing one file
+//! for a two-clause criterion names the clause the file carries and where the
+//! other lives, so the green cannot be read as this file proving both.
 //!
 //! # What is actually being guarded
 //!
@@ -37,21 +37,21 @@
 //! A literal spelled exactly `"st list"` is a string that exists nowhere but
 //! the command surface. **Single-token paths are ordinary words** -- `st`,
 //! `at`, `info`, `edit`, `help` -- and matching on them is not a check but
-//! noise: measured 2026-08-30, `render.rs` alone contains 35 of them as exact
-//! literals, in messages, argument ids and match arms. A test flagging 35 sites
-//! that are nearly all innocent is one nobody keeps.
+//! noise: measured 2026-08-30, `render.rs` alone contains dozens of them as
+//! exact literals, in messages, argument ids and match arms. A test flagging
+//! dozens of sites that are nearly all innocent is one nobody keeps.
 //!
 //! **SO THIS DOES NOT CATCH A ROSTER MADE ONLY OF SINGLE-TOKEN COMMANDS**, eg
 //! `["doctor", "upgrade", "organize"]`. That hole is stated here rather than
 //! discovered later. Closing it needs per-`const` attribution -- bounding each
 //! `const NAME: &[..] = &[..];` span and scanning only inside it, which narrows
-//! the same sweep from 35 sites to 4. **It was deliberately not built**: a
+//! the same sweep to a handful of sites. **It was deliberately not built**: a
 //! hand-rolled span finder over `render.rs` is the same class of instrument
-//! that failed three times in one afternoon on this estate, each failure
+//! that failed repeatedly in one afternoon on this estate, each failure
 //! producing a plausible answer rather than a detectable one. An unsound check
 //! is worse than a narrow one, because a narrow one knows what it missed.
 //!
-//! Filed as the extension rather than left implicit: the four `const`s that
+//! Filed as the extension rather than left implicit: the `const`s that
 //! sweep surfaced are recorded in [`DECLARED`] with their classifications, so
 //! the judgement exists on disk even where the automated population does not
 //! reach -- **a near-miss classified in a node's head is an exclusion recorded

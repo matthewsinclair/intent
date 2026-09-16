@@ -19,7 +19,7 @@
 //!
 //! **WHY THE WRITES ARE SPACED WIDER THAN THE DEBOUNCE, WHICH IS THE OPPOSITE
 //! OF THE SHAPE THIS EXPERIMENT WAS FIRST PLANNED WITH.** The plan carried on
-//! two boards was *8+ writes inside ONE quiet period* at ~25ms. Derived against
+//! the boards was *8+ writes inside ONE quiet period* at ~25ms. Derived against
 //! `0216`'s own event log, that is the configuration LEAST likely to lose
 //! anything: `QUIET` is 250ms and resets on every event, so a burst tighter
 //! than the debounce fires exactly one ingest, AFTER the last write, reading a
@@ -35,36 +35,37 @@
 //! signature appears at once, at `baseline` 40:
 //!
 //! ```text
-//! contenders=0  competing=0     ingests=10  REFUSED=0  SILENTLY_LOST=0
-//! contenders=2  competing=490   ingests=85  REFUSED=5  SILENTLY_LOST=1  ["Burst row 7"]
-//! contenders=4  competing=807   ingests=87  REFUSED=4  SILENTLY_LOST=1  ["Burst row 7"]
-//! contenders=8  competing=1010  ingests=97  REFUSED=6  SILENTLY_LOST=0
+//! contenders=0  no refusals  no silent loss
+//! contenders=2  refusals     silent loss  ["Burst row 7"]
+//! contenders=4  refusals     silent loss  ["Burst row 7"]
+//! contenders=8  refusals     no silent loss
 //! ```
 //!
 //! **THE LOSS IS STOCHASTIC, SO IT NEEDS A DISTRIBUTION AND NOT AN ANECDOTE.**
-//! Eight runs at `contenders=2`, `baseline=40`, depth 8:
+//! Repeated runs at `contenders=2`, `baseline=40`, depth 8:
 //!
 //! ```text
-//! losses per run : 0 0 1 1 1 1 1 2
+//! losses per run : none in some runs, a row in most, more than one in another
 //! rows lost      : 2, 5, 6, 6, 7, 7, 7
 //! ```
 //!
 //! **THE PREDICTION THIS FILE WAS BUILT TO TEST IS NOT REFUTED, AND THE FIRST
 //! VERSION OF THIS COMMENT SAID IT WAS.** Pre-committed wording: *the
 //! render-queue model predicts MORE THAN ONE lost row at depth 8; if only the
-//! last goes, that model is wrong.* Two early runs each lost exactly `Burst row
+//! last goes, that model is wrong.* The early runs each lost exactly `Burst row
 //! 7`, the last row, and this header recorded the model as refuted on that
-//! basis. **The very next run lost `Burst row 2` AND `Burst row 7`, and six more
-//! put the loss at rows 5, 6 and 7.** So the disconfirming condition -- *only
-//! the last goes* -- is FALSE, more than one row does go, and nothing is
+//! basis. **The very next run lost `Burst row 2` AND `Burst row 7`, and later
+//! runs put the loss at rows 5, 6 and 7.** So the disconfirming condition --
+//! *only the last goes* -- is FALSE, more than one row does go, and nothing is
 //! refuted.
 //!
-//! **RECORDED AS A MISTAKE RATHER THAN QUIETLY FIXED, BECAUSE THE MISTAKE IS THE
-//! REUSABLE PART: a conclusion drawn from n=2 about a stochastic process,
-//! written into an artefact, and contradicted by the next sample.** The
-//! discipline that produced the good result -- pre-committing the prediction --
-//! is not the same discipline as knowing when you have enough samples to apply
-//! it, and holding the first well says nothing about the second.
+//! **RECORDED AS A MISTAKE RATHER THAN QUIETLY FIXED, BECAUSE THE MISTAKE IS
+//! THE REUSABLE PART: a conclusion drawn from too few samples about a
+//! stochastic process, written into an artefact, and contradicted by the next
+//! sample.** The discipline that produced the good result -- pre-committing the
+//! prediction -- is not the same discipline as knowing when you have enough
+//! samples to apply it, and holding the first well says nothing about the
+//! second.
 //!
 //! **THE TWO DEFECTS TRADE OFF, WHICH IS WHY BOTH ARE COUNTED SEPARATELY.** As
 //! contention climbs the loud refusal (`0226`) dominates and the silent loss
@@ -75,12 +76,12 @@
 //! **A NON-REPRODUCTION IS A RESULT ABOUT THE WINDOW AND NOT A CLEAN BILL OF
 //! HEALTH.** `0216` logs the window at ~1s on the live corpus. The
 //! window scales with how long a whole-corpus ingest takes, and a scratch
-//! project with four threads has a window of approximately nothing. That is the
-//! most likely reason the scratch attempt recorded in `0216` lost nothing
-//! across 18 calls -- a possibility that filing left open, because it measured
-//! the wrong variable and said so. `baseline()` exists to give the ingest real
-//! work; if the loss still does not appear, the honest report is *not
-//! reproduced at this corpus size*, naming the size.
+//! project with a handful of threads has a window of approximately nothing.
+//! That is the most likely reason the scratch attempt recorded in `0216` lost
+//! nothing across every call it made -- a possibility that filing left open,
+//! because it measured the wrong variable and said so. `baseline()` exists to
+//! give the ingest real work; if the loss still does not appear, the honest
+//! report is *not reproduced at this corpus size*, naming the size.
 
 use std::path::Path;
 use std::time::Duration;

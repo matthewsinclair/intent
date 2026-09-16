@@ -8,10 +8,10 @@
 //!
 //! # Why the descriptive column changed
 //!
-//! It used to be the stored slug, which failed in both directions at once on the
-//! estate that ships this tool: **21 of 64 threads carry no stored slug and
-//! rendered as an empty cell**, and the other 43 carry v2's title-derived slug
-//! truncated at 48 characters on a word boundary, so they broke off on
+//! It used to be the stored slug, which failed in both directions at once on
+//! the estate that ships this tool: **many threads carry no stored slug and
+//! rendered as an empty cell**, and the rest carry v2's title-derived slug
+//! truncated at a fixed length on a word boundary, so they broke off on
 //! prepositions -- `...-with`, `...-before`. `WP_COLUMNS` has always said
 //! `Title`; steel threads were the anomaly.
 //!

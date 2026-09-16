@@ -5,14 +5,14 @@
 # voice -- lowercase `error: `, from `error()` -- and a single voice is only
 # single if nothing reintroduces the other one, so the rule is grepped rather
 # than read (issue 0011). This arm lived in `tests/unit/helpers.bats`, whose
-# other sixteen arms all `source bin/intent_helpers`. That file is population A
+# other arms all `source bin/intent_helpers`. That file is population A
 # and the prune deletes it; this arm is the one occupant that never touched it,
 # greps directories instead, and has a job after the delete. It is moved here
 # rather than deleted with its neighbours -- vc's standard, adopted: prune the
 # VEHICLE, carry the PROPERTY.
 #
 # THE CORPUS NEEDS NO RE-SCOPING AND THAT IS THE POINT. The three roots below
-# are the same three the arm always named. `bin/` shrinks from 83 files to
+# are the same three the arm always named. `bin/` shrinks to
 # population B when the prune lands, and the plugin bin dirs are untouched, so
 # the delete changes only what is WATCHED, never what is asserted.
 #
@@ -31,7 +31,7 @@
 # doing it for as long as nobody looked. **An emptiness assertion is worth
 # exactly what its instrument is worth**, and this one could not fail.
 #
-# The three arms below separate what that one conflated: the corpus is REAL,
+# The arms below separate what that one conflated: the corpus is REAL,
 # the scan is CLEAN, and the detector FIRES. The last is driven against a
 # planted fixture in a tempdir and never against the tracked tree -- a positive
 # control that writes into the repository is a commit waiting to happen on a

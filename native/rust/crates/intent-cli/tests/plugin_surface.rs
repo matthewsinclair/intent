@@ -1,6 +1,6 @@
 //! **`intent plugin` -- what this INSTALL ships (ST0056 WP-06, `as-observed`).**
 //!
-//! Three entries, no `keep` flags, and a question about the install rather than
+//! A few entries, no `keep` flags, and a question about the install rather than
 //! about a project -- so it answers outside one, exactly as v2 does.
 //!
 //! # The one deliberate departure, and why it is pinned here

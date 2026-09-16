@@ -14,10 +14,10 @@
 //! start on a project whose canon is a few megabytes.
 //!
 //! Measured on the worst project in the estate, after the duplicate rows of the
-//! first mechanism were already repaired: **859 sections holding 5 MB of
-//! content, against 589 MB of `doc_sections_data`.** An FTS5 `'rebuild'`
-//! against the emptied content table took the whole store from 2.3 GB to
-//! 14.8 MB with search intact.
+//! first mechanism were already repaired: **megabytes of content, against
+//! hundreds of megabytes of `doc_sections_data`.** An FTS5 `'rebuild'` against
+//! the emptied content table took the whole store from gigabytes to megabytes
+//! with search intact.
 //!
 //! # Why this measures bytes rather than rows
 //!

@@ -4,7 +4,7 @@
 //! was scaffolding: every path through it ended in "not available in this
 //! build", and these tests pinned the SHAPE of that -- which project it
 //! resolved, and whether the refusal told the truth about what it had done to
-//! it. The parser has since landed, so the two tests asserting the refusal were
+//! it. The parser has since landed, so the tests asserting the refusal were
 //! asserting a defect, and they are replaced rather than adjusted. A test that
 //! keeps passing by describing what a command used to do is worse than none: it
 //! reads like coverage of the thing that replaced it.
@@ -16,7 +16,7 @@
 //! # This file is **AT-10.15**, AC-10.2's second covering row, and it carried no contract id
 //! for three days
 //!
-//! Two of AC-10.2's four limbs -- BLOCKED, and a non-zero exit -- have been
+//! Some of AC-10.2's limbs -- BLOCKED, and a non-zero exit -- have been
 //! driven here end to end through the shipped verb since 2026-08-17, while the
 //! row read `to-write` and a second test was written in `intentsvcs` for the
 //! same criterion. **Nothing linked the two**: this file named no `AC-` or

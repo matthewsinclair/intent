@@ -10,7 +10,7 @@
 //! split, arrived at the path rule as `n/a`, and satisfied it on the slash
 //! `n/a` has always carried. The row then stores `[n/a` as its test file.
 //!
-//! **MEASURED, NOT IMAGINED: fifteen rows on Lamplight** store `[n/a`, a bare
+//! **MEASURED, NOT IMAGINED: real rows on Lamplight** store `[n/a`, a bare
 //! `[`, or a whole sentence in `file`. Each one makes `ac gate` report `cites a
 //! file that does not exist` against work that is done -- the same visible
 //! damage the bracket reader was built to stop, reached by the one route it

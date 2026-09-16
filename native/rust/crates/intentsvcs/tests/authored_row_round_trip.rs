@@ -8,7 +8,7 @@
 //!
 //! **What closes it is a corpus neither side of this repository produced.** The
 //! fixture is v2-authored rows captured by vc with `git show <sha>:<path>` and
-//! diffed against the worktree, from three threads that all predate both 0056
+//! diffed against the worktree, from threads that all predate both 0056
 //! and its fix -- so no row here can have been shaped by the defect or by the
 //! repair. Provenance is argued in the fixture's own README.
 //!
@@ -20,17 +20,17 @@
 //! the authored line catches a field nobody was looking at.
 //!
 //! It did exactly that before this file existed: reading the two ends against
-//! the corpus found 12 of 14 notes dropped outright and the other 2 stripped of
-//! their key, while `status` -- the only field 0056 concerned -- round-tripped
+//! the corpus found most notes dropped outright and the rest stripped of their
+//! key, while `status` -- the only field 0056 concerned -- round-tripped
 //! correctly.
 //!
-//! **`red` IS ABSENT AND THAT IS DECLARED RATHER THAN PAPERED OVER.** All four
-//! `red` rows in the estate live in files edited the day 0056 was filed, so
-//! there is no uncontaminated source for it. It is the weakest of the four to be
-//! missing -- its wire tag and authored form coincide -- but a reader must not
-//! infer from a green here that all four vocabularies were compared against
-//! authored bytes. Three were; the fourth is covered only by the transcription
-//! in `view_determinism.rs`.
+//! **`red` IS ABSENT AND THAT IS DECLARED RATHER THAN PAPERED OVER.** Every
+//! `red` row in the estate lives in files edited the day 0056 was filed, so
+//! there is no uncontaminated source for it. It is the weakest of the
+//! vocabularies to be missing -- its wire tag and authored form coincide -- but
+//! a reader must not infer from a green here that every vocabulary was compared
+//! against authored bytes. The others were; `red` is covered only by the
+//! transcription in `view_determinism.rs`.
 
 use crate::common::{Fixture, ctx};
 use intentsvcs::ingest::Canon;

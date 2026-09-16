@@ -3,11 +3,11 @@
 //!
 //! # What this deliberately does NOT assert
 //!
-//! **Byte-equality against the three files on disk.** Those were written by v2
+//! **Byte-equality against the files on disk.** Those were written by v2
 //! v2.19.0 and say so in their own footers; a v3 generator that reproduced them
 //! byte for byte would be reproducing a frozen release's output rather than
 //! generating from this project's state. The criterion asks whether v3 CAN
-//! produce each of the three -- and separately whether the failure that
+//! produce each of them -- and separately whether the failure that
 //! prompted it, a root file emptied on 2026-08-18, is now recoverable.
 //!
 //! # The control does the work

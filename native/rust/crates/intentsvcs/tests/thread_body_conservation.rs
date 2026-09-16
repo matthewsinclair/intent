@@ -1,21 +1,21 @@
-//! **`Thread.body`: the two-field shape applied one level up, and the 178
-//! sections that were reaching neither `objective` nor `context`.**
+//! **`Thread.body`: the two-field shape applied one level up, and the sections
+//! that were reaching neither `objective` nor `context`.**
 //!
-//! Measured across this project's own 56 threads against
-//! `lib/templates/prj/st/ST####/info.md` @ `0b1b3b5b`: 283 sections, of which
-//! 35 are byte-identical to the template and drop (`Acceptance` 12 of 12,
-//! `Context for LLM` 20 of 41, `Related Steel Threads` 3 of 55) and 178 carry.
-//! **44 headings appear exactly once each**, which is why the field is a
-//! catch-all and not a named set: a model naming sections drops what it did not
-//! foresee, and here that is most of the estate.
+//! Measured across this project's own threads against
+//! `lib/templates/prj/st/ST####/info.md` @ `0b1b3b5b`: of the sections found,
+//! some are byte-identical to the template and drop (every `Acceptance`, some
+//! `Context for LLM`, a few `Related Steel Threads`) and most of the remainder
+//! carry. **Dozens of headings appear exactly once each**, which is why the
+//! field is a catch-all and not a named set: a model naming sections drops what
+//! it did not foresee, and here that is most of the estate.
 //!
 //! **The collision was found BEFORE shipping this time.** `views::info`
 //! generates `## Work Packages`, `## Acceptance` and `## Related Steel
-//! Threads`. 8 threads author a `## Work Packages` section, none is
-//! template-identical (v2 never generated that section), and all 8 have work
-//! packages -- so without the deferral this field would have doubled that
-//! heading on 8 threads the day it landed, which is exactly what shipped at the
-//! work-package level and had to be fixed after the fact.
+//! Threads`. Some threads author a `## Work Packages` section, none is
+//! template-identical (v2 never generated that section), and every one of them
+//! has work packages -- so without the deferral this field would have doubled
+//! that heading on each of those threads the day it landed, which is exactly
+//! what shipped at the work-package level and had to be fixed after the fact.
 
 use crate::common::{Fixture, ctx};
 use intentsvcs::legacy::{self, Verdict};

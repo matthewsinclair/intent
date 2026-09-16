@@ -8,30 +8,31 @@
 //!
 //! # Measured at `42fb5269` before a line was written
 //!
-//! 61 issues, 23 OPEN and 38 CLOSED. All six frontmatter keys present on all
-//! 61, so every one has a home in the model and nothing is carried as legacy.
-//! `severity` is one of four -- medium 34, high 17, low 9, critical 1. The
-//! directory and the `status:` field agree on all 61, and every `id` matches
-//! its directory name.
+//! Every issue sits under OPEN or CLOSED, most of them CLOSED. Every
+//! frontmatter key is present on every issue, so each one has a home in the
+//! model and nothing is carried as legacy. `severity` is one of medium, high,
+//! low and critical, in falling order of frequency. The directory and the
+//! `status:` field agree on every issue, and every `id` matches its directory
+//! name.
 //!
 //! **The scanner's output was then counted independently off the canon JSON and
-//! reproduces all of it exactly**: 23 open / 38 closed, the same four severity
-//! counts, reporter 61 of 61, closed 0 of 61. Two derivations of one subject by
-//! two code paths -- the only arrangement in which either count could have
-//! falsified the other.
+//! reproduces all of it exactly**: the same open/closed split, the same
+//! severity counts, reporter set on every issue and closed set on none. Two
+//! derivations of one subject by two code paths -- the only arrangement in
+//! which either count could have falsified the other.
 //!
 //! # The two traps this estate actually contains
 //!
 //! **THE FRONTMATTER IS PARSED, NEVER GREPPED.** A line-oriented scan for
-//! `^status:` over these files returns FOUR values -- CLOSED 38, OPEN 23, WIP
-//! 3, Done 1, which is 65 readings over 61 files -- because issue BODIES quote
-//! status lines while describing the bug. **A grep-shaped reader would have
-//! invented two statuses this estate does not have**, and they would have
-//! looked exactly like real ones.
+//! `^status:` over these files returns CLOSED, OPEN, WIP and Done -- more
+//! readings than there are files -- because issue BODIES quote status lines
+//! while describing the bug. **A grep-shaped reader would have invented two
+//! statuses this estate does not have**, and they would have looked exactly
+//! like real ones.
 //!
-//! **EVERY `id` IS QUOTED**: `id: "0015"`, on all 61. Parsed without stripping
-//! the quotes, every issue in the estate fails and the migration reports an
-//! empty tracker with every count agreeing against zero.
+//! **EVERY `id` IS QUOTED**: `id: "0015"`, on every issue. Parsed without
+//! stripping the quotes, every issue in the estate fails and the migration
+//! reports an empty tracker with every count agreeing against zero.
 
 use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;

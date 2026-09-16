@@ -1,5 +1,5 @@
 //! WP-11: the DEFAULT declaration is every **WIP** thread and nothing else, and
-//! it is ONE function with four callers.
+//! it is ONE function that all its callers reach.
 //!
 //! **THE LOAD-BEARING TEST HERE IS THE ROUND TRIP.** A generated manifest the
 //! tool's own parser refuses is the worst available outcome: the grammar ABORTS
@@ -15,8 +15,8 @@
 //! Triage-heavy estate.* That reasoning was sound and its premise was wrong.
 //! **`!is_closed()` is a definition by EXCLUSION**, so every status nobody
 //! thought about is swept IN by default -- which is how a fleet project came to
-//! realise 57 threads. hv, first-hand, on seeing it: *"Now it has NOT STARTED
-//! STs!??!"* and *"It should ONLY HAVE WIP STs!!!!!"*
+//! realise threads nobody was working on. hv, first-hand, on seeing it: *"Now
+//! it has NOT STARTED STs!??!"* and *"It should ONLY HAVE WIP STs!!!!!"*
 //!
 //! So the predicate is now stated POSITIVELY -- `status == Wip` -- and the
 //! property that changed is which direction a new status defaults to. Under the
@@ -25,8 +25,8 @@
 //! acquire members by accident is the one worth having here**, because the
 //! accident puts files on disk that no work refers to.
 //!
-//! `only_wip_is_declared` drives all six statuses rather than a representative
-//! pair, so the four that must NOT be declared are each named.
+//! `only_wip_is_declared` drives every status rather than a representative
+//! pair, so each one that must NOT be declared is named.
 
 use intentsvcs::intentfiles::{default_declaration, parse};
 use intentsvcs::model::ThreadStatus;

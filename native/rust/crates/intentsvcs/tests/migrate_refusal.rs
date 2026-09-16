@@ -1,7 +1,7 @@
 //! **AT-10.2: Phase A residue BLOCKS, its report is CLASSED, and the estate a
 //! refusal leaves behind is byte-identical to the one it found.**
 //!
-//! # Two of this criterion's four limbs were already covered, by a file its row
+//! # Some of this criterion's limbs were already covered, by a file its row
 //! does not cite
 //!
 //! Measured before a line of this file was written, which is the only reason it
@@ -15,8 +15,8 @@
 //! # What no test in this estate reads is the CLASS
 //!
 //! That file asserts the report names the thread (`ST0004`) and the value it
-//! could not read (`Banana`). **Neither is the class.** Nine classes are
-//! declared in `migration.md`, nine are emitted by `legacy.rs`, and
+//! could not read (`Banana`). **Neither is the class.** Classes are declared
+//! in `migration.md`, the same classes are emitted by `legacy.rs`, and
 //! `parity/tools/residue_class_check.sh` compares those two lists **to each
 //! other** -- so both ends of the existing check are inside the model, and
 //! nothing asserts a class ever reaches the line an operator reads. **A
@@ -25,12 +25,12 @@
 //!
 //! The format has an OPTIONAL segment -- `residue: <file>[:<line>] -- <class>
 //! -- <detail>` -- so one example proves one branch. Both are driven below,
-//! from one estate, and the two classes are told apart rather than counted.
+//! from one estate, and the classes are told apart rather than counted.
 //!
 //! # And atomicity is asserted only where it cannot fail
 //!
 //! `phase_a_reads_a_v2_estate_and_leaves_it_exactly_as_it_was` runs on a CLEAN
-//! estate and reads back ONE file. `migrate.rs`'s
+//! estate and reads back a lone file. `migrate.rs`'s
 //! `a_blocked_plan_writes_nothing_because_it_cannot` **says so in its own
 //! name**: `plan` is a pure planner holding no writer, so the assertion is
 //! true of every possible implementation of it. **Neither covers the verb that

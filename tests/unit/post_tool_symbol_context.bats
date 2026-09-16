@@ -2,7 +2,7 @@
 # AT-24.4: lib/templates/.claude/scripts/post-tool-symbol-context.sh
 #
 # The PostToolUse hook that appends the index's structural answer for the symbol
-# a grep pattern named. Its three obligations, and one arm each: it appends the
+# a grep pattern named. Its obligations, and one arm each: it appends the
 # answer, it appends NOTHING when the index cannot answer for the paths that
 # answer names, and it never blocks.
 #

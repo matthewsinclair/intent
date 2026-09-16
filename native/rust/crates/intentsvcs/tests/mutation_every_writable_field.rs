@@ -20,19 +20,19 @@
 //! moved that test; only a human editing both halves could.
 //!
 //! It named `file`, `prose`, `covers` and `note`. **Driven the same day,
-//! `Facade::put` set all four -- one call, `Outcome::Moved`, values read back
+//! `Facade::put` set every one -- one call, `Outcome::Moved`, values read back
 //! changed.**
 //!
 //! And it was measuring the wrong SUBJECT. The criterion says *settable
 //! through the MUTATION SURFACE*; the roster was of named VERBS, and `put` is
-//! on the surface. **Those are two findings and they are now two lists.**
+//! on the surface. **Those are separate findings and they are now separate lists.**
 //! [`no_named_verb_sets`] records that no CLI verb spells these fields, which
 //! is true and is a statement about the CLI; the unsettable set is measured by
 //! driving the surface.
 //!
 //! **This is the identical defect the create pin had, and that one is
-//! explained forty lines below in this same file** -- it measured a NAME while
-//! `put` created both rows thirty lines away in `facade.rs`. The fix was
+//! explained further down in this same file** -- it measured a NAME while
+//! `put` created both rows a short way off in `facade.rs`. The fix was
 //! applied to one of the two.
 //!
 //! # THE MEASURED SET IS EMPTY, AND THE DENOMINATOR IS WHAT STOPS THAT READING
@@ -60,10 +60,10 @@
 //! `openness.rs` uses to enumerate its tables from the DDL.
 //!
 //! **And the row it measures against is SYNTHESISED.** `sample_thread`'s
-//! `AT-03.1` carries six of the eight fields -- `prose` and `legacy` are
-//! `None` and `skip_serializing_if` drops them from the JSON -- so a
-//! measurement taken against the live fixture is blind to exactly the two
-//! fields nobody has ever set.
+//! `AT-03.1` carries every field but `prose` and `legacy`, which are `None` and
+//! which `skip_serializing_if` drops from the JSON -- so a measurement taken
+//! against the live fixture is blind to exactly the two fields nobody has ever
+//! set.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, parse};

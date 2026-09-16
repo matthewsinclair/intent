@@ -1,17 +1,16 @@
 //! **THE SHAPE OF OUTPUT IS ONE CONCERN WITH ONE DOOR.**
 //!
-//! Before `output.rs` it was decided four ways across eleven flags -- `--width`
-//! on two rows, `--markdown` on one, `--json` on three, `--format` on two -- so
-//! `issues list` was width-aware and `wp list` was not, for no reason anybody
-//! had decided.
+//! Before `output.rs` it was decided by separate flags spread across rows --
+//! `--width`, `--markdown`, `--json` and `--format` -- so `issues list` was
+//! width-aware and `wp list` was not, for no reason anybody had decided.
 //!
 //! **THE ARM WORTH READING FIRST IS `a_target_width_is_a_maximum_and_not_only_a_minimum`.**
 //! v2 and v3 both carried the same rule in near-identical words -- v2's
 //! `render_table` says *content-fit is the floor, so nothing is ever truncated*
 //! and `views.rs` said *a narrow terminal never truncates, it just stops
 //! padding*. Neither states the consequence: ONE oversized cell sets the width
-//! of EVERY row. Measured 2026-08-25, `issues list` rendered 312 columns into an
-//! 80-column terminal because a single title ran to 287 characters.
+//! of EVERY row. Measured 2026-08-25, `issues list` rendered hundreds of
+//! columns into a standard terminal because a single title ran that long.
 
 use intentsvcs::output::{Format, Output, OutputError};
 use intentsvcs::views::{self, TableMode};

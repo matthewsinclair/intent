@@ -5,7 +5,7 @@
 //!
 //! On 2026-08-27 `~/.intent/home` -- the machine-global install pointer the
 //! pre-commit shim resolves on every commit, in every estate on the machine --
-//! named a scratch worktree that had been deleted. Written by two arms of
+//! named a scratch worktree that had been deleted. Written by arms of
 //! `dispatch_ssot`, which build their argument vectors from
 //! `surface/dispatch-table.json` and drive every shipped family bare, hunting
 //! for the ones that answer *is a known command that is not implemented yet*.
@@ -18,11 +18,11 @@
 //!
 //! # Why this predicate and not "every test that spawns the binary"
 //!
-//! Measured before it was chosen: **43 test files spawn `intent` and 30 of them
-//! never fixture `HOME`.** A blanket rule would red thirty files across four
-//! nodes' lanes to describe a hazard that does not apply to most of them -- a
-//! test that spells `st list` can only ever run `st list`, and `st list` will
-//! not grow a per-user write.
+//! Measured before it was chosen: **most test files that spawn `intent` never
+//! fixture `HOME`.** A blanket rule would red many files across the nodes'
+//! lanes to describe a hazard that does not apply to most of them -- a test
+//! that spells `st list` can only ever run `st list`, and `st list` will not
+//! grow a per-user write.
 //!
 //! **The hazard is not spawning the binary. It is spawning verbs chosen by
 //! DATA.** A table-driven test's reach is the table's contents at run time, so
@@ -30,7 +30,7 @@
 //! touched. That is the population this guard binds.
 //!
 //! **THE POPULATION GROWS AND NO FIGURE FOR IT IS KEPT HERE.** This paragraph
-//! said *nine files* and there were fifteen when that was next measured
+//! once named a file count and the scan found more when that was next measured
 //! (2026-08-31) -- a count in prose that the scan contradicts, which is the
 //! defect this estate keeps finding in other people's documents. The arm below
 //! asserts a FLOOR and prints what it actually found; the floor catches the
@@ -48,9 +48,9 @@
 //! 2026-08-31, BY cc, AGAINST cc's OWN FILE.** `remedies_are_reachable.rs`
 //! spelled `.env("HOME"` inside its `Fixture`, so it passed here -- while
 //! `wiredness()` beside it spawned `Command::new(binary())` with no override,
-//! roughly **110 unfixtured invocations per run**, driving every declared verb
-//! with up to four sentinel arguments. *Two runners and one fixtured* is the
-//! rule; **one fixtured and a hundred and ten unfixtured** is what it permitted.
+//! **many unfixtured invocations per run**, driving every declared verb
+//! with sentinel arguments. *Two runners and one fixtured* is the rule; **one
+//! fixtured and many unfixtured** is what it permitted.
 //! cc folded every spawn into `Fixture::run` at `98612798`, so that file's
 //! file-scoped answer is now also its true one.
 //!
@@ -62,9 +62,9 @@
 //! four sites may have three that are perfectly safe. Every shortlisted file
 //! was opened:
 //!
-//! - `cli_end_to_end.rs` -- three unfixtured spawns, all `st list` with
+//! - `cli_end_to_end.rs` -- unfixtured spawns, all `st list` with
 //!   `COLUMNS` set.
-//! - `flag_reachability.rs` -- two unfixtured spawns, both `critic --languages`.
+//! - `flag_reachability.rs` -- unfixtured spawns, all `critic --languages`.
 //! - `common/mod.rs::mcp_session` -- takes `home: Option<&Path>` and documents
 //!   that `None` leaves the ambient one. **Both callers pass `Some`; nothing
 //!   walks that door today.**
@@ -72,16 +72,15 @@
 //! **Every remaining unfixtured spawn names its verb**, which is precisely the
 //! population the rationale above says this guard deliberately does not bind: a
 //! test that spells `st list` can only ever run `st list`. Tightening to
-//! *every spawn site must be fixtured* would red five sites across two files in
-//! other nodes' lanes to describe a hazard that does not apply to them -- the
+//! *every spawn site must be fixtured* would red every site listed above, in
+//! other nodes' lanes, to describe a hazard that does not apply to them -- the
 //! same argument that chose this predicate over "every test that spawns the
 //! binary", arriving a second time about the same file.
 //!
 //! **So cc's instance is closed by cc's fix, not by a stronger predicate**, and
 //! the limit stays declared rather than enforced. What changed is that it now
-//! carries the measurement, because *a file with two runners and one fixtured
-//! passes* did not make anyone act and *one fixtured against a hundred and ten*
-//! does.
+//! names the scale, because *a file with two runners and one fixtured passes*
+//! did not make anyone act and *one fixtured against many unfixtured* does.
 //!
 //! Its own honesty check is below -- a scan whose population is empty passes
 //! for free, so the population is asserted before the property is.

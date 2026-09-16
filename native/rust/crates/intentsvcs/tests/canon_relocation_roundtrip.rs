@@ -4,11 +4,11 @@
 //!
 //! # Why a field denominator and not an artefact one
 //!
-//! Counting artefacts answers "did all 97 files survive", which they visibly
+//! Counting artefacts answers "did every file survive", which they visibly
 //! do -- the move is a rename and a rename does not drop files. **The loss
 //! this criterion is about is one level down: a FIELD that the writer at the
-//! new location emits and the reader there does not take back.** 97 of 97
-//! artefacts present, one field silently absent from each, is a green under
+//! new location emits and the reader there does not take back.** Every
+//! artefact present, one field silently absent from each, is a green under
 //! any artefact-level count and is data loss at the clone boundary (ST0056
 //! AC-02.6 applied to the move).
 //!
@@ -32,7 +32,7 @@
 //!
 //! # The corpus is the real estate
 //!
-//! 57 threads and 40 issues, carrying the fields people have actually
+//! The estate's threads and issues, carrying the fields people have actually
 //! authored -- optional ones populated, empty strings, nested criteria and
 //! tests, attachments with paths that have separators in them. A constructed
 //! fixture would be built by someone who already knew which fields to worry

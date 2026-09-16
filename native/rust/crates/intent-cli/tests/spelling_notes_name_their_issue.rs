@@ -6,28 +6,28 @@
 //! `help` surface into the cut on 2026-08-26, and that the value is right only
 //! until that lands. **Nothing read it.** So `spine.rs` went on rendering
 //! *there is no v3 replacement -- remove it from any script that calls it*,
-//! `intent surface retired` published the same, and on 2026-08-30 two nodes
-//! diagnosed the row, authorised a fix and routed it to a third before anyone
-//! opened the note that had already answered the question. A ruling recorded
-//! where no instrument looks is a ruling with no gate.
+//! `intent surface retired` published the same, and on 2026-08-30 nodes
+//! diagnosed the row, authorised a fix and routed it to another node before
+//! anyone opened the note that had already answered the question. A ruling
+//! recorded where no instrument looks is a ruling with no gate.
 //!
 //! # THE LIMIT, AND IT IS LARGER THAN WHAT THIS FILE COVERS
 //!
 //! **This covers `spelling_note` and nothing else. It is not the class.**
-//! Measured 2026-08-30 over the raw table: **137 distinct key names carry more
-//! than 200 characters of prose** -- `note` appears 66 times, `notes` 10,
-//! `disposition_basis` 49, `ratification` 47, down a long tail of one-offs. A
-//! roster classifying all of it would be several hundred rows, which is a
-//! second copy of the table rather than a test.
+//! Measured 2026-08-30 over the raw table: **a great many distinct key names
+//! carry substantial prose** -- led by `note`, `disposition_basis` and
+//! `ratification`, then `notes`, down a long tail of one-offs. A roster
+//! classifying all of it would be several hundred rows, which is a second copy
+//! of the table rather than a test.
 //!
 //! **AND WIDENING THE NET IS THE WRONG MOVE RATHER THAN THE EXPENSIVE ONE.**
-//! The first version of this file keyed on the `_note` SUFFIX and found eight
-//! key names, believing that was the population; `note` and `notes` were
-//! invisible to it. `arg_values_note` states the general form, from cc's count
-//! of 2026-08-17 where three enumerators reported three, four and five on a set
-//! of five: **a population reported by an enumerator is the enumerator's
-//! subject, not the population.** So this file keys on a STRUCTURED field whose
-//! members it can name, and says what it does not reach.
+//! The first version of this file keyed on the `_note` SUFFIX and found a
+//! handful of key names, believing that was the population; `note` and `notes`
+//! were invisible to it. `arg_values_note` states the general form, from cc's
+//! count of 2026-08-17 where enumerators run over one set disagreed about its
+//! size, most of them short: **a population reported by an enumerator is the
+//! enumerator's subject, not the population.** So this file keys on a
+//! STRUCTURED field whose members it can name, and says what it does not reach.
 //!
 //! **THE GENERAL ANSWER IS A SCHEMA AFFORDANCE, NOT A WIDER GREP.** The
 //! register has no way to say *ruled and not yet built*, so a ruled-and-unbuilt

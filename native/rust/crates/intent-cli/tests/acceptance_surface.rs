@@ -1,11 +1,11 @@
-//! **`ac status` and `at lint`: two read surfaces that were answering in
+//! **`ac status` and `at lint`: read surfaces that were answering in
 //! someone else's voice and in no voice at all.**
 //!
 //! Both were found by vc measuring v3 against v2 side by side on Intent's own
 //! migrated estate, and both are the same class one step apart -- **a command
 //! whose output does not describe the question it was asked.**
 //!
-//! - `ac status` printed the CLOSE GATE's line: `gate: ST0056 BLOCKED -- 46/114
+//! - `ac status` printed the CLOSE GATE's line: `gate: ST0056 BLOCKED -- <n>/<m>
 //!   satisfied; unsatisfied: ...` beside **exit 0**. The exit code was right and
 //!   the prefix was wrong, and that combination is the harm rather than a
 //!   cosmetic complaint: a consumer reading the text gets a refusal, a consumer
@@ -18,7 +18,7 @@
 //!
 //! v2 prints `lint: <target> ok -- <N> AT row(s) conform`. The `ok` alone is
 //! equally true of a thread with no rows at all, so it is the COUNT that
-//! distinguishes "I checked 114 rows and they conform" from "there was nothing
+//! distinguishes "I checked <N> rows and they conform" from "there was nothing
 //! here to check" -- the same distinction `intent search` had to draw when an
 //! unpopulated index answered every query the way a genuine miss does.
 //!
@@ -29,16 +29,15 @@
 //!
 //! # Measured against v2 rather than against a fixture
 //!
-//! All 56 threads of Intent's own estate were put through `bin/intent` on a
+//! Every thread of Intent's own estate was put through `bin/intent` on a
 //! pristine extract and through this binary on a migrated copy: **the `at lint`
-//! line agrees on all 56, across eleven distinct row counts (0, 2, 3, 5, 6, 7,
-//! 9, 10, 14, 16, 19, 114), and `ac status` agrees on all 13 threads that carry
-//! a contract**, PASS and BLOCKED alike. The 43 that disagree are the
-//! contract-free threads, where v3 reports the diagnosis (`the thread has zero
-//! acceptance criteria ...`) and v2 reports `0/0 satisfied`. That divergence
-//! **predates this fix and is narrowed by it** -- before it, all 56 disagreed --
-//! and the residue is a register question for the ruled voice, not a defect in
-//! the split.
+//! line agrees on every one, across a wide spread of row counts, zero included,
+//! and `ac status` agrees on every thread that carries a contract**, PASS and
+//! BLOCKED alike. The threads that disagree are the contract-free ones, where
+//! v3 reports the diagnosis (`the thread has zero acceptance criteria ...`) and
+//! v2 reports `0/0 satisfied`. That divergence **predates this fix and is
+//! narrowed by it** -- before it, every thread disagreed -- and the residue is
+//! a register question for the ruled voice, not a defect in the split.
 
 use std::path::Path;
 use std::process::{Command, Output};

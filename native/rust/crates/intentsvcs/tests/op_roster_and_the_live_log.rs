@@ -11,7 +11,7 @@
 //!
 //! `doctor` now answers it on every run, on whatever estate is in front of you.
 //!
-//! # Three mechanisms, because each is blind where the others see
+//! # More than one mechanism, because each is blind where the others see
 //!
 //! | mechanism                                       | catches                                              | blind to                                    |
 //! | ------------------------------------------------ | ----------------------------------------------------- | -------------------------------------------- |
@@ -20,8 +20,8 @@
 //! | `every_transition_op_is_in_the_roster`           | a new `st.*` edge nobody added to the roster          | a new op in a family with no state machine  |
 //!
 //! **THE UNCOVERED CORNER IS NAMED RATHER THAN LEFT TO BE FOUND:** a brand-new
-//! `disk.*` or `issues.*` op, added and not rostered, is caught by none of the
-//! three at the moment it is written. It is caught by the FIRST one the moment
+//! `disk.*` or `issues.*` op, added and not rostered, is caught by none of
+//! them at the moment it is written. It is caught by the FIRST one the moment
 //! it is USED -- the live check reports it -- which is loud, in the safe
 //! direction, and one line to fix.
 //!
@@ -58,10 +58,10 @@
 //!
 //! # A note on two family counts that are not the same number
 //!
-//! The roster spans 11 families; the corpus vc measured is 22 ops in 8. **The
-//! op count is deliberately not restated here** -- it was, in three places
-//! across two files, and two new ops made all three wrong in one commit with
-//! nothing to notice. `KNOWN_OPS` is the count.
+//! The roster spans more families than the corpus vc measured ever used. **The
+//! op count is deliberately not restated here** -- it was, in several places
+//! across files, and new ops made every copy wrong in one commit with nothing
+//! to notice. `KNOWN_OPS` is the count.
 //! **Neither is wrong and they answer different questions** -- how many families
 //! this build CAN write, against how many have ever BEEN written on one machine.
 //! A vocabulary is always at least as wide as its use. The corpus figure was

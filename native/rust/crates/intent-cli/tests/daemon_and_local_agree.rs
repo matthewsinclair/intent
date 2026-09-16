@@ -41,7 +41,7 @@
 //!
 //! **THE DAEMON IS A REAL `intentd`, STARTED THROUGH `intent daemon run`.** A
 //! fixture listener would be the fixture-that-is-an-instance-of-the-bad-case
-//! again: this crate's suite once ran 11 of 11 green while every "live daemon"
+//! again: this crate's suite once ran all green while every "live daemon"
 //! in it was a bare listener, which IS the phantom those tests existed to
 //! reject. Nothing here can be satisfied by a listener, because a listener
 //! cannot answer `Op::Registry`.

@@ -25,7 +25,7 @@
 //! `SO_REUSEADDR`, to pass a pre-opened descriptor, to support an abstract
 //! socket -- and reasonably not thinking about a flag `std` had been setting
 //! for them. That change compiles, passes every routing test, and reopens the
-//! leak. These two assertions are what go red on it.
+//! leak. The assertions below are what go red on it.
 
 use std::os::fd::AsRawFd;
 

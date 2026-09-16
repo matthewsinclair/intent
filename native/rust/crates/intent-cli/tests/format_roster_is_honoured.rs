@@ -7,11 +7,11 @@
 //! ARRAYS, and this is the other encoding.
 //!
 //! **So the drift ran unobserved and in both directions at once.** Measured
-//! 2026-08-27: five verbs advertised `json` in `--help` and refused it at exit
-//! 1 with `this verb has no json projection`, because `Output::table` yields
-//! `None` for JSON by design -- a list-of-lists is not the object anyone means,
-//! and a verb with a real projection branches earlier. The code was right and
-//! the declaration was wrong, and no instrument compared the two.
+//! 2026-08-27: several verbs advertised `json` in `--help` and refused it at
+//! exit 1 with `this verb has no json projection`, because `Output::table`
+//! yields `None` for JSON by design -- a list-of-lists is not the object anyone
+//! means, and a verb with a real projection branches earlier. The code was
+//! right and the declaration was wrong, and no instrument compared the two.
 //!
 //! # The fixture must have CONTENT, and that is the whole care in this file
 //!

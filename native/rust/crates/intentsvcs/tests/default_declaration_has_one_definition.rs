@@ -37,7 +37,7 @@
 //! they cover**, and the limb this criterion is about -- three callers reaching
 //! one function -- is covered by neither.
 //!
-//! # Why the corpus has five statuses, and what it buys
+//! # Why the corpus mixes statuses, and what it buys
 //!
 //! A comparison against the live function passes for ANY caller on an
 //! all-WIP corpus, because every candidate definition agrees there. The corpus
@@ -56,10 +56,10 @@
 //!
 //! # Every assertion here has been SEEN to fail, and the run is recorded
 //!
-//! All four tests passed on the first run, which is not evidence -- an
-//! assertion nobody has watched go red is a claim about an instrument nobody
-//! has tested. Each of the four was then reddened by mutating the source in a
-//! detached worktree at HEAD, one mutation at a time:
+//! Every test passed on the first run, which is not evidence -- an assertion
+//! nobody has watched go red is a claim about an instrument nobody has tested.
+//! Each was then reddened by mutating the source in a detached worktree at
+//! HEAD, one mutation at a time:
 //!
 //! | mutation                                    | expected             | observed                            |
 //! | ------------------------------------------- | -------------------- | ----------------------------------- |

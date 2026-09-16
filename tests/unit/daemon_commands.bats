@@ -6,11 +6,11 @@
 # and `daemon` was one of two at zero (the other is `config`). Measured before
 # writing a line: `grep -rn 'intent daemon' tests/` returned nothing, and the
 # single estate-wide `daemon` hit was a COMMENT in release_sidecars.bats:133.
-# The family is four verbs on a surface a menubar app now consumes (ST0064),
+# The family's verbs sit on a surface a menubar app now consumes (ST0064),
 # so "no test names it" and "it works" were resting on the same evidence: none.
 #
 # NOTHING HERE STARTS A DAEMON, AND THAT IS A DESIGN CONSTRAINT RATHER THAN A
-# GAP. Four Claude sessions write this checkout concurrently, and `daemon start`
+# GAP. Peer Claude sessions write this checkout concurrently, and `daemon start`
 # binds a socket under `$HOME`. Every test below drives a verb whose contract
 # can be established WITHOUT a live daemon: the absent state, the two rendered
 # faces, the refusals, and the two documented cases where a naive reading would
@@ -25,7 +25,7 @@
 # fake `$HOME` relocates the address the CLI probes, by construction and not by
 # convention.
 #
-# TWO ARMS PIN BEHAVIOUR THAT IS RULED AND WOULD OTHERWISE READ AS A BUG:
+# THE ARMS BELOW PIN BEHAVIOUR THAT IS RULED AND WOULD OTHERWISE READ AS A BUG:
 #
 #   - NO `$HOME` IS `absent` AT rc=0, NOT A FAILURE. Ruled in daemon.rs's
 #     `candidates` doc: "EMPTY IS A LEGITIMATE ANSWER, NOT AN ERROR. Without

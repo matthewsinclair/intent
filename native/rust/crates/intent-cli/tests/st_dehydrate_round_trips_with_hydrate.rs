@@ -86,14 +86,13 @@
 //! # A harness note, because this file is the THIRD copy
 //!
 //! `tree()` now appears here, in `organize_default_declaration.rs` and in
-//! `upgrade_command.rs`, and 37 of this crate's 39 test files spell their own
-//! binary runner. Rust's integration-test model gives each file its own crate,
-//! so sharing needs a `tests/common/mod.rs` that does not exist here. **The
-//! duplication is real and it is reported rather than fixed in passing**:
+//! `upgrade_command.rs`, and nearly every test file in this crate spells its
+//! own binary runner. Rust's integration-test model gives each file its own
+//! crate, so sharing needs a `tests/common/mod.rs` that does not exist here.
+//! **The duplication is real and it is reported rather than fixed in passing**:
 //! introducing a common module for one new file means migrating the two
-//! existing users, in a working tree three other nodes are committing to, mid-
-//! cut. That is a decision to take deliberately, not a side effect of adding a
-//! test.
+//! existing users, in a working tree other nodes are committing to, mid-cut.
+//! That is a decision to take deliberately, not a side effect of adding a test.
 
 use std::collections::BTreeMap;
 use std::path::Path;

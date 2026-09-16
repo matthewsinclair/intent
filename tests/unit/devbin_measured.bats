@@ -5,16 +5,16 @@
 # WHY IT EXISTS (issue 0049). A seal records which tests failed. Nothing anywhere
 # records what they ran against, so a run over a dirty tree and a run over a
 # clean checkout produce artefacts identical in form and incomparable in meaning.
-# Measured 2026-08-17: two red legs, three sessions establishing neither was a
+# Measured 2026-08-17: red legs, sessions spent establishing neither was a
 # regression, and nothing having misbehaved -- every artefact accurate about what
 # it measured, none able to say what that was.
 #
 # THE CONTROL THAT MATTERS HERE IS THE SCOPE TOTAL, not any of the states below.
-# The first run of this command reported 164,142 files moved, because the prune
+# The first run of this command reported a huge move count, because the prune
 # list used `$ROOT/target` and cargo's output lives at `native/rust/target` -- so
 # build artefacts were never excluded. That is the wrong-maximum shape: an
 # alarming number reads as a finding and nobody re-checks an instrument that has
-# just found something big. Two tests below pin the scope: that a pruned
+# just found something big. The tests below pin the scope: that a pruned
 # directory is genuinely excluded, and that the movement count is reported
 # against the population it came from.
 

@@ -2,12 +2,12 @@
 //! refuse or name it; succeeding at rc=0 is not available.**
 //!
 //! The live instance: `sync --to-disk` wrote empty views over a non-empty
-//! estate at rc=0 -- `steel_threads.md` 57 rows -> 0, `todo.md` 82 -> 0.
-//! **Nothing was refused and nothing malfunctioned in the egest.** The store
-//! legitimately held zero threads, because a shared `target/release/` binary
-//! built from a reverted WP-01 tree had ingested zero and `sync --to-store` had
-//! reported success over it. The egest wrote exactly what it was given,
-//! correctly, by its own lights.
+//! estate at rc=0 -- `steel_threads.md` and `todo.md` each emptied of every
+//! row. **Nothing was refused and nothing malfunctioned in the egest.** The
+//! store legitimately held no threads, because a shared `target/release/`
+//! binary built from a reverted WP-01 tree had ingested nothing and `sync
+//! --to-store` had reported success over it. The egest wrote exactly what it
+//! was given, correctly, by its own lights.
 //!
 //! # Why this is not AC-03.13
 //!
@@ -19,11 +19,12 @@
 //!
 //! # Why the positive control actually works, which most of the day's did not
 //!
-//! 57 and 82 are non-zero, observable before the verb runs, and cannot be
-//! confused with a correct answer. A zero cannot do any of that -- it is
-//! indistinguishable from a legitimately empty population, which is the whole
-//! reason the same class one verb upstream (`sync --to-store` printing "the
-//! store and the extract agree" over `0 == 0`) went unnoticed for so long.
+//! The views' prior row counts are non-zero, observable before the verb runs,
+//! and cannot be confused with a correct answer. A zero cannot do any of that
+//! -- it is indistinguishable from a legitimately empty population, which is
+//! the whole reason the same class one verb upstream (`sync --to-store`
+//! printing "the store and the extract agree" over `0 == 0`) went unnoticed for
+//! so long.
 //!
 //! # Driven with the output read
 //!

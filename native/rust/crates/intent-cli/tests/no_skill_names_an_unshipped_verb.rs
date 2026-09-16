@@ -7,7 +7,7 @@
 //! this predicate applied to one skill, so it is cited here rather than
 //! re-implemented beside it: a second reader of one property is the duplication
 //! Highlander names, and the second one goes short the first time a claim form
-//! changes. **The two rows differ in POPULATION, not in question** -- `AC-15.2`
+//! changes. **The rows differ in POPULATION, not in question** -- `AC-15.2`
 //! is every surviving skill, `AC-14.10` is `in-whiteboard` -- and `AC-14.10`
 //! asks for one thing this file cannot see: that the `intent claude ws` family
 //! is updated too, which is why its row is red while this arm is green.
@@ -27,8 +27,8 @@
 //! carries `# BAD -- manual creation` blocks, and rule 8 names `intent fc`
 //! precisely to forbid it. A classifier that tried to sort naming-to-instruct
 //! from naming-to-forbid would be asking whether prose performs a semantic act,
-//! **which `AC-00.16`'s instrument measured as not machine-decidable: three
-//! calibrated spellings failed in three different directions over one corpus.**
+//! **which `AC-00.16`'s instrument measured as not machine-decidable:
+//! calibrated spellings each failed in a different direction over one corpus.**
 //!
 //! So this does not classify. It takes the row at its word -- `AC-15.2` says
 //! **NAMES**, not "instructs" -- and reads only CODE CONTEXTS: fenced blocks and
@@ -55,9 +55,9 @@
 //!   stand-in that is *supposed* not to exist. A stale path and a placeholder
 //!   path are structurally identical, so an existence check would report
 //!   correct prose as defective and push an author to delete it. **`AC-15.2`
-//!   names four axes and two of them are not decidable by this method; that is
-//!   recorded on `AT-15.2` as an open question for hv rather than resolved by
-//!   an instrument amending its own criterion.**
+//!   names axes this method cannot decide; that is recorded on `AT-15.2` as an
+//!   open question for hv rather than resolved by an instrument amending its
+//!   own criterion.**
 //! - **Prose outside code formatting.** A skill naming a dead verb in running
 //!   prose with no backticks is invisible to this. That is the deliberate cost
 //!   of refusing a lexical classifier.

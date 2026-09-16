@@ -1,24 +1,24 @@
 //! **Issue 0039's CLASS, not its instance: a key the canon declares as driving
 //! behaviour must be a key some Rust type actually reads.**
 //!
-//! Five times in three files a field was authored in `dispatch-table.json`, no
-//! type deserialized it, serde dropped it in silence, and every instrument
+//! Repeatedly, and across files, a field was authored in `dispatch-table.json`,
+//! no type deserialized it, serde dropped it in silence, and every instrument
 //! reported agreement -- because a JSON file cannot say whether anyone is
 //! listening. `Flag.required`/`default`/`value`, `Entry.exposed_on_mcp`,
 //! `Entry.read_or_mutate`, and `Entry.aliases`, which was the one that
 //! surfaced: `at done` and `at notdone` were declared `disposition: keep` and
 //! did not exist in the binary.
 //!
-//! Five instance-fixes closed five instances and nothing else. This is the
-//! check that makes the sixth impossible to ship quietly.
+//! Each instance-fix closed its own instance and nothing else. This is the
+//! check that makes the next one impossible to ship quietly.
 //!
 //! **Why it could not be `deny_unknown_fields`, which is the obvious answer.**
 //! `dispatch.rs` carries an explicit ruling against it, and the ruling is
 //! right: the table is a REGISTER, not canon the tool writes. It holds prose,
 //! provenance and measurement blocks that exist to be read by people --
-//! `target` alone carries 44 authored keys against one field -- and a strict
+//! `target` alone carries far more authored keys than fields -- and a strict
 //! type would stop the binary loading its own surface the first time someone
-//! documented a decision in it. **But that exemption is also exactly how five
+//! documented a decision in it. **But that exemption is also exactly how the
 //! fields were lost**, because it makes an unread CONTRACT key indistinguishable
 //! from an unread NOTE, and nothing mechanical separates them: not count
 //! (`read_or_mutate` gates agent safety, `observed` is a measurement, and they
@@ -32,12 +32,12 @@
 //! Neither is restated here.
 //!
 //! **`Target`'s exemption was one word doing three jobs, and it now names which
-//! one** (ic, 2026-08-17). The reason written under it -- 40 prose keys, 28 of
-//! them on a single row, against 2 that code reads -- argues for exempting it
-//! from TOTALITY, and says nothing about the two arms that bind the declaration
-//! to the code. Those cost two list entries. `Target.spelling` was deserialized
+//! one** (ic, 2026-08-17). The reason written under it -- dozens of prose keys,
+//! most on the same row, against the few code reads -- argues for exempting it
+//! from TOTALITY, and says nothing about the arms that bind the declaration
+//! to the code. Those cost a list entry each. `Target.spelling` was deserialized
 //! in `ac84dc10` and is read for the retirement message, so a read key sat in no
-//! list at all -- the exact state the five lost fields were in, inside the one
+//! list at all -- the exact state the lost fields were in, inside the one
 //! type these checks did not look at. So `target` is now in scope for the
 //! declaration arms and stays exempt from `every_key_authored_on_a_leaf_is_
 //! classified_exactly_once` and from the generator's `KEY_UNCLASSED`.

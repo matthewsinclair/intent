@@ -6,7 +6,7 @@
 //! Under D01 as reversed the DB is truth and re-creation from an extract is a
 //! CAPABILITY, so what is invariant is that the round trip is faithful -- never
 //! that the thing being rebuilt was disposable. This line is the third in this
-//! one file to carry the old model, and it survived two corrections because it
+//! one file to carry the old model, and it survived the corrections because it
 //! spells it "disposability" while the grep asked for "disposable".
 
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};

@@ -2,11 +2,11 @@
 # AT-07.4 -- covers AC-07.4. The pre-commit critic gate, Half B.
 #
 # WHAT THIS ROW IS FOR, STATED SO A GREEN IS NOT MISREAD. AC-07.4's founding
-# defect was not that rules were undeclared. It was SILENCE: all 13 shell and
-# rust rules carried no proxy and no declaration, `critic_runner.sh` skipped a
+# defect was not that rules were undeclared. It was SILENCE: every shell and
+# rust rule carried no proxy and no declaration, `critic_runner.sh` skipped a
 # proxy-less rule without a word, and `intent critic shell` returned rc=0 having
 # asked nothing -- printing a sentence INDISTINGUISHABLE from `intent critic
-# elixir` after asking nine real questions.
+# elixir` after asking real questions.
 #
 # **SO "EVERY RULE IS DECLARED" IS NECESSARY AND NOT SUFFICIENT, AND THAT WAS MY
 # OWN DONE-CONDITION UNTIL VC ASKED** (2026-08-19, flagged explicitly as not a

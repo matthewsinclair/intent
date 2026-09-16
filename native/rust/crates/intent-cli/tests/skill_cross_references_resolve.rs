@@ -1,8 +1,9 @@
 //! `AT-15.4` (ST0056) / `AC-15.4`: **every cross-reference in the surviving
 //! skill catalogue resolves.**
 //!
-//! The row names three kinds of reference. **Only two of them are here, and the
-//! omission is deliberate rather than partial work.**
+//! The row names `chains_to:` targets, `/in-*` skill citations and rule ids.
+//! **Only the citations and the rule ids are here, and the omission is
+//! deliberate rather than partial work.**
 //!
 //! # `chains_to:` IS NOT CHECKED HERE, AND MUST NOT BE ADDED
 //!
@@ -14,7 +15,7 @@
 //! reference does: silently, with both sides looking healthy. A reader who
 //! notices the gap should read that file, not close it here.
 //!
-//! # WHAT THE OTHER TWO ARE, AND WHY THE SECOND DIRECTION IS THE UNCHECKED ONE
+//! # WHAT IS CHECKED HERE, AND WHY THE SECOND DIRECTION IS THE UNCHECKED ONE
 //!
 //! `every_skill_has_a_live_caller.rs` already COLLECTS `/in-*` names out of
 //! prose -- but it uses them to answer *is this skill reached*, which is the
@@ -35,9 +36,9 @@
 //! DRIVEN rather than argued.** `in-session` documents a sentinel path --
 //! `/tmp/intent/in-session-<UUID>.sentinel` -- and a path-blind scan reads
 //! `in-session-` out of it as a cited skill that does not exist. Measured
-//! 2026-09-08: that is the only such string in 23 skills, and it is enough to
-//! redden this check permanently. So `skill_refs_in` guards on the character
-//! BEFORE the slash, and
+//! 2026-09-08: that is the only such string in the catalogue, and it is enough
+//! to redden this check permanently. So `skill_refs_in` guards on the
+//! character BEFORE the slash, and
 //! [`a_path_that_merely_contains_a_skill_name_is_not_a_citation`] pins both
 //! halves of that guard -- because a guard that suppressed everything would
 //! pass the negative arm alone.
@@ -49,8 +50,8 @@
 //! diverged before either shipped: **the prose asserted a guard was load-bearing
 //! over a corpus where a second mechanism made it unreachable.** The trim is
 //! gone (see `skill_refs_in`), and with one mechanism the mutation now yields
-//! exactly one finding -- `in-session` citing `in-session-` -- which is the
-//! number an independent scan of the same corpus predicted.
+//! only the finding `in-session` citing `in-session-` -- which is what an
+//! independent scan of the same corpus predicted.
 //!
 //! # WHAT A GREEN HERE DOES NOT MEAN
 //!

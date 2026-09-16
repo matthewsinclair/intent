@@ -2,12 +2,11 @@
 //! leaves undeclared, through organize's own plan and gate.**
 //!
 //! Measured by courses-vc on a dormant 3.0.0 estate: `upgrade` wrote
-//! `.intentfiles` declaring the one WIP thread, so the two closed threads
-//! became undeclared; `sync --to-disk` skipped them, as the manifest says it
-//! should; and `organize` refused their eleven views, because each still
-//! carried the 3.0.0 footer. Two correct rules left a view with no owner, and
-//! the operator deleted eleven files by hand on an estate the tool had just
-//! called upgraded.
+//! `.intentfiles` declaring the WIP thread, so the closed threads became
+//! undeclared; `sync --to-disk` skipped them, as the manifest says it should;
+//! and `organize` refused their views, because each still carried the 3.0.0
+//! footer. Two correct rules left a view with no owner, and the operator
+//! deleted those files by hand on an estate the tool had just called upgraded.
 //!
 //! The gate now accepts the one difference that carries no hand edit, the
 //! footer's version (vc's ruling, 2026-09-14) -- so the second arm holds the

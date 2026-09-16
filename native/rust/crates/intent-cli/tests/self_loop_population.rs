@@ -2,7 +2,7 @@
 //!
 //! `no_op` states what a verb prints when it is asked for the state the entity
 //! is already in, and it is required on every row of `populations.self_loop`.
-//! That population is the set of rows whose verb is an edge in one of the four
+//! That population is the set of rows whose verb is an edge in one of the
 //! ratified machines -- which makes it derivable in principle and AUTHORED in
 //! fact, because the machines live in `transitions.rs` and the generator that
 //! checks the table reads JSON.
@@ -19,7 +19,7 @@
 //!
 //! **Every list in this table that went short, went short in silence.**
 //! `SURFACE_NONRETURNING` lost `claude upgrade` to a key name that defined only
-//! one of its two admission reasons. `lib_surface.sh` lost the eight
+//! one of its two admission reasons. `lib_surface.sh` lost the
 //! `new_surface` rows to `.families[].entries[]`. Neither had a reader in a
 //! language that could see the source of truth; both looked complete.
 //!
@@ -30,24 +30,24 @@
 //! enumerate is how the next list goes short.
 //!
 //! **Mutation-proved 2026-08-17, because a test that has only ever been green
-//! has been performed rather than measured** -- cc's sentence, from finding that
-//! the workspace was 485/0 both before and after the nineteen-arm sweep, so no
-//! test asserted either spelling. Three mutants, failing set predicted in
-//! advance for each:
+//! has been performed rather than measured** -- cc's sentence, from finding
+//! that the workspace was all green both before and after the arm sweep, so no
+//! test asserted either spelling. The mutants, each with its failing set
+//! predicted in advance:
 //!
 //! | mutant                              | predicted     | observed                          |
 //! | ----------------------------------- | ------------- | --------------------------------- |
 //! | drop `wp done` from `self_loop`     | verb-has-row  | exact, named `wp.done`            |
-//! | add `st frobnicate` to `self_loop`  | row-traces    | exact, named it; other two passed |
+//! | add `st frobnicate` to `self_loop`  | row-traces    | exact, named it; the rest passed  |
 //! | `FANS_OUT` -> `at nonesuch`         | fan-out-exists| fan-out AND row-traces both red   |
 //!
-//! The third failing two tests is correct rather than sloppy: pointing the
+//! The third failing both tests is correct rather than sloppy: pointing the
 //! fan-out at a row that does not exist also orphans the real `at na`, and both
 //! statements are true of that mutation.
 //!
 //! **The harness had the bug the tests are about.** Its restore ran on relative
 //! paths while a helper had changed directory, so the trap that was supposed to
-//! undo each mutant in a live five-node clone silently did not fire, and the
+//! undo each mutant in a live multi-node clone silently did not fire, and the
 //! mutations sat on disk until checked. A guard that does not run looks exactly
 //! like a guard that found nothing.
 

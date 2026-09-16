@@ -4,7 +4,7 @@
 //! The rule for `CLAUDE.md` was already written down and already right: a copy
 //! carrying no generated marker was authored by a person, and curing variation
 //! by overwriting it destroys what the project decided. `.claude/settings.json`
-//! sat twenty lines above that rule and took none of it, so a project with its
+//! sat just above that rule and took none of it, so a project with its
 //! own Claude Code settings -- hooks, permissions, a model pin, anything -- lost
 //! the file to a verb it ran to update its documentation. hv's batch-4 class:
 //! bytes overwritten without being named first.

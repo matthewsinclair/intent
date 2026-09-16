@@ -1,14 +1,14 @@
-//! **THE THREE REFUSALS ON `put`'s ATTACHMENT ARM THAT ARE BUILD DECISIONS
+//! **THE REFUSALS ON `put`'s ATTACHMENT ARM THAT ARE BUILD DECISIONS
 //! RATHER THAN CRITERION BEHAVIOUR** (cc, 2026-08-23, arm at `62fdcdfa`).
 //!
 //! `design.md:271` rules the DIRECTION -- an attachment is authored on disk, so
 //! text-in is correct -- and hv ruled that. **Nothing ruled what happens at the
-//! three edges below.** I decided them, so they are covered HERE and not under
+//! edges below.** I decided them, so they are covered HERE and not under
 //! AC-08.5.
 //!
 //! **THE SEPARATION IS ic's AND THE REASON IS THE GOOD PART:** AC-08.5's row
 //! asks whether every entity form in the population is reachable and whether
-//! every exclusion cites its ruling. **Putting three unruled build decisions
+//! every exclusion cites its ruling. **Putting unruled build decisions
 //! under a criterion hv ruled would smuggle them into its authority** -- the
 //! same population defect ic split out of `declared_reach` the same morning,
 //! where one field carried both *not built* and *never, by ruling*.

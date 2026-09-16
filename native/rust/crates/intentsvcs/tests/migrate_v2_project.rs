@@ -14,17 +14,17 @@
 //!
 //! `intent-cli/tests/upgrade_command.rs ::
 //! a_v2_estate_migrates_through_the_binary_and_the_stamp_lands` already drives
-//! **two** of the five end to end through the shipped binary -- canon emitted,
+//! **some** of them end to end through the shipped binary -- canon emitted,
 //! and gitignore converged including the negative that the rule is a PATH rule
 //! rather than `*.db`. It carries `AT-10.1` and nothing links any of it here.
 //!
-//! **That is the fifth instance of this class today and the first where the
+//! **That is yet another instance of this class today and the first where the
 //! uncited coverage is PARTIAL, which is worse to find**: the practice that
-//! caught the other four is subject-grep-then-drive-the-verb, and a subject
-//! grep that hits the file tells you nothing about WHICH limbs it covers. The
-//! file gets its own covering row rather than being folded into this one, per
-//! the `AT-10.15` precedent -- the schema gives one `file` per row, and two
-//! rows keep two assertions separately falsifiable.
+//! caught the others is subject-grep-then-drive-the-verb, and a subject grep
+//! that hits the file tells you nothing about WHICH limbs it covers. The file
+//! gets its own covering row rather than being folded into this one, per the
+//! `AT-10.15` precedent -- the schema gives one `file` per row, and two rows
+//! keep two assertions separately falsifiable.
 //!
 //! # The stamp limb was not a test gap
 //!
@@ -32,7 +32,7 @@
 //! was never written by anything. `stamp_version` inserted `intent_version`
 //! and stopped; Intent's own self-hosted, migrated `config.json` carried no
 //! such field; `intent export --format json` returned `project_id = ""` at
-//! rc=0. **Three sites knew about it -- `project.rs` ruled it out as the
+//! rc=0. **Several sites knew about it -- `project.rs` ruled it out as the
 //! migration marker by reasoning that migrated projects have one, `migrate.rs`
 //! commented on it being empty and promised the facade would mint it, and
 //! `design.md` mandated it -- and none of them wrote it.** vc ruled the value a

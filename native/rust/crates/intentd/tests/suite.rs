@@ -4,7 +4,8 @@
 //! so its own separately linked executable against the whole dependency graph. This
 //! file is the single target they are now modules of, per hv's estate-wide ruling of
 //! 2026-08-27. Laksa took it on 2026-08-27 and Lamplight partially; Intent, which made
-//! the ruling, had not -- and had grown to 257 targets, 201 of them in that same month.
+//! the ruling, had not -- and had grown to hundreds of targets, most of them in that
+//! same month.
 //!
 //! **THE FILES DID NOT MOVE, AND THAT IS THE WHOLE REASON THIS WAS CHEAP.** The obvious
 //! consolidation relocates everything under `tests/suite/`, which breaks every
@@ -17,7 +18,7 @@
 //! one.** Anything touching process-global state -- `set_current_dir`, `env::set_var`,
 //! a fixed port, a shared socket -- stops failing cleanly and starts being flaky, which
 //! is worse because it gets blamed elsewhere. Measured before the merge rather than
-//! hoped for afterwards: across all 257 files exactly ONE mutates process state
+//! hoped for afterwards: across every file, only this one mutates process state
 //! (`intent-cli/tests/dual_path_conformance.rs`, `set_current_dir` at :199), and it
 //! keeps its own `[[test]]` target for that reason. No test spawns cargo, so the
 //! inner-build deadlock cannot arise; the one fixed port is written to a file and

@@ -2,7 +2,7 @@
 //! reach a human read face.**
 //!
 //! Stated as a general property rather than about one field. `status_reason`
-//! is where it was found -- four verbs demand one, and for a while nothing a
+//! is where it was found -- several verbs demand one, and for a while nothing a
 //! person reads rendered it -- but a row that tested only that field would go
 //! green and stay green while the next demanded field arrived unread.
 //!
@@ -36,11 +36,11 @@
 //!
 //! # The estate cannot test this and says so out loud
 //!
-//! **Zero of the estate's threads carry a `status_reason`**, so an
-//! estate-driven version of this row is 0 of 0 -- right verb, right depth, a
-//! population that cannot contain the failure. The fixtures below are
-//! constructed, and the estate zero is asserted as a zero rather than left to
-//! look like coverage.
+//! **None of the estate's threads carry a `status_reason`**, so an
+//! estate-driven version of this row has an empty denominator -- right verb,
+//! right depth, a population that cannot contain the failure. The fixtures
+//! below are constructed, and the estate zero is asserted as a zero rather than
+//! left to look like coverage.
 
 use crate::common::{ctx, sample_thread};
 use intentsvcs::facade::FacadeError;

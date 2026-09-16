@@ -2,19 +2,19 @@
 //!
 //! # Why a guard and not just a cleanup
 //!
-//! Eight test files across two crates held the literal `lib/templates` while
+//! Test files across crates held the literal `lib/templates` while
 //! `install.rs` exported the constant that defines it -- and `is_install` is
 //! exactly `dir.join(MARKER).is_dir()`, so the constant is what MAKES a
 //! directory an install root. A hardcoded copy builds a tree the resolver does
 //! not recognise the moment the constant moves, and the test then fails
 //! somewhere else entirely, as a missing file rather than as a wrong fixture.
 //!
-//! **TWO OF THE EIGHT CARRIED `// install::MARKER -- what makes a tree an
+//! **SOME OF THEM CARRIED `// install::MARKER -- what makes a tree an
 //! install.` ON THE LINE DIRECTLY ABOVE THE LITERAL.** A comment naming the
 //! constant beside its hardcoded value is worse than no comment: it proves the
 //! author knew, which is the strongest available evidence that knowing is not
-//! the mechanism that prevents this. Converging the eight without a guard fixes
-//! today and leaves the ninth to whoever writes the next fixture.
+//! the mechanism that prevents this. Converging them without a guard fixes
+//! today and leaves the next one to whoever writes the next fixture.
 //!
 //! # The needle is DERIVED, which is what stops this file matching itself
 //!

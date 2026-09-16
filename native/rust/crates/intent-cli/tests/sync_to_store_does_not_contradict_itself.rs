@@ -1,7 +1,7 @@
 //! **A VERB MUST NOT PRINT BOTH ANSWERS TO THE QUESTION IT WAS ASKED.**
 //!
 //! `sync --to-store` printed `note: ... this restore overwrites nothing`
-//! immediately followed by `ok: store replaced from the extract, 1 thread(s)`.
+//! immediately followed by `ok: store replaced from the extract, <n> thread(s)`.
 //! An operator checking whether a repair had run was told both, and **the
 //! second is the one that reads as a result** -- so a run that changed nothing
 //! reported itself as a replacement.

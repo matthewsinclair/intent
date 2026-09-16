@@ -1,7 +1,7 @@
 //! Shared fixtures for the WP-03 and WP-04 acceptance tests.
 //!
-//! One home for "make me a project on disk" (IN-EX-TEST-007 generalised): six
-//! AT files need a fixture project, and six private copies would drift until
+//! One home for "make me a project on disk" (IN-EX-TEST-007 generalised): many
+//! AT files need a fixture project, and private copies would drift until
 //! two tests disagreed about what a valid estate looks like -- which is the
 //! failure mode where a test keeps passing because its fixture quietly stopped
 //! resembling the thing under test.

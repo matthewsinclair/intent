@@ -1,13 +1,14 @@
 //! **AC-04.6 / issue 0121: `st list` narrows by default and now SAYS SO.**
 //!
 //! hv, 2026-08-28, filing it against their own tool: `intent st list` rendered
-//! four rows against thirteen thread directories on disk and a 67-thread store,
-//! disclosed the filter only in `--help`, and was read as corruption. Nothing
-//! was inconsistent -- `67 - 52 completed - 2 cancelled = 13` reconciles the
-//! three surfaces exactly. **The output carried no way to know that**, which is
-//! No Silent Errors applied to a read surface: a default that narrows the
-//! answer must name the narrowing, or every comparison against another surface
-//! reads as missing data.
+//! a handful of rows against many more thread directories on disk and a larger
+//! store still, disclosed the filter only in `--help`, and was read as
+//! corruption. Nothing was inconsistent -- the store's threads less the
+//! completed and the cancelled are exactly the directories on disk, which
+//! reconciles the three surfaces. **The output carried no way to know that**,
+//! which is No Silent Errors applied to a read surface: a default that narrows
+//! the answer must name the narrowing, or every comparison against another
+//! surface reads as missing data.
 //!
 //! # The pair that discriminates, driven against ONE fixture
 //!
@@ -30,7 +31,7 @@
 //! way to write this feature -- return early when there are no rows -- puts a
 //! new instance of a defect this estate has already measured: `--format` is
 //! validated as an argument to the RENDERER, so a verb that returns before
-//! rendering accepts a format it refuses when it has rows. Four slots were
+//! rendering accepts a format it refuses when it has rows. Several slots were
 //! found doing that on 2026-08-27. This arm holds the ordering.
 //!
 //! # The disclosure made a SECOND defect a defect
@@ -38,12 +39,12 @@
 //! The note names its scope with `ThreadStatus::display`, which binds two
 //! vocabularies into one contract: a scope line an operator cannot type back is
 //! a signpost pointing at a door that is not there. Driven over the whole enum,
-//! five of six round-tripped -- `--status triage` was refused, by the very line
-//! offering to help, though `st list`'s surface row has required all six since
+//! each status round-tripped except `--status triage`, refused by the very line
+//! offering to help, though `st list`'s surface row has required them all since
 //! the machines were ratified. `every_status_the_scope_note_can_print_is_one_the_filter_accepts`
 //! now holds it, and takes its roster from `ThreadStatus::ALL` rather than from
-//! a list typed here: a hand-typed five would have passed on the day the sixth
-//! was unreachable, which is precisely how the gap survived.
+//! a list typed here: a hand-typed list would have passed on the day a status
+//! it lacked was unreachable, which is precisely how the gap survived.
 
 use std::path::Path;
 use std::process::Command;

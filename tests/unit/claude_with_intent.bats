@@ -8,7 +8,7 @@
 # ST0047's contract.
 #
 # ==========================================================================
-# NINE ARMS WERE DELETED BY ST0069 AC-14.12, AND WHAT IS LEFT IS WHAT ONLY
+# THE WS ARMS WERE DELETED BY ST0069 AC-14.12, AND WHAT IS LEFT IS WHAT ONLY
 # THIS FILE CAN SEE
 # ==========================================================================
 #
@@ -20,7 +20,7 @@
 # `intent wb`'s own criteria (ST0069 WP-14) are where scaffolding, listing and
 # archiving are tested now, against the model rather than against a directory.
 #
-# Three more went for Highlander rather than for retirement:
+# Others went for Highlander rather than for retirement:
 #
 # - **AT-02.3** drove `start` on an absent node, which used to PROMPT to
 #   scaffold one and now refuses. The refusal is AC-14.12's own requirement and

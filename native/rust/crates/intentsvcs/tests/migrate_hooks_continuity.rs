@@ -6,7 +6,7 @@
 //! AC-10.4 asks for `.claude/settings.json` + `.claude/scripts/**`
 //! byte-identical across a migration, *asserted not assumed*. Driven at HEAD
 //! `8d20dc49`, and re-driven there rather than carried forward from the earlier
-//! pin, because a measurement of a four-node tree is true of one rebuild:
+//! pin, because a measurement of a multi-node tree is true of one rebuild:
 //!
 //! - `migrate.rs` names `.claude` **nowhere**.
 //! - `Facade::upgrade` is `legacy::scan` -> `migrate::plan` ->
@@ -15,7 +15,7 @@
 //! - `intent-cli`'s `upgrade` arm is `Facade::upgrade` plus printing.
 //! - The only module in `intentsvcs` naming `.claude` in code is `install.rs`,
 //!   whose whole public surface is `home`, `resolve` and `hook_script` --
-//!   three path resolvers, no writer -- and whose only callers are the CLI arms
+//!   path resolvers all, no writer -- and whose only callers are the CLI arms
 //!   for `hooks` and `claude`.
 //!
 //! So the bytes are equal because **no code path exists that could make them

@@ -8,7 +8,7 @@
 # `.gitignore` differed it compared line numbers across two documents. Laksa's dc
 # measured the consequence: a staged `intent/.canon/` rule the worktree did not
 # carry was never matched, and passed. On a shared tree the two differ routinely
-# (`git commit --only`, a re-staging formatter), so the first two cases below are
+# (`git commit --only`, a re-staging formatter), so the first cases below are
 # that divergence in both directions, and each would have gone the wrong way.
 #
 # Every case runs in a throwaway repo and asserts SOMETHING WAS STAGED before

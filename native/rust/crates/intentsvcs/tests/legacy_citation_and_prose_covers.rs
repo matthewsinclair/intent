@@ -1,8 +1,8 @@
 //! **A CITATION'S ANNOTATION IS NOT PART OF ITS PATH, AND A `covers` CLAUSE
 //! WITH NO ID IN IT COVERS NOTHING.**
 //!
-//! Arca/arca_cli `ST0011` migrated at exit 0 and its gate then reported 19
-//! findings against five work packages recorded `Done`. **Nothing failed. The
+//! Arca/arca_cli `ST0011` migrated at exit 0 and its gate then reported
+//! findings against work packages recorded `Done`. **Nothing failed. The
 //! migration was clean.** The reader had quietly reshaped rows on the way in.
 //!
 //! Two separate defects arrived wearing one symptom, and they are in this one
@@ -11,12 +11,12 @@
 //! - **The citation split keeps a comma-annotation inside the path.**
 //!   `split_citation` cuts at ` (` or a backtick and knew nothing about
 //!   `path, describe "..."`, so the stored `file` was
-//!   `test/.../dead_code_gate_test.exs, describe "purged symbols` and 16 rows
+//!   `test/.../dead_code_gate_test.exs, describe "purged symbols` and rows
 //!   reported *cites a file that does not exist* against paths that all exist.
-//!   **241 rows on this machine carry the shape** -- Lamplight 111, Arca 48,
-//!   Intent's own tree 17 -- and **not one of them is a second file**: the
-//!   comma is followed by `describe` (110), `the` (50), `and` (25), never by
-//!   another path. That measurement is what licenses cutting there.
+//!   **Hundreds of rows on this machine carry the shape** -- Lamplight, Arca
+//!   and Intent's own tree among them -- and **not one of them is a second
+//!   file**: the comma is followed most often by `describe`, `the` or `and`,
+//!   never by another path. That measurement is what licenses cutting there.
 //!
 //! - **A prose `covers` clause became a criterion id.** `-- covers the gate
 //!   itself --` is stored as `covers: ["the gate itself"]`, which then reads as

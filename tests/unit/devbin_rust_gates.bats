@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
-# The four `int` rust gates reach the cargo workspace, and do not drift from CI.
+# The `int` rust gates reach the cargo workspace, and do not drift from CI.
 #
 # WHAT WENT WRONG, AND WHY NOTHING NOTICED FOR A DAY. `a1a949c` moved all native
 # code to `native/rust/`, deleting the root `Cargo.toml`. Every catalogue-derived
 # cargo line in devbin -- `test rust`, `check clippy`, `fmt rust`, and the
 # `check format` builtin's rust arm -- runs in a subshell at PROJECT_ROOT, which
-# is the right default (a declared `run:` is a project command). All four died
+# is the right default (a declared `run:` is a project command). Every one died
 # with `could not find Cargo.toml`, and stayed dead until matts ran one by hand.
 #
 # **CI WAS GREEN THE WHOLE TIME.** `.github/workflows/rust.yml` sets
 # `working-directory: native/rust` and was updated by the move; devbin was not.
-# Same three checks, two homes, one of them followed the tree. That is the defect
+# The same checks, two homes, one of them followed the tree. That is the defect
 # this file exists to catch -- not the missing manifest, which is a symptom, but
 # **the two homes disagreeing**, which is the cause and which nothing observed.
 #

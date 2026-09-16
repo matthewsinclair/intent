@@ -16,7 +16,7 @@
 //! **The stale wording was a DEFINITION BY EXCLUSION, which is the exact defect
 //! hv's ruling corrected.** "Not Completed or Cancelled" reads as a careful rule
 //! and is really a list of what to leave out, so Triage, Not Started and Hold
-//! were swept in by default -- the 57-thread realised set hv objected to. The
+//! were swept in by default -- the realised set hv objected to. The
 //! help therefore did not merely disagree with the code, it disagreed in the
 //! one direction that reproduces the original bug in the reader's head, and it
 //! did so with confidence.

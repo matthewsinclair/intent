@@ -2,7 +2,7 @@
 //! spelling has a witness that fails when it is renamed.**
 //!
 //! vc found this by running the canary the issue asked for instead of reading
-//! for it. Mutating `ThreadStatus::Wip`'s spelling reds two surfaces; mutating
+//! for it. Mutating `ThreadStatus::Wip`'s spelling reds both surfaces; mutating
 //! `ThreadStatus::NotStarted`'s reds NEITHER, mutation confirmed applied and
 //! control clean. **Both tests read as intentional coverage of the vocabulary**,
 //! which is what makes the gap expensive: the display strings are v2 parity, so

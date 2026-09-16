@@ -5,13 +5,14 @@
 //!
 //! `AC-15.1`'s own words are *the row count is asserted against the catalogue
 //! enumerated at close, never against a count carried from when the WP was
-//! written*. **A count-based assertion passes on a table that names 23 of the
-//! wrong skills** -- the same defect `AC-04.6`'s note names over the whole
-//! estate, and the same one `WP-15`'s objective records happening FOUR times to
-//! this very denominator: right at authoring, stale when `in-handoff` retired,
-//! corrected in a view and reverted by a regeneration, corrected in canon in a
-//! field that carried the figure twice so one copy was fixed and the other left
-//! contradicting it, and stale again when `in-next` and `in-start` retired.
+//! written*. **A count-based assertion passes on a table that names the right
+//! number of the wrong skills** -- the same defect `AC-04.6`'s note names over
+//! the whole estate, and the same one `WP-15`'s objective records happening
+//! REPEATEDLY to this very denominator: right at authoring, stale when
+//! `in-handoff` retired, corrected in a view and reverted by a regeneration,
+//! corrected in canon in a field that carried the figure twice so one copy was
+//! fixed and the other left contradicting it, and stale again when `in-next`
+//! and `in-start` retired.
 //!
 //! So the two populations are derived INDEPENDENTLY -- one by walking the
 //! filesystem, one by parsing the document -- and compared as sets, in both
@@ -23,7 +24,8 @@
 //! silently matches nothing makes `{} == {}` pass, which is how a green reports
 //! that a check ran when it did not -- the recurring failure this estate keeps
 //! finding in its own instruments (a control that cannot exhibit the defect, a
-//! pattern that cannot match the subject, a glob that returned 13 of 156).
+//! pattern that cannot match the subject, a glob that returned a sliver of its
+//! population).
 //!
 //! # WHAT THIS DOES NOT CLAIM
 //!

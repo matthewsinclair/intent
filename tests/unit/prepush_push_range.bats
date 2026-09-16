@@ -2,7 +2,7 @@
 # `int prepush` decides from THIS push's range, not from the tracked remote.
 #
 # THE DEFECT, measured by cc 2026-08-15. The gate printed `no native/ or
-# build-manifest change in this push` on a push whose diff was 14 files under
+# build-manifest change in this push` on a push whose diff carried files under
 # `native/` and `schema/`. The grep was right; the RANGE was wrong. It computed
 # `git diff --name-only @{upstream}...HEAD`, and `@{upstream}` names exactly ONE
 # remote -- while the hook fires for a push to EITHER, and this project's
@@ -30,7 +30,7 @@
 #
 # MUTATION-PROVEN, and the run CORRECTED this file rather than confirming it.
 # The mutation is the runner as it stood at HEAD, in a sacrificial worktree,
-# against this suite. Four tests discriminate; four pass under the defect:
+# against this suite. Some tests discriminate; the rest pass under the defect:
 #
 #   1 gated at the remote that is behind      FAILS -- the empty range
 #   2 answer follows each remote's position   FAILS -- only after the rewrite below

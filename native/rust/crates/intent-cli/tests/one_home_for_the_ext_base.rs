@@ -33,9 +33,9 @@
 //! the argument behind a binding is the shape to catch in review.
 //!
 //! **`sources`/`code_of` are duplicated from `no_intent_home.rs`, deliberately
-//! and with the cost named.** Four test files already carry this walker --
+//! and with the cost named.** Other test files already carry this walker --
 //! integration tests are separate binaries -- so this is the estate's standing
-//! practice rather than a new divergence. Collapsing all five into
+//! practice rather than a new divergence. Collapsing every copy into
 //! `tests/common/` is worth doing and is NOT this change: a Highlander fix
 //! smuggled into a test for an unrelated seam is how a small change becomes
 //! unreviewable.

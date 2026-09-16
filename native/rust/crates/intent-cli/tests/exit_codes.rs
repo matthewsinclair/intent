@@ -9,7 +9,7 @@
 //!
 //! D17 carries v2's codes over, so the override is a framework-layer decision
 //! made once at the start. Pinned here so that a clap major bump, or someone
-//! removing the override, reds ONE named invariant -- instead of a hundred BATS
+//! removing the override, reds ONE named invariant -- instead of many BATS
 //! conformance tests failing for a reason nobody traces back to this decision.
 //!
 //! The exception is `intent critic`, which genuinely uses 2 (INV-04); asserting
@@ -20,7 +20,7 @@
 //! this build has not wired reported itself in the code that means "your code
 //! is bad" -- and the shipped pre-commit gate, whose `2+` branch exists for
 //! exactly this, never reached it and blocked every commit in a migrated
-//! project. The three tests at the foot of this file are the contract v2
+//! project. The tests at the foot of this file are the contract v2
 //! actually has, measured rather than inferred, and the last one drives the
 //! consumer instead of the number.
 //!

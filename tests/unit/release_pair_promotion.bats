@@ -4,7 +4,7 @@
 #
 # WHY IT EXISTS. 0196 is a hazard with no failing test and no way to get one:
 # the defect is that a FAILED build leaves the shared pair absent, and driving
-# that end to end means deliberately breaking a release build four sessions and
+# that end to end means deliberately breaking a release build every session and
 # the human's shell are consuming. The fix moves the whole risky span into a
 # staging dir precisely so it can be exercised without a window -- and the arm
 # that has to be right is the promotion, which is the only code that touches the

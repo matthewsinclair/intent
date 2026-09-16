@@ -4,8 +4,8 @@
 //! BYTE-IDENTICAL RE-EMISSION.** A content comparison passes on exactly the bug
 //! being closed: the second run rewrites every file with the same bytes, the diff
 //! is empty, and `file_index`'s clean/changed state -- computed from mtime -- has
-//! been moved for the whole estate. Measured 2026-08-18: 255 of 1000 `.md` files
-//! re-emitted identically every pass.
+//! been moved for the whole estate. Measured 2026-08-18: hundreds of `.md`
+//! files re-emitted identically every pass.
 //!
 //! It is not avoidable by writing carefully. `write_atomically` is
 //! temp-file-plus-rename and a rename swaps in a NEW INODE, so an identical

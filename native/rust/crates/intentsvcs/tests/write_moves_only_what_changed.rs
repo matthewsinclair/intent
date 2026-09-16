@@ -5,7 +5,7 @@
 //! others** -- measured over the FILE ESTATE before and after, at every
 //! user-visible verb that writes it.
 //!
-//! The criterion reached this form after four corrections from three nodes,
+//! The criterion reached this form after corrections from several nodes,
 //! and each one is a constraint on this file:
 //!
 //! - **The SUBJECT is the verb, never a type.** An earlier guard sat on
@@ -19,11 +19,11 @@
 //!   that never joins one. Walking the tree needs no internal type and catches
 //!   a bypassing write for free.
 //! - **The PROPERTY is `moved == changed`, not "the second run writes zero".**
-//!   Run-twice-writes-zero is inapplicable to the 27 mutating verbs, where
+//!   Run-twice-writes-zero is inapplicable to the mutating verbs, where
 //!   some files SHOULD change -- so it would exempt the criterion exactly
 //!   where the churn is worst. It is a corollary here, not the test.
-//! - **The EXTENT is every verb that writes.** One verb under-covers: six
-//!   commit sites serve 31 user-visible verbs, and a row naming only `sync`
+//! - **The EXTENT is every verb that writes.** One verb under-covers: a few
+//!   commit sites serve many user-visible verbs, and a row naming only `sync`
 //!   would leave `todo update`, `upgrade` and the whole `apply` family green
 //!   while churning.
 //!

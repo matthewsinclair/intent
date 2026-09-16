@@ -6,7 +6,7 @@
 //! `backup::cycle` directly, and `the_backup_cycle_has_one_home.rs` reads call
 //! sites -- between them a tree can have a correct cycle, a correct decision,
 //! a single home, **and nothing wiring the daemon to any of it.** That shape
-//! is this crate's oldest scar: its suite once ran 11 of 11 green while every
+//! is this crate's oldest scar: its suite once ran all green while every
 //! "live daemon" in it was a bare listener. So the daemon here is a real
 //! `intentd` started through `intent daemon run`, and what is asserted is a
 //! file on disk that only it could have written.

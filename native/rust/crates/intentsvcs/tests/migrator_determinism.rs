@@ -7,7 +7,7 @@
 //! bytes* -- and vc withdrew that wording on 2026-08-19. The live property is
 //! about the REPORT: re-running a migrator over an estate may legitimately
 //! overwrite what it produced, and **saying nothing changed while changing
-//! forty files is the defect.** The arms below are named for the property; the
+//! many files is the defect.** The arms below are named for the property; the
 //! file is named for the citation, and moving a citation is vc's. **A home
 //! whose name does not describe its contents is a defect this estate keeps
 //! re-finding, so it is declared here rather than left for someone to notice.**
@@ -23,7 +23,7 @@
 //! **`upgrade_command.rs`'s `running_it_twice_leaves_the_tree_byte_identical`
 //! ALREADY DRIVES THE RE-RUN, IS GREEN, AND IS STRUCTURALLY BLIND TO THE
 //! POPULATION THE DEFECT WAS MEASURED IN.** Its fixture is `v2_project` plus
-//! two `v2_thread`s and **no `intent/issues/` at all** -- while AC-10.12's
+//! `v2_thread`s and **no `intent/issues/` at all** -- while AC-10.12's
 //! measured instance is *all 40 issue bodies rewritten* under the unchanged
 //! claim. A fixture with no issues cannot exhibit an issue-body defect, so
 //! that test would have gone on passing through the entire episode.
@@ -36,8 +36,8 @@
 //!
 //! This instrument was blocked by cc on 2026-08-19 -- while authorised to
 //! build it -- because threads and issues go through the same `frontmatter()`
-//! and yet canon carried a trim on neither, while a re-run changed zero thread
-//! canon and all forty issues. **A determinism test written against a
+//! and yet canon carried a trim on neither, while a re-run changed no thread
+//! canon and every issue. **A determinism test written against a
 //! mechanism its author has half-understood passes for the wrong reason.**
 //!
 //! **THE HOLD IS DISCHARGED AND THE ANSWER IS ARCHITECTURAL RATHER THAN A
@@ -45,8 +45,8 @@
 //! `(heading, text)` pairs and REASSEMBLES it, so the raw slice never survives
 //! and leading or trailing whitespace **structurally cannot appear**;
 //! `legacy.rs:685` is `body: body.to_string()`, the raw slice verbatim,
-//! carrying bytes on purpose. Populations close both ways: 54 of 54 thread
-//! bodies begin `## `, 40 of 40 issue bodies begin `# ` and zero begin `## `.
+//! carrying bytes on purpose. Populations close both ways: every thread body
+//! begins `## `, every issue body begins `# ` and none begins `## `.
 //! **Two mechanisms, one of which cannot express the defect.**
 //!
 //! # What is NOT claimed here, stated rather than discovered later

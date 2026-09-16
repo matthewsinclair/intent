@@ -6,16 +6,16 @@
 //! and it was unspecified: AC-10.1 covers below the floor and AC-00.8/AC-10.3
 //! cover the migration itself, but the state BETWEEN -- v3 installed, project
 //! at 2.19.0, canon not yet written -- had no contract. Measured on a two-
-//! thread fixture before the fix, all four of these were wrong at once:
+//! thread fixture before the fix, every one of these was wrong at once:
 //!
 //! ```text
 //! intent st list        exit 0, ZERO BYTES on both streams
 //! intent st show ST0001 exit 1, "no steel thread ST0001 in this project"
 //! intent search thing   exit 0, silent
-//! intent doctor         exit 1, 2 findings, both "generated view is missing"
+//! intent doctor         exit 1, <n> findings, all "generated view is missing"
 //! ```
 //!
-//! `st show` is the worst of the four and the reason this is a No Silent
+//! `st show` is the worst of them and the reason this is a No Silent
 //! Errors defect rather than a cosmetic one: it is not silence, it is a
 //! confident FALSE STATEMENT OF FACT about a thread sitting on disk, and its
 //! remedy sends the operator to `st list`, which prints nothing and thereby

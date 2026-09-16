@@ -26,18 +26,18 @@
 //! section stops existing or stops naming the pair this test plants.
 //!
 //! **THE SECTION IS PROSE AND CANNOT BE PARSED INTO GLOBS, SO THE MAPPING IS
-//! PINNED TO ITS SOURCE PHRASE INSTEAD.** Two of the three entries are
-//! categories rather than paths -- *prose*, and *rules/skills/templates*
-//! (shipped content embedded in the binary) -- and neither is a file set a test
-//! can enumerate in a fixture. The third IS named: `wip.md` / `restart.md`, the
-//! project-level pair. **This test plants that pair and requires the document
-//! to still name it**, so the mapping cannot outlive the sentence it was
-//! derived from. That is the whole mechanism: not a parse, and not a hardcode.
+//! PINNED TO ITS SOURCE PHRASE INSTEAD.** Some of the entries are categories
+//! rather than paths -- *prose*, and *rules/skills/templates* (shipped content
+//! embedded in the binary) -- and neither is a file set a test can enumerate in
+//! a fixture. Another IS named: `wip.md` / `restart.md`, the project-level
+//! pair. **This test plants that pair and requires the document to still name
+//! it**, so the mapping cannot outlive the sentence it was derived from. That
+//! is the whole mechanism: not a parse, and not a hardcode.
 //!
 //! **AND MY FIRST SEARCH FOR THIS SECTION FOUND NOTHING, WHICH IS RECORDED
 //! BECAUSE IT NEARLY BECAME A FINDING.** AC-10.8 cites *"the out-of-model set
-//! enumerated at `data-model.md`"* and the string `out-of-model` appears ZERO
-//! times in that file. The set is there under a different heading. **A citation
+//! enumerated at `data-model.md`"* and the string `out-of-model` is absent
+//! from that file. The set is there under a different heading. **A citation
 //! is not wrong because your grep term is** -- positive-controlling the search
 //! against a term that had to be present is what separated the two.
 //!

@@ -1,14 +1,14 @@
 //! **`Thread::related`: v2's `## Related Steel Threads` bullets, modelled.**
 //!
 //! The prose was never lost -- it is carried in `body` like every other
-//! unmodelled section, and three of us derived that separately before this was
-//! built. **What was missing is the MODELLING**: `related` was empty on all 56
-//! threads of this estate, which meant `doctor`'s broken-reference check had no
-//! subject at all. A check that cannot fire is not a passing check.
+//! unmodelled section, and several of us derived that separately before this
+//! was built. **What was missing is the MODELLING**: `related` was empty on
+//! every thread of this estate, which meant `doctor`'s broken-reference check
+//! had no subject at all. A check that cannot fire is not a passing check.
 //!
-//! Every clause of the parse below is measured against this estate's 123
-//! bullets across 52 files, and each has its own arm here because each was a
-//! decision that could have gone the other way.
+//! Every clause of the parse below is measured against this estate's bullets,
+//! and each has its own arm here because each was a decision that could have
+//! gone the other way.
 
 use crate::common::{Fixture, ctx};
 use intentsvcs::legacy;

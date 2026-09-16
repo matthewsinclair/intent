@@ -2,7 +2,7 @@
 # The runner REFUSES a verdict when a gate's return code and its seal disagree.
 #
 # WHAT WENT WRONG, MEASURED 2026-08-17. The bats leg sealed a non-empty `.errors`
-# (one failure of 1311) at 04:05:33; the Rust leg sealed empty at 04:06:47; the
+# (a lone failure) at 04:05:33; the Rust leg sealed empty at 04:06:47; the
 # run was reported to a human as "100% green (rust and bats)" at 04:07, and they
 # acted on it. `run_all` built its FAILED set from each gate's RETURN CODE alone,
 # while every gate ALSO seals an `.errors` companion that is empty exactly when
@@ -17,7 +17,7 @@
 # WHY THESE ARE DRIVEN RATHER THAN REASONED ABOUT. A CORRECT gate cannot produce
 # a disagreement, so this refusal has no natural fixture and would otherwise ship
 # having never fired. That is the same trap as a mutation that fails to apply: an
-# arm that has never run reports exactly what a working arm reports. The two arms
+# arm that has never run reports exactly what a working arm reports. The arms
 # that matter -- C and E below -- are therefore built by hand, and the ledger they
 # read is written by the REAL `record_seal` rather than by a printf in this file,
 # so writer and reader are paired by construction instead of by two copies of a

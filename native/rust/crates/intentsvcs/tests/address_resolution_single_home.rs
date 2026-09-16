@@ -10,11 +10,11 @@
 //!
 //! # The two halves
 //!
-//! **Coverage**: all nine forms parse, with the denominator printed over
-//! D57-8's list rather than over the cases that happened to be written. A
-//! table of nine cases proves nine cases; the assertion here is that the nine
-//! are the WHOLE list, so a tenth form added to the design without a parser
-//! arm fails here rather than silently going unaddressable.
+//! **Coverage**: every form parses, with the denominator printed over D57-8's
+//! list rather than over the cases that happened to be written. A table of
+//! cases proves those cases; the assertion here is that they are the WHOLE
+//! list, so a form added to the design without a parser arm fails here rather
+//! than silently going unaddressable.
 //!
 //! **Singularity**: the `intent-cli` and `intentd` crates contain no parsing
 //! of their own. Asserted by reading their sources for the scheme literal --

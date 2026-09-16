@@ -4,16 +4,16 @@
 //! Lamplight's disposed criteria write `-- withdrawn: <reason>` and
 //! `-- descoped-to: ST0347 -- by: hv -- on: 2026-08-21`. The AC reader knows
 //! exactly two keys, `evidence:` and `satisfied:`, so all of it landed in the
-//! row's text and 19 rows arrived with their disposition as prose. **Nothing
+//! row's text and rows arrived with their disposition as prose. **Nothing
 //! failed. Nothing was refused. The migration exited 0**, and the only symptom
-//! was a gate reading 25/37 where v2 read 24/24.
+//! was a gate tally that no longer matched v2's all-green one.
 //!
 //! **THE FIX IS THE CLASS AND NOT THE TWO KEYS, AND THAT IS THE WHOLE POINT OF
 //! THE FILE.** Teaching the reader `withdrawn:` and `descoped-to:` closes those
-//! 19 and leaves the next convention exactly as silent -- which is the argument
-//! `thread_dirs` already lost, where an allowlist of three bucket names closed
-//! the instance and left the class open. **An allowlist can only ever know the
-//! conventions that existed when it was written.**
+//! rows and leaves the next convention exactly as silent -- which is the
+//! argument `thread_dirs` already lost, where an allowlist of bucket names
+//! closed the instance and left the class open. **An allowlist can only ever
+//! know the conventions that existed when it was written.**
 
 use crate::common::Fixture;
 use intentsvcs::legacy;

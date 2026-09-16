@@ -14,7 +14,7 @@
 #   LLM: "What does the user service do? ..."
 #   [You spend 10 minutes explaining...]
 #
-# prettier treated that as markdown to be reflowed and collapsed all three lines
+# prettier treated that as markdown to be reflowed and collapsed its lines
 # into one, destroying the example the block exists to show. That is not a format
 # change, it is a formatter mangling user-facing content -- and it would have
 # landed on the next `int fmt all` anyone ran before a commit.

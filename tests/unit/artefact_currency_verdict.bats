@@ -17,7 +17,7 @@
 #
 # SELF-CONTAINED BY CONSTRUCTION. Every arm builds its own git repo and its own
 # planted artefacts. Nothing reads the live checkout, whose HEAD moves under a
-# four-node board and whose release pair is dirty today and may not be tomorrow
+# multi-node board and whose release pair is dirty today and may not be tomorrow
 # -- a fixture tracking either would stop testing the subject without saying so.
 #
 # THE ARTEFACTS ARE TEXT FILES. `artefact_source_commit` is `strings` and

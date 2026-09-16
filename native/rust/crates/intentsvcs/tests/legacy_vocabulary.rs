@@ -2,9 +2,9 @@
 //! callers finally telling ABSENT apart from UNREADABLE.**
 //!
 //! Two defects, both of them one decision that had been applied to one site and
-//! not to its neighbour twenty lines away.
+//! not to its neighbour a few lines away.
 //!
-//! # The separator family was open on two of three vocabularies
+//! # The separator family was open on the status vocabularies
 //!
 //! `scope` folded ` `, `-` and `_` away before parsing. The two status tables
 //! matched literals instead, and spelled out the space and the hyphen forms but
@@ -15,46 +15,48 @@
 //! **Adding an arm would have been the wrong fix.** It leaves two rules
 //! different in one file and the next spelling finds the same crack; folding
 //! CLOSES the family rather than enumerating it, and shortens the tables on the
-//! way -- `not started` / `notstarted` / `not-started` were three literals for
-//! one token.
+//! way -- `not started` / `notstarted` / `not-started` were separate literals
+//! for one token.
 //!
 //! Measured across the whole fleet before anything moved (working trees,
-//! 2026-08-17): **work packages carry `NOT_STARTED` 13 times -- Lamplight 10
-//! and Laksa 3.** All 13 sit in Completed threads, so this moves 13 rows from
-//! "carried with a finding" to "read correctly" and **changes nothing about
-//! what blocks.**
+//! 2026-08-17): **work packages carry `NOT_STARTED` on Lamplight and Laksa.**
+//! Every one sits in a Completed thread, so this moves those rows from "carried
+//! with a finding" to "read correctly" and **changes nothing about what
+//! blocks.**
 //!
 //! **A RECONCILIATION THAT CLOSED ARITHMETICALLY AND WAS FABRICATED, RETRACTED
-//! HERE BECAUSE IT SHIPPED IN THIS COMMENT.** vc had published a `10`, so this
-//! file first said their corpus reports 10 "because Laksa is not in it" and
-//! declared the two figures reconciled. **They were never measuring the same
-//! thing**: vc's 10 is what BLOCKS Lamplight -- nine unparseable AT rows and
-//! one broken reference, in two `acceptance.md` files, not a status value among
-//! them -- and the sentence above says these 13 block nothing, so the two sets
-//! are disjoint by this file's own account.
+//! HERE BECAUSE IT SHIPPED IN THIS COMMENT.** vc had published a figure, so
+//! this file first said their corpus reports that figure "because Laksa is not
+//! in it" and declared the two figures reconciled. **They were never measuring
+//! the same thing**: vc's figure is what BLOCKS Lamplight -- unparseable AT
+//! rows and a broken reference, in `acceptance.md` files, not a status value
+//! among them -- and the sentence above says these rows block nothing, so the
+//! two sets are disjoint by this file's own account.
 //!
 //! **The coincidence is what made the story easy, and that is the lesson worth
-//! more than the number.** Two unrelated measurements landed on 10, on one
-//! estate, on one day; 13 minus 10 is 3, and Laksa has exactly 3. **The
-//! arithmetic closed perfectly, which is the most persuasive form a wrong
-//! explanation can take** -- an invented cause that reconciles is far harder to
-//! doubt than one that does not. The 13 stands because it was measured
-//! directly, on both projects, by counting the rows.
+//! more than the number.** Two unrelated measurements landed on the same
+//! number, on one estate, on one day, and the gap between this file's count and
+//! vc's was exactly Laksa's share. **The arithmetic closed perfectly, which is
+//! the most persuasive form a wrong explanation can take** -- an invented cause
+//! that reconciles is far harder to doubt than one that does not. This file's
+//! count stands because it was measured directly, on both projects, by counting
+//! the rows.
 //!
 //! # Absent and unreadable were one finding at the thread level
 //!
 //! The work-package reader already draws the distinction -- `FieldNotRecorded`
 //! for a file that predates the convention, `UnknownStatus` for a value v2 read
-//! as free text -- and it draws it because **79 work packages fleet-wide have
-//! no `status:` line at all.** The thread reader answered both with `thread
-//! status "" is not in the v2 vocabulary`: a sentence that sends the operator
-//! to fix a vocabulary problem that does not exist, **on the arm that BLOCKS.**
+//! as free text -- and it draws it because **dozens of work packages fleet-wide
+//! have no `status:` line at all.** The thread reader answered both with
+//! `thread status "" is not in the v2 vocabulary`: a sentence that sends the
+//! operator to fix a vocabulary problem that does not exist, **on the arm that
+//! BLOCKS.**
 //!
-//! **MEASURED, and the two arms have very different populations** (fleet
-//! working trees, 2026-08-17, 715 threads). **ABSENT: zero** -- every fleet
+//! **MEASURED, and the arms have very different populations** (fleet
+//! working trees, 2026-08-17, every thread). **ABSENT: none** -- every fleet
 //! thread carries a `status:` line, so the rewording corrects no live estate
-//! and is not claimed to. **UNREADABLE: two** -- `SUPERSEDED` in Laksa and
-//! `DESCOPED` in Lamplight.
+//! and is not claimed to. **UNREADABLE:** `SUPERSEDED` in Laksa and `DESCOPED`
+//! in Lamplight.
 //!
 //! **`SUPERSEDED` STOPPED BEING ONE OF THEM ON 2026-08-28**, when hv ruled it
 //! terminal and it entered the thread vocabulary; the sentence here used to say
@@ -66,13 +68,13 @@
 //! reached is what makes the pair worth having.** Both land on the same
 //! unknowable-`closed` path. The absent arm is here because it is the same
 //! decision applied to the second of two callers, and because the state is
-//! demonstrably reachable in this data model -- 79 times, for the sibling
+//! demonstrably reachable in this data model -- repeatedly, for the sibling
 //! entity, in the same frontmatter.
 //!
 //! **The policy does not move, only the diagnosis.** Both arms still block, and
 //! must: the thread's status decides `closed`, so a thread that cannot say
 //! whether it is closed cannot have the carry policy applied to it at all --
-//! and both of the fleet's two live instances sit in a `COMPLETED/` bucket
+//! and both of the fleet's live instances sit in a `COMPLETED/` bucket
 //! whose name the migrator deliberately does not trust.
 
 use crate::common::Fixture;

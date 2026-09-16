@@ -18,7 +18,7 @@
 //! fiat state` is written before anything is built on top of this type: the
 //! defect it guards against is invisible to every other test in this file.
 //!
-//! The alternative shape -- a struct variant repeating `FiatRecord`'s five
+//! The alternative shape -- a struct variant repeating `FiatRecord`'s
 //! fields inline -- was available and is what the neighbouring `Descoped` and
 //! `Withdrawn` do. It was not taken because the same record also hangs off
 //! `Thread` and `WorkPackage`, so spelling it inline would put its shape in

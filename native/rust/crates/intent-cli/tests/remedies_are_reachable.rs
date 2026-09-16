@@ -5,8 +5,8 @@
 //!
 //! **THE WALK IS OVER THE REMEDY STRINGS THE BINARY EMITS, NEVER THE VERBS IT
 //! DECLARES.** A test asserting every declared verb exists passes trivially:
-//! measured 2026-08-31, 24 distinct command references harvested from source
-//! all resolved in the dispatch table and none was retired. **That clean
+//! measured 2026-08-31, every distinct command reference harvested from source
+//! resolved in the dispatch table and none was retired. **That clean
 //! result is the trivial pass the criterion warns about**, and ic's original
 //! finding says why -- `upgrade` was declared retired and correctly absent, so
 //! the declaration and the binary agreed with each other and both were wrong.
@@ -34,7 +34,7 @@
 //! `has_verbs = .any(|e| e.verb().is_some() && e.is_shipped())`, and
 //! `is_shipped()` is `disposition != "retire"` -- **a property of the
 //! declaration, while the sentence promises `the verbs that ARE`.** ic closed
-//! the zero-DECLARED-verbs case on 2026-08-15, when nine leaves sent readers to
+//! the zero-DECLARED-verbs case on 2026-08-15, when leaves sent readers to
 //! an empty help block. The zero-WIRED-verbs case has the identical symptom,
 //! the identical harm, and the same predicate cannot see it.
 //!

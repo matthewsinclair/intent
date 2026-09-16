@@ -1,16 +1,16 @@
 //! **`intent modules` -- the Highlander registry's own verbs (ST0056 WP-06).**
 //!
-//! Two verbs ship and one flag is retired. `find` and `check` are both reads;
+//! Its verbs ship and a flag is retired. `find` and `check` are both reads;
 //! `--register` is gone, and its going is what earns this family the simple
 //! shape the tests below can assume.
 //!
-//! # The two findings this family was built on
+//! # The findings this family was built on
 //!
-//! **`find` on no match exits 1, and two documents said 0.** The dispatch
+//! **`find` on no match exits 1, and the documents said 0.** The dispatch
 //! table's `observed` block carried "found, or no match -> 0" with an evidence
 //! class of `read`, and issue 0067 records `rc=0` as MEASURED. Driven against
 //! the frozen v2.19.0 install on a fixture, a non-matching term is rc=1 --
-//! `cmd_find` returns 1 on the empty branch and always has. Two documents
+//! `cmd_find` returns 1 on the empty branch and always has. The documents
 //! agreed with each other and neither agreed with the program.
 //!
 //! **`check`'s population is derived from the declared `languages`.** v2 scans

@@ -3,10 +3,10 @@
 //! The two halves of one line, as it stood:
 //!
 //! ```text
-//!   in-debug  removed (2 file(s)); left 1 this build did not install: NOTES.md
+//!   in-debug  removed (<n> file(s)); left 1 this build did not install: NOTES.md
 //! ```
 //!
-//! `NOTES.md` survived and is named. The two files that are gone are a number.
+//! `NOTES.md` survived and is named. The files that are gone are a number.
 //! So the only part of the report an operator can act on describes the part
 //! that needs no action, and the part that is unrecoverable -- which is the
 //! part they would want to check against, or copy back from a backup -- is

@@ -1,8 +1,8 @@
 //! **AT-24.2 / AC-24.2: a tool's description says when to use it and when not
 //! to, and the words come from the REGISTER rather than from `mcp.rs`.**
 //!
-//! A model picks a tool from three things -- the description, the instructions
-//! in its context, and what worked last time -- and grep wins all three by
+//! A model picks a tool from the description, the instructions in its context,
+//! and what worked last time -- and grep wins all of them by
 //! default. The half of a description that changes that is **when NOT to reach
 //! for this**, which has no place in a one-line `--help` and every place in a
 //! tool description. So it is a second field on the row, not a longer `help`:

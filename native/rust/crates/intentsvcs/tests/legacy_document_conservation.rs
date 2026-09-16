@@ -6,8 +6,8 @@
 //! model with a fixed set of headings. That much worked. What did not is that
 //! `legacy::sections` returned a `BTreeMap`, and the consumer rebuilds `body` by
 //! joining it, so **the reassembled document came back in ALPHABETICAL order**.
-//! Measured across this repository's own estate: 140 of 140 work packages
-//! differ from what their author wrote.
+//! Measured across this repository's own estate: every work package differs
+//! from what its author wrote.
 //!
 //! **The reason it survived is the reason this file exists rather than another
 //! assertion in an existing one.** Every section was present, so every
@@ -22,7 +22,7 @@
 //! never named survives, which it does. It was silent about the order, and a
 //! reader auditing the function against its own documentation got agreement --
 //! including one who was about to copy the line into the thread parser, where it
-//! would have closed a genuine 178-section hole while propagating this defect,
+//! would have closed a genuine hole while propagating this defect,
 //! and made the section counts reconcile on the way.
 
 use crate::common::Fixture;

@@ -5,11 +5,11 @@
 //! # The estate cannot test this and says so out loud
 //!
 //! The criterion asks for a denominator over every opaque attachment in the
-//! estate. **That denominator is 0, measured: of 745 files under `intent/st/`,
-//! exactly one is not valid UTF-8 and it is `intent/st/.DS_Store`, which D29
-//! puts outside the corpus entirely.** So a probe that only walked the estate
-//! would print `0 of 0` and go green having exercised nothing -- right verb,
-//! right depth, a population that cannot contain the failure.
+//! estate. **That denominator is empty, measured: of every file under
+//! `intent/st/`, the only one that is not valid UTF-8 is `intent/st/.DS_Store`,
+//! which D29 puts outside the corpus entirely.** So a probe that only walked
+//! the estate would print `0 of 0` and go green having exercised nothing --
+//! right verb, right depth, a population that cannot contain the failure.
 //!
 //! **So the property is driven by a CONSTRUCTED fixture carrying real
 //! non-UTF-8 bytes, and the estate zero is printed BESIDE it as a zero.** The

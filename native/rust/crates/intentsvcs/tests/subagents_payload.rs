@@ -2,11 +2,11 @@
 //! whose source shape and target shape differ.
 //!
 //! **THIS IS THE KIND v3 NEVER HAD, AND THE GAP WAS LIVE RATHER THAN
-//! THEORETICAL.** Measured on the machine this was written on: nine subagents
-//! in canon, eight in `~/.claude/agents/`, every one of them installed by v2 in
-//! April and none since. `critic-prose` was the missing one -- dispatched by
-//! four shipped skills including `in-session`, absent from the operator's
-//! agents directory, and reachable by no v3 verb at all.
+//! THEORETICAL.** Measured on the machine this was written on: canon held a
+//! subagent that `~/.claude/agents/` did not, and every installed one had been
+//! put there by v2 in April and none since. `critic-prose` was the missing one
+//! -- dispatched by several shipped skills including `in-session`, absent from
+//! the operator's agents directory, and reachable by no v3 verb at all.
 //!
 //! **EVERY ARM HERE IS ABOUT THE SHAPE DIFFERENCE, BECAUSE EVERYTHING ELSE IS
 //! ALREADY COVERED BY `skills_sync.rs` OVER THE SAME CODE.** The lifecycle --

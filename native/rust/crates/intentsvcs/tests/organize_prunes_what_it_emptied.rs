@@ -2,11 +2,11 @@
 //!
 //! # Why this exists
 //!
-//! `organize --apply` removed 423 files from this project's estate and left 54
-//! empty directory shells behind: the only removal it performed was
-//! `remove_file`. vc ruled that harmless because git does not track an empty
-//! directory. hv opened the tree and counted **58 directories where 3 threads
-//! were declared**, and reversed it.
+//! `organize --apply` removed hundreds of files from this project's estate and
+//! left dozens of empty directory shells behind: the only removal it performed
+//! was `remove_file`. vc ruled that harmless because git does not track an
+//! empty directory. hv opened the tree and counted **dozens of directories
+//! where only a few threads were declared**, and reversed it.
 //!
 //! **Both readings are correct about different estates.** Git's view and a
 //! person's view of "what is in this project" disagree exactly on empty
@@ -14,7 +14,7 @@
 //! sweep cleared them once; the next dehydration would have recreated them,
 //! which is what makes this a code change rather than a tidy-up.
 //!
-//! # The four things asserted, and why none of them is the obvious one alone
+//! # What is asserted, and why none of it is the obvious one alone
 //!
 //! Asserting only "the directory is gone" would pass for a verb that deletes
 //! the whole estate. So the dangerous directions are asserted too: a directory

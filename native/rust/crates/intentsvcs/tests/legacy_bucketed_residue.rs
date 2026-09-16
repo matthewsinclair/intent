@@ -1,6 +1,6 @@
 //! **IS THE RESIDUE CHECK BUCKET-BLIND, OR DID THE SCAN ABORT BEFORE REACHING
-//! THE BUCKETS?** vc measured hop 2 on Lamplight naming 8 findings in 3 FLAT
-//! threads and none in 10 BUCKETED ones, with perfect correlation to location,
+//! THE BUCKETS?** vc measured hop 2 on Lamplight naming findings in a few FLAT
+//! threads and none in the BUCKETED ones, with perfect correlation to location,
 //! and read it as a second instance of the attachment defect.
 //!
 //! The two explanations predict the SAME observation and need different fixes:

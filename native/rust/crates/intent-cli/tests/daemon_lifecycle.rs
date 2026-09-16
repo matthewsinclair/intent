@@ -1,7 +1,7 @@
 //! `AT-08.4` / `AC-08.4`: **the daemon's lifecycle works end to end** -- start,
 //! status, refuse a second, stop, stop again, with logs where D19 put them.
 //!
-//! **THIS FILE CARRIES TWO ROWS AND THE SPLIT IS BY ARM, NOT BY FILE** (vc,
+//! **THIS FILE CARRIES ROWS SPLIT BY ARM, NOT BY FILE** (vc,
 //! 2026-08-30). `AT-08.4` / `AC-08.4` is arms 1-4, the LIFECYCLE:
 //! `start_status_stop_is_a_working_lifecycle`,
 //! `a_second_start_is_idempotent_and_names_the_running_pid`,
@@ -10,12 +10,12 @@
 //! `a_stale_launchagent_is_regenerated_when_the_daemon_boots` and
 //! `booting_does_not_enrol_a_machine_that_never_asked`.
 //!
-//! **NAMING THE ARMS IS LOAD-BEARING RATHER THAN TIDY.** Two rows citing one
-//! file by bare filename means greening either one greens the other by
+//! **NAMING THE ARMS IS LOAD-BEARING RATHER THAN TIDY.** Rows citing one
+//! file by bare filename means greening any one greens the others by
 //! inspection, and the citation stops being the criterion's own check clause.
 //! **Splitting the file would be worse:** both healing arms need the `Machine`
 //! harness below -- isolated `HOME`, `state_dir`, teardown on drop -- so a split
-//! either duplicates it or grows a two-arm `common` module. The rows share a
+//! either duplicates it or grows a `common` module for those arms alone. The rows share a
 //! harness and nothing else.
 //!
 //! **EVERY ARM IS DRIVEN THROUGH THE SHIPPED BINARY, BECAUSE THE CRITERION IS
@@ -26,7 +26,7 @@
 //! **THE ISOLATED `HOME` IS THE ONE LINE THAT MUST NOT BE WRONG.** A daemon
 //! started under the real one answers every peer session's liveness probe at
 //! once and holds the `sync`/`ingest` family off the store, so a careless
-//! fixture here takes four developers' verbs down together. That is not
+//! fixture here takes every developer's verbs down together. That is not
 //! hypothetical: it happened on this machine on 2026-08-30, from an
 //! `intentd --help`.
 

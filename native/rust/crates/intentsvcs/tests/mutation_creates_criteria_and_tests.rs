@@ -14,11 +14,11 @@
 //! the very rows minted to close the gap.
 //!
 //! The gap those two criteria name is **the VERB**. Driven 2026-08-25 and
-//! recorded in `AC-08.6`'s own text: `ac --help` lists nine subcommands and
-//! `at --help` five, and **not one of the fourteen creates anything** -- every
-//! arm is a transition on a row that already exists. The route was a hand-edit
-//! of `.canon/st/<ID>.json` plus `sync --to-store`, which is how `AC-08.6`
-//! ITSELF reached canon.
+//! recorded in `AC-08.6`'s own text: `ac --help` and `at --help` list their
+//! subcommands, and **not one of them creates anything** -- every arm is a
+//! transition on a row that already exists. The route was a hand-edit of
+//! `.canon/st/<ID>.json` plus `sync --to-store`, which is how `AC-08.6` ITSELF
+//! reached canon.
 //!
 //! So this file tests `Facade::ac_new` and `Facade::at_new` -- and, for
 //! `AC-08.7`, the half that makes a create more than a `push`: **the created
@@ -36,8 +36,8 @@
 //! grammar `at lint` enforces on every other row.*
 //!
 //! **THE FIRST LIMB OF EACH IS A REACHABILITY CLAIM AND IT IS NOT TESTABLE BY
-//! LOOKING AT THE CREATED ROW.** Asserting that `ac_new` sets the four fields
-//! `Criterion` has today passes forever and says nothing: add a fifth field the
+//! LOOKING AT THE CREATED ROW.** Asserting that `ac_new` sets the fields
+//! `Criterion` has today passes forever and says nothing: add a field the
 //! surface cannot set, and such a test stays green while the claim becomes
 //! false. So reachability is driven as a DIFFERENTIAL against the route the
 //! criterion names -- the same entity built both ways, in two fixtures, with
@@ -59,7 +59,7 @@
 //! that wrote this header -- is the SAME commit carrying the body comment at
 //! `at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row` that records
 //! the control firing with `findings: []`. The file shipped stating a premise
-//! its own test refuted twenty lines below. **Born stale is not a claim that
+//! its own test refuted a little further down. **Born stale is not a claim that
 //! decayed: nothing changed underneath it, and there was never a moment the
 //! header was true.** `write_thread`'s file-creating loop predates it by months
 //! (`a1a949cf`).

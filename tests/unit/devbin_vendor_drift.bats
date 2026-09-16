@@ -7,11 +7,11 @@
 # header refers to lives in the Devbin SOURCE repository, so from inside the
 # project carrying the patches there was nothing to run -- the divergence had a
 # size nobody knew and members nobody had enumerated. Measured 2026-08-17: the
-# count named in conversation was three, the truth was four, and two of the four
-# predated the discussion and were news to everyone in it.
+# count named in conversation fell short of the truth, and some of the drifted
+# files predated the discussion and were news to everyone in it.
 #
 # THE CONTROL THAT MATTERS HERE IS THE MATCHES COUNT, not any of the refusals.
-# The first hand-run of this measurement reported ALL 27 entries diverged, because
+# The first hand-run of this measurement reported EVERY entry diverged, because
 # under zsh `path` is a special variable tied to `PATH` and `while read -r want
 # path` destroys it on the first iteration -- `shasum` then cannot be found, every
 # comparison fails, and every file reports as drifted. **A broken instrument

@@ -1,8 +1,8 @@
 //! **A TEST FILE NOBODY DECLARES IS NEVER COMPILED AND SAYS NOTHING.**
 //!
 //! The check itself is `testkit::assert_no_orphan_suite_members`; this file is
-//! the call site that puts it to THIS crate. It was a byte-identical 93-line
-//! copy in each of three crates, with nothing holding the copies together --
+//! the call site that puts it to THIS crate. It was a byte-identical copy in
+//! each of the crates, with nothing holding the copies together --
 //! the shape `testkit`'s own header was written about, arriving in the guard
 //! TN001 calls non-optional. **A guard is an implementation, not an index, so a
 //! drift test would not have licensed the duplication.**

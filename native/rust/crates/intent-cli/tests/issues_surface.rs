@@ -1,6 +1,7 @@
-//! **`intent issues` -- all six verbs, driven through the real binary.**
+//! **`intent issues` -- `add`, `close`, `list`, `open` and `show`, driven
+//! through the real binary.**
 //!
-//! The three mutations were `Disposition::Unbuilt` for two days, blocked on a
+//! The mutations were `Disposition::Unbuilt` for two days, blocked on a
 //! ratification rather than on effort, and this file's last case used to assert
 //! that they reported themselves so. hv ratified **Machine 4** on 2026-08-17
 //! (`Open | Closed`, entry `Open`, no guards) and they are wired.

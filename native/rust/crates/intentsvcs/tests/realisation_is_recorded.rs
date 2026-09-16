@@ -7,8 +7,8 @@
 //! wrote the filesystem in silence.
 //!
 //! **The gap was measured rather than supposed.** On 2026-08-19 `organize
-//! --apply` removed 423 files from this estate and the log recorded nothing;
-//! its 55 events at that moment were every one of them a model mutation. The
+//! --apply` removed many files from this estate and the log recorded nothing;
+//! its events at that moment were every one of them a model mutation. The
 //! only act all evening that destroyed anything was the only class of act
 //! absent from the one table that cannot be re-derived from anything else on
 //! disk.

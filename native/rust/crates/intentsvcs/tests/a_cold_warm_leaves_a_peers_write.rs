@@ -4,8 +4,8 @@
 //! warmed it from disk -- and the later warm's rebuild deleted every row,
 //! including the peer's just-committed `0001`, whose file had not landed yet.
 //! The number was free again, the create landed on it, and both writers were
-//! told `created`. Measured: 3 of 3 cold runs of ten paired rounds lost `0001`;
-//! 0 of 3 on a store warmed first.
+//! told `created`. Measured: every cold run of paired rounds lost `0001`, and
+//! no run on a store warmed first did.
 //!
 //! The race is inside one call, so this pins the invariant that closes it
 //! rather than the interleaving: two handles on one on-disk store, as two

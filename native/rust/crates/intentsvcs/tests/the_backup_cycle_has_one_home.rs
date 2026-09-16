@@ -16,7 +16,7 @@
 //! **the only way for a second caller to do the same thing was to write it
 //! again**, and the second caller was already specified.
 //!
-//! **ONLY THE TWO CALLS THAT WRITE ARE FORBIDDEN.** `Retention::from_project`
+//! **ONLY THE CALLS THAT WRITE ARE FORBIDDEN.** `Retention::from_project`
 //! reads a setting and changes nothing, so anything that wants to REPORT the
 //! retention may read it; forbidding that would buy no safety and block a
 //! legitimate reader. The composition that has to be single-homed is

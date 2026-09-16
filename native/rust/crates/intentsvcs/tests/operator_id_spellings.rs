@@ -9,12 +9,12 @@
 //!
 //! **THE ACCEPTED SET IS v2's, AND IT WAS DRIVEN RATHER THAN READ OFF THE
 //! SOURCE.** `bin/intent_helpers:688 normalise_st_id` was run in the v2
-//! checkout across all five forms; each resolved to `ST0046`, with the error
+//! checkout across every accepted form; each resolved to `ST0046`, with the error
 //! echoing the NORMALISED id, which is what makes the observation a measurement
 //! rather than a reading. That is why `046` is in the table below: it is in the
-//! contract and a four-form port would have silently dropped it.
+//! contract and a port one form short would have silently dropped it.
 //!
-//! **TWO ARMS PIN BEHAVIOUR v2 HAS AND THIS MUST NOT.** `foo` must not become
+//! **SOME ARMS BELOW PIN BEHAVIOUR v2 HAS AND THIS MUST NOT.** `foo` must not become
 //! `STfoo`, and `99999` must not become `ST99999`. Both are live in v2 today,
 //! and both end with the operator being told a thread they never named is
 //! missing -- so the normaliser would be MANUFACTURING the defect it exists to

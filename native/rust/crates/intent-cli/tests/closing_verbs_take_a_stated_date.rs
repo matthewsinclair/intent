@@ -3,7 +3,8 @@
 //!
 //! `st done` and `st cancel` stamped TODAY and took no override, so the only
 //! open CLI path recorded threads finished in February as finished on the day
-//! the estate migrated. On Conflab that is 50 of 51 remaining doctor findings.
+//! the estate migrated. On Conflab that is nearly every remaining doctor
+//! finding.
 //!
 //! # The date is DATA, not a second clock
 //!
@@ -15,9 +16,9 @@
 //!
 //! # A calendar fact in the AUTHOR'S local day
 //!
-//! conflab-vc recovered 64 completion dates from git: 64/64 read as the local
-//! day, 63/64 forced to UTC, the miss committed at 23:57 +0100. So the flag
-//! records the date the caller states and converts nothing. **The whiteboard's
+//! conflab-vc recovered completion dates from git: every one read as the local
+//! day, while UTC got the commit made at 23:57 +0100 wrong. So the flag records
+//! the date the caller states and converts nothing. **The whiteboard's
 //! `date -u` discipline is the right rule in the wrong domain here** -- it
 //! governs ordering stamps, and a completion date is a calendar fact.
 

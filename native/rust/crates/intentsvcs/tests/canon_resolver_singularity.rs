@@ -44,10 +44,10 @@
 //! `intent/.canon/<ID>/thread.json` — right prefix, wrong structure, and it
 //! reads as a correct migration.
 //!
-//! **No count is asserted anywhere here.** ic withdrew their own 3-of-17 once
-//! they measured it as their probe's reach — one directory of 41 against a
-//! repo-wide concern — and vc's narrowed 23-file probe missed `export.rs`
-//! entirely. There is no honest single denominator, so the criterion is the
+//! **No count is asserted anywhere here.** ic withdrew their own count once
+//! they measured it as their probe's reach — one directory among many against a
+//! repo-wide concern — and vc's narrowed probe missed `export.rs` entirely.
+//! There is no honest single denominator, so the criterion is the
 //! discrimination.
 
 use std::collections::BTreeSet;

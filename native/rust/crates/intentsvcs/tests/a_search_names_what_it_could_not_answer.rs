@@ -1,7 +1,7 @@
 //! **AT-19.3 and AT-19.5 / AC-19.3 and AC-19.5: an index that could not answer
 //! the whole question says so, and a line is a claim about the disk.**
 //!
-//! These two rows are one property seen from two distances. AC-19.3 is the
+//! These rows are one property seen from two distances. AC-19.3 is the
 //! estate's dominant defect class (AC-10.7) applied to an index: **an empty or
 //! partial answer is byte-identical to a genuine miss**, so the surface must
 //! carry the distinction or the reader invents it. AC-19.5 is the same rule per

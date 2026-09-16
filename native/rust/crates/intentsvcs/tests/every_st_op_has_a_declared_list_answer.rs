@@ -15,11 +15,11 @@
 //! quietly does not follow, and the only detector is a person noticing in the
 //! field.
 //!
-//! **THAT IS NOT A HYPOTHETICAL. IT HAPPENED THREE TIMES IN ONE DAY**, and the
+//! **THAT IS NOT A HYPOTHETICAL. IT HAPPENED REPEATEDLY IN ONE DAY**, and the
 //! rulings are the receipts: `cce816a4` (`st.new` stops declaring), `6ff37c0f`
 //! (the three unnamed ops), `26111785` (`st.hold` and `st.triage` both remove).
 //! Each was one member of one vocabulary handled in one table and not the
-//! other. The cost is already paid; this file is what stops the fourth.
+//! other. The cost is already paid; this file is what stops the next.
 //!
 //! # What this file does NOT do, stated because both were considered
 //!
@@ -56,11 +56,11 @@
 //! | `is_code` made to count comment lines              | the reader control ONLY                                 |
 //!
 //! The second row is the scenario this file was written for, and it is worth
-//! reading twice: a ninth op reds TWO tests with two different messages,
-//! because `st.park` is in the machine and spelled nowhere in `facade.rs` --
-//! unanswered by `declared_list_edit` AND unreachable by any verb. Two defects,
-//! not one, and a single assertion would have reported whichever it happened to
-//! check first.
+//! reading twice: a ninth op reds both the transition test and the agreement
+//! test, with different messages, because `st.park` is in the machine and
+//! spelled nowhere in `facade.rs` -- unanswered by `declared_list_edit` AND
+//! unreachable by any verb. Two defects, not one, and a single assertion would
+//! have reported whichever it happened to check first.
 //!
 //! The third row is the one that keeps the other two honest. If the reader
 //! counted comments, every op in this vocabulary would read as answered

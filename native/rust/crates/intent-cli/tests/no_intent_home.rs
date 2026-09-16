@@ -9,12 +9,12 @@
 //! inherited that dependency, every developer machine here would still be
 //! green, because every developer machine here has it set.
 //!
-//! **The estate had already decided this three times, in comments, and never
+//! **The estate had already decided this repeatedly, in comments, and never
 //! once in a control.** `render.rs:49` -- "the file's presence, never an
 //! environment variable (issue 0025)". `project.rs:239` -- "The marker is the
 //! config file's own presence -- never an environment". `views.rs:6` -- "no
-//! locale, no absolute paths, no environment". Three statements of the rule,
-//! zero mechanisms that refuse it. A comment reminds; only a control refuses,
+//! locale, no absolute paths, no environment". Statements of the rule, and not
+//! one mechanism that refuses it. A comment reminds; only a control refuses,
 //! and this file is the control the comments have been standing in for.
 //!
 //! **The structural test is an ALLOWLIST, not a ban on `INTENT_HOME`, and that

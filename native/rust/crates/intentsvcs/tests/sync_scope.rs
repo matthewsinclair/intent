@@ -1,14 +1,14 @@
 //! ST0056 WP-03: **`intent sync` takes a SCOPE, so a node can land its own
-//! thread without ingesting whatever three peers happen to be holding.**
+//! thread without ingesting whatever its peers happen to be holding.**
 //!
 //! # The defect, measured rather than anticipated
 //!
-//! `--to-store` and `--to-disk` were whole-estate only. On a four-node board
+//! `--to-store` and `--to-disk` were whole-estate only. On a multi-node board
 //! every node needs an estate-wide write to land its own work, so **the
 //! routine act of saving your thread reads every other node's uncommitted
 //! files and takes them into the store.** vc measured it happening twice in
 //! one day -- both times while holding the pen and warning the others -- and
-//! ran thirteen estate-wide `--to-store` writes in a single session, each one
+//! ran many estate-wide `--to-store` writes in a single session, each one
 //! carrying whatever was on disk at that instant.
 //!
 //! dc's framing is the one that makes it structural rather than annoying: **a

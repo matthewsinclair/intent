@@ -8,9 +8,9 @@
 //! vc specced it before it was written rather than after: the field is worth
 //! building under either premise, but its PURPOSE differs between them.
 //!
-//! **396 regions / 88,648 bytes across nine projects.** On the canary at
-//! `42fb5269`: 20 regions, 15 thread-level and 5 work-package, 6135 bytes
-//! stripped. ST0010's 485 bytes are a cancelled thread's deprecation
+//! **Hundreds of regions, tens of kilobytes, across the fleet's projects.** On
+//! the canary at `42fb5269`: regions at both thread and work-package level,
+//! kilobytes stripped. ST0010's preamble is a cancelled thread's deprecation
 //! blockquote and its supersession pointer -- precisely what the cancellation
 //! discipline exists to preserve, dropped with no drop record. **That is what
 //! makes it a conservation defect rather than a convenience.**
@@ -30,7 +30,7 @@
 //! normalisation would be certifying it"* -- and reports only WHICH KIND of
 //! difference occurred. The contract rules it instead: the field stores the
 //! stripped region, the blank lines are markdown layout the renderer re-emits,
-//! and the 20 regions land as `NORMALISED-PROSE` rather than `CONSERVED`. A
+//! and the regions land as `NORMALISED-PROSE` rather than `CONSERVED`. A
 //! reported, counted, non-finding.
 
 use crate::common::{Fixture, ctx};

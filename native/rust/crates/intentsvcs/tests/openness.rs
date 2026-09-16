@@ -15,10 +15,10 @@
 //! remember to add to on the day they add a table, which is the day they are
 //! thinking about anything else. The contract's own prose says "8 tables in the
 //! DDL: threads, wps, criteria, tests, related, issues, event_log, file_index"
-//! and **the DDL has nine** -- `doc_sections` is not in that sentence. The
+//! and **the DDL has more** -- `doc_sections` is not in that sentence. The
 //! enumeration finds it; a roster copied from the sentence would not have.
 //!
-//! Three properties:
+//! The properties:
 //!
 //! 1. **Every table declares how its data leaves** -- a file form, or a DERIVED
 //!    exemption that says why. Absence is never the answer, which is the D05

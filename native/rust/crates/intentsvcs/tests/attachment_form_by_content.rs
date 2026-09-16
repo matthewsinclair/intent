@@ -12,19 +12,21 @@
 //! # THE TWO DIRECTIONS HAVE VERY DIFFERENT ESTATE DENOMINATORS, AND SAYING SO
 //! IS THE POINT
 //!
-//! Measured at the time of writing: **280 attachments across 57 threads, of
-//! which 0 are opaque, and no `.canon/st/<ID>/` directory exists at all.**
+//! Measured at the time of writing: **hundreds of attachments across the
+//! estate's threads, none of them opaque, and no `.canon/st/<ID>/` directory
+//! exists at all.**
 //!
-//! - **"no opaque stored inline" has a denominator of ZERO over the estate.**
+//! - **"no opaque stored inline" has an EMPTY denominator over the estate.**
 //!   Nothing here can exercise it, and a green on that half alone would be the
 //!   vacuous pass this thread keeps paying for -- right verb, right depth, a
 //!   population that cannot contain the failure. It is driven by a fixture and
 //!   the zero is printed as a zero.
-//! - **"no text stored as a sibling" has a denominator of 280.** That half IS
-//!   exercised by the real estate, and it is exercised on every run.
+//! - **"no text stored as a sibling" has every attachment as its denominator.**
+//!   That half IS exercised by the real estate, and it is exercised on every
+//!   run.
 //!
 //! **The asymmetry is the interesting part rather than a caveat.** One rule
-//! stated in one sentence turns out to be two claims with populations three
+//! stated in one sentence turns out to be two claims with populations
 //! orders of magnitude apart, and only one of them is currently falsifiable by
 //! the corpus. A single count over "attachments checked" would have hidden
 //! that behind a number that looks like coverage.

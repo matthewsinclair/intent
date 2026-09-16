@@ -4,7 +4,7 @@
 //! thread status, and **never removes a file**.
 //!
 //! **DRIVEN THROUGH THE BINARY, NOT THE FACADE, BECAUSE THE CRITERIA ARE ABOUT
-//! A COMMAND.** Two of the four -- the tty refusal and the alias -- exist only
+//! A COMMAND.** Some of them -- the tty refusal and the alias -- exist only
 //! at the surface: a facade-level test cannot tell `organize` from `organise`
 //! and has no terminal to be absent from.
 //!
@@ -27,9 +27,9 @@
 //! puts the bytes back with a metadata-preserving copy leaves cargo's staleness
 //! check unmoved, so the next run links the MUTATED artefact while `git diff`
 //! reports the tree clean. The first attempt at this table was contaminated
-//! exactly that way and read as three tests redding under every mutation. The
-//! restore has to bump the mtime, and the baseline has to be re-run to green
-//! after each revert.
+//! exactly that way and read as the same tests redding under every mutation.
+//! The restore has to bump the mtime, and the baseline has to be re-run to
+//! green after each revert.
 //!
 //! # The one arm that is NOT driven here, named rather than left to be noticed
 //!

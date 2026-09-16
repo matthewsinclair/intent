@@ -11,13 +11,13 @@
 //! one of those drives `tools(&table)` directly.
 //!
 //! **None of them proves PUBLICATION.** A generator can be perfect and the
-//! server can list something else -- a floor of `> 40` tools, a stale roster
+//! server can list something else -- a floor on the tool count, a stale roster
 //! compiled in, a name transformed on the way out -- and every unit test stays
 //! green because none of them speaks over the wire. That is
 //! guard-on-the-wrong-side-of-the-wire (cc's class): an arm driving the
 //! composing function proves the sentence and proves nothing about whether the
 //! server still calls it. `mcp_stdio_serves.rs` drives a real session but
-//! asserts only `tools.len() > 40`, which a wrong roster of the right size
+//! asserts only a `tools.len()` floor, which a wrong roster of the right size
 //! passes. **This file closes the wire.**
 //!
 //! # The two anchors, chosen so neither side certifies itself
@@ -28,7 +28,7 @@
 //! authority the estate already holds:
 //!
 //! - **The published NAME SET is anchored to the `SERVED` const**, the declared
-//!   roster of 60. A tool published that is not in `SERVED`, or a `SERVED` path
+//!   roster. A tool published that is not in `SERVED`, or a `SERVED` path
 //!   the wire does not publish, fails -- so the surface is checked against a
 //!   DECLARATION, not against itself. (`SERVED` agreeing with `tools(&table)`
 //!   is the unit test's job; this file does not repeat it.)

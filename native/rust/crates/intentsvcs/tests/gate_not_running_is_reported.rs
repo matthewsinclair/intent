@@ -1,27 +1,27 @@
 //! **AN ESTATE HAS NO WAY TO LEARN THAT ITS COMMIT GATE IS NOT RUNNING** (vc's
 //! finding, 2026-08-27; built under vc's pen).
 //!
-//! Found on Baize: config `3.0.0`, canon present, fully ported, four whiteboard
-//! nodes, and a `pre-commit.intent` carrying no guard block whatsoever. `doctor
-//! --verbose` there printed 139 lines with ZERO mentions of `hook`, `gate`,
-//! `guard`, `INTENT_HOME` or `pre-commit`. **Nobody noticed, and nobody could
-//! have**: an unwired guard does not fail, it reports nothing, and reporting
-//! nothing is indistinguishable from passing.
+//! Found on Baize: config `3.0.0`, canon present, fully ported, whiteboard
+//! nodes at work, and a `pre-commit.intent` carrying no guard block whatsoever.
+//! `doctor --verbose` there printed a long report with NO mention of `hook`,
+//! `gate`, `guard`, `INTENT_HOME` or `pre-commit`. **Nobody noticed, and nobody
+//! could have**: an unwired guard does not fail, it reports nothing, and
+//! reporting nothing is indistinguishable from passing.
 //!
 //! # The severity is split by PROPERTY, and the split is the design
 //!
-//! One severity for all four properties is what would have made this useless.
+//! One severity for every property is what would have made this useless.
 //!
 //! | property                                   | severity                | reds today |
 //! | ------------------------------------------- | ------------------------ | ----------- |
-//! | installed and cannot execute               | `GateNotRunning`, GATES | 2 of 17    |
-//! | behind the template                        | `Advisory`, not counted | **17 of 17** |
+//! | installed and cannot execute               | `GateNotRunning`, GATES | a few      |
+//! | behind the template                        | `Advisory`, not counted | **all**    |
 //!
 //! **THE SECOND ROW IS WHY IT IS AN ADVISORY.** dc proved by `cmp` that the
-//! current template is installed in ZERO estates, Intent's own included, so
-//! gating it would make every estate in the fleet permanently red -- and a check
-//! that is always red is one operators learn to skip, at which point it is not
-//! there for the two that are genuinely broken either.
+//! current template is installed in NO estate, Intent's own included, so gating
+//! it would make every estate in the fleet permanently red -- and a check that
+//! is always red is one operators learn to skip, at which point it is not there
+//! for the ones that are genuinely broken either.
 //!
 //! # An ABSENT carrier is deliberately not a finding
 //!
@@ -46,7 +46,7 @@
 //!
 //! # Why the rest drive `gate_state` and not the whole of `doctor`
 //!
-//! Two arms are unreachable through the IO path on a healthy developer machine:
+//! These arms are unreachable through the IO path on a healthy developer machine:
 //! `NoResolvableInstall` needs a machine with no install, and `Current` needs a
 //! carrier byte-identical to whatever template that machine holds. **A check
 //! about estates being silently unprotected must not itself ship arms verified
@@ -81,7 +81,7 @@
 //! indistinguishable from dead code, and the honest repair is to find the input
 //! rather than to write the row down as covered.**
 //!
-//! Row three reds TWO, which the forecast had as one: a state that never
+//! Row three reds both, which the forecast did not expect: a state that never
 //! reports "behind" fails every input that should report it, same-length or
 //! not. Row four is the pair's discriminator and reds alone -- **a length
 //! comparison agrees with a byte comparison on every realistic carrier**,

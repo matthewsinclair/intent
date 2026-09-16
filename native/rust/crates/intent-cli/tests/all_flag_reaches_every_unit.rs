@@ -18,7 +18,7 @@
 //! # Why the flag exists at all
 //!
 //! **A v2-to-v3 REGRESSION, not a v3 feature.** v2 shipped it working;
-//! `usage-rules.md` instructs `install --all` at four sites. v3 declared it on
+//! `usage-rules.md` instructs `install --all` repeatedly. v3 declared it on
 //! no row, so clap refused it at **rc=1 `unexpected argument`** -- which tells
 //! an operator they mistyped the thing root canon told them to type. rc=2
 //! *known command, not implemented yet* is a coherent shipping state and is

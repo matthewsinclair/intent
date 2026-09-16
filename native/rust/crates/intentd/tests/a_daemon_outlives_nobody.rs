@@ -16,7 +16,7 @@
 //! # THE OWNER IS A REAL PROCESS AND IT IS KILLED WITH `SIGKILL`
 //!
 //! **A test that terminated its parent politely would measure the path that
-//! already works.** Nine test files in this workspace carry an `impl Drop` and
+//! already works.** Test files across this workspace carry an `impl Drop` and
 //! every one of them is correct; the leak happened anyway, because `Drop` runs
 //! on a normal return or an unwinding panic and NOT on an interrupted
 //! `cargo test`, a killed build, a Ctrl-C or a crashed TUI. `SIGKILL` is the

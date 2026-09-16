@@ -30,15 +30,16 @@
 //!
 //! # `design` is still the right vehicle for the arms below, for a NEW reason
 //!
-//! Not inertia, and not the expired one. There are THREE dispositions, not two:
-//! `Refuse` (`acceptance`, still refused, driven), `OpenRoundTrip` (the cover,
-//! whose path comes back AND whose `## Objective` / `## Context` are read back
-//! by `sync --to-store`), and plain `Open` (an attachment, which is handed over
-//! with nothing reading it back). **The arms below are about the TTY branch and
-//! the two overrides, which are properties of handing over a path at all**, so
-//! they belong on the disposition with no round-trip behaviour attached --
-//! otherwise a failure in the round-trip machinery would surface here, in a
-//! file about `IsTerminal`, and be read as an editor-launch defect.
+//! Not inertia, and not the expired one. The dispositions are not just
+//! refuse-or-open: `Refuse` (`acceptance`, still refused, driven),
+//! `OpenRoundTrip` (the cover, whose path comes back AND whose `## Objective` /
+//! `## Context` are read back by `sync --to-store`), and plain `Open` (an
+//! attachment, which is handed over with nothing reading it back). **The arms
+//! below are about the TTY branch and the two overrides, which are properties
+//! of handing over a path at all**, so they belong on the disposition with no
+//! round-trip behaviour attached -- otherwise a failure in the round-trip
+//! machinery would surface here, in a file about `IsTerminal`, and be read as
+//! an editor-launch defect.
 //!
 //! # What the pty proves that no ordinary test can
 //!

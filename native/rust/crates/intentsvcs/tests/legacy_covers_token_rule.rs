@@ -9,22 +9,21 @@
 //!
 //! **AND THE HALF THAT STOPS THE RULE FROM WIDENING WHAT IS BELIEVED.** A bare
 //! leading run would read ``satisfied: yes|no` on the AC line; test-backed ACs
-//! are...`` -- documentation ABOUT the field, 191 rows of it fleet-wide -- as a
+//! are...`` -- documentation ABOUT the field, common across the fleet -- as a
 //! `satisfied: yes`. So the token counts only when the character after it is
 //! one this vocabulary can be followed by. Reading prose as data is not a
 //! recovered row; it is an invented one.
 //!
 //! Measured before it was written, and RE-measured after a ratified boundary
-//! sent it back: 34 rows across 13 Lamplight files get correct ids where they
-//! got garbage, 4 `status:` rows recover from behind an emphasised
-//! parenthetical, ZERO rows regress, and all 243 documentation rows keep
-//! refusing.
+//! sent it back: dozens of rows across Lamplight's files get correct ids where
+//! they got garbage, a few `status:` rows recover from behind an emphasised
+//! parenthetical, NO rows regress, and every documentation row keeps refusing.
 //!
-//! **The first draft claimed 7 recovered and was wrong**, because it stripped
+//! **The first draft overcounted and was wrong**, because it stripped
 //! `*` and `_` off both ends of the value. That defeated
 //! `a_note_wrapped_in_markdown_emphasis_is_still_refused` through the back
 //! door -- trimming the trailing `_` of `satisfied: yes _(...)_` left a `)` for
-//! `strip_suffix` to find. The one `satisfied:` row among the seven is
+//! `strip_suffix` to find. The one `satisfied:` row it counted is
 //! deliberately still refused; re-ruling it is a separate decision, which is
 //! what that test asked for in as many words.
 

@@ -6,17 +6,17 @@
 //! path that ignores it. **The two spellings are indistinguishable in a green
 //! run and differ in exactly the case that matters.**
 //!
-//! **THE EPISODE (dc, 2026-08-30).** Four test files used the fixed path, 20
-//! arms between them. A node building into `native/rust/target/cc` therefore
-//! ran all 20 against `target/debug/intent` -- whatever the last default
-//! -target-dir build happened to leave. Measured on the day: sha `57c173c3` at
-//! 43265752 bytes, while cargo had just built `0a2ebb7a` at 43441384 bytes for
-//! that same test run. **Nothing reported the substitution, because there was
-//! no failure to report: the arms passed, against the wrong artefact.**
+//! **THE EPISODE (dc, 2026-08-30).** Several test files used the fixed path,
+//! with many arms between them. A node building into `native/rust/target/cc`
+//! therefore ran every one of those arms against `target/debug/intent` --
+//! whatever the last default -target-dir build happened to leave. Measured on
+//! the day: sha `57c173c3`, while cargo had just built `0a2ebb7a` for that same
+//! test run. **Nothing reported the substitution, because there was no failure
+//! to report: the arms passed, against the wrong artefact.**
 //!
 //! **THE PRIVATE TARGET DIR BEING INSIDE `target/` IS WHAT MADE IT SILENT.**
 //! dc found it from a worktree whose target dir was OUTSIDE the tree, where the
-//! fixed path did not resolve at all and all 7 arms of the first file died on
+//! fixed path did not resolve at all and every arm of the first file died on
 //! `NotFound` -- loud, immediate, and initially misattributed to their own
 //! change. **The louder failure was the lucky one**; the quiet form is what
 //! this guard exists to stop coming back.
@@ -25,7 +25,7 @@
 //! That file's `spawns_the_binary` accepts BOTH spellings, and for its own
 //! question -- *does this test spawn the binary at all*, which gates whether it
 //! must fixture `HOME` -- accepting both is correct. Narrowing it would blind
-//! the HOME check to exactly these four files. **So the four did not drift
+//! the HOME check to exactly these files. **So they did not drift
 //! under a guard that failed; they drifted under no guard, beside one whose
 //! NAME sounded like it covered them.** Putting binary resolution inside a file
 //! called `..._fixture_their_home` would make a home whose name does not

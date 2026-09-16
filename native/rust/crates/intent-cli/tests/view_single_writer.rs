@@ -1,13 +1,13 @@
 //! AT-07.6 / ST0056 AC-07.6: **a generated view has one writer IN A CONSUMER
 //! REPO, not only in this one.**
 //!
-//! # The clause this file exists for is the last six words of the criterion
+//! # The clause this file exists for is the closing words of the criterion
 //!
 //! AC-03.17 already established one-writer-per-view here, and
 //! `generated_views_are_not_formatted.rs` polices it here: it asks
 //! `views::render_all` for its own output set and requires every path to be
 //! ignored. **That test cannot see the defect this one is about.** It reads
-//! THIS repository, whose `.prettierignore` is HAND-AUTHORED -- 40 lines of
+//! THIS repository, whose `.prettierignore` is HAND-AUTHORED -- lines of
 //! reasoning somebody sat down and wrote. Nothing lays that file down for
 //! anyone else.
 //!
@@ -33,8 +33,8 @@
 //! tool tells the operator not to edit, and the tool then reports the operator
 //! for it.** Regenerating restores the renderer's bytes; the next format pass
 //! rewrites them again. Forever, with every pass looking like a legitimate
-//! repair -- 7 diverged rows and three consecutive commits reporting "1 file
-//! changed" when this ran inside the estate.
+//! repair -- diverged rows and consecutive commits each reporting the view as
+//! the only file changed when this ran inside the estate.
 //!
 //! # The control is not decoration and it is not optional
 //!
@@ -42,7 +42,7 @@
 //! the exclusion deleted and requires it to REWRITE. Without that arm, a green
 //! here is also what you would see if prettier silently did nothing, if the
 //! view were never rendered, or if the fixture carried no emphasis to rewrite
-//! -- **three ways to pass while measuring nothing**, which is the class this
+//! -- **each a way to pass while measuring nothing**, which is the class this
 //! estate keeps meeting. `format_roster_is_honoured.rs` makes the same argument
 //! for the same reason: a subject that cannot exhibit the defect cannot clear
 //! it.

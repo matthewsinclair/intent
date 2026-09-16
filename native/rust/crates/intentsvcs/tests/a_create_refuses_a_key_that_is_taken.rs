@@ -3,7 +3,7 @@
 //!
 //! # The incident this is the deterministic form of
 //!
-//! Two nodes ran `intent issues add` on 2026-08-28 and **both were told
+//! Separate nodes ran `intent issues add` on 2026-08-28 and **both were told
 //! `created: intent/.canon/issues/0126.json`**. One filing survived; the other
 //! reached neither the store nor the extract, and nothing said so. `git show
 //! 9e9ee8ab:intent/.canon/issues/0126.json` -- the losing node's own commit --
@@ -18,7 +18,7 @@
 //!
 //! # The issue reported that the race would not reproduce, and that stands
 //!
-//! Three drives failed to reproduce it, and the informative one explains why:
+//! Several drives failed to reproduce it, and the informative one explains why:
 //! `next_issue_number()` reads canon from the STORE, not from the extract, so
 //! two SEQUENTIAL adds can never collide. The issue says in terms that the
 //! window is not characterised, and this file does not claim to characterise it

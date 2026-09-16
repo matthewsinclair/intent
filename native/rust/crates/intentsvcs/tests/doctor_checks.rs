@@ -1,11 +1,11 @@
 //! AT-06.2 / AC-06.2: doctor as model/DB integrity queries plus file checks,
 //! including the skew check and unparsed-state reporting.
 //!
-//! **Every model check gets its own fixture.** One estate carrying all seven
-//! faults would pass a "doctor found something" assertion while six of the
-//! seven checks were dead, and a dead check is indistinguishable from a clean
-//! bill of health. The all-at-once case is asserted too, but for a different
-//! property: that the report does not stop at the first finding.
+//! **Every model check gets its own fixture.** One estate carrying every fault
+//! would pass a "doctor found something" assertion while most of the checks
+//! were dead, and a dead check is indistinguishable from a clean bill of
+//! health. The all-at-once case is asserted too, but for a different property:
+//! that the report does not stop at the first finding.
 //!
 //! The load-bearing test in this file is
 //! `doctor_runs_on_a_project_that_cannot_be_opened`. Doctor going through the

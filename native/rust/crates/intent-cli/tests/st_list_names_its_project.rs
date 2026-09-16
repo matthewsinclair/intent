@@ -33,7 +33,7 @@
 //!     headers -- one fixture cannot tell a real answer from a constant;
 //!   - the directory name must DISAGREE with the configured name, or the arm
 //!     cannot tell which source was read;
-//!   - the four remaining headers must be EXACTLY the declared ones, which is
+//!   - the remaining headers must be EXACTLY the declared ones, which is
 //!     what refuses a build that sprays the name across the row;
 //!   - and `the_fixture_can_exhibit_it` asserts the fixture's own names are
 //!     distinct from each other and from `ID`, rather than trusting it.
@@ -43,7 +43,7 @@
 //!
 //! | mutation                                          | reds                                                      |
 //! | ------------------------------------------------- | --------------------------------------------------------- |
-//! | no name at all (the pre-change behaviour)         | 4 arms: directory_wins, first_column, slug_table, two_projects |
+//! | no name at all (the pre-change behaviour)         | directory_wins, first_column, slug_table, two_projects    |
 //! | reads `config.project_name` not the directory     | `the_directory_wins_over_the_configured_name` ONLY        |
 //! | sprays the name across EVERY heading              | `no_other_column_heading_changes`, `the_slug_table_...`   |
 //! | only the non-slug table gets the name             | `the_slug_table_carries_it_too`                           |
@@ -59,8 +59,8 @@
 //! reds nothing is either a missing test or dead code, and the way to tell is
 //! to ask what input reaches it.** Here nothing did, so the branch went rather
 //! than a test being written to pin an impossible state. Same class vc hit the
-//! same evening from the other end: a user-facing sentence changed and 1222
-//! tests stayed green, because the string was unpinned.
+//! same evening from the other end: a user-facing sentence changed and every
+//! test stayed green, because the string was unpinned.
 //!
 //! **THE SECOND ROW IS WHY `the_directory_wins` EXISTS.** A build reading the
 //! configured name passes every other arm in this file -- the header is still a
@@ -73,7 +73,7 @@
 //! changing it would diverge every committed view in the fleet at once. That is
 //! guarded already, and more strongly than a unit test could: the pre-commit
 //! `thread-view-skew` check compares every generated view against the model
-//! (312 on this estate) and `doctor` reports skew on every project. A test
+//! and `doctor` reports skew on every project. A test
 //! asserting the literal `ID` in that array would only restate the array.
 
 use std::process::{Command, Output};

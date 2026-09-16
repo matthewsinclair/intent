@@ -8,10 +8,10 @@
 //!
 //! # Measured, not reasoned, on Courses ST0002 at `d18aca7^`
 //!
-//! Ten criteria. **2 of 2 carrying a bare `yes` survived; 8 of 8 carrying a
-//! parenthetical were downgraded.** Perfect correlation, no exceptions. The
+//! **Every criterion carrying a bare `yes` survived; every one carrying a
+//! parenthetical was downgraded.** Perfect correlation, no exceptions. The
 //! phrase `hv signed off` survived neither in canon nor in the regenerated
-//! view, so a COMPLETED thread arrived recording eight of ten criteria
+//! view, so a COMPLETED thread arrived recording most of its criteria
 //! unsatisfied and nothing anywhere reported it.
 //!
 //! **THE CATCH-ALL WAS THE WHOLE DEFECT.** A classifier whose default bucket

@@ -48,15 +48,16 @@
 //! | the refusal drops the thread names it now carries            | `a_refused_removal_names_the_thread_and_the_precondition`  |
 //! | the confirm text is restored to `it removes no files`        | `the_confirm_says_what_the_arm_actually_does` ONLY         |
 //!
-//! **THE FIRST ROW REDS TWO TESTS AND THAT IS THE INTERESTING PART.** An arm
-//! that regenerates and applies nothing fails the open-gate estate (nothing
-//! created, nothing removed) AND the shut-gate one -- because the refusal test
-//! asserts the ungated HYDRATION happened, which is what tells a gate that
-//! refused from a run that never ran. Without that clause the shut-gate test
-//! would have stayed green under an implementation that does nothing at all,
-//! since "the files are still there" is exactly what doing nothing produces.
+//! **THE FIRST ROW REDS THE REFUSAL TEST TOO, AND THAT IS THE INTERESTING
+//! PART.** An arm that regenerates and applies nothing fails the open-gate
+//! estate (nothing created, nothing removed) AND the shut-gate one -- because
+//! the refusal test asserts the ungated HYDRATION happened, which is what tells
+//! a gate that refused from a run that never ran. Without that clause the
+//! shut-gate test would have stayed green under an implementation that does
+//! nothing at all, since "the files are still there" is exactly what doing
+//! nothing produces.
 //!
-//! **AND THE HARNESS THAT MEASURED THIS REPORTED FOUR EMPTY ROWS FIRST.** The
+//! **AND THE HARNESS THAT MEASURED THIS REPORTED EMPTY ROWS FIRST.** The
 //! reader picked test names out of `cargo test` output with a filter that also
 //! matched the `test result: FAILED.` summary line, so every mutation came back
 //! naming a test called `result:`. It is the same class as everything else in

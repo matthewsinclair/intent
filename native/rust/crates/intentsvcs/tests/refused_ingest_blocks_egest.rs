@@ -31,14 +31,14 @@
 //! is captured and asserted on here, and the egest's refusal is asserted to
 //! NAME what it is refusing over.
 //!
-//! # Seven mutation arms, six red, and the survivor is named rather than left
+//! # Mutation arms that went red, and the survivor named rather than left
 //!
-//! Two of the cases below exist because a mutant survived without them:
+//! Some of the cases below exist because a mutant survived without them:
 //! `succeeded()` written as `!= "refused"` (which calls a CRASHED load healthy)
 //! and the guard reading `None` as a refusal (which would block the egest on
 //! every project the moment it upgraded). Both are now driven.
 //!
-//! **The seventh SURVIVES, it was predicted to survive before the arm was run,
+//! **The last SURVIVES, it was predicted to survive before the arm was run,
 //! and it is recorded here rather than quietly left.** `Store::begin_ingest` /
 //! `finish_ingest` are re-entrant so that the OUTERMOST load owns the record --
 //! `Facade::sync_from_disk` wraps a region in which `ingest::resync` opens its
@@ -51,11 +51,11 @@
 //! `Project::collect_attachments`, which cc is rewriting this session for
 //! ST0057 WP-03 -- the non-UTF-8 arm is being turned from a refusal into a
 //! carry. A test built on a refusal that is being deleted is the
-//! provoker-stopped-provoking trap this estate has already been caught by three
-//! times in `error_remedies.rs`, and doing it knowingly would be worse than the
-//! three accidents. **So the guard is correct, cheap, load-bearing on a hole
-//! that is real, and UNFALSIFIED by this suite** -- which is a different claim
-//! from covered, and is made in those words on purpose.
+//! provoker-stopped-provoking trap this estate has already been caught by
+//! repeatedly in `error_remedies.rs`, and doing it knowingly would be worse
+//! than those accidents. **So the guard is correct, cheap, load-bearing on a
+//! hole that is real, and UNFALSIFIED by this suite** -- which is a different
+//! claim from covered, and is made in those words on purpose.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{AcKind, AcState, Criterion, Thread};

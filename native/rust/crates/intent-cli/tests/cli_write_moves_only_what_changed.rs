@@ -4,7 +4,7 @@
 //! `intentsvcs`' `write_moves_only_what_changed.rs` (AT-03.15) is the other
 //! half. It drives `Facade` methods, and AT-03.15's own note records why that
 //! is a boundary rather than a backlog: of the verbs it could not reach,
-//! **31 of 32 appear nowhere in the facade surface at all** -- `st repair`,
+//! **nearly all appear nowhere in the facade surface at all** -- `st repair`,
 //! `st bootstrap`, `st sync` reach no `intentsvcs` path, and the `todo` family
 //! resolves only into `intent-cli`'s `render.rs`/`spine.rs`. No number of extra
 //! cases in that file can reach them. **This is the second instrument it named:
@@ -41,7 +41,7 @@
 //!
 //! # What driving them actually found
 //!
-//! Ten verbs came here as "unproven". **Only three of them write.** The rest
+//! The verbs came here as "unproven". **Only a few of them write.** The rest
 //! are classified `mutate` on a surface that never drove them:
 //!
 //! - `st bootstrap`, `st repair` -- `rc=2`, *was retired in Intent v3*.
@@ -64,8 +64,8 @@
 //!   start.
 //!
 //! **That is a population defect in the dispatch table, not a debt in this
-//! file, and it is reported rather than quietly re-bucketed**: seven shipped
-//! `mutate` entries write nothing at all. Each is driven here and each
+//! file, and it is reported rather than quietly re-bucketed**: every shipped
+//! `mutate` entry above writes nothing at all. Each is driven here and each
 //! assertion goes RED the day it starts writing, which forces the re-bucket
 //! instead of leaving an excuse behind.
 

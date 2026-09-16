@@ -16,7 +16,7 @@
 //! at rc=0, in a project whose every report said the gate was wired.
 //!
 //! Baize is the measured instance: `intent_version` 3.0.0, canon present, fully
-//! ported, four whiteboard nodes, and a gate running nothing.
+//! ported, whiteboard nodes at work, and a gate running nothing.
 //!
 //! # Why these arms and not "does apply write the file"
 //!
@@ -24,11 +24,11 @@
 //! the wrong tree with the wrong mode. Each arm below pins a property that a
 //! plausible implementation gets wrong, and every one of them was reachable:
 //!
-//! - **Source.** dc measured eleven estates carrying the FROZEN v2 tree's gate
-//!   byte for byte, ten stamped the same day. The last fleet-wide install read
-//!   from a tree nobody develops in. **The defect was what the installer read**,
-//!   so an installer that reads from anywhere but the resolved install root
-//!   reproduces today's state exactly, and at rc=0.
+//! - **Source.** dc measured many estates carrying the FROZEN v2 tree's gate
+//!   byte for byte, nearly all stamped the same day. The last fleet-wide
+//!   install read from a tree nobody develops in. **The defect was what the
+//!   installer read**, so an installer that reads from anywhere but the
+//!   resolved install root reproduces today's state exactly, and at rc=0.
 //! - **Mode.** `[ -x ]` is the test the block applies. Right bytes plus wrong
 //!   mode is the silent skip with every byte in place, and it is precisely the
 //!   state a `write_if_changed` short-circuit leaves untouched forever.

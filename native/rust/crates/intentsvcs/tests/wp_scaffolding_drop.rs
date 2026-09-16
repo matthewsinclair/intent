@@ -3,9 +3,10 @@
 //! and the half I had backwards -- carrying is not the conservative option).
 //!
 //! It was already shipping a visible defect. Measured by running the migrator
-//! on a sacrificial copy of this estate: **40 of 140 migrated work-package
-//! views carried TWO `## Acceptance` sections**, the carried one and the one
-//! `views::wp_info` generates, saying the same thing in different words:
+//! on a sacrificial copy of this estate: **a sizeable share of the migrated
+//! work-package views carried TWO `## Acceptance` sections**, the carried one
+//! and the one `views::wp_info` generates, saying the same thing in different
+//! words:
 //!
 //! ```text
 //! carried:   ... live in the steel thread's `acceptance.md`, under the `WP-01`
@@ -14,18 +15,19 @@
 //!            the single source of truth. This cover never restates them.
 //! ```
 //!
-//! 104 across the captured fleet -- Utilz 11, Baize 53, Intent 40 -- and **every
-//! one of them is `Acceptance`; no other heading doubles anywhere** (vc, by a
-//! different method on a different copy). It is one section, and it is the one
-//! section whose template body carries a substituted placeholder.
+//! Doubles turn up across the captured fleet -- Utilz, Baize and Intent -- and
+//! **every one of them is `Acceptance`; no other heading doubles anywhere**
+//! (vc, by a different method on a different copy). It is one section, and it
+//! is the one section whose template body carries a substituted placeholder.
 //!
 //! **THE PLACEHOLDER IS WHY THE OBVIOUS RULE MISSES ALL OF THEM.**
 //! `bin/intent_wp:113` creates every work package with
 //! `sed -e "s/WP-NN/WP-$WP_NUM/g"`, so against the RAW template `## Acceptance`
-//! matches 0 of 40 while `Deliverables` and `Dependencies` match 20 each. The
-//! artefact these files were copied from is the template WITH the substitution
-//! applied, which is citable to a line of shell rather than inferred from
-//! shape -- and the raw template is a source no file was ever a copy of.
+//! matches none of the doubled views while `Deliverables` and `Dependencies`
+//! each match many of them. The artefact these files were copied from is the
+//! template WITH the substitution applied, which is citable to a line of shell
+//! rather than inferred from shape -- and the raw template is a source no file
+//! was ever a copy of.
 //!
 //! **This is NOT a heading-name rule.** `## Acceptance` is a legitimate
 //! authored section elsewhere in this estate, so the drop is keyed on bytes and
@@ -33,11 +35,12 @@
 //! seeded from an older template generation fails the match and is kept.
 //!
 //! **The negative control below is vc's condition and it is the point of the
-//! file.** Against this estate the detector hits 40 of 40 -- a 100% rate
-//! against 15-16% for the sections that do not double -- and **a detector that
-//! has only ever been shown positives is indistinguishable from one that
-//! matches anything.** `an_edited_acceptance_section_is_carried_not_dropped` is
-//! the only test here that can tell those two apart.
+//! file.** Against this estate the detector hits every doubled view -- a
+//! perfect rate against a small fraction for the sections that do not double --
+//! and **a detector that has only ever been shown positives is
+//! indistinguishable from one that matches anything.**
+//! `an_edited_acceptance_section_is_carried_not_dropped` is the only test here
+//! that can tell those two apart.
 
 use crate::common::{Fixture, ctx};
 use intentsvcs::legacy::Verdict;

@@ -10,8 +10,8 @@
 //! is that STALE and ABSENT carry DIFFERENT REMEDIES, and the case that
 //! separates them is the orphaned listening descriptor.
 //!
-//! **THE SIX-CASE MEASUREMENT THIS WAS RULED ON (cc, 2026-08-31).** The two
-//! readings agree on five cases and disagree on exactly one:
+//! **THE MEASUREMENT THIS WAS RULED ON (cc, 2026-08-31).** The two readings
+//! agree on every case but the orphaned listening descriptor:
 //!
 //! | case                                | lock | conn | ans | LOCK   | CONNECT |
 //! |-------------------------------------|------|------|-----|--------|---------|
@@ -30,7 +30,7 @@
 //! destructive rather than wasteful).
 //!
 //! **CONSTRUCTED, NEVER WAITED FOR** (`AC-08.3`). The orphan case is the
-//! 1-in-300 race, and a suite that passes because a race did not fire has
+//! rare race, and a suite that passes because a race did not fire has
 //! measured nothing. It is built here as its DETERMINISTIC EQUIVALENT: a
 //! listener that accepts and never answers while holding no lock is the same
 //! observable as an inherited descriptor whose parent has died, which is the

@@ -1,13 +1,13 @@
 //! **`intent critic` -- the surface `tests/unit/intent_critic.bats` guarded,
 //! carried onto the binary that now provides it (ST0056, the `bin/` prune).**
 //!
-//! The v2 file has 21 arms against `bin/intent_critic`, a 12,415-line
-//! population-A script the prune deletes. The standard applied is vc's, from
+//! The v2 file's arms ran against `bin/intent_critic`, a population-A script
+//! the prune deletes. The standard applied is vc's, from
 //! `no_absolute_home_paths`: **does v3 cover the PROPERTY** -- not does the v2
 //! test still pass, because a passing test whose subject is being deleted is
-//! evidence about the past. Seventeen of the 21 properties are covered and are
-//! asserted here against the shipped binary. Four are not carried, and each is
-//! named below rather than dropped in silence.
+//! evidence about the past. Most of its properties are covered and are asserted
+//! here against the shipped binary. The rest are not carried, and each is named
+//! below rather than dropped in silence.
 //!
 //! **THE v2 FILE IS STILL PRESENT AND STILL GREEN, AND THAT IS DELIBERATE.**
 //! The `bin/` delete is held on an hv ruling, so for as long as it is held both
@@ -26,9 +26,9 @@
 //! nothing about the rest_. That is the denominator discipline this estate has
 //! been adding everywhere, already present here.
 //!
-//! # THE FOUR THAT DID NOT COME ACROSS
+//! # THE PROPERTIES THAT DID NOT COME ACROSS
 //!
-//! **Two are retirements with their subject**, and need no decision: v2's arm 1
+//! **Some are retirements with their subject**, needing no decision: v2's arm 1
 //! (`bin/intent_critic` exists and is executable) and arm 21 (`intent critic`
 //! dispatches to `bin/intent_critic`) are about a script that will not exist.
 //! v2's arm 2 asserts the v2 usage STRING (`intent critic <lang>`), which is
@@ -45,7 +45,7 @@
 //!
 //! **(1) A BARE `intent critic <lang>` REPORTS CLEAN OVER ZERO FILES AT EXIT
 //! 0.** v2 exited 2 with _no files specified_ rather than guess a population.
-//! Measured in this repository, which tracks 332 `.rs`, 112 `.sh` and 41 Elixir
+//! Measured in this repository, which tracks many `.rs`, `.sh` and Elixir
 //! files: `critic rust`, `critic shell` and `critic elixir` each print `ok: no
 //! <lang> findings ... across 0 file(s)` and exit 0. **The population is not
 //! empty; the run examined none of it.** The stdout line does carry the `0
@@ -57,7 +57,7 @@
 //! **(2) AN UNKNOWN `--format` WAS ACCEPTED AT EXIT 0 AND SILENTLY RENDERED
 //! TEXT. CLOSED 2026-09-12, hv's v3.0.2 ruling, `intent/wip.md` item 8.** v2
 //! exited 2 with _invalid --format_; `--help` declares the flag as
-//! `--format <text|json>` -- a closed set of two -- and the binary took any
+//! `--format <text|json>` -- a closed set -- and the binary took any
 //! string, so a script whose `--format json` was typoed to `--format jsonl` got
 //! text at exit 0 and parsed garbage. **Its sibling on the same command already
 //! validated**: `--severity-min bogus` is refused at exit 2, so the two flags

@@ -1,15 +1,15 @@
 #!/usr/bin/env bats
 # Every shipped guard is reachable from the shipped hook.
 #
-# **THESE TWO TESTS LIVED IN `whiteboard_header_guard.bats` AND BOTH FACTS IN
+# **THESE TESTS LIVED IN `whiteboard_header_guard.bats` AND BOTH FACTS IN
 # THAT SENTENCE WERE WRONG BY 2026-08-20.** They were in a file named for ONE
 # guard while asserting something about ALL of them, and their population was
 # the glob `whiteboard-*-guard.sh` while the roster had generalised to any
-# guard at all. Measured at the move: the glob matched 2, the roster carried 4,
-# and the two it could not see -- `canon-ignore-guard.sh` and
-# `append-only-guard.sh` -- are **exactly the two that had never run in this
+# guard at all. Measured at the move: the glob matched fewer guards than the
+# roster carried, and the ones it could not see -- `canon-ignore-guard.sh` and
+# `append-only-guard.sh` -- are **exactly the ones that had never run in this
 # repository.** A test written to catch SHIPPED BUT NEVER INVOKED was
-# structurally blind to the only two instances of it (cc, measured).
+# structurally blind to the only instances of it (cc, measured).
 #
 # So the file is named for the property rather than for one of its subjects,
 # and the population is every `*-guard.sh` that ships. **A checker whose
@@ -18,7 +18,7 @@
 # path at the new roster would have been necessary and not sufficient.
 #
 # THE ORIGINAL REASON STILL STANDS AND IS WHY THIS IS LOAD-BEARING: the same
-# three checks once lived in two homes, one home followed a tree move and the
+# checks once lived in two homes, one home followed a tree move and the
 # other did not, and CI was green throughout. **A guard that ships and is never
 # invoked is worse than an absent one** -- it is in MODULES.md, it has its own
 # tests, and it enforces nothing. Neither the guard's tests nor the hook's would
@@ -28,7 +28,7 @@
 # the chain: the shipped hook dispatches the runner, and the runner's roster
 # names every shipped guard. It does NOT execute them -- `pre_commit_hook.bats`
 # drives the whole chain end to end through a real `git commit`, including the
-# three absences, and duplicating that here would be a second home for it.
+# absences, and duplicating that here would be a second home for it.
 
 load "../lib/test_helper.bash"
 

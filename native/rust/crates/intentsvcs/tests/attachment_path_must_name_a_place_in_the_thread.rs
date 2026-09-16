@@ -1,4 +1,4 @@
-//! **`0262` AND THE FOUR IT WAS SITTING WITH.**
+//! **`0262` AND THE PATH SHAPES IT WAS SITTING WITH.**
 //!
 //! `intent st attach` accepted a repo-relative path, returned `ok:` at rc=0, and
 //! minted a SECOND attachment row for a file that already had one -- resolving
@@ -7,10 +7,10 @@
 //! `intent st attach <ST> <rel-path> --from <file>`, and *relative* to a reader
 //! means relative to the repository.
 //!
-//! # The row named one path shape; the door was accepting five
+//! # The row named one path shape; the door was accepting others too
 //!
-//! Driven on `da5919e8` before the fix, eight paths offered and eight rows
-//! minted at rc=0: the repo-relative form, an empty string, an absolute path,
+//! Driven on `da5919e8` before the fix, every path offered minted a row at
+//! rc=0: the repo-relative form, an empty string, an absolute path,
 //! `../escape.md`, and the unnormalised `./x` and `a/../x`. **The issue is
 //! written about the one somebody happened to type.** Every arm below was a
 //! real acceptance, not a hypothetical.

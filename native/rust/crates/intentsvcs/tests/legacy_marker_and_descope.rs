@@ -1,5 +1,5 @@
-//! **A THREAD RECORDING TWELVE hv-RULED DESCOPES ARRIVED 24/24 GREEN, AND THE
-//! MIGRATION EXITED 0.**
+//! **A THREAD RECORDING hv-RULED DESCOPES ARRIVED ALL GREEN, AND THE MIGRATION
+//! EXITED 0.**
 //!
 //! `non_test` is a literal `rest.trim_start().starts_with("(non-test)")`, and
 //! `field(body, "satisfied")` is evaluated ABOVE the branch that uses it. So a
@@ -8,19 +8,20 @@
 //! arm, becomes `(AcKind::Test, AcState::Computed)`, and has its entire claim
 //! computed and then dropped on the floor.
 //!
-//! # Measured on the estate at 2026-08-27, and the first two populations were wrong
+//! # Measured on the estate at 2026-08-27, and the first populations were wrong
 //!
-//! Rows carrying `satisfied:` with no marker are **792** -- but 789 of those are
-//! legitimately test-backed and their `satisfied:` is v2 noise, so that is not
-//! the subject. A merely MISPLACED marker (trailing, or behind `**`) is **3**,
-//! which is too narrow. The subject is **rows with no marker that carry a
-//! NON-TEST-ONLY field** (`evidence` / `by` / `on` / `descoped-to` / `reason` /
-//! `withdrawn`): **40** estate-wide, of which **21 carry no evidence** and
-//! **Lamplight ST0346 contributes 12**.
+//! Rows carrying `satisfied:` with no marker number in the **hundreds** -- but
+//! nearly all of those are legitimately test-backed and their `satisfied:` is
+//! v2 noise, so that is not the subject. A merely MISPLACED marker (trailing,
+//! or behind `**`) is **a handful**, which is too narrow. The subject is **rows
+//! with no marker that carry a NON-TEST-ONLY field** (`evidence` / `by` / `on`
+//! / `descoped-to` / `reason` / `withdrawn`): **dozens** estate-wide, of which
+//! **most carry no evidence** and **Lamplight ST0346 contributes its
+//! descopes**.
 //!
 //! The discriminator is what makes a refusal scopable rather than a blanket:
-//! across **2757** unmarked AC rows only ~20 carry ANY non-test-only field,
-//! while `evidence:` sits on **1285 of 1339** marked ones.
+//! across **thousands** of unmarked AC rows only a sliver carry ANY
+//! non-test-only field, while `evidence:` sits on **nearly every** marked one.
 //!
 //! # Why this REFUSES rather than reclassifies, proved by a row in the fixture
 //!
@@ -34,11 +35,11 @@
 //! So the same shape has two opposite correct readings and the row does not say
 //! which. **A refusal is right for both** -- it names the ambiguity and stops.
 //! Reading the row as non-test would silently reverse Conflab's promotion, and
-//! reading it as test-backed silently discards ST0346's twelve. That is vc's
+//! reading it as test-backed silently discards ST0346's descopes. That is vc's
 //! "refuse, never reclassify" ruling, and it is not a caution here but the only
 //! reading the evidence supports.
 //!
-//! **The 21 rows carrying no evidence are the other half of the same argument.**
+//! **The rows carrying no evidence are the other half of the same argument.**
 //! Widening them into the non-test branch lands them on `AcState::Unsatisfied { note: None }`
 //! -- trading a silent DROP for a silent FAILURE, which is not a fix.
 //!
@@ -50,8 +51,8 @@
 //! writes `descoped-to:`/`withdrawn:` plus `by:` plus `on:` plus `reason:` in
 //! full, into an `AcState::Descoped { to, by, reason }` that already exists.
 //!
-//! So arm 1 alone walks ST0346 from a green lie (twelve descopes counted
-//! `Computed`) to a RED one (those twelve as hard `Unsatisfied`), and arm 2
+//! So arm 1 alone walks ST0346 from a green lie (its descopes counted
+//! `Computed`) to a RED one (those descopes as hard `Unsatisfied`), and arm 2
 //! alone never fires because arm 1 never lets a row reach it. Neither half is
 //! shippable without the other.
 

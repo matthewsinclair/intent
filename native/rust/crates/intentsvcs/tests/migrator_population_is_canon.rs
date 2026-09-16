@@ -16,8 +16,8 @@
 //!
 //! **AT-10.12 remains unbuilt and deliberately held**: threads and issues go
 //! through the same `frontmatter()`, yet canon carries neither the blank line
-//! nor the trailing newline on 40 of 40 issues AND 54 of 54 threads, and a
-//! re-run changed zero thread canon while changing all forty issues. Building
+//! nor the trailing newline on every issue AND every thread, and a
+//! re-run changed no thread canon while changing every issue. Building
 //! the instrument before that asymmetry is explained would encode whichever of
 //! three answers its author guessed, invisibly, inside a green.
 //!
@@ -26,19 +26,19 @@
 //! On a fresh clone at `183f7342`, binary `ada1ce8c0241e3a9`:
 //!
 //! ```text
-//! fresh clone                steel_threads.md  57 rows
-//! intent sync --to-store     "ok: store replaced from the extract, 57 thread(s)"
+//! fresh clone                steel_threads.md  <n> rows
+//! intent sync --to-store     "ok: store replaced from the extract, <n> thread(s)"
 //! intent upgrade             rc=0, "ok: this project is now Intent v3.0.0-dev"
-//! after                      steel_threads.md   3 rows
+//! after                      steel_threads.md  a few rows
 //! ```
 //!
-//! **239 lines deleted across two committed views, at rc=0.** Canon is
-//! untouched -- all 57 files survive -- so nothing is LOST; the committed
-//! INDEX of the estate now names three threads of fifty-seven, and the only
+//! **Hundreds of lines deleted across both committed views, at rc=0.** Canon is
+//! untouched -- every canon file survives -- so nothing is LOST; the committed
+//! INDEX of the estate now names only a handful of its threads, and the only
 //! thing that said so was a diff nobody was asked to read.
 //!
 //! **It is not a missing-store problem**, which was the first hypothesis and
-//! was checked: loading the store from the extract first (57 threads, "the
+//! was checked: loading the store from the extract first (every thread, "the
 //! store and the extract agree") changes nothing.
 //!
 //! # Why, read at source
@@ -59,7 +59,7 @@
 //!
 //! vc, 2026-08-20: neither the instance, nor the control, nor the predicate may
 //! be drawn from the thing under test. A red-first keyed on the live estate's
-//! 54 dehydrated threads would make them a fixture, and the estate could not
+//! dehydrated threads would make them a fixture, and the estate could not
 //! then be repaired without reddening this file.
 
 use std::collections::BTreeSet;

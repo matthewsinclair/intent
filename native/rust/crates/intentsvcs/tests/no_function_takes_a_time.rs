@@ -18,7 +18,7 @@
 //! `fn record(when: String)`.
 //!
 //! It is also the form that needs no judgement. Asking where a caller got a
-//! timestamp is a trace, and this estate has failed that trace three times in
+//! timestamp is a trace, and this estate has failed that trace repeatedly in
 //! one day; asking whether a signature accepts one is a grep.
 //!
 //! **`src/` only, deliberately.** hv's rule is about the shipped API surface. A

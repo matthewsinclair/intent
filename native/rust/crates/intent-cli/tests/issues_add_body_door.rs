@@ -3,7 +3,7 @@
 //! `Issue::body` was declared in the model and carried through canon while
 //! `issues add` took `<TITLE>` and `--severity` only, so the field had no
 //! writer at all: prose was authored by editing the file, a route that stops
-//! existing under the disk-optional model. 57 of 78 issues on this estate carry
+//! existing under the disk-optional model. Most issues on this estate carry
 //! a non-empty body.
 //!
 //! **THE PROPERTY THAT NEEDED A TEST IS THE REFUSAL, NOT THE CARRY.** `--body`

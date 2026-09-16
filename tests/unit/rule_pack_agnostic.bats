@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 # Tests for the agnostic rule pack (WP04).
 #
-# These tests guard three invariants:
-#   1. Presence — all six canonical agnostic rules exist at their expected
-#      filesystem paths with a well-formed RULE.md.
+# These tests guard the invariants below:
+#   1. Presence — every canonical agnostic rule exists at its expected
+#      filesystem path with a well-formed RULE.md.
 #   2. Frontmatter — each rule declares `language: agnostic` and carries the
 #      required schema fields.
 #   3. `concretised_by:` invariant — see below. The pack has TWO KINDS of rule
 #      and they discharge the anti-vagueness requirement differently.
 #
-# CONSCIOUS UPDATE, 2026-08-30 (dc). This file asserted FOUR while SIX rules
-# were on disk, and the count assertion had been red since `red-control` landed
+# CONSCIOUS UPDATE, 2026-08-30 (dc). This file asserted fewer rules than were
+# on disk, and the count assertion had been red since `red-control` landed
 # on 2026-08-26 — four days, because the tripwire fired and the update it asks
 # for was never done. It is done here for BOTH late arrivals at once.
 #
@@ -19,7 +19,7 @@
 # does not merely have to be counted, it has to be CLASSIFIED before this file
 # goes green. That matters because the two kinds have opposite obligations, and
 # the old per-rule-by-name checks meant a new rule was governed by nothing at
-# all — `red-control` sat in this pack for four days with zero `concretised_by`
+# all — `red-control` sat in this pack for four days with no `concretised_by`
 # entries and no test in the suite had an opinion about it.
 
 load "../lib/test_helper.bash"

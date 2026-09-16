@@ -50,8 +50,8 @@
 //!
 //! # No count is asserted
 //!
-//! The estate measured 206 of 207 covers carrying the defect at `40d27ba2`.
-//! That number is a measurement of a defect due to be repaired, and **a count
+//! The estate measured nearly every cover carrying the defect at `40d27ba2`.
+//! That is a measurement of a defect due to be repaired, and **a count
 //! baked into a test goes green by drifting.** The assertion is the property;
 //! the examined population is printed as the denominator.
 

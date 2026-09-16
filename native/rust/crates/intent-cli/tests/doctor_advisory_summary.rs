@@ -1,6 +1,6 @@
 //! The summary line the operator reads: advisories are set aside BY NAME on it,
 //! and `N finding(s)` is the count of what is actionable -- hv, 2026-08-26, on
-//! Baize reporting "66 finding(s)" at exit 1 for 66 rows its own text called
+//! Baize reporting "N finding(s)" at exit 1 for N rows its own text called
 //! "ADVISORY, not a refusal". This is the only arm that reads the rendered
 //! line, so it is the only arm a mutation of the renderer can red.
 use std::path::Path;

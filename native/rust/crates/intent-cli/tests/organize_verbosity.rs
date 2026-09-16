@@ -3,11 +3,12 @@
 //! refusal prints at every verbosity.
 //!
 //! **THE DEFECT, MEASURED BY vc ACROSS THE FLEET 2026-09-07.** `organize`
-//! printed ~3155 lines against `doctor`'s ~95. Lamplight alone was 2100, of
-//! which 2072 were `unclaimed:` -- one per DIRECTORY, already grouped, under a
-//! summary line that already carried the file count AND a digest of the
-//! membership. Driven on Lamplight with this change: **2098 -> 28**, and the
-//! 25 `to-remove:` lines survived, which is the half that must not move.
+//! printed dozens of times as many lines as `doctor`. Lamplight alone was most
+//! of them, nearly all `unclaimed:` -- one per DIRECTORY, already grouped,
+//! under a summary line that already carried the file count AND a digest of the
+//! membership. Driven on Lamplight with this change: **the output fell to a
+//! small fraction of its length**, and every `to-remove:` line survived, which
+//! is the half that must not move.
 //!
 //! **THIS IS A CLI TEST BECAUSE THE SUBJECT IS A RENDERING.** The report is
 //! unchanged -- `organize::Report` carries exactly what it carried -- so a
@@ -18,22 +19,23 @@
 //!
 //! **`the_fixture_can_exhibit_what_the_others_measure` IS NOT CEREMONY.** Run
 //! these assertions against Intent's own estate and every one of them passes
-//! with the change REVERTED, because Intent has 0 unclaimed files: "no
+//! with the change REVERTED, because Intent has no unclaimed files: "no
 //! `unclaimed:` lines at the default" is satisfied by an estate that has none
 //! to print. That is the same shape as vc's `[n/a` fixture passing with its fix
-//! reverted, and cc's class change passing 1210 tests -- twice in one afternoon,
-//! two nodes. The rule both of us settled on is cc's phrasing: **state what the
-//! test would have to SEE in order to fail, then check the fixture can produce
-//! it.** Here that is >1 unclaimed directory AND >0 action lines, and it is
-//! asserted rather than assumed.
+//! reverted, and cc's class change passing the suite -- twice in one afternoon,
+//! on different nodes. The rule both of us settled on is cc's phrasing: **state
+//! what the test would have to SEE in order to fail, then check the fixture can
+//! produce it.** Here that is >1 unclaimed directory AND >0 action lines, and
+//! it is asserted rather than assumed.
 //!
 //! # Mutations, measured -- every assertion below has been SEEN to fail by name
 //!
-//! Seven mutations, each applied to a `cp` snapshot of `render.rs`, each
-//! reverted with `cp` and verified byte-identical with `cmp`, and the baseline
-//! re-run to green after every one. **`git checkout` is NOT the revert here**:
-//! a peer's uncommitted work shares this file, so `git diff` is expected to be
-//! non-empty and answers a different question than the one being asked.
+//! The mutations below were each applied to a `cp` snapshot of `render.rs`,
+//! each reverted with `cp` and verified byte-identical with `cmp`, and the
+//! baseline re-run to green after every one. **`git checkout` is NOT the revert
+//! here**: a peer's uncommitted work shares this file, so `git diff` is
+//! expected to be non-empty and answers a different question than the one being
+//! asked.
 //!
 //! | mutation                                              | reds                                                        |
 //! | ----------------------------------------------------- | ----------------------------------------------------------- |

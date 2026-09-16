@@ -1,8 +1,8 @@
 //! **A ROW THAT GOES WITH NO RECORD IS THE DEFECT; THE PARSE BUG WAS ONLY THE
 //! TRIGGER.**
 //!
-//! arca_cli `ST0011` lost 26 of 55 AT rows and 8 of 57 AC rows, and hop 2
-//! printed `residue: 0 blocking, 3 carried` and `ok: this project is now Intent
+//! arca_cli `ST0011` lost many AT rows and some AC rows, and hop 2
+//! printed `residue: 0 blocking, <n> carried` and `ok: this project is now Intent
 //! v3.0.0`. Fixing the parser removes today's cause. **It does not remove the
 //! property that made it invisible**, which is that nothing compared the rows
 //! declared in a file against the rows that came out of it.

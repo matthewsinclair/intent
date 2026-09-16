@@ -4,10 +4,10 @@
 //!
 //! **A BUCKETED THREAD MIGRATED WITH ZERO ATTACHMENTS, AT rc 0.**
 //!
-//! `thread_dirs` walks the top level AND v2's three status buckets, because
-//! `intent st done` MOVES a thread into `COMPLETED/` -- on this estate 54 of
-//! 56. It hands each thread back as `(id, dir)`. The attachment walk then threw
-//! the `dir` away and re-derived the FLAT `intent/st/<ID>/`, which for a
+//! `thread_dirs` walks the top level AND v2's status buckets, because `intent
+//! st done` MOVES a thread into `COMPLETED/` -- on this estate, nearly every
+//! thread. It hands each thread back as `(id, dir)`. The attachment walk then
+//! threw the `dir` away and re-derived the FLAT `intent/st/<ID>/`, which for a
 //! bucketed thread does not exist. `thread_files` walks an absent directory,
 //! gets nothing, and every downstream count reconciles perfectly against zero.
 //!
@@ -16,8 +16,8 @@
 //! because the row accounting reconciles AC/AT rows and an attachment is not a
 //! row. The thread converted, the migration printed `ok`, and the authored
 //! prose beside it -- `design.md`, `impl.md`, `tasks.md` -- was simply not
-//! there. Measured on Devbin: 34 of 54 bucket files carry content the store
-//! does not hold, and the estate's own restart brief routes two of its five
+//! there. Measured on Devbin: most bucket files carry content the store
+//! does not hold, and the estate's own restart brief routes some of its
 //! opening questions to bucket-only paths.
 //!
 //! # Why every arm here probes CONTENT, per file

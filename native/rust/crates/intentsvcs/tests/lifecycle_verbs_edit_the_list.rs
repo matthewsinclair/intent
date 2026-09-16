@@ -2,7 +2,7 @@
 //!
 //! hv's architecture in one line: **realisation is driven from `.intentfiles`;
 //! commands change `.intentfiles`; `organize` realises it.** This file drives
-//! the middle clause. **Which verb makes which edit is hv's, ruled three times
+//! the middle clause. **Which verb makes which edit is hv's, ruled repeatedly
 //! on 2026-08-27 and enumerated in the table below**; what this file drives is
 //! that each verb makes the edit the table says, that `--keep` and
 //! `--dehydrate` suppress it, and that nothing ELSE in the manifest moves when
@@ -12,12 +12,12 @@
 //! `unpin_removes_from_the_list.rs`. **A green there is a green about a
 //! function; this file is the one that is a green about the row.**
 //!
-//! # hv's THREE RULINGS OF 2026-08-27 DISSOLVED THE ARGUMENT BELOW, AND IT IS
+//! # hv's RULINGS OF 2026-08-27 DISSOLVED THE ARGUMENT BELOW, AND IT IS
 //! # KEPT BECAUSE THE CONCLUSION SURVIVED THE ARGUMENT
 //!
 //! `1d0ce157` took `st.new` out of the adding set; `dfd07cfe` put `st.start`
 //! and `st.resume` in and took `st.reinstate` out; `3e5e620c` put `st.hold`
-//! and `st.triage` into the removing set. **After all three, declared-iff-WIP
+//! and `st.triage` into the removing set. **After all of them, declared-iff-WIP
 //! holds in BOTH directions** -- enumerated rather than asserted:
 //!
 //! | destination   | action | ops                                |
@@ -29,7 +29,7 @@
 //! | `not-started` | REMOVE | `st.triage`                        |
 //! | `not-started` | none   | `st.reinstate`                     |
 //!
-//! **AND THE LAST TWO ROWS ARE WHY THE IMPLEMENTATION IS STILL KEYED ON THE
+//! **AND THE `not-started` ROWS ARE WHY THE IMPLEMENTATION IS STILL KEYED ON THE
 //! OP.** After `dfd07cfe` every destination mapped to exactly one action, so
 //! op-keying was still true but no longer FORCED, and this doc said so.
 //! `3e5e620c` put a second op on `not-started` taking a DIFFERENT action, so
@@ -60,8 +60,7 @@
 //! triage` and `st reinstate` both land on `NotStarted`, and `st start`, `st
 //! resume` and `st reopen` all land on `Wip` -- so a status-keyed edit would
 //! make `st triage` start listing threads and `st start` silently re-add a
-//! thread a human had removed by hand.* Two collisions in a vocabulary of
-//! eight.
+//! thread a human had removed by hand.* Two collisions in a small vocabulary.
 //!
 //! **Both hazards are now REAL AND ACCEPTED, which is a different outcome from
 //! being wrong.** `st start` does re-add a hand-dehydrated thread; `st triage`
