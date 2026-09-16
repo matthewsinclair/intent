@@ -437,9 +437,16 @@ run_all() {
   # Across a ten-option `all` the per-gate `verdict:` lines have scrolled away by
   # the time the summary prints. A FILE rather than a variable because handlers
   # are separate processes -- nothing can be passed back up in the environment.
-  ledger="$(mktemp "${TMPDIR:-/tmp}/devbin-seals.XXXXXX")" || ledger=""
+  ledger="$(mktemp "${TMPDIR:-/tmp}/devbin-seals.XXXXXX")" || {
+    ledger=""
+    warn "could not create the seal ledger -- this summary will name no seals and check no disagreements"
+  }
   if [ -n "$ledger" ]; then
     export DEVBIN_SEAL_LEDGER="$ledger"
+    # The run that owns it, for record_seal: a row from any other run -- a
+    # witness child that minted its own id -- is not this run's (lib/runlog).
+    DEVBIN_SEAL_LEDGER_RUN="$(run_identity)"
+    export DEVBIN_SEAL_LEDGER_RUN
   fi
   for opt in $(command_options "$cmd"); do
     case "$(cfg_get "commands.$cmd.options.$opt.in_all" true)" in
@@ -527,7 +534,7 @@ run_all() {
   print_run_referent
   if [ -n "$ledger" ]; then
     rm -f "$ledger"
-    unset DEVBIN_SEAL_LEDGER
+    unset DEVBIN_SEAL_LEDGER DEVBIN_SEAL_LEDGER_RUN
   fi
   return "$rc"
 }

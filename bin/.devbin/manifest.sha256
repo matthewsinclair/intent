@@ -3,8 +3,8 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.1
 # source: ~/Devel/opt/devbin
-# source_commit: 26ec799a1bbd3c34f7415e00fb7b97a0a13cc19c
-2a88adbabe4165dcaa03552ecc702c58315e18e7f9bdc6b61ec39a9bef607181  bin/devbin
+# source_commit: 87a0d47234d3336aea65e462de0af2eddafd563e
+27a9180992cb85e649742cb64d1faf0bcea374f67396b8bddf20389d1091e0b4  bin/devbin
 3e804f9d6c1c601718602d9ac46bc92c5d5683f1ee4f368fb93d28f6f0aed6c1  bin/.devbin/lib/builtins
 f1b5ef34c4ef43e3eef92c69f52a90d61a4ce608995f1be04bb2e5e9684f8058  bin/.devbin/lib/cmd/check
 2231de262958a5d51772f79e45d1cfdd0c70d9a1f2db17a044f5efb037c2d3b3  bin/.devbin/lib/cmd/clean
@@ -34,15 +34,15 @@ c63d5e87436fd74c628bd6d1f8ccd811056edea45266e31e82ee970665868a4e  bin/.devbin/li
 d13c7dee061e77be048ab6bcb2bfac9bd4541dc040d301b63d0cc6158a805ed7  bin/.devbin/lib/config.reference.yaml
 e5f8ab391a060d7bfdda2ab75d679971c5832a694e9c5c94fbed23c3ac83594a  bin/.devbin/lib/gatecmd
 ae7c1d3693f4480e4fd029dbb6e0181c45ebc067ba3c3a3b6beefffdaf49b717  bin/.devbin/lib/help
-bdaf0bd0bdbdbf2066398f4001543ff2962bcbbbb19e1867737552eb3dfc60f6  bin/.devbin/lib/helpers
+51d9fdaa908c0fe9b17970b0635ff2661f454e6ae20be2c3164ca53ff2ded9f0  bin/.devbin/lib/helpers
 e0ad525e0aa4ef2fb5558254c6ace09d159120753f6fb7867201b801597777d3  bin/.devbin/lib/infra
 61dfbb45360709644aa27babbe01cd280b86b8e262834d76408930e204a0b1a1  bin/.devbin/lib/infra.check
 e50d97a230187f1a3396f84b8368baf48d7601b38e4a8a611373ddf13acfe25a  bin/.devbin/lib/infra.dns
 7cf8ee60972bb2d43720c1ef96395a366942281e72063cda9e8438ab68f6128e  bin/.devbin/lib/infra.init
 c6615a3cd280a47a4d502e4a6edb4d3771b5f0c6ef3ea1d817ac994f302b753e  bin/.devbin/lib/infra.reference.yaml
 20cd00e6d2e525dbc2e4c99a79d19e1db491c12431c489be50d8987bdfff8074  bin/.devbin/lib/install
-efc597f7e10ea0522a5b06d4c4539b722db5a23d7696972b5d5666f01e090a60  bin/.devbin/lib/resolve
-accec8e6ec8145c67338b245797b09532054263771e3722ddb7daa0733f4b6ee  bin/.devbin/lib/runlog
+324ff86b34691acac520ee253e7f46ee85440dfe721a36c3f70d9972f79cccbc  bin/.devbin/lib/resolve
+ab41a8c57d3685532fffcef94924ed7e94ef8abacaaa01597a2063685e58aa34  bin/.devbin/lib/runlog
 07624871763af4b267337c4ba0a175dcb2b4456cd6f0031e708e6864e6314513  bin/.devbin/lib/tmpl/handler
 9f0ab5e7876d3cf5f1c568ce5aff8ae7126b32f4d09db5cfc471be601553051b  bin/.devbin/lib/tmpl/help.md
 83a204bc1a10221959803f322c058622bd7891cccbb0e151bd340112adb48ccd  bin/.devbin/lib/tmpl/test.bats

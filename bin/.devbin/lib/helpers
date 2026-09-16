@@ -692,7 +692,7 @@ assert_identifier() {
     # pattern aimed at names it does. Devbin uses devbin (D12), so the guard's
     # own overreach failed here before it could reach a live project.
     DEVBIN_NAME | DEVBIN_INVOKE | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_COMMAND | DEVBIN_ARGS | \
-      DEVBIN_SEAL_LEDGER | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | \
+      DEVBIN_SEAL_LEDGER | DEVBIN_SEAL_LEDGER_RUN | DEVBIN_RUN_WITNESS | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | \
       DEVBIN_TREEINDEX_DIRS | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
       die "$what must not be '$value' -- that name belongs to devbin's own environment"
       ;;

@@ -328,7 +328,9 @@ fi
 unset _devbin_referent_cmd
 
 # ONE INVOCATION, ONE IDENTITY (issue 0045). Minted HERE and exported, because
-# this is the only point that runs exactly once per operator command.
+# every operator command passes through the dispatcher first. A child devbin
+# passes through it again, and inherits rather than mints unless it crosses a
+# witness boundary (below).
 #
 # IT CANNOT LIVE IN lib/runlog AND THAT WAS MEASURED RATHER THAN ASSUMED. Every
 # option of a synthesised `all` runs as a SEPARATE PROCESS -- run_all says so
@@ -348,8 +350,9 @@ unset _devbin_referent_cmd
 #
 # INHERITED BY CHILD devbins ON PURPOSE. `fullcycle` spawns clean, build and
 # test as separate devbin processes; sharing the id makes the whole cycle
-# addressable as the one thing the operator actually asked for. `[ -n ... ] ||`
-# rather than an unconditional assignment is what makes that inheritance work.
+# addressable as the one thing the operator actually asked for. Minting only
+# when the id is unset is what makes that inheritance work -- with the one
+# exception stated where the id is minted.
 #
 # THE STAMP IS THE READABLE HALF AND THE ID IS THE EXACT ONE, and the residual
 # is worth naming rather than leaving to be discovered. Two invocations starting
@@ -376,15 +379,41 @@ unset _devbin_referent_cmd
 # clock separates reuses of it, so eight hex of the two is an identifier without
 # a dependency -- and this runs before lib/helpers is in scope, where
 # `sha256_stdin` would not be.
-[ -n "${DEVBIN_RUN_ID:-}" ] ||
+#
+# INHERITED BY A CHILD, EXCEPT ACROSS A WITNESS BOUNDARY (hv, 2026-09-16). A
+# child devbin -- fullcycle's clean, build and test -- keeps its parent's id,
+# because the operator asked for one thing. A witness run (RUNLOG_WITNESS_RUN=1)
+# started by a NON-witness parent mints its own: it has declared itself not the
+# gate's verdict, and sharing the parent's id made `grep -l "run: <id>"` count a
+# gate's nested witness runs as that gate (measured in Laksa, 2026-09-12).
+#
+# THE BOUNDARY, NOT THE FLAG. The flag is inherited, so keying on it alone gave
+# every child of a witness run a fresh id (critic-shell). DEVBIN_RUN_WITNESS
+# carries whether the PARENT was a witness. Inside a witness run a child that
+# inherited the flag and one started as a witness on purpose are the same
+# environment, so both are part of that run. The seal ledger reads this same
+# answer through the id (lib/runlog, record_seal): one definition, two readers.
+#
+# ACCEPTED, NOT OVERLOOKED: `devbin dormancy` starts both of its `test rust` legs
+# as witness runs, so each carries its own id rather than dormancy's. Those legs
+# are exactly "not this gate's verdict", which is what the boundary marks; the
+# comparison dormancy prints is where they are read together.
+if [ -z "${DEVBIN_RUN_ID:-}" ] ||
+  { [ "${RUNLOG_WITNESS_RUN:-}" = 1 ] && [ "${DEVBIN_RUN_WITNESS:-}" != 1 ]; }; then
   DEVBIN_RUN_ID="$(printf '%04x%04x' "$(($$ & 0xffff))" "$(($(date +%s) & 0xffff))")"
+fi
+if [ "${RUNLOG_WITNESS_RUN:-}" = 1 ]; then
+  DEVBIN_RUN_WITNESS=1
+else
+  DEVBIN_RUN_WITNESS=0
+fi
 # UTC, read with `date -u` (issue 0055). This stamp is read side by side with
 # `fleet audit`, which renders UTC with a trailing `Z`; an unmarked local stamp
 # compared against one of those is wrong by the local offset for half the year
 # and exactly right for the other half, which is the worst available shape. The
 # zone change cannot disturb retention or ordering -- both go through mtime.
 [ -n "${DEVBIN_RUN_STAMP:-}" ] || DEVBIN_RUN_STAMP="$(date -u +%Y%m%d-%H%M)"
-export DEVBIN_RUN_ID DEVBIN_RUN_STAMP
+export DEVBIN_RUN_ID DEVBIN_RUN_STAMP DEVBIN_RUN_WITNESS
 
 # Identity comes from config, never from $0. That is what lets a project keep a
 # short alias -- bin/cf, a soft local convention pointing DIRECT at this file --

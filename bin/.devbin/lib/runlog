@@ -87,11 +87,14 @@ _DEVBIN_INVOKE_TAG='devbin| '
 # `grep -l "run: <id>" tmp/check/*.out` an enumeration rather than an inference.
 # `open_run_log`'s single stamp below is the readable half.
 #
-# NOT EXPORTED. A child devbin -- fullcycle spawning clean, build and test -- is
-# a different invocation and gets its own id, which is the honest answer: those
-# are three runs that a fourth thing sequenced. Exporting it would make one id
-# span processes that seal independently, which is the defect this closes,
-# arrived at from the other side.
+# INHERITED BY A CHILD DEVBIN, EXCEPT ACROSS A WITNESS BOUNDARY (hv, 2026-09-16).
+# This paragraph used to say the id was NOT EXPORTED and that a child got its
+# own, while `bin/devbin` exported it and tests/unit/runlog.bats held a child to
+# its parent's id: two rulings. Laksa patched its vendored copy to match the
+# comment (2e4fb6642). hv ruled for inheritance -- fullcycle spawning clean, build
+# and test is one thing the operator asked for -- except where a non-witness run
+# starts a witness one. `bin/devbin` owns the rule; this paragraph only reports it.
+#
 # MINTED BY THE DISPATCHER AND READ HERE, and two wrong homes were tried first.
 #
 # A memoising `run_id()` in this file, called as `$(run_id)`, put the assignment
@@ -102,8 +105,9 @@ _DEVBIN_INVOKE_TAG='devbin| '
 # memoised in this library can be shared between two gates of one run. Measured
 # both times: one `check all`, five artefacts, five different ids.
 #
-# `bin/devbin` mints and EXPORTS it, because that is the only code path that
-# runs exactly once per operator command. Absent -- a gate driven straight out
+# `bin/devbin` mints and EXPORTS it, because the dispatcher is the one place
+# every operator command passes through first (a child devbin passes through it
+# again, and inherits rather than mints unless it crosses a witness boundary). Absent -- a gate driven straight out
 # of a test, without the dispatcher -- this falls back to the pid, which is
 # still one value per process and is honest about being less.
 run_identity() {
@@ -1292,7 +1296,8 @@ print_run_verdict() {
   return 0
 }
 
-# record_seal <rc> <label> <errors> -- append EVERY gate's seal to the ledger.
+# record_seal <rc> <label> <errors> -- append EVERY gate's seal to the ledger,
+#   except a row from a run other than the one that owns it (see below).
 #
 # Exists so the synthesised `all` (D8) can end with one block naming every gate
 # that failed AND where its seal is. Each gate already prints its own `verdict:`
@@ -1323,6 +1328,22 @@ print_run_verdict() {
 record_seal() {
   local rc="$1" label="$2" errors="$3"
   [ -n "${DEVBIN_SEAL_LEDGER:-}" ] || return 0
+  # A ROW FROM ANOTHER RUN IS NOT WRITTEN (ported from Laksa, 25c431a00, on hv's
+  # ruling of 2026-09-16). run_all EXPORTS its ledger, so a nested devbin inherits
+  # it: a witness run failing on purpose put its red row into the PARENT's
+  # ledger, and seal_failures named a seal the parent's gate never produced. A
+  # label cannot separate the rows -- a nested `test rust` and the parent's carry
+  # the same one -- but the run can: `bin/devbin` gives a witness child of a
+  # non-witness run its own id, and every other child its parent's. So this reads
+  # the id, and says nothing about witnesses itself.
+  #
+  # A first cut keyed on the witness flag. The flag is inherited, so it also
+  # emptied a witness `all`'s OWN ledger -- no FAILED seal lines and no
+  # disagreement check, a false green (critic-shell). A ledger with no owner
+  # recorded -- one not set by run_all -- takes every row, as before.
+  if [ -n "${DEVBIN_SEAL_LEDGER_RUN:-}" ] && [ "$DEVBIN_SEAL_LEDGER_RUN" != "$(run_identity)" ]; then
+    return 0
+  fi
   [ -n "$errors" ] || return 0
   printf '%s\t%s\t%s\n' "$rc" "$label" "$(abs_path "$errors")" >>"$DEVBIN_SEAL_LEDGER" ||
     warn "could not record the seal for $label in the run ledger"
