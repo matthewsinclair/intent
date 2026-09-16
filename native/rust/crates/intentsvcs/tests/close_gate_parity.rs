@@ -164,9 +164,24 @@ fn an_entirely_offscope_contract_blocks_rather_than_passing_vacuously() {
   let line = gate(&t, Scope::Thread, &AllResolve).line("ST0001");
   assert!(line.contains("BLOCKED"), "{line}");
   assert!(line.contains("nothing is left to verify"), "{line}");
+  // **THE EXEMPTION IS FIXED WHEN A THREAD IS AUTHORED AND NO VERB WRITES IT**
+  // (issue 0400, hv's ruling of 2026-09-15), so the refusal names the routes
+  // that exist and never the declaration.
   assert!(
-    line.contains("acceptance: exempt"),
-    "it routes to the DECLARED escape rather than inventing a second way to say no contract: {line}"
+    !line.contains("acceptance: exempt"),
+    "the refusal names a declaration no verb writes: {line}"
+  );
+  let routes = [
+    "intent ac new",
+    "intent ac rescope",
+    "intent ac reinstate",
+    "intent st cancel",
+    "intent wp cancel",
+  ];
+  let missing: Vec<&str> = routes.into_iter().filter(|r| !line.contains(r)).collect();
+  assert!(
+    missing.is_empty(),
+    "the refusal names every route that exists, missing {missing:?}: {line}"
   );
 }
 

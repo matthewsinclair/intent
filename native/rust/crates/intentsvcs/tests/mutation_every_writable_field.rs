@@ -1734,11 +1734,12 @@ fn a_different_legal_thread_value() -> Vec<(&'static str, Value)> {
     // and until this verb existed nothing could write it that was not a
     // whole-document replace.
     ("completed", json!("2026-08-24")),
-    // **`AcceptanceMode` HAS EXACTLY ONE VARIANT**, so the only movement this
-    // field can make is to absence. That is not a thinner case than the others:
-    // clearing is the half of a setter nobody notices missing, and this is the
-    // only field whose type forces the sweep to exercise it.
-    ("acceptance", Value::Null),
+    // **`acceptance` IS DELIBERATELY ABSENT** (issue 0334): `transitions.rs`
+    // declares it `Immutable`, fixed when the thread is authored, so `set`
+    // refuses it by reading that declaration and there is no legal value to
+    // offer. It was the one field here whose type forced the sweep to exercise
+    // clearing; `null_clears_an_optional_field_and_is_refused_on_a_required_one`
+    // clears `status_reason`.
     ("objective", json!("Ship the store as the durable SSOT.")),
     ("context", json!("Why this thread exists, re-authored.")),
     ("body", json!("A load-bearing paragraph, edited in place.")),
@@ -3279,8 +3280,13 @@ fn every_refusal_carries_a_readers_answer_and_the_empty_bucket_stays_representab
     "all three kinds stay enumerable"
   );
 
-  let cases: [(&str, &str, UnsettableKind); 6] = [
+  let cases: [(&str, &str, UnsettableKind); 7] = [
     ("intent:///threads/ST0001", "id", UnsettableKind::Never),
+    (
+      "intent:///threads/ST0001",
+      "acceptance",
+      UnsettableKind::Never,
+    ),
     ("intent:///threads/ST0001", "created", UnsettableKind::Never),
     (
       "intent:///threads/ST0001",
@@ -3314,5 +3320,43 @@ fn every_refusal_carries_a_readers_answer_and_the_empty_bucket_stays_representab
     unsettable_kind(&a.entity, "title"),
     None,
     "a settable field is not a refusal of any kind"
+  );
+}
+
+/// **AN IMMUTABLE FIELD IS REFUSED BY NAME, AND THE REFUSAL WRITES NOTHING**
+/// (issue 0334). `transitions.rs` declares `Thread.acceptance` immutable after
+/// creation, and `intent set <thread> acceptance exempt` wrote it at rc=0 -- the
+/// declaration and the setter were two answers to one question.
+#[test]
+fn an_immutable_field_is_refused_by_name_and_canon_is_unchanged() {
+  let fx = Fixture::new();
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+  let before = entity_json(&facade, "intent:///threads/ST0001");
+
+  let err = facade
+    .set(&address, "acceptance", Value::Null)
+    .expect_err("an immutable field is not settable");
+  match &err {
+    intentsvcs::facade::FacadeError::FieldNotWritable { field, why, .. } => {
+      assert_eq!(field, "acceptance", "the refusal names the field: {err:?}");
+      assert!(
+        !why.contains("hv 20"),
+        "the declaration's provenance is never printed: {why}"
+      );
+    }
+    other => panic!("an immutable field is refused as FieldNotWritable, got {other:?}"),
+  }
+  assert_eq!(
+    entity_json(&facade, "intent:///threads/ST0001"),
+    before,
+    "a refused set of `acceptance` still changed the thread"
+  );
+  let settable =
+    intentsvcs::facade::Facade::settable_fields(&address.entity).expect("a thread has fields");
+  assert!(
+    !settable.contains(&"acceptance".to_string()),
+    "`acceptance` is still declared settable: {settable:?}"
   );
 }

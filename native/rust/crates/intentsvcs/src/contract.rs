@@ -430,7 +430,7 @@ pub enum Verdict {
 ///
 /// The two are not a style choice. `ac status` puts the verdict LAST, which is
 /// v2's line and reads correctly after a count (`46/114 satisfied -- BLOCKED`)
-/// and badly after a sentence (`... declare 'acceptance: exempt'. -- BLOCKED`).
+/// and badly after a sentence (`... nothing is left to verify. ... -- BLOCKED`).
 /// **A line that reads badly is one somebody later "improves"**, and the
 /// improvement would land on 43 of Intent's own 56 threads.
 ///
@@ -593,7 +593,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let thread_total = thread.criteria.len();
   if thread_total == 0 {
     return Verdict::blocked(
-      "the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.",
+      "the thread has zero acceptance criteria (empty contract). Define ACs with `intent ac new`, or cancel the unit with `intent st cancel` or `intent wp cancel`.",
     );
   }
 
@@ -680,11 +680,14 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let active = total - descoped - withdrawn;
 
   if active == 0 {
-    // Routed to the declared escape rather than passing on an empty set: a
-    // contract emptied one descope at a time is still emptiness, and ST0048's
-    // rule is that an exemption is announced, never inferred from it.
+    // Refused rather than passing on an empty set: a contract emptied one
+    // descope at a time is still emptiness, and ST0048's rule is that an
+    // exemption is announced, never inferred from it. **THE REFUSAL NEVER NAMES
+    // THE EXEMPTION** (issue 0400): it is fixed when a thread is authored and
+    // no verb writes it afterwards, so it names the routes that exist -- a
+    // criterion added or brought back, or the unit cancelled.
     return Verdict::blocked(format!(
-      "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt'."
+      "all {total} in-scope AC(s) are descoped or withdrawn; nothing is left to verify. Add one with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or cancel the unit with `intent st cancel` or `intent wp cancel`."
     ));
   }
 
@@ -1133,6 +1136,12 @@ mod tests {
       gate(&t, Scope::Thread, &AllResolve)
         .line("ST0056")
         .contains("zero acceptance criteria")
+    );
+    assert!(
+      !gate(&t, Scope::Thread, &AllResolve)
+        .line("ST0056")
+        .contains("acceptance: exempt"),
+      "no verb writes the exemption, so the refusal never names it (issue 0400)"
     );
   }
 

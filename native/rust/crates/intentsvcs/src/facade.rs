@@ -13819,6 +13819,15 @@ enum Unsettable {
     /// for one member and wrong for the other.**
     put_carries: bool,
   },
+  /// **A FIELD `transitions.rs` DECLARES `Immutable`: FIXED WHEN ITS ENTITY IS
+  /// AUTHORED AND MOVED BY NO VERB AFTERWARDS** (issue 0334). `set` wrote
+  /// `Thread.acceptance` at rc=0 while the table declared it immutable, so the
+  /// declaration and the setter were two answers to one question. The refusal
+  /// READS the table rather than naming the field here, so a row declared
+  /// immutable later is refused with no second edit. It carries the row's note,
+  /// which says what the value is; the row's `ruled` is provenance and is never
+  /// printed.
+  Immutable(&'static str),
   /// **A FIELD WITH NO ROUTE AT ALL, SAID PLAINLY.**
   ///
   /// This row's own doc argues that a name with no remedy sends the operator to
@@ -13905,7 +13914,7 @@ impl Unsettable {
         UnsettableKind::Elsewhere
       }
       // Constitutive: the value IS the address, or the service owns the stamp.
-      Self::Identity | Self::Stamped => UnsettableKind::Never,
+      Self::Identity | Self::Stamped | Self::Immutable(_) => UnsettableKind::Never,
       // **NO CONSTRUCTOR REACHES THIS TODAY AND THE VARIANT STAYS.** `blob` was
       // its only member and `st attach` closed it. **Deleting it would make the
       // next gap unrepresentable and quietly retire the bucket** -- and a bucket
@@ -13952,6 +13961,9 @@ impl Unsettable {
         }
         said
       }
+      Self::Immutable(note) => format!(
+        "{note} -- so there is no verb for it, and a write here would be the one door that moved it"
+      ),
       Self::NoRouteYet(what) => format!(
         "{what}, and there is no route on this surface today. Canon must already record the \
          attachment as opaque with its sidecar beside it -- `intent st attach` writes TEXT, and \
@@ -13962,10 +13974,38 @@ impl Unsettable {
   }
 }
 
+/// The note of a field `transitions.rs` declares `Immutable`, when this one is.
+///
+/// **KEYED BY THE MODEL'S SCHEMA NAME, ASKED OF THE MODEL**, because that name
+/// is what the table's `entity` column holds -- a literal here would be a second
+/// spelling of it. The forms that carry no fields name no model.
+fn immutable_note(entity: &AddrEntity, field: &str) -> Option<&'static str> {
+  use schemars::JsonSchema;
+  let model = match entity {
+    AddrEntity::Thread { .. } => Thread::schema_name(),
+    AddrEntity::Wp { .. } => WorkPackage::schema_name(),
+    AddrEntity::Ac { .. } => Criterion::schema_name(),
+    AddrEntity::At { .. } => AcceptanceTest::schema_name(),
+    AddrEntity::Attachment { .. } => crate::model::Attachment::schema_name(),
+    AddrEntity::Issue { .. } => crate::model::Issue::schema_name(),
+    _ => return None,
+  };
+  match &transitions::find(&model, field)?.disposition {
+    transitions::Disposition::Immutable { note, .. } => Some(*note),
+    _ => None,
+  }
+}
+
 /// Which of the three refusals, if any, covers this field.
 fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
   if let Some((_, segment)) = CHILD_COLLECTIONS.iter().find(|(name, _)| *name == field) {
     return Some(Unsettable::Child(segment));
+  }
+  // **AN IMMUTABLE DECLARATION IS READ, NOT RESTATED** (issue 0334): ahead of
+  // the per-entity arms, so no arm below can answer for a field the table has
+  // already fixed.
+  if let Some(note) = immutable_note(entity, field) {
+    return Some(Unsettable::Immutable(note));
   }
   // **THE VERB SPELLINGS ARE DRIVEN FROM THE SHIPPED CLI, not recalled.** A
   // remedy naming a verb that does not exist is worse than no remedy: it costs

@@ -73,16 +73,16 @@ while `intent/st/ST0001/WP/01/info.md` exists on disk carrying that body, and no
 
 ## Criteria and tests
 
-**A work package whose criteria are all descoped cannot be marked done, and the refusal's remedy cannot be followed** (`intent#0063`). Driven on v3.0.1: give a work package one criterion, descope it, and `intent wp done` refuses at exit 1 with:
+**A work package or thread whose criteria are all descoped or withdrawn cannot be marked done, and the refusal's `remedy:` line does not say how to close it** (`intent#0063`). Driven on the build that closes issue 0400: give a work package one criterion, withdraw it, and `intent wp done` refuses at exit 1 with:
 
 ```
-  error: ST0001/01 is not ready to close -- gate: ST0001/01 BLOCKED -- all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt'.
+  error: ST0001/01 is not ready to close -- gate: ST0001/01 BLOCKED -- all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify. Add one with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or cancel the unit with `intent st cancel` or `intent wp cancel`.
     remedy: satisfy or formally descope the remaining criteria, then close again
 ```
 
-There are no remaining criteria, which is the whole reason it refused, so following the remedy leaves you where you started. The escape it names is not available on a work package: `intent set intent:///threads/ST0001/wp/01 acceptance exempt` refuses with `not a field of this entity -- the ones it will set are body, objective, preamble, scope, scope_legacy, status_legacy, status_reason, title`. **What works is `intent wp cancel <ST>/<NN> --reason <text>`**: the gate then answers `EXEMPT -- WP-01 is cancelled: its scope was removed, so it has no live contract to verify`, and the package ends `Cancelled` rather than `Done`. Nothing in the refusal points there.
+The diagnosis names the routes that work, and the `remedy:` line under it still speaks of remaining criteria, of which there are none. **Follow the diagnosis**: add a criterion with `intent ac new`, bring one back with `intent ac rescope` or `intent ac reinstate`, or run `intent wp cancel <ST>/<NN> --reason <text>`, after which the gate answers `EXEMPT -- WP-01 is cancelled: its scope was removed, so it has no live contract to verify` and the package ends `Cancelled` rather than `Done`.
 
-A thread in the same state gets the same refusal and remedy from `intent st done`. At thread scope the exemption can be written, though no help text says so: `intent set intent:///threads/<ID> acceptance exempt` answers `ok: intent:///threads/<ID> acceptance written`, and the gate then reports `EXEMPT -- the thread declares 'acceptance: exempt'`. That exempts the whole thread's contract, not one criterion.
+A thread in the same state gets the same refusal from `intent st done`, and there `intent st cancel` is the route. The thread-level exemption is not one: `acceptance: exempt` is fixed when a thread is authored (issue 0400), and `intent set intent:///threads/<ID> acceptance exempt` refuses with `` `acceptance` cannot be set on `intent:///threads/ST0001`: the close-gate exemption, fixed when the thread is authored and moved by nothing afterwards ``.
 
 **A test-backed criterion cannot carry a note, and the refusal sends you round a loop** (`intent#0211`). `intent ac edit <ST> <AC> --note <text>` records what an unsatisfied non-test criterion is waiting for, and `intent ac show` prints it back as `note:`. On a test-backed criterion that is not yet satisfied it refuses, driven on v3.0.1:
 

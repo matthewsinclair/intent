@@ -213,7 +213,7 @@ fn the_close_gate_still_names_what_it_is_waiting_on() {
 /// **The verdict goes where the detail lets it go** (vc ruled, 2026-08-17).
 ///
 /// A tally is a phrase, so the verdict trails it and matches v2 byte for byte.
-/// A diagnosis is a sentence, and `... declare 'acceptance: exempt'. --
+/// A diagnosis is a sentence, and `... nothing is left to verify. ... --
 /// BLOCKED` puts the verdict after a full stop -- which reads badly, and **a
 /// line that reads badly is one somebody later "improves"**, on 43 of Intent's
 /// own 56 threads. So the diagnosis case leads with the verdict instead.
@@ -228,7 +228,7 @@ fn ac_status_leads_with_the_verdict_when_the_detail_is_a_diagnosis() {
 
   assert_eq!(
     stdout(&run(dir.path(), &["ac", "status", "ST0001"])),
-    "ac: BLOCKED -- the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.",
+    "ac: BLOCKED -- the thread has zero acceptance criteria (empty contract). Define ACs with `intent ac new`, or cancel the unit with `intent st cancel` or `intent wp cancel`.",
     "nothing trails the full stop"
   );
 }

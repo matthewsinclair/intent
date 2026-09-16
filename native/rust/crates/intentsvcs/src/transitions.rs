@@ -375,7 +375,7 @@ pub const FIELDS: &[Field] = &[
     // rather than a workaround. Whether v2's message is still a defect in v2's
     // voice is hv's to say, not this table's.
     disposition: Disposition::Immutable {
-      note: "the close-gate exemption, fixed when the thread is authored and moved by nothing afterwards. Three threads in this estate use it",
+      note: "the close-gate exemption, fixed when the thread is authored and moved by nothing afterwards",
       // `st_new` hardcodes `None`, so `exempt` is a value only canon supplies.
       // **`Entry::Authored` is the right measurement either side of the
       // reclassification**, because it measures a property -- canon can put a

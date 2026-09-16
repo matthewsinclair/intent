@@ -54,7 +54,7 @@
           "name": "acceptance",
           "label": "acceptance",
           "widget": "select",
-          "editable": true
+          "editable": false
         },
         {
           "name": "objective",
