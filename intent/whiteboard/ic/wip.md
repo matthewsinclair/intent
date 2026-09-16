@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-16 18:00Z
+heartbeat_at: 2026-09-16 19:51Z
 status: active
-focus: "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH."
-claims: [ST0075, ST0075/03]
+focus: "2026-09-16 night: queue EMPTY, nothing banked, nothing in flight. Resume at doing 42: waiting on vc's rebuild (0423, 0425, dc's 0424), then relay hv's drive of intent app restart and the Console's time-ordered backlog. NO RELEASE, NO PUSH."
+claims: []
 ---
 
 # Interface Claude (ic)
