@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 19:05Z
+heartbeat_at: 2026-09-16 19:43Z
 status: active
-focus: "2026-09-16: queue empty. Landed today, all on vc's word: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba), 0416 (d61a0c978), 0331-stale (f2f25c57d), and 0402's canon normalisation (4802c70d9), which the rebuilt intentd wrote itself and the banked check judged 3/3/10 ok. NO RELEASE, NO PUSH."
+focus: "Localfolded before hv's compact, 2026-09-16: queue empty, nothing banked unlanded. Landed today on vc's word: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba), 0416 (d61a0c978), 0331-stale (f2f25c57d), and 0402's canon normalisation (4802c70d9, written by the rebuilt intentd and judged 3/3/10 ok). Resume: /in-session, then wait for vc's routing. NO RELEASE, NO PUSH."
 claims: []
 ---
 
