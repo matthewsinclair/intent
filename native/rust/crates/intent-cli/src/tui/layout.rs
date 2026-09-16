@@ -404,6 +404,9 @@ pub enum Role {
   Focused,
   /// The list row a focused pane is showing: marked, but not where keys go.
   Chosen,
+  /// A caret over a reversed row: its one cell un-reversed (issue 0421).
+  /// A second reversal cannot mark a cell the row has already reversed.
+  Caret,
 }
 
 /// The spans of one composed line: `(start, end, role)` in CHARACTERS,
@@ -624,11 +627,11 @@ pub fn scroll_to(selected: Option<usize>, height: usize) -> usize {
 /// clipped to the viewport, so a cursor scrolled off the right-hand end has no
 /// cell to sit on; clamping would park it on the last visible character and
 /// claim the operator is typing there.
-fn caret_ink(ink: &mut Ink, at: Option<usize>, limit: usize) {
+fn caret_ink(ink: &mut Ink, at: Option<usize>, limit: usize, role: Role) {
   if let Some(at) = at
     && at < limit
   {
-    ink.push((at, at + 1, Role::Selected));
+    ink.push((at, at + 1, role));
   }
 }
 
@@ -688,6 +691,13 @@ pub struct Screen {
   /// Painted as an overlay, the way the dropdown's pick already is. `None`
   /// where the composer does not hold the keyboard.
   pub caret: Option<usize>,
+  /// An in-place edit's caret: the edited row, and the cell within its value
+  /// the cursor is on, in characters (issue 0421).
+  ///
+  /// **AN OVERLAY FOR [`Screen::caret`]'s REASON**: the edit used to splice a
+  /// glyph into the value, which took a column and moved every character after
+  /// the cursor one cell right. `None` where no field is being edited.
+  pub field_caret: Option<(usize, usize)>,
   /// The hint line: mode chip + whatever helps RIGHT NOW. A notice takes it.
   pub hint: String,
   /// Dropdown lines composed by the caller, painted ABOVE the bottom rule,
@@ -703,10 +713,41 @@ pub struct Screen {
 }
 
 impl Screen {
-  /// How many body rows fit at `height`. Zero when the chrome alone does not
-  /// fit, which is a small terminal rather than an error.
-  pub fn body_height(height: usize) -> usize {
-    height.saturating_sub(CHROME)
+  /// How many list rows are painted at `height`. Zero when the chrome alone
+  /// does not fit, which is a small terminal rather than an error.
+  ///
+  /// **ONE HOME FOR THE HEIGHT OF THE LIST AS DRAWN** (issue 0422). The
+  /// scroll was taken against the whole body while [`Screen::painted`] drew the
+  /// list in its half of a split, and without the composer's frame, so the
+  /// cursor could walk into rows nobody painted.
+  pub fn list_height(&self, height: usize) -> usize {
+    match self.split(height) {
+      Some((list, _)) => list,
+      None => height.saturating_sub(CHROME + self.frame_cost(height)),
+    }
+  }
+
+  /// The lines the composer's frame costs at `height`: afforded out of the
+  /// body, and only if a body row survives it.
+  fn frame_cost(&self, height: usize) -> usize {
+    if self.body.width > 4 && height > CHROME + FRAME_COST {
+      FRAME_COST
+    } else {
+      0
+    }
+  }
+
+  /// The list's rows and the pane's at `height`, or `None` when the body does
+  /// not split.
+  fn split(&self, height: usize) -> Option<(usize, usize)> {
+    let frame_cost = self.frame_cost(height);
+    match &self.detail {
+      Some(d) if height >= SPLIT_CHROME + frame_cost => {
+        let (list, detail) = divide(height - SPLIT_CHROME - frame_cost, d.rows.len());
+        (detail > 0).then_some((list, detail))
+      }
+      _ => None,
+    }
   }
 
   /// The first body row to paint at `height`, so the cursor stays on screen.
@@ -715,7 +756,7 @@ impl Screen {
   /// viewport height and the app has never had one -- which is exactly why the
   /// stored `scroll` could not move. See [`scroll_to`].
   pub fn first_row(&self, height: usize) -> usize {
-    scroll_to(self.selected, Self::body_height(height))
+    scroll_to(self.selected, self.list_height(height))
   }
 
   /// Compose exactly `height` lines, scrolled so body row `first` is at the top
@@ -778,8 +819,8 @@ impl Screen {
     // SURVIVES IT.** A screen that spent its last two lines on a border would
     // have traded the content for the decoration, which is the opposite of the
     // degradation order this module already declares.
-    let framed = w > 4 && height > CHROME + FRAME_COST;
-    let frame_cost = if framed { FRAME_COST } else { 0 };
+    let frame_cost = self.frame_cost(height);
+    let framed = frame_cost > 0;
 
     let rule: String = std::iter::repeat_n(RULE, w).collect();
     let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
@@ -805,14 +846,10 @@ impl Screen {
     // keystroke away again. `divide` returning zero says the same thing, and
     // both routes land on the unsplit body below rather than on a rule with
     // nothing beneath it.
-    let split = match &self.detail {
-      Some(d) if height >= SPLIT_CHROME + frame_cost => {
-        let body_h = height - SPLIT_CHROME - frame_cost;
-        let (list_h, detail_h) = divide(body_h, d.rows.len());
-        (detail_h > 0).then_some((list_h, detail_h, d))
-      }
-      _ => None,
-    };
+    let split = self
+      .split(height)
+      .zip(self.detail.as_ref())
+      .map(|((list_h, detail_h), d)| (list_h, detail_h, d));
 
     // **THE SELECTION IS AN OVERLAY, PUSHED LAST**, so the row builders know
     // nothing about cursors and the printer resolves overlap by order.
@@ -836,14 +873,35 @@ impl Screen {
                      plan: &Plan,
                      from: usize,
                      h: usize,
-                     cursor: Option<(usize, Role)>| {
+                     cursor: Option<(usize, Role)>,
+                     caret: Option<(usize, usize)>| {
       let lines = plan.visible(from, h);
       for (i, line) in lines.iter().enumerate() {
         let mut ink = plan.inks.get(from + i).cloned().unwrap_or_default();
+        let mut reversed = false;
         if let Some((at, role)) = cursor
           && at == from + i
         {
           ink.push((0, line.chars().count(), role));
+          reversed = role == Role::Selected;
+        }
+        // **THE EDIT'S CARET IS AN OVERLAY ON ITS VALUE'S CELL** (issue
+        // 0421), pushed after the row's cursor so it wins the cell. A
+        // reversed row un-reverses the one cell; any other row reverses it.
+        if let Some((row, at)) = caret
+          && row == from + i
+        {
+          let role = if reversed {
+            Role::Caret
+          } else {
+            Role::Selected
+          };
+          caret_ink(
+            &mut ink,
+            Some(plan.value_col + at),
+            line.chars().count(),
+            role,
+          );
         }
         out.push((line.clone(), ink));
       }
@@ -854,7 +912,14 @@ impl Screen {
 
     match split {
       Some((list_h, detail_h, detail)) => {
-        body_rows(&mut out, &self.body, first, list_h, list_cursor);
+        body_rows(
+          &mut out,
+          &self.body,
+          first,
+          list_h,
+          list_cursor,
+          self.field_caret,
+        );
         let labelled = labelled_rule(w, &self.detail_label);
         // **THE RULE SAYS WHICH HALF HAS THE KEYBOARD** (hv, 2026-09-15, issue
         // 0399), as section 6 always said it would: dim while the list holds
@@ -874,11 +939,17 @@ impl Screen {
           None => self.detail_first,
         }
         .min(detail.rows.len().saturating_sub(detail_h));
-        body_rows(&mut out, detail, from, detail_h, pane_cursor);
+        body_rows(&mut out, detail, from, detail_h, pane_cursor, None);
       }
       None => {
-        let body_h = height - CHROME - frame_cost;
-        body_rows(&mut out, &self.body, first, body_h, list_cursor);
+        body_rows(
+          &mut out,
+          &self.body,
+          first,
+          self.list_height(height),
+          list_cursor,
+          self.field_caret,
+        );
       }
     }
 
@@ -939,13 +1010,23 @@ impl Screen {
       ];
       // The frame and its space push the text two columns in, so the caret's
       // offset within the LINE is two more than its offset within the text.
-      caret_ink(&mut ink, self.caret.map(|c| c + 2), 2 + inner);
+      caret_ink(
+        &mut ink,
+        self.caret.map(|c| c + 2),
+        2 + inner,
+        Role::Selected,
+      );
       out.push((top, edge.clone()));
       out.push((line, ink));
       out.push((bottom, edge));
     } else {
       let mut omnibox_ink = whole(&omnibox, omnibox_role);
-      caret_ink(&mut omnibox_ink, self.caret, omnibox.chars().count());
+      caret_ink(
+        &mut omnibox_ink,
+        self.caret,
+        omnibox.chars().count(),
+        Role::Selected,
+      );
       out.push((omnibox, omnibox_ink));
     }
     // The mode chip leads the hint line and is coloured PER MODE -- hv's
@@ -1074,6 +1155,41 @@ mod tests {
   use super::*;
   use intentsvcs::form::Loaded;
 
+  /// Issue 0422: with the pane split, the selected row at the foot of a
+  /// long list is painted in the list above the pane. The scroll was taken
+  /// against the whole body while the list was drawn in its half, so the cursor
+  /// could walk below the half into rows nobody painted (hv, 2026-09-16, on
+  /// ST0075 with the pane open).
+  #[test]
+  fn with_the_pane_split_the_selected_row_at_the_foot_of_the_list_is_painted() {
+    let rows: Vec<Row> = (0..30)
+      .map(|i| Row::new(format!("row{i}"), format!("value-{i}-end"), "text"))
+      .collect();
+    let mut examined = 0usize;
+    for height in 16..48usize {
+      let s = Screen {
+        body: plan(&rows, NARROW),
+        detail: Some(plan(&detail_rows(), NARROW)),
+        selected: Some(29),
+        ..screen()
+      };
+      let lines = s.compose(s.first_row(height), height);
+      let Some(rule) = lines.iter().position(|l| l.contains(DETAIL_LABEL)) else {
+        continue;
+      };
+      examined += 1;
+      let at = lines.iter().position(|l| l.contains("value-29-end"));
+      assert!(
+        at.is_some_and(|at| at < rule),
+        "at height {height} the selected row is not in the list above the pane: {lines:#?}"
+      );
+    }
+    assert!(
+      examined > 0,
+      "no height split the body, so this test asserted nothing"
+    );
+  }
+
   /// **THIS FIXTURE IS THE CRITERION'S OWN POSITIVE CONTROL**, which is why the
   /// width is a named constant with a test behind it: `AC-17.11` measures the
   /// property over a form whose longest name AND longest value both exceed the
@@ -1113,6 +1229,7 @@ mod tests {
       body: plan(&hard_rows(), NARROW),
       omnibox: "\u{276f}".into(),
       caret: Some(1),
+      field_caret: None,
       hint: "NAV  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
       mode: super::super::mode::Mode::Omni,

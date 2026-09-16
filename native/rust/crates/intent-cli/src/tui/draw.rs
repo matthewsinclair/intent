@@ -73,6 +73,7 @@ fn style(role: Role) -> Style {
     Role::Link => d.fg(Color::Cyan).add_modifier(Modifier::UNDERLINED),
     Role::Focused => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     Role::Chosen => d.add_modifier(Modifier::UNDERLINED),
+    Role::Caret => d.remove_modifier(Modifier::REVERSED),
     Role::OmniActive => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     // **THE COLOUR FOLLOWS THE LAMP, NOT THE MODE, and that is why `Field` and
     // `Embed` share one.** [`Mode::lamp`] shows both as `EDIT`; painting them
@@ -154,6 +155,7 @@ mod tests {
       body: plan(&rows(), W as usize),
       omnibox: "\u{276f}".into(),
       caret: Some(1),
+      field_caret: None,
       hint: "OMNI  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
       mode: crate::tui::mode::Mode::Omni,

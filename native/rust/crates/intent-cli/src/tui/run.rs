@@ -222,16 +222,24 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
   // (`tui-design.md` section 7: inline, not in a footer). The substitution is
   // display-only: the rows the caller owns are untouched, and the buffer
   // replaces the value on exactly the row whose name the handoff carries.
+  //
+  // **THE CARET IS NOT IN THE VALUE** (issue 0421), for the composer's
+  // reason (see [`omnibox_row`]): a glyph spliced in at the cursor took a
+  // column and moved the rest of the value one cell right. The value gains a
+  // trailing space for the caret to sit on at its end, and the caret is carried
+  // as [`layout::Screen::field_caret`] and painted as an overlay.
   let edited: Vec<Row>;
+  let mut field_caret = None;
   let rows = match (&app.editing, app.mode) {
     (Some(edit), super::mode::Mode::Field) => {
       edited = rows
         .iter()
-        .map(|r| {
+        .enumerate()
+        .map(|(at, r)| {
           if r.name == edit.handoff.field {
             let mut shown = r.clone();
-            let (before, after) = edit.line.around_cursor();
-            shown.value = format!("{before}\u{258f}{after}");
+            shown.value = format!("{} ", edit.line.buffer);
+            field_caret = Some((at, edit.line.cursor()));
             shown
           } else {
             r.clone()
@@ -263,6 +271,7 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
     },
     omnibox: omnibox_row(app),
     caret: caret_at(app),
+    field_caret,
     hint: hint_row(app, rows),
     dropdown: dropdown(app),
     mode: app.mode,
@@ -585,7 +594,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     // is the height of the frame the operator is looking at when they press the
     // key. A resize repaints through this same line before another keystroke
     // can arrive, so it has no window in which to go stale.
-    app.page_rows = Screen::body_height(area.height as usize);
+    app.page_rows = screen.list_height(area.height as usize);
     // **HOW LONG THE PANE'S READING IS, FROM THE SAME FRAME, FOR THE SAME
     // REASON** (issue 0399): the text wrapped to this width, so the scroll's
     // furthest line is a fact about this frame and nothing earlier.
@@ -888,6 +897,94 @@ pub fn chosen_project(app: &mut App) -> Option<std::path::PathBuf> {
 mod tests {
   use super::super::mode::Mode;
   use super::*;
+
+  /// Issue 0421: an in-place edit shifts nothing after its cursor. The
+  /// caret was a glyph spliced into the value, which took a column, so the text
+  /// after it moved one cell right and read as an inserted space (hv,
+  /// 2026-09-16, on issue 0420's title).
+  #[test]
+  fn an_in_place_edit_shifts_nothing_after_its_cursor() {
+    let rows = vec![Row::new("title", "A store write", "text")];
+    let mut app = App::explore();
+    app.begin_edit(
+      Handoff {
+        kind: "issue".into(),
+        id: "0420".into(),
+        field: "title".into(),
+      },
+      "A store write".into(),
+    );
+    app.mode = Mode::Field;
+    let edit = app.editing.as_mut().expect("the edit did not open");
+    for _ in 0.."ore write".chars().count() {
+      edit.line.left();
+    }
+    let line = &screen_for(&app, &rows, 80).body.rows[0];
+    assert!(
+      line.contains("A store write"),
+      "the edited value's text moved at the cursor: {line:?}"
+    );
+  }
+
+  /// Issue 0421: the caret is painted on the cell the cursor is on, in
+  /// the edited row's value, and un-reverses that cell on the reversed row.
+  #[test]
+  fn an_in_place_edit_paints_its_caret_on_the_cell_under_the_cursor() {
+    let rows = vec![
+      Row::new("status", "open", "select"),
+      Row::new("title", "A store write", "text"),
+    ];
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.begin_edit(
+      Handoff {
+        kind: "issue".into(),
+        id: "0420".into(),
+        field: "title".into(),
+      },
+      "A store write".into(),
+    );
+    app.mode = Mode::Field;
+    let edit = app.editing.as_mut().expect("the edit did not open");
+    for _ in 0.."ore write".chars().count() {
+      edit.line.left();
+    }
+    let screen = screen_for(&app, &rows, 80);
+    let lines = screen.painted(0, 24);
+    let (line, ink) = lines
+      .iter()
+      .find(|(l, _)| l.contains("A store write"))
+      .expect("the edited row is not painted");
+    let col = screen.body.value_col + "A st".chars().count();
+    assert_eq!(
+      line.chars().nth(col),
+      Some('o'),
+      "the caret cell is not the cursor's"
+    );
+    assert_eq!(
+      ink.last(),
+      Some(&(col, col + 1, layout::Role::Caret)),
+      "the caret is not the last span, on the cursor's cell, un-reversing the selected row"
+    );
+
+    for _ in 0.."ore write".chars().count() {
+      app.editing.as_mut().expect("still editing").line.right();
+    }
+    let screen = screen_for(&app, &rows, 80);
+    let lines = screen.painted(0, 24);
+    let (line, ink) = lines
+      .iter()
+      .find(|(l, _)| l.contains("A store write"))
+      .expect("the edited row is not painted");
+    let end = screen.body.value_col + "A store write".chars().count();
+    assert_eq!(
+      line.chars().nth(end),
+      Some(' '),
+      "no cell for the caret at the end"
+    );
+    assert_eq!(ink.last(), Some(&(end, end + 1, layout::Role::Caret)));
+  }
 
   /// Issue 0419: arriving at the projects list puts the cursor on the
   /// project nearest where the operator is, and arriving anywhere else, or
