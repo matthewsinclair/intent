@@ -1428,10 +1428,9 @@ mod tests {
       assert_eq!(lines[1], rule, "a rule sits directly under the APP row");
       // **POSITIONS ARE DERIVED FROM THE DECLARED CONSTANTS, NEVER COUNTED
       // BACK FROM THE BOTTOM BY HAND.** The foot grew when hv's framed
-      // composer landed and it will grow again when the status segments do;
-      // a test that hardcodes `height - 3` has to be rewritten on each of
-      // those, and rewriting an assertion to match what the code now does is
-      // how a check stops being one.
+      // composer landed. A test that hardcodes `height - 3` has to be
+      // rewritten each time the foot grows, and rewriting an assertion to
+      // match what the code now does is how a check stops being one.
       let framed = NARROW > 4 && height > CHROME + FRAME_COST;
       let foot = if framed { FOOT + FRAME_COST } else { FOOT };
       assert_eq!(

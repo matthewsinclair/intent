@@ -222,9 +222,9 @@ mod tests {
   /// been handed a correct plan.
   ///
   /// **POSITIONS DERIVE FROM THE DECLARED CONSTANTS.** The foot grew when hv's
-  /// framed composer landed and will grow again with the status segments;
-  /// hardcoded offsets would have to be edited on each, and editing an
-  /// assertion to match what the code now does is how a check stops being one.
+  /// framed composer landed; hardcoded offsets would have to be edited each
+  /// time it grows, and editing an assertion to match what the code now does
+  /// is how a check stops being one.
   #[test]
   fn the_sections_reach_the_screen_in_their_declared_positions() {
     let s = screen();
