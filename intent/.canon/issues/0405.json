@@ -1,0 +1,12 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 405,
+  "slug": "the-board-render-adds-a-section-the-source-board",
+  "title": "the board render adds a section the source board never had and moves Standing directives from first to fourth",
+  "status": "closed",
+  "severity": "low",
+  "created": "2026-09-16",
+  "closed": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "The board render adds a section the source board never had, and reorders sections. After migration devbin's hv board renders `## Holds` / `_(none)_`, and the pre-migration board had no Holds section; `## Standing directives` moved from the first section to the fourth. Devbin's roster tells every peer to read Standing directives at pickup, so its position is load-bearing there. The same render change reached Intent's own hv board on 2026-09-16 at the same build, as an uncommitted view change the moment intentd restarted on 0375's code. Devbin letter C, measured by both.\n\nFound by devbin migrating its boards on Intent 3.0.3 (`d24487079`), sent through intent/vc on hv's routing, and ruled by hv on 2026-09-16 to be fixed in this release (hv decision 18). The full measurement record, with the instrument (`carry-map.sh`, driven red and green) and who measured what, is devbin `1824c75`, `intent/whiteboard/dc/.history/20260916/wb-upstream-defects-draft.md`.\n\nRelated: the pickup issue filed with this one (`wb pickup` renders peers as headers only), which is why a moved Standing directives section matters more than its order suggests.\n\nFix: an empty section the source never had is not rendered, or the render's section order is a stated, documented choice with Standing directives where the protocol tells readers to find it.\n\nCLOSED 2026-09-16 as intended, by vc under the pen (vc decision 20), on hv's ruling that devbin's defects are fixed in this release: both behaviours are documented renderer rules with their reasons, in `views.rs` (\"EVERY SECTION IS EMITTED, INCLUDING THE EMPTY ONES\", and a fixed section order). The harm this report names -- peers not seeing Standing directives -- is the pickup defect filed with this one, which is being fixed. hv may reopen it.\n"
+}

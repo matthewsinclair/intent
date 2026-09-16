@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 416,
+  "slug": "wb-pickup-renders-peers-as-headers-only-so-no-no",
+  "title": "wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent wb pickup` renders the acting node's own items in full and every peer as one header line (role, status, heartbeat, focus), so at boot no node sees another board's watch-outs, decisions or standing directives. The standing content is reachable -- `intent wb show <peer>` renders it in full -- and on no boot path.\n\nMeasured on Intent 2026-09-16 at `d24487079`: `intent wb pickup --node vc` rendered vc's nine items in full and four peers as one line each; `intent wb show hv` rendered hv's 27 live items. Found by intent/dc the same morning: dc followed the protocol exactly, picked up, and opened a diagnosis of `a_daemon_outlives_nobody.rs` without seeing hv's watchout 11, which had ruled that flake known and shipping as-is on 2026-09-11. The diagnosis was stood down, and the morning was the cost.\n\n**Why nobody reported it in weeks of daily use across five nodes (dc's sharpening):** pickup renders the watch-out surface COMPLETELY for self and not at all for peers, so the read does not look empty -- it looks complete. A node reading its own watch-outs in full has every reason to believe it has seen the watch-out surface.\n\n**Why it is urgent now:** 0375 gave hv's board a `## Standing directives` section, whose purpose is durable instructions every node honours, and there is no path by which a booting node sees one. The whiteboard skill names this failure itself: a write surface with no named reader is a queue, not a channel, and nothing observable distinguishes the two. Devbin's roster separately tells every peer to read Standing directives at pickup (see the render-order issue filed with this one, devbin letter C).\n\nRuled by hv on 2026-09-16 to be fixed in this release (hv decision 18).\n\nFix: `wb pickup` returns the standing content every node is obliged to honour -- at least the hv node's directives, decisions and watch-outs -- in full, and says what it is not showing for the other peers and which verb shows it.\n"
+}

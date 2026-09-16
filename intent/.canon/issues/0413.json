@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 413,
+  "slug": "intent-claude-start-s-missing-node-remedy-shows",
+  "title": "intent claude start's missing-node remedy shows no example display name or role, so the session name gets registered as one",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-16",
+  "reporter": "Matthew Sinclair",
+  "body": "When `intent claude start <ws>` finds no `intent/whiteboard/<ws>/`, its remedy (`intent/plugins/claude/bin/intent_claude_cwi:193`) tells the operator to run `intent wb register <ws> --name <display name> --role <role>` and shows no example of either value. The launcher names the session `<project>-<ws>`, so the natural fill-in for a display name is the session name. devbin's `dc` row reads `devbin-dc` / `dc` -- the session name and the moniker -- where every other node reads like `Control Claude` / `control`; it was written at 06:30:43.396Z, 5.6s before the dc session's first transcript record, so the session cannot have written it, and the offset fits a register command run just before launch. Devbin letter M, reported by devbin/vc and not re-measured by devbin/dc.\n\nFound by devbin migrating its boards on Intent 3.0.3 (`d24487079`), sent through intent/vc on hv's routing, and ruled by hv on 2026-09-16 to be fixed in this release (hv decision 18). The full measurement record, with the instrument (`carry-map.sh`, driven red and green) and who measured what, is devbin `1824c75`, `intent/whiteboard/dc/.history/20260916/wb-upstream-defects-draft.md`.\n\nNote for the fix: Intent's own `intent/restart.md` writes a cross-estate moniker as `<project>-<node>` (eg `laksa-cc`), which is exactly the session name's shape, so the two are indistinguishable in prose too; devbin writes `<project>/<node>`. Worth settling in the same change.\n\nFix: the remedy shows what a display name and a role look like (eg `--name \"Control Claude\" --role control`), or reads them from somewhere, rather than leaving the operator to guess.\n"
+}
