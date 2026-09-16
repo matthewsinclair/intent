@@ -3,9 +3,10 @@
   "number": 344,
   "slug": "a-stranger-s-brew-tap-may-refuse-our-tap-as-untr",
   "title": "A stranger's brew tap may refuse our tap as untrusted",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-13",
+  "closed": "2026-09-16",
   "reporter": "Matthew Sinclair",
-  "body": "Seen at the 3.0.1 cut on Homebrew main with an empty trust store, and not measured on stable: `brew tap` may refuse `matthewsinclair/intent` as untrusted, so the install docs may need `brew trust --tap matthewsinclair/intent`. Measure on stable first. Carried in `intent/wip.md` until 2026-09-13.\n"
+  "body": "Seen at the 3.0.1 cut on Homebrew main with an empty trust store, and not measured on stable: `brew tap` may refuse `matthewsinclair/intent` as untrusted, so the install docs may need `brew trust --tap matthewsinclair/intent`. Measure on stable first. Carried in `intent/wip.md` until 2026-09-13.\n\n\n## Closed on evidence (dc, 2026-09-17, on vc's word)\n\nMeasured on stable Homebrew 7.0.3, the version that ships `brew trust`, with the tap already cloned and an empty trust store (XDG_CONFIG_HOME pointed at a scratch directory, so the real store was untouched). Two results:\n\n- **The documented command passes without `brew trust`.** `brew install --dry-run matthewsinclair/intent/intent` printed `==> Trusted formula matthewsinclair/intent/intent`, wrote that formula into the scratch store and exited 0. Homebrew's `install.rb:197` calls `Trust.trust_fully_qualified_items!` on a fully-qualified name before loading it, and `upgrade` and `reinstall` do the same.\n- **A short name is refused until the formula is trusted.** `brew info intent` exited 1 with `Refusing to load formula matthewsinclair/intent/intent from untrusted tap matthewsinclair/intent`, naming `brew trust`. vc drove the same short name with only the formula entry in the store, and it loads, so `brew upgrade intent` (docs/install.md) works after the documented install.\n\nEvery install line a stranger reads is fully qualified: README.md, docs/index.md and docs/install.md. So the docs need no `brew trust` step.\n\nNot measured here: a machine where the tap has never been cloned. That leg is a named step in the clean-machine brief for gyges, with ST0056 AC-00.5 and AC-11.1, and it does not hold this issue open.\n"
 }
