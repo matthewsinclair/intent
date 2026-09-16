@@ -1,11 +1,11 @@
 import Foundation
-import OSLog
 import Observation
 
 /// The daemon as the app sees it: a poll, on the shared `Poller` cadence, of
 /// `intent daemon status --format json` -- cc's projection, the ONE health
 /// predicate (AC-01.2), read through the CLI verb and never reimplemented in
-/// Swift -- plus Start / Stop / Restart through the same CLI. Geodica's
+/// Swift -- plus Start / Stop / Restart through the same CLI, each noted in the
+/// Console with its output (AC-03.3). Geodica's
 /// CmsService with the HTTP probe swapped for the status verb.
 ///
 /// The connect-then-lock ORDER that separates `live`/`stale`/`absent` is
@@ -15,7 +15,6 @@ import Observation
 @MainActor @Observable
 final class DaemonService {
   static let shared = DaemonService()
-  private static let logger = AppLog.logger("DaemonService")
 
   private(set) var health: Health = .unknown("not yet polled")
   /// "Starting…" / "Stopping…" / "Restarting…" while a lifecycle verb runs, so
@@ -67,10 +66,9 @@ final class DaemonService {
     defer { busy = nil }
     do {
       for args in commands {
-        let out = try await IntentCLI.run(args)
-        Self.logger.info(
-          "\(args.joined(separator: " "), privacy: .public): \(out.trimmingCharacters(in: .whitespacesAndNewlines), privacy: .public)"
-        )
+        let result = try await IntentCLI.capture(args)
+        ConsoleRunner.shared.note(command: IntentCLI.label(args), result: result)
+        _ = try IntentCLI.checked(result, args)
       }
     } catch {
       busy = nil

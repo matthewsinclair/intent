@@ -32,8 +32,8 @@
       "seq": 3,
       "title": "The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there",
       "scope": "S",
-      "status": "not-started",
-      "objective": "",
+      "status": "wip",
+      "objective": "Intent.app's streaming items, copied from Gtools: Run Doctor and the new Rebuild Search Index bring the Console forward and stream `intent doctor` and `intent index rebuild` into it between `» intent doctor` and `» exit N · Ts`, so a clean pass is seen; a failing exit is reported in the Console by the command's own lines, and an alert is raised only when the command cannot run at all or its output ends with no exit status; Start, Stop and Restart intentd write their command, output and exit into the Console as a marked block without bringing it forward; and a second one-off while one runs is refused with an alert naming the running command, never queued.\n",
       "body": "",
       "preamble": ""
     }
@@ -198,34 +198,42 @@
     {
       "id": "AT-03.1",
       "kind": "test",
+      "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.1"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a command's lines appended as tail lines, testRunDoctorStreamsBetweenItsMarkers failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
     },
     {
       "id": "AT-03.2",
       "kind": "test",
+      "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.2"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with a failing exit thrown and never marked, testRebuildSearchIndexStreamsTheSameWayAndReportsItsExit failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
     },
     {
       "id": "AT-03.3",
       "kind": "test",
+      "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.3"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with stdout run into stderr's first line, testALifecycleVerbIsNotedAsAMarkedBlock failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
     },
     {
       "id": "AT-03.4",
       "kind": "test",
+      "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
       "covers": [
         "AC-03.4"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "red at 643999214, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged (b04a8eec4): with the busy guard removed, testASecondCommandWhileOneRunsIsRefusedNamingTheRunningOne failed; green at 643999214 as banked in refs/bank/ic/st0075-wp03 (5c1a66041): app-test ran 55 tests with 0 failures; rebanked at 1e4cab80a adding only the five intent/llm/MODULES.md rows, not re-run"
     }
   ],
   "attachments": [

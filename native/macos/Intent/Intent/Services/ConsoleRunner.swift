@@ -1,8 +1,25 @@
 import Foundation
 import Observation
 
+/// Why the Console would not run a command.
+enum ConsoleError: LocalizedError, Equatable {
+  /// Another command is running; it is named, and nothing is queued (AC-03.4).
+  case busy(String)
+  /// The command's output ended with no exit status, so how it went is unknown.
+  case noExitStatus(String)
+
+  var errorDescription: String? {
+    switch self {
+    case .busy(let label): "The Console is still running `\(label)`. One command at a time."
+    case .noExitStatus(let label): "`\(label)` ended without an exit status."
+    }
+  }
+}
+
 /// What the Console shows: a child `intent daemon logs --follow`, streamed line
-/// by line. The verb owns the tailing; the app only colours lines. Owns the
+/// by line, with the one-off commands the menu runs -- doctor, the index
+/// rebuild, and the daemon's lifecycle verbs -- between `»` markers. The verb
+/// owns the tailing; the app only colours lines. Owns the
 /// backlog, so a line the app writes while the window is closed is there when
 /// it opens. Copied from Gtools' ConsoleRunner (ST0075: copied, not shared).
 @MainActor @Observable
@@ -15,6 +32,8 @@ final class ConsoleRunner {
   private(set) var tailing = false
   /// What the verb's first line said it is tailing, for the footer (AC-02.1).
   private(set) var header = TailHeader.awaiting
+  /// The one-off command running now, as the operator would type it.
+  private(set) var commandRunning: String?
 
   /// The view attaches here for incremental updates; the backlog is `ring`. Not
   /// observed: nothing renders from the attachment itself.
@@ -118,6 +137,80 @@ final class ConsoleRunner {
       searched = split.upperBound..<rest.endIndex
     }
     return nil
+  }
+
+  // MARK: - One-off commands
+
+  /// What starts a one-off: its args in, its events out. `IntentCLI.stream` in
+  /// the app; a stub in the tests.
+  typealias Launch = ([String]) throws -> AsyncStream<IntentCLI.StreamEvent>
+
+  /// `» intent doctor`, the command's lines, then `» exit 0 · 1.2s` (AC-03.1,
+  /// AC-03.2), and the exit status back to the caller. **A NON-ZERO EXIT IS NOT
+  /// THROWN**: the command's own lines already say what went wrong, in the
+  /// window the caller brought forward.
+  ///
+  /// **ONE AT A TIME, REFUSED RATHER THAN QUEUED** (AC-03.4): a second command
+  /// while one runs throws `busy` naming the running one, before it writes
+  /// anything. A command that cannot launch at all throws too, after its
+  /// reason and a `» failed` marker, so the caller alerts and the Console
+  /// keeps the record; so does one whose output ends with no exit status.
+  @discardableResult
+  func run(
+    _ args: [String],
+    launch: Launch = { try IntentCLI.stream($0).events },
+    now: () -> ContinuousClock.Instant = { ContinuousClock.now }
+  ) async throws -> Int32 {
+    let label = IntentCLI.label(args)
+    if let running = commandRunning { throw ConsoleError.busy(running) }
+    commandRunning = label
+    defer { commandRunning = nil }
+
+    append(.marker(label))
+    let started = now()
+    let events: AsyncStream<IntentCLI.StreamEvent>
+    do {
+      events = try launch(args)
+    } catch {
+      append(ConsoleLine(text: error.localizedDescription, kind: .error, source: .app))
+      append(.marker("failed"))
+      throw error
+    }
+    var status: Int32?
+    for await event in events {
+      switch event {
+      case .line(let text): append(ConsoleLine(app: text))
+      case .exited(let code): status = code
+      }
+    }
+    guard let status else {
+      let error = ConsoleError.noExitStatus(label)
+      append(ConsoleLine(text: error.localizedDescription, kind: .error, source: .app))
+      append(.marker("failed"))
+      throw error
+    }
+    append(.marker(Self.exitMarker(status, after: now() - started)))
+    return status
+  }
+
+  /// `exit 0 · 1.2s`.
+  nonisolated static func exitMarker(_ status: Int32, after elapsed: Duration) -> String {
+    let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
+    return "exit \(status) · \(String(format: "%.1f", seconds))s"
+  }
+
+  /// A command that ran elsewhere reports here as a marked block: Start, Stop
+  /// and Restart intentd (AC-03.3), whose output went only to the system log
+  /// before. Its stdout, then its stderr, then `» exit N`. It does not bring
+  /// the Console forward.
+  func note(command: String, result: CLIRunResult) {
+    append(.marker(command))
+    // Each stream split on its own: a stdout with no final newline must not
+    // run into stderr's first line.
+    for line in [result.stdout, result.stderr].flatMap({ $0.split(separator: "\n") }) {
+      append(ConsoleLine(app: String(line)))
+    }
+    append(.marker("exit \(result.exitCode)"))
   }
 
   // MARK: - The backlog

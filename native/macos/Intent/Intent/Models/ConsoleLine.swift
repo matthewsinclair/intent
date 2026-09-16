@@ -99,6 +99,18 @@ extension ConsoleLine {
   init(tail text: String) {
     self.init(text: text, kind: Self.kind(of: text), source: .tail)
   }
+
+  /// A line of a command the app ran, classified for colour and kept when a
+  /// tail starts (AC-03.1).
+  init(app text: String) {
+    self.init(text: text, kind: Self.kind(of: text), source: .app)
+  }
+
+  /// `» intent doctor`, `» exit 0 · 1.2s`: the app's own markers around a
+  /// command it ran.
+  static func marker(_ text: String) -> ConsoleLine {
+    ConsoleLine(text: markerPrefix + text, kind: .marker, source: .app)
+  }
 }
 
 /// A bounded backlog: the Console keeps the last `capacity` lines and says how

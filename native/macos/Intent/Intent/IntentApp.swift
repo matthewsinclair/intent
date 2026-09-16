@@ -239,7 +239,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
 
-    menu.addItem(NSMenuItem(title: "Run Doctor", action: #selector(runDoctorVerb), keyEquivalent: ""))
+    // **THE STREAMING ITEMS (ST0075 WP-03)**: each runs in the Console and
+    // brings it forward, so a clean pass is seen.
+    menu.addItem(NSMenuItem(title: "Run Doctor", action: #selector(runDoctor), keyEquivalent: ""))
+    menu.addItem(
+      NSMenuItem(title: "Rebuild Search Index", action: #selector(rebuildSearchIndex), keyEquivalent: ""))
     menu.addItem(.separator())
     menu.addItem(NSMenuItem(title: "Quit Intent", action: #selector(quit), keyEquivalent: "q"))
 
@@ -288,7 +292,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   @objc private func restartDaemon() {
     runLifecycle("Restart failed") { try await self.daemon.restart() }
   }
-  @objc private func runDoctorVerb() { runVerb(["doctor"], failing: "Doctor failed") }
+  @objc private func runDoctor() { runInConsole(["doctor"]) }
+  @objc private func rebuildSearchIndex() { runInConsole(["index", "rebuild"]) }
 
   @objc private func toggleConsole() {
     console.toggle()
@@ -331,12 +336,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  private func runVerb(_ args: [String], failing: String) {
+  /// Brings the Console forward and streams the command into it (AC-03.1,
+  /// AC-03.2). The command's own lines report how it went; an alert is raised
+  /// only when it could not run at all -- no binary, no project, or another
+  /// command still running (AC-03.4).
+  private func runInConsole(_ args: [String]) {
+    console.show()
     Task {
       do {
-        _ = try await IntentCLI.run(args)
+        try await ConsoleRunner.shared.run(args)
       } catch {
-        showAlert(failing, message: error.localizedDescription)
+        showAlert("Could not run \(IntentCLI.label(args))", message: error.localizedDescription)
       }
     }
   }

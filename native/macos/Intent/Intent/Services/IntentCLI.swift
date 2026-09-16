@@ -112,15 +112,24 @@ enum IntentCLI {
 
   /// Runs and returns stdout; a non-zero exit is an error carrying stderr.
   static func run(_ args: [String]) async throws -> String {
-    let result = try await capture(args)
+    try checked(await capture(args), args)
+  }
+
+  /// A captured result's stdout, or the error its non-zero exit is.
+  static func checked(_ result: CLIRunResult, _ args: [String]) throws -> String {
     guard result.isSuccess else {
       throw IntentCLIError.commandFailed(
-        command: "intent " + args.joined(separator: " "),
+        command: label(args),
         exitCode: result.exitCode,
         stderr: result.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
       )
     }
     return result.stdout
+  }
+
+  /// The command as the operator would type it: `intent doctor`.
+  static func label(_ args: [String]) -> String {
+    (["intent"] + args).joined(separator: " ")
   }
 
   /// Runs and returns the full result whatever the exit code.

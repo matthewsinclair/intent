@@ -2,14 +2,14 @@
 wp_id: WP-03
 title: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
 
 ## Objective
 
-_(not yet written)_
+Intent.app's streaming items, copied from Gtools: Run Doctor and the new Rebuild Search Index bring the Console forward and stream `intent doctor` and `intent index rebuild` into it between `» intent doctor` and `» exit N · Ts`, so a clean pass is seen; a failing exit is reported in the Console by the command's own lines, and an alert is raised only when the command cannot run at all or its output ends with no exit status; Start, Stop and Restart intentd write their command, output and exit into the Console as a marked block without bringing it forward; and a second one-off while one runs is refused with an alert naming the running command, never queued.
 
 ## Acceptance
 

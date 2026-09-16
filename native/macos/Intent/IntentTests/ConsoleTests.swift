@@ -2,9 +2,10 @@ import XCTest
 
 @testable import Intent
 
-/// ST0075 WP-02's three criteria, each proved here. The window itself is driven
-/// by hand once, in hv's quiet window; what a test can hold is the header, the
-/// classification and the backlog the window renders from.
+/// ST0075 WP-02's three criteria and WP-03's four, each proved here. The window
+/// and the menu items are driven by hand once, in hv's quiet window; what a test
+/// can hold is the header, the classification, the backlog the window renders
+/// from, and the runner's markers, notes and refusal over stub commands.
 final class ConsoleTests: XCTestCase {
   // MARK: - AT-02.1: the footer names the files being tailed
 
@@ -143,5 +144,163 @@ final class ConsoleTests: XCTestCase {
     _ = ring.append(ConsoleLine(tail: "intentd stopping"))
     XCTAssertEqual(ring.removeAll(from: .tail), 2)
     XCTAssertEqual(ring.lines.map(\.text), ["intent daemon logs exited 1"])
+  }
+
+  // MARK: - AT-03.1 to AT-03.4: the streaming items
+
+  /// A stub one-off: prints `lines`, then exits `status`.
+  private static func printing(_ lines: [String], exit status: Int32) -> ConsoleRunner.Launch {
+    { _ in
+      AsyncStream { events in
+        for line in lines { events.yield(.line(line)) }
+        events.yield(.exited(status))
+        events.finish()
+      }
+    }
+  }
+
+  /// A clock that reads `start`, then `start` plus `elapsed`.
+  private static func readings(_ elapsed: Duration) -> () -> ContinuousClock.Instant {
+    let start = ContinuousClock.now
+    var next = [start, start.advanced(by: elapsed)]
+    return { next.removeFirst() }
+  }
+
+  /// AT-03.1: Run Doctor's lines arrive between `» intent doctor` and
+  /// `» exit 0 · 1.2s`, coloured, and the exit status comes back. **THEY ARE THE
+  /// APP'S LINES**, so the tail's replacement on a start removes none of them.
+  @MainActor
+  func testRunDoctorStreamsBetweenItsMarkers() async throws {
+    let runner = ConsoleRunner()
+    let status = try await runner.run(
+      ["doctor"],
+      launch: Self.printing(["ok: store intent/.cache/intent.db", "warning: the index is 3 files behind"], exit: 0),
+      now: Self.readings(.milliseconds(1_200)))
+    XCTAssertEqual(status, 0)
+    XCTAssertEqual(
+      runner.ring.lines,
+      [
+        ConsoleLine(text: "» intent doctor", kind: .marker, source: .app),
+        ConsoleLine(text: "ok: store intent/.cache/intent.db", kind: .log, source: .app),
+        ConsoleLine(text: "warning: the index is 3 files behind", kind: .warning, source: .app),
+        ConsoleLine(text: "» exit 0 · 1.2s", kind: .marker, source: .app),
+      ])
+    XCTAssertNil(runner.commandRunning)
+    var ring = runner.ring
+    XCTAssertEqual(ring.removeAll(from: .tail), 0)
+  }
+
+  /// AT-03.2: Rebuild Search Index streams the same way, and **A FAILING EXIT
+  /// IS REPORTED IN THE CONSOLE, NOT THROWN**: its lines already say why.
+  @MainActor
+  func testRebuildSearchIndexStreamsTheSameWayAndReportsItsExit() async throws {
+    let runner = ConsoleRunner()
+    let status = try await runner.run(
+      ["index", "rebuild"],
+      launch: Self.printing(["error: database is locked", "  remedy: stop the writer and rerun"], exit: 1),
+      now: Self.readings(.milliseconds(40)))
+    XCTAssertEqual(status, 1)
+    XCTAssertEqual(
+      runner.ring.lines.map(\.text),
+      ["» intent index rebuild", "error: database is locked", "  remedy: stop the writer and rerun", "» exit 1 · 0.0s"])
+    XCTAssertEqual(runner.ring.lines.map(\.kind), [.marker, .error, .warning, .marker])
+  }
+
+  /// AT-03.2: a command that cannot launch leaves its reason and `» failed` in
+  /// the Console, and throws, so the app raises its alert.
+  @MainActor
+  func testACommandThatCannotLaunchIsRecordedAndThrown() async {
+    let runner = ConsoleRunner()
+    do {
+      try await runner.run(["doctor"], launch: { _ in throw IntentCLIError.binaryNotFound })
+      XCTFail("a launch failure was not thrown")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, IntentCLIError.binaryNotFound.localizedDescription)
+    }
+    XCTAssertEqual(
+      runner.ring.lines.map(\.text),
+      ["» intent doctor", IntentCLIError.binaryNotFound.localizedDescription, "» failed"])
+    XCTAssertNil(runner.commandRunning)
+  }
+
+  /// AT-03.2: output that ends with no exit status is not reported as an exit:
+  /// the Console says so and the caller gets the error to alert on.
+  @MainActor
+  func testOutputEndingWithNoExitStatusIsRecordedAndThrown() async {
+    let runner = ConsoleRunner()
+    do {
+      try await runner.run(["index", "rebuild"], launch: { _ in
+        AsyncStream { events in
+          events.yield(.line("rebuilding the index"))
+          events.finish()
+        }
+      })
+      XCTFail("a missing exit status was not thrown")
+    } catch {
+      XCTAssertEqual(error as? ConsoleError, .noExitStatus("intent index rebuild"))
+    }
+    XCTAssertEqual(
+      runner.ring.lines.map(\.text),
+      ["» intent index rebuild", "rebuilding the index", "`intent index rebuild` ended without an exit status.", "» failed"])
+    XCTAssertNil(runner.commandRunning)
+  }
+
+  /// AT-03.3: Start, Stop and Restart intentd write a marked block: the command,
+  /// its stdout then its stderr line by line, and its exit. A stdout with no
+  /// final newline does not run into stderr.
+  @MainActor
+  func testALifecycleVerbIsNotedAsAMarkedBlock() {
+    let runner = ConsoleRunner()
+    runner.note(
+      command: "intent daemon restart",
+      result: CLIRunResult(
+        exitCode: 0, stdout: "stopped intentd (pid 812)\nstarted intentd (pid 907)",
+        stderr: "warning: the LaunchAgent was regenerated\n"))
+    XCTAssertEqual(
+      runner.ring.lines,
+      [
+        ConsoleLine(text: "» intent daemon restart", kind: .marker, source: .app),
+        ConsoleLine(text: "stopped intentd (pid 812)", kind: .log, source: .app),
+        ConsoleLine(text: "started intentd (pid 907)", kind: .log, source: .app),
+        ConsoleLine(text: "warning: the LaunchAgent was regenerated", kind: .warning, source: .app),
+        ConsoleLine(text: "» exit 0", kind: .marker, source: .app),
+      ])
+  }
+
+  /// AT-03.4: a second one-off while one runs is refused with an error naming
+  /// the RUNNING command -- not queued, never launched, and nothing written --
+  /// and the first runs on to its exit.
+  @MainActor
+  func testASecondCommandWhileOneRunsIsRefusedNamingTheRunningOne() async throws {
+    let runner = ConsoleRunner()
+    let (events, doctor) = AsyncStream.makeStream(of: IntentCLI.StreamEvent.self)
+    let (launched, signal) = AsyncStream.makeStream(of: Void.self)
+    let first = Task {
+      try await runner.run(["doctor"], launch: { _ in
+        signal.yield()
+        return events
+      })
+    }
+    for await _ in launched { break }
+    XCTAssertEqual(runner.commandRunning, "intent doctor")
+
+    do {
+      try await runner.run(["index", "rebuild"], launch: { _ in
+        XCTFail("the second command was launched")
+        return AsyncStream { $0.finish() }
+      })
+      XCTFail("the second command was not refused")
+    } catch {
+      XCTAssertEqual(error as? ConsoleError, .busy("intent doctor"))
+      XCTAssertEqual(
+        error.localizedDescription, "The Console is still running `intent doctor`. One command at a time.")
+    }
+    XCTAssertEqual(runner.ring.lines.map(\.text), ["» intent doctor"])
+
+    doctor.yield(.exited(0))
+    doctor.finish()
+    let status = try await first.value
+    XCTAssertEqual(status, 0)
+    XCTAssertNil(runner.commandRunning)
   }
 }
