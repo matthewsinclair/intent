@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 13:36Z
+heartbeat_at: 2026-09-16 13:47Z
 status: active
 focus: "HOLDING on hv's word after the localfold: 0331 closed (a7a31aa2f). Next, bank 1 (0411, 0415, 0414) then bank 2 (0410, 0417, 0413) under vc decision 21, on hv's release; N waits on vc's carry-versus-diff answer. NO RELEASE, NO PUSH."
 claims: []
