@@ -387,6 +387,8 @@ mod sync_scan;
 mod sync_scope;
 #[path = "sync_to_disk_materialises_a_canon_authored_attachment.rs"]
 mod sync_to_disk_materialises_a_canon_authored_attachment;
+#[path = "sync_to_store_keeps_board_rows.rs"]
+mod sync_to_store_keeps_board_rows;
 #[path = "template_pins.rs"]
 mod template_pins;
 #[path = "text_realisation.rs"]
@@ -435,6 +437,8 @@ mod wb_pickup_states_the_session;
 mod wb_register_names_a_node;
 #[path = "wb_views_are_generated.rs"]
 mod wb_views_are_generated;
+#[path = "wb_writes_are_recorded.rs"]
+mod wb_writes_are_recorded;
 #[path = "wbmigrate_reads_a_board.rs"]
 mod wbmigrate_reads_a_board;
 #[path = "wp_prose_roundtrip.rs"]

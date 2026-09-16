@@ -351,7 +351,7 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
     "wb release",
     "intentsvcs/tests/openness.rs, through the same round trip: it writes `wb_node.status` and \
-     `heartbeat_at`, both carried there. It composes `wb_set_status` and `wb_touch` and has no \
+     `heartbeat_at`, both carried there. It composes the store writes `set_status` and `touch` and has no \
      write of its own, so what it moves is exactly what those two move -- and the reason it touches \
      as well is behavioural rather than structural: a pause that left the heartbeat alone would \
      make a cleanly-released node indistinguishable from one that died mid-turn.",
@@ -386,7 +386,7 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   (
     "wb unclaim",
     "intentsvcs/tests/error_remedies.rs, through the same column: `wb_unclaim` is `wb_claim`'s \
-     removal half over `wb_node.claims` and has no write of its own beyond `wb_set_claims`, the \
+     removal half over `wb_node.claims` and has no write of its own beyond `set_claims`, the \
      one door both use. It deliberately does NOT validate the address -- a malformed claim cannot \
      be in the list, so refusing would refuse a call that is already a no-op -- and it reports \
      whether anything moved, which is the whole of what it can be wrong about.",

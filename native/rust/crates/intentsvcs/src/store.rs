@@ -18,8 +18,8 @@ use serde_json::json;
 
 use crate::event::Envelope;
 use crate::model::{
-  AcceptanceTest, BOARD_SCHEMA, Board, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related,
-  THREAD_SCHEMA, Thread, WbItem, WbMessage, WbNode, WorkPackage, enum_str,
+  AcceptanceTest, BOARD_SCHEMA, Board, BoardRows, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related,
+  RowChange, THREAD_SCHEMA, Thread, WbItem, WbMessage, WbNode, WorkPackage, enum_str,
 };
 use crate::prose::DocSection;
 use crate::sync::FileEntry;
@@ -2423,6 +2423,496 @@ pub enum ProjectStateEdit {
   SetTodoWatermark,
 }
 
+/// Rows left on a board whose node is not on the roster: what a hand `DELETE`
+/// on `wb_node` leaves behind, and what a restore removes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbOrphans {
+  pub node: String,
+  pub items: usize,
+  pub messages: usize,
+}
+
+/// One whiteboard verb's writes, inside the transaction that records it.
+///
+/// **THE ONLY DOOR A BOARD ROW IS WRITTEN THROUGH** (issues 0411 and 0415).
+/// A verb gets one from [`Store::wb_write`], which takes the verb's envelope
+/// before it hands this over, and a restore from [`Store::replace_boards`],
+/// whose act the sync records. Every writer lives here rather than on
+/// [`Store`], so a verb's board write with no `wb.*` event beside it is not a
+/// thing a caller can spell. Until
+/// 2026-09-16 these writers sat on the store itself, logged nothing and moved
+/// no `updated_at`, and the store could say what a board row held but never
+/// who wrote it or that it had changed since insert.
+///
+/// **`moved` IS WHAT DECIDES WHETHER ANYTHING HAPPENED.** Each writer adds the
+/// rows its statement changed, and a verb that moved none commits nothing and
+/// records nothing -- the claim already held, the inbox already clear -- because
+/// an event beside a report that nothing moved would contradict it.
+///
+/// **`updated_at` IS SET AS A VALUE BY EVERY STATEMENT THAT CHANGES A ROW**,
+/// read from the clock at the write the way `recorded_at` is, and never left
+/// to the column default: that default fires only at an insert, which is the
+/// one moment the column already had right.
+pub struct WbWrite<'a> {
+  tx: rusqlite::Transaction<'a>,
+  moved: usize,
+}
+
+impl WbWrite<'_> {
+  /// Register the node roster: one `wb_node` row per participant, with no
+  /// items and no messages.
+  ///
+  /// **THE CLOCK IS READ BY THE DATABASE AT THE WRITE, AS A VALUE AND NEVER AS
+  /// A COLUMN DEFAULT.** Those are different mechanisms with the same spelling
+  /// and only one of them is safe here: a default fires again on every
+  /// re-insert, and a disk-to-db resync re-inserts every row, so the whole
+  /// board would be re-stamped on each sync -- history rewritten silently and
+  /// indistinguishably from a correct value. Written as a value it fires once,
+  /// here, and [`Store::replace_boards`] carries the result forward verbatim.
+  /// No caller supplies a time, which is the other half of the same rule.
+  ///
+  /// `heartbeat_at` takes the same instant: a registered node has not reported
+  /// itself alive yet, and inventing an earlier time for it would be the
+  /// fabrication this model exists to make impossible.
+  ///
+  /// Idempotent by moniker, so registering twice is not two rows -- but an
+  /// existing row is LEFT ALONE rather than refreshed, because the roster is
+  /// the starting state and everything after it belongs to whoever wrote it.
+  ///
+  /// **`migrated` SAYS WHETHER THE ROW IS THE BOARD.** A node named from its
+  /// arguments has no hand-authored board, so its row is stamped migrated at
+  /// the insert; a node read off its header is not, until `wb migrate` carries
+  /// the markdown the header sits on.
+  pub fn register_nodes(
+    &mut self,
+    nodes: &[(String, String, String)],
+    migrated: bool,
+  ) -> Result<usize, StoreError> {
+    let mut written = 0;
+    for (moniker, name, role) in nodes {
+      written += self.tx.execute(
+        "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
+         claims, recorded_at, authored_at, updated_at, migrated_at) \
+         SELECT ?1, ?2, ?3, NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'paused', '', '[]', \
+         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+         CASE WHEN ?4 THEN strftime('%Y-%m-%dT%H:%M:%fZ', 'now') END \
+         WHERE NOT EXISTS (SELECT 1 FROM wb_node WHERE moniker = ?1)",
+        params![moniker, name, role, migrated],
+      )?;
+    }
+    self.moved += written;
+    Ok(written)
+  }
+
+  /// Stamp a node's heartbeat from the clock at the write.
+  ///
+  /// **NO CALLER SUPPLIES THE TIME, HERE LEAST OF ALL.** A heartbeat is the one
+  /// field whose whole meaning is "this node was alive at this moment", so a
+  /// caller-supplied value would be the fabricated stamp with the model's
+  /// blessing. The database reads the clock as a VALUE, never as a column
+  /// default, for the reason the tables record.
+  pub fn touch(&mut self, node: &str) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
+      params![node],
+    )?;
+    Ok(())
+  }
+
+  /// A node picking up: its status, its heartbeat, and the session and focus
+  /// it names, in one statement.
+  ///
+  /// **AN UNNAMED SESSION OR FOCUS KEEPS WHAT THE ROW HOLDS.** A pickup that
+  /// says nothing about its focus has not said the focus is empty, and writing
+  /// it empty would erase the one line a peer reads to know what this node is
+  /// on. The clock is read as a value, as [`Self::touch`] reads it.
+  pub fn pick_up(
+    &mut self,
+    node: &str,
+    status: &str,
+    session_id: Option<&str>,
+    focus: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET status = ?2, session_id = coalesce(?3, session_id), \
+       focus = coalesce(?4, focus), heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
+      params![node, status, session_id, focus],
+    )?;
+    Ok(())
+  }
+
+  /// Set a node's status.
+  pub fn set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET status = ?2, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE moniker = ?1",
+      params![node, status],
+    )?;
+    Ok(())
+  }
+
+  /// Carry one node's HEADER BLOCK off its hand-authored board, for `wb
+  /// migrate` and for nothing else.
+  ///
+  /// **THE SERVICE STAMPS TAKE THE INGEST INSTANT AND THE BOARD'S CLAIM GOES TO
+  /// `authored_at`**, which is the ruling that resolves AC-14.4 against AC-14.9:
+  /// a migration run through the ordinary API turns every historical stamp into
+  /// `now` and loses the claim, and one run around the API puts a hole in the
+  /// refusal on its first day. So `heartbeat_at` is re-read from the clock here
+  /// -- what a board CLAIMED about its own liveness is the value we know may be
+  /// invented -- while that claim survives verbatim beside it.
+  ///
+  /// `recorded_at` is left exactly as registration wrote it: that is when this
+  /// node entered the model, and a migration is not a second birth.
+  #[allow(clippy::too_many_arguments)]
+  pub fn carry_header(
+    &mut self,
+    node: &str,
+    name: &str,
+    role: &str,
+    session_id: Option<&str>,
+    status: &str,
+    focus: &str,
+    claims: &[String],
+    authored_at: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, status = ?5, focus = ?6, \
+       claims = ?7, heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), authored_at = ?8, \
+       migrated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
+      params![
+        node,
+        name,
+        role,
+        session_id,
+        status,
+        focus,
+        serde_json::to_string(claims)?,
+        authored_at
+      ],
+    )?;
+    Ok(())
+  }
+
+  /// Move one live item to archived, and say whether it moved.
+  ///
+  /// **ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its `seq` and
+  /// its text, so what an item said stays readable after it stops counting
+  /// against the bound -- which is what lets the bound be enforced by refusal
+  /// without costing anybody their record.
+  pub fn archive_item(&mut self, node: &str, kind: &str, seq: u32) -> Result<bool, StoreError> {
+    let moved = self.tx.execute(
+      "UPDATE wb_item SET state = 'archived', archived_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE node = ?1 AND kind = ?2 AND seq = ?3 AND state = 'live'",
+      params![node, kind, seq],
+    )?;
+    self.moved += moved;
+    Ok(moved > 0)
+  }
+
+  /// Append one item to a node's board, and say which `seq` it was given.
+  ///
+  /// **`seq` IS ASSIGNED BY THE SERVICE AND NEVER BY A CALLER.** It is the
+  /// board's within-kind ordering, and a caller-chosen one collides the moment
+  /// two writes race -- the same reasoning that keeps the clock out of callers'
+  /// hands one function down. It counts LIVE and ARCHIVED alike, so archiving an
+  /// item never frees its number for reuse and a `seq` refers to one item for
+  /// the life of the board.
+  ///
+  /// **`authored_at` IS A CLAIM THE CALLER CARRIES, NEVER A TIME THE CALLER
+  /// CHOOSES, and it is `None` for every write but a migration's.** The service
+  /// still reads the clock for `recorded_at` here, in this statement, as a value
+  /// and never as a column default -- that half has no parameter and will not
+  /// get one. What this takes is the stamp a hand-authored board's markdown
+  /// PRINTED, verbatim, for the one door that has such a stamp to carry.
+  ///
+  /// **ONE INSERT PER TABLE, WHICH IS WHY THE PARAMETER IS HERE RATHER THAN IN A
+  /// SECOND WRITER BESIDE IT.** A migration-only insert would be the second
+  /// spelling of this row, free to drift on `seq`, on `state`, or on the
+  /// clock-as-a-value rule, and the drift would be invisible because each door
+  /// would be self-consistent.
+  pub fn insert_item(
+    &mut self,
+    node: &str,
+    kind: &str,
+    text: &str,
+    authored_at: Option<&str>,
+  ) -> Result<u32, StoreError> {
+    let next: i64 = self.tx.query_row(
+      "SELECT coalesce(max(seq), 0) + 1 FROM wb_item WHERE node = ?1 AND kind = ?2",
+      params![node, kind],
+      |r| r.get(0),
+    )?;
+    self.moved += self.tx.execute(
+      "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, authored_at, \
+       updated_at) \
+       VALUES (?1, ?2, ?3, ?4, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?5, \
+       strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      params![node, kind, next, text, authored_at],
+    )?;
+    Ok(next as u32)
+  }
+
+  /// Replace one node's claims.
+  ///
+  /// **THE CLAIMS LIST IS REPLACED WHOLE RATHER THAN APPENDED TO**, because the
+  /// caller has already read it to decide what it should become: an
+  /// append-and-a-remove pair would be two doors holding one invariant, and the
+  /// ordering between them would be the thing nobody tested.
+  pub fn set_claims(&mut self, node: &str, claims: &[String]) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET claims = ?2, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE moniker = ?1",
+      params![node, serde_json::to_string(claims)?],
+    )?;
+    Ok(())
+  }
+
+  /// Append one message to the recipient's board.
+  ///
+  /// **NO CALLER SUPPLIES THE SERVICE'S STAMP, AND THERE IS NO PARAMETER FOR
+  /// ONE.** The clock is read by the database at the write, as a VALUE and never
+  /// as a column default -- a default fires again on every re-insert and a
+  /// disk-to-db resync re-inserts every row, so the board would be re-stamped on
+  /// each sync, which is history rewritten silently.
+  ///
+  /// **`authored_at` IS THE OTHER THING AND IS NOT AN EXCEPTION TO IT**: what
+  /// the entry's `## (...)` heading CLAIMED, verbatim, `None` for everything
+  /// born through this door live and non-null only on a migration's write. It is
+  /// the field that deliberately carries the class of value the clock guard
+  /// exists to refuse -- stamps measured fabricated, an hour out, and ordered
+  /// before the message they answer -- so it is stored as text and never read as
+  /// a time. See [`Self::insert_item`] for why the parameter sits on this
+  /// writer rather than on a second one beside it.
+  pub fn insert_message(
+    &mut self,
+    sender: &str,
+    recipient: &str,
+    body: &str,
+    re: Option<&str>,
+    fyi: bool,
+    authored_at: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, recorded_at, \
+       authored_at, updated_at) \
+       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?6, \
+       strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      params![sender, recipient, body, re, fyi, authored_at],
+    )?;
+    Ok(())
+  }
+
+  /// Mark every live message from `sender` to `recipient` handled, and say how
+  /// many moved.
+  ///
+  /// **THE COUNT IS WHAT MOVED, NOT WHAT WAS THERE.** Clearing an inbox that
+  /// was already clear moves nothing, and reporting its size either way would
+  /// say a write happened when none did -- the same rule `wb register` answers
+  /// to.
+  pub fn clear_inbox(&mut self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
+    let moved = self.tx.execute(
+      "UPDATE wb_message SET handled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), state = \
+       'handled', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
+      params![sender, recipient],
+    )?;
+    self.moved += moved;
+    Ok(moved)
+  }
+
+  /// Make the whiteboard tables hold `offered`, changing only the rows that
+  /// differ (vc decision 22, issue 0414).
+  ///
+  /// **DELETE-MISSING, UPDATE-CHANGED, INSERT-NEW**, the pattern
+  /// [`Store::replace_file_index`] already follows for the reason it gives: a
+  /// row has durable identity across restores. It deleted every row and
+  /// re-inserted the boards until 2026-09-16, which renumbered every item and
+  /// message and restamped `updated_at` on all of them while the sync printed
+  /// that nothing was overwritten. [`crate::model::board_changes`] decides what
+  /// differs, by natural key, and the sync preview reports the same answer.
+  ///
+  /// **A CHANGED OR INSERTED ROW TAKES `updated_at` FROM THE CLOCK; EVERY OTHER
+  /// STAMP IS CARRIED FROM THE BOARD**, because those are history and a restore
+  /// is not the moment they happened. An inserted row takes the next id in the
+  /// order the boards hold it, which is the order the inbox reads back.
+  fn restore(&mut self, offered: &[Board]) -> Result<(), StoreError> {
+    // **A ROW NO BOARD HYDRATES IS A ROW NO BOARD OFFERS, AND IT GOES FIRST.**
+    // An item or message whose node is not on the roster never reaches `held`,
+    // so the diff cannot name it, and the tables must still end holding exactly
+    // the boards. Deleted before any insert, because a restore that brings the
+    // moniker back would otherwise adopt rows it never offered. The sync
+    // preview names these from the same read (vc, on bank 1).
+    for orphan in Store::wb_orphans_on(&self.tx)? {
+      self.moved += self
+        .tx
+        .execute("DELETE FROM wb_item WHERE node = ?1", params![orphan.node])?;
+      self.moved += self.tx.execute(
+        "DELETE FROM wb_message WHERE recipient = ?1",
+        params![orphan.node],
+      )?;
+    }
+    let held = Store::hydrate_boards_on(&self.tx)?;
+    let (item_ids, message_ids) = Store::wb_row_ids(&self.tx)?;
+    let changes = crate::model::board_changes(&held, offered);
+    let (was, now) = (BoardRows::of(&held), BoardRows::of(offered));
+    for change in &changes.messages {
+      match *change {
+        RowChange::Removed(h) => {
+          self.moved += self.tx.execute(
+            "DELETE FROM wb_message WHERE id = ?1",
+            params![message_ids[h]],
+          )?;
+        }
+        RowChange::Changed { held, offered } => {
+          let m = now.messages[offered];
+          self.moved += self.tx.execute(
+            "UPDATE wb_message SET re = ?2, fyi = ?3, state = ?4, handled_at = ?5, \
+             authored_at = ?6, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?1",
+            params![
+              message_ids[held],
+              m.re,
+              i64::from(m.fyi),
+              enum_str(&m.state),
+              m.handled_at,
+              m.authored_at
+            ],
+          )?;
+        }
+        RowChange::Added(_) => {}
+      }
+    }
+    for change in &changes.items {
+      match *change {
+        RowChange::Removed(h) => {
+          self.moved += self
+            .tx
+            .execute("DELETE FROM wb_item WHERE id = ?1", params![item_ids[h]])?;
+        }
+        RowChange::Changed { held, offered } => {
+          let i = now.items[offered];
+          self.moved += self.tx.execute(
+            "UPDATE wb_item SET text = ?2, state = ?3, archived_at = ?4, recorded_at = ?5, \
+             authored_at = ?6, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?1",
+            params![
+              item_ids[held],
+              i.text,
+              enum_str(&i.state),
+              i.archived_at,
+              i.recorded_at,
+              i.authored_at
+            ],
+          )?;
+        }
+        RowChange::Added(_) => {}
+      }
+    }
+    for change in &changes.nodes {
+      match *change {
+        RowChange::Removed(h) => {
+          self.moved += self.tx.execute(
+            "DELETE FROM wb_node WHERE moniker = ?1",
+            params![was.nodes[h].moniker],
+          )?;
+        }
+        RowChange::Changed { offered, .. } => {
+          let n = now.nodes[offered];
+          self.moved += self.tx.execute(
+            "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, heartbeat_at = ?5, \
+             status = ?6, focus = ?7, claims = ?8, recorded_at = ?9, authored_at = ?10, \
+             migrated_at = ?11, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+             WHERE moniker = ?1",
+            params![
+              n.moniker,
+              n.name,
+              n.role,
+              n.session_id,
+              n.heartbeat_at,
+              enum_str(&n.status),
+              n.focus,
+              serde_json::to_string(&n.claims)?,
+              n.recorded_at,
+              n.authored_at,
+              n.migrated_at,
+            ],
+          )?;
+        }
+        RowChange::Added(_) => {}
+      }
+    }
+    for change in &changes.nodes {
+      if let RowChange::Added(o) = *change {
+        let n = now.nodes[o];
+        self.moved += self.tx.execute(
+          "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
+           claims, recorded_at, authored_at, migrated_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, \
+           strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+          params![
+            n.moniker,
+            n.name,
+            n.role,
+            n.session_id,
+            n.heartbeat_at,
+            enum_str(&n.status),
+            n.focus,
+            serde_json::to_string(&n.claims)?,
+            n.recorded_at,
+            n.authored_at,
+            n.migrated_at,
+          ],
+        )?;
+      }
+    }
+    for change in &changes.items {
+      if let RowChange::Added(o) = *change {
+        let i = now.items[o];
+        self.moved += self.tx.execute(
+          "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, \
+           authored_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+          params![
+            i.node,
+            enum_str(&i.kind),
+            i.seq,
+            i.text,
+            enum_str(&i.state),
+            i.archived_at,
+            i.recorded_at,
+            i.authored_at,
+          ],
+        )?;
+      }
+    }
+    for change in &changes.messages {
+      if let RowChange::Added(o) = *change {
+        let m = now.messages[o];
+        self.moved += self.tx.execute(
+          "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, \
+           recorded_at, authored_at, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+          params![
+            m.sender,
+            m.recipient,
+            m.body,
+            m.re,
+            i64::from(m.fyi),
+            enum_str(&m.state),
+            m.handled_at,
+            m.recorded_at,
+            m.authored_at,
+          ],
+        )?;
+      }
+    }
+    Ok(())
+  }
+}
+
 impl Store {
   /// How long a contended write waits before it is refused (issue `0152`).
   ///
@@ -4209,7 +4699,13 @@ impl Store {
   /// A message belongs to its RECIPIENT's board: that is the shape the disk
   /// already has, so one file is a whole readable board.
   pub fn hydrate_boards(&self) -> Result<Vec<Board>, StoreError> {
-    let mut stmt = self.conn.prepare(
+    Self::hydrate_boards_on(&self.conn)
+  }
+
+  /// [`Store::hydrate_boards`] on any connection, so a restore reads the boards
+  /// it is about to change inside its own transaction.
+  fn hydrate_boards_on(conn: &rusqlite::Connection) -> Result<Vec<Board>, StoreError> {
+    let mut stmt = conn.prepare(
       "SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at, \
        authored_at, migrated_at FROM wb_node ORDER BY moniker",
     )?;
@@ -4261,12 +4757,56 @@ impl Store {
       };
       boards.push(Board {
         schema: BOARD_SCHEMA.to_string(),
-        items: Self::hydrate_items(&self.conn, &moniker)?,
-        messages: Self::hydrate_messages(&self.conn, &moniker)?,
+        items: Self::hydrate_items(conn, &moniker)?,
+        messages: Self::hydrate_messages(conn, &moniker)?,
         node,
       });
     }
     Ok(boards)
+  }
+
+  /// Every moniker that holds items or messages and is not on the roster.
+  pub fn wb_orphans(&self) -> Result<Vec<WbOrphans>, StoreError> {
+    Self::wb_orphans_on(&self.conn)
+  }
+
+  /// [`Store::wb_orphans`] on any connection: the ONE read both the restore's
+  /// delete and the sync preview's warning take, so they name the same rows.
+  fn wb_orphans_on(conn: &rusqlite::Connection) -> Result<Vec<WbOrphans>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT node, sum(items), sum(messages) FROM ( \
+         SELECT node, 1 AS items, 0 AS messages FROM wb_item \
+         UNION ALL SELECT recipient, 0, 1 FROM wb_message \
+       ) WHERE node NOT IN (SELECT moniker FROM wb_node) GROUP BY node ORDER BY node",
+    )?;
+    let rows = stmt.query_map([], |r| {
+      Ok(WbOrphans {
+        node: r.get(0)?,
+        items: r.get::<_, i64>(1)? as usize,
+        messages: r.get::<_, i64>(2)? as usize,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// The ids of every item and message, in exactly the order
+  /// [`Store::hydrate_boards`] reads the rows -- node by moniker, then id -- so
+  /// an index into its flattened boards is an index here.
+  fn wb_row_ids(conn: &rusqlite::Connection) -> Result<(Vec<i64>, Vec<i64>), StoreError> {
+    let read = |sql: &str| -> Result<Vec<i64>, StoreError> {
+      let mut stmt = conn.prepare(sql)?;
+      let ids = stmt.query_map([], |r| r.get(0))?;
+      Ok(ids.collect::<Result<Vec<_>, _>>()?)
+    };
+    Ok((
+      read(
+        "SELECT i.id FROM wb_item i JOIN wb_node n ON n.moniker = i.node ORDER BY n.moniker, i.id",
+      )?,
+      read(
+        "SELECT m.id FROM wb_message m JOIN wb_node n ON n.moniker = m.recipient \
+         ORDER BY n.moniker, m.id",
+      )?,
+    ))
   }
 
   fn hydrate_items(conn: &rusqlite::Connection, node: &str) -> Result<Vec<WbItem>, StoreError> {
@@ -4350,63 +4890,34 @@ impl Store {
       .collect()
   }
 
-  /// Register the node roster: one `wb_node` row per participant, with no
-  /// items and no messages.
+  /// Run one whiteboard verb's writes, and record the verb.
   ///
-  /// **THE CLOCK IS READ BY THE DATABASE AT THE WRITE, AS A VALUE AND NEVER AS
-  /// A COLUMN DEFAULT.** Those are different mechanisms with the same spelling
-  /// and only one of them is safe here: a default fires again on every
-  /// re-insert, and a disk-to-db resync re-inserts every row, so the whole
-  /// board would be re-stamped on each sync -- history rewritten silently and
-  /// indistinguishably from a correct value. Written as a value it fires once,
-  /// here, and [`Store::replace_boards`] carries the result forward verbatim.
-  /// No caller supplies a time, which is the other half of the same rule.
+  /// **THE ROWS AND THE EVENT SHARE ONE TRANSACTION** (D42, issue 0411), which
+  /// is the shape a thread mutation already has: the log cannot hold an act
+  /// the board does not, or a board row no act explains. The database stamps
+  /// the event, and the writers stamp `updated_at`, from the clock at the
+  /// write.
   ///
-  /// `heartbeat_at` takes the same instant: a registered node has not reported
-  /// itself alive yet, and inventing an earlier time for it would be the
-  /// fabrication this model exists to make impossible.
-  ///
-  /// Idempotent by moniker, so registering twice is not two rows -- but an
-  /// existing row is LEFT ALONE rather than refreshed, because the roster is
-  /// the starting state and everything after it belongs to whoever wrote it.
-  ///
-  /// **`migrated` SAYS WHETHER THE ROW IS THE BOARD.** A node named from its
-  /// arguments has no hand-authored board, so its row is stamped migrated at
-  /// the insert; a node read off its header is not, until `wb migrate` carries
-  /// the markdown the header sits on.
-  pub fn register_nodes(
+  /// **A VERB THAT MOVED NO ROW COMMITS NOTHING AND RECORDS NOTHING** -- see
+  /// [`WbWrite`] -- and still returns what `write` answered, because "nothing
+  /// moved" is an answer the caller reports.
+  pub fn wb_write<T>(
     &mut self,
-    nodes: &[(String, String, String)],
-    migrated: bool,
-  ) -> Result<usize, StoreError> {
-    let tx = self.conn.transaction()?;
-    let mut written = 0;
-    for (moniker, name, role) in nodes {
-      written += tx.execute(
-        "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-         claims, recorded_at, authored_at, migrated_at) \
-         SELECT ?1, ?2, ?3, NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'paused', '', '[]', \
-         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL, \
-         CASE WHEN ?4 THEN strftime('%Y-%m-%dT%H:%M:%fZ', 'now') END \
-         WHERE NOT EXISTS (SELECT 1 FROM wb_node WHERE moniker = ?1)",
-        params![moniker, name, role, migrated],
-      )?;
+    event: &Envelope,
+    write: impl FnOnce(&mut WbWrite<'_>) -> Result<T, StoreError>,
+  ) -> Result<T, StoreError> {
+    let mut w = WbWrite {
+      tx: self.conn.transaction()?,
+      moved: 0,
+    };
+    let out = write(&mut w)?;
+    if w.moved > 0 {
+      Self::write_event(&w.tx, event, Stamp::ByTheDatabase)?;
+      w.tx.commit()?;
     }
-    tx.commit()?;
-    Ok(written)
+    Ok(out)
   }
 
-  /// Replace the whiteboard tables from a set of boards.
-  ///
-  /// **DELETE-THEN-INSERT, DELIBERATELY, AND IT IS WHY `recorded_at` MUST NOT
-  /// BE A COLUMN DEFAULT.** A restore re-inserts every row, so a
-  /// `DEFAULT CURRENT_TIMESTAMP` would re-stamp the whole board on each
-  /// disk-to-db sync -- rewriting history silently and indistinguishably from a
-  /// correct value. The value is carried from the board being written, which is
-  /// what makes the round trip lossless in both directions.
-  ///
-  /// Rows are inserted in the order the board holds them, so the ROWIDs that
-  /// order the next read are the order this write was given.
   /// Is this node's board the model's, rather than its markdown on disk?
   pub fn wb_node_migrated(&self, moniker: &str) -> Result<bool, StoreError> {
     let migrated: i64 = self.conn.query_row(
@@ -4455,109 +4966,6 @@ impl Store {
     Ok(n as usize)
   }
 
-  /// Stamp a node's heartbeat from the clock at the write.
-  ///
-  /// **NO CALLER SUPPLIES THE TIME, HERE LEAST OF ALL.** A heartbeat is the one
-  /// field whose whole meaning is "this node was alive at this moment", so a
-  /// caller-supplied value would be the fabricated stamp with the model's
-  /// blessing. The database reads the clock as a VALUE, never as a column
-  /// default, for the reason the tables record.
-  pub fn wb_touch(&mut self, node: &str) -> Result<(), StoreError> {
-    self.conn.execute(
-      "UPDATE wb_node SET heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
-      params![node],
-    )?;
-    Ok(())
-  }
-
-  /// A node picking up: its status, its heartbeat, and the session and focus
-  /// it names, in one statement.
-  ///
-  /// **AN UNNAMED SESSION OR FOCUS KEEPS WHAT THE ROW HOLDS.** A pickup that
-  /// says nothing about its focus has not said the focus is empty, and writing
-  /// it empty would erase the one line a peer reads to know what this node is
-  /// on. The clock is read as a value, as `wb_touch` reads it.
-  pub fn wb_pick_up(
-    &mut self,
-    node: &str,
-    status: &str,
-    session_id: Option<&str>,
-    focus: Option<&str>,
-  ) -> Result<(), StoreError> {
-    self.conn.execute(
-      "UPDATE wb_node SET status = ?2, session_id = coalesce(?3, session_id), focus = coalesce(?4, focus), heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
-      params![node, status, session_id, focus],
-    )?;
-    Ok(())
-  }
-
-  /// Set a node's status.
-  pub fn wb_set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
-    self.conn.execute(
-      "UPDATE wb_node SET status = ?2 WHERE moniker = ?1",
-      params![node, status],
-    )?;
-    Ok(())
-  }
-
-  /// Carry one node's HEADER BLOCK off its hand-authored board, for `wb
-  /// migrate` and for nothing else.
-  ///
-  /// **THE SERVICE STAMPS TAKE THE INGEST INSTANT AND THE BOARD'S CLAIM GOES TO
-  /// `authored_at`**, which is the ruling that resolves AC-14.4 against AC-14.9:
-  /// a migration run through the ordinary API turns every historical stamp into
-  /// `now` and loses the claim, and one run around the API puts a hole in the
-  /// refusal on its first day. So `heartbeat_at` is re-read from the clock here
-  /// -- what a board CLAIMED about its own liveness is the value we know may be
-  /// invented -- while that claim survives verbatim beside it.
-  ///
-  /// `recorded_at` is left exactly as registration wrote it: that is when this
-  /// node entered the model, and a migration is not a second birth.
-  #[allow(clippy::too_many_arguments)]
-  pub fn wb_carry_header(
-    &mut self,
-    node: &str,
-    name: &str,
-    role: &str,
-    session_id: Option<&str>,
-    status: &str,
-    focus: &str,
-    claims: &[String],
-    authored_at: Option<&str>,
-  ) -> Result<(), StoreError> {
-    self.conn.execute(
-      "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, status = ?5, focus = ?6, \
-       claims = ?7, heartbeat_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), authored_at = ?8, \
-       migrated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE moniker = ?1",
-      params![
-        node,
-        name,
-        role,
-        session_id,
-        status,
-        focus,
-        serde_json::to_string(claims)?,
-        authored_at
-      ],
-    )?;
-    Ok(())
-  }
-
-  /// Move one live item to archived, and say whether it moved.
-  ///
-  /// **ARCHIVED IS A STATE AND NEVER A DELETION.** The row keeps its `seq` and
-  /// its text, so what an item said stays readable after it stops counting
-  /// against the bound -- which is what lets the bound be enforced by refusal
-  /// without costing anybody their record.
-  pub fn wb_archive_item(&mut self, node: &str, kind: &str, seq: u32) -> Result<bool, StoreError> {
-    let moved = self.conn.execute(
-      "UPDATE wb_item SET state = 'archived', archived_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
-       WHERE node = ?1 AND kind = ?2 AND seq = ?3 AND state = 'live'",
-      params![node, kind, seq],
-    )?;
-    Ok(moved > 0)
-  }
-
   /// How many LIVE items one node holds of one kind.
   pub fn wb_live_item_count(&self, node: &str, kind: &str) -> Result<usize, StoreError> {
     let n: i64 = self.conn.query_row(
@@ -4566,49 +4974,6 @@ impl Store {
       |r| r.get(0),
     )?;
     Ok(n as usize)
-  }
-
-  /// Append one item to a node's board, and say which `seq` it was given.
-  ///
-  /// **`seq` IS ASSIGNED BY THE SERVICE AND NEVER BY A CALLER.** It is the
-  /// board's within-kind ordering, and a caller-chosen one collides the moment
-  /// two writes race -- the same reasoning that keeps the clock out of callers'
-  /// hands one function down. It counts LIVE and ARCHIVED alike, so archiving an
-  /// item never frees its number for reuse and a `seq` refers to one item for
-  /// the life of the board.
-  ///
-  /// **`authored_at` IS A CLAIM THE CALLER CARRIES, NEVER A TIME THE CALLER
-  /// CHOOSES, and it is `None` for every write but a migration's.** The service
-  /// still reads the clock for `recorded_at` here, in this statement, as a value
-  /// and never as a column default -- that half has no parameter and will not
-  /// get one. What this takes is the stamp a hand-authored board's markdown
-  /// PRINTED, verbatim, for the one door that has such a stamp to carry.
-  ///
-  /// **ONE INSERT PER TABLE, WHICH IS WHY THE PARAMETER IS HERE RATHER THAN IN A
-  /// SECOND WRITER BESIDE IT.** A migration-only insert would be the second
-  /// spelling of this row, free to drift on `seq`, on `state`, or on the
-  /// clock-as-a-value rule, and the drift would be invisible because each door
-  /// would be self-consistent.
-  pub fn wb_insert_item(
-    &mut self,
-    node: &str,
-    kind: &str,
-    text: &str,
-    authored_at: Option<&str>,
-  ) -> Result<u32, StoreError> {
-    let tx = self.conn.transaction()?;
-    let next: i64 = tx.query_row(
-      "SELECT coalesce(max(seq), 0) + 1 FROM wb_item WHERE node = ?1 AND kind = ?2",
-      params![node, kind],
-      |r| r.get(0),
-    )?;
-    tx.execute(
-      "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, authored_at) \
-       VALUES (?1, ?2, ?3, ?4, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?5)",
-      params![node, kind, next, text, authored_at],
-    )?;
-    tx.commit()?;
-    Ok(next as u32)
   }
 
   /// Read one node's claims.
@@ -4621,130 +4986,27 @@ impl Store {
     Ok(serde_json::from_str(&raw)?)
   }
 
-  /// Replace one node's claims.
+  /// Make the whiteboard tables hold a set of boards, moving only the rows
+  /// that differ -- see [`WbWrite`]'s restore for how.
   ///
-  /// **THE CLAIMS LIST IS REPLACED WHOLE RATHER THAN APPENDED TO**, because the
-  /// caller has already read it to decide what it should become: an
-  /// append-and-a-remove pair would be two doors holding one invariant, and the
-  /// ordering between them would be the thing nobody tested.
-  pub fn wb_set_claims(&mut self, node: &str, claims: &[String]) -> Result<(), StoreError> {
-    self.conn.execute(
-      "UPDATE wb_node SET claims = ?2 WHERE moniker = ?1",
-      params![node, serde_json::to_string(claims)?],
-    )?;
-    Ok(())
-  }
-
-  /// Append one message to the recipient's board.
+  /// **`recorded_at` MUST NOT BE A COLUMN DEFAULT, AND A RESTORE IS WHY.** A
+  /// restore inserts rows, so a `DEFAULT CURRENT_TIMESTAMP` would stamp a
+  /// carried row with the moment of the sync -- rewriting history silently and
+  /// indistinguishably from a correct value. The value is carried from the
+  /// board being written, which is what makes the round trip lossless in both
+  /// directions.
   ///
-  /// **NO CALLER SUPPLIES THE SERVICE'S STAMP, AND THERE IS NO PARAMETER FOR
-  /// ONE.** The clock is read by the database at the write, as a VALUE and never
-  /// as a column default -- a default fires again on every re-insert and a
-  /// disk-to-db resync re-inserts every row, so the board would be re-stamped on
-  /// each sync, which is history rewritten silently.
-  ///
-  /// **`authored_at` IS THE OTHER THING AND IS NOT AN EXCEPTION TO IT**: what
-  /// the entry's `## (...)` heading CLAIMED, verbatim, `None` for everything
-  /// born through this door live and non-null only on a migration's write. It is
-  /// the field that deliberately carries the class of value the clock guard
-  /// exists to refuse -- stamps measured fabricated, an hour out, and ordered
-  /// before the message they answer -- so it is stored as text and never read as
-  /// a time. See [`Store::wb_insert_item`] for why the parameter sits on this
-  /// writer rather than on a second one beside it.
-  pub fn wb_insert_message(
-    &mut self,
-    sender: &str,
-    recipient: &str,
-    body: &str,
-    re: Option<&str>,
-    fyi: bool,
-    authored_at: Option<&str>,
-  ) -> Result<(), StoreError> {
-    self.conn.execute(
-      "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, recorded_at, \
-       authored_at) \
-       VALUES (?1, ?2, ?3, ?4, ?5, 'live', NULL, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?6)",
-      params![sender, recipient, body, re, fyi, authored_at],
-    )?;
-    Ok(())
-  }
-
-  /// Mark every live message from `sender` to `recipient` handled, and say how
-  /// many moved.
-  ///
-  /// **THE COUNT IS WHAT MOVED, NOT WHAT WAS THERE.** Clearing an inbox that
-  /// was already clear moves nothing, and reporting its size either way would
-  /// say a write happened when none did -- the same rule `wb register` answers
-  /// to.
-  pub fn wb_clear_inbox(&mut self, sender: &str, recipient: &str) -> Result<usize, StoreError> {
-    let moved = self.conn.execute(
-      "UPDATE wb_message SET handled_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), state = \
-       'handled' WHERE sender = ?1 AND recipient = ?2 AND state = 'live'",
-      params![sender, recipient],
-    )?;
-    Ok(moved)
-  }
-
+  /// **THE OTHER DOOR TO [`WbWrite`], AND IT WRITES NO `wb.*` EVENT.** A
+  /// restore is not a board verb: its act is the sync that called it, which
+  /// the sync records, and a board event here would claim a node did what the
+  /// disk did.
   pub fn replace_boards(&mut self, boards: &[Board]) -> Result<(), StoreError> {
-    let tx = self.conn.transaction()?;
-    tx.execute("DELETE FROM wb_message", [])?;
-    tx.execute("DELETE FROM wb_item", [])?;
-    tx.execute("DELETE FROM wb_node", [])?;
-    for board in boards {
-      let n = &board.node;
-      tx.execute(
-        "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-         claims, recorded_at, authored_at, migrated_at) \
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
-        params![
-          n.moniker,
-          n.name,
-          n.role,
-          n.session_id,
-          n.heartbeat_at,
-          enum_str(&n.status),
-          n.focus,
-          serde_json::to_string(&n.claims)?,
-          n.recorded_at,
-          n.authored_at,
-          n.migrated_at,
-        ],
-      )?;
-      for item in &board.items {
-        tx.execute(
-          "INSERT INTO wb_item (node, kind, seq, text, state, archived_at, recorded_at, \
-           authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-          params![
-            item.node,
-            enum_str(&item.kind),
-            item.seq,
-            item.text,
-            enum_str(&item.state),
-            item.archived_at,
-            item.recorded_at,
-            item.authored_at,
-          ],
-        )?;
-      }
-      for message in &board.messages {
-        tx.execute(
-          "INSERT INTO wb_message (sender, recipient, body, re, fyi, state, handled_at, \
-           recorded_at, authored_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-          params![
-            message.sender,
-            message.recipient,
-            message.body,
-            message.re,
-            i64::from(message.fyi),
-            enum_str(&message.state),
-            message.handled_at,
-            message.recorded_at,
-            message.authored_at,
-          ],
-        )?;
-      }
-    }
-    tx.commit()?;
+    let mut w = WbWrite {
+      tx: self.conn.transaction()?,
+      moved: 0,
+    };
+    w.restore(boards)?;
+    w.tx.commit()?;
     Ok(())
   }
 

@@ -2310,6 +2310,132 @@ pub struct WbMessage {
   pub authored_at: Option<String>,
 }
 
+/// How one row on a board differs between what the store holds and what a
+/// restore offers, by position in [`BoardRows`]' flattened lists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RowChange {
+  /// Offered and not held: the offered row at this index is inserted.
+  Added(usize),
+  /// Held and offered under one key, with a field that differs.
+  Changed { held: usize, offered: usize },
+  /// Held and not offered: the held row at this index is deleted.
+  Removed(usize),
+}
+
+/// Every board's rows, flattened in board order and within a board in the
+/// order the board holds them -- which is the order the store hydrates them in,
+/// so an index here is an index into the store's own read.
+pub struct BoardRows<'a> {
+  pub nodes: Vec<&'a WbNode>,
+  pub items: Vec<&'a WbItem>,
+  pub messages: Vec<&'a WbMessage>,
+}
+
+impl<'a> BoardRows<'a> {
+  pub fn of(boards: &'a [Board]) -> Self {
+    Self {
+      nodes: boards.iter().map(|b| &b.node).collect(),
+      items: boards.iter().flat_map(|b| &b.items).collect(),
+      messages: boards.iter().flat_map(|b| &b.messages).collect(),
+    }
+  }
+}
+
+/// What a restore of `offered` changes in `held`, row by row.
+pub struct BoardChanges {
+  pub nodes: Vec<RowChange>,
+  pub items: Vec<RowChange>,
+  pub messages: Vec<RowChange>,
+}
+
+impl BoardChanges {
+  pub fn is_empty(&self) -> bool {
+    self.nodes.is_empty() && self.items.is_empty() && self.messages.is_empty()
+  }
+}
+
+/// The difference between the boards the store holds and the boards a restore
+/// offers, by natural key (vc decision 22, issue 0414).
+///
+/// **A ROW IS ITS KEY, NOT ITS POSITION AND NOT ITS ID.** A node is its
+/// moniker, an item its (node, kind, seq), a message its (sender, recipient,
+/// recorded_at, body). board.json carries no id, so the restore that deleted
+/// every row and re-inserted the file renumbered and restamped rows nothing
+/// had changed, while the preview that compared threads and issues printed
+/// that nothing was overwritten. Keyed, an unchanged row is simply absent from
+/// this answer.
+///
+/// **THE MESSAGE KEY IS A MULTISET.** Two identical messages are two rows, so
+/// rows sharing a key pair up in order and the surplus on either side is added
+/// or removed -- a set would fold them into one and lose a message.
+///
+/// **PURE**: the store applies this and the sync preview reports it, so the
+/// write and the warning cannot disagree about what a restore changes.
+/// `Added` comes back in offered order, which is the order a restore inserts.
+pub fn board_changes(held: &[Board], offered: &[Board]) -> BoardChanges {
+  let (held, offered) = (BoardRows::of(held), BoardRows::of(offered));
+  BoardChanges {
+    nodes: row_changes(&held.nodes, &offered.nodes, |n| n.moniker.clone()),
+    items: row_changes(&held.items, &offered.items, |i| {
+      (i.node.clone(), enum_str(&i.kind), i.seq)
+    }),
+    messages: row_changes(&held.messages, &offered.messages, |m| {
+      (
+        m.sender.clone(),
+        m.recipient.clone(),
+        m.recorded_at.clone(),
+        m.body.clone(),
+      )
+    }),
+  }
+}
+
+/// Pair rows by key, in order within a key, and name what differs.
+fn row_changes<T: PartialEq, K: Ord>(
+  held: &[&T],
+  offered: &[&T],
+  key: impl Fn(&T) -> K,
+) -> Vec<RowChange> {
+  let mut by_key: std::collections::BTreeMap<K, (Vec<usize>, Vec<usize>)> =
+    std::collections::BTreeMap::new();
+  for (i, row) in held.iter().enumerate() {
+    by_key.entry(key(row)).or_default().0.push(i);
+  }
+  for (i, row) in offered.iter().enumerate() {
+    by_key.entry(key(row)).or_default().1.push(i);
+  }
+  let mut removed = Vec::new();
+  let mut changed = Vec::new();
+  let mut added = Vec::new();
+  for (held_at, offered_at) in by_key.into_values() {
+    let paired = held_at.len().min(offered_at.len());
+    for (&h, &o) in held_at.iter().zip(&offered_at) {
+      if held[h] != offered[o] {
+        changed.push(RowChange::Changed {
+          held: h,
+          offered: o,
+        });
+      }
+    }
+    removed.extend(held_at[paired..].iter().map(|&h| RowChange::Removed(h)));
+    added.extend(offered_at[paired..].iter().copied());
+  }
+  removed.sort_by_key(|c| match c {
+    RowChange::Removed(h) => *h,
+    _ => 0,
+  });
+  changed.sort_by_key(|c| match c {
+    RowChange::Changed { held, .. } => *held,
+    _ => 0,
+  });
+  added.sort_unstable();
+  removed
+    .into_iter()
+    .chain(changed)
+    .chain(added.into_iter().map(RowChange::Added))
+    .collect()
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum WbNodeStatus {

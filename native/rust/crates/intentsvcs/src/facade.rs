@@ -5689,9 +5689,19 @@ impl Facade {
         nodes.push((node, name, role));
       }
     }
+    let event = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      "wb.register",
+      Subject {
+        kind: "roster".to_string(),
+        id: self.ctx.project_id.clone(),
+      },
+      json!({ "nodes": nodes, "from": "headers" }),
+    );
     let registered = self
       .store
-      .register_nodes(&nodes, false)
+      .wb_write(&event, |w| w.register_nodes(&nodes, false))
       .map_err(FacadeError::Store)?;
     // Index only: the headers this read stay hand-authored until a migration.
     self.reindex_boards()?;
@@ -5750,12 +5760,19 @@ impl Facade {
       .join(moniker)
       .join("wip.md")
       .is_file();
+    let event = self.wb_event(
+      "wb.register",
+      moniker,
+      json!({ "name": name, "role": role }),
+    );
     let written = self
       .store
-      .register_nodes(
-        &[(moniker.to_string(), name.to_string(), role.to_string())],
-        !hand_authored,
-      )
+      .wb_write(&event, |w| {
+        w.register_nodes(
+          &[(moniker.to_string(), name.to_string(), role.to_string())],
+          !hand_authored,
+        )
+      })
       .map_err(FacadeError::Store)?;
     if hand_authored {
       self.reindex_boards()?;
@@ -5763,6 +5780,25 @@ impl Facade {
       self.land_board_write_noting()?;
     }
     Ok(written)
+  }
+
+  /// The event one whiteboard verb records, naming the acting node and the
+  /// verb's arguments (issue 0411).
+  ///
+  /// **THE ACTING NODE IS THE SUBJECT**, so a node's history is one filter on
+  /// the log. For `ask` and `announce` that is the sender: sending is the
+  /// sender's act, and the recipient is an argument.
+  fn wb_event(&self, op: &str, node: &str, payload: serde_json::Value) -> Envelope {
+    Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      op,
+      Subject {
+        kind: "node".to_string(),
+        id: node.to_string(),
+      },
+      payload,
+    )
   }
 
   pub fn boards(&self) -> Result<Vec<Board>, FacadeError> {
@@ -5957,7 +5993,11 @@ impl Facade {
   /// model's blessing -- the class this whole model exists to close.
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_migrated(node)?;
-    self.store.wb_touch(node).map_err(FacadeError::Store)?;
+    let event = self.wb_event("wb.touch", node, json!({}));
+    self
+      .store
+      .wb_write(&event, |w| w.touch(node))
+      .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(())
   }
@@ -5971,14 +6011,17 @@ impl Facade {
   /// read.
   pub fn wb_release(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_migrated(node)?;
+    let event = self.wb_event("wb.release", node, json!({}));
     self
       .store
-      .wb_set_status(
-        node,
-        &crate::model::enum_str(&crate::model::WbNodeStatus::Paused),
-      )
+      .wb_write(&event, |w| {
+        w.set_status(
+          node,
+          &crate::model::enum_str(&crate::model::WbNodeStatus::Paused),
+        )?;
+        w.touch(node)
+      })
       .map_err(FacadeError::Store)?;
-    self.store.wb_touch(node).map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(())
   }
@@ -6006,14 +6049,21 @@ impl Facade {
     all: bool,
   ) -> Result<Pickup, FacadeError> {
     self.require_migrated(node)?;
+    let event = self.wb_event(
+      "wb.pickup",
+      node,
+      json!({ "session_id": session_id, "focus": focus }),
+    );
     self
       .store
-      .wb_pick_up(
-        node,
-        &crate::model::enum_str(&crate::model::WbNodeStatus::Active),
-        session_id,
-        focus,
-      )
+      .wb_write(&event, |w| {
+        w.pick_up(
+          node,
+          &crate::model::enum_str(&crate::model::WbNodeStatus::Active),
+          session_id,
+          focus,
+        )
+      })
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     let boards = self.canon.boards.clone();
@@ -6109,9 +6159,16 @@ impl Facade {
         });
       }
     }
+    // The verb the caller ran: `wb_decide` and `wb_add` share this door.
+    let op = if kind == WbItemKind::Decision {
+      "wb.decide"
+    } else {
+      "wb.add"
+    };
+    let event = self.wb_event(op, node, json!({ "kind": wire, "text": text }));
     let seq = self
       .store
-      .wb_insert_item(node, &wire, text, None)
+      .wb_write(&event, |w| w.insert_item(node, &wire, text, None))
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(seq)
@@ -6245,45 +6302,49 @@ impl Facade {
 
     // Nothing is written until every file has been read, so a refusal on the
     // third inbox does not leave a board half carried.
+    // **ONE EVENT FOR THE CARRY, NOT ONE PER ROW.** The verb is the act; what
+    // it carried is in the rows, and the counts say how many.
+    let event = self.wb_event(
+      "wb.migrate",
+      node,
+      json!({ "items": source.items.len(), "messages": messages.len() }),
+    );
     self
       .store
-      .wb_carry_header(
-        node,
-        &source.name,
-        &source.role,
-        source.session_id.as_deref(),
-        &crate::model::enum_str(&source.status.unwrap_or(crate::model::WbNodeStatus::Paused)),
-        &source.focus,
-        &source.claims,
-        source.authored_at.as_deref(),
-      )
+      .wb_write(&event, |w| {
+        w.carry_header(
+          node,
+          &source.name,
+          &source.role,
+          source.session_id.as_deref(),
+          &crate::model::enum_str(&source.status.unwrap_or(crate::model::WbNodeStatus::Paused)),
+          &source.focus,
+          &source.claims,
+          source.authored_at.as_deref(),
+        )?;
+        for item in &source.items {
+          // **A MIGRATED ITEM CARRIES NO `authored_at`, AND THAT IS THE SOURCE
+          // SPEAKING RATHER THAN A FIELD BEING SKIPPED.** A board's markdown
+          // stamps its header and its inbox entries; an item is a line in a
+          // section and has never claimed a time. Giving it the header's
+          // heartbeat would invent a per-item stamp out of a per-board one,
+          // which is the fabrication this pair of fields exists to make
+          // impossible.
+          w.insert_item(node, &crate::model::enum_str(&item.kind), &item.text, None)?;
+        }
+        for message in &messages {
+          w.insert_message(
+            &message.sender,
+            &message.recipient,
+            &message.body,
+            message.re.as_deref(),
+            message.fyi,
+            message.authored_at.as_deref(),
+          )?;
+        }
+        Ok(())
+      })
       .map_err(FacadeError::Store)?;
-    for item in &source.items {
-      self
-        .store
-        // **A MIGRATED ITEM CARRIES NO `authored_at`, AND THAT IS THE SOURCE
-        // SPEAKING RATHER THAN A FIELD BEING SKIPPED.** A board's markdown
-        // stamps its header and its inbox entries; an item is a line in a
-        // section and has never claimed a time. Giving it the header's
-        // heartbeat would invent a per-item stamp out of a per-board one,
-        // which is the fabrication this pair of fields exists to make
-        // impossible.
-        .wb_insert_item(node, &crate::model::enum_str(&item.kind), &item.text, None)
-        .map_err(FacadeError::Store)?;
-    }
-    for message in &messages {
-      self
-        .store
-        .wb_insert_message(
-          &message.sender,
-          &message.recipient,
-          &message.body,
-          message.re.as_deref(),
-          message.fyi,
-          message.authored_at.as_deref(),
-        )
-        .map_err(FacadeError::Store)?;
-    }
     sections.sort_by(|a, b| (&a.file, a.seq).cmp(&(&b.file, b.seq)));
     self
       .store
@@ -6419,7 +6480,7 @@ impl Facade {
   /// the same transition for a message.
   ///
   /// **IT TAKES A KIND AS WELL AS A `seq`, BECAUSE `seq` ALONE IS AMBIGUOUS.**
-  /// [`Store::wb_insert_item`] numbers within (node, kind), so a node can hold a
+  /// [`crate::store::WbWrite::insert_item`] numbers within (node, kind), so a node can hold a
   /// `doing` 1 and a `decision` 1 at once. The pair is what a reader already
   /// sees: `wb show` prints `[decision] 1`.
   ///
@@ -6434,9 +6495,11 @@ impl Facade {
     seq: u32,
   ) -> Result<bool, FacadeError> {
     self.require_migrated(node)?;
+    let wire = crate::model::enum_str(&kind);
+    let event = self.wb_event("wb.archive", node, json!({ "kind": wire, "seq": seq }));
     let moved = self
       .store
-      .wb_archive_item(node, &crate::model::enum_str(&kind), seq)
+      .wb_write(&event, |w| w.archive_item(node, &wire, seq))
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(moved)
@@ -6461,9 +6524,10 @@ impl Facade {
       return Ok(false);
     }
     claims.push(claim.to_string());
+    let event = self.wb_event("wb.claim", node, json!({ "claim": claim }));
     self
       .store
-      .wb_set_claims(node, &claims)
+      .wb_write(&event, |w| w.set_claims(node, &claims))
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(true)
@@ -6482,9 +6546,10 @@ impl Facade {
     if kept.len() == claims.len() {
       return Ok(false);
     }
+    let event = self.wb_event("wb.unclaim", node, json!({ "claim": claim }));
     self
       .store
-      .wb_set_claims(node, &kept)
+      .wb_write(&event, |w| w.set_claims(node, &kept))
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(true)
@@ -6540,9 +6605,16 @@ impl Facade {
         });
       }
     }
+    let event = self.wb_event(
+      "wb.ask",
+      sender,
+      json!({ "recipient": recipient, "body": body, "re": re, "fyi": fyi }),
+    );
     self
       .store
-      .wb_insert_message(sender, recipient, body, re, fyi, None)
+      .wb_write(&event, |w| {
+        w.insert_message(sender, recipient, body, re, fyi, None)
+      })
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(())
@@ -6593,12 +6665,20 @@ impl Facade {
         }
       }
     }
-    for r in &recipients {
-      self
-        .store
-        .wb_insert_message(sender, r, body, None, true, None)
-        .map_err(FacadeError::Store)?;
-    }
+    let event = self.wb_event(
+      "wb.announce",
+      sender,
+      json!({ "recipients": recipients, "body": body }),
+    );
+    self
+      .store
+      .wb_write(&event, |w| {
+        for r in &recipients {
+          w.insert_message(sender, r, body, None, true, None)?;
+        }
+        Ok(())
+      })
+      .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(recipients.len())
   }
@@ -6613,9 +6693,10 @@ impl Facade {
   pub fn wb_clear(&mut self, recipient: &str, sender: &str) -> Result<usize, FacadeError> {
     self.require_migrated(recipient)?;
     self.require_registered(sender)?;
+    let event = self.wb_event("wb.clear", recipient, json!({ "sender": sender }));
     let cleared = self
       .store
-      .wb_clear_inbox(sender, recipient)
+      .wb_write(&event, |w| w.clear_inbox(sender, recipient))
       .map_err(FacadeError::Store)?;
     self.land_board_write_noting()?;
     Ok(cleared)
@@ -7030,7 +7111,81 @@ impl Facade {
         )),
       }
     }
+    // **THE BOARDS ARE PART OF WHAT A WHOLE-PROJECT RESTORE WRITES, SO THEY ARE
+    // PART OF WHAT IT WARNS ABOUT** (issue 0414). Only an unscoped run carries
+    // them, and the answer is the restore's own diff, so this list and the rows
+    // the write moves are the same set.
+    if scope.named().is_none() {
+      for orphan in self.store.wb_orphans().map_err(FacadeError::Store)? {
+        out.push(format!(
+          "board {}: {} item(s) and {} message(s) whose node is not on the roster, would be DELETED",
+          orphan.node, orphan.items, orphan.messages
+        ));
+      }
+      out.extend(Self::board_differences(
+        &self.store.hydrate_boards().map_err(FacadeError::Store)?,
+        &on_disk.boards,
+      ));
+    }
     Ok(out)
+  }
+
+  /// One line per board row a restore of `offered` would change, named the way
+  /// `wb show` names it.
+  fn board_differences(held: &[Board], offered: &[Board]) -> Vec<String> {
+    use crate::model::{BoardRows, RowChange};
+    let changes = crate::model::board_changes(held, offered);
+    let (was, now) = (BoardRows::of(held), BoardRows::of(offered));
+    let verdict = |change: &RowChange| match change {
+      RowChange::Added(_) => "on disk only, would be ADDED",
+      RowChange::Changed { .. } => "differs on disk",
+      RowChange::Removed(_) => "absent from disk, would be DELETED",
+    };
+    let pick = |change: &RowChange| match *change {
+      RowChange::Added(o) | RowChange::Changed { offered: o, .. } => (false, o),
+      RowChange::Removed(h) => (true, h),
+    };
+    let mut out = Vec::new();
+    for change in &changes.nodes {
+      let (from_held, at) = pick(change);
+      let n = if from_held {
+        was.nodes[at]
+      } else {
+        now.nodes[at]
+      };
+      out.push(format!("board {}: node {}", n.moniker, verdict(change)));
+    }
+    for change in &changes.items {
+      let (from_held, at) = pick(change);
+      let i = if from_held {
+        was.items[at]
+      } else {
+        now.items[at]
+      };
+      out.push(format!(
+        "board {}: [{}] {} {}",
+        i.node,
+        crate::model::enum_str(&i.kind),
+        i.seq,
+        verdict(change)
+      ));
+    }
+    for change in &changes.messages {
+      let (from_held, at) = pick(change);
+      let m = if from_held {
+        was.messages[at]
+      } else {
+        now.messages[at]
+      };
+      out.push(format!(
+        "board {}: message from {} recorded {} {}",
+        m.recipient,
+        m.sender,
+        m.recorded_at,
+        verdict(change)
+      ));
+    }
+    out
   }
 
   /// The flat DOING / TODO / DONE view, as markdown -- exactly the bytes

@@ -98,10 +98,10 @@ use serde::{Deserialize, Serialize};
 /// alongside the dotted names, or the shape rule is wrong on its first row.
 ///
 /// The population is bounded and was enumerated by DOOR rather than by pattern
-/// after that: there are exactly four `Envelope::minted` call sites in this
-/// crate -- `record_disk_act`, the `text.realise` writer, the generic entity
-/// recorder, and `init` -- so the vocabulary is the literals reaching those
-/// four and nothing else.
+/// after that: the `Envelope::minted` call sites in this crate are
+/// `record_disk_act`, the `text.realise` writer, the generic entity recorder,
+/// `init`, and the whiteboard's two (`Facade::wb_event` and the roster read) --
+/// so the vocabulary is the literals reaching those doors and nothing else.
 pub const KNOWN_OPS: &[&str] = &[
   "ac.descope",
   "ac.edit",
@@ -170,6 +170,22 @@ pub const KNOWN_OPS: &[&str] = &[
   "wp.set",
   "wp.start",
   "wp.unstart",
+  // **THE WHITEBOARD FAMILY, ADDED 2026-09-16 (issue 0411).** Every board verb
+  // wrote rows and no event, so the log could not say who wrote a board row.
+  // One op per verb, minted by `Facade::wb_event` and by the roster read.
+  "wb.add",
+  "wb.announce",
+  "wb.archive",
+  "wb.ask",
+  "wb.claim",
+  "wb.clear",
+  "wb.decide",
+  "wb.migrate",
+  "wb.pickup",
+  "wb.register",
+  "wb.release",
+  "wb.touch",
+  "wb.unclaim",
 ];
 
 /// The principal a facade call runs as. `local` until the 3.2 agent bus
