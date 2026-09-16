@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-16 15:26Z
+heartbeat_at: 2026-09-16 16:22Z
 status: active
-focus: "cc's wbstore queue landed 2026-09-16: bank 1 at 5b72cb12c, bank 2 at 02411abb0, 0402 at e899c10ba. Owed: 0402's canon check in the quiet window. NO RELEASE, NO PUSH."
+focus: "Localfolded before hv's compact, 2026-09-16: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba) and 0416 (d61a0c978) landed, all verified by vc. Queue empty until the quiet window: 0402's canon check, todo 25. NO RELEASE, NO PUSH."
 claims: []
 ---
 

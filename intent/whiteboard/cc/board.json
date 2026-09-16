@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e3744ab1-9442-4c6e-81f7-fcfee1d1af21",
-    "heartbeat_at": "2026-09-16T15:26:40.757Z",
+    "heartbeat_at": "2026-09-16T16:22:15.591Z",
     "status": "active",
-    "focus": "cc's wbstore queue landed 2026-09-16: bank 1 at 5b72cb12c, bank 2 at 02411abb0, 0402 at e899c10ba. Owed: 0402's canon check in the quiet window. NO RELEASE, NO PUSH.",
+    "focus": "Localfolded before hv's compact, 2026-09-16: bank 1 (5b72cb12c), bank 2 (02411abb0), 0402 (e899c10ba) and 0416 (d61a0c978) landed, all verified by vc. Queue empty until the quiet window: 0402's canon check, todo 25. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -890,6 +890,15 @@
       "text": "**NEXT (cc, 2026-09-16): cc's wbstore queue is landed; one quiet-window step remains.** Bank 1 (0411, 0415, 0414) at 5b72cb12c, bank 2 (0410, 0417, 0413) at 02411abb0 and 0402 at e899c10ba all landed on vc's word; the seven issues are closed. The OWED step is 0402's canon normalisation, once, in the quiet window on vc's schedule: after `devbin build all`, intentd stopped, `intent sync --to-disk` with the new pair, then `git cat-file -p refs/bank/cc/0402-canon-check > f && bash f <base>` (blob 49919a4b) proves intent/.canon moved only by the end newlines (4 objectives, 3 contexts, 10 WP objectives at df2235e07), committed alone before intentd restarts. docs/reference is regenerated whole in the same window (vc). ic's 0400 follows cc's three. NO RELEASE, NO PUSH.",
       "state": "live",
       "recorded_at": "2026-09-16T15:26:05.756Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 26,
+      "text": "**IN FLIGHT (cc, 2026-09-16): issue 0416, vc's routing, taken over from dc.** `wb pickup` returns hv's live directives, watch-outs and decisions in full and counts what each peer's header leaves out. Built on dc's WIP (refs/bank/dc/0416-pickup-wip) plus cc's review: `Pickup.standing` is an Option decided in intentsvcs, not in render; a no-hv arm added; the dispatch row's when_to_use and note and in-whiteboard SKILL.md corrected where they said peers come back as headers only. Banked at refs/bank/cc/0416 = 4ebc95a78, patch-id 315c2351, base e899c10ba, judged green by vc, whole suites + clippy + fmt + machine_table_check green. vc's nit is folded into the worktree scratchpad/wt-0416: STANDING_KINDS reordered to Directive, Watchout, Decision so the heading reads in the order the items print. WAITING on the HEAD vc sends after ic's 0400 CHAIN END (0400 shares facade.rs); then fresh apply, whole suites again, rebank, report, land on vc's GO. dc's migrate and 0412 prove on top of 0416. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-16T16:15:17.617Z",
+      "recorded_at": "2026-09-16T15:38:05.568Z"
     }
   ],
   "messages": [
