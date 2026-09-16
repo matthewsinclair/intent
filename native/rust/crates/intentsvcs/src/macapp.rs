@@ -129,33 +129,88 @@ pub fn installed_bundle() -> Option<PathBuf> {
 /// own children, so a `pgrep` shelled from inside `Intent.app` reports the app
 /// dead while it is plainly running. LaunchServices answers the same for every
 /// caller, inside the bundle or out.
-fn ls_field(field: &str) -> Option<String> {
+fn ls_field(field: LsField) -> Option<String> {
   let out = Command::new("/usr/bin/lsappinfo")
-    .args(["info", "-only", field, BUNDLE_ID])
+    .args(["info", "-only", field.query(), BUNDLE_ID])
     .output()
     .ok()?;
   if !out.status.success() {
     return None;
   }
-  parse_ls_field(&String::from_utf8_lossy(&out.stdout))
+  parse_ls_field(field, &String::from_utf8_lossy(&out.stdout))
+}
+
+/// The two fields this module asks LaunchServices for.
+#[derive(Debug, Clone, Copy)]
+enum LsField {
+  Pid,
+  BundlePath,
+}
+
+impl LsField {
+  /// The name `lsappinfo info -only` takes.
+  fn query(self) -> &'static str {
+    match self {
+      Self::Pid => "pid",
+      Self::BundlePath => "bundlepath",
+    }
+  }
+
+  /// **EVERY SPELLING OF THE FIELD `lsappinfo` HAS BEEN SEEN TO PRINT.** Up to
+  /// macOS 26 it printed the one field, quoted: `"pid"=8329`. macOS 27 (26A428)
+  /// prints the whole record template with every other field `[ NULL ]`, and the
+  /// asked one in the record's own spelling: `pid = 96907`,
+  /// `bundle path="/Applications/Intent.app"`. Issue 0423's deadline waited on a
+  /// parse that took the first `=` in that template, so it could never see the
+  /// app it had launched.
+  fn keys(self) -> &'static [&'static str] {
+    match self {
+      Self::Pid => &["\"pid\"", "pid"],
+      Self::BundlePath => &["\"LSBundlePath\"", "bundle path"],
+    }
+  }
 }
 
 /// The parse, split from the call so it can be driven without a running app.
 ///
-/// `lsappinfo` answers `"pid"=8329` or `"LSBundlePath"="/path/to/Intent.app"`,
-/// and **prints an empty line rather than failing when nothing holds the bundle
-/// id** -- which is the case that matters, because it is the ordinary one and a
-/// parse that returned `Some("")` there would read as a running app with a blank
-/// path.
-fn parse_ls_field(text: &str) -> Option<String> {
-  let (_, after) = text.split_once('=')?;
-  let value = after.trim().trim_matches('"').trim();
-  (!value.is_empty()).then(|| value.to_string())
+/// **THE NAMED FIELD, NEVER THE FIRST `=`.** `lsappinfo` prints an empty line
+/// rather than failing when nothing holds the bundle id, and on macOS 27 it
+/// prints `[ NULL ]` for a field it has no value for -- both are absent, because
+/// a parse that returned `Some("")` or `Some("[ NULL ]")` would read as a running
+/// app with a blank path.
+fn parse_ls_field(field: LsField, text: &str) -> Option<String> {
+  field.keys().iter().find_map(|key| value_of(text, key))
+}
+
+/// The value after `key =` in `text`, where `key` starts a token.
+fn value_of(text: &str, key: &str) -> Option<String> {
+  let mut from = 0;
+  while let Some(at) = text[from..].find(key) {
+    let start = from + at;
+    from = start + key.len();
+    let starts_a_token = text[..start]
+      .chars()
+      .next_back()
+      .is_none_or(char::is_whitespace);
+    let Some(rest) = text[from..].trim_start_matches(' ').strip_prefix('=') else {
+      continue;
+    };
+    if !starts_a_token {
+      continue;
+    }
+    let rest = rest.trim_start_matches(' ');
+    let value = match rest.strip_prefix('"') {
+      Some(quoted) => quoted.split('"').next().unwrap_or_default(),
+      None => rest.split_whitespace().next().unwrap_or_default(),
+    };
+    return (!value.is_empty() && !value.starts_with('[')).then(|| value.to_string());
+  }
+  None
 }
 
 /// The running app's pid, or `None` when nothing holds the bundle id.
 pub fn pid() -> Option<u32> {
-  ls_field("pid")?.parse().ok()
+  ls_field(LsField::Pid)?.parse().ok()
 }
 
 /// Where the app is, what it is doing, and nothing derived beyond that.
@@ -166,7 +221,7 @@ pub fn status() -> State {
       // launched from a path this function would not have guessed is still the
       // app that is running, and reporting the guess would name a bundle the
       // operator is not looking at.
-      let bundle = ls_field("bundlepath")
+      let bundle = ls_field(LsField::BundlePath)
         .map(PathBuf::from)
         .or_else(installed_bundle)
         .unwrap_or_else(|| PathBuf::from("(unknown)"));
@@ -259,7 +314,7 @@ impl crate::remedy::Remedy for AppError {
 /// separate developer verb and is deliberately not what this does.
 pub fn start() -> Result<(u32, PathBuf), AppError> {
   if let Some(pid) = pid() {
-    let bundle = ls_field("bundlepath")
+    let bundle = ls_field(LsField::BundlePath)
       .map(PathBuf::from)
       .unwrap_or_else(|| PathBuf::from("(unknown)"));
     return Ok((pid, bundle));
@@ -289,7 +344,9 @@ pub fn start() -> Result<(u32, PathBuf), AppError> {
   });
   match awaited(readings, LAUNCH_DEADLINE, SETTLE_POLL_INTERVAL) {
     Some(pid) => {
-      let bundle = ls_field("bundlepath").map(PathBuf::from).unwrap_or(bundle);
+      let bundle = ls_field(LsField::BundlePath)
+        .map(PathBuf::from)
+        .unwrap_or(bundle);
       Ok((pid, bundle))
     }
     None => Err(AppError::NotRegistered {
@@ -346,9 +403,34 @@ mod tests {
   fn the_pid_and_the_bundle_path_parse_out_of_what_lsappinfo_actually_prints() {
     // Both forms taken verbatim from a live run against pid 8329 rather than
     // composed from the man page.
-    assert_eq!(parse_ls_field("\"pid\"=8329\n").as_deref(), Some("8329"));
     assert_eq!(
-      parse_ls_field("\"LSBundlePath\"=\"/Applications/Intent.app\"\n").as_deref(),
+      parse_ls_field(LsField::Pid, "\"pid\"=8329\n").as_deref(),
+      Some("8329")
+    );
+    assert_eq!(
+      parse_ls_field(
+        LsField::BundlePath,
+        "\"LSBundlePath\"=\"/Applications/Intent.app\"\n"
+      )
+      .as_deref(),
+      Some("/Applications/Intent.app")
+    );
+  }
+
+  /// macOS 27 (26A428) prints the whole record template for `-only`, every
+  /// other field `[ NULL ]`, and the pid unquoted with spaces round the `=`.
+  /// Taken verbatim from a live run against pid 96907.
+  const MACOS27_PID: &str = "[ NULL ]  [ NULL ]  \n    bundleID=[ NULL ] \n    bundle path=[ NULL ] \n    executable path=[ NULL ] \n    pid = 96907 !cgsConnection !signalled type=[ NULL ]  flavor=[ NULL ]  Version=[ NULL ]  Arch=!!none \n\n";
+  const MACOS27_BUNDLEPATH: &str = "[ NULL ]  ASN:0x0-0x11689678: \n    bundleID=[ NULL ] \n    bundle path=\"/Applications/Intent.app\"\n    executable path=[ NULL ] \n !cgsConnection !signalled type=[ NULL ]  flavor=[ NULL ]  Version=[ NULL ]  Arch=!!none \n\n";
+
+  #[test]
+  fn the_pid_and_the_bundle_path_parse_out_of_what_macos_27_prints() {
+    assert_eq!(
+      parse_ls_field(LsField::Pid, MACOS27_PID).as_deref(),
+      Some("96907")
+    );
+    assert_eq!(
+      parse_ls_field(LsField::BundlePath, MACOS27_BUNDLEPATH).as_deref(),
       Some("/Applications/Intent.app")
     );
   }
@@ -361,7 +443,16 @@ mod tests {
     // `pid()` would then fail to parse and mask it, which is the accident that
     // looks like it works.
     for empty in ["", "\n", "\"pid\"=\n", "\"LSBundlePath\"=\"\"\n"] {
-      assert_eq!(parse_ls_field(empty), None, "input: {empty:?}");
+      assert_eq!(
+        parse_ls_field(LsField::Pid, empty),
+        None,
+        "input: {empty:?}"
+      );
+      assert_eq!(
+        parse_ls_field(LsField::BundlePath, empty),
+        None,
+        "input: {empty:?}"
+      );
     }
   }
 
