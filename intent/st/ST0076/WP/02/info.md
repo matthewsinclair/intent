@@ -1,7 +1,7 @@
 ---
 wp_id: WP-02
 title: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
-scope: S
+scope: M
 status: Not Started
 ---
 

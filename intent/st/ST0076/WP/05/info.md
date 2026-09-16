@@ -1,7 +1,7 @@
 ---
 wp_id: WP-05
 title: Rust resolved references through rust-analyzer's SCIP export
-scope: S
+scope: L
 status: Not Started
 ---
 

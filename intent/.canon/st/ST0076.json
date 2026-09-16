@@ -13,7 +13,7 @@
     {
       "seq": 1,
       "title": "Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version",
-      "scope": "S",
+      "scope": "M",
       "status": "not-started",
       "objective": "",
       "body": "",
@@ -22,7 +22,7 @@
     {
       "seq": 2,
       "title": "Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier",
-      "scope": "S",
+      "scope": "M",
       "status": "not-started",
       "objective": "",
       "body": "",
@@ -31,7 +31,7 @@
     {
       "seq": 3,
       "title": "Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require",
-      "scope": "S",
+      "scope": "M",
       "status": "not-started",
       "objective": "",
       "body": "",
@@ -40,7 +40,7 @@
     {
       "seq": 4,
       "title": "Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions",
-      "scope": "S",
+      "scope": "M",
       "status": "not-started",
       "objective": "",
       "body": "",
@@ -49,7 +49,7 @@
     {
       "seq": 5,
       "title": "Rust resolved references through rust-analyzer's SCIP export",
-      "scope": "S",
+      "scope": "L",
       "status": "not-started",
       "objective": "",
       "body": "",
@@ -58,7 +58,7 @@
     {
       "seq": 6,
       "title": "Elixir resolved references through the compiler's tracer, on an explicit verb",
-      "scope": "S",
+      "scope": "L",
       "status": "not-started",
       "objective": "",
       "body": "",

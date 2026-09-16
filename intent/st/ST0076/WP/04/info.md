@@ -1,7 +1,7 @@
 ---
 wp_id: WP-04
 title: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
-scope: S
+scope: M
 status: Not Started
 ---
 

@@ -1,7 +1,7 @@
 ---
 wp_id: WP-03
 title: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
-scope: S
+scope: M
 status: Not Started
 ---
 

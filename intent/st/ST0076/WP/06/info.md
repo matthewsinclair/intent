@@ -1,7 +1,7 @@
 ---
 wp_id: WP-06
 title: Elixir resolved references through the compiler's tracer, on an explicit verb
-scope: S
+scope: L
 status: Not Started
 ---
 
