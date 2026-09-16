@@ -279,3 +279,5 @@ mod version_spellings_agree;
 mod view_single_writer;
 #[path = "wb_reads_list_live_messages.rs"]
 mod wb_reads_list_live_messages;
+#[path = "wb_register_correct.rs"]
+mod wb_register_correct;

@@ -200,6 +200,15 @@ fn an_absent_node_is_refused_and_told_where_to_register_it() {
     text.contains("intent wb register zz"),
     "the refusal does not name the command that creates one: {text}"
   );
+  // Issue 0413: the remedy shows what a display name and a role look like, so
+  // the session name `<project>-<ws>` is not the natural fill-in, and names
+  // the flag that repairs a node registered wrong.
+  for shown in ["--name \"Control Claude\" --role control", "--correct"] {
+    assert!(
+      text.contains(shown),
+      "the remedy does not show `{shown}`: {text}"
+    );
+  }
   assert!(
     !text.contains("DRY RUN"),
     "an absent node reached the launch path rather than the refusal: {text}"

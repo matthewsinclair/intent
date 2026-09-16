@@ -1495,6 +1495,22 @@ pub enum FacadeError {
     held_name: String,
     held_role: String,
   },
+  /// A registration whose arguments disagree with the header of the board it
+  /// found on disk (issue 0410).
+  #[error(
+    "`{node}`'s board at {file} names it `{header_name}` ({header_role}), not `{name}` ({role}); nothing was registered"
+  )]
+  WbRegisterDisagreesWithHeader {
+    node: String,
+    name: String,
+    role: String,
+    header_name: String,
+    header_role: String,
+    file: String,
+  },
+  /// A correction of a moniker that is not registered (issue 0417).
+  #[error("`{node}` is not registered, so there is no name or role to correct")]
+  WbCorrectUnregistered { node: String },
   /// A migration into a board that already holds rows.
   ///
   /// **THERE IS NO MERGE HERE THAT IS NOT A GUESS.** A second run cannot tell
@@ -1692,8 +1708,26 @@ impl crate::remedy::Remedy for FacadeError {
           .join(", ")
       ),
       Self::WbClaimMalformed { .. } => "claim a thread as `ST0000` or a work package as `ST0000/01`. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
-      Self::WbRegisteredDifferently { node, .. } => format!(
-        "a node's name and role are set when it registers and are not re-set by registering again; `intent wb show {node}` shows what it holds, and a participant who is not that node needs a moniker of its own"
+      Self::WbRegisteredDifferently {
+        node,
+        name,
+        role,
+        held_name,
+        held_role,
+      } => format!(
+        "registering again never changes a node. If `{node}` is this node and `{held_name}` ({held_role}) is wrong, `intent wb register {node} --name \"{name}\" --role {role} --correct` replaces it with `{name}` ({role}) and keeps its board; a participant who is not that node needs a moniker of its own"
+      ),
+      Self::WbRegisterDisagreesWithHeader {
+        node,
+        header_name,
+        header_role,
+        file,
+        ..
+      } => format!(
+        "if the header is right, register with its values: `intent wb register {node} --name \"{header_name}\" --role {header_role}`. If the arguments are right, correct `name:` and `role:` in {file} first, then register again"
+      ),
+      Self::WbCorrectUnregistered { node } => format!(
+        "`--correct` changes a node that exists and never creates one: `intent wb register {node} --name <display name> --role <role>` registers it"
       ),
       Self::WbNotMigrated { node } => format!(
         "`intent wb migrate {node}` carries its hand-authored board into the model first. A board write renders the board from the store, so writing before the carry would replace the markdown with a render of a board that holds none of it"
@@ -5724,7 +5758,7 @@ impl Facade {
   /// **THE SAME VALUES TWICE WRITE NOTHING; DIFFERENT VALUES ARE REFUSED.** A
   /// silent overwrite would rename a node under every peer reading its board,
   /// and a silent no-op would tell a caller who asked for new values that they
-  /// hold.
+  /// hold. A deliberate change is [`Self::wb_correct`], which the refusal names.
   pub fn wb_register(
     &mut self,
     moniker: &str,
@@ -5754,12 +5788,30 @@ impl Facade {
     // row, and lands its view now, because doctor reads a migrated node's
     // absent view as a missing one.
     // Issue 0379: this rendered every registration, so a register before the migrate erased the board the migrate reads.
-    let hand_authored = self
-      .project
-      .whiteboard_dir()
-      .join(moniker)
-      .join("wip.md")
-      .is_file();
+    let board_file = self.project.whiteboard_dir().join(moniker).join("wip.md");
+    let hand_authored = board_file.is_file();
+    // **THE HEADER THE VERB FOUND IS READ AND COMPARED** (issue 0410). The
+    // board was evidence of who this node is, and the verb used it only as a
+    // render flag, so arguments contradicting it were written without a word.
+    // It is read the way `wb migrate` reads it, and a field the header does
+    // not carry is no evidence either way.
+    if hand_authored {
+      let file = self.project.relative(&board_file);
+      let header =
+        crate::wbmigrate::read_board(moniker, &Self::read_board_file(&board_file)?, &file);
+      if (!header.name.is_empty() && header.name != name)
+        || (!header.role.is_empty() && header.role != role)
+      {
+        return Err(FacadeError::WbRegisterDisagreesWithHeader {
+          node: moniker.to_string(),
+          name: name.to_string(),
+          role: role.to_string(),
+          header_name: header.name,
+          header_role: header.role,
+          file,
+        });
+      }
+    }
     let event = self.wb_event(
       "wb.register",
       moniker,
@@ -5780,6 +5832,59 @@ impl Facade {
       self.land_board_write_noting()?;
     }
     Ok(written)
+  }
+
+  /// Correct a registered node's name and role, and say whether they moved
+  /// (issue 0417, vc decision 21 (1)).
+  ///
+  /// **A FLAG ON THE ONE IDENTITY DOOR, NOT A SECOND WAY IN.** It refuses a
+  /// moniker that is not registered rather than creating it, so `register`
+  /// stays the only thing that puts a node on the board; it writes name and
+  /// role and nothing else, so the board, its items and its messages stay
+  /// attached. Until it, a node registered wrong could be repaired only by a
+  /// hand `DELETE` on `wb_node`.
+  ///
+  /// **THE VALUES ALREADY HELD MOVE NOTHING AND RECORD NOTHING**, and the
+  /// caller reports the node unchanged.
+  pub fn wb_correct(&mut self, moniker: &str, name: &str, role: &str) -> Result<bool, FacadeError> {
+    let Some(held) = self
+      .boards()?
+      .into_iter()
+      .find(|b| b.node.moniker == moniker)
+    else {
+      return Err(FacadeError::WbCorrectUnregistered {
+        node: moniker.to_string(),
+      });
+    };
+    if held.node.name == name && held.node.role == role {
+      return Ok(false);
+    }
+    let event = self.wb_event(
+      "wb.correct",
+      moniker,
+      json!({
+        "name": name,
+        "role": role,
+        "held_name": held.node.name,
+        "held_role": held.node.role,
+      }),
+    );
+    self
+      .store
+      .wb_write(&event, |w| w.set_identity(moniker, name, role))
+      .map_err(FacadeError::Store)?;
+    // A node whose board is still its markdown is indexed and not rendered,
+    // for the reason `wb_register` gives.
+    if self
+      .store
+      .wb_node_migrated(moniker)
+      .map_err(FacadeError::Store)?
+    {
+      self.land_board_write_noting()?;
+    } else {
+      self.reindex_boards()?;
+    }
+    Ok(true)
   }
 
   /// The event one whiteboard verb records, naming the acting node and the

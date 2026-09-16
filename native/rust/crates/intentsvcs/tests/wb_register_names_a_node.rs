@@ -55,3 +55,41 @@ fn registering_a_node_with_a_hand_authored_board_leaves_the_board_for_its_migrat
     "the migration carries what the board held"
   );
 }
+
+/// Issue 0410: registering a node whose hand-authored board is on disk READS
+/// that board's header, and arguments that disagree with it are refused with
+/// both values named and nothing written. devbin's `vc` row was written as
+/// `gtools-vc` / `vc` beside a header reading `Validation Claude` /
+/// `validation`, because the verb held the header and never compared.
+#[test]
+fn arguments_that_disagree_with_the_boards_header_are_refused_and_write_nothing() {
+  let fx = Fixture::new();
+  let dir = fx.path("intent/whiteboard/vc");
+  std::fs::create_dir_all(&dir).expect("node dir");
+  std::fs::write(
+    dir.join("wip.md"),
+    "---\nnode: vc\nname: Validation Claude\nrole: validation\nstatus: active\n---\n\n# Validation Claude (vc)\n",
+  )
+  .expect("a hand-authored board");
+  let mut f = fx.facade_on_disk();
+
+  let refused = f
+    .wb_register("vc", "gtools-vc", "vc")
+    .expect_err("arguments that contradict the header on disk");
+  let said = format!("{refused} {}", intentsvcs::remedy::Remedy::remedy(&refused));
+  for value in ["gtools-vc", "Validation Claude", "validation", "wip.md"] {
+    assert!(
+      said.contains(value),
+      "the refusal does not name `{value}`: {said}"
+    );
+  }
+  assert!(
+    f.board("vc").is_err(),
+    "a refused registration wrote the node anyway"
+  );
+  assert_eq!(
+    f.wb_register("vc", "Validation Claude", "validation")
+      .expect("arguments that agree with the header"),
+    1
+  );
+}

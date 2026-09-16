@@ -264,6 +264,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A moniker registered with other values: the caller supplied every field,
     // and the remedy is a different moniker rather than one they left out.
     | FacadeError::WbRegisteredDifferently { .. }
+    // Arguments against a board's header, and a correction of a moniker nobody
+    // registered: every field was supplied, and the remedy is other VALUES or
+    // the plain verb, never a field left out.
+    | FacadeError::WbRegisterDisagreesWithHeader { .. }
+    | FacadeError::WbCorrectUnregistered { .. }
     // **A CALL PARAMETER IS MISSING AND A MODEL FIELD IS NOT, and this list is
     // about the second.** `WbNoActingNode` does demand something -- `--node` or
     // `INTENT_NODE` -- but no entity carries it, so there is no read face for

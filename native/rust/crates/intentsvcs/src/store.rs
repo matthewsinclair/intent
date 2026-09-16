@@ -2543,6 +2543,16 @@ impl WbWrite<'_> {
     Ok(())
   }
 
+  /// Set a node's name and role, for `wb register --correct` and nothing else.
+  pub fn set_identity(&mut self, node: &str, name: &str, role: &str) -> Result<(), StoreError> {
+    self.moved += self.tx.execute(
+      "UPDATE wb_node SET name = ?2, role = ?3, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE moniker = ?1",
+      params![node, name, role],
+    )?;
+    Ok(())
+  }
+
   /// Set a node's status.
   pub fn set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
     self.moved += self.tx.execute(

@@ -3908,6 +3908,23 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let mut f = open()?;
       let name = m.get_one::<String>("name");
       let role = m.get_one::<String>("role");
+      if m.get_flag("correct") {
+        let (Some(moniker), Some(name), Some(role)) = (m.get_one::<String>("moniker"), name, role)
+        else {
+          return Err(Failure::Error(
+            "error: `--correct` changes one named node: `wb register <moniker> --name <display> --role <role> --correct`"
+              .to_string(),
+          ));
+        };
+        let moved = f.wb_correct(moniker, name, role).map_err(fail)?;
+        print_notes(&f.take_notes(), "the roster");
+        if moved {
+          println!("ok: {moniker} corrected to {name} ({role})");
+        } else {
+          println!("ok: {moniker} unchanged, already {name} ({role})");
+        }
+        return Ok(());
+      }
       let registered = match (m.get_one::<String>("moniker"), name, role) {
         (Some(moniker), Some(name), Some(role)) => {
           f.wb_register(moniker, name, role).map_err(fail)?

@@ -3958,7 +3958,7 @@ The whiteboard: read the node boards, and send between them
 | `wb claim`    | <id>               | --node                                    | Add a steel thread or work package to the acting node's claims                                         | new-surface |
 | `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                                      | new-surface |
 | `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                        | new-surface |
-| `wb register` | [moniker]          | --name, --role                            | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
+| `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
 | `wb migrate`  | <node>             | --                                        | Carry one node's hand-authored board into the model                                                    | new-surface |
 
 ### `wb`
@@ -4295,10 +4295,14 @@ Register a node from its arguments, or the roster from each node's own board hea
   - `--role` (string) -- The node's role, with `<moniker>`
     - **disposition:** keep
     - **exposed on mcp:** false
+  - `--correct` (bool) -- Change a registered node's name and role to `--name` and `--role`, keeping its board
+    - **A FLAG ON THE ONE IDENTITY DOOR, NOT A NEW VERB** (vc decision 21 (1), issue 0417; hv may respell it before release). It refuses a moniker that is not registered and names plain `register`, so it never creates a node; it writes name and role and nothing else; the values already held answer `unchanged` at rc 0 and record nothing. Its recoverability is the verb's: correcting back is the undo. Until it, a node registered wrong could be repaired only by a hand `DELETE` on `wb_node`.
+    - **disposition:** keep
+    - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name <display> --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused.
+- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name <display> --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The roster is authored configuration a human wrote; this registers it rather than inventing it.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7

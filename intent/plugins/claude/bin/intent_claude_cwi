@@ -190,8 +190,11 @@ cmd_start() {
   if [ ! -d "$WB/$ws" ]; then
     error "workstream '$ws' is not on this board.
   remedy: register it first --
-    intent wb register $ws --name <display name> --role <role>
-  then run this again. \`intent wb status\` lists the nodes that exist."
+    intent wb register $ws --name \"<display name>\" --role <role>
+  eg --name \"Control Claude\" --role control: a display name and a one-word
+  role, not the session name. Then run this again. \`intent wb status\` lists
+  the nodes that exist, and a node registered with the wrong name or role is
+  fixed with \`intent wb register <moniker> --name ... --role ... --correct\`."
   fi
   ctx="$(compose_ctx "$ws")"
   # THE SESSION NAME IS SET AT LAUNCH, NOT BY THE WOKEN SESSION (hv, 2026-08-27).

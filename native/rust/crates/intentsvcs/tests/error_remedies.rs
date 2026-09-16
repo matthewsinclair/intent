@@ -101,6 +101,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "---\nnode: dc\nname: DevX Claude\nrole: worker\nstatus: active\n---\n",
   )
   .expect("a hand-authored header");
+  out.push((
+    "a registration whose arguments disagree with the board's own header",
+    facade
+      .wb_register("dc", "devbin-dc", "dc")
+      .expect_err("the header on disk says who dc is"),
+  ));
   facade
     .register_roster()
     .expect("register dc from its header");
@@ -190,6 +196,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     facade
       .wb_register("cc", "Someone Else", "control")
       .expect_err("a registered node keeps the name it registered with"),
+  ));
+  out.push((
+    "a correction of a moniker nobody registered",
+    facade
+      .wb_correct("zz", "Zed", "worker")
+      .expect_err("a correction never creates a node"),
   ));
   out.push((
     "a claim that is not an address",
@@ -1061,6 +1073,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbDirectiveOffHv { .. } => "WbDirectiveOffHv",
     FacadeError::WbDirectivesOnAnotherBoard { .. } => "WbDirectivesOnAnotherBoard",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
+    FacadeError::WbRegisterDisagreesWithHeader { .. } => "WbRegisterDisagreesWithHeader",
+    FacadeError::WbCorrectUnregistered { .. } => "WbCorrectUnregistered",
     FacadeError::WbNoActingNode => "WbNoActingNode",
   }
 }
@@ -1161,6 +1175,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbDirectiveOffHv",
   "WbDirectivesOnAnotherBoard",
   "WbRegisteredDifferently",
+  "WbRegisterDisagreesWithHeader",
+  "WbCorrectUnregistered",
   "WbNoActingNode",
 ];
 
