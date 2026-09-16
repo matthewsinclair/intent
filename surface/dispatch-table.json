@@ -1,6 +1,7 @@
 {
   "schema": "intent/dispatch-table@3.0-draft",
   "root_help": "Intent: steel threads, work packages and the acceptance contract",
+  "mcp_instructions": "This server answers from Intent's index of the project, which parses source files with tree-sitter. To find code by name, ask the index before grep: call intent_search with kind=def and query=<name> for where a name is defined, with outline=<file> for a file's symbols and their spans, or with context=<name> for a definition and the places its name is called. Those places are matched by name, not by type: scoped calls such as Type::f(..), uses of a type and code inside a macro are not included, and Swift files give definitions only. Every hit carries its path and a span with start and end lines, and every answer carries the index's freshness: when it says complete: false, grep the paths it names. Grep stays the tool for what the index leaves out, for a regex and for every literal occurrence. A client that lists this server's tools by name only must load a tool's schema before calling it: in Claude Code, with this server registered as intent, that is ToolSearch with select:mcp__intent__intent_search.",
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",

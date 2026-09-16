@@ -1168,10 +1168,8 @@ pub fn serve(
         ));
       }
       if let Some(path_arg) = outline {
-        let refs = map
-          .get("kind")
-          .and_then(|v| v.as_array())
-          .is_some_and(|kinds| kinds.iter().any(|k| k.as_str() == Some("ref")));
+        let refs =
+          strings(path, map, "kind")?.is_some_and(|kinds| kinds.iter().any(|k| k == "ref"));
         return val(path, &f.outline(path_arg, refs)?);
       }
       if let Some(name) = context {
@@ -1182,31 +1180,25 @@ pub fn serve(
       // envelope, two skins. Nothing is assembled here, so the tool cannot
       // answer a different shape from `--json` for the same question.
       let mut ask = intentsvcs::search::SearchQuery::default();
-      if let Some(kinds) = map.get("kind").and_then(|v| v.as_array()) {
-        for word in kinds {
-          let word = word.as_str().unwrap_or_default();
-          match intentsvcs::search::HitKind::parse(word) {
-            Some(kind) => ask.kinds.push(kind),
-            None => {
-              return Err(args_err(
-                path,
-                format!(
-                  "`{word}` is not a kind of thing this index holds -- one of {}",
-                  intentsvcs::search::HitKind::ALL.join(", ")
-                ),
-              ));
-            }
+      // Issue 0428: the schema publishes these as strings, so each goes
+      // through `strings()`, which takes one string or a list and refuses any
+      // other type, rather than reading an array and dropping the rest.
+      for word in strings(path, map, "kind")?.unwrap_or_default() {
+        match intentsvcs::search::HitKind::parse(&word) {
+          Some(kind) => ask.kinds.push(kind),
+          None => {
+            return Err(args_err(
+              path,
+              format!(
+                "`{word}` is not a kind of thing this index holds -- one of {}",
+                intentsvcs::search::HitKind::ALL.join(", ")
+              ),
+            ));
           }
         }
       }
-      for word in map
-        .get("tier")
-        .and_then(|v| v.as_array())
-        .map(Vec::as_slice)
-        .unwrap_or_default()
-      {
-        let word = word.as_str().unwrap_or_default();
-        match intentsvcs::search::Tier::parse(word) {
+      for word in strings(path, map, "tier")?.unwrap_or_default() {
+        match intentsvcs::search::Tier::parse(&word) {
           Some(tier) => ask.tiers.push(tier),
           None => {
             return Err(args_err(
@@ -1219,16 +1211,7 @@ pub fn serve(
           }
         }
       }
-      ask.langs = map
-        .get("lang")
-        .and_then(|v| v.as_array())
-        .map(|values| {
-          values
-            .iter()
-            .filter_map(|v| v.as_str().map(str::to_string))
-            .collect()
-        })
-        .unwrap_or_default();
+      ask.langs = strings(path, map, "lang")?.unwrap_or_default();
       ask.path = opt_s(path, map, "path")?.map(str::to_string);
       ask.limit = match opt_s(path, map, "limit")? {
         None => None,
@@ -2099,6 +2082,10 @@ mod tests {
           t.name
         );
       }
+    }
+    // The server's instructions are published on every handshake (issue 0428).
+    if let Some(leak) = specific(&crate::dispatch::table().mcp_instructions) {
+      panic!("the server's instructions publish an Intent tracker id (`{leak}`)");
     }
   }
 

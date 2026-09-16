@@ -168,3 +168,79 @@ fn the_rendering_flag_is_not_published_as_a_tool_parameter() {
     "`--json` selects a terminal rendering and must not reach the tool: {properties:?}"
   );
 }
+
+/// Issue 0428: **a filter the schema publishes as a string is honoured when
+/// the tool is sent a string.** The fixture's hits are all attachments, so
+/// `kind=wp` must answer what the CLI's `--kind wp` answers (no hits), where a
+/// dropped filter answers the attachments. A value of any other type is
+/// refused by name rather than ignored.
+#[test]
+fn a_string_filter_is_honoured_and_a_wrong_type_is_refused() {
+  let dir = estate();
+  let root = dir.path();
+
+  let (out, err, code) = run(&["search", "quokka", "--kind", "wp", "--json"], root);
+  assert_eq!(code, 0, "the CLI search failed: {err}");
+  let mut from_cli: serde_json::Value = serde_json::from_str(&out).expect("the envelope is JSON");
+  from_cli["index"]
+    .as_object_mut()
+    .expect("the freshness block is an object")
+    .remove("reconciled_at");
+
+  let (out, frames) = crate::common::mcp_session(
+    root,
+    None,
+    &[
+      r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
+      r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"intent_search","arguments":{"query":"quokka"}}}"#,
+      r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"intent_search","arguments":{"query":"quokka","kind":"wp"}}}"#,
+      r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"intent_search","arguments":{"query":"quokka","kind":7}}}"#,
+    ],
+  );
+  assert!(
+    out.status.success(),
+    "the MCP session failed: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let answer = |id: i64| {
+    frames
+      .iter()
+      .find(|frame| frame["id"] == id)
+      .unwrap_or_else(|| panic!("a response to call {id}"))["result"]
+      .clone()
+  };
+  let envelope = |id: i64| -> serde_json::Value {
+    let result = answer(id);
+    let text = result["content"][0]["text"]
+      .as_str()
+      .expect("the tool answers text-wrapped JSON");
+    let mut value: serde_json::Value = serde_json::from_str(text).expect("the envelope is JSON");
+    value["index"]
+      .as_object_mut()
+      .expect("the freshness block is an object")
+      .remove("reconciled_at");
+    value
+  };
+
+  let unfiltered = envelope(2);
+  assert!(
+    unfiltered["matched"].as_u64().unwrap_or(0) > 0,
+    "the control: without the filter the fixture has hits, or a dropped filter would pass: {unfiltered}"
+  );
+  assert_eq!(
+    envelope(3),
+    from_cli,
+    "a string `kind` answers what the CLI's `--kind` answers"
+  );
+
+  let refused = answer(4);
+  assert_eq!(
+    refused["isError"], true,
+    "a wrong type is refused: {refused}"
+  );
+  let text = refused["content"][0]["text"].as_str().unwrap_or_default();
+  assert!(
+    text.contains("`kind` must be a string or a list of strings"),
+    "the refusal names the parameter and the types it takes: {text}"
+  );
+}

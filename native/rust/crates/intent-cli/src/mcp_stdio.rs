@@ -85,7 +85,8 @@ const FALLBACK_PROTOCOL_VERSION: &str = "2025-06-18";
 /// exit 0 -- which is why the `not_probed` exemption on this row is written in
 /// the built tense: bare `intent mcp` serves until its host closes it.
 pub fn run() -> Result<(), Failure> {
-  let tools = crate::mcp::tools(&crate::dispatch::table()).map_err(|u| {
+  let table = crate::dispatch::table();
+  let tools = crate::mcp::tools(&table).map_err(|u| {
     Failure::Error(format!(
       "error: the tool table refused `{}`: {}\n  remedy: this is a build defect -- the committed dispatch table and the generator disagree",
       u.path, u.why
@@ -127,6 +128,7 @@ pub fn run() -> Result<(), Failure> {
   serve_frames(
     &mut stdin.lock(),
     &mut stdout,
+    &table.mcp_instructions,
     &tools,
     &mut call,
     &mut resources,
@@ -168,6 +170,7 @@ pub enum ResourceReply {
 pub fn serve_frames(
   input: &mut impl BufRead,
   output: &mut impl Write,
+  instructions: &str,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
   resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
@@ -175,7 +178,7 @@ pub fn serve_frames(
   for line in input.lines() {
     let line =
       line.map_err(|e| Failure::Error(format!("error: could not read from stdin: {e}")))?;
-    if let Some(response) = answer_line(&line, tools, call, resources) {
+    if let Some(response) = answer_line(&line, instructions, tools, call, resources) {
       write_frame(output, &response)?;
     }
   }
@@ -185,6 +188,7 @@ pub fn serve_frames(
 /// One inbound line -> at most one outbound frame.
 fn answer_line(
   line: &str,
+  instructions: &str,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
   resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
@@ -199,12 +203,13 @@ fn answer_line(
       JSONRPC_PARSE_ERROR,
       &format!("this line is not JSON-RPC: {source}"),
     )),
-    Ok(message) => answer_message(&message, tools, call, resources),
+    Ok(message) => answer_message(&message, instructions, tools, call, resources),
   }
 }
 
 fn answer_message(
   message: &Value,
+  instructions: &str,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
   resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
@@ -218,7 +223,7 @@ fn answer_message(
   let id = id?;
 
   let answered = match method {
-    "initialize" => Ok(initialize_result(&params)),
+    "initialize" => Ok(initialize_result(&params, instructions)),
     "ping" => Ok(json!({})),
     "tools/list" => Ok(json!({ "tools": tools.iter().map(tool_frame).collect::<Vec<_>>() })),
     "tools/call" => tool_call(&params, tools, call),
@@ -238,7 +243,12 @@ fn answer_message(
 /// The handshake. Capabilities name exactly what is served: tools, no
 /// list-changed notifications (the population is the committed table's, so it
 /// cannot change within a process's lifetime).
-fn initialize_result(params: &Value) -> Value {
+///
+/// `instructions` is the table's `mcp_instructions`. A client that defers the
+/// tools shows the model their names only, and puts this text in its context
+/// all the same, so it is how the model learns what the index answers (issue
+/// 0428).
+fn initialize_result(params: &Value, instructions: &str) -> Value {
   let version = params
     .get("protocolVersion")
     .and_then(Value::as_str)
@@ -247,6 +257,7 @@ fn initialize_result(params: &Value) -> Value {
     "protocolVersion": version,
     "capabilities": { "tools": {}, "resources": {} },
     "serverInfo": { "name": "intent", "version": env!("CARGO_PKG_VERSION") },
+    "instructions": instructions,
   })
 }
 
@@ -394,6 +405,7 @@ mod tests {
     serve_frames(
       &mut Cursor::new(input),
       &mut out,
+      &crate::dispatch::table().mcp_instructions,
       &all,
       call,
       &mut resources,
@@ -422,6 +434,38 @@ mod tests {
     assert_eq!(out[0]["result"]["protocolVersion"], "2024-11-05");
     assert_eq!(out[0]["result"]["serverInfo"]["name"], "intent");
     assert!(out[0]["result"]["capabilities"]["tools"].is_object());
+  }
+
+  /// Issue 0428: the handshake carries the table's instructions, which name
+  /// the search tool, and the tool they name is one this server lists.
+  #[test]
+  fn initialize_carries_the_tables_instructions_naming_a_served_tool() {
+    let out = drive(
+      &[
+        r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{}}}"#,
+      ],
+      &mut never,
+    );
+    let table = crate::dispatch::table();
+    assert!(!table.mcp_instructions.trim().is_empty());
+    assert_eq!(out[0]["result"]["instructions"], table.mcp_instructions);
+    let named: Vec<&str> = table
+      .mcp_instructions
+      .split(|c: char| !(c.is_ascii_lowercase() || c == '_'))
+      .map(|word| word.trim_start_matches("mcp__intent__"))
+      .filter(|word| word.starts_with("intent_"))
+      .collect();
+    assert!(
+      named.contains(&"intent_search"),
+      "the instructions route a lookup to the search tool: {named:?}"
+    );
+    let served: Vec<String> = tools().into_iter().map(|t| t.name).collect();
+    for name in named {
+      assert!(
+        served.iter().any(|s| s == name),
+        "the instructions name `{name}`, which this server does not list"
+      );
+    }
   }
 
   #[test]

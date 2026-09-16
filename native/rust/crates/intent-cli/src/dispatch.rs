@@ -101,6 +101,11 @@ pub struct Table {
   /// day removing, so a table without this key refuses to load rather than
   /// shipping a blank first impression.
   pub root_help: String,
+  /// What the MCP server tells a client on `initialize`, which a client puts
+  /// in the model's context even when it lists the tools by name only (issue
+  /// 0428). Not `#[serde(default)]`, for `root_help`'s reason: an empty text
+  /// would look like a server with nothing to say.
+  pub mcp_instructions: String,
   pub families: Vec<Family>,
   /// Commands v3 ADDS, with no v2 antecedent to port or deviate from.
   ///
