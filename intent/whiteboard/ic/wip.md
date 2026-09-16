@@ -3,22 +3,21 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7f9cf959-3635-42f2-bfdd-d88cdad6a90a
-heartbeat_at: 2026-09-16 06:15Z
+heartbeat_at: 2026-09-16 15:12Z
 status: active
 focus: "2026-09-15: localfolded for hv's compact. 0334 and 0396 are closed at 6be7545b4, and issue 0400 is filed for hv with reading (4) held. Resume at the IN FLIGHT doing row: ST0075 WP-02, green in wt-st0075 and banked WIP at refs/bank/ic/st0075-wp02-wip. NO RELEASE, NO PUSH."
-claims: [ST0075]
+claims: [ST0075, ST0075/03]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- **RESUME HERE after hv's compact of 2026-09-16: issue 0400, re-proof banked, held for vc's HEAD.** Landed today and verified by vc: 0418 (e9877600e, closed 03bd58885), ST0075 WP-02 (408891226, gate 7/11, WP-02 WIP until hv's quiet-window drive), O4 (aa312405d). 0400 = refs/bank/ic/0400 (9b43bcbfd), re-proven green at 8b523e00d in wt-0400b (fmt, workspace clippy, intentsvcs 1394+261, intent-cli 311+655+1, machine_table_check 47/47). vc ruled 0400 lands AFTER cc's bank 1 (landed 5b72cb12c), bank 2 and 0402, because both banks change intentsvcs/src/facade.rs. NEXT: when vc sends HEAD after 0402's CHAIN END, `git apply --3way` 0400 onto it in a FRESH private worktree, re-run whole intentsvcs and intent-cli, workspace clippy, fmt and machine_table_check.sh under an isolated HOME with intentd built first, rebank if anything merged, send vc the bank report, land on vc's word with CHAIN START/END, then close 0400 with the ruled note (acceptance having no writer after authoring is ruling 20's decision, citing it). Dry-run the close verbs' refusals first (the dry-run watch-out). Follow-up with hv via vc: the /projects cursor should start on the open project (XS).
+- **ST0075 WP-03 BANKED GREEN, report after cc's 0416 (vc's queue: 0400, 0416, then dc's two).** 0400 landed at b627dd6dc and closed at b73ee3b94 on vc's GO (2026-09-16), tree-exact to refs/bank/ic/0400 (patch-id d59e99fa4). WP-03 = refs/bank/ic/st0075-wp03 (1e4cab80a, patch-id 45a4e6ebc) on base 643999214, 7 paths: ConsoleRunner run/note/ConsoleError, ConsoleLine init(app:)/marker, IntentCLI checked/label, DaemonService notes lifecycle verbs, IntentApp Run Doctor + Rebuild Search Index into the Console, ConsoleTests AT-03.1 to 03.4, five MODULES.md rows. Red run: 4 mutations, each failed its own test, tree proven unchanged; green 55/0; critic-swift's warning fixed. Kit: <scratchpad 7a8a2358>/wp03-kit/land.sh (dry green at 528245567; resumable; cpu_settle to add before its store writes, as in land-0400). NEXT: when cc's 0416 CHAIN END arrives, re-check the bank applies on HEAD (Swift and MODULES.md only), send vc the WP-03 bank report, land on vc's GO. WP-03 stays wip with WP-02 until hv's quiet-window hand drive after an app-install. NO RELEASE, NO PUSH.
 
 ## TODO
 
 - **Review cc's 0331 commit when it lands (XS).** hv ruled every dead artefact deleted (rulings of 2026-09-15, item 3), among them the unwired `claude rules index` and its register row. Check the row's removal carries what watch-out 58 says a row moves -- `populations`, `legal_pairs`' `n` and `census_note`, and any family count in `dispatch::tests` -- and that dispatch-table.md was regenerated in the same commit.
-- **ST0075 WP-03 (S), after WP-02 lands: the streaming items.** Run Doctor and Rebuild Search Index stream between `»` markers and bring the Console forward; Start, Stop and Restart write a marked block through `DaemonService.lifecycle`; a second one-off is refused with an alert naming the running command; AT-03.1 to 03.4, the tests for design criteria 8 to 11. ConsoleRunner gains `run` and `note` and `ConsoleLine.marker(_:)` then, not before. Driven by hand once after an app-install in hv's quiet window (item 14). No release version is chosen; hv decides at the close-out (item 10).
 
 ## Holds
 
