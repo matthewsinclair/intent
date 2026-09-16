@@ -199,6 +199,39 @@ commands:
         summary: clippy over the whole workspace, warnings as errors
         run: bin/.devbin/cmd/measured --exec cargo clippy --workspace --all-targets --manifest-path native/rust/Cargo.toml -- -D warnings
 
+      # THE TWIN OF rust.yml's IN-RS-CODE-001 STEP, AND IT EXISTS BECAUSE THE
+      # TEST THAT DEMANDS IT WENT RED ON MAIN. `ca3edf2ad` added the CI step and
+      # no twin here, so `tests/unit/devbin_rust_gates.bats` test 5 -- every
+      # cargo check CI runs has a devbin twin with the same flags -- has failed
+      # since that commit. The fix is the twin and never an exception in the
+      # test: two homes for one check, one of them following the tree, is the
+      # exact defect that file exists to catch.
+      #
+      # NARROWER THAN `clippy` ABOVE ON PURPOSE, AND THE NARROWING IS CI'S
+      # RATHER THAN OURS. `--lib` and the two named packages keep the three
+      # restriction lints off tests, examples and benches, where `unwrap()` in a
+      # fixture is the right code; the build scripts stay out behind a
+      # crate-level allow, because a build-script panic fails the build the way
+      # main.rs exits (vc, 2026-09-15). The flags are COPIED from rust.yml and
+      # not re-derived: test 5 compares the two command lines after stripping
+      # `--manifest-path`, so drift on either side goes red instead of silent.
+      #
+      # `log:` IS DECLARED AND IT IS LOAD-BEARING, WHICH THE NEIGHBOURS DO NOT
+      # SHOW YOU. `grammar:` is read only on the sealed path (lib/resolve reads
+      # it, then gates the whole run_gate call on a non-empty suffix), and a
+      # suffix is inherited from the catalogue only for a name the catalogue
+      # KNOWS. `clippy`, `format` and `toolchain` above are catalogue names and
+      # inherit both; `doc` is a project invention and runs bare. This option is
+      # a project invention too, so without `log:` it would run bare and
+      # `grammar: cargo` would be dead config -- the ST0002 WP-08 shape
+      # lib/resolve warns about: right exit code, no seal to read. `log: true`
+      # takes the suffix from the option name, so the pair is tmp/check/*.PANICS.
+      panics:
+        summary: the three panic-path restriction lints CI runs, over the two library crates
+        log: true
+        grammar: cargo
+        run: bin/.devbin/cmd/measured --exec cargo clippy -p intentsvcs -p intent-cli --lib --manifest-path native/rust/Cargo.toml -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+
       # DECLARED BECAUSE `fmt rust` IS DECLARED, and devbin will not let it be
       # otherwise: builtin_check_format REFUSES a language whose `fmt` arm the
       # config has overridden, rather than verifying a command line the
