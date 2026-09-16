@@ -1592,18 +1592,58 @@ impl WbMigration {
   }
 }
 
-/// What [`Facade::wb_pickup`] hands back: the acting node's own board, and every
-/// peer's header state.
+/// What [`Facade::wb_pickup`] hands back: the acting node's own board, the
+/// standing content every node honours, and every peer's header state with what
+/// it does not show.
 ///
 /// **THE PEERS ARE HEADERS AND NOT WHOLE BOARDS, DELIBERATELY.** A node at
 /// session start needs to know who is active, on what, and how recently they
 /// said so; handing it every peer's items and messages would make the cheap
 /// question expensive and would put another node's inbox in front of a reader
 /// who asked where everybody is. `wb show` is the door for one whole board.
+///
+/// **BUT A HEADER ALONE READ AS THE WHOLE SURFACE** (issue 0416). A node saw its
+/// own watch-outs in full and no peer's at all, so the read looked complete; a
+/// node booted, missed `hv`'s ruling that a flake was known, and spent a morning
+/// diagnosing it. So `hv`'s standing kinds come back in full in
+/// [`Pickup::standing`], and every peer carries the counts of what this read
+/// leaves out, so the omission is stated rather than invisible.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct Pickup {
   pub board: BoardRead,
-  pub peers: Vec<crate::model::WbNode>,
+  /// `hv`'s live items of the [`STANDING_KINDS`], in board order, and empty
+  /// when `hv` holds none. **ABSENT when there is no `hv` board to read from, or
+  /// `hv` is the acting node** and its own board above already carries them: an
+  /// empty list says `hv` has no standing content, and it must not be the answer
+  /// for a board this read never looked at.
+  pub standing: Option<Vec<crate::model::WbItem>>,
+  pub peers: Vec<PeerRead>,
+}
+
+/// The item kinds a booting node is obliged to read on `hv`'s board: what `hv`
+/// has directed, ruled and warned of (issue 0416).
+pub const STANDING_KINDS: [WbItemKind; 3] = [
+  WbItemKind::Directive,
+  WbItemKind::Watchout,
+  WbItemKind::Decision,
+];
+
+/// One peer as `wb pickup` answers it: its header, and the live items this read
+/// does not show, counted by kind.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct PeerRead {
+  #[serde(flatten)]
+  pub node: crate::model::WbNode,
+  /// Live items on this peer's board that the pickup leaves out, one entry per
+  /// kind present, in the board's section order. `wb show <peer>` lists them.
+  pub unshown: Vec<KindCount>,
+}
+
+/// How many items of one kind.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct KindCount {
+  pub kind: WbItemKind,
+  pub count: usize,
 }
 
 /// One node's board as `wb show` and `wb pickup` answer it: the messages still
@@ -6181,13 +6221,50 @@ impl Facade {
       .find(|b| b.node.moniker == node)
       .cloned()
       .expect("require_registered passed, so this node has a board");
+    let shown = |b: &crate::model::Board, i: &crate::model::WbItem| {
+      b.node.moniker == crate::model::HYPERVISOR && STANDING_KINDS.contains(&i.kind)
+    };
+    // In the board's section order, as `wb show hv` prints them.
+    let standing = boards
+      .iter()
+      .find(|b| b.node.moniker == crate::model::HYPERVISOR && b.node.moniker != node)
+      .map(|b| {
+        crate::views::BOARD_SECTIONS
+          .iter()
+          .flat_map(|(kind, _)| {
+            b.items.iter().filter(move |i| {
+              i.kind == *kind && i.state == crate::model::WbItemState::Live && shown(b, i)
+            })
+          })
+          .cloned()
+          .collect()
+      });
     let peers = boards
       .into_iter()
       .filter(|b| b.node.moniker != node)
-      .map(|b| b.node)
+      .map(|b| {
+        let mut unshown: Vec<KindCount> = Vec::new();
+        for (kind, _) in crate::views::BOARD_SECTIONS {
+          let count = b
+            .items
+            .iter()
+            .filter(|i| {
+              i.kind == kind && i.state == crate::model::WbItemState::Live && !shown(&b, i)
+            })
+            .count();
+          if count > 0 {
+            unshown.push(KindCount { kind, count });
+          }
+        }
+        PeerRead {
+          node: b.node,
+          unshown,
+        }
+      })
       .collect();
     Ok(Pickup {
       board: BoardRead::of(board, all),
+      standing,
       peers,
     })
   }

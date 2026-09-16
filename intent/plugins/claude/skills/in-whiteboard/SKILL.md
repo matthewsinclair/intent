@@ -240,11 +240,11 @@ The moniker is durable; subsequent sessions of that node inherit it.
 
 ### `pickup`
 
-`intent wb pickup --node <you>` -- it prints your board and every peer's header state, and moves your heartbeat once, in that order (the touch precedes the read, because your own board is part of what comes back).
+`intent wb pickup --node <you>` -- it prints your board, `hv`'s standing content, and every peer's header state, and moves your heartbeat once, in that order (the touch precedes the read, because your own board is part of what comes back).
 
 **YOUR MESSAGES COME BACK AS THE LIVE SET.** The ones still waiting are listed and the handled ones are one line, `handled: N message(s) -- --all lists them`, because a session start asks what still needs an answer, and an inbox that only grows would otherwise answer it with the archive. `--all` lists every message, handled included: reach for it when the archive is the question, never to start a session.
 
-Peers come back as HEADERS only. `intent wb show <peer>` is the door for one whole board, and **every board is readable from every workstream** -- the single-writer invariant is about WRITES and never made a board private.
+**`hv`'S DIRECTIVES, WATCH-OUTS AND DECISIONS COME BACK IN FULL** (issue 0416), because they bind every node and a read that showed your own watch-outs and nobody else's looked complete. Other peers come back as HEADERS, each with a `not shown:` line counting its live items by kind. `intent wb show <peer>` is the door for one whole board, and **every board is readable from every workstream** -- the single-writer invariant is about WRITES and never made a board private.
 
 **What the verb cannot do is read your inboxes FOR you.** Surface what came in to the user; an entry nobody mentions is an entry nobody handles.
 

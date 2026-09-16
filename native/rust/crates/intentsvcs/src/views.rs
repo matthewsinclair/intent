@@ -1795,6 +1795,18 @@ pub fn wb_board(board: &crate::model::Board, ctx: &RenderContext<'_>) -> String 
   finish(wb_board_body(board), ctx, "the whiteboard model")
 }
 
+/// A board's item sections, in the order the view renders them, with each
+/// heading. **ONE ORDER**: `wb pickup` counts a peer's unshown items in it, so
+/// the counts read in the order the board they point at does.
+pub const BOARD_SECTIONS: [(crate::model::WbItemKind, &str); 6] = [
+  (crate::model::WbItemKind::Doing, "DOING"),
+  (crate::model::WbItemKind::Todo, "TODO"),
+  (crate::model::WbItemKind::Hold, "Holds"),
+  (crate::model::WbItemKind::Directive, "Standing directives"),
+  (crate::model::WbItemKind::Watchout, "Watch-outs"),
+  (crate::model::WbItemKind::Decision, "Decisions"),
+];
+
 /// [`wb_board`] without the generated footer: the bytes the prose index splits.
 ///
 /// **ONE LAYOUT, TWO READERS.** The index takes a board's sections from the
@@ -1806,14 +1818,7 @@ pub fn wb_board_body(board: &crate::model::Board) -> String {
     "# {} ({})\n\n",
     board.node.name, board.node.moniker
   ));
-  for (kind, heading) in [
-    (crate::model::WbItemKind::Doing, "DOING"),
-    (crate::model::WbItemKind::Todo, "TODO"),
-    (crate::model::WbItemKind::Hold, "Holds"),
-    (crate::model::WbItemKind::Directive, "Standing directives"),
-    (crate::model::WbItemKind::Watchout, "Watch-outs"),
-    (crate::model::WbItemKind::Decision, "Decisions"),
-  ] {
+  for (kind, heading) in BOARD_SECTIONS {
     let live: Vec<&crate::model::WbItem> = board
       .items
       .iter()

@@ -4029,11 +4029,33 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         return Ok(());
       }
       report_wb_board(&up.board, false, all)?;
-      // **THE PEERS COME AFTER THE BOARD AND ARE HEADERS ONLY.** The question a
-      // node asks at session start is where everybody is, not what is in
-      // everybody's inbox; `wb show` is the door for one whole board.
+      // **`hv`'s STANDING CONTENT, IN FULL, BEFORE THE PEERS** (issue 0416): the
+      // kinds every node is obliged to honour. Printed even when empty, so an
+      // empty board and a left-out one read differently; the facade decides
+      // when there is none to print.
+      if let Some(standing) = &up.standing {
+        println!(
+          "standing ({}) -- {}'s {}",
+          standing.len(),
+          intentsvcs::model::HYPERVISOR,
+          intentsvcs::facade::STANDING_KINDS
+            .iter()
+            .map(item_kind_word)
+            .collect::<Vec<_>>()
+            .join(", ")
+        );
+        for i in standing {
+          println!("  [{}] {} {}", item_kind_word(&i.kind), i.seq, i.text);
+        }
+      }
+      // **THE PEERS COME AFTER THE BOARD AND ARE HEADERS, AND EACH SAYS WHAT IT
+      // LEAVES OUT.** The question a node asks at session start is where
+      // everybody is, not what is in everybody's inbox; `wb show` is the door
+      // for one whole board, and the line under a header names it with the
+      // counts, so a header is never read as the whole board (issue 0416).
       println!("peers ({})", up.peers.len());
-      for n in &up.peers {
+      for peer in &up.peers {
+        let n = &peer.node;
         let focus = if n.focus.is_empty() {
           String::new()
         } else {
@@ -4047,6 +4069,18 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
           n.heartbeat_at,
           focus
         );
+        if !peer.unshown.is_empty() {
+          println!(
+            "    not shown: {} -- `intent wb show {}`",
+            peer
+              .unshown
+              .iter()
+              .map(|c| format!("{} {}", c.count, item_kind_word(&c.kind)))
+              .collect::<Vec<_>>()
+              .join(", "),
+            n.moniker
+          );
+        }
       }
       Ok(())
     }
