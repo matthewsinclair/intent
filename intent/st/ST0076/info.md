@@ -25,7 +25,7 @@ ST0069 built the index's structural tier on each grammar's tags query and stored
 | WP-03 | Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require   | M    | Done   |
 | WP-04 | Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions | M    | Done   |
 | WP-05 | Rust resolved references through rust-analyzer's SCIP export                                                             | L    | Done   |
-| WP-06 | Elixir resolved references through the compiler's tracer, on an explicit verb                                            | L    | WIP    |
+| WP-06 | Elixir resolved references through the compiler's tracer, on an explicit verb                                            | L    | Done   |
 | WP-07 | Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target                              | M    | Done   |
 
 ## Acceptance
