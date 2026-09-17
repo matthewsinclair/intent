@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
