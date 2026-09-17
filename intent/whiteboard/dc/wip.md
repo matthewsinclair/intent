@@ -2,18 +2,18 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: effb6a8d-6c0a-4922-91ba-31c145970ff6
-heartbeat_at: 2026-09-17 00:40Z
-status: paused
-focus: "2026-09-17 close: ST0076 WP-03 banked untested on cc's extractor shapes (refs/bank/dc/st0076-wp03-wip); next its arms and whole gate, then one train with cc's shapes on vc's judgement. The ST0056 gyges brief waits on hv. See the RESUME HERE doing item. NO RELEASE, NO PUSH."
-claims: [ST0056/11]
+session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
+heartbeat_at: 2026-09-17 12:14Z
+status: active
+focus: "2026-09-17: ST0076 WP-03 in build on cc's re-banked shapes, arms green in targeted runs; next the post-WP-03 sentence and the level-3 core requirements, then the whole gate once after ic's WP-04 lands. See the RESUME HERE doing item. NO RELEASE, NO PUSH."
+claims: [ST0056/11, ST0076/03, ST0076/06]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **RESUME HERE (localfold at hv's close, 2026-09-17): ST0076 WP-03 is in build, banked UNTESTED at refs/bank/dc/st0076-wp03-wip (blob 07bf1168f, patch-id 201a7aa4), dc's 4 paths on top of refs/bank/cc/st0076-extractor-shapes (cc's, patch-id 972ee50e, base 43259a828); the gyges brief waits on hv.** RECOVER: in a private worktree at main, `git cat-file -p refs/bank/cc/st0076-extractor-shapes | git apply`, then `git cat-file -p refs/bank/dc/st0076-wp03-wip | git apply` (both checked to apply on 43259a828). WP-03 BANK HOLDS: elixir.scm with the alias form (cc's shapes, block scope as vc ruled), pipe (`arity.piped`), capture (`@arity`), `__MODULE__` (`@qualifier.self`) and remote-call patterns, all with name-node spans as in rust.scm; directives (`use`, `import`, `require`, `alias`) as level-1 refs with `name.expand`; level-1 module refs `name.expand`; EXTRACTOR_VERSION 2 to 3 (the only symbols.rs line); one suite.rs line; the first-slice arm file tests/symbols_are_qualified_elixir_references.rs. NEXT: (1) run the arm file (its spans move to name nodes, so check each line) and add arms for AC-03.1 as reworded (level 2 only where a module is written): vc's fixture of an alias inside a def with a same-named call after the def ends, `as:`, the brace form, `__MODULE__`, pipe and capture arity, and directive expansion; (2) the brace form `alias MyApp.{Repo, Mailer}` makes no directive row and its entries fall to the level-1 module pattern as "Repo": ask cc for base+path naming, or rule it out with vc; (3) the whole gate on the combined content (fmt, workspace clippy -D warnings, whole intentsvcs and intent-cli suites under the isolated HOME); (4) vc judges cc's shapes and WP-03 as one train, landing back to back: cc's first, then dc's with `wp start ST0076/03`, `at new` citing the arm file for AC-03.1, and `wp done`. THEN WP-06 (its body carries the measurement and vc's rulings; AC-06.1 and AC-06.2). ST0056: AT-00.18 and AT-11.1 cite intent/st/ST0056/gyges-brief.md (f5b9ac706); hv runs it on gyges after the rebuild and drive here pass, then dc runs `ac satisfy` for AC-00.5 and AC-11.1 on the log, on vc's judgement, and WP-11 and the thread close on hv's word. TRAWL: scratchpad/trawl.sh runs only on vc's word after hv's rebuild. NO RELEASE, NO PUSH.
+- **RESUME HERE: ST0076 WP-03 in build (vc's go of 2026-09-17, on hv's word).** Private worktree scratchpad/wt-wp03 on c800b8319 with cc's re-banked shapes (refs/bank/cc/st0076-extractor-shapes, patch-id 69d6653d) and dc's content banked at refs/bank/dc/st0076-wp03-wip (blob ac8610fbf, patch-id 55b86c11, intentsvcs paths only). RECOVER: fresh worktree at the base, `git cat-file -p refs/bank/cc/st0076-extractor-shapes | git apply`, then the same for dc's ref. AC-03.1's arms are green in a targeted run (tests/symbols_are_qualified_elixir_references.rs, whose header names AT-03.1), with the symbol and index arm families green beside them. Built since the fold's bank: brace entries as directive rows (@name.base), `__MODULE__.Sub` and `__MODULE__.{A, B}` directives (@self), the `alias :crypto, as: Crypto` form (vc: IN), the `as:` short name no longer a module row (cc's @alias.as line), unqualified references on their name node (a bare pipe target spanned its whole pipeline), and elixir.scm's header naming every capture and property it adds. NEXT: (1) the post-WP-03 Elixir gap sentence and level_words(2) to vc and ic, and the Elixir side's requirements for the level-3 core (key, staleness by content hash, per-file replace, counters) to cc and vc; (2) after ic's WP-04 lands, rebase onto that HEAD and carry the sentence, level_words(2) and the dispatch-table regen; (3) the whole gate ONCE as the train's judging run, in the warm worktree: fmt, workspace clippy -D warnings, whole intentsvcs, intent-cli and intentd suites after cargo build -p intentd, never overlapping cc's export window or ic's suites; send vc the log paths, both patch-ids, the base, the path list and the load; (4) on vc's word land right after cc: commit, at new AT-03.1 taken green, WP-03's objective, design.md's Elixir cells with canon, wp done. THEN 0434 (XS, intentd's notices), THEN WP-06. Store writes through the installed pair only. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -21,7 +21,9 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- **The all-estate board trawl** (intent/wip.md TODO, dc's): held until vc's word after hv's drives. trawl.sh did not survive the host reboot vc measured at 00:50Z on 2026-09-17; when this releases it is rewritten from the wip.md TODO's method and banked the moment it exists.
+- **The guards adoption pass** (vc assigned it to dc on 2026-09-17): held until vc's word after hv's drives, the same timing as the trawl. Per estate: declare the project's own guards in config.json `guards`, remove the hook calls they duplicate, run doctor clean; coordinated with devbin-dc and devbin-vc for Intent, Gtools and Laksa; one commit per estate; no push.
+- **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11): held until hv has run intent/st/ST0056/gyges-brief.md on gyges, handed back ~/intent-clean-install.log, and vc has judged it. Then dc runs `ac satisfy` for both on that log, and WP-11 and the thread close on hv's word.
 
 ## Watch-outs
 

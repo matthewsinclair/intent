@@ -32,7 +32,7 @@
       "seq": 3,
       "title": "Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "",
       "body": "",
       "preamble": ""
