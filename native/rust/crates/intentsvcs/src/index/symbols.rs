@@ -208,7 +208,7 @@ pub fn readiness(lang: &str) -> Readiness {
 /// by the next reconcile rather than left to mix silently with rows of another
 /// shape. Raise it in the same change as anything that alters what a query or
 /// this module emits.
-pub const EXTRACTOR_VERSION: i64 = 1;
+pub const EXTRACTOR_VERSION: i64 = 2;
 
 /// The symbols in `bytes`, as the query for `lang` names them.
 ///
@@ -272,6 +272,7 @@ struct Candidate<'t> {
   name: Option<tree_sitter::Node<'t>>,
   name_from_container: bool,
   params: Option<tree_sitter::Node<'t>>,
+  qualifier: Option<tree_sitter::Node<'t>>,
 }
 
 /// A node other rows inside it belong to.
@@ -311,7 +312,8 @@ fn read_matches<'t>(
   while let Some(m) = matches.next() {
     let mut row: Option<(SymbolKind, &str, tree_sitter::Node<'t>)> = None;
     let mut container: Option<(&str, tree_sitter::Node<'t>)> = None;
-    let (mut name, mut subkind, mut trait_node, mut params) = (None, None, None, None);
+    let (mut name, mut subkind, mut trait_node, mut params, mut qualifier) =
+      (None, None, None, None, None);
     for capture in m.captures() {
       let capture_name = names[capture.index as usize];
       // **THE VOCABULARY IS CLOSED AND ANYTHING ELSE IS SKIPPED RATHER THAN
@@ -330,6 +332,7 @@ fn read_matches<'t>(
           "subkind" => subkind = Some(capture.node),
           "trait" => trait_node = Some(capture.node),
           "params" => params = Some(capture.node),
+          "qualifier" => qualifier = Some(capture.node),
           "ignore" => {
             read.ignored.insert(capture.node.byte_range());
           }
@@ -367,6 +370,7 @@ fn read_matches<'t>(
         name,
         name_from_container,
         params,
+        qualifier,
       });
     }
   }
@@ -445,6 +449,9 @@ fn rows_of(
           (all + 1, required + u32::from(!optional))
         })
     });
+    let qualifier = c
+      .qualifier
+      .map(|q| q.utf8_text(bytes).unwrap_or_default().to_string());
     let (container, container_kind, trait_name) = match enclosing {
       Some(at) => (
         Some(qualified(&containers, at, separator)),
@@ -468,8 +475,11 @@ fn rows_of(
       trait_name,
       arity: arity.map(|(all, _)| all),
       arity_min: arity.map(|(_, required)| required),
-      qualifier: None,
-      level: 1,
+      // **A QUALIFIER IS THE PATH AS WRITTEN, AND IT IS WHAT MAKES A ROW LEVEL 2.**
+      // Nothing here resolves it: `AddressError::new` says what the source
+      // wrote, not which `new` it reaches.
+      qualifier: qualifier.clone(),
+      level: if qualifier.is_some() { 2 } else { 1 },
     });
   }
   // Path order within a file: the order a reader would meet them.
