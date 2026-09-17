@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-17T17:11:53.471Z",
+    "heartbeat_at": "2026-09-17T18:05:42.899Z",
     "status": "active",
-    "focus": "2026-09-17 late evening, localfolded for hv's compact: issue 0441 (intentd's ingest race) is written and proven in scratchpad/wt-0441 and banked at refs/bank/ic/0441/wip.patch; it sits on HEAD after cc's 0440 and asks vc for the slot next. Resume at the RESUME HERE doing item. Hold 10 waits for vc's word. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-17 night: issue 0441 is landed at c649596ef (patch-id 2e611147, judged green) and closed at 98c580d12, and docs/reference is regenerated at 98c580d12 in d21550ae5, both halves, so hold 10 is discharged. doctor 0. vc's rebuild follows, then cc's installed-pair re-run. Resume at doing 54. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1491,7 +1491,8 @@
       "kind": "hold",
       "seq": 10,
       "text": "**HOLDING the docs/reference regeneration until vc says the register is final** (vc, 2026-09-17). The regen is ic's commit, after the last landing that changes surface/dispatch-table.json: WP-06 carries a dispatch-table hunk, and 0438 and 0439 may. Run `intent/st/ST0056/parity/tools/gen_reference.sh --baseline v3.0.1` at that HEAD. Ask vc before choosing another baseline, because hv's release version may move it. The generator runs no binary: it reads the register at a revision with `git show` and writes only `--out` (default docs/reference), so run it with `--out` into scratch and read the diff before writing the tree. The script's default baseline, v3.0.0, rewrites the release-presence column of all 20 pages, so name the baseline. The pre-run at 08ed1ad76 is kept in scratchpad/refgen/ of session 265b7775 (out301/ and content-diff.txt), and its diff and log are banked at refs/bank/ic/refgen-prerun/. It found 9 pages changing in content: WP-07's `--target` and `index resolve`; WP-04's `--subkind` and `--in`; `daemon logs`, `st detach` and `wp gate`; `at new` without `--status`; `claude rules` as a read; `wb` gaining `directive`, `register --correct` and `migrate --drop-uncarried`; and `edit`'s kind without `issue`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T18:00:29.327Z",
       "recorded_at": "2026-09-17T15:54:18.365Z"
     },
     {
@@ -1499,7 +1500,8 @@
       "kind": "doing",
       "seq": 53,
       "text": "**RESUME HERE after hv's compact, 2026-09-17 late evening: ic builds issue 0441 (high, intentd's ingest race) on vc's rulings; no claim.** THE FINDING: ic diagnosed the warning on cc's close of 0439 and reproduced it on a scratch copy of the estate (evidence at refs/bank/ic/canon-guard-0439/). intentd's ingest pass rendered every canon file and view from one snapshot and wrote them with no check that the store had moved, so a command-line write that landed inside the render had its canon file and view written back to the render from before it. THE FIX AS RULED (0441's body, vc decision 30): `Facade::ingest_from_disk` renders (`ingest_render`, which reads `PRAGMA data_version` before its snapshot) and then commits (`ingest_commit`, which lands the files and records them only under `Store::hold_unless_moved`, one hold of the writer lock that found no other connection's commit). A moved store renders again, at most `INGEST_RENDERS` = 3 times, then refuses with `FacadeError::IngestOutpacedByWrites`, naming the unwritten files; intentd's existing warning line logs it. `Load::Restore`, the command-line half and narrowing are all left out. The close note must name the residual: two command-line writers crossing their file writes on one subject can leave the older render on disk, and a watched estate's next sync repairs it. STATE: the code is written in scratchpad/wt-0441 of session 265b7775, moved onto 560777120 after cc's 0440 landed with its patch-id unchanged, and banked at refs/bank/ic/0441/wip.patch (patch-id 2e611147, 7 files: store.rs, ingest.rs, facade.rs, error_remedies.rs, mandatory_fields_reach_a_reader.rs, suite.rs, and the new arm a_sync_writes_no_render_the_store_has_moved_past.rs); the design is at refs/bank/ic/0441/plan.md. Proven on 560777120: `cargo check --workspace --all-targets` green; the arm, the lock-wait file, the error-remedy census and the field census green (16 tests); with the guard disabled the arm goes red on its canon-bytes assertion (restored byte for byte); the Rust critic's headless read is clean over the 7 files. NEXT: re-check HEAD for any later Rust landing; bank the patch at refs/bank/ic/0441/patch; ask vc for the slot with START to all; the judging run is whole suites for intentsvcs, intent-cli and intentd, workspace clippy (plus CI's restriction clippy, whose exact line to ask cc for), and fmt --check, and vc judges from the logs; land on vc's GO. Hold 10 waits for vc's word that the register is final (0440 has landed). NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T18:00:33.106Z",
       "recorded_at": "2026-09-17T17:11:51.812Z"
     },
     {
@@ -1509,6 +1511,22 @@
       "text": "**A DAEMON-MODE REPRO COUNTS ONLY ONCE THE DAEMON HAS OPENED THE PROJECT, AND A `--daemon` VERB IT CANNOT ANSWER OPENS NOTHING** (2026-09-17, 0441). My first daemon run started intentd under an isolated HOME and registered the scratch project with `intent issues list --daemon`, which is refused (the daemon answers `st list` and `search`), so the daemon watched nothing and the clean result proved nothing; `intent --daemon st list` opens it. Prove the open before believing the run: the registry line `{\"root\":\"/\",\"op\":\"registry\"}` sent to the socket `intent daemon status` names shows `watched: true` for the root, and the store's events show `disk.sync_from_disk` once a sync writes. A long session's MCP server can also speak an older schema than the store (\"holds schema version 29; this build speaks 27\"), so ask the CLI instead.",
       "state": "live",
       "recorded_at": "2026-09-17T17:11:52.699Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 54,
+      "text": "**RESUME HERE, 2026-09-17 night: issue 0441 is LANDED and CLOSED, and docs/reference is regenerated. ic has no open thread.** The code is c649596ef, its own patch-id 2e611147, the judged bank refs/bank/ic/0441/patch, green in one whole-suite run in wt-0441 on d8c6cc31c (intentsvcs 1760, intent-cli 1002 and intentd 53 passed, 0 failed; workspace clippy, CI's restriction clippy and fmt clean; logs in scratchpad/i0441/suite of session 265b7775). The close is 98c580d12, whose note names the ruling in the body as what landed, the arm `a_sync_writes_no_render_the_store_has_moved_past`, the judging run, and the residual in the ruled words: two command-line writers crossing their file writes on one subject can leave the older render on disk, and a watched estate's next sync repairs it. docs/reference is d21550ae5, both halves at 98c580d12 against v3.0.1: 21 pages, prettier clean, cut-surface.md carrying IngestOutpacedByWrites, and every family page traced to the register between v3.0.3 and that HEAD. Hold 10 is discharged. doctor reads 0 and nothing but board renders is left in the tree. NEXT: vc rebuilds the pair, and cc's installed-pair re-run follows it. When the rebuilt pair is in, the check worth making is the 0439 reproduction again -- scratchpad/canonguard/repro.sh with a daemon, on a scratch copy with its own git repository, store and HOME -- which must now warn on neither issue and end at doctor 0. wt-0441 and its target can go once vc has verified the landing. The landing script, its dry estate and both logs are in scratchpad/i0441/land. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-17T18:00:36.884Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 79,
+      "text": "**A PARITY GENERATOR RESOLVES ITS REVISION IN THE WORKING DIRECTORY'S REPOSITORY, NOT IN THE TREE IT LIVES IN** (2026-09-17, hold 10). `lib_surface.sh`'s `surface_resolve_rev` and `surface_table_at` both read `git rev-parse --show-toplevel` from the cwd, so `gen_reference.sh` and `gen_cut_surface.sh` run from another repository exit 1 with an EMPTY log, which reads as a crash with no cause. Run them from the tree they describe, with `--out` into scratch, and read the diff before writing the tree. **`docs/reference` IS 21 PAGES AND gen_reference.sh WRITES 20 OF THEM**: `cut-surface.md` is gen_cut_surface.sh's, and it reads `ALL_VARIANTS` in `intentsvcs/tests/error_remedies.rs` at the revision, so a landing that adds a refusal variant makes it stale and the two halves belong in one commit at one revision. Two smaller ones from the same landing: `intent issues edit --from` keeps a body byte for byte and the body ENDS in a newline, so strip the trailing newlines before appending a close paragraph or it lands two blank lines down; and BSD `cmp -n <len>` calls EOF a difference when the limit is the whole of the shorter file, so compare a prefix with `head -c` instead.",
+      "state": "live",
+      "recorded_at": "2026-09-17T18:00:40.643Z"
     }
   ],
   "messages": [
