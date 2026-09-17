@@ -2,14 +2,14 @@
 wp_id: WP-05
 title: Rust resolved references through rust-analyzer's SCIP export
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-05: Rust resolved references through rust-analyzer's SCIP export
 
 ## Objective
 
-Resolve Rust references to the definitions they name with rust-analyzer's SCIP export, on an explicit verb, into the level-3 core both languages share: a resolved row joins a written reference on its file, line and name, `intent index status` counts what each run matched, left unmatched, dropped and found ambiguous and names the stale paths, and a missing, failed or stale tier is named in the search envelope rather than answering as an empty one.
+Resolve Rust references to the definitions they name with rust-analyzer's SCIP export, on an explicit verb, into the level-3 core both languages share: a resolved row joins a written reference on its file, line and name, `intent index status` counts what each run matched, left unmatched, dropped and found ambiguous and names the stale paths, and a missing or failed run is recorded with its reason and named by `intent index resolve` and `intent index status` rather than stored as a current run that resolved nothing. The search envelope's level-3 facts are WP-07's.
 
 ## Measured first (cc, 2026-09-17)
 
@@ -48,6 +48,18 @@ The core lands alone, ahead of any reader (vc, 2026-09-17), so `intent index res
 - **A project holding nothing for a tool** (no `Cargo.toml`, no `mix.exs`) is not applicable: a run over every declared language names it and leaves its record alone, and a run that asked for it with `--lang` records a failure.
 - **A reader finds its project in the index's file rows** (`Scope::indexed`), never by walking the tree or asking git. Rust's roots are the root-most `Cargo.toml` manifests, each exported on its own.
 - **A build directory Intent cannot create fails that language's run** rather than refusing the verb.
+
+## The Rust reader, as landed
+
+rust-analyzer is Rust's reader, registered in `index::resolved::readers()`, so `intent index resolve` runs it for a project that declares `rust`. It carries vc's rulings of 2026-09-17 on its three questions:
+
+- **One export per root, built under Intent's own directory.** A root is a `Cargo.toml` the index holds with no ancestor holding another, and each is exported with `CARGO_TARGET_DIR` under `intent/.cache/resolve/rust`, never into the workspace's `target/`. `--full` changes nothing for this reader: every export is of the whole workspace, and cargo decides what to rebuild.
+- **A file is offered as read only where its bytes hash the same before and after the export**, so a file saved during the export drops its references as unread rather than joining them against lines the tool never read.
+- **One printed target per definition, with no tool or crate version in it**: `crate::path::Type::method()`, a field plain, `<Type as Trait>::method()`, `name!`, `#[Derive]`, and `<impl Type>` for an impl block itself. A callable ends in `()` because a field and a method of one name are two definitions. The module in a member's path is the one its impl block is written in, which is what SCIP carries, and not always the module that defines the type. A crate's `-` prints as `_`.
+- **Four reasons of the reader's own, each declared**: `local` (a local variable, closure or parameter), `multiline` (an occurrence spanning lines), `operator` (a reference whose text holds no letter, digit or underscore, which the export writes for an overloaded operator on the operator and on the space either side of it) and `unprintable` (a symbol it cannot print). Empty text, `self.0`, `Self`, `crate`, `super` and a raw identifier are not operators: they go to the join, and count as unmatched where no written row holds them.
+- **The export can write one file into the project.** Where a workspace root holds no `Cargo.lock`, cargo writes one there, as any cargo command would. The reader leaves it and never deletes or moves a file in the project tree, and the verb's register row says so beside the build scripts and proc macros it runs.
+- **A tool that is not there is recorded as missing, naming the program**, and a project whose index holds no `Cargo.toml` is not applicable.
+- **The arms**: the checked-in export of a tiny crate (`tests/fixtures/scip/tiny/`) proves the decode, the printed targets, the reasons and the conservation law in every build; a program that does not exist proves the missing record; and one `needs_the_toolchain` arm runs the real rust-analyzer over the same crate, under `bin/devbin test all` and never in CI.
 
 ## Acceptance
 

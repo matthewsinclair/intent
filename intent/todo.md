@@ -28,7 +28,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 02: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
   - [x] 03: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
   - [x] 04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
-  - [-] 05: Rust resolved references through rust-analyzer's SCIP export
+  - [x] 05: Rust resolved references through rust-analyzer's SCIP export
   - [-] 06: Elixir resolved references through the compiler's tracer, on an explicit verb
   - [-] 07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 
