@@ -1792,6 +1792,14 @@ impl Project {
     self.intent_dir().join(".cache").join("intent.db")
   }
 
+  /// Where a language's level-3 toolchain builds (ST0076 WP-05, vc decision 25
+  /// (6)): a directory of Intent's own beside the store, and never the
+  /// project's build directory, so resolving a project leaves its own build
+  /// artefacts as they were.
+  pub fn resolve_cache_dir(&self, lang: &str) -> PathBuf {
+    self.intent_dir().join(".cache").join("resolve").join(lang)
+  }
+
   /// The event log's committed file form (D34, AC-02.6).
   /// The thread index view. Beside the threads it indexes, at v2's path (vc
   /// ruling, 2026-08-14): a rewrite that already moves plenty does not need to

@@ -875,6 +875,15 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       })
       .expect_err("ST0056 carries no attachment at never-attached.md"),
   ));
+  // **ST0076 WP-05's REFUSAL, PROVOKED.** Level 3 asked of a build carrying no
+  // resolver for any declared language: nothing runs, and the remedy says what
+  // still answers.
+  out.push((
+    "level 3 asked of a build with no resolver",
+    facade
+      .index_resolve(None, false, &[])
+      .expect_err("no resolver is carried"),
+  ));
   out.push((
     "an address naming another project",
     facade
@@ -1110,6 +1119,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbUncarried { .. } => "WbUncarried",
     FacadeError::WbSnapshotInTheWay { .. } => "WbSnapshotInTheWay",
     FacadeError::WbNoActingNode => "WbNoActingNode",
+    FacadeError::NoResolver { .. } => "NoResolver",
   }
 }
 
@@ -1216,6 +1226,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbUncarried",
   "WbSnapshotInTheWay",
   "WbNoActingNode",
+  "NoResolver",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by

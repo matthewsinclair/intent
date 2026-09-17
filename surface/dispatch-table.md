@@ -4332,7 +4332,7 @@ Carry one node's hand-authored board into the model
 
 ## Family: `index`
 
-The search index: what it holds, and rebuilding it
+The search index: what it holds, rebuilding it, and resolving its references
 
 - **v2 source:** `new-surface`
 - **v2 help file:** none
@@ -4341,15 +4341,16 @@ The search index: what it holds, and rebuilding it
 - NEW SURFACE with no v2 antecedent: v2 had no index. Declared as a FAMILY rather than as two root rows, because two root paths sharing a prefix make the prefix itself ambiguous -- `intent index` refused with `index is ambiguous under intent, it matches index rebuild, index status` before this moved (ic, driven, 2026-09-12).
 - `status` READS the rows and never walks the tree; `rebuild` walks. A status that surveyed the tree would describe the world rather than the index, which is the question nobody asked (cc, 2972e4df9).
 
-| command         | args      | flags                           | help                                                                                          | disposition |
-| --------------- | --------- | ------------------------------- | --------------------------------------------------------------------------------------------- | ----------- |
-| `index`         | <command> | --                              | The search index: what it holds, and rebuilding it                                            | new-surface |
-| `index status`  | --        | --json                          | Report what the search index holds by corpus, and every path it will not hold with the reason | new-surface |
-| `index rebuild` | --        | --json, --corpus <canon/source> | Walk the index scope and rewrite what the index holds, then report it                         | new-surface |
+| command         | args      | flags                           | help                                                                                                               | disposition |
+| --------------- | --------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `index`         | <command> | --                              | The search index: what it holds, rebuilding it, and resolving its references                                       | new-surface |
+| `index status`  | --        | --json                          | Report what the search index holds by corpus, and every path it will not hold with the reason                      | new-surface |
+| `index rebuild` | --        | --json, --corpus <canon/source> | Walk the index scope and rewrite what the index holds, then report it                                              | new-surface |
+| `index resolve` | --        | --json, --lang <lang>, --full   | Resolve references to the definitions they name with each language's own toolchain, and report each language's run | new-surface |
 
 ### `index`
 
-The search index: what it holds, and rebuilding it
+The search index: what it holds, rebuilding it, and resolving its references
 
 - **v2:** new-surface
 - **Arguments:**
@@ -4403,6 +4404,34 @@ Walk the index scope and rewrite what the index holds, then report it
 - **recoverability:** idempotent
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE WITHHOLD GROUND IS CONTENTION RATHER THAN IRREVERSIBILITY -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is that the surface cannot undo it, and this one needs no undoing: running it twice leaves the same rows, and `index status` reads them back. **What it does is rewrite EVERY row of the index, which is work an agent should not start unasked** -- another surface may be reading those rows in the same moment, and a search answering mid-rebuild is the one case where the freshness block cannot help, because the index is not stale, it is in motion. `index status`, the read half, IS exposed and answers the same summary. A candidate for exposure on a ruling about concurrency, never on the observation that it is safe to repeat -- which is true and is a different question.
 - **facade:** index_rebuild
+
+### `index resolve`
+
+Resolve references to the definitions they name with each language's own toolchain, and report each language's run
+
+- **v2:** new-surface
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--lang` `<lang>` (string) -- Resolve one language instead of every language the project declares
+    - **disposition:** keep
+  - `--full` (bool) -- Rebuild everything the toolchain keeps incremental state for, instead of what changed
+    - **disposition:** keep
+- **Exit codes:**
+  - `0` -- every language the run covered resolved and was stored
+  - `1` -- a language's tool is missing or its run failed, or this build carries no resolver for the language asked for or for any language the project declares
+- **stdout:** `resolution: <lang>  <state>  <tool>` per language, then its failure, its stored run's counts, its drops by reason and its stale paths, and `resolution: <lang>  not applicable  <why>` for a declared language with nothing to resolve; with `--json`, `{"resolution": {<lang>: ...}, "not_applicable": {<lang>: <why>}}`
+- **stderr:** `error: level 3 did not resolve <langs>` with a remedy when a language did not resolve, and `error: ...` on any refusal (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** WITHHELD ON vc decision 25 (1), AND THE GROUND IS THAT IT RUNS PROJECT CODE, NOT THAT IT CANNOT BE UNDONE. `index status`, the read half, is exposed and reports each language's resolution. A candidate for exposure on a ruling about running a project's build scripts and macros from a tool call, never on the observation that it is safe to repeat.
+- **basis:** ST0076 WP-05, vc decision 25 (2026-09-17, under hv's pen) on cc's measurement of rust-analyzer's SCIP export, and vc's rulings the same day on dc's review of the reader contract: level 3 is one core for every language, filled only by this verb. The name `intent index resolve` was agreed by hv, 2026-09-17. **A RESOLVED ROW ALWAYS JOINS A WRITTEN REFERENCE** on path, line and name, against the bytes the tool read, so a reference only the toolchain sees is counted and not stored; matched, unmatched and dropped partition everything the tool emitted, and dropped is counted by reason from a closed roster. **A RUN REPLACES EXACTLY THE FILES IT JOINED, IN ONE TRANSACTION**, purges rows whose path has left the index, and a failure writes only the language's record; a reconcile never deletes a resolved row. **THE INDEX CATCHES UP AFTER THE TOOL HAS READ AND BEFORE THE JOIN**, so an edit before the tool's read joins and an edit after it is dropped as moved and retraced next run. **A RUN IS FULL, WHATEVER WAS ASKED, UNTIL ONE HAS STORED UNDER THIS BUILD'S EXTRACTOR AND THE LAST ONE STORED**, because an incremental run over an existing build cache can trace nothing and report an empty tier as a success. **A DECLARED LANGUAGE WHOSE PROJECT HOLDS NOTHING FOR ITS TOOL IS NAMED NOT APPLICABLE AND ITS RECORD LEFT ALONE**, unless `--lang` asked for it, when it fails. `index status` reports each language's state, its counts, its drops by reason and the paths gone stale. The toolchain builds into `intent/.cache/resolve/<lang>`, never the project's own build directory, and that directory persists between runs.
+- **owner wp:** WP-05
+- **acceptance:** AC-05.1
+- **recoverability:** idempotent
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT RUNS THE PROJECT'S OWN CODE -- recorded here rather than solved by bending the label, which is what this field is for. Running it twice over unchanged files stores the same rows. **What it does is run each language's toolchain over the project**: rust-analyzer's SCIP export runs the workspace's build scripts and proc macros, and no switch it has stops that (measured by cc, 2026-09-17), and a compile runs a project's macros. That is work an agent must not start unasked, which is vc decision 25 (1): never intentd, a reconcile or a hook, and not the MCP tool tier in this release.
+- **facade:** index_resolve
 
 ## Known exposures -- defects this file does not have, and is not protected against
 

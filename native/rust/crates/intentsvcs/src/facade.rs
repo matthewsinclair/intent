@@ -1595,6 +1595,12 @@ pub enum FacadeError {
   /// afterwards.
   #[error("no acting node: nothing said which node is writing")]
   WbNoActingNode,
+  /// `intent index resolve` was asked for level 3 where this build carries no
+  /// resolver (ST0076 WP-05): for the language named, or for every language
+  /// the project declares. `built` names the languages it does carry, or says
+  /// there are none.
+  #[error("this build has no level-3 resolver for {asked}")]
+  NoResolver { asked: String, built: String },
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
@@ -1854,6 +1860,10 @@ impl crate::remedy::Remedy for FacadeError {
         "nothing was written, so this carry can run again once those lines have a home. A directive still in force belongs on `hv`'s board: under `## Standing directives` in `intent/whiteboard/hv/wip.md` before `hv` is carried, or through `intent wb add directive <text> --node hv` after. A call `{node}` made itself belongs under `## Decisions` on its own board"
       ),
       Self::WbNoActingNode => "say who is writing: `--node <moniker>`. `intent wb status` lists the roster".to_string(),
+      Self::NoResolver { built, .. } if built.is_empty() => "nothing was run. This build carries no level-3 resolver for any language yet, so references answer at levels 1 and 2: `intent search --kind ref <name>`".to_string(),
+      Self::NoResolver { built, .. } => format!(
+        "nothing was run. Name a language this build resolves: `intent index resolve --lang <lang>`, for {built}"
+      ),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
       // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
@@ -8339,6 +8349,10 @@ impl Facade {
     status.grammars = crate::index::status::grammars(&self.project.config().languages);
     // Issue 0373: what the index costs, measured.
     status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
+    status.resolution = self
+      .store
+      .resolution(crate::index::symbols::EXTRACTOR_VERSION)
+      .map_err(FacadeError::Store)?;
     Ok(status)
   }
 
@@ -8489,7 +8503,194 @@ impl Facade {
     status.grammars = crate::index::status::grammars(&self.project.config().languages);
     // Issue 0373: what the index costs, measured.
     status.sizes = self.store.index_sizes().map_err(FacadeError::Store)?;
+    status.resolution = self
+      .store
+      .resolution(crate::index::symbols::EXTRACTOR_VERSION)
+      .map_err(FacadeError::Store)?;
     Ok(status)
+  }
+
+  /// Resolve references to the definitions they name with each language's own
+  /// toolchain, and store what joins a written reference (ST0076 WP-05, vc
+  /// decision 25).
+  ///
+  /// **AN EXPLICIT VERB AND NEVER A RECONCILE.** A toolchain runs the project's
+  /// own code -- rust-analyzer's export runs build scripts and proc macros, and
+  /// nothing turns that off (measured 2026-09-17) -- so nothing calls this
+  /// unasked: not intentd, not a reconcile, not a hook, and not the MCP tool
+  /// tier.
+  ///
+  /// **ONE LANGUAGE'S FAILURE IS ITS OWN.** Each language is stored or
+  /// recorded as unresolved on its own, and the answer carries every language
+  /// the call covered, so a missing tool for one never hides another's result.
+  ///
+  /// `readers` is what this build can run: the CLI passes
+  /// [`crate::index::resolved::readers`], and a test passes its own. `lang`
+  /// names one language; `None` runs every reader for a language the project
+  /// declares, and skips, by name, one whose project holds nothing for its
+  /// tool.
+  pub fn index_resolve(
+    &mut self,
+    lang: Option<&str>,
+    full: bool,
+    readers: &[Box<dyn crate::index::resolved::Resolver>],
+  ) -> Result<crate::index::resolved::Outcome, FacadeError> {
+    use crate::index::resolved::{self, Unresolved};
+    let extractor = crate::index::symbols::EXTRACTOR_VERSION;
+    let declared = &self.project.config().languages;
+    let chosen: Vec<&dyn resolved::Resolver> = readers
+      .iter()
+      .map(Box::as_ref)
+      .filter(|reader| match lang {
+        Some(asked) => reader.lang() == asked,
+        None => declared.iter().any(|d| d == reader.lang()),
+      })
+      .collect();
+    if chosen.is_empty() {
+      let quoted = |langs: Vec<&str>| {
+        langs
+          .iter()
+          .map(|l| format!("`{l}`"))
+          .collect::<Vec<_>>()
+          .join(", ")
+      };
+      return Err(FacadeError::NoResolver {
+        asked: match lang {
+          Some(asked) => format!("`{asked}`"),
+          None if declared.is_empty() => {
+            "any language, because this project declares none".to_string()
+          }
+          None => format!(
+            "any language this project declares ({})",
+            quoted(declared.iter().map(String::as_str).collect())
+          ),
+        },
+        built: quoted(readers.iter().map(|r| r.lang()).collect()),
+      });
+    }
+
+    let mut outcome = resolved::Outcome::default();
+    for reader in &chosen {
+      let previous = self
+        .store
+        .resolution(extractor)
+        .map_err(FacadeError::Store)?
+        .remove(reader.lang());
+      let full = full || resolved::must_run_full(previous.as_ref(), extractor);
+      // **A BUILD DIRECTORY THAT CANNOT BE MADE FAILS THIS LANGUAGE'S RUN**,
+      // recorded like any other failure, rather than refusing the verb with an
+      // I/O error that names no language and leaves every other one unrun.
+      let cache = self.project.resolve_cache_dir(reader.lang());
+      if let Err(e) = std::fs::create_dir_all(&cache) {
+        let why = Unresolved::Failed {
+          path: None,
+          line: None,
+          detail: format!(
+            "Intent could not create its build directory {}: {e}",
+            cache.display()
+          ),
+        };
+        self
+          .store
+          .record_unresolved(reader.lang(), reader.tool(), &why)
+          .map_err(FacadeError::Store)?;
+        continue;
+      }
+
+      let indexed: Vec<String> = self
+        .store
+        .index_files()
+        .map_err(FacadeError::Store)?
+        .into_iter()
+        .filter(|row| row.skipped_reason.is_none())
+        .map(|row| row.path)
+        .collect();
+      let scope = resolved::Scope {
+        root: self.project.root(),
+        cache: &cache,
+        full,
+        indexed: &indexed,
+      };
+      let traced = reader.trace(&scope).and_then(|trace| {
+        let undeclared = resolved::undeclared(&trace, reader.excludes())
+          .iter()
+          .map(|r| format!("`{r}`"))
+          .collect::<Vec<_>>();
+        if undeclared.is_empty() {
+          Ok(trace)
+        } else {
+          Err(Unresolved::Failed {
+            path: None,
+            line: None,
+            detail: format!(
+              "the {} reader excluded references for {}, which it does not declare",
+              reader.tool(),
+              undeclared.join(", ")
+            ),
+          })
+        }
+      });
+      // **THE INDEX CATCHES UP AFTER THE TOOL HAS READ, AND NEVER BEFORE.** The
+      // join keeps only files whose indexed bytes are the bytes the tool read.
+      // Refreshed first, a file saved between the refresh and the tool's read
+      // would never join, and an incremental tool would never retrace it, since
+      // its own state already holds those bytes. Refreshed after, an edit
+      // before the tool's read joins, and an edit after it is dropped as moved
+      // and retraced next run, because the disk and the tool's state disagree.
+      // A later tidy-up that moves this refresh up reopens that hole.
+      //
+      // **AND A REFRESH THAT FAILS FAILS THE RUN** (dc, on the reader
+      // contract): joined against an index that did not catch up, an edit made
+      // before the tool's read would drop as moved and never be retraced.
+      let traced = traced.and_then(|trace| match self.index_refresh(None) {
+        Ok(_) => Ok(trace),
+        Err(e) => Err(Unresolved::Failed {
+          path: None,
+          line: None,
+          detail: format!(
+            "the index could not catch up with the files {} read: {e}",
+            reader.tool()
+          ),
+        }),
+      });
+
+      match traced {
+        Ok(trace) => {
+          let (indexed, written) = self
+            .store
+            .resolution_basis(reader.lang())
+            .map_err(FacadeError::Store)?;
+          let defs = self
+            .store
+            .definitions(reader.lang())
+            .map_err(FacadeError::Store)?;
+          let located = resolved::locations(&defs, *reader);
+          let joined = resolved::join(&trace, &indexed, &written, &located);
+          self
+            .store
+            .replace_resolved(reader.lang(), reader.tool(), extractor, &joined)
+            .map_err(FacadeError::Store)?;
+        }
+        Err(Unresolved::NotApplicable { detail }) if lang.is_none() => {
+          outcome
+            .not_applicable
+            .insert(reader.lang().to_string(), detail);
+        }
+        Err(why) => self
+          .store
+          .record_unresolved(reader.lang(), reader.tool(), &why)
+          .map_err(FacadeError::Store)?,
+      }
+    }
+
+    outcome.resolution = self
+      .store
+      .resolution(extractor)
+      .map_err(FacadeError::Store)?;
+    outcome.resolution.retain(|l, _| {
+      chosen.iter().any(|reader| reader.lang() == l) && !outcome.not_applicable.contains_key(l)
+    });
+    Ok(outcome)
   }
 
   pub fn doctor(

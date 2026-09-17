@@ -1355,6 +1355,9 @@ pub fn serve(
         // than a human does, because it cannot ask a follow-up question.
         "grammars": status.grammars,
         "skipped": skipped,
+        // Level 3 per language (ST0076 WP-05): an agent weighing a resolved
+        // caller list needs the stale paths as much as the counts.
+        "resolution": status.resolution,
         "empty": status.is_empty(),
       }))
     }

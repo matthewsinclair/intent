@@ -43,6 +43,8 @@ mod a_create_refuses_a_key_that_is_taken;
 mod a_mutation_does_not_duplicate_the_prose_index;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]
 mod a_re_cite_keeps_what_it_was_not_given;
+#[path = "a_resolved_reference_joins_a_written_one.rs"]
+mod a_resolved_reference_joins_a_written_one;
 #[path = "a_retire_reaches_the_consumer.rs"]
 mod a_retire_reaches_the_consumer;
 #[path = "a_scheduled_backup_is_the_same_call.rs"]

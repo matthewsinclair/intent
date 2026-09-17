@@ -198,6 +198,10 @@ fn the_read_half_is_a_tool_and_the_write_half_is_withheld() {
     !names.contains(&"intent_index_rebuild".to_string()),
     "the write is withheld, and the register carries the reason: {names:?}"
   );
+  assert!(
+    !names.contains(&"intent_index_resolve".to_string()),
+    "level 3 runs the project's own code, so it is withheld too (ST0076 vc decision 25 (1)): {names:?}"
+  );
 
   let answered = frames
     .iter()

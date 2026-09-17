@@ -36,6 +36,10 @@ pub struct Status {
   /// The measured size in bytes of each index table family and of the whole
   /// store (issue 0373). Read, never estimated; empty until the store fills it.
   pub sizes: BTreeMap<String, u64>,
+  /// Level 3, per language a resolution run has recorded (ST0076 WP-05): the
+  /// last run's state and counts, and the paths gone stale since. A language no
+  /// run has recorded is absent. Empty until the store fills it.
+  pub resolution: BTreeMap<String, super::resolved::Run>,
 }
 
 impl Status {
@@ -97,6 +101,7 @@ pub fn summarise(rows: &[Row]) -> Status {
     grammars: BTreeMap::new(),
     skipped,
     sizes: BTreeMap::new(),
+    resolution: BTreeMap::new(),
   }
 }
 

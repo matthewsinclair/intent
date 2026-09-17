@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.3
--- SCHEMA_DDL_VER: 24
+-- SCHEMA_DDL_VER: 25
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -404,6 +404,91 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- Level 3: each language's last resolution run, one row per language.
+--
+-- **`state` SAYS WHAT THE LAST RUN DID, AND THE COUNTS SAY WHAT THE STORE
+-- HOLDS.** `state` is `current`, `missing` or `failed`, and `path`, `line` and
+-- `detail` are the last run's failure, NULL after a run that stored. The
+-- counts, `run` and `resolved_at` belong to the last run that stored, so a
+-- failure writes its own record and nothing else: the rows an earlier run
+-- resolved still answer, each checked against its file's hash.
+--
+-- `resolved_at` is written by the database clock in the statement that stores
+-- a run, and is NULL until one has. `run` counts the runs that stored, and
+-- each `resolved_file` row names the one that wrote it. `symbols_version` is
+-- the extractor version whose written rows that run joined against, the name
+-- `index_file` uses for the same fact: a build writing another version has
+-- re-extracted them, so every resolved row of the language is stale.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolution (
+  lang TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  tool TEXT NOT NULL,
+  path TEXT,
+  line INTEGER,
+  detail TEXT,
+  resolved_at TEXT,
+  run INTEGER NOT NULL DEFAULT 0,
+  matched INTEGER NOT NULL DEFAULT 0,
+  unmatched INTEGER NOT NULL DEFAULT 0,
+  dropped INTEGER NOT NULL DEFAULT 0,
+  ambiguous INTEGER NOT NULL DEFAULT 0,
+  symbols_version INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- The last stored run's `dropped` count, by reason: the core's reasons and
+-- the ones the language's reader declares. The rows sum to
+-- `resolution.dropped`, and a run that stores replaces them.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolution_dropped (
+  lang TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  count INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (lang, reason)
+);
+-- Level 3's rows: a written reference and the definition a toolchain resolved
+-- it to, one row per path, line, name and target.
+--
+-- **A SIDE TABLE AND NOT COLUMNS ON `symbols`**: `replace_symbols_for` deletes and re-inserts a file's rows at every
+-- re-extract, so a column there would lose what a run resolved the moment the
+-- index next read the file. A reconcile never deletes a row here.
+--
+-- **NO TIE-BREAK AT WRITE.** A key naming two targets holds both, and the
+-- language's `ambiguous` count says how many keys did.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolved (
+  path TEXT NOT NULL,
+  line INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  target TEXT NOT NULL,
+  target_path TEXT,
+  target_line INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (path, line, name, target)
+);
+CREATE INDEX IF NOT EXISTS resolved_by_target ON resolved (target);
+-- Level 3's staleness facts, once per file: the hash of the bytes the
+-- toolchain read, the language, and the run that wrote the file's
+-- rows. A file whose `index_file.indexed_sha256` no longer equals `sha256`
+-- holds rows resolved against bytes that have moved, and `index status` names
+-- it as stale.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolved_file (
+  path TEXT PRIMARY KEY,
+  lang TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  run INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- When the search index was last reconciled. One row, id 1.
 -- `reconciled_at` is written by the database clock in the statement that
 -- records a reconcile; nothing reads a clock at render.

@@ -487,6 +487,91 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+-- Level 3: each language's last resolution run, one row per language.
+--
+-- **`state` SAYS WHAT THE LAST RUN DID, AND THE COUNTS SAY WHAT THE STORE
+-- HOLDS.** `state` is `current`, `missing` or `failed`, and `path`, `line` and
+-- `detail` are the last run's failure, NULL after a run that stored. The
+-- counts, `run` and `resolved_at` belong to the last run that stored, so a
+-- failure writes its own record and nothing else: the rows an earlier run
+-- resolved still answer, each checked against its file's hash.
+--
+-- `resolved_at` is written by the database clock in the statement that stores
+-- a run, and is NULL until one has. `run` counts the runs that stored, and
+-- each `resolved_file` row names the one that wrote it. `symbols_version` is
+-- the extractor version whose written rows that run joined against, the name
+-- `index_file` uses for the same fact: a build writing another version has
+-- re-extracted them, so every resolved row of the language is stale.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolution (
+  lang TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  tool TEXT NOT NULL,
+  path TEXT,
+  line INTEGER,
+  detail TEXT,
+  resolved_at TEXT,
+  run INTEGER NOT NULL DEFAULT 0,
+  matched INTEGER NOT NULL DEFAULT 0,
+  unmatched INTEGER NOT NULL DEFAULT 0,
+  dropped INTEGER NOT NULL DEFAULT 0,
+  ambiguous INTEGER NOT NULL DEFAULT 0,
+  symbols_version INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+-- The last stored run's `dropped` count, by reason: the core's reasons and
+-- the ones the language's reader declares. The rows sum to
+-- `resolution.dropped`, and a run that stores replaces them.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolution_dropped (
+  lang TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  count INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (lang, reason)
+);
+-- Level 3's rows: a written reference and the definition a toolchain resolved
+-- it to, one row per path, line, name and target.
+--
+-- **A SIDE TABLE AND NOT COLUMNS ON `symbols`**: `replace_symbols_for` deletes and re-inserts a file's rows at every
+-- re-extract, so a column there would lose what a run resolved the moment the
+-- index next read the file. A reconcile never deletes a row here.
+--
+-- **NO TIE-BREAK AT WRITE.** A key naming two targets holds both, and the
+-- language's `ambiguous` count says how many keys did.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolved (
+  path TEXT NOT NULL,
+  line INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  target TEXT NOT NULL,
+  target_path TEXT,
+  target_line INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (path, line, name, target)
+);
+CREATE INDEX IF NOT EXISTS resolved_by_target ON resolved (target);
+-- Level 3's staleness facts, once per file: the hash of the bytes the
+-- toolchain read, the language, and the run that wrote the file's
+-- rows. A file whose `index_file.indexed_sha256` no longer equals `sha256`
+-- holds rows resolved against bytes that have moved, and `index status` names
+-- it as stale.
+-- openness: DERIVED -- recomputed by running the language's own toolchain
+-- over the project's files, which are already on disk.
+CREATE TABLE IF NOT EXISTS resolved_file (
+  path TEXT PRIMARY KEY,
+  lang TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  run INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- When the search index was last reconciled. One row, id 1.
 -- `reconciled_at` is written by the database clock in the statement that
 -- records a reconcile; nothing reads a clock at render.
@@ -724,7 +809,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 28;
+pub const SCHEMA_VERSION: i32 = 29;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -1755,6 +1840,15 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      DROP TABLE index_file;
      ALTER TABLE index_file_rebuilt RENAME TO index_file;",
   ),
+  (
+    29,
+    // 28 -> 29: level 3 (ST0076 WP-05, vc decision 25): `resolution`,
+    // `resolution_dropped`, `resolved` and `resolved_file`, four new tables and
+    // the easy rung. They
+    // start empty, which is the correct and only description of a store no
+    // toolchain has run over.
+    RESOLUTION_TABLES,
+  ),
 ];
 
 /// The `symbols` columns a [`crate::index::symbols::Symbol`] is read from, in
@@ -1767,6 +1861,54 @@ const SYMBOL_COLUMNS: &str = "path, lang, name, kind, start_line, end_line, subk
 const INDEX_STATE: &str = "CREATE TABLE IF NOT EXISTS index_state (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   reconciled_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);";
+
+/// Level 3's four tables (ST0076 WP-05), as rung 29 creates them on an
+/// existing store: the shapes [`DDL`] declares, without its comments.
+const RESOLUTION_TABLES: &str = "CREATE TABLE IF NOT EXISTS resolution (
+  lang TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  tool TEXT NOT NULL,
+  path TEXT,
+  line INTEGER,
+  detail TEXT,
+  resolved_at TEXT,
+  run INTEGER NOT NULL DEFAULT 0,
+  matched INTEGER NOT NULL DEFAULT 0,
+  unmatched INTEGER NOT NULL DEFAULT 0,
+  dropped INTEGER NOT NULL DEFAULT 0,
+  ambiguous INTEGER NOT NULL DEFAULT 0,
+  symbols_version INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE TABLE IF NOT EXISTS resolution_dropped (
+  lang TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  count INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (lang, reason)
+);
+CREATE TABLE IF NOT EXISTS resolved (
+  path TEXT NOT NULL,
+  line INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  target TEXT NOT NULL,
+  target_path TEXT,
+  target_line INTEGER,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  PRIMARY KEY (path, line, name, target)
+);
+CREATE INDEX IF NOT EXISTS resolved_by_target ON resolved (target);
+CREATE TABLE IF NOT EXISTS resolved_file (
+  path TEXT PRIMARY KEY,
+  lang TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  run INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );";
@@ -5592,6 +5734,8 @@ impl Store {
          WHEN name LIKE 'doc_sections%' THEN 'doc_sections' \
          WHEN name LIKE 'symbols%' THEN 'symbols' \
          WHEN name = 'index_file' OR name LIKE 'sqlite_autoindex_index_file%' THEN 'index_file' \
+         WHEN name LIKE 'resolved%' OR name LIKE 'sqlite_autoindex_resolved%' \
+           OR name LIKE 'resolution%' OR name LIKE 'sqlite_autoindex_resolution%' THEN 'resolved' \
        END AS family, pgsize FROM dbstat) WHERE family IS NOT NULL GROUP BY family",
     )?;
     let rows = stmt.query_map([], |row| {
@@ -5815,6 +5959,298 @@ impl Store {
       })
     })?;
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  // -------------------------------------------------------------------------
+  // Level 3 (ST0076 WP-05): references a toolchain resolved
+  //
+  // DB-only and derived from the working tree, like the index beside it, so
+  // `rebuild` leaves these tables alone and `snapshot` excludes them.
+  // -------------------------------------------------------------------------
+
+  /// Store one language's run in one transaction: the files it joined are
+  /// replaced whole, rows whose path has left the index are purged, and the
+  /// language's record takes the run's counts.
+  ///
+  /// **EXACTLY THE FILES THE RUN JOINED** (vc decision 25 (3)). An incremental
+  /// compile reads a handful of files, so a replace that emptied the language
+  /// would unresolve the project whenever one file changed. A file the run did
+  /// not join keeps the rows an earlier run gave it, and its hash says whether
+  /// they are still current.
+  ///
+  /// **THE PURGE IS HERE AND NEVER IN A RECONCILE.** A resolved row is the one
+  /// thing in the index a reconcile cannot recompute, and a path can leave the
+  /// index for a moment no toolchain saw; the next run is what knows it has
+  /// gone.
+  pub fn replace_resolved(
+    &mut self,
+    lang: &str,
+    tool: &str,
+    symbols_version: i64,
+    joined: &crate::index::resolved::Joined,
+  ) -> Result<(), StoreError> {
+    let tx = Self::write_tx(&mut self.conn)?;
+    let t = &joined.tally;
+    tx.execute(
+      "INSERT INTO resolution (lang, state, tool, resolved_at, run, matched, unmatched, dropped,
+         ambiguous, symbols_version)
+         VALUES (?1, ?2, ?3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 1, ?4, ?5, ?6, ?7, ?8)
+       ON CONFLICT (lang) DO UPDATE SET
+         state = excluded.state,
+         tool = excluded.tool,
+         path = NULL,
+         line = NULL,
+         detail = NULL,
+         resolved_at = excluded.resolved_at,
+         run = resolution.run + 1,
+         matched = excluded.matched,
+         unmatched = excluded.unmatched,
+         dropped = excluded.dropped,
+         ambiguous = excluded.ambiguous,
+         symbols_version = excluded.symbols_version,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+      params![
+        lang,
+        crate::index::resolved::CURRENT,
+        tool,
+        t.matched as i64,
+        t.unmatched as i64,
+        t.dropped as i64,
+        t.ambiguous as i64,
+        symbols_version,
+      ],
+    )?;
+    tx.execute(
+      "DELETE FROM resolution_dropped WHERE lang = ?1",
+      params![lang],
+    )?;
+    for (reason, count) in &t.dropped_by {
+      tx.execute(
+        "INSERT INTO resolution_dropped (lang, reason, count) VALUES (?1, ?2, ?3)",
+        params![lang, reason, *count as i64],
+      )?;
+    }
+    let paths: Vec<String> = joined.files.iter().map(|f| f.path.clone()).collect();
+    stage_gone(&tx, &paths)?;
+    tx.execute(
+      "DELETE FROM resolved WHERE path IN (SELECT path FROM temp.gone)",
+      [],
+    )?;
+    tx.execute(
+      "DELETE FROM resolved_file WHERE path IN (SELECT path FROM temp.gone)",
+      [],
+    )?;
+    for file in &joined.files {
+      tx.execute(
+        "INSERT INTO resolved_file (path, lang, sha256, run)
+           VALUES (?1, ?2, ?3, (SELECT run FROM resolution WHERE lang = ?2))",
+        params![file.path, lang, file.sha256],
+      )?;
+    }
+    for row in &joined.rows {
+      tx.execute(
+        "INSERT INTO resolved (path, line, name, target, target_path, target_line)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+          row.path,
+          row.line as i64,
+          row.name,
+          row.target,
+          row.target_path,
+          row.target_line.map(i64::from),
+        ],
+      )?;
+    }
+    tx.execute(
+      "DELETE FROM resolved WHERE path IN (SELECT path FROM resolved_file WHERE lang = ?1
+         AND path NOT IN (SELECT path FROM index_file WHERE skipped_reason IS NULL))",
+      params![lang],
+    )?;
+    tx.execute(
+      "DELETE FROM resolved_file WHERE lang = ?1
+         AND path NOT IN (SELECT path FROM index_file WHERE skipped_reason IS NULL)",
+      params![lang],
+    )?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Record that a language's run stored nothing, and why.
+  ///
+  /// **THE RECORD IS THE WHOLE WRITE** (vc decision 25 (3)): the rows, the
+  /// hashes, the counts and `resolved_at` stay as the last run that stored left
+  /// them.
+  pub fn record_unresolved(
+    &mut self,
+    lang: &str,
+    tool: &str,
+    why: &crate::index::resolved::Unresolved,
+  ) -> Result<(), StoreError> {
+    use crate::index::resolved::Unresolved;
+    let (path, line, detail) = match why {
+      Unresolved::Missing { detail } => (None, None, detail),
+      Unresolved::Failed { path, line, detail } => (path.as_deref(), *line, detail),
+      Unresolved::NotApplicable { detail } => (None, None, detail),
+    };
+    let tx = Self::write_tx(&mut self.conn)?;
+    tx.execute(
+      "INSERT INTO resolution (lang, state, tool, path, line, detail)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+       ON CONFLICT (lang) DO UPDATE SET
+         state = excluded.state,
+         tool = excluded.tool,
+         path = excluded.path,
+         line = excluded.line,
+         detail = excluded.detail,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+      params![lang, why.state(), tool, path, line.map(i64::from), detail],
+    )?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every language's level 3, keyed by language, with the paths gone stale
+  /// since each file was resolved.
+  ///
+  /// **A PATH IS STALE WHEN THE INDEX NO LONGER HOLDS THE BYTES ITS ROWS WERE
+  /// RESOLVED AGAINST**: its hash moved, the index stopped holding its content,
+  /// or it left the index and no run has purged it yet.
+  ///
+  /// `extractor` is the version this build's extractor writes: a language whose
+  /// last stored run joined under another version has every resolved path
+  /// stale, because the written rows it joined have been re-extracted.
+  pub fn resolution(
+    &self,
+    extractor: i64,
+  ) -> Result<std::collections::BTreeMap<String, crate::index::resolved::Run>, StoreError> {
+    let mut runs = std::collections::BTreeMap::new();
+    let mut stmt = self.conn.prepare(
+      "SELECT lang, state, tool, path, line, detail, resolved_at, run, matched, unmatched,
+         dropped, ambiguous, symbols_version
+         FROM resolution ORDER BY lang",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        crate::index::resolved::Run {
+          state: row.get(1)?,
+          tool: row.get(2)?,
+          path: row.get(3)?,
+          line: row.get::<_, Option<i64>>(4)?.map(|n| n as u32),
+          detail: row.get(5)?,
+          resolved_at: row.get(6)?,
+          run: row.get::<_, i64>(7)? as u64,
+          symbols_version: row.get(12)?,
+          tally: crate::index::resolved::Tally {
+            matched: row.get::<_, i64>(8)? as u64,
+            unmatched: row.get::<_, i64>(9)? as u64,
+            dropped: row.get::<_, i64>(10)? as u64,
+            ambiguous: row.get::<_, i64>(11)? as u64,
+            dropped_by: std::collections::BTreeMap::new(),
+          },
+          stale: Vec::new(),
+        },
+      ))
+    })?;
+    for row in rows {
+      let (lang, run) = row?;
+      runs.insert(lang, run);
+    }
+    let mut stmt = self
+      .conn
+      .prepare("SELECT lang, reason, count FROM resolution_dropped ORDER BY lang, reason")?;
+    let dropped = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, i64>(2)? as u64,
+      ))
+    })?;
+    for row in dropped {
+      let (lang, reason, count) = row?;
+      if let Some(run) = runs.get_mut(&lang) {
+        run.tally.dropped_by.insert(reason, count);
+      }
+    }
+    let mut stmt = self.conn.prepare(
+      "SELECT f.lang, f.path FROM resolved_file f
+         LEFT JOIN index_file i ON i.path = f.path
+         LEFT JOIN resolution r ON r.lang = f.lang
+         WHERE i.indexed_sha256 IS NULL OR i.indexed_sha256 != f.sha256
+           OR r.symbols_version IS NOT ?1
+         ORDER BY f.lang, f.path",
+    )?;
+    let stale = stmt.query_map(params![extractor], |row| {
+      Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    })?;
+    for row in stale {
+      let (lang, path) = row?;
+      if let Some(run) = runs.get_mut(&lang) {
+        run.stale.push(path);
+      }
+    }
+    Ok(runs)
+  }
+
+  /// One file's resolved rows, in line order.
+  pub fn resolved_in(&self, path: &str) -> Result<Vec<crate::index::resolved::Row>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, line, name, target, target_path, target_line FROM resolved
+         WHERE path = ?1 ORDER BY line, name, target",
+    )?;
+    let rows = stmt.query_map(params![path], |row| {
+      Ok(crate::index::resolved::Row {
+        path: row.get(0)?,
+        line: row.get::<_, i64>(1)? as u32,
+        name: row.get(2)?,
+        target: row.get(3)?,
+        target_path: row.get(4)?,
+        target_line: row.get::<_, Option<i64>>(5)?.map(|n| n as u32),
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// What a language's run joins against: the hash the index read each held
+  /// file at, and every written reference in that language.
+  pub fn resolution_basis(
+    &self,
+    lang: &str,
+  ) -> Result<
+    (
+      std::collections::BTreeMap<String, String>,
+      std::collections::BTreeSet<crate::index::resolved::Key>,
+    ),
+    StoreError,
+  > {
+    let mut stmt = self.conn.prepare(
+      "SELECT path, indexed_sha256 FROM index_file
+         WHERE lang = ?1 AND skipped_reason IS NULL AND indexed_sha256 IS NOT NULL",
+    )?;
+    let indexed: std::collections::BTreeMap<String, String> = stmt
+      .query_map(params![lang], |row| Ok((row.get(0)?, row.get(1)?)))?
+      .collect::<Result<_, rusqlite::Error>>()?;
+    let mut stmt = self
+      .conn
+      .prepare("SELECT path, start_line, name FROM symbols WHERE kind = 'ref' AND lang = ?1")?;
+    let written = stmt
+      .query_map(params![lang], |row| {
+        Ok((row.get(0)?, row.get::<_, i64>(1)? as u32, row.get(2)?))
+      })?
+      .collect::<Result<std::collections::BTreeSet<crate::index::resolved::Key>, rusqlite::Error>>(
+      )?;
+    Ok((indexed, written))
+  }
+
+  /// Every definition row in one language, for a reader that locates targets
+  /// by them.
+  pub fn definitions(&self, lang: &str) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    self.symbol_rows(
+      &format!(
+        "SELECT {SYMBOL_COLUMNS} FROM symbols WHERE kind = 'def' AND lang = ?1 ORDER BY path, start_line"
+      ),
+      &[&lang],
+    )
   }
 
   /// Every source row, ordered by path then position.

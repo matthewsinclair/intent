@@ -4535,12 +4535,134 @@ fn index(m: &ArgMatches) -> Result<(), Failure> {
       let status = f.index_rebuild().map_err(fail)?;
       report_index(&status, m.get_flag("json"), true)
     }
+    Some(("resolve", m)) => {
+      let mut f = open()?;
+      let outcome = f
+        .index_resolve(
+          m.get_one::<String>("lang").map(String::as_str),
+          m.get_flag("full"),
+          &intentsvcs::index::resolved::readers(),
+        )
+        .map_err(fail)?;
+      report_resolved(&outcome, m.get_flag("json"))
+    }
     _ => Err(Failure::Error(
       "error: `intent index` needs a subcommand\n  remedy: `intent index status` reads what the \
-       index holds, `intent index rebuild` rewrites it"
+       index holds, `intent index rebuild` rewrites it, `intent index resolve` runs each \
+       language's toolchain over it"
         .to_string(),
     )),
   }
+}
+
+/// `intent index resolve`: one block per language the run covered, a line for
+/// each declared language it found nothing to resolve in, then a refusal
+/// naming every language that did not resolve.
+///
+/// **THE REPORT IS ON STDOUT WHATEVER HAPPENED, AND THE EXIT CODE CARRIES THE
+/// VERDICT**, as `ac gate` does: a run that resolved one language and not
+/// another still has a result worth reading, and the operator's next move is
+/// the remedy for the one that did not.
+fn report_resolved(
+  outcome: &intentsvcs::index::resolved::Outcome,
+  json: bool,
+) -> Result<(), Failure> {
+  let unresolved: Vec<&String> = outcome
+    .resolution
+    .iter()
+    .filter(|(_, run)| run.state != intentsvcs::index::resolved::CURRENT)
+    .map(|(lang, _)| lang)
+    .collect();
+  if json {
+    let rendered = serde_json::to_string_pretty(outcome).map_err(|e| {
+      Failure::Error(format!(
+        "error: the resolution report could not be rendered: {e}\n  remedy: this is a fault in the CLI rather than in the index or the store."
+      ))
+    })?;
+    println!("{rendered}");
+    return if unresolved.is_empty() {
+      Ok(())
+    } else {
+      Err(Failure::Verdict)
+    };
+  }
+  for (lang, run) in &outcome.resolution {
+    for line in resolution_lines(lang, run) {
+      println!("{line}");
+    }
+  }
+  for (lang, why) in &outcome.not_applicable {
+    println!("resolution: {lang}  not applicable  {why}");
+  }
+  if unresolved.is_empty() {
+    return Ok(());
+  }
+  let named = unresolved
+    .iter()
+    .map(|lang| format!("`{lang}`"))
+    .collect::<Vec<_>>()
+    .join(", ");
+  Err(Failure::Error(format!(
+    "error: level 3 did not resolve {named}\n  remedy: each language's lines above say why. \
+     A missing tool resolves once it is installed where this process can run it; a failed run \
+     resolves once what the tool reported is fixed. Either way run `intent index resolve` again: \
+     the rows the last good run stored still answer, and `intent index status` names the files \
+     they have gone stale in."
+  )))
+}
+
+/// One language's level 3 as the lines a person reads, shared by `index
+/// status` and `index resolve` so the two cannot describe one run two ways.
+///
+/// **THE STALE PATHS ARE LISTED, NEVER COUNTED**, for the reason the skipped
+/// paths are: the reader wants to know whether the file in front of them is
+/// one of them.
+fn resolution_lines(lang: &str, run: &intentsvcs::index::resolved::Run) -> Vec<String> {
+  let t = &run.tally;
+  let mut lines = vec![format!("resolution: {lang}  {}  {}", run.state, run.tool)];
+  if let Some(detail) = &run.detail {
+    let at = match (&run.path, run.line) {
+      (Some(path), Some(line)) => format!("{path}:{line}: "),
+      (Some(path), None) => format!("{path}: "),
+      _ => String::new(),
+    };
+    lines.push(format!("  {at}{detail}"));
+  }
+  // **THE COUNTS ARE THE STORED RUN'S, SAID AS SUCH**, because after a failure
+  // the state line describes one run and these numbers another.
+  if let Some(at) = &run.resolved_at {
+    lines.push(format!(
+      "  stored: run {} at {at}  matched {}  unmatched {}  dropped {}  ambiguous {}",
+      run.run, t.matched, t.unmatched, t.dropped, t.ambiguous
+    ));
+    if !t.dropped_by.is_empty() {
+      lines.push(format!(
+        "  dropped: {}",
+        t.dropped_by
+          .iter()
+          .map(|(reason, n)| format!("{reason} {n}"))
+          .collect::<Vec<_>>()
+          .join("  ")
+      ));
+    }
+    let writes = intentsvcs::index::symbols::EXTRACTOR_VERSION;
+    if run.symbols_version != Some(writes) {
+      lines.push(format!(
+        "  extractor: joined under {}, and this build writes {writes}, so every file is stale",
+        run
+          .symbols_version
+          .map_or_else(|| "none".to_string(), |v| v.to_string())
+      ));
+    }
+  }
+  match run.stale.len() {
+    0 => lines.push("  stale: none".to_string()),
+    n => {
+      lines.push(format!("  stale: {n}"));
+      lines.extend(run.stale.iter().map(|path| format!("    {path}")));
+    }
+  }
+  lines
 }
 
 /// One rendering for both verbs.
@@ -4582,6 +4704,7 @@ fn report_index(
       "grammars": status.grammars,
       "skipped": skipped,
       "sizes": status.sizes,
+      "resolution": status.resolution,
       "empty": status.is_empty(),
       "rebuilt": rebuilt,
     }))
@@ -4628,6 +4751,11 @@ fn report_index(
           println!("  {path}");
         }
       }
+    }
+  }
+  for (lang, run) in &status.resolution {
+    for line in resolution_lines(lang, run) {
+      println!("{line}");
     }
   }
   Ok(())

@@ -327,8 +327,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // and where it sits, and `index_file` gains `symbols_version`, the extractor
   // version that wrote a file's symbols. Two rebuilds rather than `ADD COLUMN`,
   // for rung 25's reason, which this file's earlier-draft fixture enforces.
-  const PINNED_SCHEMA_HASH: u64 = 0xb71b_e534_8494_2849;
-  const PINNED_FOR_VERSION: i32 = 28;
+  //
+  // 29 is level 3 (ST0076 WP-05, vc decision 25): `resolution`,
+  // `resolution_dropped`, `resolved` and `resolved_file`, four new tables and
+  // the easy rung, empty until a toolchain runs over the project.
+  const PINNED_SCHEMA_HASH: u64 = 0xdd8d_29e4_5378_4f6f;
+  const PINNED_FOR_VERSION: i32 = 29;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

@@ -287,6 +287,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // it to reach and claiming one here would send this test looking for a
     // field that does not exist.
     | FacadeError::WbNoActingNode
+    | FacadeError::NoResolver { .. }
     | FacadeError::VerdictCitesAbsentFile { .. } => None,
   }
 }

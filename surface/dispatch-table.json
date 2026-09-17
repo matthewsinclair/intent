@@ -8855,7 +8855,7 @@
     },
     {
       "name": "index",
-      "help": "The search index: what it holds, and rebuilding it",
+      "help": "The search index: what it holds, rebuilding it, and resolving its references",
       "v2_source": null,
       "v2_help_file": null,
       "owner_wp": "WP-19",
@@ -8866,7 +8866,7 @@
       "entries": [
         {
           "path": "index",
-          "help": "The search index: what it holds, and rebuilding it",
+          "help": "The search index: what it holds, rebuilding it, and resolving its references",
           "args": [{ "name": "command", "type": "subcommand", "arity": "1" }],
           "v2": "new-surface",
           "basis": "ST0069 design.md: `intent index status [--json]` and `intent index rebuild`.",
@@ -8938,6 +8938,69 @@
           "facade": "index_rebuild",
           "mcp_review": {
             "note": "WITHHELD AND THE QUESTION RECORDED, as `daemon status` records its own. It is idempotent and it is not read-only: it rewrites every row of the index, which is work an agent should not start unasked in a session where another surface is reading it. A candidate for exposure on a ruling rather than on the observation that it is safe to repeat."
+          }
+        },
+        {
+          "path": "index resolve",
+          "help": "Resolve references to the definitions they name with each language's own toolchain, and report each language's run",
+          "args": [],
+          "v2": "new-surface",
+          "basis": "ST0076 WP-05, vc decision 25 (2026-09-17, under hv's pen) on cc's measurement of rust-analyzer's SCIP export, and vc's rulings the same day on dc's review of the reader contract: level 3 is one core for every language, filled only by this verb. The name `intent index resolve` was agreed by hv, 2026-09-17. **A RESOLVED ROW ALWAYS JOINS A WRITTEN REFERENCE** on path, line and name, against the bytes the tool read, so a reference only the toolchain sees is counted and not stored; matched, unmatched and dropped partition everything the tool emitted, and dropped is counted by reason from a closed roster. **A RUN REPLACES EXACTLY THE FILES IT JOINED, IN ONE TRANSACTION**, purges rows whose path has left the index, and a failure writes only the language's record; a reconcile never deletes a resolved row. **THE INDEX CATCHES UP AFTER THE TOOL HAS READ AND BEFORE THE JOIN**, so an edit before the tool's read joins and an edit after it is dropped as moved and retraced next run. **A RUN IS FULL, WHATEVER WAS ASKED, UNTIL ONE HAS STORED UNDER THIS BUILD'S EXTRACTOR AND THE LAST ONE STORED**, because an incremental run over an existing build cache can trace nothing and report an empty tier as a success. **A DECLARED LANGUAGE WHOSE PROJECT HOLDS NOTHING FOR ITS TOOL IS NAMED NOT APPLICABLE AND ITS RECORD LEFT ALONE**, unless `--lang` asked for it, when it fails. `index status` reports each language's state, its counts, its drops by reason and the paths gone stale. The toolchain builds into `intent/.cache/resolve/<lang>`, never the project's own build directory, and that directory persists between runs.",
+          "owner_wp": "WP-05",
+          "acceptance": "AC-05.1",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "every language the run covered resolved and was stored"
+              },
+              {
+                "code": 1,
+                "when": "a language's tool is missing or its run failed, or this build carries no resolver for the language asked for or for any language the project declares"
+              }
+            ],
+            "stdout": "`resolution: <lang>  <state>  <tool>` per language, then its failure, its stored run's counts, its drops by reason and its stale paths, and `resolution: <lang>  not applicable  <why>` for a declared language with nothing to resolve; with `--json`, `{\"resolution\": {<lang>: ...}, \"not_applicable\": {<lang>: <why>}}`",
+            "stderr": "`error: level 3 did not resolve <langs>` with a remedy when a language did not resolve, and `error: ...` on any refusal (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT RUNS THE PROJECT'S OWN CODE -- recorded here rather than solved by bending the label, which is what this field is for. Running it twice over unchanged files stores the same rows. **What it does is run each language's toolchain over the project**: rust-analyzer's SCIP export runs the workspace's build scripts and proc macros, and no switch it has stops that (measured by cc, 2026-09-17), and a compile runs a project's macros. That is work an agent must not start unasked, which is vc decision 25 (1): never intentd, a reconcile or a hook, and not the MCP tool tier in this release.",
+          "flags": [
+            {
+              "spellings": [
+                "--json"
+              ],
+              "type": "bool",
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": [
+                "--lang"
+              ],
+              "type": "string",
+              "value": "<lang>",
+              "help": "Resolve one language instead of every language the project declares",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--full"
+              ],
+              "type": "bool",
+              "help": "Rebuild everything the toolchain keeps incremental state for, instead of what changed",
+              "disposition": "keep"
+            }
+          ],
+          "facade": "index_resolve",
+          "mcp_review": {
+            "note": "WITHHELD ON vc decision 25 (1), AND THE GROUND IS THAT IT RUNS PROJECT CODE, NOT THAT IT CANNOT BE UNDONE. `index status`, the read half, is exposed and reports each language's resolution. A candidate for exposure on a ruling about running a project's build scripts and macros from a tool call, never on the observation that it is safe to repeat."
           }
         }
       ]
@@ -9997,8 +10060,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 74,
-      "census_note": "74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 75,
+      "census_note": "75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10365,6 +10428,7 @@
       "index",
       "index status",
       "index rebuild",
+      "index resolve",
       "search",
       "sync",
       "schema",
@@ -10522,6 +10586,7 @@
       "index",
       "index status",
       "index rebuild",
+      "index resolve",
       "search",
       "sync",
       "schema",
@@ -10687,6 +10752,7 @@
       "index",
       "index status",
       "index rebuild",
+      "index resolve",
       "search",
       "sync",
       "schema",

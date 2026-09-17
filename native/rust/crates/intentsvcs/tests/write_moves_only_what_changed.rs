@@ -453,6 +453,17 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      file drives the other half: a file the walk refuses is NAMED in what it wrote, never counted away.",
   ),
   (
+    "index resolve",
+    "intentsvcs/tests/a_resolved_reference_joins_a_written_one.rs -- nine arms drive the verb's facade \
+     door, `index_resolve`, with an in-memory reader, and read back what it wrote: the rows by file, \
+     the language's record with its counts and its drops by reason, and what `index status` reports. \
+     **What it writes is DERIVED and per-machine** (its four tables are DERIVED in the DDL and never \
+     reach the committed extract), so `did the projected estate move` is the wrong observable. The \
+     right ones are that a run replaces exactly the files it joined and keeps every other, that a \
+     failure writes only its record, and that a path that left the index is purged by the next run \
+     and never by a reconcile -- each an arm there.",
+  ),
+  (
     "set",
     "mutation_every_writable_field.rs -- `every_settable_thread_field_moves_and_takes_nothing_with_it`, \
      `every_settable_work_package_field_moves_and_takes_nothing_with_it` and \
