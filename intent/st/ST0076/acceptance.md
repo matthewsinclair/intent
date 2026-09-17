@@ -46,6 +46,11 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 - AC-06.1 Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written references (same file, line and name) and expansion events are not stored; the compile builds into a directory of Intent's own under `intent/.cache`, seeded from the project's build when one exists, and never writes the project's `_build`; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file; the first run and `--full` force the compile, and every other run is incremental. -- satisfied: no (computed)
 - AC-06.2 (non-test) On a scratch copy of Laksa, the level-3 callers of `Map.get/2` are listed without any call to `Access.get`, `Process.get` or `Keyword.get`. -- satisfied: no
 
+### WP-07 -- Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target (status: Not Started)
+
+- AC-07.1 Every search answer carries `index.resolution`, index-wide, naming each language whose level 3 is not current as missing, failed, stale (with its paths) or unresolved, in words one function owns and the register quotes verbatim; a reference whose key joins exactly one current resolved row answers at `level` 3 with `target`, `target_path` and `target_line`, one joining several keeps its syntax level and carries them as `candidates`, and one in a stale file keeps its syntax level; the terminal, the explorer and the MCP tool say the same. -- satisfied: no (computed)
+- AC-07.2 `intent search --target <target>`, the MCP tool's `target` and the SQL door's `resolved.target` ask one question: the written references a current resolved row joins to exactly that target, a key that names other targets too marked as one of N; it narrows and is narrowed by every other filter, lists the references alone when nothing else is asked, keeps no definition, and takes no hit from a stale file, which the note names; a target no resolved row names is refused with the nearest targets when any end the same way, and otherwise its empty answer says that a target nothing references and a misspelt one read the same; and a build with no resolver, or an index with no stored resolution, is refused with its remedy and never answered as an empty list. -- satisfied: no (computed)
+
 ## Acceptance Tests
 
 ### ST-level
@@ -79,6 +84,10 @@ _(no tests in this group)_
 _(no tests in this group)_
 
 ### WP-06 -- Elixir resolved references through the compiler's tracer, on an explicit verb (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-07 -- Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target (status: Not Started)
 
 _(no tests in this group)_
 
