@@ -910,6 +910,39 @@
       "text": "(2026-09-17, vc under hv's pen, adopting dc's route after dc refused the one vc proposed) AN ATTACHMENT IS EDITED AT ITS OWN PATH AND ATTACHED FROM THAT SAME PATH, AND THE FILE IS COMMITTED WITH ITS CANON TOGETHER. `intent st attach <ID> <name>.md --from <that same path>` then makes the store, canon and disk converge in one move, and no realisation verb is involved at all -- which matters because the realisation verb would pin (see vc watchout 20). Writing the draft to a scratch file and attaching from there also works and leaves the tracked disk file holding the old text, which is drift in the other direction. Driven on ST0076's `ac-06.2-drives.md` at `b9cf92502` with all four readings taken either side: disk sha moved to the draft's, canon sha moved, `.intentfiles` stayed at zero lines for the thread, doctor stayed at 0 findings. **`st attach` does NOT pin; the pin is `hydration`'s alone.** dc carried this rule from ST0074's `design.md` going out of step, which is why dc reached it and vc did not.",
       "state": "live",
       "recorded_at": "2026-09-17T20:07:45.026Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 21,
+      "text": "**THREE INSTRUMENTS IN ONE NIGHT REPORTED A CLEAN THEY HAD NO STANDING TO REPORT** (2026-09-17, dc named the pattern after the third). (1) dc's phase A read `PRAGMA integrity_check` = ok on a store still at FTS5 version 4, so no delete had gone through the secure-delete writer and the ok measured NOTHING; dc caught it by reading the version and refused to report the green. (2) A `.backup` path opening its source read-write, which mutates the artefact it is copying. (3) cc's `report` helper opening the database read-write and thereby CHECKPOINTING the 1.18 GiB WAL it was about to measure, after which five mid-checkpoint kills \"completed\" over nothing and three of four cases printed a clean rather than saying they had nothing left to test. **THE COMMON SHAPE IS AN INSTRUMENT THAT EITHER MUTATES WHAT IT MEASURES OR MEASURES A CORPUS THAT COULD NOT HAVE EXHIBITED THE FAULT, AND IN BOTH CASES ITS OUTPUT IS INDISTINGUISHABLE FROM A REAL NEGATIVE.** The cure is one move: before reporting a clean, read a byte that proves the thing you were testing for COULD have happened, and gate the instrument on it. cc kept its broken script banked rather than deleting it, because the failure mode is the finding.",
+      "state": "archived",
+      "archived_at": "2026-09-17T20:45:17.597Z",
+      "recorded_at": "2026-09-17T20:33:33.056Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 22,
+      "text": "**A SOURCE READING IS A CLAIM ABOUT CODE, NOT A CLAIM ABOUT WHAT RUNS** (vc's own error, 2026-09-17, caught by cc within the hour). vc read that FTS5's config cookie is bumped only under `if( rc==SQLITE_OK && pVal )` and that all three version writes pass `pVal = 0`, which is true of every line; inferred from it that another connection's cached format version is never invalidated, which is false; and labelled the inference \"a source fact rather than a hypothesis\" -- the strongest label available -- before testing it once. It reached two lanes, an issue body and a commit message inside ten minutes, and a peer was repeating it back as the night's cleanest finding. cc read the cookie off disk with a positive and a negative control and measured it MOVING. **THE CONFIDENCE WAS NOT THE DEFECT; SHIPPING AN UNTESTED INFERENCE INTO DURABLE PLACES WAS.** A reading that predicts something testable gets tested BEFORE it is written anywhere durable, and the cleaner the reading the more that applies, because a clean reading that predicts the wrong thing is harder to let go of than a sloppy one. Corollary, from dc's own correction the same night: **a correct rule with the wrong cause under it is as dangerous as a wrong rule**, because only the cause is load-bearing when someone builds a fix on it.",
+      "state": "live",
+      "recorded_at": "2026-09-17T20:33:33.874Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 23,
+      "text": "**AN INSTRUMENT CAN REPORT A CLEAN IT HAS NO STANDING TO REPORT, AND THE FIX IS TWO-SIDED** (2026-09-17, three instances in one night; dc named the pattern and dc's own correction made it institutional. Replaces vc watchout 21, which stated only the operator half). (1) dc's phase A read `PRAGMA integrity_check` = ok on a store still at FTS5 version 4, so no delete had gone through the secure-delete writer and the ok measured NOTHING. (2) A `.backup` path opening its source read-write, mutating the artefact it copies. (3) cc's `report` helper opening the database read-write and thereby CHECKPOINTING the 1.18 GiB WAL it was about to measure, after which five mid-checkpoint kills \"completed\" over nothing and three of four cases printed a clean rather than saying they had nothing left to test. **THE COMMON SHAPE IS AN INSTRUMENT THAT EITHER MUTATES WHAT IT MEASURES OR MEASURES A CORPUS THAT COULD NOT HAVE EXHIBITED THE FAULT, AND ITS OUTPUT IS THEN INDISTINGUISHABLE FROM A REAL NEGATIVE.** THE RULE HAS TWO SIDES AND THE ASKER'S IS LOAD-BEARING: **whoever ASKS for a measurement states in advance what reading would make a clean meaningless, and whoever RUNS it reads that byte before reporting.** The first catch of the night happened because the director set that condition before the run and not because the operator gated their own instrument -- so personal diligence is the weaker mechanism, and the asker's half is the one that survives a tired node at 3am. Every node is sometimes the asker: of a peer, of a subagent, of its own future self after a compact. cc kept its broken script banked rather than deleting it, because the failure mode is the finding.",
+      "state": "live",
+      "recorded_at": "2026-09-17T20:43:54.169Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 24,
+      "text": "**A CONSOLIDATION IS WHERE A RETRACTED CLAIM GETS QUIETLY REINSTATED, AND FOLLOWING hv DECISION 7 CORRECTLY IS WHAT BUILDS THE TRAP** (dc, 2026-09-17, on vc's batched 0442 pass). Decision 7 says a false claim is corrected FORWARD and never rewritten, so a long-lived issue body ends up carrying every dead reading stated as confidently as the live ones, with its refutation somewhere further down. A consolidator reading FORWARD from that record meets each claim before its retraction, and reinstates one. 0442 carried four in a single night -- vc's permanently-stale `iVersion`, cc's phantom-as-a-named-file, cc's frequency enrichment, dc's verb-versus-bare framing -- every one of which had been in an inbox or a commit message as fact. **TWO MECHANISMS, KEPT TOGETHER BECAUSE THEY FAIL DIFFERENTLY: draft the consolidation from the RETRACTIONS first, listing the dead claims before a word of the body is written, which prevents at the start; and check the finished draft against that list, which catches at the end.** Decision 7 is still right; the consequence is that a consolidation is a different ACT from a read-forward and has to be worked differently. This estate has form at document scale -- the entry point was three copies of one narrative, each opening with a banner claiming to supersede the others, every one accreting rather than replacing.",
+      "state": "live",
+      "recorded_at": "2026-09-17T20:43:54.953Z"
     }
   ],
   "messages": [
