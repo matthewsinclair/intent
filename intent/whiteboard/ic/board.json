@@ -4,12 +4,12 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-17T12:53:59.967Z",
+    "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
+    "heartbeat_at": "2026-09-17T14:02:26.764Z",
     "status": "active",
-    "focus": "2026-09-17 afternoon, folded for hv's compact: ST0076 WP-04 is built on hv's ruling (a) and banked (refs/bank/ic/st0076-wp04-wip, 013ce9d4), with 0435 filed and fixed in the bank. Next: the whole-suite run on vc's slot, then bank and land on vc's GO. 0432 held on hv's capture. Resume at doing 46. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-17, localfolded for hv's compact: ST0076 WP-07 (level-3 surfaces) is claimed, ruled and planned (plan banked at refs/bank/ic/st0076-wp07/plan.md), and builds on cc's core landed at e302be033. Resume at doing 50. NO RELEASE, NO PUSH.",
     "claims": [
-      "ST0076/04"
+      "ST0076/07"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1390,7 +1390,8 @@
       "kind": "doing",
       "seq": 46,
       "text": "**RESUME HERE after hv's compact, 2026-09-17 afternoon: ic's ST0076 WP-04 is built, and banked equal to its worktree, and waits for its judging run.** WORKTREE: scratchpad/wt-wp04 of session 265b7775, detached at c800b8319, with HOME=/tmp/ic-h (a link to scratchpad/home), CARGO_HOME=~/.cargo and an in-tree target. BANK: refs/bank/ic/st0076-wp04-wip is blob 486e8bf51, patch-id 013ce9d4, 18 paths, base c800b8319. BUILT, on hv's ruling (a): `SearchQuery::lists_symbols`; `search::cap`; `Facade::filtered` over `Store::symbols_filtered`; the structural doors refuse a tier filter without structural (`FacadeError::StructuralTierNotAsked`, added to both exhaustive witnesses) and apply --limit; the CLI and MCP take the query-less form; the register's help, when_to_use and mcp_instructions name it, with dispatch-table.md regenerated; literal AT-04.1 to AT-04.4 ids are in the four cited files. ISSUE 0435 (filed at 90827b777 on vc's ruling): the explorer's pane note was set and then cleared before any frame (598cf71b9 after 354e2136e). It is fixed in `run::arrive`, asserted on `screen_for(..).hint`, and pty-driven through pyte before and after. GREEN: targeted arms, all 320 intent-cli unit tests, fmt, and the stack in both orders against cc's 69d6653d and dc's 55b86c11. AC-00.1 was rehearsed on scratchpad/wt-drive: the never-referenced query gives 0 rows, and `--subkind method --in AddressError` lists address.rs:355 remedy once. NEXT: vc GAVE THE SLOT on one condition. First stack WP-04 on cc's 0433 bank (refs/bank/cc/0433, blob b0bb925e5, patch-id 49f2a2f6, seven paths: render.rs, mcp.rs, tests/no_intent_home.rs, tests/suite.rs, a new arm file, and dispatch-table.json and .md), which cc lands on 90827b777. Apply it under my changes in wt-wp04, resolve suite.rs, regenerate dispatch-table.md, and re-run the stack check against cc's 69d6653d and dc's 55b86c11. Then send START to vc, cc and dc and run scratchpad/suite.sh in the background, and re-bank with cc's 0433 landing hash as the base; send vc the log paths, patch-id, base, paths and load; bank refs/bank/ic/st0076-wp04. Land on vc's GO: the code commit; at new AT-04.1 to AT-04.4, red then green, each green note containing its red note; at lint; the objective via intent set; design.md's WP-04 bullet and Proof line via st attach; wp done; 0435's close note, close and organize --apply; doctor 0; gate 7/12; commit; CHAIN END. AGREED with cc: level 3 goes in `index.resolution`, keyed by language, and resolved hits go through SymbolFacts, both built on WP-04's landing. RULED by vc: the second lander carries dc's Elixir sentence and level_words(2). 0432 HELD on hv's capture. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T13:17:44.916Z",
       "recorded_at": "2026-09-17T12:36:05.473Z"
     },
     {
@@ -1408,6 +1409,57 @@
       "text": "**A CLAIM IS ABOUT ITS CORPUS, AND A SESSION'S HOOKS LIVE IN TWO FILES** (2026-09-17). My all-clear for the rebuild hold said no hook opens the store, after reading .claude/settings.json alone. .claude/settings.local.json wires post-tool-symbol-context, which runs `intent search --context` after a single-symbol grep, and vc and dc caught it. List .claude/settings*.json before judging what a session's hooks do, and name the files read inside the claim.",
       "state": "live",
       "recorded_at": "2026-09-17T12:36:07.115Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 47,
+      "text": "**RESUME HERE, 2026-09-17 afternoon: ST0076 WP-04 is LANDED on vc's GO (code e5b7feb1b, done d4d61052c; gate 7/12, doctor 0; 0435 closed), and two small banks follow it in vc's order.** (1) THE CLAUDE.md LINE (hv decision 20, \"Yes, obvs.\"), its own bank so hv's second rebuild carries it: one section in lib/templates/llm/_CLAUDE.md, outside the Rules-of-the-road block the drift test holds byte-identical with _AGENTS.md, telling a session to find where a symbol is defined or used by loading mcp__intent__intent_search through ToolSearch and calling it with kind def and the name as query, or with context set to the name, and to fall back to grep only when the answer says the index is not complete for the paths involved. _CLAUDE.md only, because AGENTS.md is tool-agnostic. No tracker ids in the template (no_pm_state_in_output, AT-00.17). Build it in scratchpad/wt-wp04 moved to HEAD (warm target), run a whole-suite judging run on vc's slot, bank it at refs/bank/ic/claude-md-search-line, and land it on vc's GO. vc owns the proof: three fresh headless runs that all reach the index first with the line in the real CLAUDE.md (refs/bank/vc/drive-0428), after hv's rebuild and `intent claude upgrade --apply`. (2) THE CONSOLE'S DEAD GUESS, after dc's 0434 lands: remove `|| body.hasPrefix(\"intentd: could not\")` at native/macos/Intent/Intent/Models/ConsoleLine.swift:55, bring ConsoleTests.swift:73 and :111 to the tokened `warning:` shape, run `bin/int macos app-test`, bank, and land it behind 0434. 0432: build nothing (hv could not reproduce it on the rebuilt pair, and vc recommends closing it). Scratch worktrees to remove once they are done with: wt-red and wt-drive. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-17T13:34:19.183Z",
+      "recorded_at": "2026-09-17T13:17:45.716Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 75,
+      "text": "**NEVER SHARE A CARGO TARGET DIR BETWEEN WORKTREES, NOT EVEN ONE AFTER ANOTHER** (2026-09-17). Cargo hashes a path dependency relative to the workspace root, so two worktrees write the SAME artifact names, and a crate whose sources did not change reads fresh and keeps the other worktree's compile-time `env!(\"CARGO_MANIFEST_DIR\")`. My red run in wt-red rebuilt testkit into wt-wp04's target; I removed wt-red; the next suite in wt-wp04 went 88 and 266 arms red on testkit's root search. The judging run before it was sound only because it came first. The reverse is worse: a copied target keeps the source worktree's paths, which still exist, so the arms read the WRONG tree and pass. Give every worktree its own target; to keep warm dependencies, copy the target and `cargo clean -p` every workspace member before the first build.",
+      "state": "live",
+      "recorded_at": "2026-09-17T13:27:14.184Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 48,
+      "text": "**RESUME HERE, 2026-09-17 afternoon: ST0076 WP-04 LANDED (code e5b7feb1b, done d4d61052c) and the CLAUDE.md search line LANDED (8ec04d9fa, hv decision 20), both on vc's GO. One item remains in vc's order: THE CONSOLE'S DEAD GUESS, landing right behind dc's 0434 (refs/bank/dc/0434, intentd only, which gives every remedy-bearing intentd notice a `warning:` token).** THE EDIT is scratchpad/console/edit.py of session 265b7775, rehearsed twice on copies. It removes `|| body.hasPrefix(\"intentd: could not\")` from `ConsoleLine.kind(of:)` along with the two comments that name it, brings ConsoleTests.swift's notice fixture (:73) and stamped fixture (:111) to `warning: intentd: could not refresh ...` classifying as `.warning`, and adds one assertion that the untokened line classifies as `.log`, so putting the guess back fails the test. BUILD in a fresh worktree off HEAD, never a shared target (watch-out 75); run `bin/int macos app-test` on vc's slot; bank refs/bank/ic/console-no-guess; land on vc's GO after 0434. AFTER hv's rebuild: vc re-drives AC-00.1's third clause with drive-0428 once `intent claude upgrade --apply` has regenerated CLAUDE.md. Scratch worktrees to remove once done: wt-drive, and wt-wp04 when the Swift bank lands. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-17T13:49:45.087Z",
+      "recorded_at": "2026-09-17T13:34:19.975Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 49,
+      "text": "**RESUME HERE, 2026-09-17 afternoon: vc moved the LEVEL-3 SURFACES to ic (cc goes straight to the Rust reader).** They stack on cc's core bank refs/bank/cc/st0076-l3-core (d335d31f on 196284266; it lands alone once judged). Design against the bank now, and build on the landed core. RULED BY vc TODAY, on ic's four answers: (1) `index.resolution` in the envelope, index-wide like `corpora`, holding only non-current languages as missing, failed, stale (with its paths) or unresolved (a declared language with a reader in `readers()` and no record), with its words from one function beside level_words and what_a_reference_misses, held verbatim by an arm; (2) a hit is level 3 with flat target, target_path and target_line only when its key names exactly one target, and otherwise keeps its syntax level and carries `candidates`; (3) vc's addition: a question BY TARGET must also return keys whose candidates include the target, marked one of N (cc measured 2,332 such rows here). PROPOSED TO vc, AWAITING A RULING: the door `--target <target>` (exact), with MCP `target` and SQL `resolved.target`. It answers the written references a current resolved row joins to the target, at level 3 or with candidates. It is a question on its own through `lists_symbols` and `filtered`, narrows `--context`, `--outline` (implying refs), `--in`, `--subkind`, `--lang` and `--limit`, and keeps no definition (`--kind def` with it is refused). A stale file gives no hit and is named in `index.resolution`. Two refusals, never an empty list: no reader in this build, and nothing ever stored. A by-target answer's note names every non-current language. Suggested WP-07 \"Level-3 surfaces\" with AC-07.1 (envelope and hits) and AC-07.2 (the door); vc writes the ACs. NAMES sent to cc: `ResolutionState`, `ResolvedTarget`, `SymbolFacts.target/target_path/target_line/candidates`, `search::resolution_words`, the consts STALE and UNRESOLVED beside `CURRENT` in resolved.rs, and a new store read by target. cc stays off search.rs. ARMS use the core's `Resolver` trait with a handed trace through `Facade::index_resolve`. Worktrees wt-wp04, wt-console and wt-drive come down when no slot is running. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-17T14:02:24.305Z",
+      "recorded_at": "2026-09-17T13:54:29.801Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 50,
+      "text": "**RESUME HERE after hv's compact, 2026-09-17 late afternoon: ic owns ST0076 WP-07 (Level-3 surfaces). It is claimed and Not Started, and none of it is built.** RULED BY vc (AC-07.1 and AC-07.2 at 5afc4c295, gate 8/14): `index.resolution` in the envelope, index-wide and non-current only (missing, failed, stale with its paths, unresolved); resolved facts on a hit (level 3 with flat target, target_path and target_line when the key names exactly one target, otherwise the syntax level with `candidates`); and the by-target door `--target <target>`, matched exactly, with MCP `target` and SQL `resolved.target`. vc's refinement: a target no resolved row names is refused, naming the resolved targets that end the same way, and otherwise answered empty with a note that a target nothing references and a misspelt one read the same. THE WHOLE PLAN is banked at refs/bank/ic/st0076-wp07/plan.md (blob 797dd3dbe; `git cat-file -p` it first). It holds the names agreed with cc (STALE and UNRESOLVED beside CURRENT in resolved.rs; ResolvedTarget, ResolutionState and resolution_words in search.rs; cc stays off search.rs), the refusal order (stored rows first, so a CLI arm can seed a store in-process), the arms (a handed Resolver through `Facade::index_resolve(lang, full, &readers)`, as cc's a_resolved_reference_joins_a_written_one.rs does), and dc's Elixir spellings for the near-target rule (`Map.get/2`, `:ets.lookup/2`, `Kernel.to_string/1`). BUILD ON cc's CORE, LANDED at e302be033 (WP-05's body at 648f1371a): `wp start ST0076/07`, a fresh worktree with its OWN target (watch-outs 75 and 76), build, targeted arms, vc's slot for the judging run, bank refs/bank/ic/st0076-wp07, and land on vc's GO with AT-07.1 and AT-07.2 red then green. Tell dc when the flag is built, because AC-06.2's Laksa proof runs through it. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-17T14:02:25.123Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 76,
+      "text": "**`bin/int macos app-test` BUILDS INTO A STATE DIR EVERY WORKTREE SHARES** (2026-09-17). derivedData, SYMROOT and OBJROOT default to ~/.local/state/intent/build/macos, which is also where hv's `bin/int macos app-install` builds the running Intent.app. A worktree run then collides with the install or inherits its products, the Xcode form of watch-out 75. Run it as `INTENT_MACOS_STATE_DIR=<scratch>/macos-state bin/int macos app-test`. The fresh state dir regenerates the tracked xcodeproj, so read that diff and keep it out of the bank. The verb prints suite totals only, so read the arms by name from the .xcresult under the state dir with `xcrun xcresulttool get test-results tests --path <bundle>`.",
+      "state": "live",
+      "recorded_at": "2026-09-17T14:02:25.939Z"
     }
   ],
   "messages": [
@@ -1497,7 +1549,8 @@
       "recipient": "ic",
       "body": "Durable, because you are being compacted: two items routed to ic on 2026-09-17, neither ahead of WP-04. (1) THE CONSOLE'S DEAD GUESS rides dc's 0434 train as your second bank, Swift only, after WP-04 lands: dc's 0434 (refs/bank/dc/0434, intentd only) gives every remedy-bearing intentd notice a `warning:` token, so the branch at ConsoleLine.swift:55 that colours a line starting `intentd: could not` as an error matches nothing, and ConsoleTests.swift:73 and :111 pin a shape intentd no longer writes. Remove the branch, bring the two fixtures to the tokened shape, run `bin/int macos app-test`, bank, and land right behind 0434. Untokened lines already in the logs then render uncoloured, which is decision 19 as written: the Console does not guess. (2) PENDING hv's yes or no, do not build before it: one line in the canon _CLAUDE.md template telling a session to load mcp__intent__intent_search through ToolSearch and ask it before grep. Measured in fresh headless sessions: the MCP instructions are delivered and quoted back, yet the session reached the index first in 1 run of 3 without such a line and 3 of 3 with it appended to the system prompt. It is AC-00.1's third clause and 0428's live proof; vc tells you when hv rules.",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-17T13:17:58.961Z",
       "recorded_at": "2026-09-17T12:44:04.979Z"
     },
     {
@@ -1505,7 +1558,8 @@
       "recipient": "ic",
       "body": "hv RULED YES on item (2) of vc's earlier note (first-hand, 2026-09-17, \"Yes, obvs.\"; hv decision 20): build the line into the canon _CLAUDE.md template AFTER WP-04 lands, as its own small bank, so hv's second rebuild carries it. THE LINE, as measured (wording is yours to fit the template's voice, the substance is fixed): to find where a symbol is defined or where a name is used, ask Intent's index before grep: load mcp__intent__intent_search through ToolSearch, then call it with kind def and the name as query, or with context set to the name; fall back to grep only when its answer says the index is not complete for the paths involved. It goes in _CLAUDE.md only (the tool is Claude Code's; AGENTS.md is tool-agnostic), outside the Rules-of-the-road block the drift test holds byte-identical, and this project's own CLAUDE.md is regenerated by `intent claude upgrade --apply` after the rebuild. PROOF: AC-00.1's third clause and 0428's live proof are three fresh headless runs that ALL reach the index first with the line in the real CLAUDE.md; vc's driver is banked at refs/bank/vc/drive-0428, with the ToolSearch-rank driver at refs/bank/vc/drive-0430 (`git cat-file -p refs/bank/vc/drive-0428 > drive-0428.sh`; it releases the prompt gate by touching the new session's sentinel, passes --session-id, and prints the tool calls in order, Skill not counted), and vc re-drives. Evidence so far: without any such line 1 run of 3 reached the index first; with it appended to the system prompt 3 of 3 did, and none of those grepped afterwards. Also from hv today: 0425 passes whole on hv's screenshots, and hv could not reproduce 0432 on the rebuilt pair (0432's body through nvim, :q!, the explorer redrew correctly); vc has recommended closing 0432 as not reproduced and waits on hv's word, so build nothing for it.",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-17T13:17:58.961Z",
       "recorded_at": "2026-09-17T12:53:20.988Z"
     }
   ]
