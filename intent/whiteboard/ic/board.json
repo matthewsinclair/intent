@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7f9cf959-3635-42f2-bfdd-d88cdad6a90a",
-    "heartbeat_at": "2026-09-17T07:50:12.942Z",
+    "heartbeat_at": "2026-09-17T12:36:07.955Z",
     "status": "active",
-    "focus": "2026-09-17 close: 0430 landed and verified. ST0076 WP-04 is in build, banked at refs/bank/ic/st0076-wp04-wip and rebased onto WP-02; next are the whole suites, then bank and land. 0432 is held for hv's capture. Resume at doing 44. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-17 afternoon, folded for hv's compact: ST0076 WP-04 is built on hv's ruling (a) and banked (refs/bank/ic/st0076-wp04-wip, 013ce9d4), with 0435 filed and fixed in the bank. Next: the whole-suite run on vc's slot, then bank and land on vc's GO. 0432 held on hv's capture. Resume at doing 46. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0076/04"
     ],
@@ -1381,8 +1381,33 @@
       "kind": "doing",
       "seq": 45,
       "text": "**RESUME HERE, 2026-09-17 afternoon: ic builds ST0076 WP-04 (started in this chain) and holds 0432.** hv ruled (a) this morning, so WP-04 also answers a search asked only its filters. WORKTREE: scratchpad/wt-wp04 of session 265b7775, detached at c800b8319, with HOME=/tmp/ic-h (a link to scratchpad/home), CARGO_HOME=~/.cargo and an in-tree target. It holds the bank refs/bank/ic/st0076-wp04-wip (patch-id b3a29bf92, base 43259a828) plus today's change: `SearchQuery::lists_symbols` and `search::cap` (one home for matched, returned and the per-group limit); `Facade::filtered` over `Store::symbols_filtered` (subkind IN, instr(container) as a superset, keeps() judges); the structural doors refuse a tier filter that leaves structural out (`FacadeError::StructuralTierNotAsked`) and apply --limit, both silently ignored on the bank as measured; the CLI and the MCP tool take the query-less form and name it in the nothing-to-search remedy; literal AT-04.1 to AT-04.4 ids in the four cited files. Red shown on the bank; the doors, pane, envelope, MCP unit and search unit arms are green. NEXT: add StructuralTierNotAsked to the two exhaustive FacadeError witnesses (tests/error_remedies.rs, tests/mandatory_fields_reach_a_reader.rs); register help, when_to_use and mcp_instructions naming the query-less form, then regen dispatch-table.md; bank the WIP; re-run the stack check against cc's re-banked shapes (69d6653d); the AC-00.1 rehearsal on the Intent tree and the explorer pane in a pty; whole suites after cc's export END; bank for vc as a train of one (logs, patch-id, base, paths, load); land on vc's GO: at new AT-04.1 to AT-04.4 red then green, at lint, wp done, the objective, and design.md's WP-04 bullet and Proof line via st attach. 0432 HELD on hv's script -q capture, now taken on the rebuilt binary. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T12:36:04.655Z",
       "recorded_at": "2026-09-17T12:17:35.285Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 46,
+      "text": "**RESUME HERE after hv's compact, 2026-09-17 afternoon: ic's ST0076 WP-04 is built, and banked equal to its worktree, and waits for its judging run.** WORKTREE: scratchpad/wt-wp04 of session 265b7775, detached at c800b8319, with HOME=/tmp/ic-h (a link to scratchpad/home), CARGO_HOME=~/.cargo and an in-tree target. BANK: refs/bank/ic/st0076-wp04-wip is blob 486e8bf51, patch-id 013ce9d4, 18 paths, base c800b8319. BUILT, on hv's ruling (a): `SearchQuery::lists_symbols`; `search::cap`; `Facade::filtered` over `Store::symbols_filtered`; the structural doors refuse a tier filter without structural (`FacadeError::StructuralTierNotAsked`, added to both exhaustive witnesses) and apply --limit; the CLI and MCP take the query-less form; the register's help, when_to_use and mcp_instructions name it, with dispatch-table.md regenerated; literal AT-04.1 to AT-04.4 ids are in the four cited files. ISSUE 0435 (filed at 90827b777 on vc's ruling): the explorer's pane note was set and then cleared before any frame (598cf71b9 after 354e2136e). It is fixed in `run::arrive`, asserted on `screen_for(..).hint`, and pty-driven through pyte before and after. GREEN: targeted arms, all 320 intent-cli unit tests, fmt, and the stack in both orders against cc's 69d6653d and dc's 55b86c11. AC-00.1 was rehearsed on scratchpad/wt-drive: the never-referenced query gives 0 rows, and `--subkind method --in AddressError` lists address.rs:355 remedy once. NEXT: vc GAVE THE SLOT on one condition. First stack WP-04 on cc's 0433 bank (refs/bank/cc/0433, blob b0bb925e5, patch-id 49f2a2f6, seven paths: render.rs, mcp.rs, tests/no_intent_home.rs, tests/suite.rs, a new arm file, and dispatch-table.json and .md), which cc lands on 90827b777. Apply it under my changes in wt-wp04, resolve suite.rs, regenerate dispatch-table.md, and re-run the stack check against cc's 69d6653d and dc's 55b86c11. Then send START to vc, cc and dc and run scratchpad/suite.sh in the background, and re-bank with cc's 0433 landing hash as the base; send vc the log paths, patch-id, base, paths and load; bank refs/bank/ic/st0076-wp04. Land on vc's GO: the code commit; at new AT-04.1 to AT-04.4, red then green, each green note containing its red note; at lint; the objective via intent set; design.md's WP-04 bullet and Proof line via st attach; wp done; 0435's close note, close and organize --apply; doctor 0; gate 7/12; commit; CHAIN END. AGREED with cc: level 3 goes in `index.resolution`, keyed by language, and resolved hits go through SymbolFacts, both built on WP-04's landing. RULED by vc: the second lander carries dc's Elixir sentence and level_words(2). 0432 HELD on hv's capture. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-17T12:36:05.473Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 73,
+      "text": "**AN ARM ON THE PURE HALF STAYS GREEN WHILE THE COORDINATOR DROPS THE VALUE** (2026-09-17, issue 0435). `views::freshness_note` was tested as a pure function for five days while run.rs set the note and cleared it before any frame drew it, and AC-21.1 passed on that arm. Assert where the reader looks (`run::screen_for(..).hint`). Drive a TUI change in a pty through pyte (a scratchpad venv), answering the cursor query `ESC[6n` with `ESC[1;1R` and `ESC[c` with a device-attributes reply, or the explorer refuses the terminal. Read every flag on the row before calling a door filtered: the structural doors silently ignored --tier and --limit.",
+      "state": "live",
+      "recorded_at": "2026-09-17T12:36:06.296Z"
+    },
+    {
+      "node": "ic",
+      "kind": "watchout",
+      "seq": 74,
+      "text": "**A CLAIM IS ABOUT ITS CORPUS, AND A SESSION'S HOOKS LIVE IN TWO FILES** (2026-09-17). My all-clear for the rebuild hold said no hook opens the store, after reading .claude/settings.json alone. .claude/settings.local.json wires post-tool-symbol-context, which runs `intent search --context` after a single-symbol grep, and vc and dc caught it. List .claude/settings*.json before judging what a session's hooks do, and name the files read inside the claim.",
+      "state": "live",
+      "recorded_at": "2026-09-17T12:36:07.115Z"
     }
   ],
   "messages": [
