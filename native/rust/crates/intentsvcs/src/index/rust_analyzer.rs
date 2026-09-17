@@ -22,7 +22,9 @@
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 
-use super::resolved::{Manifest, Read, Reference, Resolver, Scope, Trace, Unresolved};
+use super::resolved::{
+  Manifest, OPERATOR, Read, Reference, Resolver, Scope, Trace, Unresolved, is_operator,
+};
 use super::scip;
 
 /// A reference to a local variable, closure or parameter: `local <n>` in SCIP,
@@ -30,11 +32,6 @@ use super::scip;
 pub const LOCAL: &str = "local";
 /// An occurrence spanning more than one line, which no name does.
 pub const MULTILINE: &str = "multiline";
-/// A reference whose text holds no letter, digit or underscore. The export
-/// writes an overloaded operator's call on the operator and on the space either
-/// side of it, so `a + b` gives three references to `<usize as
-/// Add<Self>>::add()`, and no written row names an operator (vc, 2026-09-17).
-pub const OPERATOR: &str = "operator";
 /// A symbol this reader cannot print as a target.
 pub const UNPRINTABLE: &str = "unprintable";
 
@@ -290,14 +287,6 @@ pub fn trace_of(
     }
   }
   Ok(trace)
-}
-
-/// Does a reference's text hold no letter, digit or underscore? **EMPTY TEXT
-/// IS NOT AN OPERATOR**, and neither is `self.0`, `Self`, `crate`, `super` or a
-/// raw identifier: those are references only the toolchain sees, which the join
-/// counts as unmatched, and this word must not swallow them (vc, 2026-09-17).
-fn is_operator(text: &str) -> bool {
-  !text.is_empty() && !text.chars().any(|c| c.is_alphanumeric() || c == '_')
 }
 
 /// rust-analyzer, run as a program found on `PATH` or named outright.

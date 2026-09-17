@@ -167,6 +167,8 @@ mod edit_prints_a_path_that_exists;
 mod egest_estate;
 #[path = "egest_refuses_to_empty_the_estate.rs"]
 mod egest_refuses_to_empty_the_estate;
+#[path = "elixir_references_resolve_through_the_compiler_tracer.rs"]
+mod elixir_references_resolve_through_the_compiler_tracer;
 #[path = "error_remedies.rs"]
 mod error_remedies;
 #[path = "event_log_envelopes.rs"]

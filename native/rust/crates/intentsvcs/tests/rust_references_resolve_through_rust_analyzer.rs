@@ -143,7 +143,7 @@ fn the_checked_in_export_resolves_the_crates_calls_to_the_definitions_they_name(
     "the four uses of locals are counted, by reason, and not stored: {run:?}"
   );
   assert_eq!(
-    t.dropped_by.get(rust_analyzer::OPERATOR),
+    t.dropped_by.get(intentsvcs::index::resolved::OPERATOR),
     Some(&3),
     "`widget.size() + opened.len()` calls `add` through the `+` and the space either side of it, \
      three references no written row can name, counted by reason: {run:?}"

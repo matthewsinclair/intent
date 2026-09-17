@@ -77,6 +77,23 @@ pub const MOVED: &str = "moved";
 /// The reasons the core drops a reference for, whatever the reader.
 pub const CORE_REASONS: &[&str] = &[NO_LINE, OUTSIDE_THE_PROJECT, UNREAD, NOT_INDEXED, MOVED];
 
+/// A reference whose name holds no letter, digit or underscore, which no
+/// written row names. **ONE WORD AND ONE TEST FOR BOTH LANGUAGES** (vc decisions
+/// 26 and 27), each reader declaring it: rust-analyzer's export puts an
+/// overloaded operator's call on the operator and on the space either side of
+/// it, so `a + b` gives three references to `<usize as Add<Self>>::add()`, and
+/// Elixir's tracer reports `a + b` and `|>` as calls to `Kernel`.
+pub const OPERATOR: &str = "operator";
+
+/// Does a reference's name hold no letter, digit or underscore? **EMPTY TEXT IS
+/// NOT AN OPERATOR**, and neither is Rust's `self.0`, `Self`, `crate`, `super`
+/// or a raw identifier: those are references only the toolchain sees, which the
+/// join counts as unmatched, and this word must not swallow them (vc,
+/// 2026-09-17).
+pub fn is_operator(name: &str) -> bool {
+  !name.is_empty() && !name.chars().any(|c| c.is_alphanumeric() || c == '_')
+}
+
 /// A written reference as a resolved row joins it: path, line and name, as a
 /// `symbols` row holds them.
 pub type Key = (String, u32, String);
@@ -260,7 +277,10 @@ pub trait Resolver {
 /// Each language's reader adds itself here, and `intent index resolve` names
 /// the languages this list covers when it is asked for one it does not.
 pub fn readers() -> Vec<Box<dyn Resolver>> {
-  vec![Box::new(super::rust_analyzer::RustAnalyzer::default())]
+  vec![
+    Box::new(super::rust_analyzer::RustAnalyzer::default()),
+    Box::new(super::elixir_tracer::ElixirTracer::default()),
+  ]
 }
 
 /// One resolved row, as `resolved` holds it.

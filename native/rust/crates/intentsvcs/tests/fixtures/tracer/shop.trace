@@ -1,0 +1,63 @@
+S	{ROOT}/lib/shop.ex
+S	{ROOT}/lib/shop/support.ex
+M	{ROOT}/lib/shop.ex	2	3	Shop.Repo
+C	{ROOT}/lib/shop/support.ex	2	3	Kernel	def	2
+C	{ROOT}/lib/shop.ex	3	3	Kernel	use	1
+C	{ROOT}/lib/shop/support.ex	2		:elixir_def	store_definition	3
+M	{ROOT}/lib/shop.ex	3	7	Shop.Schema
+C	{ROOT}/lib/shop/support.ex	1		:elixir_utils	noop	0
+C	{ROOT}/lib/shop/support.ex	2	7	Module	compile_definition_attributes	6
+C	{ROOT}/lib/shop/support.ex	6	3	Kernel	defstruct	1
+M	{ROOT}/lib/shop/support.ex	6		Kernel.Utils
+C	{ROOT}/lib/shop/support.ex	6		Kernel.Utils	defstruct	4
+M	{ROOT}/lib/shop/support.ex	6		Protocol
+C	{ROOT}/lib/shop/support.ex	6		Protocol	__derive__	3
+C	{ROOT}/lib/shop/support.ex	6		:elixir_bootstrap	def	2
+C	{ROOT}/lib/shop/support.ex	6		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop/support.ex	6		:elixir_bootstrap	def	2
+C	{ROOT}/lib/shop/support.ex	6		:elixir_def	store_definition	3
+M	{ROOT}/lib/shop/support.ex	6		Kernel.Utils
+C	{ROOT}/lib/shop/support.ex	6		Kernel.Utils	announce_struct	1
+C	{ROOT}/lib/shop/support.ex	5		:elixir_utils	noop	0
+C	{ROOT}/lib/shop/support.ex	6		Module	compile_definition_attributes	6
+M	{ROOT}/lib/shop/support.ex			Enum
+C	{ROOT}/lib/shop/support.ex			Enum	reduce	3
+C	{ROOT}/lib/shop/support.ex	6		Module	compile_definition_attributes	6
+C	{ROOT}/lib/shop/support.ex	10	3	Kernel	defmacro	2
+C	{ROOT}/lib/shop/support.ex	10		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop/support.ex	9		:elixir_utils	noop	0
+Q	{ROOT}/lib/shop/support.ex	12
+C	{ROOT}/lib/shop/support.ex	10	12	Module	compile_definition_attributes	6
+M	{ROOT}/lib/shop.ex	3		Shop.Schema
+E	{ROOT}/lib/shop/support.ex
+C	{ROOT}/lib/shop.ex	3		Shop.Schema	__using__	1
+C	{ROOT}/lib/shop.ex	3		Kernel	def	2
+C	{ROOT}/lib/shop.ex	3		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop.ex	5	3	Kernel	def	2
+C	{ROOT}/lib/shop.ex	5		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop.ex	13	3	Kernel	def	2
+C	{ROOT}/lib/shop.ex	13		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop.ex	15	3	Kernel	defp	2
+C	{ROOT}/lib/shop.ex	15		:elixir_def	store_definition	3
+C	{ROOT}/lib/shop.ex	1		:elixir_utils	noop	0
+C	{ROOT}/lib/shop.ex	3		Module	compile_definition_attributes	6
+M	{ROOT}/lib/shop.ex	6	13	Shop.Repo
+C	{ROOT}/lib/shop.ex	6	18	Shop.Repo	get	2
+M	{ROOT}/lib/shop.ex	6	22	Shop.Order
+C	{ROOT}/lib/shop.ex	7	39	Kernel	+	2
+M	{ROOT}/lib/shop.ex	7	13	Map
+C	{ROOT}/lib/shop.ex	7	17	Map	get	3
+M	{ROOT}/lib/shop.ex	8	9	Access
+C	{ROOT}/lib/shop.ex	8	16	Access	get	2
+M	{ROOT}/lib/shop.ex	9	9	Keyword
+C	{ROOT}/lib/shop.ex	9	17	Keyword	get	2
+C	{ROOT}/lib/shop.ex	10	5	Kernel	to_string	1
+C	{ROOT}/lib/shop.ex	10		String.Chars	to_string	1
+C	{ROOT}/lib/shop.ex	10	15	Shop	local	1
+C	{ROOT}/lib/shop.ex	5	7	Module	compile_definition_attributes	6
+M	{ROOT}/lib/shop.ex	13	27	Enum
+C	{ROOT}/lib/shop.ex	13	32	Enum	map	2
+C	{ROOT}/lib/shop.ex	13	45	Shop	local	1
+C	{ROOT}/lib/shop.ex	13	7	Module	compile_definition_attributes	6
+C	{ROOT}/lib/shop.ex	15	8	Module	compile_definition_attributes	6
+E	{ROOT}/lib/shop.ex
