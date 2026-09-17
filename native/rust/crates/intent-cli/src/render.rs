@@ -4011,11 +4011,12 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     Some(("pickup", m)) => {
       let me = acting_node(m)?;
       let all = m.get_flag("all");
+      let session = pickup_session(m.get_one::<String>("session").map(String::as_str));
       let mut f = open()?;
       let up = f
         .wb_pickup(
           &me,
-          m.get_one::<String>("session").map(String::as_str),
+          session.as_deref(),
           m.get_one::<String>("focus").map(String::as_str),
           all,
         )
@@ -4225,6 +4226,24 @@ fn acting_node(m: &ArgMatches) -> Result<String, Failure> {
   match m.get_one::<String>("node") {
     Some(n) => Ok(n.clone()),
     None => Err(fail(FacadeError::WbNoActingNode)),
+  }
+}
+
+/// The session a pickup records: `--session`, else the Claude Code session this
+/// process runs in (issue 0433).
+///
+/// **AN UNNAMED SESSION IS THE ONE THE CALLER RUNS IN** (hv, 2026-09-17). A node
+/// booted by `/in-whiteboard` passes no flag, and a header that kept the id an
+/// earlier session wrote sent the read that finds a node's transcript to a dead
+/// one, with nothing to say so. The flag still wins, and with neither the row
+/// keeps its value, as it did. The CLI and the MCP tool both ask here, so the
+/// read stays in the one file `no_intent_home.rs` confines it to.
+pub(crate) fn pickup_session(flag: Option<&str>) -> Option<String> {
+  match flag {
+    Some(id) => Some(id.to_string()),
+    None => std::env::var("CLAUDE_CODE_SESSION_ID")
+      .ok()
+      .filter(|id| !id.is_empty()),
   }
 }
 

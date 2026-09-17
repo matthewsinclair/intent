@@ -277,6 +277,8 @@ mod verbosity_flags;
 mod version_spellings_agree;
 #[path = "view_single_writer.rs"]
 mod view_single_writer;
+#[path = "wb_pickup_records_the_session_it_runs_in.rs"]
+mod wb_pickup_records_the_session_it_runs_in;
 #[path = "wb_reads_list_live_messages.rs"]
 mod wb_reads_list_live_messages;
 #[path = "wb_register_correct.rs"]

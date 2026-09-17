@@ -8593,7 +8593,7 @@
             {
               "spellings": ["--session"],
               "type": "string",
-              "help": "This session's id, recorded on the node's header",
+              "help": "This session's id, recorded on the node's header; without it, the CLAUDE_CODE_SESSION_ID the process runs with",
               "disposition": "keep",
               "exposed_on_mcp": true
             },

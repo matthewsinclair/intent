@@ -4124,7 +4124,7 @@ Start a session: mark this node active, then its board and its peers' state
   - `--node` (string) -- The moniker of the node picking up
     - **disposition:** keep
     - **exposed on mcp:** true
-  - `--session` (string) -- This session's id, recorded on the node's header
+  - `--session` (string) -- This session's id, recorded on the node's header; without it, the CLAUDE_CODE_SESSION_ID the process runs with
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--focus` (string) -- One line saying what this node is on, recorded on its header

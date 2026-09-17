@@ -82,7 +82,12 @@ use testkit::workspace_root;
 /// Base Directory Specification, and a tool following it reads the variables
 /// or puts files where an operator who set them told it not to. Confined to
 /// `userstate.rs` below, for `HOME`'s reason.
+///
+/// **`CLAUDE_CODE_SESSION_ID` WAS GRANTED BY hv ON 2026-09-17, IN ISSUE 0433's
+/// FIX**: `wb pickup` with no `--session` records the Claude Code session it
+/// runs in. Confined to `render.rs` below, for `HOME`'s reason.
 const ALLOWED: &[&str] = &[
+  "CLAUDE_CODE_SESSION_ID",
   "COLUMNS",
   "EDITOR",
   "HOME",
@@ -136,6 +141,11 @@ const CONFINED: &[(&str, &str)] = &[
   // the way an unapproved variable does.
   ("VISUAL", "crates/intent-cli/src/render.rs"),
   ("EDITOR", "crates/intent-cli/src/render.rs"),
+  // **hv's RULING IN ISSUE 0433 (2026-09-17) IS THAT AN UNNAMED PICKUP SESSION
+  // IS THE ONE THE CALLER RUNS IN**, which is only knowable from the variable
+  // Claude Code sets. `render::pickup_session` is the one reader; the MCP tool
+  // calls it rather than reading the variable itself.
+  ("CLAUDE_CODE_SESSION_ID", "crates/intent-cli/src/render.rs"),
 ];
 
 /// Every `.rs` under every crate's `src/`, discovered by walking.

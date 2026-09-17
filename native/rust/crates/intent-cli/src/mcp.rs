@@ -1289,10 +1289,12 @@ pub fn serve(
     // choose (ic's finding, vc's ruling, 2026-09-12).
     "wb pickup" => {
       let node = str_arg(args, "node", path)?;
-      let session = args.get("session").and_then(Value::as_str);
+      // The MCP server runs as the session's child and carries its id, so an
+      // unnamed session defaults here exactly as it does on the CLI (0433).
+      let session = crate::render::pickup_session(args.get("session").and_then(Value::as_str));
       let focus = args.get("focus").and_then(Value::as_str);
       let all = opt_b(path, map, "all")?;
-      let mut picked = json!(f.wb_pickup(node, session, focus, all)?);
+      let mut picked = json!(f.wb_pickup(node, session.as_deref(), focus, all)?);
       picked["notes"] = intentsvcs::facade::notes_json(&f.take_notes());
       Ok(picked)
     }
