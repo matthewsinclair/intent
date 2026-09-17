@@ -23,10 +23,10 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 - AC-01.2 One symbol row per (name node, kind) in every language, fixed at extraction and never by a `DISTINCT` at read; a definition's own name is never also a reference to it. -- satisfied: yes (computed)
 - AC-01.3 A code file whose symbols an older extractor wrote is re-extracted by the next reconcile, and a store migrated to the typed schema keeps its rows until then; two row shapes never answer one query. -- satisfied: yes (computed)
 
-### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Not Started)
+### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Done)
 
-- AC-02.1 Rust references by syntax include scoped calls (`Type::f(..)`), type uses in signatures and bodies, and names inside macro invocations, each with its qualifier as written and `level` 2; `intent search --context nearest_project` on this repository lists `views.rs:437` and `views.rs:439` (issue 0429). -- satisfied: no (computed)
-- AC-02.2 Every reference row spans the name as written, not the enclosing call or item, and the change raises the extractor version so stored rows re-extract. -- satisfied: no (computed)
+- AC-02.1 Rust references by syntax include scoped calls (`Type::f(..)`), type uses in signatures and bodies, and names inside macro invocations, each with its qualifier as written and `level` 2; `intent search --context nearest_project` on this repository lists `views.rs:437` and `views.rs:439` (issue 0429). -- satisfied: yes (computed)
+- AC-02.2 Every reference row spans the name as written, not the enclosing call or item, and the change raises the extractor version so stored rows re-extract. -- satisfied: yes (computed)
 
 ### WP-03 -- Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require (status: Not Started)
 
@@ -58,9 +58,10 @@ _(no tests in this group)_
 - AT-01.2 `native/rust/crates/intentsvcs/tests/one_definition_is_one_symbol_row.rs` -- covers AC-01.2 -- status: green -- Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a Rust and a Swift method defined once are one definition row, red on HEAD before WP-01. Gate: whole intentsvcs and intent-cli suites.
 - AT-01.3 `native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs` -- covers AC-01.3 -- status: green -- Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a file whose version is cleared and rows untyped is re-extracted by the next refresh and no untyped row survives; store_schema_version's earlier-draft arm walks a rung-10 store through the rung 28 rebuilds carrying rows. Gate: whole intentsvcs and intent-cli suites.
 
-### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Not Started)
+### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Done)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intentsvcs/tests/symbols_are_qualified_references.rs` -- covers AC-02.1 -- status: green -- Red on 35c238658 before WP-02: main had no qualifier, no token-tree patterns and call spans over the whole call. Green at d3b69c7de (WP-02 landing, patch-id 8d7b5cbc, vc's GO): scoped calls, uses, paths and type uses keep their qualifier at level 2, the last segment of a qualifier is a reference, and macro token trees give call, path, macro and token rows. Proof on a clone of main with the worktree binary: search --context nearest_project answers views.rs:212 def, run.rs:861, views.rs:390, 418, 437 and 439 -- grep's 6 lines, 437 and 439 inside assert_eq!.
+- AT-02.2 `native/rust/crates/intentsvcs/tests/symbols_are_qualified_references.rs` -- covers AC-02.2 -- status: green -- Red on 35c238658 before WP-02: main had no qualifier, no token-tree patterns and call spans over the whole call. Green at d3b69c7de (WP-02 landing, patch-id 8d7b5cbc, vc's GO): a call with arguments over many lines spans its name's line, every reference pattern captures its name node, and EXTRACTOR_VERSION is 2 so rows WP-01 wrote re-extract.
 
 ### WP-03 -- Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require (status: Not Started)
 

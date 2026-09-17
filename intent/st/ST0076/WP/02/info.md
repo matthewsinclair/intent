@@ -2,14 +2,14 @@
 wp_id: WP-02
 title: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-02: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
 
 ## Objective
 
-_(not yet written)_
+Make a Rust reference say the path it was written with and find the references grep finds but the index missed: scoped calls such as `AddressError::new(..)`, uses of a type, `use` imports, paths that are not called, and names inside a macro invocation, each on the line its name is written. A qualifier is stored as written and never resolved, it makes the row level 2, and a name inside a macro that the tokens do not show as a call or a path is recorded as an occurrence of the name.
 
 ## Acceptance
 
