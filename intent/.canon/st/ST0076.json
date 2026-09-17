@@ -68,7 +68,7 @@
   "criteria": [
     {
       "id": "AC-00.1",
-      "text": "After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --kind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep.",
+      "text": "After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --subkind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep.",
       "kind": "non-test",
       "state": {
         "is": "unsatisfied"
@@ -124,7 +124,7 @@
     },
     {
       "id": "AC-04.1",
-      "text": "`intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters.",
+      "text": "`intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); a search with `--subkind` or `--in` and no query lists the symbols that pass those filters, and a search with nothing to search for is refused with a remedy naming that form; `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters, the query-less form included.",
       "kind": "test",
       "state": {
         "is": "computed"
