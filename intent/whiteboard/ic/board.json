@@ -1491,6 +1491,14 @@
       "state": "handled",
       "handled_at": "2026-09-15T22:37:45.754Z",
       "recorded_at": "2026-09-15T22:28:00.666Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "ic",
+      "body": "Durable, because you are being compacted: two items routed to ic on 2026-09-17, neither ahead of WP-04. (1) THE CONSOLE'S DEAD GUESS rides dc's 0434 train as your second bank, Swift only, after WP-04 lands: dc's 0434 (refs/bank/dc/0434, intentd only) gives every remedy-bearing intentd notice a `warning:` token, so the branch at ConsoleLine.swift:55 that colours a line starting `intentd: could not` as an error matches nothing, and ConsoleTests.swift:73 and :111 pin a shape intentd no longer writes. Remove the branch, bring the two fixtures to the tokened shape, run `bin/int macos app-test`, bank, and land right behind 0434. Untokened lines already in the logs then render uncoloured, which is decision 19 as written: the Console does not guess. (2) PENDING hv's yes or no, do not build before it: one line in the canon _CLAUDE.md template telling a session to load mcp__intent__intent_search through ToolSearch and ask it before grep. Measured in fresh headless sessions: the MCP instructions are delivered and quoted back, yet the session reached the index first in 1 run of 3 without such a line and 3 of 3 with it appended to the system prompt. It is AC-00.1's third clause and 0428's live proof; vc tells you when hv rules.",
+      "fyi": false,
+      "state": "live",
+      "recorded_at": "2026-09-17T12:44:04.979Z"
     }
   ]
 }
