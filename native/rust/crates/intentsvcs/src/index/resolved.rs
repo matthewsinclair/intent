@@ -209,11 +209,10 @@ pub trait Resolver {
 
 /// The resolvers this build carries.
 ///
-/// **EMPTY UNTIL A LANGUAGE'S READER LANDS.** The Rust reader (WP-05) and the
-/// Elixir reader (WP-06) each add themselves here, and `intent index resolve`
-/// names the languages this list covers when it is asked for one it does not.
+/// Each language's reader adds itself here, and `intent index resolve` names
+/// the languages this list covers when it is asked for one it does not.
 pub fn readers() -> Vec<Box<dyn Resolver>> {
-  Vec::new()
+  vec![Box::new(super::rust_analyzer::RustAnalyzer::default())]
 }
 
 /// One resolved row, as `resolved` holds it.

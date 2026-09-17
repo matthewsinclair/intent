@@ -8,6 +8,8 @@ pub mod corpus;
 pub mod freshness;
 pub mod reconcile;
 pub mod resolved;
+pub mod rust_analyzer;
+pub mod scip;
 pub mod source;
 pub mod status;
 pub mod symbols;

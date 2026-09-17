@@ -6064,26 +6064,33 @@ impl Store {
       "DELETE FROM resolved_file WHERE path IN (SELECT path FROM temp.gone)",
       [],
     )?;
-    for file in &joined.files {
-      tx.execute(
+    // **EACH INSERT IS PREPARED ONCE, OUTSIDE ITS LOOP.** A workspace's run
+    // stores references by the hundred thousand, and `execute` compiles its
+    // statement again on every call.
+    {
+      let mut insert = tx.prepare(
         "INSERT INTO resolved_file (path, lang, sha256, run)
            VALUES (?1, ?2, ?3, (SELECT run FROM resolution WHERE lang = ?2))",
-        params![file.path, lang, file.sha256],
       )?;
+      for file in &joined.files {
+        insert.execute(params![file.path, lang, file.sha256])?;
+      }
     }
-    for row in &joined.rows {
-      tx.execute(
+    {
+      let mut insert = tx.prepare(
         "INSERT INTO resolved (path, line, name, target, target_path, target_line)
            VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![
+      )?;
+      for row in &joined.rows {
+        insert.execute(params![
           row.path,
           row.line as i64,
           row.name,
           row.target,
           row.target_path,
           row.target_line.map(i64::from),
-        ],
-      )?;
+        ])?;
+      }
     }
     tx.execute(
       "DELETE FROM resolved WHERE path IN (SELECT path FROM resolved_file WHERE lang = ?1

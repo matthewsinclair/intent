@@ -1,6 +1,7 @@
-//! ST0076 WP-05's level-3 core (vc decision 25, and vc's rulings of 2026-09-17
-//! on dc's review of the reader contract): what a resolution run stores,
-//! replaces, keeps and reports, through the one door both languages use.
+//! AT-05.1 / AC-05.1 (ST0076 WP-05): the level-3 core (vc decision 25, and vc's
+//! rulings of 2026-09-17 on dc's review of the reader contract): what a
+//! resolution run stores, replaces, keeps and reports, through the one door
+//! both languages use.
 //!
 //! **PROVEN WITH AN IN-MEMORY READER.** A toolchain is a reader's concern and
 //! has its own arms; these hand the door a trace, so what they prove is the
@@ -117,18 +118,6 @@ fn both() -> Trace {
   }
 }
 
-type Located = (u32, String, String, Option<String>, Option<u32>);
-
-fn rows_in(fx: &Fixture, path: &str) -> Vec<Located> {
-  Store::open(&fx.project().db_path())
-    .expect("store")
-    .resolved_in(path)
-    .expect("rows")
-    .into_iter()
-    .map(|r| (r.line, r.name, r.target, r.target_path, r.target_line))
-    .collect()
-}
-
 #[test]
 fn a_run_stores_the_references_that_join_a_written_one_and_counts_every_other_once() {
   let (fx, mut facade) = indexed();
@@ -169,7 +158,7 @@ fn a_run_stores_the_references_that_join_a_written_one_and_counts_every_other_on
     "{run:?}"
   );
   assert_eq!(
-    rows_in(&fx, "src/lib.rs"),
+    fx.resolved_in("src/lib.rs"),
     vec![
       (
         2,
@@ -230,11 +219,11 @@ fn a_run_replaces_the_files_it_read_and_keeps_every_other_file() {
     "a stored, current run under this extractor lets the next one be incremental"
   );
   assert!(
-    rows_in(&fx, "src/two.rs").is_empty(),
+    fx.resolved_in("src/two.rs").is_empty(),
     "the file the run read resolves nothing now, so its earlier row is replaced by none"
   );
   assert_eq!(
-    rows_in(&fx, "src/lib.rs").len(),
+    fx.resolved_in("src/lib.rs").len(),
     1,
     "the file the run did not read keeps what the first run stored"
   );
@@ -270,7 +259,7 @@ fn a_run_that_fails_writes_its_record_and_nothing_else_and_the_next_run_is_full(
     (&stored.resolved_at, stored.run, &stored.tally),
     "the counts and the stamp stay the stored run's"
   );
-  assert_eq!(rows_in(&fx, "src/lib.rs").len(), 1, "and so do its rows");
+  assert_eq!(fx.resolved_in("src/lib.rs").len(), 1, "and so do its rows");
 
   let missing = Unresolved::Missing {
     detail: "fixture-analyzer is not on PATH".to_string(),
@@ -318,7 +307,7 @@ fn an_edited_file_is_named_stale_until_a_run_reads_its_new_bytes() {
     "the rows were resolved against bytes the index no longer holds"
   );
   assert_eq!(
-    rows_in(&fx, "src/lib.rs").len(),
+    fx.resolved_in("src/lib.rs").len(),
     1,
     "and a reconcile does not delete them"
   );
@@ -366,7 +355,7 @@ fn a_file_that_left_the_index_keeps_its_rows_until_the_next_run_purges_them() {
   std::fs::remove_file(fx.path("src/two.rs")).expect("remove");
   facade.index_refresh(None).expect("reconcile");
   assert_eq!(
-    rows_in(&fx, "src/two.rs").len(),
+    fx.resolved_in("src/two.rs").len(),
     1,
     "a reconcile never deletes a resolved row"
   );
@@ -382,7 +371,7 @@ fn a_file_that_left_the_index_keeps_its_rows_until_the_next_run_purges_them() {
   };
   let (outcome, _) = resolve(&mut facade, None, Ok(lib_only));
   assert!(
-    rows_in(&fx, "src/two.rs").is_empty(),
+    fx.resolved_in("src/two.rs").is_empty(),
     "the run purges the path that left the index"
   );
   assert!(

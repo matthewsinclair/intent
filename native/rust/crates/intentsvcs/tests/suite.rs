@@ -301,6 +301,8 @@ mod no_function_takes_a_time;
 mod rekinding_a_criterion_re_enters_its_state;
 #[path = "rules_validate_reaches_an_ext_pack.rs"]
 mod rules_validate_reaches_an_ext_pack;
+#[path = "rust_references_resolve_through_rust_analyzer.rs"]
+mod rust_references_resolve_through_rust_analyzer;
 #[path = "search_answers_one_envelope.rs"]
 mod search_answers_one_envelope;
 #[path = "symbols_come_from_the_grammars_own_tags.rs"]

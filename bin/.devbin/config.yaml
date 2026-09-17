@@ -192,6 +192,21 @@ commands:
         # visible.
         run: bin/.devbin/cmd/measured --exec cargo test --workspace --no-fail-fast --manifest-path native/rust/Cargo.toml
 
+      # THE ARMS THAT NEED A REAL TOOLCHAIN, AND DELIBERATELY NO CI TWIN (hv,
+      # 2026-09-17). An arm that spawns rust-analyzer or compiles an Elixir
+      # fixture is `#[ignore = "needs <tool> on PATH; bin/devbin test all runs
+      # it"]` under a module path containing `needs_the_toolchain`, so `rust`
+      # above never runs it and CI stays hermetic. This line is where such an arm
+      # runs: the same cargo invocation as `rust`, taking only the ignored arms
+      # with that name. `test all` runs every declared option, so it follows
+      # `rust` there. An arm fails by name when its tool is absent and never
+      # skips, so a green here means the toolchain was on PATH.
+      #
+      # NOT `check toolchain`, which compares the .tool-versions pin.
+      toolchain:
+        summary: the ignored arms that need a real toolchain on PATH (needs_the_toolchain; no CI twin)
+        run: bin/.devbin/cmd/measured --exec cargo test --workspace --no-fail-fast --manifest-path native/rust/Cargo.toml -- --ignored needs_the_toolchain
+
   check:
     options:
       clippy:

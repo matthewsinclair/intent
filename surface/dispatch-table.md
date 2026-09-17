@@ -4430,7 +4430,7 @@ Resolve references to the definitions they name with each language's own toolcha
 - **owner wp:** WP-05
 - **acceptance:** AC-05.1
 - **recoverability:** idempotent
-- **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT RUNS THE PROJECT'S OWN CODE -- recorded here rather than solved by bending the label, which is what this field is for. Running it twice over unchanged files stores the same rows. **What it does is run each language's toolchain over the project**: rust-analyzer's SCIP export runs the workspace's build scripts and proc macros, and no switch it has stops that (measured by cc, 2026-09-17), and a compile runs a project's macros. That is work an agent must not start unasked, which is vc decision 25 (1): never intentd, a reconcile or a hook, and not the MCP tool tier in this release.
+- **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT RUNS THE PROJECT'S OWN CODE -- recorded here rather than solved by bending the label, which is what this field is for. Running it twice over unchanged files stores the same rows. **What it does is run each language's toolchain over the project**: rust-analyzer's SCIP export runs the workspace's build scripts and proc macros, and no switch it has stops that (measured by cc, 2026-09-17), and a compile runs a project's macros. Where a Rust workspace root holds no `Cargo.lock`, cargo writes one there, as any cargo command would, and Intent leaves it. That is work an agent must not start unasked, which is vc decision 25 (1): never intentd, a reconcile or a hook, and not the MCP tool tier in this release.
 - **facade:** index_resolve
 
 ## Known exposures -- defects this file does not have, and is not protected against

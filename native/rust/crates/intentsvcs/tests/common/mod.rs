@@ -50,6 +50,10 @@ pub struct Fixture {
   pub dir: tempfile::TempDir,
 }
 
+/// A level-3 row as [`Fixture::resolved_in`] returns it: line, name, target,
+/// and the target's path and line.
+pub type Resolved = (u32, String, String, Option<String>, Option<u32>);
+
 impl Fixture {
   /// A project whose intent directory is NOT the default.
   ///
@@ -225,6 +229,18 @@ impl Fixture {
 
   pub fn read(&self, rel: &str) -> String {
     std::fs::read_to_string(self.path(rel)).expect("read file")
+  }
+
+  /// The level-3 rows the on-disk store holds for one file (ST0076 WP-05), as
+  /// tuples a failure message reads at a glance.
+  pub fn resolved_in(&self, path: &str) -> Vec<Resolved> {
+    intentsvcs::store::Store::open(&self.project().db_path())
+      .expect("store")
+      .resolved_in(path)
+      .expect("rows")
+      .into_iter()
+      .map(|r| (r.line, r.name, r.target, r.target_path, r.target_line))
+      .collect()
   }
 
   /// Make this fixture a real git repository (AC-05.2, AC-03.5).
