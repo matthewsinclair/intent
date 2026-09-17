@@ -20,52 +20,10 @@
 //! `rusqlite` appears in exactly one crate manifest, and for the same reason: a
 //! dependency you cannot name is a dependency you cannot misuse.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use crate::common::{crate_root, daemon_sources, without_comments};
 
 /// The one module allowed to name the facade.
 const THE_DOOR: &str = "store.rs";
-
-/// Every `.rs` file under `crates/intentd/src`.
-fn daemon_sources() -> Vec<PathBuf> {
-  let src = crate_root().join("src");
-  let mut found = Vec::new();
-  collect(&src, &mut found);
-  found.sort();
-  found
-}
-
-fn collect(dir: &Path, into: &mut Vec<PathBuf>) {
-  for entry in fs::read_dir(dir).unwrap_or_else(|e| panic!("read {}: {e}", dir.display())) {
-    let path = entry.expect("dir entry").path();
-    if path.is_dir() {
-      collect(&path, into);
-    } else if path.extension().is_some_and(|e| e == "rs") {
-      into.push(path);
-    }
-  }
-}
-
-fn crate_root() -> PathBuf {
-  PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-}
-
-/// File content with `//` comment lines removed.
-///
-/// **COMMENTS ARE STRIPPED SO THAT EXPLAINING THIS RULE IS NOT AN INSTANCE OF
-/// BREAKING IT.** Every module that participates in the arrangement has a doc
-/// comment naming `Facade` to say why it does not hold one, and a scan that
-/// counted those would make the documentation the violation -- the same
-/// property the whiteboard guards have, where quoting a bad timestamp to a peer
-/// must not itself be an offence.
-fn without_comments(path: &Path) -> String {
-  fs::read_to_string(path)
-    .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
-    .lines()
-    .filter(|line| !line.trim_start().starts_with("//"))
-    .collect::<Vec<_>>()
-    .join("\n")
-}
 
 #[test]
 fn the_facade_is_named_in_exactly_one_module_of_this_crate() {

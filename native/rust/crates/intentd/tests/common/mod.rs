@@ -296,3 +296,48 @@ impl Drop for RunningDaemon {
     let _ = std::fs::remove_dir_all(&self.home);
   }
 }
+
+/// This crate's root, where `src` and `tests` sit.
+pub fn crate_root() -> PathBuf {
+  PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+/// Every `.rs` file under `crates/intentd/src`, sorted.
+///
+/// **SHARED BY THE SOURCE SCANS** (`one_store_door.rs`, and issue 0434's
+/// notice scan), so a scan that walks the daemon's modules walks all of them
+/// the same way.
+pub fn daemon_sources() -> Vec<PathBuf> {
+  let src = crate_root().join("src");
+  let mut found = Vec::new();
+  collect_sources(&src, &mut found);
+  found.sort();
+  found
+}
+
+fn collect_sources(dir: &Path, into: &mut Vec<PathBuf>) {
+  for entry in std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read {}: {e}", dir.display())) {
+    let path = entry.expect("dir entry").path();
+    if path.is_dir() {
+      collect_sources(&path, into);
+    } else if path.extension().is_some_and(|e| e == "rs") {
+      into.push(path);
+    }
+  }
+}
+
+/// File content with `//` comment lines removed.
+///
+/// **COMMENTS ARE STRIPPED SO THAT EXPLAINING A RULE IS NOT AN INSTANCE OF
+/// BREAKING IT.** A module that explains why it does not hold a `Facade`, or
+/// quotes a notice's shape, names the thing a scan looks for -- the same
+/// property the whiteboard guards have, where quoting a bad timestamp to a peer
+/// must not itself be an offence.
+pub fn without_comments(path: &Path) -> String {
+  std::fs::read_to_string(path)
+    .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    .lines()
+    .filter(|line| !line.trim_start().starts_with("//"))
+    .collect::<Vec<_>>()
+    .join("\n")
+}

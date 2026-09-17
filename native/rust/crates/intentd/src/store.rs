@@ -298,7 +298,7 @@ impl ProjectHandle {
         Ok(roots) => roots.into(),
         Err(error) => {
           elogln!(
-            "intentd: could not survey the index of `{}` when opening it: {error}\n  remedy: files nobody has edited since the daemon started may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+            "warning: intentd: could not survey the index of `{}` when opening it: {error}\n  remedy: files nobody has edited since the daemon started may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
             thread_root.display()
           );
           VecDeque::new()
@@ -660,7 +660,7 @@ fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
   if let Err(error) = facade.index_refresh(Some(under)) {
     let named: Vec<String> = under.iter().map(|p| p.display().to_string()).collect();
     elogln!(
-      "intentd: could not refresh the index under `{}`: {error}\n  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
+      "warning: intentd: could not refresh the index under `{}`: {error}\n  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up.",
       named.join("`, `")
     );
   }
@@ -669,10 +669,9 @@ fn refresh_index(facade: &mut Facade, under: &[PathBuf]) {
 fn ingest(facade: &mut Facade, root: &Path) {
   if let Err(e) = facade.ingest_from_disk(&intentsvcs::sync::Scope::All) {
     elogln!(
-      "warning: intentd: ingesting `{}` after an external edit failed: {}\n  remedy: {}",
+      "warning: intentd: ingesting `{}` after an external edit failed: {}",
       root.display(),
-      e.render(),
-      e.remedy()
+      e.render()
     );
   }
 }
@@ -753,7 +752,7 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     // than retried silently: the sweep comes round again, and a reader of this
     // log needs to know the decision was not made rather than made as `no`.
     Err(e) => elogln!(
-      "intentd: could not tell whether `{}` is due a backup: {}\n  remedy: {}",
+      "warning: intentd: could not tell whether `{}` is due a backup: {}\n  remedy: {}",
       root.display(),
       e,
       e.remedy()

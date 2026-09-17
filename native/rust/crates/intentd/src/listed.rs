@@ -96,6 +96,9 @@ pub fn start(path: PathBuf, registry: Arc<Registry>) -> Result<Listed, Response>
 fn reload(path: &Path, registry: &Registry) {
   match projects::load(path) {
     Ok(listed) => registry.set_listed(listed.roots()),
-    Err(e) => elogln!("intentd: kept the last good project list\n{}", e.render()),
+    Err(e) => elogln!(
+      "warning: intentd: kept the last good project list\n{}",
+      e.render()
+    ),
   }
 }

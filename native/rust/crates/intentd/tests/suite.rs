@@ -47,6 +47,8 @@ mod daemon_stops_when_asked;
 mod daemon_watch;
 #[path = "every_daemon_spawn_carries_a_lifeline.rs"]
 mod every_daemon_spawn_carries_a_lifeline;
+#[path = "every_notice_with_a_remedy_says_its_severity_once.rs"]
+mod every_notice_with_a_remedy_says_its_severity_once;
 #[path = "graphql_answers_through_the_store_door.rs"]
 mod graphql_answers_through_the_store_door;
 #[path = "no_orphan_suite_member.rs"]

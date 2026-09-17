@@ -322,7 +322,7 @@ fn files_that_changed(
         // cannot read is a subtree whose edits stop reaching the store, and
         // silence there is indistinguishable from nobody editing.
         Err(error) => elogln!(
-          "intentd: could not reconcile `{}` after a directory-level change: {error}\n  remedy: external edits under that path may not be reaching the store. Run `intent sync --to-store` to catch it up.",
+          "warning: intentd: could not reconcile `{}` after a directory-level change: {error}\n  remedy: external edits under that path may not be reaching the store. Run `intent sync --to-store` to catch it up.",
           path.display()
         ),
       }
@@ -358,7 +358,7 @@ fn files_that_changed(
         // outcome worse than a duplicate event.
         Err(error) => {
           elogln!(
-            "intentd: could not compare `{}` against the store's index: {error}\n  remedy: the event is being published unjudged. If this repeats, that file's edits may be reaching subscribers twice.",
+            "warning: intentd: could not compare `{}` against the store's index: {error}\n  remedy: the event is being published unjudged. If this repeats, that file's edits may be reaching subscribers twice.",
             path.display()
           );
           changed.push(path.to_path_buf());
