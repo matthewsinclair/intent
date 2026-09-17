@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-17 17:06Z
+heartbeat_at: 2026-09-17 17:20Z
 status: active
-focus: "2026-09-17 night, localfolded for hv's compact (the fourth): ST0076 WP-06 is LANDED at 810f67985 and DONE at c0dab81b4, gate 14/14, doctor 0. Nothing is startable in ST0076, so ask vc for the next assignment. See the RESUME HERE doing item. NO RELEASE, NO PUSH."
+focus: "2026-09-17 night, after hv's compact: nothing is startable for dc until hv's drives or rulings (vc). Holds 14 and 15 stand. ST0076 WP-06 is landed and done. See the RESUME HERE doing item. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,11 +13,10 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **RESUME HERE (localfold for hv's compact, 2026-09-17 night, the fourth): ST0076 WP-06 is LANDED at 810f67985 (patch-id b33d87e0, vc's GO) and DONE at c0dab81b4. AT-06.1 is green, AC-06.1 and AC-06.2 are satisfied, `intent ac gate ST0076` reads PASS 14/14, and doctor is 0.** What landed is the Elixir tracer reader. It adopts WP-07's `Resolver::manifest()` (`mix.exs` at the project root only), and on vc's ruling of 2026-09-17 (vc decision 30) it reads no environment variable and always builds `dev`: the first judging run caught a `MIX_ENV` read in intent-cli's AC-11.3 census. The Laksa drive ran on c4b326db with `MIX_ENV` unset, so it built `dev` as the landing does. It is WP-06's body and AC-06.2's evidence (intent/st/ST0076/ac-06.2-drives.md).
-ROUTED ELSEWHERE, NOT dc's:
-- Issue 0440 is cc's: `index status` gains `joined K of F files`, judged green on WP-06 as refs/bank/cc/0440/patch.
-- ST0077, which vc opens after the close-out, carries two known limits WP-06's body records. First, a reference only the compiler sees can share a written reference's key: a bracket access resolves to `Access.get/2`, and an interpolation to `Kernel.to_string/1` (17 of the 27 keys naming two targets on Laksa). Second, a target keeps the place the index gave it when its reference's file was joined.
-NEXT for dc: nothing startable in ST0076. vc rebuilds the installed pair after WP-06; the pair is ea81a6c58, so neither `--target` nor the Elixir reader is installed yet. Hold 15 (guards adoption) waits on vc's word, and hold 14 (gyges) is unchanged. Ask vc for the next assignment. The worktree scratchpad/wt-wp03 and the scratch copy scratchpad/laksa-wp06 can go once vc says nothing more is needed from them. Every script, log and draft is banked under refs/bank/dc/st0076-wp06/. NO RELEASE, NO PUSH.
+- **RESUME HERE (after hv's compact, 2026-09-17 night): NOTHING IS STARTABLE FOR dc. vc, answering dc's ask after the compact: holds 14 and 15 stand, and there is no assignment until hv's drives or rulings.** hv's word to dc after the compact, verbatim: "Crack on under VC's instructions." ST0076 WP-06 is landed at 810f67985 (patch-id b33d87e0, vc's GO) and done at c0dab81b4, where `intent ac gate ST0076` passed; the thread closes on hv's word. The Laksa drive is WP-06's body and AC-06.2's evidence (intent/st/ST0076/ac-06.2-drives.md). Every script, log and draft is banked under refs/bank/dc/st0076-wp06/, and on vc's word the worktree scratchpad/wt-wp03 and the scratch copy scratchpad/laksa-wp06 are removed, with their banks confirmed first and the live Laksa estate untouched.
+ORDER, per vc: ic's 0441 has the whole-suite slot, and vc's single rebuild follows 0441's landing, with its hold announced to every session before it starts. The installed pair is behind the tree until then: measure it with `intent --version` and the DIRT_SCOPE diff, never from this line.
+ROUTED ELSEWHERE, NOT dc's: issue 0440 is landed and closed (cc's). ST0077, which vc opens after the close-out, carries WP-06's two known limits: a reference only the compiler sees can share a written reference's key (a bracket access resolves to `Access.get/2`, an interpolation to `Kernel.to_string/1`), and a target keeps the place the index gave it when its reference's file was joined.
+OFFERED TO vc AFTER THE COMPACT, NOT STARTED: a re-drive of AC-06.2 with the installed pair on a fresh scratch copy of Laksa once the rebuild is in, and a scratch-clone rehearsal of hold 15. Neither is startable under vc's answer. NO RELEASE, NO PUSH.
 
 ## TODO
 
