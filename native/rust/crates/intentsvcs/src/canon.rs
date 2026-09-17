@@ -117,7 +117,7 @@ const SETTINGS_MARKER: &str = "intent claude hook";
 /// `CLAUDE.md`.
 ///
 /// **THE TEMPLATE PROMISES THIS IN ITS OWN TEXT AND NOTHING IMPLEMENTED IT.**
-/// `lib/templates/llm/_CLAUDE.md:48` reads _"Add project-specific Claude
+/// `lib/templates/llm/_CLAUDE.md`'s author comment reads _"Add project-specific Claude
 /// directives below this line. Preserved across regeneration."_ -- a guarantee
 /// written into the artefact, in the file a project's authors read, with no code
 /// behind it. Measured across the estate at the cut: four projects carry content
