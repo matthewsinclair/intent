@@ -942,8 +942,17 @@
       "kind": "doing",
       "seq": 8,
       "text": "**RESUME HERE (cc, 2026-09-17).** ST0076 WP-05 is Done: the Rust reader landed at 92cc064d3 (patch-id d23dd52b, carrying dc's devbin toolchain option), AT-05.1 and AT-05.2 are green, and AC-05.1 is satisfied. vc runs the rebuild and drives `intent index resolve` on this estate; anything that drive finds is an issue, not a reason to reopen the AC (vc, 2026-09-17). NEXT, ISSUE 0437 (vc, 2026-09-17, on hv's ask to crack it off quickly, XS to S, a train of one): IN-RS-CODE-004's greppable proxy in intent/plugins/claude/rules/rust/code/error-types-thiserror-anyhow/RULE.md reads `Result<[^>]*, *String>`, whose `[^>]*` runs through an inner `<`, so `Result<BTreeMap<String, String>, E>` matches on the map's own `, String>`, and the `Box<dyn Error>` pattern has the same shape. vc's expected fix: the first parameter balances its angle brackets to two levels in both patterns, the Detection prose names the false negative past two levels as the cost, and ONE arm where the critic's arms live (store.rs's refused line reads clean; `Result<Vec<u8>, String>` and `Result<T, String>` still fire). The three workaround sites stay. The rule library is read live from the tree, so the fix is in force at its commit; check whether an installed copy needs a sync. Bank refs/bank/cc/0437, ask vc for the slot, land on vc's GO, close with the landing hash. When OPERATOR and is_operator move into resolved.rs, that is dc's WP-06 (vc decision 26). NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T15:01:27.885Z",
       "recorded_at": "2026-09-17T14:48:43.122Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 9,
+      "text": "**RESUME HERE (cc, 2026-09-17).** No claim. The Rust reader is in the installed pair (rebuilt by vc at ea81a6c58) and vc's drive of `intent index resolve --lang rust` on this estate came back current. Issue 0437 is closed (landed 1740ddfb6, closed 3da65b697). WATCHING: ic's WP-07 adds to the Resolver trait which manifest a reader resolves from, so a not-applicable language never reads `unresolved`, with Rust's side in rust_analyzer.rs beside cc's code (vc, 2026-09-17; ic tells cc); dc's WP-06 moves OPERATOR and is_operator into resolved.rs (vc decision 26). Next work comes from vc. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-17T15:01:28.689Z"
     }
   ],
   "messages": [
