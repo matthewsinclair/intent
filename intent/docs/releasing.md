@@ -10,7 +10,11 @@ hv does, in hv's own terminal. The release confirmation reads `/dev/tty`, so a t
 
 ## The ordering the tag depends on, which is the reason this page exists
 
-**`bin/devbin build release` commits, tags and pushes in one run.** It commits the version bump (`bin/.devbin/cmd/build.d/release:1171`), tags `HEAD` — the commit it has just made (`:1221`) — and pushes `main` and the tag to both remotes (`:1240`, `:1242`). There is therefore no window between the tag being created and the tag being published into which a later commit can be inserted.
+**`bin/devbin build release` commits the version bump, tags it, and pushes — and the one gap in that sequence is a trap rather than an opportunity.** It commits the version bump, refuses to tag a dirty tree, creates the tag at `HEAD` — the commit it has just made — then asks for a confirmation and pushes `main` and the tag to both remotes. The whole sequence is in `bin/.devbin/cmd/build.d/release`, tag block and push block adjacent; read it there rather than trusting this paragraph, and `--dry-run` narrates every step without doing any of it.
+
+**There IS a window between the tag and the push, and it cannot be used to insert the regeneration.** The push sits behind a human confirmation, and declining it exits 2 with the tag already created locally — the driver says so itself: `user aborted before push -- tag <TAG> exists locally; re-run when ready`. That looks like a chance to commit the regeneration and re-run. It is not. On the re-run the driver finds the tag pointing at a different sha from the new `HEAD` and **aborts rather than force-moving it** (`tag <TAG> exists at <sha> but HEAD is <sha> -- refusing to force-move`). The only ways out are deleting the tag by hand or shipping a tag that does not contain the regeneration, **which is exactly what v3.0.3 did.**
+
+So the conclusion is not that the driver is atomic; it is that every route which regenerates after the tag ends either in a refusal or in a wrong tag.
 
 **So the regeneration is committed BEFORE the driver runs.** The driver's version-bump commit lands on top of it and the tag is created there, which makes the regeneration an ancestor of the tag, and the tag then contains its own reference pages. This is the only arrangement that is self-consistent, and the reason is that the pages name a revision rather than a version: each one carries `Revision this describes: <sha>`. A tag's sha does not exist until the commit it points at exists, so "regenerate at the tag" cannot be satisfied by generating pages that name the tag. The tag has to point at the regeneration, not the other way round.
 
@@ -46,11 +50,19 @@ A baseline is usable only where the register exists at it. Check before passing 
   git show "v3.0.3:surface/dispatch-table.json" > /dev/null && echo usable
 ```
 
-## OPEN, FOR hv: which release is presence measured against?
+## The baseline is the PREVIOUS RELEASE TAG
 
-This is not settled and this page does not invent an answer. The facts, each re-readable by the commands above: the tool's default is the first cut of the line; the last two regenerations both passed `v3.0.1` by hand, `a87a94a4a` at the v3.0.3 cut and `d21550ae5` on 2026-09-17; v3.0.2 and v3.0.3 were both tagged on 2026-09-14 and both carry release notes; and a register exists at every 3.0.x tag, so any of them would work as a baseline.
+**Ruled by hv on 2026-09-17 (decision 25), and the rule is a command rather than a judgement:**
 
-**Under every reading of the convention, today's pages are at least one release behind**, because they report presence against `v3.0.1` while later releases have shipped. What is not established is the rule: "the previous release tag" and "the previous release a user can install" pick different baselines here, and only hv can say which the column is meant to answer. Whichever hv rules, it is written into this section as the rule, and the `--baseline` line of the cut command below is changed to match.
+```
+  git describe --abbrev=0
+```
+
+That is what `--baseline` is passed at a cut. It was chosen over "the previous release a user can install" precisely because it cannot drift with anyone's reading of what counts as installable — the two pick different values in a case this project has already produced, and only one of them is answerable by a command.
+
+**The case it was ruled with in view, because it is a precedent rather than a hypothetical.** v3.0.2 was tagged and its GitHub release created, and its artefacts were never published — which is why v3.0.3 exists at all, and CHANGELOG's own 3.0.3 entry says so. Under this rule the v3.0.3 cut would have measured presence against a release no reader could install. It does not bite the 3.1.0 cut, because the previous tag is v3.0.3 and that one shipped. If it ever bites again, the tag rule still applies and the anomaly belongs in that release's notes; the rule is not re-litigated at the cut.
+
+**How this went wrong before the rule existed, kept because it is the reason the rule is written down.** The tool's default is the first cut of the line and has never moved. The last two regenerations both passed `v3.0.1` by hand — `a87a94a4a` at the v3.0.3 cut and `d21550ae5` on 2026-09-17 — the second of them because the value was copied from the previous invocation rather than derived from a rule, there being no rule to derive it from. A register exists at every 3.0.x tag, so nothing refused; the pages simply reported presence against a release two cuts back and said so accurately in a line nobody re-read.
 
 ## Running the generators
 
@@ -70,8 +82,8 @@ Neither generator runs a binary; both read the register at the revision with `gi
 ## The cut, in order
 
 1. Land everything the cut carries. Confirm the estate is clean: `intent doctor`.
-2. Regenerate both halves at `HEAD` against the ruled baseline, read the diff, and commit them together.
-3. Run `bin/devbin build release --patch` or `... vX.Y.Z`. It makes the version-bump commit, tags it — so the tag now contains step 2 — and pushes. hv fires this.
+2. Regenerate both halves at `HEAD` against `--baseline "$(git describe --abbrev=0)"`, read the diff, and commit them together. Do this BEFORE step 3 or the cut ships without them.
+3. Run `bin/devbin build release --patch` or `... vX.Y.Z`, ideally `--dry-run` first. It makes the version-bump commit, tags it — so the tag now contains step 2 — asks for a confirmation, and pushes. hv fires this.
 4. `int macos prepare` AT THE TAG, then `formula`, `publish`, `smoke --reinstall`.
 
 Step 4 staging at the tag is what makes step 2's placement load-bearing: `prepare` stages the tag's tree, so anything committed after the tag is not in what ships.
