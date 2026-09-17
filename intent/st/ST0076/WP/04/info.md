@@ -2,14 +2,14 @@
 wp_id: WP-04
 title: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
 
 ## Objective
 
-_(not yet written)_
+Make what the typed index knows answerable from every door a reader uses. `intent search` filters by hit kind (`--kind def`), by symbol subkind (`--subkind method`, a word from the roster the queries define, refused by name when unknown) and by container (`--in AddressError`), and with `--subkind` or `--in` and no query it lists the symbols that pass them. `--context` and `--outline` honour every filter and `--limit`, and a tier filter that leaves out the structural tier is refused rather than ignored. `--context` prints each reference with its qualifier and names the level that answered. The SQL door and `intent schema` carry the symbol columns under the JSON hit's names, and the MCP search tool takes the same filters, the query-less form included. The search row's `when_to_use`, the MCP instructions and the explorer's search pane say what each level and each language's references answer and what they leave out, and the pane draws that note on screen (issue 0435).
 
 ## Acceptance
 

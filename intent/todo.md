@@ -27,7 +27,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
   - [x] 02: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
   - [-] 03: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
-  - [-] 04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
+  - [x] 04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
   - [-] 05: Rust resolved references through rust-analyzer's SCIP export
   - [ ] 06: Elixir resolved references through the compiler's tracer, on an explicit verb
 
