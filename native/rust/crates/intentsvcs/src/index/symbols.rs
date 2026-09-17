@@ -231,6 +231,18 @@ pub fn symbols_of(lang: &str, path: &str, bytes: &[u8]) -> Result<Vec<Symbol>, N
       },
     });
   };
+  extract(&grammar, grammar.query, path, bytes)
+}
+
+/// The rows `source` names in `bytes`, parsed with `grammar`. One home for the
+/// parse and the read, so a test's own query takes exactly the path a shipped
+/// query takes.
+fn extract(
+  grammar: &Grammar,
+  source: Option<&str>,
+  path: &str,
+  bytes: &[u8],
+) -> Result<Vec<Symbol>, NoSymbols> {
   let lang = grammar.lang;
 
   let mut parser = tree_sitter::Parser::new();
@@ -248,7 +260,7 @@ pub fn symbols_of(lang: &str, path: &str, bytes: &[u8]) -> Result<Vec<Symbol>, N
   // **THE QUERY'S ABSENCE IS REPORTED RATHER THAN ANSWERED EMPTY.** A grammar
   // with no query is a fact about the grammar, not about the file, and a caller
   // told "no symbols" would record that the file has none.
-  let Some(source) = grammar.query else {
+  let Some(source) = source else {
     return Err(NoSymbols::NoTagsQuery {
       lang: lang.to_string(),
     });
@@ -375,6 +387,34 @@ struct Candidate<'t> {
   name_from_container: bool,
   params: Option<tree_sitter::Node<'t>>,
   qualifier: Option<tree_sitter::Node<'t>>,
+  /// A written arity (`&Map.get/2`), read in place of a counted one.
+  arity: Option<tree_sitter::Node<'t>>,
+  /// `arity.piped`: one argument arrives by a pipe and is not written.
+  piped: bool,
+  /// `name.expand "alias"`: the name, not the qualifier, is what an alias
+  /// expands.
+  expand_name: bool,
+  /// `@name.base`: the node the name is written after (`MyApp` in
+  /// `alias MyApp.{Repo, Mailer}`), expanded and joined before the name.
+  name_base: Option<tree_sitter::Node<'t>>,
+}
+
+/// One alias form (`@alias`) and what it names.
+struct AliasForm<'t> {
+  node: tree_sitter::Node<'t>,
+  /// The ancestor kind that bounds it (`alias.scope`); the file when absent.
+  scope: Option<String>,
+  base: Option<tree_sitter::Node<'t>>,
+  paths: Vec<tree_sitter::Node<'t>>,
+  short: Option<tree_sitter::Node<'t>>,
+}
+
+/// One short name an alias puts in scope, over a byte range of the file.
+struct AliasEntry {
+  short: String,
+  full: String,
+  start: usize,
+  end: usize,
 }
 
 /// A node other rows inside it belong to.
@@ -392,6 +432,10 @@ struct Read<'t> {
   /// Parameter node id to whether it is optional.
   params: std::collections::HashMap<usize, (tree_sitter::Node<'t>, bool)>,
   ignored: std::collections::HashSet<std::ops::Range<usize>>,
+  aliases: Vec<AliasForm<'t>>,
+  /// `@qualifier.self` and `@self` nodes: each stands for its enclosing
+  /// container's name. `@self` registers the node and qualifies nothing.
+  selves: Vec<tree_sitter::Node<'t>>,
 }
 
 /// Every match of the query, sorted into the capture vocabulary the query
@@ -416,6 +460,9 @@ fn read_matches<'t>(
     let mut container: Option<(&str, tree_sitter::Node<'t>)> = None;
     let (mut name, mut subkind, mut trait_node, mut params, mut qualifier) =
       (None, None, None, None, None);
+    let (mut arity, mut alias, mut alias_base, mut alias_as) = (None, None, None, None);
+    let mut name_base = None;
+    let mut alias_paths = Vec::new();
     for capture in m.captures() {
       let capture_name = names[capture.index as usize];
       // **THE VOCABULARY IS CLOSED AND ANYTHING ELSE IS SKIPPED RATHER THAN
@@ -431,10 +478,27 @@ fn read_matches<'t>(
       } else {
         match capture_name {
           "name" => name = Some(capture.node),
+          "name.base" => name_base = Some(capture.node),
+          "self" => read.selves.push(capture.node),
           "subkind" => subkind = Some(capture.node),
           "trait" => trait_node = Some(capture.node),
           "params" => params = Some(capture.node),
           "qualifier" => qualifier = Some(capture.node),
+          "qualifier.self" => {
+            read.selves.push(capture.node);
+            qualifier = qualifier.or(Some(capture.node));
+          }
+          "arity" => arity = Some(capture.node),
+          "alias" => alias = Some(capture.node),
+          "alias.path" => alias_paths.push(capture.node),
+          "alias.base" => alias_base = Some(capture.node),
+          // **THE SHORT NAME AN `as:` GIVES IS INTRODUCED, NOT REFERENCED**, as a
+          // definition's own name is not a reference to it. The query cannot
+          // say so: a second `@ignore` in the alias form fails its `#eq?`.
+          "alias.as" => {
+            alias_as = Some(capture.node);
+            read.ignored.insert(capture.node.byte_range());
+          }
           "ignore" => {
             read.ignored.insert(capture.node.byte_range());
           }
@@ -451,10 +515,23 @@ fn read_matches<'t>(
         }
       }
     }
-    let name_from_container = query
-      .property_settings(m.pattern_index)
-      .iter()
-      .any(|p| &*p.key == "name.from" && p.value.as_deref() == Some("container"));
+    let property = |key: &str| {
+      query
+        .property_settings(m.pattern_index)
+        .iter()
+        .find(|p| &*p.key == key)
+        .and_then(|p| p.value.as_deref().map(str::to_string))
+    };
+    let name_from_container = property("name.from").as_deref() == Some("container");
+    if let Some(node) = alias {
+      read.aliases.push(AliasForm {
+        node,
+        scope: property("alias.scope"),
+        base: alias_base,
+        paths: alias_paths,
+        short: alias_as,
+      });
+    }
     if let (Some((kind, node)), Some(name)) = (container, name) {
       read.containers.push(Container {
         node,
@@ -473,6 +550,10 @@ fn read_matches<'t>(
         name_from_container,
         params,
         qualifier,
+        arity,
+        piped: property("arity.piped").as_deref() == Some("true"),
+        expand_name: property("name.expand").as_deref() == Some("alias"),
+        name_base,
       });
     }
   }
@@ -492,9 +573,20 @@ fn rows_of(
     containers,
     params,
     ignored,
+    aliases,
+    selves,
   } = read;
+  let text = |n: tree_sitter::Node<'_>| n.utf8_text(bytes).unwrap_or_default().to_string();
+  let names = Names {
+    containers: &containers,
+    selves: &selves,
+    aliases: alias_entries(&aliases, &containers, &selves, separator, bytes),
+    separator,
+    bytes,
+  };
   // **ONE ROW PER NAME NODE AND KIND, AND THE EARLIER PATTERN WINS** (ST0076's
-  // measured duplicate definitions, and issue 0358's `DISTINCT`). rust's own tags query named a method both `@definition.method` and
+  // measured duplicate definitions, and issue 0358's `DISTINCT`). rust's own
+  // tags query named a method both `@definition.method` and
   // `@definition.function`, Swift's does the same for a class's members, and a
   // query cursor reports every match -- so the duplicate is resolved here, at
   // extraction, by the order the query file states, and never by a `DISTINCT`
@@ -528,7 +620,15 @@ fn rows_of(
         {
           continue;
         }
-        node.utf8_text(bytes).unwrap_or_default().to_string()
+        // **A NAME WRITTEN AFTER A BASE IS THE BASE, EXPANDED, THEN THE NAME AS
+        // WRITTEN** (`alias MyApp.{Repo, Mailer}` names `MyApp.Repo`). An alias
+        // is not in scope inside its own form, so expanding the name alone would
+        // answer `Repo`, or an earlier alias of that short name.
+        match (c.name_base, c.expand_name) {
+          (Some(base), _) => format!("{}{separator}{}", names.expand(base), text(node)),
+          (None, true) => names.expand(node),
+          (None, false) => text(node),
+        }
       }
     };
     let key = (
@@ -543,7 +643,11 @@ fn rows_of(
     // NODE**, so a pattern without one leaves the language's missing concept
     // absent rather than zero, and a `@params` node with no parameter children
     // is a real arity of 0.
-    let arity = c.params.map(|list| {
+    //
+    // **A WRITTEN ARITY IS READ AS WRITTEN** (`&Map.get/2`), and text that is
+    // not a number is no arity rather than 0. **A PIPED CALL TAKES ONE ARGUMENT
+    // IT DOES NOT WRITE**, so `m |> Map.get(:k)` is `get/2`.
+    let counted = c.params.map(|list| {
       params
         .values()
         .filter(|(p, _)| p.parent().is_some_and(|parent| parent.id() == list.id()))
@@ -551,9 +655,22 @@ fn rows_of(
           (all + 1, required + u32::from(!optional))
         })
     });
-    let qualifier = c
-      .qualifier
-      .map(|q| q.utf8_text(bytes).unwrap_or_default().to_string());
+    let written = c
+      .arity
+      .and_then(|n| text(n).trim().parse::<u32>().ok())
+      .map(|n| (n, n));
+    let piped = u32::from(c.piped);
+    let arity = match c.arity {
+      Some(_) => written,
+      None => counted,
+    }
+    .map(|(all, required)| (all + piped, required + piped));
+    // **A ROW HAS ITS NAME OR ITS QUALIFIER EXPANDED, NEVER BOTH**: a module
+    // reference is the module, and a call is qualified by one.
+    let qualifier = c.qualifier.map(|q| match c.expand_name {
+      true => text(q),
+      false => names.expand(q),
+    });
     let (container, container_kind, trait_name) = match enclosing {
       Some(at) => (
         Some(qualified(&containers, at, separator)),
@@ -579,7 +696,8 @@ fn rows_of(
       arity_min: arity.map(|(_, required)| required),
       // **A QUALIFIER IS THE PATH AS WRITTEN, AND IT IS WHAT MAKES A ROW LEVEL 2.**
       // Nothing here resolves it: `AddressError::new` says what the source
-      // wrote, not which `new` it reaches.
+      // wrote, not which `new` it reaches. The one rewrite is the file's own:
+      // an alias the file declared, or the container a `@qualifier.self` names.
       qualifier: qualifier.clone(),
       level: if qualifier.is_some() { 2 } else { 1 },
     });
@@ -594,6 +712,131 @@ fn rows_of(
     ))
   });
   out
+}
+
+/// What a file's own syntax says a written name stands for: its aliases and
+/// its self-references.
+struct Names<'a, 't> {
+  containers: &'a [Container<'t>],
+  selves: &'a [tree_sitter::Node<'t>],
+  aliases: Vec<AliasEntry>,
+  separator: &'a str,
+  bytes: &'a [u8],
+}
+
+impl Names<'_, '_> {
+  fn expand(&self, node: tree_sitter::Node<'_>) -> String {
+    let written = node.utf8_text(self.bytes).unwrap_or_default();
+    expand_at(
+      written,
+      node,
+      self.containers,
+      self.selves,
+      &self.aliases,
+      self.separator,
+    )
+  }
+}
+
+/// `written`, as the file declares it at `node`.
+///
+/// **A SELF-REFERENCE NAMES ITS CONTAINER** when it starts the name
+/// (`__MODULE__.Sub` in `MyApp.Web` is `MyApp.Web.Sub`). **OTHERWISE THE FIRST
+/// SEGMENT IS LOOKED UP AMONG THE ALIASES IN SCOPE AT `node`**, and the one
+/// declared LATEST wins, so a second alias of the same short name shadows the
+/// first for everything after it. Only the first segment is ever rewritten:
+/// `Repo.Query` after `alias MyApp.Repo` is `MyApp.Repo.Query`.
+fn expand_at(
+  written: &str,
+  node: tree_sitter::Node<'_>,
+  containers: &[Container<'_>],
+  selves: &[tree_sitter::Node<'_>],
+  aliases: &[AliasEntry],
+  separator: &str,
+) -> String {
+  let at = node.byte_range();
+  if let Some(own) = selves
+    .iter()
+    .find(|s| s.start_byte() == at.start && s.end_byte() <= at.end)
+  {
+    let rest = written.get(own.end_byte() - at.start..).unwrap_or_default();
+    return match innermost(containers, *own) {
+      Some(c) => format!("{}{rest}", qualified(containers, c, separator)),
+      None => written.to_string(),
+    };
+  }
+  let first = written.split(separator).next().unwrap_or(written);
+  aliases
+    .iter()
+    .filter(|a| a.short == first && a.start <= at.start && at.start < a.end)
+    .max_by_key(|a| a.start)
+    .map_or_else(
+      || written.to_string(),
+      |a| format!("{}{}", a.full, &written[first.len()..]),
+    )
+}
+
+/// The file's aliases, in the order it declares them, each expanded by the
+/// aliases before it (`alias MyApp.Accounts` then `alias Accounts.User` makes
+/// `User` mean `MyApp.Accounts.User`).
+///
+/// **AN ALIAS HOLDS FROM THE END OF ITS FORM TO THE END OF THE NEAREST ANCESTOR
+/// OF ITS `alias.scope` KIND**, or to the end of the file where no ancestor is
+/// of that kind. For Elixir that kind is `do_block`, and the known gap is the
+/// keyword form: `def f, do: (alias A.B; B.g())` has no `do_block` of its own,
+/// so the alias reaches to the end of the enclosing module's block.
+fn alias_entries(
+  forms: &[AliasForm<'_>],
+  containers: &[Container<'_>],
+  selves: &[tree_sitter::Node<'_>],
+  separator: &str,
+  bytes: &[u8],
+) -> Vec<AliasEntry> {
+  let text = |n: tree_sitter::Node<'_>| n.utf8_text(bytes).unwrap_or_default();
+  let mut order: Vec<&AliasForm<'_>> = forms.iter().collect();
+  order.sort_by_key(|f| f.node.start_byte());
+  let mut entries: Vec<AliasEntry> = Vec::new();
+  for form in order {
+    let end = form
+      .scope
+      .as_deref()
+      .and_then(|kind| {
+        std::iter::successors(form.node.parent(), |n| n.parent()).find(|n| n.kind() == kind)
+      })
+      .map_or(bytes.len(), |n| n.end_byte());
+    let start = form.node.end_byte();
+    let expand = |n: tree_sitter::Node<'_>, entries: &[AliasEntry]| {
+      expand_at(text(n), n, containers, selves, entries, separator)
+    };
+    let base = form.base.map(|b| expand(b, &entries));
+    let added: Vec<AliasEntry> = form
+      .paths
+      .iter()
+      .map(|path| {
+        let written = text(*path);
+        let full = match &base {
+          Some(base) => format!("{base}{separator}{written}"),
+          None => expand(*path, &entries),
+        };
+        let short = match (form.short, form.paths.len()) {
+          (Some(short), 1) => text(short).to_string(),
+          _ => written
+            .rsplit(separator)
+            .next()
+            .unwrap_or(written)
+            .to_string(),
+        };
+        AliasEntry {
+          short,
+          full,
+          start,
+          end,
+        }
+      })
+      .collect();
+    entries.extend(added);
+  }
+  entries
 }
 
 /// The innermost container strictly enclosing `node`, as an index.
@@ -690,5 +933,176 @@ fn grammar(lang: &str) -> Option<Grammar> {
       module_separator: ".",
     }),
     _ => None,
+  }
+}
+
+#[cfg(all(test, feature = "lang-elixir"))]
+mod tests {
+  use super::*;
+
+  /// **THE ARMS DRIVE THE EXTRACTOR'S SHAPES, NOT A SHIPPED QUERY**, so the
+  /// query is the arms' own: it states each capture and property once, and
+  /// `extract` reads it exactly as it reads `queries/elixir.scm`.
+  const QUERY: &str = r#"
+(call
+  target: (identifier) @ignore
+  (arguments . (alias) @name)
+  (#eq? @ignore "defmodule")) @definition.module @container.module
+
+(call
+  target: (identifier) @ignore
+  (arguments
+    .
+    [
+      (alias) @alias.path
+      (dot left: (identifier) @qualifier.self right: (alias)) @alias.path
+      (dot left: (alias) @alias.base right: (tuple (alias) @alias.path))
+    ]
+    (keywords (pair value: (alias) @alias.as))?)
+  (#eq? @ignore "alias")
+  (#set! alias.scope "do_block")) @alias
+
+(binary_operator
+  operator: "|>"
+  right: (call
+    target: (dot left: (alias) @qualifier right: (identifier) @name @reference.call)
+    (arguments) @params)
+  (#set! arity.piped "true"))
+
+(unary_operator
+  operator: "&"
+  operand: (binary_operator
+    left: (call target: (dot left: (alias) @qualifier right: (identifier) @name @reference.call))
+    operator: "/"
+    right: (_) @arity))
+
+(call
+  target: (dot
+    left: (identifier) @qualifier.self
+    right: (identifier) @name @reference.call)
+  (#eq? @qualifier.self "__MODULE__"))
+
+(call
+  target: (dot left: (alias) @qualifier right: (identifier) @name @reference.call)
+  (arguments) @params)
+
+(arguments (_) @param)
+
+((alias) @name @reference.module
+  (#set! name.expand "alias"))
+"#;
+
+  fn elixir(src: &str) -> Vec<Symbol> {
+    let grammar = grammar("elixir").expect("the elixir grammar is in the default build");
+    extract(&grammar, Some(QUERY), "lib/web.ex", src.as_bytes()).expect("the arms' query compiles")
+  }
+
+  /// (name, subkind, qualifier, arity, line) for one reference.
+  type Written = (String, String, Option<String>, Option<u32>, u32);
+
+  fn refs(rows: &[Symbol]) -> Vec<Written> {
+    rows
+      .iter()
+      .filter(|s| s.kind == SymbolKind::Ref)
+      .map(|s| {
+        (
+          s.name.clone(),
+          s.subkind.clone(),
+          s.qualifier.clone(),
+          s.arity,
+          s.span.start_line,
+        )
+      })
+      .collect()
+  }
+
+  fn has(got: &[Written], want: (&str, &str, Option<&str>, Option<u32>, u32)) {
+    let want = (
+      want.0.to_string(),
+      want.1.to_string(),
+      want.2.map(str::to_string),
+      want.3,
+      want.4,
+    );
+    assert!(got.contains(&want), "{want:?} missing from {got:#?}");
+  }
+
+  const WEB: &str = "defmodule MyApp.Web do
+  alias MyApp.Accounts
+  alias Accounts.User
+  alias MyApp.{Repo, Mailer}
+  alias Other.Repo
+  alias MyApp.Repo, as: R
+  alias __MODULE__.Sub
+  def f(m, x) do
+    User.get(1)
+    Repo.all()
+    R.one()
+    Sub.go()
+    __MODULE__.g()
+    m |> Map.get(:k)
+    &Map.put/3
+    Mailer.send(x)
+    Repo.Query.run()
+  end
+end
+Repo.all()
+";
+
+  #[test]
+  fn an_alias_expands_the_qualifier_it_names_for_the_rest_of_its_block() {
+    let got = refs(&elixir(WEB));
+    has(&got, ("send", "call", Some("MyApp.Mailer"), Some(1), 16));
+    has(&got, ("one", "call", Some("MyApp.Repo"), Some(0), 11));
+    has(&got, ("run", "call", Some("Other.Repo.Query"), Some(0), 17));
+    has(&got, ("all", "call", Some("Repo"), Some(0), 20));
+  }
+
+  #[test]
+  fn a_later_alias_of_the_same_short_name_shadows_the_earlier() {
+    let got = refs(&elixir(WEB));
+    has(&got, ("all", "call", Some("Other.Repo"), Some(0), 10));
+  }
+
+  #[test]
+  fn an_alias_path_is_expanded_by_the_aliases_and_the_self_reference_before_it() {
+    let got = refs(&elixir(WEB));
+    has(
+      &got,
+      ("get", "call", Some("MyApp.Accounts.User"), Some(1), 9),
+    );
+    has(&got, ("go", "call", Some("MyApp.Web.Sub"), Some(0), 12));
+    has(&got, ("g", "call", Some("MyApp.Web"), None, 13));
+  }
+
+  #[test]
+  fn a_row_has_its_name_or_its_qualifier_expanded_never_both() {
+    let rows = elixir(WEB);
+    let got = refs(&rows);
+    has(&got, ("MyApp.Accounts.User", "module", None, None, 9));
+    let user = rows
+      .iter()
+      .find(|s| s.name == "get")
+      .expect("the call is a row");
+    assert_eq!(
+      (user.qualifier.as_deref(), user.level),
+      (Some("MyApp.Accounts.User"), 2)
+    );
+  }
+
+  #[test]
+  fn a_piped_call_and_a_capture_carry_the_arity_they_are_called_with() {
+    let got = refs(&elixir(WEB));
+    has(&got, ("get", "call", Some("Map"), Some(2), 14));
+    has(&got, ("put", "call", Some("Map"), Some(3), 15));
+    let rows = elixir("defmodule A do\n  def f, do: &Map.put/x\nend\n");
+    let put = rows
+      .iter()
+      .find(|s| s.name == "put")
+      .expect("the capture is a row");
+    assert_eq!(
+      put.arity, None,
+      "a written arity that is not a number is no arity"
+    );
   }
 }
