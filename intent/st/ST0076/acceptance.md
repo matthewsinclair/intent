@@ -17,11 +17,11 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 - AC-00.1 (non-test) After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --kind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep. -- satisfied: no
 
-### WP-01 -- Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version (status: WIP)
+### WP-01 -- Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version (status: Done)
 
-- AC-01.1 For Rust and Elixir, every definition row carries its `subkind`, `container`, `container_kind`, `trait_name`, `arity` and `arity_min` as ST0076's design vocabulary table states, read from the file's own syntax only. -- satisfied: no (computed)
-- AC-01.2 One symbol row per (name node, kind) in every language, fixed at extraction and never by a `DISTINCT` at read; a definition's own name is never also a reference to it. -- satisfied: no (computed)
-- AC-01.3 A code file whose symbols an older extractor wrote is re-extracted by the next reconcile, and a store migrated to the typed schema keeps its rows until then; two row shapes never answer one query. -- satisfied: no (computed)
+- AC-01.1 For Rust and Elixir, every definition row carries its `subkind`, `container`, `container_kind`, `trait_name`, `arity` and `arity_min` as ST0076's design vocabulary table states, read from the file's own syntax only. -- satisfied: yes (computed)
+- AC-01.2 One symbol row per (name node, kind) in every language, fixed at extraction and never by a `DISTINCT` at read; a definition's own name is never also a reference to it. -- satisfied: yes (computed)
+- AC-01.3 A code file whose symbols an older extractor wrote is re-extracted by the next reconcile, and a store migrated to the typed schema keeps its rows until then; two row shapes never answer one query. -- satisfied: yes (computed)
 
 ### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Not Started)
 
@@ -52,9 +52,11 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 _(no tests in this group)_
 
-### WP-01 -- Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version (status: WIP)
+### WP-01 -- Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version (status: Done)
 
-_(no tests in this group)_
+- AT-01.1 `native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs` -- covers AC-01.1, AC-01.2 -- status: green -- Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): Rust and Elixir typed definitions with container, trait and arity; an Elixir definition is never a reference to itself (red on the first bank with five self-references). Gate: whole intentsvcs and intent-cli suites.
+- AT-01.2 `native/rust/crates/intentsvcs/tests/one_definition_is_one_symbol_row.rs` -- covers AC-01.2 -- status: green -- Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a Rust and a Swift method defined once are one definition row, red on HEAD before WP-01. Gate: whole intentsvcs and intent-cli suites.
+- AT-01.3 `native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs` -- covers AC-01.3 -- status: green -- Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a file whose version is cleared and rows untyped is re-extracted by the next refresh and no untyped row survives; store_schema_version's earlier-draft arm walks a rung-10 store through the rung 28 rebuilds carrying rows. Gate: whole intentsvcs and intent-cli suites.
 
 ### WP-02 -- Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier (status: Not Started)
 

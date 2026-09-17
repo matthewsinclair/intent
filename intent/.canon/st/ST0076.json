@@ -14,8 +14,8 @@
       "seq": 1,
       "title": "Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version",
       "scope": "M",
-      "status": "wip",
-      "objective": "",
+      "status": "done",
+      "objective": "Make every symbol row say what it is, where it sits and its arity, so the index can answer the methods of a type or the structs named Config rather than only a name. For Rust and Elixir, through Intent's own queries, a definition carries its subkind, container, container kind, trait and arity, read from the file's own syntax. One row stands for one name node, a definition is never also a reference to itself, and a file an older extractor wrote is re-extracted rather than mixed with rows of another shape.",
       "body": "",
       "preamble": ""
     },
@@ -161,6 +161,39 @@
       "state": {
         "is": "unsatisfied"
       }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs",
+      "covers": [
+        "AC-01.1",
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): Rust and Elixir typed definitions with container, trait and arity; an Elixir definition is never a reference to itself (red on the first bank with five self-references). Gate: whole intentsvcs and intent-cli suites."
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/one_definition_is_one_symbol_row.rs",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a Rust and a Swift method defined once are one definition row, red on HEAD before WP-01. Gate: whole intentsvcs and intent-cli suites."
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a file whose version is cleared and rows untyped is re-extracted by the next refresh and no untyped row survives; store_schema_version's earlier-draft arm walks a rung-10 store through the rung 28 rebuilds carrying rows. Gate: whole intentsvcs and intent-cli suites."
     }
   ],
   "attachments": [

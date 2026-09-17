@@ -2,14 +2,14 @@
 wp_id: WP-01
 title: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-01: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
 
 ## Objective
 
-_(not yet written)_
+Make every symbol row say what it is, where it sits and its arity, so the index can answer the methods of a type or the structs named Config rather than only a name. For Rust and Elixir, through Intent's own queries, a definition carries its subkind, container, container kind, trait and arity, read from the file's own syntax. One row stands for one name node, a definition is never also a reference to itself, and a file an older extractor wrote is re-extracted rather than mixed with rows of another shape.
 
 ## Acceptance
 
