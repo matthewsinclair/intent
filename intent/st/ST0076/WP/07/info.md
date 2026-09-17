@@ -2,14 +2,14 @@
 wp_id: WP-07
 title: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 
 ## Objective
 
-_(not yet written)_
+Make level 3 answerable from every door a reader uses. Every search answer carries `index.resolution`, index-wide, naming each language whose level 3 is not current as `missing`, `failed`, `stale` (with its paths) or `unresolved`, in words `search::resolution_words` owns and the register quotes verbatim; `unresolved` is a declared language this build resolves, with no run on record, whose reader's manifest the index holds, decided when asked and never stored. A reference whose key joins exactly one current resolved row answers at `level` 3 with `target`, `target_path` and `target_line`; one joining several keeps its syntax level and carries `candidates`; one in a stale file, or in a file that moved on disk, keeps its syntax level. `intent search --target <target>`, the MCP tool's `target` and the SQL door's `resolved.target` ask for the written references resolved to exactly that target: it narrows and is narrowed by every other door and filter, lists the references alone when nothing else is asked, keeps no definition, and takes no hit from a stale file, which the answer names. A target no resolved row names is refused with the resolved targets that end the same way (each compared whole, without a trailing arity and without a trailing `()`), and otherwise answered empty with a note that a target nothing references and a misspelt one read the same; an index with no stored resolution is refused with the remedy `intent index resolve`, named as a person's verb that runs the project's build. The terminal's row and the explorer's row say where a reference points, and the MCP tool carries the note on an answer asked by target.
 
 ## Acceptance
 
