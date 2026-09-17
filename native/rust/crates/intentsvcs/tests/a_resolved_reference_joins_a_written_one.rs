@@ -232,6 +232,36 @@ fn a_run_replaces_the_files_it_read_and_keeps_every_other_file() {
   );
 }
 
+/// Issue 0440: the counts stay the stored run's, and status says how many
+/// of the files holding the language's rows that run joined.
+#[test]
+fn status_says_how_many_of_the_files_holding_rows_the_stored_run_joined() {
+  let (_fx, mut facade) = indexed();
+  resolve(&mut facade, None, Ok(both()));
+  let only_two = Trace {
+    read: vec![read("src/two.rs", TWO)],
+    references: vec![to("src/two.rs", Some(2), "helper", "crate::helper")],
+    excluded: BTreeMap::new(),
+  };
+  resolve(&mut facade, None, Ok(only_two));
+
+  let status = facade.index_status().expect("status");
+  let run = &status.resolution["rust"];
+  assert_eq!(
+    (run.run, run.files, run.joined, &run.tally),
+    (
+      2,
+      2,
+      1,
+      &Tally {
+        matched: 1,
+        ..Tally::default()
+      }
+    ),
+    "the second run joined one of the two files, and the counts are that one file's: {run:?}"
+  );
+}
+
 #[test]
 fn a_run_that_fails_writes_its_record_and_nothing_else_and_the_next_run_is_full() {
   let (fx, mut facade) = indexed();

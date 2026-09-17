@@ -342,6 +342,16 @@ pub struct Run {
   pub resolved_at: Option<String>,
   /// How many runs have stored.
   pub run: u64,
+  /// How many files hold this language's resolution: every file a stored run
+  /// joined and no later run purged, each with the hash it was read at.
+  pub files: u64,
+  /// How many of `files` the stored run joined (issue 0440).
+  ///
+  /// **THE COUNTS ARE THAT RUN'S AND NEVER A SUM OVER FILES.** An incremental
+  /// run joins only what its tool rebuilt, so one that joined nothing counts
+  /// nothing while every earlier file's rows still answer, and no sum could
+  /// stand in for the counts: the references a trace excludes carry no path.
+  pub joined: u64,
   /// The extractor version whose written rows the last stored run joined
   /// against (vc, 2026-09-17). A build writing another version has
   /// re-extracted those rows, so every resolved path is stale.

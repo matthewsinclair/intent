@@ -6171,6 +6171,8 @@ impl Store {
           detail: row.get(5)?,
           resolved_at: row.get(6)?,
           run: row.get::<_, i64>(7)? as u64,
+          files: 0,
+          joined: 0,
           symbols_version: row.get(12)?,
           tally: crate::index::resolved::Tally {
             matched: row.get::<_, i64>(8)? as u64,
@@ -6186,6 +6188,27 @@ impl Store {
     for row in rows {
       let (lang, run) = row?;
       runs.insert(lang, run);
+    }
+    // Every file the language's rows are in, and the ones the stored run wrote
+    // (issue 0440): a file carries the run that last joined it.
+    let mut stmt = self.conn.prepare(
+      "SELECT f.lang, COUNT(*), SUM(f.run = r.run) FROM resolved_file f
+         JOIN resolution r ON r.lang = f.lang
+         GROUP BY f.lang",
+    )?;
+    let covered = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, i64>(1)? as u64,
+        row.get::<_, i64>(2)? as u64,
+      ))
+    })?;
+    for row in covered {
+      let (lang, files, joined) = row?;
+      if let Some(run) = runs.get_mut(&lang) {
+        run.files = files;
+        run.joined = joined;
+      }
     }
     let mut stmt = self
       .conn

@@ -4654,11 +4654,14 @@ fn resolution_lines(lang: &str, run: &intentsvcs::index::resolved::Run) -> Vec<S
     lines.push(format!("  {at}{detail}"));
   }
   // **THE COUNTS ARE THE STORED RUN'S, SAID AS SUCH**, because after a failure
-  // the state line describes one run and these numbers another.
+  // the state line describes one run and these numbers another. **AND SO IS
+  // WHAT THAT RUN COVERED** (issue 0440): an incremental run joins only
+  // what its tool rebuilt, so without the files it joined, a run that joined
+  // none reads as a language with nothing stored.
   if let Some(at) = &run.resolved_at {
     lines.push(format!(
-      "  stored: run {} at {at}  matched {}  unmatched {}  dropped {}  ambiguous {}",
-      run.run, t.matched, t.unmatched, t.dropped, t.ambiguous
+      "  stored: run {} at {at}  joined {} of {} files  matched {}  unmatched {}  dropped {}  ambiguous {}",
+      run.run, run.joined, run.files, t.matched, t.unmatched, t.dropped, t.ambiguous
     ));
     if !t.dropped_by.is_empty() {
       lines.push(format!(
@@ -13976,6 +13979,35 @@ mod tests {
         .message()
         .is_some_and(|m| m.contains("2 unit(s) were read and 1 were accounted for")),
       "the failure names both halves: {failed:?}"
+    );
+  }
+
+  /// Issue 0440: the stored line says how many of the files holding the
+  /// language's rows the stored run joined, beside that run's counts. The case
+  /// is the one found on Laksa: an incremental run that joined nothing.
+  #[test]
+  fn the_stored_line_says_how_many_files_the_stored_run_joined() {
+    let run = intentsvcs::index::resolved::Run {
+      state: intentsvcs::index::resolved::CURRENT.to_string(),
+      tool: "elixir".to_string(),
+      path: None,
+      line: None,
+      detail: None,
+      resolved_at: Some("2026-09-17T12:00:00Z".to_string()),
+      run: 2,
+      files: 30,
+      joined: 0,
+      symbols_version: Some(intentsvcs::index::symbols::EXTRACTOR_VERSION),
+      tally: intentsvcs::index::resolved::Tally::default(),
+      stale: Vec::new(),
+    };
+    assert_eq!(
+      resolution_lines("elixir", &run),
+      vec![
+        "resolution: elixir  current  elixir".to_string(),
+        "  stored: run 2 at 2026-09-17T12:00:00Z  joined 0 of 30 files  matched 0  unmatched 0  dropped 0  ambiguous 0".to_string(),
+        "  stale: none".to_string(),
+      ]
     );
   }
 }

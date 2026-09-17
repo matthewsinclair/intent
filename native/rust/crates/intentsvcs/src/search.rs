@@ -1538,6 +1538,8 @@ mod tests {
       detail: None,
       resolved_at: Some("2026-09-17T00:00:00Z".to_string()),
       run: 1,
+      files: 0,
+      joined: 0,
       symbols_version: Some(3),
       tally: resolved::Tally::default(),
       stale: stale.iter().map(|s| s.to_string()).collect(),
