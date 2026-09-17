@@ -314,6 +314,8 @@ mod no_orphan_suite_member;
 mod no_view_claims_to_be_truth;
 #[path = "one_clock.rs"]
 mod one_clock;
+#[path = "one_definition_is_one_symbol_row.rs"]
+mod one_definition_is_one_symbol_row;
 #[path = "op_roster_and_the_live_log.rs"]
 mod op_roster_and_the_live_log;
 #[path = "opaque_attachment_canon.rs"]
@@ -379,6 +381,8 @@ mod store_schema_version;
 mod subagents_payload;
 #[path = "symbols_answer_the_highlander_question.rs"]
 mod symbols_answer_the_highlander_question;
+#[path = "symbols_are_typed_definitions.rs"]
+mod symbols_are_typed_definitions;
 #[path = "sync_direction.rs"]
 mod sync_direction;
 #[path = "sync_overwrite_names_a_diverged_attachment.rs"]

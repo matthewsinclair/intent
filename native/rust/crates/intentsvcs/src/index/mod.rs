@@ -36,6 +36,10 @@ pub struct Row {
   pub indexed_sha256: Option<String>,
   /// Why the index holds no content for this file; `None` when it holds it.
   pub skipped_reason: Option<String>,
+  /// The [`symbols::EXTRACTOR_VERSION`] that wrote this file's symbols. `None`
+  /// where no pass that reads files has recorded one, which includes every
+  /// file an older extractor wrote.
+  pub symbols_version: Option<i64>,
 }
 
 /// What one incremental pass did.

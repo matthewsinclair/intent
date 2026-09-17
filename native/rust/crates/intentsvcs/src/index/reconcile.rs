@@ -140,7 +140,15 @@ pub fn changed_under(
   for mut row in seen {
     let before = previous.iter().find(|p| p.path == row.path);
     row.indexed_sha256 = before.and_then(|b| b.indexed_sha256.clone());
-    if before != Some(&row) {
+    row.symbols_version = before.and_then(|b| b.symbols_version);
+    // **A SOURCE FILE AN OLDER EXTRACTOR WROTE IS CHANGED** (ST0076), so the
+    // next reconcile re-reads it instead of leaving its rows in the old shape
+    // beside rows in the new one. Only a file some pass has READ is stale: one
+    // never read holds no symbols of any shape.
+    let stale_symbols = row.corpus == "code"
+      && row.indexed_sha256.is_some()
+      && row.symbols_version != Some(super::symbols::EXTRACTOR_VERSION);
+    if before != Some(&row) || stale_symbols {
       upserts.push(row);
     }
   }
@@ -237,9 +245,27 @@ fn rows_under(
       mtime: stamp.map(|s| s.mtime).unwrap_or_default(),
       indexed_sha256: None,
       skipped_reason: skipped.map(|r| r.as_str().to_string()),
+      symbols_version: None,
     });
   }
   Ok(out)
+}
+
+/// Record on each row what this pass read it at: the hash, and for a source
+/// file the extractor version that wrote its symbols (ST0076).
+///
+/// **ONE HOME FOR THE MARK**, which the rebuild and the incremental refresh
+/// both apply before their rows are written, so `index_file` says what the
+/// section and symbol tables beside it were read from.
+pub fn mark_read(rows: &mut [Row], content: &Content) {
+  for (path, sha) in &content.indexed {
+    if let Some(row) = rows.iter_mut().find(|r| &r.path == path) {
+      row.indexed_sha256 = Some(sha.clone());
+      if row.corpus == "code" {
+        row.symbols_version = Some(super::symbols::EXTRACTOR_VERSION);
+      }
+    }
+  }
 }
 
 /// What the index holds after reading the files it said it would hold.
@@ -770,6 +796,7 @@ mod tests {
     let mut previous = rows_of(&dir);
     for row in &mut previous {
       row.indexed_sha256 = Some("deadbeef".to_string());
+      row.symbols_version = Some(super::super::symbols::EXTRACTOR_VERSION);
     }
 
     assert_eq!(

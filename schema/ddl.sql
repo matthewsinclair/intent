@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.3
--- SCHEMA_DDL_VER: 23
+-- SCHEMA_DDL_VER: 24
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -317,7 +317,8 @@ CREATE TABLE IF NOT EXISTS index_file (
   indexed_sha256 TEXT,
   skipped_reason TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  symbols_version INTEGER
 );
 -- Prose ingest (data-model.md): bodies stored VERBATIM, never modelled, and
 -- FTS5-indexed to power `intent search`. One table, not an external-content
@@ -391,7 +392,15 @@ CREATE TABLE IF NOT EXISTS symbols (
   start_line INTEGER NOT NULL,
   end_line INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  subkind TEXT NOT NULL DEFAULT '',
+  container TEXT,
+  container_kind TEXT,
+  trait_name TEXT,
+  arity INTEGER,
+  arity_min INTEGER,
+  qualifier TEXT,
+  level INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);

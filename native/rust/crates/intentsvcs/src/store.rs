@@ -400,7 +400,8 @@ CREATE TABLE IF NOT EXISTS index_file (
   indexed_sha256 TEXT,
   skipped_reason TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  symbols_version INTEGER
 );
 -- Prose ingest (data-model.md): bodies stored VERBATIM, never modelled, and
 -- FTS5-indexed to power `intent search`. One table, not an external-content
@@ -474,7 +475,15 @@ CREATE TABLE IF NOT EXISTS symbols (
   start_line INTEGER NOT NULL,
   end_line INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  subkind TEXT NOT NULL DEFAULT '',
+  container TEXT,
+  container_kind TEXT,
+  trait_name TEXT,
+  arity INTEGER,
+  arity_min INTEGER,
+  qualifier TEXT,
+  level INTEGER NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
 CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
@@ -715,7 +724,7 @@ CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, id)
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 27;
+pub const SCHEMA_VERSION: i32 = 28;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -1686,7 +1695,72 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // last reconciled (0369).
     INDEX_STATE,
   ),
+  (
+    28,
+    // 27 -> 28: the typed symbol index (ST0076 WP-01). `symbols` gains what a
+    // row IS and where it sits; `index_file` gains the extractor version that
+    // wrote a file's symbols. Every carried row reads NULL there, so the next
+    // reconcile re-extracts the file rather than mixing two shapes silently.
+    //
+    // **TWO REBUILDS RATHER THAN `ALTER TABLE ADD COLUMN`, for rung 25's
+    // reason.** The cheap form was written first and
+    // `a_store_stamped_by_an_earlier_draft_of_a_rung...` red it with `duplicate
+    // column name: subkind`: that fixture builds the current DDL and stamps an
+    // older version, and nothing rebuilds either table after rung 22 and rung
+    // 20. Each `SELECT` names only the columns those rungs made, so it reads
+    // either shape. The carried symbol rows keep an empty `subkind` until their
+    // file is re-extracted, which is the untyped shape they were written in.
+    "CREATE TABLE symbols_rebuilt (
+       path TEXT NOT NULL,
+       lang TEXT NOT NULL,
+       name TEXT NOT NULL,
+       kind TEXT NOT NULL,
+       start_line INTEGER NOT NULL,
+       end_line INTEGER NOT NULL,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       subkind TEXT NOT NULL DEFAULT '',
+       container TEXT,
+       container_kind TEXT,
+       trait_name TEXT,
+       arity INTEGER,
+       arity_min INTEGER,
+       qualifier TEXT,
+       level INTEGER NOT NULL DEFAULT 1
+     );
+     INSERT INTO symbols_rebuilt (path, lang, name, kind, start_line, end_line, created_at,
+       updated_at)
+       SELECT path, lang, name, kind, start_line, end_line, created_at, updated_at FROM symbols;
+     DROP TABLE symbols;
+     ALTER TABLE symbols_rebuilt RENAME TO symbols;
+     CREATE INDEX IF NOT EXISTS symbols_by_name ON symbols (name);
+     CREATE INDEX IF NOT EXISTS symbols_by_path ON symbols (path);
+     CREATE TABLE index_file_rebuilt (
+       path TEXT PRIMARY KEY,
+       corpus TEXT NOT NULL,
+       lang TEXT,
+       size INTEGER NOT NULL,
+       mtime TEXT NOT NULL,
+       indexed_sha256 TEXT,
+       skipped_reason TEXT,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       symbols_version INTEGER
+     );
+     INSERT INTO index_file_rebuilt (path, corpus, lang, size, mtime, indexed_sha256,
+       skipped_reason, created_at, updated_at)
+       SELECT path, corpus, lang, size, mtime, indexed_sha256, skipped_reason, created_at,
+         updated_at
+       FROM index_file;
+     DROP TABLE index_file;
+     ALTER TABLE index_file_rebuilt RENAME TO index_file;",
+  ),
 ];
+
+/// The `symbols` columns a [`crate::index::symbols::Symbol`] is read from, in
+/// the order `Store::symbol_rows` reads them.
+const SYMBOL_COLUMNS: &str = "path, lang, name, kind, start_line, end_line, subkind, container, \
+  container_kind, trait_name, arity, arity_min, qualifier, level";
 
 /// The one-row table a reconcile stamps (issue 0369). Shared by the DDL and
 /// rung 27 so the fresh arm and the migration arm create the same table.
@@ -2000,8 +2074,8 @@ fn stage_gone(tx: &rusqlite::Transaction<'_>, paths: &[String]) -> Result<(), St
 /// `COALESCE` that keeps a hash a writer did not supply.
 fn upsert_index_row(conn: &rusqlite::Connection, r: &crate::index::Row) -> Result<(), StoreError> {
   conn.execute(
-    "INSERT INTO index_file (path, corpus, lang, size, mtime, indexed_sha256, skipped_reason)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+    "INSERT INTO index_file (path, corpus, lang, size, mtime, indexed_sha256, skipped_reason, symbols_version)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
      ON CONFLICT (path) DO UPDATE SET
        corpus = excluded.corpus,
        lang = excluded.lang,
@@ -2016,6 +2090,9 @@ fn upsert_index_row(conn: &rusqlite::Connection, r: &crate::index::Row) -> Resul
        -- here and no writer has claimed otherwise.
        indexed_sha256 = COALESCE(excluded.indexed_sha256, index_file.indexed_sha256),
        skipped_reason = excluded.skipped_reason,
+       -- Preserved for the same reason: only a pass that read the file knows
+       -- which extractor wrote its symbols.
+       symbols_version = COALESCE(excluded.symbols_version, index_file.symbols_version),
        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
     params![
       r.path,
@@ -2025,6 +2102,7 @@ fn upsert_index_row(conn: &rusqlite::Connection, r: &crate::index::Row) -> Resul
       r.mtime,
       r.indexed_sha256,
       r.skipped_reason,
+      r.symbols_version,
     ],
   )?;
   Ok(())
@@ -5175,7 +5253,7 @@ impl Store {
   /// Every row the index holds, in path order.
   pub fn index_files(&self) -> Result<Vec<crate::index::Row>, StoreError> {
     let mut stmt = self.conn.prepare(
-      "SELECT path, corpus, lang, size, mtime, indexed_sha256, skipped_reason
+      "SELECT path, corpus, lang, size, mtime, indexed_sha256, skipped_reason, symbols_version
          FROM index_file ORDER BY path",
     )?;
     let rows = stmt.query_map([], |row| {
@@ -5187,6 +5265,7 @@ impl Store {
         mtime: row.get(4)?,
         indexed_sha256: row.get(5)?,
         skipped_reason: row.get(6)?,
+        symbols_version: row.get(7)?,
       })
     })?;
     let mut out = Vec::new();
@@ -5445,8 +5524,9 @@ impl Store {
     )?;
     for s in symbols {
       tx.execute(
-        "INSERT INTO symbols (path, lang, name, kind, start_line, end_line)
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        "INSERT INTO symbols (path, lang, name, kind, start_line, end_line, subkind, container,
+           container_kind, trait_name, arity, arity_min, qualifier, level)
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
         params![
           s.path,
           s.lang,
@@ -5454,6 +5534,14 @@ impl Store {
           s.kind.as_str(),
           s.span.start_line as i64,
           s.span.end_line as i64,
+          s.subkind,
+          s.container,
+          s.container_kind,
+          s.trait_name,
+          s.arity,
+          s.arity_min,
+          s.qualifier,
+          s.level,
         ],
       )?;
     }
@@ -5623,11 +5711,10 @@ impl Store {
   /// an agent asks INSTEAD of reading the whole file -- and answering it from
   /// the index is where the saving is, not in racing grep.
   pub fn symbols_in(&self, path: &str) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    // No DISTINCT: issue 0358's duplicate is resolved at extraction (ST0076
+    // WP-01), so a duplicate row here is a defect to see, not to hide.
     self.symbol_rows(
-      // Issue 0358: DISTINCT, because two tags patterns matching one node store
-      // one symbol twice.
-      "SELECT DISTINCT path, lang, name, kind, start_line, end_line
-         FROM symbols WHERE path = ?1 ORDER BY start_line, name",
+      &format!("SELECT {SYMBOL_COLUMNS} FROM symbols WHERE path = ?1 ORDER BY start_line, name"),
       path,
     )
   }
@@ -5637,8 +5724,7 @@ impl Store {
     name: &str,
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     self.symbol_rows(
-      "SELECT DISTINCT path, lang, name, kind, start_line, end_line
-         FROM symbols WHERE name = ?1 ORDER BY path, start_line",
+      &format!("SELECT {SYMBOL_COLUMNS} FROM symbols WHERE name = ?1 ORDER BY path, start_line"),
       name,
     )
   }
@@ -5656,20 +5742,10 @@ impl Store {
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     let mut stmt = self.conn.prepare(sql)?;
     let rows = stmt.query_map(params![bind], |row| {
-      Ok((
-        row.get::<_, String>(0)?,
-        row.get::<_, String>(1)?,
-        row.get::<_, String>(2)?,
-        row.get::<_, String>(3)?,
-        row.get::<_, i64>(4)?,
-        row.get::<_, i64>(5)?,
-      ))
-    })?;
-    let mut out = Vec::new();
-    for row in rows {
-      let (path, lang, name, kind, start_line, end_line) = row?;
-      out.push(crate::index::symbols::Symbol {
-        path,
+      let lang: String = row.get(1)?;
+      let kind: String = row.get(3)?;
+      Ok(crate::index::symbols::Symbol {
+        path: row.get(0)?,
         // **THE STORED LANGUAGE IS MATCHED TO THE ROSTER RATHER THAN LEAKED AS
         // A `String`.** `Symbol::lang` is `&'static str` because the roster is
         // the vocabulary; a row naming a language this build has never heard of
@@ -5679,18 +5755,26 @@ impl Store {
           .iter()
           .find(|(known, _)| *known == lang)
           .map_or("", |(known, _)| *known),
-        name,
+        name: row.get(2)?,
         kind: match kind.as_str() {
           "ref" => crate::index::symbols::SymbolKind::Ref,
           _ => crate::index::symbols::SymbolKind::Def,
         },
         span: crate::index::symbols::Span {
-          start_line: start_line as u32,
-          end_line: end_line as u32,
+          start_line: row.get::<_, i64>(4)? as u32,
+          end_line: row.get::<_, i64>(5)? as u32,
         },
-      });
-    }
-    Ok(out)
+        subkind: row.get(6)?,
+        container: row.get(7)?,
+        container_kind: row.get(8)?,
+        trait_name: row.get(9)?,
+        arity: row.get(10)?,
+        arity_min: row.get(11)?,
+        qualifier: row.get(12)?,
+        level: row.get(13)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
   /// Every source row, ordered by path then position.

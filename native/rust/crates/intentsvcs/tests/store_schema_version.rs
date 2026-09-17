@@ -322,8 +322,13 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   //
   // 27 is `index_state` (0369): one row a reconcile stamps with the database
   // clock, so a search envelope can say how old its index is.
-  const PINNED_SCHEMA_HASH: u64 = 0x93d9_f79a_8d0a_070f;
-  const PINNED_FOR_VERSION: i32 = 27;
+  //
+  // 28 is the typed symbol index (ST0076 WP-01): `symbols` gains what a row IS
+  // and where it sits, and `index_file` gains `symbols_version`, the extractor
+  // version that wrote a file's symbols. Two rebuilds rather than `ADD COLUMN`,
+  // for rung 25's reason, which this file's earlier-draft fixture enforces.
+  const PINNED_SCHEMA_HASH: u64 = 0xb71b_e534_8494_2849;
+  const PINNED_FOR_VERSION: i32 = 28;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

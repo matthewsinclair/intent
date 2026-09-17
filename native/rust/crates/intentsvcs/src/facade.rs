@@ -8241,14 +8241,10 @@ impl Facade {
       &self.project.config().languages,
     );
     let mut rows = rows;
-    for (path, sha) in &content.indexed {
-      if let Some(row) = rows.iter_mut().find(|r| &r.path == path) {
-        // The hash goes in BEFORE the rows are written, so `index_file` and the
-        // section tables land in one pass and the column says what the rows
-        // beside it were read from.
-        row.indexed_sha256 = Some(sha.clone());
-      }
-    }
+    // The mark goes in BEFORE the rows are written, so `index_file` and the
+    // section tables land in one pass and the columns say what the rows beside
+    // them were read from.
+    crate::index::reconcile::mark_read(&mut rows, &content);
     self
       .store
       .replace_index_files(&rows)
@@ -8324,11 +8320,7 @@ impl Facade {
       &self.project.config().languages,
     );
     let mut upserts = change.upserts;
-    for (path, sha) in &content.indexed {
-      if let Some(row) = upserts.iter_mut().find(|r| &r.path == path) {
-        row.indexed_sha256 = Some(sha.clone());
-      }
-    }
+    crate::index::reconcile::mark_read(&mut upserts, &content);
     // **EVERY PATH THIS PASS TOUCHED, INCLUDING THE ONES THAT HAVE GONE.** A
     // removed file contributes no sections, so a call that took its scope from
     // the sections it was handed could never empty anything.

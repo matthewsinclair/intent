@@ -197,6 +197,7 @@ fn a_writer_that_does_not_know_what_was_indexed_does_not_say_it_was_nothing() {
     mtime: "2026-09-12T10:00:00Z".to_string(),
     indexed_sha256: sha.map(str::to_string),
     skipped_reason: None,
+    symbols_version: None,
   };
 
   store

@@ -151,6 +151,7 @@ mod tests {
       mtime: String::new(),
       indexed_sha256: None,
       skipped_reason: skipped.map(|r| r.as_str().to_string()),
+      symbols_version: None,
     }
   }
 
