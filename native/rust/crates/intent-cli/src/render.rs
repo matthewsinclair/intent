@@ -4473,6 +4473,13 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
   for file in &carried.left_in_place {
     println!("left in place: {} -- {}", file.at, file.reason);
   }
+  // **A RENDERED VIEW IS NAMED, SO NOTHING ON THE NODE PASSES UNSAID** (issue
+  // 0439): the carry read it, found only the renderer's lines, and kept no copy.
+  for file in &carried.rendered {
+    println!(
+      "rendered: {file} -- a view Intent rendered from the model, with no unit to carry, so no copy is kept"
+    );
+  }
   print_uncarried(&carried.uncarried);
   // **A DROP IS STATED IN THE CLOSING LINE** (issue 0408): the run only reaches
   // here with units uncarried when `--drop-uncarried` asked for it, so rc 0
@@ -13952,6 +13959,7 @@ mod tests {
       snapshots: Vec::new(),
       uncarried: Vec::new(),
       left_in_place: Vec::new(),
+      rendered: Vec::new(),
       offered: 1,
     };
     assert_eq!(report_wb_migration(&reconciled), Ok(()));

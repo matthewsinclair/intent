@@ -489,7 +489,7 @@ fn a_unit_the_model_cannot_carry_refuses_the_carry_until_the_drop_is_asked_for()
     .wb_migrate("dc", false)
     .expect_err("an unmapped section refuses the carry");
   let intentsvcs::facade::FacadeError::WbUncarried {
-    units, snapshot, ..
+    units, snapshots, ..
   } = &refusal
   else {
     panic!("the refusal is the uncarried one: {refusal:?}");
@@ -499,12 +499,12 @@ fn a_unit_the_model_cannot_carry_refuses_the_carry_until_the_drop_is_asked_for()
     "the refusal names the unit: {units:?}"
   );
   assert_eq!(
-    snapshot,
-    "intent/whiteboard/dc/.history/pre-migration/wip.md"
+    snapshots,
+    &vec!["intent/whiteboard/dc/.history/pre-migration/wip.md"]
   );
   let rendered = refusal.render();
   assert!(
-    rendered.contains("--drop-uncarried") && rendered.contains(snapshot.as_str()),
+    rendered.contains("--drop-uncarried") && rendered.contains(snapshots[0].as_str()),
     "the remedy names the flag and where the board would be kept: {rendered}"
   );
   let board = facade.board("dc").expect("the board");
@@ -597,4 +597,128 @@ fn a_different_snapshot_in_the_way_refuses_the_carry() {
       .is_none(),
     "and nothing was carried"
   );
+}
+
+/// Issue 0438: a drop over an inbox holding a line above its first entry keeps
+/// that inbox byte for byte as a snapshot of its own, so the dropped line is out
+/// of the model and still in the store's prose, as a dropped board line is. A
+/// different file already at that copy's path refuses the carry before either
+/// copy is written.
+#[test]
+fn a_dropped_inbox_line_is_kept_in_a_copy_of_its_inbox() {
+  let fx = Fixture::new();
+  let home = fx.root().join("intent/whiteboard/dc");
+  std::fs::create_dir_all(home.join(".history/pre-migration")).expect("the directories");
+  std::fs::write(home.join("wip.md"), BOARD).expect("the board");
+  let lead = "A line somebody wrote above the first entry.";
+  let inbox = FROM_VC.replacen("\n\n", &format!("\n\n{lead}\n\n"), 1);
+  std::fs::write(home.join("inbox.vc.md"), &inbox).expect("an inbox with a lead line");
+  let kept = "intent/whiteboard/dc/.history/pre-migration/inbox.vc.md";
+  std::fs::write(fx.root().join(kept), FOLD).expect("another file where the copy goes");
+  let mut facade = fx.facade();
+  facade
+    .register_roster()
+    .expect("register dc from its header");
+  facade
+    .wb_register("vc", "Validation Claude", "validation")
+    .expect("register the sender");
+
+  let refusal = facade
+    .wb_migrate("dc", true)
+    .expect_err("a different file where the inbox's copy goes is not overwritten");
+  assert!(
+    matches!(
+      &refusal,
+      intentsvcs::facade::FacadeError::WbSnapshotInTheWay { at, .. } if at == kept
+    ),
+    "{refusal:?}"
+  );
+  assert!(
+    !home.join(".history/pre-migration/wip.md").exists(),
+    "and the board's copy, checked first, was not written either: every copy is checked before \
+     any is written"
+  );
+
+  std::fs::remove_file(fx.root().join(kept)).expect("move the file out of the way");
+  let carried = facade
+    .wb_migrate("dc", true)
+    .expect("the drop carries the rest");
+  assert!(
+    carried.uncarried.iter().any(|u| u.text == lead) && carried.reconciles(),
+    "the lead line is named as dropped: {:?}",
+    carried.uncarried
+  );
+  assert_eq!(
+    std::fs::read_to_string(fx.root().join(kept)).expect("the inbox's copy on disk"),
+    inbox,
+    "the inbox is kept as it stood"
+  );
+  assert!(
+    carried.snapshots.iter().any(|f| f == kept),
+    "and carried as a snapshot: {:?}",
+    carried.snapshots
+  );
+  let sections: Vec<intentsvcs::prose::DocSection> = facade
+    .store()
+    .doc_sections()
+    .expect("sections")
+    .into_iter()
+    .filter(|s| s.owner_type == intentsvcs::prose::WB_OWNER && s.file == kept)
+    .collect();
+  assert_eq!(
+    intentsvcs::prose::join(&sections),
+    inbox,
+    "the dropped line is still in the store's prose"
+  );
+  assert!(
+    !std::fs::read_to_string(home.join("inbox.vc.md"))
+      .expect("the rendered inbox")
+      .contains(lead),
+    "and out of the inbox the carry rendered from its rows"
+  );
+}
+
+/// Issue 0439: a registered node's board and inbox are views Intent rendered,
+/// and none of their lines is a unit. The carry refuses nothing without the
+/// drop, carries nothing, keeps no copy, and names each rendered file.
+#[test]
+fn a_node_whose_files_are_rendered_views_carries_nothing_and_names_them() {
+  let fx = Fixture::new();
+  let mut facade = fx.facade();
+  facade
+    .wb_register("hv", "Hypervisor", "hypervisor")
+    .expect("register hv, whose views render");
+  facade
+    .wb_register("vc", "Validation Claude", "validation")
+    .expect("register a peer, so hv's inbox from it renders");
+  let home = fx.root().join("intent/whiteboard/hv");
+  for file in ["wip.md", "inbox.vc.md"] {
+    let view = std::fs::read_to_string(home.join(file)).expect("a rendered view");
+    assert!(
+      view.contains("_Generated by Intent v"),
+      "{file} is a view the renderer wrote: {view}"
+    );
+  }
+
+  let carried = facade
+    .wb_migrate("hv", false)
+    .expect("a rendered view offers no unit, so nothing refuses the carry");
+  assert!(
+    carried.items.is_empty() && carried.messages == 0 && carried.uncarried.is_empty(),
+    "nothing is carried: {carried:?}"
+  );
+  assert!(
+    carried.snapshots.is_empty() && !home.join(".history/pre-migration").exists(),
+    "and nothing is kept, because every byte was the renderer's: {:?}",
+    carried.snapshots
+  );
+  assert_eq!(
+    carried.rendered,
+    vec![
+      "intent/whiteboard/hv/wip.md",
+      "intent/whiteboard/hv/inbox.vc.md"
+    ],
+    "each rendered file is named"
+  );
+  assert!(carried.reconciles());
 }

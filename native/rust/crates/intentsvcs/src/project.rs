@@ -1650,18 +1650,21 @@ impl Project {
     self.whiteboard_dir().join(node).join("wip.md")
   }
 
-  /// The verbatim copy of a node's hand-authored board that `wb migrate` keeps,
-  /// `whiteboard/<node>/.history/pre-migration/wip.md`.
+  /// The verbatim copy `wb migrate` keeps of one of a node's hand-authored
+  /// files, `whiteboard/<node>/.history/pre-migration/<file>`: its `wip.md`,
+  /// and each inbox holding a line the model cannot carry (issue 0438).
   ///
   /// **UNDER `.history/` SO IT IS A SNAPSHOT LIKE EVERY FOLD'S ARCHIVE**, read
   /// and carried by the same walk, and undated because a board is migrated once.
-  pub fn wb_pre_migration_snapshot(&self, node: &str) -> PathBuf {
+  /// **THE COPY KEEPS ITS SOURCE'S NAME**, so no second spelling of a board's
+  /// file names exists to disagree with the directory it was read from.
+  pub fn wb_pre_migration_snapshot(&self, node: &str, file: &str) -> PathBuf {
     self
       .whiteboard_dir()
       .join(node)
       .join(".history")
       .join("pre-migration")
-      .join("wip.md")
+      .join(file)
   }
 
   /// One ordered pair's inbox view, `whiteboard/<recipient>/inbox.<sender>.md`:

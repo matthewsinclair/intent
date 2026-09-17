@@ -1572,18 +1572,19 @@ pub enum FacadeError {
   WbUncarried {
     node: String,
     units: Vec<crate::wbmigrate::Uncarried>,
-    /// Where `--drop-uncarried` would keep the board verbatim.
-    snapshot: String,
+    /// Where `--drop-uncarried` would keep a verbatim copy: of the board's
+    /// `wip.md`, and of every inbox holding one of the units (issue 0438).
+    snapshots: Vec<String>,
   },
-  /// A pre-migration snapshot already on disk that is not the board being
-  /// carried.
+  /// A pre-migration snapshot already on disk that is not the file the carry
+  /// keeps there.
   ///
-  /// **THE CARRY WRITES THE BOARD'S VERBATIM COPY AND NEVER OVERWRITES ONE.**
-  /// A file at that path with other bytes is either an earlier board or a
+  /// **THE CARRY WRITES EACH VERBATIM COPY AND NEVER OVERWRITES ONE.** A file
+  /// at that path with other bytes is either an earlier board or inbox or a
   /// hand-placed document, and replacing it would lose exactly the record the
   /// snapshot exists to keep.
   #[error(
-    "`{at}` already holds a pre-migration snapshot of `{node}`'s board, and it is not this board"
+    "`{at}` already holds a pre-migration snapshot of `{node}`'s board, and it is not the file this carry keeps there"
   )]
   WbSnapshotInTheWay { node: String, at: String },
   /// No acting node: nothing said who is writing.
@@ -1653,6 +1654,11 @@ pub struct WbMigration {
   /// 0409). Reported as `uncarried:`, eighteen files still on disk and tracked
   /// read as eighteen losses where there were none.
   pub left_in_place: Vec<crate::wbmigrate::Uncarried>,
+  /// The node's files that are views Intent rendered and offer no unit, by
+  /// project-relative path (issue 0439): named, and not kept, because every
+  /// byte of them was written from rows. **NOT IN `offered`**, since a view the
+  /// renderer wrote is the model's statement and not a line the board offered.
+  pub rendered: Vec<String>,
   /// Every unit the source offered: item-shaped board lines, inbox entries and
   /// `.history/` files. **Counted where each unit is dispatched**, never
   /// re-derived by a second walk that would be free to disagree.
@@ -1863,11 +1869,18 @@ impl crate::remedy::Remedy for FacadeError {
         "`{verb}` writes a `{kind}`. One door per kind is deliberate: what a decision is FOR is stated once, beside the verb that writes one"
       ),
       Self::WbDirectiveOffHv { .. } => "a standing directive is the hypervisor's: an instruction every node honours, kept under the protocol's `## Standing directives` section on `hv`'s board, where `intent wb add directive <text> --node hv` writes it on hv's word. A call this node made itself is a decision: `intent wb decide <text>`".to_string(),
-      Self::WbUncarried { node, snapshot, .. } => format!(
-        "nothing was written. Each unit is named on an `uncarried:` line with its reason: give it a home the model carries -- a bullet under a section the protocol names, or a heading with nothing after its kind word -- and re-run `intent wb migrate {node}`. Or carry the rest without them: `intent wb migrate {node} --drop-uncarried`, which keeps the whole board byte for byte as the snapshot `{snapshot}`"
+      Self::WbUncarried {
+        node, snapshots, ..
+      } => format!(
+        "nothing was written. Each unit is named on an `uncarried:` line with its reason: give it a home the model carries -- a bullet under a section the protocol names, or a heading with nothing after its kind word -- and re-run `intent wb migrate {node}`. Or carry the rest without them: `intent wb migrate {node} --drop-uncarried`, which first keeps byte-for-byte copies, as snapshots, at {}",
+        snapshots
+          .iter()
+          .map(|at| format!("`{at}`"))
+          .collect::<Vec<_>>()
+          .join(", ")
       ),
       Self::WbSnapshotInTheWay { node, at } => format!(
-        "nothing was written. Read `{at}`: if it is an earlier board of `{node}` worth keeping, move it to another name under `.history/`, where the carry takes it as a snapshot of its own, then re-run `intent wb migrate {node}`"
+        "nothing was written. Read `{at}`: if it is an earlier copy worth keeping, move it to another name under `.history/`, where the carry takes it as a snapshot of its own, then re-run `intent wb migrate {node}`"
       ),
       Self::WbDirectivesOnAnotherBoard { node, .. } => format!(
         "nothing was written, so this carry can run again once those lines have a home. A directive still in force belongs on `hv`'s board: under `## Standing directives` in `intent/whiteboard/hv/wip.md` before `hv` is carried, or through `intent wb add directive <text> --node hv` after. A call `{node}` made itself belongs under `## Decisions` on its own board"
@@ -6774,8 +6787,13 @@ impl Facade {
   /// **WHAT THE MODEL CANNOT CARRY REFUSES THE CARRY, UNLESS `drop_uncarried`**
   /// (vc decision 20). Every such unit is named before the first write, the way
   /// an unregistered sender is, so the re-run stays open. Whichever way it
-  /// goes, the board's `wip.md` is kept byte for byte as a snapshot, so a
-  /// dropped line is out of the model and still in the store's prose.
+  /// goes, the board's `wip.md` and every inbox holding a dropped line are kept
+  /// byte for byte as snapshots (issue 0438), so a dropped line is out of the
+  /// model and still in the store's prose.
+  ///
+  /// **A VIEW INTENT RENDERED IS NOT READ AS A BOARD'S LINES** (issue 0439).
+  /// Its banner is the renderer's, and a registered node's views offer no unit
+  /// once it is set aside, so each such file is named rather than kept.
   pub fn wb_migrate(
     &mut self,
     node: &str,
@@ -6798,14 +6816,14 @@ impl Facade {
     // cannot order them, so insertion order is the board's only surviving
     // ordering and it has to be a decided one rather than whatever the
     // filesystem hands back.
-    let mut inboxes: Vec<(String, std::path::PathBuf)> = Vec::new();
+    let mut inboxes: Vec<(String, String, std::path::PathBuf)> = Vec::new();
     for entry in Self::read_node_dir(&home)? {
       let name = entry.file_name().to_string_lossy().to_string();
       if let Some(sender) = name
         .strip_prefix("inbox.")
         .and_then(|rest| rest.strip_suffix(".md"))
       {
-        inboxes.push((sender.to_string(), entry.path()));
+        inboxes.push((sender.to_string(), name.clone(), entry.path()));
       }
     }
     inboxes.sort();
@@ -6818,7 +6836,7 @@ impl Facade {
     // Refusing first keeps the re-run open once the sender is registered.
     // Issue 0381: this skipped the inbox and told the operator to register the sender and re-run, which the already-carried refusal then refused.
     let mut strangers: Vec<(String, String)> = Vec::new();
-    for (sender, path) in &inboxes {
+    for (sender, _, path) in &inboxes {
       if !self
         .store
         .wb_node_exists(sender)
@@ -6841,7 +6859,8 @@ impl Facade {
 
     let wip = home.join("wip.md");
     let text = Self::read_board_file(&wip)?;
-    let source = crate::wbmigrate::read_board(node, &text, &self.project.relative(&wip));
+    let wip_rel = self.project.relative(&wip);
+    let source = crate::wbmigrate::read_board(node, &text, &wip_rel);
 
     // **STANDING DIRECTIVES ON ANY BOARD BUT `hv`'s REFUSE THE WHOLE CARRY, BEFORE
     // ANYTHING IS WRITTEN** (vc, 2026-09-15, issue 0375), for the reason an
@@ -6863,12 +6882,41 @@ impl Facade {
       }
     }
 
+    // **THE FILES THE CARRY KEEPS VERBATIM, BY NAME AND BYTES** (vc decision 20,
+    // issue 0438). The carry renders `wip.md` and every inbox from the rows it
+    // writes, so without a copy the markdown each uncoerced, uncarried line came
+    // from would be gone from the tree the moment the carry landed. The board is
+    // kept whole, and so is each inbox holding a line the model cannot carry;
+    // an inbox holding none is carried entry by entry, with nothing left over.
+    let mut keep: Vec<(String, String)> = Vec::new();
+    // **A VIEW INTENT RENDERED, OFFERING NO UNIT, IS NAMED AND NOT KEPT** (issue
+    // 0439). The readers set its banner aside, and what is left is a header and
+    // the renderer's empty sections, every byte written from rows, so a copy
+    // would keep no board. A rendered view that DOES offer a unit is carried as
+    // any board is: rows it shows that this store does not hold are exactly the
+    // lines a carry must not lose.
+    let mut rendered: Vec<String> = Vec::new();
+    if crate::views::view_body(&text).is_some() && source.source_items == 0 {
+      rendered.push(wip_rel);
+    } else {
+      keep.push(("wip.md".to_string(), text));
+    }
+
     let mut messages: Vec<crate::wbmigrate::SourceMessage> = Vec::new();
     let mut message_uncarried: Vec<crate::wbmigrate::Uncarried> = Vec::new();
-    for (sender, path) in &inboxes {
+    for (sender, name, path) in &inboxes {
       let text = Self::read_board_file(path)?;
       let rel = self.project.relative(path);
       let read = crate::wbmigrate::read_inbox(sender, node, &text, &rel);
+      if crate::views::view_body(&text).is_some()
+        && read.messages.is_empty()
+        && read.uncarried.is_empty()
+      {
+        rendered.push(rel);
+      }
+      if !read.uncarried.is_empty() {
+        keep.push((name.clone(), text));
+      }
       messages.extend(read.messages);
       message_uncarried.extend(read.uncarried);
     }
@@ -6881,58 +6929,55 @@ impl Facade {
       .cloned()
       .chain(message_uncarried.iter().cloned())
       .collect();
-    let snapshot_path = self.project.wb_pre_migration_snapshot(node);
-    let snapshot_rel = self.project.relative(&snapshot_path);
+    let keep: Vec<(std::path::PathBuf, String, String)> = keep
+      .into_iter()
+      .map(|(name, text)| {
+        let path = self.project.wb_pre_migration_snapshot(node, &name);
+        let rel = self.project.relative(&path);
+        (path, rel, text)
+      })
+      .collect();
     if !uncarried.is_empty() && !drop_uncarried {
       return Err(FacadeError::WbUncarried {
         node: node.to_string(),
         units: uncarried,
-        snapshot: snapshot_rel,
+        snapshots: keep.into_iter().map(|(_, rel, _)| rel).collect(),
       });
     }
 
-    // **THE BOARD ITSELF, VERBATIM, AS A SNAPSHOT** (vc decision 20). The carry
-    // renders `wip.md` from the rows it writes, so without this the markdown
-    // every uncoerced, uncarried line came from would be gone from the tree the
-    // moment the carry landed. A copy already there with these bytes is an
-    // earlier attempt and the walk above has carried it; with other bytes it is
-    // refused rather than overwritten.
-    let snapshot_pending = if snapshots.contains(&snapshot_rel) {
-      if Self::read_board_file(&snapshot_path)? != text {
+    // **EVERY COPY IS CHECKED BEFORE ANY IS WRITTEN** (issue 0438). A copy
+    // already there with these bytes is an earlier attempt and the walk above
+    // has carried it; with other bytes it is refused rather than overwritten,
+    // and a refusal over the second copy must not leave the first one written.
+    let mut pending: Vec<(std::path::PathBuf, String, String)> = Vec::new();
+    for (path, rel, text) in keep {
+      if !snapshots.contains(&rel) {
+        pending.push((path, rel, text));
+      } else if Self::read_board_file(&path)? != text {
         return Err(FacadeError::WbSnapshotInTheWay {
           node: node.to_string(),
-          at: snapshot_rel,
+          at: rel,
         });
       }
-      false
-    } else {
-      true
-    };
+    }
 
     // Nothing is written until every file has been read, so a refusal on the
     // third inbox does not leave a board half carried.
-    if snapshot_pending {
-      let write = |path: &std::path::Path| -> Result<(), FacadeError> {
-        let io = |source| {
-          FacadeError::Ingest(IngestError::Io {
-            path: path.display().to_string(),
-            source,
-          })
-        };
-        if let Some(dir) = path.parent() {
-          std::fs::create_dir_all(dir).map_err(io)?;
-        }
-        std::fs::write(path, &text).map_err(io)
+    for (path, rel, text) in pending {
+      let io = |source| {
+        FacadeError::Ingest(IngestError::Io {
+          path: path.display().to_string(),
+          source,
+        })
       };
-      write(&snapshot_path)?;
-      sections.extend(crate::wbmigrate::snapshot_sections(
-        node,
-        &snapshot_rel,
-        &text,
-      ));
-      snapshots.push(snapshot_rel);
-      snapshots.sort();
+      if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(io)?;
+      }
+      std::fs::write(&path, &text).map_err(io)?;
+      sections.extend(crate::wbmigrate::snapshot_sections(node, &rel, &text));
+      snapshots.push(rel);
     }
+    snapshots.sort();
     // **ONE EVENT FOR THE CARRY, NOT ONE PER ROW.** The verb is the act; what
     // it carried is in the rows, and the counts say how many.
     let event = self.wb_event(
@@ -7000,6 +7045,7 @@ impl Facade {
       snapshots,
       uncarried,
       left_in_place,
+      rendered,
     })
   }
 

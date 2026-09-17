@@ -170,6 +170,11 @@ fn kind_and_qualifier(heading: &str) -> Option<(WbItemKind, Option<String>)> {
 /// valid YAML: two of five boards were unparseable at a point in time, and all
 /// of them repaired themselves before anyone noticed.
 pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
+  // **THE RENDERER'S BANNER IS NOT A UNIT, FOR THE REASON `views::EMPTY_ITEMS`
+  // IS NOT** (issue 0439): a registered node's board is a view, and read whole
+  // its closing rule and sentence carried as a coerced item. The body is a
+  // prefix of the file, so every `<file>:<line>` still addresses the file.
+  let wip_md = crate::views::view_body(wip_md).unwrap_or(wip_md);
   let mut out = SourceBoard {
     moniker: moniker.to_string(),
     ..Default::default()
@@ -445,6 +450,10 @@ pub fn snapshot_sections(node: &str, file: &str, text: &str) -> Vec<crate::prose
 /// the same rule the board reader holds to, because "the file only ever has a
 /// header" is exactly the class of assumption that drops content quietly.
 pub fn read_inbox(sender: &str, recipient: &str, text: &str, file: &str) -> SourceInbox {
+  // **NOR IS AN INBOX VIEW'S BANNER** (issue 0439): above the first entry it
+  // was refused as a line belonging to no message, and below the last it would
+  // have been read into that message's body.
+  let text = crate::views::view_body(text).unwrap_or(text);
   let mut out: Vec<SourceMessage> = Vec::new();
   let mut uncarried: Vec<Uncarried> = Vec::new();
   let mut body: Vec<&str> = Vec::new();
