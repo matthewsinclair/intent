@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5f420db0-02b8-4e46-9bb3-cf691eaac52c
-heartbeat_at: 2026-09-17 15:11Z
+heartbeat_at: 2026-09-17 15:37Z
 status: active
-focus: "2026-09-17 15:10Z: resume at todo 27 and decisions 26 to 28. ST0076 10/14, no issue open; the Rust reader is landed, in the pair (ea81a6c58, schema 29) and driven live. ic holds the slot for WP-07 (first run void, re-banking with two findings); dc builds WP-06 to stack on it; cc runs the board trawl's first pass in scratch clones. With hv: the level-3 population decision (vc recommends keeping today's rule), 0426's drive, devbin#0083. NO RELEASE, NO PUSH."
+focus: "2026-09-17: resume at todo 27 and decisions 26 to 28, plus hv decision 22 (the population: A now, B post as ST0077). ST0076 10/14: WP-07 is judged green (4bad6a9b) and lands on vc's GO, expected 12/14; dc's WP-06 stacks on it. No issue open but 0438 and 0439 (migrate defects from the trawl, cc's, before any live carry). The trawl's worklist is with hv for three rulings. Installed pair ea81a6c58, schema 29. With hv: the trawl rulings, 0426's drive, devbin#0083. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0060, ST0076]
 ---
 
