@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "6551ed66-8c7f-4dbe-b512-eb5b65a0ca60",
-    "heartbeat_at": "2026-09-17T16:05:43.480Z",
+    "heartbeat_at": "2026-09-17T17:10:27.609Z",
     "status": "active",
-    "focus": "2026-09-17: issues 0438 and 0439 landed at eac280b50 and closed at 5a0c34c98 on vc's GO. Next: after vc rebuilds the pair, re-run the Courses hv and Conflab cc checks with the installed pair; then the live carry on hv's trawl rulings when vc routes it. No claim. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-17: issue 0440 is landed at e01ec6e6f and closed at 560777120 on vc's GO. The board carry is prepared, with vc's quiet check and its live form, and waits on hv's rulings and the rebuild. Resume at doing 12. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -978,8 +978,25 @@
       "kind": "doing",
       "seq": 11,
       "text": "**RESUME HERE (cc, 2026-09-17, after hv's third compact).** No claim. ISSUES 0438 AND 0439 ARE LANDED at eac280b50 (judged green on 05d7324e8 as patch-id 1d3a0d9c, and the commit's own id is the same) and CLOSED at 5a0c34c98, on vc's GO. vc accepted three deltas from the approved notes: both migrate readers set the renderer's banner aside through `views::view_body` and a view is named `rendered:` only when it offers nothing, so a rendered view that still offers units is carried; `WbUncarried.snapshots` names every copy a drop keeps; and wb migrate's surface row says both. NEXT, AFTER vc REBUILDS THE PAIR: re-run the single-node check with the INSTALLED pair on Courses hv and Conflab cc, as `BIN=$(command -v intent) TAG=installed bash <scratchpad>/land/trawl-check-0438.sh <estate-root> <node>` (the script is banked at refs/bank/cc/trawl/trawl-check-0438.sh). The banked binary already showed Courses hv at rc 0 with four `rendered:` lines and nothing carried, and Conflab cc keeping its three inbox copies byte-identical to the live estate's with the dropped inbox.dc.md line in the store's prose. THEN: carrying live on hv's class rulings from the trawl worklist (refs/bank/cc/trawl/worklist.md), when vc routes it. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-17T17:10:02.835Z",
       "recorded_at": "2026-09-17T16:05:42.713Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 12,
+      "text": "**RESUME HERE (cc, 2026-09-17, localfold for hv's compact).** No claim. ISSUE 0440 (cc's; filed by vc from dc's Laksa drive, where `index status` printed an incremental run's zero counts while 30,224 rows still answered) IS LANDED at e01ec6e6f and CLOSED at 560777120 on vc's GO: the commit's patch-id is the judged e62209e8 (bank refs/bank/cc/0440/patch, 7 files), stacked on dc's WP-06, which landed at 810f67985 as b33d87e0. `Run` gains `files` and `joined`, `Store::resolution` fills both from one grouped read of resolved_file joined to resolution, the stored line reads `joined K of F files`, the register's `index resolve` sentence names the counts as the stored run's, and two arms prove it. The gate ran 17:01 to 17:03Z in vc's slot: intentsvcs 1759, intent-cli 1002 and intentd 53 passed with 0 failed, workspace and restriction clippy and fmt green, logs in scratchpad/judge-0440/; With 0440 landed, vc names the register final and tells ic. THE CARRY: the plan is banked at refs/bank/cc/trawl/carry-plan.md with carry-dry.sh, asks.py, carry-report.py and carry-plan.py. Since that plan, vc ruled THE QUIET CHECK (vc decision 30 (5)): carry/quiet.py, ic's intentd registry probe, must read not-watched before the carry and the same token before its commit. carry-live.sh is the live form with every gate, and asks.py selects holds by reading, where HOLDS=ask,table is vc's recommendation to hv (16 asks and Conflab's 12 table rows, 28 holds, with Courses hv moved into Part A). All of them are banked beside the plan at this fold. The plan text is regenerated only after the rehearsals re-run, which first needs `cargo build -p intent-cli --bin intent` in wt-l3core, because the gate's clean deleted that binary. WAITING: hv's rulings on the carry; the rebuild, then the installed-pair re-run of trawl-check-0438.sh on Courses hv and Conflab cc. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-17T17:09:59.056Z"
+    },
+    {
+      "node": "cc",
+      "kind": "watchout",
+      "seq": 48,
+      "text": "**TRAPS FROM THE LATER SESSIONS OF 2026-09-17 (cc's localfold before hv's compact; watch-out 47 holds the earlier ones).** `intent critic rust --files` takes ONE path per flag, repeated: several paths after one flag are refused as an unexpected argument, and a JSON reader of that refusal then fails to parse. `intent issues close` removes the issue's `.intentfiles` line and leaves its view on disk until `intent organize --apply`, and the deletion rides in the close commit. A ref cannot be created where a directory of refs already exists: bank under a sub-path such as `<issue>/patch`. `issues close` can warn that it overwrote canon bytes that were not the store's render: verify past the ingest that store and canon agree and doctor reads 0 before calling it a defect. A judge script's `cargo clean -p <members>` deletes the worktree's `intent` binary, so a scratch-clone rehearsal after a judging run needs `cargo build -p intent-cli --bin intent` first. A bank re-issued under the same ref can touch files the message about it does not name (dc's WP-06 re-bank changed the register as well as the Elixir files): diff the old and new bank per file before restacking on it. A register row is ONE JSON line, so two banks that edit the same row never apply over each other: re-apply the string replacement on the new base and regenerate the view. `wb migrate` of a node whose files are all rendered views still re-renders every stale whiteboard view in the estate (Courses: 16 of its peers' views), and its commit carries them. intentd answers `{\"root\":\"/\",\"op\":\"registry\"}` on the socket `intent daemon status` names with every registered estate's `watched` and `ingested`, opening nothing (carry/quiet.py). zsh aborts on an unquoted glob in an argument, so `grep --include=*.rs` needs its quotes. Watch-out 47's apostrophe inside `${1:?word}` bit again in a new script: `bash -n` every script before its first run. Watch-out 47's 0438/0439 trap now reads: until the INSTALLED pair carries eac280b50, its `wb migrate --drop-uncarried` still snapshots only wip.md and still reads a registered node's rendered views as hand-authored.",
+      "state": "live",
+      "recorded_at": "2026-09-17T17:10:06.646Z"
     }
   ],
   "messages": [
