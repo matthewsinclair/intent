@@ -8,7 +8,7 @@ import Foundation
 struct ConsoleLine: Sendable, Equatable {
   enum Kind: Sendable {
     case log  // everything intentd prints that is not one of the kinds below
-    case error  // `error:`, `caused by:` and `intentd: could not` lines
+    case error  // `error:` and `caused by:` lines
     case warning  // `warning:` and `remedy:` lines
     case marker  // `» ` lines, the accent
   }
@@ -34,8 +34,10 @@ struct ConsoleLine: Sendable, Equatable {
   /// **THE TOKENS ARE THE CLI'S OWN, INDENTED AS THE OPERATOR SEES THEM.** An
   /// error renders as `error: `, then `  caused by: ` for each cause, then
   /// `  remedy: ` (`intentsvcs::remedy`), so the causes and the remedy are
-  /// matched after their indent. intentd's own notices open `intentd: could not`
-  /// and carry a remedy line of their own.
+  /// matched after their indent. intentd's own notices open with its `warning: `
+  /// or `error: ` token and carry a remedy line of their own (issue 0434), so a
+  /// line with no token is a log line: the Console never guesses a severity from
+  /// the words after `intentd:`.
   ///
   /// **`warning:` IS intentd's OWN SEVERITY AND IS COLOURED AS ONE** (vc's
   /// ruling (b) on AC-02.2, 2026-09-15). intentd prints its warnings with that
@@ -52,7 +54,7 @@ struct ConsoleLine: Sendable, Equatable {
     let line = unstamped(text)
     if line.hasPrefix(markerPrefix) { return .marker }
     let body = line.drop(while: { $0 == " " })
-    if body.hasPrefix("error:") || body.hasPrefix("caused by:") || body.hasPrefix("intentd: could not") {
+    if body.hasPrefix("error:") || body.hasPrefix("caused by:") {
       return .error
     }
     if body.hasPrefix("warning:") || body.hasPrefix("remedy:") {

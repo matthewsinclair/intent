@@ -70,7 +70,11 @@ final class ConsoleTests: XCTestCase {
     XCTAssertEqual(ConsoleLine.kind(of: "error: intentd takes no arguments and was given 2"), .error)
     XCTAssertEqual(ConsoleLine.kind(of: "  caused by: database is locked"), .error)
     XCTAssertEqual(
-      ConsoleLine.kind(of: "intentd: could not refresh the index under `/Users/op/p`: the store is busy"), .error)
+      ConsoleLine.kind(of: "warning: intentd: could not refresh the index under `/Users/op/p`: the store is busy"),
+      .warning)
+    // A notice with no token is a log line: the Console does not guess a severity.
+    XCTAssertEqual(
+      ConsoleLine.kind(of: "intentd: could not refresh the index under `/Users/op/p`: the store is busy"), .log)
     XCTAssertEqual(
       ConsoleLine.kind(
         of: "  remedy: files under those paths may not be reaching `intent search`. Run `intent index rebuild` to catch it up"),
@@ -108,8 +112,9 @@ final class ConsoleTests: XCTestCase {
   func testAStampedLineClassifiesAsTheLineUnderItsStamp() {
     XCTAssertEqual(
       ConsoleLine.kind(
-        of: "2026-09-15T21:40:03.512Z intentd: could not refresh the index under `/Users/op/p`: the store is busy"),
-      .error)
+        of: "2026-09-15T21:40:03.512Z warning: intentd: could not refresh the index under `/Users/op/p`: the store is busy"
+      ),
+      .warning)
     XCTAssertEqual(
       ConsoleLine.kind(
         of: "2026-09-15T21:40:03.512Z   remedy: files under those paths may not be reaching `intent search`."),
