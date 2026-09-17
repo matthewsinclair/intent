@@ -4,7 +4,7 @@
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
-**An issue being closed in our register does not mean the defect is gone from your build.** Every issue this page cites except `intent#0177` is closed in the register, and each entry below still reproduces on 3.0.1.
+**An issue being closed in our register does not mean the defect is gone from your build.** Every issue this page cites is closed in the register, and each entry below still reproduces on 3.0.1.
 
 **Where v3.0.2 fixes an entry, the entry says so, and says what the fixed behaviour is.** An entry is not deleted on the day it is fixed: this page is the driven record for v3.0.1, so a reader still on that build needs the defect as it reproduces, and a reader who has upgraded needs to know which of these they have left. What v3.0.2 fixes is listed in `CHANGELOG.md`; what it does not fix is here without such a line.
 
@@ -37,6 +37,8 @@ The first exits 0 and the second exits 1. The keg's `libexec/intent/plugins/clau
 ```
 
 followed by the same line for `intent/st/ST0001/acceptance.md`, `intent/st/steel_threads.md` and `intent/todo.md`. The equal byte counts are the tell: nobody edited the file.
+
+**Fixed in 3.0.2.** A difference that is only the banner's version is no longer view-skew. `doctor` answers it as its own class, `residue: stale-render`, whose remedy regenerates the view and carries no warning about discarding a hand edit -- because a difference confined to the footer cannot be one. It is also not actionable, so it no longer refuses a commit through the pre-commit gate. The `view-skew` class stays for a view whose body really does differ from the model.
 
 **`intent upgrade` clears the project-level views and not the thread's own.** It stamps the project 3.0.1 and regenerates `steel_threads.md` and `todo.md`; the thread's `info.md` and `acceptance.md` stay skewed after it, and after `intent sync --to-disk` too. `doctor`'s line for each then reads:
 
@@ -118,6 +120,8 @@ Two controls make it sharp. Remove the file from the worktree and the gate flips
 ```
 
 Put the ids first: `intent at new ST0001 AT-01.1 --covers AC-01.1 --file tests/x.rs` answers `ok: AT-01.1 created`.
+
+**Fixed in 3.0.2.** A repeatable flag takes one value per use and repeats, instead of reading the next positional as another value, so the arguments work in the order the usage prints them. The fix is read from each flag's declared arity rather than patched onto the flags that had been noticed, because `--covers` was one of several with the same greed -- `critic --files <path>... [LANG]` ate the language the same way. One undocumented spelling goes with it: `--kind def ref` no longer reads as two values.
 
 **The citation check stops at close, with nothing saying so** (`intent#0267`). `intent at new` and `intent at green` do not read the cited file -- a file carrying no id is accepted by both at exit 0 -- so the first thing that looks at a citation's contents is `at lint`, which on an open thread refuses such a file with `tests/a.rs does not carry the literal id AT-01.1`. Driven on v3.0.1: close a thread on an honest citation, then remove the id from the cited file. `at lint` answers `lint: ST0001 ok -- 1 of 1 AT row(s) examined and conforming`, `at list` still renders the row `green`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_: the lint line calls the row `examined`. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `AT-01.1 cites a file that does not exist: tests/a.rs`. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
 
