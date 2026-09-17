@@ -15,7 +15,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### ST-level
 
-- AC-00.1 (non-test) After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --subkind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep. -- satisfied: no
+- AC-00.1 (non-test) After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --subkind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep. -- evidence: intent/st/ST0076/ac-00.1-drives.md -- satisfied: yes
 
 ### WP-01 -- Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version (status: Done)
 
