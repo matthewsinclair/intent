@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5f420db0-02b8-4e46-9bb3-cf691eaac52c
-heartbeat_at: 2026-09-17 14:38Z
+heartbeat_at: 2026-09-17 15:03Z
 status: active
-focus: "2026-09-17, after hv's compact: resume at todo 26 and decision 26. ST0076 9/14, only level 3 left: cc's Rust reader is banked (refs/bank/cc/st0076-reader, patch-id 73e75262) and in its whole-suite run; dc builds WP-06 and ic WP-07 on the landed core (e302be033). 0432 is closed on hv's word, so 0437 (dc's, low) is the one open issue. Installed pair 8ec04d9fa at schema 28; the next rebuild follows the reader's landing. With hv: 0426's drive, the level-3 population decision, devbin#0083. NO RELEASE, NO PUSH."
+focus: "2026-09-17: resume at todo 26 and decisions 26 and 27. ST0076 10/14: the Rust reader is landed (92cc064d3, WP-05 Done) and in the installed pair (ea81a6c58, store schema 29), and vc drove intent index resolve on this estate (133,788 matched, 34,233 unmatched, 74,354 dropped, 424 ambiguous). Left: ic's WP-07 (banks first, with the manifest seam so a not-applicable language never reads unresolved) and dc's WP-06 (stacks on it). No open issues: 0432 closed on hv's word, 0437 landed by cc (1740ddfb6). cc runs the all-estate board trawl's first pass in scratch clones. With hv: the level-3 population decision (vc recommends keeping today's rule), 0426's drive, devbin#0083. NO RELEASE, NO PUSH."
 claims: [ST0056, ST0060, ST0076]
 ---
 
