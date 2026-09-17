@@ -148,7 +148,7 @@
     },
     {
       "id": "AC-06.1",
-      "text": "Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written references (same file, line and name) and expansion events are not stored; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file, `mix compile` runs without force and `--full` forces.",
+      "text": "Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written references (same file, line and name) and expansion events are not stored; the compile builds into a directory of Intent's own under `intent/.cache`, seeded from the project's build when one exists, and never writes the project's `_build`; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file; the first run and `--full` force the compile, and every other run is incremental.",
       "kind": "test",
       "state": {
         "is": "computed"
