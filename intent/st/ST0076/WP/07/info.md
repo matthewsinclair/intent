@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
