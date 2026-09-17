@@ -39,7 +39,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: WIP)
 
-- AC-05.1 Rust level 3, on an explicit verb only and never from intentd unasked: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written reference (same file, line and name); `intent index status` counts matched, unmatched, dropped and ambiguous, and the paths whose resolved rows are stale; the export builds into a directory of Intent's own under `intent/.cache`; a missing rust-analyzer is named in the envelope with its reason and never answers as an empty tier. -- satisfied: no (computed)
+- AC-05.1 Rust level 3, on an explicit verb only and never from intentd unasked: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written reference (same file, line and name); `intent index status` counts matched, unmatched, dropped and ambiguous, and the paths whose resolved rows are stale; the export builds into a directory of Intent's own under `intent/.cache`; a missing rust-analyzer is recorded as missing with its reason and named by `intent index resolve` and `intent index status`, never stored as a current run that resolved nothing. -- satisfied: no (computed)
 
 ### WP-06 -- Elixir resolved references through the compiler's tracer, on an explicit verb (status: WIP)
 
