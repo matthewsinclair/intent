@@ -23,14 +23,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
-- [-] ST0076: A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references
-  - [x] 01: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
-  - [x] 02: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
-  - [x] 03: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
-  - [x] 04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
-  - [x] 05: Rust resolved references through rust-analyzer's SCIP export
-  - [x] 06: Elixir resolved references through the compiler's tracer, on an explicit verb
-  - [x] 07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 
 ## TODO
 
@@ -98,6 +90,14 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: The verb: intent daemon logs, with --lines and --follow, its register row and tests
   - [x] 02: The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console
   - [x] 03: The streaming items: Run Doctor and Rebuild Search Index into the Console; Start, Stop and Restart noted there
+- [x] ST0076: A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references
+  - [x] 01: Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version
+  - [x] 02: Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier
+  - [x] 03: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
+  - [x] 04: Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions
+  - [x] 05: Rust resolved references through rust-analyzer's SCIP export
+  - [x] 06: Elixir resolved references through the compiler's tracer, on an explicit verb
+  - [x] 07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
 
 ---
 

@@ -5,9 +5,9 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Triage    | 2026-09-17 |                      |
-| ST0076 | A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references                                       | WIP       | 2026-09-16 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage    | 2026-08-25 |                      |
 | ST0056 | Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent | WIP       | 2026-08-14 |                      |
+| ST0076 | A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references                                       | Completed | 2026-09-16 | 2026-09-17           |
 | ST0075 | The Intent.app Console: daemon logs and one-off verbs in one window, copied from Gtools                                                         | Completed | 2026-09-14 | 2026-09-16           |
 | ST0074 | Machine-wide projects: intentd's config home, the project registry and discover, the explorer's project picker, and the menubar status line     | Completed | 2026-09-13 | 2026-09-15           |
 | ST0073 | intentd owns its own lifetime: a lifeline instead of an assumed supervisor                                                                      | Completed | 2026-09-10 | 2026-09-10           |

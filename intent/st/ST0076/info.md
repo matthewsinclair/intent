@@ -1,9 +1,9 @@
 ---
 st_id: ST0076
 title: A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references
-status: WIP
+status: Completed
 created: 2026-09-16
-completed:
+completed: 2026-09-17
 ---
 
 # ST0076: A typed symbol index for Rust and Elixir: kinds, containers, qualified references and resolved references
