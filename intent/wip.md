@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-17:v2.0: vc - leaned to bare bones on hv's instruction, 19 KB to under 4. DOING and TODO only, each item naming its owner and the condition that discharges it. No state that a command regenerates, and no content that already has a home: the close-out rulings are in intent/history/20260915-hv-rulings.md, the bank and landing rules in intent/restart.md, the cut sequence in intent/docs/releasing.md, and every issue in `intent issues show <id>`."
+verblock: "2026-09-17:v2.0: vc - leaned to bare bones on hv's instruction. DOING and TODO only, each item naming its owner and the condition that discharges it. No state that a command regenerates, and no content that already has a home: the close-out rulings are in intent/history/20260915-hv-rulings.md, the bank and landing rules in intent/restart.md, the cut sequence in intent/docs/releasing.md, and every issue in `intent issues show <id>`."
 intent_version: 3.0.3
 ---
 
@@ -25,5 +25,5 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
 - **The cut sequence is `intent/docs/releasing.md`** and every command in it has now been driven rather than composed. Its load-bearing rule: both halves of `docs/reference` are regenerated and COMMITTED BEFORE `build release` runs, because every route that regenerates after the tag ends in a refusal or in a tag that does not contain its own reference pages.
 - **WITH hv, open**: whether release tags start being annotated or `--tags` is the durable answer, since `release:1221` is `git tag "$TAG"` with no `-a`; whether ic's banked staleness check is built; and the hook-ownership conflict, devbin#0078 having ruled that Intent owns hook wiring while decision 24 (4) routed dc's `int hooks` finding to Devbin.
 - **ST0056** closes when hv runs `intent/st/ST0056/gyges-brief.md` on gyges and hands back `~/intent-clean-install.log`: vc judges it, dc satisfies AC-00.5 and AC-11.1 on it, WP-11 and the thread close on hv's word. Those are the only unsatisfied rows in its gate and both are held on that machine.
-- **ST0060** (`intent vault`) is the next line's first thread (hv, 2026-09-15).
+- **ST0060**, the intent vault thread, is the next line's first (hv, 2026-09-15). The verb does not exist yet -- building it is the thread.
 - **ST0077** (level 3 stores the references only the toolchain sees, plus a roster of the targets it defines) is B of hv decision 22, for the line after the close-out.
