@@ -36,6 +36,19 @@ On a fresh clone of main at `c800b8319`, indexed by the installed pair at the sa
 
 The level-3 core first, alone, as its own bank (the tables, per-file replace, staleness, purge, the five counts, the verb and its register row), proven with an in-memory reader, so WP-06 stacks on it. The envelope's `index.resolution` field (a language whose tier is missing, failed or stale) is built on WP-04's landing. Then the SCIP decoder and the Rust reader, and the landing, which also corrects design.md's line that rust-analyzer is not installed on this host.
 
+## The level-3 core, as landed
+
+The core lands alone, ahead of any reader (vc, 2026-09-17), so `intent index resolve` refuses every language by name until a language's reader registers in `index::resolved::readers()`. Beyond decision 25 it carries vc's rulings of 2026-09-17 on dc's review of the reader contract:
+
+- **A run is forced full** when the language has no stored run, its last run did not store, or its record's extractor version differs from the build's. An incremental run over a build cache that already exists would otherwise trace nothing and report an empty tier as a success.
+- **The record carries the extractor version it joined against** (`resolution.symbols_version`), so a build writing another version makes every resolved path of that language stale.
+- **The index catches up after the tool has read and before the join**, never before the tool runs: an edit made before the tool's read joins, and an edit made after it is dropped as moved and retraced by the next run. A refresh that fails fails the run.
+- **`dropped` is counted by reason**: the core's own (`no-line`, `outside-the-project`, `unread`, `not-indexed`, `moved`) and a closed roster each reader declares, where a reason nobody declared fails the run. `matched`, `unmatched` and `dropped` sum to everything the tool emitted, and an arm holds that law.
+- **A target the tool does not locate** is placed at the definition row the reader chooses among the rows that print it: exactly one by default, and the first clause for Elixir.
+- **A project holding nothing for a tool** (no `Cargo.toml`, no `mix.exs`) is not applicable: a run over every declared language names it and leaves its record alone, and a run that asked for it with `--lang` records a failure.
+- **A reader finds its project in the index's file rows** (`Scope::indexed`), never by walking the tree or asking git. Rust's roots are the root-most `Cargo.toml` manifests, each exported on its own.
+- **A build directory Intent cannot create fails that language's run** rather than refusing the verb.
+
 ## Acceptance
 
 Acceptance Criteria for this work package are RENDERED into `ST0076/acceptance.md`, under the `WP-05` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
