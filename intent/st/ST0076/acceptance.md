@@ -34,7 +34,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: Not Started)
 
-- AC-04.1 `intent search` filters definitions by subkind and container (`--kind struct`, `--in <container>`), `--context` prints each reference with its qualifier and names the level that answered, the SQL door and `intent schema` expose the new columns, and the MCP search tool takes the same filters. -- satisfied: no (computed)
+- AC-04.1 `intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters. -- satisfied: no (computed)
 - AC-04.2 The search row's `when_to_use`, the MCP `instructions` line and the explorer's hits say what the index now answers and what it still does not, per level and per language, with no claim wider than the build. -- satisfied: no (computed)
 
 ### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: Not Started)

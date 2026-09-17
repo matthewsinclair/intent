@@ -124,7 +124,7 @@
     },
     {
       "id": "AC-04.1",
-      "text": "`intent search` filters definitions by subkind and container (`--kind struct`, `--in <container>`), `--context` prints each reference with its qualifier and names the level that answered, the SQL door and `intent schema` expose the new columns, and the MCP search tool takes the same filters.",
+      "text": "`intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters.",
       "kind": "test",
       "state": {
         "is": "computed"
