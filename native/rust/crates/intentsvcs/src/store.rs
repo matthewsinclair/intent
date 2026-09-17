@@ -2020,6 +2020,21 @@ impl std::fmt::Display for EntityKind {
   }
 }
 
+impl StoreError {
+  /// SQLite refused because another connection held the writer lock for the
+  /// whole of this connection's wait ([`Store::BUSY_TIMEOUT_MS`]).
+  ///
+  /// **ONE HOME FOR THE CLASSIFICATION** (issue 0436): the remedy below reads
+  /// it, and so does every error that wraps a store cause and would otherwise
+  /// give that cause a remedy of its own.
+  pub fn is_busy(&self) -> bool {
+    matches!(
+      self,
+      Self::Sqlite(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::DatabaseBusy
+    )
+  }
+}
+
 impl crate::remedy::Remedy for StoreError {
   /// What the operator should DO. Distinct per variant -- a remedy that fits
   /// two causes is telling the operator to guess which one they hit.
@@ -2088,6 +2103,15 @@ impl crate::remedy::Remedy for StoreError {
            exists only here"
         )
       }
+      // **A BUSY STORE IS NOT A DAMAGED ONE** (issue 0436). Every transaction
+      // opens IMMEDIATE and waits for the writer lock (issue 0420), so this
+      // reaches an operator only when another process held that lock past the
+      // whole wait. Nothing was written and nothing needs repairing, and the
+      // arm below, written for a failed statement, would leave that unsaid.
+      Self::Sqlite(_) if self.is_busy() => format!(
+        "nothing was written and nothing is damaged -- another process held the store's write lock for longer than this command's {}-second wait. Re-run once that write has finished",
+        Store::BUSY_TIMEOUT_MS / 1000
+      ),
       // CARRIES THE WARNING THE FACADE USED TO SHOW FOR EVERY STORE FAILURE,
       // because this is the variant it was written for: an unclassified
       // statement failure is the one where an operator starts reaching for

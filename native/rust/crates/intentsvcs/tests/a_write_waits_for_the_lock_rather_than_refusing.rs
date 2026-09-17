@@ -12,15 +12,28 @@
 //!
 //! No timing arm: this host's load holds above ten, and a wait measured here
 //! says more about the load than about the store.
+//!
+//! Issue `0436`: a write that outwaits the whole wait is refused, and the
+//! refusal an ingest gives must say the store was busy, not that its artefacts
+//! need fixing. Its arm releases the lock only after the ingest has given up,
+//! so the load cannot let the ingest through.
 
 use crate::common::{Fixture, sample_thread};
+use intentsvcs::facade::FacadeError;
+use intentsvcs::ingest::IngestError;
+use intentsvcs::remedy::Remedy;
+use intentsvcs::store::StoreError;
 use intentsvcs::sync::Scope;
 
-/// Hold the writer lock from a second connection for `for_ms`, then commit.
+/// Hold the writer lock from a second connection until `release` returns, then
+/// commit.
 ///
 /// **THE LOCK IS TAKEN BEFORE THIS RETURNS**, so the write under test starts
 /// with the writer already holding it, never racing it for the lock.
-fn hold_the_writer_lock(fx: &Fixture, for_ms: u64) -> std::thread::JoinHandle<()> {
+fn hold_the_writer_lock(
+  fx: &Fixture,
+  release: impl FnOnce() + Send + 'static,
+) -> std::thread::JoinHandle<()> {
   let db = fx.project().db_path();
   let (held, is_held) = std::sync::mpsc::channel();
   let holder = std::thread::spawn(move || {
@@ -29,7 +42,7 @@ fn hold_the_writer_lock(fx: &Fixture, for_ms: u64) -> std::thread::JoinHandle<()
       .execute_batch("BEGIN IMMEDIATE")
       .expect("the holder takes the writer lock");
     held.send(()).expect("the test is waiting");
-    std::thread::sleep(std::time::Duration::from_millis(for_ms));
+    release();
     conn
       .execute_batch("COMMIT")
       .expect("the holder releases it");
@@ -45,7 +58,9 @@ fn an_edit_that_reads_first_waits_for_a_held_writer_and_lands() {
   let mut f = fx.facade_on_disk();
 
   // Well inside the store's five-second wait, so a write that waits lands.
-  let holder = hold_the_writer_lock(&fx, 1500);
+  let holder = hold_the_writer_lock(&fx, || {
+    std::thread::sleep(std::time::Duration::from_millis(1500))
+  });
   let edited = f.ac_edit(
     "ST0001",
     "AC-03.1",
@@ -69,6 +84,53 @@ fn an_edit_that_reads_first_waits_for_a_held_writer_and_lands() {
     .text
     .clone();
   assert_eq!(text, "the edit that waited");
+}
+
+/// **PAST THE WHOLE WAIT, THE STORE WAS BUSY AND NOTHING IS DAMAGED** (issue
+/// 0436). The refusal reaches the ingest as its store cause, and the remedy is
+/// that cause's own: not the artefacts remedy an ingest gives for a canon it
+/// cannot read, and not the one for a failed statement.
+#[test]
+fn an_ingest_that_outwaits_a_held_writer_is_told_the_store_was_busy() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut f = fx.facade_on_disk();
+
+  let (release, released) = std::sync::mpsc::channel::<()>();
+  let holder = hold_the_writer_lock(&fx, move || {
+    let _ = released.recv();
+  });
+  let ingested = f.ingest_from_disk(&Scope::All);
+  release.send(()).expect("the holder waits to be released");
+  holder.join().expect("the holder finished");
+
+  let err = ingested.expect_err("an ingest cannot take a writer lock held until it gave up");
+  let FacadeError::Ingest(IngestError::Store(cause)) = &err else {
+    panic!(
+      "a store busy past its wait reaches an ingest as its store cause: {}",
+      err.render()
+    );
+  };
+  assert!(
+    matches!(
+      cause,
+      StoreError::Sqlite(rusqlite::Error::SqliteFailure(e, _))
+        if e.code == rusqlite::ErrorCode::DatabaseBusy
+    ),
+    "the cause is SQLite's busy refusal, as SQLite reports it: {}",
+    err.render()
+  );
+  assert_eq!(
+    err.remedy(),
+    cause.remedy(),
+    "the ingest gives the store's remedy for a busy store: {}",
+    err.render()
+  );
+  assert_ne!(
+    cause.remedy(),
+    StoreError::Sqlite(rusqlite::Error::QueryReturnedNoRows).remedy(),
+    "a busy store's remedy is its own, not the one for a failed statement"
+  );
 }
 
 fn secure_delete_of(fx: &Fixture, table: &str) -> String {

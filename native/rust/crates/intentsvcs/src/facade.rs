@@ -2315,6 +2315,12 @@ impl crate::remedy::Remedy for FacadeError {
       Self::Ingest(IngestError::EventLogUnreadable { path, cause }) => format!(
         "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
       ),
+      // **A STORE BUSY PAST ITS WAIT IS THE STORE'S TO NAME** (issue 0436).
+      // The artefacts remedy below would send someone to repair files nothing
+      // is wrong with, and `intent doctor` would find nothing to list. Only
+      // the busy cause is delegated: a store cause an artefact can produce, a
+      // constraint a malformed canon breaks, keeps the artefacts remedy.
+      Self::Ingest(IngestError::Store(cause)) if cause.is_busy() => cause.remedy(),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
       }
