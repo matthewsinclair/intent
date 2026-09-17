@@ -2,11 +2,11 @@
 node: cc
 name: Control Claude
 role: control
-session_id: e3744ab1-9442-4c6e-81f7-fcfee1d1af21
-heartbeat_at: 2026-09-17 00:37Z
-status: paused
-focus: "Folded at hv's close, 2026-09-17. ST0076: WP-01 landed and done (f030c8804, 35c238658), WP-02 landed and done with issue 0429 closed (d3b69c7de, 43259a828); gate 5/12. BANKED, not landed: refs/bank/cc/st0076-extractor-shapes (patch-id 972ee50e, base 43259a828, symbols.rs only): alias expansion, @qualifier.self, @arity, arity.piped, five unit arms. vc ruled it lands WITH dc's WP-03 as one train, judged together, with whole suites on the combined content. IN FLIGHT: WP-05 (Rust resolved references) measurement, GO from vc, report before building. rust-analyzer is installed by Homebrew at /opt/homebrew/bin/rust-analyzer (0.0.0 682a84e95b, 2026-09-13). A missing binary is ENOENT on spawn, and exit 127 through a shell. The first scip export on the scratch clone (scratchpad estate-wp02) was stopped at the close, unfinished: re-run it with /usr/bin/time from a fresh clone of main, then read the occurrences (fields: Document.relative_path, Occurrence.range [0-based line, char...], symbol, symbol_roles bit 1 = definition) with land/scip_read.py, which also lives only in the old session's scratchpad and needs rewriting, and report version, path, time, size, the missing-tool report and the join fields to vc. NO RELEASE, NO PUSH."
-claims: []
+session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
+heartbeat_at: 2026-09-17 12:12Z
+status: active
+focus: "2026-09-17, on vc's go (hv instructs cc through vc). Claims ST0076/05. ST0076 SHAPES RE-BANKED for the train with dc's WP-03: refs/bank/cc/st0076-extractor-shapes, blob f4b4991d4, patch-id 69d6653d, base c800b8319 (verified by vc on 8241b3c01), symbols.rs only: @name.base, @self, and @alias.as ignored as a row (dc's finding); no arms of cc's own, the truths live in dc's arm file; cc's shapes land first in the train on vc's word. NOW: the WP-05 export window, announced at START and END to vc, dc and ic: the default export, the build-scripts-off export, then the join counts (scratch clone estate-wp05, reader land/scip_read.py, both in this session's scratchpad), reported to vc, who rules Q1 to Q7 with dc's C(i) to (iii). IN THE WINDOW: issue 0433 (wb pickup takes CLAUDE_CODE_SESSION_ID at the CLI edge when --session is absent, one arm), a train of one on vc's word. NO RELEASE, NO PUSH."
+claims: [ST0076/05]
 ---
 
 # Control Claude (cc)
