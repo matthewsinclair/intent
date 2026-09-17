@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-17 15:36Z
+heartbeat_at: 2026-09-17 16:05Z
 status: active
-focus: "2026-09-17, localfolded for hv's compact (the third of the day): resume at the RESUME HERE doing item. No claim. Next: issues 0438 and 0439 (migrate keeps a dropped inbox line; a rendered view offers nothing), design approved by vc, build notes banked at refs/bank/cc/0438-0439/notes.md, nothing coded yet. The trawl's first-pass worklist is with vc for hv. NO RELEASE, NO PUSH."
+focus: "2026-09-17: issues 0438 and 0439 landed at eac280b50 and closed at 5a0c34c98 on vc's GO. Next: after vc rebuilds the pair, re-run the Courses hv and Conflab cc checks with the installed pair; then the live carry on hv's trawl rulings when vc routes it. No claim. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, localfold for hv's compact, 2026-09-17, the third of the day).** No claim. NEXT, ISSUES 0438 AND 0439 (both medium, both cc's, filed by vc from cc's board trawl; the design is approved by vc): ONE bank at refs/bank/cc/0438-0439, one whole-suite run on vc's slot with START and END to all lanes, landing on vc's GO. **0439**: `views::is_rendered_view` beside `BANNER_MARKER`, the renderer's home. Migrate asks it of every file: a rendered `wip.md` keeps its header but offers no item and no snapshot, a rendered inbox is never read, and each is named on a `rendered:` line, so Courses `hv` carries nothing at rc 0. Arm: a registered node whose `wip.md` and inboxes are rendered views migrates with no refusal and no drop flag. **0438**: `Project::wb_pre_migration_snapshot(node, file)`. Each hand-authored inbox holding a dropped line is kept verbatim at `<node>/.history/pre-migration/inbox.<sender>.md`, on disk and in the store's sections, and named as a carried snapshot, with the snapshot-in-the-way refusal checked over every target before any write. Arm: a drop over an inbox with a lead line. The build notes, with file and line anchors, are banked at refs/bank/cc/0438-0439/notes.md; nothing is coded, and wt-l3core is clean at 11f8842b1, to be moved to HEAD. AFTER THE LANDING and vc's rebuild, re-run the trawl's first pass on Courses and one Conflab node from the kept clones (scratchpad/trawl/clones, scripts at refs/bank/cc/trawl/*): 0439's refusal gone, 0438's line kept. THE TRAWL'S WORKLIST is with vc for hv (refs/bank/cc/trawl/worklist.md); hv rules restructure or drop by class or unit, and carrying live on those rulings is cc's, after 0438 and 0439 land. Courses `hv` never had a hand-authored board: its files first appear at 50ec2ed as rendered views, so nothing of it lives only in git history. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-17, after hv's third compact).** No claim. ISSUES 0438 AND 0439 ARE LANDED at eac280b50 (judged green on 05d7324e8 as patch-id 1d3a0d9c, and the commit's own id is the same) and CLOSED at 5a0c34c98, on vc's GO. vc accepted three deltas from the approved notes: both migrate readers set the renderer's banner aside through `views::view_body` and a view is named `rendered:` only when it offers nothing, so a rendered view that still offers units is carried; `WbUncarried.snapshots` names every copy a drop keeps; and wb migrate's surface row says both. NEXT, AFTER vc REBUILDS THE PAIR: re-run the single-node check with the INSTALLED pair on Courses hv and Conflab cc, as `BIN=$(command -v intent) TAG=installed bash <scratchpad>/land/trawl-check-0438.sh <estate-root> <node>` (the script is banked at refs/bank/cc/trawl/trawl-check-0438.sh). The banked binary already showed Courses hv at rc 0 with four `rendered:` lines and nothing carried, and Conflab cc keeping its three inbox copies byte-identical to the live estate's with the dropped inbox.dc.md line in the store's prose. THEN: carrying live on hv's class rulings from the trawl worklist (refs/bank/cc/trawl/worklist.md), when vc routes it. NO RELEASE, NO PUSH.
 
 ## TODO
 
