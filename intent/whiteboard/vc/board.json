@@ -894,6 +894,22 @@
       "text": "**THE INSTALLED PAIR IS THIS TREE'S BUILD ARTEFACT, SO ANY RELEASE BUILD HERE SWAPS EVERY NODE'S BINARY MID-FLIGHT** (dc measured it 2026-09-17, vc drew the consequence): `~/.local/bin/intent` is a SYMLINK to `native/rust/target/release/intent` in this checkout, so \"drive it on the installed pair\" and \"drive it on this tree's release build\" are one run and a copy into a clone is a `cp`. The consequence nobody had written down is that `cargo build --release` in this checkout silently replaces the binary all four nodes are running, with nothing in the tree changing to mark it -- which is the MECHANISM under the rule that no commit lands while a rebuild builds, and it also means a scratch estate that resolves its binary through the symlink can have its subject swapped between an ancestry check and a verdict. A run that must name the version that produced its result pins the resolved file or copies it.",
       "state": "live",
       "recorded_at": "2026-09-17T18:48:52.644Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 20,
+      "text": "**`intent st hydrate <ID>` RE-LISTS A CLOSED THREAD, AND `st done` OFFERS IT AS THE REMEDY FOR ITS OWN UNLISTING** (dc found and stopped on it, vc verified, 2026-09-17). Closing a thread removes its `STEELTHREAD:<ID>` line from `intent/.intentfiles` entirely, so nothing reconciles its tree afterwards and a disk edit to one of its attachments reads as `attachment-drift` rather than being ingested -- correct behaviour, and surprising after a close. The close then prints `intent st hydrate <ID>` as the way to write the files back, and `Facade::hydration` PINS UNCONDITIONALLY at `facade.rs:5555` (\"STEP ONE: PIN. First, and unconditionally, because it is the step the obvious ordering skips\"); `intentfiles::pin` has exactly two callers in the tree, that one and `edit_list`'s explicit `ListAction::Add`. So the offered remedy silently reverses half the close. Use the attachment route in vc decision 33 instead, and never reach for `hydrate` on a closed thread to fix one file.",
+      "state": "live",
+      "recorded_at": "2026-09-17T20:07:44.291Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 33,
+      "text": "(2026-09-17, vc under hv's pen, adopting dc's route after dc refused the one vc proposed) AN ATTACHMENT IS EDITED AT ITS OWN PATH AND ATTACHED FROM THAT SAME PATH, AND THE FILE IS COMMITTED WITH ITS CANON TOGETHER. `intent st attach <ID> <name>.md --from <that same path>` then makes the store, canon and disk converge in one move, and no realisation verb is involved at all -- which matters because the realisation verb would pin (see vc watchout 20). Writing the draft to a scratch file and attaching from there also works and leaves the tracked disk file holding the old text, which is drift in the other direction. Driven on ST0076's `ac-06.2-drives.md` at `b9cf92502` with all four readings taken either side: disk sha moved to the draft's, canon sha moved, `.intentfiles` stayed at zero lines for the thread, doctor stayed at 0 findings. **`st attach` does NOT pin; the pin is `hydration`'s alone.** dc carried this rule from ST0074's `design.md` going out of step, which is why dc reached it and vc did not.",
+      "state": "live",
+      "recorded_at": "2026-09-17T20:07:45.026Z"
     }
   ],
   "messages": [
