@@ -383,6 +383,8 @@ mod store_schema_version;
 mod subagents_payload;
 #[path = "symbols_answer_the_highlander_question.rs"]
 mod symbols_answer_the_highlander_question;
+#[path = "symbols_are_qualified_elixir_references.rs"]
+mod symbols_are_qualified_elixir_references;
 #[path = "symbols_are_qualified_references.rs"]
 mod symbols_are_qualified_references;
 #[path = "symbols_are_typed_definitions.rs"]

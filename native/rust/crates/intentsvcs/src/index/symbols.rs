@@ -208,7 +208,7 @@ pub fn readiness(lang: &str) -> Readiness {
 /// by the next reconcile rather than left to mix silently with rows of another
 /// shape. Raise it in the same change as anything that alters what a query or
 /// this module emits.
-pub const EXTRACTOR_VERSION: i64 = 2;
+pub const EXTRACTOR_VERSION: i64 = 3;
 
 /// The symbols in `bytes`, as the query for `lang` names them.
 ///
@@ -289,7 +289,7 @@ pub fn what_a_reference_misses(lang: &str) -> Option<&'static str> {
       "in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference",
     ),
     "elixir" => Some(
-      "in Elixir, a remote call such as Repo.get(..) is a reference to get without its module, and alias is not expanded",
+      "in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier",
     ),
     "swift" => Some("Swift files give definitions only"),
     _ => None,

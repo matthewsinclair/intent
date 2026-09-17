@@ -122,7 +122,7 @@ pub fn level_words(level: u8) -> &'static str {
       "read from the file's syntax and matched by name, never resolved to the definition it names"
     }
     2 => {
-      "read from the file's syntax with the path it was written with, still never resolved to the definition it names"
+      "read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names"
     }
     3 => "resolved to the definition it names by the language's own toolchain",
     _ => "a level this build does not describe",
