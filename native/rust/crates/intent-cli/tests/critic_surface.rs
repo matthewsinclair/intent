@@ -693,3 +693,50 @@ fn a_staged_rule_example_is_skipped_and_named_while_a_named_one_is_read() {
     out(&named)
   );
 }
+
+/// Issue 0437: **IN-RS-CODE-004's proxy reads the `Result`'s own error type,
+/// never the last parameter of a generic inside it.** The gate refused a
+/// `BTreeMap<String, String>` collected into a `Result` whose error is
+/// `rusqlite::Error`, on the map's own `, String>`. Driven through the binary
+/// against the real library, which is how the gate runs it.
+#[test]
+fn a_string_closing_a_generic_inside_a_result_is_not_its_error_type() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let file = dir.path().join("src/lib.rs");
+  std::fs::create_dir_all(file.parent().expect("src")).expect("mkdir src");
+  std::fs::write(
+    &file,
+    [
+      "  .collect::<Result<std::collections::BTreeMap<String, String>, rusqlite::Error>>()?;",
+      "pub fn load(path: &str) -> Result<Config, String> {",
+      "pub fn check() -> Result<(), String> {",
+      "pub fn open() -> Result<Config, Box<dyn std::error::Error>> {",
+      "pub fn bytes() -> Result<Vec<u8>, String> {",
+    ]
+    .join("\n"),
+  )
+  .expect("write the fixture");
+
+  let o = critic(&[
+    "rust",
+    "--files",
+    file.to_str().unwrap(),
+    "--format",
+    "json",
+  ]);
+  let v: serde_json::Value = serde_json::from_str(&out(&o)).expect("parseable JSON");
+  let struck: Vec<u64> = v["findings"]
+    .as_array()
+    .expect("a findings array")
+    .iter()
+    .filter(|f| f["rule"] == "IN-RS-CODE-004")
+    .filter_map(|f| f["line"].as_u64())
+    .collect();
+  assert_eq!(
+    struck,
+    vec![2, 3, 4],
+    "the map's `String>` is not the error type, so line 1 reads clean; a `String` or \
+     `Box<dyn Error>` error still fires; and a first parameter carrying a generic (line 5) \
+     is the stated false negative, pinned so that widening the pattern is a decision: {v}"
+  );
+}

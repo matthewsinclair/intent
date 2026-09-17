@@ -69,11 +69,13 @@ Static signals:
 
 **AND THE SECOND HALF REMAINS INEXPRESSIBLE FOR A DIFFERENT REASON** -- _elaborate `thiserror` enums whose errors only ever flow to `fn main() -> anyhow::Result<()>`_ is a judgement about where a value ENDS UP, and the violation is the absence of a justification rather than the presence of a token. **No widening of a grep reaches it.** A green from these patterns is a statement about token presence, never about this rule.
 
+**A `Result`'S FIRST PARAMETER MAY HOLD NO ANGLE BRACKET, AND THE STATED COST IS A FALSE NEGATIVE (issue 0437).** A `Result`'s error type is its parameter after the last top-level comma, and a regular pattern cannot count brackets. The patterns once admitted any character but `>` before the comma, so a `String>` closing a generic INSIDE the first parameter read as the error type: the gate refused `Result<BTreeMap<String, String>, rusqlite::Error>` on the map's own `, String>`. **Admitting neither `<` nor `>` there means a matched `, String>` or `, Box<dyn Error>>` always closes the `Result` itself.** So a `Result` whose first parameter carries a generic, such as `Result<Vec<u8>, String>`, is not matched. The earlier patterns stopped at that inner `>` too, so this costs no finding they ever made, and every line these patterns strike, those struck.
+
 Greppable proxy (the headless `intent critic rust` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-rust` subagent confirms by reading the body):
 
 ```bash
-grep -rnE 'Result<[^>]*, *Box<dyn ([a-z_]+::)*Error>>' src/
-grep -rnE 'Result<[^>]*, *String>' src/
+grep -rnE 'Result<[^<>]*, *Box<dyn ([a-z_]+::)*Error>>' src/
+grep -rnE 'Result<[^<>]*, *String>' src/
 ```
 
 The `#[from]` and lost-cause signals are structural and are the `critic-rust` subagent's, not the runner's.
