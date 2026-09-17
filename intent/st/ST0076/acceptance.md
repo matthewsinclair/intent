@@ -37,7 +37,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 - AC-04.1 `intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); a search with `--subkind` or `--in` and no query lists the symbols that pass those filters, and a search with nothing to search for is refused with a remedy naming that form; `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters, the query-less form included. -- satisfied: no (computed)
 - AC-04.2 The search row's `when_to_use`, the MCP `instructions` line and the explorer's hits say what the index now answers and what it still does not, per level and per language, with no claim wider than the build. -- satisfied: no (computed)
 
-### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: Not Started)
+### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: WIP)
 
 - AC-05.1 Rust level 3, on an explicit verb only and never from intentd unasked: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written reference (same file, line and name); `intent index status` counts matched, unmatched, dropped and ambiguous, and the paths whose resolved rows are stale; the export builds into a directory of Intent's own under `intent/.cache`; a missing rust-analyzer is named in the envelope with its reason and never answers as an empty tier. -- satisfied: no (computed)
 
@@ -71,7 +71,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: Not Started)
+### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: WIP)
 
 _(no tests in this group)_
 

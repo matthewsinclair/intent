@@ -24,7 +24,7 @@ ST0069 built the index's structural tier on each grammar's tags query and stored
 | WP-02 | Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier                             | M    | Done        |
 | WP-03 | Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require   | M    | WIP         |
 | WP-04 | Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions | M    | WIP         |
-| WP-05 | Rust resolved references through rust-analyzer's SCIP export                                                             | L    | Not Started |
+| WP-05 | Rust resolved references through rust-analyzer's SCIP export                                                             | L    | WIP         |
 | WP-06 | Elixir resolved references through the compiler's tracer, on an explicit verb                                            | L    | Not Started |
 
 ## Acceptance
