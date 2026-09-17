@@ -15,6 +15,8 @@
 
 #![allow(dead_code)]
 
+pub mod level_three;
+
 /// A connected pseudo-terminal pair, as owned files.
 ///
 /// **THE MASTER MUST OUTLIVE THE CHILD.** Dropping it closes the terminal's

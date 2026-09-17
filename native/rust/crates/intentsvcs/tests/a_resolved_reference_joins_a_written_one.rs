@@ -38,6 +38,9 @@ impl Resolver for Handed {
   fn tool(&self) -> &'static str {
     "fixture-analyzer"
   }
+  fn manifest(&self) -> intentsvcs::index::resolved::Manifest {
+    intentsvcs::index::rust_analyzer::MANIFEST
+  }
   fn trace(&self, scope: &Scope<'_>) -> Result<Trace, Unresolved> {
     assert!(
       scope.cache.ends_with("intent/.cache/resolve/rust") && scope.cache.is_dir(),

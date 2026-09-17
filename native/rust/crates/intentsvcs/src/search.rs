@@ -20,8 +20,9 @@
 //! rather than a patch.
 
 use crate::index::corpus::{Corpus, SkipReason};
+use crate::index::resolved::{self, Row, Run};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// The staleness policy the canon corpus is indexed under (D24).
 ///
@@ -66,6 +67,10 @@ pub struct SearchAnswer {
   /// the reason (issue 0356).
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub unanswered: Vec<Unanswered>,
+  /// What an answer asked by target asked (ST0076 WP-07); absent on every
+  /// other answer.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub target: Option<TargetAsked>,
   /// What the index matched across the groups carried, before any cap.
   pub matched: usize,
   /// The rows the answer carries: the length of every group's hits.
@@ -74,12 +79,19 @@ pub struct SearchAnswer {
 
 impl SearchAnswer {
   /// What a reader of this answer's symbol hits must know before trusting
-  /// them, or `None` when it carries no symbol hit.
+  /// them, or `None` when there is nothing to say.
   ///
   /// **IT NAMES THE LEVEL THAT ANSWERED** (ST0076 WP-04, AC-04.1): which of
   /// the three levels the hits were read at, what that level means, and for
   /// each language in the answer what its references do not cover yet. A
   /// reference list that did not say so would be read as every caller.
+  ///
+  /// **AND WHERE LEVEL 3 COULD NOT ANSWER** (ST0076 WP-07, AC-07.1): each
+  /// language among the symbol hits whose level 3 is not current, in
+  /// [`resolution_words`]. An answer asked by target names every such language
+  /// in the index, hits or none, because every hit it could hold is level 3's;
+  /// and one whose target no resolved row names says it cannot tell a target
+  /// nothing references from a misspelt one.
   pub fn symbol_note(&self) -> Option<String> {
     let symbols: Vec<(&Hit, &SymbolFacts)> = self
       .groups
@@ -87,9 +99,6 @@ impl SearchAnswer {
       .flat_map(|group| group.hits.iter())
       .filter_map(|hit| hit.symbol.as_ref().map(|facts| (hit, facts)))
       .collect();
-    if symbols.is_empty() {
-      return None;
-    }
     let mut levels: Vec<u8> = symbols.iter().map(|(_, facts)| facts.level).collect();
     levels.sort_unstable();
     levels.dedup();
@@ -99,21 +108,53 @@ impl SearchAnswer {
       .collect();
     langs.sort_unstable();
     langs.dedup();
-    let mut note = levels
+    let mut parts: Vec<String> = levels
       .iter()
       .map(|level| format!("level {level}: {}", level_words(*level)))
-      .collect::<Vec<_>>()
-      .join("; ");
-    for gap in langs
-      .iter()
-      .filter_map(|lang| crate::index::symbols::what_a_reference_misses(lang))
+      .collect();
+    parts.extend(
+      langs
+        .iter()
+        .filter_map(|lang| crate::index::symbols::what_a_reference_misses(lang))
+        .map(str::to_string),
+    );
+    parts.extend(
+      self
+        .index
+        .resolution
+        .iter()
+        .filter(|(lang, _)| self.target.is_some() || langs.contains(&lang.as_str()))
+        .map(|(lang, state)| resolution_words(lang, state)),
+    );
+    if let Some(asked) = &self.target
+      && !asked.named
     {
-      note.push_str("; ");
-      note.push_str(gap);
+      parts.push(format!(
+        "no resolved reference names `{}`: {UNKNOWN_TARGET}",
+        asked.target
+      ));
     }
-    Some(note)
+    if parts.is_empty() {
+      None
+    } else {
+      Some(parts.join("; "))
+    }
   }
 }
+
+/// What an answer asked by target asked (ST0076 WP-07, AC-07.2).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TargetAsked {
+  /// The target as the caller spelled it.
+  pub target: String,
+  /// Whether any resolved row names it. An answer about a target none names is
+  /// empty, and its note says [`UNKNOWN_TARGET`].
+  pub named: bool,
+}
+
+/// What an empty answer about a target no resolved row names says, and the
+/// register quotes verbatim (vc's refinement of AC-07.2).
+pub const UNKNOWN_TARGET: &str = "a target nothing references and a misspelt one read the same";
 
 /// What a symbol row's `level` means, in the words every surface uses.
 pub fn level_words(level: u8) -> &'static str {
@@ -127,6 +168,220 @@ pub fn level_words(level: u8) -> &'static str {
     3 => "resolved to the definition it names by the language's own toolchain",
     _ => "a level this build does not describe",
   }
+}
+
+/// One language's level 3 as a search answer reports it when it is not
+/// current (ST0076 WP-07, AC-07.1).
+///
+/// **NO COUNTS.** What a run matched and dropped is `intent index status`'s to
+/// report; an answer carries what a reader must know before trusting a hit.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResolutionState {
+  /// `missing`, `failed`, `stale` or `unresolved`.
+  pub state: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub tool: Option<String>,
+  /// Where a failed run failed, when the tool named it.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub path: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub line: Option<u32>,
+  /// What the tool said, for a run that stored nothing.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub detail: Option<String>,
+  /// The files whose resolved rows no longer describe the bytes the index
+  /// holds, in path order. A reference in one keeps its syntax level.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub stale: Vec<String>,
+}
+
+impl ResolutionState {
+  /// A run's record as an answer reports it, or `None` when the run stored
+  /// and nothing it stored has gone stale.
+  ///
+  /// **A RUN THAT FAILED KEEPS ITS STATE WHATEVER IS STALE**, and lists the
+  /// stale files beside it: the failure is why nothing newer was stored, which
+  /// is the fact a reader needs first.
+  pub fn of(run: &Run) -> Option<Self> {
+    let current = run.state == resolved::CURRENT;
+    if current && run.stale.is_empty() {
+      return None;
+    }
+    Some(Self {
+      state: if current {
+        resolved::STALE.to_string()
+      } else {
+        run.state.clone()
+      },
+      tool: Some(run.tool.clone()).filter(|tool| !tool.is_empty()),
+      path: run.path.clone(),
+      line: run.line,
+      detail: run.detail.clone(),
+      stale: run.stale.clone(),
+    })
+  }
+}
+
+/// A resolver this build carries, as a search answer reads one (ST0076 WP-07).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Carried {
+  pub lang: &'static str,
+  pub tool: &'static str,
+  pub manifest: resolved::Manifest,
+}
+
+/// The carried resolvers an answer asks the index about before naming their
+/// language: each whose last run did not store, and each the project declares
+/// that no run has recorded. Whether the index holds each one's manifest is
+/// asked of these alone.
+pub fn manifest_questions<'a>(
+  runs: &BTreeMap<String, Run>,
+  declared: &[String],
+  carried: &'a [Carried],
+) -> Vec<&'a Carried> {
+  carried
+    .iter()
+    .filter(|reader| match runs.get(reader.lang) {
+      Some(run) => run.state != resolved::CURRENT,
+      None => declared.iter().any(|d| d == reader.lang),
+    })
+    .collect()
+}
+
+/// Every language whose level 3 is not current (ST0076 WP-07, AC-07.1): each
+/// run on record that did not store or has stale files, and each declared
+/// language no run has recorded, as `unresolved`.
+///
+/// `carried` is every resolver this build carries, and `applies` those of
+/// [`manifest_questions`] whose manifest the index holds.
+///
+/// **A LANGUAGE THE PROJECT HOLDS NOTHING FOR IS NOT NAMED** (vc, 2026-09-17),
+/// whether no run is on record or the last one failed. An estate that declares
+/// Elixir and holds no `mix.exs` would otherwise say so in every answer, for as
+/// long as it had no `mix.exs`, and nothing a person could run would change it:
+/// the permanent false alarm the store keeps out, arriving through the envelope
+/// instead. The record itself is left as it is, so `intent index status` still
+/// shows the failed run. A run of a language this build does not carry has no
+/// manifest to ask about, and is named as recorded.
+pub fn resolution_states(
+  runs: &BTreeMap<String, Run>,
+  carried: &[Carried],
+  applies: &[&Carried],
+) -> BTreeMap<String, ResolutionState> {
+  let carries = |lang: &str| carried.iter().any(|reader| reader.lang == lang);
+  let holds = |lang: &str| applies.iter().any(|reader| reader.lang == lang);
+  let mut out: BTreeMap<String, ResolutionState> = runs
+    .iter()
+    .filter(|(lang, run)| run.state == resolved::CURRENT || !carries(lang) || holds(lang))
+    .filter_map(|(lang, run)| ResolutionState::of(run).map(|state| (lang.clone(), state)))
+    .collect();
+  for reader in applies
+    .iter()
+    .filter(|reader| !runs.contains_key(reader.lang))
+  {
+    out.insert(
+      reader.lang.to_string(),
+      ResolutionState {
+        state: resolved::UNRESOLVED.to_string(),
+        tool: Some(reader.tool.to_string()),
+        path: None,
+        line: None,
+        detail: None,
+        stale: Vec::new(),
+      },
+    );
+  }
+  out
+}
+
+/// What each state of a language's level 3 means, in the words every surface
+/// uses and the register quotes verbatim (ST0076 WP-07, AC-07.1).
+pub fn resolution_phrase(state: &str) -> &'static str {
+  match state {
+    resolved::MISSING => {
+      "its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3"
+    }
+    resolved::FAILED => {
+      "its last resolution run failed, so only what an earlier run stored answers at level 3"
+    }
+    resolved::STALE => {
+      "the files it lists changed since they were resolved, so their references answer at their syntax level until the next run"
+    }
+    resolved::UNRESOLVED => {
+      "no resolution run has stored its references here, so they answer at their syntax level"
+    }
+    _ => "its level 3 is in a state this build does not describe",
+  }
+}
+
+/// How many stale files a note names before it counts the rest. A bound on
+/// the note, not a measurement: `index.resolution` lists every one.
+const STALE_NAMED: usize = 5;
+
+/// One language's level 3, when it is not current, as the sentence every
+/// surface prints: the state, what it means, and the facts that go with it.
+///
+/// **THE ONE HOME FOR THESE WORDS** (AC-07.1). The terminal's note and the
+/// explorer's INFO row both reach it through [`SearchAnswer::symbol_note`], and
+/// the register quotes [`resolution_phrase`] for each state.
+pub fn resolution_words(lang: &str, state: &ResolutionState) -> String {
+  let mut facts: Vec<String> = Vec::new();
+  match state.state.as_str() {
+    resolved::MISSING | resolved::FAILED => {
+      let at = state.path.as_ref().map(|path| match state.line {
+        Some(line) => format!("at {path}:{line}"),
+        None => format!("at {path}"),
+      });
+      let head = [state.tool.clone(), at]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" ");
+      let fact = match (&state.detail, head.is_empty()) {
+        (Some(detail), true) => detail.clone(),
+        (Some(detail), false) => format!("{head}: {detail}"),
+        (None, _) => head,
+      };
+      if !fact.is_empty() {
+        facts.push(fact);
+      }
+    }
+    // **THE VERB IS NAMED AS A PERSON'S, NEVER AS A NEXT STEP** (vc,
+    // 2026-09-17): it runs the project's build, which is why it is withheld
+    // from the MCP tool tier, so an agent reading this is told what resolves
+    // the language and not invited to resolve it.
+    resolved::UNRESOLVED => {
+      if let Some(tool) = &state.tool {
+        facts.push(format!(
+          "a person resolves it by running `intent index resolve`, which runs the project's build through {tool}"
+        ));
+      }
+    }
+    _ => {}
+  }
+  if !state.stale.is_empty() {
+    let named: Vec<&str> = state
+      .stale
+      .iter()
+      .take(STALE_NAMED)
+      .map(String::as_str)
+      .collect();
+    let more = state.stale.len() - named.len();
+    facts.push(match more {
+      0 => format!("stale: {}", named.join(", ")),
+      more => format!("stale: {} and {more} more", named.join(", ")),
+    });
+  }
+  let mut words = format!(
+    "level 3 in `{lang}` ({}): {}",
+    state.state,
+    resolution_phrase(&state.state)
+  );
+  for fact in facts {
+    words.push_str(" -- ");
+    words.push_str(&fact);
+  }
+  words
 }
 
 /// A tier asked for by name that did not answer, and why.
@@ -163,6 +418,16 @@ pub struct IndexFreshness {
   pub skipped: Vec<Skipped>,
   /// Paths whose indexed bytes no longer match the disk.
   pub stale: Vec<String>,
+  /// Each language whose level 3 is not current, keyed as `index_file.lang`
+  /// spells it (ST0076 WP-07, AC-07.1), and empty when every language that
+  /// resolves is current.
+  ///
+  /// **INDEX-WIDE, AND NOT PART OF `complete`.** `complete` says whether the
+  /// index read the text an answer covers; level 3 is a claim about what a
+  /// reference names, and each symbol hit states its own `level`. Every answer
+  /// carries this, because a caller reading a reference at level 1 needs to
+  /// know whether level 3 was there to be had.
+  pub resolution: BTreeMap<String, ResolutionState>,
 }
 
 /// **`complete` IS COMPUTED AT SERIALISATION AND IS NOT A FIELD.** It is
@@ -174,7 +439,7 @@ pub struct IndexFreshness {
 impl Serialize for IndexFreshness {
   fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeStruct;
-    let fields = 4 + usize::from(self.reconciled_at.is_some());
+    let fields = 5 + usize::from(self.reconciled_at.is_some());
     let mut out = serializer.serialize_struct("IndexFreshness", fields)?;
     out.serialize_field("complete", &self.complete())?;
     if let Some(at) = &self.reconciled_at {
@@ -183,6 +448,7 @@ impl Serialize for IndexFreshness {
     out.serialize_field("corpora", &self.corpora)?;
     out.serialize_field("skipped", &self.skipped)?;
     out.serialize_field("stale", &self.stale)?;
+    out.serialize_field("resolution", &self.resolution)?;
     out.end()
   }
 }
@@ -204,6 +470,8 @@ impl<'de> Deserialize<'de> for IndexFreshness {
       corpora: BTreeMap<String, CorpusState>,
       skipped: Vec<Skipped>,
       stale: Vec<String>,
+      #[serde(default)]
+      resolution: BTreeMap<String, ResolutionState>,
     }
     let carried = Carried::deserialize(deserializer)?;
     Ok(Self {
@@ -211,19 +479,21 @@ impl<'de> Deserialize<'de> for IndexFreshness {
       corpora: carried.corpora,
       skipped: carried.skipped,
       stale: carried.stale,
+      resolution: carried.resolution,
     })
   }
 }
 
 impl IndexFreshness {
-  /// The freshness of an index holding the given corpora, with nothing skipped
-  /// and nothing stale.
+  /// The freshness of an index holding the given corpora, with nothing skipped,
+  /// nothing stale, and no language's level 3 to report.
   pub fn new(corpora: BTreeMap<String, CorpusState>) -> Self {
     Self {
       reconciled_at: None,
       corpora,
       skipped: Vec::new(),
       stale: Vec::new(),
+      resolution: BTreeMap::new(),
     }
   }
 
@@ -497,6 +767,149 @@ pub struct SymbolFacts {
   /// by syntax, 2 a reference with the qualifier it was written with, 3 a
   /// reference resolved by the language's own toolchain.
   pub level: u8,
+  /// The one definition a current resolved row joins this reference to, flat
+  /// on the hit as `target`, `target_path` and `target_line`, at level 3
+  /// (ST0076 WP-07, AC-07.1).
+  #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+  pub resolved: Option<ResolvedTarget>,
+  /// The definitions current resolved rows join this reference to when there
+  /// are several, in order. The hit keeps its syntax level, because the store
+  /// keeps no tie-break and neither does an answer.
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub candidates: Vec<ResolvedTarget>,
+}
+
+impl SymbolFacts {
+  /// Whether a current resolved row joins this reference to `target`, as the
+  /// one it resolves to or as one of its candidates.
+  pub fn names_target(&self, target: &str) -> bool {
+    self
+      .resolved
+      .as_ref()
+      .is_some_and(|one| one.target == target)
+      || self
+        .candidates
+        .iter()
+        .any(|candidate| candidate.target == target)
+  }
+
+  /// Where this reference points, in the words the terminal's row and the
+  /// explorer's row both print, or `None` when level 3 says nothing about it.
+  pub fn points_to(&self) -> Option<String> {
+    if let Some(one) = &self.resolved {
+      return Some(match (&one.target_path, one.target_line) {
+        (Some(path), Some(line)) => format!("-> {}  {path}:{line}", one.target),
+        (Some(path), None) => format!("-> {}  {path}", one.target),
+        _ => format!("-> {}", one.target),
+      });
+    }
+    if self.candidates.is_empty() {
+      return None;
+    }
+    Some(format!(
+      "one of {}: {}",
+      self.candidates.len(),
+      self
+        .candidates
+        .iter()
+        .map(|candidate| candidate.target.as_str())
+        .collect::<Vec<_>>()
+        .join(", ")
+    ))
+  }
+}
+
+/// A definition a resolved reference names, spelled as the `resolved` columns
+/// it is read from (ST0076 WP-07).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ResolvedTarget {
+  /// The definition's printable name, as the language's reader prints it.
+  pub target: String,
+  /// Where it is defined, when the run could place it.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub target_path: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub target_line: Option<u32>,
+}
+
+/// Give a reference hit what level 3 knows about it (ST0076 WP-07, AC-07.1).
+///
+/// `line` is the `symbols` row's start line, which is the resolved key's. It is
+/// passed rather than read from the hit because a hit whose file moved on disk
+/// carries no span. `rows` are resolved rows of the hit's file, and `stale` the
+/// files whose rows no longer describe the bytes the index holds.
+///
+/// **ONE ROW IS LEVEL 3, SEVERAL ARE CANDIDATES AT THE SYNTAX LEVEL.** A hit in
+/// a stale file, or one whose file moved on disk since it was indexed, is left
+/// as it was: its rows describe bytes that are not the ones it came from.
+pub fn resolve_hit(hit: &mut Hit, line: u32, rows: &[Row], stale: &BTreeSet<String>) {
+  if hit.kind != HitKind::Ref || hit.stale || stale.contains(&hit.path) {
+    return;
+  }
+  let mut joined: Vec<ResolvedTarget> = rows
+    .iter()
+    .filter(|row| row.path == hit.path && row.line == line && row.name == hit.name)
+    .map(|row| ResolvedTarget {
+      target: row.target.clone(),
+      target_path: row.target_path.clone(),
+      target_line: row.target_line,
+    })
+    .collect();
+  joined.sort();
+  joined.dedup();
+  let Some(facts) = hit.symbol.as_mut() else {
+    return;
+  };
+  if joined.len() == 1 {
+    facts.level = 3;
+    facts.resolved = joined.pop();
+  } else {
+    facts.candidates = joined;
+  }
+}
+
+/// Whether a resolved row joins the reference at `path`, `line` and `name` to
+/// `target`, whatever its file's staleness. A search by target reads it to
+/// name a moved file it takes no hit from.
+pub fn joins_target(rows: &[Row], path: &str, line: u32, name: &str, target: &str) -> bool {
+  rows
+    .iter()
+    .any(|row| row.path == path && row.line == line && row.name == name && row.target == target)
+}
+
+/// The resolved targets a target no row names most likely meant (vc's
+/// refinement of AC-07.2), in order: each that ENDS with the typed text at a
+/// segment boundary, the start of the target or a `.`, `:` or `/` before it.
+///
+/// **THREE SPELLINGS OF EACH TARGET ARE COMPARED**: as it prints, without a
+/// trailing arity (Elixir's `Map.get/2`), and without a trailing `()` (a
+/// callable Rust target, `crate::store::Store::open()`), so `get`,
+/// `Store::open` and `Repo.get/2` each reach what they name.
+pub fn near_targets<'a>(typed: &str, targets: impl IntoIterator<Item = &'a str>) -> Vec<String> {
+  if typed.is_empty() {
+    return Vec::new();
+  }
+  let mut near: Vec<String> = targets
+    .into_iter()
+    .filter(|target| {
+      let without_arity = target
+        .rsplit_once('/')
+        .filter(|(_, arity)| !arity.is_empty() && arity.bytes().all(|b| b.is_ascii_digit()))
+        .map(|(head, _)| head);
+      [Some(*target), without_arity, target.strip_suffix("()")]
+        .into_iter()
+        .flatten()
+        .any(|spelling| {
+          spelling
+            .strip_suffix(typed)
+            .is_some_and(|head| head.is_empty() || head.ends_with(['.', ':', '/']))
+        })
+    })
+    .map(str::to_string)
+    .collect();
+  near.sort();
+  near.dedup();
+  near
 }
 
 /// A line range in a file, 1-indexed and inclusive.
@@ -550,19 +963,25 @@ pub struct SearchQuery {
   /// with no container is left out by any container filter.
   #[serde(default)]
   pub container: Option<String>,
+  /// The definition a reference must resolve to, matched exactly against a
+  /// resolved row's `target` (ST0076 WP-07, AC-07.2). A definition, a hit
+  /// that is not a symbol, and a reference no current row joins to it are
+  /// left out.
+  #[serde(default)]
+  pub target: Option<String>,
 }
 
 impl SearchQuery {
   /// Whether these filters are a question on their own: a search with a
-  /// subkind or a container and nothing else to ask lists the symbols that
-  /// pass them (ST0076 WP-04, AC-04.1).
+  /// subkind, a container or a target and nothing else to ask lists the
+  /// symbols that pass them (ST0076 WP-04, AC-04.1; WP-07, AC-07.2).
   ///
   /// **THE RULE FOR EVERY FACE, HERE ONCE.** The terminal and the MCP tool both
   /// ask it, so neither can list on a filter the other refuses as nothing to
   /// search for. Kind, language and path are left out on purpose: each narrows
   /// every tier, so alone they would list the whole index.
   pub fn lists_symbols(&self) -> bool {
-    !self.subkinds.is_empty() || self.container.is_some()
+    !self.subkinds.is_empty() || self.container.is_some() || self.target.is_some()
   }
 
   pub fn keeps(&self, hit: &Hit) -> bool {
@@ -583,6 +1002,14 @@ impl SearchQuery {
         .as_ref()
         .and_then(|facts| facts.container.as_deref())
         .is_some_and(|container| container_matches(asked, container))
+    {
+      return false;
+    }
+    if let Some(target) = &self.target
+      && !hit
+        .symbol
+        .as_ref()
+        .is_some_and(|facts| facts.names_target(target))
     {
       return false;
     }
@@ -650,6 +1077,7 @@ pub struct FilterWords {
   pub tiers: Vec<String>,
   pub subkinds: Vec<String>,
   pub langs: Vec<String>,
+  pub target: Option<String>,
 }
 
 /// A filter word that names nothing this search has.
@@ -715,6 +1143,24 @@ impl FilterWords {
       }
       ask.subkinds = self.subkinds;
     }
+    // **A TARGET ASKS FOR REFERENCES** (ST0076 WP-07): nothing but a reference
+    // resolves to a definition, so a kind filter that leaves references out
+    // could only answer empty, and is refused by name.
+    if self.target.is_some() && !ask.kinds.is_empty() && !ask.kinds.contains(&HitKind::Ref) {
+      return Err(FilterRefusal {
+        problem: format!(
+          "a target asks for the references resolved to it, and the kind filter ({}) leaves every reference out",
+          ask
+            .kinds
+            .iter()
+            .map(|kind| kind.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+        ),
+        choices: vec![HitKind::Ref.as_str().to_string()],
+      });
+    }
+    ask.target = self.target;
     Ok(ask)
   }
 }
@@ -925,6 +1371,8 @@ mod tests {
         arity_min: Some(0),
         qualifier: None,
         level: 1,
+        resolved: None,
+        candidates: Vec::new(),
       }),
     };
     let json = serde_json::to_value(&symbol).expect("serialise");
@@ -946,6 +1394,222 @@ mod tests {
     assert_eq!(
       back.symbol, None,
       "a file hit reads back with no symbol facts"
+    );
+  }
+
+  fn reference(path: &str, name: &str) -> Hit {
+    Hit {
+      kind: HitKind::Ref,
+      name: name.to_string(),
+      owner: None,
+      lang: Some("rust".to_string()),
+      path: path.to_string(),
+      span: Some(Span::line(2)),
+      score: 0.0,
+      snippet: String::new(),
+      stale: false,
+      symbol: Some(SymbolFacts {
+        subkind: "call".to_string(),
+        container: None,
+        container_kind: None,
+        trait_name: None,
+        arity: None,
+        arity_min: None,
+        qualifier: None,
+        level: 1,
+        resolved: None,
+        candidates: Vec::new(),
+      }),
+    }
+  }
+
+  fn row(path: &str, line: u32, name: &str, target: &str) -> Row {
+    Row {
+      path: path.to_string(),
+      line,
+      name: name.to_string(),
+      target: target.to_string(),
+      target_path: Some("src/lib.rs".to_string()),
+      target_line: Some(9),
+    }
+  }
+
+  /// ST0076 WP-07: a key naming one target is level 3 with the target flat on
+  /// the hit and read back from the wire; a key naming two keeps its level and
+  /// lists both; a stale file's rows are not read.
+  #[test]
+  fn a_reference_takes_one_target_flat_and_several_as_candidates() {
+    let rows = [
+      row("src/lib.rs", 2, "helper", "crate::helper()"),
+      row("src/lib.rs", 2, "other", "crate::b::other()"),
+      row("src/lib.rs", 2, "other", "crate::a::other()"),
+    ];
+    let mut one = reference("src/lib.rs", "helper");
+    resolve_hit(&mut one, 2, &rows, &BTreeSet::new());
+    let json = serde_json::to_value(&one).expect("serialise");
+    assert_eq!(
+      (
+        &json["level"],
+        &json["target"],
+        &json["target_path"],
+        &json["target_line"]
+      ),
+      (
+        &serde_json::json!(3),
+        &serde_json::json!("crate::helper()"),
+        &serde_json::json!("src/lib.rs"),
+        &serde_json::json!(9)
+      ),
+      "{json}"
+    );
+    assert!(json.get("resolved").is_none() && json.get("candidates").is_none());
+    let back: Hit = serde_json::from_value(json).expect("deserialise");
+    assert_eq!(back.symbol, one.symbol, "a level-3 hit survives the wire");
+
+    let mut two = reference("src/lib.rs", "other");
+    resolve_hit(&mut two, 2, &rows, &BTreeSet::new());
+    let facts = two.symbol.as_ref().expect("facts");
+    assert_eq!(facts.level, 1, "several targets keep the syntax level");
+    assert_eq!(
+      facts.points_to().as_deref(),
+      Some("one of 2: crate::a::other(), crate::b::other()")
+    );
+    assert!(facts.names_target("crate::b::other()"));
+    let json = serde_json::to_value(&two).expect("serialise");
+    assert!(json.get("target").is_none(), "{json}");
+    let back: Hit = serde_json::from_value(json).expect("deserialise");
+    assert_eq!(back.symbol, two.symbol, "candidates survive the wire");
+
+    let mut stale = reference("src/lib.rs", "helper");
+    resolve_hit(
+      &mut stale,
+      2,
+      &rows,
+      &BTreeSet::from(["src/lib.rs".to_string()]),
+    );
+    assert_eq!(stale.symbol, reference("src/lib.rs", "helper").symbol);
+  }
+
+  /// vc's refinement of AC-07.2, with dc's Elixir spellings and vc's ruled Rust
+  /// ones: a near target ends with the typed text at a segment boundary, with
+  /// or without its arity or its `()`.
+  #[test]
+  fn a_near_target_ends_with_what_was_typed_at_a_boundary() {
+    let targets = [
+      "Map.get/2",
+      "Shop.Repo.get/2",
+      ":ets.lookup/2",
+      "Kernel.to_string/1",
+      "intentsvcs::store::Store::open()",
+      "intentsvcs::store::Store",
+      "intentsvcs::address::<AddressError as Remedy>::remedy()",
+      "crate::forget()",
+    ];
+    let near = |typed: &str| near_targets(typed, targets.iter().copied());
+    assert_eq!(near("get"), vec!["Map.get/2", "Shop.Repo.get/2"]);
+    assert_eq!(near("Repo.get/2"), vec!["Shop.Repo.get/2"]);
+    assert_eq!(near("lookup"), vec![":ets.lookup/2"]);
+    assert_eq!(near("ets.lookup/2"), vec![":ets.lookup/2"]);
+    assert_eq!(
+      near("Store::open"),
+      vec!["intentsvcs::store::Store::open()"]
+    );
+    assert_eq!(near("Store"), vec!["intentsvcs::store::Store"]);
+    assert_eq!(
+      near("remedy"),
+      vec!["intentsvcs::address::<AddressError as Remedy>::remedy()"]
+    );
+    assert!(
+      near("tore").is_empty(),
+      "inside a segment is not a boundary"
+    );
+    assert!(near("").is_empty());
+  }
+
+  /// ST0076 WP-07: a run's record projects to the state an answer names, and
+  /// a declared language this build resolves with no record is unresolved.
+  #[test]
+  fn a_language_whose_level_three_is_not_current_is_named_with_its_state() {
+    let run = |state: &str, stale: &[&str]| Run {
+      state: state.to_string(),
+      tool: "rust-analyzer".to_string(),
+      path: None,
+      line: None,
+      detail: None,
+      resolved_at: Some("2026-09-17T00:00:00Z".to_string()),
+      run: 1,
+      symbols_version: Some(3),
+      tally: resolved::Tally::default(),
+      stale: stale.iter().map(|s| s.to_string()).collect(),
+    };
+    assert_eq!(ResolutionState::of(&run(resolved::CURRENT, &[])), None);
+    let stale = ResolutionState::of(&run(resolved::CURRENT, &["src/a.rs"])).expect("stale");
+    assert_eq!(
+      (stale.state.as_str(), stale.stale.clone()),
+      ("stale", vec!["src/a.rs".to_string()])
+    );
+    assert_eq!(
+      resolution_words("rust", &stale),
+      format!(
+        "level 3 in `rust` (stale): {} -- stale: src/a.rs",
+        resolution_phrase(resolved::STALE)
+      )
+    );
+
+    let runs = BTreeMap::from([
+      ("rust".to_string(), run(resolved::CURRENT, &[])),
+      ("lua".to_string(), run(resolved::FAILED, &[])),
+      ("swift".to_string(), run(resolved::FAILED, &[])),
+    ]);
+    let carried = |lang: &'static str, tool: &'static str| Carried {
+      lang,
+      tool,
+      manifest: resolved::Manifest {
+        name: "manifest",
+        root_only: true,
+      },
+    };
+    let carried = [
+      carried("rust", "rust-analyzer"),
+      carried("elixir", "mix"),
+      carried("swift", "sourcekit"),
+    ];
+    let asked = manifest_questions(&runs, &["rust".to_string(), "elixir".to_string()], &carried);
+    assert_eq!(
+      asked.iter().map(|reader| reader.lang).collect::<Vec<_>>(),
+      vec!["elixir", "swift"],
+      "a declared language no run recorded, and a carried one whose run failed, declared or not; \
+       never a current run, and never a language this build does not carry"
+    );
+    let named = |applies: &[&Carried]| {
+      resolution_states(&runs, &carried, applies)
+        .into_iter()
+        .map(|(lang, state)| (lang, state.state))
+        .collect::<Vec<_>>()
+    };
+    let pair = |lang: &str, state: &str| (lang.to_string(), state.to_string());
+    assert_eq!(
+      named(&asked),
+      vec![
+        pair("elixir", "unresolved"),
+        pair("lua", "failed"),
+        pair("swift", "failed")
+      ],
+      "with each manifest held: current is not named, and the rest are"
+    );
+    assert_eq!(
+      named(&[]),
+      vec![pair("lua", "failed")],
+      "with no manifest held, neither the unrecorded language nor the carried failed run is named; \
+       a run of a language this build does not carry is named as recorded"
+    );
+    let states = resolution_states(&runs, &carried, &asked);
+    assert_eq!(
+      resolution_words("elixir", &states["elixir"]),
+      format!(
+        "level 3 in `elixir` (unresolved): {} -- a person resolves it by running `intent index resolve`, which runs the project's build through mix",
+        resolution_phrase(resolved::UNRESOLVED)
+      )
     );
   }
 

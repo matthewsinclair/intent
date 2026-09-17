@@ -300,12 +300,16 @@ pub fn search_rows(answer: &intentsvcs::search::SearchAnswer) -> Vec<Row> {
         },
         None => hit.kind.as_str().to_string(),
       };
-      let mut row = Row::named(
-        hit.path.clone(),
-        place,
-        format!("{what}  {}", hit.snippet),
-        "button",
-      );
+      // ST0076 WP-07: where a reference points, in the terminal's words.
+      let detail = match hit
+        .symbol
+        .as_ref()
+        .and_then(intentsvcs::search::SymbolFacts::points_to)
+      {
+        Some(points) => format!("{what}  {}  {points}", hit.snippet),
+        None => format!("{what}  {}", hit.snippet),
+      };
+      let mut row = Row::named(hit.path.clone(), place, detail, "button");
       row.door = door_for(hit);
       rows.push(row);
     }

@@ -84,6 +84,21 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       )
       .expect_err("the structural tier alone answers a context search"),
   ));
+  // **A SEARCH BY TARGET OF AN INDEX WHERE NOTHING IS RESOLVED** (ST0076
+  // WP-07): this fixture has never stored a resolution, which is the state the
+  // refusal exists for.
+  out.push((
+    "a search by target where no language has stored a resolution",
+    facade
+      .context(
+        "anything",
+        &intentsvcs::search::SearchQuery {
+          target: Some("crate::anything()".to_string()),
+          ..Default::default()
+        },
+      )
+      .expect_err("nothing resolved can answer a target"),
+  ));
   // **AN UNREGISTERED NODE, AND THE DISCRIMINATING CASE IS THE EMPTY ROSTER.**
   // This fixture has never run `wb register`, so the refusal has nothing to
   // list -- which is precisely the state that would otherwise be answered with
@@ -1120,6 +1135,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbSnapshotInTheWay { .. } => "WbSnapshotInTheWay",
     FacadeError::WbNoActingNode => "WbNoActingNode",
     FacadeError::NoResolver { .. } => "NoResolver",
+    FacadeError::NothingResolved { .. } => "NothingResolved",
+    FacadeError::NoSuchTarget { .. } => "NoSuchTarget",
   }
 }
 
@@ -1227,6 +1244,8 @@ const ALL_VARIANTS: &[&str] = &[
   "WbSnapshotInTheWay",
   "WbNoActingNode",
   "NoResolver",
+  "NothingResolved",
+  "NoSuchTarget",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
@@ -1251,6 +1270,13 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `wb_migrate_carries_a_board.rs`, which drives each.
   "WbUncarried",
   "WbSnapshotInTheWay",
+  // **PROVOKED WHERE A RESOLUTION IS STORED.** A target no resolved row names is
+  // refused only when resolved targets end the same way, so it needs indexed
+  // source and a resolution run joined to it: intent-cli's
+  // `a_search_by_target_asks_one_question.rs` seeds that estate and drives the
+  // refusal through the binary, and building one here would be a second copy
+  // of that fixture.
+  "NoSuchTarget",
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
   // WP-01's `issue_home` turns a manifest id into an issue's view path.

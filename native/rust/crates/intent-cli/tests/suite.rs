@@ -43,6 +43,8 @@ mod a_creating_verb_names_what_it_overwrote;
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_narrowed_render_names_its_scope.rs"]
 mod a_narrowed_render_names_its_scope;
+#[path = "a_search_by_target_asks_one_question.rs"]
+mod a_search_by_target_asks_one_question;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]
 mod a_skewed_views_printed_remedy_clears_it;
 #[path = "a_tool_description_comes_from_its_row.rs"]
@@ -111,6 +113,8 @@ mod embedded_init;
 mod error_literal_shape;
 #[path = "events_are_queryable.rs"]
 mod events_are_queryable;
+#[path = "every_face_says_what_level_three_knows.rs"]
+mod every_face_says_what_level_three_knows;
 #[path = "every_skill_has_a_live_caller.rs"]
 mod every_skill_has_a_live_caller;
 #[path = "exit_code_consumers.rs"]

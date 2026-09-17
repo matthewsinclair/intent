@@ -48,6 +48,18 @@ use super::symbols::Symbol;
 
 /// What the last run of a language did: it stored.
 pub const CURRENT: &str = "current";
+/// What the last run of a language did: the tool was not where it could run.
+pub const MISSING: &str = "missing";
+/// What the last run of a language did: the tool ran and failed, or the
+/// language was asked for by name where the project holds nothing for it.
+pub const FAILED: &str = "failed";
+/// A language whose last run stored, with files changed since (ST0076 WP-07).
+/// A search answer says it; a run's record never holds it, because it moves
+/// when the files do.
+pub const STALE: &str = "stale";
+/// A language this build resolves, which the project declares, and which no
+/// run has recorded (ST0076 WP-07). A search answer says it.
+pub const UNRESOLVED: &str = "unresolved";
 
 /// A reference the tool gave no line.
 pub const NO_LINE: &str = "no-line";
@@ -137,8 +149,8 @@ impl Unresolved {
   /// and then as failed.
   pub fn state(&self) -> &'static str {
     match self {
-      Unresolved::Missing { .. } => "missing",
-      Unresolved::Failed { .. } | Unresolved::NotApplicable { .. } => "failed",
+      Unresolved::Missing { .. } => MISSING,
+      Unresolved::Failed { .. } | Unresolved::NotApplicable { .. } => FAILED,
     }
   }
 }
@@ -165,6 +177,38 @@ pub struct Scope<'a> {
   pub indexed: &'a [String],
 }
 
+/// The file a reader finds a project by (ST0076 WP-07, vc 2026-09-17): its
+/// name, and whether only the project root's copy counts.
+///
+/// **ONE HOME FOR WHETHER A LANGUAGE APPLIES TO A PROJECT.** A reader's own
+/// not-applicable test reads it, and so does a search answer, which names a
+/// carried language no run has recorded as `unresolved` only where the index
+/// holds this file. It is decided when asked and never stored, because a
+/// stored verdict would go stale the day someone adds the file.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Manifest {
+  /// The file's name: `Cargo.toml`, `mix.exs`.
+  pub name: &'static str,
+  /// Whether only the project root's copy counts.
+  pub root_only: bool,
+}
+
+impl Manifest {
+  /// The directory an indexed path is this manifest in, `""` for the project
+  /// root, or `None` where the path is not this manifest.
+  pub fn dir_of<'a>(&self, path: &'a str) -> Option<&'a str> {
+    if path == self.name {
+      return Some("");
+    }
+    if self.root_only {
+      return None;
+    }
+    path
+      .strip_suffix(self.name)
+      .and_then(|head| head.strip_suffix('/'))
+  }
+}
+
 /// A language's toolchain, read into a [`Trace`].
 ///
 /// **THE IMPURE HALF, AND THE ONLY ONE.** An implementation runs a tool and
@@ -176,6 +220,10 @@ pub trait Resolver {
   fn lang(&self) -> &'static str;
   /// The tool, as a person would install it.
   fn tool(&self) -> &'static str;
+  /// The file this reader finds a project by. Where the index holds none,
+  /// [`Self::trace`] answers [`Unresolved::NotApplicable`] and a search answer
+  /// does not name the language `unresolved`.
+  fn manifest(&self) -> Manifest;
   /// Run the tool over the project the scope describes. A scope holding
   /// nothing for the tool is [`Unresolved::NotApplicable`], and the tool is
   /// not run.
@@ -589,6 +637,12 @@ mod tests {
     fn tool(&self) -> &'static str {
       "fixture"
     }
+    fn manifest(&self) -> Manifest {
+      Manifest {
+        name: "mix.exs",
+        root_only: true,
+      }
+    }
     fn trace(&self, _: &Scope<'_>) -> Result<Trace, Unresolved> {
       Ok(Trace::default())
     }
@@ -635,5 +689,28 @@ mod tests {
       "two definitions printing one target, which the reader does not choose between, \
        locate it nowhere rather than at a guess"
     );
+  }
+
+  /// ST0076 WP-07: a manifest counted anywhere names its directory, and one
+  /// counted only at the root names nothing below it.
+  #[test]
+  fn a_manifest_is_its_name_at_the_root_and_below_it_only_where_it_counts_there() {
+    let anywhere = Manifest {
+      name: "Cargo.toml",
+      root_only: false,
+    };
+    assert_eq!(anywhere.dir_of("Cargo.toml"), Some(""));
+    assert_eq!(
+      anywhere.dir_of("crates/core/Cargo.toml"),
+      Some("crates/core")
+    );
+    assert_eq!(anywhere.dir_of("crates/core/NotCargo.toml"), None);
+    assert_eq!(anywhere.dir_of("Cargo.toml.orig"), None);
+    let root = Manifest {
+      name: "mix.exs",
+      root_only: true,
+    };
+    assert_eq!(root.dir_of("mix.exs"), Some(""));
+    assert_eq!(root.dir_of("deps/phoenix/mix.exs"), None);
   }
 }

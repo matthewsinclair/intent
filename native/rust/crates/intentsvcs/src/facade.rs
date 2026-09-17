@@ -1601,6 +1601,19 @@ pub enum FacadeError {
   /// there are none.
   #[error("this build has no level-3 resolver for {asked}")]
   NoResolver { asked: String, built: String },
+  /// A search by target asked of an index where no language has stored a
+  /// resolution (ST0076 WP-07, AC-07.2): an empty list would read as a target
+  /// nothing references.
+  #[error(
+    "no language's references have been resolved in this index, so nothing can say which references name `{target}`"
+  )]
+  NothingResolved { target: String },
+  /// A search by a target no resolved row names, where resolved targets end
+  /// the same way (vc's refinement of AC-07.2). `near` is those targets, named.
+  #[error(
+    "no resolved reference names `{target}`; the resolved targets ending the same way are {near}"
+  )]
+  NoSuchTarget { target: String, near: String },
   /// [`Self::Install`], same add-don't-widen rule.
   #[error("could not render the root file")]
   RootFile(#[from] crate::rootfiles::RootFileError),
@@ -1864,6 +1877,8 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoResolver { built, .. } => format!(
         "nothing was run. Name a language this build resolves: `intent index resolve --lang <lang>`, for {built}"
       ),
+      Self::NothingResolved { .. } => "nothing was answered. A person resolves the declared languages' references by running `intent index resolve`, which runs the project's build; the search answers once a run has stored".to_string(),
+      Self::NoSuchTarget { .. } => "ask for one of them by its whole name, as a hit's `target` prints it: `intent search --target <target>`".to_string(),
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
       // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
@@ -2968,10 +2983,47 @@ pub struct Facade {
   /// that the semantic tier plugs in without the surfaces above it changing,
   /// which is the claim AC-23.1 makes about staged tiers.
   embedder: Box<dyn crate::embed::Embedder>,
+  /// The level-3 resolvers this build carries (ST0076 WP-07): a search answer
+  /// names a declared language no run has recorded as `unresolved` only where
+  /// the build could resolve it and the index holds its manifest.
+  ///
+  /// **BUILT FROM [`crate::index::resolved::readers`] AND REPLACEABLE BY THE
+  /// CALLER** ([`Facade::with_resolvers`]), the seam `embedder` has.
+  resolvers: Vec<crate::search::Carried>,
   /// Notes from steps that failed after a write landed, held for a verb that
   /// returns no [`Outcome`] until [`Facade::take_notes`] hands them over.
   after_write: Vec<Note>,
 }
+
+/// Each resolver as a search answer reads it: its language, its tool and its
+/// manifest.
+fn carried(readers: &[Box<dyn crate::index::resolved::Resolver>]) -> Vec<crate::search::Carried> {
+  readers
+    .iter()
+    .map(|reader| crate::search::Carried {
+      lang: reader.lang(),
+      tool: reader.tool(),
+      manifest: reader.manifest(),
+    })
+    .collect()
+}
+
+/// What level 3 says about the index for one search answer (ST0076 WP-07).
+struct LevelThree {
+  /// The answer's `index.resolution`.
+  states: std::collections::BTreeMap<String, crate::search::ResolutionState>,
+  /// The files whose resolved rows no longer describe the bytes the index
+  /// holds.
+  stale: std::collections::BTreeSet<String>,
+  /// Whether any language has stored, which is whether there are rows to read.
+  stored: bool,
+  /// What an answer asked by target asked.
+  target: Option<crate::search::TargetAsked>,
+}
+
+/// How many near targets a refusal names before it counts the rest: a bound on
+/// the message, which a trait method with many impls would otherwise run on.
+const NEAR_TARGETS_NAMED: usize = 10;
 
 /// What [`Facade::projection`] builds: the writes, and which of them are canon.
 ///
@@ -3131,6 +3183,7 @@ impl Facade {
       canon,
       ctx,
       embedder,
+      resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
     })
   }
@@ -3148,6 +3201,7 @@ impl Facade {
       canon,
       ctx,
       embedder,
+      resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
     })
   }
@@ -3167,6 +3221,18 @@ impl Facade {
   /// unless somebody says otherwise in as many words.
   pub fn with_embedder(mut self, embedder: Box<dyn crate::embed::Embedder>) -> Self {
     self.embedder = embedder;
+    self
+  }
+
+  /// Answer searches as a build carrying THESE level-3 resolvers would (ST0076
+  /// WP-07).
+  ///
+  /// **THE SEAM `with_embedder` IS, FOR THE SAME REASON.** What a build carries
+  /// is part of a search answer, since a declared language is `unresolved` only
+  /// where the build could resolve it, so a caller holding other readers says
+  /// so in as many words.
+  pub fn with_resolvers(mut self, readers: &[Box<dyn crate::index::resolved::Resolver>]) -> Self {
+    self.resolvers = carried(readers);
     self
   }
 
@@ -3697,6 +3763,10 @@ impl Facade {
       snippet,
     };
 
+    // ST0076 WP-07: a search by target is refused here, before any tier runs,
+    // when the store cannot answer it.
+    let level_three = self.level_three(ask)?;
+
     // **AN UNASKED TIER IS NOT QUERIED AT ALL** -- narrowing the question
     // narrows the work, and a tier whose rows are computed and then discarded
     // would make `--tier` a rendering filter rather than part of the question.
@@ -3721,6 +3791,7 @@ impl Facade {
     // Issue 0369: the age of the index this answer read, as its reconcile
     // stamped it.
     index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
+    index.resolution = level_three.states.clone();
 
     // Issue 0370: a file the index holds as skipped is part of the answer's
     // freshness, scoped by the filters as staleness is, so a miss inside one is
@@ -3830,7 +3901,6 @@ impl Facade {
     // whether or not it has hits, because the tier exists in this build -- the
     // store can answer structurally -- and an absent group would read as a tier
     // that is not built.
-    let mut structural = Vec::new();
     let symbols = if Tier::Structural.asked(&ask.tiers) {
       self
         .store
@@ -3839,15 +3909,7 @@ impl Facade {
     } else {
       Vec::new()
     };
-    for symbol in symbols {
-      let hit = self.structural_hit(&symbol);
-      if ask.keeps(&hit) {
-        if hit.stale {
-          index.mark_stale(hit.path.clone());
-        }
-        structural.push(hit);
-      }
-    }
+    let structural = self.structural_hits(symbols, ask, &level_three, &mut index)?;
     // Issue 0356: a semantic tier asked for BY NAME that cannot answer says why,
     // rather than leaving an absent group to be read as "found nothing".
     let (semantic, unanswered) = if Tier::Semantic.asked(&ask.tiers) {
@@ -3894,9 +3956,156 @@ impl Facade {
       index,
       groups,
       unanswered,
+      target: level_three.target,
       matched,
       returned,
     })
+  }
+
+  /// Level 3's part of a search answer, and the refusals a search by target
+  /// meets (ST0076 WP-07, AC-07.1, AC-07.2).
+  ///
+  /// **STORED ROWS ANSWER, WHATEVER THIS BUILD'S READERS ARE** (vc, 2026-09-17):
+  /// the rows carry their own staleness, so the one refusal on the store's
+  /// state is an index where no language has stored, which would otherwise
+  /// answer an empty list that reads as a target nothing references. A target
+  /// no resolved row names is refused only when resolved targets end the same
+  /// way, and names them; otherwise it is answered empty, and the answer says
+  /// it cannot tell a target nothing references from a misspelt one.
+  fn level_three(&self, ask: &crate::search::SearchQuery) -> Result<LevelThree, FacadeError> {
+    let runs = self
+      .store
+      .resolution(crate::index::symbols::EXTRACTOR_VERSION)
+      .map_err(FacadeError::Store)?;
+    // **WHETHER A LANGUAGE APPLIES IS ASKED NOW, OF THE INDEX, AND NEVER STORED**
+    // (vc, 2026-09-17): a stored verdict would go stale the day the manifest is
+    // added, and only a carried language no run has stored for needs asking.
+    let mut applies = Vec::new();
+    for reader in
+      crate::search::manifest_questions(&runs, &self.project.config().languages, &self.resolvers)
+    {
+      if self
+        .store
+        .holds_manifest(&reader.manifest)
+        .map_err(FacadeError::Store)?
+      {
+        applies.push(reader);
+      }
+    }
+    let states = crate::search::resolution_states(&runs, &self.resolvers, &applies);
+    let stale = runs
+      .values()
+      .flat_map(|run| run.stale.iter().cloned())
+      .collect();
+    let stored = runs.values().any(|run| run.resolved_at.is_some());
+    let target = match &ask.target {
+      None => None,
+      Some(target) => {
+        if !stored {
+          return Err(FacadeError::NothingResolved {
+            target: target.clone(),
+          });
+        }
+        let named = self
+          .store
+          .names_resolved_target(target)
+          .map_err(FacadeError::Store)?;
+        if !named {
+          let resolved = self.store.resolved_targets().map_err(FacadeError::Store)?;
+          let near = crate::search::near_targets(target, resolved.iter().map(String::as_str));
+          if !near.is_empty() {
+            let listed: Vec<String> = near
+              .iter()
+              .take(NEAR_TARGETS_NAMED)
+              .map(|one| format!("`{one}`"))
+              .collect();
+            let more = near.len() - listed.len();
+            return Err(FacadeError::NoSuchTarget {
+              target: target.clone(),
+              near: match more {
+                0 => listed.join(", "),
+                more => format!("{} and {more} more", listed.join(", ")),
+              },
+            });
+          }
+        }
+        Some(crate::search::TargetAsked {
+          target: target.clone(),
+          named,
+        })
+      }
+    };
+    Ok(LevelThree {
+      states,
+      stale,
+      stored,
+      target,
+    })
+  }
+
+  /// The structural hits some symbol rows answer: each given what level 3 says
+  /// about it and judged by the query, with the answer's freshness marked for
+  /// what it keeps (ST0076 WP-04, WP-07).
+  ///
+  /// **ONE LOOP FOR BOTH BUILDERS OF AN ANSWER**, `search_all`'s structural
+  /// group and [`Self::structural_answer`], which each held a copy of it until
+  /// level 3 gave the loop a decision to make.
+  ///
+  /// **A FILE THAT MOVED ON DISK TAKES NO HIT FROM A SEARCH BY TARGET, AND IS
+  /// NAMED** (AC-07.2): its reference joins the target in the index, so leaving
+  /// it out without a word would be a silent subset. A file whose resolved rows
+  /// went stale is named by `index.resolution` already.
+  fn structural_hits(
+    &self,
+    symbols: Vec<crate::index::symbols::Symbol>,
+    ask: &crate::search::SearchQuery,
+    level_three: &LevelThree,
+    index: &mut crate::search::IndexFreshness,
+  ) -> Result<Vec<crate::search::Hit>, FacadeError> {
+    let mut rows: std::collections::BTreeMap<String, Vec<crate::index::resolved::Row>> =
+      std::collections::BTreeMap::new();
+    if level_three.stored {
+      for symbol in &symbols {
+        if symbol.kind == crate::index::symbols::SymbolKind::Ref && !rows.contains_key(&symbol.path)
+        {
+          let read = self
+            .store
+            .resolved_in(&symbol.path)
+            .map_err(FacadeError::Store)?;
+          rows.insert(symbol.path.clone(), read);
+        }
+      }
+    }
+    let untargeted = crate::search::SearchQuery {
+      target: None,
+      ..ask.clone()
+    };
+    let mut hits = Vec::new();
+    for symbol in symbols {
+      let mut hit = self.structural_hit(&symbol);
+      let rows = rows.get(&symbol.path).map_or(&[][..], Vec::as_slice);
+      crate::search::resolve_hit(&mut hit, symbol.span.start_line, rows, &level_three.stale);
+      if ask.keeps(&hit) {
+        if hit.stale {
+          index.mark_stale(hit.path.clone());
+        }
+        hits.push(hit);
+      } else if hit.stale
+        && untargeted.keeps(&hit)
+        && ask.target.as_deref().is_some_and(|target| {
+          crate::search::joins_target(
+            rows,
+            &symbol.path,
+            symbol.span.start_line,
+            &symbol.name,
+            target,
+          )
+        })
+      {
+        index.mark_stale(hit.path.clone());
+      }
+    }
+    Ok(hits)
   }
 
   /// The semantic tier's hits, or the reason this project has no such tier.
@@ -4107,6 +4316,8 @@ impl Facade {
         arity_min: symbol.arity_min,
         qualifier: symbol.qualifier.clone(),
         level: symbol.level,
+        resolved: None,
+        candidates: Vec::new(),
       }),
     }
   }
@@ -4131,12 +4342,14 @@ impl Facade {
   /// **THE OTHER FILTERS NARROW IT AS THEY NARROW A TEXT QUERY** (ST0076
   /// WP-04): subkind, container, language and path go through
   /// [`crate::search::SearchQuery::keeps`], the one predicate every door uses.
+  /// A target asks for the file's references resolved to it, so it lists
+  /// references as `ref` does (WP-07).
   pub fn outline(
     &self,
     path: &str,
     ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
-    let refs = ask.kinds.contains(&crate::search::HitKind::Ref);
+    let refs = ask.kinds.contains(&crate::search::HitKind::Ref) || ask.target.is_some();
     let narrowing = crate::search::SearchQuery {
       kinds: Vec::new(),
       ..ask.clone()
@@ -4184,17 +4397,27 @@ impl Facade {
   /// `--context` cannot ask them without a name. The store read narrows by
   /// subkind and container, and [`crate::search::SearchQuery::keeps`] judges
   /// every row, as it does for the other structural doors.
+  ///
+  /// **A TARGET IS THE NARROWEST READ** (ST0076 WP-07, AC-07.2): the written
+  /// references a resolved row joins to it, which every other filter then
+  /// narrows.
   pub fn filtered(
     &self,
     ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
-    let symbols = self
-      .store
-      .symbols_filtered(&ask.subkinds, ask.container.as_deref())
-      .map_err(FacadeError::Store)?;
+    let symbols = match &ask.target {
+      Some(target) => self.store.references_to(target),
+      None => self
+        .store
+        .symbols_filtered(&ask.subkinds, ask.container.as_deref()),
+    }
+    .map_err(FacadeError::Store)?;
     // The envelope's `query` names what was asked, because there is no text to
     // name and an empty one would print as nothing in the empty-index note.
     let mut asked = Vec::new();
+    if let Some(target) = &ask.target {
+      asked.push(format!("target {target}"));
+    }
     if !ask.subkinds.is_empty() {
       asked.push(format!("subkind {}", ask.subkinds.join(" or ")));
     }
@@ -4220,23 +4443,15 @@ impl Facade {
     if !Tier::Structural.asked(&ask.tiers) {
       return Err(FacadeError::StructuralTierNotAsked);
     }
+    let level_three = self.level_three(ask)?;
     // **cc's `corpora()` IS THE ONE HOME AND IT LANDED FIRST.** I had extracted
     // the same block as `freshness()` in the same hour; two methods answering
     // "what does this index hold" is the duplication the extraction was for, so
     // mine went and this calls theirs.
     let mut index = IndexFreshness::new(self.corpora()?);
     index.reconciled_at = self.store.reconciled_at().map_err(FacadeError::Store)?;
-    let mut hits = Vec::new();
-    for symbol in symbols {
-      let hit = self.structural_hit(&symbol);
-      if !ask.keeps(&hit) {
-        continue;
-      }
-      if hit.stale {
-        index.mark_stale(hit.path.clone());
-      }
-      hits.push(hit);
-    }
+    index.resolution = level_three.states.clone();
+    let hits = self.structural_hits(symbols, ask, &level_three, &mut index)?;
     let mut groups = vec![TierGroup {
       tier: Tier::Structural,
       hits,
@@ -4247,6 +4462,7 @@ impl Facade {
       index,
       groups,
       unanswered: Vec::new(),
+      target: level_three.target,
       matched,
       returned,
     })

@@ -87,6 +87,7 @@ fn answer() -> SearchAnswer {
       ],
     }],
     unanswered: Vec::new(),
+    target: None,
     matched: 2,
     returned: 2,
   }
@@ -279,6 +280,8 @@ fn a_symbol_hit_names_its_subkind_container_and_level() {
         arity_min: None,
         qualifier: None,
         level: 1,
+        resolved: None,
+        candidates: Vec::new(),
       }),
     }],
   });

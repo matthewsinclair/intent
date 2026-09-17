@@ -47,6 +47,9 @@ impl Resolver for CheckedIn {
   fn tool(&self) -> &'static str {
     "rust-analyzer"
   }
+  fn manifest(&self) -> intentsvcs::index::resolved::Manifest {
+    RustAnalyzer::default().manifest()
+  }
   fn excludes(&self) -> &'static [&'static str] {
     RustAnalyzer::default().excludes()
   }

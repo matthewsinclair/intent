@@ -6242,6 +6242,71 @@ impl Store {
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
+  /// Every written reference a resolved row joins to `target`, ordered by path
+  /// then line (ST0076 WP-07, AC-07.2).
+  ///
+  /// **A NARROWING, NEVER THE JUDGE**, as [`Self::symbols_filtered`] is: it
+  /// reads rows whatever their file's staleness, and
+  /// [`crate::search::SearchQuery::keeps`] decides each one the door answers,
+  /// after the facade has given it what level 3 still says about it.
+  pub fn references_to(
+    &self,
+    target: &str,
+  ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    self.symbol_rows(
+      &format!(
+        "SELECT {SYMBOL_COLUMNS} FROM symbols WHERE kind = 'ref' AND EXISTS (
+           SELECT 1 FROM resolved WHERE resolved.target = ?1 AND resolved.path = symbols.path
+             AND resolved.line = symbols.start_line AND resolved.name = symbols.name)
+         ORDER BY path, start_line, name"
+      ),
+      &[&target],
+    )
+  }
+
+  /// Whether the index holds `manifest` and read it (ST0076 WP-07): a search
+  /// answer asks this of each carried language no run has recorded.
+  ///
+  /// **A NARROWING IN SQL AND THE JUDGE IN [`crate::index::resolved::Manifest::dir_of`]**,
+  /// the one rule a reader's own not-applicable test reads, so the two cannot
+  /// disagree. The statement returns only the held paths that contain the name
+  /// and the loop stops at the first that is the manifest, so an answer pays for
+  /// those rather than for every path the index holds.
+  pub fn holds_manifest(
+    &self,
+    manifest: &crate::index::resolved::Manifest,
+  ) -> Result<bool, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT path FROM index_file WHERE skipped_reason IS NULL AND instr(path, ?1) > 0",
+    )?;
+    let mut rows = stmt.query(params![manifest.name])?;
+    while let Some(row) = rows.next()? {
+      let path: String = row.get(0)?;
+      if manifest.dir_of(&path).is_some() {
+        return Ok(true);
+      }
+    }
+    Ok(false)
+  }
+
+  /// Whether any resolved row names `target`, stale or not.
+  pub fn names_resolved_target(&self, target: &str) -> Result<bool, StoreError> {
+    Ok(self.conn.query_row(
+      "SELECT EXISTS (SELECT 1 FROM resolved WHERE target = ?1)",
+      params![target],
+      |row| row.get(0),
+    )?)
+  }
+
+  /// Every target a resolved row names, once each, in order.
+  pub fn resolved_targets(&self) -> Result<Vec<String>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT DISTINCT target FROM resolved ORDER BY target")?;
+    let rows = stmt.query_map([], |row| row.get(0))?;
+    Ok(rows.collect::<Result<Vec<String>, _>>()?)
+  }
+
   /// What a language's run joins against: the hash the index read each held
   /// file at, and every written reference in that language.
   pub fn resolution_basis(

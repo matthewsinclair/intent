@@ -288,6 +288,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // field that does not exist.
     | FacadeError::WbNoActingNode
     | FacadeError::NoResolver { .. }
+    // A search by target refused on the store's state or on the target's
+    // spelling: the caller supplied every field, and the remedy is a run or
+    // another spelling, never a field left out.
+    | FacadeError::NothingResolved { .. }
+    | FacadeError::NoSuchTarget { .. }
     | FacadeError::VerdictCitesAbsentFile { .. } => None,
   }
 }

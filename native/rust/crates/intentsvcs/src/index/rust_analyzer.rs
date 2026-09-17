@@ -22,7 +22,7 @@
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 
-use super::resolved::{Read, Reference, Resolver, Scope, Trace, Unresolved};
+use super::resolved::{Manifest, Read, Reference, Resolver, Scope, Trace, Unresolved};
 use super::scip;
 
 /// A reference to a local variable, closure or parameter: `local <n>` in SCIP,
@@ -38,6 +38,14 @@ pub const OPERATOR: &str = "operator";
 /// A symbol this reader cannot print as a target.
 pub const UNPRINTABLE: &str = "unprintable";
 
+/// The file a Rust project is found by: a `Cargo.toml` anywhere the index
+/// holds one. [`roots`] reads it, and so does a search answer deciding whether
+/// Rust can be `unresolved` here (ST0076 WP-07).
+pub const MANIFEST: Manifest = Manifest {
+  name: "Cargo.toml",
+  root_only: false,
+};
+
 /// The directories an export runs over: each `Cargo.toml` the index holds
 /// whose directory has no ancestor holding another (vc, 2026-09-17). A
 /// workspace's member crates sit under its root and are skipped; a
@@ -45,10 +53,7 @@ pub const UNPRINTABLE: &str = "unprintable";
 pub fn roots(indexed: &[String]) -> Vec<String> {
   let dirs: Vec<&str> = indexed
     .iter()
-    .filter_map(|path| match path.as_str() {
-      "Cargo.toml" => Some(""),
-      other => other.strip_suffix("/Cargo.toml"),
-    })
+    .filter_map(|path| MANIFEST.dir_of(path))
     .collect();
   let mut out: Vec<String> = dirs
     .iter()
@@ -318,6 +323,10 @@ impl Resolver for RustAnalyzer {
 
   fn tool(&self) -> &'static str {
     "rust-analyzer"
+  }
+
+  fn manifest(&self) -> Manifest {
+    MANIFEST
   }
 
   fn excludes(&self) -> &'static [&'static str] {

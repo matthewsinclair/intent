@@ -3617,11 +3617,18 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   // has an [`Op`]; `--outline`, `--context`, `--sql` and a search asked only its
   // filters have none, and a flag accepted and ignored is worse than one refused
   // because the exit code agrees with the caller.
+  // ST0076 WP-07: a search asked by target is refused too, with or without a
+  // query, because a daemon of another build would read the envelope's filters
+  // without the target and answer the whole question at exit 0.
   if via_daemon(m)
     && let Some(door) = [
       ("`--outline`", outline.is_some()),
       ("`--context`", context.is_some()),
       ("`--sql`", statement.is_some()),
+      (
+        "a search asked by target",
+        m.get_one::<String>("target").is_some(),
+      ),
       ("a search asked only its filters", listing.is_some()),
     ]
     .into_iter()
@@ -3666,7 +3673,7 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       return Err(Failure::Error(
         "error: nothing to search for\n  remedy: give a text query, a statement with \
          `--sql <statement>`, or list symbols by their filters alone with \
-         `--subkind <subkind>` or `--in <container>`"
+         `--subkind <subkind>`, `--in <container>` or `--target <target>`"
           .to_string(),
       ));
     }
@@ -3852,10 +3859,20 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
         .as_ref()
         .and_then(|facts| facts.container.as_deref())
         .unwrap_or(owner);
-      if hit.snippet.is_empty() || hit.snippet == hit.name {
-        println!("{place}  {kind}  {owner}  {}", hit.name);
+      let row = if hit.snippet.is_empty() || hit.snippet == hit.name {
+        format!("{place}  {kind}  {owner}  {}", hit.name)
       } else {
-        println!("{place}  {kind}  {owner}  {}  {}", hit.name, hit.snippet);
+        format!("{place}  {kind}  {owner}  {}  {}", hit.name, hit.snippet)
+      };
+      // ST0076 WP-07: a reference level 3 knows about says where it points,
+      // last, so the columns before it read as they always have.
+      match hit
+        .symbol
+        .as_ref()
+        .and_then(intentsvcs::search::SymbolFacts::points_to)
+      {
+        Some(points) => println!("{row}  {points}"),
+        None => println!("{row}"),
       }
     }
   }
@@ -3881,6 +3898,7 @@ fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure
     tiers: words("tier"),
     subkinds: words("subkind"),
     langs: words("lang"),
+    target: m.get_one::<String>("target").cloned(),
   }
   .check()
   .map_err(|refusal| {

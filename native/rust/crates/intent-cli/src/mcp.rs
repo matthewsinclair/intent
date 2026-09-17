@@ -1177,6 +1177,7 @@ pub fn serve(
         tiers: strings(path, map, "tier")?.unwrap_or_default(),
         subkinds: strings(path, map, "subkind")?.unwrap_or_default(),
         langs: strings(path, map, "lang")?.unwrap_or_default(),
+        target: opt_s(path, map, "target")?.map(str::to_string),
       }
       .check()
       .map_err(|refusal| {
@@ -1201,20 +1202,20 @@ pub fn serve(
         })?),
       };
       if let Some(path_arg) = outline {
-        return val(path, &f.outline(path_arg, &ask)?);
+        return search_json(path, &f.outline(path_arg, &ask)?);
       }
       if let Some(name) = context {
-        return val(path, &f.context(name, &ask)?);
+        return search_json(path, &f.context(name, &ask)?);
       }
       // **A SEARCH ASKED ONLY ITS FILTERS** (ST0076 WP-04): the terminal's rule,
       // `SearchQuery::lists_symbols`, and the same facade call.
       let Some(query) = opt_s(path, map, "query")? else {
         if ask.lists_symbols() {
-          return val(path, &f.filtered(&ask)?);
+          return search_json(path, &f.filtered(&ask)?);
         }
         return Err(args_err(
           path,
-          "nothing to search for -- give `query`, `sql`, `outline` or `context`, or list symbols by their filters alone with `subkind` or `in`"
+          "nothing to search for -- give `query`, `sql`, `outline` or `context`, or list symbols by their filters alone with `subkind`, `in` or `target`"
             .to_string(),
         ));
       };
@@ -1235,7 +1236,7 @@ pub fn serve(
       } else {
         None
       };
-      let mut envelope = val(path, &answer)?;
+      let mut envelope = search_json(path, &answer)?;
       if let (Some(object), Some(note)) = (envelope.as_object_mut(), note) {
         object.insert("note".to_string(), json!(note));
       }
@@ -1613,6 +1614,19 @@ fn issue_number(path: &str, raw: &str) -> Result<u32, ServeError> {
 /// is an `Args` error carrying the promoter's own rendering.
 fn promote(path: &str, raw: &str) -> Result<intentsvcs::address::Address, ServeError> {
   intentsvcs::address::promote(raw).map_err(|e| args_err(path, e.render()))
+}
+
+/// A search answer as the tool returns it: the envelope, and on an answer asked
+/// by target the note the terminal prints (ST0076 WP-07). What level 3 could
+/// not say is part of that answer, and the tool has no stderr to put it on.
+fn search_json(path: &str, answer: &intentsvcs::search::SearchAnswer) -> Result<Value, ServeError> {
+  let mut envelope = val(path, answer)?;
+  if answer.target.is_some()
+    && let (Some(object), Some(note)) = (envelope.as_object_mut(), answer.symbol_note())
+  {
+    object.insert("note".to_string(), json!(note));
+  }
+  Ok(envelope)
 }
 
 /// `serde_json::to_value` with the failure named. It cannot fail on these
