@@ -30,7 +30,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### WP-03 -- Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require (status: Not Started)
 
-- AC-03.1 Elixir references by syntax include remote calls and captures (`&Mod.fun/2`) with their module, pipe targets, and `alias`, `import`, `require` and `use` as references, with arity where written and `level` 2; the qualifier is the module with the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied. -- satisfied: no (computed)
+- AC-03.1 Elixir references by syntax include remote calls, remote captures (`&Mod.fun/2`) and remote pipe targets, each carrying its module as the qualifier with `level` 2 and arity where written; local calls and local pipe targets are unqualified at `level` 1; and `alias`, `import`, `require` and `use` are references at `level` 1 whose name is the whole module. A module in a qualifier or a directive name has the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied. -- satisfied: no (computed)
 
 ### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: Not Started)
 
