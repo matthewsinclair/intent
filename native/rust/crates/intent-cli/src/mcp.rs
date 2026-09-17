@@ -1167,52 +1167,30 @@ pub fn serve(
           ),
         ));
       }
-      if let Some(path_arg) = outline {
-        let refs =
-          strings(path, map, "kind")?.is_some_and(|kinds| kinds.iter().any(|k| k == "ref"));
-        return val(path, &f.outline(path_arg, refs)?);
-      }
-      if let Some(name) = context {
-        return val(path, &f.context(name)?);
-      }
-      let query = need_s(path, map, "query")?;
-      // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
-      // envelope, two skins. Nothing is assembled here, so the tool cannot
-      // answer a different shape from `--json` for the same question.
-      let mut ask = intentsvcs::search::SearchQuery::default();
       // Issue 0428: the schema publishes these as strings, so each goes
       // through `strings()`, which takes one string or a list and refuses any
-      // other type, rather than reading an array and dropping the rest.
-      for word in strings(path, map, "kind")?.unwrap_or_default() {
-        match intentsvcs::search::HitKind::parse(&word) {
-          Some(kind) => ask.kinds.push(kind),
-          None => {
-            return Err(args_err(
-              path,
-              format!(
-                "`{word}` is not a kind of thing this index holds -- one of {}",
-                intentsvcs::search::HitKind::ALL.join(", ")
-              ),
-            ));
-          }
-        }
+      // other type, rather than reading an array and dropping the rest. The
+      // words themselves are checked in `intentsvcs`, once for every face
+      // (ST0076 WP-04), so this tool refuses what the terminal refuses.
+      let mut ask = intentsvcs::search::FilterWords {
+        kinds: strings(path, map, "kind")?.unwrap_or_default(),
+        tiers: strings(path, map, "tier")?.unwrap_or_default(),
+        subkinds: strings(path, map, "subkind")?.unwrap_or_default(),
+        langs: strings(path, map, "lang")?.unwrap_or_default(),
       }
-      for word in strings(path, map, "tier")?.unwrap_or_default() {
-        match intentsvcs::search::Tier::parse(&word) {
-          Some(tier) => ask.tiers.push(tier),
-          None => {
-            return Err(args_err(
-              path,
-              format!(
-                "`{word}` is not a tier this search has -- one of {}",
-                intentsvcs::search::Tier::ALL.join(", ")
-              ),
-            ));
-          }
-        }
-      }
-      ask.langs = strings(path, map, "lang")?.unwrap_or_default();
+      .check()
+      .map_err(|refusal| {
+        args_err(
+          path,
+          format!(
+            "{} -- one of {}",
+            refusal.problem,
+            refusal.choices.join(", ")
+          ),
+        )
+      })?;
       ask.path = opt_s(path, map, "path")?.map(str::to_string);
+      ask.container = opt_s(path, map, "in")?.map(str::to_string);
       ask.limit = match opt_s(path, map, "limit")? {
         None => None,
         Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
@@ -1222,6 +1200,27 @@ pub fn serve(
           )
         })?),
       };
+      if let Some(path_arg) = outline {
+        return val(path, &f.outline(path_arg, &ask)?);
+      }
+      if let Some(name) = context {
+        return val(path, &f.context(name, &ask)?);
+      }
+      // **A SEARCH ASKED ONLY ITS FILTERS** (ST0076 WP-04): the terminal's rule,
+      // `SearchQuery::lists_symbols`, and the same facade call.
+      let Some(query) = opt_s(path, map, "query")? else {
+        if ask.lists_symbols() {
+          return val(path, &f.filtered(&ask)?);
+        }
+        return Err(args_err(
+          path,
+          "nothing to search for -- give `query`, `sql`, `outline` or `context`, or list symbols by their filters alone with `subkind` or `in`"
+            .to_string(),
+        ));
+      };
+      // **THE SAME FACADE CALL THE CLI MAKES, SERIALISED** (AC-19.2): one
+      // envelope, two skins. Nothing is assembled here, so the tool cannot
+      // answer a different shape from `--json` for the same question.
       // Issue 0372: reconcile first, as the CLI's in-process path does, so a
       // daemonless answer is not a confident subset of a tree that has moved.
       f.index_refresh(None)?;
@@ -2031,6 +2030,47 @@ mod tests {
       enums > 5,
       "only {enums} enums swept; the corpus declares more, so the sweep is not reaching them"
     );
+  }
+
+  /// AT-04.4 / AC-04.2 (ST0076 WP-04): **the published text says what the index's
+  /// references do not cover, in the words of the one home that knows.** The
+  /// search row's `when_to_use` and the `instructions` line each carry every
+  /// language's sentence from `what_a_reference_misses` and level 1's meaning
+  /// verbatim, so a change that widens a language's references and leaves
+  /// either text claiming the old gap fails here.
+  #[test]
+  fn the_published_text_carries_each_languages_reference_gap() {
+    let table = crate::dispatch::table();
+    let search = crate::dispatch::all_entries(&table)
+      .find(|entry| entry.path == "search")
+      .expect("the search row");
+    let when = search
+      .when_to_use
+      .as_deref()
+      .expect("search declares when_to_use");
+    let levels = [
+      intentsvcs::search::level_words(1),
+      intentsvcs::search::level_words(2),
+    ];
+    for (face, text) in [
+      ("when_to_use", when),
+      ("mcp_instructions", table.mcp_instructions.as_str()),
+    ] {
+      for words in levels {
+        assert!(
+          text.contains(words),
+          "{face} does not say `{words}`: {text}"
+        );
+      }
+      for lang in ["rust", "elixir", "swift", "lua"] {
+        if let Some(gap) = intentsvcs::index::symbols::what_a_reference_misses(lang) {
+          assert!(
+            text.contains(gap),
+            "{face} does not carry {lang}'s gap `{gap}`: {text}"
+          );
+        }
+      }
+    }
   }
 
   /// **D37, ON THE NEW SURFACE, AS A SWEEP**: no Intent-internal tracker id

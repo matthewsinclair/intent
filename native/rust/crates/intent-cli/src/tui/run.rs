@@ -574,7 +574,8 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
   let mut rows = source.rows(app.stack.current());
-  arrive(app, &rows, source.here().as_deref());
+  let note = source.note(app.stack.current());
+  arrive(app, &rows, source.here().as_deref(), note);
   app.index = source.index();
   app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
@@ -836,13 +837,10 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       rows = source.rows(app.stack.current());
       // **THE FRESHNESS LINE ARRIVES WITH THE PANE, WHICH IS THE ONLY MOMENT IT
       // HELPS** (AC-21.1): the reader decides whether to trust a list before
-      // reading it, not after. Set here and nowhere else, so a command's own
-      // notice -- `st done ST0056 ok` -- is never overwritten by a view's.
-      if let Some(note) = source.note(app.stack.current()) {
-        app.notice = note;
-      }
-      arrive(app, &rows, source.here().as_deref());
-      app.notice.clear();
+      // reading it, not after. [`arrive`] sets it, so nothing after the
+      // arrival can wipe it before the frame that shows it.
+      let note = source.note(app.stack.current());
+      arrive(app, &rows, source.here().as_deref(), note);
     }
   }
 
@@ -856,7 +854,14 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
 /// **ONE HOME FOR BOTH ARRIVALS**, the first read and every change of view, so
 /// the list cannot start on the open project when `explore` opens on it and on
 /// the first row when `/projects` reaches it.
-pub fn arrive(app: &mut App, rows: &[Row], here: Option<&std::path::Path>) {
+///
+/// **AND THE VIEW'S NOTE IS SET HERE, WITH NOTHING AFTER IT** (ST0076 WP-04):
+/// its note, or a cleared notice. The loop used to set the search pane's note
+/// and then clear the notice once the cursor had moved, so from 598cf71b9 the
+/// freshness line and the level note were wiped before any frame drew them,
+/// while the pure `freshness_note` arm stayed green. A pty drive found it.
+pub fn arrive(app: &mut App, rows: &[Row], here: Option<&std::path::Path>, note: Option<String>) {
+  app.notice = note.unwrap_or_default();
   app.point_at(rows.len());
   if let Some(at) = here.and_then(|here| views::nearest_project(rows, here)) {
     app.focus = app.focus.and_then(|f| f.at(at));
@@ -1002,6 +1007,7 @@ mod tests {
       &mut app,
       &listed,
       Some(std::path::Path::new("/u/m/Devel/prj/Intent")),
+      None,
     );
     assert_eq!(
       app.focus.map(|f| f.index()),
@@ -1009,7 +1015,7 @@ mod tests {
       "not on the open project"
     );
 
-    arrive(&mut app, &listed, None);
+    arrive(&mut app, &listed, None, None);
     assert_eq!(
       app.focus.map(|f| f.index()),
       Some(0),
@@ -1020,6 +1026,7 @@ mod tests {
       &mut app,
       &rows(),
       Some(std::path::Path::new("/u/m/Devel/prj/Intent")),
+      None,
     );
     assert_eq!(
       app.focus.map(|f| f.index()),

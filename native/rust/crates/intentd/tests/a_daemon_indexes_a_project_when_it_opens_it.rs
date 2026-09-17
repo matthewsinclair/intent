@@ -34,6 +34,8 @@ fn daemon_search_names(daemon: &RunningDaemon, root: &Path, rel: &str) -> bool {
         langs: Vec::new(),
         path: None,
         limit: None,
+        subkinds: Vec::new(),
+        container: None,
       },
     },
   });

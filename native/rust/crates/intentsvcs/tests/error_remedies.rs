@@ -70,6 +70,20 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .schema(Some("not-a-face"))
       .expect_err("a face the types do not generate is refused by name"),
   ));
+  // **A STRUCTURAL DOOR ASKED FOR A TIER IT CANNOT ANSWER** (ST0076 WP-04):
+  // the refusal needs no indexed symbol, so this empty fixture reaches it.
+  out.push((
+    "a structural door asked only the lexical tier",
+    facade
+      .context(
+        "anything",
+        &intentsvcs::search::SearchQuery {
+          tiers: vec![intentsvcs::search::Tier::Lexical],
+          ..Default::default()
+        },
+      )
+      .expect_err("the structural tier alone answers a context search"),
+  ));
   // **AN UNREGISTERED NODE, AND THE DISCRIMINATING CASE IS THE EMPTY ROSTER.**
   // This fixture has never run `wb register`, so the refusal has nothing to
   // list -- which is precisely the state that would otherwise be answered with
@@ -1028,6 +1042,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::SqlOutOfReach { .. } => "SqlOutOfReach",
     FacadeError::SqlOverBudget => "SqlOverBudget",
     FacadeError::SqlLimitAboveCeiling { .. } => "SqlLimitAboveCeiling",
+    FacadeError::StructuralTierNotAsked => "StructuralTierNotAsked",
     FacadeError::SqlDidNotRun { .. } => "SqlDidNotRun",
     FacadeError::NoSuchFace { .. } => "NoSuchFace",
     FacadeError::IllegalTransition { .. } => "IllegalTransition",
@@ -1113,6 +1128,7 @@ const ALL_VARIANTS: &[&str] = &[
   "SqlOutOfReach",
   "SqlOverBudget",
   "SqlLimitAboveCeiling",
+  "StructuralTierNotAsked",
   "SqlDidNotRun",
   "ValueNotRecordable",
   "NoteWouldBeLost",

@@ -16,10 +16,12 @@
 use intent_cli::tui::app::{App, Step};
 use intent_cli::tui::commands;
 use intent_cli::tui::nav::View;
+use intent_cli::tui::run;
 use intent_cli::tui::views;
 use intentsvcs::index::corpus::Corpus;
 use intentsvcs::search::{
-  CorpusState, Hit, HitKind, IndexFreshness, SearchAnswer, Span, Tier, TierGroup, corpus_key,
+  CorpusState, Hit, HitKind, IndexFreshness, SearchAnswer, Span, SymbolFacts, Tier, TierGroup,
+  corpus_key,
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -68,6 +70,7 @@ fn answer() -> SearchAnswer {
           score: -1.0,
           snippet: "a quokka in the objective".to_string(),
           stale: false,
+          symbol: None,
         },
         Hit {
           kind: HitKind::File,
@@ -79,6 +82,7 @@ fn answer() -> SearchAnswer {
           score: -0.5,
           snippet: "a quokka on line twelve".to_string(),
           stale: false,
+          symbol: None,
         },
       ],
     }],
@@ -233,6 +237,7 @@ fn the_rows_are_a_pure_function_of_the_envelope() {
       score: 0.0,
       snippet: "fn quokka()".to_string(),
       stale: false,
+      symbol: None,
     }],
   });
   let rows = views::search_rows(&two);
@@ -244,5 +249,67 @@ fn the_rows_are_a_pure_function_of_the_envelope() {
     rows.iter().filter(|r| !r.is_rule()).count(),
     3,
     "every hit of every group is a row: {rows:?}"
+  );
+}
+
+/// AT-04.3 / AC-04.2 (ST0076 WP-04): **a symbol hit in the pane says what it is and where
+/// it sits, and with nothing partial to report the INFO row names the level
+/// that answered** -- the note the terminal prints, from the one envelope.
+#[test]
+fn a_symbol_hit_names_its_subkind_container_and_level() {
+  let mut answer = answer();
+  answer.groups.push(TierGroup {
+    tier: Tier::Structural,
+    hits: vec![Hit {
+      kind: HitKind::Ref,
+      name: "new".to_string(),
+      owner: None,
+      lang: Some("rust".to_string()),
+      path: "src/lib.rs".to_string(),
+      span: Some(Span::line(9)),
+      score: 0.0,
+      snippet: "Other::new()".to_string(),
+      stale: false,
+      symbol: Some(SymbolFacts {
+        subkind: "call".to_string(),
+        container: Some("Other".to_string()),
+        container_kind: Some("impl".to_string()),
+        trait_name: None,
+        arity: None,
+        arity_min: None,
+        qualifier: None,
+        level: 1,
+      }),
+    }],
+  });
+  let rows = views::search_rows(&answer);
+  let row = rows
+    .iter()
+    .find(|r| r.name == "src/lib.rs")
+    .expect("the symbol hit is a row");
+  assert!(
+    row.value.starts_with("ref call in Other"),
+    "the row says what the symbol is and where it sits: {row:?}"
+  );
+  let note = views::freshness_note(&answer).expect("a symbol answer names its level");
+  assert!(
+    note.contains("level 1: ") && note.contains("in Rust, inside a macro invocation"),
+    "the INFO row names the level and the language's gap: {note}"
+  );
+
+  // **AND IT REACHES THE SCREEN, WHICH THE PURE FUNCTION CANNOT SAY.** From
+  // 598cf71b9 the loop set this note and cleared the notice after the cursor
+  // moved, so no frame ever drew it while the assertion above stayed green.
+  let mut app = explorer();
+  run::arrive(&mut app, &rows, None, Some(note));
+  let hint = run::screen_for(&app, &rows, 240).hint;
+  assert!(
+    hint.contains("level 1: read from the file's syntax"),
+    "the note is on the info row the operator reads: {hint:?}"
+  );
+  run::arrive(&mut app, &rows, None, None);
+  assert!(
+    !run::screen_for(&app, &rows, 240).hint.contains("level 1"),
+    "a view with no note clears the last one"
   );
 }

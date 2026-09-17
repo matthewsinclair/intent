@@ -292,10 +292,18 @@ pub fn search_rows(answer: &intentsvcs::search::SearchAnswer) -> Vec<Row> {
       // search result. The taxonomy travels where a reader can use it, in the
       // value; the widget stays a widget, which is what keeps one meaning in one
       // field.
+      // ST0076 WP-04: a symbol hit says what it is and where it sits.
+      let what = match &hit.symbol {
+        Some(facts) => match facts.container.as_deref() {
+          Some(container) => format!("{} {} in {container}", hit.kind.as_str(), facts.subkind),
+          None => format!("{} {}", hit.kind.as_str(), facts.subkind),
+        },
+        None => hit.kind.as_str().to_string(),
+      };
       let mut row = Row::named(
         hit.path.clone(),
         place,
-        format!("{}  {}", hit.kind.as_str(), hit.snippet),
+        format!("{what}  {}", hit.snippet),
         "button",
       );
       row.door = door_for(hit);
@@ -326,7 +334,9 @@ pub fn freshness_note(answer: &intentsvcs::search::SearchAnswer) -> Option<Strin
     );
   }
   if answer.index.complete() {
-    return None;
+    // **WITH NOTHING PARTIAL TO SAY, THE SYMBOL HITS' LEVEL IS SAID** (ST0076
+    // WP-04, AC-04.2): the same note the terminal prints.
+    return answer.symbol_note();
   }
   let stale = answer.index.stale.len();
   let skipped = answer.index.gaps().count();

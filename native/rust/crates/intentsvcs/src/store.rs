@@ -5715,7 +5715,7 @@ impl Store {
     // WP-01), so a duplicate row here is a defect to see, not to hide.
     self.symbol_rows(
       &format!("SELECT {SYMBOL_COLUMNS} FROM symbols WHERE path = ?1 ORDER BY start_line, name"),
-      path,
+      &[&path],
     )
   }
 
@@ -5725,7 +5725,47 @@ impl Store {
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     self.symbol_rows(
       &format!("SELECT {SYMBOL_COLUMNS} FROM symbols WHERE name = ?1 ORDER BY path, start_line"),
-      name,
+      &[&name],
+    )
+  }
+
+  /// Every symbol whose subkind is one of `subkinds` and whose container holds
+  /// `container`, ordered by path then line (ST0076 WP-04's search asked only
+  /// its filters). An empty `subkinds` or an absent `container` narrows nothing.
+  ///
+  /// **A NARROWING, NEVER THE JUDGE.** The container clause keeps every
+  /// container that CONTAINS the asked text, a superset of
+  /// [`crate::search::container_matches`], so the matching rule stays in one
+  /// place and [`crate::search::SearchQuery::keeps`] decides each row the door
+  /// answers.
+  pub fn symbols_filtered(
+    &self,
+    subkinds: &[String],
+    container: Option<&str>,
+  ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
+    let mut clauses = Vec::new();
+    let mut binds: Vec<&dyn rusqlite::ToSql> = Vec::new();
+    if !subkinds.is_empty() {
+      clauses.push(format!(
+        "subkind IN ({})",
+        vec!["?"; subkinds.len()].join(", ")
+      ));
+      binds.extend(subkinds.iter().map(|word| word as &dyn rusqlite::ToSql));
+    }
+    if let Some(container) = container.as_ref() {
+      clauses.push("instr(container, ?) > 0".to_string());
+      binds.push(container);
+    }
+    let filter = if clauses.is_empty() {
+      "1".to_string()
+    } else {
+      clauses.join(" AND ")
+    };
+    self.symbol_rows(
+      &format!(
+        "SELECT {SYMBOL_COLUMNS} FROM symbols WHERE {filter} ORDER BY path, start_line, name"
+      ),
+      &binds,
     )
   }
 
@@ -5738,10 +5778,10 @@ impl Store {
   fn symbol_rows(
     &self,
     sql: &str,
-    bind: &str,
+    binds: &[&dyn rusqlite::ToSql],
   ) -> Result<Vec<crate::index::symbols::Symbol>, StoreError> {
     let mut stmt = self.conn.prepare(sql)?;
-    let rows = stmt.query_map(params![bind], |row| {
+    let rows = stmt.query_map(binds, |row| {
       let lang: String = row.get(1)?;
       let kind: String = row.get(3)?;
       Ok(crate::index::symbols::Symbol {

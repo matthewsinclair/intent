@@ -262,6 +262,108 @@ pub fn symbols_of(lang: &str, path: &str, bytes: &[u8]) -> Result<Vec<Symbol>, N
   Ok(rows_of(path, lang, grammar.module_separator, bytes, read))
 }
 
+/// What a reference row in `lang` does not yet cover, in the words every
+/// published surface uses, or `None` where nothing is known to be missing.
+///
+/// **THE ONE HOME FOR THE CLAIM, AND THE REGISTER'S TEXT IS HELD TO IT**
+/// (ST0076 WP-04, AC-04.2). The search row's `when_to_use` and the MCP
+/// `instructions` line carry these sentences verbatim and a test in the CLI
+/// crate fails when they differ, so the change that widens a language's
+/// references (WP-02 for Rust, WP-03 for Elixir) edits this and the register
+/// together, or does not build green.
+pub fn what_a_reference_misses(lang: &str) -> Option<&'static str> {
+  match lang {
+    "rust" => Some(
+      "in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference",
+    ),
+    "elixir" => Some(
+      "in Elixir, a remote call such as Repo.get(..) is a reference to get without its module, and alias is not expanded",
+    ),
+    "swift" => Some("Swift files give definitions only"),
+    _ => None,
+  }
+}
+
+/// Every subkind `lang`'s query can write, in the query's order, each once.
+///
+/// **DERIVED FROM THE COMPILED QUERY AND NEVER LISTED** (vc, 2026-09-17, for
+/// `--subkind`'s refusal). A roster written beside the queries would agree with
+/// them until a capture was added, so a pattern's `@definition.*` and
+/// `@reference.*` captures are read off the compiled query, which is the same
+/// object [`symbols_of`] extracts with. **ONE THING IS READ FROM THE SOURCE
+/// TEXT**: a pattern that carries `@subkind` writes that node's text instead, and
+/// the compiled query does not expose the `#any-of?` list that bounds it, so the
+/// list is read from that pattern's own bytes.
+///
+/// Empty for a language this build carries no query for, which is the same
+/// answer [`readiness`] gives in other words.
+pub fn subkinds(lang: &str) -> Vec<String> {
+  use tree_sitter::CaptureQuantifier;
+  let Some(grammar) = grammar(lang) else {
+    return Vec::new();
+  };
+  let Some(source) = grammar.query else {
+    return Vec::new();
+  };
+  let Ok(query) = tree_sitter::Query::new(&grammar.language, source) else {
+    return Vec::new();
+  };
+  let names = query.capture_names();
+  let mut out: Vec<String> = Vec::new();
+  for pattern in 0..query.pattern_count() {
+    let quantifiers = query.capture_quantifiers(pattern);
+    let present = |i: usize| quantifiers[i] != CaptureQuantifier::Zero;
+    let spelled = if names
+      .iter()
+      .enumerate()
+      .any(|(i, name)| *name == "subkind" && present(i))
+    {
+      any_of_subkind(
+        &source[query.start_byte_for_pattern(pattern)..query.end_byte_for_pattern(pattern)],
+      )
+    } else {
+      Vec::new()
+    };
+    for (i, name) in names.iter().enumerate() {
+      if !present(i) {
+        continue;
+      }
+      let Some(sub) = name
+        .strip_prefix("definition.")
+        .or_else(|| name.strip_prefix("reference."))
+      else {
+        continue;
+      };
+      let words = if spelled.is_empty() {
+        vec![sub.to_string()]
+      } else {
+        spelled.clone()
+      };
+      for word in words {
+        if !out.contains(&word) {
+          out.push(word);
+        }
+      }
+    }
+  }
+  out
+}
+
+/// The quoted words of a pattern's `(#any-of? @subkind ...)`, in order.
+fn any_of_subkind(pattern: &str) -> Vec<String> {
+  let Some(start) = pattern.find("#any-of? @subkind") else {
+    return Vec::new();
+  };
+  let rest = &pattern[start + "#any-of? @subkind".len()..];
+  let list = &rest[..rest.find(')').unwrap_or(rest.len())];
+  list
+    .split('"')
+    .skip(1)
+    .step_by(2)
+    .map(str::to_string)
+    .collect()
+}
+
 /// A row a match proposed, before the file's containers and parameters are
 /// known.
 struct Candidate<'t> {

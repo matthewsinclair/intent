@@ -261,6 +261,8 @@ mod the_sql_door_is_read_only;
 mod the_struck_doors_refuse_as_retired;
 #[path = "the_structural_doors_answer_in_the_envelope.rs"]
 mod the_structural_doors_answer_in_the_envelope;
+#[path = "the_structural_doors_take_the_filters.rs"]
+mod the_structural_doors_take_the_filters;
 #[path = "the_web_face_answers_on_the_published_port.rs"]
 mod the_web_face_answers_on_the_published_port;
 #[path = "twin_spellings_agree.rs"]

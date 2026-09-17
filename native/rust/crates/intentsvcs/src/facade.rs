@@ -647,6 +647,17 @@ pub enum FacadeError {
   /// A `--limit` above the door's ceiling.
   #[error("`--limit {asked}` is above the SQL door's ceiling of {ceiling}")]
   SqlLimitAboveCeiling { asked: usize, ceiling: usize },
+  /// A structural door asked with a tier filter that leaves the structural
+  /// tier out (ST0076 WP-04).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE QUESTION IS UNANSWERABLE, NOT MALFORMED.**
+  /// `--outline`, `--context` and a search asked only its filters are answered
+  /// by the structural tier alone, so the remedy is to widen the tiers or ask a
+  /// text query, and no neighbour's sentence says that.
+  #[error(
+    "this question is answered by the structural tier alone, and the tier filter leaves it out"
+  )]
+  StructuralTierNotAsked,
   /// SQLite refused the statement for a reason of its own -- a syntax error, an
   /// unknown table. Carried as itself: the operator wrote the SQL, and SQLite's
   /// own words are the most useful thing anybody can say about it.
@@ -1780,6 +1791,7 @@ impl crate::remedy::Remedy for FacadeError {
       Self::SqlLimitAboveCeiling { ceiling, .. } => format!(
         "ask for {ceiling} or fewer. A door that streamed everything would hand an agent a result nothing can hold"
       ),
+      Self::StructuralTierNotAsked => "drop the tier filter or add `structural` to it; the lexical and semantic tiers answer a text query".to_string(),
       Self::SqlDidNotRun { .. } => "the words above are SQLite's own -- `intent schema` publishes the tables and columns this store holds".to_string(),
       Self::WbNodeNotRegistered { .. } => "check the spelling against the roster above; a node that is genuinely missing is put on the board by `intent wb register`, which reads the roster from each node's own `wip.md` header".to_string(),
       Self::WbBodyOverBound { bound, .. } => format!(
@@ -3739,6 +3751,7 @@ impl Facade {
         score: row.rank,
         snippet: snippet(&section.body, row.at),
         stale: matches!(located, Located::Moved),
+        symbol: None,
       };
       // **FRESHNESS DESCRIBES THE ANSWER, NOT THE WHOLE INDEX.** A stale row
       // the filters excluded is not part of what was returned, and warning
@@ -3785,6 +3798,7 @@ impl Facade {
         score: row.rank,
         snippet: snippet(&section.body, row.at),
         stale: matches!(located, Located::Moved),
+        symbol: None,
       };
       if ask.keeps(&hit) {
         if hit.stale {
@@ -3858,23 +3872,7 @@ impl Facade {
     .map(|(tier, hits)| TierGroup { tier, hits })
     .collect();
 
-    // **BOTH DENOMINATORS, AND `matched` IS COUNTED AFTER THE FILTERS.** The
-    // filters are part of the question -- `--kind issue` asks how many ISSUES
-    // matched -- while the limit is a cap on the answer. Counting before them
-    // would report a denominator for a question nobody asked.
-    //
-    // Issue 0357: both are taken from the groups the answer carries, so
-    // `returned` is the length of the body. The cap applies per group because
-    // tiers are ranked within themselves and never blended.
-    let mut matched = 0;
-    let mut returned = 0;
-    for group in &mut groups {
-      matched += group.hits.len();
-      if let Some(limit) = ask.limit {
-        group.hits.truncate(limit);
-      }
-      returned += group.hits.len();
-    }
+    let (matched, returned) = crate::search::cap(&mut groups, ask.limit);
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
@@ -3942,6 +3940,7 @@ impl Facade {
           score,
           snippet: String::new(),
           stale: false,
+          symbol: None,
         })
       })
       .filter(|hit| ask.keeps(hit))
@@ -4083,6 +4082,16 @@ impl Facade {
       score: 0.0,
       snippet: snippet_line,
       stale,
+      symbol: Some(crate::search::SymbolFacts {
+        subkind: symbol.subkind.clone(),
+        container: symbol.container.clone(),
+        container_kind: symbol.container_kind.clone(),
+        trait_name: symbol.trait_name.clone(),
+        arity: symbol.arity,
+        arity_min: symbol.arity_min,
+        qualifier: symbol.qualifier.clone(),
+        level: symbol.level,
+      }),
     }
   }
 
@@ -4100,12 +4109,22 @@ impl Facade {
   /// and found nothing, which is a different and false claim.
   ///
   /// Issue 0358: an outline is what the file DEFINES; the names it merely uses
-  /// are listed only when `refs` asks for them.
+  /// are listed only when `ask.kinds` names `ref`, which here widens the answer
+  /// rather than narrowing it.
+  ///
+  /// **THE OTHER FILTERS NARROW IT AS THEY NARROW A TEXT QUERY** (ST0076
+  /// WP-04): subkind, container, language and path go through
+  /// [`crate::search::SearchQuery::keeps`], the one predicate every door uses.
   pub fn outline(
     &self,
     path: &str,
-    refs: bool,
+    ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
+    let refs = ask.kinds.contains(&crate::search::HitKind::Ref);
+    let narrowing = crate::search::SearchQuery {
+      kinds: Vec::new(),
+      ..ask.clone()
+    };
     let symbols = self
       .store
       .symbols_in(path)
@@ -4113,7 +4132,7 @@ impl Facade {
       .into_iter()
       .filter(|s| refs || s.kind == crate::index::symbols::SymbolKind::Def)
       .collect();
-    self.structural_answer(path, symbols)
+    self.structural_answer(path, symbols, &narrowing)
   }
 
   /// `intent search --context <name>` -- a definition and its name-matched
@@ -4127,18 +4146,64 @@ impl Facade {
   /// points at, so a `ref` is an occurrence of the name and never a CALLER. A
   /// door that answered "callers" would be the confident wrong answer, and the
   /// agent asking has no way to check it.
-  pub fn context(&self, name: &str) -> Result<crate::search::SearchAnswer, FacadeError> {
+  ///
+  /// **AND IT HONOURS THE FILTERS** (ST0076 WP-04). It ignored every one of them
+  /// until then, so `--context new --in AddressError` answered every `new` in
+  /// the tree and said nothing about the filter it had dropped.
+  pub fn context(
+    &self,
+    name: &str,
+    ask: &crate::search::SearchQuery,
+  ) -> Result<crate::search::SearchAnswer, FacadeError> {
     let symbols = self.store.symbols_named(name).map_err(FacadeError::Store)?;
-    self.structural_answer(name, symbols)
+    self.structural_answer(name, symbols, ask)
+  }
+
+  /// `intent search --subkind <subkind>` or `--in <container>` with nothing
+  /// else to ask -- the symbols that pass the filters, wherever they are
+  /// (ST0076 WP-04, AC-04.1).
+  ///
+  /// **THE FILTERS ARE THE QUESTION.** The methods of a type are asked without
+  /// knowing the file it lives in, which is the one thing `--outline` needs, and
+  /// `--context` cannot ask them without a name. The store read narrows by
+  /// subkind and container, and [`crate::search::SearchQuery::keeps`] judges
+  /// every row, as it does for the other structural doors.
+  pub fn filtered(
+    &self,
+    ask: &crate::search::SearchQuery,
+  ) -> Result<crate::search::SearchAnswer, FacadeError> {
+    let symbols = self
+      .store
+      .symbols_filtered(&ask.subkinds, ask.container.as_deref())
+      .map_err(FacadeError::Store)?;
+    // The envelope's `query` names what was asked, because there is no text to
+    // name and an empty one would print as nothing in the empty-index note.
+    let mut asked = Vec::new();
+    if !ask.subkinds.is_empty() {
+      asked.push(format!("subkind {}", ask.subkinds.join(" or ")));
+    }
+    if let Some(container) = &ask.container {
+      asked.push(format!("in {container}"));
+    }
+    self.structural_answer(&asked.join(", "), symbols, ask)
   }
 
   /// The envelope for a question only the structural tier answers.
+  ///
+  /// **EVERY FILTER IS HONOURED HERE, THE TIER AND THE CAP INCLUDED** (ST0076
+  /// WP-04). A tier filter that leaves the structural tier out is refused
+  /// rather than ignored: answering would hand back a tier nobody asked for,
+  /// and an empty answer would claim a search ran that this door cannot run.
   fn structural_answer(
     &self,
     query: &str,
     symbols: Vec<crate::index::symbols::Symbol>,
+    ask: &crate::search::SearchQuery,
   ) -> Result<crate::search::SearchAnswer, FacadeError> {
     use crate::search::{IndexFreshness, SearchAnswer, Tier, TierGroup};
+    if !Tier::Structural.asked(&ask.tiers) {
+      return Err(FacadeError::StructuralTierNotAsked);
+    }
     // **cc's `corpora()` IS THE ONE HOME AND IT LANDED FIRST.** I had extracted
     // the same block as `freshness()` in the same hour; two methods answering
     // "what does this index hold" is the duplication the extraction was for, so
@@ -4148,22 +4213,26 @@ impl Facade {
     let mut hits = Vec::new();
     for symbol in symbols {
       let hit = self.structural_hit(&symbol);
+      if !ask.keeps(&hit) {
+        continue;
+      }
       if hit.stale {
         index.mark_stale(hit.path.clone());
       }
       hits.push(hit);
     }
-    let matched = hits.len();
+    let mut groups = vec![TierGroup {
+      tier: Tier::Structural,
+      hits,
+    }];
+    let (matched, returned) = crate::search::cap(&mut groups, ask.limit);
     Ok(SearchAnswer {
       query: query.to_string(),
       index,
-      groups: vec![TierGroup {
-        tier: Tier::Structural,
-        hits,
-      }],
+      groups,
       unanswered: Vec::new(),
       matched,
-      returned: matched,
+      returned,
     })
   }
 

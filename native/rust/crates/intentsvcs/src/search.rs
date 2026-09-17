@@ -72,6 +72,63 @@ pub struct SearchAnswer {
   pub returned: usize,
 }
 
+impl SearchAnswer {
+  /// What a reader of this answer's symbol hits must know before trusting
+  /// them, or `None` when it carries no symbol hit.
+  ///
+  /// **IT NAMES THE LEVEL THAT ANSWERED** (ST0076 WP-04, AC-04.1): which of
+  /// the three levels the hits were read at, what that level means, and for
+  /// each language in the answer what its references do not cover yet. A
+  /// reference list that did not say so would be read as every caller.
+  pub fn symbol_note(&self) -> Option<String> {
+    let symbols: Vec<(&Hit, &SymbolFacts)> = self
+      .groups
+      .iter()
+      .flat_map(|group| group.hits.iter())
+      .filter_map(|hit| hit.symbol.as_ref().map(|facts| (hit, facts)))
+      .collect();
+    if symbols.is_empty() {
+      return None;
+    }
+    let mut levels: Vec<u8> = symbols.iter().map(|(_, facts)| facts.level).collect();
+    levels.sort_unstable();
+    levels.dedup();
+    let mut langs: Vec<&str> = symbols
+      .iter()
+      .filter_map(|(hit, _)| hit.lang.as_deref())
+      .collect();
+    langs.sort_unstable();
+    langs.dedup();
+    let mut note = levels
+      .iter()
+      .map(|level| format!("level {level}: {}", level_words(*level)))
+      .collect::<Vec<_>>()
+      .join("; ");
+    for gap in langs
+      .iter()
+      .filter_map(|lang| crate::index::symbols::what_a_reference_misses(lang))
+    {
+      note.push_str("; ");
+      note.push_str(gap);
+    }
+    Some(note)
+  }
+}
+
+/// What a symbol row's `level` means, in the words every surface uses.
+pub fn level_words(level: u8) -> &'static str {
+  match level {
+    1 => {
+      "read from the file's syntax and matched by name, never resolved to the definition it names"
+    }
+    2 => {
+      "read from the file's syntax with the path it was written with, still never resolved to the definition it names"
+    }
+    3 => "resolved to the definition it names by the language's own toolchain",
+    _ => "a level this build does not describe",
+  }
+}
+
 /// A tier asked for by name that did not answer, and why.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Unanswered {
@@ -410,6 +467,36 @@ pub struct Hit {
   /// noticed for as long as the envelope only ever went outwards.
   #[serde(default, skip_serializing_if = "std::ops::Not::not")]
   pub stale: bool,
+  /// What a symbol hit knows beyond its name; absent on every other hit.
+  #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+  pub symbol: Option<SymbolFacts>,
+}
+
+/// A symbol hit's facts, **SPELLED AS THE `symbols` COLUMNS THEY ARE READ FROM**
+/// (vc, 2026-09-17, ST0076 WP-04): one fact has one name across the SQL door,
+/// this envelope and the MCP tool, so a caller who learned `trait_name` in one
+/// place reads it in the others.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SymbolFacts {
+  /// What the symbol is, in its language's own words: `struct`, `method`,
+  /// `defp`, `call`.
+  pub subkind: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub container: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub container_kind: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub trait_name: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub arity: Option<u32>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub arity_min: Option<u32>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub qualifier: Option<String>,
+  /// How much the row knows: 1 a definition or an unqualified reference read
+  /// by syntax, 2 a reference with the qualifier it was written with, 3 a
+  /// reference resolved by the language's own toolchain.
+  pub level: u8,
 }
 
 /// A line range in a file, 1-indexed and inclusive.
@@ -455,11 +542,48 @@ pub struct SearchQuery {
   pub path: Option<String>,
   /// The row cap. `None` is the caller's "all of it".
   pub limit: Option<usize>,
+  /// Empty means every subkind. A hit that is not a symbol has none, so any
+  /// subkind filter leaves it out.
+  #[serde(default)]
+  pub subkinds: Vec<String>,
+  /// The container a symbol sits in, matched by [`container_matches`]. A hit
+  /// with no container is left out by any container filter.
+  #[serde(default)]
+  pub container: Option<String>,
 }
 
 impl SearchQuery {
+  /// Whether these filters are a question on their own: a search with a
+  /// subkind or a container and nothing else to ask lists the symbols that
+  /// pass them (ST0076 WP-04, AC-04.1).
+  ///
+  /// **THE RULE FOR EVERY FACE, HERE ONCE.** The terminal and the MCP tool both
+  /// ask it, so neither can list on a filter the other refuses as nothing to
+  /// search for. Kind, language and path are left out on purpose: each narrows
+  /// every tier, so alone they would list the whole index.
+  pub fn lists_symbols(&self) -> bool {
+    !self.subkinds.is_empty() || self.container.is_some()
+  }
+
   pub fn keeps(&self, hit: &Hit) -> bool {
     if !self.kinds.is_empty() && !self.kinds.contains(&hit.kind) {
+      return false;
+    }
+    if !self.subkinds.is_empty()
+      && !hit
+        .symbol
+        .as_ref()
+        .is_some_and(|facts| self.subkinds.contains(&facts.subkind))
+    {
+      return false;
+    }
+    if let Some(asked) = &self.container
+      && !hit
+        .symbol
+        .as_ref()
+        .and_then(|facts| facts.container.as_deref())
+        .is_some_and(|container| container_matches(asked, container))
+    {
       return false;
     }
     if !self.langs.is_empty()
@@ -475,6 +599,147 @@ impl SearchQuery {
       None => true,
     }
   }
+}
+
+/// Whether a symbol's `container` is the one a caller named: the whole of it,
+/// or its last segment after `::` or `.`, so `AddressError` finds a method whose
+/// container is `errors::AddressError`.
+pub fn container_matches(asked: &str, container: &str) -> bool {
+  container == asked
+    || container
+      .strip_suffix(asked)
+      .is_some_and(|head| head.ends_with("::") || head.ends_with('.'))
+}
+
+/// An answer's `matched` and `returned`, with `limit` applied to each group.
+///
+/// **BOTH DENOMINATORS, AND `matched` IS COUNTED AFTER THE FILTERS.** The
+/// filters are part of the question -- `--kind issue` asks how many ISSUES
+/// matched -- while the limit is a cap on the answer. Counting before them
+/// would report a denominator for a question nobody asked.
+///
+/// Issue 0357: both are taken from the groups the answer carries, so
+/// `returned` is the length of the body. The cap applies per group because
+/// tiers are ranked within themselves and never blended.
+///
+/// **ONE HOME FOR EVERY DOOR** (ST0076 WP-04): the structural doors counted
+/// their own hits and never applied the cap, so `--outline <path> --limit 1`
+/// returned the whole file.
+pub fn cap(groups: &mut [TierGroup], limit: Option<usize>) -> (usize, usize) {
+  let mut matched = 0;
+  let mut returned = 0;
+  for group in groups {
+    matched += group.hits.len();
+    if let Some(limit) = limit {
+      group.hits.truncate(limit);
+    }
+    returned += group.hits.len();
+  }
+  (matched, returned)
+}
+
+/// The filter words a caller gave, before they are checked.
+///
+/// **THE WORDS ARE CHECKED HERE, ONCE, FOR EVERY FACE** (ST0076 WP-04). The
+/// terminal and the MCP tool each parsed `kind` and `tier` with their own copy
+/// of the refusal, and a subkind refusal needs the roster of the languages in
+/// scope, which is this crate's to know.
+#[derive(Debug, Clone, Default)]
+pub struct FilterWords {
+  pub kinds: Vec<String>,
+  pub tiers: Vec<String>,
+  pub subkinds: Vec<String>,
+  pub langs: Vec<String>,
+}
+
+/// A filter word that names nothing this search has.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FilterRefusal {
+  /// What was wrong, naming the word.
+  pub problem: String,
+  /// The words that would have been accepted.
+  pub choices: Vec<String>,
+}
+
+impl FilterWords {
+  /// The kinds, tiers and subkinds as a query, or the first word that names
+  /// nothing. Path, limit and container are the faces' to set.
+  ///
+  /// **AN UNKNOWN SUBKIND IS REFUSED AGAINST THE LANGUAGES IN SCOPE**: the
+  /// `lang` filter's languages when it has any, otherwise every language this
+  /// build parses. A subkind filter that silently kept no rows would answer a
+  /// typo with a confident empty result.
+  pub fn check(self) -> Result<SearchQuery, FilterRefusal> {
+    let mut ask = SearchQuery {
+      langs: self.langs,
+      ..SearchQuery::default()
+    };
+    for word in self.kinds {
+      match HitKind::parse(&word) {
+        Some(kind) => ask.kinds.push(kind),
+        None => {
+          return Err(FilterRefusal {
+            problem: format!("`{word}` is not a kind of thing this index holds"),
+            choices: HitKind::ALL.iter().map(|k| k.to_string()).collect(),
+          });
+        }
+      }
+    }
+    for word in self.tiers {
+      match Tier::parse(&word) {
+        Some(tier) => ask.tiers.push(tier),
+        None => {
+          return Err(FilterRefusal {
+            problem: format!("`{word}` is not a tier this search has"),
+            choices: Tier::ALL.iter().map(|t| t.to_string()).collect(),
+          });
+        }
+      }
+    }
+    if !self.subkinds.is_empty() {
+      let roster = subkind_roster(&ask.langs);
+      for word in &self.subkinds {
+        if !roster.contains(word) {
+          return Err(FilterRefusal {
+            problem: format!(
+              "`{word}` is not a subkind the index writes for {}",
+              if ask.langs.is_empty() {
+                "any language this build parses".to_string()
+              } else {
+                ask.langs.join(", ")
+              }
+            ),
+            choices: roster,
+          });
+        }
+      }
+      ask.subkinds = self.subkinds;
+    }
+    Ok(ask)
+  }
+}
+
+/// Every subkind the given languages' queries write, or every parsed
+/// language's when none is given, in roster order with none repeated.
+pub fn subkind_roster(langs: &[String]) -> Vec<String> {
+  let mut out: Vec<String> = Vec::new();
+  let every: Vec<&str> = crate::index::symbols::LANGUAGES
+    .iter()
+    .map(|(lang, _)| *lang)
+    .collect();
+  let asked: Vec<&str> = if langs.is_empty() {
+    every
+  } else {
+    langs.iter().map(String::as_str).collect()
+  };
+  for lang in asked {
+    for word in crate::index::symbols::subkinds(lang) {
+      if !out.contains(&word) {
+        out.push(word);
+      }
+    }
+  }
+  out
 }
 
 /// A path glob: `*` matches within a segment, `**` across segments, `?` one
@@ -634,6 +899,63 @@ mod tests {
         vec!["vendor/huge.json"]
       );
     }
+  }
+
+  /// ST0076 WP-04: a symbol's facts travel flat, under the column names, and
+  /// survive the daemon's wire both ways; a hit that is not a symbol carries
+  /// none of them.
+  #[test]
+  fn a_symbol_hit_carries_its_columns_flat_and_reads_back() {
+    let symbol = Hit {
+      kind: HitKind::Def,
+      name: "new".to_string(),
+      owner: None,
+      lang: Some("rust".to_string()),
+      path: "src/lib.rs".to_string(),
+      span: Some(Span::line(3)),
+      score: 0.0,
+      snippet: "pub fn new() -> Self".to_string(),
+      stale: false,
+      symbol: Some(SymbolFacts {
+        subkind: "assoc_fn".to_string(),
+        container: Some("AddressError".to_string()),
+        container_kind: Some("impl".to_string()),
+        trait_name: None,
+        arity: Some(0),
+        arity_min: Some(0),
+        qualifier: None,
+        level: 1,
+      }),
+    };
+    let json = serde_json::to_value(&symbol).expect("serialise");
+    assert_eq!(json["subkind"], "assoc_fn");
+    assert_eq!(json["container"], "AddressError");
+    assert_eq!(json["level"], 1);
+    assert!(json.get("symbol").is_none() && json.get("trait_name").is_none());
+    let back: Hit = serde_json::from_value(json).expect("deserialise");
+    assert_eq!(back.symbol, symbol.symbol);
+
+    let file = Hit {
+      kind: HitKind::File,
+      symbol: None,
+      ..symbol
+    };
+    let json = serde_json::to_value(&file).expect("serialise");
+    assert!(json.get("subkind").is_none() && json.get("level").is_none());
+    let back: Hit = serde_json::from_value(json).expect("deserialise");
+    assert_eq!(
+      back.symbol, None,
+      "a file hit reads back with no symbol facts"
+    );
+  }
+
+  #[test]
+  fn a_container_matches_whole_or_by_its_last_segment() {
+    assert!(container_matches("AddressError", "AddressError"));
+    assert!(container_matches("AddressError", "errors::AddressError"));
+    assert!(container_matches("Store", "Intent.Store"));
+    assert!(!container_matches("Error", "errors::AddressError"));
+    assert!(!container_matches("errors", "errors::AddressError"));
   }
 
   #[test]

@@ -3599,20 +3599,30 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       named.join(" and ")
     )));
   }
-  // **THREE OF THE FOUR DOORS ANSWER IN THIS PROCESS ONLY, AND `--daemon` ON
-  // ONE OF THEM REFUSES RATHER THAN ANSWERING LOCALLY** (`IN-AG-NO-SILENT-001`).
+  // **A SEARCH ASKED ONLY ITS FILTERS IS A QUESTION OF ITS OWN** (ST0076
+  // WP-04, AC-04.1): `--subkind` or `--in` with no other door lists the symbols
+  // that pass them, because the methods of a type are asked without knowing its
+  // file. The rule is `SearchQuery::lists_symbols`, which the MCP tool asks too.
+  let listing = if named.is_empty() {
+    Some(search_ask(m)?).filter(|ask| ask.lists_symbols())
+  } else {
+    None
+  };
+  // **EVERY DOOR BUT THE TEXT QUERY ANSWERS IN THIS PROCESS ONLY, AND `--daemon`
+  // ON ONE OF THEM REFUSES RATHER THAN ANSWERING LOCALLY** (`IN-AG-NO-SILENT-001`).
   // The `--daemon` guard in [`run`] is keyed on the PATH, and `search` is
   // servable -- so without this, `intent --daemon search --outline x` would
   // parse, pass the guard, open this process's store and print a normal answer
   // at rc 0, having done the opposite of what was asked. Only the text query
-  // has an [`Op`]; `--outline`, `--context` and `--sql` have none, and a flag
-  // accepted and ignored is worse than one refused because the exit code agrees
-  // with the caller.
+  // has an [`Op`]; `--outline`, `--context`, `--sql` and a search asked only its
+  // filters have none, and a flag accepted and ignored is worse than one refused
+  // because the exit code agrees with the caller.
   if via_daemon(m)
     && let Some(door) = [
       ("`--outline`", outline.is_some()),
       ("`--context`", context.is_some()),
       ("`--sql`", statement.is_some()),
+      ("a search asked only its filters", listing.is_some()),
     ]
     .into_iter()
     .find(|(_, given)| *given)
@@ -3626,16 +3636,20 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
   }
 
   if let Some(path) = outline {
+    let ask = search_ask(m)?;
     let f = open()?;
-    let refs = search_ask(m)?
-      .kinds
-      .contains(&intentsvcs::search::HitKind::Ref);
-    let answer = f.outline(&path, refs).map_err(fail)?;
+    let answer = f.outline(&path, &ask).map_err(fail)?;
     return report_search(m, &answer);
   }
   if let Some(name) = context {
+    let ask = search_ask(m)?;
     let f = open()?;
-    let answer = f.context(&name).map_err(fail)?;
+    let answer = f.context(&name, &ask).map_err(fail)?;
+    return report_search(m, &answer);
+  }
+  if let Some(ask) = listing {
+    let f = open()?;
+    let answer = f.filtered(&ask).map_err(fail)?;
     return report_search(m, &answer);
   }
 
@@ -3650,8 +3664,9 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
     }
     (None, None) => {
       return Err(Failure::Error(
-        "error: nothing to search for\n  remedy: give a text query, or a statement with \
-         `--sql <statement>`"
+        "error: nothing to search for\n  remedy: give a text query, a statement with \
+         `--sql <statement>`, or list symbols by their filters alone with \
+         `--subkind <subkind>` or `--in <container>`"
           .to_string(),
       ));
     }
@@ -3785,6 +3800,11 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
       answer.returned, answer.matched
     );
   }
+  // **THE LEVEL THAT ANSWERED IS SAID BESIDE THE SYMBOL HITS** (ST0076 WP-04):
+  // a reference list read as every caller is the confident wrong answer.
+  if let Some(note) = answer.symbol_note() {
+    eprintln!("note: {note}");
+  }
 
   // **THE ENVELOPE IS GROUPED AND THE TERMINAL PRINTS ROWS** (AC-19.1). A tier
   // header was written here first and REMOVED after driving it: `intent search`
@@ -3819,15 +3839,23 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
       // done.
       // Issue 0361: the name says where, the snippet says what matched, so the
       // row carries both when they differ.
+      // ST0076 WP-04: a symbol row says what it is and where it sits, in the
+      // kind and owner columns a reader already scans.
+      let kind = match &hit.symbol {
+        Some(facts) if !facts.subkind.is_empty() => {
+          format!("{} {}", hit.kind.as_str(), facts.subkind)
+        }
+        _ => hit.kind.as_str().to_string(),
+      };
+      let owner = hit
+        .symbol
+        .as_ref()
+        .and_then(|facts| facts.container.as_deref())
+        .unwrap_or(owner);
       if hit.snippet.is_empty() || hit.snippet == hit.name {
-        println!("{place}  {}  {owner}  {}", hit.kind.as_str(), hit.name);
+        println!("{place}  {kind}  {owner}  {}", hit.name);
       } else {
-        println!(
-          "{place}  {}  {owner}  {}  {}",
-          hit.kind.as_str(),
-          hit.name,
-          hit.snippet
-        );
+        println!("{place}  {kind}  {owner}  {}  {}", hit.name, hit.snippet);
       }
     }
   }
@@ -3841,53 +3869,38 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
 /// confident empty result, which is the silent-subset defect in its most
 /// believable form.
 fn search_ask(m: &ArgMatches) -> Result<intentsvcs::search::SearchQuery, Failure> {
-  use intentsvcs::search::{HitKind, SearchQuery};
-  let mut tiers = Vec::new();
-  if let Some(values) = m.get_many::<String>("tier") {
-    for word in values {
-      match intentsvcs::search::Tier::parse(word) {
-        Some(tier) => tiers.push(tier),
-        None => {
-          return Err(Failure::Error(format!(
-            "error: `{word}` is not a tier this search has\n  remedy: one of {}",
-            intentsvcs::search::Tier::ALL.join(", ")
-          )));
-        }
-      }
-    }
+  let words = |id: &str| -> Vec<String> {
+    m.get_many::<String>(id)
+      .map(|values| values.cloned().collect())
+      .unwrap_or_default()
+  };
+  // **THE WORDS ARE CHECKED IN `intentsvcs`, ONCE FOR EVERY FACE** (ST0076
+  // WP-04): the MCP tool refuses the same word with the same choices.
+  let mut ask = intentsvcs::search::FilterWords {
+    kinds: words("kind"),
+    tiers: words("tier"),
+    subkinds: words("subkind"),
+    langs: words("lang"),
   }
-  let langs: Vec<String> = m
-    .get_many::<String>("lang")
-    .map(|values| values.cloned().collect())
-    .unwrap_or_default();
-  let mut kinds = Vec::new();
-  if let Some(values) = m.get_many::<String>("kind") {
-    for word in values {
-      match HitKind::parse(word) {
-        Some(kind) => kinds.push(kind),
-        None => {
-          return Err(Failure::Error(format!(
-            "error: `{word}` is not a kind of thing this index holds\n  remedy: one of {}",
-            HitKind::ALL.join(", ")
-          )));
-        }
-      }
-    }
-  }
-  Ok(SearchQuery {
-    kinds,
-    tiers,
-    langs,
-    path: m.get_one::<String>("path").cloned(),
-    limit: match m.get_one::<String>("limit") {
-      None => None,
-      Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
-        Failure::Error(format!(
-          "error: `--limit` takes a number of rows, not `{raw}`\n  remedy: `--limit 20`"
-        ))
-      })?),
-    },
-  })
+  .check()
+  .map_err(|refusal| {
+    Failure::Error(format!(
+      "error: {}\n  remedy: one of {}",
+      refusal.problem,
+      refusal.choices.join(", ")
+    ))
+  })?;
+  ask.path = m.get_one::<String>("path").cloned();
+  ask.container = m.get_one::<String>("in").cloned();
+  ask.limit = match m.get_one::<String>("limit") {
+    None => None,
+    Some(raw) => Some(raw.parse::<usize>().map_err(|_| {
+      Failure::Error(format!(
+        "error: `--limit` takes a number of rows, not `{raw}`\n  remedy: `--limit 20`"
+      ))
+    })?),
+  };
+  Ok(ask)
 }
 
 /// `intent index status` and `intent index rebuild` -- AC-19.6.

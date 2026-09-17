@@ -73,6 +73,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::SqlOutOfReach { .. }
     | FacadeError::SqlOverBudget
     | FacadeError::SqlLimitAboveCeiling { .. }
+    // A structural door asked for a tier it cannot answer: the remedy is a
+    // different tier filter, never a fuller call.
+    | FacadeError::StructuralTierNotAsked
     | FacadeError::SqlDidNotRun { .. }
     | FacadeError::WriteNotAddressable { .. }
     | FacadeError::RowBreaksContract { .. }
