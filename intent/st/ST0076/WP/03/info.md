@@ -2,14 +2,14 @@
 wp_id: WP-03
 title: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-03: Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require
 
 ## Objective
 
-_(not yet written)_
+Make an Elixir reference say the module it was written with, so `Repo.get` and `Map.get` stop reading as one name. Remote calls, remote captures such as `&Repo.get/2` and remote pipe targets carry their module as the qualifier at level 2, with the arity written or piped; local calls, local captures such as `&format/1` and local pipe targets stay unqualified at level 1, a capture with the arity after its slash; and `use`, `import`, `require` and `alias` are level-1 references named with the whole module, each brace entry its own row. A module is expanded by the file's own alias forms, `as:`, the brace form, `__MODULE__` and an Erlang module alias, within the enclosing do-block, and nothing `import` or `use` brings in is applied. Every reference spans its name node.
 
 ## Acceptance
 
