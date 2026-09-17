@@ -32,7 +32,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 - AC-03.1 Elixir references by syntax include remote calls, remote captures (`&Mod.fun/2`) and remote pipe targets, each carrying its module as the qualifier with `level` 2 and arity where written; local calls and local pipe targets are unqualified at `level` 1; and `alias`, `import`, `require` and `use` are references at `level` 1 whose name is the whole module. A module in a qualifier or a directive name has the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied. -- satisfied: no (computed)
 
-### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: Not Started)
+### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: WIP)
 
 - AC-04.1 `intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); a search with `--subkind` or `--in` and no query lists the symbols that pass those filters, and a search with nothing to search for is refused with a remedy naming that form; `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters, the query-less form included. -- satisfied: no (computed)
 - AC-04.2 The search row's `when_to_use`, the MCP `instructions` line and the explorer's hits say what the index now answers and what it still does not, per level and per language, with no claim wider than the build. -- satisfied: no (computed)
@@ -67,7 +67,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: Not Started)
+### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: WIP)
 
 _(no tests in this group)_
 
