@@ -70,4 +70,9 @@ Order: WP-01, then WP-02, WP-03 and WP-04 in parallel, then WP-05 and WP-06. Iss
 
 ## Proof
 
-After hv's rebuild, the defined-but-never-referenced query that failed on 2026-09-16 no longer lists `is_local`, `AddressError` or `from_project`; `intent search --kind method --in AddressError` lists its methods once each; an Elixir estate answers the callers of one `Repo` function without the same-named `Map` function.
+The thread closes on its acceptance criteria (`intent ac list ST0076`): one or more per work package, each held by the arms its lane cites, plus two that no arm can hold.
+
+- **AC-00.1, after hv's rebuild on the Intent estate:** the defined-but-never-referenced query that failed on 2026-09-16 no longer lists `is_local`, `AddressError` or `from_project`; `intent search --kind method --in AddressError` lists its methods once each; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep.
+- **AC-06.2, on a scratch copy of Laksa:** the level-3 callers of `Map.get/2` are listed without any call to `Access.get`, `Process.get` or `Keyword.get` (vc's ruling on dc's measurement, carried in WP-06's body).
+
+Issue 0429 closes on WP-02's landing: `intent search --context nearest_project` lists `views.rs:437` and `views.rs:439`, both inside `assert_eq!`.
