@@ -1,5 +1,5 @@
-//! A definition written once is ONE symbol row (ST0076's measured duplicate
-//! definitions, and issue 0358's `DISTINCT`).
+//! AT-01.2 / AC-01.2 (ST0076 WP-01): a definition written once is ONE symbol
+//! row (ST0076's measured duplicate definitions, and issue 0358's `DISTINCT`).
 //!
 //! **THE DUPLICATE WAS MADE AT EXTRACTION, SO IT IS HELD THERE.** rust's
 //! `tags.scm` names a method twice -- `(declaration_list (function_item))` as

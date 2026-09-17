@@ -1,5 +1,7 @@
-//! ST0076 WP-01: a definition carries what it IS, where it sits and its arity,
-//! and a store an older extractor wrote is re-extracted rather than mixed.
+//! AT-01.1 / AC-01.1, AC-01.2 and AT-01.3 / AC-01.3 (ST0076 WP-01): a
+//! definition carries what it IS, where it sits and its arity, a definition's
+//! own name is never a reference to it, and a store an older extractor wrote is
+//! re-extracted rather than mixed.
 
 use crate::common::Fixture;
 use intentsvcs::index::symbols::{EXTRACTOR_VERSION, Symbol, SymbolKind, symbols_of};
