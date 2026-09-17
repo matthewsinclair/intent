@@ -2313,6 +2313,31 @@ fn insert_src_section(
   Ok(())
 }
 
+/// The writer lock, held across work that has to land with no other
+/// connection's commit in between (issue `0441`). Taken by
+/// [`Store::hold_unless_moved`].
+///
+/// **DROPPED WITHOUT [`Held::release`], IT ROLLS BACK**, so a failure between
+/// taking the lock and releasing it records nothing: the transaction's own
+/// guarantee rather than a second one.
+pub struct Held<'a> {
+  tx: rusqlite::Transaction<'a>,
+}
+
+impl Held<'_> {
+  /// Record landed files in the file index under the held lock -- the write
+  /// [`Store::record_file_entries`] makes in a transaction of its own.
+  pub fn record_file_entries(&self, entries: &[FileEntry]) -> Result<(), StoreError> {
+    upsert_file_entries(&self.tx, entries)
+  }
+
+  /// Commit what was recorded and let the next writer in.
+  pub fn release(self) -> Result<(), StoreError> {
+    self.tx.commit()?;
+    Ok(())
+  }
+}
+
 fn upsert_file_entries(
   tx: &rusqlite::Transaction<'_>,
   entries: &[FileEntry],
@@ -5457,6 +5482,40 @@ impl Store {
     upsert_file_entries(&tx, entries)?;
     tx.commit()?;
     Ok(())
+  }
+
+  /// This connection's `PRAGMA data_version` (issue `0441`).
+  ///
+  /// **IT MOVES WHEN ANOTHER CONNECTION COMMITS AND NEVER FOR THIS ONE'S OWN
+  /// WRITES**, which is SQLite's definition and exactly the question a render
+  /// has to ask of the store it was taken from. It needs nothing from the
+  /// writers: a counter every writer had to bump in its own transaction would
+  /// be a discipline, and this is a property of the file.
+  pub fn data_version(&self) -> Result<i64, StoreError> {
+    Ok(
+      self
+        .conn
+        .pragma_query_value(None, "data_version", |row| row.get(0))?,
+    )
+  }
+
+  /// Take the writer lock and keep it only if no other connection has
+  /// committed since `baseline` was read on this one (issue `0441`).
+  ///
+  /// **`None` HAS ALREADY LET THE LOCK GO AND WRITTEN NOTHING**: the unused
+  /// transaction is dropped. **`Some` HOLDS IT UNTIL [`Held::release`]**, so
+  /// whatever the caller does in between -- files on disk, and the file index
+  /// recording them -- happens while no writer can commit a row those files
+  /// would then contradict. The version is read inside the transaction, after
+  /// the lock is taken, so a commit that landed while this waited for it moves
+  /// the version too.
+  pub fn hold_unless_moved(&mut self, baseline: i64) -> Result<Option<Held<'_>>, StoreError> {
+    let tx = Self::write_tx(&mut self.conn)?;
+    let now: i64 = tx.pragma_query_value(None, "data_version", |row| row.get(0))?;
+    if now != baseline {
+      return Ok(None);
+    }
+    Ok(Some(Held { tx }))
   }
 
   /// Every indexed file, ordered by path.

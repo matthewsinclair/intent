@@ -141,6 +141,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::EgestFromRefusedIngest { .. }
     | FacadeError::EgestWouldEmptyTheEstate { .. }
     | FacadeError::EgestFromStaleStore { .. }
+    | FacadeError::IngestOutpacedByWrites { .. }
     | FacadeError::WriteWouldEmptyAnAuthoredBody { .. }
     | FacadeError::Organize(_)
     | FacadeError::Intentfiles(_)

@@ -55,6 +55,8 @@ mod a_search_names_what_it_could_not_answer;
 mod a_stale_store_does_not_overwrite_committed_canon;
 #[path = "a_subkind_is_a_word_the_index_writes.rs"]
 mod a_subkind_is_a_word_the_index_writes;
+#[path = "a_sync_writes_no_render_the_store_has_moved_past.rs"]
+mod a_sync_writes_no_render_the_store_has_moved_past;
 #[path = "a_work_packages_criteria_are_its_scoped_rows.rs"]
 mod a_work_packages_criteria_are_its_scoped_rows;
 #[path = "a_write_refuses_a_record_that_moved_under_it.rs"]

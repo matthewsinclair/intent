@@ -1093,6 +1093,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
     FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
     FacadeError::EgestFromStaleStore { .. } => "EgestFromStaleStore",
+    FacadeError::IngestOutpacedByWrites { .. } => "IngestOutpacedByWrites",
     FacadeError::WriteWouldEmptyAnAuthoredBody { .. } => "WriteWouldEmptyAnAuthoredBody",
     FacadeError::Realise(_) => "Realise",
     FacadeError::Organize(_) => "Organize",
@@ -1219,6 +1220,7 @@ const ALL_VARIANTS: &[&str] = &[
   "EgestFromRefusedIngest",
   "EgestWouldEmptyTheEstate",
   "EgestFromStaleStore",
+  "IngestOutpacedByWrites",
   "WriteWouldEmptyAnAuthoredBody",
   "Realise",
   "Install",
@@ -1388,6 +1390,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // in `a_stale_store_does_not_overwrite_committed_canon.rs`, which asserts the
   // committed correction survives and the refusal names its thread.
   "EgestFromStaleStore",
+  // Needs another connection to commit inside each of an ingest pass's three
+  // renders, which is the world moving under the call rather than an argument
+  // this file can pass. The guard it retries is driven in
+  // `a_sync_writes_no_render_the_store_has_moved_past.rs`, where a second
+  // facade's edit lands between the snapshot and the file commit.
+  "IngestOutpacedByWrites",
   // Both need a v2 estate rather than a bad call, and both are the migration
   // door rather than a verb: `MigrationBlocked` needs live-thread residue and
   // `MigrationHalted` needs the filesystem to fail PART WAY THROUGH an

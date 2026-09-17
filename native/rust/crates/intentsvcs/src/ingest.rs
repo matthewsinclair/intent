@@ -410,6 +410,21 @@ pub(crate) fn record_canon_files(
   store: &mut Store,
   paths: &[PathBuf],
 ) -> Result<(), IngestError> {
+  store.record_file_entries(&canon_file_entries(project, paths)?)?;
+  Ok(())
+}
+
+/// The entries [`record_canon_files`] records: each path as it stands on disk
+/// now, an absent one skipped.
+///
+/// **A STEP OF ITS OWN FOR THE ONE RECORDER THAT HOLDS THE WRITER LOCK**
+/// (issue `0441`). The ingest pass records what it landed inside the same hold
+/// as its files, so it reads the entries here and writes them through
+/// [`crate::store::Held`], whose transaction already has the connection.
+pub(crate) fn canon_file_entries(
+  project: &Project,
+  paths: &[PathBuf],
+) -> Result<Vec<sync::FileEntry>, IngestError> {
   let mut entries = Vec::with_capacity(paths.len());
   for path in paths.iter().filter(|p| p.exists()) {
     let mut entry = sync::entry_for(project.root(), path, &[]).map_err(|e| IngestError::Io {
@@ -419,8 +434,7 @@ pub(crate) fn record_canon_files(
     entry.state = FileState::Clean;
     entries.push(entry);
   }
-  store.record_file_entries(&entries)?;
-  Ok(())
+  Ok(entries)
 }
 
 /// Take the committed project state into the store, on any disk -> store path.

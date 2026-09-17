@@ -1404,6 +1404,13 @@ pub enum FacadeError {
     "the canon on disk for {subjects} changed after the store last wrote or read it, so this would write the store's version over it"
   )]
   EgestFromStaleStore { subjects: String },
+  /// An ingest pass found another connection's commit after each of its
+  /// [`INGEST_RENDERS`] snapshots, so it wrote none of its renders (issue
+  /// `0441`). `paths` names what the last one would have changed.
+  #[error(
+    "the store moved under each of this sync's {renders} renders, so it wrote none of them; the last would have changed {paths}"
+  )]
+  IngestOutpacedByWrites { renders: usize, paths: String },
   /// **A write that would replace an authored body with nothing** (Lamplight,
   /// 2026-08-26).
   ///
@@ -2404,6 +2411,12 @@ impl crate::remedy::Remedy for FacadeError {
       Self::EgestFromStaleStore { .. } => {
         "nothing was written. If the canon on disk is right -- a pull or a peer's commit -- run `intent sync --to-store` to take it into the store. If the store is right, restore the file from git when the change is an uncommitted edit, or remove it: an absent canon file is re-created from the store. Then run this again".to_string()
       }
+      // Nothing to repair by hand: every write that moved the store rendered
+      // its own subject, and what this pass left behind is what it read from
+      // disk, which the next pass reads again.
+      Self::IngestOutpacedByWrites { .. } => {
+        "nothing was lost: the store holds every write, and each write that moved it rendered its own files. The next sync, which the next edit in this project starts, renders these again; until then `intent doctor` names any file that is behind the store".to_string()
+      }
       Self::EgestFromRefusedIngest { .. } => {
         "fix what the ingest refused and run `intent sync --to-store` again -- a load that succeeds clears this. Your canon holds authored work the store has never taken, so writing the store over it now is the loss, not the repair".to_string()
       }
@@ -2597,6 +2610,16 @@ const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and i
 
 /// The remedy when an organize run's acts landed and the event log did not record them.
 const UNRECORDED_REMEDY: &str = "do not re-run to record it: the acts listed above are on disk, and `git status` shows them. The event log has no entry for this run, and no command writes one after the fact";
+
+/// How many times one ingest pass renders before it gives up on a store that
+/// keeps moving under it (issue `0441`).
+///
+/// **A BOUND, BECAUSE EVERY WRITE THAT MOVED THE STORE RENDERED ITS OWN
+/// SUBJECT.** What a pass renders again is what it took in from disk, and a
+/// write to a canon file or a view starts another pass with its own file
+/// events; three renders outlast a burst without turning a busy estate into a
+/// loop.
+const INGEST_RENDERS: usize = 3;
 
 /// What `intent claude upgrade` did: canon's dispositions, and the
 /// formatter-ignore patterns it added to `.prettierignore` -- or, on a dry run,
@@ -3048,6 +3071,34 @@ struct Projection {
   /// Each thread and issue canon file in `set`, with the subject a refusal
   /// names: the thread id, or `issue 0260`.
   canon_files: Vec<(std::path::PathBuf, String)>,
+}
+
+/// One ingest pass between its snapshot and its file commit (issue `0441`):
+/// what [`Facade::ingest_render`] took and rendered, for
+/// [`Facade::ingest_commit`] to land or discard.
+///
+/// **TWO STEPS, BECAUSE THE STORE CAN MOVE BETWEEN THEM, AND THAT GAP WAS THE
+/// DEFECT.** A command-line write that committed after the snapshot had its
+/// canon file and view written back to this render. The fields are private,
+/// so the one thing a caller can do with a render is hand it to the commit.
+pub struct IngestRender {
+  /// This connection's `PRAGMA data_version`, read before the snapshot.
+  baseline: i64,
+  canon: Canon,
+  count: usize,
+  projection: Projection,
+}
+
+/// What [`Facade::ingest_commit`] did with a render.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IngestCommit {
+  /// The files landed and the file index recorded them, under one hold of the
+  /// writer lock. The count is the threads the pass read.
+  Written(usize),
+  /// Another connection committed after the snapshot, so nothing was written
+  /// and nothing recorded. `unwritten` is what the render would have changed,
+  /// project-relative.
+  StoreMoved { unwritten: Vec<String> },
 }
 
 /// A canon file that exists and cannot be read. Reported, never read past: an
@@ -7488,7 +7539,12 @@ impl Facade {
   /// nothing either, because a service call with a stated direction has
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
   pub fn sync_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
-    self.load_from_disk(scope, ingest::Load::Restore)
+    let (canon, count, Projection { set, canon_files }) =
+      self.render_from_disk(scope, ingest::Load::Restore)?;
+    let applied = set.commit()?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    self.record_landed(&canon_files, &landed)?;
+    self.finish_from_disk(scope, canon, count, applied)
   }
 
   /// **disk -> db for intentd's background pass after an external edit: the
@@ -7501,15 +7557,106 @@ impl Facade {
   /// preview, so it must not destroy a write whose commit has landed and whose
   /// canon file has not -- which the restore's wholesale rebuild did, ~1s after
   /// the writer printed `ok`.
+  ///
+  /// **AND ITS FILES LAND ONLY WHERE THE STORE HAS NOT MOVED SINCE ITS
+  /// SNAPSHOT** (issue `0441`). The pass renders every thread, issue, board and
+  /// declared view from one snapshot, and a command-line write can commit while
+  /// it renders. Written anyway, the render put that write's canon file and view
+  /// back as they were before it and recorded them as the store's own, and
+  /// nothing said so until the next write to the subject warned. So a render
+  /// lands only under a held writer lock that finds no other connection's commit
+  /// since the snapshot; a pass that finds one renders again, at most
+  /// [`INGEST_RENDERS`] times, and then refuses, naming what it did not write.
   pub fn ingest_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
-    self.load_from_disk(scope, ingest::Load::Ingest)
+    let mut unwritten = Vec::new();
+    for _ in 0..INGEST_RENDERS {
+      let render = self.ingest_render(scope)?;
+      match self.ingest_commit(scope, render)? {
+        IngestCommit::Written(count) => return Ok(count),
+        IngestCommit::StoreMoved { unwritten: last } => unwritten = last,
+      }
+    }
+    Err(FacadeError::IngestOutpacedByWrites {
+      renders: INGEST_RENDERS,
+      paths: match unwritten.is_empty() {
+        true => "no file".to_string(),
+        false => unwritten.join(", "),
+      },
+    })
   }
 
-  fn load_from_disk(
+  /// An ingest pass's first step: read the store's version, take the snapshot
+  /// and render it (issue `0441`).
+  ///
+  /// **THE VERSION IS READ BEFORE THE SNAPSHOT**, so a commit that lands while
+  /// the snapshot is being taken moves it as well. That can discard a render
+  /// that was already current, at the price of one more, and it never lets a
+  /// stale one through.
+  pub fn ingest_render(&mut self, scope: &SyncScope) -> Result<IngestRender, FacadeError> {
+    let baseline = self.store.data_version().map_err(FacadeError::Store)?;
+    let (canon, count, projection) = self.render_from_disk(scope, ingest::Load::Ingest)?;
+    Ok(IngestRender {
+      baseline,
+      canon,
+      count,
+      projection,
+    })
+  }
+
+  /// An ingest pass's second step: land `render` only if no other connection
+  /// has committed since its snapshot (issue `0441`).
+  ///
+  /// **THE CHECK, THE FILES AND THEIR RECORD SHARE ONE HOLD OF THE WRITER
+  /// LOCK**, so no write can commit between finding the store unmoved and the
+  /// files that assume it. When the store has moved, nothing is written and
+  /// nothing recorded: the render is older than the store, and the write that
+  /// moved it rendered its own subject.
+  pub fn ingest_commit(
+    &mut self,
+    scope: &SyncScope,
+    render: IngestRender,
+  ) -> Result<IngestCommit, FacadeError> {
+    let IngestRender {
+      baseline,
+      canon,
+      count,
+      projection: Projection { set, canon_files },
+    } = render;
+    let Some(held) = self
+      .store
+      .hold_unless_moved(baseline)
+      .map_err(FacadeError::Store)?
+    else {
+      let unwritten = set
+        .writes()
+        .filter(|(path, content)| {
+          !std::fs::read(path).is_ok_and(|disk| disk.as_slice() == *content)
+        })
+        .map(|(path, _)| self.project.relative(path))
+        .collect();
+      return Ok(IngestCommit::StoreMoved { unwritten });
+    };
+    let applied = set.commit()?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    let entries =
+      ingest::canon_file_entries(&self.project, &Self::landed_paths(&canon_files, &landed))
+        .map_err(FacadeError::Ingest)?;
+    held
+      .record_file_entries(&entries)
+      .map_err(FacadeError::Store)?;
+    held.release().map_err(FacadeError::Store)?;
+    self
+      .finish_from_disk(scope, canon, count, applied)
+      .map(IngestCommit::Written)
+  }
+
+  /// Take a disk load's snapshot and render it: what both directions do before
+  /// either writes a file.
+  fn render_from_disk(
     &mut self,
     scope: &SyncScope,
     load: ingest::Load,
-  ) -> Result<usize, FacadeError> {
+  ) -> Result<(Canon, usize, Projection), FacadeError> {
     // **Validated against DISK, because disk is this direction's SOURCE.**
     // Checking the store instead would refuse a thread that exists only on
     // disk, which is the one case a restore is most obviously for. The extra
@@ -7618,11 +7765,21 @@ impl Facade {
     // **A SCOPED RESTORE RENDERS ONLY THE VIEWS OF THE THREADS IT TOOK (0259).**
     // The rest keep the store's value, so re-rendering their covers changes
     // nothing but a hand edit a peer is holding -- which it discards.
-    let Projection { set, canon_files } =
-      self.projection(&canon, &all_threads, &all_issues, Some(scope), None)?;
-    let applied = set.commit()?;
-    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
-    self.record_landed(&canon_files, &landed)?;
+    let projection = self.projection(&canon, &all_threads, &all_issues, Some(scope), None)?;
+    drop(all_threads);
+    drop(all_issues);
+    Ok((canon, count, projection))
+  }
+
+  /// Finish a disk load whose files are on disk and in the file index: what
+  /// both directions do after they land.
+  fn finish_from_disk(
+    &mut self,
+    scope: &SyncScope,
+    canon: Canon,
+    count: usize,
+    applied: crate::write_set::Applied,
+  ) -> Result<usize, FacadeError> {
     let wrote = self.estate_paths(&applied);
     // **THE INDEX RECORDS THE VIEWS THIS WROTE, AND UNTIL ISSUE `0311` IT
     // RECORDED ONLY THE CANON.** The store knew what it had just put on disk
@@ -7632,8 +7789,8 @@ impl Facade {
     // again -- the feedback loop scope is supposed to close, arriving through
     // the one door that had no baseline to compare against.
     //
-    // **IT IS THE SAME ACT AS `record_landed` ABOVE, APPLIED TO THE OTHER HALF
-    // OF WHAT THE PROJECTION WROTE**, which is why it uses that path rather
+    // **IT IS THE SAME ACT AS `record_landed`, WHICH EACH DIRECTION RUNS BEFORE
+    // THIS, APPLIED TO THE OTHER HALF OF WHAT THE PROJECTION WROTE**, which is why it uses that path rather
     // than a second mechanism. A HAND edit to a view still differs from these
     // bytes and is still reported: this records what the store wrote, never a
     // claim about who may write next.
@@ -8371,11 +8528,29 @@ impl Facade {
     // `refuse_if_canon_moved_under_the_store` reads. And the views are in
     // `written` and were never in `canon_files`. The union is the honest answer
     // to *what does the store now know it wrote*.
+    ingest::record_canon_files(
+      &self.project,
+      &mut self.store,
+      &Self::landed_paths(canon_files, written),
+    )
+    .map_err(FacadeError::Ingest)
+  }
+
+  /// What [`Facade::record_landed`] records: every canon file the projection
+  /// carried and every path it wrote, sorted, each once.
+  ///
+  /// **ONE UNION FOR BOTH RECORDERS** (issue `0441`). The ingest pass records
+  /// the same set inside its held lock, and a second spelling of it there would
+  /// be free to disagree about which files the store now knows it wrote.
+  fn landed_paths(
+    canon_files: &[(std::path::PathBuf, String)],
+    written: &[std::path::PathBuf],
+  ) -> Vec<std::path::PathBuf> {
     let mut paths: Vec<std::path::PathBuf> = canon_files.iter().map(|(p, _)| p.clone()).collect();
     paths.extend(written.iter().cloned());
     paths.sort();
     paths.dedup();
-    ingest::record_canon_files(&self.project, &mut self.store, &paths).map_err(FacadeError::Ingest)
+    paths
   }
 
   /// **An egest must not overwrite a canon file that moved since the store
