@@ -30,7 +30,7 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### WP-03 -- Elixir qualified references: remote calls with their module, captures, pipes, alias expansion, use, import and require (status: WIP)
 
-- AC-03.1 Elixir references by syntax include remote calls, remote captures (`&Mod.fun/2`) and remote pipe targets, each carrying its module as the qualifier with `level` 2 and arity where written; local calls and local pipe targets are unqualified at `level` 1; and `alias`, `import`, `require` and `use` are references at `level` 1 whose name is the whole module. A module in a qualifier or a directive name has the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied. -- satisfied: no (computed)
+- AC-03.1 Elixir references by syntax include remote calls, remote captures (`&Mod.fun/2`) and remote pipe targets, each carrying its module as the qualifier with `level` 2 and arity where written; local calls, local captures (`&fun/1`, with their arity) and local pipe targets are unqualified at `level` 1; and `alias`, `import`, `require` and `use` are references at `level` 1 whose name is the whole module. A module in a qualifier or a directive name has the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied. -- satisfied: no (computed)
 
 ### WP-04 -- Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions (status: WIP)
 
@@ -39,11 +39,11 @@ title: A typed symbol index for Rust and Elixir: kinds, containers, qualified re
 
 ### WP-05 -- Rust resolved references through rust-analyzer's SCIP export (status: Not Started)
 
-- AC-05.1 Rust level 3: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written level-2 reference (same file, line and name); `intent index status` counts matched, unmatched and dropped; a missing rust-analyzer is named in the envelope with its reason and never answers as an empty tier. -- satisfied: no (computed)
+- AC-05.1 Rust level 3, on an explicit verb only and never from intentd unasked: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written reference (same file, line and name); `intent index status` counts matched, unmatched, dropped and ambiguous, and the paths whose resolved rows are stale; the export builds into a directory of Intent's own under `intent/.cache`; a missing rust-analyzer is named in the envelope with its reason and never answers as an empty tier. -- satisfied: no (computed)
 
 ### WP-06 -- Elixir resolved references through the compiler's tracer, on an explicit verb (status: Not Started)
 
-- AC-06.1 Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written level-2 references (same file, line and name) and expansion events are not stored; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file, `mix compile` runs without force and `--full` forces. -- satisfied: no (computed)
+- AC-06.1 Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written references (same file, line and name) and expansion events are not stored; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file, `mix compile` runs without force and `--full` forces. -- satisfied: no (computed)
 - AC-06.2 (non-test) On a scratch copy of Laksa, the level-3 callers of `Map.get/2` are listed without any call to `Access.get`, `Process.get` or `Keyword.get`. -- satisfied: no
 
 ## Acceptance Tests
