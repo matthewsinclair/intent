@@ -124,8 +124,13 @@ jobs:
         # that were renamed, to test functions, to private items from public docs
         # -- because `cargo doc` ran nowhere. Under `-D warnings` a new one fails
         # here instead of adding to a count nobody reads.
+        #
+        # THE SAME COMMAND AS devbin's `doc` gate, flag for flag
+        # (devbin_rust_gates.bats pins every CI cargo line to a devbin twin), so
+        # `--document-private-items`: the maintainers' docs, private items
+        # included, which is also the stricter of the two renderings.
         env:
           RUSTDOCFLAGS: -D warnings
-        run: cargo doc --workspace --no-deps
+        run: cargo doc --no-deps --document-private-items
       - name: test (includes the schema-face drift check and the dep-graph guard)
         run: cargo test --workspace --no-fail-fast

@@ -8490,7 +8490,7 @@ fn lang_usage() -> Result<(), Failure> {
 /// this estate has spent a day naming: a correct value about the wrong subject,
 /// carrying nothing that says so.
 ///
-/// v2's "no language templates available at <dir>" branch is deliberately not
+/// v2's "no language templates available at `<dir>`" branch is deliberately not
 /// ported. It fires when the template directory is missing; the derived list is
 /// a compile-time constant and cannot be empty, so porting the branch would ship
 /// a message no input can produce.
@@ -8505,7 +8505,7 @@ fn lang_list() -> Result<(), Failure> {
 /// `intent lang show <lang>` -- what declaring a language does.
 ///
 /// **`corrected`, and the correction is the whole of it.** v2 prints "Files
-/// installed by 'intent lang init <lang>'" over a list of two paths. v3's `init`
+/// installed by 'intent lang init `<lang>`'" over a list of two paths. v3's `init`
 /// installs nothing, so a faithful port would print a durable claim that two
 /// files will appear, and they will not -- the same shape as `plugin show`
 /// pointing at a retired verb, arriving through fidelity rather than neglect.
@@ -10731,7 +10731,7 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
 /// value reads as a seam and is a residue.
 ///
 /// **THE SURFACE WAS ALREADY PARSED AND ONLY THE RENDERER WAS MISSING**, the
-/// same shape [`skills`] records. `dispatch-table.json` declared both verbs,
+/// same shape `skills` records. `dispatch-table.json` declared both verbs,
 /// listed `claude start` under `shipped`, and the spine built their positionals
 /// -- so `intent claude --help` listed them, `intent claude start` with no
 /// argument correctly said `<WS>` is required, and the verb answered `2` the
@@ -11977,7 +11977,7 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
 /// with the grammar exactly until one moves -- and `no_pm_state_in_output.rs`
 /// refuses a worked example naming a thread in the reader's own project. So the
 /// example carries a PLACEHOLDER for the id and takes its shape from
-/// [`Address::to_url`], which is the same function `show` emits through.
+/// `Address::to_url`, which is the same function `show` emits through.
 ///
 /// **THAT ALSO MAKES IT UNABLE TO GO STALE**, which a literal could: if the
 /// grammar ever moves, every worked example in this file moves with it, and the
@@ -12400,7 +12400,7 @@ fn probe_undeclared_ok(m: &ArgMatches, name: &str) -> Result<Option<String>, Fai
 
 /// Was this flag GIVEN on the command line, whatever it carries?
 ///
-/// **[`flag`] ANSWERS A NARROWER QUESTION THAN ITS NAME, AND ANSWERS `false`
+/// **`flag` ANSWERS A NARROWER QUESTION THAN ITS NAME, AND ANSWERS `false`
 /// TO EVERY OTHER ONE.** It reads the match as a `bool`, which is what clap
 /// stores for `ArgAction::SetTrue` and only that. A flag declared with a value
 /// stores a `String`, so `try_get_one::<bool>` is a TYPE MISMATCH, `.ok()`

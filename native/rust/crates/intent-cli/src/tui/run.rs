@@ -466,7 +466,7 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
 }
 
 /// The dropdown: one line per match, best first, the pick marked and the
-/// matched letters carrying [`Role::Match`] -- the television affordance
+/// matched letters carrying `Role::Match` -- the television affordance
 /// that makes a fuzzy list legible rather than magical.
 ///
 /// **THE LINE IS THE HAYSTACK, VERBATIM, TWO COLUMNS IN** -- built from
