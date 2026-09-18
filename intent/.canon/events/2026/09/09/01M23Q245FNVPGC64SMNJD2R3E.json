@@ -1,0 +1,16 @@
+{
+  "id": "01M23Q245FNVPGC64SMNJD2R3E",
+  "ts": "2026-09-09T18:32:09.137Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0293"
+  },
+  "payload": {
+    "bytes": 6489,
+    "severity": "high",
+    "title": "Dehydrating a closed thread broke a ratified ruling's record and blocked every commit in the repository -- and organise reported it as an ordinary line"
+  }
+}

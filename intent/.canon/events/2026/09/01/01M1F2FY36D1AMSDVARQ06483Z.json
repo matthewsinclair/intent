@@ -1,0 +1,15 @@
+{
+  "id": "01M1F2FY36D1AMSDVARQ06483Z",
+  "ts": "2026-09-01T18:07:52.936Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0211"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A criterion cannot name what would discharge it until it is discharged"
+  }
+}

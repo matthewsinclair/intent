@@ -1,0 +1,15 @@
+{
+  "id": "01M1KYDR2JDDS2GDMC2MGGRYPG",
+  "ts": "2026-09-03T15:32:59.092Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0223"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a write verb's title positional absorbs a mistyped subcommand name and creates permanent state at rc=0 -- five artefacts of it are in this register"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1RHZYWDWBBTH3WDK8JW419G",
+  "ts": "2026-09-05T10:31:56.559Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0259"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A scoped 'intent sync --to-store ID' refuses on view-skew belonging to a DIFFERENT thread -- but only when the named thread has work to write, so the estate-wide block is invisible to every node except the one with real work, whose only unblocking move is to discard another node's edit"
+  }
+}

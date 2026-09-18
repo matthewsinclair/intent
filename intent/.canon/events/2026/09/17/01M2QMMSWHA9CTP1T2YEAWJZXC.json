@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMMSWHA9CTP1T2YEAWJZXC",
+  "ts": "2026-09-17T12:14:44.113Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE: ST0076 WP-03 in build (vc's go of 2026-09-17, on hv's word).** Private worktree scratchpad/wt-wp03 on c800b8319 with cc's re-banked shapes (refs/bank/cc/st0076-extractor-shapes, patch-id 69d6653d) and dc's content banked at refs/bank/dc/st0076-wp03-wip (blob ac8610fbf, patch-id 55b86c11, intentsvcs paths only). RECOVER: fresh worktree at the base, `git cat-file -p refs/bank/cc/st0076-extractor-shapes | git apply`, then the same for dc's ref. AC-03.1's arms are green in a targeted run (tests/symbols_are_qualified_elixir_references.rs, whose header names AT-03.1), with the symbol and index arm families green beside them. Built since the fold's bank: brace entries as directive rows (@name.base), `__MODULE__.Sub` and `__MODULE__.{A, B}` directives (@self), the `alias :crypto, as: Crypto` form (vc: IN), the `as:` short name no longer a module row (cc's @alias.as line), unqualified references on their name node (a bare pipe target spanned its whole pipeline), and elixir.scm's header naming every capture and property it adds. NEXT: (1) the post-WP-03 Elixir gap sentence and level_words(2) to vc and ic, and the Elixir side's requirements for the level-3 core (key, staleness by content hash, per-file replace, counters) to cc and vc; (2) after ic's WP-04 lands, rebase onto that HEAD and carry the sentence, level_words(2) and the dispatch-table regen; (3) the whole gate ONCE as the train's judging run, in the warm worktree: fmt, workspace clippy -D warnings, whole intentsvcs, intent-cli and intentd suites after cargo build -p intentd, never overlapping cc's export window or ic's suites; send vc the log paths, both patch-ids, the base, the path list and the load; (4) on vc's word land right after cc: commit, at new AT-03.1 taken green, WP-03's objective, design.md's Elixir cells with canon, wp done. THEN 0434 (XS, intentd's notices), THEN WP-06. Store writes through the installed pair only. NO RELEASE, NO PUSH."
+  }
+}

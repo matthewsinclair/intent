@@ -1,0 +1,14 @@
+{
+  "id": "01M2E07A7M3PN3EAGGPE5WN93H",
+  "ts": "2026-09-13T18:24:40.697Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/tui-design.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

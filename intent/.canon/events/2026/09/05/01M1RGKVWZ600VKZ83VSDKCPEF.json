@@ -1,0 +1,15 @@
+{
+  "id": "01M1RGKVWZ600VKZ83VSDKCPEF",
+  "ts": "2026-09-05T10:07:51.713Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0253"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the table's upgrade row declares one flag group where its own declared v2 twin parses four -- an undeclared flag cannot regress, because nothing compares it"
+  }
+}

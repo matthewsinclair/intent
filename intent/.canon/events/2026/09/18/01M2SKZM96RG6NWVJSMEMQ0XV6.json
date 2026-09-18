@@ -1,0 +1,15 @@
+{
+  "id": "01M2SKZM96RG6NWVJSMEMQ0XV6",
+  "ts": "2026-09-18T06:41:39.112Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0446"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "organize's dehydration guard and st sync's empty-estate guard compare whole files, so a view an older renderer wrote reads as a possible hand edit and 68 refusals across four estates are renderer-owned text"
+  }
+}

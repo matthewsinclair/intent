@@ -1,0 +1,15 @@
+{
+  "id": "01M0TPV9M4GS57F1K2YJ98TQXC",
+  "ts": "2026-08-24T20:19:33.906Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0076"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "IN-EX-TEST-001's greppable proxy matches its own anti-pattern inside COMMENTS, so documenting why you removed it is itself an offence -- and the rule declares a Critic confirmation step the headless gate structurally cannot perform"
+  }
+}

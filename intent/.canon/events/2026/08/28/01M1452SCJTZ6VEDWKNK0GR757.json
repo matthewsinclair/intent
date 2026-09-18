@@ -1,0 +1,15 @@
+{
+  "id": "01M1452SCJTZ6VEDWKNK0GR757",
+  "ts": "2026-08-28T12:21:30.042Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0108"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a shim carrier reports gate-not-running on every estate that adopts it, as a counted RED"
+  }
+}

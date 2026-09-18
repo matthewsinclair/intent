@@ -1,0 +1,14 @@
+{
+  "id": "01M2DST82GR17F8J8FV0HK596R",
+  "ts": "2026-09-13T16:32:41.043Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-07.7"
+  },
+  "payload": {
+    "text": "**THE FOUR COLLECTION ADDRESSES RESOLVE.** `intent:///threads`, `intent:///issues`, `intent:///threads/{stid}/wp` and `intent:///threads/{stid}/ac` parse and resolve in `address.rs`, and until this row **no criterion in this thread reached their resolution.** AC-07.1's population is *every ENTITY form in D57-8's list* and is faithful to that -- against nine entity forms it is satisfied and stays satisfied. **This is a new criterion rather than a widening of AC-07.1, on the discriminator this thread has used four times: what does satisfying the existing row completely still leave broken?** All nine entity forms resolving through one implementation leaves four addressable collection forms with no resolution coverage at all. **The four entered the grammar through D57-8's POST clause and its under-addressing clause while D57-8's own enumerating fence stayed at nine** (amended 2026-08-20), so they were mandated, implemented, and unreachable by any test that enumerates the grammar from the document. **Resolution is implemented ONCE for these as for the entity forms** -- the CLI and intentd call the same function in `intentsvcs` -- and the singularity arm is asserted structurally, as AC-07.1 requires, not by comparing two outputs."
+  }
+}

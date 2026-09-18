@@ -1,0 +1,15 @@
+{
+  "id": "01M2QWZSH4106DNMA4V0NSKV2A",
+  "ts": "2026-09-17T14:40:32.804Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, on dc's WP-06 design points and ic's AC-07.2 question. ELIXIR READER: (1) the tracer records call events (remote_, imported_ and local_, function and macro) printed inspect(module).name/arity, a local call on env.module, and module references (alias_reference, alias, import, require) with the module as name and target, plus :start and :stop per file; no other event kind is recorded. (2) Its roster is `expansion`, `operator` and `quoted`. `expansion` is a call or module event whose meta carries no column, checked first: dc measured on Elixir 1.20.4 that every written reference kind carries a column and generated code carries none, and that a written `to_string(x)` traces both Kernel.to_string/1 with a column and the macro's own String.Chars.to_string/1 without one on the same line and name, so the join alone would store the twin; a trace whose reference events carry no column at all is Failed, never a run that drops everything; the doc says the test cannot see a macro that reuses a written node's meta. `operator` is one word with one test for both languages (decision 26), so OPERATOR and its test move into resolved.rs in dc's landing. `quoted` is an imported_quoted event, which names a list of arities and asserts none singly: counted, never a row per arity. (3) A file is read only if it ran :start to :stop and hashes the same before and after the compile; a non-zero exit, a :start with no :stop or a tracer fault record is Failed. (4) A run that seeds or re-seeds the cache forces the compile whatever --full says, because a seeded cache holds the user's compile state and would never trace what the user already compiled. (5) mix.exs is read at the index root only in this release, and NotApplicable's detail and the register's words say so. (6) dc corrects WP-06's body now (ruling 4 struck for AC-06.1's clause), with wp start. AC-07.2 (ic): stored rows answer whatever this build's readers are, and there is one refusal, keyed on the store alone, with the remedy `intent index resolve`; the readers()-dependent wording is dropped and the AC's last clause reworded at 41c8f9ad1."
+  }
+}

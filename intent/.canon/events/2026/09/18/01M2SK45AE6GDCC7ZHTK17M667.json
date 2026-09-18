@@ -1,0 +1,15 @@
+{
+  "id": "01M2SK45AE6GDCC7ZHTK17M667",
+  "ts": "2026-09-18T06:26:39.054Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 06:26Z, hv first-hand, answering the unified plan's eight questions: \"1: (a) ... 8: (a)\") EIGHT RULINGS, wording vc's, authority hv's. (1) GO for the landing train: cc applies refs/bank/cc/bump/patch, the Cargo.lock diff comes to vc before anything compiles, and the whole-suite run is judged against the 2026-09-17 baseline (shell 677/677; Rust 2822 passed, 2 intentd timing reds that each re-ran green), with an intentd timing red re-run once before it counts. (2) The 0442 detector is shown by default, not counted, exit code untouched -- the report.unattached tier; vc decision 37 stands. (3) The fleet trawl runs after the bump and the detector land and the pair is rebuilt, and before the cut: every estate is upgraded once, to the version it will run, and the trawl doubles as a fleet-wide FTS5 check. (4) ST0060 and ST0077 stay in Triage as the next line's queue. (5) ic builds the staleness check in 3.1.0, S. (6) --tags is the durable answer; tagging practice does not change. (7) The int hooks report defect is devbin's; dc hold 18 stands. (8) Intent's trawl runs first, devbin#0083's fleet sweep after it, one change per commit. ALSO, under the pen: 0445 (filed 06:26Z) -- dual_path_conformance registers its tempdir in the REAL project registry because discover and explore run in-process under the real HOME undeclared; ic banks the XS fix, and the dead entry is pruned through the registry verb before the trawl reads it."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1S4A1XZT2PHA3YGGJAZYWVB",
+  "ts": "2026-09-05T15:52:01.730Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0264"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "dist-provenance.txt's commit field has two readers with two different subjects, and it is correct only at a release"
+  }
+}

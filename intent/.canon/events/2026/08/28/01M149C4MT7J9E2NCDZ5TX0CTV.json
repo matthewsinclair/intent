@@ -1,0 +1,14 @@
+{
+  "id": "01M149C4MT7J9E2NCDZ5TX0CTV",
+  "ts": "2026-08-28T13:36:30.135Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0065"
+  },
+  "payload": {
+    "title": "Review Intent's use of .md files and /in-* skills for the v3 release"
+  }
+}

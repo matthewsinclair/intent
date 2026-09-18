@@ -1,0 +1,14 @@
+{
+  "id": "01M0YQHHQTZA84M73MH9A2GNRY",
+  "ts": "2026-08-26T09:48:41.708Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0063"
+  },
+  "payload": {
+    "title": "start"
+  }
+}

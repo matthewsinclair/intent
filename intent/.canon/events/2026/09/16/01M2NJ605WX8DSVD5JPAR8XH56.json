@@ -1,0 +1,15 @@
+{
+  "id": "01M2NJ605WX8DSVD5JPAR8XH56",
+  "ts": "2026-09-16T16:53:13.025Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0419"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The explorer's projects list starts its cursor on the first row -- start it on the open project, or on the nearest registered one when none is open"
+  }
+}

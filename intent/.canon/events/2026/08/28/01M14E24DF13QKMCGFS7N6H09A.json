@@ -1,0 +1,15 @@
+{
+  "id": "01M14E24DF13QKMCGFS7N6H09A",
+  "ts": "2026-08-28T14:58:25.175Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0122"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "modules check and find route the operator to `intent upgrade`, which cannot help: the remedy cites the canon as authority for behaviour the canon ended on 2026-08-24"
+  }
+}

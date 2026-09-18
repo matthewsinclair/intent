@@ -1,0 +1,15 @@
+{
+  "id": "01M2QTCNHXE9N53KWJRK54HKH9",
+  "ts": "2026-09-17T13:55:08.992Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/07"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target"
+  }
+}

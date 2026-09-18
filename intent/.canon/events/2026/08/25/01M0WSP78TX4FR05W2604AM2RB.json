@@ -1,0 +1,15 @@
+{
+  "id": "01M0WSP78TX4FR05W2604AM2RB",
+  "ts": "2026-08-25T15:47:42.118Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0083"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "st hydrate reports 'exists' for a file it just created, so its output cannot distinguish a restore from a no-op"
+  }
+}

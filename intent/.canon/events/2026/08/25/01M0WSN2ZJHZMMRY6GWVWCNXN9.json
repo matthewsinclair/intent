@@ -1,0 +1,20 @@
+{
+  "id": "01M0WSN2ZJHZMMRY6GWVWCNXN9",
+  "ts": "2026-08-25T15:47:04.818Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.hydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "hydrated": [
+      "intent/st/ST0060/design.md"
+    ],
+    "id": "ST0060",
+    "pinned": false,
+    "rewritten": [],
+    "sigil": "STEELTHREAD"
+  }
+}

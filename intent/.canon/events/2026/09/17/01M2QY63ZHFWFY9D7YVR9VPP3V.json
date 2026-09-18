@@ -1,0 +1,15 @@
+{
+  "id": "01M2QY63ZHFWFY9D7YVR9VPP3V",
+  "ts": "2026-09-17T15:01:28.689Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-17).** No claim. The Rust reader is in the installed pair (rebuilt by vc at ea81a6c58) and vc's drive of `intent index resolve --lang rust` on this estate came back current. Issue 0437 is closed (landed 1740ddfb6, closed 3da65b697). WATCHING: ic's WP-07 adds to the Resolver trait which manifest a reader resolves from, so a not-applicable language never reads `unresolved`, with Rust's side in rust_analyzer.rs beside cc's code (vc, 2026-09-17; ic tells cc); dc's WP-06 moves OPERATOR and is_operator into resolved.rs (vc decision 26). Next work comes from vc. NO RELEASE, NO PUSH."
+  }
+}

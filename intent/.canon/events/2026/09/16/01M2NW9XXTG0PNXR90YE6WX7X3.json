@@ -1,0 +1,15 @@
+{
+  "id": "01M2NW9XXTG0PNXR90YE6WX7X3",
+  "ts": "2026-09-16T19:50:07.546Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-16, evening.** (1) A tab is whitespace to bash's `read`, so an empty TSV field collapses into the next one. The first project-guard dispatch read `run` as `when` and skipped every always-applicable guard as not applicable, silently. Separate fields with a non-whitespace character (US, 0x1f). (2) A read-only sqlite3 open of a WAL store with no -shm fails with \"unable to open database file (14)\". `file:<db>?immutable=1` reads a store with no -wal and creates no file; `.backup` is the consistent copy of a live one. Never `cp` a WAL store. (3) A plain `wb migrate` is not read-only: it carries a board with nothing uncarried. A read-only survey runs in a scratch clone. (4) core.hooksPath lives in untracked .git/config, so a tracked hooks directory is lost on a fresh clone exactly as .git/hooks is. (5) An if-let with no else arm can be a silent skip (0424): read what a loop drops, not only what it keeps."
+  }
+}

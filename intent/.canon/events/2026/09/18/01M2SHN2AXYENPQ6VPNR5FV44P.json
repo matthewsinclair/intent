@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHN2AXYENPQ6VPNR5FV44P",
+  "ts": "2026-09-18T06:00:55.901Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both."
+  }
+}

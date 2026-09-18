@@ -1,0 +1,16 @@
+{
+  "id": "01M1CJS3FQY8KYGG27SFWPS5QN",
+  "ts": "2026-08-31T18:54:47.300Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "at.set",
+  "subject": {
+    "type": "at",
+    "id": "ST0056/AT-00.12"
+  },
+  "payload": {
+    "from": "green",
+    "note": true,
+    "to": "red"
+  }
+}

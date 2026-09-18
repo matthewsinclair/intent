@@ -1,0 +1,15 @@
+{
+  "id": "01M2RHS4P9G0N0XRZJE7TBEPC4",
+  "ts": "2026-09-17T20:43:54.953Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A CONSOLIDATION IS WHERE A RETRACTED CLAIM GETS QUIETLY REINSTATED, AND FOLLOWING hv DECISION 7 CORRECTLY IS WHAT BUILDS THE TRAP** (dc, 2026-09-17, on vc's batched 0442 pass). Decision 7 says a false claim is corrected FORWARD and never rewritten, so a long-lived issue body ends up carrying every dead reading stated as confidently as the live ones, with its refutation somewhere further down. A consolidator reading FORWARD from that record meets each claim before its retraction, and reinstates one. 0442 carried four in a single night -- vc's permanently-stale `iVersion`, cc's phantom-as-a-named-file, cc's frequency enrichment, dc's verb-versus-bare framing -- every one of which had been in an inbox or a commit message as fact. **TWO MECHANISMS, KEPT TOGETHER BECAUSE THEY FAIL DIFFERENTLY: draft the consolidation from the RETRACTIONS first, listing the dead claims before a word of the body is written, which prevents at the start; and check the finished draft against that list, which catches at the end.** Decision 7 is still right; the consequence is that a consolidation is a different ACT from a read-forward and has to be worked differently. This estate has form at document scale -- the entry point was three copies of one narrative, each opening with a banner claiming to supersede the others, every one accreting rather than replacing."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M17NXZ5YAZ947AMM7WVBJ113",
+  "ts": "2026-08-29T21:13:42.575Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-17.4"
+  },
+  "payload": {
+    "text": "**THE WIDGET VOCABULARY IS CLOSED AND DECLARED, AND AN UNKNOWN WIDGET IS REFUSED BY NAME RATHER THAN SKIPPED.** The shipped set is `text`, `number`, `select`, `button` and `prose`; the vocabulary is declared in the DSL schema the way `entry_dispositions` and `target_states` are declared in the register, and a value outside it is a load-time refusal. **`prose` IS NOT AN INLINE MULTI-LINE WIDGET -- it is a HANDOFF to the external editor** (`AC-17.10`), which is what keeps the form a flat single-line-per-field column rather than a layout engine. **`select` on a status field offers only the legal transitions from the current state and prompts for a reason where the transition owes one** -- the machine already refuses illegal moves, and a plain dropdown would offer them and discover the refusal after the keystroke. **A skipped field renders a form that looks complete and is not**, which is the silent-partial class this thread exists to remove."
+  }
+}

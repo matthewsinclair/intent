@@ -1,0 +1,15 @@
+{
+  "id": "01M2T0XP5BDC8ZHBF3T1PK5AS8",
+  "ts": "2026-09-18T10:27:46.987Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**ST0078 WP-04 (P4, working in a team): drafted, and its drive waits for P5 (dc) and P1 (cc) to land. It closes last.** Drafts are in ic's scratchpad under p4/:\n- `working-in-a-team.md`: the page, with `DRIVE` placeholders for every output.\n- `drive-team.sh`: sections 1 to 9, including the unsynced-edit gate claim and a reset that the hooks do not see.\n- `the-store.md`: two corrections rebased on P3's edit. `init` writes the ignore lines and the store is truth on its machine; machine events stay in the store and project events travel.\n- `doctor-job.yml`: the CI doctor job on the merge result.\n\nThe fresh-clone doctor measurement (69784fc20): rc 1 on two view-skews, from inbox renders committed out of step. vc decision 48 rules that a board commit carries the node's whole directory render. The page says so beside the reset line.\n\n**NEXT:** when P5 and P1 land, build the pair in a worktree, drive `drive-team.sh` against it, and replace every DRIVE placeholder from the log. Pin the `--yes` and `--apply` flags as P5 ships them. Bank the page, the script, the log, the-store.md and the job, then judge, and land on vc's word. NO RELEASE, NO PUSH."
+  }
+}

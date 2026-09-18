@@ -1,0 +1,14 @@
+{
+  "id": "01M0XPZWYY122MP3JRQ4JW6WSS",
+  "ts": "2026-08-26T00:19:48.187Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-11.7"
+  },
+  "payload": {
+    "reason": "hv ruling 2026-08-25, put by vc with three options and this one chosen: cmd/macos is OUT OF SCOPE for the 3.0.0 cut. WP-11 is RELEASE and hv asked for local usability, so the provenance writer has no cut to serve. AT-11.7 was RED WITH NO GREEN TO REACH -- provenance_fields_check.sh had nothing to check because the writer was never built, and dc DECLINED to build it on exactly this scope ground and held that decline rather than asking permission. WITHDRAWN RATHER THAN LEFT RED: a permanently red row on a WIP work package is the state that made ST0057 WP-08 read as an unflipped bit tonight, and the two are indistinguishable from outside. The provenance fields ship unchecked and that is the accepted cost, stated rather than discovered. Declined alternatives, recorded so an option never on the menu is distinguishable from one refused: BUILD IT (reverses dc's principled decline, adds release work to a cut already held open by ST0058, and carries dc's trap that codesign --force rewrites the binary in place so nothing may hash until verify_notarised passes); and DEFER THE ROW NOT THE DECISION (leaves AT-11.7 red blocking WP-11's close). RE-MINT THIS ROW WHEN RELEASE ENGINEERING STARTS -- it was never wrong, only out of scope."
+  }
+}

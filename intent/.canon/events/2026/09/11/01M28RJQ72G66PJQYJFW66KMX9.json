@@ -1,0 +1,14 @@
+{
+  "id": "01M28RJQ72G66PJQYJFW66KMX9",
+  "ts": "2026-09-11T17:34:53.668Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0050/AC-01.4"
+  },
+  "payload": {
+    "reason": "not a withdrawal: a step of retiring its witness at the 3.0.1 cut. The criterion moved to non-test because tests/unit/intent_todo.bats went with the v2 shell (ST0056 AC-00.6), and `set <ac> kind non-test` leaves state `computed`, illegal for non-test, which no satisfy or unsatisfy moves; withdraw then reinstate is the only way out. Reinstated and satisfied by evidence in the same run"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2N37ZX8S6F7WZ3RRVN4QP04",
+  "ts": "2026-09-16T12:32:09.643Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0403"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate turns a board's ### sub-headings into items that carry a literal ###, so the grouping they recorded survives only as order within a kind"
+  }
+}

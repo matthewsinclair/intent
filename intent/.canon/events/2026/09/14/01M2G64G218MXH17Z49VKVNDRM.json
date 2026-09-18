@@ -1,0 +1,15 @@
+{
+  "id": "01M2G64G218MXH17Z49VKVNDRM",
+  "ts": "2026-09-14T14:46:28.677Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0075/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The window: the Console copied from Gtools, the palette, Console on Cmd-L, Close and Clear Console"
+  }
+}

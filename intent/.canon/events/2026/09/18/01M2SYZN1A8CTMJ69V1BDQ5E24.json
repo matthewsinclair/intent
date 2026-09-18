@@ -1,0 +1,20 @@
+{
+  "id": "01M2SYZN1A8CTMJ69V1BDQ5E24",
+  "ts": "2026-09-18T09:53:54.218Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "CHAIN END cc: 00ae05359 (cc board only).",
+    "recipients": [
+      "dc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

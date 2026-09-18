@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3A268ZM9HV9YNAHP935J0",
+  "ts": "2026-09-16T12:33:17.515Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0412"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "doctor names remedies that cannot clear the whiteboard and issue-view findings it reports, and the commit gate refuses on those findings"
+  }
+}

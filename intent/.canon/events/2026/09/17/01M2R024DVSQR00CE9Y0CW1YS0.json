@@ -1,0 +1,15 @@
+{
+  "id": "01M2R024DVSQR00CE9Y0CW1YS0",
+  "ts": "2026-09-17T15:34:15.227Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, hv first-hand in prose, answering vc's level-3 population brief; vc's clock read 15:33Z when this was recorded. Decision 21 is this ruling with a clock value vc typed from feel, 15:22Z, and is archived for that alone.) hv, verbatim: \"Ok, A now, then B post.\" A: level 3 keeps today's rule for ST0076, a resolved row always joins a written reference, and the references only the toolchain sees (on this repository 34,233 of 242,375: 12,859 uses of the project's own fields, consts and statics, 6,051 module mentions, 1,484 types and variants in patterns, 190 functions passed as values, 13,647 outside the project) are counted as unmatched in intent index status and not stored; ic's register words say so. B, post: storing the in-project ones, with a roster of the targets the toolchain defines so --target tells an unreferenced target from a misspelt one, is its own thread after the close-out, which vc opens with the measured numbers in its body."
+  }
+}

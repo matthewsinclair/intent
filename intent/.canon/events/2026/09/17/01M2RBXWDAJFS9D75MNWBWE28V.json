@@ -1,0 +1,15 @@
+{
+  "id": "01M2RBXWDAJFS9D75MNWBWE28V",
+  "ts": "2026-09-17T19:01:38.858Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17 19:01Z, hv first-hand in prose, taking all five of vc's recommendations at once: \"Ok, do all of those.\") FIVE RULINGS, wording vc's, authority hv's. (1) ST0076 CLOSES NOW on its gate, 14/14 with every work package Done; dc's AC-06.2 re-drive on the installed pair attaches as evidence to a closed thread rather than gating it, because holding a passing thread for a confirmation already ruled optional is how an option becomes a condition. (2) THE TRAWL: Part A is GO -- Riffle cc, Molt hv, Prolix hv and vc, arca_cli cc, Courses hv -- and Part B takes vc's disposition: drop all six classes, every dropped unit kept in its node's pre-migration copies, the 16 units that read as asks of hv plus Conflab cc's 12-row decision table returned as 12 holds on the asking node's own board, and Gtools' hv board registered. One mechanical commit per estate in its own repo, doctor after each, vc checks each. NO PUSH. (3) 0426 IS SATISFIED BY dc's REHEARSAL, which drove the mechanism to both verdicts; the LIVE guards adoption pass is a separate item and stays blocked behind the devbin `int hooks` defect, which nobody works around. (4) devbin#0083 AND dc's `int hooks` FINDING are routed by hv to the Devbin estate and NEITHER GATES THIS RELEASE; vc fixing them from here stays available as a named cross-estate exception if hv would rather they were simply done. (5) THE VERSION IS 3.1.0, a minor: ST0076 adds a verb and an index level that did not exist, which is new surface rather than a repair, and the fixes ride along. cc writes the CHANGELOG section and docs/releases/3.1.0/RELEASE_NOTES.md at that number instead of a placeholder."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2PCZ1QGMVTBJGFV8M4SJ65Z",
+  "ts": "2026-09-17T00:41:16.784Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 morning: ic holds ONE WP in build (ST0076 WP-04, banked WIP) and ONE held issue (0432).** Landed on 2026-09-17 on vc's GO: 0430 (eb8be3745, closed 8e0d5265d, verified by vc). A binary or symlink skip no longer makes a search answer incomplete, and the search row's help and when_to_use lead with the code lookups. The ToolSearch rank is driven in hv's post-rebuild session alongside 0428's where-is-this-defined drive. **ST0076 WP-04 IN BUILD**: WIP at refs/bank/ic/st0076-wp04-wip (blob f43d667f9, patch-id b3a29bf92, base 43259a828, rebased onto cc's WP-02, 14 paths). Recover with `git cat-file -p refs/bank/ic/st0076-wp04-wip | git apply` in a worktree off HEAD. It builds vc's rulings: `--subkind` is a separate flag with the roster derived from the compiled queries (plus elixir.scm's #any-of? list); `--in <container>` matches whole or by last segment; `--context` and `--outline` honour the filters, red shown on 04a667c7 with `--context new --lang elixir` answering both Rust `new`s; the Hit gains flat SymbolFacts named as the columns (trait_name). FilterWords::check is the one parse for CLI and MCP. what_a_reference_misses(lang) and level_words(level) are the one home, and a drift test holds when_to_use and mcp_instructions to them verbatim. The terminal and explorer name the subkind, container and level. Before the rebase: whole intentsvcs, intent-cli and workspace clippy were green; intentd went 6 red, all watcher timing arms, at load average 584. After the rebase only the targeted arms were re-run (green). NEXT: in a worktree off HEAD, build intentd, then run fmt, workspace clippy and the whole intentsvcs, intent-cli and intentd suites (re-run the daemon-watch family once at lower load); then bank for vc and land (wp start ST0076/04, ATs for AC-04.1 and AC-04.2, wp done). **0432 HELD** on hv's `script -q` capture. Not reproduced in a real iTerm window with hv's nvim config on a scratch clone of the store (sqlite3 .backup) with its own intentd watching the clone, across Hand, Open and OpenFile with real edits. The clone and drivers are in scratchpad/wt-0432 and scratchpad/blank/itdrive.py; they do not survive a reboot. NO RELEASE, NO PUSH."
+  }
+}

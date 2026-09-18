@@ -1,0 +1,15 @@
+{
+  "id": "01M2P3S9X1PWR70BHG3J1AVCJE",
+  "ts": "2026-09-16T22:00:51.364Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Rust qualified references: scoped calls, type uses and macro token trees, with the qualifier"
+  }
+}

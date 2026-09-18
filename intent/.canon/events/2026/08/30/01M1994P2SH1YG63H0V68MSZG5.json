@@ -1,0 +1,15 @@
+{
+  "id": "01M1994P2SH1YG63H0V68MSZG5",
+  "ts": "2026-08-30T12:08:42.406Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0158"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "at fc on a sole cover is silent, and a fiat-closed AT is indistinguishable from a red one"
+  }
+}

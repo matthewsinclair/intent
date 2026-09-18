@@ -1,0 +1,15 @@
+{
+  "id": "01M2KJFQ9XVFAWK9V5B5ZX56GM",
+  "ts": "2026-09-15T22:20:02.752Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0402"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A thread's objective and context lose their trailing newline when a store is populated from the realised tree, so the canon differs by one byte per field from the live store's"
+  }
+}

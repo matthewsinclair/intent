@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8X7Z8TJZPD1M24CJJ6JJ",
+  "ts": "2026-09-18T09:06:33.198Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**0455, XS to S -- ASSIGNED by vc 2026-09-18 09:05Z, NOT STARTED (hv called localfold + compact first).** Released when vc confirms it in the bounce's plan adjustments. `doctor`'s store-stale check (`intentsvcs/src/doctor.rs`, `db_checks`) returns with NO finding when a store file EXISTS and will not open, and does the same a line later on `derived_dump()`. vc's spec, in order: (1) FIRST DRIVE what the other verbs do on an existing-but-unopenable store; the issue says it was not driven. (2) The fix in the shape of 0447's `index_unreadable_without_a_facade`: a COUNTED finding naming the store and the open error, never a silent return. (3) Pin it through the REAL `intent doctor`, not only `diagnose` with a store handed in: 0447's arm passed with `Some(store)` while the CLI got `None` (memory: a facade arm is not the CLI). Private worktree on the HEAD vc names; the `intentsvcs` crate suite WHOLE, announced; `rustfmt --edition 2024 --check` BEFORE banking; no compile while a peer's suite runs; bank on `refs/bank/ic/0455` and send vc the ref. Body: `intent issues show 0455`."
+  }
+}

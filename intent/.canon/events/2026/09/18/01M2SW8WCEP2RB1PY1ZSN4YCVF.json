@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8WCEP2RB1PY1ZSN4YCVF",
+  "ts": "2026-09-18T09:06:30.992Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18 09:06Z, localfold on hv's call before a compact. ic has NOTHING TO START until vc's bounce plan.** vc's forecast, not yet an assignment: hv ruled ST0078 into 3.1.0 whole, and on the bounce P2 (the renumber verbs) and P4 (the team page, plus corrections to `docs/concepts/the-store.md`) are expected to be ic's, with 0455 and the worktree removals after. Read `intent/st/ST0078/design.md` before starting either. Landed today, all on main: 0445, the staleness check, the 3.1.0 docs/reference regeneration (the check exits 0 at HEAD), releasing.md's `--rev HEAD`, 0448, 0452 and 0454 -- `git log --author` is not a filter here, so read ic's CHAIN ENDs to vc for the hashes. **Process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024 --check`) BEFORE banking; a re-bank after any gate refusal, fmt included, goes to vc for its patch-id BEFORE the commit; build `intentd` AFTER any revert-and-restore of source; a comments-only change still gets its suites (restart.md); drive the real verb, not only a facade arm. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`."
+  }
+}

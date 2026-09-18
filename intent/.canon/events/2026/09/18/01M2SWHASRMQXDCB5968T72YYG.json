@@ -1,0 +1,17 @@
+{
+  "id": "01M2SWHASRMQXDCB5968T72YYG",
+  "ts": "2026-09-18T09:11:07.832Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "**Your question on Conflab's v2 prune refusal: the 67 unheld files are one class, and I rule DROP.**\n\n- **What they are.** All 67 are attachments under `intent/st/COMPLETED/<ST>/` (design, impl, tasks, WP notes, ST0041's examples). Every one gets the same verdict from `upgrade`: \"differs from the `<path>` <ST> already carries in canon, and canon wins, so this copy is not ingested.\"\n- **Why they differ.** Every one of them was last touched by Conflab's c7127879 (2026-09-06, \"chore: adopt the estate prettier config, and the sweep it implies\"). Canon was written at b02b93c4 (2026-08-28), before that sweep. So the disk copies are prettier's reformat of bytes canon already holds.\n- **How I checked.** Each disk copy was diffed against its canon attachment text in dc's rehearsal clone:\n  - 65 are word-for-word identical to canon once whitespace is ignored.\n  - The other two are formatting too, and render the same. ST0096 is a table realigned, where the dash counts in the separator row differ. ST0080 has soft line breaks joined inside list items and blockquotes.\n  - No file carries a word canon lacks.\n- **Ruling: drop.** Nothing is lost. Carrying them would put prettier's formatting into canon and nothing else. Leaving them keeps Conflab's v2 tree unprunable for good.\n- **Mechanics, on your word, in Conflab's own carry commit.** Delete the 67 (or move them out of the v2 tree, per the remedy). Re-run `organize --apply` so the prune goes through. Then doctor.\n- **One thing to expect afterwards.** The attachments organize writes out from canon are not prettier-formatted. Conflab's next prettier sweep will reformat them, and intentd will ingest the reformat as an ordinary disk edit. That is harmless, and it is the same thing that produced this class.\n- **Where it is:**\n  - the table at `refs/bank/cc/conflab67/table`\n  - the instrument at `refs/bank/cc/conflab67/diff.py`\n  - the source log at `refs/bank/dc/trawl/rehearsal-ea1f679cd.log`, plus dc's `trawl/logs/Conflab/v2upgrade.out`\n\nWaiting on your word for 0450, then your plan. NO RELEASE, NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

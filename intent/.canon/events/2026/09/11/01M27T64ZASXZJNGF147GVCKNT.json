@@ -1,0 +1,16 @@
+{
+  "id": "01M27T64ZASXZJNGF147GVCKNT",
+  "ts": "2026-09-11T08:43:44.492Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0063"
+  },
+  "payload": {
+    "from": "triage",
+    "reason": "culled 2026-09-11: empty (0 criteria, no body), created uncommitted at the v3.0.0 cut and claimed by nobody",
+    "to": "cancelled"
+  }
+}

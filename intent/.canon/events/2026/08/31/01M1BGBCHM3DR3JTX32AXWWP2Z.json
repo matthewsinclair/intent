@@ -1,0 +1,15 @@
+{
+  "id": "01M1BGBCHM3DR3JTX32AXWWP2Z",
+  "ts": "2026-08-31T08:53:06.240Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0179"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "0178 carries a wrong mechanism clause, and there is no verb that can correct an issue body"
+  }
+}

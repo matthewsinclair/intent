@@ -1,0 +1,15 @@
+{
+  "id": "01M1KZNBE5C7T7NA2A7DKQHZCJ",
+  "ts": "2026-09-03T15:54:36.870Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0226"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st new fails on a WATCHED project once the corpus is large enough: the daemon's render races the verb's own render and the write hits a path that is transiently absent"
+  }
+}

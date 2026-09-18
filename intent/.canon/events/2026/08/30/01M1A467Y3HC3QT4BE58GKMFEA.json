@@ -1,0 +1,15 @@
+{
+  "id": "01M1A467Y3HC3QT4BE58GKMFEA",
+  "ts": "2026-08-30T20:01:20.326Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0173"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "stale_at_check.sh silently excludes live threads with no acceptance.md, and its skip line reads as complete"
+  }
+}

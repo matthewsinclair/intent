@@ -1,0 +1,15 @@
+{
+  "id": "01M0YQHP5143FWZZ37DYTH2T84",
+  "ts": "2026-08-26T09:48:46.249Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0095"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "help"
+  }
+}

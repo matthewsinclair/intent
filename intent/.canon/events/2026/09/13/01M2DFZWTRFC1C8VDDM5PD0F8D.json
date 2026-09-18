@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZWTRFC1C8VDDM5PD0F8D",
+  "ts": "2026-09-13T13:41:00.379Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0351"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An ingest rewrites AGENTS.md and CLAUDE.md without updating file_index in the same step"
+  }
+}

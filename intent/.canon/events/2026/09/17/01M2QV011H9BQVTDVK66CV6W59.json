@@ -1,0 +1,15 @@
+{
+  "id": "01M2QV011H9BQVTDVK66CV6W59",
+  "ts": "2026-09-17T14:05:43.348Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issue.set",
+  "subject": {
+    "type": "issue",
+    "id": "0436"
+  },
+  "payload": {
+    "field": "body",
+    "via": "address"
+  }
+}

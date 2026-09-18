@@ -1,0 +1,15 @@
+{
+  "id": "01M2DPWTYF03XWW1YVNTYZC7BT",
+  "ts": "2026-09-13T15:41:40.177Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0367"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "st reopen realises a dehydrated thread's views but not its attachments, and the canon gate refuses the next commit"
+  }
+}

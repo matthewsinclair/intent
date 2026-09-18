@@ -1,0 +1,15 @@
+{
+  "id": "01M2SQSH7WEHJRDYXS8AA9852Y",
+  "ts": "2026-09-18T07:48:13.692Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 07:49Z, vc under hv's pen) 0444 IS FIXED IN THE WORDS, NOT THE BEHAVIOUR, AND THE TWO BOUNDS STAY DIFFERENT FOR A REASON THAT IS NOW WRITTEN AT BOTH SITES. cc found the old register note half false: after `wb migrate` the message bound excludes carried rows (`authored_at IS NULL`, vc 2026-09-14 under 0374), so a migrated inbox refuses no sender, while the item bound counts carried items, so a migrated board over its bound still refuses its owner's next `add` until something is archived. The asymmetry stands: the message bound protects a SENDER from a recipient's backlog, which is why refusing a sender for it was wrong; the item bound is the OWNER's own board, so refusing the owner's next add over their own backlog is the bound doing its job and archiving is the owner's act. The reason is written beside both statements (Facade::wb_migrate's doc and the register note) so the next reader does not tidy two differently computed bounds into agreement. The two record copies of the old sentence (ST0069's canon AC note, the 2026-09-13 calls-under-the-pen history) stay as records. Lands after dc's 0443 Q1, with the pipefail fix (0449), before ic's docs/reference regeneration, which the register reaches."
+  }
+}

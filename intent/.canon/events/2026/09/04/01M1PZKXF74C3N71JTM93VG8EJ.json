@@ -1,0 +1,15 @@
+{
+  "id": "01M1PZKXF74C3N71JTM93VG8EJ",
+  "ts": "2026-09-04T19:51:33.101Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0246"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "register.md classifies keep on a burn that cannot see whether a file passes, and the v2 trunk prune keys off the word keep: skills_commands.bats is keep at 39/39 burn and fails 37 of 39"
+  }
+}

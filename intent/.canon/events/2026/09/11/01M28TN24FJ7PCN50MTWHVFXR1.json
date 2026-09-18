@@ -1,0 +1,14 @@
+{
+  "id": "01M28TN24FJ7PCN50MTWHVFXR1",
+  "ts": "2026-09-11T18:11:07.539Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-12.1"
+  },
+  "payload": {
+    "evidence": "Measured over the whole repo at ab1bcaaa7, tests/ included, with the historical records and provenance citations out of scope as the criterion rules. Nothing EXECUTES a bin/ intent script path: tests/lib/test_helper.bash exports INTENT_BIN as the v3 binary, INTENT_BIN_DIR names the surviving bin/ and appears only as a planted fixture string in intent_bin_retarget_guard.bats, and the one surviving plugin script, intent_claude_cwi (hv's ws exception), sources no bin/ helper. Nothing EMITS one: the Rust hits are provenance citations, test fixtures, and legacy.rs's migration reason, now pinned to 27c4ec98. The suite is green with population A absent at 1409aff70: Rust 2353 passed, 0 failed; tests/run_tests.sh 716 ok, 0 not ok."
+  }
+}

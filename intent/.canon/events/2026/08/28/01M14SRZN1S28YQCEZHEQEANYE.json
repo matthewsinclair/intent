@@ -1,0 +1,15 @@
+{
+  "id": "01M14SRZN1S28YQCEZHEQEANYE",
+  "ts": "2026-08-28T18:23:08.566Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0130"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "issues add allocates its number from a stale in-memory snapshot, so two concurrent filings take the same number and the second silently destroys the first -- both are told created:"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0JKXYTT500MJDSFAZY661C0",
+  "ts": "2026-08-21T16:54:47.450Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0063"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "WpStatus has no Cancelled variant, so a descoped work package can never be closed: wp done gates on ac gate, contract.rs:441 blocks when active==0, and the only exemption is thread-scoped"
+  }
+}

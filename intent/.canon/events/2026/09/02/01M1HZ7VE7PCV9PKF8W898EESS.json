@@ -1,0 +1,15 @@
+{
+  "id": "01M1HZ7VE7PCV9PKF8W898EESS",
+  "ts": "2026-09-02T21:08:45.641Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0217"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the parity apparatus checks table-to-surface only, so a built subcommand the table does not declare is invisible to every instrument"
+  }
+}

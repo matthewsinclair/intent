@@ -1,0 +1,14 @@
+{
+  "id": "01M2AQWHB2C6RRPW99YQRDBENA",
+  "ts": "2026-09-12T12:01:15.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-18.6"
+  },
+  "payload": {
+    "evidence": "native/rust/crates/intentd/src/watch.rs at 25ca2e9ac -- the registration strategy recorded beside the registration it explains, per platform, with the measurement that chose it. macOS (dc, one release build in the watched tree, 120s window): 26 debouncer wakeups, 703 path-events, 447 unique paths cached, 1 in canon scope, 2 in index scope with a deliberate in-scope edit among them as the control -- FSEvents coalesces, so volume tracks activity and not tree size, which is what makes the recursive root watch filtered by scope affordable. Scope counts (cc, this tree): 2,522 files in 484 directories in the index scope; 10,301 directories and 423,602 files in the whole tree excluding .git; .git 281 more. TWO LIMITS, STATED AS LIMITS: the window was measured on a 6,366-path worktree and the claim that it holds on the 433,929-path dev tree is an argument from MECHANISM (coalescing bounds volume by activity) and not an extrapolation from that ratio; and nothing here measures inotify -- the 484-directory count is evidence the per-directory strategy FITS under max_user_watches and is no evidence at all about event rate or re-registration cost."
+  }
+}

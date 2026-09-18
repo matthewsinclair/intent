@@ -1,0 +1,15 @@
+{
+  "id": "01M2R0HKJ0E7E02X2BWPHN9PN1",
+  "ts": "2026-09-17T15:42:42.240Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17, late evening (WP-06).** (1) Elixir's compiler tracer gives a written reference `:column` in its meta and a macro's expansion none (measured on 1.20.4 / OTP 29), and an expansion can share the written line and name: `to_string(x)` also traces `String.Chars.to_string/1`. A join on path, line and name alone would store both. (2) An isolated HOME hides Mix's Hex archive, so a traced compile of a Hex-dependent project fails with \"Could not find an SCM for dependency\". Keep HOME isolated but point MIX_HOME and HEX_HOME at the user's. (3) A worktree rebase guard compares the worktree against TO plus the banked patch, never against TO alone. The new files must first be intent-to-add in the REAL index, or `git diff <tree>` reports them deleted: the guard refused twice, correctly, before it was right. (4) A critic subagent can die on the account's weekly limit mid-review, and a failed critic is no review, never a clean one. (5) The worktree's debug `intent index rebuild` of Laksa took 600 s, so keep a scratch copy's store and rerun only the resolve. (6) clippy's type_complexity fires on a test helper returning a 5-tuple; name the tuple with a type alias. (7) A foreground `sleep` is refused in the Bash tool. Wait on a background `until` loop, or on the task's own notification."
+  }
+}

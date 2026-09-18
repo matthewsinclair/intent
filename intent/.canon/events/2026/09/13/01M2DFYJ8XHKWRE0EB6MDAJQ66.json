@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYJ8XHKWRE0EB6MDAJQ66",
+  "ts": "2026-09-13T13:40:16.800Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0328"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The critic drops refused lines silently in a mixed proxy block, and its usage errors exit 1"
+  }
+}

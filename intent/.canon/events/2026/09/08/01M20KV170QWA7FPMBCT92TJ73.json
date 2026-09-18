@@ -1,0 +1,15 @@
+{
+  "id": "01M20KV170QWA7FPMBCT92TJ73",
+  "ts": "2026-09-08T13:38:07.714Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0282"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ws hygiene warns on every board and names a remedy the protocol forbids"
+  }
+}

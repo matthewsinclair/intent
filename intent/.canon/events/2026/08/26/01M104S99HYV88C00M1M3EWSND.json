@@ -1,0 +1,15 @@
+{
+  "id": "01M104S99HYV88C00M1M3EWSND",
+  "ts": "2026-08-26T22:59:20.248Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/14"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The DONE cutoff is canon state, not history: it travels by git"
+  }
+}

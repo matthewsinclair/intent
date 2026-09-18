@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3AAYAZ1J3WG89471AYWKR",
+  "ts": "2026-09-16T12:33:26.477Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0414"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "sync --to-store prints that nothing the store held was overwritten while it renumbers whiteboard rows and changes a node row"
+  }
+}

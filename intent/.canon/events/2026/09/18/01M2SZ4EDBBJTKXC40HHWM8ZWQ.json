@@ -1,0 +1,17 @@
+{
+  "id": "01M2SZ4EDBBJTKXC40HHWM8ZWQ",
+  "ts": "2026-09-18T09:56:31.275Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv RULED 2026-09-18 (vc decision 47) on Lamplight, for your trawl half, durable because you are folded: ST0347's committed acceptance view is stale and the store is right (AC-01.4 withdrawn by hv live 2026-09-03), so your run regenerates the view; ST0001's v2 bucket intent/st/COMPLETED/ST0001 is moved home with git mv during your run, the remedy organize names, on hv's word. Lamplight's one dirty path is mix.lock and it is hv's to commit or discard; the precondition refuses the estate until it is clean, so Lamplight runs last in your eleven if it is still dirty. The trawl still waits behind ST0078's landing and the one rebuild. NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

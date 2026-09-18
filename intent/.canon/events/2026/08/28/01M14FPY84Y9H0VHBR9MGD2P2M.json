@@ -1,0 +1,14 @@
+{
+  "id": "01M14FPY84Y9H0VHBR9MGD2P2M",
+  "ts": "2026-08-28T15:27:15.381Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0067/AC-00.2"
+  },
+  "payload": {
+    "evidence": "vc re-read 2026-08-28 after cc's 1f89b3e9: three accuracy fixes verified in source (st list in-progress + --status all pointer; bare-vs-scoped --to-store; markdown has NO store path, ingest --from-md parses and writes nothing) with the new absence+presence arm the_guide_does_not_claim_markdown_reaches_the_store; llm_serves 5/5 in validator's hand; mechanical sweep clean, ST0000 only"
+  }
+}

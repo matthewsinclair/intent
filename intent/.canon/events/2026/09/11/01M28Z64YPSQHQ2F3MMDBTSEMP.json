@@ -1,0 +1,14 @@
+{
+  "id": "01M28Z64YPSQHQ2F3MMDBTSEMP",
+  "ts": "2026-09-11T19:30:21.785Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.3"
+  },
+  "payload": {
+    "evidence": "Judged at the 3.0.1 cut against the INSTALLED keg (/opt/homebrew/Cellar/intent/3.0.1/bin/intent). canon_mandated_verbs_check.sh derives its population from the shipped canon: 44 canon-named verbs, and every one it runs answers; its static check finds every canon flag declared. The 13 it skips because they write were driven by hand in a throwaway project under a throwaway HOME, and none returns the unwired marker: agents init/sync, claude skills install/sync/uninstall, claude subagents install/sync/uninstall, claude upgrade (with and without --apply) and upgrade. agents init refuses only because init already wrote AGENTS.md, a real refusal. One canon line did refuse, outside the falsifier's rc=2 marker: usage-rules.md named `agents init --template <lang>` twice, a flag withdrawn at de29e51df, which clap rejects at rc=1. It is removed in this commit, and the new-project workflow now says `agents sync`, rc 0 after init."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZDS7J4X9BZY8CNNF8T88",
+  "ts": "2026-09-13T13:40:44.970Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0343"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "organize --apply leaves a tree half-dehydrated, views kept and attachments gone"
+  }
+}

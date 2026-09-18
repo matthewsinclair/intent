@@ -1,0 +1,14 @@
+{
+  "id": "01M1CH6CK6PDY7J27RK7PTRGZX",
+  "ts": "2026-08-31T18:27:05.455Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/ac-09_6-mcp-facade-read.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

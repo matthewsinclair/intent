@@ -1,0 +1,15 @@
+{
+  "id": "01M2SNX1PGCCYXM1HBN22QTYMY",
+  "ts": "2026-09-18T07:15:11.699Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0448"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent init writes no steel_threads.md or todo.md, so the first commit after claude upgrade --apply is refused by the gate it just installed"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1HY9PYKAQFV1HYA5KSG435G",
+  "ts": "2026-09-02T20:52:18.007Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-17.18"
+  },
+  "payload": {
+    "evidence": "AT-17.18 -- driven by hv in a real terminal 2026-09-02, captured: `intent events` JSON and `st list`'s table printed UNCLIPPED and COMPLETE to the real screen, the pause line beneath them, and the explorer had not repainted over any of it. hv's verdict: \"This is really awesome.\""
+  }
+}

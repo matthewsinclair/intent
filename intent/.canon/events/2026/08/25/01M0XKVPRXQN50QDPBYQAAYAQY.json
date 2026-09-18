@@ -1,0 +1,15 @@
+{
+  "id": "01M0XKVPRXQN50QDPBYQAAYAQY",
+  "ts": "2026-08-25T23:25:04.895Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0092"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a withhold outlives the reason it was granted for, and two fields agreeing is what a stale pair looks like"
+  }
+}

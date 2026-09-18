@@ -1,0 +1,14 @@
+{
+  "id": "01M2AGV5MH9Z1FWE4HNDKW0WG3",
+  "ts": "2026-09-12T09:58:10.835Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-18.2"
+  },
+  "payload": {
+    "text": "Every in-scope file the index does not hold has an `index_file` row naming why (binary, over the size cap, unreadable, symlink), and `intent index status` lists them; nothing is skipped silently."
+  }
+}

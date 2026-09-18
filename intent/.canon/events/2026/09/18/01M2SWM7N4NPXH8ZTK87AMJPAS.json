@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWM7N4NPXH8ZTK87AMJPAS",
+  "ts": "2026-09-18T09:12:42.919Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0078/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted"
+  }
+}

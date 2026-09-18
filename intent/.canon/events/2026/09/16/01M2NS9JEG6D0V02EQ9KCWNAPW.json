@@ -1,0 +1,15 @@
+{
+  "id": "01M2NS9JEG6D0V02EQ9KCWNAPW",
+  "ts": "2026-09-16T18:57:30.067Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0421"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An in-place field edit shows an extra space at the cursor -- the caret was a glyph spliced into the value, which took a column"
+  }
+}

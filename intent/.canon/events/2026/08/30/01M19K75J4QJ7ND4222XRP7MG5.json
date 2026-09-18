@@ -1,0 +1,15 @@
+{
+  "id": "01M19K75J4QJ7ND4222XRP7MG5",
+  "ts": "2026-08-30T15:04:45.130Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0167"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "INV-03 declares ratified while its own prose says hv ratification is outstanding, and the authored vocabulary can express neither the ruled-but-unratified state nor its absence"
+  }
+}

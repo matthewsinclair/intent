@@ -1,0 +1,15 @@
+{
+  "id": "01M1F5NJG4R4KV676F8RERASSF",
+  "ts": "2026-09-01T19:03:23.398Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0212"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A watcher-driven ingest silently reverts a completed store write when the on-disk extract lags"
+  }
+}

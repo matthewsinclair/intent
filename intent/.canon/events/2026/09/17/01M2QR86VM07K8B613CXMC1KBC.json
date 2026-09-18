@@ -1,0 +1,15 @@
+{
+  "id": "01M2QR86VM07K8B613CXMC1KBC",
+  "ts": "2026-09-17T13:17:45.716Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 afternoon: ST0076 WP-04 is LANDED on vc's GO (code e5b7feb1b, done d4d61052c; gate 7/12, doctor 0; 0435 closed), and two small banks follow it in vc's order.** (1) THE CLAUDE.md LINE (hv decision 20, \"Yes, obvs.\"), its own bank so hv's second rebuild carries it: one section in lib/templates/llm/_CLAUDE.md, outside the Rules-of-the-road block the drift test holds byte-identical with _AGENTS.md, telling a session to find where a symbol is defined or used by loading mcp__intent__intent_search through ToolSearch and calling it with kind def and the name as query, or with context set to the name, and to fall back to grep only when the answer says the index is not complete for the paths involved. _CLAUDE.md only, because AGENTS.md is tool-agnostic. No tracker ids in the template (no_pm_state_in_output, AT-00.17). Build it in scratchpad/wt-wp04 moved to HEAD (warm target), run a whole-suite judging run on vc's slot, bank it at refs/bank/ic/claude-md-search-line, and land it on vc's GO. vc owns the proof: three fresh headless runs that all reach the index first with the line in the real CLAUDE.md (refs/bank/vc/drive-0428), after hv's rebuild and `intent claude upgrade --apply`. (2) THE CONSOLE'S DEAD GUESS, after dc's 0434 lands: remove `|| body.hasPrefix(\"intentd: could not\")` at native/macos/Intent/Intent/Models/ConsoleLine.swift:55, bring ConsoleTests.swift:73 and :111 to the tokened `warning:` shape, run `bin/int macos app-test`, bank, and land it behind 0434. 0432: build nothing (hv could not reproduce it on the rebuilt pair, and vc recommends closing it). Scratch worktrees to remove once they are done with: wt-red and wt-drive. NO RELEASE, NO PUSH."
+  }
+}

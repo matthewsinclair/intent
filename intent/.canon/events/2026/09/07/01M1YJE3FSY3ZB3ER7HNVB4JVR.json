@@ -1,0 +1,14 @@
+{
+  "id": "01M1YJE3FSY3ZB3ER7HNVB4JVR",
+  "ts": "2026-09-07T18:35:06.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "at.edit",
+  "subject": {
+    "type": "at",
+    "id": "ST0056/AT-06.13"
+  },
+  "payload": {
+    "via": "edit"
+  }
+}

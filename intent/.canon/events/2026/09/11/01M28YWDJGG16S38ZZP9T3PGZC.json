@@ -1,0 +1,14 @@
+{
+  "id": "01M28YWDJGG16S38ZZP9T3PGZC",
+  "ts": "2026-09-11T19:25:02.932Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-11.4"
+  },
+  "payload": {
+    "evidence": "Signed before hashed, then checked from the user's side. int macos prepare proved each Mach-O, and the bundle inside Intent.app.zip, notarised from a quarantined copy BEFORE hashing. int macos publish re-downloaded all four v3.0.1 assets from the published URL, and every hash matches SHA256SUMS. The tap formula (fc32170) carries the same sha256 for intent (f1e6f38e), intentd (ab125a56) and support (2ca6bb1c). The cold tap install fetched and verified them (smoke --reinstall rc 0)."
+  }
+}

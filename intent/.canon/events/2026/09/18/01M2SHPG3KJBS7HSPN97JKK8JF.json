@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHPG3KJBS7HSPN97JKK8JF",
+  "ts": "2026-09-18T06:01:42.771Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Regenerate `docs/reference` for the 3.1.0 cut -- ASSIGNED to ic by vc on 2026-09-18. S.** Released ONLY when all three of these hold: everything the cut carries has landed; **0444 has landed**, because its register note reaches `docs/reference` through the register (vc is adding 0444 to the unified plan, since cc's plan had dropped it); and vc says go. Follow `intent/docs/releasing.md` at HEAD and not any summary of it. Both halves go in ONE commit, and that commit lands BEFORE `build release` runs, or the tag will not contain its own reference pages."
+  }
+}

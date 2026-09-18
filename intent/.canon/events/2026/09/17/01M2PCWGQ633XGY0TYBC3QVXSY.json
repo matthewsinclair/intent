@@ -1,0 +1,15 @@
+{
+  "id": "01M2PCWGQ633XGY0TYBC3QVXSY",
+  "ts": "2026-09-17T00:39:53.830Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17.** (1) A `(non-test)` AT row holds only `n/a` (`AtStatus::permitted_for`): a doc, eyeball or gate row carries no test result, and its satisfaction is `intent ac satisfy` on the criterion. `at edit --kind` re-enters the status through `AtStatus::entry`, so a re-kind is one write. A peer's premise about a model is read in the model's code before any store write: vc's \"both to-write\" was inverted, and dc's own draft had it too. (2) An invariant arm built on a proxy must exclude what the invariant allows: \"no ref shares a def's name and line\" flagged `File.close(file)` on the `defp close(file)` line, a real call. (3) A worktree's stash is the repository's stash, and `git stash` refuses intent-to-add entries: a one-shot stash, apply and pop rebase failed halfway, and its pop could have taken an unrelated old stash. Rebase in plain steps: capture the files, reset, check out, `git merge-file`. (4) Homebrew's trust store moves under `$XDG_CONFIG_HOME`, so read it with `brew trust --json=v1`. `spctl --type execute` rejects every bare CLI binary; notarisation shows under `--type open --context context:primary-signature` (vc measured). (5) A fully-qualified `brew install tap/name/formula` trusts the formula itself (install.rb:197), and a short name is refused until it is trusted."
+  }
+}

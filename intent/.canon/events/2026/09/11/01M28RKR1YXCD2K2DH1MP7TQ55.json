@@ -1,0 +1,14 @@
+{
+  "id": "01M28RKR1YXCD2K2DH1MP7TQ55",
+  "ts": "2026-09-11T17:35:27.297Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0055/AC-03.4"
+  },
+  "payload": {
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

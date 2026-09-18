@@ -1,0 +1,14 @@
+{
+  "id": "01M0W6ESZ36Y5RWE7W915K6REY",
+  "ts": "2026-08-25T10:11:36.229Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0059"
+  },
+  "payload": {
+    "title": "Rebuild all Intent docs for v3"
+  }
+}

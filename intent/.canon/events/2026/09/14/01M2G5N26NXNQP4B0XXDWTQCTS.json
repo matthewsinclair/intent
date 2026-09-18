@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5N26NXNQP4B0XXDWTQCTS",
+  "ts": "2026-09-14T14:38:02.968Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0387"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the release commit stamps the version without re-rendering the realised views, so every view's footer trails the cut until its next write rewrites it"
+  }
+}

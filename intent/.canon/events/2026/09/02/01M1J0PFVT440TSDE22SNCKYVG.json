@@ -1,0 +1,14 @@
+{
+  "id": "01M1J0PFVT440TSDE22SNCKYVG",
+  "ts": "2026-09-02T21:34:13.884Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0065/AC-00.1"
+  },
+  "payload": {
+    "text": "**A RULE THE CANON SET STATES IS NOT REPRODUCED VERBATIM IN A SECOND CANON DOCUMENT; WHERE ONE DOCUMENT NEEDS ANOTHER'S RULE IT POINTS.** (hv ruled the root-and-branch review 2026-08-28; scoped by ic, minted by vc under hv's pen.) The set is the bootstrap documents a project is given -- `AGENTS.md`, `CLAUDE.md`, `usage-rules.md` and the rest -- plus the `/in-*` skills. A rule stated in two of them is not redundancy, it is a **fork with no merge**: the copies agree on the day they are written and drift thereafter, and **the drift is invisible because both copies read perfectly well.** This concretises `IN-AG-HIGHLANDER-001` at the surface where a copy is cheapest to make, because prose has no compiler. **THE POINTER IS THE MECHANISM: a reference by rule id or path, resolvable at read time, so the second reader gets the current text rather than a snapshot of it.** `CLAUDE.md` already argues this against itself -- the four cross-language principles are stated in `AGENTS.md` and deliberately not restated, because a second copy would be a Highlander violation in the document that defines the rule.\n\n**THIS ROW IS THE MECHANICAL HALF AND ITS TEXT WAS NARROWED TO SAY SO, 2026-09-02 (vc, on ic's declared limit).** As first minted it claimed the whole property -- one home, by any means -- while `AT-00.1` reaches only reproduction by COPY-PASTE, a sliding twelve-word window over each rule's summary. **Prose does not usually fork that way; it forks by rewording**, and a criterion wearing a green earned by a narrower instrument is the vacuous-instrument class this thread exists to catch, sitting in the thread's own first row. **THE PARAPHRASE HALF IS `AC-00.8` AND IS NOT RESTATED HERE.**\n\n**THE SPLIT WAS FORCED BY THE CONTRACT, NOT CHOSEN.** vc first ruled one-property-two-instruments and tried to hang a non-test read on this row alongside its test; the store REFUSED it -- a non-test row can never be green, so it can never satisfy a test-backed criterion. **Kind is a property of the CRITERION in this estate, so two instruments of different kinds require two criteria**, and the model said so before the ruling could land wrong."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2SZ4BWMN8884HWZV68NRK06",
+  "ts": "2026-09-18T09:56:28.695Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-01.1"
+  },
+  "payload": {
+    "text": "Every PROJECT act is written as its own event file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json in the same write set as the canon and views of the act, with principal the author (git's user.name and user.email, else the project's config author, else local), so an act on one clone is readable with intent events on another after a pull, with its author; machine-scoped acts (heartbeats, ingests, the destructive restore, index rebuilds) stay in the store only, because they describe one machine and are false on every other clone (hv, 2026-09-18)."
+  }
+}

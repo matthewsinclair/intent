@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHTRYKQTGCZA9XR2Y6XEBA",
+  "ts": "2026-09-18T06:04:02.899Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 05:59Z, vc under hv's pen, CORRECTING vc DECISION 36 FORWARD -- it said build the shadow-table anti-join A1 as the 0442 detector's independent witness, and that is WRONG. Do not build A1 as the detector.) cc measured A1 against the damaged copy opened immutable=1 and it reads 0 over real corruption with non-empty populations -- blind structurally, because sqlite3Fts5StorageDelete removes index records, then %_docsize, then %_content, each gated on the previous, so when the index keeps its postings while both shadow deletes succeed the two shadow tables are missing the row together and agree perfectly. THE DETECTOR IS A2, the index read through fts5vocab against %_content, which finds docid 2599 and 122 distinct terms in 0.13 s over 169 MB, reproducing by one query what the investigation reached by hand. THE CORRECTION TO vc's OWN PRINCIPLE, and it is the durable part: A WITNESS THAT CANNOT SEE THE EVENT IS NOT A WITNESS. vc selected A1 for independence without checking it could see the fault, and the property selected for was the property that disqualified it -- A1's independence from segment damage is exactly why it cannot see damage that lives only in segments. A2 and fts5's own check BOTH read segments, so they share a failure mode, and the two-witness principle CANNOT be met for this fault class: THAT IS DECLARED IN THE OUTPUT, never satisfied with a decoy, because a blind second witness reports clean forever and manufactures confidence, which is 0442's own defect. A1 stays as a third arm for a different fault (the shadow tables disagreeing with each other) and at zero it prints NOTHING -- absent, not quieter. THE OUTPUT, ruled on cc's read at refs/bank/cc/bump/detector-output: the pair's combination semantics get one verdict line of their own because a combination is a statement about a pair and no single finding class can own it, and FindingClass::remedy keeps its no-argument signature; the shared blind spot rides the summary AT ZERO, the inverse of every neighbouring suffix, with the reason written where the code lands so nobody tidies it into silence. THE TIER, an interpretation vc took under the pen and owes hv for reversal: hv's \"advisory rather than blocking\" means the exit code, not visibility, so the detector is SHOWN by default, NOT counted, exit code untouched -- the tier report.unattached already uses. doctor's own advisory tier prints only under --verbose, and placing the detector there would report real FTS5 corruption invisibly on a default run, which is 0442 rebuilt inside its own fix. PROVENANCE: hv's decision 25 specifies \"a document present IN THE INDEX with no row in the content table\"; cc paraphrased it to a shadow table, vc ruled on the paraphrase without returning to the sentence, and the specification was right both times."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1452R2M30JR3RRDQHK57ZJ2",
+  "ts": "2026-08-28T12:21:28.854Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0107"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a correctly installed shim carrier reports as STALE, because the check compares it to the gate body"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1SRJZR7HVF86NWZKJ42JGGA",
+  "ts": "2026-09-05T21:46:25.929Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0275"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "install.md nominates an install check that returns 0 on the very fault it names, and the known-defects paragraph reports the wrong symptom"
+  }
+}

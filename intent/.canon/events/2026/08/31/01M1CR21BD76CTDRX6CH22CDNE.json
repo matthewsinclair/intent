@@ -1,0 +1,14 @@
+{
+  "id": "01M1CR21BD76CTDRX6CH22CDNE",
+  "ts": "2026-08-31T20:27:02.894Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-09.6"
+  },
+  "payload": {
+    "evidence": "ic narrow f435cc10 + cc loud refusal ea68dddd (mcp.rs). Property 'exposed implies servable' re-driven at HEAD off surface/dispatch-table.json: 0 exposed-without-facade over 60 exposed / 138 non-flag rows; instrument positive-controlled. Ruling + disposition in parity/ac-09_6-mcp-facade-read.md."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M195W8EHAEC907JPT9Y9YD17",
+  "ts": "2026-08-30T11:11:36.254Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0155"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "rule_validator.bats asserts an absolute corpus-wide failure count inside a test about duplicate ids"
+  }
+}

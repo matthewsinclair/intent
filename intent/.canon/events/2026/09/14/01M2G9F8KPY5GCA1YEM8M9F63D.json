@@ -1,0 +1,14 @@
+{
+  "id": "01M2G9F8KPY5GCA1YEM8M9F63D",
+  "ts": "2026-09-14T15:44:47.226Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0379"
+  },
+  "payload": {
+    "bytes": 1840
+  }
+}

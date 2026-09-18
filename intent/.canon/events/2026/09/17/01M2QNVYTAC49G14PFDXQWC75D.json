@@ -1,0 +1,15 @@
+{
+  "id": "01M2QNVYTAC49G14PFDXQWC75D",
+  "ts": "2026-09-17T12:36:07.115Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A CLAIM IS ABOUT ITS CORPUS, AND A SESSION'S HOOKS LIVE IN TWO FILES** (2026-09-17). My all-clear for the rebuild hold said no hook opens the store, after reading .claude/settings.json alone. .claude/settings.local.json wires post-tool-symbol-context, which runs `intent search --context` after a single-symbol grep, and vc and dc caught it. List .claude/settings*.json before judging what a session's hooks do, and name the files read inside the claim."
+  }
+}

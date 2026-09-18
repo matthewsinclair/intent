@@ -1,0 +1,15 @@
+{
+  "id": "01M1RGFXKYPTF3FPM5R4JPS81W",
+  "ts": "2026-09-05T10:05:42.400Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0251"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "The acceptance gate treats an AT row's multi-file ' + ' citation as one path, so three rows citing only files that DO exist are reported missing and their threads block -- and the finding cannot be told apart from a genuinely absent file, while the cheapest repair deletes evidence"
+  }
+}

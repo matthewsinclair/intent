@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHN355EYFYRANT1548P63P",
+  "ts": "2026-09-18T06:00:56.741Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it."
+  }
+}

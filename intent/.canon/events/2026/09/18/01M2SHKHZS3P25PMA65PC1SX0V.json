@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHKHZS3P25PMA65PC1SX0V",
+  "ts": "2026-09-18T06:00:06.393Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Land the bump once hv says the suite is done. Announce both ends, because `~/.local/bin/intent` symlinks into target/release. Apply `refs/bank/cc/bump/patch` and let cargo write the lock. Hand vc the lock diff FIRST: anything moving outside the rusqlite/libsqlite3-sys chain stops the landing. Then compile, run the whole suite and send vc the logs. Drive the `bUpdateOrDelete` 4-vs-5 reading in the same run."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M17WX3A93T9JQTN44ZA79Z5M",
+  "ts": "2026-08-29T23:15:32.452Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-17.10"
+  },
+  "payload": {
+    "text": "**A PROSE FIELD HANDS OFF TO `$VISUAL`/`$EDITOR` THROUGH THE EXISTING LAUNCHER, AND THE RETURN PATH RE-READS BEFORE IT PAINTS.** The handoff calls `launch_editor` in `intent-cli/src/render.rs` -- **cited by SYMBOL, never by line: a line number inside a criterion is a second home for a fact the file already carries** (ic, 2026-08-29, after the two this criterion first cited had drifted 62 lines in a file three nodes write) and the existing realise-then-open path -- **a second resolver or a second realiser is the Highlander defect in the one place this estate can least afford it**, since `$VISUAL`-before-`$EDITOR` is already resolved once inside that same function. **THE RETURN IS THE DANGEROUS HALF, NOT THE DEPARTURE:** after the editor exits the store is behind the file, so the realiser RE-READS that artefact and treats the editor as its authority before rendering anything derived from it. **A TUI that repaints from its stale in-memory model and then saves writes the old bytes back over what the operator just wrote** -- the destroys-authored-prose class this estate already carries five open issues for, reduced to two keystrokes. **The terminal is restored on EVERY exit path including a panic** (drop guard plus panic hook, never a tidy happy path), and the fate of an unsaved form at handoff time is STATED rather than discovered."
+  }
+}

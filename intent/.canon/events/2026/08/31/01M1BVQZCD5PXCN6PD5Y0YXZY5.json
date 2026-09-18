@@ -1,0 +1,16 @@
+{
+  "id": "01M1BVQZCD5PXCN6PD5Y0YXZY5",
+  "ts": "2026-08-31T12:12:13.073Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/03"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Superseded: the nine criteria bind to WP-01 by their AC-01.N id prefix, so WP-01 owns the whole acceptance boundary and these own no criteria the gate can see; per-row dependencies live on the criteria (vc ruled 2026-08-31, hv's port sizing). Created in error by ic without checking the criterion binding.",
+    "to": "cancelled"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M184V3C9578QEW6R1FHXG88S",
+  "ts": "2026-08-30T01:34:15.410Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0153"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent edit refuses the address form its own remedy tells the operator to use"
+  }
+}

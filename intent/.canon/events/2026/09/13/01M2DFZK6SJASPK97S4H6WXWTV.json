@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZK6SJASPK97S4H6WXWTV",
+  "ts": "2026-09-13T13:40:50.524Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0346"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "set <ac> kind non-test leaves state computed, which is illegal for a non-test criterion"
+  }
+}

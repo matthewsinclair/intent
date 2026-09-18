@@ -1,0 +1,15 @@
+{
+  "id": "01M2R33ZWT8TCNBYJJCPYJ12JG",
+  "ts": "2026-09-17T16:27:41.850Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, on cc's 0438/0439 bank (landed eac280b50 at the judged patch-id 1d3a0d9c, closed 5a0c34c98) and on ic's read of gen_reference.sh. (1) 0438: every hand-authored inbox holding a line the model cannot carry is kept byte for byte at <node>/.history/pre-migration/inbox.<sender>.md beside the board's copy, on disk and in the store's prose; every copy is checked against a file already at its path before any is written; the uncarried refusal names each copy a drop would keep, as a list. (2) 0439: a view Intent rendered is recognised by one predicate in the renderer's home (views::view_body, beside BANNER_MARKER, which finish now pushes itself), asked by both of migrate's readers, which set the banner aside; a view offering no unit once its banner is gone is named on a rendered: line and not kept, and a node whose files are all such views carries nothing at exit 0. A VIEW THAT STILL OFFERS UNITS IS CARRIED AS ANY BOARD IS: a fresh clone has no store, so its rendered views are the only record of its board. That is the one delta from the issue's body, and vc accepted it. (3) THE docs/reference REGENERATION FOLLOWS THE LAST LANDING THAT CHANGES THE REGISTER, NOT THE REBUILD: gen_reference.sh runs no binary and reads surface/dispatch-table.json at a revision (ic's pre-run is banked at refs/bank/ic/refgen-prerun/), so it is ic's commit (ic hold 10) once vc says the register is final, which is after WP-06's dispatch-table hunk lands; its baseline is named on purpose, --baseline v3.0.1, the one the committed pages used, unless hv's release version moves it. (4) vc's own no-columns guard in decision 27 was wrong as ruled and is corrected: every defmodule traces a columnless :elixir_utils.noop/0, so an incremental compile of a module with no written reference records events and no column legitimately; the run fails only where a FORCED compile traced references and none carried a column (dc's bank ac00b98e, the unit arm asserting both directions)."
+  }
+}

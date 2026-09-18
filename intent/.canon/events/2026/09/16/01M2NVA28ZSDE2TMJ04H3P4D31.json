@@ -1,0 +1,15 @@
+{
+  "id": "01M2NVA28ZSDE2TMJ04H3P4D31",
+  "ts": "2026-09-16T19:32:43.426Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0426"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A project's own git hook guards are lost on every fresh clone, silently; Intent's hook carrier wires only Intent's"
+  }
+}

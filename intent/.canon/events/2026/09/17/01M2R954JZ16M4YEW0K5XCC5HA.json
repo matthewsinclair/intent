@@ -1,0 +1,15 @@
+{
+  "id": "01M2R954JZ16M4YEW0K5XCC5HA",
+  "ts": "2026-09-17T18:13:10.882Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0442"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the store's FTS5 index for src_sections goes malformed, so a plain `intent search` on an affected term fails while `intent doctor` reads the store clean"
+  }
+}

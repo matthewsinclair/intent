@@ -1,0 +1,15 @@
+{
+  "id": "01M2R0E3PECG4HYRSPNPANTH43",
+  "ts": "2026-09-17T15:40:47.694Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**COMPILE EVERY TARGET BEFORE A START, KEEP A REF NAME FREE OF ITS OWN CHILDREN, AND RECORD A GATE'S BEFORE-READING ONCE** (2026-09-17, WP-07). A field added to a public struct broke a `SearchQuery` literal in intentd's tests that none of my targeted runs compiled, and the first judging run died at clippy. Run `cargo check --workspace --all-targets` first (vc's rule), and sweep the tree for literals of every changed type that have no `..` rest. Git refuses `refs/bank/ic/st0076-wp07` while `refs/bank/ic/st0076-wp07/plan.md` exists, so name a bank's companions with a suffix (`-land/`, `-judged`) and never under the bank's own name. A landing script's gate check keeps its first before-reading in the log directory, or its own re-run reads the gate it already moved as the before and stops."
+  }
+}

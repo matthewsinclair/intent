@@ -1,0 +1,15 @@
+{
+  "id": "01M2N384J2JZ0GAM6SM588V8VJ",
+  "ts": "2026-09-16T12:32:14.405Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0404"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate carries prose inside a board section as items and reports nothing, so a sentence such as 'Nothing.' counts as work in flight"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2RBZ1047NW4XTN62FFSC94F",
+  "ts": "2026-09-17T19:02:16.324Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**THE BINARY MOVES UNDERNEATH THE TREE AND NOTHING IN THE TREE MARKS IT** (2026-09-17, d3; vc's warning, dc's measurement; replaces watchout 81, amended the same evening for hv decision 23). `~/.local/bin/intent` and `~/.local/bin/intentd` are SYMLINKS to this checkout's own `native/rust/target/release/`, so any `cargo build --release` here replaces the binaries all four nodes are executing, mid-flight, with no commit and no file change to show for it. It is the INVERSE of a stale pair: there the tree moves ahead of an honest binary, here the tree is honest and the binary moves. **AND THE LIKELIEST TRIGGER IS NOW UNGATED.** hv decision 23 (2026-09-17 18:58Z, hv first-hand, read on hv's own board rather than taken from a relay) says Rust dependency bumps are not gated -- hv verbatim, \"if anything in the rust side of the house needs a bump, then bump it. That should never be a problem to move the deps forward. Just do it\" -- with `libsqlite3-sys` moving off 0.30.1 where 0442 needs it. That removes the PERMISSION question and none of the train: a bump still banks, is judged, takes a whole-suite run and a rebuild, and NO RELEASE and NO PUSH stand. A bump IS a rebuild, so whoever runs one announces it first, because every other node's verdict-bearing run is reading that binary while it moves. So any run whose verdict depends on WHICH binary produced it pins the binary by identity and never by name -- record realpath, sha256 AND mtime at the start and again at the end, and refuse the verdict if they differ, which also leaves the banked log self-proving about what produced the result. Both readings are needed and I drove all four arms before banking: sha alone misses a rebuild producing identical bytes, mtime alone misses a swap that restores the timestamp. Copying the binary into the scratch estate pins the bytes but then costs the provenance of the copy, which is the property the banked log actually needs, so pinning beats copying. The hardened instrument is refs/bank/ic/0441/verify.sh and the unhardened one that produced d3 is preserved beside it at verify-as-run-d3.sh."
+  }
+}

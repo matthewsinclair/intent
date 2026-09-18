@@ -1,0 +1,15 @@
+{
+  "id": "01M1Q1NBKGWXJNZW87CDEH0RHP",
+  "ts": "2026-09-04T20:27:17.494Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0250"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "nothing re-drives an open issue, so a fixed-but-open row reads as live and its cost lands on whoever cites it: two worked instances in one day"
+  }
+}

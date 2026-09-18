@@ -1,0 +1,15 @@
+{
+  "id": "01M1C5SPWPBSRAW8438FG3HX4G",
+  "ts": "2026-08-31T15:07:55.677Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0190"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "surface/dispatch-table.json has duplicate rows for organize and help, and the organize pair contradicts itself on exposed_on_mcp"
+  }
+}

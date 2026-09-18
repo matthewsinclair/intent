@@ -1,0 +1,15 @@
+{
+  "id": "01M2RPYBEPABVWCKFV8XEBCPGQ",
+  "ts": "2026-09-17T22:14:08.598Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A FALSE ELEMENT SURROUNDED BY TRUE ONES INHERITS THEIR CREDIBILITY, WHICH IS WHY REVIEW MISSES IT** (dc, 2026-09-17; four instances in one night across three nodes, one mechanism). (1) AC-06.2's units defect: the page said `Keyword.get/2` on 39 where the search answers 40, and it survived a careful read because `Keyword.get/3`, `Process.get/1` and `Access.get/2` read identically under rows and under sites -- three agreeing figures lent their shape to the one disagreeing figure. (2) ic's `git describe --abbrev=0`, in `intent/docs/releasing.md` twice and in hv's decision 25 record in `intent/wip.md`: the ruling sentence's worked example (the 3.1.0 cut's previous tag is v3.0.3) is TRUE and the command in that same sentence returns v2.3.2, because `describe` takes annotated tags only without `--tags` and this repo's newest annotated tag is v2.3.2 with 45 of its 56 tags postdating it. Several readers passed it: checking the REASONING returns a true statement and only RUNNING the command finds the defect, so **the prose vouched for the command it contradicted**. (3) dc's own, one turn after reporting (2): `44 releases` written to two peers inside the very paragraph arguing that a command only beats a sentence if somebody ran it, beside four figures dc HAD measured. Inferred, actually 45, and the honest unit is tags. **No instrument was involved at all** -- the figure borrowed authority from its neighbours and from the argument it decorated. (4) `bin/.devbin/cmd/hooks:673` declares \"EVERY TEST BELOW IS ANCHORED TO THE START OF A LINE\" and tells the truth about its own scope, while `report_hook`'s unanchored test sits at 534, ABOVE it -- so a grep for `anchor` reads a scoped statement as a property of the file. **THE CURE IS NOT MORE CARE, BECAUSE CARE PRODUCED ALL FOUR.** When claims agree, THE AGREEING ONES ARE NOT EVIDENCE FOR THE ODD ONE: check it separately, and label every element by HOW it was established -- measured, inferred, run, or read. **And the corollary that keeps \"run your commands\" followable:** the commands that most need to be right in a release document -- the tag, the push, the publish -- are unverifiable by execution BY CONSTRUCTION, so the cheap read-only ones get RUN and the dangerous ones get their CONTROL FLOW READ, and the document records which way each was done."
+  }
+}

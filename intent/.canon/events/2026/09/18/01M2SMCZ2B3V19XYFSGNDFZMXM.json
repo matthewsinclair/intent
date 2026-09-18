@@ -1,0 +1,15 @@
+{
+  "id": "01M2SMCZ2B3V19XYFSGNDFZMXM",
+  "ts": "2026-09-18T06:48:56.139Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18, replacing doing 17).** The SQLite bump LANDED at `47e269483` (rusqlite 0.40.2 / SQLite 3.53.2, patch-id 53a863458, which superseded 8dbd56bbb because the judged patch did not compile: `fallible_uint` restores 0.32's u64 conversion, and `search_sql`'s two hook registrations now propagate). The pair is rebuilt at 47e269483 and reports 3.53.2. 0442's body carries the version-4 drive, committed at 003fd87e4. **Open, and it's vc's or hv's to rule:** intentd pid 41335 is still the 3.46.0 image until it is restarted. **Next, in vc's order, each landed on vc's word:** (2) the gap closure: the 3.1.0 notes' Provenance and Upgrading at `refs/bank/cc/release-notes/`, which must say `fallible_uint` is on and why, plus the shared memory `judge-sqlite-corruption-by-writer-and-behaviour`; (3) the 0442 detector, after dc's 0443 lands; (4) 0444 before ic's regeneration; (5) the 3.1.0 CHANGELOG section and RELEASE_NOTES; (6) known-defects re-driven against a fresh build; then the trawl carry. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2STWN12SKG3Q8NTSW7EXG9W",
+  "ts": "2026-09-18T08:42:21.602Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 76
+  }
+}

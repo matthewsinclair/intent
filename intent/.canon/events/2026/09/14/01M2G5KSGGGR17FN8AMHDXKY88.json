@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5KSGGGR17FN8AMHDXKY88",
+  "ts": "2026-09-14T14:37:21.300Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0381"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate's remedy for an unregistered sender cannot be followed: the re-run it names is refused once the board is carried"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2G1PMTZMTX65XSHBEGPP6C7",
+  "ts": "2026-09-14T13:29:00.514Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0378"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A consumer migrated before the formatter exclusion existed never receives it, so its pre-commit formatter rewrites a view after the doctor gate, and one rewritten view refuses every later commit"
+  }
+}

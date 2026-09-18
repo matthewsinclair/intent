@@ -1,0 +1,15 @@
+{
+  "id": "01M1KPR7FXEECP7EPESRKK495X",
+  "ts": "2026-09-03T13:18:53.952Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0222"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "explorer's thread list wants the st list columns, and they need WP-17's row type"
+  }
+}

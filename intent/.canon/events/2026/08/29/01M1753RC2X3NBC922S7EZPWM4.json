@@ -1,0 +1,14 @@
+{
+  "id": "01M1753RC2X3NBC922S7EZPWM4",
+  "ts": "2026-08-29T16:19:46.658Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-02.2"
+  },
+  "payload": {
+    "evidence": "vc 2026-08-29: 126 distinct verbs named across 27 pages checked against the register and the v3.0.0 tag register. No verb is named on a non-reference page that is retired or absent from the release; the reference pages mark ac edit and at edit 'no -- newer than the release'. Checker positive-controlled on three probes (st frobnicate UNKNOWN, st repair RETIRED, st new shipped) and two of its own artefacts were found and fixed first: it filtered reference pages by basename so docs/reference/intent-st.md read as prose, and it treated 'critic rust' (verb + argument) as a subcommand."
+  }
+}

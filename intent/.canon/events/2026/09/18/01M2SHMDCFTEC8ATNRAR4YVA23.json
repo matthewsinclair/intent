@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHMDCFTEC8ATNRAR4YVA23",
+  "ts": "2026-09-18T06:00:35.745Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Remove the `wt-0441` worktree (under the scratchpad, detached at `d8c6cc31c`) and its target dir with `git worktree remove` WHEN vc calls the close-out. That timing is vc's ruling of 2026-09-17. XS."
+  }
+}

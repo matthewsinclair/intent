@@ -1,0 +1,15 @@
+{
+  "id": "01M2B1CYBASX3BKW9PEB9V8Z4Z",
+  "ts": "2026-09-12T14:47:30.413Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0304"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "one document in both corpora answers a search twice"
+  }
+}

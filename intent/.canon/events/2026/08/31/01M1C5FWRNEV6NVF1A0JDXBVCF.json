@@ -1,0 +1,14 @@
+{
+  "id": "01M1C5FWRNEV6NVF1A0JDXBVCF",
+  "ts": "2026-08-31T15:02:34.011Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/v2_prose_survival.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

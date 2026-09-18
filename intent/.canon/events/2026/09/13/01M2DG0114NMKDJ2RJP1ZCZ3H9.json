@@ -1,0 +1,15 @@
+{
+  "id": "01M2DG0114NMKDJ2RJP1ZCZ3H9",
+  "ts": "2026-09-13T13:41:04.679Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0353"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The v3.0.0 migration writes a v2 non-test criterion as kind test, and no verb re-kinds it"
+  }
+}

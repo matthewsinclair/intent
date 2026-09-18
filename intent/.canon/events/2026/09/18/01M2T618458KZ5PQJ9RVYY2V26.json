@@ -1,0 +1,15 @@
+{
+  "id": "01M2T618458KZ5PQJ9RVYY2V26",
+  "ts": "2026-09-18T11:57:06.565Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**ST0078: P4 LANDED 2026-09-18 11:5xZ (landing set e250f3110; judged half 98f236ed7 from 99aba30af). All five WPs Done, gate 15/15 PASS.**\n\n**NEXT:**\n1. `intent st done ST0078` on vc's word only.\n2. The one rebuild of the shared pair is vc's call, after which the live store takes the canon.\n3. Remove ic's spent worktrees at the close-out's end (todo 35 plus wt-p2 and wt-p4). Their banks are landed: refs/bank/ic/st0078/p2 is landed at ff5fb4f3f, and p4 and p4-land at this commit.\n\nReported to vc: doctor on main shows an uncounted advisory, \"search index DAMAGED in doc_sections\", whose remedy is `intent index rebuild`.\n\nNO RELEASE, NO PUSH."
+  }
+}

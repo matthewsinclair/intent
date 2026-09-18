@@ -1,0 +1,15 @@
+{
+  "id": "01M0AN3H6GF7FMEMEQSWGDQ1QF",
+  "ts": "2026-08-18T14:41:15.507Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Canon relocation to intent/.canon/"
+  }
+}

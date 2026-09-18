@@ -1,0 +1,14 @@
+{
+  "id": "01M28TN113XAZN2ZZ7KG3RR9SA",
+  "ts": "2026-09-11T18:11:06.406Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.6"
+  },
+  "payload": {
+    "evidence": "Population A (bin/intent and the 25 bin/intent_*) was deleted at d5998ac37 with the 51 v2-door bats files and run_v2_suite.bash. The four falsifiers, driven after it: (1) no population-A file survives, and bin/intent* matches nothing at ab1bcaaa7; (2) population B survives, bin/int, bin/devbin and bin/.devbin present; (3) the release path runs without population A: dc's release dry-run on the prune passed preflight's clean-tree, main, remotes and doctor gates, and ic's R3 dry-run at 0f9958492 is byte-identical before and after; (4) the one shipped citation, legacy.rs WP_TEMPLATE_SUBST, is pinned to 27c4ec98, where bin/intent_wp:113 is the WP-NN sed, at ab1bcaaa7. The suite is green with population A absent at 1409aff70: Rust 2353 passed, 0 failed; tests/run_tests.sh 716 ok, 0 not ok."
+  }
+}

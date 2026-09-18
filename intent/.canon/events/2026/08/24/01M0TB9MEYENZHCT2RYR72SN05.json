@@ -1,0 +1,15 @@
+{
+  "id": "01M0TB9MEYENZHCT2RYR72SN05",
+  "ts": "2026-08-24T16:57:41.063Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0074"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent critic reports 'no staged elixir files to scan' when it means 'no coverage for the files you staged' -- 60 .heex files across three fleet estates read as nothing to scan"
+  }
+}

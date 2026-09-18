@@ -1,0 +1,15 @@
+{
+  "id": "01M2A71EAW6JWW1FAZA2P80FAD",
+  "ts": "2026-09-12T07:06:50.591Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/18"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The corpus: the gitignore-aware repository, two staleness policies, the widened watcher"
+  }
+}

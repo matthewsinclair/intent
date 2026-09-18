@@ -1,0 +1,15 @@
+{
+  "id": "01M1M0G04A9CBH4TZW37K7Q9X2",
+  "ts": "2026-09-03T16:09:10.028Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0228"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "five canon shell rules scope on bin/* with no extension constraint, so the shell critic claims non-shell files -- two are critical"
+  }
+}

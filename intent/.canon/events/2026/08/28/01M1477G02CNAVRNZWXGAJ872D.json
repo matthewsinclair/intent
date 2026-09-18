@@ -1,0 +1,15 @@
+{
+  "id": "01M1477G02CNAVRNZWXGAJ872D",
+  "ts": "2026-08-28T12:59:00.682Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0110"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "claude upgrade cannot converge on AGENTS.md: the renderer emits spacing prettier rejects"
+  }
+}

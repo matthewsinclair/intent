@@ -1,0 +1,15 @@
+{
+  "id": "01M0W6M07PCQ1QDF1DN9YCTNSJ",
+  "ts": "2026-08-25T10:14:26.455Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0078"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "claude skills uninstall --force reports 'ok: 1 changed' at rc=0 while leaving the skill on disk and fully loadable"
+  }
+}

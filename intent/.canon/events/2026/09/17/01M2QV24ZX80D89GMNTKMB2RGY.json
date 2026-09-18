@@ -1,0 +1,15 @@
+{
+  "id": "01M2QV24ZX80D89GMNTKMB2RGY",
+  "ts": "2026-09-17T14:06:52.925Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17, evening.** (1) `git reset --hard` drops an intent-to-add file from the index and leaves it on disk untracked, so a rebase script's clean-tree guard stops there: prove the worktree equal to its bank first, then remove the file by name. (2) gen_dispatch_table.sh refuses a view that is not a fixed point of prettier, and a bare `__MODULE__` in a published text reads as emphasis: code goes in backticks in any text the register carries. (3) Never share a cargo target dir between worktrees, not even one after the other (ic measured it: testkit's compile-time CARGO_MANIFEST_DIR kept a removed worktree's path and hundreds of arms panicked), and never move a worktree: reuse one in place on a new base. (4) A targeted red run can go beside a peer's suite niced to one job (`nice -n 19 cargo test -j 1`); the incremental rebuild of intentsvcs after one query change took 3.25 s. (5) zsh again: an unquoted variable holding two paths does not split, so `git add -N $FILES` passed one path with a newline in it; name paths one by one. (6) Re-derive a count from the red run's output, never from the issue's framing: 0434 was filed as seven untokened notices, its red named six plus a doubled remedy, and vc caught the drafts before the commit. (7) A shared Mix build path makes incremental tracing unsound, because the user's own compile consumes the staleness; and Mix links priv with relative symlinks, so a copied build needs every link re-pointed. (8) `intent issues close` takes no note: append the close note to the body with `intent set <id> body --from`, close, then `organize --apply` retires the view."
+  }
+}

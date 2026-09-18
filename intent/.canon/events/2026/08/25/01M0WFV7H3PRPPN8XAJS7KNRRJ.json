@@ -1,0 +1,14 @@
+{
+  "id": "01M0WFV7H3PRPPN8XAJS7KNRRJ",
+  "ts": "2026-08-25T12:55:40.560Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0060"
+  },
+  "payload": {
+    "title": "Add 'intent vault' as a way for intent projects to manage local credentials"
+  }
+}

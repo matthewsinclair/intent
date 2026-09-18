@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ4KYKQA1PV85JPKM6FW4",
+  "ts": "2026-09-13T13:40:36.364Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0338"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ST0057's projection: hydrate writes nothing for an opaque attachment, the two-region manifest code survives, cross-project addresses parse and every door refuses them while AC-07.6 reads green"
+  }
+}

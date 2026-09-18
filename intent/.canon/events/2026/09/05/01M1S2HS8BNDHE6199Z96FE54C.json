@@ -1,0 +1,15 @@
+{
+  "id": "01M1S2HS8BNDHE6199Z96FE54C",
+  "ts": "2026-09-05T15:21:17.837Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0262"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st attach accepts a repo-relative path, reports ok, and mints a duplicate attachment entry that no verb removes and doctor never reports"
+  }
+}

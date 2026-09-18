@@ -1,0 +1,15 @@
+{
+  "id": "01M1CVY80SADQ4JJW25A4877GB",
+  "ts": "2026-08-31T21:34:52.955Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0208"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "five nodes write one tree under one git identity, and content commits record no node -- so ownership is not mechanically recoverable"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2DNR3MD4HQF9EXTVY5BDJNH",
+  "ts": "2026-09-13T15:21:36.656Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0358"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "context returns a definition twice, and outline doubles every def and lists every call as a ref"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0XG4HFSS5SBSRHF67SH4KW5",
+  "ts": "2026-08-25T22:20:00.033Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0086"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent help is retired while --help answers: one capability present by one spelling and absent by the other, and a test REQUIRES the false remedy that says it has no replacement"
+  }
+}

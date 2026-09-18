@@ -1,0 +1,14 @@
+{
+  "id": "01M2QWT57XZ13MVGXANHTQKVVB",
+  "ts": "2026-09-17T14:37:28.258Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-07.2"
+  },
+  "payload": {
+    "text": "`intent search --target <target>`, the MCP tool's `target` and the SQL door's `resolved.target` ask one question: the written references a current resolved row joins to exactly that target, a key that names other targets too marked as one of N; it narrows and is narrowed by every other filter, lists the references alone when nothing else is asked, keeps no definition, and takes no hit from a stale file, which the note names; a target no resolved row names is refused with the nearest targets when any end the same way, and otherwise its empty answer says that a target nothing references and a misspelt one read the same; and an index with no stored resolution is refused with the remedy `intent index resolve` and never answered as an empty list."
+  }
+}

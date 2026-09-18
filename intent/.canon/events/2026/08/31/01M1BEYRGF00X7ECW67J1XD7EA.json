@@ -1,0 +1,15 @@
+{
+  "id": "01M1BEYRGF00X7ECW67J1XD7EA",
+  "ts": "2026-08-31T08:28:43.929Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0177"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ext ships the creating half without the undoing half -- there is no ext remove"
+  }
+}

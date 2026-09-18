@@ -1,0 +1,15 @@
+{
+  "id": "01M2G649GB7NT0E50DXAY4HMES",
+  "ts": "2026-09-14T14:46:21.966Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0075/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The verb: intent daemon logs, with --lines and --follow, its register row and tests"
+  }
+}

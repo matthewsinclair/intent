@@ -1,0 +1,15 @@
+{
+  "id": "01M2D6981D5WWAK83203Z8W7CZ",
+  "ts": "2026-09-13T10:51:21.007Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0319"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "upgrade on an already-migrated estate re-emits its threads and withholds every v2 bucket file, so WP-02's ingest has no door on the fleet's real case"
+  }
+}

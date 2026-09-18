@@ -1,0 +1,15 @@
+{
+  "id": "01M196G6K2DSET780VR3PKCW2A",
+  "ts": "2026-08-30T11:22:30.771Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0157"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A refused commit leaves your paths staged in the shared index, and only the next node can see it"
+  }
+}

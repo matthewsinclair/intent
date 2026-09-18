@@ -1,0 +1,15 @@
+{
+  "id": "01M2ST164KWDSZSC1Z0D72HHWQ",
+  "ts": "2026-09-18T08:27:21.619Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 08:27Z, vc under hv's pen, REVERSING a ruling vc sent ic on 0452 minutes earlier) ENTRY-LEVEL REGISTER NOTES DO NOT REACH docs/reference, AND THE OMISSION IS DELIBERATE AND SAID IN THE GENERATOR. vc ruled first that they should render, on the premise that 0444's note describes behaviour a user meets; ic read all the entry notes before building and the premise held for one sentence in one note: the field is maintainer rationale in the register's voice, naming nodes, rulings, criterion ids, source paths and its own correction history, and two notes carry security-shaped admissions that are true in the register and not product documentation. Rendering the field would have published all of that. 0452 closes on a line in gen_reference.sh stating that entry notes are the register's rationale and are not rendered (XS, ic's), with a regenerated set unchanged. A reader-facing field is a different design nobody asked for; where a behaviour sentence belongs on a page it goes into that page's prose, and ic's four candidates are recorded in 0452's close as candidates, not work. THE LESSON, again: the ruling was made on one example and the population was read afterwards, by the lane, not by the pen; a ruling about a field is a ruling about every value in it."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M216GTHWFGWK0DD8CAB8MEEX",
+  "ts": "2026-09-08T19:04:36.158Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0287"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "shared_artefact_build_guard arm 6b enforces the 0285 scope property and cannot see a generated embed, so it passed on the lib/templates gap"
+  }
+}

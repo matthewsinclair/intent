@@ -1,0 +1,15 @@
+{
+  "id": "01M2SRDNXAREXE8WKHPDM6RXFX",
+  "ts": "2026-09-18T07:59:13.834Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0446 is dc's (vc, 2026-09-18), the fleet trawl's first dependency.** Worktree wt-0443 at 29fe3af9b, own target. The change: `views::differs_only_in_banner_version` becomes `differs_only_in_renderer_owned_text` over `views::authored_text` (masks the banner line and the Acceptance cover paragraph, keeps text after the banner); the organize gate, doctor's StaleRender and the 0385 overwrite check ask it; the egest empty-estate guard measures the shrink in authored text. Tests in intentsvcs/tests/a_view_an_older_renderer_wrote_is_not_a_hand_edit.rs. Then drive against the 68 in the trawl clones, bank, send vc the logs, land on vc's word. Suites run HOME only, `cargo build -p intentd` before any intent-cli run."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M149930NAA8MESDY28H3RCME",
+  "ts": "2026-08-28T13:34:50.070Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0113"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "guard_home_check's installed-copy arm reads the carrier for the gate body's override, so the shim reads as predating the template forever"
+  }
+}

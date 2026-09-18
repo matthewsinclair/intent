@@ -1,0 +1,15 @@
+{
+  "id": "01M0XP3MYDBZATVTKK0NB1CJVD",
+  "ts": "2026-08-26T00:04:22.232Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0093"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "four pre-commit arms report an exit code nothing reads, and one says its findings never gate from inside the branch that gates on them"
+  }
+}

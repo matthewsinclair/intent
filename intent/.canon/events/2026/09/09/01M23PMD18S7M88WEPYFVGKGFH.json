@@ -1,0 +1,16 @@
+{
+  "id": "01M23PMD18S7M88WEPYFVGKGFH",
+  "ts": "2026-09-09T18:24:39.465Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.start",
+  "subject": {
+    "type": "thread",
+    "id": "ST0072"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": null,
+    "to": "wip"
+  }
+}

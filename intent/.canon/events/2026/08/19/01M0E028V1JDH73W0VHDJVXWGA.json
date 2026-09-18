@@ -1,0 +1,15 @@
+{
+  "id": "01M0E028V1JDH73W0VHDJVXWGA",
+  "ts": "2026-08-19T21:50:31.943Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/10"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "doctor reports a dehydrated view as missing"
+  }
+}

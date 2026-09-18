@@ -1,0 +1,14 @@
+{
+  "id": "01M2SY5T266QHCEHQG50KHSXRP",
+  "ts": "2026-09-18T09:39:47.402Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-03.3"
+  },
+  "payload": {
+    "text": "Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused."
+  }
+}

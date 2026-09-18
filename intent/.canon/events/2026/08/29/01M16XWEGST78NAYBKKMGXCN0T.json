@@ -1,0 +1,15 @@
+{
+  "id": "01M16XWEGST78NAYBKKMGXCN0T",
+  "ts": "2026-08-29T14:13:25.176Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0139"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "at lint --fix is advertised in --help and refuses as not-implemented when called"
+  }
+}

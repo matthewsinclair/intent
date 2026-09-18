@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHN1HQ9E427HSDF9FC3Y66",
+  "ts": "2026-09-18T06:00:55.095Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0443 is dc's (vc assigned it 2026-09-17).** vc has fixed the order: hv's word that the suite is finished, then cc's SQLite move lands, then dc. (1) Q2/Q3: re-derive the classifier's insertion point against cc's LANDED `store.rs` (the two edits are five lines apart, 2025 and 2030), apply `refs/bank/dc/0443/q2q3-change.md`, build in a private worktree with its own target, run the whole intentsvcs and intent-cli suites, bank, and land on vc's slot. (2) Q1, ruled S, so the behaviour changes: pass `engine()`'s watching answer to the search reconcile at render.rs:3703, read the predicate's `Err` as `false` with the reason written at the call site, and pin the asymmetry with two tests. MUST NOT: apply while hv's suite runs; land before cc; run `int hooks --install`; run `intent st hydrate` on a closed thread."
+  }
+}

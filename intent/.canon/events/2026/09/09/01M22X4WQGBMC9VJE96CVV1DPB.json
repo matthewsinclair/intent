@@ -1,0 +1,15 @@
+{
+  "id": "01M22X4WQGBMC9VJE96CVV1DPB",
+  "ts": "2026-09-09T10:59:16.850Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0288"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "`.intent_critic.yml` has no single reader: `severity_min` is honoured by the gate and ignored by the runner people test with"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1HJWP4XHT4Q5M4J2WVRNBVE",
+  "ts": "2026-09-02T17:32:56.864Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0214"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "form::Field::editable's doc cites a guard that was never written, so a form can offer an edit the store refuses"
+  }
+}

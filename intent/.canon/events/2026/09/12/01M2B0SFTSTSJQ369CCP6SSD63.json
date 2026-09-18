@@ -1,0 +1,14 @@
+{
+  "id": "01M2B0SFTSTSJQ369CCP6SSD63",
+  "ts": "2026-09-12T14:36:52.956Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-23.4"
+  },
+  "payload": {
+    "evidence": "ST0069 design.md, T3 section: the Local-runtime record measured by cc on 2026-09-12 at 3ade8dea3 (report b70a0f97e) and the ruling under the pen that no Local runtime ships in 3.0.2"
+  }
+}

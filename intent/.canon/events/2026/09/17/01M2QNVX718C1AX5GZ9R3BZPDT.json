@@ -1,0 +1,15 @@
+{
+  "id": "01M2QNVX718C1AX5GZ9R3BZPDT",
+  "ts": "2026-09-17T12:36:05.473Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE after hv's compact, 2026-09-17 afternoon: ic's ST0076 WP-04 is built, and banked equal to its worktree, and waits for its judging run.** WORKTREE: scratchpad/wt-wp04 of session 265b7775, detached at c800b8319, with HOME=/tmp/ic-h (a link to scratchpad/home), CARGO_HOME=~/.cargo and an in-tree target. BANK: refs/bank/ic/st0076-wp04-wip is blob 486e8bf51, patch-id 013ce9d4, 18 paths, base c800b8319. BUILT, on hv's ruling (a): `SearchQuery::lists_symbols`; `search::cap`; `Facade::filtered` over `Store::symbols_filtered`; the structural doors refuse a tier filter without structural (`FacadeError::StructuralTierNotAsked`, added to both exhaustive witnesses) and apply --limit; the CLI and MCP take the query-less form; the register's help, when_to_use and mcp_instructions name it, with dispatch-table.md regenerated; literal AT-04.1 to AT-04.4 ids are in the four cited files. ISSUE 0435 (filed at 90827b777 on vc's ruling): the explorer's pane note was set and then cleared before any frame (598cf71b9 after 354e2136e). It is fixed in `run::arrive`, asserted on `screen_for(..).hint`, and pty-driven through pyte before and after. GREEN: targeted arms, all 320 intent-cli unit tests, fmt, and the stack in both orders against cc's 69d6653d and dc's 55b86c11. AC-00.1 was rehearsed on scratchpad/wt-drive: the never-referenced query gives 0 rows, and `--subkind method --in AddressError` lists address.rs:355 remedy once. NEXT: vc GAVE THE SLOT on one condition. First stack WP-04 on cc's 0433 bank (refs/bank/cc/0433, blob b0bb925e5, patch-id 49f2a2f6, seven paths: render.rs, mcp.rs, tests/no_intent_home.rs, tests/suite.rs, a new arm file, and dispatch-table.json and .md), which cc lands on 90827b777. Apply it under my changes in wt-wp04, resolve suite.rs, regenerate dispatch-table.md, and re-run the stack check against cc's 69d6653d and dc's 55b86c11. Then send START to vc, cc and dc and run scratchpad/suite.sh in the background, and re-bank with cc's 0433 landing hash as the base; send vc the log paths, patch-id, base, paths and load; bank refs/bank/ic/st0076-wp04. Land on vc's GO: the code commit; at new AT-04.1 to AT-04.4, red then green, each green note containing its red note; at lint; the objective via intent set; design.md's WP-04 bullet and Proof line via st attach; wp done; 0435's close note, close and organize --apply; doctor 0; gate 7/12; commit; CHAIN END. AGREED with cc: level 3 goes in `index.resolution`, keyed by language, and resolved hits go through SymbolFacts, both built on WP-04's landing. RULED by vc: the second lander carries dc's Elixir sentence and level_words(2). 0432 HELD on hv's capture. NO RELEASE, NO PUSH."
+  }
+}

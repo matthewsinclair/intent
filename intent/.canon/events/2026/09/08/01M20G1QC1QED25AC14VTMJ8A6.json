@@ -1,0 +1,14 @@
+{
+  "id": "01M20G1QC1QED25AC14VTMJ8A6",
+  "ts": "2026-09-08T12:31:52.708Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.6"
+  },
+  "payload": {
+    "evidence": "97f74262. C1 three states distinguished: daemon_health_splits_stale_from_absent.rs::nothing_running_is_absent, ::a_holder_that_does_not_answer_is_stale, ::a_daemon_that_answers_is_live_even_though_it_holds_the_lock; Swift HealthTests.swift decode arms. C2 never RUNNING for an endpoint that connects without answering: ::a_holder_that_does_not_answer_is_stale and ::an_orphaned_listener_with_no_holder_is_absent_and_not_stale. C3 a PROJECTION above route(), never a widening: one_daemon_predicate_across_both_trees.rs -- the SAME arm that discharges AC-01.2 C1, deliberately, because it is one claim from two directions and gets one instrument. C4 both false positives CONSTRUCTED and never waited for: the orphan arm asserts its own fixture CONNECTS, which is the guard that stops it silently becoming the hard-killed case. C5 the split observable in the REMEDY with the inherited descriptor landing on ABSENT: ::an_orphaned_listener_with_no_holder_is_absent_and_not_stale plus ::absent_promises_the_residue_is_safe_to_clear_and_a_start_clears_it, which carries the remedy out rather than describing it. C6 STALE means investigate the pid and NOT unlink: ::a_holder_that_does_not_answer_is_stale asserts the pid is the holder an operator is sent to, ::an_answering_endpoint_is_never_unlinked_even_when_the_lock_is_free asserts the socket survives a refused start with its INODE unchanged (AC-08.12, the destructive half, previously uncovered anywhere), and Swift ::testStaleSummaryNamesThePidAndAbsentDoesNot covers the operator-facing half. NOTE: the arm that formerly claimed C5/C6 (::the_two_non_live_states_differ_in_what_they_give_an_operator) was a tautology over enum variants and is REPLACED, not merely supplemented."
+  }
+}

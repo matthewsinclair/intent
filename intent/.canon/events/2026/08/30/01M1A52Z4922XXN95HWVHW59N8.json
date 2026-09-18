@@ -1,0 +1,14 @@
+{
+  "id": "01M1A52Z4922XXN95HWVHW59N8",
+  "ts": "2026-08-30T20:17:01.580Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0043/AC-01.6"
+  },
+  "payload": {
+    "reason": "THE SUBJECT IS GONE, AND THE GREEN THAT COVERED IT WAS ALREADY EMPTY BEFORE ANYTHING WAS DELETED. This criterion names its engine in its own text -- 'Canon engine is intent/plugins/claude/bin/intent_claude_upgrade' -- and that file was deleted at 125f601d. The property it asserts, that the BSD-only sed -i '' is gone so Linux upgrades work, has no canon engine left to be true or false about. MEASURED RATHER THAN ASSUMED, on the day of the withdrawal: its witness tests/unit/intent_claude_upgrade.bats ran 27 tests -- 25 failing loudly on the missing script, and 2 PASSING VACUOUSLY. One of the two vacuous passers is AT-01.8, the row that covers this criterion: its body is 'if grep -nE \"sed -i ''\" $canon; then fail; fi', and grep on an absent file errors, so the if is false and fail is unreachable. The row was green because the subject was gone, not despite it. WITHDRAWN AND NOT SATISFIED, deliberately. The portability property was never proved against v3; its subject was removed. v3 installs canon from Rust and runs no sed at all, so this class cannot recur in the same form -- but that is a different engine meeting a different criterion, not this one being met. Recording it as satisfied would mint a green for work nobody did. NOT DESCOPED EITHER: there is no thread this moves to, because there is no surviving artefact for it to be about."
+  }
+}

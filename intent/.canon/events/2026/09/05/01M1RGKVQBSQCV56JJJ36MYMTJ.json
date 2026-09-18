@@ -1,0 +1,15 @@
+{
+  "id": "01M1RGKVQBSQCV56JJJ36MYMTJ",
+  "ts": "2026-09-05T10:07:51.534Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0252"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "dispatch-table.json declares --help/-h as an intrinsic row on 10 rows and declares no row for --version/-V"
+  }
+}

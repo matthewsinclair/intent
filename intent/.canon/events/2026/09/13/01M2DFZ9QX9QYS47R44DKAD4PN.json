@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ9QX9QYS47R44DKAD4PN",
+  "ts": "2026-09-13T13:40:41.609Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0341"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The dispatch register's v2 exit tables claim v3 reproduces v2's exits, and the sampled rows are mostly false"
+  }
+}

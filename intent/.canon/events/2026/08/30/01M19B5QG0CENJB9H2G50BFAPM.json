@@ -1,0 +1,14 @@
+{
+  "id": "01M19B5QG0CENJB9H2G50BFAPM",
+  "ts": "2026-08-30T12:44:09.801Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-08.11"
+  },
+  "payload": {
+    "evidence": "BOTH obligations. ONE (structural): the Facade never leaves native/rust/crates/intentd/src/store.rs, owned by a std::thread the tokio runtime does not schedule; handlers hold only a ProjectHandle, which is an mpsc sender, so no handler is given a type that can block. Witness is structural per the row's own requirement, not behavioural: tests/one_store_door.rs asserts Facade is named in exactly one module and that no other module calls blocking_recv/blocking_send/block_on/blocking_lock, with the predicate positive-controlled and comments stripped. TWO (FD_CLOEXEC): witnessed by tests/daemon_descriptor_hygiene.rs, which reads the flag off the descriptor each bind constructor returns, with a control that clears it, checks the mutation landed, and restores it. Landed 4b6b96e9 / 25f99c6f."
+  }
+}

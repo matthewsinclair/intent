@@ -1,0 +1,15 @@
+{
+  "id": "01M2RA0BTRN4AST1Z53FWJ66AE",
+  "ts": "2026-09-17T18:28:03.036Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0444"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the wb migrate register note and Facade::wb_migrate's doc say an over-bound migrated inbox refuses new sends, which 0374's landing made false"
+  }
+}

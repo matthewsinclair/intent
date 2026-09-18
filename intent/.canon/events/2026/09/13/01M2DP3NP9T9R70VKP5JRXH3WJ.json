@@ -1,0 +1,15 @@
+{
+  "id": "01M2DP3NP9T9R70VKP5JRXH3WJ",
+  "ts": "2026-09-13T15:27:55.598Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0362"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a board verb can return before its views are re-rendered, so the commit after it carries the stale view"
+  }
+}

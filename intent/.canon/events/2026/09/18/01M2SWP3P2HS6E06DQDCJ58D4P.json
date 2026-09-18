@@ -1,0 +1,20 @@
+{
+  "id": "01M2SWP3P2HS6E06DQDCJ58D4P",
+  "ts": "2026-09-18T09:13:44.386Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "CHAIN START cc: landing 0450 on vc's word (four paths: intentsvcs/src/doctor.rs, intentsvcs/src/store.rs, intent-cli/src/render.rs, intentsvcs/tests/doctor_reads_the_search_index.rs). No rebuild. Hold wb writes until my CHAIN END.",
+    "recipients": [
+      "dc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

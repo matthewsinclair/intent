@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3AKXNVWEYNHNZK3GBA9E6",
+  "ts": "2026-09-16T12:33:39.874Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0416"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot"
+  }
+}

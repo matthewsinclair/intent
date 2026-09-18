@@ -1,0 +1,15 @@
+{
+  "id": "01M1SG05PSCWFZEBY4WS9BSQYN",
+  "ts": "2026-09-05T19:16:20.827Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0271"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "migration.md states three preconditions refused by name and only the floor exists -- a no-git project converts with exit 0, no undo, and the word git absent from the output"
+  }
+}

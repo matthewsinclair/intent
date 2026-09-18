@@ -1,0 +1,15 @@
+{
+  "id": "01M16XVWY6Q56MBG9BKHV8MJ54",
+  "ts": "2026-08-29T14:13:06.806Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0138"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "The v2 ingest has two behaviours for one input shape and only the destructive one is detectable"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1PKAZJ68EWT596Y41776M71",
+  "ts": "2026-09-04T16:16:57.416Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0237"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The canon-git divergence check belongs in intent doctor: every Intent project has the exposure, bin/.devbin reaches only this one"
+  }
+}

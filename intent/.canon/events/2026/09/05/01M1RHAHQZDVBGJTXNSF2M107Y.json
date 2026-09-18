@@ -1,0 +1,15 @@
+{
+  "id": "01M1RHAHQZDVBGJTXNSF2M107Y",
+  "ts": "2026-09-05T10:20:14.977Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0256"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent doctor's model-inconsistency check ignores a criterion's withdrawn state while intent ac gate honours it, so 61 rows hv deliberately withdrew are reported as residue -- 37% of one estate's entire finding count, burying the four findings that are real"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2DSMEJCS0ETS0KE1Q8B4G2S",
+  "ts": "2026-09-13T16:29:31.087Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0370"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a search over an index holding skipped files answers complete: true with an empty skipped list"
+  }
+}

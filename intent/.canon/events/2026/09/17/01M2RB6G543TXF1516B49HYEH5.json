@@ -1,0 +1,15 @@
+{
+  "id": "01M2RB6G543TXF1516B49HYEH5",
+  "ts": "2026-09-17T18:48:52.644Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**THE INSTALLED PAIR IS THIS TREE'S BUILD ARTEFACT, SO ANY RELEASE BUILD HERE SWAPS EVERY NODE'S BINARY MID-FLIGHT** (dc measured it 2026-09-17, vc drew the consequence): `~/.local/bin/intent` is a SYMLINK to `native/rust/target/release/intent` in this checkout, so \"drive it on the installed pair\" and \"drive it on this tree's release build\" are one run and a copy into a clone is a `cp`. The consequence nobody had written down is that `cargo build --release` in this checkout silently replaces the binary all four nodes are running, with nothing in the tree changing to mark it -- which is the MECHANISM under the rule that no commit lands while a rebuild builds, and it also means a scratch estate that resolves its binary through the symlink can have its subject swapped between an ancestry check and a verdict. A run that must name the version that produced its result pins the resolved file or copies it."
+  }
+}

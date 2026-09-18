@@ -1,0 +1,14 @@
+{
+  "id": "01M1BSNRY58ST3QN6CSHRXTGBE",
+  "ts": "2026-08-31T11:36:03.806Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/corrected_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2R5MVR40TTP9EYB52FNHZNT",
+  "ts": "2026-09-17T17:11:51.812Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE after hv's compact, 2026-09-17 late evening: ic builds issue 0441 (high, intentd's ingest race) on vc's rulings; no claim.** THE FINDING: ic diagnosed the warning on cc's close of 0439 and reproduced it on a scratch copy of the estate (evidence at refs/bank/ic/canon-guard-0439/). intentd's ingest pass rendered every canon file and view from one snapshot and wrote them with no check that the store had moved, so a command-line write that landed inside the render had its canon file and view written back to the render from before it. THE FIX AS RULED (0441's body, vc decision 30): `Facade::ingest_from_disk` renders (`ingest_render`, which reads `PRAGMA data_version` before its snapshot) and then commits (`ingest_commit`, which lands the files and records them only under `Store::hold_unless_moved`, one hold of the writer lock that found no other connection's commit). A moved store renders again, at most `INGEST_RENDERS` = 3 times, then refuses with `FacadeError::IngestOutpacedByWrites`, naming the unwritten files; intentd's existing warning line logs it. `Load::Restore`, the command-line half and narrowing are all left out. The close note must name the residual: two command-line writers crossing their file writes on one subject can leave the older render on disk, and a watched estate's next sync repairs it. STATE: the code is written in scratchpad/wt-0441 of session 265b7775, moved onto 560777120 after cc's 0440 landed with its patch-id unchanged, and banked at refs/bank/ic/0441/wip.patch (patch-id 2e611147, 7 files: store.rs, ingest.rs, facade.rs, error_remedies.rs, mandatory_fields_reach_a_reader.rs, suite.rs, and the new arm a_sync_writes_no_render_the_store_has_moved_past.rs); the design is at refs/bank/ic/0441/plan.md. Proven on 560777120: `cargo check --workspace --all-targets` green; the arm, the lock-wait file, the error-remedy census and the field census green (16 tests); with the guard disabled the arm goes red on its canon-bytes assertion (restored byte for byte); the Rust critic's headless read is clean over the 7 files. NEXT: re-check HEAD for any later Rust landing; bank the patch at refs/bank/ic/0441/patch; ask vc for the slot with START to all; the judging run is whole suites for intentsvcs, intent-cli and intentd, workspace clippy (plus CI's restriction clippy, whose exact line to ask cc for), and fmt --check, and vc judges from the logs; land on vc's GO. Hold 10 waits for vc's word that the register is final (0440 has landed). NO RELEASE, NO PUSH."
+  }
+}

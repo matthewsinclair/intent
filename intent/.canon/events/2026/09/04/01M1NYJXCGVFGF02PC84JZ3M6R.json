@@ -1,0 +1,15 @@
+{
+  "id": "01M1NYJXCGVFGF02PC84JZ3M6R",
+  "ts": "2026-09-04T10:14:17.234Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0230"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "TUI selection: the residual not covered by the in-process drive -- bytes to KeyEvent, and model to cells"
+  }
+}

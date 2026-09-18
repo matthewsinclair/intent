@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHPF8XZW2G3DX5KB22B50F",
+  "ts": "2026-09-18T06:01:41.917Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18, localfold on hv's call.** ic has NOTHING TO START right now. Its assigned work is in TODO, and each item there names the condition that releases it: check each condition, never assume it. vc accepted ic's whole plan at about 06:05Z. Ask vc before starting anything that is not in TODO. To census a document's commands, use the banked tool at `refs/bank/ic/census/tool` and do not write another. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`."
+  }
+}

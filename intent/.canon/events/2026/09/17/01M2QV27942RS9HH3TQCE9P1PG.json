@@ -1,0 +1,15 @@
+{
+  "id": "01M2QV27942RS9HH3TQCE9P1PG",
+  "ts": "2026-09-17T14:06:55.268Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 13
+  }
+}

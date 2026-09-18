@@ -1,0 +1,15 @@
+{
+  "id": "01M2RHVNCXB6VA1K2DD1BB4FMV",
+  "ts": "2026-09-17T20:45:17.597Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 21
+  }
+}

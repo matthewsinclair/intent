@@ -1,0 +1,15 @@
+{
+  "id": "01M2RQCJ0VC0BEPFA2810F8V2K",
+  "ts": "2026-09-17T22:21:54.075Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A DOCUMENT'S COMMANDS ARE CENSUSED BY THE BANKED INSTRUMENT, `refs/bank/ic/census/tool`, AND IT HAS BEEN WRONG TWICE -- WHICH IS WHY IT IS BANKED RATHER THAN REWRITTEN EACH TIME.** Recover with `git cat-file -p refs/bank/ic/census/tool`. It reports both homes, fenced blocks AND inline backticked invocations, and its inline half applies NO runner-name filter by design. Both of its defects produced an ALL-CLEAR rather than a warning, which is the direction that gets believed: fence-walk-only returned ZERO across `intent/wip.md`, `intent/restart.md` and `.claude/restart.md`, which carry no fenced block between them and every command inline; and the first inline half filtered on a guessed alternation (`git|intent|bin/|cargo|...`) that missed all three `bin/int hooks` -- the command a fresh clone is told to run FIRST -- because the pattern wanted a space straight after `bin/`. **Re-run its positive control against `intent/docs/releasing.md` after any change to either half**; six fenced blocks is the known answer, and a census instrument never run against a known answer is the thing it exists to catch. The RULES this came from are vc's and live in `intent/restart.md`; this item is the pointer to the tool and its failure record, deliberately, so the next node finds it instead of writing a third one."
+  }
+}

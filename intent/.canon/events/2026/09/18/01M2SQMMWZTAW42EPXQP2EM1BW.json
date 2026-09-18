@@ -1,0 +1,15 @@
+{
+  "id": "01M2SQMMWZTAW42EPXQP2EM1BW",
+  "ts": "2026-09-18T07:45:33.599Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Land the pipefail check fix after dc's Q1, on vc's word, with the issue number vc files. The patch is judged: `refs/bank/cc/pipefail/patch` (patch-id 8cbb4cb9f; the note is at `refs/bank/cc/pipefail/note`). The arm drops from 28.10 s to 0.29 s. Re-read the patch-id from the applied tree before committing. NO PUSH."
+  }
+}

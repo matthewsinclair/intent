@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW2293SBQPYF54K9BR9VSH",
+  "ts": "2026-09-18T09:02:47.587Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "(2026-09-18 09:02Z, vc's own) A \"COMMENTS ONLY\" CHANGE IS NOT A REASON TO WAIVE THE WHOLE CRATE SUITES, and vc waived them for 0451 (30 files of doc-comment edits plus one CI step) on that reading. Two regressions landed on main from it: the committed schema faces render type doc comments as descriptions, so `schema_faces_drift` went red (blessed at 509927d57); and the CI doc step did not match devbin's `doc` gate, so the shell suite's twin test went red (fixed at 305ab97d5). Both were caught by the next lanes' suites, hours apart. The rule: any change under a crate, the CI configuration or a generator's source owes the whole crate suites and the shell half, whatever the diff looks like, because a comment can be a committed output and a workflow line is one; the judge does not read the diff's shape as evidence of its reach."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M171KBWXGHJY75BDZV7NMY1B",
+  "ts": "2026-08-29T15:18:22.607Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-01.1"
+  },
+  "payload": {
+    "evidence": "vc 2026-08-29: all 7 moved posts' canonical: fields still name .../docs/blog/<file>, driven per-file with a positive control that a rewritten canonical IS caught (planted /docs/v2/blog/ in a temp copy, flagged). docs/v2/README.md states why they deliberately do not match their paths."
+  }
+}

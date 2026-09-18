@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8BNC9EDXRKS49GJ69V5M",
+  "ts": "2026-09-18T09:06:13.804Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22, only the banked stops; kit and log on refs/bank/dc/trawl/. hv ruled ST0078 whole into 3.1.0 (vc, 09:06Z), so this is released when ST0078's build has landed and the pair carrying P1 and P3 is rebuilt, so every estate is touched once; then one re-rehearsal on that pair, skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies, and Devbin's tree must be clean. NO PUSH."
+  }
+}

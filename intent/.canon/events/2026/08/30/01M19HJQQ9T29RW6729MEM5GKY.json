@@ -1,0 +1,15 @@
+{
+  "id": "01M19HJQQ9T29RW6729MEM5GKY",
+  "ts": "2026-08-30T14:36:06.922Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0162"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intentd --help starts a daemon instead of printing help"
+  }
+}

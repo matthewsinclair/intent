@@ -1,0 +1,15 @@
+{
+  "id": "01M1C7VR9CKYV4QT0BXCNWFX98",
+  "ts": "2026-08-31T15:43:59.792Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0194"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent search passes the query into FTS5 unescaped, so any hyphenated term fails with a leaked sqlite error"
+  }
+}

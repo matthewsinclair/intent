@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHKKJPM6EJRV7GA0BFNZQH",
+  "ts": "2026-09-18T06:00:08.022Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "At the landing, carry the gap closure into every document that recorded the gap: the banked 3.1.0 notes (Provenance and Upgrading, at `refs/bank/cc/release-notes/`) and the shared memory `judge-sqlite-corruption-by-writer-and-behaviour`, which names 3.46.0 and says doctor cannot detect this. Change neither before the patch lands. Then commit the 3.1.0 CHANGELOG section and RELEASE_NOTES BEFORE the release driver runs (`intent/docs/releasing.md` at HEAD)."
+  }
+}

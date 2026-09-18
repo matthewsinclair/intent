@@ -1,0 +1,15 @@
+{
+  "id": "01M0W6M0K2SB86YDWT5TT89VGY",
+  "ts": "2026-08-25T10:14:26.941Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0079"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st new reports 'created' at rc=0 and lists the thread in .intentfiles exactly like a materialised one, but writes no files; only sync --to-disk materialises it, and --dehydrate's own help implies the default writes them"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1CJDPJED2KPT8WE34304ASE",
+  "ts": "2026-08-31T18:48:33.626Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0198"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "an as-observed register row differs from v2 behaviour and every existing check passes, because nothing compares an as-observed claim to what the command actually does"
+  }
+}

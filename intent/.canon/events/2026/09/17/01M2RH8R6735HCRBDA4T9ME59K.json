@@ -1,0 +1,15 @@
+{
+  "id": "01M2RH8R6735HCRBDA4T9ME59K",
+  "ts": "2026-09-17T20:34:57.863Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**HOLD vc TO THE CONSOLIDATED 0442 PASS (vc asked to be held to it, 2026-09-17 late).** vc is deliberately BATCHING rather than dropping: 0442's body was edited five times tonight and vc will not edit it a sixth for one row, so the remaining content waits on cc's two measurements of the flag-ON rebuild, which vc needs before ruling the reorder. When those land, ONE consolidated pass writes the version rule WITH its 1-row exception, cc's eight negatives, arm G, and the close list. vc's words: a thing deferred without being named is a thing dropped. So this item is the naming, and it is dc's to check rather than vc's to remember. What must appear in the body when it lands: (1) the rule that a `'rebuild'` writes the version matching the `secure-delete` flag in force when it runs, holding both ways at 60 rows and at 799 so corpus size drops out, FAILING at a 1-row index which writes 4 with the flag on, with the no-segments explanation marked as an undriven guess rather than an account; (2) the candidate defect with its one-line fix -- `replace_src_sections` rebuilds with the flag OFF and then turns it on, landing at version 4 with secure-delete 1, so the next scoped delete re-enters the 4-to-5 transition every time that sequence runs, and reordering the two statements stops it; (3) that a bare `'rebuild'` repairs a malformed index in 0.17 s and does NOT return the store to the pre-transition state, so a repair need not use the verb's sequence at all; (4) cc's eight negatives with the trigger unreproduced, arm G ruling out the WAL and crash family, and cc's void-not-green run kept because its failure is the finding. The superseded claims that must NOT survive into it: the permanently-stale-`iVersion` mechanism (refuted by cc's cookie measurement and retracted by vc), cc's identification of the phantom as 0441's arm file, cc's frequency finding, and dc's own \"the verb resets, the bare rebuild does not\", which was true of every case measured and named the wrong cause. Check the body against this list before agreeing 0442 is written up."
+  }
+}

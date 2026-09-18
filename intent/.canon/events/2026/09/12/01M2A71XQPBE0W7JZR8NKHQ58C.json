@@ -1,0 +1,15 @@
+{
+  "id": "01M2A71XQPBE0W7JZR8NKHQ58C",
+  "ts": "2026-09-12T07:07:06.360Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/21"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The explorer's /search pane"
+  }
+}

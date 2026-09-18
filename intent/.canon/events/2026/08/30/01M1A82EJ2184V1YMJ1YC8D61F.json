@@ -1,0 +1,15 @@
+{
+  "id": "01M1A82EJ2184V1YMJ1YC8D61F",
+  "ts": "2026-08-30T21:09:10.344Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0176"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "todo notdone and todo toggle mutate through helpers that never pass the Facade"
+  }
+}

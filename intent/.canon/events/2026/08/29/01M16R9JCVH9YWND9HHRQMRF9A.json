@@ -1,0 +1,14 @@
+{
+  "id": "01M16R9JCVH9YWND9HHRQMRF9A",
+  "ts": "2026-08-29T12:35:45.259Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/runner_roster_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

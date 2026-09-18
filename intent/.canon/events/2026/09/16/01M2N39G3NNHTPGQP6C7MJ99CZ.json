@@ -1,0 +1,15 @@
+{
+  "id": "01M2N39G3NNHTPGQP6C7MJ99CZ",
+  "ts": "2026-09-16T12:32:59.023Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0410"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "wb register with arguments finds a node's hand-authored board and never compares its header, so a foreign identity was written over the node"
+  }
+}

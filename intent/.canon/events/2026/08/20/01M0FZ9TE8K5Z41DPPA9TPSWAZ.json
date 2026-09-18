@@ -1,0 +1,14 @@
+{
+  "id": "01M0FZ9TE8K5Z41DPPA9TPSWAZ",
+  "ts": "2026-08-20T16:15:41.944Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-05.3"
+  },
+  "payload": {
+    "evidence": "native/rust/crates/intent-cli/src/render.rs:531 `fn edited` -- ONE function serves both `intent edit <address> [file]` and `intent st edit <id> [file]`, resolving `arg(m,\"address\").or_else(arg(m,\"id\"))` so the two table rows land in one body rather than two implementations; it hydrates through `facade.edit(&address,&file)` at render.rs:561, which is the door's ONLY call site in intent-cli (driven grep, 1 hit). Second clause: `wip` is NOT registered as a verb -- the only `\"wip\"` literal in intent-cli/src is render.rs:180 `\"wip\" | \"in progress\" => S::Wip`, the STATUS parser, which is the pre-existing meaning this criterion cites as its reason. Measured at 28b3610b in a clean detached worktree. The Highlander clause additionally carries an UNCITED green test all along -- intentsvcs/tests/edit_prints_a_path_that_exists.rs:300 `the_renderer_calls_the_edit_door_exactly_once` -- found by driving the subject, not by its id; it names no AC or AT anywhere. (vc 2026-08-20)"
+  }
+}

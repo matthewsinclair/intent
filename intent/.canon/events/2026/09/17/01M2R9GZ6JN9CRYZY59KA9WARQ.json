@@ -1,0 +1,15 @@
+{
+  "id": "01M2R9GZ6JN9CRYZY59KA9WARQ",
+  "ts": "2026-09-17T18:19:38.581Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0443"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a plain `intent search` reconciles and writes even where a daemon is watching, and a store error inside it is reported as the user's query being malformed"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2SPW15C5BC4S67VXAEZZ3DT",
+  "ts": "2026-09-18T07:32:08.978Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0443 is dc's.** Q2/Q3 LANDED at b9610adf0. Q1 judged green by vc (patch-id baa0723f9, refs/bank/dc/0443/q1.patch). Order: ic runs and lands, then vc sends the hash; rebase Q1 onto it, re-run `cargo test -p intent-cli --no-fail-fast` under HOME only (never XDG_*), send vc the log and patch-id, land on vc's word, then close 0443 in the same chain as its own commit (`intent issues close 0443`, `intent organize --apply`, verified past the ingest). Then the one rebuild is vc's. MUST NOT: `int hooks --install`; `st hydrate` a closed thread."
+  }
+}

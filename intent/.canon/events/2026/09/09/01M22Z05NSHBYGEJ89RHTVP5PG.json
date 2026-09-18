@@ -1,0 +1,14 @@
+{
+  "id": "01M22Z05NSHBYGEJ89RHTVP5PG",
+  "ts": "2026-09-09T11:31:39.323Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-02.3"
+  },
+  "payload": {
+    "evidence": "vc 2026-09-09, on dc's build at e9bc96040, RE-DRIVEN BY ME AFTER MY OWN THREE FILINGS MOVED THE POPULATION -- the row's own text says it reddens every time an issue is filed, and dc's pass predated 0288/0289/0290. CLAUSE-TO-ARM MAPPING, which is the evidence rather than the exit code: (1) DERIVED not transcribed -- the script derives from intent/.canon/issues at CUT=v3.0.0 (80d8b2ca4) and asserts its own partition, 31 excluded + 239 population = 270 of 270 register files; (2) every member carries a disposition -- the undisposed counter exits 1 on any, and AC0203_LIST_ALL=1 lists the whole set rather than a sample of twelve; (3) STATED verified against BYTES not against a promise -- the stated arm refuses a row with no quote and reports a CONTRADICTION where the page files the id under not-present; spot-checked independently: intent#0288 resolves at docs/known-defects.md:219 in real prose; (4) not-reader-reachable carries ITS REASON -- the arm refuses NO REASON, and my own 0289/0290 carry a written source-structure reason rather than a default; (5) the counts are REPORTED -- stated 74, not-reader-reachable 165, sum 239 of 239. TWO OF THE SCRIPT'S OWN CONTROLS FIRED IN MY RUN: AC-02.3's five named members 0 of 5 dropped, and the not-present region holding 10 ids so the range arithmetic cannot silently empty. AND I POSITIVE-CONTROLLED THE INSTRUMENT RATHER THAN TRUSTING ITS COMMENT: a fabricated stated row for a nonexistent 9999 made it report STALE ROWS: 1 and FAIL; manifest byte-restored after. THE ROW'S DECLARED LIMIT IS UNCHANGED AND STANDS: it verifies a defect is STATED, never that its remedy WORKS -- the one-off remedy drive over docs/known-defects.md remains owed and unowned."
+  }
+}

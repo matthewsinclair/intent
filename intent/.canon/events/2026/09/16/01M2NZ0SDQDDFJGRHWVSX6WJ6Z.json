@@ -1,0 +1,15 @@
+{
+  "id": "01M2NZ0SDQDDFJGRHWVSX6WJ6Z",
+  "ts": "2026-09-16T20:37:33.754Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0430"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The MCP search tool reports binary and symlink skips as incomplete, and its description sends code lookups to grep"
+  }
+}

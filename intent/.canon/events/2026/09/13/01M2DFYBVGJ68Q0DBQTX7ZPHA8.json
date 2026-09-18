@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYBVGJ68Q0DBQTX7ZPHA8",
+  "ts": "2026-09-13T13:40:10.227Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0325"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "at new --covers <missing AC> refuses correctly but with a PUT/POST remedy unrelated to the error"
+  }
+}

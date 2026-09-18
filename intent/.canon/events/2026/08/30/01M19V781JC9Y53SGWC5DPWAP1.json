@@ -1,0 +1,14 @@
+{
+  "id": "01M19V781JC9Y53SGWC5DPWAP1",
+  "ts": "2026-08-30T17:24:36.019Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-17.6"
+  },
+  "payload": {
+    "text": "**`intent edit <kind> <id>` AND `intent browse <kind> <id>` REACH ONE MODEL THROUGH ONE SERVICE, AND THE KIND IS WHAT DISAMBIGUATES.** Measured 2026-08-29: `intent edit 1` refuses with **`1` names both a steel thread and an issue**, so the kind argument is not new syntax for its own sake -- it resolves an ambiguity the tool ALREADY reports. Measured 2026-08-29, BEFORE the shape change: `intent edit` was `edit <ADDRESS> [FILE]`, so `intent edit st 68` parsed `st` as the address and `68` as the file, and refused about the wrong thing. The shape change was therefore a deliberate surface decision belonging to the interface owner, and the register row was authored before either realiser was built. **IT HAS SINCE LANDED:** measured 2026-08-30 by ic, `intent edit <KIND> <ID> [FILE]` ships with `--editor`, `--path` and `--browser`; **`intent browse <KIND> <ID>` DOES NOT SHIP, AND THE SENTENCE SAYING IT DID WAS WRONG** -- corrected by vc 2026-08-30 on ic's own report against their own measurement. Driven three ways: `intent browse st 56` is rc=2 _is a known command that is not implemented yet_, `render.rs` carries no `browse` dispatch arm, and `DECLARED_BUT_UNWIRED` buckets it with THIS ROW named in its note. **ic read the DECLARATION as a build** -- `browse` is a `new_surface` row with a real clap subcommand -- and a declaration is a statement about the surface PLAN, never about the arm. **THE ESTATE ALREADY KNEW AND SAID SO IN THE OPPOSITE PLACE:** the roster note reads _declared ahead of its arm ON PURPOSE, and AC-17.6 requires that order in as many words_. So there were two homes for _does browse ship_, they disagreed, and the WRONG one was inside the criterion that governs it -- the register is not a witness for itself. **CONSEQUENCE: this row is BLOCKED on a build nobody has done, not on evidence**, and it is not ic's to green until a `browse` arm exists; and the ambiguity refusal this row opens with no longer reproduces, because `intent edit 1` now refuses about a missing `<ID>` rather than about `1` naming two entities. **THE REQUIREMENT IS UNCHANGED AND UNSATISFIED; ONLY ITS EVIDENCE MOVED** -- the verbs shipping is not the criterion, which is that both reach ONE MODEL through ONE SERVICE, and `AT-17.6` is still to-write. **Second instance of the `AC-12.4` shape on this thread: a row carrying a dated measurement of a surface that has since moved.** The correction goes BESIDE the artefact rather than instead of it, so the record that the change was deliberate survives. Both verbs cover ST, WP and ISSUE."
+  }
+}

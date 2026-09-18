@@ -1,0 +1,14 @@
+{
+  "id": "01M28YWE5KPRRHBSN5Y1ZY7AJQ",
+  "ts": "2026-09-11T19:25:03.541Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-04.2"
+  },
+  "payload": {
+    "evidence": "git tag --contains names v3.0.1 for the whole docs/reference regen (28ac7a017) and the 3.0.1 CHANGELOG and release notes (d5334200e), as does dc's own check of its four cut commits. The doc set is in the same tag as v3.0.1."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M144PKWH6XGHDFEQWVH236G0",
+  "ts": "2026-08-28T12:14:50.865Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0102"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A control validates the axis it tests and is silent about the one next door"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0XKMQBXV84PJY8AJDZXDDDY",
+  "ts": "2026-08-25T23:21:16.047Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0090"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "issues add creates a body that no verb can write, and the refusal that makes it unreachable names the form instead of the field"
+  }
+}

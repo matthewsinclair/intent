@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ1AH5PMS2PWPSTRGAJNM",
+  "ts": "2026-09-13T13:40:33.187Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0336"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A seeded usage-rules.md carries a literal [[PROJECT_NAME]]"
+  }
+}

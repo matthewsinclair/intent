@@ -1,0 +1,14 @@
+{
+  "id": "01M1CRQKGHBC9CJ4FTCBRHGVHC",
+  "ts": "2026-08-31T20:38:49.619Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.8"
+  },
+  "payload": {
+    "evidence": "Turtle asset + state-derived (ic, HEAD b083fb4c): MenuBarIcon.imageset (menubar_18/36/54.png, template-rendering-intent=template) rasterised from docs/design/intent-logo.svg by 'int macos app-icons' (rsvg-convert), landed d00956ec, turtle visually confirmed. Tint computed at paint time from the one health predicate (Theme.menuBarTint + updateStatusIcon on every observation change), no cached lastKnownState."
+  }
+}

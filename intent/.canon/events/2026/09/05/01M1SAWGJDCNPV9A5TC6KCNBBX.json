@@ -1,0 +1,15 @@
+{
+  "id": "01M1SAWGJDCNPV9A5TC6KCNBBX",
+  "ts": "2026-09-05T17:46:57.999Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0269"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "every instrument in the coverage space starts from a ROW, so a test file no row cites is invisible to all of them -- 151 of 279, uncounted and unowned"
+  }
+}

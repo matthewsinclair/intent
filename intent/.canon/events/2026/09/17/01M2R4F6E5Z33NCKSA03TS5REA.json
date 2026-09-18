@@ -1,0 +1,15 @@
+{
+  "id": "01M2R4F6E5Z33NCKSA03TS5REA",
+  "ts": "2026-09-17T16:51:18.349Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0441"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intentd's background sync writes a render taken before a command-line write over that write's canon and view, silently, until the next write to the subject warns"
+  }
+}

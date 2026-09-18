@@ -1,0 +1,15 @@
+{
+  "id": "01M0SH3SHXET4H488ABJ70WEYC",
+  "ts": "2026-08-24T09:20:06.687Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0067"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent modules find is a v3 parity gap: it works under v2 and is unimplemented in v3, so a v3-self-hosted project has no working way to query MODULES.md"
+  }
+}

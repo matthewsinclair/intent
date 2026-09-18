@@ -1,0 +1,14 @@
+{
+  "id": "01M1749HMSGDZBVD71ZFF6PXVZ",
+  "ts": "2026-08-29T16:05:27.748Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-04.1"
+  },
+  "payload": {
+    "evidence": "vc 2026-08-29: intent/docs/ unchanged in role -- no file moved, added or removed; six cross-links from the public set now resolve into it (working-with-llms, rules, critics, pre-commit-hook, creating-custom-agents, writing-extensions) from the new docs/working-with-agents.md. Full docs/ sweep: 30 relative links across 12 files, 0 broken, checker two-sided controlled. The criterion was VACUOUS before this -- the public set mentioned intent/docs/ and linked into it nowhere, so the second clause was true of an empty set."
+  }
+}

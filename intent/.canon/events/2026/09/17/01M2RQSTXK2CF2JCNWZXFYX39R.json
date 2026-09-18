@@ -1,0 +1,15 @@
+{
+  "id": "01M2RQSTXK2CF2JCNWZXFYX39R",
+  "ts": "2026-09-17T22:29:09.171Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17 22:28Z, vc under hv's pen, on cc's design read) THE 0442 DETECTOR IS TWO WITNESSES THAT ARE NEVER RECONCILED. Build the anti-join as A1, `%_docsize` against `%_content`, two ordinary b-tree shadow tables that never read an index segment; keep fts5's own per-table check as the second witness; report them SEPARATELY and never merge them into one verdict. vc's prior was given before cc's read so it could not be fitted to it -- keep the halves independent, because Highlander governs implementations and not witnesses, and every instrument defect found on 2026-09-17 was caught by two differently-wrong instruments disagreeing rather than by either being scrutinised. Both of vc's movers were answered on evidence: A1 has a failure mode the checker catches (a docid in the segments but in neither shadow table) and the checker cannot enumerate, so they are complementary rather than redundant; and A1 costs two b-tree scans against a check that reads every segment and computes two checksums, so cadence differs by orders and A1 can run in doctor on every invocation while the checker is reachable on demand. THE FINDING IS cc's AND IT SITS A LEVEL BELOW WHERE vc AIMED THE PRIOR: the other anti-join, A2, reads the index through `fts5vocab`, which is itself an index reader that corruption can make lie and which upstream patched at 3.51.1, so A2 is DOWNSTREAM of the thing under test and would have bought the APPEARANCE of two witnesses over one shared failure mode -- worse than knowing you have one, because it turns a missing check into a passing one. cc flagged that A2 is what cc would have built by default, being what cc's own 0442 instruments were, which is the instinct to reuse the tool that found the fault producing a dependent witness. vc's ONE ADDITION is a requirement on the output: the disagreement semantics are PRINTED, not documented -- a clean A1 beside a corrupt checker verdict means structural damage with content rows intact, a dirty A1 beside a clean checker verdict means the shadow tables disagree with each other -- because a reader who has to derive what a disagreement means will reconcile the two in their head, which is one witness with extra steps."
+  }
+}

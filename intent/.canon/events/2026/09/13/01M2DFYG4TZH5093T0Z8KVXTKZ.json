@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYG4TZH5093T0Z8KVXTKZ",
+  "ts": "2026-09-13T13:40:14.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0327"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The app-not-installed remedy names bin/devbin, which a Homebrew user does not have"
+  }
+}

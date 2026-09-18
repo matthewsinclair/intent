@@ -1,0 +1,15 @@
+{
+  "id": "01M1RGR695KA50C7Z85NP2C0YF",
+  "ts": "2026-09-05T10:10:13.415Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0255"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the dispatch table's v2 field has no grammar -- 33 of 73 values are not paths, so no instrument can join on it (second instance of 0017's class)"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M149STW0MQP9QXK1WV4KSSSW",
+  "ts": "2026-08-28T13:43:58.918Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0067"
+  },
+  "payload": {
+    "title": "Build out 'intent llm' so that LLMs can work out how to work with Intent"
+  }
+}

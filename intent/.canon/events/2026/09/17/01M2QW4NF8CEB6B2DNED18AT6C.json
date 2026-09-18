@@ -1,0 +1,15 @@
+{
+  "id": "01M2QW4NF8CEB6B2DNED18AT6C",
+  "ts": "2026-09-17T14:25:43.912Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 evening: ic builds ST0076 WP-07 (Level-3 surfaces), started in this chain.** RULED BY vc (AC-07.1 and AC-07.2 at 5afc4c295): `index.resolution` in every search envelope; resolved facts on a hit (level 3 with a flat target, target_path and target_line when the key names exactly one target, otherwise the syntax level with `candidates`); and the by-target door `--target <target>`, with MCP `target` and SQL `resolved.target`. A target no resolved row names is refused, naming the resolved targets that end the same way, and otherwise answered empty with a note that a target nothing references and a misspelt one read the same. THE PLAN is banked at refs/bank/ic/st0076-wp07/plan.md (`git cat-file -p` it first): the names agreed with cc, the refusal order (stored rows first, with words chosen by `readers()`), and the arms. WORKTREE: scratchpad/wt-wp07 of session 265b7775, detached at d39576ea4 (cc's core at e302be033 plus dc's 0436). It has its OWN in-tree target, cloned from the main checkout's debug target with every workspace member cleaned, and HOME=/tmp/ic-w7 (a link to scratchpad/home-wp07). Work in progress is banked at refs/bank/ic/st0076-wp07-wip, and the judged bank will be refs/bank/ic/st0076-wp07. NEXT: build, targeted arms, vc's slot for the judging run, then land on vc's GO with AT-07.1 and AT-07.2 red on the base (in a worktree with ITS OWN target) and then green. Tell dc when `--target` is built, because AC-06.2's Laksa proof runs through it. NO RELEASE, NO PUSH."
+  }
+}

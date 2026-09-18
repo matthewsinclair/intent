@@ -1,0 +1,15 @@
+{
+  "id": "01M14BF1WEHKEMZ6Z354SFFXG8",
+  "ts": "2026-08-28T14:13:03.192Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0118"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st repair is an advertised stub at the end of a repair loop doctor recruits operators into"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2JBCWKQW724PB1G63ZDMBWW",
+  "ts": "2026-09-15T10:56:55.417Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0399"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "explorer: a thread or issue view splits in half, and the selected field's contents render below it"
+  }
+}

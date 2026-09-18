@@ -1,0 +1,14 @@
+{
+  "id": "01M2QR73W51RC7D9690BGAX7Y8",
+  "ts": "2026-09-17T13:17:09.896Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-06.1"
+  },
+  "payload": {
+    "text": "Elixir level 3, on an explicit verb only and never from intentd unasked: the compiler tracer's events join written references (same file, line and name) and expansion events are not stored; the compile builds into a directory of Intent's own under `intent/.cache`, seeded from the project's build when one exists, and never writes the project's `_build`; the tracer never raises; a failed compile stores nothing new, names the failure, and marks earlier rows stale by content hash; rows are replaced per file; the first run and `--full` force the compile, and every other run is incremental."
+  }
+}

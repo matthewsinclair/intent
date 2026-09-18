@@ -1,0 +1,14 @@
+{
+  "id": "01M244043NYVYKQ7C4A21WBFCG",
+  "ts": "2026-09-09T22:18:15.031Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.3"
+  },
+  "payload": {
+    "evidence": "driven 2026-09-09 (dc) on a pair `int local status` reports `currency ok -- this pair describes the tree you are standing in` (ec55b3ba), so this is not a stale-binary reading -- the trap this row records twice. `canon_mandated_verbs_check.sh` rc=0: 44 canon-named verbs EXTRACTED FROM THE SHIPPED CANON FILES rather than from a hand-list (the row own recorded defect: every re-drive re-ran the same five verbs and never re-derived the population), 14 declared skipped because they write, and `ok -- every canon-named verb this tool ran answers`. Static arm: `every flag spelling canon names is declared on the entry that owns it`. THE INSTRUMENT DECLARES TWO BLIND SPOTS AND BOTH ARE CLOSED BY HAND HERE. (1) Its predicate is rc==2 AND the marker, so an rc=1 refusal reads as fine -- `0236`s class. Driven with HOME redirected to a scratch dir: `claude skills install --all` and `claude subagents install --all` both rc=0 and actually install (23 skills), with a positive control (`--notaflag` rejected rc=1) proving the runner reaches the parser; `0236` is CLOSED and is fixed on this build. (2) Write verbs are skipped -- those four are exactly the write verbs canon names, and they are the ones driven above. `ext` IS OUT OF THE POPULATION BY hv RULING, EXECUTED: grep across AGENTS.md, usage-rules.md, CLAUDE.md and lib/templates/llm/ names it nowhere, so `ext list` rc=2 cannot fire a falsifier scoped to verbs a shipped canon file NAMES. `claude rules validate` -- the last verb this row was waiting on, built by cc -- answers rc=0 `68 ok`, and its own printed limit (ext rule packs not reached, `ext_packs()` empty by construction) is out of scope for the same reason. FALSIFIER UNCHANGED AND NOT FIRING: no verb named by a shipped canon file returns `is a known command that is not implemented yet` in this switched project."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5M794D64VF5XRNFGFTXWN",
+  "ts": "2026-09-14T14:37:35.399Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0383"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate carries a header claim verbatim in a form wb claim refuses"
+  }
+}

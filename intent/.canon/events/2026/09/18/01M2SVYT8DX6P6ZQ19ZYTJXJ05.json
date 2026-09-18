@@ -1,0 +1,15 @@
+{
+  "id": "01M2SVYT8DX6P6ZQ19ZYTJXJ05",
+  "ts": "2026-09-18T09:01:01.072Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0455"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "doctor's store-stale check returns with no finding when a store file exists and will not open -- under the reversed D01 an unreadable store is a finding, not a cache awaiting rebuild"
+  }
+}

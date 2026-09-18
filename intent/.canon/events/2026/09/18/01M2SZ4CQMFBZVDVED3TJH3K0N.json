@@ -1,0 +1,14 @@
+{
+  "id": "01M2SZ4CQMFBZVDVED3TJH3K0N",
+  "ts": "2026-09-18T09:56:29.560Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-01.4"
+  },
+  "payload": {
+    "text": "intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and writes, once and idempotently, an event file for every project event the store already holds and the tree lacks, so a project's history from before this change travels too; intent export keeps producing the single-file form on demand."
+  }
+}

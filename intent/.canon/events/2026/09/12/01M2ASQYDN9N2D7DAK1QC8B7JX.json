@@ -1,0 +1,14 @@
+{
+  "id": "01M2ASQYDN9N2D7DAK1QC8B7JX",
+  "ts": "2026-09-12T12:33:42.327Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-23.1"
+  },
+  "payload": {
+    "evidence": "92df64d19: the semantic tier landed as a staged group with the register untouched (no CLI contract change, no MCP schema change) and the arm semantic_hits_are_a_group_of_their_own_ranked_by_cosine proving a tier is a group through a test-only embedder; T3 and T4 staged in the design"
+  }
+}

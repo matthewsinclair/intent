@@ -1,0 +1,15 @@
+{
+  "id": "01M0W2FG1A6B8HK18QR49ECWCJ",
+  "ts": "2026-08-25T09:02:04.486Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0077"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "v3 claude upgrade is parsed but unwired, so nothing regenerates root CLAUDE.md in a v3-self-hosted project"
+  }
+}

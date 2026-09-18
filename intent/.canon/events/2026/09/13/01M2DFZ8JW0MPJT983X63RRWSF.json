@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ8JW0MPJT983X63RRWSF",
+  "ts": "2026-09-13T13:40:39.648Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0340"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "From batch 1's drives: plugin list answers nothing on the keg, and two shim remedies say reinstall when no reinstall rewrites the pointer"
+  }
+}

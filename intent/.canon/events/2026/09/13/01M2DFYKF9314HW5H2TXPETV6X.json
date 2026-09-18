@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYKF9314HW5H2TXPETV6X",
+  "ts": "2026-09-13T13:40:19.838Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0329"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Rule proxies that contradict their own rule"
+  }
+}

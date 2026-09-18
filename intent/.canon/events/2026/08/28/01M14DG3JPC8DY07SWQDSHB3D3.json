@@ -1,0 +1,15 @@
+{
+  "id": "01M14DG3JPC8DY07SWQDSHB3D3",
+  "ts": "2026-08-28T14:48:34.636Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0121"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st list defaults to in-progress only and its output discloses the filter nowhere"
+  }
+}

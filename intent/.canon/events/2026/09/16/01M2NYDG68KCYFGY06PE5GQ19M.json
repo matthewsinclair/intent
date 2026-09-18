@@ -1,0 +1,15 @@
+{
+  "id": "01M2NYDG68KCYFGY06PE5GQ19M",
+  "ts": "2026-09-16T20:27:01.704Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "IN FLIGHT (2026-09-16 20:26Z), beside todo 20: (1) 0427 (filed b48e193da, hv's word): the index's grep hook answers only the Grep tool and is off in Intent; routed to dc AFTER 0426 under vc's four rulings (a Bash grep for one symbol is answered; measure by live drive whether PostToolUse stdout reaches the model, else additionalContext; on in Intent's settings.local.json; one arm per trigger then the drive). Judge dc's bank, GO, verify. (2) 0420: cc routed to read the source for write transactions held across filesystem work (ingest, index refresh, checkpoint, intent mcp), banking at refs/bank/cc/0420 only if S and clear. vc's 19:54Z capture is in the body at 12ed36a53. NO RELEASE, NO PUSH."
+  }
+}

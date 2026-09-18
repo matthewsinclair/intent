@@ -1,0 +1,15 @@
+{
+  "id": "01M20GA7KCFWS2YDSFSFRRNF01",
+  "ts": "2026-09-08T12:36:31.471Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0278"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ST0064 asserts one daemon predicate structurally and nothing observes it at run time"
+  }
+}

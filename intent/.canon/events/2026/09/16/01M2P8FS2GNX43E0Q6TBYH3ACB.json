@@ -1,0 +1,15 @@
+{
+  "id": "01M2P8FS2GNX43E0Q6TBYH3ACB",
+  "ts": "2026-09-16T23:23:02.099Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0431"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent app status and restart never see the running app on macOS 27, because lsappinfo's output changed shape"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1S9Z9H25HP0Y1ZBG45GPGNE",
+  "ts": "2026-09-05T17:31:00.517Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0265"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the close gate resolves every AC/AT reference against the WORKING TREE and no lifecycle verb commits, so a thread closes PASS on canon that exists on one node's disk -- and unlike 0174 the wrong tree makes it pass, not refuse"
+  }
+}

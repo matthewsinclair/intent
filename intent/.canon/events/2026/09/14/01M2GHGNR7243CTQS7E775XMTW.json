@@ -1,0 +1,14 @@
+{
+  "id": "01M2GHGNR7243CTQS7E775XMTW",
+  "ts": "2026-09-14T18:05:22.061Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/machine_table_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

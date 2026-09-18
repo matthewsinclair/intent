@@ -1,0 +1,14 @@
+{
+  "id": "01M1BYF3KZEXAKHAFRAC39T1K6",
+  "ts": "2026-08-31T12:59:48.225Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/capability_ship_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

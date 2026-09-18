@@ -1,0 +1,15 @@
+{
+  "id": "01M1PZDMT11Q0BFJ7Z8CD9881Y",
+  "ts": "2026-09-04T19:48:07.620Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0244"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "every_emitted_remedy_names_something_this_build_can_do asserts a verb is wired, never that following the remedy changes the situation"
+  }
+}

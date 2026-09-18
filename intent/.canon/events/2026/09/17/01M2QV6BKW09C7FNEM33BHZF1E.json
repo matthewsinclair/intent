@@ -1,0 +1,15 @@
+{
+  "id": "01M2QV6BKW09C7FNEM33BHZF1E",
+  "ts": "2026-09-17T14:09:10.783Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0437"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "IN-RS-CODE-004's gate proxy reads a nested generic ending in String as Result<T, String>"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M0WBNM2K14TJ9EJWT72WQFGE",
+  "ts": "2026-08-25T11:42:42.844Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.hold",
+  "subject": {
+    "type": "thread",
+    "id": "ST0059"
+  },
+  "payload": {
+    "from": "wip",
+    "reason": "Parked on hv's instruction 2026-08-25: the v3 doc rebuild cannot start until v3 is released. Created at Triage, moved to WIP by cc's positive control, and Triage cannot be re-entered -- st.triage is declared only FROM triage. Hold is the reachable parked state and is a more honest one.",
+    "to": "hold"
+  }
+}

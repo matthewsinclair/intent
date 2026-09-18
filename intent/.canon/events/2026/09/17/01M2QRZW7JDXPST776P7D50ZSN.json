@@ -1,0 +1,16 @@
+{
+  "id": "01M2QRZW7JDXPST776P7D50ZSN",
+  "ts": "2026-09-17T13:30:41.269Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.done",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/03"
+  },
+  "payload": {
+    "from": "wip",
+    "reason": null,
+    "to": "done"
+  }
+}

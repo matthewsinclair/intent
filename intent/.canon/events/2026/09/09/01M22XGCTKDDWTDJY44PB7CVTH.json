@@ -1,0 +1,15 @@
+{
+  "id": "01M22XGCTKDDWTDJY44PB7CVTH",
+  "ts": "2026-09-09T11:05:33.782Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0290"
+  },
+  "payload": {
+    "bytes": 2646,
+    "title": "facade.rs is 9,403 lines across 156 functions (median 28) -- same flat shape as render.rs, split post-tag"
+  }
+}

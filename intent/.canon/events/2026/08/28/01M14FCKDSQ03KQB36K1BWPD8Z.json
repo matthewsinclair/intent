@@ -1,0 +1,14 @@
+{
+  "id": "01M14FCKDSQ03KQB36K1BWPD8Z",
+  "ts": "2026-08-28T15:21:36.693Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0067/AC-00.3"
+  },
+  "payload": {
+    "evidence": "vc validation drive 2026-08-28: llm_serves_the_guide_and_the_rules covers the print + exit-1 refusal; built be3edf70 with the init-remedy correction cc disclosed"
+  }
+}

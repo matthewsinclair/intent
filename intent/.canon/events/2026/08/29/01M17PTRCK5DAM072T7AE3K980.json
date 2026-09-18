@@ -1,0 +1,15 @@
+{
+  "id": "01M17PTRCK5DAM072T7AE3K980",
+  "ts": "2026-08-29T21:29:23.807Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0148"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "editing a realised attachment aborts the suite for every node, and the only fix adopts other nodes' uncommitted bytes into canon while warning nobody but the actor"
+  }
+}

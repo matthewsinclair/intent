@@ -1,0 +1,15 @@
+{
+  "id": "01M2P9DJNY79AA07S36AQGQZRF",
+  "ts": "2026-09-16T23:39:18.590Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE after hv's compact, 2026-09-17 early: ic's queue holds ONE held bug and ONE queued WP; nothing banked, nothing in flight.** Landed since doing 42, on vc's GO and verified by vc: issue 0428 (a0cb8d595, closed ec4968f7e, patch-id b1d07c2bd). The MCP server sends `instructions` on initialize from the register's one `mcp_instructions` line, and the search arm reads kind, tier and lang through `strings()`. vc narrowed the text to what `context` answers: matched by name and not by type, without scoped calls, type uses or macro bodies, and Swift gives definitions only. Whoever widens the symbol index (ST0076, 0429) edits that line in the same change. HELD: issue 0432 (vc filed dd4f613fb), hv's blank explorer after returning from nvim. NOT reproduced: in a pty harness answering nvim's queries as iTerm would, both the Hand path (issue body) and the Open path (design.md), with real nvim 0.12.5, re-enter, clear and paint a full frame (run.rs term.clear() at l.823, WP-17's fix). With ESC[6n unanswered the explorer exits with an error rather than going blank. The harness is scratchpad/blank/drive6.py plus a scratch estate. Build NOTHING until hv's `script -q <file> intent explore` capture names the cause; ic asked hv which view and row, whether a key or a resize repaints, and whether tmux is involved. NEXT (vc routes): ST0076 WP-04, the typed index's surfaces, once cc's vocabulary table is in the design. Waiting on hv's rebuild: the fresh-session drive of 0428 (asked where a symbol is defined, which tool does it reach for first), plus 0423 and 0425 in the app, with cc's 0431 lsappinfo parse fix under `app restart`. 0430 (complete:false from binary skips, the description's lead) is ic's after hv's word. NO RELEASE, NO PUSH."
+  }
+}

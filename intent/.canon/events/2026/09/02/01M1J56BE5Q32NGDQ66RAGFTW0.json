@@ -1,0 +1,15 @@
+{
+  "id": "01M1J56BE5Q32NGDQ66RAGFTW0",
+  "ts": "2026-09-02T22:52:47.942Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0219"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "IN-AG-PFIC-001 has six canon-set homes stating a different rule, and in-review checks the wrong one"
+  }
+}

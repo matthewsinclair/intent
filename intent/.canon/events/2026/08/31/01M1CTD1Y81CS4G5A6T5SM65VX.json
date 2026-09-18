@@ -1,0 +1,15 @@
+{
+  "id": "01M1CTD1Y81CS4G5A6T5SM65VX",
+  "ts": "2026-08-31T21:08:01.098Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0205"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "apparatus data-tables are plain double-quoted shell strings, so a literal quote in a note becomes shell and bash -n passes"
+  }
+}

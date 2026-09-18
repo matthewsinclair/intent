@@ -1,0 +1,15 @@
+{
+  "id": "01M19WAX3PTGVYN0EG5VE8ZW2R",
+  "ts": "2026-08-30T17:44:04.472Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0171"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent fc's CLI arm does kind dispatch by hand: four facade methods behind one verb, a second home for address::promote's question, and a one-way mutation exposed on MCP with no single door"
+  }
+}

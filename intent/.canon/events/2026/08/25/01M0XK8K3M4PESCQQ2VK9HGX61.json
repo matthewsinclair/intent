@@ -1,0 +1,15 @@
+{
+  "id": "01M0XK8K3M4PESCQQ2VK9HGX61",
+  "ts": "2026-08-25T23:14:38.484Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0089"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the clock guard declares no coverage is lost while the protocol names a third timed surface it never scans"
+  }
+}

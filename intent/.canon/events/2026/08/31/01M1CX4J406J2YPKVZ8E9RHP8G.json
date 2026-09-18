@@ -1,0 +1,15 @@
+{
+  "id": "01M1CX4J406J2YPKVZ8E9RHP8G",
+  "ts": "2026-08-31T21:55:48.482Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0209"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st start realises from canon without comparing against the disk, so an unhydrated thread gets a smaller copy at the authoritative path"
+  }
+}

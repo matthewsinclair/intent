@@ -1,0 +1,14 @@
+{
+  "id": "01M1CBRW65WT1QZ09J8G2X1E0D",
+  "ts": "2026-08-31T16:52:19.789Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/data/ac0203-dispositions.tsv"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

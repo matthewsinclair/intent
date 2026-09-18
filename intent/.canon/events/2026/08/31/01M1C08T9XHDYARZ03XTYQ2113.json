@@ -1,0 +1,15 @@
+{
+  "id": "01M1C08T9XHDYARZ03XTYQ2113",
+  "ts": "2026-08-31T13:31:19.230Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0188"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the register cannot record WHY an issue was closed, so no instrument can tell a fix from a wontfix"
+  }
+}

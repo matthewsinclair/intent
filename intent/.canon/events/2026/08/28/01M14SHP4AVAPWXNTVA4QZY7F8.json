@@ -1,0 +1,15 @@
+{
+  "id": "01M14SHP4AVAPWXNTVA4QZY7F8",
+  "ts": "2026-08-28T18:19:09.345Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0126"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "v2 ingest can SPLICE a row -- text lost at the head, a span duplicated in the middle, tail truncated -- so a length delta nets to nothing and reports clean"
+  }
+}

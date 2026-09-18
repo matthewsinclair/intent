@@ -1,0 +1,15 @@
+{
+  "id": "01M2FME5AP40GTHWTTA93SJBQN",
+  "ts": "2026-09-14T09:37:11.001Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0375"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate cannot carry the hv board's standing directives, which have no item kind"
+  }
+}

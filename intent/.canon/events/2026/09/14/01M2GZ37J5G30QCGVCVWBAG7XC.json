@@ -1,0 +1,15 @@
+{
+  "id": "01M2GZ37J5G30QCGVCVWBAG7XC",
+  "ts": "2026-09-14T22:02:41.608Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0398"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st show ignores its declared file argument and prints the cover for every value"
+  }
+}

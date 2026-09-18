@@ -1,0 +1,14 @@
+{
+  "id": "01M27TB1ZJQ43EBBKD55R1Q28G",
+  "ts": "2026-09-11T08:46:25.270Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.8"
+  },
+  "payload": {
+    "reason": "withdrawn 2026-09-11 under hv's instruction to draw a line under 3.0.1. The fleet this row would prove was migrated and flipped to v3 on 2026-08-26 and every member has run on v3 since; the residue naming is delivered (0272). What remained was a conservation-proof instrument, which is the loop being ended. NOTE: this reverses hv's 2026-08-30 REINSTATE ruling on the fleet-corpus rows, under hv's later and more general instruction of 2026-09-11."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2QTT08JMPVYSADDVQM2Z0FJ",
+  "ts": "2026-09-17T14:02:25.939Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**`bin/int macos app-test` BUILDS INTO A STATE DIR EVERY WORKTREE SHARES** (2026-09-17). derivedData, SYMROOT and OBJROOT default to ~/.local/state/intent/build/macos, which is also where hv's `bin/int macos app-install` builds the running Intent.app. A worktree run then collides with the install or inherits its products, the Xcode form of watch-out 75. Run it as `INTENT_MACOS_STATE_DIR=<scratch>/macos-state bin/int macos app-test`. The fresh state dir regenerates the tracked xcodeproj, so read that diff and keep it out of the bank. The verb prints suite totals only, so read the arms by name from the .xcresult under the state dir with `xcrun xcresulttool get test-results tests --path <bundle>`."
+  }
+}

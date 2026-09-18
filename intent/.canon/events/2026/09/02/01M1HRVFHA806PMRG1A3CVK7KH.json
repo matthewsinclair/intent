@@ -1,0 +1,15 @@
+{
+  "id": "01M1HRVFHA806PMRG1A3CVK7KH",
+  "ts": "2026-09-02T19:17:08.779Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0216"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a canon write reports ok and is silently lost as the third of three rapid calls"
+  }
+}

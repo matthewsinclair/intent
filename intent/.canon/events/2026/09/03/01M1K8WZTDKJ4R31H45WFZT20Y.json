@@ -1,0 +1,15 @@
+{
+  "id": "01M1K8WZTDKJ4R31H45WFZT20Y",
+  "ts": "2026-09-03T09:16:49.871Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0221"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A node that dies without release reads as active to every peer for seven days, and no control can see it"
+  }
+}

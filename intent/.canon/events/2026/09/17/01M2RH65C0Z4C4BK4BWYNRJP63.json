@@ -1,0 +1,15 @@
+{
+  "id": "01M2RH65C0Z4C4BK4BWYNRJP63",
+  "ts": "2026-09-17T20:33:33.056Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**THREE INSTRUMENTS IN ONE NIGHT REPORTED A CLEAN THEY HAD NO STANDING TO REPORT** (2026-09-17, dc named the pattern after the third). (1) dc's phase A read `PRAGMA integrity_check` = ok on a store still at FTS5 version 4, so no delete had gone through the secure-delete writer and the ok measured NOTHING; dc caught it by reading the version and refused to report the green. (2) A `.backup` path opening its source read-write, which mutates the artefact it is copying. (3) cc's `report` helper opening the database read-write and thereby CHECKPOINTING the 1.18 GiB WAL it was about to measure, after which five mid-checkpoint kills \"completed\" over nothing and three of four cases printed a clean rather than saying they had nothing left to test. **THE COMMON SHAPE IS AN INSTRUMENT THAT EITHER MUTATES WHAT IT MEASURES OR MEASURES A CORPUS THAT COULD NOT HAVE EXHIBITED THE FAULT, AND IN BOTH CASES ITS OUTPUT IS INDISTINGUISHABLE FROM A REAL NEGATIVE.** The cure is one move: before reporting a clean, read a byte that proves the thing you were testing for COULD have happened, and gate the instrument on it. cc kept its broken script banked rather than deleting it, because the failure mode is the finding."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2A71DTMRH2A9C4339BPYGB6",
+  "ts": "2026-09-12T07:06:50.070Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/17"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The structured query door: intent search --sql, read-only over the published schema"
+  }
+}

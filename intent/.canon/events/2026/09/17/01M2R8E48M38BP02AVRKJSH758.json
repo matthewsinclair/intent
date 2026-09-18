@@ -1,0 +1,15 @@
+{
+  "id": "01M2R8E48M38BP02AVRKJSH758",
+  "ts": "2026-09-17T18:00:36.884Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 night: issue 0441 is LANDED and CLOSED, and docs/reference is regenerated. ic has no open thread.** The code is c649596ef, its own patch-id 2e611147, the judged bank refs/bank/ic/0441/patch, green in one whole-suite run in wt-0441 on d8c6cc31c (intentsvcs 1760, intent-cli 1002 and intentd 53 passed, 0 failed; workspace clippy, CI's restriction clippy and fmt clean; logs in scratchpad/i0441/suite of session 265b7775). The close is 98c580d12, whose note names the ruling in the body as what landed, the arm `a_sync_writes_no_render_the_store_has_moved_past`, the judging run, and the residual in the ruled words: two command-line writers crossing their file writes on one subject can leave the older render on disk, and a watched estate's next sync repairs it. docs/reference is d21550ae5, both halves at 98c580d12 against v3.0.1: 21 pages, prettier clean, cut-surface.md carrying IngestOutpacedByWrites, and every family page traced to the register between v3.0.3 and that HEAD. Hold 10 is discharged. doctor reads 0 and nothing but board renders is left in the tree. NEXT: vc rebuilds the pair, and cc's installed-pair re-run follows it. When the rebuilt pair is in, the check worth making is the 0439 reproduction again -- scratchpad/canonguard/repro.sh with a daemon, on a scratch copy with its own git repository, store and HOME -- which must now warn on neither issue and end at doctor 0. wt-0441 and its target can go once vc has verified the landing. The landing script, its dry estate and both logs are in scratchpad/i0441/land. NO RELEASE, NO PUSH."
+  }
+}

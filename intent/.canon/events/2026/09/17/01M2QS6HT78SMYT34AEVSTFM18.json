@@ -1,0 +1,15 @@
+{
+  "id": "01M2QS6HT78SMYT34AEVSTFM18",
+  "ts": "2026-09-17T13:34:19.975Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 afternoon: ST0076 WP-04 LANDED (code e5b7feb1b, done d4d61052c) and the CLAUDE.md search line LANDED (8ec04d9fa, hv decision 20), both on vc's GO. One item remains in vc's order: THE CONSOLE'S DEAD GUESS, landing right behind dc's 0434 (refs/bank/dc/0434, intentd only, which gives every remedy-bearing intentd notice a `warning:` token).** THE EDIT is scratchpad/console/edit.py of session 265b7775, rehearsed twice on copies. It removes `|| body.hasPrefix(\"intentd: could not\")` from `ConsoleLine.kind(of:)` along with the two comments that name it, brings ConsoleTests.swift's notice fixture (:73) and stamped fixture (:111) to `warning: intentd: could not refresh ...` classifying as `.warning`, and adds one assertion that the untokened line classifies as `.log`, so putting the guess back fails the test. BUILD in a fresh worktree off HEAD, never a shared target (watch-out 75); run `bin/int macos app-test` on vc's slot; bank refs/bank/ic/console-no-guess; land on vc's GO after 0434. AFTER hv's rebuild: vc re-drives AC-00.1's third clause with drive-0428 once `intent claude upgrade --apply` has regenerated CLAUDE.md. Scratch worktrees to remove once done: wt-drive, and wt-wp04 when the Swift bank lands. NO RELEASE, NO PUSH."
+  }
+}

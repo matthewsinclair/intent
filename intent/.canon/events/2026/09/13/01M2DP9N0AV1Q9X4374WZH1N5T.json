@@ -1,0 +1,15 @@
+{
+  "id": "01M2DP9N0AV1Q9X4374WZH1N5T",
+  "ts": "2026-09-13T15:31:11.502Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0365"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a migrated message's heading renders recorded_at, so the view loses when it was sent"
+  }
+}

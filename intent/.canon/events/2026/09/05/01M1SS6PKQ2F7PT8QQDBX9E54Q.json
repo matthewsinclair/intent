@@ -1,0 +1,15 @@
+{
+  "id": "01M1SS6PKQ2F7PT8QQDBX9E54Q",
+  "ts": "2026-09-05T21:57:11.930Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0276"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "sync --to-store warns over a narrower population than it writes: the warning's canon never opens an attachment's markdown, so an attachment differing only on disk is ingested under a message saying nothing was overwritten"
+  }
+}

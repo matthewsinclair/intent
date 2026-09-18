@@ -1,0 +1,15 @@
+{
+  "id": "01M2N38T9TRFX7K9PVXKVWG21P",
+  "ts": "2026-09-16T12:32:36.692Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0407"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb migrate drops a section heading's text after the kind word and reports nothing"
+  }
+}

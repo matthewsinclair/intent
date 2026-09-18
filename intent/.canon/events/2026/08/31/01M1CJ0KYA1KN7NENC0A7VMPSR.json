@@ -1,0 +1,15 @@
+{
+  "id": "01M1CJ0KYA1KN7NENC0A7VMPSR",
+  "ts": "2026-08-31T18:41:24.950Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0197"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a to-write AT's note is write-once, and correcting it destroys the to-write state"
+  }
+}

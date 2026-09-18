@@ -1,0 +1,15 @@
+{
+  "id": "01M2NSW12EXP6VVWX4AE2KMMCE",
+  "ts": "2026-09-16T19:07:34.862Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-16 evening: ic's queue is EMPTY; nothing banked, nothing in flight.** Landed today on vc's GO and verified by vc: 0419, the /projects cursor starting on the open project or the nearest registered one (fe2471b17, closed 17345a14e); ST0075 WP-02 and WP-03 done on hv's word after hv's hand drive of build 7305 at 3e0a87f23 (7a0a6ae30); 0421 and 0422, hv's two explorer bugs from that drive, the in-place edit's caret as an overlay and the list scrolling against the height it is drawn at (4df530f36, closed e30459a36). Reviewed: cc's 0331, whose three stale claims cc landed at f2f25c57d. The delivered pair (3e0a87f23) is behind HEAD's tui code, so hv's drive of 0421 and 0422 needs `bin/devbin build all` (no app-install). `st done ST0075` is vc's, on hv's word. For 0420: hv's Console showed intentd's own ingest and index refresh refused with `database is locked` at 16:46:51Z, 16:46:56Z, 16:47:41Z, 16:53:18Z and 16:55:02Z, so intentd was not the only victim; vc adds these to 0420. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2PA3VXGRQMT6KSYE30FNVZN",
+  "ts": "2026-09-16T23:51:28.951Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/gyges-brief.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

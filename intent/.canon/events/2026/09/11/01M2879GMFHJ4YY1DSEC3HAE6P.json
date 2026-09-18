@@ -1,0 +1,14 @@
+{
+  "id": "01M2879GMFHJ4YY1DSEC3HAE6P",
+  "ts": "2026-09-11T12:32:46.227Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/canon_commit_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

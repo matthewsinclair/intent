@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMAFFAXHXAJHC2B1D3E01J",
+  "ts": "2026-09-17T12:09:05.773Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0434"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intentd writes an ingest failure's remedy line twice, and its index-refresh notice carries no severity token"
+  }
+}

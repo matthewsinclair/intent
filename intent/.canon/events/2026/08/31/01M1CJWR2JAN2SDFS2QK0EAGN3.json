@@ -1,0 +1,15 @@
+{
+  "id": "01M1CJWR2JAN2SDFS2QK0EAGN3",
+  "ts": "2026-08-31T18:56:46.691Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0199"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the canon-commit gate blocks the commit and its own remedy cannot unblock it, because st attach does not write the extract the way the remedy says it does"
+  }
+}

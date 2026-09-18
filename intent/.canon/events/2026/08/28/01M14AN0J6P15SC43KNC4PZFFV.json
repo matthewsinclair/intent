@@ -1,0 +1,15 @@
+{
+  "id": "01M14AN0J6P15SC43KNC4PZFFV",
+  "ts": "2026-08-28T13:58:49.370Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0116"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The AC/AT model cannot express partial coverage, so a half-covered criterion gates green"
+  }
+}

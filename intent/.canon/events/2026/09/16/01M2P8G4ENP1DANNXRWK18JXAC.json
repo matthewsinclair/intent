@@ -1,0 +1,15 @@
+{
+  "id": "01M2P8G4ENP1DANNXRWK18JXAC",
+  "ts": "2026-09-16T23:23:13.752Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0432"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The explorer shows a blank screen after returning from nvim, on hv's terminal"
+  }
+}

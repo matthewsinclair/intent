@@ -1,0 +1,15 @@
+{
+  "id": "01M1BNJW9SBKFEK7EXXA7SDCE8",
+  "ts": "2026-08-31T10:24:34.633Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0181"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "llm usage_rules --symlink is declared, helped and accepted, and llm_usage_rules() takes no ArgMatches"
+  }
+}

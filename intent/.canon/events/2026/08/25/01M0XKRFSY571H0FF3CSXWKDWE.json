@@ -1,0 +1,15 @@
+{
+  "id": "01M0XKRFSY571H0FF3CSXWKDWE",
+  "ts": "2026-08-25T23:23:19.462Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0091"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "write_config materialises defaults into config.json, so writing a default stops it being a default and the project silently stops tracking the tool"
+  }
+}

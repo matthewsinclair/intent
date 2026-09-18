@@ -1,0 +1,14 @@
+{
+  "id": "01M28YWDS6WSQCRNHNHWX5J8QT",
+  "ts": "2026-09-11T19:25:03.145Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-12.4"
+  },
+  "payload": {
+    "evidence": "v3.0.1 is tagged at a8942aead on both remotes (ls-remote on local and upstream). GitHub release 'Intent v3.0.1' was published 2026-09-11T18:59:31Z, not a draft, with four assets: intent and intentd aarch64-apple-darwin, intent-support.tar.gz, Intent.app.zip. The formula is live in matthewsinclair/homebrew-intent at fc32170, and a cold brew install from the tap installs 3.0.1 (smoke --reinstall rc 0)."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1NZ4ADEQBN6X4PG4V12SWXZ",
+  "ts": "2026-09-04T10:23:47.634Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "todo.flush",
+  "subject": {
+    "type": "todo",
+    "id": "watermark"
+  },
+  "payload": {
+    "cleared": 0
+  }
+}

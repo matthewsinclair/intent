@@ -1,0 +1,14 @@
+{
+  "id": "01M1CRQK3PNQ8DRWNM9Y3EAFCF",
+  "ts": "2026-08-31T20:38:49.208Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.1"
+  },
+  "payload": {
+    "evidence": "Mechanical absence check + read (ic, HEAD b083fb4c): no log-line parser, no pidfile-path assembly, no config-key read across the 7 Swift sources; every control routes to an intent verb (menu actions -> IntentCLI/DaemonService: daemon start/stop, doctor, edit --path); facts sourced from 'daemon status --format json' (Health.decode) and the CLI. Spawn sweep: only subprocess spawns are LoginShell's PATH-capture zsh and IntentCLI's two run paths."
+  }
+}

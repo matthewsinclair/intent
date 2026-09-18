@@ -1,0 +1,15 @@
+{
+  "id": "01M0XGQPPPPYGK1PYKZG62E6DQ",
+  "ts": "2026-08-25T22:30:28.131Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0087"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "VIEW_NAMES claims Project::classify is the single answer to what a file is, and classify never reads it: two encodings with different memberships, one asserting it describes the other"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1P75E5DRVQ5D255TDKXS86W",
+  "ts": "2026-09-04T12:44:12.855Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0234"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Every mutation appends a full copy of the doc-section FTS index; stores grow without bound"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1C4T8XSZ7P2Z1KMEC2BPQR9",
+  "ts": "2026-08-31T14:50:45.565Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/v2_estate_fixture.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

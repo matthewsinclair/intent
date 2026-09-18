@@ -1,0 +1,15 @@
+{
+  "id": "01M0SKBN7TFMYPZXC1S52075SC",
+  "ts": "2026-08-24T09:59:21.520Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0068"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent lang init must NOT reinstate the RULES-<lang>/ARCHITECTURE-<lang> fan-out when it is implemented in v3: 10 of 10 were verbatim in Intent and nothing read them"
+  }
+}

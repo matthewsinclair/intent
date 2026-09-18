@@ -1,0 +1,14 @@
+{
+  "id": "01M2GHGBPZJ1N7RZ46WY4JJKTY",
+  "ts": "2026-09-14T18:05:11.782Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/data-model.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

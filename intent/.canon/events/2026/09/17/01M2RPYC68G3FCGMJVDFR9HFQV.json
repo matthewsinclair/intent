@@ -1,0 +1,15 @@
+{
+  "id": "01M2RPYC68G3FCGMJVDFR9HFQV",
+  "ts": "2026-09-17T22:14:09.352Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A POSITIVE CONTROL PROVES THE INSTRUMENT ON THE CORPUS YOU CONTROLLED AGAINST AND SAYS NOTHING ABOUT THE CORPUS YOU POINT IT AT NEXT** (dc 2026-09-17, carried by vc to hv as the night's most reusable finding; it EXTENDS the standing rule rather than sitting beside it). The standing rule reads _a sample that cannot exhibit the failure reports clean; positive-control the instrument_. That is now demonstrably half a rule. **ic DID positive-control** the fence-walking census, against `intent/docs/releasing.md`, where ic knew the answer -- six blocks, exact line ranges, clean pass. Then pointed it at the assignment: `intent/wip.md`, `intent/restart.md` and `.claude/restart.md` report **zero fenced blocks each**, because every command in the three documents every node reads at boot is INLINE in single backticks. Forty-one commands, clean bill of health, instrument blind to all of them. **The control was a twelve-fence document and the targets have none, so it certified an instrument for a corpus it had never met.** dc's own instance the same hour is the same shape one level down: an alternation typed from memory (`git|intent|cargo|bin/|./|brew|mix`) had no entry for `grep` or for a bare script name, could not see two of five fenced blocks in `releasing.md`, and dc read its silence as a property of the PAGE rather than of the pattern -- then used it to REASSURE a peer, which is the worst direction for a narrowed population to fail in, because **an undercount that produces a warning gets checked and one that produces an all-clear gets believed and quoted**. ic was about to commit it. **THE EXTENSION: the control must be run against a sample drawn from the TARGET corpus, not from a corpus you happen to know the answer for. Knowing the answer is what makes a control READABLE; it is not what makes it VALID.** And census by STRUCTURE, never by matching names you expect: count fences AND inline backticked invocations, then say of each whether it was RUN or READ. Both instruments here were built by the node that had just finished writing the correction to the other one."
+  }
+}

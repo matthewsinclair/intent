@@ -1,0 +1,15 @@
+{
+  "id": "01M1BPVDYPP7ANZCVAT1J589CR",
+  "ts": "2026-08-31T10:46:43.433Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0184"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "canon_commit_check's remedy is inert for an attachment -- sync is not the writer, st attach is"
+  }
+}

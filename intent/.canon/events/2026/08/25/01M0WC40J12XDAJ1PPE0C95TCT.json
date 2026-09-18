@@ -1,0 +1,15 @@
+{
+  "id": "01M0WC40J12XDAJ1PPE0C95TCT",
+  "ts": "2026-08-25T11:50:34.089Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0081"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "seven of fourteen Entity::form() values are vowel-initial, and two shipped messages glue a bare 'a' in front of them -- facade.rs:715 says \"A `issue` has no files of its own\" and facade.rs:4396 builds \"a issue address\"; the article belongs with the noun, as IdKind::with_article now does"
+  }
+}

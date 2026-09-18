@@ -1,0 +1,14 @@
+{
+  "id": "01M0JVV05G9TWHJ0C2P1W53D66",
+  "ts": "2026-08-21T19:12:53.588Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0058"
+  },
+  "payload": {
+    "title": "Local cutover: v3 usable across the estate before it is releasable"
+  }
+}

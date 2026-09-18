@@ -1,0 +1,15 @@
+{
+  "id": "01M2R1VQNS9QQFHCK6PDDPHGS3",
+  "ts": "2026-09-17T16:05:42.713Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-17, after hv's third compact).** No claim. ISSUES 0438 AND 0439 ARE LANDED at eac280b50 (judged green on 05d7324e8 as patch-id 1d3a0d9c, and the commit's own id is the same) and CLOSED at 5a0c34c98, on vc's GO. vc accepted three deltas from the approved notes: both migrate readers set the renderer's banner aside through `views::view_body` and a view is named `rendered:` only when it offers nothing, so a rendered view that still offers units is carried; `WbUncarried.snapshots` names every copy a drop keeps; and wb migrate's surface row says both. NEXT, AFTER vc REBUILDS THE PAIR: re-run the single-node check with the INSTALLED pair on Courses hv and Conflab cc, as `BIN=$(command -v intent) TAG=installed bash <scratchpad>/land/trawl-check-0438.sh <estate-root> <node>` (the script is banked at refs/bank/cc/trawl/trawl-check-0438.sh). The banked binary already showed Courses hv at rc 0 with four `rendered:` lines and nothing carried, and Conflab cc keeping its three inbox copies byte-identical to the live estate's with the dropped inbox.dc.md line in the store's prose. THEN: carrying live on hv's class rulings from the trawl worklist (refs/bank/cc/trawl/worklist.md), when vc routes it. NO RELEASE, NO PUSH."
+  }
+}

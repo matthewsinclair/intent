@@ -1,0 +1,15 @@
+{
+  "id": "01M2SZ4B19Z2C9C7M36YJE956N",
+  "ts": "2026-09-18T09:56:27.817Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 09:56Z) hv, first-hand in the live channel: go with vc's recommendations on all six open items. (1) Machine-scoped events (heartbeats, ingests, the destructive restore, index rebuilds) stay store-only; project acts travel. (2) intent upgrade backfills the project events a store already holds into files once, idempotently, as WP-01's separable last commit. (3) hv restarts intentd now; 0450 closes on cc's clean re-read after it. (4) Lamplight ST0347: the store is right, the view is regenerated. (5) Lamplight ST0001's v2 bucket: ic moves it home with git mv during its trawl run. (6) Lamplight's mix.lock is hv's to commit or discard; Devbin's five board files clear when its own nodes fold. AC-01.1 and AC-01.4 reworded to carry (1) and (2)."
+  }
+}

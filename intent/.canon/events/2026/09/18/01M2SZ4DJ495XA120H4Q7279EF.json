@@ -1,0 +1,17 @@
+{
+  "id": "01M2SZ4DJ495XA120H4Q7279EF",
+  "ts": "2026-09-18T09:56:30.404Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv RULED 2026-09-18 (vc decision 47), on P1, durable because you are folded: (1) which events travel: PROJECT acts travel, MACHINE-SCOPED acts stay store-only (heartbeats including wb touch and pickup's stamp, ingests, sync --to-store, index rebuild); enumerate the machine-scoped set from KNOWN_OPS by the rule 'describes one machine and is false on another clone', in event::travels, one place. (2) Backfill: YES. intent upgrade writes, once and idempotently, an event file for every project event the store holds and the tree lacks; build it as WP-01's SEPARABLE LAST COMMIT, its own bank ref, after the rest of P1 is judged. AC-01.1 and AC-01.4 are reworded to say both; read them before the build. (3) hv restarts intentd now; when hv confirms it, run the doctor re-read on the live store and close 0450 on a clean one. Host order and landing order unchanged: after dc's SUITE END your build and BLESS, then your whole run on vc's word; landing P3, P2, P5, P1, P4. NO RELEASE, NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

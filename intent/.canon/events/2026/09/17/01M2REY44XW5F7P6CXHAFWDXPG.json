@@ -1,0 +1,14 @@
+{
+  "id": "01M2REY44XW5F7P6CXHAFWDXPG",
+  "ts": "2026-09-17T19:54:12.511Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0076/ac-06.2-drives.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

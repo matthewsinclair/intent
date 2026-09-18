@@ -1,0 +1,15 @@
+{
+  "id": "01M2N39BNQ7Y3NGWKNXRV7X104",
+  "ts": "2026-09-16T12:32:54.458Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0409"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb migrate's uncarried: line reads the same for a file left in place as for content it lost"
+  }
+}

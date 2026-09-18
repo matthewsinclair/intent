@@ -1,0 +1,14 @@
+{
+  "id": "01M19DJRGV8TS20B6N4A7S67EJ",
+  "ts": "2026-08-30T13:26:14.603Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.5"
+  },
+  "payload": {
+    "evidence": "driven 2026-08-30 (dc) as the row's OWN falsifier rather than as a description of the build. hv ruled 2026-08-25 that neither `spine.rs`'s exit-code decision nor this row's need gives, and that retirement becomes ENUMERABLE so a caller branches on MEMBERSHIP rather than on an integer. Built: `intent surface retired` returns the roster at rc=0 -- `st repair`, `st organize`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `help`, `st_zero` -- as fixed columns with a stable first field, which is not prose. DRIVEN: a classifier taking ONLY (exit code, roster membership) and never seeing a message correctly separates `treeindex bin`, `st repair` and `issues hydrate` as RETIRED from `ext list` and `agents init` as UNBUILT, with `st list` answering rc=0 -- and the two UNBUILT cases are the ones my AC-00.3 census turned up today, so the classifier was exercised on verbs it was not written against. NO NEW EXIT CODE WAS ADDED and no message text is parsed, which is the falsifier's two clauses. The property is STRUCTURAL rather than promised: `retirement_is_enumerable.rs`'s `classify` takes an exit code and a membership set and has no third parameter, so no arm of that file can begin reading a message body and still compile -- a comment saying we do not parse the message is worth nothing beside a function that cannot. Both its arms green: `a_retired_command_and_an_unbuilt_one_are_separable_without_reading_a_message` and `the_published_roster_and_the_refusal_path_read_one_definition`, the second being the Highlander arm that stops the roster and the refusal growing two definitions. NOTE FOR THE NEXT READER: there is no `--json` form; the interface is the fixed-column roster."
+  }
+}

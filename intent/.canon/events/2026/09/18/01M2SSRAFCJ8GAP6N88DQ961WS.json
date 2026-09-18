@@ -1,0 +1,15 @@
+{
+  "id": "01M2SSRAFCJ8GAP6N88DQ961WS",
+  "ts": "2026-09-18T08:22:31.723Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17): `wt-0441` (detached at `d8c6cc31c`), `wt-0445` and `wt-0448`, all under ic's session scratchpad, each with its in-tree target dir. Every bank they held is landed. XS."
+  }
+}

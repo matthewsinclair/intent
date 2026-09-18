@@ -1,0 +1,14 @@
+{
+  "id": "01M2B79G9QZQ11Q175JFC2WQHC",
+  "ts": "2026-09-12T16:30:29.178Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-01.1"
+  },
+  "payload": {
+    "text": "An open issue declared as `ISSUE:<NNNN>` realises to `intent/issues/<NNNN>.md`, a generated view rendered from the store with the record fields and the body, byte-identical on two renders of the same store, its one writer the renderer and the formatter excluded from it as from every generated view (ST0056 AC-03.17); `intent doctor` reports a hand edit of it as view skew, with an edited body on disk as the discriminating case."
+  }
+}

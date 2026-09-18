@@ -1,0 +1,15 @@
+{
+  "id": "01M2SZ6K28ZXFJ6J5F42RZJYXR",
+  "ts": "2026-09-18T09:57:41.576Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 09:57Z, localfold before hv's compact, replaces todo 40). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) ST0078 IS FIVE PACKAGES (`intent wp list ST0078`, `intent ac list ST0078`; design.md's Rulings section holds every hv ruling). hv ruled all six open items on vc's recommendations (decision 47, f0efb1ff1): project acts travel and machine-scoped events stay store-only, intent upgrade backfills once (AC-01.1 and AC-01.4 reworded; cc's durable order in its inbox from vc); hv restarts intentd; Lamplight ST0347 regenerated and its ST0001 bucket moved home by ic during the trawl (ic's durable order in its inbox from vc); Lamplight's mix.lock is hv's; Devbin's boards fold with its nodes. LANES: dc P3 judging run in wt-0443 (started 09:48Z; two intent-cli reds fixed in the template and a CONSUMERS row; owes the whole intent-cli suite AND the shell half again plus fmt and clippy, then re-bank at refs/bank/dc/st0078/p3 and SUITE END; vc judges the log, the diff and the patch-id, then P3 LANDS FIRST on vc's word with CHAIN START/END and 0455 closes in it); ic P2 banked f3da1ca9e, whole run after its rebase on P3, then ATs; cc P1 banked 7ad7d912e uncompiled, builds and BLESSes after dc's SUITE END, whole run on vc's word, backfill as a separable last commit; dc P5 after P3 and P2; ic P4 last. LANDING ORDER P3, P2, P5, P1, P4; a rebase owes a whole run; no build while a peer's suite runs. (1) 0450 landed at d634f0418, OPEN until hv's restart and cc's clean re-read. (2) docs/banking.md is policy (b31246c22). (3) After ST0078 lands: ONE rebuild announced at both ends, the fleet trawl on it, known-defects re-drive, hv cuts 3.1.0, gyges, ST0056. NO RELEASE, NO PUSH."
+  }
+}

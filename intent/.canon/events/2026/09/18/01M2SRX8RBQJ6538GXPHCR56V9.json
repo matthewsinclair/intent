@@ -1,0 +1,15 @@
+{
+  "id": "01M2SRX8RBQJ6538GXPHCR56V9",
+  "ts": "2026-09-18T08:07:44.654Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0452"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "docs/reference renders a register note on argument rows and never on an entry, so an entry's own note reaches no page -- deliberate omission or generator gap?"
+  }
+}

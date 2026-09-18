@@ -1,0 +1,15 @@
+{
+  "id": "01M2P3VFZM3NGMWZX1047G4AJH",
+  "ts": "2026-09-16T22:02:03.127Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/06"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Elixir resolved references through the compiler's tracer, on an explicit verb"
+  }
+}

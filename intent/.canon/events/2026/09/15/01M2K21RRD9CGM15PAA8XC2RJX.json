@@ -1,0 +1,14 @@
+{
+  "id": "01M2K21RRD9CGM15PAA8XC2RJX",
+  "ts": "2026-09-15T17:32:48.272Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-07.6"
+  },
+  "payload": {
+    "text": "**Empty authority means THIS project.** A cross-project reference carries the slug, parses and round-trips, and every door that takes an address refuses it by name before resolving anything against this project, with a remedy that spells this project's own address; no door resolves another project's address. A reference that hard-codes the project name breaks on rename or fork, so the empty form is the one intra-project prose must use."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2SXA7AHJQ5205R8Z3JXS5T6",
+  "ts": "2026-09-18T09:24:43.476Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-03.3"
+  },
+  "payload": {
+    "text": "intent sync --ingest runs the daemon's non-destructive rule from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock."
+  }
+}

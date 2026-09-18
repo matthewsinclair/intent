@@ -1,0 +1,15 @@
+{
+  "id": "01M1PS431F7CKH53ZEK04X4QEF",
+  "ts": "2026-09-04T17:58:03.061Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0239"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "bare `intent agents` says the command is not implemented while its own remedy line points at five verbs that are"
+  }
+}

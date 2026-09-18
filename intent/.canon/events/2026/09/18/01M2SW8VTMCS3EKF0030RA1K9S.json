@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8VTMCS3EKF0030RA1K9S",
+  "ts": "2026-09-18T09:06:30.356Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 09:06Z, localfold before hv's compact, replaces todo 37). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK.\n\n(0) hv RULED ST0078 INTO 3.1.0 WHOLE (vc decision 43): the proposal at intent/st/ST0078/design.md is accepted, D53 reversed, events sharded YYYY/MM/DD, hooks through claude upgrade --apply, the ingest flag's name owed as options plus a recommendation (vc's: `intent sync --ingest`, the engine's own word; a bare `intent sync` keeps its meaning because changing a published verb's meaning without its shape is the worst change). THE FIRST ACT ON THE BOUNCE: the adjusted plan, then mint ST0078's work packages and criteria with the verbs (`intent wp new`, `intent ac new`, `intent at new`) from the design's acceptance sketch, document before code, then the lanes build: cc P1 (events travel), dc P3 (the CLI ingest door, the three git hooks wired by claude upgrade --apply, store-stale shown-not-counted, the-store.md sentence), ic P2 (st and issues renumber) and P4 (working-in-a-team page, the-store.md corrections, the CI doctor job). Sizes M, S+S+XS, S-M, S.\n\n(1) THE ORDER AFTER THE BOUNCE: 0450's detector change lands on cc's logs (run started 09:02Z, judge-0450-2), closes only after hv restarts intentd and a clean re-read; then ST0078's build with one whole-suite judging run per lane's bank; one rebuild; the fleet trawl (dc ten, ic eleven, Intent vc's), on that pair; devbin#0083's sweep after; the cut. 0455 is ic's todo after P2/P4; 0453 is the next line's.\n\n(2) STILL hv's: restart intentd (pid 41335, the 3.46.0 image; asked four times; 0450's condition); the four trawl owner items (Lamplight ST0347 render, Lamplight's v2 bucket, Conflab's 67 via cc's ruling, dirty paths in Lamplight and Devbin); ST0056 closes on gyges against the PUBLISHED 3.1.0.\n\n(3) STATE AT THE FOLD, re-measure before believing: HEAD fca5cd214; pair ea1f679cd (SQLite 3.53.2, doctor clean with the detector); open issues 0450, 0453, 0455 (`intent issues list`); closed today 0442 0443 0444 0445 0446 0447 0448 0449 0451 0452 0454; restart.md carries three new rules from vc's own failures (one order per topic; a claim after its read; no suite waiver for a comments-only change).\n\nMUST NOT: land anything without its whole crate suites, whatever the diff looks like; send two orders on one topic; cite a measurement before it returns; run the live trawl before ST0078's pair; restart intentd (hv's); `intent fc`; NO RELEASE, NO PUSH."
+  }
+}

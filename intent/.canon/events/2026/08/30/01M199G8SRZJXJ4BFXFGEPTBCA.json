@@ -1,0 +1,14 @@
+{
+  "id": "01M199G8SRZJXJ4BFXFGEPTBCA",
+  "ts": "2026-08-30T12:15:04.368Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-08.12"
+  },
+  "payload": {
+    "evidence": "native/rust/crates/intentd/src/main.rs::serve_under calls Bound::bind_socket_under, whose try_lock on the daemon lock file IS the exclusion; released by fd close on process death rather than by tidying. Production call site as of e6aba646; refusal driven by daemon_address.rs::a_second_daemon_is_refused_even_when_the_first_is_not_answering (16 green)."
+  }
+}

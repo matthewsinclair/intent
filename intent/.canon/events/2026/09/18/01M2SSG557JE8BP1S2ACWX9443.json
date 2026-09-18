@@ -1,0 +1,15 @@
+{
+  "id": "01M2SSG557JE8BP1S2ACWX9443",
+  "ts": "2026-09-18T08:18:03.559Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18, replacing doing 19).** vc's close-out train for cc is landed: the SQLite bump (47e269483), the 0442 detector (633b13549) with 0442 closed, 0449's pipefail arm (e69b24967), 0444's words (0702809cf), 3.1.0's CHANGELOG and RELEASE_NOTES (600db8378, plus the 0446 line at 6292ca43f), and docs/known-defects.md re-driven for 3.1.0 (248aba0f3). **Holding** for ic's 0448 and the pair rebuild after it, on vc's order. **Open, not mine to act on:** intentd is still the 3.46.0 image until hv restarts it; vc's issue 0450 (the detector's transient reading during a live write) is mine to read and propose a drive for after the restart, and it now carries the remedy-wording fix. **Next after the rebuild:** the trawl carry (todo 30), on vc's word. NO RELEASE, NO PUSH."
+  }
+}

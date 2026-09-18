@@ -1,0 +1,14 @@
+{
+  "id": "01M2N76MAGTEKN81QKBJ7CMZWW",
+  "ts": "2026-09-16T13:41:19.316Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "at.edit",
+  "subject": {
+    "type": "at",
+    "id": "ST0074/AT-04.1"
+  },
+  "payload": {
+    "via": "edit"
+  }
+}

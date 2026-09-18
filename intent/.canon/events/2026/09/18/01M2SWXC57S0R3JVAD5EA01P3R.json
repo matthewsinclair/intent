@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWXC57S0R3JVAD5EA01P3R",
+  "ts": "2026-09-18T09:17:42.440Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 09:17Z) ON THE BOUNCE (vc, under hv's pen): ST0078's four work packages and eleven criteria are minted from the accepted design at 78734a316 and assigned, cc WP-01 (P1, M), ic WP-02 (P2, M) and WP-04 (P4, S, closes last), dc WP-03 (P3, S, lands first); landing order P3, P2, P1, P4, each on vc's word. Issue 0455 moves from ic to dc because it is the code site P3 rewrites, and closes inside WP-03's bank. cc's 0450 bank (patch-id 4094e77bc) is judged green on its whole-suite run and vc's re-check on HEAD and has the word to land; 0450 stays open until hv restarts intentd and a live doctor re-read is clean. Two assumptions stated to hv: the ingest door is built as `intent sync --ingest` (hv has no strong preference and may rename it before WP-03 lands), and no backfill of the events the store already holds goes into WP-01's bank until hv rules (vc recommends an idempotent backfill in `intent upgrade` as the package's separable last commit, so this project's own history travels)."
+  }
+}

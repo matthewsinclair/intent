@@ -1,0 +1,15 @@
+{
+  "id": "01M2R5HN1PMXN9XV4FKDNWJTCW",
+  "ts": "2026-09-17T17:10:06.646Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**TRAPS FROM THE LATER SESSIONS OF 2026-09-17 (cc's localfold before hv's compact; watch-out 47 holds the earlier ones).** `intent critic rust --files` takes ONE path per flag, repeated: several paths after one flag are refused as an unexpected argument, and a JSON reader of that refusal then fails to parse. `intent issues close` removes the issue's `.intentfiles` line and leaves its view on disk until `intent organize --apply`, and the deletion rides in the close commit. A ref cannot be created where a directory of refs already exists: bank under a sub-path such as `<issue>/patch`. `issues close` can warn that it overwrote canon bytes that were not the store's render: verify past the ingest that store and canon agree and doctor reads 0 before calling it a defect. A judge script's `cargo clean -p <members>` deletes the worktree's `intent` binary, so a scratch-clone rehearsal after a judging run needs `cargo build -p intent-cli --bin intent` first. A bank re-issued under the same ref can touch files the message about it does not name (dc's WP-06 re-bank changed the register as well as the Elixir files): diff the old and new bank per file before restacking on it. A register row is ONE JSON line, so two banks that edit the same row never apply over each other: re-apply the string replacement on the new base and regenerate the view. `wb migrate` of a node whose files are all rendered views still re-renders every stale whiteboard view in the estate (Courses: 16 of its peers' views), and its commit carries them. intentd answers `{\"root\":\"/\",\"op\":\"registry\"}` on the socket `intent daemon status` names with every registered estate's `watched` and `ingested`, opening nothing (carry/quiet.py). zsh aborts on an unquoted glob in an argument, so `grep --include=*.rs` needs its quotes. Watch-out 47's apostrophe inside `${1:?word}` bit again in a new script: `bash -n` every script before its first run. Watch-out 47's 0438/0439 trap now reads: until the INSTALLED pair carries eac280b50, its `wb migrate --drop-uncarried` still snapshots only wip.md and still reads a registered node's rendered views as hand-authored."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1452Q2SFGVQJPX5SCT3FT0X",
+  "ts": "2026-08-28T12:21:27.534Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0106"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "doctor's hook-carrier advisory carries the AT-grammar remedy text"
+  }
+}

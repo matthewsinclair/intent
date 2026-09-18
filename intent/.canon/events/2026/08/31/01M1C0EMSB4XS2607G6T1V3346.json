@@ -1,0 +1,15 @@
+{
+  "id": "01M1C0EMSB4XS2607G6T1V3346",
+  "ts": "2026-08-31T13:34:30.190Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0189"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "edit ignores the KIND it was given and answers about a thread, so 'edit issue 0056 --path' returns thread ST0056's file at rc=0"
+  }
+}

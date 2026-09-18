@@ -1,0 +1,16 @@
+{
+  "id": "01M1HYB8Q0KF8NE4KX4ZP2ASDM",
+  "ts": "2026-09-02T20:53:08.962Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0214"
+  },
+  "payload": {
+    "bytes": 4596,
+    "severity": "low",
+    "title": "form::Field::editable linked its guard by a name the guard never had -- the guard exists, the link was dead"
+  }
+}

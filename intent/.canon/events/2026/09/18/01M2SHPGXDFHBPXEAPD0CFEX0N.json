@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHPGXDFHBPXEAPD0CFEX0N",
+  "ts": "2026-09-18T06:01:43.597Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Run the verification pass on vc's unified-plan rewrite of `intent/wip.md` -- ASSIGNED by vc on 2026-09-18. S.** Released when vc says it is off the file. Drive every read-only command, READ the dangerous ones as control flow, and resolve every pointer. Census the commands with `refs/bank/ic/census/tool` after re-running its positive control against `intent/docs/releasing.md`. Fix nothing and report everything to vc."
+  }
+}

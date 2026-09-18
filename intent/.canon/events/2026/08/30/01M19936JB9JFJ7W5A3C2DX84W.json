@@ -1,0 +1,14 @@
+{
+  "id": "01M19936JB9JFJ7W5A3C2DX84W",
+  "ts": "2026-08-30T12:07:53.622Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0066/AC-00.1"
+  },
+  "payload": {
+    "evidence": "driven 2026-08-30 (dc) on a tree-hash instrument positive-controlled BOTH ways first -- a pure read leaves it unmoved, a real write moves it. REFUSAL ARM: no --because refuses at rc=1 writing nothing, for all four kinds, via clap; --because \"\" and \"   \" refuse at rc=1 writing nothing via THE MODEL (`st.fc` requires a reason and was given none), which is the arm that proves the tool and not the parser -- clap is satisfied by an empty string. SUCCESS ARM: rc=0 on a FRESH FIXTURE PER KIND because fc on an ST cascades and closes the rest -- ST (gate BLOCKED 0/2 -> PASS 0/2 satisfied, 2 fiat-closed), WP (-> BLOCKED 0/2, 1 fiat-closed, correctly scoped to its own AC), AC, AT. ST and WP driven from `wip`: fc lands where done lands, so triage/not-started are pre-work states with no close to make -- a first drive from the fixture's default states refused, and that was the fixture, not the verb."
+  }
+}

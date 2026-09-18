@@ -1,0 +1,15 @@
+{
+  "id": "01M22Z4JD5798YKPQ5CR9WW6BX",
+  "ts": "2026-09-09T11:34:03.431Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0292"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "The Claude-Session commit trailer stopped entirely at b13d58d2c on 2026-09-07: 0 of the last 132 commits carry it, against 38 of the 40 before"
+  }
+}

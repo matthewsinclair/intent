@@ -1,0 +1,14 @@
+{
+  "id": "01M1984M72A3Q2KTW72EZHY709",
+  "ts": "2026-08-30T11:51:08.482Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.descope",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-13.5"
+  },
+  "payload": {
+    "to": "ST0069"
+  }
+}

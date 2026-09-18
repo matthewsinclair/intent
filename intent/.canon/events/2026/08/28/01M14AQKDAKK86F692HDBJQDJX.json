@@ -1,0 +1,14 @@
+{
+  "id": "01M14AQKDAKK86F692HDBJQDJX",
+  "ts": "2026-08-28T14:00:14.411Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/view_skew_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M16PB8JHEQ3F43CJBERZS2NZ",
+  "ts": "2026-08-29T12:01:42.571Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/residue_class_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

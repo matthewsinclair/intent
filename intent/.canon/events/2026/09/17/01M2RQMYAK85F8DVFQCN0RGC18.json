@@ -1,0 +1,15 @@
+{
+  "id": "01M2RQMYAK85F8DVFQCN0RGC18",
+  "ts": "2026-09-17T22:26:28.819Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A CODE READING WITH NOTHING TO BE ACCOUNTABLE TO IS A STORY; ONE THAT MUST EXPLAIN A SPECIFIC MEASUREMENT IS A MECHANISM** (dc 2026-09-17, on cc's phrasing; the general form of four refutations in one night). The standing rule is _a code reading is a hypothesis, not a mechanism, until a behaviour agrees with it_. That is true and it does not say how to TELL, which is why dc broke it twice in one evening while holding it written down. **The discriminator is NOT how well-supported the reading is.** dc's `--git-path hooks` reconstruction and dc's markdown-formatter hypothesis each cited real lines that all checked out, and each died to a single command: `--git-path hooks` honours `core.hooksPath` at git 2.55.0, and ic's broken grep matched at none of three previous regenerations, so it was born broken rather than broken later. **The discriminator is whether a MEASUREMENT WOULD HAVE BEEN SURPRISED.** Neither of those explained anything anyone had measured, so nothing could contradict them, and that is precisely why both read as clean. The contrast is cc's `bUpdateOrDelete` reading: 3.46.0 gates the FTS5 version bump on a flag exactly three sites set, so the verb's DELETE and its plain per-row INSERTs leave the version at 4 while a replay whose re-inserts take the REPLACE form with an explicit rowid reaches 5 -- accountable because it explains why the axis was the FORM of the insert rather than the SIZE of the corpus, which dc had measured four times and could not account for. cc's own words: _the reading had something to be accountable to._ **SO BEFORE SENDING A PEER A MECHANISM, NAME THE MEASUREMENT IT EXPLAINS. If there is none, say READING and not MECHANISM.** The cost of getting this wrong is not being wrong -- it is that a hypothesis a peer RECEIVES is a fact in a document by morning unless that peer drives it, which is what cc and ic each did tonight and what dc did for cc's set. **The paired duty, and it is the one that actually pays:** when a peer hands you a mechanism, the question is not whether it is well-argued but which of your measurements it would have had to explain."
+  }
+}

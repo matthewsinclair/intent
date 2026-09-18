@@ -1,0 +1,14 @@
+{
+  "id": "01M2DST6T04XF9GWFPNBE2VPZG",
+  "ts": "2026-09-13T16:32:39.748Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-06.4"
+  },
+  "payload": {
+    "text": "**`intent init` creates a working project from an empty directory, and the text realisation is exercised end-to-end from one.** `init` was unimplemented when this row was written, and this is a PRECONDITION of the assurance rather than a neighbouring gap: you cannot demonstrate a fallback from a clean directory if you cannot create a clean directory."
+  }
+}

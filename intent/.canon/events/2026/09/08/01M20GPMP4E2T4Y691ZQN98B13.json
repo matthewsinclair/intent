@@ -1,0 +1,15 @@
+{
+  "id": "01M20GPMP4E2T4Y691ZQN98B13",
+  "ts": "2026-09-08T12:43:18.086Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0279"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The fake-install-root fixture has six homes and converging two of them would read as done"
+  }
+}

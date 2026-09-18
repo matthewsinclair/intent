@@ -1,0 +1,14 @@
+{
+  "id": "01M2R0256CA4CGZ30PJBCKM12T",
+  "ts": "2026-09-17T15:34:16.016Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0077"
+  },
+  "payload": {
+    "title": "Level 3 stores the references only the toolchain sees, and a roster of the targets it defines"
+  }
+}

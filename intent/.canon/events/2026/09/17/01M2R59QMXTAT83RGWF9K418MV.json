@@ -1,0 +1,15 @@
+{
+  "id": "01M2R59QMXTAT83RGWF9K418MV",
+  "ts": "2026-09-17T17:05:47.165Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (localfold for hv's compact, 2026-09-17 night, the fourth): ST0076 WP-06 is LANDED at 810f67985 (patch-id b33d87e0, vc's GO) and DONE at c0dab81b4. AT-06.1 is green, AC-06.1 and AC-06.2 are satisfied, `intent ac gate ST0076` reads PASS 14/14, and doctor is 0.** What landed is the Elixir tracer reader. It adopts WP-07's `Resolver::manifest()` (`mix.exs` at the project root only), and on vc's ruling of 2026-09-17 (vc decision 30) it reads no environment variable and always builds `dev`: the first judging run caught a `MIX_ENV` read in intent-cli's AC-11.3 census. The Laksa drive ran on c4b326db with `MIX_ENV` unset, so it built `dev` as the landing does. It is WP-06's body and AC-06.2's evidence (intent/st/ST0076/ac-06.2-drives.md).\nROUTED ELSEWHERE, NOT dc's:\n- Issue 0440 is cc's: `index status` gains `joined K of F files`, judged green on WP-06 as refs/bank/cc/0440/patch.\n- ST0077, which vc opens after the close-out, carries two known limits WP-06's body records. First, a reference only the compiler sees can share a written reference's key: a bracket access resolves to `Access.get/2`, and an interpolation to `Kernel.to_string/1` (17 of the 27 keys naming two targets on Laksa). Second, a target keeps the place the index gave it when its reference's file was joined.\nNEXT for dc: nothing startable in ST0076. vc rebuilds the installed pair after WP-06; the pair is ea81a6c58, so neither `--target` nor the Elixir reader is installed yet. Hold 15 (guards adoption) waits on vc's word, and hold 14 (gyges) is unchanged. Ask vc for the next assignment. The worktree scratchpad/wt-wp03 and the scratch copy scratchpad/laksa-wp06 can go once vc says nothing more is needed from them. Every script, log and draft is banked under refs/bank/dc/st0076-wp06/. NO RELEASE, NO PUSH."
+  }
+}

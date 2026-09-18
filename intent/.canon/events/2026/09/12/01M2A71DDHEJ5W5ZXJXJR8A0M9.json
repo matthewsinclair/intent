@@ -1,0 +1,16 @@
+{
+  "id": "01M2A71DDHEJ5W5ZXJXJR8A0M9",
+  "ts": "2026-09-12T07:06:49.652Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/13"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Split at the 2026-09-12 re-elaboration into packages that each close on their own criteria; its design is carried into this thread's design.md and its criteria are re-keyed to the packages that deliver them",
+    "to": "cancelled"
+  }
+}

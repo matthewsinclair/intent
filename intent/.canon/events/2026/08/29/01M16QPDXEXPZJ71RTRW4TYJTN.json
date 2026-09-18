@@ -1,0 +1,15 @@
+{
+  "id": "01M16QPDXEXPZJ71RTRW4TYJTN",
+  "ts": "2026-08-29T12:25:17.817Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0133"
+  },
+  "payload": {
+    "severity": "critical",
+    "title": "the ingest DESTROYS the evidence clause of every criterion authored unsatisfied, because a wildcard arm routes it to a unit variant with nowhere to put it -- live in the shipped build, deterministic, and every future hop receives it"
+  }
+}

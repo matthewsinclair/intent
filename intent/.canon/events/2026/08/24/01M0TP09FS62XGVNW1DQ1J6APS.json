@@ -1,0 +1,15 @@
+{
+  "id": "01M0TP09FS62XGVNW1DQ1J6APS",
+  "ts": "2026-08-24T20:04:49.175Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0075"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "view_skew_check prints 'no generated view was touched' on a commit that contains one: the message names the general category while the check covers 1 of 269, so a known gap is reported at the gate as an empty category"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2NW164SFSD0HRYEE9M8JPAZ",
+  "ts": "2026-09-16T19:45:21.049Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A PLACEHOLDER SWAP CHANGES WIDTHS AND BREAKS WHAT WAS ALIGNED AROUND IT** (2026-09-16, 0425). A MODULES.md row padded to the table width while it held `ISSUE_MERGE` came out 7 characters short once `0425` went in, and the pre-commit markdown gate refused the landing mid-chain. Fill issue numbers BEFORE padding or rendering anything aligned, or run `prettier --check` on every touched markdown file in the re-prove after the fill, not only on the first build."
+  }
+}

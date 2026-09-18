@@ -1,0 +1,14 @@
+{
+  "id": "01M1BY1K0HSMWAVZWVM5AF0TWW",
+  "ts": "2026-08-31T12:52:25.249Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0064/port-design.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

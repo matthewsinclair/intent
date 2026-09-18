@@ -1,0 +1,14 @@
+{
+  "id": "01M1F3D2VWH9C22GFEAJ9G77Z2",
+  "ts": "2026-09-01T18:23:48.094Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.3"
+  },
+  "payload": {
+    "evidence": "Real GraphQL query wired + bundle-launch proven (ic, code 50c56d8a, Debug build 5130). ProjectService (new) polls 'intent graphql {threads{id}}' via IntentCLI every 5s and RENDERS the returned count -- no Swift-side status classification (AC-01.1). Driven: built Debug bundle launched with IntentProjectRoot=/Users/matts/Devel/prj/Intent; os_log '[ProjectService] graphql {threads{id}} -> 69 threads' fired on the poll (3x), == 'intent graphql {threads{id}} | jq .data.threads|length' = 69 at binary 361eff99. Not vacuous: 'daemon status' moves no GraphQL byte. decodeThreadCount unit-tested (ProjectServiceTests: unrecognised shape -> nil, empty -> 0, 5 cases). app-test 14/14; critic-swift 0 critical/0 warning. Rig: scratchpad/ac0103_0105_launch.sh; orphan-free on quit."
+  }
+}

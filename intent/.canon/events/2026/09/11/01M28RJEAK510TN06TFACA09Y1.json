@@ -1,0 +1,14 @@
+{
+  "id": "01M28RJEAK510TN06TFACA09Y1",
+  "ts": "2026-09-11T17:34:44.566Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0044/AC-05.1"
+  },
+  "payload": {
+    "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

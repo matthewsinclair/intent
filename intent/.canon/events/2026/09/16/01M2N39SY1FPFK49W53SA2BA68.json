@@ -1,0 +1,15 @@
+{
+  "id": "01M2N39SY1FPFK49W53SA2BA68",
+  "ts": "2026-09-16T12:33:12.970Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0411"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "whiteboard writes are absent from event_log, so nothing can say who wrote a board row, when, or with which arguments"
+  }
+}

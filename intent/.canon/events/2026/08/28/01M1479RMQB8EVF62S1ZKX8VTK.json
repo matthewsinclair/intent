@@ -1,0 +1,15 @@
+{
+  "id": "01M1479RMQB8EVF62S1ZKX8VTK",
+  "ts": "2026-08-28T13:00:15.166Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0111"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "sync --to-store compares the parsed model of both sides, so a lossy parser reports agreement with its own output and the repair never runs"
+  }
+}

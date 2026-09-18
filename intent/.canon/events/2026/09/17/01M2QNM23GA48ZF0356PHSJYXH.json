@@ -1,0 +1,15 @@
+{
+  "id": "01M2QNM23GA48ZF0356PHSJYXH",
+  "ts": "2026-09-17T12:31:48.344Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0435"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The explorer's search pane never draws its freshness or level note: the loop clears the notice right after setting it"
+  }
+}

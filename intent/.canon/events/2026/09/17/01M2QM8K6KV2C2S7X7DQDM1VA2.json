@@ -1,0 +1,14 @@
+{
+  "id": "01M2QM8K6KV2C2S7X7DQDM1VA2",
+  "ts": "2026-09-17T12:08:04.054Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-00.1"
+  },
+  "payload": {
+    "text": "After hv's rebuild, on the Intent estate: the defined-but-never-referenced query over `symbols` no longer lists `is_local`, `AddressError` or `from_project`; `intent search --subkind method --in AddressError` lists each of its methods once; and a fresh Claude session asked where a Rust symbol is defined reaches the index's MCP search tool before grep."
+  }
+}

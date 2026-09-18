@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZXZWEKZVY4V0JV0VTF24",
+  "ts": "2026-09-13T13:41:02.438Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0352"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The daemon family's timing arms are calibrated against an idle host, and this host has none"
+  }
+}

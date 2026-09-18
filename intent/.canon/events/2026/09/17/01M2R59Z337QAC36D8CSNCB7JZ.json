@@ -1,0 +1,15 @@
+{
+  "id": "01M2R59Z337QAC36D8CSNCB7JZ",
+  "ts": "2026-09-17T17:05:54.787Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17, night (WP-06's landing).** (1) The environment census lives in intent-cli (no_intent_home.rs scans every crate's src), so a new environment read in intentsvcs reds only intent-cli's suite. Before asking for a slot, run the whole suite of every crate that compiles the change, not only the crate that holds it. vc's judging scope insisted on this, and it caught `MIX_ENV`. (2) `until ! pgrep -f 'name.sh'` never ends, because pgrep matches the waiting loop's own command line. Wait on the task's notification or on a literal pid. (3) A display filter `grep -v '0 passed; 0 failed; 0 ignored; 0 measured'` also hides `680 passed; 0 failed; ...`, so anchor it on `ok. 0 passed`. (4) Before attributing a run's counts, mirror the reader's parse and the core's join over the saved trace and a copy of the store until the mirror reproduces the run's own record. Then check every claim meant for a body against the source lines: three draft claims failed that check (that all 71 unmatched module mentions were multi-alias braces, that the unreported references were \"mostly\" typespecs, and that the templates came through `embed_templates`). (5) `git apply --cached --3way` over a throwaway index read from the target lists a bank's conflicting paths without touching the worktree, so the real rebase resolves only those. (6) This repo's pre-commit formatters only check and never rewrite, so a gate can refuse a landing but cannot move its patch-id."
+  }
+}

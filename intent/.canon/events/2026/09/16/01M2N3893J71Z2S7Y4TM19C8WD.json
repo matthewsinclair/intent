@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3893J71Z2S7Y4TM19C8WD",
+  "ts": "2026-09-16T12:32:23.359Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0405"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the board render adds a section the source board never had and moves Standing directives from first to fourth"
+  }
+}

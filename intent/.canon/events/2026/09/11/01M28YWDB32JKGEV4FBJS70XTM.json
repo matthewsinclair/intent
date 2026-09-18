@@ -1,0 +1,14 @@
+{
+  "id": "01M28YWDB32JKGEV4FBJS70XTM",
+  "ts": "2026-09-11T19:25:02.695Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-07.7"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0056/parity/tools/claude_doors_installed_check.sh, driven against the PUBLISHED 3.0.1 keg (KEG=/opt/homebrew/Cellar/intent/3.0.1/bin/intent, cold-installed from the tap by int macos smoke --reinstall at formula fc32170): 5 reachable / 0 unreachable of 5 -- claude ws list, ws new, ws hygiene, ws archive and claude start. The dev-tree control arm also reads 5/5, so the zero is a finding and not a blind harness. rc=0."
+  }
+}

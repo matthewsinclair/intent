@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVFXNZ39F8075GZMQBR4ZS",
+  "ts": "2026-08-31T12:07:49.189Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/06"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The int macos build, run, test, install and notarise pipeline (AC-01.7)"
+  }
+}

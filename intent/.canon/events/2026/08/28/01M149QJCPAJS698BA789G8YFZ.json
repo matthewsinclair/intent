@@ -1,0 +1,14 @@
+{
+  "id": "01M149QJCPAJS698BA789G8YFZ",
+  "ts": "2026-08-28T13:42:44.734Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0066"
+  },
+  "payload": {
+    "title": "Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs"
+  }
+}

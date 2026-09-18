@@ -1,0 +1,15 @@
+{
+  "id": "01M22XPRQTRB0WD589TJ5T0CAQ",
+  "ts": "2026-09-09T11:09:02.589Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0291"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent edit wp <thread>/<seq> --path returns the parent thread's file at rc=0, where it refused a week ago"
+  }
+}

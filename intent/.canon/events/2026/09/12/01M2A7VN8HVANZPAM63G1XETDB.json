@@ -1,0 +1,15 @@
+{
+  "id": "01M2A7VN8HVANZPAM63G1XETDB",
+  "ts": "2026-09-12T07:21:09.652Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/24"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The LLM boundary: the harness's own search becomes a door into the index"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M19JEW016620SRTPKT3MM13P",
+  "ts": "2026-08-30T14:51:28.987Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0166"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "AC-17.10 widened a design constraint's subject without widening its reason, so the register and tui-design.md disagree about whether a second realiser is a Highlander defect"
+  }
+}

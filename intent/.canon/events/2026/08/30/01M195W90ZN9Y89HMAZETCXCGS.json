@@ -1,0 +1,15 @@
+{
+  "id": "01M195W90ZN9Y89HMAZETCXCGS",
+  "ts": "2026-08-30T11:11:36.792Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0156"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "rules validate ships working in the shell estate and is declared-unimplemented in v3"
+  }
+}

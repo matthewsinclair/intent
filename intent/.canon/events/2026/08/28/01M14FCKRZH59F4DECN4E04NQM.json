@@ -1,0 +1,14 @@
+{
+  "id": "01M14FCKRZH59F4DECN4E04NQM",
+  "ts": "2026-08-28T15:21:37.102Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0067/AC-00.4"
+  },
+  "payload": {
+    "evidence": "vc validation drive 2026-08-28: root_files_generated 12/12 incl. the four-language-set sweep proving the pointer sits outside every lang block; built 8a997c1e; this repo's AGENTS.md regenerated two lines only"
+  }
+}

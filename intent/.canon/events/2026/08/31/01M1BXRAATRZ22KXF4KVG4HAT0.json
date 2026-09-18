@@ -1,0 +1,15 @@
+{
+  "id": "01M1BXRAATRZ22KXF4KVG4HAT0",
+  "ts": "2026-08-31T12:47:21.458Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0187"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent init --lang refuses with a reason that expired: it says lang init is not implemented, and it is"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M23S48ZA2XA0F95R6XF4M3V2",
+  "ts": "2026-09-09T19:08:16.748Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0294"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "int cli refuses every invocation because cmd/cli never sources the lib declaring SHARED_TARGET_DIRT_SCOPES -- and the refusal prints a currency claim it never computed"
+  }
+}

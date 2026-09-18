@@ -1,0 +1,15 @@
+{
+  "id": "01M0T7F9ECQYSN03JX4PX3AJBR",
+  "ts": "2026-08-24T15:50:52.034Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0070"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade destroys every issue in an already-migrated v3 project"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2BK6C9YYR4BAY33NJEYT40Y",
+  "ts": "2026-09-12T19:58:29.697Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-14.2"
+  },
+  "payload": {
+    "text": "`wip.md` and `inbox.<sender>.md` are 100% generated views rendered from the store: regeneration reproduces the committed bytes exactly, byte-identical on two renders of the same store, their one writer the renderer and the formatter excluded from them as from every generated view (ST0056 AC-03.17), so that `intent doctor` reports a hand edit of either as view skew. Reworded 2026-09-12 under the pen: the minted text asked for a formatter fixed point, which contradicts the generated-view rule the same way AC-01.1 did before its rewording."
+  }
+}

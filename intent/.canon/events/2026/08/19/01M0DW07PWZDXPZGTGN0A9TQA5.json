@@ -1,0 +1,14 @@
+{
+  "id": "01M0DW07PWZDXPZGTGN0A9TQA5",
+  "ts": "2026-08-19T20:39:30.942Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-00.3"
+  },
+  "payload": {
+    "reason": "hv ruled the risk this guards does not need guarding: \"If we need safety, we've got all the historical STs etc in git. We can always get stuff back. It's not a problem!\" -- and, on the sequencing: \"if something stops working because we have to do A before B then that is totally fine. We have the pen here in Intent so we have the power to do what we need to do.\" This criterion is a MIGRATION-conservation verdict standing as a DEHYDRATION precondition: it exists so that nothing dehydration removes can be lost. Git already holds every file dehydration would remove, so the proof is of a loss that cannot occur. Running a multi-step v2-corpus capture, census and full-scope audit tonight to unlock a deletion git already makes reversible is the yak-shaving hv named. Withdrawn, not satisfied -- the verdict was never run and this record must not imply it was."
+  }
+}

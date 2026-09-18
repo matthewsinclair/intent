@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYE05W9JT1R6550M8ZKF3",
+  "ts": "2026-09-13T13:40:12.424Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0326"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade reports a whiteboard still on disk in a project that has none"
+  }
+}

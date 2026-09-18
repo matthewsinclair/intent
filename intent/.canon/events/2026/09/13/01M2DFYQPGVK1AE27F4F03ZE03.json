@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYQPGVK1AE27F4F03ZE03",
+  "ts": "2026-09-13T13:40:23.237Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0331"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Dead artefacts held in place by code or an open ruling, and stale comments a doc sweep cannot reach"
+  }
+}

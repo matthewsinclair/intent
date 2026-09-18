@@ -1,0 +1,15 @@
+{
+  "id": "01M17JPQHRTVE5XFV2BBMEXBT8",
+  "ts": "2026-08-29T20:17:17.731Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0145"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st edit writes on its rc=1 refusal for a known thread, and the remedy names an empty list"
+  }
+}

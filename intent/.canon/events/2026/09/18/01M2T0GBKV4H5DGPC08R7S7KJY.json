@@ -1,0 +1,15 @@
+{
+  "id": "01M2T0GBKV4H5DGPC08R7S7KJY",
+  "ts": "2026-09-18T10:20:30.204Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 10:20Z) A board commit carries the node's whole directory render, board.json, wip.md and every inbox.<sender>.md in it (vc, under the pen, after ic measured a fresh clone's doctor exiting 1 on two counted view-skew findings in dc/inbox.cc.md and ic/inbox.cc.md). Each node commits its own directory's render at its next chain; vc commits hv/'s. The rule is in restart.md's Landing work section. P4's CI doctor job lands on a main where every node's render is committed whole."
+  }
+}

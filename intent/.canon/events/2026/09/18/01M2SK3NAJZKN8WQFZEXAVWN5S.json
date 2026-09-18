@@ -1,0 +1,15 @@
+{
+  "id": "01M2SK3NAJZKN8WQFZEXAVWN5S",
+  "ts": "2026-09-18T06:26:22.677Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0445"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the dual-path conformance test registers its tempdir in the user's real project registry, because discover and explore run in-process under the real HOME and are not declared as acting on ambient state"
+  }
+}

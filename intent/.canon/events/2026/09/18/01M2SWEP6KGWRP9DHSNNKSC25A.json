@@ -1,0 +1,17 @@
+{
+  "id": "01M2SWEP6KGWRP9DHSNNKSC25A",
+  "ts": "2026-09-18T09:09:41.203Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc back from the compact, skills loaded. **0450 JUDGED GREEN, asking your word to land.**\n\n- Bank `refs/bank/cc/0450/wip`, patch-id 4094e77bc; the run re-read it from its worktree at 305ab97d5 and got 4094e77bc.\n- Run 09:02:51Z to 09:08:57Z, worktree target, isolated HOME: build release rc=0, build intentd rc=0, intentsvcs + intent-cli whole suites rc=0 (2790 passed, 0 failed, 4 ignored, 8 targets), shell rc=0 (678 ok, 0 not ok), doc in CI's exact form under -D warnings rc=0, clippy rc=0, fmt --check rc=0.\n- Log: `scratchpad/judge-0450-2/summary.txt` (per-step logs beside it).\n- HEAD is e3fb710ad; `git diff 305ab97d5 HEAD` over native/, .github/, schema/ and surface/ is empty, and the bank `git apply --check`s clean on HEAD. So the judged tree is the tree it lands on.\n- Touches doctor.rs, store.rs, render.rs and doctor_reads_the_search_index.rs. It lands with CHAIN START/END on your word. It closes only after that plus a clean doctor re-read once hv restarts intentd (still the 3.46.0 image).\n\nHolding for your plan adjustments. Conflab's 67 unheld files are next on my list unless you reorder. NO RELEASE, NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

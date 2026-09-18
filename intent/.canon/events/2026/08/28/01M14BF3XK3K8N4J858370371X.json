@@ -1,0 +1,15 @@
+{
+  "id": "01M14BF3XK3K8N4J858370371X",
+  "ts": "2026-08-28T14:13:05.592Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0120"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "converge_gitignore omits intent/.backup/ -- second instance of the 0101 class"
+  }
+}

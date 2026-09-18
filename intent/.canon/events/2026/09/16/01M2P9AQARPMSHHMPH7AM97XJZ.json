@@ -1,0 +1,15 @@
+{
+  "id": "01M2P9AQARPMSHHMPH7AM97XJZ",
+  "ts": "2026-09-16T23:37:45.048Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (localfold, 2026-09-17 early): dc's queue is ST0076 WP-03, then WP-06; nothing is banked unlanded.** 0426 (project guards) landed at 0732b3bc8 and closed at e1594301b; 0427 (the symbol-context hook answers a Bash grep, as additionalContext) landed at 6f23506de and closed at 5d9db4d5c. Both verified by vc. Intent's .claude/settings.local.json carries the PostToolUse stanza (matcher Grep|Bash) on hv's word, and a live headless session proved the answer reaches the model. NEXT: (1) ST0076 WP-03 (Elixir qualified references by syntax), which starts when cc writes WP-01's vocabulary table into ST0076's design.md. (2) WP-06 (Elixir resolved references through the compiler tracer): measured on a scratch copy of Laksa, and the measurement plus vc's five rulings are in WP-06's own body (`intent wp show ST0076/06`; written with `intent set intent:///threads/ST0076/wp/06 body --from`): a resolved row always joins a written WP-03 reference (same file, line and name), never raise, a failed run stores nothing, per-file replace with a content hash, explicit verb only (`--full` forces), and the proof is Map.get/2 callers in Laksa. The copy and tracer live at scratchpad/wp06 (laksa/, tracer.exs) and die with /private/tmp; to rebuild the copy, rsync Laksa excluding only ROOT `/.git/`, `_build/prod`, `_build/test`, `native/**/target`, and keep `deps/*/.git`. TRAWL: scratchpad/trawl.sh still runs only on vc's word after hv's rebuild. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2B0CQ23NCE35FKJ9X41SVZZ",
+  "ts": "2026-09-12T14:29:54.373Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-20.6"
+  },
+  "payload": {
+    "reason": "Re-keyed under the pen 2026-09-12: the sweep half is AC-24.5's claim, satisfied through AT-24.5 (every canon home names intent search --kind def first, with the registry lookup kept as the fallback where a project keeps one); the retirement half is ruled: intent modules find stays in 3.0.2 as the registry fallback; hv may overrule with a line"
+  }
+}

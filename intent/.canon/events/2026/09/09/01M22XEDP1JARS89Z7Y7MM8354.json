@@ -1,0 +1,15 @@
+{
+  "id": "01M22XEDP1JARS89Z7Y7MM8354",
+  "ts": "2026-09-09T11:04:29.123Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0289"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "render.rs is 10,570 lines and is a flat table of 161 verb renderers in one file -- split by family, post-tag"
+  }
+}

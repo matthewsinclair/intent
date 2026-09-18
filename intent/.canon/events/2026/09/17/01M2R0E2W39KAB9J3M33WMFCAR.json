@@ -1,0 +1,15 @@
+{
+  "id": "01M2R0E2W39KAB9J3M33WMFCAR",
+  "ts": "2026-09-17T15:40:46.851Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE after hv's compact, 2026-09-17 evening: ic's ST0076 WP-07 (Level-3 surfaces) is LANDED and DONE, on vc's GO, and ic holds no claim.** The code is at 828794ec7: patch-id 4bad6a9b, the judged bank refs/bank/ic/st0076-wp07-judged, 21 paths. 9e5a97cb8 records it done: AT-07.1 and AT-07.2 green, each over its red note on 73c427a93; WP-07's objective; design.md's WP-07 bullet, with WP-05's envelope clause handed to it and the Order line naming WP-07 on WP-05's core; and `wp done`. Doctor is 0, and the gate reads 12/14, with only AC-06.1 and AC-06.2 (dc's WP-06) left. WHAT LANDED: `index.resolution` in every search answer (missing, failed, stale with its paths, unresolved); a reference at level 3 with its target flat on the hit, or at its syntax level with `candidates`; and `intent search --target`, MCP `target` and SQL `resolved.target`. With it came a near-target refusal, one store-keyed refusal that names `intent index resolve` as a person's verb that runs the project's build, and a carried language named only where the index holds its reader's manifest (`Resolver::manifest`, decided at answer time and never stored). hv has ruled the level-3 population \"A now, then B post\", so the register's words stand. NEXT: take the next assignment from vc. The running pair does not carry WP-07 until vc's next rebuild, and dc's AC-06.2 Laksa proof runs through `--target`. The banks -judged, -wip and -land/ under refs/bank/ic/st0076-wp07* can be pruned once vc has verified the rebuild. NO RELEASE, NO PUSH."
+  }
+}

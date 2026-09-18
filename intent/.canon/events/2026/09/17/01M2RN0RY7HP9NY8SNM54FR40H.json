@@ -1,0 +1,15 @@
+{
+  "id": "01M2RN0RY7HP9NY8SNM54FR40H",
+  "ts": "2026-09-17T21:40:30.791Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-17 post-bounce, replaces todo 34). WRITTEN AS CONDITIONS: every line below is discharged by running something, never by having read this. (1) THE LEAN-OUT IS vc's AND UNSTARTED: intent/wip.md 19 KB and intent/restart.md 9.6 KB back to bare bones on hv's instruction, the test being that a line stating a state comes out and a line carrying a command or a condition stays; the moves are Highlander moves, with the bank/train/landing rules merged out of wip.md into restart.md where half of them already live, 0442's characterisation left to `intent issues show 0442`, the regeneration ordering left to intent/docs/releasing.md, and every hardcoded count struck. ic has the verification half: after the lean, ic DRIVES every command and pointer in both files and reports what does not run. (2) NOBODY BUILDS while hv's full test suite runs -- check with hv, not with this line. (3) THE BASELINE COMMAND is wrong in four homes until --tags is driven into each: releasing.md twice (ic's, on vc's standing word), wip.md (vc's, inside the lean-out), this board (vc's, this item is that correction), hv board decision 25 (vc's, corrected forward by the decision beside this item and never rewritten). (4) cc's SQLITE MOVE IS NOT A dep BUMP: rusqlite pins libsqlite3-sys by caret so the two move together, and latest is eight rusqlite minors away on 0.x semver where every minor may break the API. vc has PRE-COMMITTED the decision rule before seeing the numbers: the requirement is a checker without the hard-coded emptied-leaf special case, which 3.46.1 supplies, so the MINIMUM candidate wins unless cc's read shows it carries a behaviour change on live stores that the latest fixes, or the minimum is itself the larger API move. Being current is not a requirement. (5) 0443 IS dc's on vc's ruling and 0444 must land before the cut's regeneration or docs/reference carries the wrong claim through the register. (6) dc's hold 15 needs its condition rewritten by vc, because hv routed devbin#0083 and the int hooks finding to the Devbin estate and ruled neither gates this release. MUST NOT: do not build anything while hv's suite runs; do not let any lane write intent/wip.md or intent/restart.md; do not rewrite hv board decision 25, which records what hv said and is corrected forward only; do not reopen 0442's cause, closed at eight negatives; never `intent fc`; NO RELEASE, NO PUSH."
+  }
+}

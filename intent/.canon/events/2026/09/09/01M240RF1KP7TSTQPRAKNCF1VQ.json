@@ -1,0 +1,14 @@
+{
+  "id": "01M240RF1KP7TSTQPRAKNCF1VQ",
+  "ts": "2026-09-09T21:21:38.359Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.1"
+  },
+  "payload": {
+    "text": "The v3 binary passes the narrowed BATS conformance contract (stdout, exit codes, behaviour), with every file-layout divergence recorded in the ratified keep/retire/deviate register, **and no command family has zero burning coverage** -- a contract with a hole passes trivially at that hole (strengthened by vc 2026-08-14 on ic's `config` finding; ADOPTED under hv standing authorisation) -- **and the non-core `pending` register rows deferred at AC-05.3 are split to per-test rows by this gate -- DISCHARGED 2026-09-09 (ic), and they were already split rather than owed**: every `pending` register row carries per-test rows, register `n/total` conserves exactly against `pertest.md`'s row and burn counts for all of them, and there are zero UNCLASSIFIED rows at the per-test level, so AC-05.3's both-levels condition holds here too. The check is mutation-controlled in four arms -- a register ratio altered, a per-test row deleted, a burns cell flipped, each caught and each failing only on its own mutation -- and it REFUSES over an empty population rather than reporting the reassuring zero. **Its first run reported a mismatch that was the INSTRUMENT and not the data** -- an escaped pipe in a test title, which `awk -F'|'` splits blind, landing in the one file the register's own header records as having defeated four grep passes. **NO FIGURE HERE, DELIBERATELY: a count transcribed into a criterion is a claim about a corpus at a moment, and this one moved under its own row. Re-drive it.** **This clause no longer holds the row. The whole-estate half does, and the register's corpus is behind the tree -- `0298`**"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2GH8SH9ED9AFA82JWV0NT09",
+  "ts": "2026-09-14T18:01:03.789Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0395"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "macos drops the arguments after 16 of its 21 subcommands, so macos prepare --help runs the whole sign, notarise and stage chain instead of printing help"
+  }
+}

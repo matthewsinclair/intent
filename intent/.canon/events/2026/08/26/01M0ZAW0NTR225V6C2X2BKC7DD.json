@@ -1,0 +1,15 @@
+{
+  "id": "01M0ZAW0NTR225V6C2X2BKC7DD",
+  "ts": "2026-08-26T15:26:26.725Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/12"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Issues get a realised form and a sigil, then join the default declaration"
+  }
+}

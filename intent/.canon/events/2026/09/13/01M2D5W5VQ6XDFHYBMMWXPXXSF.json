@@ -1,0 +1,15 @@
+{
+  "id": "01M2D5W5VQ6XDFHYBMMWXPXXSF",
+  "ts": "2026-09-13T10:44:12.794Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0318"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "organize preview prints one error line per un-ingested v2 bucket file, 184 on Laksa, where one class line would do"
+  }
+}

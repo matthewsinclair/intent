@@ -1,0 +1,14 @@
+{
+  "id": "01M2443FKQHZETNW3579Z0EMRG",
+  "ts": "2026-09-09T22:20:05.114Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.3"
+  },
+  "payload": {
+    "evidence": "driven 2026-09-09 (dc) on a pair `int local status` reports currency ok (ec55b3ba), so not a stale-binary reading -- the trap this row records twice. canon_mandated_verbs_check.sh rc=0: 44 canon-named verbs EXTRACTED FROM SHIPPED CANON rather than a hand-list (the row own defect: every re-drive re-ran the same five and never re-derived the population), 14 declared skipped because they write, ok -- every canon-named verb this tool ran answers. Static arm: every flag spelling canon names is declared on the entry that owns it. BOTH DECLARED BLIND SPOTS CLOSED BY HAND. (1) predicate is rc==2 AND the marker so an rc=1 refusal reads as fine (0236 class): with HOME redirected to a scratch dir, claude skills install --all and claude subagents install --all both rc=0 and actually install 23 skills, positive control --notaflag rejected rc=1 proving the runner reaches the parser; 0236 is CLOSED and fixed on this build. (2) write verbs skipped -- those four ARE the write verbs canon names and are the ones driven above. ext IS OUT OF THE POPULATION BY EXECUTED hv RULING: grep across AGENTS.md, usage-rules.md, CLAUDE.md, lib/templates/llm/ names it nowhere, so ext list rc=2 cannot fire a falsifier scoped to verbs a shipped canon file NAMES. claude rules validate -- the last verb this row waited on, cc built it -- answers rc=0 68 ok; its printed limit (ext packs unreached) is out of scope for the same reason. FALSIFIER NOT FIRING: no verb named by a shipped canon file returns is-a-known-command-that-is-not-implemented-yet in this switched project."
+  }
+}

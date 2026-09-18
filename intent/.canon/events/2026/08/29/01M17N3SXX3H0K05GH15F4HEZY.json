@@ -1,0 +1,14 @@
+{
+  "id": "01M17N3SXX3H0K05GH15F4HEZY",
+  "ts": "2026-08-29T20:59:24.439Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-16.2"
+  },
+  "payload": {
+    "text": "**THE CHECK RUNS OVER EVERY MODELLED ENTITY AND PRINTS ITS DENOMINATOR.** `N of N entities checked, M properties` in the output -- because a check that silently skipped an entity and a check that found nothing produce the same line otherwise. **THE POPULATION IS DERIVED FROM THE SCHEMA AT RUN TIME AND IS NOT ENUMERATED HERE.** This row carried a nine-name list until 2026-08-29 and the list was WRONG -- derivation yields eleven, the two it omitted being `Invoker` and `Subject` -- **so the criterion warning against \"a list maintained beside it\" was itself that list, in the same sentence.** (vc, on ic's measurement; the row is reworded rather than corrected in place because the enumeration was the defect, not its contents.) **`Invoker` is the live proof: it is growing under ST0066 AC-00.2's invoker evidence right now, and an entity outside the checked population grows uncontracted, which is `issue.body`'s exact shape and the 434KB this WP exists because of.**"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M23ZF344T8Y7WB2Q3G1AN868",
+  "ts": "2026-09-09T20:59:02.663Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0065/_catalogue-wp01.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

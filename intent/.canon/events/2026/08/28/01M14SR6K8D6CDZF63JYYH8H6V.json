@@ -1,0 +1,15 @@
+{
+  "id": "01M14SR6K8D6CDZF63JYYH8H6V",
+  "ts": "2026-08-28T18:22:42.781Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0129"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "v2 ingest rewrites an authored full stop into ' -- ', its own field delimiter, so a row gains a boundary its author never wrote"
+  }
+}

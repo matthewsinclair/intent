@@ -1,0 +1,14 @@
+{
+  "id": "01M1SSAHKSF4QH06J9VN0N2EFT",
+  "ts": "2026-09-05T21:59:17.884Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-02.1"
+  },
+  "payload": {
+    "evidence": "ic drove the full journey -- empty directory to closed thread -- on the CORRECTED pages at 891f872c6 + 40ea17e0, FAIL=0, every command rc=0, terminating at `gate: ST0001 PASS -- 3/3 satisfied` then `st done` ok. THE DRIVE THAT DECIDED IT IS THE ONE AFTER THE FIXES, and the fixes are what it drove: getting-started section 1 verified in BOTH directions (six entries present after `intent init`; `intent/st/` and root `AGENTS.md` correctly ABSENT, each appearing at the step the page now names), and install.md corrected to the measured symptom. THREE DEFECTS WERE FOUND BY DRIVING AND NONE WAS REACHABLE BY READING: section 1 claimed st/, docs/ and AGENTS.md as `intent init` output (init.rs creates none of them, confirmed from source as well as the drive); section 2 asserted a refusal this build has lost (0192); install.md said the keg commands FAIL when they succeed emptily (0275). A FOURTH WAS WITHDRAWN BY ITS FINDER -- the section 5 warning was grepped against the dev pair while the page scoped its claim `On v3.0.0`, and the string IS present on the keg. DECLARED EXCLUSIONS, ic verbatim, because the row says A MACHINE THAT HAS NEVER SEEN THIS REPOSITORY and what was driven is an approximation of one: a scrubbed environment on the same host rather than a different machine; `git archive` rather than `git clone`, so the published clone step is unexercised; and the delivered dev pair rather than the keg, so `intent claude rules list` passed here and returns `total: 0 rule(s)` for a Homebrew reader today -- THAT LIMB IS AC-00.5s AND IS NOT CLAIMED HERE. macOS only. Neutralised WITH driven controls: ambient `intent` on PATH, ~/.intent/, ambient INTENT_HOME, core.hooksPath. vc verified section 2s new prose against BOTH artefacts rather than accepting it -- the keg refusal it quotes is verbatim at rc=1, remedy included."
+  }
+}

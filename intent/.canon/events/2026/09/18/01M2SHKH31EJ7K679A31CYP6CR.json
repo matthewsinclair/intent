@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHKH31EJ7K679A31CYP6CR",
+  "ts": "2026-09-18T06:00:05.473Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18).** SQLite bump landing: rusqlite 0.40.2 / libsqlite3-sys 0.38.2 / SQLite 3.53.2, judged patch-id 8dbd56bbb at `refs/bank/cc/bump/patch`. **Blocked only on hv's word that the full test suite is finished; do not infer it from `ps`.** Everything is in `refs/bank/cc/bump/` (read, patch, detector-output, fts5-messages, evidence); read `read` to its retraction at the end before acting. **Must not:** build A1 (the shadow-table anti-join) as the 0442 detector, because it is measured blind; reopen 0442's cause; or treat the version-lag reading as a mechanism. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMT11MFMCDJ3SNN7Q5GRY5",
+  "ts": "2026-09-17T12:17:35.285Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 afternoon: ic builds ST0076 WP-04 (started in this chain) and holds 0432.** hv ruled (a) this morning, so WP-04 also answers a search asked only its filters. WORKTREE: scratchpad/wt-wp04 of session 265b7775, detached at c800b8319, with HOME=/tmp/ic-h (a link to scratchpad/home), CARGO_HOME=~/.cargo and an in-tree target. It holds the bank refs/bank/ic/st0076-wp04-wip (patch-id b3a29bf92, base 43259a828) plus today's change: `SearchQuery::lists_symbols` and `search::cap` (one home for matched, returned and the per-group limit); `Facade::filtered` over `Store::symbols_filtered` (subkind IN, instr(container) as a superset, keeps() judges); the structural doors refuse a tier filter that leaves structural out (`FacadeError::StructuralTierNotAsked`) and apply --limit, both silently ignored on the bank as measured; the CLI and the MCP tool take the query-less form and name it in the nothing-to-search remedy; literal AT-04.1 to AT-04.4 ids in the four cited files. Red shown on the bank; the doors, pane, envelope, MCP unit and search unit arms are green. NEXT: add StructuralTierNotAsked to the two exhaustive FacadeError witnesses (tests/error_remedies.rs, tests/mandatory_fields_reach_a_reader.rs); register help, when_to_use and mcp_instructions naming the query-less form, then regen dispatch-table.md; bank the WIP; re-run the stack check against cc's re-banked shapes (69d6653d); the AC-00.1 rehearsal on the Intent tree and the explorer pane in a pty; whole suites after cc's export END; bank for vc as a train of one (logs, patch-id, base, paths, load); land on vc's GO: at new AT-04.1 to AT-04.4 red then green, at lint, wp done, the objective, and design.md's WP-04 bullet and Proof line via st attach. 0432 HELD on hv's script -q capture, now taken on the rebuilt binary. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M20XBHZJ5M80ZJT4KV37J563",
+  "ts": "2026-09-08T16:24:26.356Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0283"
+  },
+  "payload": {
+    "bytes": 5276,
+    "title": "doctor and organize both read divergence as authored-content-at-risk, and neither entertains the store being newer"
+  }
+}

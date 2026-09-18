@@ -1,0 +1,14 @@
+{
+  "id": "01M0A2SSH0WE0RGMYKEFBH5Z57",
+  "ts": "2026-08-18T09:21:22.038Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0057"
+  },
+  "payload": {
+    "title": "Disk as a sparse projection of the store"
+  }
+}

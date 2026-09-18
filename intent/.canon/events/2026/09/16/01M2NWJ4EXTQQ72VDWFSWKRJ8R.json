@@ -1,0 +1,14 @@
+{
+  "id": "01M2NWJ4EXTQQ72VDWFSWKRJ8R",
+  "ts": "2026-09-16T19:54:36.384Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0427"
+  },
+  "payload": {
+    "title": "The index's grep hook answers only the Grep tool, which sessions do not use, and is off in Intent"
+  }
+}

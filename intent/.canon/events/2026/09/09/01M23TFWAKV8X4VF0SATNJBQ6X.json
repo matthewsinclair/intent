@@ -1,0 +1,15 @@
+{
+  "id": "01M23TFWAKV8X4VF0SATNJBQ6X",
+  "ts": "2026-09-09T19:32:05.590Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0295"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "flag_reachability's self-validation is RED on main: a correct verbosity consolidation moved a read into a shape the scanner cannot see, and the file says every verdict is unsafe until it passes"
+  }
+}

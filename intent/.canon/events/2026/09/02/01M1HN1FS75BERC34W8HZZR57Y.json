@@ -1,0 +1,15 @@
+{
+  "id": "01M1HN1FS75BERC34W8HZZR57Y",
+  "ts": "2026-09-02T18:10:31.339Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0215"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "llm usage_rules is labelled v2 parity and answers about a different file than v2"
+  }
+}

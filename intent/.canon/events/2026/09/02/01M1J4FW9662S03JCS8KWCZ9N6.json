@@ -1,0 +1,14 @@
+{
+  "id": "01M1J4FW9662S03JCS8KWCZ9N6",
+  "ts": "2026-09-02T22:40:31.529Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-06.13"
+  },
+  "payload": {
+    "text": "**EVERY SUBCOMMAND THE BUILT BINARY OFFERS RESOLVES TO A PATH THE DISPATCH TABLE DECLARES.** The mirror of `AC-06.8`, and a SEPARATE row because it is a separate instrument over a separate population: checking TABLE -> SURFACE walks the table and asks the binary about each entry, while checking SURFACE -> TABLE must ENUMERATE THE BINARY -- different walk, different denominator, different failure mode. (vc ruled the shape 2026-09-02 on dc's `0217`; a new row rather than an amendment to `AC-17.15`, because putting two populations under one row with one instrument is the shape every reporting failure in `0216` turned out to have.) **THE ARTEFACT IS NAMED AND IS NOT \"THE BINARY\": the instrument interrogates its OWN cargo-built binary from the current tree -- `env!(\"CARGO_BIN_EXE_intent\")`, which is what `flag_reachability.rs` already uses -- and NEVER the shared release pair.** (cc's correction, 2026-09-02, from the false green they took this morning off a stale pair.) Two reasons, and the second is the one that would bite: a test bound to the shared pair describes whatever was last built rather than the current tree, and **the shared pair is guarded against rebuild while `native/rust` is dirty, which is the normal state while somebody is changing the very surface this checks** -- so that binding is unrunnable exactly when it is needed. A surface test that can silently describe yesterday's binary is the vacuous-instrument shape with a new face. **THE EVIDENCE IS THE LANDING ITSELF, WHICH IS A TWO-SIDED DEMONSTRATION RATHER THAN AN ARGUMENT: an undeclared subcommand was added to NINE shipped families in `245dcdbe` and every instrument in the estate stayed green** -- both suites, `cargo check --workspace --all-targets`, rustfmt. A verb present in the binary and absent from the table is outside the population of every existing check BY CONSTRUCTION, which is the same ORPHAN direction `declared_kind_check.sh` names one level down for artefacts. **REACH, STATED AT MINT RATHER THAN AT THE FIRST SURPRISE:** an enumeration of the binary sees what the binary OFFERS at the depth it walks, and nothing else. It does not judge whether a declared path is CORRECT, it does not see flags -- that is `AC-06.8`'s population, not this one -- and it must rule EXPLICITLY on aliases and hidden subcommands rather than inheriting an answer: `lang remove` ships the alias `rm`, so an enumeration counting alias spellings as undeclared paths reports a false positive on its first run, and one that drops them silently can never see an alias nobody declared."
+  }
+}

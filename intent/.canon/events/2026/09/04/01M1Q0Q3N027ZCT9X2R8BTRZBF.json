@@ -1,0 +1,15 @@
+{
+  "id": "01M1Q0Q3N027ZCT9X2R8BTRZBF",
+  "ts": "2026-09-04T20:10:46.309Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0247"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent search leaks a raw sqlite column error on ordinary punctuation, and its remedy names a character that works while omitting three that do not"
+  }
+}

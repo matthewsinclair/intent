@@ -1,0 +1,15 @@
+{
+  "id": "01M1Q1EDJVMAGGZ9EJ9K45J0RY",
+  "ts": "2026-09-04T20:23:30.145Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0249"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "implemented_check.sh derives and double-guards the needle it owns while hardcoding five clap strings it does not, and one of those five is already dead"
+  }
+}

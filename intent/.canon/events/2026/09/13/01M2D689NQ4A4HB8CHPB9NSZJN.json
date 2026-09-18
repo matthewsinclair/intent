@@ -1,0 +1,14 @@
+{
+  "id": "01M2D689NQ4A4HB8CHPB9NSZJN",
+  "ts": "2026-09-13T10:50:49.914Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-14.10"
+  },
+  "payload": {
+    "evidence": "124aa0d6f + a603af8a3 + abc2da1cf + 8a640b03b (the skill half) and 6de123412 (the claude ws half); AT-14.10 green"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "01M1SFH1ZETRF0D2R1PSW5SX4T",
+  "ts": "2026-09-05T19:08:05.492Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.rescope",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-10.5"
+  },
+  "payload": {}
+}

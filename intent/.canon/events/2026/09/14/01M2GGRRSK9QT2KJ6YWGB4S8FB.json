@@ -1,0 +1,14 @@
+{
+  "id": "01M2GGRRSK9QT2KJ6YWGB4S8FB",
+  "ts": "2026-09-14T17:52:18.746Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/read_claim_probe.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

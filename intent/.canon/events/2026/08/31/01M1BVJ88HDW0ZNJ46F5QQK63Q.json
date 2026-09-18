@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVJ88HDW0ZNJ46F5QQK63Q",
+  "ts": "2026-08-31T12:09:05.558Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0185"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "no verb writes a thread's title, objective, context, body or preamble -- the fourth field the typed API cannot reach"
+  }
+}

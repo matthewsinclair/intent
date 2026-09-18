@@ -1,0 +1,16 @@
+{
+  "id": "01M1KZN44YKE3V848NJAG2EXEW",
+  "ts": "2026-09-03T15:54:29.409Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0071"
+  },
+  "payload": {
+    "from": "triage",
+    "reason": "Artefact of 0223: a write verb's title positional absorbed a bare CLI token at rc=0, created 2026-09-03T15:39:01.961Z, 403ms before issue 0225 with the identical title. Cancelled rather than deleted so the register carries the evidence; the title 'help' IS the evidence and is deliberately unchanged. Not a mistype -- see 0223 for the machine-paced timing, the absorbed flag name, and the repeated st-then-issues ordering across two episodes eight days apart. authority: vc",
+    "to": "cancelled"
+  }
+}

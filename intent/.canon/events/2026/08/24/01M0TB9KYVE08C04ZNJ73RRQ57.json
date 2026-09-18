@@ -1,0 +1,15 @@
+{
+  "id": "01M0TB9KYVE08C04ZNJ73RRQ57",
+  "ts": "2026-08-24T16:57:40.404Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0073"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the swift critic arm seals green while arming nothing: all 6 IN-SW-* rules are UNDECLARED, so a Swift-only changeset passes a gate that asked no questions"
+  }
+}

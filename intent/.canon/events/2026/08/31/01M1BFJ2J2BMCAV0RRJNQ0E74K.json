@@ -1,0 +1,15 @@
+{
+  "id": "01M1BFJ2J2BMCAV0RRJNQ0E74K",
+  "ts": "2026-08-31T08:39:16.814Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0178"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Every instrument reads the WORKTREE, so a defect that exists only in the COMMIT has no witness but a clone nobody has made"
+  }
+}

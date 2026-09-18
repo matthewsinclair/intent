@@ -1,0 +1,15 @@
+{
+  "id": "01M2QP7Y181PT3K5T2GZFN22TN",
+  "ts": "2026-09-17T12:42:39.528Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17, second half.** (1) tree-sitter 0.27's `#eq? @cap \"x\"` must hold for EVERY node under @cap (EqString with match_all_nodes, binding_rust lib.rs:3551), so a second `@ignore` in a pattern whose target carries `#eq? @ignore` silently stops the pattern matching at all; a capture absent from a match passes `#eq?` vacuously, and `#any-eq?` returns true when no node matches. Read the predicate loop before relying on either. (2) Before publishing what an index does NOT cover, probe the stack: append a throwaway test that prints the rows, run it, restore the file from a copy, cmp it. vc then checked the claim against Laksa and turned one gap into a fix: local captures, which Laksa uses heavily. (3) A reference whose node is its enclosing expression takes that expression's start line: a bare pipe target spanned the whole pipeline. Span the name node. (4) Prove an arm red on the baseline with a saved patch: `git diff -- <src> > p`, `git checkout -- <src>`, run, `git apply p`. Never stash in a worktree. (5) A classifier that guesses severity from a phrase (ConsoleLine.swift's `intentd: could not`) hides a producer's missing token; fix the producer, then retire the guess. (6) The 00:50Z reboot took every worktree and scratchpad and lost nothing banked: whether an edit came after the last bank was answered from the previous session's transcript (the update-ref line against the later tool calls), not from memory."
+  }
+}

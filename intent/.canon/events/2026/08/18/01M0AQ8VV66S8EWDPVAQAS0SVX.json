@@ -1,0 +1,15 @@
+{
+  "id": "01M0AQ8VV66S8EWDPVAQAS0SVX",
+  "ts": "2026-08-18T15:19:07.451Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0056/16"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Contract drift: a shipped field with no model row is refused"
+  }
+}

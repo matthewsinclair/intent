@@ -1,0 +1,15 @@
+{
+  "id": "01M2BJ93N3MJEBQ2ZBJ532F8X5",
+  "ts": "2026-09-12T19:42:30.566Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0311"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Two daemon_subscriptions arms red intermittently at base: a setup write reaches the next observation window"
+  }
+}

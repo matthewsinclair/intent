@@ -1,0 +1,15 @@
+{
+  "id": "01M2N38NTXMT1D3QEKNZ7B7KVC",
+  "ts": "2026-09-16T12:32:32.096Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0406"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate carries a markdown table as one multi-line item, so the table no longer renders"
+  }
+}

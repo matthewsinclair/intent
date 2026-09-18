@@ -1,0 +1,15 @@
+{
+  "id": "01M2QTWFKKTCMGB5XRHMXT2VND",
+  "ts": "2026-09-17T14:03:47.187Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, localfold for hv's compact, 2026-09-17, the second of the day).** Claims ST0076/05; vc claims ST0076 as director. LANDED TODAY: the extractor shapes (7ec259fe5, design.md at 99ea59be4) and the level-3 core (e302be033, patch-id f7050940, which is the judged d335d31f plus the one-line binding type the critic gate's IN-RS-CODE-004 proxy required; WP-05's body section at 648f1371a). The envelope (`index.resolution`, level-3 facts and `candidates` on a hit, the by-target door) is ic's lane now (vc, 2026-09-17), built as ST0076 WP-07 on e302be033, with ic's names agreed: `ResolutionState`, `ResolvedTarget`, `search::resolution_words`, and `STALE`/`UNRESOLVED` beside `CURRENT` in resolved.rs. NEXT, THE RUST READER BANK at refs/bank/cc/st0076-reader, stacked on HEAD: `index/scip.rs` (the hand-written decoder, pure, which reproduced the measured export exactly: 464 documents, 276,921 occurrences, 235,355 references, 55,760 local, in 19 ms); `index/rust_analyzer.rs` (roots from the index's file rows as the root-most Cargo.toml manifests; printable targets `crate::path::Type::method()` with fields plain, `<Type as Trait>::method()`, `name!`, `#[Derive]` and `<impl Type>`, 0 collisions over 12,520 symbols; locals excluded as `local`; one export per root with CARGO_TARGET_DIR under the cache and files hashed before and after it; `full` a no-op), `readers()` registering it, the prepared INSERT in `replace_resolved` (vc's note), MODULES.md rows, and the arms: the checked-in export of a tiny crate at intentsvcs/tests/fixtures/scip/tiny/ (metadata stripped), the absent-tool arm, the not-applicable arm, and ONE `needs_the_toolchain` arm (`#[ignore]`, run by `bin/devbin test all`) whose landing carries dc's refs/bank/dc/devbin-toolchain (5f5682c9). The pure half was measured against the real export: matched 130,292 + unmatched 49,276 + dropped 55,787 = 235,355. Drafts are banked as blobs under refs/bank/cc/st0076-wp05/ (reader-scip.rs, reader-rust_analyzer.rs, reader-arms.rs, fixture-tiny-*, harness-main.rs, judge-l3core.sh), recovered with `git cat-file -p <ref> > <file>`. FOR vc IN THE READER'S REPORT: SCIP writes operator-overload references on `+` and on the spaces beside it, so a name that is not an identifier should drop as `operator` rather than count as unmatched; rust-analyzer's cargo metadata WRITES a Cargo.lock into a root that has none (measured on the fixture crate), the only write outside intent/.cache; and the printable form above. NO RELEASE, NO PUSH."
+  }
+}

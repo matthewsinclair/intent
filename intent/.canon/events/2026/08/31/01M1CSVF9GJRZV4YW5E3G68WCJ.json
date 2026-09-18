@@ -1,0 +1,14 @@
+{
+  "id": "01M1CSVF9GJRZV4YW5E3G68WCJ",
+  "ts": "2026-08-31T20:58:24.946Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.9"
+  },
+  "payload": {
+    "evidence": "Stated instrument run (ic): the built Debug bundle (~/.local/state/intent/build/.../Intent.app) launched under a deliberately minimal environment (env -i HOME PATH=/usr/bin:/bin, no dev PATH); os_log shows 'launched; intent: native/rust/target/release/intent (login shell: /Users/matts/.local/bin/intent)' -- resolved via the CAPTURED LOGIN-SHELL PATH, not the launch env. Positive+negative controlled: /bin/zsh -ilc (capture()'s command) recovers the login PATH and finds intent under env -i, while a naive bare-PATH child sees NONE. LoginShell + IntentCLI is the one shell-out home, PATH handed to every child; parse() unit-tested (LoginShellTests). Bundle launch cleaned up orphan-free."
+  }
+}

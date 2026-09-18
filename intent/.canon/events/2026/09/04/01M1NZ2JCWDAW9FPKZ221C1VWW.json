@@ -1,0 +1,15 @@
+{
+  "id": "01M1NZ2JCWDAW9FPKZ221C1VWW",
+  "ts": "2026-09-04T10:22:50.271Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0232"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "WP-08 closed at 12/12 with no conformance instrument whose subject is the daemon"
+  }
+}

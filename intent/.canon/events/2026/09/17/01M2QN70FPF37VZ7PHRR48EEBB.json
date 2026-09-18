@@ -1,0 +1,15 @@
+{
+  "id": "01M2QN70FPF37VZ7PHRR48EEBB",
+  "ts": "2026-09-17T12:24:40.694Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, on cc's WP-05 measurement report (one default export, one build-scripts-off export and one join on a fresh clone at c800b8319) and dc's Elixir requirements: LEVEL 3 FOR ST0076. (1) WHO RUNS IT: the SCIP export runs the project's build scripts and proc macros and this rust-analyzer has no switch that stops it, so level 3 runs only on one explicit verb for both languages (working name `intent index resolve [--lang] [--full]`; hv may respell it), never from intentd, reconcile or a hook, and it is not offered on the MCP tool tier in this release. (2) POPULATION: every written reference row, not level 2 alone (level 2 alone would store 26,167 of 144,554 Rust matches, and Elixir's unqualified rows are the ones level 3 exists for); AC-05.1 and AC-06.1 say `a written reference`. (3) ONE CORE, built once by cc as WP-05's first bank, which dc's WP-06 stacks on: a side table of one resolved row per (path, line, name, target), existence semantics, no tie-break at write, so a key naming two targets stores both and is counted as ambiguous; the target is one printable name per language with no tool or crate version in it, with the definition's path and line when the index holds it; staleness facts (the file's sha256 at trace, language, run) live once per file and not per row; a run joins only against the bytes the tool read, replaces exactly the files it resolved in one transaction, writes nothing when it fails, and purges rows whose path has left the index; reconcile never deletes resolved rows; one schema step. (4) COUNTS in `intent index status`, per language, from the last run: matched, unmatched, dropped, ambiguous and stale paths. (5) The SCIP decoder is hand-written in intentsvcs as a pure module, fields by number, unknown fields skipped. (6) Toolchain output goes to a directory of Intent's own under intent/.cache, never the project's target. (7) ARMS: decode, join, replace, staleness and counts are proven hermetically from a small checked-in fixture; the absent tool is proven with the tool off PATH; an arm that needs a real toolchain is `#[ignore]` with its reason and is run with --ignored where the tool exists. Whether CI installs Elixir and rust-analyzer on one leg to run those is hv's call."
+  }
+}

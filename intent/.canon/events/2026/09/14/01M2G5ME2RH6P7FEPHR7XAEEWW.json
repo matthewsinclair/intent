@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5ME2RH6P7FEPHR7XAEEWW",
+  "ts": "2026-09-14T14:37:42.363Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0384"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate discards text written in an inbox entry's heading, so an entry whose text sat there carries with an empty body"
+  }
+}

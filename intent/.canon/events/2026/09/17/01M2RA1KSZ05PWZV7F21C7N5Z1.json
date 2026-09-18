@@ -1,0 +1,15 @@
+{
+  "id": "01M2RA1KSZ05PWZV7F21C7N5Z1",
+  "ts": "2026-09-17T18:28:45.817Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-17, late night (the guards rehearsal and the FTS5 finding).** (1) A store's health is one page-exact `.backup` through a read-only URI plus `PRAGMA integrity_check`, and WHICH SQLite judges it matters: the pair bundles 3.46.0 (libsqlite3-sys 0.30.1) while this machine's CLI is 3.54.0, and 3.46.0 carries an FTS5 false-positive that 3.46.1 fixed, so a corruption claim needs a newer checker AND a behaviour -- a query that aborts -- never a checker alone. Build the matching version from the amalgamation in the cargo registry when the writer's own reading is the question. (2) ATTRIBUTE A WINDOW BY ASKING, NEVER BY INFERENCE: three copies damaged and the fourth clean read as \"it healed itself\", and it was vc's `intent index rebuild` on the live store; the wrong reading had already gone to cc mid-diagnosis and had to be chased. (3) Name an artefact by what it IS: `live-store-untouched.db` meant untouched by intent, was taken after the repair, and read as the original damaged store; it is now `repaired-page-exact-<mtime>.db`. (4) A rehearsal in a clone meets gates that need built artefacts: thread-view-skew refuses with no binary at native/rust/target/release/intent, which is the clone's state and not the change's. (5) `git clone --shared` plus a fresh HOME whose `.local/share/intent/home` names the clone gives a self-hosted estate: the carrier resolves, the gate reads the clone's own guards, and the live registry never sees it (prove that with the registry probe either side). (6) A reporter's grep decides a state and an installer's anchored grep writes it: when the two disagree about the same line, the report is the one that lies, and its remedy can undo the change that made it lie. (7) A plain `intent search` takes a write path -- its failure says \"could not update the runtime store\" -- so a text search is not the quiet read a node assumes during a peer's chain. (8) A BOARD ITEM'S BACKTICKS ARE A SHELL'S COMMAND SUBSTITUTION: vc's own shell executed a backticked phrase inside an item it was writing on 2026-09-17 and started the rebuild chain early. Pass item text as `\"$(cat <file>)\"`, whose output is never re-parsed, and never type a backticked phrase inside a double-quoted argument."
+  }
+}

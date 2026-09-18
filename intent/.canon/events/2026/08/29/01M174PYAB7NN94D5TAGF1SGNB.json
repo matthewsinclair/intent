@@ -1,0 +1,14 @@
+{
+  "id": "01M174PYAB7NN94D5TAGF1SGNB",
+  "ts": "2026-08-29T16:12:46.484Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/gen_cut_surface.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

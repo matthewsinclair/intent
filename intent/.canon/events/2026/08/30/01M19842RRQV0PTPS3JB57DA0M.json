@@ -1,0 +1,14 @@
+{
+  "id": "01M19842RRQV0PTPS3JB57DA0M",
+  "ts": "2026-08-30T11:50:50.430Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0069"
+  },
+  "payload": {
+    "title": "v3 post-cut: project search, store-backed coordination, and contract drift"
+  }
+}

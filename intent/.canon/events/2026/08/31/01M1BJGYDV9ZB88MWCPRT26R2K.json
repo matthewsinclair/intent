@@ -1,0 +1,14 @@
+{
+  "id": "01M1BJGYDV9ZB88MWCPRT26R2K",
+  "ts": "2026-08-31T09:31:05.544Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/conservation_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

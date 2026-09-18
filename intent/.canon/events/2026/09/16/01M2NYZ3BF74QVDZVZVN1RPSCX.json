@@ -1,0 +1,15 @@
+{
+  "id": "01M2NYZ3BF74QVDZVZVN1RPSCX",
+  "ts": "2026-09-16T20:36:38.386Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0428"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The index's MCP search door drops its filters silently and nothing tells the model it exists"
+  }
+}

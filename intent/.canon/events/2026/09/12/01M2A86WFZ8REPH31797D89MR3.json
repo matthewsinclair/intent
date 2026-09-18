@@ -1,0 +1,34 @@
+{
+  "id": "01M2A86WFZ8REPH31797D89MR3",
+  "ts": "2026-09-12T07:27:17.504Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.dehydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "id": "ST0065",
+    "pruned": [
+      "intent/st/ST0065/WP/01",
+      "intent/st/ST0065/WP/02",
+      "intent/st/ST0065/WP",
+      "intent/st/ST0065/_sources"
+    ],
+    "removed": [
+      "intent/st/ST0065/WP/01/info.md",
+      "intent/st/ST0065/WP/02/info.md",
+      "intent/st/ST0065/_catalogue-wp01.md",
+      "intent/st/ST0065/_catalogue-wp02.md",
+      "intent/st/ST0065/_draft-retirement-mechanics.md",
+      "intent/st/ST0065/_proposal-agents-md.md",
+      "intent/st/ST0065/_sources/mastering-claude-code-in-30-minutes-code-w-claude-companion--boris-cherny-anthropic.md",
+      "intent/st/ST0065/_sources/mastering-claude-code-in-30-minutes-code-w-claude-transcript--boris-cherny-anthropic.md",
+      "intent/st/ST0065/acceptance.md",
+      "intent/st/ST0065/info.md"
+    ],
+    "sigil": "STEELTHREAD",
+    "unlisted": true
+  }
+}

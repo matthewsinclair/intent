@@ -1,0 +1,15 @@
+{
+  "id": "01M1C7DNQCDQ7DMFD2MNNRPMF8",
+  "ts": "2026-08-31T15:36:18.415Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0193"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "getting-started tells the reader st edit design works, and it refuses on both binaries because design is not a member of a v3 thread"
+  }
+}

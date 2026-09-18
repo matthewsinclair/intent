@@ -1,0 +1,14 @@
+{
+  "id": "01M2T29YMBDEYYJEXK3T88MG8J",
+  "ts": "2026-09-18T10:51:57.454Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-04.1"
+  },
+  "payload": {
+    "text": "docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and its log attached to ST0078 under intent/st/ST0078/ and named from the page; the-store.md says that after a pull the hook runs intent sync --apply and that --to-store is the restore."
+  }
+}

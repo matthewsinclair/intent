@@ -1,0 +1,15 @@
+{
+  "id": "01M2SRRQQ8P1RT8RFR94MPVKT3",
+  "ts": "2026-09-18T08:05:16.140Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0451"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "cargo doc -p intentsvcs warns 67 times, 17 of them broken intra-doc links, so a doc build cannot gate under -D warnings"
+  }
+}

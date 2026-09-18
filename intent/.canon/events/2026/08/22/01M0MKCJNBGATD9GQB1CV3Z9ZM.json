@@ -1,0 +1,15 @@
+{
+  "id": "01M0MKCJNBGATD9GQB1CV3Z9ZM",
+  "ts": "2026-08-22T11:23:39.199Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0064"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "flag_reachability matches a flag id across the whole renderer, not per entry -- so wiring one command silently removes another from the inherited set"
+  }
+}

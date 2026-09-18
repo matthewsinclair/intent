@@ -1,0 +1,20 @@
+{
+  "id": "01M26FJKSVP1ZP1T8HPB5C53HZ",
+  "ts": "2026-09-10T20:19:04.123Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.hydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "hydrated": [
+      "intent/st/ST0073/impl.md"
+    ],
+    "id": "ST0073",
+    "pinned": false,
+    "rewritten": [],
+    "sigil": "STEELTHREAD"
+  }
+}

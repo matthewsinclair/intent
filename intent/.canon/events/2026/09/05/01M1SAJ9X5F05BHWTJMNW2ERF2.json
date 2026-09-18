@@ -1,0 +1,15 @@
+{
+  "id": "01M1SAJ9X5F05BHWTJMNW2ERF2",
+  "ts": "2026-09-05T17:41:23.495Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0267"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Acceptance-test citation check: unscoped to the thread, and silently exempt after close"
+  }
+}

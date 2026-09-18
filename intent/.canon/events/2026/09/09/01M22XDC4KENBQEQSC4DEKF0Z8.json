@@ -1,0 +1,16 @@
+{
+  "id": "01M22XDC4KENBQEQSC4DEKF0Z8",
+  "ts": "2026-09-09T11:03:54.774Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0065/02"
+  },
+  "payload": {
+    "from": "wip",
+    "reason": "Collapsed into ST0056/WP-15 by hv 2026-09-09. WP-15 (Skills catalogue triage, L, WIP, staffed by vc) already carries this WP's entire subject verbatim in its deliverable list -- the cross-reference check over chains_to: frontmatter, the /in-* names skills cite in each other's prose, and the rule IDs they name. WP-02 was an S-sized cover with Objective never written. Two homes for one concern, both WIP; the work continues in WP-15 and nothing is lost. Found by ic before either party sank effort; collapsing a WP is a scope call and this is hv's.",
+    "to": "cancelled"
+  }
+}

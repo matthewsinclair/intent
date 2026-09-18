@@ -1,0 +1,15 @@
+{
+  "id": "01M210P5B54DF2A03M65SQDKGW",
+  "ts": "2026-09-08T17:22:39.591Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0284"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the test suite leaks daemonised intentd processes: 27 orphans, 249 minutes of CPU, none answering"
+  }
+}

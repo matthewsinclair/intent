@@ -1,0 +1,15 @@
+{
+  "id": "01M0DYPBRD1XFWEKF290XG9J9M",
+  "ts": "2026-08-19T21:26:33.205Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/09"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The event log records the model and not the disk"
+  }
+}

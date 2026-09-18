@@ -1,0 +1,15 @@
+{
+  "id": "01M14SHP0E0XPCZGBP583Z864H",
+  "ts": "2026-08-28T18:19:08.981Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0126"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "rulings_check gates at exit 1 on findings while the runner documents the five register checks as report-only and reports exit 2"
+  }
+}

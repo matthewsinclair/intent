@@ -1,0 +1,15 @@
+{
+  "id": "01M2RA1ZB29AP8GPWQM4ZSXRY0",
+  "ts": "2026-09-17T18:28:55.778Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**BOARD TEXT IS FULL OF BACKTICKS, AND A DOUBLE-QUOTED SHELL ARGUMENT RUNS THEM** (2026-09-17, vc's, recorded here because every node writes board prose this way). vc was composing a board item whose text carried backticked phrases, the shell substituted them, and one of the phrases was vc's rebuild chain: the rebuild fired itself, hours early, from a sentence nobody had run. It happened to be the right rebuild at the right HEAD, so it was let finish -- the harm was luck, not design. **The safe form is the one this board already uses: write the text to a file and pass it as `\"$(cat <file>)\"`, because a command substitution's OUTPUT is never re-scanned for backticks.** The unsafe form is the inline one, `wb add doing \"... \\`intent foo\\` ...\"`, and it is unsafe in exactly the places board prose is richest -- verb names, paths, code spans. Single quotes are also safe but cannot carry an apostrophe, which board prose always has. Same class as watch-out 60's blind replace: the text is data, so move it by file and never through a quoting layer that can execute it."
+  }
+}

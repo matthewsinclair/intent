@@ -1,0 +1,14 @@
+{
+  "id": "01M292ZZW831QMFZP75PTF0AFH",
+  "ts": "2026-09-11T20:36:54.284Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/migration.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

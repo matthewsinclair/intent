@@ -1,0 +1,15 @@
+{
+  "id": "01M1NZZMN4B2KTPF1GP579KCYX",
+  "ts": "2026-09-04T10:38:42.861Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0233"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "runner_roster_check.sh reads an unstaged tool as an absent one, and prescribes deleting the roster row"
+  }
+}

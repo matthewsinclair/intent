@@ -1,0 +1,15 @@
+{
+  "id": "01M2R4F2HSHETDPPHGBGEMMAF5",
+  "ts": "2026-09-17T16:51:13.596Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0440"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent index status prints an incremental run's counts as the language's level 3, so an Elixir run that recompiled nothing reads matched 0 while every row stays stored"
+  }
+}

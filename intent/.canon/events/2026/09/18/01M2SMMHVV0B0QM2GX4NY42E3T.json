@@ -1,0 +1,15 @@
+{
+  "id": "01M2SMMHVV0B0QM2GX4NY42E3T",
+  "ts": "2026-09-18T06:53:04.763Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Land ic's two banks -- ON vc's WORD, AFTER dc's 0443. S.** (1) `refs/bank/ic/0445`, patch-id `fafc25ea7`: declares `discover`, `explore`, `daemon logs` and `daemon status` as `Hazard::ActsOnAmbientUserState` in `dual_path_conformance.rs`; `open --browser` is noted as read and not declared. Red/green judged by vc 06:52Z under an isolated HOME. Closes 0445. vc prunes the dead registry entry after it lands, not ic. (2) `refs/bank/ic/releasing/staleness-check-build`, patch-id `359fb50a9`: `reference_current_check.sh`, the release preflight call with `--allow-stale-reference`, its `manual` roster row, and the releasing.md paragraph. Once it lands, `build release` REFUSES until the docs/reference regeneration is committed. Each bank: rebase onto vc's hash, `git apply`, re-drive, one commit with its own paths only."
+  }
+}

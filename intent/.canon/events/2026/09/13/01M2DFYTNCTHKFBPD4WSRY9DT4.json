@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYTNCTHKFBPD4WSRY9DT4",
+  "ts": "2026-09-13T13:40:25.391Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0332"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The interface's audit findings: blank subcommand help, a hardcoded count in the agent guide, st show without the objective, two script defects"
+  }
+}

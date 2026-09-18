@@ -1,0 +1,15 @@
+{
+  "id": "01M1S3BCWNAMN0AHEBFDR2A4FW",
+  "ts": "2026-09-05T15:35:17.143Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0263"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": ".prettierignore's header states the retired prettier --write mechanism in the present tense, names a hook file that does not exist, and the grep that would check it returns the gate's own remedy string"
+  }
+}

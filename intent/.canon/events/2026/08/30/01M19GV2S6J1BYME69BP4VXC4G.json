@@ -1,0 +1,15 @@
+{
+  "id": "01M19GV2S6J1BYME69BP4VXC4G",
+  "ts": "2026-08-30T14:23:11.850Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0160"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "AC-00.11 names c51f10d5 for a defect that does not reproduce there, and AT-00.11 is blocked on a real positive control"
+  }
+}

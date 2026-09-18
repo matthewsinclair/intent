@@ -1,0 +1,15 @@
+{
+  "id": "01M2SV7JKKKS503FWW86QRB05P",
+  "ts": "2026-09-18T08:48:19.571Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on the final pair ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22 end to end, the four stops all on the banked list. Script, harness, split and the rehearsal log are on refs/bank/dc/trawl/. Released by hv's ST0078 ruling; then skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies first, and Devbin's tree must be clean. NO PUSH."
+  }
+}

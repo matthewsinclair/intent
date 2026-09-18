@@ -1,0 +1,15 @@
+{
+  "id": "01M1CS5M06JZJ563VA2VGYHYAJ",
+  "ts": "2026-08-31T20:46:28.872Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0200"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ext_root_dir has two byte-identical homes, and the comment authorising the second cannot be read by the check that refuses it"
+  }
+}

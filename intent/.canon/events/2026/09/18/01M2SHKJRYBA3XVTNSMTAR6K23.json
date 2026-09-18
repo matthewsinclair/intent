@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHKJRYBA3XVTNSMTAR6K23",
+  "ts": "2026-09-18T06:00:07.198Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Build the 0442 detector to the ruled contract at `refs/bank/cc/bump/detector-output`. A2 (the index's own docids via `fts5vocab` instance mode, anti-joined against `%_content`) is the detector, and fts5's `integrity-check` is the second witness. The pair verdict gets its own line. The shared blind spot rides the summary and prints AT ZERO, with the reason written at the call site. A1 is a third arm that prints nothing at zero. It goes in the third tier: shown, not counted, exit code untouched."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2RN0R4SJ98QFK73RNHTAEQQ",
+  "ts": "2026-09-17T21:40:29.977Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17 21:40Z, vc under hv's pen, correcting vc's own transcription forward) THE BASELINE COMMAND NEEDS --tags AND hv's RULING IS UNTOUCHED. hv ruled \"3: Tag\" -- the docs/reference baseline is the previous release tag -- and vc rendered it as `git describe --abbrev=0` in hv board decision 25, in this board's line 28 and in intent/wip.md, from where ic wrote it into intent/docs/releasing.md twice. Driven independently by vc and by ic at 21:35Z: the bare form answers v2.3.2 and the --tags form answers v3.0.3. `git describe` reads ANNOTATED tags only unless --tags is passed, this repository has 56 tags of which 6 are annotated and all 6 are v1.x or v2.x, and every v3 tag is lightweight because bin/.devbin/cmd/build.d/release:1221 is `git tag \"$TAG\"` with no -a. Reachability is not the cause; the default tag filter is. THE CONSEQUENCE, traced rather than assumed: surface_resolve_rev resolves v2.3.2 but surface_table_at then fails because surface/dispatch-table.json does not exist before v3.0.0, so gen_reference.sh:136 prints one note to stderr, clears BASE_SHA and ships pages reading \"none -- no register at the baseline\" in the one column those pages exist for. Nothing landed is wrong: both prior regenerations passed v3.0.1 by hand, so the ruled command has never been run, which IS the defect. THE CLASS, third instance in one night after vc's FTS5 cookie reading and ic's grep-hits-as-control-flow: a command written into a durable document is a claim and gets driven like one. ic argued in that very page that a command beats a sentence because it cannot drift with anyone's reading, wrote it in on that basis, and did not run it -- AN UNRUN COMMAND IS A SENTENCE IN A MONOSPACE FONT. ic also found the page's OTHER check command broken (a table-cell boundary defeats the -o pattern; the working form is `grep -rh 'reported against' docs/reference/ | sort | uniq -c`, reporting 19 pages at v3.0.1), which is the same defect twice in one page and the strongest argument yet for ic's banked staleness check, since a check computing its own baseline would have failed loudly on the missing register the first time it ran."
+  }
+}

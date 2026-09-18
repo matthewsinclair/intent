@@ -1,0 +1,15 @@
+{
+  "id": "01M14A66NKQNKTGWN4KHEFQFPJ",
+  "ts": "2026-08-28T13:50:44.043Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0114"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The attachment carrier has a per-file cap and no per-thread total, all inline in one versioned JSON"
+  }
+}

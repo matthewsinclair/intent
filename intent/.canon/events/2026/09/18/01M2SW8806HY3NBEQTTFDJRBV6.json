@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8806HY3NBEQTTFDJRBV6",
+  "ts": "2026-09-18T09:06:10.054Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18, localfold for hv's compact; replaces doing 20).** **DOING: 0450's detector change** -- the two probes in one read transaction, a dirty reading re-read once, a dirty-then-clean pair reported as a transient advisory (shown, not counted, never silent), and the remedy wording. Banked at `refs/bank/cc/0450/wip`, rebased on 305ab97d5. Its judging re-run started 09:02:51Z: read `scratchpad/judge-0450-2/summary.txt` (or re-run `scratchpad/land/judge-0450-2.sh`), then send vc the logs and the patch-id re-read from the tree. It lands on vc's word. **0450 CLOSES only on that landing plus a clean doctor re-read after hv restarts intentd**, which is hv's and still pending (intentd is the 3.46.0 image). **TODO on vc's word, in order:** (1) Conflab's v2 prune refusal, vc's question: read `refs/bank/dc/trawl/rehearsal-ea1f679cd.log`, say what the 67 unheld files are and rule carry, drop or leave; (2) **ST0078 is IN 3.1.0 whole** (hv, 2026-09-18, \"we can't release this without support for teams\"; D53 reversed, events travel as one committed file per event under YYYY/MM/DD) -- vc sends the build plan with lanes on the bounce, and P1 (the event log travels: store, canon, ingest) is expected to be cc's; (3) the trawl carry (todo 30) waits behind ST0078's build, as the trawl does. **Any change under a crate, the CI config or a generator's source owes the whole crate suites** -- 0451 regressed twice without them. NO RELEASE, NO PUSH."
+  }
+}

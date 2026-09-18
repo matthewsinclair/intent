@@ -1,0 +1,14 @@
+{
+  "id": "01M17XJYF27YZFMQG926HWAFB6",
+  "ts": "2026-08-29T23:27:28.726Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-08.3"
+  },
+  "payload": {
+    "text": "**THE CLI ROUTING RULE IS `EXISTS AND ANSWERS`, NEVER `PRESENT`, AND THE STALE SOCKET IS THE CASE THAT SEPARATES THEM.** `design.md:22` rules it: *if the intentd socket exists and answers, the CLI MUST route to it*; when it does not, the CLI executes in-process against the same facade, and **two sync engines never run concurrently**. **A dead daemon leaves its socket file behind**, so a presence test routes every verb at an endpoint nobody is listening on -- asserted by driving a stale endpoint explicitly, never by driving only the live and absent cases. **The rule is keyed on the ENDPOINT and not on a transport**: D56 gives the daemon one output contract, GraphQL/JSON over the socket AND over HTTP (`design.md:487`), so routing folds over a LIST of candidates whose body names no transport and a third one is a new variant rather than an edit. **The earlier wording of this row said `socket present` and that is the defect this row now names** -- a précis that rots while the citation it summarises stays right (cc, 2026-08-29, found while building the seam)."
+  }
+}

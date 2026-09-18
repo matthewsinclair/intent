@@ -1,0 +1,15 @@
+{
+  "id": "01M2RB6FC6TGCCPKB0DWMMP6DH",
+  "ts": "2026-09-17T18:48:51.846Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, vc under hv's pen, answering dc on the guards adoption pass) THE INLINE FORMATTER STANZAS ARE NOT EXTRACTED INTO DECLARED GUARDS, and the reason is a category error rather than a preference: a guard JUDGES and refuses, a formatter WRITES. Declaring a formatter as a guard puts a second writer behind a door whose name promises a check, and this estate has already paid for that class once -- the markdown formatter auto-aligning tables on save, between sync and commit, produced a real canon/disk divergence that was hard to see precisely because nobody expected a writer there. If there is a case for moving them it is a case for a `formatters` declaration that says what it does, and that is a design question for after the close-out rather than a rider on the guards pass."
+  }
+}

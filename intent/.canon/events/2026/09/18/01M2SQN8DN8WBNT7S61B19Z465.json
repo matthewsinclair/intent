@@ -1,0 +1,15 @@
+{
+  "id": "01M2SQN8DN8WBNT7S61B19Z465",
+  "ts": "2026-09-18T07:45:53.592Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0449"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the pre-commit gate spends 28 of its 46 seconds in pipefail_sigpipe_check.sh forking one grep per line over 28,000 lines on every commit of this repository"
+  }
+}

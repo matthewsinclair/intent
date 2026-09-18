@@ -1,0 +1,14 @@
+{
+  "id": "01M2DSNWY4PT69X30FQSEKSJVQ",
+  "ts": "2026-09-13T16:30:18.567Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-14.6"
+  },
+  "payload": {
+    "text": "Archival is the API's own state change: the write that archives a finished item or a handled message moves it out of the live bound, with no sweep, fold or scheduled pass, and what was archived stays a row. (Reworded 2026-09-13: minted as a transition on schedule; built as the state change AT-14.6 drives.)\n\n**MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.*"
+  }
+}

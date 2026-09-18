@@ -1,0 +1,15 @@
+{
+  "id": "01M0DH721ZYGB9KJ2AS9NXMTYG",
+  "ts": "2026-08-19T17:31:01.297Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "at.set",
+  "subject": {
+    "type": "at",
+    "id": "ST0057/AT-03.5"
+  },
+  "payload": {
+    "from": "red",
+    "to": "green"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M293003JGKM1HA3715FEJEQ9",
+  "ts": "2026-09-11T20:36:54.518Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/deferred.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

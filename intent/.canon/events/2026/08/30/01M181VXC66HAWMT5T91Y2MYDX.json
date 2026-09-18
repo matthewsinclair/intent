@@ -1,0 +1,15 @@
+{
+  "id": "01M181VXC66HAWMT5T91Y2MYDX",
+  "ts": "2026-08-30T00:42:16.244Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0150"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "claude skills list cannot see a skill directory canon has forgotten, so an orphan is invisible to the only instrument that looks"
+  }
+}

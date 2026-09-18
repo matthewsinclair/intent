@@ -1,0 +1,14 @@
+{
+  "id": "01M14FCK6J83K62KHJEGM3S0NE",
+  "ts": "2026-08-28T15:21:36.346Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0067/AC-00.1"
+  },
+  "payload": {
+    "evidence": "vc validation drive 2026-08-28: llm_serves_the_guide_and_the_rules 4/4 (identity assertion with length-and-content control), dispatch_ssot 18/18; built be3edf70"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0AN3HYX3GHW11SKSXEQ93NY",
+  "ts": "2026-08-18T14:41:16.303Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/08"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The mutation surface: write-by-address and the missing verbs"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0SH3S000C6F7JAX0HXM2C6M",
+  "ts": "2026-08-24T09:20:06.096Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0066"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent st resolves four of five status directories: _inbox/ is invisible to st show/list, ac gate, at lint and todo, so a resolver-blind spot reads as thread-absent"
+  }
+}

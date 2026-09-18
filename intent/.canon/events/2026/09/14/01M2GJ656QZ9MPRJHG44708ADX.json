@@ -1,0 +1,15 @@
+{
+  "id": "01M2GJ656QZ9MPRJHG44708ADX",
+  "ts": "2026-09-14T18:17:06.011Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0396"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "at edit's register row says --kind is deliberately absent, and the verb has taken it since 0146"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1753VCJHHM1FZCBVK45CW8A",
+  "ts": "2026-08-29T16:19:49.198Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-02.4"
+  },
+  "payload": {
+    "evidence": "vc 2026-08-29: docs/reference/ is emitted by intent/st/ST0056/parity/tools/gen_reference.sh, not hand-written. Every page carries a provenance header naming the generator, the generation time, the revision it describes (97c65c3e) and the baseline it compares against (80d8b2ca = v3.0.0). Verified: my own hand-typed family table in the earlier index was short by exactly 12 shipping commands, which is the defect the generator removes and the document now says so."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M283DFWJBFRY5V7QBS0N4B29",
+  "ts": "2026-09-11T11:25:02.232Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.close",
+  "subject": {
+    "type": "issue",
+    "id": "0159"
+  },
+  "payload": {
+    "from": "open",
+    "to": "closed"
+  }
+}

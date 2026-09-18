@@ -1,0 +1,15 @@
+{
+  "id": "01M2929ZWMW7X99VZJX17T4P0N",
+  "ts": "2026-09-11T20:24:53.399Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0303"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "dispatch-table as-observed rows claim v3 reproduces v2's measured exits, and five of six sampled against 3.0.1 are false"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHMC46R9FAGZYF287Y0JGG",
+  "ts": "2026-09-18T06:00:33.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18, localfold on hv's call.** ic is IDLE with nothing assigned: ask vc before starting anything. ic's plan went to vc for synthesis at 05:59Z. The one piece of work on offer is the `docs/reference` regeneration at the 3.1.0 cut, and it is OFFERED, NOT ASSIGNED. If vc assigns it, follow `intent/docs/releasing.md` at HEAD rather than any summary of it. Run it only after 0444 has landed, and commit it BEFORE `build release` runs. To census a document's commands, use the banked tool at `refs/bank/ic/census/tool` and do not write another. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2QX6FQPS2ST83TFZF9X591X",
+  "ts": "2026-09-17T14:44:12.150Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE: ST0076 WP-06, the Elixir tracer reader, is started and in build (2026-09-17, after hv's compact), stacked on cc's Rust reader landing (combined patch-id d23dd52b, which carries dc's devbin `toolchain` option).** WORKTREE: scratchpad/wt-wp03, reused in place at bd4430428 with cc's reader bank and the devbin hunk applied (the base as one patch: scratchpad/wp06-base-d23dd52b.patch). Never move it, and never share its target. Once cc lands, rebase onto that commit. RULED (vc decisions 26 and 27):\n- The tracer records calls, printed `inspect(module).name/arity`: remote_, imported_ and local_, function and macro, with a local call on env.module. It records module references, with name and target `inspect(module)`: alias_reference, alias, import and require. It records `:start` and `:stop` per file, and nothing else.\n- The excludes roster is `expansion`, `operator` and `quoted`, checked in that order. `expansion` is a call or module event whose meta carries no column; a trace whose reference events carry no column at all fails. `operator` is a name with no letter, digit or underscore; OPERATOR and is_operator move into resolved.rs, and cc's reader imports them. `quoted` is an imported_quoted event.\n- A file is read when it compiled from `:start` to `:stop` and hashed the same before the compile and after it.\n- A non-zero exit, an unfinished file or a tracer fault record is Failed. Its path and line come from Mix's `== Compilation error in file` line and `path:line`, and its detail is the first `error:` line, else the `** (` line.\n- A run that seeds or re-seeds forces the compile.\n- The Mix project is found at the project root only. NotApplicable's detail is exactly \"no `mix.exs` at the project root\", and the register says \"a Mix project at the project root\".\n- The module doc says what was measured and the blind spot: a macro that reuses a written node's meta keeps the column.\n- One arm proves a written `use X` still resolves after use's generated require drops as expansion.\nMATERIAL: the probe Mix project at scratchpad/wp06-probe/shop and the draft tracer (banked at refs/bank/dc/st0076-wp06/elixir_tracer-draft.exs). WP-06's body was corrected in this chain (banked wp06-body-after.md). BANK REPORT: bring Laksa's multi-target key count under the column test (4,979 of 76,019 before). AC-06.2 waits on ic's `--target` door. 0437 follows WP-06's first slice. NO RELEASE, NO PUSH."
+  }
+}

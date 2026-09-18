@@ -1,0 +1,14 @@
+{
+  "id": "01M1HPXMVR3C1EK8JYDE7A0KBV",
+  "ts": "2026-09-02T18:43:22.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-17.17"
+  },
+  "payload": {
+    "text": "**A LEND RETURNS THE TERMINAL ONLY AFTER AN OPERATOR SIGNAL WHEN THE BORROWER DOES NOT HOLD THE SCREEN ITSELF, AND THE ORDER IS ASSERTED.** (hv ruled `/{cmd}` 2026-09-02; scoped by ic, minted by vc under hv's pen; NARROWED 2026-09-02 18:4xZ -- see below.) `Hand` and `Open` need no signal because the child HOLDS the screen until the operator quits it; **a CLI command prints and returns instantly, so an unguarded lend repaints over its own output.** **THE DISCRIMINATOR IS WHO HOLDS THE SCREEN, NOT WHICH VARIANT IT IS**: a borrower that blocks needs no signal, one that returns does -- stated that way it binds the next borrower nobody has written yet. **THE ASSERTED PROPERTY IS THE ORDER, AND IT IS WITNESSABLE WITHOUT A TERMINAL**: terminal restored, command ran, **operator waited for**, terminal retaken -- `Session` is a four-method trait with ONE production call site and `Borrowed` is already driven against a recorder, so the seam exists and the shape is in use. **THE ORDERING ARM IS EXACTLY THE HALF MOST LIKELY TO BE TIDIED AWAY, WHICH IS WHY IT MUST BE TEST-BACKED RATHER THAN DEMONSTRATED: a `read_line` under a `println!` looks precisely like debug scaffolding somebody left behind**, and a demonstration nobody re-runs will not stop the next reader deleting it. **NARROWED FROM A ROW THAT CARRIED TWO PROPERTIES UNDER ONE ID.** As first minted it also claimed the OUTPUT IS LEGIBLE ON A REAL SCREEN and declared its whole reach unwitnessable on that ground -- **which was true of the painting and false of the ordering, and the contract caught the pair by refusing a non-test AT over a test-backed row.** The painting half is now `AC-17.18`. **A ROW WITH TWO SUBJECTS CANNOT STATE ITS OWN REACH, because the reach differs by subject.**"
+  }
+}

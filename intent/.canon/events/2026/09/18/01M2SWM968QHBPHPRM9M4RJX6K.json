@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWM968QHBPHPRM9M4RJX6K",
+  "ts": "2026-09-18T09:12:44.491Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0078/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result"
+  }
+}

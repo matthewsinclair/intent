@@ -1,0 +1,15 @@
+{
+  "id": "01M212CN5AGVG956WN3GVF40PW",
+  "ts": "2026-09-08T17:52:25.261Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0286"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "0282's hygiene check counts four sections and names a remedy for one, so on vc's board the warning cannot be cleared by doing what it says"
+  }
+}

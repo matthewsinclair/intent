@@ -1,0 +1,15 @@
+{
+  "id": "01M22XF1VQ3CTRBT1ASXEM6JBM",
+  "ts": "2026-09-09T11:04:49.786Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0290"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "facade.rs is 9,403 lines across 19 top-level functions -- read it before proposing a shape, and it is the worse of the two"
+  }
+}

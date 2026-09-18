@@ -1,0 +1,20 @@
+{
+  "id": "01M2SWQWVCGRBBRGM3QQ0GV7H6",
+  "ts": "2026-09-18T09:14:42.924Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "CHAIN END cc: 0450 landed at d634f0418 (landed patch-id 4094e77bc, the judged one). No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean.",
+    "recipients": [
+      "dc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2SSG7ZKCQ2EWYXB304VSNB1",
+  "ts": "2026-09-18T08:18:06.451Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 08:15Z, vc under hv's pen) 0446 IS FIXED IN ONE PREDICATE AND ITS THREE CALLERS MOVE TOGETHER. `differs_only_in_banner_version` becomes `differs_only_in_renderer_owned_text` in views.rs, masking the trailing banner line whatever its version or wording and the two Acceptance cover-paragraph prefixes; the organize dehydration gate, doctor's StaleRender and the 0385 overwrite check all read it, and the egest empty-estate guard measures its shrink on authored text. Forking a second predicate for organize alone was refused as the Highlander alternative. What it cannot see is stated in the landing commit: a future change to a cover-paragraph PREFIX re-opens the class and the arms would say so; a hand edit inside a cover-paragraph line is masked by design because the line is renderer-generated. Driven red on a project the v3.0.3 keg rendered (view-skew, blocking) and green on the fix (stale-render, nothing blocking), and re-driven on the four trawl estates it stopped. Landed f21a61090, closed 3a834bccb; the trawl's first dependency is discharged."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2434N7N0TVA0H02TM24T2X3",
+  "ts": "2026-09-09T22:03:15.063Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0299"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "0267's fix landed and its diagnostic did not -- the cross-thread refusal is byte-identical to the no-id refusal, and for the cross-thread case its sentence is false"
+  }
+}

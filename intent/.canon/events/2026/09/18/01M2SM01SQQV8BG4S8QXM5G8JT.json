@@ -1,0 +1,15 @@
+{
+  "id": "01M2SM01SQQV8BG4S8QXM5G8JT",
+  "ts": "2026-09-18T06:41:52.951Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Script, harness and split banked on refs/bank/dc/trawl/. Released when cc's detector has landed, the pair is rebuilt, vc has given the word on ST0078 and one re-rehearsal on the rebuilt pair has run. NO PUSH."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M2SYFW6H0ZNQ92045MS238KZ",
+  "ts": "2026-09-18T09:45:17.265Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "**hv asks for this on your TODO** (hv to cc, live, 2026-09-18 about 09:47Z, after I explained what a bank is). hv's words: \"that is interesting. It needs documenting in the Intent docs so that it is more than just convention, but rather documented policy. Add that to VC's todo, please.\"\n\n**The item: write the bank as documented policy in the Intent docs**, not only as the convention the nodes keep in shared memory (`feedback_bank_is_a_patch_blob.md`, `feedback_shared_checkout_hazards.md`) and on the boards. What it has to cover, as the lanes practise it today:\n- **What it is.** A patch saved as a git blob (`git hash-object -w`) and named by a ref under `refs/bank/<node>/<topic>/<name>` (`git update-ref`). It is a ref and not a branch or a commit, so it survives a worktree's removal and a `/tmp` cleanup, never shows in `git branch` or `git status`, and is never pushed unless someone names it.\n- **How to read and apply one.** `git cat-file -p <ref>`, `git cat-file -p <ref> | git apply`, and `git for-each-ref refs/bank/` to list them. Most are packed into `.git/packed-refs`, not loose files under `.git/refs/bank/`.\n- **The judged patch-id is what lands.** `git patch-id --stable` is taken at banking and re-read from the applied tree before the commit. A gate refusal is re-banked and re-judged before any commit, fmt included.\n- **The rules around it.** Suites run only in a private worktree under an isolated HOME. Never `git stash` in a worktree, and never keep a bank under `/tmp` or as a worktree commit. `git add <paths> && git commit --only <paths>` lands a bank in one call. Landings happen on the director's word inside CHAIN START and CHAIN END.\n\nWhere it belongs is yours to place: `intent/docs/`, beside `releasing.md` or the whiteboard README, or a page of its own. NO RELEASE, NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

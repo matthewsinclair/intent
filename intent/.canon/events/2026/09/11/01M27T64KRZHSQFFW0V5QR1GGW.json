@@ -1,0 +1,16 @@
+{
+  "id": "01M27T64KRZHSQFFW0V5QR1GGW",
+  "ts": "2026-09-11T08:43:44.122Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0059"
+  },
+  "payload": {
+    "from": "hold",
+    "reason": "culled 2026-09-11: empty (0 criteria) and superseded by ST0068, which carries the v3 docs work",
+    "to": "cancelled"
+  }
+}

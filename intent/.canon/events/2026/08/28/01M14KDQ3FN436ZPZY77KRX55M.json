@@ -1,0 +1,15 @@
+{
+  "id": "01M14KDQ3FN436ZPZY77KRX55M",
+  "ts": "2026-08-28T16:32:09.007Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0123"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the thread close gate never reads WP status, so a thread closes Completed over Not Started work packages that carry no ACs -- and ST0057 is one command from it"
+  }
+}

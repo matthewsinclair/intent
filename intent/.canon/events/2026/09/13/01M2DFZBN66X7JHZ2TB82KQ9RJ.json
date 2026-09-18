@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZBN66X7JHZ2TB82KQ9RJ",
+  "ts": "2026-09-13T13:40:42.793Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0342"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "View-skew rot: doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it"
+  }
+}

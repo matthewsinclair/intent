@@ -1,0 +1,15 @@
+{
+  "id": "01M269X6GXD234SNGHN5YFPXNB",
+  "ts": "2026-09-10T18:39:59.519Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0302"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a live daemon can outlive its own socket path: unreachable, still holding the store, and indistinguishable from a clean machine"
+  }
+}

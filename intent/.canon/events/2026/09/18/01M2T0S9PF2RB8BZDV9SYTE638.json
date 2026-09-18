@@ -1,0 +1,14 @@
+{
+  "id": "01M2T0S9PF2RB8BZDV9SYTE638",
+  "ts": "2026-09-18T10:25:23.155Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-05.2"
+  },
+  "payload": {
+    "text": "The plan handles a pull's aftermath in order: a branch behind its upstream is reported and nothing is run; a store that lags canon is ingested; an unmerged generated view is regenerated from the merged canon and staged; a canon add/add is repaired by renumbering the local id to the next free one; a canon content conflict asks for a side; stale views are regenerated; a stale index is refreshed (the incremental reconcile search runs, never the full rebuild); doctor runs last and its verdict is the exit code."
+  }
+}

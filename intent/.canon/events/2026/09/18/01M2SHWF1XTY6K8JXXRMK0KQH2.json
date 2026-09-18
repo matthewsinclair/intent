@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHWF1XTY6K8JXXRMK0KQH2",
+  "ts": "2026-09-18T06:04:58.302Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 30
+  }
+}

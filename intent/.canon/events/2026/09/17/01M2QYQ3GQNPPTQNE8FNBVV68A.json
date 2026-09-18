@@ -1,0 +1,15 @@
+{
+  "id": "01M2QYQ3GQNPPTQNE8FNBVV68A",
+  "ts": "2026-09-17T15:10:45.271Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen. (1) ISSUE 0437 took the strictly narrower pattern, `Result<[^<>]*, *String>` and its Box<dyn Error> twin: cc measured that the old `[^>]*` stops at an inner `>`, so a generic first parameter never fired, and that vc's balanced pattern would strike six existing lines in four files (render.rs three, daemon.rs, graphql.rs, legacy.rs), five of them not violations by the rule's own words; a subset pattern strikes nothing new anywhere, `Result<Vec<u8>, String>` is pinned as not firing so that widening is a decision, and the six lines are in the issue's close note and not filed. (2) WHETHER A LANGUAGE APPLIES IS DECIDED AT ANSWER TIME, NEVER STORED: a search answer names a declared, carried language as unresolved, failed or missing only where the index holds the manifest its reader resolves from (Rust: any indexed Cargo.toml; Elixir: mix.exs at the root), through one seam on the Resolver trait that the reader's own not-applicable test also reads; a run of a language this build does not carry is named as recorded. The core still records a named not-applicable run as failed and index status says so; the answer does not, because no run can ever store there and the alarm would be permanent. This estate declares elixir and holds no mix.exs. (3) The words for unresolved name the verb as a person's (it runs the project's build and is withheld from the MCP tier), never as a next step. (4) AC-05.1's last clause is the run's record and AC-07.1 alone carries the envelope. (5) The all-estate board trawl's first pass is cc's, in scratch clones over the registry's estates, with the frozen v2 checkout named as excluded, read-only store copies checked by mtime, -wal and integrity_check, and a worklist by estate and by class of uncarried unit for hv."
+  }
+}

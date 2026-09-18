@@ -1,0 +1,15 @@
+{
+  "id": "01M1CS5MYGQ0VTXPJ9K2Y98W0T",
+  "ts": "2026-08-31T20:46:29.843Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0202"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a scaffolded project has no .claude/settings.json, though the template exists"
+  }
+}

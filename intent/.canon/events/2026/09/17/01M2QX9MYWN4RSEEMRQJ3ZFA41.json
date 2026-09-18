@@ -1,0 +1,14 @@
+{
+  "id": "01M2QX9MYWN4RSEEMRQJ3ZFA41",
+  "ts": "2026-09-17T14:45:55.807Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-05.1"
+  },
+  "payload": {
+    "text": "Rust level 3, on an explicit verb only and never from intentd unasked: rust-analyzer's SCIP export is read into the store, and a resolved row always joins a written reference (same file, line and name); `intent index status` counts matched, unmatched, dropped and ambiguous, and the paths whose resolved rows are stale; the export builds into a directory of Intent's own under `intent/.cache`; a missing rust-analyzer is recorded as missing with its reason and named by `intent index resolve` and `intent index status`, never stored as a current run that resolved nothing."
+  }
+}

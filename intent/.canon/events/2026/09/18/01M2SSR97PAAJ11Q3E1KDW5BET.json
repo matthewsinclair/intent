@@ -1,0 +1,15 @@
+{
+  "id": "01M2SSR97PAAJ11Q3E1KDW5BET",
+  "ts": "2026-09-18T08:22:30.347Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0453"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "no verb repairs an unreadable search-index table in place: intent index rebuild opens the store through the same read it would repair"
+  }
+}

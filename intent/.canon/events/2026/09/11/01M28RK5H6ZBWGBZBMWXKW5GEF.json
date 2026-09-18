@@ -1,0 +1,14 @@
+{
+  "id": "01M28RK5H6ZBWGBZBMWXKW5GEF",
+  "ts": "2026-09-11T17:35:08.329Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0051/AC-01.2"
+  },
+  "payload": {
+    "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

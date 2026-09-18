@@ -1,0 +1,21 @@
+{
+  "id": "01M2A8CNSJ7N3NKH3JR7QSJFCX",
+  "ts": "2026-09-12T07:30:27.255Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.hydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "hydrated": [
+      "intent/st/ST0066/acceptance.md",
+      "intent/st/ST0066/info.md"
+    ],
+    "id": "ST0066",
+    "pinned": true,
+    "rewritten": [],
+    "sigil": "STEELTHREAD"
+  }
+}

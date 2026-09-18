@@ -1,0 +1,15 @@
+{
+  "id": "01M0T4XSB39PG4YG3QD4E850VF",
+  "ts": "2026-08-24T15:06:21.256Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0069"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent sync's output misdescribes its own scope, twice: a thread-scoped --to-store says the STORE was replaced, and an unscoped one says the store and extract AGREE while the store holds 0 issues and the extract 47"
+  }
+}

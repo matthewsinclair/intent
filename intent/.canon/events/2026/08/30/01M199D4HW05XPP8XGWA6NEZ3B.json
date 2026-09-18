@@ -1,0 +1,15 @@
+{
+  "id": "01M199D4HW05XPP8XGWA6NEZ3B",
+  "ts": "2026-08-30T12:13:21.095Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0159"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "FiatRecord.at is empty in the store for every kind, and never stamped at all for ST and WP"
+  }
+}

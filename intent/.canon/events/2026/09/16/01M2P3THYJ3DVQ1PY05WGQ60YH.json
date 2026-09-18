@@ -1,0 +1,15 @@
+{
+  "id": "01M2P3THYJ3DVQ1PY05WGQ60YH",
+  "ts": "2026-09-16T22:01:32.373Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Surfaces: search by kind and container, qualified context naming its level, SQL columns, MCP parameters and instructions"
+  }
+}

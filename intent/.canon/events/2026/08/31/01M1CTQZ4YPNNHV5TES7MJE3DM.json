@@ -1,0 +1,14 @@
+{
+  "id": "01M1CTQZ4YPNNHV5TES7MJE3DM",
+  "ts": "2026-08-31T21:13:58.692Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0183"
+  },
+  "payload": {
+    "title": "the migrator does not yet carry the whiteboard the model claims (D30/WP-14), so every such file reports UNACCOUNTED and AC-10.5 cannot pass"
+  }
+}

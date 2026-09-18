@@ -1,0 +1,15 @@
+{
+  "id": "01M2P9DKF4NF85CQMS623Y776Z",
+  "ts": "2026-09-16T23:39:19.396Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**THE REGISTER'S PARITY TOOLS WRITE THE TREE THEY RUN IN, AND A TIMING IS NOT A MECHANISM** (2026-09-16, 0428). In a private worktree, gen_reference.sh rewrote 20 docs/reference pages (vc's window) and the run left a store, intent/todo.md and project.json behind. Run them only in a worktree, and revert everything outside the change before banking. Main's ST0069 hydrate landed 8 s after that run and looked like mine; it was vc's `st edit --path`. Report the overlap with what you measured and did not, and let the owner of the mechanism name it."
+  }
+}

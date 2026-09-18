@@ -1,0 +1,15 @@
+{
+  "id": "01M144YTPDCNG5WMEA9XCRSMHB",
+  "ts": "2026-08-28T12:19:20.226Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0104"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor prints its summary last and spends 55% of its bytes repeating four remedy sentences"
+  }
+}

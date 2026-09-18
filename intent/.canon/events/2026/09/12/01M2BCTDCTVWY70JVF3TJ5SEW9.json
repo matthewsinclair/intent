@@ -1,0 +1,15 @@
+{
+  "id": "01M2BCTDCTVWY70JVF3TJ5SEW9",
+  "ts": "2026-09-12T18:07:06.142Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0308"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The pre-commit gate never runs intent doctor, so a commit onto a red estate is accepted in silence"
+  }
+}

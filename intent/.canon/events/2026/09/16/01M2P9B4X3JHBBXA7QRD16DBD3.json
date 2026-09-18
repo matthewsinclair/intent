@@ -1,0 +1,15 @@
+{
+  "id": "01M2P9B4X3JHBBXA7QRD16DBD3",
+  "ts": "2026-09-16T23:37:58.947Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**dc's lessons of 2026-09-16, late.** (1) Read the WHOLE diff of a shared file before committing it: 0426's close record swept vc's uncommitted `+STEELTHREAD:ST0069` line from .intentfiles into e1594301b. (2) A PostToolUse hook's plain exit-0 stdout never reaches the model; only `hookSpecificOutput.additionalContext` does (driven with a nonce in a headless `claude -p`, with a marker file proving the plain hook fired). (3) In bash, `${s:$i:1}` in a loop is quadratic; a hook that runs on every tool call declines by a cheap `case` and a length bound before walking (vc timed 6 KB at 3.7 s under 3.2). (4) `rsync --exclude '.git/'` matches at every depth and drops `deps/*/.git`, so Mix reports git deps as unavailable; anchor it as `/.git/`. (5) An Elixir compile tracer receives bare atoms (`:start`, `:stop`) as well as tuples, and a tracer that raises aborts the project's compile. (6) A `claude -p` variadic flag such as `--allowedTools` swallows a prompt placed after it; put the prompt first."
+  }
+}

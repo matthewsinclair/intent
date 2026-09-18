@@ -1,0 +1,16 @@
+{
+  "id": "01M27T63ESGWMCQBM2780CSHKS",
+  "ts": "2026-09-11T08:43:42.941Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0056/14"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "culled 2026-09-11 under hv's instruction to end the acceptance loop: every criterion in this WP was already descoped to ST0069 (post-cut), so the WP has no contract left in 3.0.1",
+    "to": "cancelled"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1KYRTE7KGFD2B8BM5ZPGRSR",
+  "ts": "2026-09-03T15:39:01.961Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0071"
+  },
+  "payload": {
+    "title": "help"
+  }
+}

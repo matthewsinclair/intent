@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWM6VFNKZ526R8ACFG3MK4",
+  "ts": "2026-09-18T09:12:42.098Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0078/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)"
+  }
+}

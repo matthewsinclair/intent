@@ -1,0 +1,14 @@
+{
+  "id": "01M28RJB8S8295JTPYF9VBX04D",
+  "ts": "2026-09-11T17:34:41.436Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0044/AC-03.3"
+  },
+  "payload": {
+    "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

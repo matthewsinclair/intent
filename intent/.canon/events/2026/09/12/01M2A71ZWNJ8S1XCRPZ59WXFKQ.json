@@ -1,0 +1,15 @@
+{
+  "id": "01M2A71ZWNJ8S1XCRPZ59WXFKQ",
+  "ts": "2026-09-12T07:07:08.568Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/22"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Daemon-served search with daemonless parity"
+  }
+}

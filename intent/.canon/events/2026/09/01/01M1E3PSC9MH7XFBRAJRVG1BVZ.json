@@ -1,0 +1,14 @@
+{
+  "id": "01M1E3PSC9MH7XFBRAJRVG1BVZ",
+  "ts": "2026-09-01T09:09:51.628Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-12.2"
+  },
+  "payload": {
+    "text": "`organize` hydrates and dehydrates a realised issue by the same route it does a thread, and WP-11 default declaration gains OPEN issues -- hv 2026-08-26: default means the only things in `.intentfiles` are OPEN, ie STs and ISSUES. MINTED 2026-09-01 (vc). Chains behind AC-12.1: there is nothing to hydrate until the form exists. A SECOND ROUTE would be the defect here rather than the feature -- the thread realisation path already exists and an issue arriving through a parallel one is the two-resolver shape this thread spent WP-07 removing."
+  }
+}

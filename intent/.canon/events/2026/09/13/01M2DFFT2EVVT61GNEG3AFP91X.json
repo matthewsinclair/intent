@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFFT2EVVT61GNEG3AFP91X",
+  "ts": "2026-09-13T13:32:13.265Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0321"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intentd.log lines carry no timestamp, so a restart's cause cannot be tied to a time"
+  }
+}

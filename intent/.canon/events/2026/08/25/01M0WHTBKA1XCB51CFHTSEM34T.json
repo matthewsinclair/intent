@@ -1,0 +1,15 @@
+{
+  "id": "01M0WHTBKA1XCB51CFHTSEM34T",
+  "ts": "2026-08-25T13:30:08.997Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0082"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "sync --to-disk silently does not materialise a new attachment, so a free file authored in canon alone never reaches disk"
+  }
+}

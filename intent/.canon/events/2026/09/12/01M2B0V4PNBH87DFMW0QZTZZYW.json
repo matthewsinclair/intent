@@ -1,0 +1,14 @@
+{
+  "id": "01M2B0V4PNBH87DFMW0QZTZZYW",
+  "ts": "2026-09-12T14:37:47.100Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-20.4"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0069/design.md grammar table (measured 2026-09-12, subject ba3992672) + e725b85c0"
+  }
+}

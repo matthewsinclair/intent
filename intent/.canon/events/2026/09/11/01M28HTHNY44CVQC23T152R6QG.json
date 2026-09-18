@@ -1,0 +1,16 @@
+{
+  "id": "01M28HTHNY44CVQC23T152R6QG",
+  "ts": "2026-09-11T15:36:50.113Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/13"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Descoped to ST0069/02 by hv, 2026-09-11 (decision 8): not in 3.0.1",
+    "to": "cancelled"
+  }
+}

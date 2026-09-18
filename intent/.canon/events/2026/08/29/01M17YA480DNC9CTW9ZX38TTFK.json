@@ -1,0 +1,14 @@
+{
+  "id": "01M17YA480DNC9CTW9ZX38TTFK",
+  "ts": "2026-08-29T23:40:09.665Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.3"
+  },
+  "payload": {
+    "text": "**`intentd` SHIPS IN THE RELEASE: project registry, GraphQL, mgmt plane, debounced watching, CLI-owned launchd lifecycle.** **THE TRANSPORT IS DELIBERATELY NOT NAMED HERE, AND THE OMISSION IS THE AMENDMENT.** This row read `unix-socket GraphQL` until 2026-08-29, when D56 was ruled twice and settled on ONE OUTPUT CONTRACT -- **GraphQL/JSON over the socket AND over HTTP** (`design.md:487`) -- leaving a ratified criterion and a later ruling carrying two values with nothing saying which was current. **A criterion that RESTATES a decision it does not own becomes a second home the moment that decision moves**, so this row cites D56 and asserts only what it owns: that the five capabilities ship. Found by cc while building the routing seam; amended on hv's ruling 2026-08-29. **The listener's ADDRESS is not a constant either** -- the daemon binds `127.0.0.1:0`, the kernel assigns, and the daemon writes its address into its state directory beside the socket path every client already reads (hv, 2026-08-29), so no port literal exists to go stale."
+  }
+}

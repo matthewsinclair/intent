@@ -1,0 +1,15 @@
+{
+  "id": "01M1A716T4R17NHG2EN4EJRR4M",
+  "ts": "2026-08-30T20:51:01.065Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0174"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "two pre-commit guards take their population from the worktree or ambient index, so any node's uncommitted work blocks every other node"
+  }
+}

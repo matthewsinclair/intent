@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ6HJR556QXXC7KGT36DM",
+  "ts": "2026-09-13T13:40:38.436Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0339"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ST0056's design docs versus the build: todo.window_hours applied by nothing, an export schema nothing publishes, a no-op clippy arm behind a critical rule"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M19T90MVP1TEVE6MYEP05MG2",
+  "ts": "2026-08-30T17:08:05.406Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0170"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "address::VIEW_NAMES and Project::classify overlap with nothing asserting they agree"
+  }
+}

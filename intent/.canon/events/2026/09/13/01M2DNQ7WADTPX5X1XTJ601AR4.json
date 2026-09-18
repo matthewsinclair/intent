@@ -1,0 +1,15 @@
+{
+  "id": "01M2DNQ7WADTPX5X1XTJ601AR4",
+  "ts": "2026-09-13T15:21:08.237Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0356"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the semantic tier counts hits it cannot return when no embedder is configured"
+  }
+}

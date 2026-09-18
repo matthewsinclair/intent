@@ -1,0 +1,15 @@
+{
+  "id": "01M2RFPXM26Z77X7Z9YRYBMWCP",
+  "ts": "2026-09-17T20:07:45.026Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, vc under hv's pen, adopting dc's route after dc refused the one vc proposed) AN ATTACHMENT IS EDITED AT ITS OWN PATH AND ATTACHED FROM THAT SAME PATH, AND THE FILE IS COMMITTED WITH ITS CANON TOGETHER. `intent st attach <ID> <name>.md --from <that same path>` then makes the store, canon and disk converge in one move, and no realisation verb is involved at all -- which matters because the realisation verb would pin (see vc watchout 20). Writing the draft to a scratch file and attaching from there also works and leaves the tracked disk file holding the old text, which is drift in the other direction. Driven on ST0076's `ac-06.2-drives.md` at `b9cf92502` with all four readings taken either side: disk sha moved to the draft's, canon sha moved, `.intentfiles` stayed at zero lines for the thread, doctor stayed at 0 findings. **`st attach` does NOT pin; the pin is `hydration`'s alone.** dc carried this rule from ST0074's `design.md` going out of step, which is why dc reached it and vc did not."
+  }
+}

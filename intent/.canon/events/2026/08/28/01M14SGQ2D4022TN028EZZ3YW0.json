@@ -1,0 +1,15 @@
+{
+  "id": "01M14SGQ2D4022TN028EZZ3YW0",
+  "ts": "2026-08-28T18:18:38.208Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0124"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "v2 ingest discards authored prose that sits BETWEEN two recognised fields: the surviving row is grammatical and reads complete"
+  }
+}

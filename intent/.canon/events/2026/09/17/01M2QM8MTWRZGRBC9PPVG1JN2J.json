@@ -1,0 +1,15 @@
+{
+  "id": "01M2QM8MTWRZGRBC9PPVG1JN2J",
+  "ts": "2026-09-17T12:08:05.727Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0433"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb pickup records the session id only when --session is passed, so a node's header names a dead session"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M2JKJ5C25VPZWF8WJF69ERWR",
+  "ts": "2026-09-15T13:19:36.838Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0070"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Cancelled by hv at the close-out of 2026-09-15 (intent/history/20260915-hv-rulings.md, item 7): its objective was never written. Reinstate with intent st reinstate ST0070 if LLM config rationalisation is taken up.",
+    "to": "cancelled"
+  }
+}

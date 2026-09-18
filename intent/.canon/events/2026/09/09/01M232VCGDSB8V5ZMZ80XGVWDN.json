@@ -1,0 +1,14 @@
+{
+  "id": "01M232VCGDSB8V5ZMZ80XGVWDN",
+  "ts": "2026-09-09T12:38:56.783Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0292"
+  },
+  "payload": {
+    "title": "1,789 commits carry banned Claude attribution and no commit-msg hook exists to refuse it -- this issue was originally filed with its sign inverted"
+  }
+}

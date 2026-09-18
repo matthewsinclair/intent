@@ -1,0 +1,15 @@
+{
+  "id": "01M1CB12RJ7Y43RGHYYZ31B0QK",
+  "ts": "2026-08-31T16:39:20.088Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0196"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "int build all deletes the shared binary pair before building and restores nothing when the build or verification fails"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5KJTTEZ1QQVHFGTREBM27",
+  "ts": "2026-09-14T14:37:14.521Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0380"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "wb migrate writes no views and names no step that does, so a migrated board is left as view-skew and the doctor gate refuses every commit"
+  }
+}

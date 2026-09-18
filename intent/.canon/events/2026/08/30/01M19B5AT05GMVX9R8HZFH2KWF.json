@@ -1,0 +1,14 @@
+{
+  "id": "01M19B5AT05GMVX9R8HZFH2KWF",
+  "ts": "2026-08-30T12:43:56.288Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0066/AC-00.4"
+  },
+  "payload": {
+    "evidence": "driven 2026-08-30 (dc) as PAIRED RUNS PER KIND, on a fresh fixture each, against the fixed binary -- and the AT kind was UNMEASURABLE until 0158 landed, which the row's own text is what forced. The pairs, gate line before -> after: ST `BLOCKED 0/2 satisfied` -> `PASS 0/2 satisfied, 2 fiat-closed`; WP `BLOCKED 0/2, unsat AC-00.1 AC-01.1` -> `BLOCKED 0/2 satisfied, 1 fiat-closed, unsat AC-00.1`; AC same before -> `BLOCKED 0/2 satisfied, 1 fiat-closed, unsat AC-01.1`; AT same before -> `BLOCKED 0/2 satisfied, 1 blocked by a fiat-closed test`. EVERY KIND MOVES THE LINE THAT CARRIES THE COUNT AND IS MARKED IN IT, never in a footnote beside it. THE AT KIND MOVES THE REASON AND DELIBERATELY NOT THE SATISFIED COUNT, which is the correct behaviour rather than a shortfall: vc ruled `at fc` a RECORDING surface, so a fiat close on one covering test must not satisfy the criterion above it -- the ruling would be recorded a level below where anyone reads it. Before 0158 the AT kind moved NOTHING and the row would have been recorded UNMEASURED rather than passing, per its own instruction that a kind whose number cannot be made to move is not thereby passing. Each pair carries its own control: an ordinary red cover produces no fiat clause, and the satisfied count is asserted NOT to move on the AT arm. Witnessed by `a_criterion_blocked_by_a_fiat_closed_test_says_so_where_it_is_counted` and `the_close_gate_counts_a_fiat_close_apart_from_a_satisfaction`, both driven red pre-fix."
+  }
+}

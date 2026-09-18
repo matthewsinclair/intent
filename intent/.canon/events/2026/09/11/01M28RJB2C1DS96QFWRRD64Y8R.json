@@ -1,0 +1,12 @@
+{
+  "id": "01M28RJB2C1DS96QFWRRD64Y8R",
+  "ts": "2026-09-11T17:34:41.230Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.reinstate",
+  "subject": {
+    "type": "ac",
+    "id": "ST0044/AC-03.3"
+  },
+  "payload": {}
+}

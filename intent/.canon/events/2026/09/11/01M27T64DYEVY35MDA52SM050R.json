@@ -1,0 +1,16 @@
+{
+  "id": "01M27T64DYEVY35MDA52SM050R",
+  "ts": "2026-09-11T08:43:43.937Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0046"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "culled 2026-09-11: v2-era modules thread, never started; the v3 gap it would have covered is issue 0067 and hv ruled modules out of 3.0.1",
+    "to": "cancelled"
+  }
+}

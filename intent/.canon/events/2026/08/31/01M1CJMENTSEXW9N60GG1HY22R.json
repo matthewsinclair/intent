@@ -1,0 +1,14 @@
+{
+  "id": "01M1CJMENTSEXW9N60GG1HY22R",
+  "ts": "2026-08-31T18:52:14.918Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/impl.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

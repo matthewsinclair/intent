@@ -1,0 +1,15 @@
+{
+  "id": "01M2R8E7Y35D6E8JPXDSGXE33Q",
+  "ts": "2026-09-17T18:00:40.643Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A PARITY GENERATOR RESOLVES ITS REVISION IN THE WORKING DIRECTORY'S REPOSITORY, NOT IN THE TREE IT LIVES IN** (2026-09-17, hold 10). `lib_surface.sh`'s `surface_resolve_rev` and `surface_table_at` both read `git rev-parse --show-toplevel` from the cwd, so `gen_reference.sh` and `gen_cut_surface.sh` run from another repository exit 1 with an EMPTY log, which reads as a crash with no cause. Run them from the tree they describe, with `--out` into scratch, and read the diff before writing the tree. **`docs/reference` IS 21 PAGES AND gen_reference.sh WRITES 20 OF THEM**: `cut-surface.md` is gen_cut_surface.sh's, and it reads `ALL_VARIANTS` in `intentsvcs/tests/error_remedies.rs` at the revision, so a landing that adds a refusal variant makes it stale and the two halves belong in one commit at one revision. Two smaller ones from the same landing: `intent issues edit --from` keeps a body byte for byte and the body ENDS in a newline, so strip the trailing newlines before appending a close paragraph or it lands two blank lines down; and BSD `cmp -n <len>` calls EOF a difference when the limit is the whole of the shorter file, so compare a prefix with `head -c` instead."
+  }
+}

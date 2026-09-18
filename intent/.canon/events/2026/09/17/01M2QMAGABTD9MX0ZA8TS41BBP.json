@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMAGABTD9MX0ZA8TS41BBP",
+  "ts": "2026-09-17T12:09:06.636Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, hv first-hand in prose, taking vc's four recommendations; vc's clock read 09:39Z just after) Four rulings. (1) The rebuild runs now, before the go, and again after ST0076 WP-04 lands; hv ran it, intentd restarted at 12:00Z, and vc verified the pair at c800b8319 with the store at schema 28. (2) AC-00.1's search reads `intent search --subkind method --in AddressError` and WP-04 builds the search that runs on filters alone, with AC-04.1 carrying the clause; vc's split of --subkind from --kind stands. (3) The pickup session-id fix joins the close-out, as issue 0433. (4) The go is given as vc reviewed the three lanes' plans, with one whole-suite judging run per train in the worktree that already holds its stack, vc judging from the logs, the diff and a read-only check that the worktree equals the bank."
+  }
+}

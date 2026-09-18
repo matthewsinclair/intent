@@ -1,0 +1,15 @@
+{
+  "id": "01M2NZ0N1MBH1GTCXRAZKVPJ54",
+  "ts": "2026-09-16T20:37:29.271Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0429"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Index references inside a macro invocation are missing from context and ref answers, which still say complete"
+  }
+}

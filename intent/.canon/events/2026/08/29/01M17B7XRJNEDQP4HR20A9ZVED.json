@@ -1,0 +1,18 @@
+{
+  "id": "01M17B7XRJNEDQP4HR20A9ZVED",
+  "ts": "2026-08-29T18:06:52.178Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.hydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "hydrated": [],
+    "id": "ST9997",
+    "pinned": true,
+    "rewritten": [],
+    "sigil": "STEELTHREAD"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2NBD7WX4VQZA9SX3SGCZQJ1",
+  "ts": "2026-09-16T14:54:50.272Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0075/AC-02.2"
+  },
+  "payload": {
+    "text": "Console lines are coloured by kind: error, caused by and intentd could-not lines as errors, warning and remedy lines as warnings, the markers as the accent"
+  }
+}

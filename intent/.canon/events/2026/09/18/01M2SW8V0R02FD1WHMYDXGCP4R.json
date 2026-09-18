@@ -1,0 +1,15 @@
+{
+  "id": "01M2SW8V0R02FD1WHMYDXGCP4R",
+  "ts": "2026-09-18T09:06:29.528Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 09:06Z, hv first-hand in prose, answering ST0078's proposal and its five open questions) ST0078 IS ACCEPTED WHOLE AND IS IN 3.1.0. hv, verbatim: \"which now becomes _very_ important for the next release (yes, this _has_ to be in it) ... I agree with the proposal, so lets move to implement it now.\" The five answers: (1) D53 is reversed, \"we have no choice\": the event log travels as committed canon, one file per event, on the boundary the design writes (canon is the state extract, events are the act record, no replay, no reconciliation between them); (2) sharded by date, YYYY/MM/DD, \"so no single dir ever gets too large\"; (3) the hooks are wired by `intent claude upgrade --apply`, the one door the pre-commit gate already uses; (4) the non-destructive ingest flag's name: hv has no preference and asked for options, vc recommends on the bounce; (5) all of it in 3.1.0: \"We can't release this without support for teams.\" CONSEQUENCES: the fleet trawl waits behind ST0078's build so every estate is touched once, on the pair carrying P1 and P3; the cut waits behind the trawl; ST0078's work packages and criteria are minted on the bounce from the design's acceptance sketch, document before code; expected lanes cc P1, dc P3, ic P2 and P4, vc judging and the ST0078 canon."
+  }
+}

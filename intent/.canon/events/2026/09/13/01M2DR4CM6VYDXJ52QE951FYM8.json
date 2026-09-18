@@ -1,0 +1,15 @@
+{
+  "id": "01M2DR4CM6VYDXJ52QE951FYM8",
+  "ts": "2026-09-13T16:03:17.128Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0368"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "tests/unit/claude_md_template.bats writes {\"author\":\"TestUser\"} into the REAL ~/.intent/config.json"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1BPHW8TW9SJD4S936Y6MJ4Y",
+  "ts": "2026-08-31T10:41:33.784Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/fleet_corpus_conservation.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

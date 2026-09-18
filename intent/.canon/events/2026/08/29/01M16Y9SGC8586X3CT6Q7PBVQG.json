@@ -1,0 +1,15 @@
+{
+  "id": "01M16Y9SGC8586X3CT6Q7PBVQG",
+  "ts": "2026-08-29T14:20:42.375Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0141"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a self-loop on a payload-carrying state enum turns set_ac_state's no-op into a silent overwrite -- guarded on the four ratified machines, unguarded on the two fields data-model.md declines to table"
+  }
+}

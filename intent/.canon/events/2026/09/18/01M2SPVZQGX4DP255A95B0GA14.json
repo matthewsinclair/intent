@@ -1,0 +1,15 @@
+{
+  "id": "01M2SPVZQGX4DP255A95B0GA14",
+  "ts": "2026-09-18T07:32:05.488Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18, replacing doing 18).** The SQLite bump (47e269483) and the 0442 detector (633b13549) have landed, and 0442 is CLOSED (aecb68e94). Memory `judge-sqlite-corruption-by-writer-and-behaviour` carries both halves. The 3.1.0 notes' gap closure is banked at `refs/bank/cc/release-notes/RELEASE_NOTES-3.1.0.md` and stays banked until step 5. **Open, vc's or hv's to rule:** intentd is still the 3.46.0 image until it is restarted, and ST0076's pruned tree is uncommitted (organize's, not mine). **Next, in vc's order:** time the pre-commit gate's arms on a scratch commit in wt-bump when the host is quiet, and send vc the numbers; (4) 0444 before ic's regeneration; (5) the 3.1.0 CHANGELOG section and RELEASE_NOTES, with the detector's CHANGELOG bullet; (6) known-defects re-driven against a fresh build; then the trawl carry (todo 30). The pair is rebuilt once, after ic and dc land. NO RELEASE, NO PUSH."
+  }
+}

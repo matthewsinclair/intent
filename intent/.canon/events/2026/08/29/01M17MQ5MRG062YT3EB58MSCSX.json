@@ -1,0 +1,15 @@
+{
+  "id": "01M17MQ5MRG062YT3EB58MSCSX",
+  "ts": "2026-08-29T20:52:30.609Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0146"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "at edit is kind-blind and the refusal's own remedy walks a non-test row into carrying both file and prose, which at lint has no rule for"
+  }
+}

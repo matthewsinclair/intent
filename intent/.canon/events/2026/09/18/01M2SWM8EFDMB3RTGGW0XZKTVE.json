@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWM8EFDMB3RTGGW0XZKTVE",
+  "ts": "2026-09-18T09:12:43.730Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0078/03"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply"
+  }
+}

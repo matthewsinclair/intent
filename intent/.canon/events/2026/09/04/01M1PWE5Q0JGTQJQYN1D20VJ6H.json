@@ -1,0 +1,15 @@
+{
+  "id": "01M1PWE5Q0JGTQJQYN1D20VJ6H",
+  "ts": "2026-09-04T18:55:59.202Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0243"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The pre-commit gate has no cost budget, nothing measures its latency, and it holds the shared index lock for its whole run"
+  }
+}

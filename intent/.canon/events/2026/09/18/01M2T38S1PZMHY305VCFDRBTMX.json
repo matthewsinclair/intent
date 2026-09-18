@@ -1,0 +1,15 @@
+{
+  "id": "01M2T38S1PZMHY305VCFDRBTMX",
+  "ts": "2026-09-18T11:08:47.554Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0456"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "a write on a branch that never committed intent/.canon/project.json creates it untracked, and the next merge of that branch refuses over it; the post-checkout hook exposes it on every branch switch"
+  }
+}

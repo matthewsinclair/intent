@@ -1,0 +1,15 @@
+{
+  "id": "01M2GDYYQQQYSG2G33JFG3XW2T",
+  "ts": "2026-09-14T17:03:15.706Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0392"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "canon-ignore-guard.sh reads its rules from the worktree and its attribution from the index, so a staged ignore rule reaching intent/.canon/ can pass"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1E3KGDX12CH7J5AR9J62NPR",
+  "ts": "2026-09-01T09:08:04.161Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0210"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "shared-thread canon commits deadlock under intentd auto-ingest; the guard names the file, not the culprit"
+  }
+}

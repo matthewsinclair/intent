@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVFW9APZBFY4WFBS0W5DCS",
+  "ts": "2026-08-31T12:07:47.759Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/05"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The intent:// URL handler as a client of the one resolver (AC-01.5)"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2QV25RB3HYAHKFZKMAZ5ZT7",
+  "ts": "2026-09-17T14:06:53.707Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The guards adoption pass** (vc assigned it to dc on 2026-09-17): held until vc's word after hv's drives, the same timing as the trawl. Per estate: declare the project's own guards in config.json `guards`, remove the hook calls they duplicate, run doctor clean; coordinated with devbin-dc and devbin-vc for Intent, Gtools and Laksa; one commit per estate; no push. On this estate it also brings the tracked `.githooks/pre-commit.intent` shim to canon: `intent claude upgrade` still reports `would write` for it, because canon's two remedy sentences now name `intent bootstrap` where the tracked shim says to reinstall Intent (vc, 2026-09-17)."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0Z9AWB7M6F346ZKACAD2V10",
+  "ts": "2026-08-26T14:59:36.664Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1SPA1QM7SK6YTG9M4RQG1BH",
+  "ts": "2026-09-05T21:06:35.895Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0273"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "at lint counts rows it cannot examine as conforming: a legacy.raw citation is invisible to every check"
+  }
+}

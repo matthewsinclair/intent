@@ -1,0 +1,15 @@
+{
+  "id": "01M1PKA6711T2QEKP96AKR6TE7",
+  "ts": "2026-09-04T16:16:31.459Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0236"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "claude skills/subagents install --all: root canon names it four times, v2 shipped it, v3 refuses it at rc=1 as if the operator mistyped"
+  }
+}

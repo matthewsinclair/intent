@@ -1,0 +1,15 @@
+{
+  "id": "01M2RKNQN33MTJMVKYEEGM8SQS",
+  "ts": "2026-09-17T21:17:00.451Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A RESUME ITEM NAMES THE CONDITION AND NEVER THE READING OF IT** (2026-09-17, third fold, and learned from my own board rather than read about). Doing 56 was written to fix doing 55, which had asserted completed work as ic's next step; within three minutes doing 56 was itself stale, because one of its MUST NOT lines waited on hv naming a version that hv had named two hours earlier. The damage was mild and the reason is the FORM, not the care taken: the line read \"until hv names the version\", which is a CONDITION and is checkable by whoever reads it, where \"hv has not named the version\" would have been a STATE and simply believed. **So anything on a board that can change is written as the condition that settles it, with the command or the place that answers it, never as the answer.** That is the same rule the entry point applies to itself -- print the command, never what it last returned -- brought down to the level of a single board line. dc's correlation is the reason it matters here rather than in principle: four of five boards went false in the same window, and it was the busiest hour of the night, because a busy night is when nobody stops to fold AND when claims die fastest, so the writing of a board is not outside the window in which boards rot. Two mechanical rules that follow, both dc's: add the replacement item and verify it LIVE before archiving the old one, so a failed add leaves the old item standing rather than leaving the node with nothing; and give the resume point a MUST NOT section, because a positive list cannot carry what is cheap to do and expensive to undo and nobody can discover it from one.\n **AND A HAZARD WARNING HAS A TENSE** (dc's sharpening, the same rule pointing outward): dc warned me that 0442's files were staged in the shared index, which was true when dc read it and expired before it reached me, and by dc's own re-read the staged set had moved AGAIN to cc's board files. A warning about shared state is a READING with an expiry, not a fact, so it carries the clock value it was taken at and the receiver re-measures rather than working around it -- which is what saved my commit, since I checked the index myself and found it free, and then hit a real lock collision with dc's fold a moment later and re-issued once rather than looping."
+  }
+}

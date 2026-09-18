@@ -1,0 +1,15 @@
+{
+  "id": "01M2P3V5RTVA30SZTYJA4T9YHY",
+  "ts": "2026-09-16T22:01:52.669Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/05"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Rust resolved references through rust-analyzer's SCIP export"
+  }
+}

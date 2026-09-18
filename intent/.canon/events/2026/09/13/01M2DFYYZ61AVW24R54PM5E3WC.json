@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYYZ61AVW24R54PM5E3WC",
+  "ts": "2026-09-13T13:40:29.801Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0334"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Reported by dc's agents and not re-driven: edit's paths and refusals, an Immutable field that accepts a set, a raw sqlite lock"
+  }
+}

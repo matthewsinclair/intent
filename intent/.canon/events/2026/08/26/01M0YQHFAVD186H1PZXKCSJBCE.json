@@ -1,0 +1,14 @@
+{
+  "id": "01M0YQHFAVD186H1PZXKCSJBCE",
+  "ts": "2026-08-26T09:48:38.950Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0061"
+  },
+  "payload": {
+    "title": "dehydrate"
+  }
+}

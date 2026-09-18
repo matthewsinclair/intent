@@ -1,0 +1,14 @@
+{
+  "id": "01M1A2YKY01BBDXT94C3PJ10WZ",
+  "ts": "2026-08-30T19:39:41.889Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.6"
+  },
+  "payload": {
+    "text": "**THE v2 SHELL IMPLEMENTATION IS DELETED AT THE CUT, FAIL-FORWARD -- AND THAT IS 26 FILES, NOT THE `bin/` DIRECTORY.** **REWORDED 2026-08-30 (vc) ON hv's RULING, BECAUSE THE PARENTHETICAL WAS LOAD-BEARING AND WRONG.** The row read _the shell implementation (`bin/`) is pruned at the cut_, and read literally that deletes **v3's own build and delivery system**, which is bigger than the thing being removed:\n\n    POPULATION A -- THE SUBJECT      26 files   12,415 lines   `bin/intent` + 25 `bin/intent_*`\n    POPULATION B -- MUST SURVIVE     57 files   ~18,300 lines  `bin/int`, `bin/devbin`, `bin/.devbin/`\n\n**`bin/devbin build all` is the ONLY door that produces a coherent binary pair** (`restart.md`: _a build is the delivery_; it deletes both binaries to force the provenance embeds and verifies them as a SET, which is why a bare `cargo build --release` is not the door). **A criterion whose plain reading deletes the release system is not a stricter criterion, it is a wrong one.**\n\n**THE DELETION IS BLOCKED ON FOUR CALL SITES AND THEY ARE ALL IN ONE FILE -- `bin/.devbin/cmd/build.d/release`, WHICH IS THE RELEASE SCRIPT ITSELF.** Measured 2026-08-30:\n\n    :67   HELPERS=\"$PROJECT_ROOT/bin/intent_helpers\"                        sources v2\n    :373  \"$PROJECT_ROOT/bin/intent\" doctor                                 abort-on-failure\n    :663  \"$PROJECT_ROOT/bin/intent\" agents sync                            abort-on-failure\n    :690  \"$PROJECT_ROOT/bin/intent\" claude upgrade --apply --skip-settings abort-on-failure\n\n**So the script that ships v3 invokes v2 three times, and deleting the subject breaks the release in which it is deleted.** That is the whole of why this row is not a sweep.\n\n**THREE OF THE FOUR PORT STRAIGHT ACROSS. THE FOURTH IS A BEHAVIOUR CHANGE THAT TURNS OUT TO BE SAFE, AND A TEST LANDED HOURS EARLIER IS WHY.** v3's `claude upgrade` carries `--apply` and `--force` and **has no `--skip-settings`**, so the port rewrites `.claude/settings.json` on every release where v2 declined to. **That is a no-op rather than a risk, and it is ASSERTED rather than assumed:** `no_pm_state_in_output.rs` (dc, `a29f04ec`) drives that `settings.json` needs no substitution and is byte-identical to its template, so regenerating it writes the same bytes. **RULED: port to `--apply` and keep the arm that makes it safe.**\n\n**WHAT WOULD FALSIFY THIS: any `bin/intent*` file of population A surviving the cut; any population B file deleted with it; or a release path that still executes v2.**"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1CSDFN4SNDHCAAAFH7DM5QT",
+  "ts": "2026-08-31T20:50:46.566Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0203"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent <family> help is unrecognized on 9 of 11 families where v2 answered it, so the top-level help restore was a half-fix and command grammar is in scope for parity"
+  }
+}

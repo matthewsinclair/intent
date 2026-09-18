@@ -1,0 +1,14 @@
+{
+  "id": "01M174Q10BMBFHRDX2S0J0QD1Z",
+  "ts": "2026-08-29T16:12:48.940Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/gen_reference.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

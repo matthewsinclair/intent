@@ -1,0 +1,15 @@
+{
+  "id": "01M2QP4SMPSRXHXHKN3VM77GWR",
+  "ts": "2026-09-17T12:40:56.726Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, localfold for hv's compact, 2026-09-17).** Claims ST0076/05; vc claims ST0076 as director. (1) SHAPES, banked for the train with dc's WP-03: refs/bank/cc/st0076-extractor-shapes (blob f4b4991d4, patch-id 69d6653d, base c800b8319: @name.base, @self, @alias.as ignored as a row). They land first in the train on vc's word and carry two design.md facts: the row-vocabulary table's Rust cells as WP-02 built them, and the line saying rust-analyzer is not installed. (2) WP-05 LEVEL-3 CORE, the next build, in worktree wt-l3core (created off 90827b777, nothing written yet). vc's rulings Q1 to Q7 (vc decision 25) and hv's two of 2026-09-17 (the verb is `intent index resolve`; one needs_the_toolchain arm per language, ignored in CI, run by bin/devbin test all) are in WP-05's body. Bank the core alone at refs/bank/cc/st0076-l3-core: a `resolution` row per language (state, tool, path, line, detail, resolved_at, matched, unmatched, dropped, ambiguous), resolved rows unique on (path, line, name, target) with target_path and target_line, and per-file sha256, lang and run; rung 29; per-file replace; staleness by content hash; purge; the verb and its register row (exposed_on_mcp false, with an mcp_review note, as `index rebuild`); proven with an in-memory reader; PFIC. Register the module in intent/llm/MODULES.md first. dc stacks WP-06 on it. Then `index.resolution` in the envelope on WP-04's landing (ic's shape: keyed by language beside corpora; state missing, failed or stale; out of `complete`; target, target_path and target_line on SymbolFacts at level 3; symbol_note; the mcp drift test gains level 3). Then the SCIP decoder (pure, fields by number) and the Rust reader (build dir under intent/.cache). The landing that brings the Rust needs_the_toolchain arm also carries dc's devbin test option from refs/bank/dc/devbin-toolchain (dc banks it after the compact), so the arm is never unrun. Scratch drafts and scripts are banked as blobs under refs/bank/cc/st0076-wp05/, recovered with `git cat-file -p <ref> > <file>`. NO RELEASE, NO PUSH."
+  }
+}

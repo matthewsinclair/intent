@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMN31V42D3J79M8Z88W28G",
+  "ts": "2026-09-17T12:14:53.499Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**ST0056 AC-00.5 and AC-11.1** (claim ST0056/11): held until hv has run intent/st/ST0056/gyges-brief.md on gyges, handed back ~/intent-clean-install.log, and vc has judged it. Then dc runs `ac satisfy` for both on that log, and WP-11 and the thread close on hv's word."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M115NBDF54E7FDPVQWXX7V9C",
+  "ts": "2026-08-27T08:33:55.950Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0058/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "One path to the native CLI: int cli carries the coherence guard"
+  }
+}

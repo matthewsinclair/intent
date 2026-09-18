@@ -1,0 +1,15 @@
+{
+  "id": "01M1S1T401YT333E8G8DFKPN8W",
+  "ts": "2026-09-05T15:08:22.409Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0261"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "whiteboard-clock-guard.sh cannot see a fabricated timestamp in an archive filename: .history is excluded by path and the guard reads only added content lines"
+  }
+}

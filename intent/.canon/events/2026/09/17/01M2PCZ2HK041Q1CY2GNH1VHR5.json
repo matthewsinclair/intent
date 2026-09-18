@@ -1,0 +1,15 @@
+{
+  "id": "01M2PCZ2HK041Q1CY2GNH1VHR5",
+  "ts": "2026-09-17T00:41:17.619Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A REPLACE THAT ASSERTS ONE MATCH CAN LAND IN THE WRONG PLACE ONCE AN EARLIER STEP REMOVED THE INTENDED SITE** (2026-09-17, WP-04). A script cut the MCP search arm's block, which held its `let query = need_s(..)`, then asserted count 1 on that same line to insert before it. The only remaining copy was in the graphql arm, so the insert went there and the build still compiled. Anchor each replace on text unique to its own site (the arm's name or comment), and read the diff hunk headers before building. Also: a scratchpad HOME is too long for intentd's unix socket (148 bytes, past SUN_LEN), so point HOME at a short /tmp symlink to it."
+  }
+}

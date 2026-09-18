@@ -1,0 +1,14 @@
+{
+  "id": "01M19TK5MP5BDRD170JFZ8H8F8",
+  "ts": "2026-08-30T17:13:38.201Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.6"
+  },
+  "payload": {
+    "evidence": "a9f03ab7 -- `intent help` and `intent --help` both rc=0 and byte-identical, driven; root flags are exactly `--help` and `--version` and both twins now agree; the arm renders through clap from the compiled-in table so the pair cannot drift"
+  }
+}

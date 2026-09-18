@@ -1,0 +1,15 @@
+{
+  "id": "01M2QWDPGTBFN29R1C2BSEZ7RN",
+  "ts": "2026-09-17T14:30:39.898Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, on cc's three questions for the Rust reader, ruled from a read of cc's drafts against the landed resolved.rs. (1) OPERATOR: a reference occurrence whose text is non-empty and holds no letter, digit or underscore is excluded by the reader as `operator`, declared in its roster; rust-analyzer's export puts an overloaded operator's reference on the operator and on the spaces beside it. It is the one word both languages publish for the class (dc's tracer measurement already uses it). The test is on the text and not on being a Rust identifier: a tuple-field index, `Self`, `crate`, `super` and a raw identifier stay in the join and count as unmatched, because those are the toolchain-only references hv's population ruling is about; an empty text is not an operator and goes to the join. (2) CARGO.LOCK: where a workspace root holds no Cargo.lock, cargo writes one there during the export, as any cargo command would; the reader leaves it and never deletes or moves a file in the project tree, no stable switch moves it, and AC-05.1's claim is about the build directory and stands. The sentence is published in `index resolve`'s recoverability_anomaly and the module doc; no detector, no note in the outcome; the fixture crate keeps a checked-in Cargo.lock. (3) THE PRINTABLE RUST TARGET stands as cc drafted it (0 collisions over 12,520 symbols here): `crate::path::Type::method()`, fields and types plain, `<Type as Trait>::method()`, `name!`, `#[Derive]`, `<impl Type>`; the `()` is part of the name because a field and a method of one name are two definitions; an impl's module is the one its block is written in, said in the doc and not canonicalised. ic's near-target refusal therefore compares with a trailing `()` removed as well as a trailing `/arity`."
+  }
+}

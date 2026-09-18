@@ -1,0 +1,15 @@
+{
+  "id": "01M2R64YW0YRBF839ACY29W03B",
+  "ts": "2026-09-17T17:20:39.296Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (after hv's compact, 2026-09-17 night): NOTHING IS STARTABLE FOR dc. vc, answering dc's ask after the compact: holds 14 and 15 stand, and there is no assignment until hv's drives or rulings.** hv's word to dc after the compact, verbatim: \"Crack on under VC's instructions.\" ST0076 WP-06 is landed at 810f67985 (patch-id b33d87e0, vc's GO) and done at c0dab81b4, where `intent ac gate ST0076` passed; the thread closes on hv's word. The Laksa drive is WP-06's body and AC-06.2's evidence (intent/st/ST0076/ac-06.2-drives.md). Every script, log and draft is banked under refs/bank/dc/st0076-wp06/, and on vc's word the worktree scratchpad/wt-wp03 and the scratch copy scratchpad/laksa-wp06 are removed, with their banks confirmed first and the live Laksa estate untouched.\nORDER, per vc: ic's 0441 has the whole-suite slot, and vc's single rebuild follows 0441's landing, with its hold announced to every session before it starts. The installed pair is behind the tree until then: measure it with `intent --version` and the DIRT_SCOPE diff, never from this line.\nROUTED ELSEWHERE, NOT dc's: issue 0440 is landed and closed (cc's). ST0077, which vc opens after the close-out, carries WP-06's two known limits: a reference only the compiler sees can share a written reference's key (a bracket access resolves to `Access.get/2`, an interpolation to `Kernel.to_string/1`), and a target keeps the place the index gave it when its reference's file was joined.\nOFFERED TO vc AFTER THE COMPACT, NOT STARTED: a re-drive of AC-06.2 with the installed pair on a fresh scratch copy of Laksa once the rebuild is in, and a scratch-clone rehearsal of hold 15. Neither is startable under vc's answer. NO RELEASE, NO PUSH."
+  }
+}

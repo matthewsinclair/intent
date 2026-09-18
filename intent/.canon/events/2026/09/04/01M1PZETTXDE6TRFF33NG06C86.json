@@ -1,0 +1,15 @@
+{
+  "id": "01M1PZETTXDE6TRFF33NG06C86",
+  "ts": "2026-09-04T19:48:46.559Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0245"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wp show prints a four-line header while the dispatch table declares it shows the work package info.md"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M19QZ6WDFZ0MDZ0AXS7AZVW6",
+  "ts": "2026-08-30T16:27:47.130Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0168"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ac list prints ids, coverage and satisfied but never the criterion text, so a node planning from it is planning from ids -- and there is no ac show"
+  }
+}

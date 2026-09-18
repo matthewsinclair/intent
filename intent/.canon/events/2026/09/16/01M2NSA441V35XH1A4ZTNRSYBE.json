@@ -1,0 +1,15 @@
+{
+  "id": "01M2NSA441V35XH1A4ZTNRSYBE",
+  "ts": "2026-09-16T18:57:48.164Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0422"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "With the detail pane split, the list cannot scroll to the rows below its half -- the scroll was taken against the whole body"
+  }
+}

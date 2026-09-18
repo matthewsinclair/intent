@@ -1,0 +1,15 @@
+{
+  "id": "01M1CS5MG1EJMVYNB35QTM5N2E",
+  "ts": "2026-08-31T20:46:29.380Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0201"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent_critic.yml disabled: does not suppress the rule it names"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M0ZAQG06MWTMSV8W8K7YJS1G",
+  "ts": "2026-08-26T15:23:58.474Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0097"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ingest --from-md on an already-migrated estate is a parse check that prints ok and writes nothing at rc 0 -- the exit status does not distinguish validated from ingested (devbin/vc, measured on a sandbox copy of Devbin)"
+  }
+}

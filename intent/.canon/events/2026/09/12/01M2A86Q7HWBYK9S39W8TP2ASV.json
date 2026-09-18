@@ -1,0 +1,23 @@
+{
+  "id": "01M2A86Q7HWBYK9S39W8TP2ASV",
+  "ts": "2026-09-12T07:27:12.113Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.dehydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "id": "ST0059",
+    "pruned": [
+      "intent/st/ST0059"
+    ],
+    "removed": [
+      "intent/st/ST0059/acceptance.md",
+      "intent/st/ST0059/info.md"
+    ],
+    "sigil": "STEELTHREAD",
+    "unlisted": true
+  }
+}

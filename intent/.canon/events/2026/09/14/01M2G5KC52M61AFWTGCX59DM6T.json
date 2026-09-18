@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5KC52M61AFWTGCX59DM6T",
+  "ts": "2026-09-14T14:37:07.621Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0379"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb register on one node renders its board over the hand-authored wip.md that wb migrate reads, so register then migrate carries an empty board"
+  }
+}

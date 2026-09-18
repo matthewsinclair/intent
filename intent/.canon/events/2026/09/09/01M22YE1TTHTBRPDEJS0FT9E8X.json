@@ -1,0 +1,14 @@
+{
+  "id": "01M22YE1TTHTBRPDEJS0FT9E8X",
+  "ts": "2026-09-09T11:21:45.566Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/shared_artefact_build_guard.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

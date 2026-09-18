@@ -1,0 +1,15 @@
+{
+  "id": "01M146SREZPP48HPKGXYB3MQTZ",
+  "ts": "2026-08-28T12:51:30.529Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0109"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "int hooks routes a hook-carrier defect to a whole-canon verb, and the remedy line does not say so"
+  }
+}

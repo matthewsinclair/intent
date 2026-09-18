@@ -1,0 +1,15 @@
+{
+  "id": "01M20H04Y1ER8EM3WDKRQGCDXV",
+  "ts": "2026-09-08T12:48:29.635Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0280"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "skills sync reports a conflict for skills whose canon and installed trees are byte-identical"
+  }
+}

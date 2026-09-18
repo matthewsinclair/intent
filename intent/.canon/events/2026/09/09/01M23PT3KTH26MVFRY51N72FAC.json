@@ -1,0 +1,16 @@
+{
+  "id": "01M23PT3KTH26MVFRY51N72FAC",
+  "ts": "2026-09-09T18:27:46.429Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.cancel",
+  "subject": {
+    "type": "thread",
+    "id": "ST0072"
+  },
+  "payload": {
+    "from": "wip",
+    "reason": "It is not necessary",
+    "to": "cancelled"
+  }
+}

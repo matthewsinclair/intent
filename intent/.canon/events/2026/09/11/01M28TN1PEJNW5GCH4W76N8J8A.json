@@ -1,0 +1,14 @@
+{
+  "id": "01M28TN1PEJNW5GCH4W76N8J8A",
+  "ts": "2026-09-11T18:11:07.090Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-12.1"
+  },
+  "payload": {
+    "reason": "not a withdrawal: a step of satisfying it by evidence at the 3.0.1 cut. Its instrument refuses after the prune by design, so the criterion moved to non-test, and `set <ac> kind non-test` leaves state `computed`, illegal for non-test, which no satisfy or unsatisfy moves; withdraw then reinstate is the only way out. Reinstated and satisfied by evidence in the same run"
+  }
+}

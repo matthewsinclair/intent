@@ -1,0 +1,15 @@
+{
+  "id": "01M23YX6DA2Y97GXS1T0YJ64YJ",
+  "ts": "2026-09-09T20:49:16.252Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0297"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "test-spawned intentd processes are never reaped: 28 alive, none with a live working directory"
+  }
+}

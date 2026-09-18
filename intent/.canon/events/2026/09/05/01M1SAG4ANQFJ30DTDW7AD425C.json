@@ -1,0 +1,15 @@
+{
+  "id": "01M1SAG4ANQFJ30DTDW7AD425C",
+  "ts": "2026-09-05T17:40:12.247Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0266"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "v3.0.0 claude upgrade writes a pre-commit chain block whose target no code in that build ever writes, so the installed gate enforces nothing and doctor never looks"
+  }
+}

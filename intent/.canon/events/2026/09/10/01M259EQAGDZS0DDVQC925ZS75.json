@@ -1,0 +1,15 @@
+{
+  "id": "01M259EQAGDZS0DDVQC925ZS75",
+  "ts": "2026-09-10T09:12:50.770Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0301"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "`intent daemon status` returns an identical ok: line at rc=0 whether many intentd hold the store or none do"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1PT9BA2EC0QNVR6YHGDA1PP",
+  "ts": "2026-09-04T18:18:23.944Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0240"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent edit hands back a path at rc=0 for an Ac, At or Attachment that does not exist"
+  }
+}

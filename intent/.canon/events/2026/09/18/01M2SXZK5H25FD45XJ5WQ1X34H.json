@@ -1,0 +1,15 @@
+{
+  "id": "01M2SXZK5H25FD45XJ5WQ1X34H",
+  "ts": "2026-09-18T09:36:23.729Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 09:36Z) P1 rulings on cc's questions (vc, under the pen): event_log's openness declaration becomes carried-by the event files and P1's landing commit carries its own first events, written by the AT rows minted with the P1 binary at landing, after cc measures the 3.46.0 daemon's and organize's treatment of the new directory; the author order is git identity first, then config author, then local, because config.json is committed and names one author for every clone (the order vc gave cc was wrong); the daemon's principal stays intentd because it is the provenance surface that showed the daemon's revert of a burst's last write; ingest never hashes a file whose id the store holds, doctor's exhaustive check stays exhaustive; no schema bump in P1 on the live store before the rebuild. The volume of travelling events (every wb touch is an event) is hv's because AC-01.1 says every event; vc recommends a two-class split by kind at write time, project acts travel and machine-scoped acts stay store-only."
+  }
+}

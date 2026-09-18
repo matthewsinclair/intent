@@ -1,0 +1,15 @@
+{
+  "id": "01M1A7536YH4SQFTF626BB1BM9",
+  "ts": "2026-08-30T20:53:08.452Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0175"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "agents family-root answers rc=2 'not implemented yet' while agents sync and agents validate answer 0"
+  }
+}

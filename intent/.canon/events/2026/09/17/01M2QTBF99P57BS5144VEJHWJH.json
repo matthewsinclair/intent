@@ -1,0 +1,15 @@
+{
+  "id": "01M2QTBF99P57BS5144VEJHWJH",
+  "ts": "2026-09-17T13:54:29.801Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE, 2026-09-17 afternoon: vc moved the LEVEL-3 SURFACES to ic (cc goes straight to the Rust reader).** They stack on cc's core bank refs/bank/cc/st0076-l3-core (d335d31f on 196284266; it lands alone once judged). Design against the bank now, and build on the landed core. RULED BY vc TODAY, on ic's four answers: (1) `index.resolution` in the envelope, index-wide like `corpora`, holding only non-current languages as missing, failed, stale (with its paths) or unresolved (a declared language with a reader in `readers()` and no record), with its words from one function beside level_words and what_a_reference_misses, held verbatim by an arm; (2) a hit is level 3 with flat target, target_path and target_line only when its key names exactly one target, and otherwise keeps its syntax level and carries `candidates`; (3) vc's addition: a question BY TARGET must also return keys whose candidates include the target, marked one of N (cc measured 2,332 such rows here). PROPOSED TO vc, AWAITING A RULING: the door `--target <target>` (exact), with MCP `target` and SQL `resolved.target`. It answers the written references a current resolved row joins to the target, at level 3 or with candidates. It is a question on its own through `lists_symbols` and `filtered`, narrows `--context`, `--outline` (implying refs), `--in`, `--subkind`, `--lang` and `--limit`, and keeps no definition (`--kind def` with it is refused). A stale file gives no hit and is named in `index.resolution`. Two refusals, never an empty list: no reader in this build, and nothing ever stored. A by-target answer's note names every non-current language. Suggested WP-07 \"Level-3 surfaces\" with AC-07.1 (envelope and hits) and AC-07.2 (the door); vc writes the ACs. NAMES sent to cc: `ResolutionState`, `ResolvedTarget`, `SymbolFacts.target/target_path/target_line/candidates`, `search::resolution_words`, the consts STALE and UNRESOLVED beside `CURRENT` in resolved.rs, and a new store read by target. cc stays off search.rs. ARMS use the core's `Resolver` trait with a handed trace through `Facade::index_resolve`. Worktrees wt-wp04, wt-console and wt-drive come down when no slot is running. NO RELEASE, NO PUSH."
+  }
+}

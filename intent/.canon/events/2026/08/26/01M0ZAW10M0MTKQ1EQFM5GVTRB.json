@@ -1,0 +1,15 @@
+{
+  "id": "01M0ZAW10M0MTKQ1EQFM5GVTRB",
+  "ts": "2026-08-26T15:26:27.155Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0057/13"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket"
+  }
+}

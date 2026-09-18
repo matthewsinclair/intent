@@ -1,0 +1,15 @@
+{
+  "id": "01M2RH665J09J3RZPNRTTQ4BT0",
+  "ts": "2026-09-17T20:33:33.874Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A SOURCE READING IS A CLAIM ABOUT CODE, NOT A CLAIM ABOUT WHAT RUNS** (vc's own error, 2026-09-17, caught by cc within the hour). vc read that FTS5's config cookie is bumped only under `if( rc==SQLITE_OK && pVal )` and that all three version writes pass `pVal = 0`, which is true of every line; inferred from it that another connection's cached format version is never invalidated, which is false; and labelled the inference \"a source fact rather than a hypothesis\" -- the strongest label available -- before testing it once. It reached two lanes, an issue body and a commit message inside ten minutes, and a peer was repeating it back as the night's cleanest finding. cc read the cookie off disk with a positive and a negative control and measured it MOVING. **THE CONFIDENCE WAS NOT THE DEFECT; SHIPPING AN UNTESTED INFERENCE INTO DURABLE PLACES WAS.** A reading that predicts something testable gets tested BEFORE it is written anywhere durable, and the cleaner the reading the more that applies, because a clean reading that predicts the wrong thing is harder to let go of than a sloppy one. Corollary, from dc's own correction the same night: **a correct rule with the wrong cause under it is as dangerous as a wrong rule**, because only the cause is load-bearing when someone builds a fix on it."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1A316EKNXDQBNWNWRS4PYXJ",
+  "ts": "2026-08-30T19:41:06.389Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0172"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intentd holds no persisted project registry, so a login-started daemon backs up nothing until something contacts it"
+  }
+}

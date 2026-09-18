@@ -1,0 +1,15 @@
+{
+  "id": "01M0XG09EQJX7RD9RCSGZ7BV7M",
+  "ts": "2026-08-25T22:17:40.871Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0085"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "post-tool-advisory's no-findings guard can never fire: critic always writes header lines to stdout, so a wired advisory hook prints on every Write/Edit"
+  }
+}

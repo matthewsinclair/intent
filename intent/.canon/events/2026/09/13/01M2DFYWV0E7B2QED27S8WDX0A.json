@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFYWV0E7B2QED27S8WDX0A",
+  "ts": "2026-09-13T13:40:27.619Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0333"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Driven on the keg: at new's argument order, the intent@2 remedy no tap has, and a pre-v2.10 project told there is no project"
+  }
+}

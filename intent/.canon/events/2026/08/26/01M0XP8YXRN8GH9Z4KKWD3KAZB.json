@@ -1,0 +1,15 @@
+{
+  "id": "01M0XP8YXRN8GH9Z4KKWD3KAZB",
+  "ts": "2026-08-26T00:07:16.401Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0094"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the harness date leads date -u by a day for one hour every night, and a node that checks whether they agree finds nothing wrong for the other twenty-three"
+  }
+}

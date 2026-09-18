@@ -1,0 +1,14 @@
+{
+  "id": "01M2ARA8GERGBYBDCAQRM9Z1DB",
+  "ts": "2026-09-12T12:08:45.328Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-24.7"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0069/design.md, \"AC-24.7, specified\": the specification with its measured data source (no commit-to-thread link in the store; attribution a claim about some symbols, unattributed said never guessed, ids resolved against the store before shown), landed 7c62a4e6a"
+  }
+}

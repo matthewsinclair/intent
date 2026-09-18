@@ -1,0 +1,15 @@
+{
+  "id": "01M1SRFGE8A7ES49WRK7WKAGTK",
+  "ts": "2026-09-05T21:44:31.947Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0274"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "getting-started's first tree shows three things intent init does not create, and one nothing on the page creates"
+  }
+}

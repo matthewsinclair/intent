@@ -1,0 +1,15 @@
+{
+  "id": "01M2SN8MWRS0WRHGHE3R7P85XV",
+  "ts": "2026-09-18T07:04:03.227Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0447"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Facade::open's ingest reports a damaged fts5 doc_sections table as 'could not read the committed canon' with a remedy naming artefacts that do not exist"
+  }
+}

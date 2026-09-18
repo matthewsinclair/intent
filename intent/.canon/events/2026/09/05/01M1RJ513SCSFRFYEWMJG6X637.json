@@ -1,0 +1,15 @@
+{
+  "id": "01M1RJ513SCSFRFYEWMJG6X637",
+  "ts": "2026-09-05T10:34:42.683Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0260"
+  },
+  "payload": {
+    "severity": "critical",
+    "title": "A stale runtime store REGENERATES the on-disk extract from its stale contents, silently reverting committed corrections -- three times to one file -- and the revert re-creates the view-skew that blocks the sync which would refresh the store"
+  }
+}

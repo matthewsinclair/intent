@@ -1,0 +1,15 @@
+{
+  "id": "01M2BN41QG8PFP3G92P9WMDCQ7",
+  "ts": "2026-09-12T20:32:10.482Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0313"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "doctor gate: the store-vs-rebuild arm refuses a commit over a store the commit does not contain, on every peer write in a shared tree"
+  }
+}

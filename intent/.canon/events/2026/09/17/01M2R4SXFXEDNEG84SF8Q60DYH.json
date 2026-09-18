@@ -1,0 +1,15 @@
+{
+  "id": "01M2R4SXFXEDNEG84SF8Q60DYH",
+  "ts": "2026-09-17T16:57:08.861Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, on dc's WP-06 judging run and Laksa drive, and on ic's diagnosis of the 0439 canon warning. (1) THE ELIXIR READER READS NO ENVIRONMENT VARIABLE AND ALWAYS BUILDS dev, narrowing decision 27's <env>: AC-11.3's census (intent-cli no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable) went red on its read of MIX_ENV in the judging run of bank c4b326db, and Intent's own build must not change with the shell it was started from; MIX_ENV=dev is set on the child so the build directory's name and the compile's environment cannot disagree, the build is resolve/elixir/dev seeded from _build/dev/lib, and code only another environment compiles (test/support under elixirc_paths(:test)) is not traced; a project that needs another environment asks, and hv grants it with an ALLOWED row. (2) LEVEL 3's COUNTS STAY THE STORED RUN'S CONSERVATION LAW (issue 0440, cc's): an incremental Elixir run that traced nothing printed matched 0 while every row stayed stored; no sum over files can reproduce the counts because a trace's excluded counts carry no path, so status says what the stored run covered, `joined K of F files` from resolved_file.run, with no schema change. (3) A TOOLCHAIN-ONLY REFERENCE JOINING A WRITTEN ONE ON THE SAME LINE AND NAME (Access.get beside Map.get, to_string from interpolation) and A TARGET'S PLACE BEING THE RUN'S (an incremental compile leaves placements in files it did not recompile) are ST0077's, recorded in its context with dc's Laksa numbers; both are consequences of the ruled key and staleness model, both degrade honestly, and WP-06's body names each in one sentence. (4) ISSUE 0441 (ic's): intentd's ingest pass must commit its files only if no other connection committed since its snapshot, judged by PRAGMA data_version, with the check, the file commit and record_landed under one hold of the store's write lock; a moved store re-renders at most three times, then a logged line names the subjects not written; the command-line side's check, store commit and file commit are confirmed to hold the lock the same way or fixed in the same bank; no narrowing; one arm with a seam. The command-line side stays as it is (a sync in its post-commit gap either discards its render or renders the write's own rows byte for byte), with two writers crossing on one subject named in 0441's close note as a residual, and `Load::Restore` takes no guard. (5) THE TRAWL'S LIVE CARRY DOES NOT WAIT ON 0441: intentd's registry (one line, {\"root\":\"/\",\"op\":\"registry\"}, to its socket) names every estate it holds open, and an estate that reads not watched before its carry and before the carry's commit, with ingested unchanged, had no sync that could revert a board (ic's probe; only this estate was watched when ic drove it)."
+  }
+}

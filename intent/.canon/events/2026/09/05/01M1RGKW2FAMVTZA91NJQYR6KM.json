@@ -1,0 +1,15 @@
+{
+  "id": "01M1RGKW2FAMVTZA91NJQYR6KM",
+  "ts": "2026-09-05T10:07:51.889Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0254"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "parity/cmd-*.md inventories name a revision and nothing re-derives them when the source moves -- cmd-upgrade.md is right for 69d42a7 and wrong for today"
+  }
+}

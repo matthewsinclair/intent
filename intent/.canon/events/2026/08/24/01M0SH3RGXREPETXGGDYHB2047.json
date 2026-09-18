@@ -1,0 +1,15 @@
+{
+  "id": "01M0SH3RGXREPETXGGDYHB2047",
+  "ts": "2026-08-24T09:20:05.454Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0065"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent doctor has no acknowledgement mechanism, so a deliberately-kept state warns forever and trains operators to ignore the instrument"
+  }
+}

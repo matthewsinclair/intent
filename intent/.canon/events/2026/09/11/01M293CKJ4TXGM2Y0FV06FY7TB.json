@@ -1,0 +1,14 @@
+{
+  "id": "01M293CKJ4TXGM2Y0FV06FY7TB",
+  "ts": "2026-09-11T20:43:47.657Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/coverage_map.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

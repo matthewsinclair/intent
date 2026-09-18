@@ -1,0 +1,15 @@
+{
+  "id": "01M16QYFCRAPH5AVCZJVZ2KT6J",
+  "ts": "2026-08-29T12:29:42.326Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0134"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "no subset of a file's hunks can be committed when a peer is editing the same file -- --only takes the worktree and --cacheinfo does not survive the hook"
+  }
+}

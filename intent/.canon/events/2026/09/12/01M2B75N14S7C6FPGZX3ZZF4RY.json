@@ -1,0 +1,15 @@
+{
+  "id": "01M2B75N14S7C6FPGZX3ZZF4RY",
+  "ts": "2026-09-12T16:28:22.950Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0305"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A flag declaring arity 1..n swallows the next positional and refuses the repetition its help renders"
+  }
+}

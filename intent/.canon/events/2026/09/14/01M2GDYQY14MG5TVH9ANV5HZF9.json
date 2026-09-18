@@ -1,0 +1,15 @@
+{
+  "id": "01M2GDYQY14MG5TVH9ANV5HZF9",
+  "ts": "2026-09-14T17:03:08.740Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0391"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "devbin's log wrapper cannot be declined project-side: every value of log: wraps, and the - sentinel is scoped to the catalogue's value"
+  }
+}

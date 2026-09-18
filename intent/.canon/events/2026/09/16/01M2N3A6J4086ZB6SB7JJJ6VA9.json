@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3A6J4086ZB6SB7JJJ6VA9",
+  "ts": "2026-09-16T12:33:21.991Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0413"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent claude start's missing-node remedy shows no example display name or role, so the session name gets registered as one"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVFQYDMGFQB5XMHBH1EMTT",
+  "ts": "2026-08-31T12:07:43.313Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/03"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)"
+  }
+}

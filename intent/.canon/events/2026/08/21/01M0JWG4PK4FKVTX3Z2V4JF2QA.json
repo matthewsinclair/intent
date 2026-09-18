@@ -1,0 +1,16 @@
+{
+  "id": "01M0JWG4PK4FKVTX3Z2V4JF2QA",
+  "ts": "2026-08-21T19:24:24.411Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "st.start",
+  "subject": {
+    "type": "thread",
+    "id": "ST0058"
+  },
+  "payload": {
+    "from": "triage",
+    "reason": null,
+    "to": "wip"
+  }
+}

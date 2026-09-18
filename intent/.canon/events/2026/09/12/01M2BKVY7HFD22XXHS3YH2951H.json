@@ -1,0 +1,15 @@
+{
+  "id": "01M2BKVY7HFD22XXHS3YH2951H",
+  "ts": "2026-09-12T20:10:16.179Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0312"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An enum positional's declared values are not applied by the spine, so a catch-all arm writes on any word"
+  }
+}

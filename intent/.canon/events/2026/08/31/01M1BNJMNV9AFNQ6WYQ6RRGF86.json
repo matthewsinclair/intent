@@ -1,0 +1,15 @@
+{
+  "id": "01M1BNJMNV9AFNQ6WYQ6RRGF86",
+  "ts": "2026-08-31T10:24:26.838Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0180"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "agents init --template is declared, helped and accepted, and no renderer arm reads it"
+  }
+}

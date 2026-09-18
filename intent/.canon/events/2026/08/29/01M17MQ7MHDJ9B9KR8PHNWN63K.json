@@ -1,0 +1,15 @@
+{
+  "id": "01M17MQ7MHDJ9B9KR8PHNWN63K",
+  "ts": "2026-08-29T20:52:32.360Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0147"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "ac edit and at edit assert behavioural guarantees in help that 0142's detector cannot see, so the unguarded population is at least 6 not 4"
+  }
+}

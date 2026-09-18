@@ -1,0 +1,15 @@
+{
+  "id": "01M2DSMDANYVSVKNQXZ2KMQG7Y",
+  "ts": "2026-09-13T16:29:29.816Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0369"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the search envelope never carries reconciled_at, and nothing records when the index was last reconciled"
+  }
+}

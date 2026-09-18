@@ -1,0 +1,15 @@
+{
+  "id": "01M2BD6XN6WSYX32AJ4KNNXVNG",
+  "ts": "2026-09-12T18:13:56.009Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0309"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A patch release makes every generated view a view-skew finding: the footer carries the binary version"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1BPZENTGAE30X8742JH8E4B",
+  "ts": "2026-08-31T10:48:55.244Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-09.5"
+  },
+  "payload": {
+    "text": "MCP resources serve the read surfaces THAT HAVE A CLI READ TO AGREE WITH -- ST/WP/issue docs, through the facade doors that already exist (`st_show` / `wp_show` / `issue_show`) -- and their contents match what the equivalent CLI read returns, with `resources/list` and `resources/read` in agreement and the URI grammar derived from `nav.rs`'s kinds rather than spelled a third time. **THIS ROW READ `wip, whiteboard boards, ST docs` UNTIL 2026-08-31, AND TWO OF THOSE THREE HAD NOTHING FOR THE MATCH CLAUSE TO MATCH.** Measured by ic: `wip.md` and the whiteboard boards have no facade door and no CLI read (`todo` reads `todo.md`, `info` reads the overview, neither is `wip.md`), so serving them would leave the row asserting agreement between a resource and nothing. **A CLAUSE WITH NO SUBJECT IS NOT A TEST THAT CAN FAIL**, and greening it against a resource surface that served them anyway would be the register-overclaim class -- satisfied by a test that does not touch two of the three surfaces the criterion names. **SERVED IMPLIES THERE IS A CLI READ TO AGREE WITH**, which is `AC-09.6`'s principle (a tool that cannot be served must not be published) arriving one surface over, from the opposite direction. **THE wip/BOARDS HALF IS NOT DESCOPED, IT IS RE-AIMED: what it actually needs is a CLI read for `wip` and the boards -- `Facade::wip`, `Facade::board(node)` and their verbs -- which is a product question about the CLI and not about MCP at all.** Framing it as an MCP gap was hiding a CLI gap. That build is new surface in a tag window and is therefore hv's call, put costed and NOT taken under the pen; if hv rules it in, the doors EXTEND this resource surface rather than change it. Reworded by vc under the standing pen, on ic's measurement, on the same grounds and repair as `AC-09.1` and `AC-00.3`: a criterion states what it can check, and the reword drops no obligation the build was meeting."
+  }
+}

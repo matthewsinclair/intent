@@ -1,0 +1,15 @@
+{
+  "id": "01M2NWH5YYXP6JSKRR99JEDTX4",
+  "ts": "2026-09-16T19:54:05.153Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0427"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The index's grep hook never reaches the model: it answers only the Grep tool, which sessions do not use"
+  }
+}

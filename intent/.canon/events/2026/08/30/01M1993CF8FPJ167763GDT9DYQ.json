@@ -1,0 +1,14 @@
+{
+  "id": "01M1993CF8FPJ167763GDT9DYQ",
+  "ts": "2026-08-30T12:08:00.289Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0066/AC-00.5"
+  },
+  "payload": {
+    "evidence": "driven 2026-08-30 (dc), both halves, after a vacuity check run BEFORE any build found the row had a live subject and was FAILING. FIRST HALF: doctor rendered a fiat-closed scope byte-identically to an ordinarily satisfied one (diff clean, same fixture shape, one state apart) while the close gate distinguished the same two states in its own tally -- so the distinction was computed and doctor was the surface not asking. Fixed at 8541c59c by carrying the fiat count on Verdict::Pass beside the detail, the arrangement `unsatisfied` already uses; Verdict is not a serialised face so no schema moved. SECOND HALF: the shared remedy said \"either satisfy them or take them out of scope\", which over a fiat row is the conversion this row forbids; remedy is per-CLASS so it was split to FindingClass::StatusGateDisagreementOverFiat at c9c48440. The new remedy was itself DRIVEN, not written -- its first version named `wp done`, which is refused from Not Started, the very state the finding fires on; corrected, and following it exactly clears the finding while `ac list` still reads fiat-closed. REACH: the status-gate path is the only one of doctor's 21 finding classes whose finding is a claim about a row's CLOSURE; the other 20 were enumerated and none reports closure state. Census arm compares class AND prose, driven red on the pre-fix branch."
+  }
+}

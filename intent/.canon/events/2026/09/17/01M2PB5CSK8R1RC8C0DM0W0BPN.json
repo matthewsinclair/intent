@@ -1,0 +1,14 @@
+{
+  "id": "01M2PB5CSK8R1RC8C0DM0W0BPN",
+  "ts": "2026-09-17T00:09:47.574Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-04.1"
+  },
+  "payload": {
+    "text": "`intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters."
+  }
+}

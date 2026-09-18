@@ -1,0 +1,15 @@
+{
+  "id": "01M19SQYEY5ABTME0JDE4H4J80",
+  "ts": "2026-08-30T16:58:46.112Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0169"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "init and --limit exit 2 for conditions guide.rs assigns to exit 1, and the gate fails open on 2"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2SWXKT528ADAKF1AV345DWA",
+  "ts": "2026-09-18T09:17:50.277Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 09:17Z; replaces doing 21).** **DOING: ST0078 WP-01 (P1, the event log travels, reverses D53), on vc's one order.** Each event becomes its own file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json, in the same write set as the act's canon and views. principal becomes the author: config.json's author, else git's user.name and user.email, else local. Ingest is additive. Doctor checks each file parses and its id matches its name, and reports committed events the store lacks as store-stale. upgrade removes the events.jsonl ignore line; export keeps its single-file form. Contract: AC-01.1 to AC-01.4. Held out of this bank: backfilling the events the store already holds (hv's ruling, a separate last commit). Worktree at scratchpad/wt-p1 with its own target. Bank to refs/bank/cc/st0078/p1. Rebase onto dc's P3 when it lands and extend its ingest; do not add a second pass. Landing order is P3, P2, P1, P4, on vc's word. 0450 landed at d634f0418 and stays OPEN until hv restarts intentd and a doctor re-read is clean. Conflab's 67 (ruled drop, refs/bank/cc/conflab67/) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH."
+  }
+}

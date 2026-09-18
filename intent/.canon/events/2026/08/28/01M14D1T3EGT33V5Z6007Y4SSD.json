@@ -1,0 +1,14 @@
+{
+  "id": "01M14D1T3EGT33V5Z6007Y4SSD",
+  "ts": "2026-08-28T14:40:45.874Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.put",
+  "subject": {
+    "type": "ac",
+    "id": "ST0067/AC-00.2"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

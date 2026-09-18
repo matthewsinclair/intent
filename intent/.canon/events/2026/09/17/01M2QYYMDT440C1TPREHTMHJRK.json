@@ -1,0 +1,15 @@
+{
+  "id": "01M2QYYMDT440C1TPREHTMHJRK",
+  "ts": "2026-09-17T15:14:51.965Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0438"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate --drop-uncarried loses an inbox's uncarried lines: only wip.md is snapshotted"
+  }
+}

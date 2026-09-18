@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZNAKMJR2PHPSB3K41K1K",
+  "ts": "2026-09-13T13:40:52.693Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0347"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The rulings gate and dehydration collide: a ratified ruling cites a thread file that a done thread's unlisting takes off the disk"
+  }
+}

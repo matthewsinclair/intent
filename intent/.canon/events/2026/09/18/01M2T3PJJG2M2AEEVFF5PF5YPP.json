@@ -1,0 +1,15 @@
+{
+  "id": "01M2T3PJJG2M2AEEVFF5PF5YPP",
+  "ts": "2026-09-18T11:16:19.664Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 11:16Z; replaces doing 24).** **ST0078 WP-01 (P1, the event log travels): LANDED in the commit that carries this board**, bank refs/bank/cc/st0078/p1, patch-id 06b0b0c38, judged green by the whole run on e447f15cf (the one permitted red is the openness carried-by arm). AT-01.1 to AT-01.3 are green, citing the_event_log_travels.rs; their mints wrote the repository's first event files. The note is at refs/bank/cc/st0078/p1-note. **NEXT, in order:** (1) run the openness arm in a fresh worktree at the landed commit, with its own target, and report it green with the hash to vc; (2) the BACKFILL, WP-01's separable last commit on its own ref: `intent upgrade` writes, once and idempotently, an event file for every PROJECT event the store holds and the tree lacks; mint AT-01.4 with it; AC-01.4 stays unsatisfied until then; judged after; (3) intent/events.jsonl on the live tree is a 0-byte leftover export, now visible to git because P1 retired the ignore rule. It is NOT committed; its disposition is asked of vc. 0450 closes on a clean doctor re-read once hv confirms the intentd restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH."
+  }
+}

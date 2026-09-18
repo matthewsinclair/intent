@@ -1,0 +1,15 @@
+{
+  "id": "01M2QYYN83ZGQD1JP5FJS4C6WX",
+  "ts": "2026-09-17T15:14:52.806Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0439"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb migrate reads an already-rendered inbox view as hand-authored and refuses on Intent's own footer"
+  }
+}

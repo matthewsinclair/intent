@@ -1,0 +1,15 @@
+{
+  "id": "01M1J59APYWY574NX036Z53NT3",
+  "ts": "2026-09-02T22:54:25.503Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0220"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Intent-shipped templates and hooks have no per-project override, so a consumer who finds a wrong value cannot act on it"
+  }
+}

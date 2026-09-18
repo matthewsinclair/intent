@@ -1,0 +1,15 @@
+{
+  "id": "01M2BNSK8H3A3NB00D6941E3C5",
+  "ts": "2026-09-12T20:43:56.564Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0314"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "at edit: a re-cite of a legacy row keeps the legacy reference, so the rewrite doctor asks for produces the blocking finding"
+  }
+}

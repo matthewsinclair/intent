@@ -1,0 +1,15 @@
+{
+  "id": "01M185ZP7H95Y7V0DJGAY3SRWF",
+  "ts": "2026-08-30T01:54:15.398Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0154"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "no entity's authored prose can be edited after creation: issue bodies, issue titles and work package bodies all have write-once doors"
+  }
+}

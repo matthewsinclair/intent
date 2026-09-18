@@ -1,0 +1,15 @@
+{
+  "id": "01M1BXGJ1J719BZ32BPJCPXMFF",
+  "ts": "2026-08-31T12:43:07.279Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0186"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "an AT row that is written, passing and outside the default suite has no status a machine can read"
+  }
+}

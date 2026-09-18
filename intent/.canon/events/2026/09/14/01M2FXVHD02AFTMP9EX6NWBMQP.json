@@ -1,0 +1,15 @@
+{
+  "id": "01M2FXVHD02AFTMP9EX6NWBMQP",
+  "ts": "2026-09-14T12:21:46.533Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0377"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the canon watcher's file-ID cache walks the intent tree on every event, so a commit costs the daemon about ten seconds of system time"
+  }
+}

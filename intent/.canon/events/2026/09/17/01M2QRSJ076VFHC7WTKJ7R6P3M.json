@@ -1,0 +1,15 @@
+{
+  "id": "01M2QRSJ076VFHC7WTKJ7R6P3M",
+  "ts": "2026-09-17T13:27:14.184Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**NEVER SHARE A CARGO TARGET DIR BETWEEN WORKTREES, NOT EVEN ONE AFTER ANOTHER** (2026-09-17). Cargo hashes a path dependency relative to the workspace root, so two worktrees write the SAME artifact names, and a crate whose sources did not change reads fresh and keeps the other worktree's compile-time `env!(\"CARGO_MANIFEST_DIR\")`. My red run in wt-red rebuilt testkit into wt-wp04's target; I removed wt-red; the next suite in wt-wp04 went 88 and 266 arms red on testkit's root search. The judging run before it was sound only because it came first. The reverse is worse: a copied target keeps the source worktree's paths, which still exist, so the arms read the WRONG tree and pass. Give every worktree its own target; to keep warm dependencies, copy the target and `cargo clean -p` every workspace member before the first build."
+  }
+}

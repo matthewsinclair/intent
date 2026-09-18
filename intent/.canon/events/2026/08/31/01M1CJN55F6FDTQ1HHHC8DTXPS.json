@@ -1,0 +1,14 @@
+{
+  "id": "01M1CJN55F6FDTQ1HHHC8DTXPS",
+  "ts": "2026-08-31T18:52:37.948Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-10.6"
+  },
+  "payload": {
+    "evidence": "impl.md#rollback-exercised-on-the-canary-ac-106 -- clone of this repo at the estate_corpus canary pin 42fb5269 (declares 2.19.0, clean); intent upgrade rc=0 (56 threads, 61 issues, 136 files); committed; git revert; pre-migration tree 94620a034a679eee91a00bf8a258c1f74ec9a14c == post-revert tree 94620a034a679eee91a00bf8a258c1f74ec9a14c, with the migrated tree 7473e639b6e9c33d6ef2357c7e6e267dfc4454dd differing from both so the assertion is not vacuous; working tree clean after revert; intent.db survives the rollback; the v2-formula reinstall is a DECLARED EXCLUSION with its reason (vc ruling 2026-08-31) because brew intent 3.0.0_1 is pinned and PATH intent is the tree binary"
+  }
+}

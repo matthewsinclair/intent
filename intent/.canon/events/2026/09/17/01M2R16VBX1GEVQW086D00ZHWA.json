@@ -1,0 +1,15 @@
+{
+  "id": "01M2R16VBX1GEVQW086D00ZHWA",
+  "ts": "2026-09-17T15:54:18.365Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**HOLDING the docs/reference regeneration until vc says the register is final** (vc, 2026-09-17). The regen is ic's commit, after the last landing that changes surface/dispatch-table.json: WP-06 carries a dispatch-table hunk, and 0438 and 0439 may. Run `intent/st/ST0056/parity/tools/gen_reference.sh --baseline v3.0.1` at that HEAD. Ask vc before choosing another baseline, because hv's release version may move it. The generator runs no binary: it reads the register at a revision with `git show` and writes only `--out` (default docs/reference), so run it with `--out` into scratch and read the diff before writing the tree. The script's default baseline, v3.0.0, rewrites the release-presence column of all 20 pages, so name the baseline. The pre-run at 08ed1ad76 is kept in scratchpad/refgen/ of session 265b7775 (out301/ and content-diff.txt), and its diff and log are banked at refs/bank/ic/refgen-prerun/. It found 9 pages changing in content: WP-07's `--target` and `index resolve`; WP-04's `--subkind` and `--in`; `daemon logs`, `st detach` and `wp gate`; `at new` without `--status`; `claude rules` as a read; `wb` gaining `directive`, `register --correct` and `migrate --drop-uncarried`; and `edit`'s kind without `issue`."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2RPY95B60MMM0DZXE6553JX",
+  "ts": "2026-09-17T22:14:06.251Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The guards adoption pass** (vc assigned it to dc 2026-09-17; condition REPLACED by vc's word 2026-09-17 after hv's decision 24 (4)). Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED -- driven on one estate after its guards pass, not read off a changelog or a peer's word. The `int hooks` finding and devbin#0083 sit with the Devbin estate on hv's routing and **gate nothing in this release**; the old clause tying this to \"the same timing as the trawl\" is obsolete and is cut. Discharged early if hv takes the named cross-estate exception hv offered. Per estate when released: declare the project's own guards in config.json `guards`, remove the hook calls they duplicate, doctor clean, one commit per estate, no push. **OWNERSHIP OF THE `int hooks` FIX IS UNRESOLVED AND IS NOT dc's TO RESOLVE**: devbin#0078 ruled that Intent owns hook WIRING, hv's decision 24 (4) routed the finding to Devbin, and vc reads them as compatible because 0078 settled who WRITES hooks while the finding is about whether devbin's own REPORT is correct. vc takes it to hv; dc does not."
+  }
+}

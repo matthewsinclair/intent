@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5N95B19FDCQJ06CVSDH41",
+  "ts": "2026-09-14T14:38:10.186Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0388"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "arguments_do_not_start_a_daemon spawns GNU timeout, which the macOS CI runner lacks, so its arms panic on the macos-latest leg"
+  }
+}

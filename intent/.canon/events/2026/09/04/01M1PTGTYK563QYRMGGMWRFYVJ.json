@@ -1,0 +1,15 @@
+{
+  "id": "01M1PTGTYK563QYRMGGMWRFYVJ",
+  "ts": "2026-09-04T18:22:29.333Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0242"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "The shipped pre-commit gate reports its scope only on failure, so a gate enforcing nothing is silent and looks identical to one enforcing everything"
+  }
+}

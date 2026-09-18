@@ -1,0 +1,15 @@
+{
+  "id": "01M16X5PFF5KZHB7N5GM5EK4CK",
+  "ts": "2026-08-29T14:00:59.632Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0137"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "ac list renders a fiat-closed criterion as satisfied: no -- the second render site goes around the one composer"
+  }
+}

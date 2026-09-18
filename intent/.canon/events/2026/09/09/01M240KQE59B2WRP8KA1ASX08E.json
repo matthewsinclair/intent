@@ -1,0 +1,15 @@
+{
+  "id": "01M240KQE59B2WRP8KA1ASX08E",
+  "ts": "2026-09-09T21:19:03.112Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0298"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the parity register has no currency check against the tree, and the two tools that read its rows skip an absent file in silence"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2P3S5ESHA0K9B301DD93X22",
+  "ts": "2026-09-16T22:00:46.812Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0076/01"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Typed definitions: kind, container, arity and span, one row per syntax node, with an extractor version"
+  }
+}

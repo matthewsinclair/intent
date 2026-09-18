@@ -1,0 +1,15 @@
+{
+  "id": "01M1CSWNSKPJSMYM67KCC2B1EJ",
+  "ts": "2026-08-31T20:59:04.373Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0204"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the register and the dispatch table are ruled to share a vocabulary verbatim, and nothing checks that they agree"
+  }
+}

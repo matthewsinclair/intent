@@ -1,0 +1,15 @@
+{
+  "id": "01M2DP9K636XWSH56PYJCT4TQB",
+  "ts": "2026-09-13T15:31:09.640Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0364"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "upgrade's pointer worklist names hits under .history that the append-only guard refuses to let anyone reword"
+  }
+}

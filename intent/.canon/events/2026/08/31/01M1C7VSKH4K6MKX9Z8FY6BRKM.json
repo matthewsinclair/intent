@@ -1,0 +1,15 @@
+{
+  "id": "01M1C7VSKH4K6MKX9Z8FY6BRKM",
+  "ts": "2026-08-31T15:44:01.141Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0195"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent search reports every hit at line 0 and repeats one file per match, so a result set cannot be navigated"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M1KYEY4GASB96S0H8E1RGT6V",
+  "ts": "2026-09-03T15:33:38.066Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0224"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "init seeds an Elixir decision tree into every project and Destination cannot decline it"
+  }
+}

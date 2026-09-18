@@ -1,0 +1,15 @@
+{
+  "id": "01M2SYYXX99H7VG31A1JFQ41BG",
+  "ts": "2026-09-18T09:53:30.537Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 09:50Z, localfold for hv's compact; replaces doing 22).** **DOING: ST0078 WP-01 (P1, the event log travels).** Built in scratchpad/wt-p1, which has its own target. Banked at refs/bank/cc/st0078/p1-wip, patch-id 7ad7d912e, with the note at refs/bank/cc/st0078/p1-note (read the note first). vc's rulings (decision 45) are applied: carried-by openness; git identity before the config author, with unknown as the one placeholder; intentd keeps its principal; one event::travels(op) predicate, true for every op until hv rules on the machine-scoped split; ingest skips held ids by name; the scan is left alone. Both pre-landing readings are in the note. **NEXT, after dc's P3 SUITE END (dc started 09:48Z):** compile the post-ruling edits (UNCOMPILED since the rulings); BLESS the DDL face (INTENT_BLESS=1 cargo test -p intentsvcs --test suite -- schema_faces_drift); rerun fmt, both clippy gates, doc and the_event_log_travels plus openness; re-bank; then ask vc's word for the whole-suite run. **Landing order: P3, P2, P5, P1, P4.** Rebase on all three, fold the event ingest into ingest_from_disk (no second pass), and switch the two-clone test from sync --to-store to intent sync --apply. Mint the AT rows AT-01.1 to AT-01.4 inside the landing chain with the worktree binary on the live tree, so the landing commit carries the repo's first event files. The backfill stays out. **Also:** hv asked vc to document banks as policy (sent to vc 09:45Z). Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. 0450 stays OPEN until hv restarts intentd. NO RELEASE, NO PUSH."
+  }
+}

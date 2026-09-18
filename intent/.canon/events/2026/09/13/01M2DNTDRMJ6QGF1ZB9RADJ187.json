@@ -1,0 +1,15 @@
+{
+  "id": "01M2DNTDRMJ6QGF1ZB9RADJ187",
+  "ts": "2026-09-13T15:22:52.567Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0361"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "search's prose form prints a hit's section label, not the line that matched"
+  }
+}

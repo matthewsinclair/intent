@@ -1,0 +1,15 @@
+{
+  "id": "01M2BCE6FZPYQR2CXYFMEBJ6TP",
+  "ts": "2026-09-12T18:00:25.859Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0307"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Canon extract differs by writer: an unscoped sync --to-disk normalises the trailing newline off objective and context"
+  }
+}

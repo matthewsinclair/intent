@@ -1,0 +1,15 @@
+{
+  "id": "01M16WD03F042RE38FMFEMAWPN",
+  "ts": "2026-08-29T13:47:30.118Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0136"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "deny_unknown_fields does not apply to AcState::Computed -- a unit variant under internal tagging silently accepts unknown keys"
+  }
+}

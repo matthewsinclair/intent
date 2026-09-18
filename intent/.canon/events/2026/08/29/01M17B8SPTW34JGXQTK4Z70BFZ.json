@@ -1,0 +1,15 @@
+{
+  "id": "01M17B8SPTW34JGXQTK4Z70BFZ",
+  "ts": "2026-08-29T18:07:23.492Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0144"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st edit on an unknown id registers it in tracked .intentfiles, and the file argument decides"
+  }
+}

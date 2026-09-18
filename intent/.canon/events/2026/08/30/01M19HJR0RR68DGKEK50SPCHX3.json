@@ -1,0 +1,15 @@
+{
+  "id": "01M19HJR0RR68DGKEK50SPCHX3",
+  "ts": "2026-08-30T14:36:07.343Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0163"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent daemon start/stop are declared in --help and unwired"
+  }
+}

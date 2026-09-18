@@ -1,0 +1,15 @@
+{
+  "id": "01M1C7DMSBVSMMDFYGG5Y27VAP",
+  "ts": "2026-08-31T15:36:17.454Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0192"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st edit hands back the path to a generated view and the next render destroys the edit, where the published tag refused"
+  }
+}

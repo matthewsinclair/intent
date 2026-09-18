@@ -1,0 +1,15 @@
+{
+  "id": "01M1M0FC55BG0VEK3M66J37JE5",
+  "ts": "2026-09-03T16:08:49.575Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0227"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "acceptance: exempt has a complete read path and no writer -- the only assignment in the workspace is inside a test"
+  }
+}

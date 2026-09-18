@@ -1,0 +1,15 @@
+{
+  "id": "01M2D98AQFF7N6ED9ZFGJXP97N",
+  "ts": "2026-09-13T11:43:16.722Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0320"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "upgrade realises a closed issue's view that organize then unclaims"
+  }
+}

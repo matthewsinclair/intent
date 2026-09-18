@@ -1,0 +1,14 @@
+{
+  "id": "01M1BTB0A8G4J6WMTX706WRTTR",
+  "ts": "2026-08-31T11:47:39.485Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/ac-09_5-resources-design.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

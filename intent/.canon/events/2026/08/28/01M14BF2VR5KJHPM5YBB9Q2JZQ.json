@@ -1,0 +1,15 @@
+{
+  "id": "01M14BF2VR5KJHPM5YBB9Q2JZQ",
+  "ts": "2026-08-28T14:13:04.316Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0119"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "ac new on an existing id is a silent full replace with defaults that prints created"
+  }
+}

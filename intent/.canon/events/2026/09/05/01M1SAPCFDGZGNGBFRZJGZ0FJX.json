@@ -1,0 +1,15 @@
+{
+  "id": "01M1SAPCFDGZGNGBFRZJGZ0FJX",
+  "ts": "2026-09-05T17:43:37.199Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0268"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the store-rebuild rung refuses a real v2 migration with a raw SQLite constraint that names neither thread nor id, and its remedy sends the operator to a doctor that can only tell them to re-run the command that just failed"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2A71FFK6CR54BGYQGM7CS08",
+  "ts": "2026-09-12T07:06:51.766Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/20"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Structural search: tree-sitter symbols per declared language, and the agent canon that uses them"
+  }
+}

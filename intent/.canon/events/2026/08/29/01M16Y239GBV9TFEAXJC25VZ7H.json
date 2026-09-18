@@ -1,0 +1,15 @@
+{
+  "id": "01M16Y239GBV9TFEAXJC25VZ7H",
+  "ts": "2026-08-29T14:16:30.419Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0140"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "an unsatisfied note is published and writable only by migration -- no verb can author or edit one"
+  }
+}

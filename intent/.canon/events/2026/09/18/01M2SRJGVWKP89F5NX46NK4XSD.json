@@ -1,0 +1,15 @@
+{
+  "id": "01M2SRJGVWKP89F5NX46NK4XSD",
+  "ts": "2026-09-18T08:01:52.511Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0450"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the 0442 detector reported doc_sections corrupt once on the live store while the 3.46.0 daemon was writing it, and two re-reads, the 3.54 CLI on a copy and a search all read clean"
+  }
+}

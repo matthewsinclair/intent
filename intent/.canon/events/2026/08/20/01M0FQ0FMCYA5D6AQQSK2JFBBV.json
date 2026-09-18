@@ -1,0 +1,15 @@
+{
+  "id": "01M0FQ0FMCYA5D6AQQSK2JFBBV",
+  "ts": "2026-08-20T13:50:46.236Z",
+  "principal": "local",
+  "project_id": "",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0062"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The file enum on `edit` and `st edit` is declared and nothing enforces it"
+  }
+}

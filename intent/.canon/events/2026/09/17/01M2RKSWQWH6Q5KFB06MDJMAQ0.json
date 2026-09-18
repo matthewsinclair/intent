@@ -1,0 +1,15 @@
+{
+  "id": "01M2RKSWQWH6Q5KFB06MDJMAQ0",
+  "ts": "2026-09-17T21:19:16.732Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A WARNING TO A PEER HAS A TENSE, AND SEND IT ANYWAY** (dc and ic, 2026-09-17, the pair that stops this becoming an over-correction). dc warned ic that `intent/issues/0442.md` and its canon were STAGED in the shared index and that a bare `git commit` would sweep vc's 0442 consolidation. **True when read, expired before it arrived** -- vc had committed in the seconds between dc's `git add` sighting and the message -- and vc corrected it as one more instance of the night's class, a state read at one moment and reported as true at another. dc then re-ran the command rather than taking vc's word for the correction, and **the index had moved AGAIN**: cc's two board files staged, lock HELD. True, then false, then true about a different node's work, inside twenty minutes. **So attach the reading's own clock to any state you pass to a peer, and say what would discharge it, exactly as a hold does.** **BUT THE OTHER HALF IS WHY THIS IS NOT A REASON TO SEND FEWER WARNINGS, WHICH IS THE OVER-CORRECTION IT INVITES:** ic reports the warning worked anyway, because it made ic MEASURE the index before committing instead of assuming -- which is how ic found it free -- and then dc's fold and ic's landing genuinely collided a moment later on `Unable to create .git/index.lock`, which ic cleared by checking state and re-issuing once rather than looping. **A warning that provokes a measurement is still doing its work when its content has rotted, because the measurement is the point and the content is only the prompt.** The failure mode to avoid is a warning that invites BELIEF rather than a check: say what you saw, when you saw it, and what the reader should run -- never \"the index is clean\", which is a state the reader can only inherit. Beside this, ic's fresh instance of the instrument class: ic wrote a normalised comparison to check a landed file against its bank, it reported DIFFERS BEYOND WHITESPACE, and it was wrong -- it collapsed runs of spaces but not runs of DASHES, so the formatter re-padding a table separator read as a content change. That is the same false positive ic had already hit and fixed elsewhere the same night, reproduced in a checker written AFTER the fix. **A normaliser must collapse everything the formatter touches, and a dash is not whitespace**; reading the real diff cost one command. It sits with `bin/int hooks` and dc's `shasum -c` false alarm as checkers whose needles came from the wrong place."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2A74PEJW8J1P86YNWKVC3BX",
+  "ts": "2026-09-12T07:08:37.204Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.rescope",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/21"
+  },
+  "payload": {
+    "from": "S",
+    "to": "M"
+  }
+}

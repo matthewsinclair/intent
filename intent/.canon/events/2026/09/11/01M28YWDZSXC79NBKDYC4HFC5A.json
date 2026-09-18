@@ -1,0 +1,14 @@
+{
+  "id": "01M28YWDZSXC79NBKDYC4HFC5A",
+  "ts": "2026-09-11T19:25:03.356Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0058/AC-00.1"
+  },
+  "payload": {
+    "evidence": "At the v3.0.1 tag, bin/devbin build all produced and verified a COHERENT pair, intent and intentd both 3.0.1 (a8942aead), promoted to the shared path and reachable from any cwd through ~/.local/bin. The Homebrew keg's pair is coherent too: intent and intentd both 3.0.1 (a8942aead), with smoke --reinstall answering every arm, rc 0."
+  }
+}

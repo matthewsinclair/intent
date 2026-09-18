@@ -1,0 +1,20 @@
+{
+  "id": "01M2SWYP3DVD3H5Q1SXPTRW13W",
+  "ts": "2026-09-18T09:18:25.389Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "CHAIN END cc: 03f0c4522 (WP-01 start plus cc's board; the ST0078 canon and views also carry dc's WP-03 start, committed whole). dc next (it yielded), then vc.",
+    "recipients": [
+      "dc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

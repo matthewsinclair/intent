@@ -1,0 +1,15 @@
+{
+  "id": "01M0ZX2T6TDQX4H0NV3XSB4WZF",
+  "ts": "2026-08-26T20:44:44.285Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0099"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Cross-session messages carry the same '## (timestamp)' ordering claims as the boards and sit under none of the three whiteboard guards -- two fabricated stamps in five minutes by two mechanisms (a local time with Z appended; a number advanced by feel) were caught by a two-node arrangement and by no machinery"
+  }
+}

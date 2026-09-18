@@ -1,0 +1,15 @@
+{
+  "id": "01M2QNVY0RY42M3WZTM4EQ324Q",
+  "ts": "2026-09-17T12:36:06.296Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**AN ARM ON THE PURE HALF STAYS GREEN WHILE THE COORDINATOR DROPS THE VALUE** (2026-09-17, issue 0435). `views::freshness_note` was tested as a pure function for five days while run.rs set the note and cleared it before any frame drew it, and AC-21.1 passed on that arm. Assert where the reader looks (`run::screen_for(..).hint`). Drive a TUI change in a pty through pyte (a scratchpad venv), answering the cursor query `ESC[6n` with `ESC[1;1R` and `ESC[c` with a device-attributes reply, or the explorer refuses the terminal. Read every flag on the row before calling a door filtered: the structural doors silently ignored --tier and --limit."
+  }
+}

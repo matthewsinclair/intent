@@ -1,0 +1,15 @@
+{
+  "id": "01M182S1ZN9BCKCGWYRSRVV7MQ",
+  "ts": "2026-08-30T00:58:11.555Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0152"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a contended write waits five seconds on a timeout nobody chose, set by a dependency default that is invisible to every reader of our source"
+  }
+}

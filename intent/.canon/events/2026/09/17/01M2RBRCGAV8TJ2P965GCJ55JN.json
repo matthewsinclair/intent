@@ -1,0 +1,15 @@
+{
+  "id": "01M2RBRCGAV8TJ2P965GCJ55JN",
+  "ts": "2026-09-17T18:58:38.730Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17 18:58Z, hv first-hand in prose, answering vc's escalation on the SQLite bump) DEPENDENCY BUMPS ON THE RUST SIDE ARE NOT GATED. hv, verbatim: \"Well, if it needs a bump (or if anything in the rust side of the house needs a bump, then bump it). That should never be a problem to move the deps forward. Just do it.\" So `libsqlite3-sys` moves off 0.30.1 where 0442 needs it, and the same goes for any other Rust dependency a lane finds it needs; no node asks again for a dep bump as such. WHAT THIS DOES NOT CHANGE, vc's reading of the boundary: a bump is still a change that banks, is judged, takes a whole-suite run and a rebuild like any other, and it is still under NO RELEASE and NO PUSH -- \"just do it\" removes the permission question, not the train."
+  }
+}

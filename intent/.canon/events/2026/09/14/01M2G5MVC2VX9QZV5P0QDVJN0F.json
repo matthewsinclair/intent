@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5MVC2VX9QZV5P0QDVJN0F",
+  "ts": "2026-09-14T14:37:55.973Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0386"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "release --patch aborts at its canon step with the version stamped and uncommitted, so the re-run it asks for fails its own clean-tree gate, and the message denies a --skip-settings v3 has"
+  }
+}

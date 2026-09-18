@@ -1,0 +1,15 @@
+{
+  "id": "01M2NTB98PQ9QQR573MBN4D8F9",
+  "ts": "2026-09-16T19:15:54.777Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0423"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent app start and app restart report a launch that succeeded as a failure -- the wait for the app to register was 2 s"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2R5MWKVM3ED8RKWXMYKBGYP",
+  "ts": "2026-09-17T17:11:52.699Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A DAEMON-MODE REPRO COUNTS ONLY ONCE THE DAEMON HAS OPENED THE PROJECT, AND A `--daemon` VERB IT CANNOT ANSWER OPENS NOTHING** (2026-09-17, 0441). My first daemon run started intentd under an isolated HOME and registered the scratch project with `intent issues list --daemon`, which is refused (the daemon answers `st list` and `search`), so the daemon watched nothing and the clean result proved nothing; `intent --daemon st list` opens it. Prove the open before believing the run: the registry line `{\"root\":\"/\",\"op\":\"registry\"}` sent to the socket `intent daemon status` names shows `watched: true` for the root, and the store's events show `disk.sync_from_disk` once a sync writes. A long session's MCP server can also speak an older schema than the store (\"holds schema version 29; this build speaks 27\"), so ask the CLI instead."
+  }
+}

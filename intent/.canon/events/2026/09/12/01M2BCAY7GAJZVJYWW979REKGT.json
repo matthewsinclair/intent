@@ -1,0 +1,15 @@
+{
+  "id": "01M2BCAY7GAJZVJYWW979REKGT",
+  "ts": "2026-09-12T17:58:39.090Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0306"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "doctor reports every undeclared issue's absent view as missing -- 284 findings on a healthy estate"
+  }
+}

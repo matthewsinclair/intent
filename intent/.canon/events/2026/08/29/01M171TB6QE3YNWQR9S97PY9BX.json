@@ -1,0 +1,15 @@
+{
+  "id": "01M171TB6QE3YNWQR9S97PY9BX",
+  "ts": "2026-08-29T15:22:11.430Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0142"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "at green --help asserts a guard the tool does not enforce"
+  }
+}

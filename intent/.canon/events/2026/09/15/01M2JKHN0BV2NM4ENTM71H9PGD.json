@@ -1,0 +1,14 @@
+{
+  "id": "01M2JKHN0BV2NM4ENTM71H9PGD",
+  "ts": "2026-09-15T13:19:20.079Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-12.2"
+  },
+  "payload": {
+    "reason": "WP-12 was cancelled in this thread and delivered as ST0069 WP-01, whose criteria carry this behaviour and pass (ST0069 gate PASS); withdrawn at the close-out of 2026-09-15."
+  }
+}

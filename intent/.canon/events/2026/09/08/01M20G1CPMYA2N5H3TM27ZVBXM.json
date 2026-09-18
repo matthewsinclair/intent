@@ -1,0 +1,14 @@
+{
+  "id": "01M20G1CPMYA2N5H3TM27ZVBXM",
+  "ts": "2026-09-08T12:31:41.783Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.2"
+  },
+  "payload": {
+    "evidence": "97f74262. C1+C3 (ONE predicate; the app consumes it rather than spelling a second): one_daemon_predicate_across_both_trees.rs::the_app_target_spells_no_second_daemon_predicate and ::the_apps_health_read_goes_through_the_cli_verb. Controlled BOTH ways: ::a_planted_network_probe_is_found, ::a_planted_read_of_the_daemons_published_address_is_found, ::the_walk_carries_a_planted_file_through_to_a_finding, ::the_tokens_are_not_matched_inside_comments_or_strings, ::an_empty_app_target_is_a_failure_rather_than_a_pass, plus a live plant in the real app target confirmed RED before revert. C2 (a completed round trip, never a presence test and never a bare connect): intentsvcs daemon_health_splits_stale_from_absent.rs::a_holder_that_does_not_answer_is_stale and ::an_orphaned_listener_with_no_holder_is_absent_and_not_stale -- both CONNECT successfully and are refused LIVE, which is that clause exactly. Wire contract the app decodes: daemon_status_answers_a_machine.rs (4 arms) and HealthTests.swift. LIMIT, stated so a green is not read as more: the structural arm establishes that no second predicate is SPELLED in the app target, never that the one predicate is the one EXECUTED at run time; a live drive is AC-01.4 territory and is not claimed here."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M1PM8P7R0GY7A7M2AB5T9JA3",
+  "ts": "2026-09-04T16:33:10.907Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/canon_mandated_verbs_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

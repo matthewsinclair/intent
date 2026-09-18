@@ -1,0 +1,15 @@
+{
+  "id": "01M1BP839SZS2K3RYBFJPRH0MJ",
+  "ts": "2026-08-31T10:36:09.936Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0183"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade never names its out-of-model file set, so every non-canon file reports UNACCOUNTED and AC-10.5 cannot pass on any member"
+  }
+}

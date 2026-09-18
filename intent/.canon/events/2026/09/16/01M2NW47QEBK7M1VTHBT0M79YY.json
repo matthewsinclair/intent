@@ -1,0 +1,15 @@
+{
+  "id": "01M2NW47QEBK7M1VTHBT0M79YY",
+  "ts": "2026-09-16T19:47:00.974Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-16) vc, under the pen: when two CHAIN STARTs cross, the moniker earlier in the alphabet goes first (cc < dc < ic < vc) and the other waits for its CHAIN END, with no further messages about order. ic's and vc's starts crossed repeatedly on 2026-09-16 and both sides yielded each time."
+  }
+}

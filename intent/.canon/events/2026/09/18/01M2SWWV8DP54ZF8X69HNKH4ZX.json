@@ -1,0 +1,20 @@
+{
+  "id": "01M2SWWV8DP54ZF8X69HNKH4ZX",
+  "ts": "2026-09-18T09:17:25.133Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "CHAIN START cc: intent wp start ST0078/01, cc board write, then a commit of cc's board and ST0078 canon/views only.",
+    "recipients": [
+      "dc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

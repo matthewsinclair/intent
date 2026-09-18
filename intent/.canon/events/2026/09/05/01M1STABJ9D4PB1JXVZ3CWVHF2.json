@@ -1,0 +1,15 @@
+{
+  "id": "01M1STABJ9D4PB1JXVZ3CWVHF2",
+  "ts": "2026-09-05T22:16:40.267Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0277"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "install.md offers INTENT_HOME as the remedy for the keg defects, twice, and v3 does not read that variable at all"
+  }
+}

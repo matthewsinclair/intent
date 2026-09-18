@@ -1,0 +1,15 @@
+{
+  "id": "01M2NV36VKEM9A677DHQBFJ3KZ",
+  "ts": "2026-09-16T19:28:58.742Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0425"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent daemon logs prints one log's block after the other, so an older error sits below the newest start line -- merge the backlog by each line's stamp"
+  }
+}

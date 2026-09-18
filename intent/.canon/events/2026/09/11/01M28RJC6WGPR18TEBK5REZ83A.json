@@ -1,0 +1,15 @@
+{
+  "id": "01M28RJC6WGPR18TEBK5REZ83A",
+  "ts": "2026-09-11T17:34:42.398Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.set",
+  "subject": {
+    "type": "ac",
+    "id": "ST0044/AC-03.5"
+  },
+  "payload": {
+    "field": "kind",
+    "via": "address"
+  }
+}

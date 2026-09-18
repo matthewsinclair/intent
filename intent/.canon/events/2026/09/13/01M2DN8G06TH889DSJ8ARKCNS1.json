@@ -1,0 +1,15 @@
+{
+  "id": "01M2DN8G06TH889DSJ8ARKCNS1",
+  "ts": "2026-09-13T15:13:05.033Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0355"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the index watch registration is root-recursive and its debouncer cache walks the whole tree, target dirs included, with a stat per entry on every rescan"
+  }
+}

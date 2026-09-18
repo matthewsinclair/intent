@@ -1,0 +1,15 @@
+{
+  "id": "01M1P75THR88EQ46DQERSM8KG0",
+  "ts": "2026-09-04T12:44:25.540Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0056/18"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator"
+  }
+}

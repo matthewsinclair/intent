@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVFQ0YS5Q4F1CS4F1W1ADS",
+  "ts": "2026-08-31T12:07:42.370Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)"
+  }
+}

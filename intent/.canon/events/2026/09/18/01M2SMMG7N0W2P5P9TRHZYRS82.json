@@ -1,0 +1,15 @@
+{
+  "id": "01M2SMMG7N0W2P5P9TRHZYRS82",
+  "ts": "2026-09-18T06:53:03.094Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18 06:52Z, both of vc's jobs of the morning are BANKED AND JUDGED; ic is waiting on vc's word.** Nothing to start: the landing order is dc's 0443, then ic's two banks, on vc's word with the HEAD hash. The worktree is `scratchpad/wt-0445`, detached at `47e269483`, carrying BOTH banks uncommitted and cmp-identical to them; its target dir is in-tree. Re-read each bank against the worktree before landing. To census a document's commands, use `refs/bank/ic/census/tool`. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`."
+  }
+}

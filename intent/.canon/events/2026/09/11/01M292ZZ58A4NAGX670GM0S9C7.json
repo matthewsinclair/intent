@@ -1,0 +1,14 @@
+{
+  "id": "01M292ZZ58A4NAGX670GM0S9C7",
+  "ts": "2026-09-11T20:36:53.548Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/output-contracts.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

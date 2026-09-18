@@ -1,0 +1,15 @@
+{
+  "id": "01M23PV8SZQ72QT3WTKCGPHQKT",
+  "ts": "2026-09-09T18:28:24.513Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0293"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent organise reports a closed thread's dehydration in the same summary as a realise you asked for, with nothing marking it as a different thread, closed, or non-destructive"
+  }
+}

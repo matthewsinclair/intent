@@ -1,0 +1,15 @@
+{
+  "id": "01M2GEC6K4BWHX3KKT4DE7R75H",
+  "ts": "2026-09-14T17:10:29.734Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0393"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a large indexed directory vanishing costs a refresh one delete per path"
+  }
+}

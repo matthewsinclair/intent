@@ -1,0 +1,15 @@
+{
+  "id": "01M2NW3GPFW5W19PRAMBJCYADC",
+  "ts": "2026-09-16T19:46:37.391Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "IN FLIGHT (2026-09-16). Landed and verified against their banks since todo 19: dc's 0412 (b8db00fa9) and migrate (292414661, closing 0403, 0404 and 0406-0409 at 61a88ae21), cc's 0331-stale (f2f25c57d; vc ruled the claude rules row a read), ic's 0419 cursor (fe2471b17), ic's 0421 and 0422 explorer fixes (4df530f36), cc's 0402 canon normalisation (4802c70d9: intentd had already written it and the banked check judged it 3/3/10), ic's 0423 app start/restart deadline (f330805da), dc's 0424 register refusal (fe982f2e1), and ic's 0425 merged log backlog (8c1252f39). ST0075 and ST0057 are done on hv's word (dcf3bc3c1); ST0057 stays declared in .intentfiles because ST0056's parity tools read its parity/tools. Filed: 0420 (the store write lock, with captures and intentd's own refusals from 2026-09-15T22:42Z onwards). Open: 0344 (the clean install), 0420, and 0426. RESUME: (1) dc is building 0426 (project guards declared as `guards` in config.json and run by the live gate; a missing declared body blocks; --list-guards gains a 5th column; doctor Advisories for a hand-wired hook and an unset core.hooksPath beside a tracked hook dir; adoption is a separate estate pass) under vc's five rulings: judge the bank, GO, verify. (2) Then hv's rebuild and drive: `bin/devbin build all`, `intent daemon restart`, `bin/int macos app-install`, then drive `intent app restart` (0423), the Console order (0425), `wb register` (0424) and 0426's gate. (3) Then gen_reference.sh regenerates docs/reference whole, as its own commit. (4) Then on vc's word the board trawl (dc's trawl.sh in scratch clones, register-then-migrate for every board not in the store) and the guards adoption pass, and vc sends hv one worklist. NO RELEASE, NO PUSH."
+  }
+}

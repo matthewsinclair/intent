@@ -1,0 +1,15 @@
+{
+  "id": "01M2NJ95AV4D26TN17FX6C5CSA",
+  "ts": "2026-09-16T16:54:56.640Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0420"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A store write can meet a write lock held over 5s with intentd alone on the store"
+  }
+}

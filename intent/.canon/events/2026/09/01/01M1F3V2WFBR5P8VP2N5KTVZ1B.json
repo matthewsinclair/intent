@@ -1,0 +1,14 @@
+{
+  "id": "01M1F3V2WFBR5P8VP2N5KTVZ1B",
+  "ts": "2026-09-01T18:31:26.865Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.5"
+  },
+  "payload": {
+    "evidence": "intent:// resolves through the CLI read-resolution; the app is no second resolver (ic, code 50c56d8a, Debug build 5130). application(open:) hands the WHOLE URL to 'intent edit <address> --path' and opens the returned path, parsing no address itself. Driven: 'open -a Intent.app intent:///threads/ST0064'; os_log '[App] open intent:///threads/ST0064' then '[App] resolved intent:///threads/ST0064 -> /Users/matts/Devel/prj/Intent/intent/st/ST0064/info.md' -- byte-identical to CLI 'intent edit intent:///threads/ST0064 --path' at binary 361eff99. Grammar: three-slash empty-authority 'intent:///<collection>/<id>'; two-slash and bare forms refused by the resolver, not the app. Rig: scratchpad/ac0103_0105_launch.sh; orphan-free on quit."
+  }
+}

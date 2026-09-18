@@ -1,0 +1,15 @@
+{
+  "id": "01M2DJ307TJ18PGTC0W0ADJGRQ",
+  "ts": "2026-09-13T14:17:39.325Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0354"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intentd spins one core in the store's serve thread, a million syscalls a second in a condvar wait with no timeout, intermittently and without a known trigger"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ3DBHH6REXDAXZQAAFA4",
+  "ts": "2026-09-13T13:40:34.391Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0337"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The acceptance verbs enforce less than the docs promise: at green from to-write, at na on a test row, silent closes on a placeholder objective"
+  }
+}

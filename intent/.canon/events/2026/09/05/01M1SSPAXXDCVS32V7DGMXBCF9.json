@@ -1,0 +1,15 @@
+{
+  "id": "01M1SSPAXXDCVS32V7DGMXBCF9",
+  "ts": "2026-09-05T22:05:44.256Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0276"
+  },
+  "payload": {
+    "bytes": 7913,
+    "title": "sync --to-store has two warning surfaces and neither reports a COMMITTED attachment whose bytes differ from canon: one never examines attachments, the other examines git state instead of content, so the divergence enters canon in silence"
+  }
+}

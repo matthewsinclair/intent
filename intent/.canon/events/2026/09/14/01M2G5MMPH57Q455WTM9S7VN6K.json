@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5MMPH57Q455WTM9S7VN6K",
+  "ts": "2026-09-14T14:37:49.140Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0385"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a write after a version change warns that it overwrote a hand edit when only the view footer version stamp differs"
+  }
+}

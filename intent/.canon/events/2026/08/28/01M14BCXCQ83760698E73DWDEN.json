@@ -1,0 +1,15 @@
+{
+  "id": "01M14BCXCQ83760698E73DWDEN",
+  "ts": "2026-08-28T14:11:53.423Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0117"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Three sibling parity tools carry three root-resolution contracts, deciding fixture-drivability by accident"
+  }
+}

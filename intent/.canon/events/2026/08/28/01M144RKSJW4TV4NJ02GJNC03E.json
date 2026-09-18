@@ -1,0 +1,15 @@
+{
+  "id": "01M144RKSJW4TV4NJ02GJNC03E",
+  "ts": "2026-08-28T12:15:56.409Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0103"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "wp list returns rc=0 and zero rows for 71 bucketed threads whose WPs are in the store"
+  }
+}

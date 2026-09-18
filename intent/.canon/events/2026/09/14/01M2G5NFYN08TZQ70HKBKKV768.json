@@ -1,0 +1,15 @@
+{
+  "id": "01M2G5NFYN08TZQ70HKBKKV768",
+  "ts": "2026-09-14T14:38:17.048Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0389"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the release gate runs the load-sensitive daemon arms in the shared checkout at their test budgets, so an unchanged tree fails and passes by host load"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2DSMASXE3B2WCGHX0GP010Y",
+  "ts": "2026-09-13T16:29:27.233Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-19.6"
+  },
+  "payload": {
+    "text": "`intent index status` and `intent index rebuild` exist, report measured sizes, and are registered like every verb; on MCP the read is a tool and the write is withheld, its register row carrying the reason."
+  }
+}

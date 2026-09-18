@@ -1,0 +1,15 @@
+{
+  "id": "01M2N3B5TKDT2V70BFWS777NM3",
+  "ts": "2026-09-16T12:33:58.450Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0417"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "no verb corrects a node's name or role, so a mistaken registration is undone only by editing a generated file or the store"
+  }
+}

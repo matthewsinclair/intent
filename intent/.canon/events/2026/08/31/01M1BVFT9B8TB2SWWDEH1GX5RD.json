@@ -1,0 +1,15 @@
+{
+  "id": "01M1BVFT9B8TB2SWWDEH1GX5RD",
+  "ts": "2026-08-31T12:07:45.712Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0064/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The tailing console and its tail-orphan trap (AC-01.4)"
+  }
+}

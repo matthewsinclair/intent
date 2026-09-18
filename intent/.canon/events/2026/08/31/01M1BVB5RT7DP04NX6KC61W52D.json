@@ -1,0 +1,16 @@
+{
+  "id": "01M1BVB5RT7DP04NX6KC61W52D",
+  "ts": "2026-08-31T12:05:13.628Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.start",
+  "subject": {
+    "type": "thread",
+    "id": "ST0064"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": null,
+    "to": "wip"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2QM8M0S0T5ADDF2RBS3E8W1",
+  "ts": "2026-09-17T12:08:04.892Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-04.1"
+  },
+  "payload": {
+    "text": "`intent search` filters by hit kind (`--kind def`) and, as a separate flag, by symbol subkind (`--subkind struct`, from a roster derived from the query sources and refused by name when unknown) and by container (`--in <container>`); a search with `--subkind` or `--in` and no query lists the symbols that pass those filters, and a search with nothing to search for is refused with a remedy naming that form; `--context` and `--outline` honour every filter; `--context` prints each reference with its qualifier and names the level that answered; the SQL door and `intent schema` expose the new columns under the same names as the JSON hit; and the MCP search tool takes the same filters, the query-less form included."
+  }
+}

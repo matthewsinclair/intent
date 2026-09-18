@@ -1,0 +1,15 @@
+{
+  "id": "01M2QPVFPANQS046GS6DTHJWN3",
+  "ts": "2026-09-17T12:53:20.202Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, hv first-hand, in three answers to vc's questions) Three rulings for ST0076. (1) The level-3 verb's name `intent index resolve` is agreed. (2) Tests that need a real toolchain, verbatim: \"Outside CI/CD for now BUT they MUST run here when the 'fullcycle' and 'test all' dvb commands are run\"; vc's wording of the mechanism is in vc decision 25 and wip.md (`#[ignore]` under a module path containing needs_the_toolchain, failing by name when the tool is absent, and a devbin test option that runs only those). (3) The canon _CLAUDE.md template gains one line telling a session to load mcp__intent__intent_search through ToolSearch and ask it before grep, verbatim: \"Yes, obvs.\"; vc's measurement behind it is that the MCP server's instructions are delivered and not followed, a fresh session reaching the index first in one run of three without such a line and three of three with it, and AC-00.1's third clause is satisfied by three fresh runs that all reach the index first with the line in the real CLAUDE.md. hv also said Ok to taking the level-3 population question (whether references only the toolchain sees are stored) as a later decision."
+  }
+}

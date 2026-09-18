@@ -1,0 +1,15 @@
+{
+  "id": "01M2DP9HA43WG4T01XGSW2WXW3",
+  "ts": "2026-09-13T15:31:07.720Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0363"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "upgrade still reports the whiteboard as a model not yet carried after the carrying build landed, and the count grows with the migration"
+  }
+}

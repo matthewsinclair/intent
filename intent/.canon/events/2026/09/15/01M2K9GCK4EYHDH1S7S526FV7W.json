@@ -1,0 +1,15 @@
+{
+  "id": "01M2K9GCK4EYHDH1S7S526FV7W",
+  "ts": "2026-09-15T19:43:07.367Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0400"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "`set` writes `Thread.acceptance`, which is declared Immutable, and it is the only verb that writes the exemption the close gate tells you to declare"
+  }
+}

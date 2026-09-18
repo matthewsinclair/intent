@@ -1,0 +1,14 @@
+{
+  "id": "01M17ZSB170N6BEWQDN3HGH526",
+  "ts": "2026-08-30T00:05:57.339Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0068/AC-02.1"
+  },
+  "payload": {
+    "text": "**THE END-TO-END SET IS PROVEN BY BEING DRIVEN, NOT BY BEING PRESENT.** `docs/` carries install, getting started, concepts, command reference and migration, and the claim beside that list -- *a new user can go from nothing to a satisfied thread* -- is the part that gets checked: the path is EXECUTED on a machine that has never seen this repository, following only the published pages, with every command in them RUN rather than read, and it terminates at `intent ac gate` returning PASS on a thread the reader created.\n\n**REWRITTEN 2026-08-30 (vc). Original text:** *docs/ carries an end-to-end set a new user can go from nothing to a satisfied thread with: install, getting started, concepts, command reference, migration.* **It is satisfied by five files existing.** The five names are a table of contents and a table of contents cannot fail while its pages are present and wrong -- the journey is the whole claim and nothing in the row reached it. **AC-11.1's precedent is exact and it is this thread's too**: a `brew install` actually run once proves the artefact, the checksum, the formula and the tap all agree, where a CI run proves only that a pipeline executed. A doc set read for plausibility proves the same nothing.\n\n**THE TWO FAILURES THIS CATCHES ARE BOTH INVISIBLE TO A READ.** A page that names a verb correctly and omits the step before it leaves the reader stuck on a state the author never occupied, because the author had it already -- **an install page written by someone who is installed cannot discover what it assumes.** And a sequence where each command is individually right and the ORDER is wrong reads perfectly and does not run. Neither is recoverable by proofreading, and both are found in the first minute of driving.\n\n**A NEW MACHINE IS PART OF THE ROW AND NOT AN INTENSIFIER**: the ambient `INTENT_HOME`, an installed v2, a `~/.intent/`, a `core.hooksPath` this clone did not inherit -- each of these makes a broken page work for the person checking it. **`bin/int hooks` is the standing instance**: a fresh clone runs no hooks and nothing announces it, so the estate already knows this class by name."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M19HZZ102FQF0SQPXWBQ2N02",
+  "ts": "2026-08-30T14:43:21.102Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0164"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor's attachment-drift remedy names a destructive step that sync --to-disk does not take, and render.rs describes the same flag two ways"
+  }
+}

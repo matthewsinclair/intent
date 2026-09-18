@@ -1,0 +1,15 @@
+{
+  "id": "01M1494DD3PK5YB44HT6JK0AEM",
+  "ts": "2026-08-28T13:32:16.801Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0112"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "view_skew_check still prints 'no gate runs thread_view_skew' one section above the gate running it"
+  }
+}

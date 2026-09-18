@@ -1,0 +1,14 @@
+{
+  "id": "01M2PAYG9PRSM4TM6D74BEZT5B",
+  "ts": "2026-09-17T00:06:01.786Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0076/AC-03.1"
+  },
+  "payload": {
+    "text": "Elixir references by syntax include remote calls, remote captures (`&Mod.fun/2`) and remote pipe targets, each carrying its module as the qualifier with `level` 2 and arity where written; local calls and local pipe targets are unqualified at `level` 1; and `alias`, `import`, `require` and `use` are references at `level` 1 whose name is the whole module. A module in a qualifier or a directive name has the file's own `alias` forms and `__MODULE__` expanded within the enclosing do-block, and nothing from `import` or `use` applied."
+  }
+}

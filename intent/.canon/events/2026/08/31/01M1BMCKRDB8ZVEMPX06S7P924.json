@@ -1,0 +1,14 @@
+{
+  "id": "01M1BMCKRDB8ZVEMPX06S7P924",
+  "ts": "2026-08-31T10:03:40.701Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/instrument_reach_census.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

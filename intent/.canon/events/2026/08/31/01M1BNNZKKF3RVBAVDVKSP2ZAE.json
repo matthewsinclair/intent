@@ -1,0 +1,15 @@
+{
+  "id": "01M1BNNZKKF3RVBAVDVKSP2ZAE",
+  "ts": "2026-08-31T10:26:16.322Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0182"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "three hv rulings are unexecuted and fileindex ships the option hv declined -- a fold that keyed on dated instead of done"
+  }
+}

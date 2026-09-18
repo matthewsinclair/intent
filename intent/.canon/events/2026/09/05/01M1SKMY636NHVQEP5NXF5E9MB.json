@@ -1,0 +1,15 @@
+{
+  "id": "01M1SKMY636NHVQEP5NXF5E9MB",
+  "ts": "2026-09-05T20:20:06.981Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0272"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the migrator names 8 oversized screenshots by path and collapses 1,386 whiteboard files into a directory noun -- the standard AC-00.2 requires is already implemented for another class in the same run"
+  }
+}

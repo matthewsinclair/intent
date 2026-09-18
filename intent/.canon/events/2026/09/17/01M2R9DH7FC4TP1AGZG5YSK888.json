@@ -1,0 +1,15 @@
+{
+  "id": "01M2R9DH7FC4TP1AGZG5YSK888",
+  "ts": "2026-09-17T18:17:45.967Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17, after hv's compact) vc, under the pen. (1) ONE REBUILD CARRIES EVERYTHING: the rebuild waits for 0441's landing rather than preceding it, so level 3's surfaces, the Elixir reader, the counts, both migrate fixes and 0441 install together and the 3 s spacing rule retires with it; had the bank gone red the rebuild would have gone first without it. (2) docs/reference IS ONE COMMIT OF BOTH HALVES AT ONE REVISION: cut-surface.md is gen_cut_surface.sh's, not gen_reference.sh's, and it reads ALL_VARIANTS in intentsvcs/tests/error_remedies.rs at the revision, which 0441 moved, so the regeneration followed 0441's landing (d21550ae5 at 98c580d12, 21 pages, prettier clean). Between cuts the pages name a dev revision, which is the practice ic measured; at the cut both halves are regenerated at the TAG against the previous release, and ic writes that step's durable home beside the notes at the cut, because it survives in the commit record alone. (3) ISSUE 0442 IS cc's (dc's find: the live store's FTS5 index for src_sections malformed, a plain search failing on an affected term, doctor and index status both reading clean over it): it answers the cause with evidence before any change, the fix that stops it being produced, detection, and whether a plain search is a write path by design or only in its error's wording. (4) THE LIVE REPAIR RAN BEFORE THE REBUILD, intent index rebuild at 18:16Z through the installed pair, because the restart re-indexes the files 0441's landing changed and would write into the damaged index; integrity is ok on a page-exact copy and the failing search exits 0, and a repair is not a fix. (5) THE NEXT RELEASE'S NOTES ARE cc's, banked and not landed until hv names the version: bin/devbin build release refuses a cut with no '## [X.Y.Z] - in progress' section in CHANGELOG.md, and nothing has been written since v3.0.3."
+  }
+}

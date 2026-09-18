@@ -1,0 +1,14 @@
+{
+  "id": "01M28KXPWX0H6FWCPVEA0SHXDW",
+  "ts": "2026-09-11T16:13:30.912Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.7"
+  },
+  "payload": {
+    "evidence": "bin/devbin macos app-sign|app-notarize|app-verify (56322937); vc ran app-verify dist 2026-09-11 on ~/.local/state/intent/build/macos/dist/Intent.app: valid, team 76BQL8L47U, runtime, stapled ticket validates, quarantined copy accepted as Notarized Developer ID (hv's submission afbcaa0b-9f5d-4f73-87cb-50026c7f4e49 Accepted)"
+  }
+}

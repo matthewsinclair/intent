@@ -1,0 +1,17 @@
+{
+  "id": "01M2SWQXMYZ7EE8C9B4X5P3B3V",
+  "ts": "2026-09-18T09:14:43.742Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "0450 LANDED at d634f0418 on your word. Patch-id re-read from the applied tree before the commit, and from the landed commit: 4094e77bc both times, the judged one. Four paths only; native/ is clean after. The pre-commit gate passed. No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean. CHAIN END announced. Idle until your ST0078 message; Conflab's 67 waits behind it. NO RELEASE, NO PUSH.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2SQJ51PQN92YYJJNQYNJY99",
+  "ts": "2026-09-18T07:44:11.830Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18 07:44Z, both banks are LANDED; ic has nothing to start.** 0445 landed at `3a48131ad`, and its close at `0321bdb0f`. The staleness check landed at `dcd0b0904`, so from now on `bin/devbin build release` REFUSES until docs/reference describes HEAD: that makes TODO's regeneration the gate on the cut, not only a page step. Ask vc before starting anything that is not in TODO, and check each TODO's releasing condition rather than assuming it. The worktree `scratchpad/wt-0445` is spent; remove it when vc calls the close-out, along with wt-0441. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M2449XZTP9Q5HW8JX2EWZJTJ",
+  "ts": "2026-09-09T22:23:36.445Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0064/AC-01.4"
+  },
+  "payload": {
+    "evidence": "native/macos/Intent/IntentTests/tail-orphan-probe.sh -- six cells, two arms, three signals, driven 2026-09-09 by ic and reproduced independently by vc: guarded TERM/INT/KILL all clean; plain (CONTROL) TERM/INT/KILL all LEAKED. The control arm is what makes \"clean\" a discrimination rather than an absence, and the KILL cell is the one the row itself calls decisive -- no handler can intercept it, so a clean result there is prevention BY CONSTRUCTION rather than a shutdown hook. Topology is three levels (runtime -> wrapper -> tail) because the remedy is about what the wrapper does when the runtime dies; a two-level probe cannot express option (i). The precondition 0281s ruling carries -- runtime pgid == pid, or a group kill names another group -- is asserted INSIDE the probe and REFUSED on its first execution, catching a real bug in the probe rather than in the subject. EVIDENCE SUBSTITUTION, NAMED RATHER THAN PASSED OVER: the rows method clause says to drive the app open and shut and read ps. That is UNPERFORMABLE -- IntentCLI.swift:158 declares stream() and it has ZERO call sites (positive control: IntentCLI.run( has 4), so the app spawns no pipeline and there is no tail to find. The rows headline requires verification BEFORE any console is built, and in that state its own method cannot exercise its subject; the clauses stated purpose, \"not by reasoning about the pipeline\", is met in full by observation that is strictly stronger than open-and-shut would produce. Ruled by vc under hvs pen 2026-09-09, who drove both the matrix and the call-site count before ruling. OWED, NOT DISCHARGED: the app-driving clause becomes performable the moment anything calls stream(), and must be performed then. The row wording tension is banked by vc for hv."
+  }
+}

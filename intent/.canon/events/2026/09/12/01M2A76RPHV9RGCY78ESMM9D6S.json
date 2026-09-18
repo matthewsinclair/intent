@@ -1,0 +1,14 @@
+{
+  "id": "01M2A76RPHV9RGCY78ESMM9D6S",
+  "ts": "2026-09-12T07:09:45.044Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-13.9"
+  },
+  "payload": {
+    "reason": "Re-keyed at the 2026-09-12 re-elaboration to AC-23.1, AC-23.2 and AC-23.4; text carried forward"
+  }
+}

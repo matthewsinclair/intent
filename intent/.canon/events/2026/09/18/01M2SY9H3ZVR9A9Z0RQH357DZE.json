@@ -1,0 +1,15 @@
+{
+  "id": "01M2SY9H3ZVR9A9Z0RQH357DZE",
+  "ts": "2026-09-18T09:41:49.311Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 09:41Z) hv, first-hand in the live channel, 2026-09-18: one command after a pull, shaped `intent sync [--apply] [--to-disk|--to-store]` -- bare sync prints the plan for this clone and writes nothing, --apply applies it, the two directions keep their meanings; and hv agreed the rest of vc's proposal (recoverability tiers, --yes for the reversible asks, a non-reversible ask always a person's, the hooks run the quiet subset, git read and only regenerated files staged, never pull, commit or push). Recorded in intent/st/ST0078/design.md as P5 and its Rulings section, minted as WP-05 (dc, M, after P3 and P2 land) with AC-05.1 to AC-05.4 at a46643afb; P3 reshaped so its ingest door is that verb's first step and the --ingest flag never lands. Sequencing P3, P2, P5, P1, P4."
+  }
+}

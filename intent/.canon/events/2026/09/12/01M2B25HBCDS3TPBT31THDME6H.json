@@ -1,0 +1,14 @@
+{
+  "id": "01M2B25HBCDS3TPBT31THDME6H",
+  "ts": "2026-09-12T15:00:56.303Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-24.6"
+  },
+  "payload": {
+    "evidence": "ST0069 design.md, the AC-24.6 specification: the PreToolUse redirect with its per-path safety condition and the named shared predicate (4c5a220e8), reviewed by dc on 2026-09-12 as the same condition the PostToolUse hook enforces and not index.complete; not built until hv rules it on"
+  }
+}

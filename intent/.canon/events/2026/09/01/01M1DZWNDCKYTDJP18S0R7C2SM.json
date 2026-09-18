@@ -1,0 +1,14 @@
+{
+  "id": "01M1DZWNDCKYTDJP18S0R7C2SM",
+  "ts": "2026-09-01T08:03:09.871Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0202"
+  },
+  "payload": {
+    "title": "NOT A DEFECT: the scaffolding test invokes the pruned v2 intent_claude_upgrade; v3 writes .claude/settings.json correctly from the template"
+  }
+}

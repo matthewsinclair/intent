@@ -1,0 +1,14 @@
+{
+  "id": "01M258HB2PZ2JY719TYRYBWFH0",
+  "ts": "2026-09-10T08:56:47.960Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0073"
+  },
+  "payload": {
+    "title": "intentd owns its own lifetime: a lifeline instead of an assumed supervisor"
+  }
+}

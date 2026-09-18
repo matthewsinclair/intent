@@ -1,0 +1,15 @@
+{
+  "id": "01M1PTE0BAX64FC3QBNFF46JG2",
+  "ts": "2026-09-04T18:20:56.559Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0241"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the web shell discards every daemon refusal because it reads a field the daemon does not send"
+  }
+}

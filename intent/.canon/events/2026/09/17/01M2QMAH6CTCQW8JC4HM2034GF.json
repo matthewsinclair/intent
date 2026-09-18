@@ -1,0 +1,15 @@
+{
+  "id": "01M2QMAH6CTCQW8JC4HM2034GF",
+  "ts": "2026-09-17T12:09:08.098Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-17) vc, under the pen, for ST0076. (1) The brace form `alias MyApp.{Repo, Mailer}`, the `__MODULE__` forms of every directive and `alias :crypto, as: Crypto` are all inside AC-03.1 as written: each directive entry is a level-1 row named by its whole module, by one mechanism in cc's shapes bank (@name.base and @self). Laksa has none of the `__MODULE__` or atom-alias forms (measured) and they stay in, because a row naming the wrong module is a claim wider than the build and the pattern costs less than a published sentence excusing it. (2) WP-03 and WP-04 share the published sentence of what a reference misses: each lander's text is true of the HEAD it lands on, decision 19 orders them, and the second lander rewrites the Elixir gap and level_words(2) with the register regen. (3) WP-05 measures the SCIP export with build scripts and proc macros off as well as on, and the join counts; if the export runs project code it runs only on an explicit verb and never from intentd unasked, and AC-05.1 is reworded to say so. (4) Level 3 is one core written once for both languages: a side table (replace_symbols_for deletes and re-inserts a file's rows, so columns on symbols would lose resolved rows at every re-extract), one join, one schema step, one envelope field for a missing or stale tier and one verb; its contract and its builder are ruled on cc's report. (5) Each train has one whole-suite judging run, in the warm worktree that already holds its stack, and every write to the live store goes through the installed pair. (6) The guards adoption pass is dc's, beside the trawl."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2T4BK139GDWE1Z9T7CAAC2C",
+  "ts": "2026-09-18T11:27:48.259Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**ST0078 WP-04 (P4, working in a team): started, DRAFT banked at `refs/bank/ic/st0078/p4` (patch-id 7b9e46dda, base e447f15cf, not judged). It lands last.**\n\nThe draft is five paths:\n- docs/concepts/working-in-a-team.md: the page, with DRIVE placeholders.\n- docs/concepts/the-store.md: two corrections.\n- docs/concepts/index.md: the page's row.\n- .github/workflows/pr-checks.yml: the doctor-on-the-merge-result job.\n- intent/st/ST0078/working-in-a-team-drive.sh.\n\nNewer than the bank, in ic's scratchpad under p4/:\n- drive-team.sh with section 6b: a pre-P1 project upgraded, the backfill line.\n- run-p4.sh passing `p4/old-pair` (the pair built at e447f15cf).\n- The page's upgrade paragraph.\n\nThe rehearsal (e447f15cf) found issue 0456 (a write creates an untracked project.json and the next merge refuses) plus F2 to F5 in `sync`'s plan. All are dc's follow-up.\n\n**ORDER (vc):**\n1. dc's follow-up lands.\n2. cc's backfill (refs/bank/cc/st0078/p1-backfill) lands.\n3. `run-p4.sh <that commit>`.\n4. Fill every DRIVE placeholder from the log.\n5. Attach working-in-a-team-drive.sh and .log to ST0078 (`intent st attach ... --from`).\n6. Re-bank and send vc the patch-id.\n\n**LANDING CHAIN (vc):**\n- `intent wp done ST0078/02`, whose criteria already compute satisfied.\n- Non-test rows satisfying AC-04.1 (the drive log) and AC-04.2 (the job plus the fresh-clone doctor).\n- `intent wp done ST0078/04`.\n- ST0078's canon and views plus ic/'s whole render in the one commit.\n\nThen the one rebuild. No compile while a peer's suite runs. NO RELEASE, NO PUSH."
+  }
+}

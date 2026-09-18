@@ -1,0 +1,14 @@
+{
+  "id": "01M2DST9B06HAYN9G2QB8JYF44",
+  "ts": "2026-09-13T16:32:42.339Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-09.1"
+  },
+  "payload": {
+    "text": "**EVERY ACT THAT CHANGES THE DISK IS RECORDED**, and when this row was written none was. `Facade::apply` is the single door for MODEL mutation and everything reaching it is logged; `Facade::organize`, `sync_to_disk`, `sync_from_disk` and `hydrate` each write the filesystem without passing it, and record through `Facade::record_disk_act` instead. **Measured 2026-08-19: `organize --apply` removed 423 files from this estate and the log recorded nothing** -- the only act all evening that destroyed anything is the only class of act absent from the one table that cannot be re-derived from anything else on disk. The realisation ops emit against the same `Store::append_event`, **with the subject being the PATH SET rather than an artefact id**. Denominator printed: realisation ops that emit, against realisation ops that write. **NOT BY ROUTING `organize` THROUGH `apply`** -- `apply` diffs canon and `organize` changes no canon, so the event would be a lie about its own mechanism."
+  }
+}

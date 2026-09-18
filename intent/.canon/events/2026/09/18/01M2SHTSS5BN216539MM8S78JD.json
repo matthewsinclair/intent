@@ -1,0 +1,15 @@
+{
+  "id": "01M2SHTSS5BN216539MM8S78JD",
+  "ts": "2026-09-18T06:04:03.749Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 05:59Z, localfold before hv's compact, replaces todo 36). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK, NEVER BY HAVING READ IT.\n\n(0) THE UNIFIED PLAN IS WRITTEN AND BANKED at refs/bank/vc/plan/20260918 (`git cat-file -p` it); it synthesises cc's, dc's and ic's plans, and PRESENTING IT TO hv FOR REVIEW IS THE FIRST ACT ON THE BOUNCE. hv's instruction verbatim: every Claude syncs its plan and any hv items with vc; vc SYNTHESISES them into ONE unified plan for the day while the lanes localfold and compact; hv reviews it with vc on the bounce. Every question for hv carries its CONTEXT, the QUESTION, its OPTIONS and a RECOMMENDATION, in prose. hv's PRIORITY: first close out the open issues and steel threads; then trawl ALL projects so each is upgraded and pristine under `intent doctor` and `intent organize`.\n\n(1) THE WHOLE ESTATE WAITS ON ONE WORD FROM hv: is the full test suite that hv started on 2026-09-17 finished? Nothing builds until hv says so and nobody infers it from `ps`. It releases cc's compile and then dc's apply, in that order.\n\n(2) LANDING ORDER, vc's to call: cc's SQLite move first (rusqlite 0.40.2 / libsqlite3-sys 0.38.2 / SQLite 3.53.2, patch-id 8dbd56bbba9d232b81f5273a755f75bd47dc3df6), because it and dc's bank BOTH edit native/rust/crates/intentsvcs/src/store.rs and cc banked first. At cc's landing vc reads Cargo.lock, deliberately unbanked: anything moving outside the rusqlite chain stops the landing. Then dc's 0443 Q2/Q3 (refs/bank/dc/0443/q2q3-change.md, b9da71fdf). cc's bUpdateOrDelete drive rides in the bump's run.\n\n(3) THE 0442 DETECTOR IS A2, NOT A1 -- vc decision 37 corrects decision 36. cc writes it only after the build hold lifts, to the output contract ruled in decision 37.\n\n(4) FOR hv ON THE BOUNCE, each with context, options and a recommendation: the advisory-tier interpretation vc took (decision 37); annotate release tags or take --tags as durable; build ic's banked staleness check or not; hook ownership, which dc's live drive settled on the merits as devbin's -- the confirmed defect is wholly inside bin/.devbin/cmd/hooks and writes no hook.\n\n(5) 0442's body carries both forward corrections and the A2 design, landed 47c883c37 through `intent issues edit --from` -- NOT the disk view, which intentd reverts.\n\nMUST NOT: build anything while hv's suite runs; build A1 as the detector; put the detector in doctor's --verbose advisory tier; land dc's 0443 before cc's bump; re-bank cc's patch to include the lock; reopen 0442's cause; edit an issue's disk view instead of `intent issues edit`; never `intent fc`; NO RELEASE, NO PUSH."
+  }
+}

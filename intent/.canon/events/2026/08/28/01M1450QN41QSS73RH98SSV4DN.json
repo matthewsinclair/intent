@@ -1,0 +1,15 @@
+{
+  "id": "01M1450QN41QSS73RH98SSV4DN",
+  "ts": "2026-08-28T12:20:23.046Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0105"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "doctor's gate check tests the carrier for a guard runner the shim never names, so every v3 estate reports GateNotRunning while its guards run"
+  }
+}

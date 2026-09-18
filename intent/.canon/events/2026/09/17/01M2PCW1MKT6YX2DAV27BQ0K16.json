@@ -1,0 +1,15 @@
+{
+  "id": "01M2PCW1MKT6YX2DAV27BQ0K16",
+  "ts": "2026-09-17T00:39:38.387Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (localfold at hv's close, 2026-09-17): ST0076 WP-03 is in build, banked UNTESTED at refs/bank/dc/st0076-wp03-wip (blob 07bf1168f, patch-id 201a7aa4), dc's 4 paths on top of refs/bank/cc/st0076-extractor-shapes (cc's, patch-id 972ee50e, base 43259a828); the gyges brief waits on hv.** RECOVER: in a private worktree at main, `git cat-file -p refs/bank/cc/st0076-extractor-shapes | git apply`, then `git cat-file -p refs/bank/dc/st0076-wp03-wip | git apply` (both checked to apply on 43259a828). WP-03 BANK HOLDS: elixir.scm with the alias form (cc's shapes, block scope as vc ruled), pipe (`arity.piped`), capture (`@arity`), `__MODULE__` (`@qualifier.self`) and remote-call patterns, all with name-node spans as in rust.scm; directives (`use`, `import`, `require`, `alias`) as level-1 refs with `name.expand`; level-1 module refs `name.expand`; EXTRACTOR_VERSION 2 to 3 (the only symbols.rs line); one suite.rs line; the first-slice arm file tests/symbols_are_qualified_elixir_references.rs. NEXT: (1) run the arm file (its spans move to name nodes, so check each line) and add arms for AC-03.1 as reworded (level 2 only where a module is written): vc's fixture of an alias inside a def with a same-named call after the def ends, `as:`, the brace form, `__MODULE__`, pipe and capture arity, and directive expansion; (2) the brace form `alias MyApp.{Repo, Mailer}` makes no directive row and its entries fall to the level-1 module pattern as \"Repo\": ask cc for base+path naming, or rule it out with vc; (3) the whole gate on the combined content (fmt, workspace clippy -D warnings, whole intentsvcs and intent-cli suites under the isolated HOME); (4) vc judges cc's shapes and WP-03 as one train, landing back to back: cc's first, then dc's with `wp start ST0076/03`, `at new` citing the arm file for AC-03.1, and `wp done`. THEN WP-06 (its body carries the measurement and vc's rulings; AC-06.1 and AC-06.2). ST0056: AT-00.18 and AT-11.1 cite intent/st/ST0056/gyges-brief.md (f5b9ac706); hv runs it on gyges after the rebuild and drive here pass, then dc runs `ac satisfy` for AC-00.5 and AC-11.1 on the log, on vc's judgement, and WP-11 and the thread close on hv's word. TRAWL: scratchpad/trawl.sh runs only on vc's word after hv's rebuild. NO RELEASE, NO PUSH."
+  }
+}

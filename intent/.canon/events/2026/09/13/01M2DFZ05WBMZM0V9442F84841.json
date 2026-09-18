@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZ05WBMZM0V9442F84841",
+  "ts": "2026-09-13T13:40:31.039Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0335"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "CI, Swift and skill scripts: tests.yml never runs the built intent, a stdout-before-stderr deadlock, a false LEAKED, WP directories the store never registers"
+  }
+}

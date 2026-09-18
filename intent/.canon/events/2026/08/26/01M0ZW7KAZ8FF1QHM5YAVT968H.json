@@ -1,0 +1,15 @@
+{
+  "id": "01M0ZW7KAZ8FF1QHM5YAVT968H",
+  "ts": "2026-08-26T20:29:52.990Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0098"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Migration completeness is unmeasurable: an estate can be un-migrated or leave thousands of files stranded and nothing reports it"
+  }
+}

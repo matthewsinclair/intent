@@ -1,0 +1,14 @@
+{
+  "id": "01M1PT44ZVMHY58K2REZ5A7PBR",
+  "ts": "2026-09-04T18:15:33.631Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/pipefail_sigpipe_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2A7221ZAR70CATZKC513R7C",
+  "ts": "2026-09-12T07:07:10.786Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0069/23"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Semantic seams: the embedder interface, the Null and HTTP embedders, the vector schema"
+  }
+}

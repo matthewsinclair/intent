@@ -1,0 +1,14 @@
+{
+  "id": "01M2B0CT7YV4BVMBAN22EB6JX6",
+  "ts": "2026-09-12T14:29:57.633Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0073/AC-05.1"
+  },
+  "payload": {
+    "reason": "Re-keyed to AC-00.1 under the pen 2026-09-12: doctor at --scope all reports AC-05.1 belongs to WP-05, which ST0073 does not have; text and evidence carried forward verbatim"
+  }
+}

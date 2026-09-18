@@ -1,0 +1,15 @@
+{
+  "id": "01M2P9FTBA5AVXYKM9MQZMRRPN",
+  "ts": "2026-09-16T23:40:31.978Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "IN FLIGHT, folded for hv's compact 2026-09-17. Landed and verified against their banks since todo 20 and 21: 0426 project guards (0732b3bc8, closed e1594301b), 0420 store lock (3d3441b10, closed 5dd956b56; live after the rebuild), 0428 the MCP door's instructions and string filters (a0cb8d595, closed ec4968f7e), 0427 the grep hook answering a Bash grep through additionalContext (6f23506de, closed 5d9db4d5c; turned on in Intent's settings.local.json on hv's word and driven live by dc: the model quoted the index header). Filed: ST0076 the typed symbol index (9c74016ef; WP sizes d93ab3181), 0429 (into ST0076), 0430 (waits on hv's word), 0431 macOS 27 lsappinfo (329f1042e, closed 0a70b7573, verified), 0432 hv's blank explorer after nvim (ic waits on hv's capture). RULED for ST0076: hv, levels 1 and 2 now then 3, Rust and Elixir required, Swift not, AC-20.2 reversed for Rust and Elixir; vc, cc's WP-01 schema accepted with variant and field in L1, trait signatures as methods, no pipe subkind, Intent's queries replacing tags for Rust and Elixir; vc, WP-06 on dc's Laksa measurement: a resolved row only resolves a written reference (same for Rust SCIP), the tracer never raises, a failed compile stores nothing and names the failure, level 3 per file with content hashes and stale marking, explicit verb only, proof is Map.get/2 callers in Laksa without Access/Process/Keyword get. RESUME: (1) judge cc WP-01 when banked green (WIP at refs/bank/cc/st0076-wp01-wip). (2) cc writes the vocabulary table into ST0076's design, then WP-01; vc judges; then dc WP-03 and ic WP-04; vc edits the design's Proof section after cc's attach. (3) hv's rebuild and drive (wip.md TODO), then gen_reference.sh. (4) 0432 on hv's capture. (5) the board trawl and the guards adoption pass. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M27TB0JMBCD64B48EAT8HHN0",
+  "ts": "2026-09-11T08:46:23.832Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.14"
+  },
+  "payload": {
+    "reason": "withdrawn 2026-09-11 under hv's instruction to end the acceptance-and-instrument loop and draw a line under 3.0.1. This row demands a proof about an instrument, a register or a baseline, not a behaviour a user of 3.0.1 meets. The record it produced stays where it is; the criterion no longer gates the release."
+  }
+}

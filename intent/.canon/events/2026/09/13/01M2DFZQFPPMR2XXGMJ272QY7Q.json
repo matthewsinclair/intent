@@ -1,0 +1,15 @@
+{
+  "id": "01M2DFZQFPPMR2XXGMJ272QY7Q",
+  "ts": "2026-09-13T13:40:54.905Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0348"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A registered test module whose file is not in the commit builds nowhere but on the machine that has it"
+  }
+}

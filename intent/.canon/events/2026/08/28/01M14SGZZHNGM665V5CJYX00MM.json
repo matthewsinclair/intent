@@ -1,0 +1,15 @@
+{
+  "id": "01M14SGZZHNGM665V5CJYX00MM",
+  "ts": "2026-08-28T18:18:46.355Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0125"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "three register checks read the dispatch table from the WORKING TREE, so one node's mid-edit refuses every other node's commit"
+  }
+}

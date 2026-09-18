@@ -1,0 +1,15 @@
+{
+  "id": "01M0W7FF4S6MYYJXJR8SXE4RMH",
+  "ts": "2026-08-25T10:29:26.599Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0080"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "migrate never computes Thread.slug, so every migrated thread carries slug=None and st list renders a blank Slug column for the whole hoisted estate; st new computes one, so the two creation doors disagree on the same field"
+  }
+}

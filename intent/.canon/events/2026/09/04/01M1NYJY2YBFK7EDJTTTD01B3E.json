@@ -1,0 +1,15 @@
+{
+  "id": "01M1NYJY2YBFK7EDJTTTD01B3E",
+  "ts": "2026-09-04T10:14:17.953Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0231"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "TUI repaints declare no frame boundary, so real terminals can tear -- crossterm ships the fix"
+  }
+}

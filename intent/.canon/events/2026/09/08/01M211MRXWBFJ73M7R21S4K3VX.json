@@ -1,0 +1,15 @@
+{
+  "id": "01M211MRXWBFJ73M7R21S4K3VX",
+  "ts": "2026-09-08T17:39:22.686Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0285"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent --version prints a commit whose refresh trigger is narrower than the scope it claims, so a clean build can name the wrong commit"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01M176FEPX5BB8X5K32PKH24WQ",
+  "ts": "2026-08-29T16:43:39.011Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-12.2"
+  },
+  "payload": {
+    "evidence": "vc 2026-08-29, swept independently rather than accepting ic's report. All four converge: working-with-llms.md (61286b, v3 preamble with the generated-vs-authored split measured, 39303df4), README (6000b, 9f9b3da5), CHANGELOG (185275b, 3.0.1 marked unreleased not in-progress, checkable against git tag), and docs/releases/3.0.1/. Three convergence axes driven with controls: the brew string is the fully-qualified form everywhere and nowhere else; nothing anywhere claims doctor inspects the install (README carries the corrected form and links to docs/install.md#verifying-an-install, anchor verified to resolve against a control); and nothing claims issues edit or st edit --editor exists, both being ruled-but-unlanded. CHANGELOG's two doctor hits are historical entries about earlier versions, not current claims."
+  }
+}

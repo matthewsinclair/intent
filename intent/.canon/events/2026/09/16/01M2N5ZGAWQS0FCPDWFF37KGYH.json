@@ -1,0 +1,15 @@
+{
+  "id": "01M2N5ZGAWQS0FCPDWFF37KGYH",
+  "ts": "2026-09-16T13:19:57.279Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0418"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The project picker is a standalone screen with no search -- hoist it into the explorer as a projects view reached by /projects, filtered like the omnibox"
+  }
+}

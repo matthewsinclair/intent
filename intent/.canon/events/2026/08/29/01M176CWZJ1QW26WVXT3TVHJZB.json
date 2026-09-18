@@ -1,0 +1,15 @@
+{
+  "id": "01M176CWZJ1QW26WVXT3TVHJZB",
+  "ts": "2026-08-29T16:42:14.458Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0143"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "no v3 equivalent of intent claude upgrade --skip-settings"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M14SHPRSQDY8JRS067J9VXKY",
+  "ts": "2026-08-28T18:19:09.820Z",
+  "principal": "local",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0127"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "v2 ingest can drop the note FIELD entirely, leaving only a legacy.raw stub -- and a length delta reports the stub as a surviving short statement"
+  }
+}
