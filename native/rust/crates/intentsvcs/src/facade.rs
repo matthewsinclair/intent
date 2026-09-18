@@ -8033,7 +8033,11 @@ impl Facade {
     let root = self.project.root();
     let mut steps = Vec::new();
     let conflicts = if crate::gitstate::is_work_tree(root) {
-      if let Some(behind) = crate::gitstate::behind(root)?
+      // **NOT WHILE A MERGE IS IN PROGRESS**: mid-pull the upstream's commits
+      // are the ones being merged, and telling a person to pull them in the
+      // middle of their pull is the one wrong thing to say.
+      if !crate::gitstate::merging(root)
+        && let Some(behind) = crate::gitstate::behind(root)?
         && behind.commits > 0
       {
         steps.push(Step::behind(behind.upstream, behind.commits));
@@ -9456,13 +9460,22 @@ impl Facade {
     // whose bytes already match -- so writing it always costs nothing when
     // nothing moved, and skipping it would let `sync --to-disk ST0056` leave a
     // stale cutoff on disk after a flush.
-    set.add(
-      self.project.project_json(),
-      to_canonical_json(&crate::model::ProjectState::new(
-        self.store.todo_watermark().map_err(FacadeError::Store)?,
-      ))
-      .map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-    );
+    //
+    // **BUT IT IS NEVER CREATED TO SAY NOTHING** (issue 0456). With no cutoff
+    // the file would hold only its schema, which the reader takes exactly as
+    // it takes an absent file. Creating it anyway made every write on a branch
+    // that never committed it leave it untracked -- the post-checkout hook did
+    // so on every switch -- and the next merge then refused over it. So it is
+    // written when there is a cutoff to record, or when it is already there.
+    let watermark = self.store.todo_watermark().map_err(FacadeError::Store)?;
+    let project_json = self.project.project_json();
+    if watermark.is_some() || project_json.exists() {
+      set.add(
+        project_json,
+        to_canonical_json(&crate::model::ProjectState::new(watermark))
+          .map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+      );
+    }
     // **VIEWS IF MARKED, AND CANON REGARDLESS** (AC-08.1). The canon writes
     // above are unconditional; only the RENDERED views narrow.
     //

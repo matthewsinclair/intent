@@ -178,8 +178,26 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
     plan
       .lines()
       .last()
-      .is_some_and(|l| l.contains(". doctor (quiet): ")),
+      .is_some_and(|l| l.contains("  then: doctor (quiet): ")),
     "and doctor is last: {plan}"
+  );
+  let counted: usize = plan
+    .split("plan: ")
+    .nth(1)
+    .and_then(|rest| rest.split(' ').next())
+    .and_then(|n| n.parse().ok())
+    .unwrap_or_default();
+  let numbered = plan
+    .lines()
+    .filter(|l| {
+      l.trim_start()
+        .split_once(". ")
+        .is_some_and(|(n, _)| n.parse::<usize>().is_ok())
+    })
+    .count();
+  assert_eq!(
+    counted, numbered,
+    "the summary counts exactly the numbered steps: {plan}"
   );
   let digest = digest_of(&plan);
   assert_eq!(digest.len(), 64, "the plan names its digest: {plan}");
@@ -259,6 +277,10 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     "{plan}"
   );
   assert!(
+    !plan.contains(". behind ("),
+    "mid-pull, the upstream's commits are the ones being merged, so nobody is told to pull: {plan}"
+  );
+  assert!(
     plan.contains(". ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved"),
     "the ingest waits on the canon conflict: {plan}"
   );
@@ -280,6 +302,14 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   assert!(
     unmerged(bob).contains("intent/.canon/st/ST0001.json"),
     "nothing was resolved without an answer"
+  );
+  assert!(
+    left
+      .text
+      .lines()
+      .any(|l| l.starts_with("doctor: ") && l.contains("the estate could not be read")),
+    "mid-merge the closing doctor says it could not read the estate, not that it is empty: {}",
+    left.text
   );
 
   // `--yes` answers the reversible steps.

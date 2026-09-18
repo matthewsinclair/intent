@@ -308,9 +308,9 @@ impl Step {
           Minted::Issue => "issue",
         }
       ),
-      Action::TakeSide { path } => {
-        format!("both sides changed {path}: a person chooses ours or theirs, and it is staged")
-      }
+      Action::TakeSide { path } => format!(
+        "both sides changed {path}: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it"
+      ),
       Action::Ingest { would_take } => match would_take.as_deref() {
         None => {
           "take the merged canon into the store; what it takes can be read once the conflicts are resolved".to_string()

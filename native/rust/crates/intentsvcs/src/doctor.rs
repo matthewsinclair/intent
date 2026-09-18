@@ -133,6 +133,12 @@ impl Scope {
 #[derive(Debug, Clone, Default)]
 pub struct Report {
   pub findings: Vec<Finding>,
+  /// **THE CANON COULD NOT BE READ, SO NOTHING BELOW IT WAS CHECKED.** Set
+  /// when the committed canon refuses -- mid-merge, conflict markers -- and
+  /// the run returns with that refusal as its finding. Without it the counts
+  /// read zero threads and zero files, which is what an EMPTY project says,
+  /// and a reader could not tell the two apart.
+  pub canon_unread: bool,
   pub threads_checked: usize,
   pub issues_checked: usize,
   pub files_checked: usize,
@@ -610,6 +616,7 @@ fn examine(
     Ok(canon) => canon,
     Err(e) => {
       report.findings.extend(ingest_findings(&e));
+      report.canon_unread = true;
       return report;
     }
   };

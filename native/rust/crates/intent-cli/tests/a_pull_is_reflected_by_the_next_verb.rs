@@ -213,6 +213,46 @@ fn a_pull_that_changes_no_thread_prints_nothing() {
   );
 }
 
+/// Issue 0456, ic's repro from the P4 drive: **a branch switch leaves no
+/// untracked canon behind, and the branch merges.** main is committed before
+/// any thread exists, so it never carried `project.json`. A write on a branch
+/// used to create that file, git removed it on the switch back, and the hook's
+/// ingest wrote it again untracked -- and the merge then refused over it.
+#[test]
+fn a_branch_switch_leaves_no_untracked_canon_and_the_branch_merges() {
+  let dir = short_dir("switch");
+  let home = dir.join("home");
+  std::fs::create_dir_all(&home).expect("the isolated HOME");
+  std::fs::write(
+    home.join(".gitconfig"),
+    "[user]\n  email = t@example.com\n  name = t\n[init]\n  defaultBranch = main\n",
+  )
+  .expect("git's identity for the fixture commits");
+  let team = Team { dir, home };
+  let repo = team.dir.join("solo");
+  std::fs::create_dir_all(&repo).expect("the repository");
+  team.git(&repo, &["init", "-q"]);
+  team.intent_ok(&repo, &["init", "Solo"]);
+  team.intent_ok(&repo, &["claude", "upgrade", "--apply", "--skip-settings"]);
+  team.commit(&repo, "init");
+
+  team.git(&repo, &["switch", "-q", "-c", "b"]);
+  team.intent_ok(&repo, &["st", "new", "On a branch"]);
+  team.commit(&repo, "b: ST0001");
+  team.git(&repo, &["switch", "-q", "main"]);
+
+  let status = team.git(&repo, &["status", "--porcelain"]);
+  assert!(
+    !status.said.contains("?? intent/"),
+    "the switch left an untracked file under intent/: {}",
+    status.said
+  );
+  let merged = team.git(&repo, &["merge", "-q", "--no-edit", "b"]);
+  assert_eq!(merged.code, 0, "{}", merged.said);
+  let listed = team.intent(&repo, &["st", "list", "--status", "all"]);
+  assert!(listed.said.contains("On a branch"), "{}", listed.said);
+}
+
 #[test]
 fn a_branch_checkout_is_ingested_and_a_file_checkout_is_not() {
   let team = Team::new();

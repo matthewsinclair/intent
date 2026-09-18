@@ -105,7 +105,7 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
     said
       .lines()
       .last()
-      .is_some_and(|l| l.contains(". doctor (quiet): ")),
+      .is_some_and(|l| l.contains("  then: doctor (quiet): ")),
     "doctor is the last step: {said}"
   );
   assert_eq!(tree(&root), before, "the bare verb wrote nothing on disk");

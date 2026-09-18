@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-03: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply

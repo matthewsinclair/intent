@@ -1353,13 +1353,7 @@ fn print_sync_plan(plan: &intentsvcs::plan::Plan, tail: &str) {
       plan.digest
     );
   }
-  let doctor = intentsvcs::plan::Step::doctor();
-  for (n, step) in work
-    .iter()
-    .copied()
-    .chain(std::iter::once(&doctor))
-    .enumerate()
-  {
+  for (n, step) in work.iter().enumerate() {
     println!(
       "  {}. {} ({}): {}",
       n + 1,
@@ -1368,6 +1362,16 @@ fn print_sync_plan(plan: &intentsvcs::plan::Plan, tail: &str) {
       step.describe()
     );
   }
+  // **DOCTOR IS NOT NUMBERED**, because it is not counted: it always runs and
+  // changes nothing, so numbering it made the list one longer than the count
+  // the summary line gives.
+  let doctor = intentsvcs::plan::Step::doctor();
+  println!(
+    "  then: {} ({}): {}",
+    doctor.name(),
+    doctor.recoverability.as_str(),
+    doctor.describe()
+  );
 }
 
 /// `intent sync --apply`: apply the plan (ST0078 WP-03 and WP-05).
@@ -7682,6 +7686,17 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
 /// **ONE HOME, TWO READERS**: `intent doctor` and `intent sync --apply`, which
 /// runs doctor last and prints this line as its verdict.
 fn doctor_summary(report: &intentsvcs::doctor::Report) -> String {
+  // **AN UNREAD CANON IS SAID, NOT COUNTED AS AN EMPTY ONE** (ic's P4 drive):
+  // mid-merge the canon refuses and nothing past it is checked, and zero
+  // threads and zero files over that reads as a project with nothing in it.
+  if report.canon_unread {
+    return format!(
+      "doctor: {} finding(s) -- the estate could not be read, so no thread, issue, view or file was checked{}{}",
+      report.actionable(),
+      advisory_suffix(report),
+      acknowledged_suffix(report)
+    );
+  }
   format!(
     "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}{}{}{}",
     report.actionable(),
@@ -13520,6 +13535,7 @@ pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Va
     // **THE COVERAGE DENOMINATOR TRAVELS WITH THE VERDICT.** A machine reader
     // has no summary line to fall back on, so dropping these would leave
     // `"findings": []` meaning both *nothing is wrong* and *nothing was read*.
+    "canon_unread": report.canon_unread,
     "checked": {
       "threads": report.threads_checked,
       "issues": report.issues_checked,
