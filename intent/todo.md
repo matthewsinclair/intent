@@ -23,12 +23,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
-- [-] ST0078: Using Intent on a multi-person project with a Git workflow including PRs
-  - [x] 01: P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)
-  - [x] 02: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
-  - [x] 03: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply
-  - [x] 04: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result
-  - [x] 05: P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset
 
 ## TODO
 
@@ -104,6 +98,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 05: Rust resolved references through rust-analyzer's SCIP export
   - [x] 06: Elixir resolved references through the compiler's tracer, on an explicit verb
   - [x] 07: Level-3 surfaces: resolution in the envelope, resolved facts on a hit, and search by target
+- [x] ST0078: Using Intent on a multi-person project with a Git workflow including PRs
+  - [x] 01: P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)
+  - [x] 02: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
+  - [x] 03: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply
+  - [x] 04: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result
+  - [x] 05: P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset
 
 ---
 

@@ -1,9 +1,9 @@
 ---
 st_id: ST0078
 title: Using Intent on a multi-person project with a Git workflow including PRs
-status: WIP
+status: Completed
 created: 2026-09-18
-completed:
+completed: 2026-09-18
 ---
 
 # ST0078: Using Intent on a multi-person project with a Git workflow including PRs
