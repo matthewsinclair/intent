@@ -1273,3 +1273,37 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
     details(&report.findings)
   );
 }
+
+// ---------------------------------------------------------------------------
+// A diagnosis writes nothing it diagnoses (issue 0454)
+// ---------------------------------------------------------------------------
+
+/// **`doctor` ON A PROJECT WITH NO STORE LEAVES NO STORE BEHIND.** The
+/// store-stale check opened the database unconditionally, and `Store::open`
+/// creates one when there is none, so diagnosing a project wrote a store into
+/// it that no command had asked for. With no file there is nothing to be
+/// stale, so the check must return before opening. The absence is asserted
+/// BEFORE the run as well as after, because a fixture that already held a
+/// store would pass the second assertion for free.
+#[test]
+fn doctor_on_a_project_with_no_store_creates_none() {
+  let fx = Fixture::new();
+  seed(&fx, &clean_thread("ST0001"));
+  let db = fx.project().db_path();
+  if db.exists() {
+    std::fs::remove_file(&db).expect("remove the fixture's store");
+  }
+  assert!(
+    !db.exists(),
+    "the fixture still holds a store at {}",
+    db.display()
+  );
+
+  let _ = run(&fx);
+
+  assert!(
+    !db.exists(),
+    "doctor created a store at {} on a project that had none (issue 0454)",
+    db.display()
+  );
+}

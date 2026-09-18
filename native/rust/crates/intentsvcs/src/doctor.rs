@@ -1284,10 +1284,23 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
     }
   };
 
-  // Only now compare against what is on disk. A cache that will not open is
-  // not a finding worth reporting: it is deleted and rebuilt by the next
-  // command, which is exactly what D01 buys.
-  let Ok(store) = Store::open(&project.db_path()) else {
+  // Only now compare against what is on disk -- and ONLY IF THERE IS A DISK
+  // STORE TO COMPARE AGAINST (issue 0454). `Store::open` creates the database
+  // when there is none, so opening unconditionally meant a diagnosis WROTE a
+  // store into a project that had none: a diagnostic verb creating the thing
+  // it diagnoses, which no command asked for. The comment here reasoned from
+  // D01's cache era, when the store was disposable and rebuilt by the next
+  // command; D01 is reversed and the store is the source of truth. With no
+  // file there is nothing to be stale, so this returns before opening, the
+  // way `index_unreadable_without_a_facade` already does.
+  //
+  // A store that EXISTS and will not open still returns here without a
+  // finding, as it did before; that is unchanged by 0454 and not its subject.
+  let path = project.db_path();
+  if !path.exists() {
+    return;
+  }
+  let Ok(store) = Store::open(&path) else {
     return;
   };
   let Ok(on_disk) = store.derived_dump() else {
@@ -1965,9 +1978,8 @@ fn index_unreadable_finding(project: &Project, store: &crate::store::Store) -> O
 /// was handed no store and the question went unasked: driven, rc 0 and zero
 /// findings over a store every verb refused. So when no store was given and one
 /// EXISTS on disk, it is opened here for this one read. **THIS PROBE NEVER
-/// CREATES ONE**: with no file it returns before opening anything. (The
-/// store-stale check's own `Store::open` does create one on a project that had
-/// none; that predates this and is not this probe's to change.)
+/// CREATES ONE**: with no file it returns before opening anything, which is
+/// the rule the store-stale check in `db_checks` now follows too (issue 0454).
 fn index_unreadable_without_a_facade(project: &Project) -> Option<Finding> {
   let path = project.db_path();
   if !path.exists() {
