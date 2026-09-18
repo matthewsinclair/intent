@@ -16,6 +16,15 @@ Establish, by measurement, how Intent behaves when more than one human works on 
 
 Opened by hv on 2026-09-18 during the close-out. The design is per-artefact canon in git and a per-machine store rebuilt from it (D01 as reversed, D34), and `docs/concepts/the-store.md` says the JSON extract is what a colleague reviews in a pull request. vc drove two clones of a fresh estate against a bare origin with no daemon on 2026-09-18 and found: id collisions git refuses loudly and no verb repairs; a store that stays stale after a pull, answering `no steel thread` at rc=1 while `doctor` reports 0 findings because store-stale is in the hidden advisory tier; and history that does not travel, by D53. The proposal is `design.md` on this thread; nothing is built until hv rules on it. If the answer is project-wide, the fleet trawl waits for it.
 
+## Work Packages
+
+| WP    | Title                                                                                                                                                                                           | Size | Status      |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------- |
+| WP-01 | P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)                                        | M    | Not Started |
+| WP-02 | P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted                                                                                         | M    | Not Started |
+| WP-03 | P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply | S    | Not Started |
+| WP-04 | P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result                                                     | S    | Not Started |
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
