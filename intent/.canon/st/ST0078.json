@@ -210,6 +210,16 @@
       "note": "doctor_reports_bad_event_files_and_events_the_store_lacks; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)"
     },
     {
+      "id": "AT-01.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+      "covers": [
+        "AC-01.4"
+      ],
+      "status": "green",
+      "note": "upgrade_retires_the_ignore_rule_and_export_keeps_one_file and upgrade_backfills_the_history_the_store_held_once; green in the backfill's whole judging run on 658916fce over f37c63c4a (cc, 2026-09-18)"
+    },
+    {
       "id": "AT-02.1",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/renumber_moves_an_id_and_what_names_it.rs",

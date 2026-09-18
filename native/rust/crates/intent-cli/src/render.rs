@@ -5151,6 +5151,15 @@ fn upgrade() -> Result<(), Failure> {
   for path in &done.dehydrated {
     eprintln!("dehydrated: {}", path.display());
   }
+  // **COUNTED, NOT NAMED** (ST0078 P1's backfill): a file per event the store
+  // already held, which is a project's whole history on its first run and
+  // nothing after, and an event's id names nothing a reader would look up.
+  if done.events_backfilled > 0 {
+    eprintln!(
+      "backfilled: {} event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project",
+      done.events_backfilled
+    );
+  }
   for refusal in &done.dehydrate_refused {
     eprintln!("{refusal}");
   }

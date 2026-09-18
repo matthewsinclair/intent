@@ -391,6 +391,79 @@ fn the_sync_plan_names_waiting_event_files_and_apply_takes_them() {
   );
 }
 
+/// **AC-01.4's backfill: `upgrade` writes, once, a file for every project event
+/// the store holds and the tree lacks.** A project from before its events
+/// travelled is a store full of history and no files, so the clone's files are
+/// removed to make one. A machine-scoped event stays in the store, and a
+/// second run writes nothing.
+#[test]
+fn upgrade_backfills_the_history_the_store_held_once() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob) = two_clones(dir.path());
+  alice.intent(&[
+    "wb", "register", "al", "--name", "Alice", "--role", "worker",
+  ]);
+  alice.intent(&["wb", "touch", "--node", "al"]);
+  std::fs::remove_dir_all(alice.root.join("intent/.canon/events")).expect("rm events");
+
+  let events = alice.events_json();
+  let rows = events["events"].as_array().expect("rows");
+  let travelling: Vec<&str> = rows
+    .iter()
+    .filter(|e| intentsvcs::event::travels(e["op"].as_str().expect("op")))
+    .map(|e| e["id"].as_str().expect("id"))
+    .collect();
+  assert!(
+    rows.iter().any(|e| e["op"] == "wb.touch"),
+    "the store holds a machine-scoped event, or this arm cannot see it skipped: {events}"
+  );
+
+  let out = alice.run(&["upgrade"]);
+  let said = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  assert!(
+    said.contains(&format!("backfilled: {} event file(s)", travelling.len())),
+    "the backfill says how many it wrote: {said}"
+  );
+  let files = alice.event_files();
+  let mut named: Vec<String> = files
+    .iter()
+    .map(|p| p.file_stem().expect("stem").to_string_lossy().into_owned())
+    .collect();
+  named.sort();
+  // Read again: an act the upgrade itself made writes its own file.
+  let events = alice.events_json();
+  let mut want: Vec<String> = events["events"]
+    .as_array()
+    .expect("rows")
+    .iter()
+    .filter(|e| intentsvcs::event::travels(e["op"].as_str().expect("op")))
+    .map(|e| e["id"].as_str().expect("id").to_string())
+    .collect();
+  want.sort();
+  assert_eq!(
+    named, want,
+    "one file per project event, and none for a heartbeat"
+  );
+
+  let before: Vec<Vec<u8>> = files
+    .iter()
+    .map(|p| std::fs::read(p).expect("read"))
+    .collect();
+  let again = alice.run(&["upgrade"]);
+  let said = String::from_utf8_lossy(&again.stderr);
+  assert!(
+    !said.contains("backfilled:"),
+    "a second run writes nothing: {said}"
+  );
+  let after: Vec<Vec<u8>> = alice
+    .event_files()
+    .iter()
+    .map(|p| std::fs::read(p).expect("read"))
+    .collect();
+  assert_eq!(before, after, "and rewrites nothing");
+}
+
 /// **AC-01.3: doctor checks the files and nothing else.** A file that is not an
 /// envelope, and one whose name is not its id, are reported by path; a committed
 /// event the store lacks is store-stale; and an event naming a thread canon

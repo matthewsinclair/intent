@@ -200,6 +200,10 @@ pub struct Upgraded {
   /// words with its remedy -- a hand edit, an unmet precondition, or a run
   /// that could not ask.
   pub dehydrate_refused: Vec<String>,
+  /// How many event files this run wrote for project events the store held
+  /// and the tree did not (ST0078 P1's backfill), so a project's history from
+  /// before its events travelled travels too. Zero on every later run.
+  pub events_backfilled: usize,
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -341,6 +345,59 @@ const RETIRED: &[(&str, &str)] = &[(
   "events.jsonl",
   "The event log lives in the store (D53); its file form is produced by `intent export`.",
 )];
+
+/// Where an event's committed file lives and what it holds: the one rendering
+/// of an envelope as a file, for the act that wrote it and for the backfill.
+fn event_file_write(
+  project: &Project,
+  event: &crate::event::Envelope,
+) -> Result<(std::path::PathBuf, String), FacadeError> {
+  let unserialisable = |why: String| FacadeError::EntityUnserialisable {
+    form: "event file".to_string(),
+    why,
+  };
+  let path = project
+    .event_file(event)
+    .map_err(|e| unserialisable(e.to_string()))?;
+  let body = crate::event::to_file(event).map_err(|e| unserialisable(e.to_string()))?;
+  Ok((path, body))
+}
+
+/// Write a committed file for every PROJECT event the store holds and the tree
+/// lacks, and return how many were written (ST0078 P1's backfill, AC-01.4).
+///
+/// **ONCE AND IDEMPOTENTLY, BY CONSTRUCTION.** A file whose path exists is
+/// skipped and never compared: an event file is never rewritten, so after the
+/// first run every later one writes nothing. A machine-scoped event is skipped
+/// as it is at the moment of the act ([`crate::event::travels`]), so the
+/// backfill carries off the machine exactly what the act would have.
+///
+/// What it wrote is recorded in the file index like any file the store wrote,
+/// so a watching daemon does not read the backfill back as an edit.
+pub(crate) fn backfill_event_files(
+  project: &Project,
+  store: &mut Store,
+) -> Result<usize, FacadeError> {
+  let mut set = WriteSet::new();
+  for event in store.events()? {
+    if !crate::event::travels(&event.op) {
+      continue;
+    }
+    let (path, body) = event_file_write(project, &event)?;
+    if path.exists() {
+      continue;
+    }
+    set.add(path, body);
+  }
+  if set.is_empty() {
+    return Ok(0);
+  }
+  let applied = set.commit()?;
+  let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+  applied.keep();
+  ingest::record_canon_files(project, store, &landed)?;
+  Ok(landed.len())
+}
 
 pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
   let dir = project
@@ -3725,6 +3782,7 @@ impl Facade {
         Vec<std::path::PathBuf>,
         Vec<std::path::PathBuf>,
         crate::legacy::Leftovers,
+        usize,
       ),
       FacadeError,
     > {
@@ -3776,6 +3834,7 @@ impl Facade {
         step: "adding the per-machine artefacts to .gitignore",
         cause,
       })?;
+      let events_backfilled = backfill_event_files(project, &mut store)?;
       converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "keeping the formatter off generated views",
         cause,
@@ -3790,10 +3849,10 @@ impl Facade {
         step: "stamping the project version",
         cause,
       })?;
-      Ok((pruned, deferred, leftovers))
+      Ok((pruned, deferred, leftovers, events_backfilled))
     };
     match finish() {
-      Ok((pruned, prune_deferred, leftovers)) => {
+      Ok((pruned, prune_deferred, leftovers, events_backfilled)) => {
         applied.keep();
         // **THE VIEWS OF EVERY UNDECLARED THREAD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
@@ -3837,6 +3896,7 @@ impl Facade {
           already_migrated,
           already_migrated_issues,
           dispositions,
+          events_backfilled,
         })
       }
       Err(halted) => {
@@ -5297,19 +5357,11 @@ impl Facade {
   /// becomes a row, so a door that writes an event cannot forget its file; an
   /// event whose set did not land waits for the next act's.
   fn add_event_files(&self, set: &mut WriteSet) -> Result<(), FacadeError> {
-    let unserialisable = |why: String| FacadeError::EntityUnserialisable {
-      form: "event file".to_string(),
-      why,
-    };
     for event in self.store.take_landed_events() {
       if !crate::event::travels(&event.op) {
         continue;
       }
-      let path = self
-        .project
-        .event_file(&event)
-        .map_err(|e| unserialisable(e.to_string()))?;
-      let body = crate::event::to_file(&event).map_err(|e| unserialisable(e.to_string()))?;
+      let (path, body) = event_file_write(&self.project, &event)?;
       set.add(path, body);
     }
     Ok(())
