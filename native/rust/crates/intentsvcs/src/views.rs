@@ -803,15 +803,6 @@ fn declared_version(text: &str) -> Option<&str> {
   Some(version)
 }
 
-/// The banner's own line, given the offset [`BANNER_MARKER`] was found at.
-fn banner_line(text: &str, at: usize) -> &str {
-  let start = at + BANNER_MARKER.len();
-  match text[start..].find('\n') {
-    Some(end) => &text[start..start + end],
-    None => &text[start..],
-  }
-}
-
 /// Byte offset of the first place two renderings differ.
 ///
 /// **IT IS WHAT TELLS A HAND EDIT FROM A RENDERER CHANGE WITHOUT A SCRATCH
@@ -832,8 +823,54 @@ fn first_difference(a: &str, b: &str) -> usize {
     .unwrap_or_else(|| a.len().min(b.len()))
 }
 
-/// Does this view differ from its render in the footer's VERSION and nowhere
-/// else?
+/// The lines of a generated view whose TEXT the renderer owns, by the prefix
+/// every version of the renderer has written them with.
+///
+/// **THE ACCEPTANCE COVER PARAGRAPH IS THE RENDERER'S, NOT THE AUTHOR'S**
+/// (issue 0446). `render_info` and the work package cover write it only where
+/// the author wrote no `## Acceptance` of their own, and its wording has moved
+/// between releases -- "canon in this thread's model: change a state with..."
+/// became "canon in this thread's model, and the verbs write it..." -- so a view
+/// an older Intent rendered differs from today's render in a sentence nobody
+/// typed. The prefix is what every version shares, and it is the whole line
+/// that is masked: the paragraph is one line and all of it is generated.
+const RENDERER_OWNED_LINES: &[&str] = &[
+  "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`",
+  "Acceptance Criteria for this work package are RENDERED into `",
+];
+
+/// A view's text with the parts its RENDERER owns masked, or `None` when it
+/// carries no banner and so did not come from this renderer at all.
+///
+/// Masked: the trailing banner LINE (see [`after_banner`]: the line is the
+/// renderer's, and its WORDING has moved as well as its version: the source it
+/// names lost its backticks between releases) and each
+/// [`RENDERER_OWNED_LINES`] line. Kept byte for byte: every other line before
+/// the banner, and everything after the banner's line, which is the author's.
+///
+/// **ONE HOME FOR "WHAT A HAND EDIT COULD HAVE TOUCHED"**, asked by
+/// [`differs_only_in_renderer_owned_text`] and by the egest's empty-estate
+/// guard, which measures whether the AUTHORED text of a face would shrink.
+pub fn authored_text(text: &str) -> Option<String> {
+  let at = text.rfind(BANNER_MARKER)?;
+  let mut out = String::with_capacity(text.len());
+  for line in text[..at].split_inclusive('\n') {
+    if RENDERER_OWNED_LINES
+      .iter()
+      .any(|owned| line.starts_with(owned))
+    {
+      out.push_str("<renderer-owned>\n");
+    } else {
+      out.push_str(line);
+    }
+  }
+  out.push_str(BANNER_MARKER);
+  out.push_str("<renderer-owned>\n");
+  out.push_str(after_banner(text));
+  Some(out)
+}
+
+/// Does this view differ from its render ONLY in text the renderer owns?
 ///
 /// **THE QUESTION IS ASKED BEFORE SKEW IS DECIDED, AND THE ORDER IS THE WHOLE
 /// FIX** (issue `0309`, vc's ruling 2026-09-12). Every view's footer carries the
@@ -842,32 +879,24 @@ fn first_difference(a: &str, b: &str) -> usize {
 /// on a blocking finding and would change nothing for the operator whose commit
 /// the gate has already refused.
 ///
-/// Everything before the banner must match, everything after the banner's line
-/// must match, both sides must actually carry a banner, and the two banner lines
-/// must become identical once the versions are equalised -- so a REWORDED banner
-/// is not this class, and neither is a body edit that happens to sit beside one.
-pub fn differs_only_in_banner_version(on_disk: &str, rendered: &str) -> bool {
-  let (Some(disk_at), Some(rendered_at)) =
-    (on_disk.rfind(BANNER_MARKER), rendered.rfind(BANNER_MARKER))
-  else {
-    return false;
-  };
-  if on_disk[..disk_at] != rendered[..rendered_at] {
-    return false;
-  }
-  if after_banner(on_disk) != after_banner(rendered) {
-    return false;
-  }
-  let (Some(disk_version), Some(rendered_version)) =
-    (declared_version(on_disk), declared_version(rendered))
-  else {
-    return false;
-  };
-  if disk_version == rendered_version {
-    return false;
-  }
-  banner_line(on_disk, disk_at).replacen(disk_version, rendered_version, 1)
-    == banner_line(rendered, rendered_at)
+/// **WIDENED FROM "THE FOOTER'S VERSION" TO "RENDERER-OWNED TEXT"** (issue
+/// 0446). The version was the only renderer-owned difference 0309 had seen.
+/// Rehearsing the fleet trawl found 65 views across four estates that differed
+/// from today's render only in the footer's WORDING or in the Acceptance cover
+/// paragraph -- both written by an older Intent, neither touched by a human --
+/// and every one was refused as a possible hand edit, with a per-file decision
+/// as its remedy. This asks the question 0309 meant: could a person have
+/// written the difference? See [`authored_text`] for what is masked.
+///
+/// Both sides must carry a banner, so a file that did not come from this
+/// renderer is never this class; and a one-byte edit anywhere the author owns
+/// -- body, heading, or text appended after the banner -- still differs.
+pub fn differs_only_in_renderer_owned_text(on_disk: &str, rendered: &str) -> bool {
+  on_disk != rendered
+    && matches!(
+      (authored_text(on_disk), authored_text(rendered)),
+      (Some(disk), Some(render)) if disk == render
+    )
 }
 
 /// Whether a generated view differs from its render only as a formatter
@@ -2171,12 +2200,12 @@ pub fn skew(
       // the skew arm would leave a label on a blocking finding, and with
       // `doctor` on the pre-commit gate (issue `0308`) that is a commit outage
       // in every estate on the day it upgrades.
-      Ok(on_disk) if differs_only_in_banner_version(&on_disk, &view.content) => {
+      Ok(on_disk) if differs_only_in_renderer_owned_text(&on_disk, &view.content) => {
         findings.push(Finding::new(
           &rel,
           FindingClass::StaleRender,
           format!(
-            "rendered by Intent v{} and this binary renders v{} -- the footer's version is the only difference",
+            "rendered by Intent v{} and this binary renders v{} -- only text the renderer owns differs: its footer, or the Acceptance paragraph it writes",
             declared_version(&on_disk).unwrap_or("<none>"),
             declared_version(&view.content).unwrap_or("<none>"),
           ),

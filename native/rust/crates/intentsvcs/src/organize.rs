@@ -1444,15 +1444,17 @@ impl Plan {
 /// The dehydration gate (AC-04.2).
 ///
 /// Re-render into memory, compare to the bytes on disk, refuse on any difference
-/// but the footer's version, and name the path.
+/// in text a person could have written, and name the path.
 ///
-/// **THE FOOTER'S VERSION IS THE ONE DIFFERENCE THAT CARRIES NO HAND EDIT**
-/// (issue 0316, vc's ruling 2026-09-14). A view an earlier Intent rendered
-/// differs from today's render in the version its banner names and nowhere
-/// else, and refusing it left a closed, undeclared thread's views with no
-/// owner: nothing re-rendered them and nothing removed them. The question is
-/// asked through [`crate::views::differs_only_in_banner_version`], the one
-/// predicate doctor (0309) and the overwrite check (0385) already ask. **Fail-safe by construction rather than by discipline:**
+/// **TEXT THE RENDERER OWNS CARRIES NO HAND EDIT** (issue 0316, vc's ruling
+/// 2026-09-14, widened by issue 0446). A view an earlier Intent rendered differs
+/// from today's render in its footer -- version and wording -- and in the
+/// Acceptance paragraph the renderer writes, and refusing it left a closed,
+/// undeclared thread's views with no owner: nothing re-rendered them and
+/// nothing removed them. 0446 measured 65 such refusals across four estates,
+/// none a hand edit. The question is asked through
+/// [`crate::views::differs_only_in_renderer_owned_text`], the one predicate
+/// doctor (0309) and the overwrite check (0385) already ask. **Fail-safe by construction rather than by discipline:**
 /// the only way to remove a view is to have proved first that the store can
 /// reproduce it exactly, so a hand edit cannot be destroyed by an operator who
 /// forgot to check.
@@ -1468,7 +1470,7 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   let on_disk = std::fs::read(&step.path).map_err(|e| io_err(&step.path, e))?;
   match &step.content {
     Some(carried) if *carried == on_disk => Ok(()),
-    Some(carried) if only_the_banner_moved(&on_disk, carried) => Ok(()),
+    Some(carried) if only_renderer_owned_text_moved(&on_disk, carried) => Ok(()),
     _ => Err(OrganizeError::HandEdited {
       path: step.path.clone(),
       bytes: on_disk.len(),
@@ -1476,11 +1478,11 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   }
 }
 
-/// Whether two byte strings are one view but for the version its banner names.
-/// Asked only where both sides are text, since a banner is a line of prose.
-fn only_the_banner_moved(on_disk: &[u8], carried: &[u8]) -> bool {
+/// Whether two byte strings are one view but for text its renderer owns.
+/// Asked only where both sides are text, since what the renderer owns is prose.
+fn only_renderer_owned_text_moved(on_disk: &[u8], carried: &[u8]) -> bool {
   match (std::str::from_utf8(on_disk), std::str::from_utf8(carried)) {
-    (Ok(disk), Ok(rendered)) => crate::views::differs_only_in_banner_version(disk, rendered),
+    (Ok(disk), Ok(rendered)) => crate::views::differs_only_in_renderer_owned_text(disk, rendered),
     _ => false,
   }
 }

@@ -476,7 +476,7 @@ impl FindingClass {
       Self::StaleRender => (
         6,
         "stale-render",
-        "these views were rendered by an older Intent and differ in the footer's version alone -- `intent sync --to-disk` brings them up to date, and there is no hand edit to lose",
+        "these views were rendered by an older Intent and differ only in text the renderer owns -- the footer, or the Acceptance paragraph it writes -- so `intent sync --to-disk` brings them up to date, and there is no hand edit to lose",
       ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:

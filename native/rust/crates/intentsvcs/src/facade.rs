@@ -4902,12 +4902,24 @@ impl Facade {
     if !canon.threads.is_empty() {
       return Ok(());
     }
+    //
+    // **AND THE SHRINK IS MEASURED IN AUTHORED TEXT** (issue 0446). Measured in
+    // bytes, a store holding no threads refused to rewrite an EMPTY estate's
+    // `steel_threads.md` over a 2-byte footer change -- an older renderer's
+    // backticks -- and called it "the store is behind the estate". Text the
+    // renderer owns ([`views::authored_text`]) says nothing about what the
+    // estate holds, so it is not counted; a file with no banner is counted
+    // whole, because none of it is known to be the renderer's.
     for (path, content) in set.writes() {
-      let Ok(meta) = std::fs::metadata(path) else {
+      let Ok(disk) = std::fs::read(path) else {
         continue;
       };
-      let on_disk = meta.len() as usize;
-      if on_disk > content.len() {
+      let on_disk = disk.len();
+      let authored = |bytes: &[u8]| {
+        let text = String::from_utf8_lossy(bytes);
+        views::authored_text(&text).map_or(text.len(), |masked| masked.len())
+      };
+      if authored(&disk) > authored(content) {
         return Err(FacadeError::EgestWouldEmptyTheEstate {
           evidence: format!(
             "{} would go from {on_disk} bytes to {} -- the file on disk carries more than the store does, so the store is behind the estate rather than the other way round",
@@ -14338,13 +14350,13 @@ impl Facade {
       candidates
         .into_iter()
         // **A VIEW AN OLDER INTENT RENDERED IS NOT A HAND EDIT** (issue 0309's
-        // predicate, the one doctor asks). Its footer names the version that
-        // wrote it and nothing else differs, so nobody's work is under it.
-        // Issue 0385: the first write after an upgrade warned for every such view.
+        // predicate, the one doctor asks, widened by 0446). Only text the
+        // renderer owns differs, so nobody's work is under it. Issue 0385: the
+        // first write after an upgrade warned for every such view.
         .filter(|(path, disk)| {
           before.get(path).is_some_and(|prior| {
             prior != disk
-              && !views::differs_only_in_banner_version(
+              && !views::differs_only_in_renderer_owned_text(
                 &String::from_utf8_lossy(disk),
                 &String::from_utf8_lossy(prior),
               )
