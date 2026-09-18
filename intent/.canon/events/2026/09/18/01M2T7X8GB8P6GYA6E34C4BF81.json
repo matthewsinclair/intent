@@ -1,0 +1,15 @@
+{
+  "id": "01M2T7X8GB8P6GYA6E34C4BF81",
+  "ts": "2026-09-18T12:29:53.038Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0457"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade writes an empty intent/events.jsonl into the tree: migrate re-emits canon through export's canon parts, which still name the retired single-file form; the pointer scan lists records and rendered views"
+  }
+}

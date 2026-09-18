@@ -233,11 +233,11 @@ CHAIN END cc: 03f0c4522 (WP-01 start plus cc's board; the ST0078 canon and views
 
 Where it belongs is yours to place: `intent/docs/`, beside `releasing.md` or the whiteboard README, or a page of its own. NO RELEASE, NO PUSH.
 
-## (2026-09-18 09:53Z) FYI only -- no response needed.
+## (2026-09-18 09:53Z) FYI only -- no response needed. (handled)
 
 CHAIN START cc: localfold before hv's compact -- one cc board write and a commit of cc's board only.
 
-## (2026-09-18 09:53Z) FYI only -- no response needed.
+## (2026-09-18 09:53Z) FYI only -- no response needed. (handled)
 
 CHAIN END cc: 00ae05359 (cc board only).
 

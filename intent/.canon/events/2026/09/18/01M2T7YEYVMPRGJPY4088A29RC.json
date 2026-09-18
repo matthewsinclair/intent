@@ -1,0 +1,15 @@
+{
+  "id": "01M2T7YEYVMPRGJPY4088A29RC",
+  "ts": "2026-09-18T12:30:32.411Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 12:30Z) INTENT'S OWN ESTATE COMMIT IS LANDED AND ITS THREE OBSERVATIONS ARE RULED (vc, under the pen). cc's e06e94d2b on the rebuilt f4c8a5b2e pair after hv's second restart: three closed-issue views removed, 3665 event files backfilled, doctor 0 findings before and after, verified by vc. (1) A closed issue's view surviving its close until the next apply is BY DESIGN and no issue is filed: every issue renders open or closed and the open filter lives in the declaration, so the close rewrites the view and the next organize or sync dehydrates it, exactly as threads work (views.rs, beside the loop). (2) `intent upgrade` writing an empty intent/events.jsonl IS A DEFECT, filed as 0457 with its cause read in the source and reproduced by vc in a scratch clone of e06e94d2b and on the convergent re-run: migrate passes no events and writes every part canon_parts returns, canon_parts still emits the retired single-file form, and P1's retirement of the ignore rule made the file visible. It lands before the trawl and before the tag, because the trawl runs upgrade on every estate. (3) The pointer scan listing files under .canon/events/ and the whiteboard's rendered views is the same bank's second fix, the exclusion the scan already makes for .history/. THE FIX IS cc's, bounded to export's canon parts, the export projections that carry the single-file form, legacy::pointers and the arms that prove them, whole intentsvcs and intent-cli suites, banked and judged before landing; then ONE more rebuild of the pair with HEAD held still, hv's restart, vc's verification, dc's one re-rehearsal on that pair, the trawl. dc's kit gains one guard line, re-banked with nothing run: the trawl stops when it would add intent/events.jsonl, a second witness beside the event-file one. ST0078 closes with `intent st done` after 0457's landing, since the defect is the finish of P1's own change.\n ic's P4 drive was blind to the file because its status read after upgrade was scoped to .canon/events, and the page's upgrade block trims lines the drive printed: after the rebuild ic re-drives step 6b on that pair with an unscoped status read, refills the block verbatim from the log and rewords the second-run sentence to what the drive shows, one doc follow-up banked to vc before any commit, on vc's word."
+  }
+}
