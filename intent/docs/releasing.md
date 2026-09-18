@@ -37,6 +37,8 @@ The reference set has two halves and the pages have two revision inputs. Both in
 
 `--rev` defaults to `HEAD`, which is right between cuts and right at a cut once the ordering above is honoured.
 
+**Pass it as the word `HEAD`, never as a sha.** The pages print the revision's NAME as well as its sha: the index title reads "What Intent ships at `<name>`", and the `Revision this describes` row carries the name beside the sha, so a sha widens that table and re-pads the row under it. The staleness check the release preflight runs regenerates with `--rev HEAD` and masks only the generation stamp and the `Revision this describes` row, so a set generated with `--rev <sha>` differs from it in the title and the padding and is refused on every run. Found at the 3.1.0 regeneration (`d254b53b8`) by doing it the way this page said.
+
 **`--baseline` defaults to `v3.0.0` and that default has never moved.** It drives the `In <version>` column on every command row and the "newer than, so not in an installed copy" list, so a regeneration that omits it reports presence against the first cut of the line. Read the default rather than trusting this sentence:
 
 ```
@@ -81,8 +83,8 @@ That is what `--baseline` is passed at a cut. It was chosen over "the previous r
 ```
   cd <the tree being described>
   BASE=$(git describe --tags --abbrev=0)
-  intent/st/ST0056/parity/tools/gen_reference.sh    --rev <sha> --baseline "$BASE" --out <scratch>
-  intent/st/ST0056/parity/tools/gen_cut_surface.sh  --rev <sha> --baseline "$BASE" --out <scratch>/cut-surface.md
+  intent/st/ST0056/parity/tools/gen_reference.sh    --rev HEAD --baseline "$BASE" --out <scratch>
+  intent/st/ST0056/parity/tools/gen_cut_surface.sh  --rev HEAD --baseline "$BASE" --out <scratch>/cut-surface.md
   diff -ru docs/reference <scratch>
 ```
 
