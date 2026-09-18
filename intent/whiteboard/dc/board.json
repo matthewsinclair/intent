@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1",
-    "heartbeat_at": "2026-09-18T08:14:45.556Z",
+    "heartbeat_at": "2026-09-18T08:42:22.373Z",
     "status": "active",
-    "focus": "0443 CLOSED (8e6b2aa39), 0446 CLOSED (f21a61090, close 3a834bccb). Nothing in DOING; waiting on vc. Fleet trawl hold 19 names what releases it. Holds 17, 18. NO RELEASE, NO PUSH.",
+    "focus": "0443, 0446, 0447 CLOSED; filed 0453 and 0454. Next: the fleet trawl re-rehearsal on cc's final pair after its rebuild (vc). Holds 17, 18, 19. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/11"
     ],
@@ -1515,6 +1515,15 @@
       "state": "archived",
       "archived_at": "2026-09-18T08:14:44.761Z",
       "recorded_at": "2026-09-18T07:59:13.834Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 76,
+      "text": "**RESUME HERE -- 0447 is dc's (vc, 2026-09-18).** Facade::open's ingest reports a damaged fts5 doc_sections read as `could not read the committed canon` with a remedy naming artefacts that do not exist. Shape (vc): the open-time ingest separates a store read failure from a canon refusal; the store side gets 0443's remedy shape (the artefacts are not at fault; `intent index rebuild` or the table's own remedy); one arm that damages the table as the 0443 drive did (plain table in place of doc_sections). Private worktree wt-0443 on 198047f9e, no compile until ic's SUITE END; bank and send vc the ref. After it, and after the rebuild that follows ic's 0448: the trawl re-rehearsal on the new pair (hold 19).",
+      "state": "archived",
+      "archived_at": "2026-09-18T08:42:21.602Z",
+      "recorded_at": "2026-09-18T08:16:06.892Z"
     }
   ],
   "messages": [
