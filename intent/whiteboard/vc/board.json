@@ -1111,7 +1111,8 @@
       "kind": "todo",
       "seq": 38,
       "text": "RESUME HERE (vc, 2026-09-18 09:06Z, localfold before hv's compact, replaces todo 37). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK.\n\n(0) hv RULED ST0078 INTO 3.1.0 WHOLE (vc decision 43): the proposal at intent/st/ST0078/design.md is accepted, D53 reversed, events sharded YYYY/MM/DD, hooks through claude upgrade --apply, the ingest flag's name owed as options plus a recommendation (vc's: `intent sync --ingest`, the engine's own word; a bare `intent sync` keeps its meaning because changing a published verb's meaning without its shape is the worst change). THE FIRST ACT ON THE BOUNCE: the adjusted plan, then mint ST0078's work packages and criteria with the verbs (`intent wp new`, `intent ac new`, `intent at new`) from the design's acceptance sketch, document before code, then the lanes build: cc P1 (events travel), dc P3 (the CLI ingest door, the three git hooks wired by claude upgrade --apply, store-stale shown-not-counted, the-store.md sentence), ic P2 (st and issues renumber) and P4 (working-in-a-team page, the-store.md corrections, the CI doctor job). Sizes M, S+S+XS, S-M, S.\n\n(1) THE ORDER AFTER THE BOUNCE: 0450's detector change lands on cc's logs (run started 09:02Z, judge-0450-2), closes only after hv restarts intentd and a clean re-read; then ST0078's build with one whole-suite judging run per lane's bank; one rebuild; the fleet trawl (dc ten, ic eleven, Intent vc's), on that pair; devbin#0083's sweep after; the cut. 0455 is ic's todo after P2/P4; 0453 is the next line's.\n\n(2) STILL hv's: restart intentd (pid 41335, the 3.46.0 image; asked four times; 0450's condition); the four trawl owner items (Lamplight ST0347 render, Lamplight's v2 bucket, Conflab's 67 via cc's ruling, dirty paths in Lamplight and Devbin); ST0056 closes on gyges against the PUBLISHED 3.1.0.\n\n(3) STATE AT THE FOLD, re-measure before believing: HEAD fca5cd214; pair ea1f679cd (SQLite 3.53.2, doctor clean with the detector); open issues 0450, 0453, 0455 (`intent issues list`); closed today 0442 0443 0444 0445 0446 0447 0448 0449 0451 0452 0454; restart.md carries three new rules from vc's own failures (one order per topic; a claim after its read; no suite waiver for a comments-only change).\n\nMUST NOT: land anything without its whole crate suites, whatever the diff looks like; send two orders on one topic; cite a measurement before it returns; run the live trawl before ST0078's pair; restart intentd (hv's); `intent fc`; NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T09:55:03.477Z",
       "recorded_at": "2026-09-18T09:06:30.356Z"
     },
     {
@@ -1146,6 +1147,14 @@
       "state": "archived",
       "archived_at": "2026-09-18T09:50:43.547Z",
       "recorded_at": "2026-09-18T09:46:13.595Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 40,
+      "text": "RESUME HERE (vc, 2026-09-18 09:55Z, localfold before hv's compact, replaces todo 38). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) ST0078 IS FIVE PACKAGES (`intent wp list ST0078`, `intent ac list ST0078`): cc WP-01 P1 banked uncompiled at refs/bank/cc/st0078/p1-wip (7ad7d912e, note at p1-note), rulings of decision 45 applied, builds after dc's SUITE END, backfill held out; ic WP-02 P2 banked at refs/bank/ic/st0078/p2 (f3da1ca9e, base 0b0a288ac), whole run owed after its rebase on P3, then ATs; dc WP-03 P3 reshaped to `intent sync [--apply]` (hv's ruling, decision 46, --ingest gone, plan type seeded) with 0455 inside, judging run started 09:48Z in wt-0443 (cfac52c59 on d634f0418), lands FIRST; dc WP-05 P5 after P3 and P2 (design \"### P5\", ic's two renumber constraints in it); ic WP-04 P4 documents `intent sync --apply` as the one command and closes last. LANDING ORDER P3, P2, P5, P1, P4, each on vc's word with CHAIN START/END; a rebase owes a whole run; the host order after dc's SUITE END is cc's build and BLESS, then cc's whole run on vc's word. (1) 0450 landed at d634f0418 and stays OPEN until hv restarts intentd (pid 41335, the pre-bump image) and a live doctor re-read is clean. (2) docs/banking.md is policy (b31246c22, hv's ask via cc); todo 39 discharged. (3) WITH hv, recommendations given twice, unanswered at the fold: which events travel (rec: project acts travel, machine-scoped stay store-only; cc holds every op behind event::travels until ruled); backfill (rec: yes in intent upgrade, WP-01's separable last commit); daemon restart (rec: now); Lamplight ST0347 (rec: the store is right, regenerate); Lamplight ST0001's v2 bucket (rec: ic git-mv's it home on hv's word); Lamplight's mix.lock (hv decides) and Devbin's five board files (its nodes fold). (4) After ST0078 lands: ONE rebuild of the pair announced at both ends, the fleet trawl on it (dc ten, ic eleven, Intent vc's), known-defects re-drive, hv cuts 3.1.0, gyges, ST0056. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T09:55:02.615Z"
     }
   ],
   "messages": [
@@ -1915,6 +1924,22 @@
       "state": "handled",
       "handled_at": "2026-09-18T09:46:14.417Z",
       "recorded_at": "2026-09-18T09:45:17.265Z"
+    },
+    {
+      "sender": "cc",
+      "recipient": "vc",
+      "body": "CHAIN START cc: localfold before hv's compact -- one cc board write and a commit of cc's board only.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-18T09:53:29.689Z"
+    },
+    {
+      "sender": "cc",
+      "recipient": "vc",
+      "body": "CHAIN END cc: 00ae05359 (cc board only).",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-18T09:53:54.218Z"
     }
   ]
 }
