@@ -58,6 +58,26 @@ pub enum IngestError {
   EventLogUnreadable { path: String, cause: String },
   #[error(transparent)]
   Store(#[from] StoreError),
+  /// The store's search-index table could not be READ while the canon was
+  /// loaded (issue 0447).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE CANON IS NOT AT FAULT.** As `Store` it took
+  /// the artefacts remedy -- "fix the artefacts named above" -- and named none,
+  /// because none is broken. And no verb repairs it in place: every command
+  /// opens the store through this read, so the remedy says so rather than
+  /// naming a verb behind the same wall.
+  #[error("the store's `{table}` table could not be read")]
+  IndexUnreadable {
+    table: &'static str,
+    /// Boxed so the variant does not make every `IngestError` larger
+    /// (`clippy::result_large_err`, which the workspace denies).
+    #[source]
+    cause: Box<StoreError>,
+    /// The newest snapshot on disk, project-relative, if there is one.
+    newest_snapshot: Option<String>,
+    /// Where snapshots are kept, project-relative.
+    snapshot_dir: String,
+  },
   #[error(transparent)]
   Project(#[from] crate::project::ProjectError),
   #[error("reading {path}: {source}")]
@@ -84,10 +104,73 @@ impl crate::remedy::Remedy for IngestError {
         "restore {path} from git (`git checkout -- {path}`) rather than deleting it -- history is the one artefact nothing recomputes"
       ),
       Self::Store(e) => crate::remedy::Remedy::remedy(e),
+      Self::IndexUnreadable {
+        table,
+        newest_snapshot,
+        snapshot_dir,
+        ..
+      } => unreadable_index_remedy(table, newest_snapshot.as_deref(), snapshot_dir),
       Self::Project(e) => crate::remedy::Remedy::remedy(e),
       Self::Io { path, .. } => format!("check that {path} exists and that this user can read it"),
     }
   }
+}
+
+impl IngestError {
+  /// The headline a facade error wrapping this one carries.
+  ///
+  /// **"could not read the committed canon" IS FALSE OF ONE VARIANT** (issue
+  /// 0447): an unreadable index table is the store's, and the canon is intact.
+  pub fn headline(&self) -> &'static str {
+    match self {
+      Self::IndexUnreadable { .. } => "could not read the store's search index",
+      _ => "could not read the committed canon",
+    }
+  }
+}
+
+/// What to do about a search-index table the store cannot read. **ONE HOME**:
+/// the open-time refusal and doctor's finding both say it (issue 0447).
+///
+/// **IT SAYS ONLY WHAT IS TRUE, AND THAT INCLUDES WHAT DOES NOT EXIST.** Driven
+/// on a damaged store, `intent index rebuild`, `intent backup` and `intent
+/// backup --list` each refused with this same error, because each opens the
+/// store through the read that failed -- so none of them is named as a way
+/// out, and no restore verb ships to name either.
+pub fn unreadable_index_remedy(
+  table: &str,
+  newest_snapshot: Option<&str>,
+  snapshot_dir: &str,
+) -> String {
+  let snapshot = match newest_snapshot {
+    Some(path) => format!(
+      "The newest snapshot of this store is {path}; no restore verb ships, so it is a copy to recover from by hand, and it may be older than the store"
+    ),
+    None => format!("There is no snapshot of this store in {snapshot_dir}"),
+  };
+  format!(
+    "the committed canon is intact and is not at fault -- the store's `{table}` search-index table could not be read. No verb in this build repairs it in place: every command opens the store through this read, `intent index rebuild` and `intent backup` included (issue 0453). {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
+  )
+}
+
+/// The store's prose sections, or the refusal that names the table (issue 0447).
+///
+/// **A BUSY STORE KEEPS ITS OWN REMEDY** (issue 0436): a lock held past the
+/// wait is not a damaged table, so it stays `Store` and reads as busy.
+pub fn read_sections(project: &Project, store: &Store) -> Result<Vec<DocSection>, IngestError> {
+  store.doc_sections().map_err(|cause| {
+    if cause.is_busy() {
+      IngestError::Store(cause)
+    } else {
+      IngestError::IndexUnreadable {
+        table: "doc_sections",
+        cause: Box::new(cause),
+        newest_snapshot: crate::backup::newest_snapshot_on_disk(project)
+          .map(|path| project.relative(&path)),
+        snapshot_dir: project.relative(&crate::backup::snapshot_dir(project)),
+      }
+    }
+  })
 }
 
 impl From<Refusal> for IngestError {
@@ -506,7 +589,7 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
     return Ok(Canon {
       threads,
       issues,
-      sections: store.doc_sections()?,
+      sections: read_sections(project, store)?,
       // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
       // pays, and a model with no boards is one whose next thread mutation
       // re-derives the index without them and whose corpus survey leaves
@@ -645,7 +728,12 @@ fn section_of_thread(section: &DocSection, id: &str) -> bool {
 /// uncommitted prose into search while correctly keeping it out of canon --
 /// the same leak, one table over, and invisible because nothing about canon
 /// would look wrong.
-fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon, IngestError> {
+fn compose_scoped(
+  project: &Project,
+  store: &Store,
+  disk: Canon,
+  named: &[String],
+) -> Result<Canon, IngestError> {
   let scoped = |id: &str| named.iter().any(|n| n == id);
   let (stored_threads, stored_issues) = store.load_canon()?;
 
@@ -656,8 +744,7 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
   threads.extend(disk.threads.into_iter().filter(|t| scoped(&t.id)));
   threads.sort_by(|a, b| a.id.cmp(&b.id));
 
-  let mut sections: Vec<DocSection> = store
-    .doc_sections()?
+  let mut sections: Vec<DocSection> = read_sections(project, store)?
     .into_iter()
     .filter(|s| !named.iter().any(|id| section_of_thread(s, id)))
     .collect();
@@ -840,7 +927,7 @@ fn resync_inner(
   let canon = read(project)?;
   let mut canon = match scope.named() {
     None => canon,
-    Some(named) => compose_scoped(store, canon, named)?,
+    Some(named) => compose_scoped(project, store, canon, named)?,
   };
 
   // **AFTER THE SCOPE NARROWS, NEVER BEFORE.** A scoped run carries only the
@@ -913,7 +1000,7 @@ fn resync_inner(
         return Ok(Canon {
           threads,
           issues,
-          sections: store.doc_sections()?,
+          sections: read_sections(project, store)?,
           boards: store.hydrate_boards()?,
         });
       }

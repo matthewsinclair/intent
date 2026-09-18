@@ -222,6 +222,18 @@ pub enum FindingClass {
   /// during someone else's write is the reversion hazard the daemon already
   /// carries.
   StoreStale,
+  /// The store's search-index table cannot be READ, so every command that
+  /// opens the store refuses (issue 0447).
+  ///
+  /// **COUNTED, AND NOT BESIDE [`FindingClass::StoreStale`] IN THE EXEMPT
+  /// LIST.** A stale store answers from an older model; this one answers
+  /// nothing -- `st list`, `search`, `index rebuild` and `backup` each refuse
+  /// on the open. Driven before this class existed, `doctor` read that store at
+  /// rc 0 with zero findings, so a project with every verb down passed the
+  /// commit gate and read clean to the fleet trawl. **Distinct from the 0442
+  /// search-index probes**, which read a table that opens and judge its
+  /// segments, and which are deliberately never counted.
+  IndexUnreadable,
   /// The backup mechanism is running and its attempts are failing.
   ///
   /// **THE OTHER HALF OF THE BACKUP RULE, AND [`FindingClass::BackupStale`]
@@ -535,6 +547,11 @@ impl FindingClass {
         8,
         "backup-stale",
         "run `intent backup` -- and if a schedule was supposed to be doing this, it is not running",
+      ),
+      Self::IndexUnreadable => (
+        8,
+        "index-unreadable",
+        "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. The detail names the table, says what no verb in this build can do about it, and names the newest snapshot if there is one",
       ),
       Self::StoreStale => (
         8,

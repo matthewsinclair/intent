@@ -509,10 +509,17 @@ fn examine(
   if let Some(store) = store {
     report.findings.extend(backup_findings(project, store));
     report.findings.extend(undeclared_op_findings(store));
+    report
+      .findings
+      .extend(index_unreadable_finding(project, store));
     report.search_index = match store.read_search_index() {
       Ok(readings) => SearchIndex::Read(readings),
       Err(e) => SearchIndex::Unreadable(e.to_string()),
     };
+  } else {
+    report
+      .findings
+      .extend(index_unreadable_without_a_facade(project));
   }
   // **OUTSIDE THE STORE BLOCK, BECAUSE THE GATE IS NOT A PROPERTY OF THE
   // STORE.** A project whose store will not open is exactly one whose commit
@@ -1923,6 +1930,51 @@ fn git_succeeds(root: &std::path::Path, args: &[&str]) -> bool {
 fn is_tracked(root: &std::path::Path, path: &std::path::Path) -> bool {
   let path = path.display().to_string();
   git_succeeds(root, &["ls-files", "--error-unmatch", "--", &path])
+}
+
+/// The read every command's open makes, made here too (issue 0447).
+///
+/// A store whose search-index table cannot be read refuses every verb, and
+/// `doctor` read such a store at rc 0 with nothing to say. The finding's detail
+/// is the ingest's own sentence, so the operator reads the same thing from
+/// `doctor` as from any verb that refused.
+fn index_unreadable_finding(project: &Project, store: &crate::store::Store) -> Option<Finding> {
+  let Err(crate::ingest::IngestError::IndexUnreadable {
+    table,
+    cause,
+    newest_snapshot,
+    snapshot_dir,
+  }) = crate::ingest::read_sections(project, store)
+  else {
+    return None;
+  };
+  Some(Finding::new(
+    project.relative(&project.db_path()),
+    FindingClass::IndexUnreadable,
+    format!(
+      "the `{table}` table could not be read ({cause}) -- {}",
+      crate::ingest::unreadable_index_remedy(table, newest_snapshot.as_deref(), &snapshot_dir)
+    ),
+  ))
+}
+
+/// The same question when the caller had no store to hand in.
+///
+/// **THE CLI OPENS THE STORE THROUGH THE FACADE, AND THE FACADE'S OPEN FAILS ON
+/// EXACTLY THIS TABLE** -- so on the one store this check exists for, `doctor`
+/// was handed no store and the question went unasked: driven, rc 0 and zero
+/// findings over a store every verb refused. So when no store was given and one
+/// EXISTS on disk, it is opened here for this one read. **THIS PROBE NEVER
+/// CREATES ONE**: with no file it returns before opening anything. (The
+/// store-stale check's own `Store::open` does create one on a project that had
+/// none; that predates this and is not this probe's to change.)
+fn index_unreadable_without_a_facade(project: &Project) -> Option<Finding> {
+  let path = project.db_path();
+  if !path.exists() {
+    return None;
+  }
+  let store = crate::store::Store::open(&path).ok()?;
+  index_unreadable_finding(project, &store)
 }
 
 fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {

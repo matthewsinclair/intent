@@ -195,6 +195,22 @@ pub fn snapshot_dir(project: &Project) -> PathBuf {
   project.intent_dir().join(".backup").join(SNAPSHOT_DIR)
 }
 
+/// The newest snapshot on disk, read from the DIRECTORY rather than the store.
+///
+/// **FOR THE ONE CALLER THAT CANNOT ASK THE STORE** (issue 0447): a store whose
+/// index table cannot be read refuses every verb that opens it, `intent backup
+/// --list` included, so the refusal names the file itself. Snapshot names are
+/// the stamp with its separators replaced, so they sort in time order, and the
+/// greatest name is the newest. `None` when there is no snapshot, or the
+/// directory cannot be read -- either way there is nothing to point at.
+pub fn newest_snapshot_on_disk(project: &Project) -> Option<PathBuf> {
+  std::fs::read_dir(snapshot_dir(project))
+    .ok()?
+    .filter_map(|entry| entry.ok().map(|e| e.path()))
+    .filter(|path| path.extension().is_some_and(|ext| ext == "db"))
+    .max()
+}
+
 /// Take one snapshot, recording the attempt either way.
 ///
 /// **The file is named from the stamp the DATABASE returned** when the attempt

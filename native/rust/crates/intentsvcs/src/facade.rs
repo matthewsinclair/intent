@@ -1350,7 +1350,9 @@ pub enum FacadeError {
   Embed(#[from] crate::embed::EmbedError),
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
-  #[error("could not read the committed canon")]
+  // Issue 0447: the headline is the inner error's to choose, because one of
+  // its variants is the store's and says the canon is intact.
+  #[error("{}", .0.headline())]
   Ingest(#[from] IngestError),
   #[error("no export format named `{format}`")]
   NoSuchFormat {
@@ -2388,6 +2390,9 @@ impl crate::remedy::Remedy for FacadeError {
       // the busy cause is delegated: a store cause an artefact can produce, a
       // constraint a malformed canon breaks, keeps the artefacts remedy.
       Self::Ingest(IngestError::Store(cause)) if cause.is_busy() => cause.remedy(),
+      // Issue 0447: the canon is not at fault, so the artefacts remedy below
+      // would name nothing -- the store's own sentence goes instead.
+      Self::Ingest(inner @ IngestError::IndexUnreadable { .. }) => inner.remedy(),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
       }
