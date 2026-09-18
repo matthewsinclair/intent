@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 16:22Z
+heartbeat_at: 2026-09-18 16:37Z
 status: active
-focus: "The fleet trawl dc half is done, 8 of 8 verified by vc. NEXT: Devbin alone, once its own nodes fold (hold 25, kit 8cfac07a2). Holds 17, 18, 25. NO RELEASE, NO PUSH."
+focus: "The fleet trawl is done, 22 of 22 checked by vc (dc half 9 of 9, Devbin bc556b0), nothing pushed. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -23,7 +23,6 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
-- **The fleet trawl, Devbin only.** The dc half is done and vc verified it, 8 of 8 (2026-09-18 15:01Z): a3-content a0d4a66, Anvil 8c26393, arca_cli a53327f, arca_config b40124c, arca_notionex e28fac4, Baize e73174a, Courses f786c57, Gtools e414831. All are NOT pushed, doctor 0, trees clean. RELEASED WHEN Devbin's own nodes have folded and committed their board files so its tree is clean (decision 47). Then one run of the kit at refs/bank/dc/trawl/trawl-estate.sh 8cfac07a2, whose precondition removes the zero-byte 3.0.0 intent/events.jsonl Devbin also carries, pinned at both ends, one commit, NO PUSH.
 
 ## Watch-outs
 
