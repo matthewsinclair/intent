@@ -1,0 +1,15 @@
+{
+  "id": "01M2T6HG9GPFKJBPGQCYMYPC4D",
+  "ts": "2026-09-18T12:05:59.216Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 12:05Z, localfold before hv's compact, replaces todo 41). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) ST0078 IS BUILT AND LANDED WHOLE (decision 49): five packages Done, `intent ac status ST0078` passes 15/15; the pair is REBUILT ONCE at f4c8a5b2e (`intent --version`; intent sha256 3ccc0100..., intentd c9bb8e5a...; doctor clean on the live store with it). THE ONE OPEN ISSUE IS 0453, the next line's. (1) WITH hv, asked: `intent daemon restart` onto the rebuilt pair (`intent daemon status` says which image runs); Lamplight's mix.lock. (2) AFTER hv's restart, each on vc's word in this order: cc runs `intent sync --apply` then `intent upgrade` on this repository with the rebuilt pair and commits its own backfilled history with the count (Intent's estate commit); vc runs `intent st done ST0078` on that pair so the closing act has its event file, then archives its claims; dc re-rehearses the trawl once on the rebuilt pair with the updated kit (refs/bank/dc/trawl/, second witness on event files) and sends the census; then the live trawl, dc's ten and ic's eleven, one mechanical commit per estate carrying that estate's backfilled history, NO PUSH; cc rules Conflab's 67 as owner of record; devbin#0083's sweep after; cc re-drives docs/known-defects.md; hv cuts 3.1.0 in hv's terminal; gyges; ST0056. (3) RULES ADDED TODAY are in restart.md: one order per topic, a claim after its measurement, comments-only never waives suites (with the tests/-directory bounded case), a board commit carries the whole render and its own event files by subject node, a chain that mints AT rows asks the gate before committing. (4) docs/banking.md is policy. NO RELEASE, NO PUSH."
+  }
+}
