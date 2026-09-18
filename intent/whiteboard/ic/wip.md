@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 09:16Z
+heartbeat_at: 2026-09-18 09:53Z
 status: active
-focus: "ST0078 P2 (renumber verbs) in build; P4 (team page) drafted alongside, closes last; worktree removals at close-out. NO RELEASE, NO PUSH."
+focus: "HOLDING for dc's P3 landing; ST0078 P2 banked (refs/bank/ic/st0078/p2, f3da1ca9e), rebase + whole run next; P4 drafted, closes last. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **ST0078 WP-02 (P2, renumber verbs) -- STARTED 2026-09-18 09:15Z on vc's one order; WP-04 (P4, working in a team) drafted alongside and CLOSES LAST.** P2: `intent st renumber <old> <new>` and `intent issues renumber <old> <new>`, refusing when <new> exists; each rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, `related` references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references the index found and did NOT rewrite. Contract: AC-02.1, AC-02.2 (design.md "### P2", E4). Fresh worktree, own target, isolated HOME; AT rows minted in the bank's write set; bank at refs/bank/ic/st0078/p2 with patch-id and whole intentsvcs + intent-cli, shell half, doc in CI's form, clippy, fmt (2024). vc's word before any suite on the host. Landing order P3 (dc), P2 (ic, rebased on P3), P1 (cc), P4 last. P4: docs/concepts/working-in-a-team.md from driven commands (base: refs/bank/vc/st0078/drive.sh), the-store.md corrections, a CI job running intent doctor on the merge result; driven on a pair carrying P1 to P3. Issue 0455 moved to dc (vc, 09:15Z). NO RELEASE, NO PUSH.
+- **RESUME HERE -- 2026-09-18 09:53Z, localfold before hv's compact. ic is HOLDING: no compile or suite until dc's SUITE END (P3 judging, started 09:48Z), then nothing until P3 LANDS.** ST0078 WP-02 (P2, renumber verbs) is BUILT and BANKED at `refs/bank/ic/st0078/p2`, patch-id `f3da1ca9e`, base `0b0a288ac`, 15 files, worktree `wt-p2` under ic's scratchpad; summary `p2-summary.md` there. Judged: run 1 intent-cli 1007/0, bats 678/0, doc/clippy/fmt clean, intentsvcs 2 census reds (fixed); run 2 intentsvcs 1792/0 -- vc ruled that incomplete (a match arm owes WHOLE crates + bats) and that the POST-REBASE run is P2's judging run. **NEXT, in order:** (1) when P3 lands, rebase the bank onto it (read the bank's path list against main's move); (2) the WHOLE run: intentd, intentsvcs + intent-cli --no-fail-fast, release pair + bats, doc in CI's form, clippy both forms, fmt; one summary; (3) mint AT-02.1/AT-02.2 (`intent at new ST0078 AT-02.<n> --covers AC-02.<n> --file <test>`) into the bank's write set, re-bank, send vc the new patch-id; (4) land on vc's word with CHAIN START/END, landing order P3, P2, P1, P4 last. **P4 (WP-04)** drafted, not driven: `scratchpad/p4/drive-team.sh` and `p4/doctor-job.yml`; the page documents `intent sync` / `intent sync --apply` as THE one command after a pull (hv's ruling, design P5 at a46643afb), notes a first pull into an empty store prints nothing, and its drive waits for P1, P3, P5 and P2. P5 is dc's and composes `st_renumber`/`issue_renumber` (vc put ic's two constraints in the design). Worktree removals (todo 35) at the close-out's end. Rules: fmt with `rustfmt --edition 2024 --check` before banking; a re-bank goes to vc before any commit; build intentd after a revert-and-restore; any source change owes the whole crates and bats. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
 
 ## TODO
 
