@@ -33,7 +33,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
 
-- AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and log banked beside the page; the-store.md says that after a pull the hook runs sync --ingest and that --to-store is the restore. -- satisfied: no
+- AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and its log attached to ST0078 under intent/st/ST0078/ and named from the page; the-store.md says that after a pull the hook runs intent sync --apply and that --to-store is the restore. -- satisfied: no
 - AC-04.2 (non-test) A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate. -- satisfied: no
 
 ### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Not Started)
