@@ -1334,16 +1334,36 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
 fn sync_plan(scope: &intentsvcs::sync::Scope) -> Result<(), Failure> {
   let f = open()?;
   let plan = f.sync_plan(scope).map_err(fail)?;
+  print_sync_plan(
+    &plan,
+    "nothing has been written -- `intent sync --apply` applies them",
+  );
+  Ok(())
+}
+
+/// A plan, as bare `sync` and `--apply` both print it: a summary, then each
+/// step with work, numbered, with its recoverability, then `doctor`.
+fn print_sync_plan(plan: &intentsvcs::plan::Plan, tail: &str) {
   let work: Vec<&intentsvcs::plan::Step> = plan.work().collect();
   if work.is_empty() {
-    println!("plan: nothing to do -- this clone's store already holds what the files say");
+    println!(
+      "plan: nothing to do -- this clone's store already holds what the files say (plan {})",
+      plan.digest
+    );
   } else {
     println!(
-      "plan: {} step(s) for this clone, and nothing has been written -- `intent sync --apply` applies them",
-      work.len()
+      "plan: {} step(s) for this clone (plan {}), and {tail}",
+      work.len(),
+      plan.digest
     );
   }
-  for (n, step) in plan.steps.iter().enumerate() {
+  let doctor = intentsvcs::plan::Step::doctor();
+  for (n, step) in work
+    .iter()
+    .copied()
+    .chain(std::iter::once(&doctor))
+    .enumerate()
+  {
     println!(
       "  {}. {} ({}): {}",
       n + 1,
@@ -1352,25 +1372,30 @@ fn sync_plan(scope: &intentsvcs::sync::Scope) -> Result<(), Failure> {
       step.describe()
     );
   }
-  Ok(())
 }
 
-/// `intent sync --apply`: apply the plan (ST0078 WP-03, AC-03.3).
+/// `intent sync --apply`: apply the plan (ST0078 WP-03 and WP-05).
 ///
-/// **UNDER P3 THE PLAN IS ONE STEP, THE DAEMON'S ENGINE AND NOT A THIRD
-/// DIRECTION.** The step is [`intentsvcs::facade::Facade::ingest_from_disk`],
-/// the call `intentd` makes after a watched change (D32: one sync
-/// implementation). The files win only where they say something the store did
-/// not write, and that includes a canon file the store wrote and a pull
-/// removed. A row whose file was never written is an unprojected local act, and
-/// it survives.
+/// **THE LIBRARY DECIDES AND THIS ONLY ASKS.** Whether a step runs, asks or is
+/// left is [`intentsvcs::plan::gate`], applied inside
+/// [`intentsvcs::facade::Facade::sync_apply`]; this passes it what only the
+/// command line knows -- `--yes`, `--plan`, and whether a person is at a
+/// terminal -- and the question to put when the gate says ask.
 ///
 /// **IT OPENS AS A SHARED VERB, AND THAT IS WHY IT RUNS BESIDE A DAEMON.** The
-/// `Exclusive` refusal keeps a second WATCHER off a watched tree. This pass
-/// watches nothing. It lands only under 0441's hold-unless-moved lock, so a
-/// daemon's pass and this one run the same engine under the same lock, and
-/// whichever goes second finds nothing to take. The git hooks run it on every
-/// pull, so refusing here would mean refusing every pull where a daemon runs.
+/// `Exclusive` refusal keeps a second WATCHER off a watched tree. The ingest
+/// step watches nothing and lands only under 0441's hold-unless-moved lock,
+/// so a daemon's pass and this one run the same engine under the same lock,
+/// and whichever goes second finds nothing to take. The git hooks run it on
+/// every pull, so refusing here would mean refusing every pull where a daemon
+/// runs.
+///
+/// **THE PLAN IS PRINTED FIRST AND THE APPLY IS PINNED TO IT**: with no
+/// `--plan`, to the digest just printed, so a tree that moves between the print
+/// and the first step is refused rather than acted on.
+///
+/// **`doctor` RUNS LAST AND ITS VERDICT IS THE EXIT CODE** (AC-05.2), through
+/// the same summary line and the same three answers `intent doctor` gives.
 ///
 /// **IT NAMES NO DIRECTION.** `--to-disk` or `--to-store` beside it is refused,
 /// the way the two directions refuse each other.
@@ -1382,9 +1407,77 @@ fn sync_apply(m: &ArgMatches, scope: &intentsvcs::sync::Scope) -> Result<(), Fai
     );
   }
   let mut f = open()?;
-  let applied = f.sync_apply(scope).map_err(fail)?;
-  println!("ok: {}", intentsvcs::sync::ingested(&applied.taken));
-  Ok(())
+  let terminal = std::io::IsTerminal::is_terminal(&std::io::stdin());
+  let shown = match opt(m, "plan")? {
+    Some(digest) => digest,
+    None => {
+      let plan = f.sync_plan(scope).map_err(fail)?;
+      if plan.work().next().is_some() {
+        print_sync_plan(&plan, "applying it now");
+      }
+      plan.digest
+    }
+  };
+  let asking = intentsvcs::plan::Asking {
+    yes: given(m, "yes"),
+    terminal,
+    shown: Some(shown),
+  };
+  let applied = f
+    .sync_apply(scope, asking, &mut ask_sync_step)
+    .map_err(fail)?;
+  for line in &applied.said {
+    println!("note: {line}");
+  }
+  for line in &applied.done {
+    println!("ok: {line}");
+  }
+  if let Some(line) = intentsvcs::plan::left_line(&applied.left) {
+    println!("left: {line}");
+  }
+  match &applied.doctor {
+    Some(report) => {
+      println!("{}", doctor_summary(report));
+      doctor_verdict(report)
+    }
+    None => Ok(()),
+  }
+}
+
+/// Put one step's question to the person at the terminal.
+///
+/// **ONLY `y` RUNS A STEP**, as on `organize --apply` and `--default --force`:
+/// a prompt whose default is yes is a prompt that did not ask. A canon content
+/// conflict asks which side, and only `ours` or `theirs` takes one.
+fn ask_sync_step(step: &intentsvcs::plan::Step) -> intentsvcs::plan::Decision {
+  use intentsvcs::plan::{Action, Decision, Side};
+  use std::io::Write as _;
+  let taking = matches!(step.action, Action::TakeSide { .. });
+  println!(
+    "sync: {} ({}): {}",
+    step.name(),
+    step.recoverability.as_str(),
+    step.describe()
+  );
+  print!(
+    "{}",
+    if taking {
+      "take which side? [ours/theirs/N] "
+    } else {
+      "run it? [y/N] "
+    }
+  );
+  let _ = std::io::stdout().flush();
+  let mut answer = String::new();
+  if std::io::stdin().read_line(&mut answer).is_err() {
+    return Decision::Decline;
+  }
+  match (taking, answer.trim()) {
+    (true, "ours") => Decision::Take(Side::Ours),
+    (true, "theirs") => Decision::Take(Side::Theirs),
+    (false, "y") => Decision::Run,
+    _ => Decision::Decline,
+  }
 }
 
 /// A verb the dispatch table carries and the facade does not yet implement.
@@ -7567,29 +7660,37 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   if !quiet {
     print_search_index(&report.search_index);
   }
-  println!(
-    // **THE SUMMARY SURVIVES `--quiet`, DELIBERATELY, AND IT IS THE ONE
-    // INFORMATIONAL LINE THAT DOES.** Dropping it would make a clean run under
-    // `--quiet` print NOTHING AT ALL at rc=0 -- and silence on success is
-    // indistinguishable from the command never having run, which is the exact
-    // defect this estate spent 2026-08-20 finding in its own commit gate. The
-    // counts are also the coverage denominator: "no problems found" over an
-    // estate the checker never read is the same sentence as "no problems
-    // found" over one it read completely, and `Report`'s own doc comment says
-    // the counts exist to tell those apart. `--quiet` is for less noise, not
-    // for a verdict you cannot check.
+  // **THE SUMMARY SURVIVES `--quiet`, DELIBERATELY, AND IT IS THE ONE
+  // INFORMATIONAL LINE THAT DOES.** Dropping it would make a clean run under
+  // `--quiet` print NOTHING AT ALL at rc=0 -- and silence on success is
+  // indistinguishable from the command never having run, which is the exact
+  // defect this estate spent 2026-08-20 finding in its own commit gate. The
+  // counts are also the coverage denominator: "no problems found" over an
+  // estate the checker never read is the same sentence as "no problems
+  // found" over one it read completely, and `Report`'s own doc comment says
+  // the counts exist to tell those apart. `--quiet` is for less noise, not
+  // for a verdict you cannot check.
+  println!("{}", doctor_summary(&report));
+  doctor_verdict(&report)
+}
+
+/// doctor's one summary line: the count, what was read, and the suffixes.
+///
+/// **ONE HOME, TWO READERS**: `intent doctor` and `intent sync --apply`, which
+/// runs doctor last and prints this line as its verdict.
+fn doctor_summary(report: &intentsvcs::doctor::Report) -> String {
+  format!(
     "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}{}{}{}",
     report.actionable(),
     report.threads_checked,
     report.issues_checked,
     report.views_checked,
     report.files_checked,
-    advisory_suffix(&report),
-    acknowledged_suffix(&report),
-    scope_suffix(&report),
+    advisory_suffix(report),
+    acknowledged_suffix(report),
+    scope_suffix(report),
     search_index_suffix(&report.search_index)
-  );
-  doctor_verdict(&report)
+  )
 }
 
 /// **ONE HOME FOR DOCTOR'S THREE ANSWERS**, because the two faces -- prose and

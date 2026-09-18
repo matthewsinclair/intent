@@ -91,6 +91,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // the filesystem refused a move. Neither is a field left out of the call.
     | FacadeError::RenumberTargetTaken { .. }
     | FacadeError::RenumberDiskStep { .. }
+    // `sync --apply`'s refusals: a moved tree, no merge in progress, a disk
+    // step or git refusing. Each is a fact about the world, not a field.
+    | FacadeError::SyncPlanMoved { .. }
+    | FacadeError::RenumberNotMerging { .. }
+    | FacadeError::SyncDiskStep { .. }
+    | FacadeError::Git(_)
     // The child-row halves of the same ruling, and the same reasoning: they
     // report that a KEY is taken, so there is no field the caller failed to
     // supply -- the remedy is `ac edit` / `at edit`, not a fuller create.

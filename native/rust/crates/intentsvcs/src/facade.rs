@@ -1354,6 +1354,27 @@ pub enum FacadeError {
     #[source]
     source: std::io::Error,
   },
+  /// `sync --apply --plan <digest>` named a plan the tree no longer matches
+  /// (ST0078 WP-05, AC-05.1). Refused before any step runs.
+  #[error(
+    "the plan you were shown read the tree as {shown} and it now reads {now}, so the steps about to run are not the ones that were printed"
+  )]
+  SyncPlanMoved { shown: String, now: String },
+  /// An id minted twice, with no merge in progress to hold the pulled side
+  /// (ST0078 WP-05). The mid-merge renumber keeps the pulled record at the old
+  /// id, and with no `MERGE_HEAD` there is no pulled record to keep.
+  #[error("{id} was minted on both sides, but no merge is in progress")]
+  RenumberNotMerging { id: String },
+  /// A disk step of `sync --apply`'s repair of a merge failed (ST0078 WP-05).
+  #[error("could not {step}")]
+  SyncDiskStep {
+    step: String,
+    #[source]
+    source: std::io::Error,
+  },
+  /// git ran and failed while `sync` read or staged (ST0078 WP-05).
+  #[error(transparent)]
+  Git(#[from] crate::gitstate::GitStateError),
   /// **THE WRITE WAS DERIVED FROM A RECORD THAT HAS SINCE MOVED** (issue 0206,
   /// vc ruled 2026-09-01: refuse and name, never retry).
   ///
@@ -2280,6 +2301,22 @@ impl crate::remedy::Remedy for FacadeError {
          they were. Clear the filesystem cause and run the renumber again"
           .to_string()
       }
+      Self::SyncPlanMoved { .. } => {
+        "nothing was run. Run `intent sync` to read the plan as the tree stands now, then \
+         `intent sync --apply --plan <digest>` with the digest it prints"
+          .to_string()
+      }
+      Self::RenumberNotMerging { id } => format!(
+        "nothing was renumbered. With no merge in progress `intent st renumber {id} <new>` (or \
+         `intent issues renumber`) moves this clone's record before you merge again"
+      ),
+      Self::SyncDiskStep { .. } => {
+        "the merge is partly repaired and the steps before this one stand. Clear the filesystem \
+         cause, then run `intent sync` to read what is still unmerged and plan from there; `git \
+         status` shows what has been staged"
+          .to_string()
+      }
+      Self::Git(cause) => crate::remedy::Remedy::remedy(cause),
       Self::IssueExists { number } => format!(
         "nothing was written and issue {number:04} still holds what it held. Re-run `intent \
          issues add` to take the next free number, or `intent issues show {number:04}` to see \
@@ -3201,6 +3238,22 @@ pub struct Ingested {
   /// listed, so an empty list means the store already answered what the disk
   /// says. `sync --apply` and the git hooks print on this and on nothing else.
   pub taken: Vec<String>,
+}
+
+/// What `intent sync --apply` did (ST0078 WP-05).
+#[derive(Debug, Default)]
+pub struct SyncApplied {
+  /// One line per step that says something and runs nothing: a branch behind
+  /// its upstream, unmerged paths that are not Intent's.
+  pub said: Vec<String>,
+  /// One line per step that ran, in order.
+  pub done: Vec<String>,
+  /// The steps that did not run, and why.
+  pub left: Vec<crate::plan::Left>,
+  /// What the ingest took, empty when it took nothing or did not run.
+  pub taken: Vec<String>,
+  /// `doctor`, run last. Its verdict is the exit code.
+  pub doctor: Option<crate::doctor::Report>,
 }
 
 /// What [`Facade::ingest_commit`] did with a render.
@@ -5442,6 +5495,25 @@ impl Facade {
     self.organize_run(organize::Mode::Apply, None, true)
   }
 
+  /// organize's plan for the tree as it stands, rendered from `canon`, with
+  /// the file index it was observed against.
+  ///
+  /// **ONE HOME FOR THE OBSERVATION AND THE PLAN**, shared by every organize
+  /// run and by `intent sync`'s preview of the views, which renders from the
+  /// model as it will stand after the ingest rather than from the store.
+  fn organize_plan_over(
+    &self,
+    canon: &Canon,
+  ) -> Result<(organize::Plan, Vec<crate::sync::FileEntry>), FacadeError> {
+    let realised = self.manifest_for_action()?;
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let ctx = self.render_ctx()?;
+    let plan = organize::plan(&self.project, canon, &realised, &ctx, &tree, digest);
+    Ok((plan, previous))
+  }
+
   /// One run of organize, shared by [`Facade::organize_as_shown`] and
   /// [`Facade::dehydrate_undeclared_thread_views`], so the second is the first
   /// with its steps narrowed and never a second implementation of either.
@@ -5451,8 +5523,7 @@ impl Facade {
     shown: Option<&str>,
     undeclared_thread_views_only: bool,
   ) -> Result<organize::Report, FacadeError> {
-    let realised = self.manifest_for_action()?;
-    // **NOTHING REGENERATES THIS FILE, BY hv's RULING (`d2b63bc3`).** organize
+    // **NOTHING REGENERATES `.intentfiles`, BY hv's RULING (`d2b63bc3`).** organize
     // is: read the list, hydrate what is in it, dehydrate what is on disk and
     // is not. **Status has no vote here at all.**
     //
@@ -5466,14 +5537,7 @@ impl Facade {
     // It also settles a mystery this estate spent an evening on:
     // `intentfiles::render` had no production caller because **the thing it
     // does is not needed**, not because anybody forgot to wire it.
-    let previous = self.store.file_index().map_err(FacadeError::Store)?;
-
-    let (tree, digest) =
-      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
-    let plan = {
-      let ctx = self.render_ctx()?;
-      organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
-    };
+    let (plan, previous) = self.organize_plan_over(&self.canon)?;
     // Issue 0316: a thread's generated view reaches a Dehydrate step only when
     // the thread is undeclared, so "a view with a thread owner" is exactly the
     // undeclared threads' views -- attachments and issues stay out.
@@ -7779,18 +7843,87 @@ impl Facade {
   /// The plan bare `intent sync` prints: what `--apply` would do to this
   /// clone, computed WITHOUT WRITING (ST0078, hv's ruling of 2026-09-18).
   ///
+  /// **A PURE FUNCTION OF THE STORE, THE TREE AND GIT'S STATUS** (P5, AC-05.1
+  /// and 05.2): git is read for the upstream and the unmerged index,
+  /// [`crate::plan::classify`] sorts the unmerged paths, and the steps are laid
+  /// out in the order [`crate::plan`] documents, each with its recoverability,
+  /// under the tree's digest. Outside a git repository there are no git steps.
+  ///
   /// **THE INGEST STEP'S PREVIEW RUNS THE DAEMON'S OWN ENGINE**, against a
   /// shadow: an in-memory store holding a copy of this store's estate and file
   /// index, which is everything the ingest's decision reads. A second
   /// implementation of the decision, written to answer without writing, would
   /// be the drift D32 forbids; a copy of the whole database would cost this
   /// project's 192 MB store on every bare `sync`. The shadow's render is never
-  /// committed, so no file moves and this store is only read.
+  /// committed, so no file moves and this store is only read. **The views step
+  /// is previewed against the model that render produced**, so it names what
+  /// the pull changes rather than what the ingest is about to fix. While canon
+  /// holds conflict markers neither can be read, and both say they wait.
   ///
   /// The estate and the index are read one after the other, not under one
   /// transaction, so a peer's write landing between them can show in the plan.
   /// The apply decides again under the lock, which is where correctness lives.
   pub fn sync_plan(&self, scope: &SyncScope) -> Result<crate::plan::Plan, FacadeError> {
+    use crate::plan::Step;
+    let root = self.project.root();
+    let mut steps = Vec::new();
+    let conflicts = if crate::gitstate::is_work_tree(root) {
+      if let Some(behind) = crate::gitstate::behind(root)?
+        && behind.commits > 0
+      {
+        steps.push(Step::behind(behind.upstream, behind.commits));
+      }
+      crate::plan::classify(&self.project, &crate::gitstate::unmerged(root)?)
+    } else {
+      crate::plan::Conflicts::default()
+    };
+    if !conflicts.unowned.is_empty() {
+      steps.push(Step::unowned(conflicts.unowned.clone()));
+    }
+    let mut minted: Vec<String> = Vec::new();
+    for (kind, from) in &conflicts.minted_twice {
+      let to = self.next_free_id(*kind, &minted)?;
+      minted.push(to.clone());
+      steps.push(Step::renumber(*kind, from.clone(), to));
+    }
+    for path in &conflicts.take_sides {
+      steps.push(Step::take_side(path.clone()));
+    }
+
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (_, digest) = organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    // **AN UNMERGED VIEW STOPS THE INGEST TOO**: it refuses a tree holding
+    // conflict markers, so neither it nor the views step can be previewed
+    // until the apply has written over them.
+    if conflicts.canon_is_unmerged() || !conflicts.views.is_empty() {
+      // **THE TREE HOLDS CONFLICT MARKERS, SO NOTHING CAN BE READ FROM IT
+      // YET.** The steps that read the merged canon are listed, and say so.
+      steps.push(Step::ingest_after_conflicts());
+      if !conflicts.views.is_empty() {
+        steps.push(Step::resolve_views(conflicts.views.clone()));
+      }
+      steps.push(Step::regenerate_views(None));
+    } else {
+      let render = self.shadow_ingest(scope)?;
+      let views = self.organize_preview_over(&render.canon)?;
+      steps.push(Step::ingest(render.taken));
+      if !conflicts.views.is_empty() {
+        steps.push(Step::resolve_views(conflicts.views.clone()));
+      }
+      steps.push(Step::regenerate_views(Some(views)));
+    }
+    let change = self.index_change(None)?;
+    steps.push(Step::reindex(change.upserts.len() + change.removed.len()));
+    steps.push(Step::doctor());
+    Ok(crate::plan::Plan { steps, digest })
+  }
+
+  /// The ingest's preview: the daemon's own engine against a shadow store.
+  ///
+  /// **THE SHADOW HOLDS A COPY OF THIS STORE'S ESTATE AND FILE INDEX**, which is
+  /// everything the ingest's decision reads, and its render is never
+  /// committed, so no file moves and this store is only read.
+  fn shadow_ingest(&self, scope: &SyncScope) -> Result<IngestRender, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let index = self.store.file_index().map_err(FacadeError::Store)?;
     let mut shadow = Store::open_in_memory().map_err(FacadeError::Store)?;
@@ -7806,17 +7939,549 @@ impl Facade {
       shadow,
       self.canon.clone(),
     );
-    let render = shadow.ingest_render(scope)?;
-    Ok(crate::plan::Plan {
-      steps: vec![crate::plan::Step::ingest(render.taken)],
+    shadow.ingest_render(scope)
+  }
+
+  /// What `organize --apply` would write and remove, rendered from `canon`:
+  /// the model as it will stand after the ingest, so the plan names the views
+  /// the pull changes rather than the ones the ingest is about to fix.
+  fn organize_preview_over(&self, canon: &Canon) -> Result<crate::plan::ViewWork, FacadeError> {
+    let (plan, _) = self.organize_plan_over(canon)?;
+    let report = plan
+      .run(organize::Mode::Preview, &|| plan.digest.clone())
+      .map_err(FacadeError::Organize)?;
+    let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
+      paths.iter().map(|p| self.project.relative(p)).collect()
+    };
+    Ok(crate::plan::ViewWork {
+      writes: [rel(&report.hydrated), rel(&report.rewritten)].concat(),
+      removes: [
+        rel(&report.dehydrated),
+        rel(&report.pruned_legacy),
+        rel(&report.pruned),
+      ]
+      .concat(),
     })
   }
 
-  /// `intent sync --apply`: run the plan's steps, each decided again at the
-  /// moment it runs. Under P3 the one step is the ingest, which is quiet, so
-  /// nothing here asks.
-  pub fn sync_apply(&mut self, scope: &SyncScope) -> Result<Ingested, FacadeError> {
-    self.ingest_from_disk(scope)
+  /// The next id free in the store AND the tree, past every one in `taken`.
+  ///
+  /// **THE TREE IS ASKED AS WELL AS THE STORE** (ic, measured building P2):
+  /// mid-merge the tree holds the pulled side's canon and directories, which the
+  /// store has not loaded, and an id only the store calls free is one the
+  /// renumber would then refuse as taken.
+  fn next_free_id(
+    &self,
+    kind: crate::plan::Minted,
+    taken: &[String],
+  ) -> Result<String, FacadeError> {
+    use crate::plan::Minted;
+    let names = |dir: std::path::PathBuf| -> Result<Vec<String>, FacadeError> {
+      match std::fs::read_dir(&dir) {
+        Ok(entries) => Ok(
+          entries
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().to_string())
+            .collect(),
+        ),
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
+        Err(source) => Err(FacadeError::Ingest(IngestError::Io {
+          path: dir.display().to_string(),
+          source,
+        })),
+      }
+    };
+    let stem = |name: &str| name.split('.').next().unwrap_or_default().to_string();
+    let highest = match kind {
+      Minted::Thread => {
+        let mut seen: Vec<u32> = self
+          .canon
+          .threads
+          .iter()
+          .filter_map(|t| crate::model::thread_seq(&t.id))
+          .collect();
+        for name in [
+          names(self.project.canon_st_dir())?,
+          names(self.project.st_dir())?,
+        ]
+        .concat()
+        {
+          seen.extend(crate::model::thread_seq(&stem(&name)));
+        }
+        seen.extend(taken.iter().filter_map(|id| crate::model::thread_seq(id)));
+        seen.into_iter().max().unwrap_or(0)
+      }
+      Minted::Issue => {
+        let mut seen: Vec<u32> = self.canon.issues.iter().map(|i| i.number).collect();
+        for name in [
+          names(self.project.issues_dir())?,
+          names(self.project.issues_view_dir())?,
+        ]
+        .concat()
+        {
+          seen.extend(crate::model::issue_seq(&stem(&name)));
+        }
+        seen.extend(taken.iter().filter_map(|id| crate::model::issue_seq(id)));
+        seen.into_iter().max().unwrap_or(0)
+      }
+    };
+    Ok(match kind {
+      Minted::Thread => crate::model::thread_id(highest + 1),
+      Minted::Issue => crate::model::issue_id(highest + 1),
+    })
+  }
+
+  /// `intent sync --apply`: the plan, applied (ST0078 WP-05, AC-05.1 to 05.4).
+  ///
+  /// **THE TREE IS PINNED FIRST.** `shown` is the digest of the plan a person
+  /// read; a tree that has moved since is refused before any step runs, as
+  /// `organize --apply --plan` refuses.
+  ///
+  /// **[`crate::plan::gate`] DECIDES EACH STEP AND `ask` IS CALLED ONLY WHEN IT
+  /// SAYS ASK**, so the rule lives in the library and the caller owns nothing
+  /// but the question. A step that resolves canon and is not run leaves canon
+  /// holding conflict markers, so every later step that reads it is left too,
+  /// marked as waiting.
+  ///
+  /// **A STEP IS DECIDED AGAIN WHEN IT RUNS.** The ingest, the views and the
+  /// index are recomputed at that moment, and a view regeneration that turns
+  /// out to remove a file is gated again as the reversible step it now is,
+  /// whatever the plan said before the conflicts were resolved.
+  pub fn sync_apply(
+    &mut self,
+    scope: &SyncScope,
+    asking: crate::plan::Asking,
+    ask: &mut dyn FnMut(&crate::plan::Step) -> crate::plan::Decision,
+  ) -> Result<SyncApplied, FacadeError> {
+    use crate::plan::{Action, Decision, Gate, Left, LeftBecause, Step};
+    let plan = self.sync_plan(scope)?;
+    if let Some(shown) = asking.shown.as_deref()
+      && shown != plan.digest
+    {
+      return Err(FacadeError::SyncPlanMoved {
+        shown: shown.to_string(),
+        now: plan.digest.clone(),
+      });
+    }
+    let unmerged_views: Vec<String> = plan
+      .steps
+      .iter()
+      .flat_map(|s| match &s.action {
+        Action::ResolveViews { paths } => paths.clone(),
+        _ => Vec::new(),
+      })
+      .collect();
+    let mut applied = SyncApplied::default();
+    let mut canon_unresolved = false;
+    for step in plan.steps.iter().filter(|s| s.has_work()) {
+      if step.reports_only() {
+        applied
+          .said
+          .push(format!("{}: {}", step.name(), step.describe()));
+        continue;
+      }
+      if step.needs_merged_canon() && canon_unresolved {
+        applied.left.push(Left {
+          step: step.clone(),
+          because: LeftBecause::Waits,
+        });
+        continue;
+      }
+      // A regeneration planned before the conflicts were resolved could not
+      // see what it would remove, so it is decided on what it finds now.
+      let step = match &step.action {
+        Action::RegenerateViews { would: None } => {
+          Step::regenerate_views(Some(self.organize_preview_over(&self.canon)?))
+        }
+        _ => step.clone(),
+      };
+      if !step.has_work() {
+        continue;
+      }
+      let decision = match crate::plan::gate(step.recoverability, asking.yes, asking.terminal) {
+        Gate::Run => Decision::Run,
+        Gate::Ask => ask(&step),
+        Gate::Leave => {
+          canon_unresolved |= step.resolves_canon();
+          applied.left.push(Left {
+            step,
+            because: LeftBecause::NeedsAPerson,
+          });
+          continue;
+        }
+      };
+      let said = match (&step.action, decision) {
+        (_, Decision::Decline) | (Action::TakeSide { .. }, Decision::Run) => {
+          canon_unresolved |= step.resolves_canon();
+          applied.left.push(Left {
+            step,
+            because: LeftBecause::Declined,
+          });
+          continue;
+        }
+        (Action::TakeSide { path }, Decision::Take(side)) => self.take_side(path, side)?,
+        (Action::Renumber { minted, from, to }, _) => self.renumber_in_merge(*minted, from, to)?,
+        (Action::Ingest { .. }, _) => {
+          self.write_views_from_store(&unmerged_views)?;
+          let ingested = self.ingest_from_disk(scope)?;
+          let said = crate::sync::ingested(&ingested.taken);
+          applied.taken = ingested.taken;
+          said
+        }
+        (Action::ResolveViews { paths }, _) => self.resolve_views(paths)?,
+        (Action::RegenerateViews { .. }, _) => {
+          let report = self.organize(organize::Mode::Apply)?;
+          format!(
+            "views: wrote {} and removed {}",
+            report.hydrated.len() + report.rewritten.len(),
+            report.dehydrated.len() + report.pruned_legacy.len() + report.pruned.len()
+          )
+        }
+        (Action::Reindex { .. }, _) => {
+          let refreshed = self.index_refresh(None)?;
+          format!(
+            "index: brought {} file(s) up to date",
+            refreshed.updated.len() + refreshed.removed.len()
+          )
+        }
+        (Action::Behind { .. } | Action::Unowned { .. } | Action::Doctor, _) => continue,
+      };
+      applied.done.push(said);
+    }
+    applied.doctor = Some(Self::doctor(
+      &self.project,
+      &self.ctx,
+      Some(&self.store),
+      crate::doctor::Scope::default(),
+    ));
+    Ok(applied)
+  }
+
+  /// Take one side of a canon file both sides changed, and stage it.
+  ///
+  /// **THE BYTES COME FROM GIT'S OWN STAGE**, 2 for ours and 3 for theirs, so
+  /// the file is exactly one side's and never a mix. A side that deleted the
+  /// file removes it. The ingest that follows takes it into the store.
+  fn take_side(&mut self, path: &str, side: crate::plan::Side) -> Result<String, FacadeError> {
+    let root = self.project.root().to_path_buf();
+    let stage = match side {
+      crate::plan::Side::Ours => ":2",
+      crate::plan::Side::Theirs => ":3",
+    };
+    let target = root.join(path);
+    match crate::gitstate::blob(&root, stage, path)? {
+      Some(bytes) => std::fs::write(&target, bytes),
+      None => std::fs::remove_file(&target),
+    }
+    .map_err(|source| FacadeError::SyncDiskStep {
+      step: format!("write {} side at {path}", side.as_str()),
+      source,
+    })?;
+    crate::gitstate::stage(&root, &[path.to_string()])?;
+    Ok(format!("took {} for {path} and staged it", side.as_str()))
+  }
+
+  /// Regenerate unmerged generated views from the store and stage them.
+  ///
+  /// **ONLY A VIEW THE STORE RENDERS IS WRITTEN AND STAGED.** One it does not
+  /// render is named and left unmerged, because staging bytes nothing
+  /// regenerated would be resolving a conflict by guessing.
+  fn resolve_views(&mut self, paths: &[String]) -> Result<String, FacadeError> {
+    let root = self.project.root().to_path_buf();
+    let (written, unrendered) = self.write_views_from_store(paths)?;
+    crate::gitstate::stage(&root, &written)?;
+    let mut said = format!(
+      "regenerated and staged {} view(s): {}",
+      written.len(),
+      written.join(", ")
+    );
+    if !unrendered.is_empty() {
+      said.push_str(&format!(
+        "; left unmerged, because the store renders no such view: {}",
+        unrendered.join(", ")
+      ));
+    }
+    Ok(said)
+  }
+
+  /// Write `paths` as the store renders them now, and return the ones written
+  /// and the ones the store renders no view at.
+  ///
+  /// **ALSO RUN BEFORE THE INGEST, OVER THE UNMERGED VIEWS, AND THAT IS WHY IT
+  /// IS ITS OWN STEP.** The ingest refuses a tree holding git's conflict
+  /// markers, views included, so an unmerged view would stop the very pass
+  /// whose store it must be regenerated from. The store's render before the
+  /// ingest is a generated file standing in for a generated file; the one
+  /// written after the ingest is what gets staged.
+  fn write_views_from_store(
+    &mut self,
+    paths: &[String],
+  ) -> Result<(Vec<String>, Vec<String>), FacadeError> {
+    let root = self.project.root().to_path_buf();
+    let ctx = self.render_ctx()?;
+    let rendered: std::collections::BTreeMap<String, String> =
+      views::render_all(&self.project, &self.canon, &ctx)
+        .into_iter()
+        .map(|v| (self.project.relative(&v.path), v.content))
+        .collect();
+    drop(ctx);
+    let mut set = WriteSet::new();
+    let mut written = Vec::new();
+    let mut unrendered = Vec::new();
+    for path in paths {
+      match rendered.get(path) {
+        Some(content) => {
+          set.add(root.join(path), content.clone());
+          written.push(path.clone());
+        }
+        None => unrendered.push(path.clone()),
+      }
+    }
+    if !set.is_empty() {
+      let applied = set.commit()?;
+      let landed: Vec<std::path::PathBuf> =
+        applied.written().map(std::path::PathBuf::from).collect();
+      applied.keep();
+      self.record_landed(&[], &landed)?;
+    }
+    Ok((written, unrendered))
+  }
+
+  /// Renumber an id both sides minted, in the middle of the merge (AC-05.2).
+  ///
+  /// **NOT THE PLAIN VERB, AND ic MEASURED WHY** building P2: mid-merge the old
+  /// id's paths hold the OTHER side's canon file and directory, so `st
+  /// renumber` would move the pulled record to the new id and remove it from
+  /// the old one. Here this clone's record moves in the store, its attachments
+  /// are written at the new id from `HEAD`, the new id's canon and views are
+  /// written from the store by the one write path, and the old id's paths are
+  /// restored to the pulled side from `MERGE_HEAD`. Every path touched is
+  /// staged, and nothing else.
+  fn renumber_in_merge(
+    &mut self,
+    minted: crate::plan::Minted,
+    from: &str,
+    to: &str,
+  ) -> Result<String, FacadeError> {
+    use crate::plan::Minted;
+    let root = self.project.root().to_path_buf();
+    if !crate::gitstate::merging(&root) {
+      return Err(FacadeError::RenumberNotMerging {
+        id: from.to_string(),
+      });
+    }
+    // A clone, so the closure holds no borrow of `self` across the write.
+    let project = self.project.clone();
+    let rel = |p: std::path::PathBuf| project.relative(&p);
+    // The old id's paths, and where this clone's files under each go.
+    let (prefixes, sigil, model) = match minted {
+      Minted::Thread => {
+        let model = crate::renumber::thread(&self.canon, from, to).ok_or_else(|| {
+          FacadeError::NoSuchThread {
+            id: from.to_string(),
+          }
+        })?;
+        (
+          vec![
+            (
+              rel(self.project.thread_json(from)),
+              rel(self.project.thread_json(to)),
+            ),
+            (
+              rel(self.project.canon_st_dir().join(from)),
+              rel(self.project.canon_st_dir().join(to)),
+            ),
+            (
+              rel(self.project.thread_dir(from)),
+              rel(self.project.thread_dir(to)),
+            ),
+          ],
+          Sigil::SteelThread,
+          model,
+        )
+      }
+      Minted::Issue => {
+        // Both are issue ids by construction: the plan read them from canon
+        // paths and minted `to` itself. A spelling that is not one names no
+        // issue, which is the refusal it gets.
+        let (old, new) = (
+          crate::model::issue_seq(from).unwrap_or(0),
+          crate::model::issue_seq(to).unwrap_or(0),
+        );
+        let model = crate::renumber::issue(&self.canon, old, new)
+          .ok_or(FacadeError::NoSuchIssue { number: old })?;
+        (
+          vec![
+            (
+              rel(self.project.issue_json(old)),
+              rel(self.project.issue_json(new)),
+            ),
+            (
+              rel(self.project.issue_view(old)),
+              rel(self.project.issue_view(new)),
+            ),
+          ],
+          Sigil::Issue,
+          model,
+        )
+      }
+    };
+
+    // Each side's files under the old id, from the two commits being merged.
+    let mut ours: Vec<String> = Vec::new();
+    let mut theirs: Vec<String> = Vec::new();
+    for (old, _) in &prefixes {
+      ours.extend(crate::gitstate::files_under(&root, "HEAD", old)?);
+      theirs.extend(crate::gitstate::files_under(&root, "MERGE_HEAD", old)?);
+    }
+    let theirs_declares =
+      match crate::gitstate::blob(&root, "MERGE_HEAD", &rel(self.project.intentfiles_path()))? {
+        Some(bytes) => {
+          let text = String::from_utf8_lossy(&bytes).to_string();
+          intentfiles::unpin(&text, sigil, from)? != text
+        }
+        None => false,
+      };
+
+    // This clone's authored files move to the new id, from `HEAD`. Its canon
+    // file and its views are the store's to write, below.
+    let thread_dir = (minted == Minted::Thread).then(|| rel(self.project.thread_dir(from)));
+    let mut staged: Vec<String> = Vec::new();
+    for path in &ours {
+      let Some((old, new)) = prefixes
+        .iter()
+        .find(|(old, _)| path.starts_with(old.as_str()))
+      else {
+        continue;
+      };
+      // A prefix that is a FILE -- the canon file, an issue's view -- is the
+      // store's to write at the new id. Under the realised directory a
+      // generated view is too; everything else there, and every canon sidecar,
+      // is this clone's authored bytes.
+      if path == old {
+        continue;
+      }
+      let within = path[old.len()..].trim_start_matches('/');
+      if Some(old) == thread_dir.as_ref()
+        && Project::classify(std::path::Path::new(within)) == ThreadFile::GeneratedView
+      {
+        continue;
+      }
+      let target = format!("{new}/{within}");
+      let bytes = crate::gitstate::blob(&root, "HEAD", path)?.unwrap_or_default();
+      let target_path = root.join(&target);
+      if let Some(parent) = target_path.parent() {
+        std::fs::create_dir_all(parent).map_err(|source| FacadeError::SyncDiskStep {
+          step: format!("create {}", self.project.relative(parent)),
+          source,
+        })?;
+      }
+      std::fs::write(&target_path, bytes).map_err(|source| FacadeError::SyncDiskStep {
+        step: format!("write {target}"),
+        source,
+      })?;
+      staged.push(target);
+    }
+
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      match minted {
+        Minted::Thread => "st.renumber",
+        Minted::Issue => "issues.renumber",
+      },
+      Subject {
+        kind: match minted {
+          Minted::Thread => "thread",
+          Minted::Issue => "issue",
+        }
+        .to_string(),
+        id: to.to_string(),
+      },
+      json!({ "from": from, "to": to, "mid_merge": true }),
+    );
+    let renumbering = self.land_renumber(RenumberPlan {
+      from: from.to_string(),
+      to: to.to_string(),
+      sigil,
+      moves: Vec::new(),
+      stale: Vec::new(),
+      rerender: None,
+      envelope,
+      model,
+      foreign: Vec::new(),
+    })?;
+    // The pulled side declared the old id too, so it stays declared.
+    if theirs_declares {
+      self.repin(sigil, from)?;
+    }
+
+    // The old id's paths go back to the pulled side, file by file.
+    let mut old_paths: Vec<String> = ours.iter().chain(theirs.iter()).cloned().collect();
+    old_paths.sort();
+    old_paths.dedup();
+    for path in &old_paths {
+      let target = root.join(path);
+      let outcome = match crate::gitstate::blob(&root, "MERGE_HEAD", path)? {
+        Some(bytes) => target
+          .parent()
+          .map_or(Ok(()), std::fs::create_dir_all)
+          .and_then(|()| std::fs::write(&target, bytes)),
+        None => match std::fs::remove_file(&target) {
+          Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(()),
+          other => other,
+        },
+      };
+      outcome.map_err(|source| FacadeError::SyncDiskStep {
+        step: format!("restore the pulled side at {path}"),
+        source,
+      })?;
+      staged.push(path.clone());
+    }
+
+    // Everything the store wrote at the new id, and the manifest.
+    for (_, new) in &prefixes {
+      let path = root.join(new);
+      if path.is_file() {
+        staged.push(new.clone());
+      } else if path.is_dir() {
+        for file in Project::files_in(&path) {
+          staged.push(format!("{new}/{}", file.display()));
+        }
+      }
+    }
+    if renumbering
+      .moved
+      .iter()
+      .any(|m| m.starts_with(&rel(self.project.intentfiles_path())))
+      || theirs_declares
+    {
+      staged.push(rel(self.project.intentfiles_path()));
+    }
+    staged.sort();
+    staged.dedup();
+    crate::gitstate::stage(&root, &staged)?;
+    Ok(format!(
+      "renumbered this clone's {from} to {to}, kept the pulled {from}, and staged {} path(s)",
+      staged.len()
+    ))
+  }
+
+  /// Declare `id` in `.intentfiles` again.
+  fn repin(&mut self, sigil: Sigil, id: &str) -> Result<(), FacadeError> {
+    let manifest = self.project.intentfiles_path();
+    let text =
+      std::fs::read_to_string(&manifest).map_err(|source| FacadeError::ManifestUnreadable {
+        path: manifest.display().to_string(),
+        source,
+      })?;
+    let pinned = intentfiles::pin(&text, sigil, id, None)?;
+    if pinned != text {
+      let mut set = WriteSet::new();
+      set.add(manifest, pinned);
+      set.commit()?.keep();
+    }
+    Ok(())
   }
 
   /// An ingest pass's first step: read the store's version, take the snapshot

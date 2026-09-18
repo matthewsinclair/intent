@@ -1021,6 +1021,22 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   );
   out.push(("a migration over a dirty tree", over_dirt));
 
+  // `sync --apply --plan <digest>` naming a plan the tree does not have.
+  let plan_fx = Fixture::new();
+  let moved = plan_fx
+    .facade()
+    .sync_apply(
+      &intentsvcs::sync::Scope::All,
+      intentsvcs::plan::Asking {
+        yes: false,
+        terminal: false,
+        shown: Some("a plan nobody printed".to_string()),
+      },
+      &mut |_| intentsvcs::plan::Decision::Decline,
+    )
+    .expect_err("a digest the tree does not have is refused");
+  out.push(("an apply pinned to a plan the tree moved past", moved));
+
   out
 }
 
@@ -1056,6 +1072,10 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::IssueExists { .. } => "IssueExists",
     FacadeError::RenumberTargetTaken { .. } => "RenumberTargetTaken",
     FacadeError::RenumberDiskStep { .. } => "RenumberDiskStep",
+    FacadeError::SyncPlanMoved { .. } => "SyncPlanMoved",
+    FacadeError::RenumberNotMerging { .. } => "RenumberNotMerging",
+    FacadeError::SyncDiskStep { .. } => "SyncDiskStep",
+    FacadeError::Git(_) => "Git",
     FacadeError::CriterionExists { .. } => "CriterionExists",
     FacadeError::TestExists { .. } => "TestExists",
     FacadeError::NothingToChange { .. } => "NothingToChange",
@@ -1192,6 +1212,10 @@ const ALL_VARIANTS: &[&str] = &[
   "IssueExists",
   "RenumberTargetTaken",
   "RenumberDiskStep",
+  "SyncPlanMoved",
+  "RenumberNotMerging",
+  "SyncDiskStep",
+  "Git",
   "CriterionExists",
   "TestExists",
   "NothingToChange",
@@ -1391,6 +1415,14 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // which makes the threads directory unwritable and asserts the refusal, its
   // remedy, and that nothing was renumbered.
   "RenumberDiskStep",
+  // `sync --apply`'s repair of a merge (ST0078 WP-05). A twice-minted id with
+  // no merge in progress needs an add/add left by a stopped rebase or
+  // cherry-pick; a disk step refused and git itself failing are properties of
+  // the world. The merge the repair exists for is driven in
+  // `a_pull_is_repaired_by_one_command.rs`.
+  "RenumberNotMerging",
+  "SyncDiskStep",
+  "Git",
   "BadQuery", // FTS5 syntax -- `facade_search.rs` territory
   // Issue 0443: a store fault met while ANSWERING a search. Needs the store
   // broken underneath a live facade, which a bad call cannot do; provoked in

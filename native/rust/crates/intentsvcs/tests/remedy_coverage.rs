@@ -37,6 +37,7 @@ fn proofs() {
   implements::<intentsvcs::backup::BackupError>();
   implements::<intentsvcs::migrate::Blocked>();
   implements::<intentsvcs::facade::FacadeError>();
+  implements::<intentsvcs::gitstate::GitStateError>();
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
   implements::<intentsvcs::launchagent::LaunchAgentError>();

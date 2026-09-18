@@ -109,10 +109,20 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     Policy::Invokes(
       "post-merge, post-checkout and post-rewrite run `intent sync --apply` after git has already moved the \
        tree, so **the hook ALWAYS EXITS 0**: a non-zero exit cannot undo a pull and only prints a failure \
-       over one that succeeded. What it owes instead is that a failure is never silent: any non-zero code \
-       prints ONE stderr line saying the store was NOT brought up to date, with the code, the first line of \
-       the verb's answer and the command to run by hand, and so does a missing `intent` on PATH. At 0 it \
-       prints one line exactly when the answer begins `ok: took` (the store changed) and nothing otherwise.",
+       over one that succeeded. What it owes instead is that a failure is never silent. The verb runs \
+       `doctor` last and exits with its verdict, so a non-zero code WITH a `doctor:` line is findings in an \
+       estate the pass did bring up to date, and the hook prints that line and `intent doctor`; a non-zero \
+       code WITHOUT one is the verb not running, and it prints ONE stderr line saying the store was NOT \
+       brought up to date, with the code, the first line of the answer and the command to run by hand, as \
+       it does for a missing `intent` on PATH. Whatever the code, it prints the `ok: took` line when the \
+       store changed and the `left:` line when steps need a person, and nothing otherwise.",
+    ),
+  ),
+  (
+    "hooks/post-pull.sh",
+    "doctor",
+    Policy::Names(
+      "the hook's line after a red verdict tells the person to run `intent doctor`; the hook never runs it",
     ),
   ),
   (

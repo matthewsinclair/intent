@@ -22,11 +22,16 @@
 #
 # `intent sync --apply`: this clone's plan, applied, the same verb a person
 # runs. A hook has no terminal, so only the plan's QUIET steps run and nothing
-# asks. The step that brings the store up to a pull is the daemon's own pass.
-# It takes the files only where they say something the store did not write,
-# and it lands only under the store's hold-unless-moved lock. So it is safe beside a running daemon (the
-# second pass finds nothing to take) and beside a peer's write (it renders
-# again rather than reverting it). It is NOT `--to-store`, the restore.
+# asks; every step that would ask is left and named on one line. The step that
+# brings the store up to a pull is the daemon's own pass. It takes the files
+# only where they say something the store did not write, and it lands only
+# under the store's hold-unless-moved lock. So it is safe beside a running
+# daemon (the second pass finds nothing to take) and beside a peer's write (it
+# renders again rather than reverting it). It is NOT `--to-store`, the restore.
+#
+# The verb runs `doctor` last and exits with its verdict, so a non-zero exit
+# with a `doctor:` line means the store WAS brought up to date and the estate
+# has findings; only a non-zero exit without one means the verb did not run.
 #
 # ---- A CARRIER, NOT A SHIM, AND THAT IS DELIBERATE ----
 #
@@ -45,11 +50,12 @@
 # prints ONE line saying the store was not brought up to date, and the command
 # to run by hand.
 #
-# ---- ONE LINE WHEN IT TOOK SOMETHING, NOTHING OTHERWISE ----
+# ---- ONE LINE PER THING A PERSON NEEDS TO KNOW, NOTHING OTHERWISE ----
 #
-# A pull that changed no thread or issue is the common case and prints nothing.
-# The verb's confirmation begins `ok: took` exactly when the store changed
-# (`intentsvcs::sync::ingested`), and a test holds this file to that word.
+# A pull that changed no thread or issue and left nothing is the common case
+# and prints nothing. The verb's confirmation begins `ok: took` exactly when
+# the store changed (`intentsvcs::sync::ingested`), it prints `left: ` naming
+# the steps a person must run, and a test holds this file to those words.
 
 set -u
 
@@ -74,13 +80,18 @@ fi
 
 _out="$(intent sync --apply 2>&1)"
 _rc=$?
-case "${_rc}:${_out}" in
-  "0:ok: took "*)
-    echo "intent (${_hook}): ${_out#ok: }"
-    ;;
-  0:*) ;;
-  *)
+printf '%s\n' "$_out" | while IFS= read -r _line; do
+  case "$_line" in
+    "ok: took "*) echo "intent (${_hook}): ${_line#ok: }" ;;
+    "left: "*) echo "intent (${_hook}): ${_line}" ;;
+  esac
+done
+_doctor="$(printf '%s\n' "$_out" | grep '^doctor: ' | head -n 1)"
+if [ "$_rc" -ne 0 ]; then
+  if [ -n "$_doctor" ]; then
+    echo "intent (${_hook}): ${_doctor} -- run \`intent doctor\` to read them" >&2
+  else
     echo "intent (${_hook}): the store was NOT brought up to date -- \`intent sync --apply\` exited ${_rc}: $(printf '%s\n' "$_out" | head -n 1); run it by hand to read the remedy" >&2
-    ;;
-esac
+  fi
+fi
 exit 0

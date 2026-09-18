@@ -240,6 +240,46 @@
       ],
       "status": "green",
       "note": "judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929"
+    },
+    {
+      "id": "AT-05.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs",
+      "covers": [
+        "AC-05.2"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929"
+    },
+    {
+      "id": "AT-05.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs",
+      "covers": [
+        "AC-05.3"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929"
+    },
+    {
+      "id": "AT-05.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs",
+      "covers": [
+        "AC-05.4"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929"
     }
   ],
   "attachments": [

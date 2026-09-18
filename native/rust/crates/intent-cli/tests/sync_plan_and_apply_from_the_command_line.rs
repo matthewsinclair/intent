@@ -94,12 +94,19 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   let said = text(&plan);
   assert_eq!(plan.status.code(), Some(0), "a plan is an answer: {said}");
   assert!(
-    said.contains("plan: 1 step(s) for this clone, and nothing has been written"),
+    said.starts_with("plan: ") && said.contains("and nothing has been written"),
     "{said}"
   );
   assert!(
-    said.contains("1. ingest (quiet): take 1 change(s) from the files into the store: ST0002"),
+    said.contains(". ingest (quiet): take 1 change(s) from the files into the store: ST0002"),
     "the step names what it would take and says it is quiet: {said}"
+  );
+  assert!(
+    said
+      .lines()
+      .last()
+      .is_some_and(|l| l.contains(". doctor (quiet): ")),
+    "doctor is the last step: {said}"
   );
   assert_eq!(tree(&root), before, "the bare verb wrote nothing on disk");
   let shown = run(&home, &root, &["st", "show", "ST0002"]);
@@ -110,10 +117,20 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   );
 
   let applied = run(&home, &root, &["sync", "--apply"]);
-  assert_eq!(
-    text(&applied).trim(),
-    "ok: took 1 change(s) from the files into the store: ST0002",
-    "the apply takes what the plan named"
+  assert!(
+    text(&applied)
+      .lines()
+      .any(|l| l == "ok: took 1 change(s) from the files into the store: ST0002"),
+    "the apply takes what the plan named: {}",
+    text(&applied)
+  );
+  assert!(
+    text(&applied)
+      .lines()
+      .last()
+      .is_some_and(|l| l.starts_with("doctor: ")),
+    "and doctor's verdict is the last word: {}",
+    text(&applied)
   );
   let shown = run(&home, &root, &["st", "show", "ST0002"]);
   assert_eq!(shown.status.code(), Some(0), "{}", text(&shown));
@@ -171,7 +188,11 @@ fn apply_runs_where_a_daemon_watches_and_the_directions_refuse() {
     "`sync --apply` refused beside the daemon that runs the same pass: {}",
     text(&apply)
   );
-  assert!(text(&apply).starts_with("ok: "), "{}", text(&apply));
+  assert!(
+    text(&apply).lines().any(|l| l.starts_with("doctor: ")),
+    "{}",
+    text(&apply)
+  );
   let plan = run(daemon.home(), &root, &["sync"]);
   assert_eq!(plan.status.code(), Some(0), "{}", text(&plan));
 

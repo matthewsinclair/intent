@@ -38,10 +38,10 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Not Started)
 
-- AC-05.1 intent sync reads the store, the tree and git's status and prints the plan it would apply as ordered steps, each with its recoverability, under a digest, and writes nothing; intent sync --apply applies it; --plan <digest> refuses when the tree has moved since the plan was shown. -- satisfied: no (computed)
-- AC-05.2 The plan handles a pull's aftermath in order: a branch behind its upstream is reported and nothing is run; a store that lags canon is ingested; an unmerged generated view is regenerated from the merged canon and staged; a canon add/add is repaired by renumbering the local id to the next free one; a canon content conflict asks for a side; stale views are regenerated; a stale index is refreshed (the incremental reconcile search runs, never the full rebuild); doctor runs last and its verdict is the exit code. -- satisfied: no (computed)
-- AC-05.3 A quiet step never asks; a reversible step asks y/N and --yes answers it; a non-reversible step always asks a person and no flag or environment variable answers for it; without a terminal and without --yes, --apply runs the quiet steps, skips every ask and prints one line naming what is left, which is what the hooks run. -- satisfied: no (computed)
-- AC-05.4 intent sync reads git's status and its unmerged index, stages only the files it regenerated to resolve a conflict it was asked to resolve, and never runs git pull, git commit or git push. -- satisfied: no (computed)
+- AC-05.1 intent sync reads the store, the tree and git's status and prints the plan it would apply as ordered steps, each with its recoverability, under a digest, and writes nothing; intent sync --apply applies it; --plan <digest> refuses when the tree has moved since the plan was shown. -- satisfied: yes (computed)
+- AC-05.2 The plan handles a pull's aftermath in order: a branch behind its upstream is reported and nothing is run; a store that lags canon is ingested; an unmerged generated view is regenerated from the merged canon and staged; a canon add/add is repaired by renumbering the local id to the next free one; a canon content conflict asks for a side; stale views are regenerated; a stale index is refreshed (the incremental reconcile search runs, never the full rebuild); doctor runs last and its verdict is the exit code. -- satisfied: yes (computed)
+- AC-05.3 A quiet step never asks; a reversible step asks y/N and --yes answers it; a non-reversible step always asks a person and no flag or environment variable answers for it; without a terminal and without --yes, --apply runs the quiet steps, skips every ask and prints one line naming what is left, which is what the hooks run. -- satisfied: yes (computed)
+- AC-05.4 intent sync reads git's status and its unmerged index, stages only the files it regenerated to resolve a conflict it was asked to resolve, and never runs git pull, git commit or git push. -- satisfied: yes (computed)
 
 ## Acceptance Tests
 
@@ -67,7 +67,10 @@ _(no tests in this group)_
 
 ### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Not Started)
 
-_(no tests in this group)_
+- AT-05.1 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs` -- covers AC-05.1 -- status: green -- judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929
+- AT-05.2 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs` -- covers AC-05.2 -- status: green -- judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929
+- AT-05.3 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs` -- covers AC-05.3 -- status: green -- judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929
+- AT-05.4 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs` -- covers AC-05.4 -- status: green -- judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929
 
 ---
 

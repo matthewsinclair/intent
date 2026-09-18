@@ -66,6 +66,7 @@ pub mod faces;
 pub mod finding;
 pub mod form;
 pub mod fts;
+pub mod gitstate;
 pub mod graphql;
 pub mod index;
 pub mod ingest;

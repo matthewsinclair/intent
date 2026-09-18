@@ -274,7 +274,8 @@ fn a_hook_that_cannot_do_its_job_says_so_in_one_line_and_never_fails_the_pull() 
 }
 
 /// **THE HOOK READS THE VERB'S WORDS, SO THE WORDS ARE HELD HERE.** The
-/// template prints on `ok: took` and calls `sync --apply`; the flag's
+/// template prints on `ok: took` and `left: `, tells a `doctor:` verdict from a
+/// refusal, and calls `sync --apply`; the flag's
 /// spelling lives in the dispatch table (it was `--ingest` until hv ruled the
 /// one-command shape on 2026-09-18), so a rename that missed the template fails here, not on a pull.
 #[test]
@@ -301,8 +302,12 @@ fn the_hook_template_speaks_the_verbs_words() {
 
   let took = intentsvcs::sync::ingested(&["ST0002".to_string()]);
   assert!(
-    took.starts_with("took ") && template.contains("\"0:ok: took \"*)"),
+    took.starts_with("took ") && template.contains("\"ok: took \"*)"),
     "the template prints on the word the verb begins with when it took something: {took}"
+  );
+  assert!(
+    template.contains("\"left: \"*)") && template.contains("^doctor: "),
+    "and on the line naming what was left, and tells doctor's verdict from a refusal"
   );
   assert!(
     !intentsvcs::sync::ingested(&[]).starts_with("took"),

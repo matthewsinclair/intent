@@ -200,7 +200,7 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
   fx.write_thread(&sample_thread("ST0002"));
   fx.write_thread(&sample_thread("ST0003"));
   fx.facade_on_disk()
-    .sync_apply(&Scope::All)
+    .ingest_from_disk(&Scope::All)
     .expect("ST0002 and ST0003 arrive and are recorded");
 
   let mut edited = sample_thread("ST0001");
@@ -215,14 +215,22 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
     .facade_on_disk()
     .sync_plan(&Scope::All)
     .expect("the plan is computed");
-  let steps: Vec<_> = plan.steps.iter().collect();
-  assert_eq!(steps.len(), 1, "under P3 the plan has one step");
+  let ingest = plan
+    .steps
+    .iter()
+    .find(|s| s.name() == "ingest")
+    .expect("the plan has an ingest step");
   assert_eq!(
-    steps[0].recoverability,
+    ingest.recoverability,
     intentsvcs::plan::Recoverability::Quiet,
     "the ingest never asks, which is what lets a hook run it"
   );
-  let intentsvcs::plan::Action::Ingest { would_take } = &steps[0].action;
+  let intentsvcs::plan::Action::Ingest {
+    would_take: Some(would_take),
+  } = &ingest.action
+  else {
+    panic!("the ingest was previewed: {ingest:?}");
+  };
   assert_eq!(
     would_take,
     &vec!["ST0001".to_string(), "ST0003 (removed)".to_string()]
@@ -244,8 +252,8 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
 
   let applied = fx
     .facade_on_disk()
-    .sync_apply(&Scope::All)
-    .expect("the apply runs");
+    .ingest_from_disk(&Scope::All)
+    .expect("the ingest runs");
   assert_eq!(
     &applied.taken, would_take,
     "the apply took what the plan named"
