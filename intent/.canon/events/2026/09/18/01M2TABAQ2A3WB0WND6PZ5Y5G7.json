@@ -1,0 +1,15 @@
+{
+  "id": "01M2TABAQ2A3WB0WND6PZ5Y5G7",
+  "ts": "2026-09-18T13:12:31.202Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, dc live half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Courses, Gtools). vc gave the word at 12:59Z after the re-rehearsal on the b9491a1f2 pair (census 12:58Z: seven pass, Conflab rc 4 on its 67, Devbin rc 4 on its board canon, Gtools rc 6 at its HOME-bound commit hook, a rehearsal artefact; no intent/events.jsonl anywhere). Kit refs/bank/dc/trawl/trawl-estate.sh 45769e51d, split.md 9884aa608. RELEASED WHEN hv allows the run in dc's session: the permission layer refused committing into other repositories as a shared-resource change, nothing ran, and the order moves to no other node. Then: re-pin HEAD and both sha256, skills sync once, the eight in the kit's order, one commit each, doctor after each, per-estate report to vc. Conflab waits on cc's ruling; Devbin waits on its own nodes folding (decision 47). NO PUSH."
+  }
+}
