@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 2026-09-18 08:22Z, ic has nothing to start; everything vc assigned today is landed.** On main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the docs/reference regeneration for 3.1.0 (`d254b53b8`, and the check exits 0 on it), the releasing.md `--rev HEAD` fix (`4968bbf0e`), 0452 filed (`7ecf2f931`), and 0448 (`21d1a6652`, closed at `eed2f1f02`). The wip.md verification pass is done and vc took all five findings. Waiting on vc; the next event is cc's rebuild. **Two process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024`) BEFORE banking; and a re-bank after any gate refusal, fmt included, goes back to vc for its patch-id BEFORE the commit, because the judged patch-id is what lands. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
+- **RESUME HERE -- 2026-09-18 08:31Z, ic has nothing to start; everything vc assigned today is landed.** On main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the docs/reference regeneration for 3.1.0 (`d254b53b8`, and the check still exits 0 at HEAD), the releasing.md `--rev HEAD` fix (`4968bbf0e`), 0448 (`21d1a6652`, closed at `eed2f1f02`), and 0452 (`a96ca9fa0`, closed at `f07e9cdbe`: entry notes stay off the pages, by vc decision 42). The wip.md verification pass is done and all five findings were taken. vc: nothing further until the close-out's end. **Two process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024`) BEFORE banking; and a re-bank after any gate refusal, fmt included, goes back to vc for its patch-id BEFORE the commit. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
 
 ## TODO
 
-- Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17): `wt-0441` (detached at `d8c6cc31c`), `wt-0445` and `wt-0448`, all under ic's session scratchpad, each with its in-tree target dir. Every bank they held is landed. XS.
+- Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17, restated 08:31Z): `wt-0441` (detached at `d8c6cc31c`), `wt-0445`, `wt-0448` and `wt-0452`, all under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
 
 ## Holds
 
