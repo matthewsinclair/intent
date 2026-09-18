@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 06:06Z
+heartbeat_at: 2026-09-18 09:16Z
 status: active
-focus: "2026-09-18, localfold: ic has nothing to start. Its assigned work is in TODO and each item names the condition that releases it: regenerate docs/reference at the 3.1.0 cut (after 0444 lands, before build release), run a verification pass on vc's wip.md rewrite, and remove wt-0441 at the close-out. Resume at the DOING item. NO RELEASE, NO PUSH."
+focus: "ST0078 P2 (renumber verbs) in build; P4 (team page) drafted alongside, closes last; worktree removals at close-out. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,12 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 2026-09-18 09:06Z, localfold on hv's call before a compact. ic has NOTHING TO START until vc's bounce plan.** vc's forecast, not yet an assignment: hv ruled ST0078 into 3.1.0 whole, and on the bounce P2 (the renumber verbs) and P4 (the team page, plus corrections to `docs/concepts/the-store.md`) are expected to be ic's, with 0455 and the worktree removals after. Read `intent/st/ST0078/design.md` before starting either. Landed today, all on main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the 3.1.0 docs/reference regeneration (`d254b53b8`; the check exits 0 at HEAD), releasing.md's `--rev HEAD` (`4968bbf0e`), 0448 (`21d1a6652`), 0452 (`a96ca9fa0`, vc decision 42) and 0454 (`324b29fd6`). **Process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024 --check`) BEFORE banking; a re-bank after any gate refusal, fmt included, goes to vc for its patch-id BEFORE the commit; build `intentd` AFTER any revert-and-restore of source; a comments-only change still gets its suites (restart.md); drive the real verb, not only a facade arm. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
+- **ST0078 WP-02 (P2, renumber verbs) -- STARTED 2026-09-18 09:15Z on vc's one order; WP-04 (P4, working in a team) drafted alongside and CLOSES LAST.** P2: `intent st renumber <old> <new>` and `intent issues renumber <old> <new>`, refusing when <new> exists; each rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, `related` references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references the index found and did NOT rewrite. Contract: AC-02.1, AC-02.2 (design.md "### P2", E4). Fresh worktree, own target, isolated HOME; AT rows minted in the bank's write set; bank at refs/bank/ic/st0078/p2 with patch-id and whole intentsvcs + intent-cli, shell half, doc in CI's form, clippy, fmt (2024). vc's word before any suite on the host. Landing order P3 (dc), P2 (ic, rebased on P3), P1 (cc), P4 last. P4: docs/concepts/working-in-a-team.md from driven commands (base: refs/bank/vc/st0078/drive.sh), the-store.md corrections, a CI job running intent doctor on the merge result; driven on a pair carrying P1 to P3. Issue 0455 moved to dc (vc, 09:15Z). NO RELEASE, NO PUSH.
 
 ## TODO
 
 - Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17, restated 2026-09-18): `wt-0441` (detached at `d8c6cc31c`), `wt-0445`, `wt-0448`, `wt-0452` and `wt-0454`, all under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
-- **0455, XS to S -- ASSIGNED by vc 2026-09-18 09:05Z, NOT STARTED (hv called localfold + compact first).** Released when vc confirms it in the bounce's plan adjustments. `doctor`'s store-stale check (`intentsvcs/src/doctor.rs`, `db_checks`) returns with NO finding when a store file EXISTS and will not open, and does the same a line later on `derived_dump()`. vc's spec, in order: (1) FIRST DRIVE what the other verbs do on an existing-but-unopenable store; the issue says it was not driven. (2) The fix in the shape of 0447's `index_unreadable_without_a_facade`: a COUNTED finding naming the store and the open error, never a silent return. (3) Pin it through the REAL `intent doctor`, not only `diagnose` with a store handed in: 0447's arm passed with `Some(store)` while the CLI got `None` (memory: a facade arm is not the CLI). Private worktree on the HEAD vc names; the `intentsvcs` crate suite WHOLE, announced; `rustfmt --edition 2024 --check` BEFORE banking; no compile while a peer's suite runs; bank on `refs/bank/ic/0455` and send vc the ref. Body: `intent issues show 0455`.
 
 ## Holds
 

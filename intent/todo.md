@@ -25,7 +25,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
 - [-] ST0078: Using Intent on a multi-person project with a Git workflow including PRs
   - [ ] 01: P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)
-  - [ ] 02: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
+  - [-] 02: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
   - [ ] 03: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply
   - [ ] 04: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result
 

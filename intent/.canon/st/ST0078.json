@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Repair an id two clones both minted with one verb each for threads and issues, rewriting every reference the store knows and listing the prose references it did not rewrite. The collision itself stays git's to catch. Lane ic. Size M.",
       "body": "`intent st renumber <old> <new>` and `intent issues renumber <old> <new>`, refusing when `<new>` exists. Each rewrites the canon file and its name, the realised directory and views, the `.intentfiles` rows, every `related` reference in other threads, whiteboard claims, and the attachment paths the store records; emits its own event; and prints the prose references it found with `intent search` and did NOT rewrite, because prose is authored. The collision itself stays git's to catch, which the drive showed it does, loudly. Size S to M.\n\nRejected: changing the minting scheme. `ST####` is the identity every reference and every reader uses, and a scheme change is a project-wide migration to avoid a conflict git already refuses.\n",
       "preamble": ""

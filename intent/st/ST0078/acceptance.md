@@ -20,7 +20,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AC-01.3 intent doctor reports an event file that does not parse or whose id disagrees with its name, and reports a committed event the store lacks as store-stale; nothing rebuilds state from events and doctor never reconciles canon against them. -- satisfied: no (computed)
 - AC-01.4 intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and intent export keeps producing the single-file form on demand. -- satisfied: no (computed)
 
-### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: Not Started)
+### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
 
 - AC-02.1 intent st renumber <old> <new> refuses when <new> exists and otherwise rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, related references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references it found with the index and did not rewrite. -- satisfied: no (computed)
 - AC-02.2 intent issues renumber <old> <new> does the same for an issue: refuses a taken id, rewrites the canon file, its name and its view, emits its own event, and prints the prose references it did not rewrite. -- satisfied: no (computed)
@@ -42,7 +42,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 _(no tests in this group)_
 
-### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: Not Started)
+### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
 
 _(no tests in this group)_
 
