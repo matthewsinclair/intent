@@ -373,6 +373,31 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   ("app stop", &[Hazard::ActsOnAmbientUserState]),
   ("app restart", &[Hazard::ActsOnAmbientUserState]),
   ("app status", &[Hazard::ActsOnAmbientUserState]),
+  // **THE SAME HAZARD, AND THIS TIME IT WROTE THE DEVELOPER'S REGISTRY** (issue
+  // 0445). `discover` and `explore` both write `~/.config/intent/projects.json`
+  // through `userstate::project_registry()`, so driven in-process from the
+  // fixture root they registered that tempdir in the developer's REAL registry:
+  // hv's suite of 2026-09-17 left a `.tmpXXXXXX` entry `added_by: discover`
+  // there, pointing at a directory that no longer existed. Both routes exited
+  // alike, so the comparison stayed green while the damage was done -- **a
+  // conformance check compares answers and cannot see a side effect.**
+  //
+  // **`daemon logs` IS A READ, AND IT IS HERE FOR `app status`'s REASON.** It
+  // reads `intentd.log` under `userstate::dirs()`, so in-process it printed the
+  // machine's real daemon log into that same suite's output, stamps from the
+  // two days before. Its subject is the machine, not the fixture. **`daemon
+  // status` joins it by reading, not by an incident**: it finds the answering
+  // loopback under the same `userstate::dirs()`, so in-process it reports on
+  // the developer's running daemon while the binary reports on the fixture's.
+  //
+  // **READ AND DELIBERATELY NOT DECLARED: `open --browser`.** It reaches the
+  // daemon's published address under `userstate::dirs()` too, but only behind
+  // the flag, and this harness drives each row's bare path, so the ambient read
+  // is never reached here. Declare it the day a row is driven with its flags.
+  ("discover", &[Hazard::ActsOnAmbientUserState]),
+  ("explore", &[Hazard::ActsOnAmbientUserState]),
+  ("daemon logs", &[Hazard::ActsOnAmbientUserState]),
+  ("daemon status", &[Hazard::ActsOnAmbientUserState]),
   (
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
