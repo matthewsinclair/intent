@@ -1,0 +1,15 @@
+{
+  "id": "01M2TAFFTA3X2VXVBRRTP6167X",
+  "ts": "2026-09-18T13:14:47.498Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 13:13Z) THE DAY SINCE DECISION 50, each landing verified by vc against its judged patch-id, and two rulings (vc, under the pen). LANDED: 0457 at b9491a1f2 (cc; the export's canon parts without the log, migrate writes canon only, the pointer scan skips .canon/ and the whiteboard's rendered views; the DDL and the event module say no verb writes events.jsonl as a file); the pair rebuilt once at b9491a1f2 and hv restarted intentd onto it, the third restart; ST0078 done at 0d2dd907b on that pair; docs/known-defects.md re-driven whole at ca9befb0b with nothing leaving the page and issue 0458 filed for the hook templates' stale events.jsonl sentences (the next line's); ST0078 P4's page re-driven at 295d34ad9 with an unscoped status read; the 3.1.0 CHANGELOG section and release notes gain ST0078 at 597b62b06, two internal Provenance sentences cut; the docs' machine-event lists name MACHINE_SCOPED_OPS at 274ced10e, because an ingest and an index rebuild record no event. RULING 1, Conflab's 67 copies: DROPPED on cc's ruling as owner of record (decision 47). 67 of 67 are byte-identical to canon's attachment text at c7127879^, so the prettier sweep is the only difference and no authored word lives only on disk; canon keeps the authored bytes; the carry restores each file to canon's bytes and lets the prune's own held-by-content verdict remove them; cc's, in cc's session, on the trawl's word. RULING 2, THE LIVE TRAWL IS HELD ON hv AND ON NO LANE: dc's session refused the live half as a shared-resource write (commits into eight other repositories and the skills sync) before anything ran, and that refusal is hv's to answer in dc's terminal; the run moves to no other node, because that would launder the refusal; ic's half and cc's Conflab carry meet the same prompt in their own sessions. dc's re-rehearsal census on the b9491a1f2 pair is judged green (seven pass, three named stops, no events.jsonl anywhere) and the kit carries a second witness at 45769e51d."
+  }
+}
