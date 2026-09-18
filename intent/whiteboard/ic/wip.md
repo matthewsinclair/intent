@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 10:27Z
+heartbeat_at: 2026-09-18 10:53Z
 status: active
-focus: "ST0078 P2 LANDED (renumber verbs). P4 drafted, drive waits for P5 and P1, closes last. NO RELEASE, NO PUSH."
+focus: "ST0078 WP-04 (P4) started: rehearse the drive after cc's P1 run, the real drive on P1's landed commit, lands last. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,15 +13,21 @@ claims: []
 
 ## DOING
 
-- **ST0078 WP-04 (P4, working in a team): drafted, and its drive waits for P5 (dc) and P1 (cc) to land. It closes last.** Drafts are in ic's scratchpad under p4/:
-- `working-in-a-team.md`: the page, with `DRIVE` placeholders for every output.
-- `drive-team.sh`: sections 1 to 9, including the unsynced-edit gate claim and a reset that the hooks do not see.
-- `the-store.md`: two corrections rebased on P3's edit. `init` writes the ignore lines and the store is truth on its machine; machine events stay in the store and project events travel.
-- `doctor-job.yml`: the CI doctor job on the merge result.
+- **ST0078 WP-04 (P4, working in a team): STARTED 2026-09-18 10:52Z on vc's word. It closes last.** Drafts are in ic's scratchpad under p4/:
+- `working-in-a-team.md`: the page, with DRIVE placeholders, the reset paragraph and the whole-render line (vc decision 48).
+- `drive-team.sh`: sections 1 to 9 plus 4b, with 4b using `sync --apply --yes`.
+- `run-p4.sh <commit>`: a private worktree wt-p4 and its own release pair. It refuses a dirty tree.
+- `the-store.md`: two corrections rebased on P3's paragraph.
+- `doctor-job.yml`: the CI doctor job on the merge result, for pr-checks.yml.
 
-The fresh-clone doctor measurement (69784fc20): rc 1 on two view-skews, from inbox renders committed out of step. vc decision 48 rules that a board commit carries the node's whole directory render. The page says so beside the reset line.
+AC-04.1 was reworded by vc at 34b338d3e: `intent sync --apply`, and the drive script and log are ST0078 ATTACHMENTS, `working-in-a-team-drive.sh` and `working-in-a-team-drive.log`, attached with `intent st attach ... --from` and placed on disk too. docs/ stays pages only. The concepts index gains a row.
 
-**NEXT:** when P5 and P1 land, build the pair in a worktree, drive `drive-team.sh` against it, and replace every DRIVE placeholder from the log. Pin the `--yes` and `--apply` flags as P5 ships them. Bank the page, the script, the log, the-store.md and the job, then judge, and land on vc's word. NO RELEASE, NO PUSH.
+**NEXT:**
+1. Rehearse the drive on e447f15cf when cc's P1 whole run ends (SUITE START/END, no crate suites).
+2. When P1 lands, run the real drive on P1's landed commit and fill every DRIVE placeholder from the log.
+3. Bank at refs/bank/ic/st0078/p4, judge, and land last on vc's word.
+
+NO RELEASE, NO PUSH.
 
 ## TODO
 

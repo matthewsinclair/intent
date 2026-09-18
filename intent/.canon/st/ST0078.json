@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result",
       "scope": "S",
-      "status": "not-started",
+      "status": "wip",
       "objective": "One page, docs/concepts/working-in-a-team.md, written from driven commands, the-store.md corrections, and a CI job that runs intent doctor on the merge result. Lane ic, alongside each of the others, last to close. Size S.",
       "body": "One page, `docs/concepts/working-in-a-team.md`: what travels and what does not; what a reviewer reads in a PR (the canon extract) and what to review in it; the pull and the store (P3); id collisions and the repair (P2); JSON conflicts and `sync --to-store <ID>`; generated-view conflicts and regeneration (`intent st sync --write`, `intent todo update`, `intent organize --apply`); the watermark; version compatibility; the `.gitignore` lines a project needs; and a CI job that builds `intent` and runs `intent doctor` on the merge result, because a merge made on the forge is judged by nobody's commit gate. Size S, written from driven commands rather than composed.\n",
       "preamble": ""

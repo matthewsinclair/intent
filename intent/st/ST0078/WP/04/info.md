@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-04: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result

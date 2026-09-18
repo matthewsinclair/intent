@@ -31,7 +31,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: yes (computed)
 - AC-03.3 Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused. -- satisfied: yes (computed)
 
-### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
+### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: WIP)
 
 - AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and its log attached to ST0078 under intent/st/ST0078/ and named from the page; the-store.md says that after a pull the hook runs intent sync --apply and that --to-store is the restore. -- satisfied: no
 - AC-04.2 (non-test) A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate. -- satisfied: no
@@ -61,7 +61,7 @@ _(no tests in this group)_
 - AT-03.3 `native/rust/crates/intentsvcs/tests/sync_ingest_takes_only_what_the_store_did_not_write.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
 - AT-03.4 `native/rust/crates/intent-cli/tests/sync_plan_and_apply_from_the_command_line.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
 
-### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
+### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: WIP)
 
 _(no tests in this group)_
 
