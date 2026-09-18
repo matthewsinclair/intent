@@ -1204,7 +1204,7 @@ if [ "$NEEDS_COMMIT" = "true" ]; then
     # shellcheck disable=SC2086
     (cd "$PROJECT_ROOT" && git commit --only \
       -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com" \
-      -- $SIDECAR_FILES $VIEW_FILES)
+      -- $SIDECAR_FILES $VIEW_FILES) || abort "the release commit for v$TARGET was refused -- nothing is committed or tagged, the version is stamped in the tree and the schema faces are staged. First put the tree back with \`git -C '$PROJECT_ROOT' restore --source=HEAD --staged --worktree -- $SIDECAR_FILES $VIEW_FILES\`; then read the pre-commit gate's output above, fix what it refused and commit that fix on its own; then re-run"
     log_info "committed release: v$TARGET"
   fi
 else
@@ -1252,7 +1252,7 @@ if [ "$TAG_EXISTS" = "false" ]; then
   if [ "$DRY_RUN" = "true" ]; then
     log_dry "would create tag $TAG at HEAD"
   else
-    (cd "$PROJECT_ROOT" && git tag "$TAG")
+    (cd "$PROJECT_ROOT" && git tag "$TAG") || abort "git tag $TAG failed -- the release commit is on local main, untagged and unpushed. Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand, in order: \`git -C '$PROJECT_ROOT' tag $TAG\`; \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\` (\`gh release edit\` with the same flags if $TAG already has a release)"
     log_info "created tag $TAG"
   fi
 fi
@@ -1271,9 +1271,9 @@ else
     log_warn "user aborted before push -- tag $TAG exists locally; re-run when ready"
     exit 2
   fi
-  (cd "$PROJECT_ROOT" && git push local main "$TAG")
+  (cd "$PROJECT_ROOT" && git push local main "$TAG") || abort "push to local failed -- $TAG is at HEAD, and local may hold part of the push or none of it. Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand, in order: \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\` (\`gh release edit\` with the same flags if $TAG already has a release)"
   log_info "pushed to local"
-  (cd "$PROJECT_ROOT" && git push upstream main "$TAG")
+  (cd "$PROJECT_ROOT" && git push upstream main "$TAG") || abort "push to upstream failed -- main and $TAG are on local, and upstream may hold part of the push or none of it. Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand, in order: \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\` (\`gh release edit\` with the same flags if $TAG already has a release). Do not create the GitHub release before upstream has $TAG: gh would create $TAG on GitHub at the wrong commit"
   log_info "pushed to upstream"
 fi
 
@@ -1315,9 +1315,9 @@ if [ "$DRY_RUN" = "true" ]; then
 else
   if [ "$RELEASE_EXISTS" = "true" ]; then
     log_info "release $TAG already exists -- updating notes"
-    gh release edit "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE"
+    gh release edit "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE" || abort "gh release edit $TAG failed -- $TAG is pushed to local and upstream, and the GitHub release was not updated (gh's error is above). Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand: \`gh release edit $TAG --title '$GH_TITLE' --notes-file $NOTES_FILE\`"
   else
-    gh release create "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE"
+    gh release create "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE" || abort "gh release create $TAG failed -- $TAG is pushed to local and upstream, and the GitHub release was not created (gh's error is above). Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand: \`gh release create $TAG --title '$GH_TITLE' --notes-file $NOTES_FILE\` (\`gh release edit\` with the same flags if $TAG turns out to have a release already)"
   fi
   log_info "release published"
   rm -f "$NOTES_FILE"
