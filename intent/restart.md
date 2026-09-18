@@ -20,6 +20,7 @@
 - One lane lands at a time on vc's word, rebased onto the hash vc sends, closing its issues with `organize --apply` and ending the turn with the report SENT. **The judged patch-id is what lands**; a gate refusal is re-banked before any commit. A register row with no canon behind it stops every landing.
 - Banks sharing a file land in the order they bank green, stacking so one run stands for the landing. One whole-suite judging run per train, in the warm worktree holding its stack, START and END to every lane; vc judges the logs, the diff, and that the worktree equals the bank.
 - A timing-sensitive control runs under a host hold vc announces; an event-wait red re-runs once and is judged by mechanism, never by a failing set.
+- **Two orders from the pen in flight cross exactly like two CHAIN STARTs, and the lanes cannot resolve it because each is obeying** (vc, 2026-09-18: cc and ic each yielded to the other twice and the host sat idle). One order per topic, to every lane it touches in one batch, and no second order until a lane reports the state; when the state has moved under the order, the order follows the state (the run that exists stands). Decision 23 governs the lanes; this governs the director.
 - **A source edit under somebody else's running suite silently unpins their verdict** (dc, 2026-09-17): the tree its verdict describes stops being the tree it started on. Bank exact hunks; `git apply` when the suite is off.
 
 ## Measuring anything here
@@ -68,6 +69,7 @@
 ## The clock
 
 - Every stamp is read from `date -u +'%Y-%m-%d %H:%MZ'` in the same turn; a stamp you did not read is fabricated. Three generators: arithmetic from one read, fabrication with the correct value present, a stale reference that only accuses the other party. `git log` prints local time; appending `Z` is an assertion. The commit guard catches a future stamp, a missing `Z` and an inbox going backwards; the live channel has no door.
+- **A message that cites a measurement goes out AFTER the measurement returns, never in the same batch** (vc, 2026-09-18: "they hash identical" was sent beside the comparison, which printed DIFFER; a second comparison happened to agree). A claim typed before its read is the clock fault in another field.
 - **A state named in a message carries the clock of its reading and says what would discharge it.** A warning that has expired still does its work if it provokes a measurement; the form to avoid is one that invites belief rather than a check.
 
 ## Conventions
