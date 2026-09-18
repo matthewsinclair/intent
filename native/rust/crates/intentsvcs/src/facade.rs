@@ -6873,9 +6873,18 @@ impl Facade {
   /// 2026-09-12). The bounds are a refusal on `ask`, `announce` and `add` -- a
   /// board's own author being told to prune before writing more -- and applying
   /// them here would make a node's history refuse to be carried because it is
-  /// long, which is the one moment pruning is not available. An over-bound
-  /// migrated inbox refuses NEW sends until its owner clears it, which is the
-  /// bound doing its job one write later.
+  /// long, which is the one moment pruning is not available.
+  ///
+  /// **AFTER THE CARRY THE TWO BOUNDS DIFFER, AND THIS SENTENCE ONCE SAID THEY
+  /// DID NOT** (issue 0444). A migrated BOARD over its item bound refuses its
+  /// owner's next `add` until something is archived, because carried items
+  /// count. A migrated INBOX refuses no sender: a carried message holds an
+  /// `authored_at` and stays out of
+  /// [`crate::store::Store::wb_live_message_count`] until the recipient's first
+  /// `wb clear` (vc, ruled 2026-09-14; issue 0374).
+  /// **THE ASYMMETRY IS THE DESIGN, SO DO NOT TIDY IT INTO AGREEMENT:** the
+  /// message bound protects a SENDER from someone else's backlog, while the
+  /// item bound is the owner's own board, and archiving is the owner's act.
   ///
   /// **A NODE THAT ALREADY HOLDS ROWS IS REFUSED BY NAME rather than carried
   /// twice.** A second run cannot tell its own earlier work from a live write
