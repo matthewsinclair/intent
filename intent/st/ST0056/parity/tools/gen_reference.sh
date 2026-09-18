@@ -50,6 +50,16 @@
 # the same population of four; a page emitting a different number from the issue
 # would be two measurements of one thing.
 #
+# **AN ENTRY'S OWN `note` IS NOT RENDERED, DELIBERATELY (issue 0452, vc's
+# ruling 2026-09-18).** An argument's `note` reaches its page (`arg_rows`); an
+# entry's does not, and that is a decision rather than a gap. Read on 2026-09-18,
+# the register's entry notes are its maintainers' rationale: they name nodes,
+# dated rulings, criterion ids, source paths, and their own past corrections, and
+# no reference page carries that. A behaviour a reader meets belongs in the
+# page's own prose, not in this field. The unified plan of 2026-09-18 assumed
+# otherwise -- that 0444's corrected note reached these pages -- which is why
+# this is written down.
+#
 # ==========================================================================
 # THE SPLIT INTO PAGES, WHICH IS MECHANICAL AND NOT A JUDGEMENT
 # ==========================================================================
