@@ -112,19 +112,24 @@ done
 # FIRST-CHARACTER test and not a search for `#` anywhere, because a `#` inside a
 # live command is not a comment and excluding those lines would blind the tool
 # to real code.
+#
+# **ONE `awk` PER FILE, NOT ONE `grep` PER LINE.** This read each line in bash
+# and forked `grep -Eq` for it: 91 instruments are some 28,000 lines, so some
+# 28,000 processes, 28 s of the pre-commit gate's 46 on every commit of this
+# repository whatever was staged. `awk` applies the same ERE to every line in
+# one process; the comment test, the pattern and the output are unchanged, and
+# the two-sided control below drives THIS function, so a scanner that stopped
+# finding the planted defects would still refuse to report.
 # ---------------------------------------------------------------------------
 scan_file() {
-  local path="$1" n=0 line stripped
-  while IFS= read -r line || [ -n "$line" ]; do
-    n=$((n + 1))
-    stripped="${line#"${line%%[![:space:]]*}"}"
-    case "$stripped" in '#'*) continue ;; esac
-    # Herestring, not a pipe: this tool is a member of its own population and
-    # would otherwise be its own first finding.
-    if grep -Eq "$PAT" <<<"$line"; then
-      printf '%s:%s:%s\n' "$path" "$n" "$stripped"
-    fi
-  done < "$path"
+  awk -v path="$1" -v pat="$PAT" '
+    {
+      stripped = $0
+      sub(/^[[:space:]]+/, "", stripped)
+      if (substr(stripped, 1, 1) == "#") next
+      if ($0 ~ pat) printf "%s:%d:%s\n", path, NR, stripped
+    }
+  ' "$1"
 }
 
 # ---------------------------------------------------------------------------
