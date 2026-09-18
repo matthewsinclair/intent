@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 08:42Z
+heartbeat_at: 2026-09-18 08:48Z
 status: active
-focus: "0443, 0446, 0447 CLOSED; filed 0453 and 0454. Next: the fleet trawl re-rehearsal on cc's final pair after its rebuild (vc). Holds 17, 18, 19. NO RELEASE, NO PUSH."
+focus: "0443, 0446, 0447 CLOSED; 0453 and 0454 filed. Nothing in DOING. The fleet trawl (hold 20) is ready and waits on hv's ST0078 ruling. Holds 17, 18, 20. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -23,7 +23,7 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
-- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Script, harness and split banked on refs/bank/dc/trawl/. Released when cc's detector has landed, the pair is rebuilt, vc has given the word on ST0078 and one re-rehearsal on the rebuilt pair has run. NO PUSH.
+- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on the final pair ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22 end to end, the four stops all on the banked list. Script, harness, split and the rehearsal log are on refs/bank/dc/trawl/. Released by hv's ST0078 ruling; then skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies first, and Devbin's tree must be clean. NO PUSH.
 
 ## Watch-outs
 
