@@ -1,0 +1,15 @@
+{
+  "id": "01M2TMXMVPT0JM63QBE5Y1G4K2",
+  "ts": "2026-09-18T16:17:17.177Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0460"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "No verb writes a thread's related links, and set's refusal names a door that does not exist"
+  }
+}

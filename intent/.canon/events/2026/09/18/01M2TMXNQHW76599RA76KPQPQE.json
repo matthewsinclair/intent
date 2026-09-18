@@ -1,0 +1,15 @@
+{
+  "id": "01M2TMXNQHW76599RA76KPQPQE",
+  "ts": "2026-09-18T16:17:18.068Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0461"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "An authored info.md below a thread's view depth cannot be carried: classify calls it an attachment and the address parser refuses its name"
+  }
+}
