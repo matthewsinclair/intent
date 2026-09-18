@@ -18,6 +18,7 @@ Intent gives it a place to live that ages with the code instead of away from it.
 | See it work on a real project                   | [Getting started](getting-started.md)                |
 | Understand the model before you commit to it    | [Concepts](concepts/)                                |
 | Wire it into your coding agent                  | [Working with coding agents](working-with-agents.md) |
+| Run more than one session in one checkout       | [Banking work](banking.md)                           |
 | Move a v2 project to v3                         | [Migrating from v2](migrating-from-v2.md)            |
 | Look up a command                               | [Command reference](reference/)                      |
 | Find out whether what you hit is a known defect | [Known defects](known-defects.md)                    |

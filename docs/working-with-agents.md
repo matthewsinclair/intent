@@ -102,6 +102,10 @@ For Claude Code, Intent installs procedural skills — a session bootstrap that 
 
 **Deeper:** [`intent/docs/creating-custom-agents.md`](../intent/docs/creating-custom-agents.md) for project-specific agents. User extensions at `~/.local/share/intent/ext/` are declared and not built: `intent ext` answers every subcommand with _a known command that is not implemented yet_.
 
+## Several sessions in one checkout
+
+When more than one agent works the same checkout, the index, the stash and the reflog are shared objects, and a finished change that cannot land yet needs a home that is none of them. [Banking work](banking.md) is the policy: the change is a patch stored as a git blob under `refs/bank/`, judged at one patch-id, and landed on the director's word with `git commit --only`.
+
 ## What this buys, and what it does not
 
 **It buys a context file that cannot silently drift**, because it is generated from something that would have to change first, and rules with one home that three consumers read.

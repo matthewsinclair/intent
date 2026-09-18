@@ -16,7 +16,7 @@
 
 ## Landing work
 
-- A bank is a patch blob on `refs/bank/<node>/<issue>` with its base named, recovered with `git cat-file -p <ref> | git apply`: never under `/private/tmp`, which a reboot clears, and never a worktree commit, which the gate refuses as GATE ABSENT.
+- A bank is a patch blob on `refs/bank/<node>/<issue>` with its base named, recovered with `git cat-file -p <ref> | git apply`: never under `/private/tmp`, which a reboot clears, and never a worktree commit, which the gate refuses as GATE ABSENT. The policy, with the recipe and the incidents behind each rule, is `docs/banking.md` (hv, 2026-09-18).
 - One lane lands at a time on vc's word, rebased onto the hash vc sends, closing its issues with `organize --apply` and ending the turn with the report SENT. **The judged patch-id is what lands**; a gate refusal is re-banked before any commit. A register row with no canon behind it stops every landing.
 - Banks sharing a file land in the order they bank green, stacking so one run stands for the landing. One whole-suite judging run per train, in the warm worktree holding its stack, START and END to every lane; vc judges the logs, the diff, and that the worktree equals the bank.
 - **A "comments only" or "config only" change does not waive the suites** (vc, 2026-09-18: 0451's doc-comment edits drifted the committed schema faces and its CI line failed devbin's twin test, both red on main until the next lane's run). Any change under a crate, the CI configuration or a generator's source owes the whole crate suites and the shell half; the diff's shape is not evidence of its reach.
