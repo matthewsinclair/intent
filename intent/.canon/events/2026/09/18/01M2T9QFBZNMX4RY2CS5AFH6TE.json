@@ -1,0 +1,15 @@
+{
+  "id": "01M2T9QFBZNMX4RY2CS5AFH6TE",
+  "ts": "2026-09-18T13:01:40.610Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0458"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the append-only guard still guards and describes intent/events.jsonl, a file no verb writes"
+  }
+}

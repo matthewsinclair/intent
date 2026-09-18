@@ -1,6 +1,6 @@
 # Known defects in v3.1.0
 
-**Every defect on this page has been run against the build v3.1.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.0.3 (493705d980f4a61aef6c8e169ee699559411d03f)`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.1.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.0.3 (b9491a1f24b48762225f6377dcf36e0099f99d47)`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -10,18 +10,19 @@
 
 ## The search index
 
-**The store's FTS5 index for the source half can go malformed, so a search on an affected term fails** (`intent#0442`, closed on a repair and a detector with its cause unreproduced). The damage is a document the index still holds with no row in its content table. Its cause is not reproduced: eight deliberate attempts across two corpora did not produce it. What this release adds is that `intent doctor` sees it. Driven on a copy of the damaged store:
+**The store's FTS5 index for the source half can go malformed, so a search on an affected term fails** (`intent#0442`, closed on a repair and a detector with its cause unreproduced). The damage is a document the index still holds with no row in its content table. Its cause is not reproduced: eight deliberate attempts across two corpora did not produce it. What this release adds is that `intent doctor` sees it. Driven on a store damaged the same way by hand, one row deleted from the source index's content table while the index keeps its document:
 
 ```
   $ intent doctor
-  search-index: src_sections -- both index probes are dirty: the index-side probe and fts5's own check both object, not counted in the verdict
-    remedy: `intent index rebuild` re-derives the index from its content table
-    orphaned: 1 docid(s) the index holds with no content row: 2599
-    fts5 check: fts5: checksum mismatch for table "src_sections"
-  doctor: 2 finding(s) across 0 thread(s), 0 issue(s), 2 view(s), 7 file(s) -- 1 advisory(ies), not counted -- search index DAMAGED in src_sections, not counted; `intent index rebuild` repairs it
+  search-index: src_sections -- both index probes are dirty: the index-side probe and fts5's own check both object (on both of two readings), not counted in the verdict
+    remedy: `intent index rebuild` re-indexes the tree (its store write runs FTS5's own rebuild)
+    orphaned: 1 docid(s) the index holds with no content row: 5
+    fts5 check: malformed inverted index for FTS5 table main.src_sections
+    shadow tables disagree: 1 docsize row(s) with no content row, 0 content row(s) with no docsize row
+  doctor: 0 finding(s) across 0 thread(s), 0 issue(s), 2 view(s), 10 file(s) -- 1 advisory(ies), not counted -- search index DAMAGED in src_sections, not counted; `intent index rebuild` repairs it
 ```
 
-The two findings and the exit code of 1 belong to the scratch project; the search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses.
+It exits 0. The search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses.
 
 ## A stray directory disables the whole project
 

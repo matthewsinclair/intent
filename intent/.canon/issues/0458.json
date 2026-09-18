@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 458,
+  "slug": "the-append-only-guard-still-guards-and-describes",
+  "title": "the append-only guard still guards and describes intent/events.jsonl, a file no verb writes",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-18",
+  "reporter": "Matthew Sinclair",
+  "body": "The two served guard hooks still describe `intent/events.jsonl` as a live file. Since ST0078 and 0457, no verb writes it.\n\n**Where:**\n\n- `lib/templates/hooks/append-only-guard.sh:22` lists `intent/events.jsonl` as an append-only subject, with its 2026-08-19 history (\"events destroyed 2026-08-19, by `intent upgrade` emitting an empty log over a populated one\"), and `:48` guards it in `PATHS`.\n- `lib/templates/hooks/pre-commit-guards.sh:84-87` says \"the event log's home is the store, `intent/events.jsonl` is an `intent export` product, and the converger gitignores it (`facade.rs` `IGNORED`), so that entry now bites only a force-added file.\"\n\n**The two claims that are false today:**\n\n1. **A guarded subject no verb writes.** The event log travels as one committed file per event under `intent/.canon/events/` (ST0078). Since 0457, `intent upgrade` no longer re-emits the single-file form, so the guard's second pathspec guards a path that nothing produces.\n2. **\"An `intent export` product\" the converger gitignores.** No export format writes `events.jsonl` as a file: the json export embeds the events in its one document. The ignore rule was retired by ST0078 P1 and sits in `RETIRED`, not `IGNORED`.\n\n**Not a reader-facing defect:** no documented use hits it, so it is not on `docs/known-defects.md`. Found during the 3.1.0 re-drive of that page on the b9491a1f2 pair.\n\n**Why it is not a one-line fix in place:** these files are served live machine-wide the moment they are saved, from this tree's working copy. So the change is built and judged like a hook change, not as a doc edit. It also has to decide what the append-only guard should protect under the per-event layout, eg whether `intent/.canon/events/**` is its new subject, since an event file is written once and never rewritten.\n"
+}
