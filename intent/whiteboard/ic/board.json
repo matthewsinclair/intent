@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-17T22:23:49.164Z",
+    "heartbeat_at": "2026-09-18T06:02:19.572Z",
     "status": "active",
-    "focus": "2026-09-17 night, fifth fold, closing: ic is IDLE with nothing assigned, on vc's word -- the estate waits on hv saying whether the full suite finished, which gates cc and dc and nothing of ic's. Resume at doing 59 and read its MUST NOT first. The release page is finished: landed 8afcca8d6, corrected 0014f1848 (the tag-to-push window is real and is a trap), corrected again 676d716b9 for four command defects found by DRIVING its commands -- the one that would have shipped is --out being a directory to one generator and a file to the other. The lean-out verification is done and vc fixed all six findings at 8cf28b435. The census instrument is banked at refs/bank/ic/census/tool and has been wrong twice: take it, do not write a third one. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-18, localfold: ic has nothing to start. Its assigned work is in TODO and each item names the condition that releases it: regenerate docs/reference at the 3.1.0 cut (after 0444 lands, before build release), run a verification pass on vc's wip.md rewrite, and remove wt-0441 at the close-out. Resume at the DOING item. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -451,7 +451,8 @@
       "kind": "watchout",
       "seq": 42,
       "text": "**Drive a surface as a USER before calling it done.** Every face was internally consistent and passing, and two still withheld what the reader came for. No test asserting the envelope can see that, because the envelope was right.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:46.095Z",
       "recorded_at": "2026-09-13T10:24:38.647Z"
     },
     {
@@ -558,7 +559,8 @@
       "kind": "watchout",
       "seq": 51,
       "text": "**AN INSTALLED PAYLOAD CANNOT CITE THIS PROJECT'S TRACKER, AND I HAVE NOW DONE IT TWICE.** The whiteboard skill last night and `intent_claude_cwi` today, both refused by `no_pm_state_in_output` (AT-00.17) for ST/WP/AC ids a consumer cannot open. Name the version and the behaviour. **Run that arm on anything under `intent/plugins/` or `lib/templates/` before landing, rather than remembering harder.**",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:46.910Z",
       "recorded_at": "2026-09-13T11:00:11.619Z"
     },
     {
@@ -926,7 +928,8 @@
       "kind": "watchout",
       "seq": 58,
       "text": "**THE REGISTER IS TEXT WITH RULES, NOT A FILE TO REWRITE.** Locate an edit by its ROW, never by a pattern, and verify by parsing back which row carried it; insert as text, never through a serialiser; regenerate dispatch-table.md in the same commit (a formatter fixed point, so no `*emphasis*` in register prose). A new row moves `populations.{declared,shipped,probeable}`, `legal_pairs`' `n` and `census_note`, and the new-surface family count in `dispatch::tests`; a family needs `flags: []` on its own row; a new key is classified in `key_classes`. A shipped mutation needs `recoverability` (plus `recoverability_anomaly` when withheld from MCP while recoverable) and sits in exactly one bucket of `write_moves_only_what_changed`; an exact command literal in shipped source is declared in `command_rosters_are_derived_or_declared`. A retirement is `disposition` plus `target.state`, never a code deletion: `Entry::is_shipped()` fails open and `legal_pairs` allows only (retire, retire). Before landing a `transitions.rs` State change run `parity/tools/machine_table_check.sh`, before any `target.state` change `corrected_check.sh`, and attach any file under `intent/st/` before committing it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:47.725Z",
       "recorded_at": "2026-09-15T10:02:32.241Z"
     },
     {
@@ -934,7 +937,8 @@
       "kind": "watchout",
       "seq": 59,
       "text": "**JUDGE FROM A FRESH READ, AND DRIVE THE REFUSAL RATHER THAN REASON ABOUT IT.** A shared aggregator moves between the read and the judgement, and the stale read looks exactly like a finding (`wb archive`'s enum gained its fifth value at c9f40c79e under my written finding). Read the whole row, not the field you were sent to: the stale claim is usually beside it. Verify a producer in your own shell before landing the consumer that calls it, with a rebuild between the two commits when the consumer calls `intent` from PATH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:48.547Z",
       "recorded_at": "2026-09-15T10:02:37.025Z"
     },
     {
@@ -942,7 +946,8 @@
       "kind": "watchout",
       "seq": 60,
       "text": "**EVERY REPLACE ASSERTS ITS MATCH COUNT, AND NO WRITE IS EVER `|| true`.** A blind swap hit two verdict matches and turned a refusal into a silent clean seal; a perl substitution fed from an unset variable emptied a design section while `|| true` swallowed the die. Pass data by file, report to STDERR, read a diff before trusting a count over it, and write a red-run mutation against the FORMATTED text with a driver that says DID NOT APPLY.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:49.362Z",
       "recorded_at": "2026-09-15T10:02:41.846Z"
     },
     {
@@ -950,7 +955,8 @@
       "kind": "watchout",
       "seq": 61,
       "text": "**NEVER EDIT BYTES A RUNNING BUILD IN THAT WORKTREE IS COMPILING**: the run then judges code you are not landing (twice in one hour, both menubar app-tests), and a test's comment about what it can fail on gets the same check as the test. **A GATE REFUSAL LEAVES YOUR PATHS STAGED ON THE SHARED INDEX**: unstage your own at once, fix in the worktree, re-prove the one arm, re-issue the same path list; capture the commit's output to a file and read rc, `git log -1` and the head of the refusal. Before any commit read dc's board DOING for an announced window: the window's message can arrive after your commit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:50.170Z",
       "recorded_at": "2026-09-15T10:02:46.702Z"
     },
     {
@@ -958,7 +964,8 @@
       "kind": "watchout",
       "seq": 62,
       "text": "**A LANDING SILENTLY FALSIFIES THE DOCS THAT TELL A READER TO RUN WHAT IT MOVED, AND NOTHING REPORTS IT.** WP-22 made an Upgrading paragraph wrong; the hydrate refusal sent a known-defects remedy to a refusal; on 2026-09-15 `~/.intent/home` was still named by restart.md and two boards after 2f29401b6 had moved the pointer to `~/.local/share/intent/home`. When a verb's behaviour or a path moves, go and read the pages that name it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:50.978Z",
       "recorded_at": "2026-09-15T10:02:51.652Z"
     },
     {
@@ -966,7 +973,8 @@
       "kind": "watchout",
       "seq": 63,
       "text": "**A SUITE RUN WRITES THE ESTATE IT RUNS IN, AND /private/tmp DOES NOT SURVIVE A REBOOT.** Every run: a private detached worktree, its own in-tree target dir, `HOME=<scratch>` written as a command, `cargo build -p intentd` first; afterwards `~/.local/share/intent/home` still names this tree. On 2026-09-15 a reboot took every worktree and scratchpad, and only the session transcript under `~/.claude/projects/` still held the notes (heredoc writes in the command text, large reads under `tool-results/`): anything that must outlive a session goes on this board, into a commit, or into the store.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:51.812Z",
       "recorded_at": "2026-09-15T10:02:56.517Z"
     },
     {
@@ -974,7 +982,8 @@
       "kind": "watchout",
       "seq": 64,
       "text": "**A GREEN AT IS COVERAGE, NOT SATISFACTION.** A non-test AC stays unsatisfied beside a green AT until `intent ac satisfy --evidence` names what met it, and its AT stays `n/a`; an AT citing a file counts only if the FILE carries the row's literal id; a completed thread's rows are corrected forward with a note naming where the arm went and at which sha, never withdrawn (vc, citing hv 2026-08-21).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:52.647Z",
       "recorded_at": "2026-09-15T10:03:01.353Z"
     },
     {
@@ -982,7 +991,8 @@
       "kind": "watchout",
       "seq": 65,
       "text": "**BOARDS ARE STORE ROWS: EVERY WRITE IS A `wb` VERB WITH `--node ic`, AND A HAND EDIT IS OVERWRITTEN.** Any store write can re-render a PEER's stale view on disk: those files are theirs, never in my `--only` paths. A peer inbox at 20 refuses `wb ask` (the socket is then the only channel), and my watch-outs stop at 40.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:53.460Z",
       "recorded_at": "2026-09-15T10:03:06.198Z"
     },
     {
@@ -1008,7 +1018,8 @@
       "kind": "watchout",
       "seq": 66,
       "text": "**A GUARD ON EXIT CODES PASSED A RUN THAT CHANGED NOTHING** (2026-09-15). A prior-art check refused before the heredoc that would have written an edit script; the next command transformed that missing file into an empty script, python ran it at rc 0, and fmt, both suites, clippy and the build all went green on the unchanged code. Guard on the EFFECT: after an edit script, check each new symbol is in its file before anything builds, and read the new test's name in the run's log.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:54.286Z",
       "recorded_at": "2026-09-15T13:05:56.690Z"
     },
     {
@@ -1016,7 +1027,8 @@
       "kind": "watchout",
       "seq": 67,
       "text": "**DRIVING A TUI CHANGE THROUGH THE REAL BINARY WRITES THE LIVE STORE** (2026-09-15): hv's drive of an in-place edit saved a stray \"s\" into issue 0398's title. Drive edits on a scratch estate (`intent init` in the scratchpad under an isolated HOME, `explore intent:///issues/0001`, a pty for scripted keys), and say twice that saves are real before handing hv the live one. And a worktree has no gate shim (`.githooks/pre-commit.intent` is gitignored installer canon), so a bank there is a patch blob under `refs/bank/`, never a gate-less commit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:55.098Z",
       "recorded_at": "2026-09-15T13:06:01.496Z"
     },
     {
@@ -1285,7 +1297,8 @@
       "kind": "watchout",
       "seq": 68,
       "text": "**A DRY RUN THAT EXITS BEFORE THE WRITES PROVES NOTHING ABOUT THE WRITES** (2026-09-16). land-wp02.sh passed dry twice and stopped half-written: `at green --note` refuses a note that does not CONTAIN the row's existing note (`at edit --note` is the replacing door), so a green after a red is \"<red note>; <green note>\". Peers sat held on the open chain while I resumed. Before any landing, read each write verb's refusal rules and exercise them in the dry pass, and write every step to read the row's state and skip what is done, so a re-run is safe (vc's ruling).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:55.910Z",
       "recorded_at": "2026-09-16T15:06:02.361Z"
     },
     {
@@ -1311,7 +1324,8 @@
       "kind": "watchout",
       "seq": 69,
       "text": "**A SUITE LAUNCHED WITH `nohup ... &` IGNORES SIGINT, AND A DAEMON-FAMILY TEST THEN HANGS WITH NO OUTPUT** (2026-09-16): intent-cli's no_tail_survives_follow_however_it_ends sent INT to a verb that inherited SIG_IGN and waited 30 minutes. Launch detached suites through `perl -e '$SIG{INT}=\"DEFAULT\"; exec @ARGV'` or run_in_background, and on a silent stall read the stack and the launch style before theorising (shared memory feedback_background_job_ignores_sigint).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:56.725Z",
       "recorded_at": "2026-09-16T16:23:09.978Z"
     },
     {
@@ -1337,7 +1351,8 @@
       "kind": "watchout",
       "seq": 70,
       "text": "**A PLACEHOLDER SWAP CHANGES WIDTHS AND BREAKS WHAT WAS ALIGNED AROUND IT** (2026-09-16, 0425). A MODULES.md row padded to the table width while it held `ISSUE_MERGE` came out 7 characters short once `0425` went in, and the pre-commit markdown gate refused the landing mid-chain. Fill issue numbers BEFORE padding or rendering anything aligned, or run `prettier --check` on every touched markdown file in the re-prove after the fill, not only on the first build.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:57.543Z",
       "recorded_at": "2026-09-16T19:45:21.049Z"
     },
     {
@@ -1354,7 +1369,8 @@
       "kind": "watchout",
       "seq": 71,
       "text": "**THE REGISTER'S PARITY TOOLS WRITE THE TREE THEY RUN IN, AND A TIMING IS NOT A MECHANISM** (2026-09-16, 0428). In a private worktree, gen_reference.sh rewrote 20 docs/reference pages (vc's window) and the run left a store, intent/todo.md and project.json behind. Run them only in a worktree, and revert everything outside the change before banking. Main's ST0069 hydrate landed 8 s after that run and looked like mine; it was vc's `st edit --path`. Report the overlap with what you measured and did not, and let the owner of the mechanism name it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:58.350Z",
       "recorded_at": "2026-09-16T23:39:19.396Z"
     },
     {
@@ -1371,7 +1387,8 @@
       "kind": "watchout",
       "seq": 72,
       "text": "**A REPLACE THAT ASSERTS ONE MATCH CAN LAND IN THE WRONG PLACE ONCE AN EARLIER STEP REMOVED THE INTENDED SITE** (2026-09-17, WP-04). A script cut the MCP search arm's block, which held its `let query = need_s(..)`, then asserted count 1 on that same line to insert before it. The only remaining copy was in the graphql arm, so the insert went there and the build still compiled. Anchor each replace on text unique to its own site (the arm's name or comment), and read the diff hunk headers before building. Also: a scratchpad HOME is too long for intentd's unix socket (148 bytes, past SUN_LEN), so point HOME at a short /tmp symlink to it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:59.173Z",
       "recorded_at": "2026-09-17T00:41:17.619Z"
     },
     {
@@ -1397,7 +1414,8 @@
       "kind": "watchout",
       "seq": 73,
       "text": "**AN ARM ON THE PURE HALF STAYS GREEN WHILE THE COORDINATOR DROPS THE VALUE** (2026-09-17, issue 0435). `views::freshness_note` was tested as a pure function for five days while run.rs set the note and cleared it before any frame drew it, and AC-21.1 passed on that arm. Assert where the reader looks (`run::screen_for(..).hint`). Drive a TUI change in a pty through pyte (a scratchpad venv), answering the cursor query `ESC[6n` with `ESC[1;1R` and `ESC[c` with a device-attributes reply, or the explorer refuses the terminal. Read every flag on the row before calling a door filtered: the structural doors silently ignored --tier and --limit.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:59.988Z",
       "recorded_at": "2026-09-17T12:36:06.296Z"
     },
     {
@@ -1405,7 +1423,8 @@
       "kind": "watchout",
       "seq": 74,
       "text": "**A CLAIM IS ABOUT ITS CORPUS, AND A SESSION'S HOOKS LIVE IN TWO FILES** (2026-09-17). My all-clear for the rebuild hold said no hook opens the store, after reading .claude/settings.json alone. .claude/settings.local.json wires post-tool-symbol-context, which runs `intent search --context` after a single-symbol grep, and vc and dc caught it. List .claude/settings*.json before judging what a session's hooks do, and name the files read inside the claim.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:00.859Z",
       "recorded_at": "2026-09-17T12:36:07.115Z"
     },
     {
@@ -1422,7 +1441,8 @@
       "kind": "watchout",
       "seq": 75,
       "text": "**NEVER SHARE A CARGO TARGET DIR BETWEEN WORKTREES, NOT EVEN ONE AFTER ANOTHER** (2026-09-17). Cargo hashes a path dependency relative to the workspace root, so two worktrees write the SAME artifact names, and a crate whose sources did not change reads fresh and keeps the other worktree's compile-time `env!(\"CARGO_MANIFEST_DIR\")`. My red run in wt-red rebuilt testkit into wt-wp04's target; I removed wt-red; the next suite in wt-wp04 went 88 and 266 arms red on testkit's root search. The judging run before it was sound only because it came first. The reverse is worse: a copied target keeps the source worktree's paths, which still exist, so the arms read the WRONG tree and pass. Give every worktree its own target; to keep warm dependencies, copy the target and `cargo clean -p` every workspace member before the first build.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:01.675Z",
       "recorded_at": "2026-09-17T13:27:14.184Z"
     },
     {
@@ -1457,7 +1477,8 @@
       "kind": "watchout",
       "seq": 76,
       "text": "**`bin/int macos app-test` BUILDS INTO A STATE DIR EVERY WORKTREE SHARES** (2026-09-17). derivedData, SYMROOT and OBJROOT default to ~/.local/state/intent/build/macos, which is also where hv's `bin/int macos app-install` builds the running Intent.app. A worktree run then collides with the install or inherits its products, the Xcode form of watch-out 75. Run it as `INTENT_MACOS_STATE_DIR=<scratch>/macos-state bin/int macos app-test`. The fresh state dir regenerates the tracked xcodeproj, so read that diff and keep it out of the bank. The verb prints suite totals only, so read the arms by name from the .xcresult under the state dir with `xcrun xcresulttool get test-results tests --path <bundle>`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:02.502Z",
       "recorded_at": "2026-09-17T14:02:25.939Z"
     },
     {
@@ -1483,7 +1504,8 @@
       "kind": "watchout",
       "seq": 77,
       "text": "**COMPILE EVERY TARGET BEFORE A START, KEEP A REF NAME FREE OF ITS OWN CHILDREN, AND RECORD A GATE'S BEFORE-READING ONCE** (2026-09-17, WP-07). A field added to a public struct broke a `SearchQuery` literal in intentd's tests that none of my targeted runs compiled, and the first judging run died at clippy. Run `cargo check --workspace --all-targets` first (vc's rule), and sweep the tree for literals of every changed type that have no `..` rest. Git refuses `refs/bank/ic/st0076-wp07` while `refs/bank/ic/st0076-wp07/plan.md` exists, so name a bank's companions with a suffix (`-land/`, `-judged`) and never under the bank's own name. A landing script's gate check keeps its first before-reading in the log directory, or its own re-run reads the gate it already moved as the before and stops.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:03.326Z",
       "recorded_at": "2026-09-17T15:40:47.694Z"
     },
     {
@@ -1509,7 +1531,8 @@
       "kind": "watchout",
       "seq": 78,
       "text": "**A DAEMON-MODE REPRO COUNTS ONLY ONCE THE DAEMON HAS OPENED THE PROJECT, AND A `--daemon` VERB IT CANNOT ANSWER OPENS NOTHING** (2026-09-17, 0441). My first daemon run started intentd under an isolated HOME and registered the scratch project with `intent issues list --daemon`, which is refused (the daemon answers `st list` and `search`), so the daemon watched nothing and the clean result proved nothing; `intent --daemon st list` opens it. Prove the open before believing the run: the registry line `{\"root\":\"/\",\"op\":\"registry\"}` sent to the socket `intent daemon status` names shows `watched: true` for the root, and the store's events show `disk.sync_from_disk` once a sync writes. A long session's MCP server can also speak an older schema than the store (\"holds schema version 29; this build speaks 27\"), so ask the CLI instead.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:04.152Z",
       "recorded_at": "2026-09-17T17:11:52.699Z"
     },
     {
@@ -1526,7 +1549,8 @@
       "kind": "watchout",
       "seq": 79,
       "text": "**A PARITY GENERATOR RESOLVES ITS REVISION IN THE WORKING DIRECTORY'S REPOSITORY, NOT IN THE TREE IT LIVES IN** (2026-09-17, hold 10). `lib_surface.sh`'s `surface_resolve_rev` and `surface_table_at` both read `git rev-parse --show-toplevel` from the cwd, so `gen_reference.sh` and `gen_cut_surface.sh` run from another repository exit 1 with an EMPTY log, which reads as a crash with no cause. Run them from the tree they describe, with `--out` into scratch, and read the diff before writing the tree. **`docs/reference` IS 21 PAGES AND gen_reference.sh WRITES 20 OF THEM**: `cut-surface.md` is gen_cut_surface.sh's, and it reads `ALL_VARIANTS` in `intentsvcs/tests/error_remedies.rs` at the revision, so a landing that adds a refusal variant makes it stale and the two halves belong in one commit at one revision. Two smaller ones from the same landing: `intent issues edit --from` keeps a body byte for byte and the body ENDS in a newline, so strip the trailing newlines before appending a close paragraph or it lands two blank lines down; and BSD `cmp -n <len>` calls EOF a difference when the limit is the whole of the shorter file, so compare a prefix with `head -c` instead.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:04.961Z",
       "recorded_at": "2026-09-17T18:00:40.643Z"
     },
     {
@@ -1543,7 +1567,8 @@
       "kind": "watchout",
       "seq": 80,
       "text": "**BOARD TEXT IS FULL OF BACKTICKS, AND A DOUBLE-QUOTED SHELL ARGUMENT RUNS THEM** (2026-09-17, vc's, recorded here because every node writes board prose this way). vc was composing a board item whose text carried backticked phrases, the shell substituted them, and one of the phrases was vc's rebuild chain: the rebuild fired itself, hours early, from a sentence nobody had run. It happened to be the right rebuild at the right HEAD, so it was let finish -- the harm was luck, not design. **The safe form is the one this board already uses: write the text to a file and pass it as `\"$(cat <file>)\"`, because a command substitution's OUTPUT is never re-scanned for backticks.** The unsafe form is the inline one, `wb add doing \"... \\`intent foo\\` ...\"`, and it is unsafe in exactly the places board prose is richest -- verb names, paths, code spans. Single quotes are also safe but cannot carry an apostrophe, which board prose always has. Same class as watch-out 60's blind replace: the text is data, so move it by file and never through a quoting layer that can execute it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:05.763Z",
       "recorded_at": "2026-09-17T18:28:55.778Z"
     },
     {
@@ -1560,7 +1585,8 @@
       "kind": "watchout",
       "seq": 82,
       "text": "**THE BINARY MOVES UNDERNEATH THE TREE AND NOTHING IN THE TREE MARKS IT** (2026-09-17, d3; vc's warning, dc's measurement; replaces watchout 81, amended the same evening for hv decision 23). `~/.local/bin/intent` and `~/.local/bin/intentd` are SYMLINKS to this checkout's own `native/rust/target/release/`, so any `cargo build --release` here replaces the binaries all four nodes are executing, mid-flight, with no commit and no file change to show for it. It is the INVERSE of a stale pair: there the tree moves ahead of an honest binary, here the tree is honest and the binary moves. **AND THE LIKELIEST TRIGGER IS NOW UNGATED.** hv decision 23 (2026-09-17 18:58Z, hv first-hand, read on hv's own board rather than taken from a relay) says Rust dependency bumps are not gated -- hv verbatim, \"if anything in the rust side of the house needs a bump, then bump it. That should never be a problem to move the deps forward. Just do it\" -- with `libsqlite3-sys` moving off 0.30.1 where 0442 needs it. That removes the PERMISSION question and none of the train: a bump still banks, is judged, takes a whole-suite run and a rebuild, and NO RELEASE and NO PUSH stand. A bump IS a rebuild, so whoever runs one announces it first, because every other node's verdict-bearing run is reading that binary while it moves. So any run whose verdict depends on WHICH binary produced it pins the binary by identity and never by name -- record realpath, sha256 AND mtime at the start and again at the end, and refuse the verdict if they differ, which also leaves the banked log self-proving about what produced the result. Both readings are needed and I drove all four arms before banking: sha alone misses a rebuild producing identical bytes, mtime alone misses a swap that restores the timestamp. Copying the binary into the scratch estate pins the bytes but then costs the provenance of the copy, which is the property the banked log actually needs, so pinning beats copying. The hardened instrument is refs/bank/ic/0441/verify.sh and the unhardened one that produced d3 is preserved beside it at verify-as-run-d3.sh.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:06.573Z",
       "recorded_at": "2026-09-17T19:02:16.324Z"
     },
     {
@@ -1577,7 +1603,8 @@
       "kind": "watchout",
       "seq": 83,
       "text": "**A RESUME ITEM NAMES THE CONDITION AND NEVER THE READING OF IT** (2026-09-17, third fold, and learned from my own board rather than read about). Doing 56 was written to fix doing 55, which had asserted completed work as ic's next step; within three minutes doing 56 was itself stale, because one of its MUST NOT lines waited on hv naming a version that hv had named two hours earlier. The damage was mild and the reason is the FORM, not the care taken: the line read \"until hv names the version\", which is a CONDITION and is checkable by whoever reads it, where \"hv has not named the version\" would have been a STATE and simply believed. **So anything on a board that can change is written as the condition that settles it, with the command or the place that answers it, never as the answer.** That is the same rule the entry point applies to itself -- print the command, never what it last returned -- brought down to the level of a single board line. dc's correlation is the reason it matters here rather than in principle: four of five boards went false in the same window, and it was the busiest hour of the night, because a busy night is when nobody stops to fold AND when claims die fastest, so the writing of a board is not outside the window in which boards rot. Two mechanical rules that follow, both dc's: add the replacement item and verify it LIVE before archiving the old one, so a failed add leaves the old item standing rather than leaving the node with nothing; and give the resume point a MUST NOT section, because a positive list cannot carry what is cheap to do and expensive to undo and nobody can discover it from one.\n **AND A HAZARD WARNING HAS A TENSE** (dc's sharpening, the same rule pointing outward): dc warned me that 0442's files were staged in the shared index, which was true when dc read it and expired before it reached me, and by dc's own re-read the staged set had moved AGAIN to cc's board files. A warning about shared state is a READING with an expiry, not a fact, so it carries the clock value it was taken at and the receiver re-measures rather than working around it -- which is what saved my commit, since I checked the index myself and found it free, and then hit a real lock collision with dc's fold a moment later and re-issued once rather than looping.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:07.392Z",
       "recorded_at": "2026-09-17T21:17:00.451Z"
     },
     {
@@ -1603,7 +1630,8 @@
       "kind": "doing",
       "seq": 59,
       "text": "**RESUME HERE -- 2026-09-17 night, FIFTH fold, closing out the release-doc work and the lean-out verification. ic has NO assigned work and is idle on vc's word; the estate waits on hv saying whether the full suite has finished, which gates cc's compile and dc's apply and nothing of ic's.** This replaces doing 58, which was not false but did not know about any of the work below. **THE RELEASE PAGE IS FINISHED AND WAS WRONG TWICE BEFORE IT WAS RIGHT.** `intent/docs/releasing.md` landed `8afcca8d6`, was corrected at `0014f1848` (the driver DOES leave a window between the tag and the push; it is a trap rather than an opportunity because the re-run refuses to force-move the tag), and was corrected again at `676d716b9` for FOUR COMMAND DEFECTS I found by driving its own commands rather than reading them. Those four, because the ranking is the useful part and it is not the obvious one: (1) hv's ruled baseline rendered `git describe --abbrev=0` answers **v2.3.2**, because describe takes ANNOTATED tags only and every annotated tag here is v1.x or v2.x -- it does not age out, there being no next annotated tag -- but it fails LOUDLY since the register does not exist at v2.3.2, so it is the mildest; (2) a `grep` whose pattern matched the presence line as it READS IN PROSE while the generated pages render it as two table cells, checked against three prior regenerations and matching at NONE, so born broken rather than rotted; (3) **`--out` is a DIRECTORY to `gen_reference.sh` and a FILE to `gen_cut_surface.sh`**, and the page handed both the same scratch dir, so the second writes `aligned.md`, exits 0, prints a confident `ok: wrote`, and an operator syncing the scratch over `docs/reference` DROPS `cut-surface.md` from the cut -- this is the one that would have shipped; (4) `gen_cut_surface.sh` carries its own `--baseline` defaulting to `v3.0.0` and never got the ruled one, so one half of a two-half regeneration silently measured against a different baseline than the other. The corrected sequence is DRIVEN end to end and produces a file set identical to `docs/reference`, with the diff characterised by READING it rather than counting its lines. **THE LEAN-OUT VERIFICATION IS DONE AND vc HAS FIXED ALL SIX FINDINGS at `8cf28b435`**: two dead pointers (`~/Devel/prj/Intentv2`, moved to `~/Devel/prj/_Archive/Intentv2` on branch `v2-maintenance`, named in TWO boot documents including `.claude/restart.md:26`; and `tests/suite.rs`, which is four files under `native/rust/crates/*/tests/`), three counts inside the file that bans counts, and two rules of mine whose own worked examples were falsifiable. **THE INSTRUMENT IS BANKED AT `refs/bank/ic/census/tool`** -- it censuses a document's commands structurally in BOTH homes, fenced blocks and inline backticks, carries its own validation record, and **has been WRONG TWICE**: fence-walk-only returned ZERO over the three documents every node reads at boot, and its inline half then filtered on guessed runner names and missed all three `bin/int hooks` plus a bare `rev-list --count`. Recover it with `git cat-file -p refs/bank/ic/census/tool`. **MUST NOT: do not write a new census instrument -- take the banked one, and re-run its positive control against `intent/docs/releasing.md` after ANY change to either half.** Do not run `bin/int hooks --install` for any reason; dc has driven `bin/int hooks` and it gives a false verdict with a remedy that changes the wrong thing, and that is dc's finding to carry, not ic's to re-drive. Do not restate the rules from this work on this board -- they are vc's now and they live in `intent/restart.md`. Do not build the staleness check without hv's word (decision 25 removed the reason it could not be built, not the decision to build it). Do not touch `wt-0441` or its target dir; they stay until the close-out on vc's ruling. **AND READ `intent/docs/releasing.md` AT HEAD IN PREFERENCE TO ANY SUMMARY OF IT INCLUDING THIS ONE** -- that instruction is the only durable half of an item like this. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:44.437Z",
       "recorded_at": "2026-09-17T22:21:53.362Z"
     },
     {
@@ -1611,8 +1639,50 @@
       "kind": "watchout",
       "seq": 84,
       "text": "**A DOCUMENT'S COMMANDS ARE CENSUSED BY THE BANKED INSTRUMENT, `refs/bank/ic/census/tool`, AND IT HAS BEEN WRONG TWICE -- WHICH IS WHY IT IS BANKED RATHER THAN REWRITTEN EACH TIME.** Recover with `git cat-file -p refs/bank/ic/census/tool`. It reports both homes, fenced blocks AND inline backticked invocations, and its inline half applies NO runner-name filter by design. Both of its defects produced an ALL-CLEAR rather than a warning, which is the direction that gets believed: fence-walk-only returned ZERO across `intent/wip.md`, `intent/restart.md` and `.claude/restart.md`, which carry no fenced block between them and every command inline; and the first inline half filtered on a guessed alternation (`git|intent|bin/|cargo|...`) that missed all three `bin/int hooks` -- the command a fresh clone is told to run FIRST -- because the pattern wanted a space straight after `bin/`. **Re-run its positive control against `intent/docs/releasing.md` after any change to either half**; six fenced blocks is the known answer, and a census instrument never run against a known answer is the thing it exists to catch. The RULES this came from are vc's and live in `intent/restart.md`; this item is the pointer to the tool and its failure record, deliberately, so the next node finds it instead of writing a third one.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:02:08.198Z",
       "recorded_at": "2026-09-17T22:21:54.075Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 60,
+      "text": "**RESUME HERE -- 2026-09-18, localfold on hv's call.** ic is IDLE with nothing assigned: ask vc before starting anything. ic's plan went to vc for synthesis at 05:59Z. The one piece of work on offer is the `docs/reference` regeneration at the 3.1.0 cut, and it is OFFERED, NOT ASSIGNED. If vc assigns it, follow `intent/docs/releasing.md` at HEAD rather than any summary of it. Run it only after 0444 has landed, and commit it BEFORE `build release` runs. To census a document's commands, use the banked tool at `refs/bank/ic/census/tool` and do not write another. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:01:45.267Z",
+      "recorded_at": "2026-09-18T06:00:33.621Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 29,
+      "text": "Remove the `wt-0441` worktree (under the scratchpad, detached at `d8c6cc31c`) and its target dir with `git worktree remove` WHEN vc calls the close-out. That timing is vc's ruling of 2026-09-17. XS.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:00:35.745Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 61,
+      "text": "**RESUME HERE -- 2026-09-18, localfold on hv's call.** ic has NOTHING TO START right now. Its assigned work is in TODO, and each item there names the condition that releases it: check each condition, never assume it. vc accepted ic's whole plan at about 06:05Z. Ask vc before starting anything that is not in TODO. To census a document's commands, use the banked tool at `refs/bank/ic/census/tool` and do not write another. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:01:41.917Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 30,
+      "text": "**Regenerate `docs/reference` for the 3.1.0 cut -- ASSIGNED to ic by vc on 2026-09-18. S.** Released ONLY when all three of these hold: everything the cut carries has landed; **0444 has landed**, because its register note reaches `docs/reference` through the register (vc is adding 0444 to the unified plan, since cc's plan had dropped it); and vc says go. Follow `intent/docs/releasing.md` at HEAD and not any summary of it. Both halves go in ONE commit, and that commit lands BEFORE `build release` runs, or the tag will not contain its own reference pages.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:01:42.771Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 31,
+      "text": "**Run the verification pass on vc's unified-plan rewrite of `intent/wip.md` -- ASSIGNED by vc on 2026-09-18. S.** Released when vc says it is off the file. Drive every read-only command, READ the dangerous ones as control flow, and resolve every pointer. Census the commands with `refs/bank/ic/census/tool` after re-running its positive control against `intent/docs/releasing.md`. Fix nothing and report everything to vc.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:01:43.597Z"
     }
   ],
   "messages": [
