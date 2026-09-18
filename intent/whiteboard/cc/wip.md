@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 09:06Z
+heartbeat_at: 2026-09-18 09:09Z
 status: active
 focus: "2026-09-18: SQLite bump landing (patch 8dbd56bbb), blocked only on hv's word that the suite is done. Read doing 17, then refs/bank/cc/bump/. TODO in order: land the bump, build the detector to the ruled contract, carry the gap closure into every document that recorded it, then the trawl carry. NO RELEASE, NO PUSH."
 claims: []
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18, localfold for hv's compact; replaces doing 20).** **DOING: 0450's detector change** -- the two probes in one read transaction, a dirty reading re-read once, a dirty-then-clean pair reported as a transient advisory (shown, not counted, never silent), and the remedy wording. Banked at `refs/bank/cc/0450/wip`, rebased on 305ab97d5. Its judging re-run started 09:02:51Z: read `scratchpad/judge-0450-2/summary.txt` (or re-run `scratchpad/land/judge-0450-2.sh`), then send vc the logs and the patch-id re-read from the tree. It lands on vc's word. **0450 CLOSES only on that landing plus a clean doctor re-read after hv restarts intentd**, which is hv's and still pending (intentd is the 3.46.0 image). **TODO on vc's word, in order:** (1) Conflab's v2 prune refusal, vc's question: read `refs/bank/dc/trawl/rehearsal-ea1f679cd.log`, say what the 67 unheld files are and rule carry, drop or leave; (2) **ST0078 is IN 3.1.0 whole** (hv, 2026-09-18, "we can't release this without support for teams"; D53 reversed, events travel as one committed file per event under YYYY/MM/DD) -- vc sends the build plan with lanes on the bounce, and P1 (the event log travels: store, canon, ingest) is expected to be cc's; (3) the trawl carry (todo 30) waits behind ST0078's build, as the trawl does. **Any change under a crate, the CI config or a generator's source owes the whole crate suites** -- 0451 regressed twice without them. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-18 09:17Z; replaces doing 21).** **DOING: ST0078 WP-01 (P1, the event log travels, reverses D53), on vc's one order.** Each event becomes its own file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json, in the same write set as the act's canon and views. principal becomes the author: config.json's author, else git's user.name and user.email, else local. Ingest is additive. Doctor checks each file parses and its id matches its name, and reports committed events the store lacks as store-stale. upgrade removes the events.jsonl ignore line; export keeps its single-file form. Contract: AC-01.1 to AC-01.4. Held out of this bank: backfilling the events the store already holds (hv's ruling, a separate last commit). Worktree at scratchpad/wt-p1 with its own target. Bank to refs/bank/cc/st0078/p1. Rebase onto dc's P3 when it lands and extend its ingest; do not add a second pass. Landing order is P3, P2, P1, P4, on vc's word. 0450 landed at d634f0418 and stays OPEN until hv restarts intentd and a doctor re-read is clean. Conflab's 67 (ruled drop, refs/bank/cc/conflab67/) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.
 
 ## TODO
 
