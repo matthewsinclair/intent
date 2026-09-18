@@ -1,0 +1,15 @@
+{
+  "id": "01M2TSFG3CWQETZ54PAEAXQ3TJ",
+  "ts": "2026-09-18T17:36:56.428Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 17:32Z, replaces todo 46). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) HEAD carries every landing of the close-out (`git log --oneline`); the pair and intentd both name ba4c37b57 (`intent --version`, `intent daemon status`); doctor 0 findings; Intent's own estate re-organized at d58ce1593. Open issues (`intent issues list`): 0453, 0458, 0460, 0461, all the next line's. (1) THE FLEET TRAWL IS DONE AND PUSHED: 22 of 22 estates carry their mechanical commit (decision 53), and on hv's word given in vc's session on 2026-09-18 (\"just do it\") vc pushed every estate's main to every remote it has, each a fast-forward with nothing behind (hv had pushed Courses, Laksa, Lamplight and Utilz first); a fetch-and-count census reads 0 ahead and 0 behind on every remote of every estate. One repo note for hv: Anvil's `upstream` remote carries a fetch refspec that writes into refs/remotes/origin/*, so its GitHub main never appears as upstream/main locally; the push went by name and landed (31207b0..8c26393). Intent's own main is NOT pushed by this: the cut carries it. (2) WITH hv, in order: devbin#0083's sweep across the fleet (hv Q8), Devbin's nodes' act on hv's word now that every estate is clean and pushed, and vc checks the swept estates as it did the trawl; then hv cuts 3.1.0 in hv's terminal per intent/docs/releasing.md, where the preflight refuses a stale docs/reference on its own, on vc's word that HEAD is what ships; then gyges; ST0056 on the clean-install log; the worktree removals (ic todo 35, cc todo 33) on vc's one call at the close-out's end. (3) RULINGS SINCE DECISION 51 are in decisions 52 and 53. NO RELEASE without hv at the terminal."
+  }
+}
