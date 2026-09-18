@@ -2091,19 +2091,39 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       });
     }
   }
-  views.push(View {
-    path: project.steel_threads_view(),
-    content: steel_threads(&canon.threads, ctx),
-  });
-  views.push(View {
-    path: project.todo_view(),
-    // **`All`, and it is not a default reached for want of a window.** This is
-    // the committed artefact, and D44's window is ruled terminal-only
-    // precisely so that a generated file stays a function of the model and
-    // nothing else.
-    content: todo(&canon.threads, ctx),
-  });
+  views.extend(aggregate_views(project, &canon.threads, ctx));
   views
+}
+
+/// The two estate-wide views, `intent/st/steel_threads.md` and
+/// `intent/todo.md`.
+///
+/// **ONE HOME FOR THE PAIR, BECAUSE `init` WRITES IT TOO** (issue 0448). A
+/// project `init` created had neither file, and `doctor` counts an absent
+/// aggregate view as skew even with no thread to render -- so the first commit
+/// of every new project was refused by the gate `claude upgrade --apply` had
+/// just wired. `init` now writes exactly what [`render_all`] would, from this
+/// function, so the two cannot come to disagree about what a fresh estate's
+/// aggregate views say.
+pub fn aggregate_views(
+  project: &Project,
+  threads: &[Thread],
+  ctx: &RenderContext<'_>,
+) -> [View; 2] {
+  [
+    View {
+      path: project.steel_threads_view(),
+      content: steel_threads(threads, ctx),
+    },
+    View {
+      path: project.todo_view(),
+      // **`All`, and it is not a default reached for want of a window.** This
+      // is the committed artefact, and D44's window is ruled terminal-only
+      // precisely so that a generated file stays a function of the model and
+      // nothing else.
+      content: todo(threads, ctx),
+    },
+  ]
 }
 
 /// Render every view and write it through a [`WriteSet`].

@@ -286,6 +286,11 @@ pub fn init(
     .chain([
       root.join("intent/.intentfiles"),
       root.join("intent/.cache/intent.db"),
+      // The two aggregate views `init` writes below (issue 0448). Named by
+      // path here because the check runs before a `Project` exists to derive
+      // them, under the `intent_dir` this function writes into the config.
+      root.join("intent/st/steel_threads.md"),
+      root.join("intent/todo.md"),
     ])
     .filter(|path| path.exists())
     .collect();
@@ -425,8 +430,9 @@ pub fn init(
   // `Generated` and not `At`.
   let ctx = crate::views::RenderContext {
     version: intent_version,
-    // A project one line old has never flushed, so there is no cutoff to carry
-    // and nothing here renders `todo.md` anyway.
+    // A project one line old has never flushed, so there is no cutoff to
+    // carry: this is what the facade's own render context reads from a fresh
+    // store, so the aggregate views below match what `sync --to-disk` writes.
     todo_watermark: None,
   };
   for (dest, body) in &generated {
@@ -435,6 +441,18 @@ pub fn init(
     let path = root.join(dest);
     write(&path, &content)?;
     written.push(path);
+  }
+
+  // **THE TWO AGGREGATE VIEWS, SO THE FIRST COMMIT IS NOT REFUSED** (issue
+  // 0448). `doctor` counts an absent `steel_threads.md` or `todo.md` as skew
+  // even on an estate with no thread, so a project `init` left without them
+  // was refused at its first commit by the gate `claude upgrade --apply`
+  // installs, with `sync --to-disk` as a remedy the new user had to find.
+  // Rendered by `views::aggregate_views`, the one home `render_all` also uses,
+  // so what `init` writes and what a sync would write are the same bytes.
+  for view in crate::views::aggregate_views(&project, &[], &ctx) {
+    write(&view.path, &view.content)?;
+    written.push(view.path);
   }
 
   crate::facade::converge_formatter_exclusion(&project)

@@ -41,6 +41,8 @@ mod a_close_names_what_the_next_organize_removes;
 mod a_creating_verb_names_what_it_overwrote;
 #[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
+#[path = "a_fresh_project_commits_clean.rs"]
+mod a_fresh_project_commits_clean;
 #[path = "a_narrowed_render_names_its_scope.rs"]
 mod a_narrowed_render_names_its_scope;
 #[path = "a_search_by_target_asks_one_question.rs"]
