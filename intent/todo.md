@@ -23,6 +23,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
+- [-] ST0078: Using Intent on a multi-person project with a Git workflow including PRs
 
 ## TODO
 
