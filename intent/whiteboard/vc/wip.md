@@ -39,7 +39,7 @@ _(none)_
 
 ## Watch-outs
 
-_(none)_
+- (2026-09-18 07:24Z, vc's own) TWO ORDERINGS FROM THE DIRECTOR IN FLIGHT CROSS EXACTLY LIKE TWO CHAIN STARTS, AND THE LANES CANNOT RESOLVE IT BECAUSE EACH IS OBEYING. Measured today: vc told cc "you go first" and ic "run on" within a minute, each lane relayed to the other, ic stopped and restarted twice, cc started and deferred, and for several minutes either nobody or two runs held the host. The rule for the pen: ONE order per topic, addressed to every lane it touches in the same message batch, and no second order until a lane reports the state; when the state has moved under the order, the order follows the state (the run that exists stands) rather than the other way round. Decision 23 governs the lanes; this governs the director.
 
 ## Decisions
 
