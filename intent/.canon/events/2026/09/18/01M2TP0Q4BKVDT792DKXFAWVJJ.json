@@ -1,0 +1,15 @@
+{
+  "id": "01M2TP0Q4BKVDT792DKXFAWVJJ",
+  "ts": "2026-09-18T16:36:26.379Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-18 16:34Z) THE FLEET TRAWL IS COMPLETE, 22 OF 22, AND INTENT'S OWN ESTATE IS RE-ORGANIZED (vc, under the pen). DEVBIN: released by its own nodes' fold (devbin-vc folded at e7d121e and handed the tree over clean at 224e78e2c with both nodes holding, on hv's confirmation given in devbin-vc's session), trawled by dc on kit 8cfac07a2 with the pair pinned at both ends, committed at bc556b0 on Devbin's main, checked by vc (empty status, the zero-byte intent/events.jsonl removed by the kit's precondition, no upstream configured, doctor 0 across 7 threads, 90 issues, 170 views and 1300 files, the open set 0064 alone); the commit carries the canon upgrade, 924 backfilled event files, the 25 closed issues' views leaving the tree and ST0003's dehydrated tree; devbin-vc has the hash and its nodes pick up on it. INTENT: cc's d58ce1593 dehydrates the closed items' views (0457, 0459 and the whole of ST0078's tree, twelve paths, the three attachments byte-equal to canon before the apply, no event because organize is machine-scoped), doctor 0 across 78 threads, 440 issues, 828 views and 5597 files, checked by vc. THE WHOLE: every project in ~/.config/intent/projects.json is upgraded to the ba4c37b57 pair and pristine under doctor and organize, one mechanical commit per estate in its own repository, checked by vc after each report, NOTHING PUSHED ANYWHERE: pushing the 23 estate commits (Lamplight has two) is hv's act, repository by repository. NEXT, each on hv's word: devbin#0083's sweep, Devbin's fleet sweep that vendors the fullcycle test-phase fix into every estate (hv Q8), which is Devbin's nodes' act now that every estate is clean; then hv cuts 3.1.0 in hv's terminal per intent/docs/releasing.md; then gyges and ST0056. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2TP0QYHPQZ5P10GRTW1MKP9",
+  "ts": "2026-09-18T16:36:27.217Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 16:34Z, replaces todo 45). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) HEAD carries every landing of the close-out (`git log --oneline`); the pair and intentd both name ba4c37b57 (`intent --version`, `intent daemon status`); doctor 0 findings; Intent's own estate re-organized at d58ce1593. Open issues (`intent issues list`): 0453, 0458, 0460, 0461, all the next line's. (1) THE FLEET TRAWL IS DONE, 22 of 22 (decision 53), one mechanical commit per estate in its own repository, checked by vc, NOTHING PUSHED: the push of each estate's commit is hv's act, repository by repository, and no lane pushes. (2) WITH hv, in order: devbin#0083's sweep across the fleet (hv Q8), Devbin's nodes' act on hv's word now that every estate is clean, and vc checks the swept estates as it did the trawl; then hv cuts 3.1.0 in hv's terminal per intent/docs/releasing.md, where the preflight refuses a stale docs/reference on its own, on vc's word that HEAD is what ships; then gyges; ST0056 on the clean-install log; ic's worktree removals at the close-out's end. (3) RULINGS SINCE DECISION 51 are in decisions 52 and 53. NO RELEASE, NO PUSH."
+  }
+}
