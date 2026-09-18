@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 06:00Z
+heartbeat_at: 2026-09-18 06:08Z
 status: active
 focus: "2026-09-18: SQLite bump landing (patch 8dbd56bbb), blocked only on hv's word that the suite is done. Read doing 17, then refs/bank/cc/bump/. TODO in order: land the bump, build the detector to the ruled contract, carry the gap closure into every document that recorded it, then the trawl carry. NO RELEASE, NO PUSH."
 claims: []
@@ -13,11 +13,10 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18).** SQLite bump landing: rusqlite 0.40.2 / libsqlite3-sys 0.38.2 / SQLite 3.53.2, judged patch-id 8dbd56bbb at `refs/bank/cc/bump/patch`. **Blocked only on hv's word that the full test suite is finished; do not infer it from `ps`.** Everything is in `refs/bank/cc/bump/` (read, patch, detector-output, fts5-messages, evidence); read `read` to its retraction at the end before acting. **Must not:** build A1 (the shadow-table anti-join) as the 0442 detector, because it is measured blind; reopen 0442's cause; or treat the version-lag reading as a mechanism. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-18, replacing doing 17).** The SQLite bump LANDED at `47e269483` (rusqlite 0.40.2 / SQLite 3.53.2, patch-id 53a863458, which superseded 8dbd56bbb because the judged patch did not compile: `fallible_uint` restores 0.32's u64 conversion, and `search_sql`'s two hook registrations now propagate). The pair is rebuilt at 47e269483 and reports 3.53.2. 0442's body carries the version-4 drive, committed at 003fd87e4. **Open, and it's vc's or hv's to rule:** intentd pid 41335 is still the 3.46.0 image until it is restarted. **Next, in vc's order, each landed on vc's word:** (2) the gap closure: the 3.1.0 notes' Provenance and Upgrading at `refs/bank/cc/release-notes/`, which must say `fallible_uint` is on and why, plus the shared memory `judge-sqlite-corruption-by-writer-and-behaviour`; (3) the 0442 detector, after dc's 0443 lands; (4) 0444 before ic's regeneration; (5) the 3.1.0 CHANGELOG section and RELEASE_NOTES; (6) known-defects re-driven against a fresh build; then the trawl carry. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- Land the bump once hv says the suite is done. Announce both ends, because `~/.local/bin/intent` symlinks into target/release. Apply `refs/bank/cc/bump/patch` and let cargo write the lock. Hand vc the lock diff FIRST: anything moving outside the rusqlite/libsqlite3-sys chain stops the landing. Then compile, run the whole suite and send vc the logs. Drive the `bUpdateOrDelete` 4-vs-5 reading in the same run.
 - Build the 0442 detector to the ruled contract at `refs/bank/cc/bump/detector-output`. A2 (the index's own docids via `fts5vocab` instance mode, anti-joined against `%_content`) is the detector, and fts5's `integrity-check` is the second witness. The pair verdict gets its own line. The shared blind spot rides the summary and prints AT ZERO, with the reason written at the call site. A1 is a third arm that prints nothing at zero. It goes in the third tier: shown, not counted, exit code untouched.
 - At the landing, carry the gap closure into every document that recorded the gap: the banked 3.1.0 notes (Provenance and Upgrading, at `refs/bank/cc/release-notes/`) and the shared memory `judge-sqlite-corruption-by-writer-and-behaviour`, which names 3.46.0 and says doctor cannot detect this. Change neither before the patch lands. Then commit the 3.1.0 CHANGELOG section and RELEASE_NOTES BEFORE the release driver runs (`intent/docs/releasing.md` at HEAD).
 - The trawl carry. Part A is GO and Part B is on vc's disposition; the plan is at `refs/bank/cc/trawl/carry-plan.md`. Re-run the rehearsal with the ruled HOLDS immediately before the carry. Make one mechanical commit per estate, run doctor after each, and have vc check each. NO PUSH.
