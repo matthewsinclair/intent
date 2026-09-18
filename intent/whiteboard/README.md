@@ -2,11 +2,11 @@
 
 Live coordination channel for concurrent Claude Code sessions -- and the human -- working on Intent itself. Each participant is a **node** (a workstream) with its own directory under `intent/whiteboard/`. Every file has exactly one writer; that single-writer rule is what keeps the board contention-free and cleansable. `intent/wip.md` stays the post-session snapshot; the whiteboard is the live channel.
 
-The full protocol lives in the `/in-whiteboard` skill (pickup / ask / announce / decide / claim / clear / archive / touch / release / status). The deterministic lifecycle -- scaffold / list / archive / hygiene -- and the session launch are `intent claude ws ...` and `intent claude start <node>` (ST0047). This file is the protocol pointer plus the Intent roster.
+The full protocol lives in the `/in-whiteboard` skill (pickup / ask / announce / decide / claim / clear / archive / touch / release / status). A node joins by `intent wb register`, its board and inboxes render from that row, and the session launch is `intent claude start <node>`. The file-era `intent claude ws` family (ST0047: scaffold, list, archive, hygiene) is gone, retired by ST0069 AC-14.12. This file is the protocol pointer plus the Intent roster.
 
 ## Provenance
 
-The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplight/intent/whiteboard`) -- five hand-run nodes -- which remains the reference for how MAAC works in practice. **Baize** was the first **productised** use (the MVP). This board is the capability stood up first-class via `intent claude ws new`: Intent now dogfoods MAAC on its own development.
+The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplight/intent/whiteboard`) -- five hand-run nodes -- which remains the reference for how MAAC works in practice. **Baize** was the first **productised** use (the MVP). This board was stood up first-class by the file-era `intent claude ws new`, since retired; it is now rows in the store, rendered under `intent/whiteboard/`. Intent dogfoods MAAC on its own development.
 
 ## Nodes (workstreams)
 
@@ -52,6 +52,6 @@ The `---` block at the top of a `wip.md` looks like YAML frontmatter and is not.
 - a single pair of surrounding quotes is a display delimiter and is stripped for display;
 - **quotes inside a value are literal and are never escaped** -- write `focus: "the counted body is the SENT body"` exactly as it reads.
 
-Escaping a quote to be "valid YAML" puts a literal backslash in your board. `intent claude ws hygiene` enforces this rule and says nothing about YAML validity, because validity is not the contract. Full rationale in the `/in-whiteboard` skill.
+Escaping a quote to be "valid YAML" puts a literal backslash in your board. The whiteboard header guard (`lib/templates/hooks/whiteboard-header-guard.sh`) refuses the escape forms at commit time and says nothing about YAML validity, because validity is not the contract. Full rationale in the `/in-whiteboard` skill.
 
 See the `/in-whiteboard` skill for the invariants (heartbeat reclaim, announce-before-shared-edit, archive-your-own-dir-only) and the per-subcommand procedures.
