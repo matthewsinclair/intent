@@ -31,6 +31,199 @@ The model is per-artefact canon in git and a per-machine store rebuilt from it. 
 
 Not trivial. The single-machine model holds. The two-clone model has three gaps that are design rather than documentation: nothing reconciles the store after a pull unless a daemon happens to be watching, and the only detector is hidden (4, 6, 7); ids are minted with no coordination and nothing repairs a collision (2, 5); history does not travel (8). Items 3, 9, 10 and 11 are documentation.
 
+## Worked examples
+
+**Every command below was RUN, in this order, on 2026-09-18** with the pair at `47e269483` (3.0.3 plus the SQLite bump): two clones, Alice and Bob, against a bare origin, no daemon, an isolated HOME. The script and its log are banked at `refs/bank/vc/st0078/drive.sh` and `refs/bank/vc/st0078/drive.log`; the output quoted here is abbreviated from that log. Commands marked PROPOSED do not exist yet and are what P1 to P3 would add.
+
+### E1 — Starting a shared project, and joining one
+
+Alice, once for the project:
+
+```
+$ intent init Team
+created: Team at .../alice
+$ intent claude upgrade --apply --skip-settings     # wires the commit gate into THIS clone's .git/hooks
+$ intent bootstrap                                   # once per MACHINE: records the Intent install the gate execs
+$ intent sync --to-disk                              # writes steel_threads.md and todo.md, which init does not (issue 0448)
+$ git add -A && git commit -m "intent init" && git push -u origin main
+```
+
+`intent init` writes the three ignore lines a project needs (`intent/.cache/`, `intent/events.jsonl`, `intent/.backup/`), so nothing per-machine can reach the repository; `docs/concepts/the-store.md` still says it does not, and P4 corrects that. Without the `sync --to-disk` the first commit is refused by the gate the previous line installed, because doctor counts the two absent aggregate views as skew (0448, filed from this drive).
+
+Bob, once per clone, then once per machine:
+
+```
+$ git clone <origin> bob && cd bob
+$ intent claude upgrade --apply --skip-settings     # .git/hooks is never cloned, so every clone wires its own gate
+$ intent bootstrap
+$ intent st list --status all                        # the cold store loads from canon on the first verb
+```
+
+### E2 — A thread on a branch, reviewed as a PR
+
+```
+$ git switch -c alice/onboarding
+$ intent st new "Onboarding guide"                   # created: ST0001
+$ intent st start ST0001
+$ intent wp new ST0001 "Write the guide"             # created: ST0001/01
+$ git status --short
+ M intent/.intentfiles
+ M intent/st/steel_threads.md
+ M intent/todo.md
+?? intent/.canon/st/
+?? intent/st/ST0001/
+$ git add -A && git commit -m "ST0001: onboarding guide, WP-01" && git push -u origin alice/onboarding
+```
+
+What the reviewer sees, and what to review: the canon file is the change, the rest is rendered from it.
+
+```
+$ git diff --stat main...alice/onboarding
+ intent/.canon/st/ST0001.json   | 23 ++++++   <- the model: review this
+ intent/.intentfiles            |  1 +        <- ST0001 is realised on disk
+ intent/st/ST0001/WP/01/info.md | 20 ++++++   <- generated views
+ intent/st/ST0001/acceptance.md | 20 ++++++
+ intent/st/ST0001/info.md       | 31 ++++++
+ intent/st/steel_threads.md     |  5 ++--
+ intent/todo.md                 |  3 ++-
+```
+
+The commit gate ran on Alice's machine and judged Alice's tree. The merge the forge makes is judged by nobody; P4's CI job (`intent doctor` on the merge result) is the answer.
+
+### E3 — Pulling a merged PR
+
+The first pull into a store that holds nothing is fine, because a store with nothing in it is treated as cold and loads from canon:
+
+```
+$ git pull
+$ intent st list --status all
+ST0001      | Onboarding guide              | WIP
+```
+
+Every pull after that leaves the store where it was. Alice's next thread, ST0002, is merged; Bob pulls it:
+
+```
+$ git pull
+$ intent st list --status all
+ST0001      | Onboarding guide              | WIP           <- ST0002 is in the tree and not in the answer
+$ intent st show ST0002
+error: no steel thread ST0002 in this project
+  remedy: run `intent st list` to see the threads this project has
+$ intent doctor
+doctor: 0 finding(s) across 2 thread(s) ... -- 2 advisory(ies), not counted
+$ intent doctor --verbose | grep -A1 store-stale
+advisory: store-stale -- 1 finding, not counted in the verdict
+  intent/.cache/intent.db -- the runtime store does not match a rebuild from committed canon -- commands are answering from the store ...
+```
+
+What clears it today, and it is the whole-store restore:
+
+```
+$ intent sync --to-store
+ok: store rewritten from the canon extract; nothing the store already held was overwritten
+$ intent st list --status all
+ST0002      | Release checklist               | Triage
+ST0001      | Onboarding guide                | WIP
+```
+
+PROPOSED (P3): nothing to type. The `post-merge` hook runs `intent sync --ingest`, which takes ST0002 from the disk because the store never wrote it, and a default `intent doctor` run shows store-stale wherever the hook did not run.
+
+### E4 — Two people mint the same id
+
+Both clones are at the same commit; Alice's `st new` and Bob's `st new` both mint ST0003. Alice pushes first. Bob:
+
+```
+$ git pull --no-rebase
+CONFLICT (add/add): Merge conflict in intent/.canon/st/ST0003.json
+CONFLICT (content): Merge conflict in intent/st/steel_threads.md
+CONFLICT (content): Merge conflict in intent/todo.md
+$ git merge --abort
+```
+
+The repair today, by hand, because no verb does it: rename the canon file, edit its `id`, restore the store from the renamed canon, regenerate the views, then merge.
+
+```
+$ git mv intent/.canon/st/ST0003.json intent/.canon/st/ST0004.json
+$ (edit "id": "ST0003" -> "ST0004" in intent/.canon/st/ST0004.json)
+$ intent sync --to-store
+warning: replacing the store from the extract OVERWRITES:
+  ST0003: absent from disk, would be DELETED
+ok: store replaced from the canon extract, taking the 1 difference(s) listed above
+$ intent sync --to-disk && intent todo update
+$ git add -A && git commit -m "renumber my ST0003 to ST0004"
+$ git pull --no-rebase
+CONFLICT (content): Merge conflict in intent/st/steel_threads.md   <- generated views only
+CONFLICT (content): Merge conflict in intent/todo.md
+$ git checkout --theirs -- intent/st/steel_threads.md intent/todo.md   # either side; they are regenerated next
+$ intent sync --to-store && intent sync --to-disk && intent todo update
+$ git add -A && git commit -m "merge main: Alice's ST0003, mine is ST0004" && git push
+$ intent st list --status all
+ST0004      | Bob's next                      | Triage
+ST0003      | Alice's next                    | Triage
+ST0002      | Release checklist               | Triage
+ST0001      | Onboarding guide                | WIP
+$ intent doctor
+doctor: 0 finding(s) across 4 thread(s)
+```
+
+A thread that had been started is realised under `intent/st/ST0003/` and declared in `.intentfiles`, and both need the same rename by hand; this one was in Triage, so neither existed. PROPOSED (P2): `intent st renumber ST0003 ST0004` does the rename, the id, the realised directory, the register row, the `related` references and the store in one move, and prints the prose references it found and did not rewrite.
+
+### E5 — Two people edit the same thread
+
+Alice writes the objective; Bob, without pulling, writes the context:
+
+```
+alice$ intent set ST0001 objective "Bring a new engineer to a first merged PR in a day"
+alice$ git add -A && git commit -m "ST0001 objective" && git push
+bob$   intent set ST0001 context "Requested by support after three onboarding escalations"
+bob$   git add -A && git commit -m "ST0001 context"
+bob$   git pull --no-rebase
+CONFLICT (content): Merge conflict in intent/.canon/st/ST0001.json
+Auto-merging intent/st/ST0001/info.md
+$ grep -n -E '^(<<<<<<<|=======|>>>>>>>)|"objective"|"context"' intent/.canon/st/ST0001.json
+8:<<<<<<< HEAD
+9:  "objective": "",
+10:  "context": "Requested by support after three onboarding escalations",
+11:=======
+12:  "objective": "Bring a new engineer to a first merged PR in a day",
+13:  "context": "",
+14:>>>>>>> 44320e0f
+```
+
+The two fields are adjacent lines, so git cannot merge them; a person keeps both and then loads the merged canon:
+
+```
+$ (edit intent/.canon/st/ST0001.json by hand: keep both fields, drop the markers)
+$ intent sync --to-store ST0001
+warning: replacing the store from the extract OVERWRITES:
+  ST0001: differs on disk
+ok: ST0001 replaced from the canon extract, taking the 1 difference(s) listed above
+$ intent sync --to-disk && intent todo update
+$ git add -A && git commit -m "merge: both ST0001 edits" && git push
+$ intent st show ST0001
+objective:
+  Bring a new engineer to a first merged PR in a day
+$ intent doctor
+doctor: 0 finding(s) across 4 thread(s)
+```
+
+Two things the drive showed that the team page must say. `sync --to-store` refuses while any generated view still carries a conflict marker (`residue: conflict-markers -- git conflict markers present; resolve the merge before Intent can read this file`), so the views are resolved, by taking either side, before the canon is loaded. And `sync --to-disk` is what regenerates `steel_threads.md` and the thread's views after a merge; `intent todo update` regenerates `todo.md`.
+
+### E6 — History does not travel today
+
+After every merge above, each clone holds only its own acts:
+
+```
+alice$ intent events --subject ST0001
+2026-09-18T07:16:12.608Z  01M2SNYX60SPAR8G4BRYV2ZWJ3  st.new      ST0001
+2026-09-18T07:16:12.622Z  01M2SNYX6D5F6ASM6FHX4SRA6E  st.start    ST0001
+2026-09-18T07:16:16.519Z  01M2SNZ107HNA7RR8MYE6HCFHR  thread.set  ST0001
+bob$   intent events --subject ST0001
+2026-09-18T07:16:16.963Z  01M2SNZ1E2BSQRK8RBKE1CG3Z7  thread.set  ST0001
+```
+
+Bob's store does not know Alice created or started the thread, and neither store says who. PROPOSED (P1): after `git pull`, `intent events --subject ST0001` on either clone lists all four acts, each carrying its author.
+
 ## Proposal
 
 ### P1 — The event log travels (reverses D53)
