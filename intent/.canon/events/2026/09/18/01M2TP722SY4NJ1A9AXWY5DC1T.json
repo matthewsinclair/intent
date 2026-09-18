@@ -1,0 +1,15 @@
+{
+  "id": "01M2TP722SY4NJ1A9AXWY5DC1T",
+  "ts": "2026-09-18T16:39:54.201Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 16:39Z, localfold; replaces doing 33).** **Nothing is owed to cc before the cut** (vc, 16:37Z): the fleet is 22 of 22, Intent's own estate is pristine at doctor 0, and what follows is hv's: the pushes, devbin#0083's sweep, and the 3.1.0 cut per intent/docs/releasing.md. Issues 0460 (related verb, medium) and 0461 (view name, low) are filed and open, with no fix ordered in this line. The scratch removal is the todo below. NO RELEASE, NO PUSH."
+  }
+}

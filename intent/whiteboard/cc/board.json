@@ -1270,8 +1270,25 @@
       "kind": "doing",
       "seq": 33,
       "text": "**RESUME HERE (cc, 2026-09-18 16:38Z, localfold; replaces doing 32).** **Nothing is owed to cc before the cut** (vc, 16:37Z): the fleet is 22 of 22, Intent's own estate is pristine at doctor 0, and what follows is hv's: the pushes, devbin#0083's sweep, and the 3.1.0 cut per intent/docs/releasing.md.\n\n**Open on cc, both waiting on a word:**\n- Issues 0460 (related verb, medium) and 0461 (view name, low) are filed and open, with no fix ordered in this line.\n- Scratch worktrees wt-0457, wt-kd, wt-notes and wt-0459, and scratch dirs c67/, kd2/ and related-probe/, can go once vc confirms nothing more is owed on them.\n\nNO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T16:39:55.894Z",
       "recorded_at": "2026-09-18T16:38:31.732Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 34,
+      "text": "**RESUME HERE (cc, 2026-09-18 16:39Z, localfold; replaces doing 33).** **Nothing is owed to cc before the cut** (vc, 16:37Z): the fleet is 22 of 22, Intent's own estate is pristine at doctor 0, and what follows is hv's: the pushes, devbin#0083's sweep, and the 3.1.0 cut per intent/docs/releasing.md. Issues 0460 (related verb, medium) and 0461 (view name, low) are filed and open, with no fix ordered in this line. The scratch removal is the todo below. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T16:39:54.201Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 33,
+      "text": "**Remove cc's scratch worktrees and dirs, WHEN vc MAKES THE ONE CALL FOR EVERY LANE AFTER hv'S CUT** (vc, 2026-09-18 16:39Z; the same timing ruling as ic's todo 35 of 2026-09-17, so a last re-drive before the tag has a worktree to hand). vc confirmed nothing more is owed on them: every bank they held is landed (b9491a1f2, ca9befb0b, 597b62b06, ba4c37b57), Conflab's carry is committed, the known-defects drive log is banked, and the related probe became 0460. The set: worktrees wt-0457, wt-kd, wt-notes and wt-0459; dirs c67/, kd2/ and related-probe/, all under the session scratchpad.",
+      "state": "live",
+      "recorded_at": "2026-09-18T16:39:55.055Z"
     }
   ],
   "messages": [

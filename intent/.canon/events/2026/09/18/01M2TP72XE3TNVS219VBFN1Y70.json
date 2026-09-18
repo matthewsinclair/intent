@@ -1,0 +1,15 @@
+{
+  "id": "01M2TP72XE3TNVS219VBFN1Y70",
+  "ts": "2026-09-18T16:39:55.055Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Remove cc's scratch worktrees and dirs, WHEN vc MAKES THE ONE CALL FOR EVERY LANE AFTER hv'S CUT** (vc, 2026-09-18 16:39Z; the same timing ruling as ic's todo 35 of 2026-09-17, so a last re-drive before the tag has a worktree to hand). vc confirmed nothing more is owed on them: every bank they held is landed (b9491a1f2, ca9befb0b, 597b62b06, ba4c37b57), Conflab's carry is committed, the known-defects drive log is banked, and the related probe became 0460. The set: worktrees wt-0457, wt-kd, wt-notes and wt-0459; dirs c67/, kd2/ and related-probe/, all under the session scratchpad."
+  }
+}
