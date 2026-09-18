@@ -1776,6 +1776,18 @@ fn whiteboard_owner(project: &Project, path: &std::path::Path) -> Option<String>
   is_view.then_some(node)
 }
 
+/// Whether the whiteboard writes this path for a node: its `board.json`
+/// record, its board view or one of its inbox views.
+///
+/// **A node's authored files beside them are not**, a script or a note under
+/// `intent/whiteboard/<node>/`, because nothing renders them and their author
+/// can reword them.
+pub(crate) fn is_whiteboard_written(project: &Project, path: &std::path::Path) -> bool {
+  let is_board = path.file_name().is_some_and(|f| f == "board.json")
+    && path.parent().and_then(std::path::Path::parent) == Some(project.whiteboard_dir().as_path());
+  is_board || whiteboard_owner(project, path).is_some()
+}
+
 /// A stored instant as a board renders it: minute granularity, `Z`-marked.
 ///
 /// **IT TRUNCATES A STORED VALUE AND READS NO CLOCK**: no door takes a

@@ -3801,6 +3801,12 @@ fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
 /// **AND SO IS ANYTHING UNDER A `.history/`.** An archive is a record, not a
 /// pointer to reword, and the append-only guard refuses the reword the
 /// worklist asks for.
+///
+/// **AND SO IS EVERYTHING THE TOOL WRITES** (issue 0457): the canon under
+/// `.canon/`, event files included, and the whiteboard's records and rendered
+/// views. Each is a record of what someone wrote, re-derived from the store,
+/// so a reword there is overwritten or rewrites history. A node's authored
+/// files beside its board stay listed.
 fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer> {
   const NAMES: [&str; 5] = [
     "st/COMPLETED/",
@@ -3818,6 +3824,10 @@ fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer>
     }
     // Issue 0364: every hit Courses' upgrade listed was under a whiteboard `.history/`, which no commit may change.
     if rel.components().any(|c| c.as_os_str() == ".history") {
+      continue;
+    }
+    if path.starts_with(project.canon_dir()) || crate::views::is_whiteboard_written(project, &path)
+    {
       continue;
     }
     let Ok(text) = std::fs::read_to_string(&path) else {

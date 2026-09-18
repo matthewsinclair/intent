@@ -17,8 +17,9 @@
 //! - ST0078 AT-01.2 (AC-01.2): `ingest_takes_what_is_missing_and_changes_nothing_else`
 //!   and `the_sync_plan_names_waiting_event_files_and_apply_takes_them`.
 //! - ST0078 AT-01.3 (AC-01.3): `doctor_reports_bad_event_files_and_events_the_store_lacks`.
-//! - ST0078 AT-01.4 (AC-01.4): `upgrade_retires_the_ignore_rule_and_export_keeps_one_file`
-//!   and `upgrade_backfills_the_history_the_store_held_once`.
+//! - ST0078 AT-01.4 (AC-01.4): `upgrade_retires_the_ignore_rule_and_export_keeps_one_file`,
+//!   `upgrade_backfills_the_history_the_store_held_once` and
+//!   `upgrade_on_a_migrated_estate_writes_no_event_log_file`.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -473,6 +474,33 @@ fn upgrade_backfills_the_history_the_store_held_once() {
     .map(|p| std::fs::read(p).expect("read"))
     .collect();
   assert_eq!(before, after, "and rewrites nothing");
+}
+
+/// **Issue 0457: `upgrade` on a migrated estate leaves no `intent/events.jsonl`.**
+/// Its re-emission wrote every canon part, and the last was an empty event log,
+/// untracked once ST0078 retired the ignore rule. The status read is the whole
+/// tree's: one scoped to `.canon/events/` was the read that could not see it.
+#[test]
+fn upgrade_on_a_migrated_estate_writes_no_event_log_file() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob) = two_clones(dir.path());
+
+  let out = alice.run(&["upgrade"]);
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "upgrade: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let status = alice.git(&["status", "--short", "--untracked-files=all"]);
+  assert!(
+    !status.contains("events.jsonl"),
+    "upgrade left the retired single-file log in the tree:\n{status}"
+  );
+  assert!(
+    !alice.root.join("intent/events.jsonl").exists(),
+    "and no ignore rule hides one"
+  );
 }
 
 /// **AC-01.3: doctor checks the files and nothing else.** A file that is not an

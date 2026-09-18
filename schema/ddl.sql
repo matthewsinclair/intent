@@ -600,8 +600,8 @@ CREATE TABLE IF NOT EXISTS ingests (
 -- committed file per event, written in the same write set as the act it records,
 -- named by its id and never rewritten. Acts that describe one machine only, such
 -- as heartbeats and restores, stay in this table. Ingest adds every file whose id
--- this table does not hold and deletes nothing. `intent export`
--- still produces the single-file form, events.jsonl, on demand.
+-- this table does not hold and deletes nothing. No verb writes the
+-- single-file form, events.jsonl, as a file.
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
   ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),

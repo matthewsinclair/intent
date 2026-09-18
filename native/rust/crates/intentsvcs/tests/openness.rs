@@ -650,16 +650,18 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     );
   }
 
-  // **AND THE SINGLE-FILE FORM IS STILL DRIVEN, NOT ASSUMED.** `intent export`
-  // produces `events.jsonl` on demand, so AC-02.6's losslessness for that form
-  // is proved through the exporter as well as through the committed files.
+  // **AND THE SINGLE-FILE FORM IS STILL DRIVEN, NOT ASSUMED.** It is the
+  // export's own part, the log an export round trip must carry back, so
+  // AC-02.6's losslessness for that form is proved through the exporter as well
+  // as through the committed files.
   let events = restored.store().events().expect("events for the bundle");
   let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), events.clone());
-  let parts = intentsvcs::export::canon_parts(&bundle).expect("canon parts");
-  let (_, jsonl) = parts
-    .iter()
-    .find(|(rel, _)| rel == intentsvcs::event::JSONL)
-    .expect("the exporter emits the ON DEMAND file form for event_log");
+  let (rel, jsonl) = intentsvcs::export::log_part(&bundle).expect("the log part");
+  assert_eq!(
+    rel,
+    intentsvcs::event::JSONL,
+    "the single-file form keeps its name"
+  );
   for envelope in &events {
     assert!(
       jsonl.contains(&envelope.id),
@@ -749,10 +751,7 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   let events = {
     let held = fx.facade_on_disk().store().events().expect("events");
     let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), held);
-    intentsvcs::export::canon_parts(&bundle)
-      .expect("canon parts")
-      .into_iter()
-      .find(|(rel, _)| rel == intentsvcs::event::JSONL)
+    intentsvcs::export::log_part(&bundle)
       .expect("the exporter emits the history form")
       .1
   };

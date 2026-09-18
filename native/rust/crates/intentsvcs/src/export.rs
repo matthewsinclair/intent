@@ -475,8 +475,8 @@ fn verify(bundle: &Bundle, text: &str, name: &str, read: Read) -> Result<(), Exp
   // two `Bundle` values would answer a weaker question -- whether the values
   // are equal -- where what is promised is that the FILES come back the same,
   // which additionally pins field order and the canonical encoding.
-  let before = canon_parts(bundle).map_err(|e| refuse(format!("canon of the source: {e}")))?;
-  let after = canon_parts(&back).map_err(|e| refuse(format!("canon of the round-trip: {e}")))?;
+  let before = carried_parts(bundle).map_err(|e| refuse(format!("canon of the source: {e}")))?;
+  let after = carried_parts(&back).map_err(|e| refuse(format!("canon of the round-trip: {e}")))?;
 
   if before.len() != after.len() {
     return Err(refuse(format!(
@@ -506,6 +506,12 @@ fn verify(bundle: &Bundle, text: &str, name: &str, read: Read) -> Result<(), Exp
 ///
 /// The paths are the real ones so a refusal names a file the operator can go
 /// and look at, rather than an index into a list they cannot see.
+///
+/// **THE EVENT LOG IS NOT HERE** (issue 0457). An event is committed as its own
+/// file under `.canon/events/` by the act that wrote it (ST0078), never by a
+/// writer of this list, and the single-file form is [`log_part`], the export
+/// round trip's own comparison part. It was here as the last part until 0457, and a
+/// migration, which writes every part, left an empty `events.jsonl` in the tree.
 pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json::Error> {
   let mut out = Vec::with_capacity(bundle.threads.len() + bundle.issues.len() + 1);
   for thread in &bundle.threads {
@@ -541,7 +547,23 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
       to_canonical_json(state)?,
     ));
   }
-  out.push((event::JSONL.to_string(), event::to_jsonl(&bundle.events)?));
+  Ok(out)
+}
+
+/// The event log in its single-file form, [`event::JSONL`]: one envelope per
+/// line, in the bundle's order.
+///
+/// **An export's own part, never the tree's.** It is what the export carries
+/// beside the canon, so a projection that drops or alters history is refused by
+/// [`carried_parts`] and named by this file.
+pub fn log_part(bundle: &Bundle) -> Result<(String, String), serde_json::Error> {
+  Ok((event::JSONL.to_string(), event::to_jsonl(&bundle.events)?))
+}
+
+/// What a round-tripping projection must carry back: the canon, then the log.
+pub fn carried_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json::Error> {
+  let mut out = canon_parts(bundle)?;
+  out.push(log_part(bundle)?);
   Ok(out)
 }
 

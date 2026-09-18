@@ -21,8 +21,11 @@
 //! files are the ACT record. Nothing rebuilds state by replaying events, and
 //! doctor never reconciles the two, so there is no second truth.
 //!
-//! The single-file form is [`JSONL`] -- one envelope per line, in log order --
-//! and `intent export` still produces it on demand. JSON Lines rather than a
+//! The single-file form is [`JSONL`] -- one envelope per line, in log order.
+//! **No verb writes it as a file** (issue 0457): the json export embeds the
+//! events in its one document, and the single-file form is the export round
+//! trip's own comparison part (`export::log_part`), so a projection that drops
+//! history is refused by the name `events.jsonl`. JSON Lines rather than a
 //! JSON array because a new envelope is a new line; an array would turn every
 //! append into a whole-file rewrite and make a truncated write
 //! indistinguishable from a corrupt one. [`merge`] keys on the envelope's ULID

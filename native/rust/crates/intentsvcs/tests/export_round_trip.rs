@@ -237,7 +237,7 @@ fn the_roster_carries_every_kind_so_no_arm_is_asserted_over_an_empty_set() {
 #[test]
 fn every_format_that_claims_to_round_trip_re_derives_the_canon_byte_for_byte() {
   let bundle = bundle();
-  let source = export::canon_parts(&bundle).expect("canon of the fixture");
+  let source = export::carried_parts(&bundle).expect("canon of the fixture");
   assert!(
     source.len() >= 3,
     "the fixture must carry threads, issues and a log, or 'the canon' is one file"
@@ -250,7 +250,7 @@ fn every_format_that_claims_to_round_trip_re_derives_the_canon_byte_for_byte() {
     let name = format.name;
     let text = emit(&bundle).unwrap_or_else(|e| panic!("{name}: emitting failed: {e}"));
     let back = read(&text).unwrap_or_else(|e| panic!("{name}: reading back failed: {e}"));
-    let after = export::canon_parts(&back).expect("canon of the round-trip");
+    let after = export::carried_parts(&back).expect("canon of the round-trip");
 
     assert_eq!(
       source.len(),
@@ -287,7 +287,7 @@ fn every_format_that_claims_to_round_trip_re_derives_the_canon_byte_for_byte() {
 #[test]
 fn the_hazards_this_fixture_claims_to_carry_are_in_the_canon_it_round_trips() {
   let bundle = bundle();
-  let canon = export::canon_parts(&bundle)
+  let canon = export::carried_parts(&bundle)
     .expect("canon")
     .iter()
     .map(|(_, text)| text.clone())

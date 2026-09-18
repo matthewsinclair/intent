@@ -216,6 +216,21 @@ fn an_authored_file_naming_a_bucket_path_is_reported_and_left_alone() {
   bucketed(&fx);
   let authored = "# Notes\n\nThe old design is at `intent/st/COMPLETED/ST0002/design.md`.\n";
   fx.write_file("intent/docs/notes.md", authored);
+  // Issue 0457: what the tool writes is a record, re-derived from the store, so
+  // none of it is on the worklist -- an event file, a board record and its
+  // rendered views. A node's own script beside its board is authored, and is.
+  let named_in_a_record = r#"{"note": "moved from intent/st/COMPLETED/ST0002/"}"#;
+  fx.write_file(
+    "intent/.canon/events/2026/09/18/01M2T6H88HRV9ZNZSG45HGAZY0.json",
+    named_in_a_record,
+  );
+  fx.write_file("intent/whiteboard/cc/board.json", named_in_a_record);
+  fx.write_file("intent/whiteboard/cc/wip.md", authored);
+  fx.write_file("intent/whiteboard/cc/inbox.vc.md", authored);
+  fx.write_file(
+    "intent/whiteboard/cc/reconvert.sh",
+    "#!/usr/bin/env bash\nls intent/st/COMPLETED/\n",
+  );
   let canon = canon_with(vec![Attachment::new("design.md", DESIGN)]);
 
   let found = legacy::leftovers(&fx.project(), &canon);
@@ -226,8 +241,11 @@ fn an_authored_file_naming_a_bucket_path_is_reported_and_left_alone() {
     .collect();
   assert_eq!(
     named,
-    vec![("intent/docs/notes.md".to_string(), 3)],
-    "the worklist is file and line, so a human can go straight to it"
+    vec![
+      ("intent/docs/notes.md".to_string(), 3),
+      ("intent/whiteboard/cc/reconvert.sh".to_string(), 2),
+    ],
+    "the worklist is file and line, so a human can go straight to it, and it lists no file the tool writes"
   );
   assert_eq!(
     fx.read("intent/docs/notes.md"),

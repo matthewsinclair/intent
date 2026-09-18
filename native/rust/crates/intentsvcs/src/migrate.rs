@@ -41,8 +41,10 @@
 //! D42's subject exactly, so the synthesis is a ruling rather than a coding
 //! decision. **Nothing is lost by waiting**: `created` and `completed` are
 //! carried in `thread.json` itself, so what is absent is the HISTORY, not the
-//! dates. The empty `events.jsonl` this emits says "no recorded history", which
-//! is a true statement about a v2 estate that never had a log.
+//! dates. **It writes no event file either** (issue 0457): it emitted an empty
+//! `events.jsonl` until ST0078 moved the log to one committed file per event,
+//! and from then on that file was a stray in the tree rather than a statement
+//! about history.
 //!
 //! **It does not relocate a thread out of v2's `COMPLETED/` / `CANCELLED/` /
 //! `NOT-STARTED/` buckets** -- see [`plan`]'s own note. That one is a hole, it
@@ -161,7 +163,7 @@ pub enum Blocked {
   ///
   /// **Counted from the model rather than from the exporter's output**, which
   /// is the only way the check can disagree with the thing it is checking: one
-  /// `thread.json` per thread, one `<n>.json` per issue, one event log. An
+  /// `thread.json` per thread, one `<n>.json` per issue. An
   /// equality derived from [`export::canon_parts`] would agree with
   /// `canon_parts` by construction and report a silent drop as correct.
   #[error("the canon carries {actual} file(s) for {expected} artefact(s)")]
@@ -579,9 +581,9 @@ fn assemble(
     boards: _,
   } = canon;
 
-  // One thread.json per thread, one <n>.json per issue, one event log --
-  // stated from the model, before the exporter is asked anything.
-  let expected = threads.len() + issues.len() + 1;
+  // One thread.json per thread and one <n>.json per issue -- stated from the
+  // model, before the exporter is asked anything. No event log (issue 0457).
+  let expected = threads.len() + issues.len();
 
   // `project_id` is empty on a pre-migration project and `Bundle` records that
   // honestly rather than inventing one.
@@ -596,9 +598,9 @@ fn assemble(
   //
   // **The empty id is inert HERE regardless, which is the part worth knowing
   // and is why the stamp belongs at the facade rather than earlier**:
-  // `canon_parts` reads `bundle.threads`, `bundle.issues` and `bundle.events`,
-  // and never `bundle.project_id`. Migration passes `Vec::new()` for events, so
-  // nothing this bundle emits carries the id at all.
+  // `canon_parts` reads `bundle.threads` and `bundle.issues`, and never
+  // `bundle.project_id`, so nothing this bundle emits carries the id at all.
+  // Migration passes `Vec::new()` for events, which `canon_parts` does not read.
   let bundle = Bundle::new(&ctx.project_id, threads, issues, Vec::new());
   let parts = export::canon_parts(&bundle).map_err(|source| Blocked::Canon { source })?;
   if parts.len() != expected {
@@ -793,12 +795,12 @@ mod tests {
     )
     .expect("a clean estate plans");
 
-    // Canon: two threads, one issue, one event log. Views: info + acceptance
+    // Canon: two threads and one issue, and no event log (issue 0457). Views: info + acceptance
     // per thread, plus the index and the todo view. The fixture's issue is
     // CLOSED, and since 0320 a closed issue realises no view, so it plans none.
     assert_eq!(planned.threads.len(), 2);
     assert_eq!(planned.issues.len(), 1);
-    assert_eq!(planned.writes.len(), 4 + 6);
+    assert_eq!(planned.writes.len(), 3 + 6);
     // **The equality below is worthless if `tree` sees nothing**, and a
     // before/after comparison of two empty vectors passes for any behaviour.
     // This is what makes the next line an assertion rather than a shape.
@@ -956,10 +958,10 @@ mod tests {
     )
     .expect("plan");
 
-    // canon: 1 thread + 1 event log. views: info + acceptance + 2 WP covers +
+    // canon: 1 thread, and no event log (issue 0457). views: info + acceptance + 2 WP covers +
     // the index and the todo view. The globals are the two I left out of this
     // line first time round, and the count is what said so.
-    assert_eq!(planned.writes.len(), 2 + 6);
+    assert_eq!(planned.writes.len(), 1 + 6);
     planned.writes.commit().expect("commit").keep();
 
     let after = tree(dir.path());
@@ -980,13 +982,13 @@ mod tests {
   /// side so that it is not a tripwire nobody can reach.**
   ///
   /// The guard itself cannot be provoked -- `canon_parts` returns exactly one
-  /// part per artefact plus the log, for every input -- so a test that tried to
+  /// part per artefact, for every input -- so a test that tried to
   /// construct the refusal would have to break the exporter to do it. This
   /// pins the equality instead: change the shape of `canon_parts` and this reds
   /// in the same commit that arms the guard. An untested error path and an
   /// untested invariant are the same liability read from two ends.
   #[test]
-  fn the_canon_carries_one_file_per_artefact_plus_the_log() {
+  fn the_canon_carries_one_file_per_artefact_and_no_event_log() {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
@@ -1012,7 +1014,7 @@ mod tests {
       // acknowledged -- and this is that acknowledgement rather than a number
       // nudged until it passed.
       let views = 2 * threads as usize + 2;
-      let canon = threads as usize + issues as usize + 1;
+      let canon = threads as usize + issues as usize;
       assert_eq!(
         planned.writes.len(),
         canon + views,
