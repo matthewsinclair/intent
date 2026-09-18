@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-01: P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53)

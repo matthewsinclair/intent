@@ -13,7 +13,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ## Acceptance Criteria
 
-### WP-01 -- P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53) (status: WIP)
+### WP-01 -- P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53) (status: Done)
 
 - AC-01.1 Every PROJECT act is written as its own event file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json in the same write set as the canon and views of the act, with principal the author (git's user.name and user.email, else the project's config author, else local), so an act on one clone is readable with intent events on another after a pull, with its author; machine-scoped acts (heartbeats, ingests, the destructive restore, index rebuilds) stay in the store only, because they describe one machine and are false on every other clone (hv, 2026-09-18). -- satisfied: yes (computed)
 - AC-01.2 Ingest of committed event files is additive: a file whose id the store holds is skipped, one it lacks is inserted, a file is never rewritten, and no event_log row is deleted because its file is absent. -- satisfied: yes (computed)
@@ -45,7 +45,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ## Acceptance Tests
 
-### WP-01 -- P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53) (status: WIP)
+### WP-01 -- P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53) (status: Done)
 
 - AT-01.1 `native/rust/crates/intent-cli/tests/the_event_log_travels.rs` -- covers AC-01.1 -- status: green -- an_act_on_one_clone_is_read_on_another_with_its_author, the_author_is_git_then_the_config_then_local and a_heartbeat_stays_on_the_machine_that_beat; the machine-scoped roster is held by op_roster_and_the_live_log's machine_scoped_ops_are_rostered_and_stay_on_the_machine; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)
 - AT-01.2 `native/rust/crates/intent-cli/tests/the_event_log_travels.rs` -- covers AC-01.2 -- status: green -- ingest_takes_what_is_missing_and_changes_nothing_else and the_sync_plan_names_waiting_event_files_and_apply_takes_them; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)

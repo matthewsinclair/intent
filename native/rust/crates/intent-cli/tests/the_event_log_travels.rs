@@ -8,6 +8,17 @@
 //! Driven through the real binary on two git clones of one project, because
 //! the property is about what crosses a clone: a facade arm on one tree could
 //! pass while nothing reached the second.
+//!
+//! The acceptance tests this file carries, and their arms:
+//!
+//! - ST0078 AT-01.1 (AC-01.1): `an_act_on_one_clone_is_read_on_another_with_its_author`,
+//!   `the_author_is_git_then_the_config_then_local` and
+//!   `a_heartbeat_stays_on_the_machine_that_beat`.
+//! - ST0078 AT-01.2 (AC-01.2): `ingest_takes_what_is_missing_and_changes_nothing_else`
+//!   and `the_sync_plan_names_waiting_event_files_and_apply_takes_them`.
+//! - ST0078 AT-01.3 (AC-01.3): `doctor_reports_bad_event_files_and_events_the_store_lacks`.
+//! - ST0078 AT-01.4 (AC-01.4): `upgrade_retires_the_ignore_rule_and_export_keeps_one_file`
+//!   and `upgrade_backfills_the_history_the_store_held_once`.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};

@@ -1197,8 +1197,26 @@
       "kind": "doing",
       "seq": 26,
       "text": "**RESUME HERE (cc, 2026-09-18 11:26Z; replaces doing 25).** **ST0078 WP-01: P1 LANDED at f5ba0db7d** (source patch-id 06b0b0c38; AT-01.1 to AT-01.3 green; openness green at the landed commit in a fresh worktree). **DOING: the backfill**, WP-01's separable last commit, banked UNCOMPILED at refs/bank/cc/st0078/p1-backfill (patch-id 658916fce, on f5ba0db7d, worktree scratchpad/wt-open). vc accepted its shape; read the note at refs/bank/cc/st0078/p1-note first. **Order (vc):** dc's P5 follow-up lands first; then the backfill compiles and gets the WHOLE run on vc's word, and lands with AT-01.4 minted (AC-01.4 stays unsatisfied until then); then ic's drive runs on that commit. **Do NOT run upgrade on the live tree with a worktree binary:** backfilling Intent's own history is vc's estate commit in the trawl, on the rebuilt pair. **0450 CLOSED 2026-09-18** on a clean doctor re-read against intentd at ea1f679cd (SQLite 3.53.2) after hv's restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T11:43:43.923Z",
       "recorded_at": "2026-09-18T11:26:32.720Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 27,
+      "text": "**RESUME HERE (cc, 2026-09-18 11:45Z; replaces doing 26).** **ST0078 WP-01 is DONE:** P1 at f5ba0db7d, the backfill at bc6833413, and the AT id literals plus `wp done ST0078/01` in the commit that carries this board. AC-01.1 to AC-01.4 are satisfied and `intent at lint ST0078` is clean. The note is at refs/bank/cc/st0078/p1-note. **The rule this taught (vc, for restart.md):** a landing chain that mints AT rows runs `intent ac status <ST>` before its commit, because doctor does not lint AT rows. **Not mine, and waiting:** backfilling Intent's own history is vc's estate commit in the trawl, on the rebuilt pair; ic's drive runs on this commit. **NEXT, on vc's word:** Conflab's 67 (ruled DROP) and the trawl carry (todo 30), both behind ST0078. The worktrees wt-p1, wt-p1r and wt-open in the scratchpad can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-18T11:43:58.088Z",
+      "recorded_at": "2026-09-18T11:43:43.118Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 28,
+      "text": "**RESUME HERE (cc, 2026-09-18 11:43Z; replaces doing 26 and 27, whose \"11:45Z\" stamp was typed from feel: the clock read 11:43:43Z).** **ST0078 WP-01 is DONE:** P1 at f5ba0db7d, the backfill at bc6833413, and the AT id literals plus `wp done ST0078/01` in the commit that carries this board. AC-01.1 to AC-01.4 are satisfied and `intent at lint ST0078` is clean. The note is at refs/bank/cc/st0078/p1-note. **The rule this taught (vc, for restart.md):** a landing chain that mints AT rows runs `intent ac status <ST>` before its commit, because doctor does not lint AT rows. **Not mine, and waiting:** backfilling Intent's own history is vc's estate commit in the trawl, on the rebuilt pair; ic's drive runs on this commit. **NEXT, on vc's word:** Conflab's 67 (ruled DROP) and the trawl carry (todo 30), both behind ST0078. The worktrees wt-p1, wt-p1r and wt-open in the scratchpad can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:43:57.237Z"
     }
   ],
   "messages": [
