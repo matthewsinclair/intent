@@ -1,0 +1,15 @@
+{
+  "id": "01M2T6DKFFN96QXWAKXS2X8G2B",
+  "ts": "2026-09-18T12:03:51.407Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 12:04Z, localfold for hv's compact; replaces doing 28 and todo 32).** **ST0078 is complete on the build side:** WP-01 (P1, cc) is Done (f5ba0db7d, backfill bc6833413, ids and wp done 79d536c16), and ic's P4 landed at 5ddea1e7d with the gate at 15/15. **THE ONE REBUILD IS DONE** at HEAD f4c8a5b2e (`bin/devbin build all`, the SET verified and promoted): intent sha256 3ccc01000727c862..., intentd c9bb8e5aff516b7d..., both 3.0.3 (f4c8a5b2e). doctor on the live store with the rebuilt CLI: 0 findings, search index clean. The installed `intent` now writes event files, so every board or project act makes files under intent/.canon/events/; commit them with the act. **NEXT, in order, each on vc's word:** (1) hv restarts intentd (vc asks hv); the running daemon was ea1f679cd until then. (2) Intent's own estate commit: `intent sync --apply`, then `intent upgrade` on this repository with the rebuilt pair; it backfills an event file for every project event the store holds; commit them with the count in the message. (3) Conflab's 67 (ruled DROP) as owner of record, and the trawl carry (todo 30), with dc and ic's halves. **Rules learned today:** a landing chain that mints AT rows runs `intent ac status <ST>` before its commit (doctor does not lint AT rows); a stamp comes only from this turn's `date -u`. Scratch worktrees wt-p1, wt-p1r, wt-open, wt-p1r's target and the p1pair fixture can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH."
+  }
+}
