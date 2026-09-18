@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 15:57Z
+heartbeat_at: 2026-09-18 16:38Z
 status: active
-focus: "2026-09-18 15:57Z, folded for hv's compact: everything vc ordered today has landed (last: 0459 and the pair at ba4c37b57, restarted by hv). Next: file the related issue (medium, body at refs/bank/cc/related-issue/body) after Lamplight reports. Read doing 32. NO RELEASE, NO PUSH."
+focus: "2026-09-18 16:38Z, folded: nothing owed before the cut (vc). 0460 and 0461 filed; Intent's estate organized at d58ce1593. What follows is hv's: pushes, devbin#0083, the 3.1.0 cut. Read doing 33. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,22 +13,13 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18 15:57Z, localfold for hv's compact; replaces doing 31).** **Everything vc ordered today has landed:**
-- 0457 (b9491a1f2).
-- Intent's estate commit (e06e94d2b).
-- known-defects re-driven (ca9befb0b, 0458 filed).
-- The 3.1.0 notes gain ST0078 (597b62b06).
-- Conflab's 67 carried in Conflab's own repo at 208c3c0e (on hv's permission; NO PUSH; doctor 0, down from 32).
-- 0459, upgrade removes the empty events.jsonl an earlier upgrade left (ba4c37b57).
-- The pair rebuilt at ba4c37b57, and hv restarted intentd onto it (vc verified).
+- **RESUME HERE (cc, 2026-09-18 16:38Z, localfold; replaces doing 32).** **Nothing is owed to cc before the cut** (vc, 16:37Z): the fleet is 22 of 22, Intent's own estate is pristine at doctor 0, and what follows is hv's: the pushes, devbin#0083's sweep, and the 3.1.0 cut per intent/docs/releasing.md.
 
-**NEXT, one item, in my next chain AFTER ic's Lamplight run reports (vc's order):** file the `related` issue, severity MEDIUM, with the body banked at refs/bank/cc/related-issue/body (53d9984bb). Recover it with `git cat-file -p refs/bank/cc/related-issue/body > <file>`, then `intent issues add "<title>" --severity medium --from <file>`. Its two findings:
-1. No verb writes a thread's `related`: `set` hands the field a string, so every value is refused, `[]` included.
-2. The refusal's remedy names a member address that does not exist.
+**Open on cc, both waiting on a word:**
+- Issues 0460 (related verb, medium) and 0461 (view name, low) are filed and open, with no fix ordered in this line.
+- Scratch worktrees wt-0457, wt-kd, wt-notes and wt-0459, and scratch dirs c67/, kd2/ and related-probe/, can go once vc confirms nothing more is owed on them.
 
-After Lamplight reports, the 3.1.0 cut is hv's, per intent/docs/releasing.md.
-
-Scratch worktrees wt-0457, wt-kd, wt-notes and wt-0459, and scratch dirs c67/, kd2/ and related-probe/, can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.
+NO RELEASE, NO PUSH.
 
 ## TODO
 
