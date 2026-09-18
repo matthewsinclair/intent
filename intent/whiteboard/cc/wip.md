@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 13:16Z
+heartbeat_at: 2026-09-18 15:57Z
 status: active
-focus: "2026-09-18 13:15Z: everything vc ordered after hv's compact has landed (0457, the b9491a1f2 pair, known-defects, the 3.1.0 notes). One open item: Conflab's 67 carry, on the trawl's word, which waits on hv. Read the doing item. NO RELEASE, NO PUSH."
+focus: "2026-09-18 15:57Z, folded for hv's compact: everything vc ordered today has landed (last: 0459 and the pair at ba4c37b57, restarted by hv). Next: file the related issue (medium, body at refs/bank/cc/related-issue/body) after Lamplight reports. Read doing 32. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,25 +13,26 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18 13:15Z; replaces doing 30).** **Everything vc ordered after hv's compact has landed:**
-- Intent's estate commit e06e94d2b (3665 backfilled event files).
-- 0457 fixed at b9491a1f2.
-- The pair rebuilt at b9491a1f2, and hv restarted intentd onto it at 12:54Z.
-- docs/known-defects.md re-driven whole at ca9befb0b (nothing left the page, 0442's transcript is new, and 0458 is filed for the guard hooks).
-- The 3.1.0 CHANGELOG and release notes gain ST0078 at 597b62b06.
+- **RESUME HERE (cc, 2026-09-18 15:57Z, localfold for hv's compact; replaces doing 31).** **Everything vc ordered today has landed:**
+- 0457 (b9491a1f2).
+- Intent's estate commit (e06e94d2b).
+- known-defects re-driven (ca9befb0b, 0458 filed).
+- The 3.1.0 notes gain ST0078 (597b62b06).
+- Conflab's 67 carried in Conflab's own repo at 208c3c0e (on hv's permission; NO PUSH; doctor 0, down from 32).
+- 0459, upgrade removes the empty events.jsonl an earlier upgrade left (ba4c37b57).
+- The pair rebuilt at ba4c37b57, and hv restarted intentd onto it (vc verified).
 
-**THE ONE OPEN ITEM: Conflab's 67, on the trawl's word, which waits on hv's answer to the permission class.** The ruling is DROP, accepted by vc: 67 of 67 are byte-identical to canon at c7127879^, so the prettier sweep is the only difference. The carry, in this session, in Conflab's own repo:
-1. Re-verify the pre-sweep equality on Conflab's live HEAD (rows at refs/bank/cc/conflab67/table).
-2. `git checkout c7127879^ -- <the 67>`.
-3. `intent upgrade`: rehearsed in a scratch clone at fa5ebb6f, it pruned 1129 files and re-rendered 38.
-4. `intent doctor`: the rehearsal read 0 findings, down from 32.
-5. One commit, with the ruling and the evidence in its message. NO PUSH.
+**NEXT, one item, in my next chain AFTER ic's Lamplight run reports (vc's order):** file the `related` issue, severity MEDIUM, with the body banked at refs/bank/cc/related-issue/body (53d9984bb). Recover it with `git cat-file -p refs/bank/cc/related-issue/body > <file>`, then `intent issues add "<title>" --severity medium --from <file>`. Its two findings:
+1. No verb writes a thread's `related`: `set` hands the field a string, so every value is refused, `[]` included.
+2. The refusal's remedy names a member address that does not exist.
 
-Expect a shared-resource permission prompt; hv answers it here. Scratch worktrees wt-0457, wt-kd and wt-notes, and c67/ and kd2/, can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.
+After Lamplight reports, the 3.1.0 cut is hv's, per intent/docs/releasing.md.
+
+Scratch worktrees wt-0457, wt-kd, wt-notes and wt-0459, and scratch dirs c67/, kd2/ and related-probe/, can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- The trawl carry. Part A is GO and Part B is on vc's disposition; the plan is at `refs/bank/cc/trawl/carry-plan.md`. Re-run the rehearsal with the ruled HOLDS immediately before the carry. Make one mechanical commit per estate, run doctor after each, and have vc check each. NO PUSH.
+_(none)_
 
 ## Holds
 
