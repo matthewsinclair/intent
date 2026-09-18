@@ -51,9 +51,9 @@ Every command below was driven, in the order this page shows it, against two clo
 
 ```
   $ git diff --stat main...alice/onboarding
-   .../2026/09/18/01M2T5QZBB653R5FMGVYDRFF7G.json     | 14 ++++++++++
-   .../2026/09/18/01M2T5QZBT30RKJ44E0EWZR693.json     | 16 +++++++++++
-   .../2026/09/18/01M2T5QZCAS4KX0NC3SS3SFRWS.json     | 15 +++++++++++
+   .../2026/09/18/01M2T9KXTC3AWTSH8C9MXWA4M8.json     | 14 ++++++++++
+   .../2026/09/18/01M2T9KXTX27ZZ5RRAFQK1JT7E.json     | 16 +++++++++++
+   .../2026/09/18/01M2T9KXVDZP8JDRWZWMJHB3Y1.json     | 15 +++++++++++
    intent/.canon/st/ST0001.json                       | 23 ++++++++++++++++
    intent/.intentfiles                                |  1 +
    intent/st/ST0001/WP/01/info.md                     | 20 ++++++++++++++
@@ -175,7 +175,7 @@ The next pull conflicts only in generated views, and one command regenerates and
 
 ```
   $ intent sync
-  plan: 5 step(s) for this clone (plan 0b09eed5...), and nothing has been written -- `intent sync --apply` applies them
+  plan: 5 step(s) for this clone (plan 889c9358...), and nothing has been written -- `intent sync --apply` applies them
     1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
     2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
     3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
@@ -247,21 +247,39 @@ Every project act is its own file under `intent/.canon/events/`, carrying who di
 
 ```
   $ intent events --subject ST0002
-  2026-09-18T11:52:03.506Z  01M2T5R05JY2M5T3XGKGQV8VPR  st.new  ST0002  by Alice <alice@example.com>
-  2026-09-18T11:52:06.670Z  01M2T5R38EETCRYXYECFBEQV23  thread.set  ST0002  by Alice <alice@example.com>
-  2026-09-18T11:52:06.905Z  01M2T5R3FRT76KKDBNAA2J899M  thread.set  ST0002  by Bob <bob@example.com>
+  2026-09-18T12:59:45.243Z  01M2T9KYPV1D7332EZYYKK99YX  st.new  ST0002  by Alice <alice@example.com>
+  2026-09-18T12:59:48.673Z  01M2T9M22194AX8M39FH15SJJC  thread.set  ST0002  by Alice <alice@example.com>
+  2026-09-18T12:59:48.931Z  01M2T9M2A3TVZK2SJYEE4SF50Y  thread.set  ST0002  by Bob <bob@example.com>
 ```
 
 Both clones print those same three lines. The author is git's identity. Machine events, such as heartbeats, ingests, restores and index rebuilds, stay in the store, because they describe one machine and would be false on every other.
 
-**A project older than this has its history only in the store that made it.** Run `intent upgrade` once on that clone and commit what it writes. It says how many files it wrote, and a second run writes none:
+**A project older than this has its history only in the store that made it.** Run `intent upgrade` once on that clone and commit what it writes: the backfilled event files, a `.gitignore` without the retired `intent/events.jsonl` line, and `intent/.config/config.json` rewritten in key order. It says how many event files it backfilled, and a second run backfills none and leaves the tree as the first run left it:
 
 ```
   $ intent upgrade
+  migrated: 1 thread(s), 0 issue(s), 5 file(s) written
+  not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
+  already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
   backfilled: 3 event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project
   ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
+  $ git status --short --untracked-files=all
+   M .gitignore
+   M intent/.config/config.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3CRKAXHXTWRQN5QGWQP.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3D6JZR0NP0ZXSHZYB2W.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3DF9CFDG03AFSQ209DJ.json
   $ intent upgrade
+  migrated: 1 thread(s), 0 issue(s), 5 file(s) written
+  not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
+  already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
   ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
+  $ git status --short --untracked-files=all
+   M .gitignore
+   M intent/.config/config.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3CRKAXHXTWRQN5QGWQP.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3D6JZR0NP0ZXSHZYB2W.json
+  ?? intent/.canon/events/2026/09/18/01M2T9M3DF9CFDG03AFSQ209DJ.json
 ```
 
 ## Everyone runs a compatible Intent

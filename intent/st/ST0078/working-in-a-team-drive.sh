@@ -111,8 +111,9 @@ if [ -n "$OLD" ]; then
   run ls intent/.canon
   printf '(with the pair under test from here)\n'
   run intent upgrade
-  run git status --short intent/.canon/events
+  run git status --short --untracked-files=all
   run intent upgrade
+  run git status --short --untracked-files=all
 else
   echo "SKIPPED: no pre-P1 pair given"
 fi

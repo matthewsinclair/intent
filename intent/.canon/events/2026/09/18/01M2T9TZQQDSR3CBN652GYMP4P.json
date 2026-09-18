@@ -1,0 +1,14 @@
+{
+  "id": "01M2T9TZQQDSR3CBN652GYMP4P",
+  "ts": "2026-09-18T13:03:35.674Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0078/working-in-a-team-drive.log"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

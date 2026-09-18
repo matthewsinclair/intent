@@ -1,18 +1,18 @@
-pair: $BIN/intent
+pair: /Users/matts/Devel/prj/Intent/native/rust/target/release/intent
 $ intent --version
-intent 3.0.3 (79d536c163ba2a713830c49894c2ae175e6c4c8e)
+intent 3.0.3 (b9491a1f24b48762225f6377dcf36e0099f99d47)
   rc=0
 
 ===== 1 alice: start the project and share it
 $ intent init Team
-created: Team at $S/alice
+created: Team at /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/265b7775-2e7d-496a-9e38-607cc6fa1cc1/scratchpad/p4-redrive-scratch/alice
   author is unset -- run `intent bootstrap` to record it once for this machine, or set it in intent/.config/config.json
-  $S/alice/intent/.config/config.json
+  /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/265b7775-2e7d-496a-9e38-607cc6fa1cc1/scratchpad/p4-redrive-scratch/alice/intent/.config/config.json
   .gitignore
   .prettierignore
   AGENTS.md
   CLAUDE.md
-  intent/.canon/events/2026/09/18/01M2T5QYT417QG01N0FAX623TK.json
+  intent/.canon/events/2026/09/18/01M2T9KX8KD9FEMV3EMSTDD6BE.json
   intent/.intentfiles
   intent/llm/ARCHITECTURE.md
   intent/llm/RULES.md
@@ -26,8 +26,8 @@ $ grep -n -E ^intent/(\.cache|\.backup|events\.jsonl) .gitignore
 6:intent/.backup/
   rc=0
 $ intent bootstrap
-created: install root recorded -- $INSTALL_ROOT
-created: $S/home/.config/intent/config.json
+created: install root recorded -- /Users/matts/Devel/prj/Intent
+created: /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/265b7775-2e7d-496a-9e38-607cc6fa1cc1/scratchpad/p4-redrive-scratch/home/.config/intent/config.json
   author: matts
 done: this machine is set up
   rc=0
@@ -55,8 +55,8 @@ $ git push -q -u origin main
 
 ===== 1 bob: clone it, then once per machine and once per clone
 $ intent bootstrap
-ok: install root already recorded -- $INSTALL_ROOT
-ok: configuration already exists -- $S/home/.config/intent/config.json
+ok: install root already recorded -- /Users/matts/Devel/prj/Intent
+ok: configuration already exists -- /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/265b7775-2e7d-496a-9e38-607cc6fa1cc1/scratchpad/p4-redrive-scratch/home/.config/intent/config.json
   use --force to recreate it
 done: this machine is set up
   rc=0
@@ -124,9 +124,9 @@ $ git status --short
  M intent/.intentfiles
  M intent/st/steel_threads.md
  M intent/todo.md
-?? intent/.canon/events/2026/09/18/01M2T5QZBB653R5FMGVYDRFF7G.json
-?? intent/.canon/events/2026/09/18/01M2T5QZBT30RKJ44E0EWZR693.json
-?? intent/.canon/events/2026/09/18/01M2T5QZCAS4KX0NC3SS3SFRWS.json
+?? intent/.canon/events/2026/09/18/01M2T9KXTC3AWTSH8C9MXWA4M8.json
+?? intent/.canon/events/2026/09/18/01M2T9KXTX27ZZ5RRAFQK1JT7E.json
+?? intent/.canon/events/2026/09/18/01M2T9KXVDZP8JDRWZWMJHB3Y1.json
 ?? intent/.canon/st/
 ?? intent/st/ST0001/
   rc=0
@@ -134,9 +134,9 @@ committed: ST0001: onboarding guide, WP-01
 $ git push -q -u origin alice/onboarding
   rc=0
 $ git diff --stat main...alice/onboarding
- .../2026/09/18/01M2T5QZBB653R5FMGVYDRFF7G.json     | 14 ++++++++++
- .../2026/09/18/01M2T5QZBT30RKJ44E0EWZR693.json     | 16 +++++++++++
- .../2026/09/18/01M2T5QZCAS4KX0NC3SS3SFRWS.json     | 15 +++++++++++
+ .../2026/09/18/01M2T9KXTC3AWTSH8C9MXWA4M8.json     | 14 ++++++++++
+ .../2026/09/18/01M2T9KXTX27ZZ5RRAFQK1JT7E.json     | 16 +++++++++++
+ .../2026/09/18/01M2T9KXVDZP8JDRWZWMJHB3Y1.json     | 15 +++++++++++
  intent/.canon/st/ST0001.json                       | 23 ++++++++++++++++
  intent/.intentfiles                                |  1 +
  intent/st/ST0001/WP/01/info.md                     | 20 ++++++++++++++
@@ -235,7 +235,7 @@ intent/st/steel_threads.md
 intent/todo.md
   rc=0
 $ intent sync --apply --yes
-plan: 4 step(s) for this clone (plan 9bbdc7ed8689bf2c3fc85a408db4c13c41c9145f83382efa1c19eb77070a9bd1), and applying it now
+plan: 4 step(s) for this clone (plan cdc3d65d20b67a77ab3767529ba76d0b7d7e8d7a50bd00bd488bbb4a0c3678fc), and applying it now
   1. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
   2. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
   3. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
@@ -293,7 +293,7 @@ intent/st/steel_threads.md
 intent/todo.md
   rc=0
 $ intent sync
-plan: 5 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and nothing has been written -- `intent sync --apply` applies them
+plan: 5 step(s) for this clone (plan 889c93583313853c693a789ce03b18838d63ebe0f30dbd87cdea151ba8baadd5), and nothing has been written -- `intent sync --apply` applies them
   1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
   2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
   3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
@@ -302,7 +302,7 @@ plan: 5 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa4
   then: doctor (quiet): run doctor last; its verdict is the exit code
   rc=0
 $ intent sync --apply
-plan: 5 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and applying it now
+plan: 5 step(s) for this clone (plan 889c93583313853c693a789ce03b18838d63ebe0f30dbd87cdea151ba8baadd5), and applying it now
   1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
   2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
   3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
@@ -314,7 +314,7 @@ left: 4 step(s): renumber (reversible), ingest (waits on the conflicts), resolve
 doctor: 1 finding(s) -- the estate could not be read, so no thread, issue, view or file was checked -- 1 advisory(ies), not counted
   rc=1
 $ intent sync --apply --yes
-plan: 4 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and applying it now
+plan: 4 step(s) for this clone (plan 889c93583313853c693a789ce03b18838d63ebe0f30dbd87cdea151ba8baadd5), and applying it now
   1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
   2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
   3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
@@ -375,10 +375,10 @@ $ grep -n -E ^(<<<<<<<|=======|>>>>>>>)|"objective"|"context" intent/.canon/st/S
 11:=======
 12:  "objective": "Bring a new engineer to a first merged PR in a day",
 13:  "context": "",
-14:>>>>>>> 18fbc604f01f3fc23824300696c968ab446f5817
+14:>>>>>>> fea167c3cb8e7df0fd4472acfb186113e9fea224
   rc=0
 $ intent sync
-plan: 4 step(s) for this clone (plan 20b7c4afd2045204ed09f5a0f1a97c527164f23944fc187a089a96d3549f9fb5), and nothing has been written -- `intent sync --apply` applies them
+plan: 4 step(s) for this clone (plan ee52e853ac930b4626a1875ac8bc4296388e2910befcff0899cc13c5eb4dedab), and nothing has been written -- `intent sync --apply` applies them
   1. take a side (non-reversible): both sides changed intent/.canon/st/ST0002.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
   2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
   3. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
@@ -389,7 +389,7 @@ plan: 4 step(s) for this clone (plan 20b7c4afd2045204ed09f5a0f1a97c527164f23944f
 $ git add intent/.canon/st/ST0002.json
   rc=0
 $ intent sync --apply --yes
-plan: 2 step(s) for this clone (plan 8c6caad5d85070e1105562712762da0dcc200435354b01bf53601ff7195bdf0e), and applying it now
+plan: 2 step(s) for this clone (plan f535a27d41f51c9887198aed206a0eb793922dd636d25898ffa457188946c365), and applying it now
   1. ingest (quiet): take 1 change(s) from the files into the store: ST0002
   2. events (quiet): 1 event file(s) to take
   then: doctor (quiet): run doctor last; its verdict is the exit code
@@ -416,15 +416,15 @@ $ git pull -q
 intent (post-merge): took 1 change(s) from the files into the store: ST0002; and 1 event file(s)
   rc=0
 $ intent events --subject ST0002
-2026-09-18T11:52:03.506Z  01M2T5R05JY2M5T3XGKGQV8VPR  st.new  ST0002  by Alice <alice@example.com>
-2026-09-18T11:52:06.670Z  01M2T5R38EETCRYXYECFBEQV23  thread.set  ST0002  by Alice <alice@example.com>
-2026-09-18T11:52:06.905Z  01M2T5R3FRT76KKDBNAA2J899M  thread.set  ST0002  by Bob <bob@example.com>
+2026-09-18T12:59:45.243Z  01M2T9KYPV1D7332EZYYKK99YX  st.new  ST0002  by Alice <alice@example.com>
+2026-09-18T12:59:48.673Z  01M2T9M22194AX8M39FH15SJJC  thread.set  ST0002  by Alice <alice@example.com>
+2026-09-18T12:59:48.931Z  01M2T9M2A3TVZK2SJYEE4SF50Y  thread.set  ST0002  by Bob <bob@example.com>
 events: showing 3 of 3 matched, 13 in this store.
   rc=0
 $ intent events --subject ST0002
-2026-09-18T11:52:03.506Z  01M2T5R05JY2M5T3XGKGQV8VPR  st.new  ST0002  by Alice <alice@example.com>
-2026-09-18T11:52:06.670Z  01M2T5R38EETCRYXYECFBEQV23  thread.set  ST0002  by Alice <alice@example.com>
-2026-09-18T11:52:06.905Z  01M2T5R3FRT76KKDBNAA2J899M  thread.set  ST0002  by Bob <bob@example.com>
+2026-09-18T12:59:45.243Z  01M2T9KYPV1D7332EZYYKK99YX  st.new  ST0002  by Alice <alice@example.com>
+2026-09-18T12:59:48.673Z  01M2T9M22194AX8M39FH15SJJC  thread.set  ST0002  by Alice <alice@example.com>
+2026-09-18T12:59:48.931Z  01M2T9M2A3TVZK2SJYEE4SF50Y  thread.set  ST0002  by Bob <bob@example.com>
 events: showing 3 of 3 matched, 16 in this store.
   rc=0
 
@@ -437,20 +437,31 @@ st
   rc=0
 (with the pair under test from here)
 $ intent upgrade
-migrated: 1 thread(s), 0 issue(s), 6 file(s) written
+migrated: 1 thread(s), 0 issue(s), 5 file(s) written
 not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
 already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
 backfilled: 3 event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project
 ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
   rc=0
-$ git status --short intent/.canon/events
-?? intent/.canon/events/
+$ git status --short --untracked-files=all
+ M .gitignore
+ M intent/.config/config.json
+?? intent/.canon/events/2026/09/18/01M2T9M3CRKAXHXTWRQN5QGWQP.json
+?? intent/.canon/events/2026/09/18/01M2T9M3D6JZR0NP0ZXSHZYB2W.json
+?? intent/.canon/events/2026/09/18/01M2T9M3DF9CFDG03AFSQ209DJ.json
   rc=0
 $ intent upgrade
-migrated: 1 thread(s), 0 issue(s), 6 file(s) written
+migrated: 1 thread(s), 0 issue(s), 5 file(s) written
 not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
 already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
 ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
+  rc=0
+$ git status --short --untracked-files=all
+ M .gitignore
+ M intent/.config/config.json
+?? intent/.canon/events/2026/09/18/01M2T9M3CRKAXHXTWRQN5QGWQP.json
+?? intent/.canon/events/2026/09/18/01M2T9M3D6JZR0NP0ZXSHZYB2W.json
+?? intent/.canon/events/2026/09/18/01M2T9M3DF9CFDG03AFSQ209DJ.json
   rc=0
 
 ===== 6c a canon file written by a newer Intent
@@ -557,7 +568,7 @@ $ intent doctor
 advisory: store-stale -- 2 findings, not counted in the verdict
   remedy: run `intent sync --apply`: it takes the files only where they say something the store did not write, deletes no row whose file was never written, and waits for a peer's write rather than reverting it -- so it is safe on a shared tree. After a `git pull` this is the usual cause, and the hooks `intent claude upgrade --apply` wires run it for you. On a shared tree this also shows for the duration of ANOTHER node's canon write, and then clears itself when that write lands
   intent/.cache/intent.db -- the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted
-  intent/.cache/intent.db -- the store does not hold 1 committed event file(s), first intent/.canon/events/2026/09/18/01M2T5R5F0M77RJVNST80HEQJ9.json -- they arrived by a pull or a checkout the store has not ingested, and the next ingest of the tree takes them, since event ingest only ever adds
+  intent/.cache/intent.db -- the store does not hold 1 committed event file(s), first intent/.canon/events/2026/09/18/01M2T9M4FY05ZFYZMPFF6A96B1.json -- they arrived by a pull or a checkout the store has not ingested, and the next ingest of the tree takes them, since event ingest only ever adds
 advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
 surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
 doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 33 file(s) -- 3 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
@@ -579,7 +590,7 @@ $ git diff --stat
 $ git checkout -- .
   rc=0
 $ intent sync --apply
-plan: 3 step(s) for this clone (plan a9afa96304b247070e2c7a5a2790c4696968e6555c0867736035dfeb6ec69a21), and applying it now
+plan: 3 step(s) for this clone (plan 816cc0371f0eaa52fd988046c24f5e9d2f67b146474aa095311842b1d5bad4b8), and applying it now
   1. ingest (quiet): take 2 change(s) from the files into the store: ST0002, ST0004
   2. events (quiet): 1 event file(s) to take
   3. index (quiet): bring 1 file(s) the search index has not caught up with into it
