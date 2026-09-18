@@ -178,6 +178,111 @@ pub struct Report {
   /// including one with no findings this run, so a decision to keep something
   /// is visible on every run that honours it.
   pub acknowledged: Vec<Acknowledged>,
+  /// **What the search index's probes read (issue 0442). NOT FINDINGS, AND
+  /// NOT ADVISORIES EITHER, AND THE SECOND IS THE ONE THAT MATTERS.** A class
+  /// that is not actionable prints only under `--verbose`, so a detector in
+  /// that tier would report real FTS5 damage invisibly on a default run --
+  /// which is 0442 itself, `doctor` and `index status` reading clean over a
+  /// malformed index all night, rebuilt inside its own fix. So this sits with
+  /// [`Report::unattached`]: shown unless `--quiet`, never counted, and the
+  /// exit code does not move (hv decision 25, "advisory rather than blocking";
+  /// the tier is vc decision 37's).
+  pub search_index: SearchIndex,
+}
+
+/// Whether the search index was read, and what the probes saw.
+#[derive(Debug, Clone, Default)]
+pub enum SearchIndex {
+  /// No store opened, so nothing was asked -- the backup check's rule.
+  #[default]
+  NotAsked,
+  /// The store opened and the probes could not run.
+  Unreadable(String),
+  /// One reading per FTS5 search table.
+  Read(Vec<SearchIndexReading>),
+}
+
+/// What the three probes read on one FTS5 table. Read by
+/// [`crate::store::Store::read_search_index`]; judged here.
+#[derive(Debug, Clone)]
+pub struct SearchIndexReading {
+  pub table: String,
+  /// Docids the index holds with no row in the content table.
+  pub orphaned: Orphans,
+  /// What fts5's own per-table check objected to, or `None` for its single
+  /// `ok`. **A READING, NOT AN ERROR**, so it is not carried as one: a check
+  /// that reports damage has worked.
+  pub structure: Option<String>,
+  /// The two shadow tables against each other -- blind to 0442, and kept for
+  /// the fault it CAN see.
+  pub docsize_without_content: i64,
+  pub content_without_docsize: i64,
+}
+
+/// What the index-side probe read.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Orphans {
+  /// The docids the index holds with no content row; empty is clean.
+  Docids(Vec<i64>),
+  /// The probe could not read the index, which on a damaged index is itself
+  /// the damage speaking -- so it counts as dirty, never as clean.
+  Unreadable(String),
+}
+
+/// What the two index probes say together. **A combination is a statement
+/// about a PAIR, so no single probe can own it** -- which is why it has its own
+/// line rather than living in either probe's text.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Pair {
+  BothDirty,
+  OrphansOnly,
+  StructureOnly,
+  BothClean,
+}
+
+impl Pair {
+  /// The one sentence the pair's line carries. It says which probe objects and
+  /// nothing more: the lines under it say what each one read, including an
+  /// index-side probe that could not read the index at all, which counts as
+  /// dirty rather than as clean.
+  pub fn meaning(self) -> &'static str {
+    match self {
+      Self::BothDirty => {
+        "both index probes are dirty: the index-side probe and fts5's own check both object"
+      }
+      Self::OrphansOnly => {
+        "the index-side probe is dirty while fts5's own check passes -- the shape of issue 0442"
+      }
+      Self::StructureOnly => {
+        "fts5's own check objects to the segments while the index-side probe is clean: every document the index holds has a content row"
+      }
+      Self::BothClean => {
+        "both index probes are clean, and they share one blind spot: both read the index's segments"
+      }
+    }
+  }
+}
+
+impl SearchIndexReading {
+  pub fn pair(&self) -> Pair {
+    let orphans = self.orphaned != Orphans::Docids(Vec::new());
+    match (orphans, self.structure.is_some()) {
+      (true, true) => Pair::BothDirty,
+      (true, false) => Pair::OrphansOnly,
+      (false, true) => Pair::StructureOnly,
+      (false, false) => Pair::BothClean,
+    }
+  }
+
+  /// The shadow tables disagreeing with each other: the third probe's only
+  /// statement. At zero it makes NO claim about the index.
+  pub fn shadows_disagree(&self) -> bool {
+    self.docsize_without_content != 0 || self.content_without_docsize != 0
+  }
+
+  pub fn damaged(&self) -> bool {
+    self.pair() != Pair::BothClean || self.shadows_disagree()
+  }
 }
 
 /// One acknowledged class: why it is kept, and what it found this run.
@@ -404,6 +509,10 @@ fn examine(
   if let Some(store) = store {
     report.findings.extend(backup_findings(project, store));
     report.findings.extend(undeclared_op_findings(store));
+    report.search_index = match store.read_search_index() {
+      Ok(readings) => SearchIndex::Read(readings),
+      Err(e) => SearchIndex::Unreadable(e.to_string()),
+    };
   }
   // **OUTSIDE THE STORE BLOCK, BECAUSE THE GATE IS NOT A PROPERTY OF THE
   // STORE.** A project whose store will not open is exactly one whose commit

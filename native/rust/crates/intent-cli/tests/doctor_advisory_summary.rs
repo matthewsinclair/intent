@@ -124,6 +124,19 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
     quiet.contains("doctor: 0 finding(s) across"),
     "the verdict survives --quiet: {quiet}"
   );
+  // **THE CLEAN SEARCH INDEX CARRIES ITS LIMIT, AND UNDER `--quiet` TOO**
+  // (issue 0442). This suffix is the one on the line that appears AT ZERO: two
+  // clean probes that both read the index's segments are not two independent
+  // witnesses, and a clean verdict that dropped the sentence would read as if
+  // they were -- `doctor` reading clean over a malformed index is 0442 itself.
+  for run in [&out, &quiet] {
+    assert!(
+      run.contains(
+        "-- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot"
+      ),
+      "the clean search index names its shared blind spot on the summary line: {run}"
+    );
+  }
   // The COUNT stays on the verdict line, which is the one thing `--quiet`
   // keeps: "0 finding(s)" with 66 notes silently dropped would be a quieter
   // report and a less honest one. What goes is every line that is not the

@@ -7073,6 +7073,85 @@ fn scope_suffix(report: &intentsvcs::doctor::Report) -> String {
   }
 }
 
+/// What the search index's probes read, on the summary line (issue 0442).
+///
+/// **THIS ONE APPEARS AT ZERO, WHICH INVERTS EVERY SUFFIX BESIDE IT, AND THAT
+/// IS THE DESIGN RATHER THAN AN INCONSISTENCY TO TIDY.** The three above are
+/// silent at zero because at zero the qualified and unqualified statements are
+/// the same. Here they are not: both working probes read the index's segments,
+/// so a clean reading from them is not the statement a clean reading from two
+/// independent witnesses would be -- and a reader shown two clean verdicts
+/// counts two witnesses unless the line says otherwise. **The clean verdict is
+/// the one that must carry its limit**, and it rides the summary because that
+/// is the line `--quiet` keeps. Silencing it at zero rebuilds 0442: `doctor`
+/// and `index status` read clean over a malformed index all night.
+///
+/// Silent only when nothing was asked -- no store opened -- which is the
+/// backup check's rule, and then no sentence here claims anything.
+fn search_index_suffix(index: &intentsvcs::doctor::SearchIndex) -> String {
+  use intentsvcs::doctor::SearchIndex;
+  match index {
+    SearchIndex::NotAsked => String::new(),
+    SearchIndex::Unreadable(e) => format!(" -- search index NOT checked: {e}"),
+    SearchIndex::Read(readings) => {
+      let damaged: Vec<&str> = readings
+        .iter()
+        .filter(|r| r.damaged())
+        .map(|r| r.table.as_str())
+        .collect();
+      match damaged.as_slice() {
+        [] => " -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)".to_string(),
+        tables => format!(
+          " -- search index DAMAGED in {}, not counted; `intent index rebuild` repairs it",
+          tables.join(" and ")
+        ),
+      }
+    }
+  }
+}
+
+/// Each damaged search table: the pair's verdict once, then what each probe
+/// read. **The shadow-table probe prints NOTHING when it reads zero** -- at zero
+/// it makes no claim about the index, and a line such as `shadow tables: ok`
+/// would be a true sentence producing a false belief, because that probe was
+/// measured reading zero over 0442's real damage.
+fn print_search_index(index: &intentsvcs::doctor::SearchIndex) {
+  use intentsvcs::doctor::Orphans;
+  let intentsvcs::doctor::SearchIndex::Read(readings) = index else {
+    return;
+  };
+  for r in readings.iter().filter(|r| r.damaged()) {
+    println!(
+      "search-index: {} -- {}, not counted in the verdict",
+      r.table,
+      r.pair().meaning()
+    );
+    println!("  remedy: `intent index rebuild` re-derives the index from its content table");
+    match &r.orphaned {
+      Orphans::Docids(docs) if docs.is_empty() => {}
+      Orphans::Docids(docs) => println!(
+        "  orphaned: {} docid(s) the index holds with no content row: {}",
+        docs.len(),
+        docs
+          .iter()
+          .map(i64::to_string)
+          .collect::<Vec<_>>()
+          .join(", ")
+      ),
+      Orphans::Unreadable(e) => println!("  orphaned: the probe could not read the index -- {e}"),
+    }
+    if let Some(e) = &r.structure {
+      println!("  fts5 check: {e}");
+    }
+    if r.shadows_disagree() {
+      println!(
+        "  shadow tables disagree: {} docsize row(s) with no content row, {} content row(s) with no docsize row",
+        r.docsize_without_content, r.content_without_docsize
+      );
+    }
+  }
+}
+
 /// Print findings grouped by class: one header, one remedy, then every member.
 ///
 /// **THE REMEDY CANNOT VARY WITHIN A CLASS.** `FindingClass::remedy` takes no
@@ -7373,6 +7452,12 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
       println!("  {path}");
     }
   }
+  // **THE SEARCH INDEX, SHOWN AND NOT COUNTED** -- the tier `unattached` is
+  // in, for the reason `Report::search_index` gives. A clean table prints
+  // nothing here; the summary's suffix carries the clean reading and its limit.
+  if !quiet {
+    print_search_index(&report.search_index);
+  }
   println!(
     // **THE SUMMARY SURVIVES `--quiet`, DELIBERATELY, AND IT IS THE ONE
     // INFORMATIONAL LINE THAT DOES.** Dropping it would make a clean run under
@@ -7384,7 +7469,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     // found" over one it read completely, and `Report`'s own doc comment says
     // the counts exist to tell those apart. `--quiet` is for less noise, not
     // for a verdict you cannot check.
-    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}{}{}",
+    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s){}{}{}{}",
     report.actionable(),
     report.threads_checked,
     report.issues_checked,
@@ -7392,7 +7477,8 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     report.files_checked,
     advisory_suffix(&report),
     acknowledged_suffix(&report),
-    scope_suffix(&report)
+    scope_suffix(&report),
+    search_index_suffix(&report.search_index)
   );
   doctor_verdict(&report)
 }
@@ -13213,7 +13299,41 @@ pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Va
         "findings": a.findings,
       }))
       .collect::<Vec<_>>(),
+    // Out of `findings` and out of `healthy`, like `unattached`, and carried
+    // whole for the reason the text face's suffix gives: `null` is a run that
+    // opened no store, which is not the same statement as a clean index.
+    "search_index": search_index_json(&report.search_index),
   })
+}
+
+/// The search index's readings on the machine face. Each probe is its own
+/// key, and the shared blind spot travels with a clean pair as a field rather
+/// than being left to a reader to infer from two clean values.
+fn search_index_json(index: &intentsvcs::doctor::SearchIndex) -> serde_json::Value {
+  use intentsvcs::doctor::{Orphans, Pair, SearchIndex};
+  match index {
+    SearchIndex::NotAsked => serde_json::Value::Null,
+    SearchIndex::Unreadable(e) => serde_json::json!({ "checked": false, "error": e }),
+    SearchIndex::Read(readings) => serde_json::json!({
+      "checked": true,
+      "tables": readings.iter().map(|r| serde_json::json!({
+        "table": r.table,
+        "damaged": r.damaged(),
+        "pair": r.pair().meaning(),
+        "shared_blind_spot": r.pair() == Pair::BothClean,
+        "orphaned": match &r.orphaned {
+          Orphans::Docids(docs) => serde_json::json!(docs),
+          Orphans::Unreadable(e) => serde_json::json!({ "error": e }),
+        },
+        "fts5_check": match &r.structure {
+          None => serde_json::json!("ok"),
+          Some(e) => serde_json::json!(e),
+        },
+        "docsize_without_content": r.docsize_without_content,
+        "content_without_docsize": r.content_without_docsize,
+      })).collect::<Vec<_>>(),
+    }),
+  }
 }
 
 fn render_critic_json(report: &intentsvcs::critic::Report) {

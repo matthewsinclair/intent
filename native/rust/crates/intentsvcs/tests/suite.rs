@@ -162,6 +162,8 @@ mod init_keeps_the_store_out_of_git;
 
 #[path = "doctor_checks.rs"]
 mod doctor_checks;
+#[path = "doctor_reads_the_search_index.rs"]
+mod doctor_reads_the_search_index;
 #[path = "doctor_scope.rs"]
 mod doctor_scope;
 

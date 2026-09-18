@@ -4733,6 +4733,90 @@ impl Store {
     )?)
   }
 
+  /// Read both FTS5 search tables with the three probes `doctor` reports
+  /// (issue 0442): what each one saw, and no verdict --
+  /// [`crate::doctor::SearchIndexReading`] is where the readings are judged.
+  ///
+  /// **THE INDEX'S OWN DOCIDS, NOT A SHADOW TABLE'S.** The orphan probe reads
+  /// every docid the index holds through `fts5vocab` in `instance` mode and
+  /// keeps the ones with no row in `%_content`. The obvious independent probe,
+  /// `%_docsize` against `%_content`, was MEASURED BLIND to 0442 on the damaged
+  /// store: `sqlite3Fts5StorageDelete` removes the index records, then the
+  /// docsize row, then the content row, each gated on the one before, so in
+  /// that shape both shadow tables lose the row together and agree perfectly.
+  /// It is still read, as the third probe, for the fault it can see: the two
+  /// shadow tables disagreeing with each other.
+  ///
+  /// **ON THIS CONNECTION, NOT [`Store::read_only_connection`], AND THAT WAS
+  /// DRIVEN.** `fts5vocab` exists only as a table somebody creates, and the
+  /// read-only door's `query_only` refuses a `temp` table as firmly as a real
+  /// one -- the create fails and the next statement reports "no such table".
+  /// So the one write here is a `temp` object on this connection, which never
+  /// touches the store's file and is dropped before this returns. Every probe
+  /// reads `main` and nothing else.
+  ///
+  /// fts5's own check is the per-table `PRAGMA integrity_check(<table>)`,
+  /// which since SQLite 3.44 calls the table's integrity method and is a read,
+  /// where the `'integrity-check'` command is an `INSERT`.
+  pub fn read_search_index(&self) -> Result<Vec<crate::doctor::SearchIndexReading>, StoreError> {
+    let mut readings = Vec::new();
+    for table in ["src_sections", "doc_sections"] {
+      let vocab = format!("temp.doctor_{table}_instances");
+      self.conn.execute_batch(&format!(
+        "DROP TABLE IF EXISTS {vocab};
+         CREATE VIRTUAL TABLE {vocab} USING fts5vocab(main, {table}, instance);"
+      ))?;
+      let orphaned = self
+        .conn
+        .prepare(&format!(
+          "SELECT DISTINCT doc FROM {vocab}
+            WHERE doc NOT IN (SELECT id FROM main.{table}_content) ORDER BY doc"
+        ))
+        .and_then(|mut stmt| {
+          stmt
+            .query_map([], |row| row.get::<_, i64>(0))?
+            .collect::<Result<Vec<_>, _>>()
+        })
+        .map_or_else(
+          |e| crate::doctor::Orphans::Unreadable(e.to_string()),
+          crate::doctor::Orphans::Docids,
+        );
+      self.conn.execute(&format!("DROP TABLE {vocab}"), [])?;
+      let structure = self
+        .conn
+        .prepare(&format!("PRAGMA main.integrity_check({table})"))
+        .and_then(|mut stmt| {
+          stmt
+            .query_map([], |row| row.get::<_, String>(0))?
+            .collect::<Result<Vec<_>, _>>()
+        })
+        .map_or_else(
+          |e| Some(e.to_string()),
+          |lines| match lines.as_slice() {
+            [only] if only == "ok" => None,
+            _ => Some(lines.join("; ")),
+          },
+        );
+      let count = |sql: String| -> Result<i64, StoreError> {
+        Ok(self.conn.query_row(&sql, [], |row| row.get(0))?)
+      };
+      readings.push(crate::doctor::SearchIndexReading {
+        table: table.to_string(),
+        orphaned,
+        structure,
+        docsize_without_content: count(format!(
+          "SELECT count(*) FROM main.{table}_docsize
+            WHERE id NOT IN (SELECT id FROM main.{table}_content)"
+        ))?,
+        content_without_docsize: count(format!(
+          "SELECT count(*) FROM main.{table}_content
+            WHERE id NOT IN (SELECT id FROM main.{table}_docsize)"
+        ))?,
+      });
+    }
+    Ok(readings)
+  }
+
   /// Backup attempts that FAILED since the newest good snapshot.
   ///
   /// **THE COMPANION TO [`Store::hours_since_last_good_snapshot`], AND IT
