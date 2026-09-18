@@ -103,6 +103,8 @@ Neither generator runs a binary; both read the register at the revision with `gi
 
 Step 4 staging at the tag is what makes step 2's placement load-bearing: `prepare` stages the tag's tree, so anything committed after the tag is not in what ships.
 
+**Step 2 is enforced, not only written here.** Step 3's preflight runs `intent/st/ST0056/parity/tools/reference_current_check.sh`, which regenerates both halves into scratch at `HEAD` against the ruled baseline, diffs them against the committed set with only the generation time and the revision row masked, and refuses the cut if anything else differs. It writes nothing, so the fix is still your step 2 commit. `--allow-stale-reference` cuts anyway and keeps the diff. Run it yourself before step 3: it exits 0 when the set is current, 1 when it is stale (printing the diff and the commands), and 2 when it cannot give a verdict.
+
 ## The pointer to this page lives in `CLAUDE.md` itself, not in the template
 
 Worth writing down because the reflex is wrong and the cost of following it is not small. `CLAUDE.md` ends with a line saying it is generated from `lib/templates/llm/_CLAUDE.md`, so the instinct when adding an entry to its "Internal authoring docs" index is to edit the template. **The template has no such section.** What it has is a `<!-- user:start -->` / `<!-- user:end -->` region that is preserved across regeneration, and the index sits inside that region in the rendered file. So the entry goes into `CLAUDE.md` directly and survives the next render.
@@ -115,10 +117,10 @@ Following the reflex would have edited a file that does not carry the section, a
 
 **AND "RUN YOUR COMMANDS" CANNOT BE THE WHOLE RULE, BECAUSE THE COMMANDS THAT MOST NEED TO BE RIGHT ARE THE ONES NOBODY CAN SAFELY RUN.** `git tag`, the push, the publish and the brew steps are unverifiable by execution BY CONSTRUCTION, and they are the consequential half. So there are two methods, and which one applies is decided by the command rather than by the author's confidence:
 
-| Kind                             | Method                                        | On this page                                                     |
-| -------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| Cheap and read-only              | RUN it, and read what it printed              | every `git describe`, `git show`, `grep`, and both generators    |
-| Destructive, outward or one-shot | READ it, as CONTROL FLOW rather than as lines | `bin/devbin build release` — the tag, the confirmation, the push |
+| Kind                             | Method                                        | On this page                                                                                |
+| -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Cheap and read-only              | RUN it, and read what it printed              | every `git describe`, `git show`, `grep`, both generators, and `reference_current_check.sh` |
+| Destructive, outward or one-shot | READ it, as CONTROL FLOW rather than as lines | `bin/devbin build release` — the tag, the confirmation, the push                            |
 
 The second row is not a weaker method and it caught the harder defect. The claim that this page originally made about the release driver — that it commits, tags and pushes in one run, so no window exists after the tag — was assembled from correct `grep` hits and was wrong, and what disproved it was reading the driver's control flow: the push sits behind a human confirmation, and declining it exits 2 with the tag already created. Correct citations, different behaviour.
 

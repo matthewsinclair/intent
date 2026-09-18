@@ -109,6 +109,18 @@ EOF
   cp "$RELEASE" bin/.devbin/cmd/build.d/release
   chmod +x bin/.devbin/cmd/build.d/release
 
+  # Pre-flight refuses a stale docs/reference, and it refuses when the check
+  # cannot answer at all -- so a fixture without the instrument would stop every
+  # dry run at that gate. The real tree always carries it; the stub stands in,
+  # current by default, and the test below drives its other two exits.
+  mkdir -p intent/st/ST0056/parity/tools
+  cat > intent/st/ST0056/parity/tools/reference_current_check.sh <<'STUB'
+#!/usr/bin/env bash
+echo "reference_current_check stub"
+exit "${REFERENCE_STUB_RC:-0}"
+STUB
+  chmod +x intent/st/ST0056/parity/tools/reference_current_check.sh
+
   git add -A
   git commit -q -m "init"
 
@@ -458,4 +470,44 @@ EOF
   [[ "$output" == *"contract_check: NO VERDICT (rc=2)"* ]]
   [[ "$output" == *"dry-run complete"* ]]
   unset CONTRACT_STUB_RC
+}
+
+# --------------------------------------------------------------------
+# a stale docs/reference refuses the cut
+# --------------------------------------------------------------------
+
+# hv's ruling of 2026-09-18 (vc decision 38, Q5): the cut refuses a docs/reference
+# that does not describe HEAD. Unlike contract_check this GATES: exit 1 refuses
+# unless --allow-stale-reference is passed, and exit 2 refuses even then, because
+# the override is for a known-stale set and never for an unknown one. The stub
+# stands in for the instrument, so what is under test is the release script's
+# handling of 0, 1 and 2.
+@test "release pre-flight refuses a stale docs/reference unless overridden, and refuses no verdict either way" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+
+  export REFERENCE_STUB_RC=0
+  run_release --dry-run --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"docs/reference describes HEAD"* ]]
+
+  export REFERENCE_STUB_RC=1
+  run_release --dry-run --patch
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"docs/reference does not describe HEAD"* ]]
+  [[ "$output" == *"--allow-stale-reference"* ]]
+  [[ "$output" != *"dry-run complete"* ]]
+
+  run_release --dry-run --allow-stale-reference --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"docs/reference is STALE and --allow-stale-reference is set"* ]]
+  [[ "$output" == *"dry-run complete"* ]]
+
+  export REFERENCE_STUB_RC=2
+  run_release --dry-run --allow-stale-reference --patch
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"reference_current_check gave NO VERDICT (rc=2)"* ]]
+  unset REFERENCE_STUB_RC
 }

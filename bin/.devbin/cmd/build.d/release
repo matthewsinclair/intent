@@ -44,6 +44,9 @@
 #   --skip-tests         Skip the pre-flight doctor, bats and cargo test gates
 #                        (re-run mode).
 #   --allow-stale-date   Accept a CHANGELOG date that is not today.
+#   --allow-stale-reference
+#                        Cut even though docs/reference does not describe HEAD;
+#                        the diff is kept and named in the output.
 #   --help, -h           Print this help and exit.
 #
 # The binary it drives is native/rust/target/release/intent, resolved by path:
@@ -246,6 +249,7 @@ DRY_RUN=false
 NO_CONFIRM=false
 SKIP_TESTS=false
 ALLOW_STALE_DATE=false
+ALLOW_STALE_REFERENCE=false
 
 usage() {
   # ANCHORED ON STRUCTURE, NOT ON LINE NUMBERS. This was a hardcoded `5,34p`
@@ -286,6 +290,7 @@ while [ $# -gt 0 ]; do
     --no-confirm)      NO_CONFIRM=true ;;
     --skip-tests)      SKIP_TESTS=true ;;
     --allow-stale-date) ALLOW_STALE_DATE=true ;;
+    --allow-stale-reference) ALLOW_STALE_REFERENCE=true ;;
     --help|-h)         usage 0 ;;
     *) abort "unknown argument: $1 (use --help for usage)" ;;
   esac
@@ -544,6 +549,35 @@ $faces_stale
       ;;
     1) log_warn "contract_check: FINDINGS -- data-model.md and the published schema faces disagree; the release does not wait on it (rostered manual). full output: $contract_log" ;;
     *) log_warn "contract_check: NO VERDICT (rc=$contract_rc) -- it could not run here; the release does not wait on it. full output: $contract_log" ;;
+  esac
+
+  # THE CUT REFUSES A STALE docs/reference (hv, 2026-09-18, vc decision 38 Q5).
+  # v3.0.3's tag shipped the previous cut's pages because the regeneration landed
+  # after it and nothing said so; intent/docs/releasing.md put the step on a page,
+  # and this is what stops the page having to be remembered. It regenerates into
+  # scratch and diffs, writing nothing, so the fix stays a human's commit made
+  # BEFORE this run. Here and not at the tag: by the tag, the commit that should
+  # have held the pages is the one being tagged. Not gated by --skip-tests, for
+  # the contract check's reason -- a read of the tree, not a suite. The override
+  # keeps the diff and names it, so a lagging cut leaves a trace.
+  local ref_log ref_rc=0
+  ref_log="$(release_log_dir)/reference_current_check.log"
+  bash "$PROJECT_ROOT/intent/st/ST0056/parity/tools/reference_current_check.sh" > "$ref_log" 2>&1 || ref_rc=$?
+  case "$ref_rc" in
+    0)
+      rm -f "$ref_log"
+      log_info "docs/reference describes HEAD against the previous release tag"
+      ;;
+    1)
+      if [ "$ALLOW_STALE_REFERENCE" = "true" ]; then
+        log_warn "docs/reference is STALE and --allow-stale-reference is set -- this cut ships pages that do not describe it. diff kept: $ref_log"
+      else
+        abort "docs/reference does not describe HEAD -- regenerate both halves and commit them before releasing (intent/docs/releasing.md).
+  the diff and the commands: $ref_log
+  to cut anyway, re-run with --allow-stale-reference"
+      fi
+      ;;
+    *) abort "reference_current_check gave NO VERDICT (rc=$ref_rc), so the cut cannot say its reference pages are current. full output: $ref_log" ;;
   esac
 
   if [ "$SKIP_TESTS" = "true" ]; then
