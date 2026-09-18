@@ -529,6 +529,171 @@ fn with_no_daemon_the_answers_are_the_same() {
   let _ = std::fs::remove_dir_all(&root);
 }
 
+/// When the index was last reconciled, read WITHOUT reconciling it.
+///
+/// **THE OBSERVABLE FOR "THIS SEARCH RECONCILED".** A whole-scope reconcile
+/// stamps `index.reconciled_at` even when nothing moved, and the daemon's
+/// scoped watcher writes nothing when it finds nothing -- so on a quiet tree
+/// the stamp moves if and only if something asked for a whole reconcile.
+fn reconciled_at(home: &Path, root: &Path) -> Option<String> {
+  let out = run(
+    home,
+    root,
+    &["search", "--json", "--no-reconcile", "anything"],
+  );
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "the stamp could not be read: {}",
+    text(&out)
+  );
+  let answer: serde_json::Value =
+    serde_json::from_slice(&out.stdout).expect("`search --json` prints one JSON value");
+  answer["index"]["reconciled_at"]
+    .as_str()
+    .map(str::to_string)
+}
+
+/// The stamp once it has stopped moving: a freshly registered project can still
+/// be settling its watch, and a reading taken mid-settle would red the watched
+/// arm for a reason that is not the subject.
+fn settled_stamp(home: &Path, root: &Path) -> Option<String> {
+  let mut last = reconciled_at(home, root);
+  for _ in 0..50 {
+    std::thread::sleep(std::time::Duration::from_millis(200));
+    let now = reconciled_at(home, root);
+    if now == last {
+      return now;
+    }
+    last = now;
+  }
+  panic!("the index stamp never settled, so no reading below would be about the search");
+}
+
+#[test]
+fn a_search_skips_its_reconcile_where_a_daemon_watches_and_not_elsewhere() {
+  // **ISSUE 0443 Q1, vc's RULING: WHEN A DAEMON IS WATCHING THIS PROJECT THE
+  // IN-PROCESS SEARCH SKIPS ITS RECONCILE.** Routing is opt-in, so a plain
+  // `intent search` runs here while intentd watches the tree, and a second
+  // writer reconciling the index the watcher keeps current is the duplicated
+  // write 0442 paid for.
+  //
+  // **BOTH SIDES, FOR THE REASON THE `sync` CARVE-OUT ABOVE GIVES.** The skip
+  // alone passes under a search hard-wired never to reconcile, which would
+  // answer about a tree that moved; the reconcile alone passes with the change
+  // deleted. Only the pair says the answer depends on THIS project.
+  let daemon = RealDaemon::start();
+  let watched = project();
+  let untouched = project();
+
+  let contacted = run(daemon.home(), &watched, &["--daemon", "st", "list"]);
+  assert_eq!(
+    contacted.status.code(),
+    Some(0),
+    "the daemon could not answer for the project it is meant to watch: {}",
+    text(&contacted)
+  );
+  assert!(
+    daemon.watching(&watched),
+    "the daemon registered this project without watching it, so the skip arm is not about watching"
+  );
+  assert!(
+    !daemon.watching(&untouched),
+    "the daemon is watching a project nothing asked it about, so the two arms are not different cases"
+  );
+
+  // Watched: the search answers, and the stamp does not move.
+  let before = settled_stamp(daemon.home(), &watched);
+  let searched = run(daemon.home(), &watched, &["search", "anything"]);
+  assert_eq!(searched.status.code(), Some(0), "{}", text(&searched));
+  assert_eq!(
+    settled_stamp(daemon.home(), &watched),
+    before,
+    "a search in a project the daemon is WATCHING reconciled the index itself -- a second writer \
+     beside the watcher"
+  );
+
+  // Not watched, same daemon up: the search reconciles, so the stamp moves.
+  let first = run(daemon.home(), &untouched, &["search", "anything"]);
+  assert_eq!(first.status.code(), Some(0), "{}", text(&first));
+  let before = reconciled_at(daemon.home(), &untouched);
+  assert!(
+    before.is_some(),
+    "a search in an unwatched project left no reconcile stamp, so the arm below cannot see one move"
+  );
+  std::thread::sleep(std::time::Duration::from_millis(5));
+  let again = run(daemon.home(), &untouched, &["search", "anything"]);
+  assert_eq!(again.status.code(), Some(0), "{}", text(&again));
+  assert_ne!(
+    reconciled_at(daemon.home(), &untouched),
+    before,
+    "a search in a project NO daemon watches did not reconcile, so it answers about a tree that \
+     may have moved -- the skip is wider than the project it is about"
+  );
+
+  let _ = std::fs::remove_dir_all(&watched);
+  let _ = std::fs::remove_dir_all(&untouched);
+}
+
+#[test]
+fn when_the_daemon_cannot_say_a_search_reconciles_where_sync_refuses() {
+  // **THE Err PATH, AND THE ASYMMETRY IS THE SUBJECT.** Both verbs ask one
+  // predicate, and this fixture -- a listener that answers only the liveness
+  // probe -- cannot answer `Op::Registry`, so the watching question has no
+  // answer. `sync` refuses on that (a wrong "no" would start a second sync
+  // engine); a search reconciles, because a read verb must reconcile when the
+  // daemon cannot say. `render.rs`'s `a_search_here_reconciles` carries the
+  // reason, so nobody tidies the two into agreement.
+  let daemon = AnsweringDaemon::start();
+  let root = project();
+
+  // **A WORD ONLY A RECONCILE CAN FIND.** Written after the project was built,
+  // so it is on disk and in no index until something reconciles.
+  let word = "quillwort";
+  std::fs::write(root.join("late.md"), format!("# Late\n\n{word}\n")).expect("a late file");
+
+  // **THE CONTROL: without a reconcile the word is not found**, so the find
+  // below is the reconcile's doing and not the fixture's.
+  let unreconciled = run(daemon.home(), &root, &["search", "--no-reconcile", word]);
+  assert_eq!(
+    unreconciled.status.code(),
+    Some(0),
+    "{}",
+    text(&unreconciled)
+  );
+  assert!(
+    !String::from_utf8_lossy(&unreconciled.stdout).contains("late.md"),
+    "the late file was indexed before any reconcile, so the arm below proves nothing: {}",
+    text(&unreconciled)
+  );
+
+  let searched = run(daemon.home(), &root, &["search", word]);
+  assert_eq!(
+    searched.status.code(),
+    Some(0),
+    "a search refused because the daemon could not say whether it watches this project -- a read \
+     verb must reconcile when the daemon cannot say: {}",
+    text(&searched)
+  );
+  assert!(
+    String::from_utf8_lossy(&searched.stdout).contains("late.md"),
+    "the search answered without reconciling, so an unanswerable watching question was read as \
+     \"watched\": {}",
+    text(&searched)
+  );
+
+  let synced = run(daemon.home(), &root, &["sync", "--to-disk"]);
+  assert_eq!(
+    synced.status.code(),
+    Some(2),
+    "sync RAN beside a daemon whose watching could not be established -- the carve-out's reading \
+     of the same Err: {}",
+    text(&synced)
+  );
+
+  let _ = std::fs::remove_dir_all(&root);
+}
+
 // ---------------------------------------------------------------------------
 // `0244`: THE REMEDY IS THE INPUT TO THE RECOVERY, NOT A STRING ASSERTED
 // BESIDE IT.

@@ -607,6 +607,42 @@ pub(crate) fn engine(
   Facade::open(project, ctx).map_err(fail)
 }
 
+/// Should a search answered IN THIS PROCESS reconcile the index first?
+///
+/// **NOT WHEN A DAEMON IS WATCHING THIS PROJECT** (issue 0443 Q1, vc's ruling
+/// 2026-09-18). Routing is opt-in, so a plain `intent search` -- and the TUI's
+/// search pane -- run here even while intentd watches this tree, and a second
+/// writer reconciling an index the watcher already keeps current is the
+/// duplicated write this estate has paid for (issue 0442).
+///
+/// **AN UNANSWERABLE WATCHING QUESTION READS AS "NOT WATCHED" HERE, AND
+/// `engine()`'s `sync`/`ingest` ARM READS THE SAME `Err` AS A REFUSAL. THE
+/// DISAGREEMENT IS THE DESIGN; DO NOT TIDY THE TWO INTO AGREEMENT.** Both ask
+/// one predicate, [`watching_this_project`]. For `sync` a wrong "no" starts a
+/// second sync engine beside the daemon, so it refuses when it cannot tell.
+/// For a READ, refusing would turn a daemon that hiccupped into a search that
+/// cannot run, while reconciling costs at worst one duplicated refresh -- what
+/// every search did before this. A read verb must reconcile when the daemon
+/// cannot say.
+fn a_search_here_reconciles(root: &Path) -> bool {
+  !watched_by_a_daemon(root).unwrap_or(false)
+}
+
+/// Is a daemon on this machine watching the tree at `root`?
+///
+/// **THE SAME PREDICATE `engine()`'s CARVE-OUT ASKS, reached from a caller that
+/// has no endpoint in hand.** No daemon answering is a definite "no"; a daemon
+/// answering hands the question to [`watching_this_project`], whose `Err` the
+/// CALLER reads, because what an unanswerable question should mean depends on
+/// what the caller would do with a wrong answer.
+fn watched_by_a_daemon(root: &Path) -> Result<bool, Failure> {
+  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+  match daemon::route(&candidates) {
+    daemon::Route::InProcess => Ok(false),
+    daemon::Route::Daemon(endpoint) => watching_this_project(&endpoint, root),
+  }
+}
+
 /// Is the daemon at `endpoint` watching the tree at `root`?
 ///
 /// **THE MECHANISM OF `AC-08.5`'s NARROWING, AND THE ONLY REASON THE PREDICATE
@@ -3700,7 +3736,12 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       // only moment the index can catch up with the tree. A search that skipped
       // it would answer about a tree that has moved and say `complete: true`
       // beside the answer.
-      if !m.get_flag("no-reconcile") {
+      //
+      // **AND THE SAME REASON SKIPS IT WHEN A DAEMON IS WATCHING THIS PROJECT**
+      // -- see [`a_search_here_reconciles`], which is also where the reading of
+      // an unanswerable watching question is decided, and why it is the
+      // opposite of `sync`'s.
+      if a_search_here_reconciles(f.project().root()) && !m.get_flag("no-reconcile") {
         f.index_refresh_for_search(&query).map_err(fail)?;
       }
       f.search_all(&query, &ask).map_err(fail)
@@ -5722,7 +5763,13 @@ impl tui::run::Source for Live {
     // view. One call, both outputs, no second query to disagree with the first.
     if let intentsvcs::nav::View::Search { query } = view {
       // Issue 0372: the pane reconciles before it answers, as the CLI does.
-      let answer = match self.facade.index_refresh_for_search(query) {
+      // The same decision as the CLI's search arm, from the same home.
+      let refreshed = if a_search_here_reconciles(self.facade.project().root()) {
+        self.facade.index_refresh_for_search(query)
+      } else {
+        Ok(())
+      };
+      let answer = match refreshed {
         Ok(()) => self
           .facade
           .search_all(query, &intentsvcs::search::SearchQuery::default()),
