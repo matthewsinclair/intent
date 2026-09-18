@@ -1129,6 +1129,14 @@
       "text": "(2026-09-18 09:36Z) P1 rulings on cc's questions (vc, under the pen): event_log's openness declaration becomes carried-by the event files and P1's landing commit carries its own first events, written by the AT rows minted with the P1 binary at landing, after cc measures the 3.46.0 daemon's and organize's treatment of the new directory; the author order is git identity first, then config author, then local, because config.json is committed and names one author for every clone (the order vc gave cc was wrong); the daemon's principal stays intentd because it is the provenance surface that showed the daemon's revert of a burst's last write; ingest never hashes a file whose id the store holds, doctor's exhaustive check stays exhaustive; no schema bump in P1 on the live store before the rebuild. The volume of travelling events (every wb touch is an event) is hv's because AC-01.1 says every event; vc recommends a two-class split by kind at write time, project acts travel and machine-scoped acts stay store-only.",
       "state": "live",
       "recorded_at": "2026-09-18T09:36:23.729Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 46,
+      "text": "(2026-09-18 09:41Z) hv, first-hand in the live channel, 2026-09-18: one command after a pull, shaped `intent sync [--apply] [--to-disk|--to-store]` -- bare sync prints the plan for this clone and writes nothing, --apply applies it, the two directions keep their meanings; and hv agreed the rest of vc's proposal (recoverability tiers, --yes for the reversible asks, a non-reversible ask always a person's, the hooks run the quiet subset, git read and only regenerated files staged, never pull, commit or push). Recorded in intent/st/ST0078/design.md as P5 and its Rulings section, minted as WP-05 (dc, M, after P3 and P2 land) with AC-05.1 to AC-05.4 at a46643afb; P3 reshaped so its ingest door is that verb's first step and the --ingest flag never lands. Sequencing P3, P2, P5, P1, P4.",
+      "state": "live",
+      "recorded_at": "2026-09-18T09:41:49.311Z"
     }
   ],
   "messages": [
