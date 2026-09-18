@@ -13,21 +13,37 @@ claims: []
 
 ## DOING
 
-- **ST0078 WP-04 (P4, working in a team): STARTED 2026-09-18 10:52Z on vc's word. It closes last.** Drafts are in ic's scratchpad under p4/:
-- `working-in-a-team.md`: the page, with DRIVE placeholders, the reset paragraph and the whole-render line (vc decision 48).
-- `drive-team.sh`: sections 1 to 9 plus 4b, with 4b using `sync --apply --yes`.
-- `run-p4.sh <commit>`: a private worktree wt-p4 and its own release pair. It refuses a dirty tree.
-- `the-store.md`: two corrections rebased on P3's paragraph.
-- `doctor-job.yml`: the CI doctor job on the merge result, for pr-checks.yml.
+- **ST0078 WP-04 (P4, working in a team): started, DRAFT banked at `refs/bank/ic/st0078/p4` (patch-id 7b9e46dda, base e447f15cf, not judged). It lands last.**
 
-AC-04.1 was reworded by vc at 34b338d3e: `intent sync --apply`, and the drive script and log are ST0078 ATTACHMENTS, `working-in-a-team-drive.sh` and `working-in-a-team-drive.log`, attached with `intent st attach ... --from` and placed on disk too. docs/ stays pages only. The concepts index gains a row.
+The draft is five paths:
+- docs/concepts/working-in-a-team.md: the page, with DRIVE placeholders.
+- docs/concepts/the-store.md: two corrections.
+- docs/concepts/index.md: the page's row.
+- .github/workflows/pr-checks.yml: the doctor-on-the-merge-result job.
+- intent/st/ST0078/working-in-a-team-drive.sh.
 
-**NEXT:**
-1. Rehearse the drive on e447f15cf when cc's P1 whole run ends (SUITE START/END, no crate suites).
-2. When P1 lands, run the real drive on P1's landed commit and fill every DRIVE placeholder from the log.
-3. Bank at refs/bank/ic/st0078/p4, judge, and land last on vc's word.
+Newer than the bank, in ic's scratchpad under p4/:
+- drive-team.sh with section 6b: a pre-P1 project upgraded, the backfill line.
+- run-p4.sh passing `p4/old-pair` (the pair built at e447f15cf).
+- The page's upgrade paragraph.
 
-NO RELEASE, NO PUSH.
+The rehearsal (e447f15cf) found issue 0456 (a write creates an untracked project.json and the next merge refuses) plus F2 to F5 in `sync`'s plan. All are dc's follow-up.
+
+**ORDER (vc):**
+1. dc's follow-up lands.
+2. cc's backfill (refs/bank/cc/st0078/p1-backfill) lands.
+3. `run-p4.sh <that commit>`.
+4. Fill every DRIVE placeholder from the log.
+5. Attach working-in-a-team-drive.sh and .log to ST0078 (`intent st attach ... --from`).
+6. Re-bank and send vc the patch-id.
+
+**LANDING CHAIN (vc):**
+- `intent wp done ST0078/02`, whose criteria already compute satisfied.
+- Non-test rows satisfying AC-04.1 (the drive log) and AC-04.2 (the job plus the fresh-clone doctor).
+- `intent wp done ST0078/04`.
+- ST0078's canon and views plus ic/'s whole render in the one commit.
+
+Then the one rebuild. No compile while a peer's suite runs. NO RELEASE, NO PUSH.
 
 ## TODO
 

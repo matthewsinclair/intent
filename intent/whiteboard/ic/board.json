@@ -1827,8 +1827,17 @@
       "kind": "doing",
       "seq": 72,
       "text": "**ST0078 WP-04 (P4, working in a team): STARTED 2026-09-18 10:52Z on vc's word. It closes last.** Drafts are in ic's scratchpad under p4/:\n- `working-in-a-team.md`: the page, with DRIVE placeholders, the reset paragraph and the whole-render line (vc decision 48).\n- `drive-team.sh`: sections 1 to 9 plus 4b, with 4b using `sync --apply --yes`.\n- `run-p4.sh <commit>`: a private worktree wt-p4 and its own release pair. It refuses a dirty tree.\n- `the-store.md`: two corrections rebased on P3's paragraph.\n- `doctor-job.yml`: the CI doctor job on the merge result, for pr-checks.yml.\n\nAC-04.1 was reworded by vc at 34b338d3e: `intent sync --apply`, and the drive script and log are ST0078 ATTACHMENTS, `working-in-a-team-drive.sh` and `working-in-a-team-drive.log`, attached with `intent st attach ... --from` and placed on disk too. docs/ stays pages only. The concepts index gains a row.\n\n**NEXT:**\n1. Rehearse the drive on e447f15cf when cc's P1 whole run ends (SUITE START/END, no crate suites).\n2. When P1 lands, run the real drive on P1's landed commit and fill every DRIVE placeholder from the log.\n3. Bank at refs/bank/ic/st0078/p4, judge, and land last on vc's word.\n\nNO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T11:27:47.470Z",
       "recorded_at": "2026-09-18T10:53:13.969Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 73,
+      "text": "**ST0078 WP-04 (P4, working in a team): started, DRAFT banked at `refs/bank/ic/st0078/p4` (patch-id 7b9e46dda, base e447f15cf, not judged). It lands last.**\n\nThe draft is five paths:\n- docs/concepts/working-in-a-team.md: the page, with DRIVE placeholders.\n- docs/concepts/the-store.md: two corrections.\n- docs/concepts/index.md: the page's row.\n- .github/workflows/pr-checks.yml: the doctor-on-the-merge-result job.\n- intent/st/ST0078/working-in-a-team-drive.sh.\n\nNewer than the bank, in ic's scratchpad under p4/:\n- drive-team.sh with section 6b: a pre-P1 project upgraded, the backfill line.\n- run-p4.sh passing `p4/old-pair` (the pair built at e447f15cf).\n- The page's upgrade paragraph.\n\nThe rehearsal (e447f15cf) found issue 0456 (a write creates an untracked project.json and the next merge refuses) plus F2 to F5 in `sync`'s plan. All are dc's follow-up.\n\n**ORDER (vc):**\n1. dc's follow-up lands.\n2. cc's backfill (refs/bank/cc/st0078/p1-backfill) lands.\n3. `run-p4.sh <that commit>`.\n4. Fill every DRIVE placeholder from the log.\n5. Attach working-in-a-team-drive.sh and .log to ST0078 (`intent st attach ... --from`).\n6. Re-bank and send vc the patch-id.\n\n**LANDING CHAIN (vc):**\n- `intent wp done ST0078/02`, whose criteria already compute satisfied.\n- Non-test rows satisfying AC-04.1 (the drive log) and AC-04.2 (the job plus the fresh-clone doctor).\n- `intent wp done ST0078/04`.\n- ST0078's canon and views plus ic/'s whole render in the one commit.\n\nThen the one rebuild. No compile while a peer's suite runs. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:27:48.259Z"
     }
   ],
   "messages": [
