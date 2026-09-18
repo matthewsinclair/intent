@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 454,
+  "slug": "doctor-s-store-stale-check-creates-a-store-on-a",
+  "title": "doctor's store-stale check creates a store on a project that has none, reasoning from the D01 cache era",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-18",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by dc on 2026-09-18 while building 0447, and filed on vc's instruction as its own issue: it is real, and it is not 0447's.\n\n## What was measured\n\nAn arm asserting \"`intent doctor` given no store does not create one\" FAILED on a fixture whose store file had been removed: after `doctor::diagnose(project, ctx, None, Scope::All)`, `intent/.cache/intent.db` existed. 0447's own probe returns before opening anything when there is no file, so the file comes from elsewhere in `diagnose`. The arm was dropped rather than shipped asserting a property the code never had.\n\n## Where\n\n`intentsvcs/src/doctor.rs`, the store-stale check (about line 1290 at 4819e5aa8):\n\n    // Only now compare against what is on disk. A cache that will not open is\n    // not a finding worth reporting: it is deleted and rebuilt by the next\n    // command, which is exactly what D01 buys.\n    let Ok(store) = Store::open(&project.db_path()) else {\n      return;\n    };\n\n`Store::open` creates the database when there is none, so a diagnosis writes a store into a project that had none.\n\n## Why it matters, and why it is only XS\n\nThe comment reasons from D01's cache era, where the store was a disposable cache \"deleted and rebuilt by the next command\". D01 is reversed: the store is the source of truth, and its own remedy says never to delete it. A diagnostic verb that creates the thing it diagnoses is the wrong way round under that model, and a store created by `doctor` is one no command asked for. No harm has been measured beyond the file existing, since the next command would open or create it anyway, which is why it is XS.\n\n## The fix (XS)\n\nThe store-stale check opens the store only when the file exists, the way 0447's `index_unreadable_without_a_facade` already does, and the comment is rewritten to the post-D01 model. One arm: `diagnose` with no store file leaves none behind.\n"
+}
