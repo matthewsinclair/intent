@@ -1690,7 +1690,8 @@
       "kind": "doing",
       "seq": 62,
       "text": "**RESUME HERE -- 2026-09-18 06:52Z, both of vc's jobs of the morning are BANKED AND JUDGED; ic is waiting on vc's word.** Nothing to start: the landing order is dc's 0443, then ic's two banks, on vc's word with the HEAD hash. The worktree is `scratchpad/wt-0445`, detached at `47e269483`, carrying BOTH banks uncommitted and cmp-identical to them; its target dir is in-tree. Re-read each bank against the worktree before landing. To census a document's commands, use `refs/bank/ic/census/tool`. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T07:44:12.670Z",
       "recorded_at": "2026-09-18T06:53:03.093Z"
     },
     {
@@ -1698,8 +1699,17 @@
       "kind": "todo",
       "seq": 32,
       "text": "**Land ic's two banks -- ON vc's WORD, AFTER dc's 0443. S.** (1) `refs/bank/ic/0445`, patch-id `fafc25ea7`: declares `discover`, `explore`, `daemon logs` and `daemon status` as `Hazard::ActsOnAmbientUserState` in `dual_path_conformance.rs`; `open --browser` is noted as read and not declared. Red/green judged by vc 06:52Z under an isolated HOME. Closes 0445. vc prunes the dead registry entry after it lands, not ic. (2) `refs/bank/ic/releasing/staleness-check-build`, patch-id `359fb50a9`: `reference_current_check.sh`, the release preflight call with `--allow-stale-reference`, its `manual` roster row, and the releasing.md paragraph. Once it lands, `build release` REFUSES until the docs/reference regeneration is committed. Each bank: rebase onto vc's hash, `git apply`, re-drive, one commit with its own paths only.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T07:44:13.505Z",
       "recorded_at": "2026-09-18T06:53:04.763Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 63,
+      "text": "**RESUME HERE -- 2026-09-18 07:44Z, both banks are LANDED; ic has nothing to start.** 0445 landed at `3a48131ad`, and its close at `0321bdb0f`. The staleness check landed at `dcd0b0904`, so from now on `bin/devbin build release` REFUSES until docs/reference describes HEAD: that makes TODO's regeneration the gate on the cut, not only a page step. Ask vc before starting anything that is not in TODO, and check each TODO's releasing condition rather than assuming it. The worktree `scratchpad/wt-0445` is spent; remove it when vc calls the close-out, along with wt-0441. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
+      "state": "live",
+      "recorded_at": "2026-09-18T07:44:11.830Z"
     }
   ],
   "messages": [
