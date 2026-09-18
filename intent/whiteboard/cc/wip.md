@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 06:08Z
+heartbeat_at: 2026-09-18 09:06Z
 status: active
 focus: "2026-09-18: SQLite bump landing (patch 8dbd56bbb), blocked only on hv's word that the suite is done. Read doing 17, then refs/bank/cc/bump/. TODO in order: land the bump, build the detector to the ruled contract, carry the gap closure into every document that recorded it, then the trawl carry. NO RELEASE, NO PUSH."
 claims: []
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18, replacing doing 19).** vc's close-out train for cc is landed: the SQLite bump (47e269483), the 0442 detector (633b13549) with 0442 closed, 0449's pipefail arm (e69b24967), 0444's words (0702809cf), 3.1.0's CHANGELOG and RELEASE_NOTES (600db8378, plus the 0446 line at 6292ca43f), and docs/known-defects.md re-driven for 3.1.0 (248aba0f3). **Holding** for ic's 0448 and the pair rebuild after it, on vc's order. **Open, not mine to act on:** intentd is still the 3.46.0 image until hv restarts it; vc's issue 0450 (the detector's transient reading during a live write) is mine to read and propose a drive for after the restart, and it now carries the remedy-wording fix. **Next after the rebuild:** the trawl carry (todo 30), on vc's word. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-18, localfold for hv's compact; replaces doing 20).** **DOING: 0450's detector change** -- the two probes in one read transaction, a dirty reading re-read once, a dirty-then-clean pair reported as a transient advisory (shown, not counted, never silent), and the remedy wording. Banked at `refs/bank/cc/0450/wip`, rebased on 305ab97d5. Its judging re-run started 09:02:51Z: read `scratchpad/judge-0450-2/summary.txt` (or re-run `scratchpad/land/judge-0450-2.sh`), then send vc the logs and the patch-id re-read from the tree. It lands on vc's word. **0450 CLOSES only on that landing plus a clean doctor re-read after hv restarts intentd**, which is hv's and still pending (intentd is the 3.46.0 image). **TODO on vc's word, in order:** (1) Conflab's v2 prune refusal, vc's question: read `refs/bank/dc/trawl/rehearsal-ea1f679cd.log`, say what the 67 unheld files are and rule carry, drop or leave; (2) **ST0078 is IN 3.1.0 whole** (hv, 2026-09-18, "we can't release this without support for teams"; D53 reversed, events travel as one committed file per event under YYYY/MM/DD) -- vc sends the build plan with lanes on the bounce, and P1 (the event log travels: store, canon, ingest) is expected to be cc's; (3) the trawl carry (todo 30) waits behind ST0078's build, as the trawl does. **Any change under a crate, the CI config or a generator's source owes the whole crate suites** -- 0451 regressed twice without them. NO RELEASE, NO PUSH.
 
 ## TODO
 
