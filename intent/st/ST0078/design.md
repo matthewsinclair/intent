@@ -44,11 +44,11 @@ $ intent init Team
 created: Team at .../alice
 $ intent claude upgrade --apply --skip-settings     # wires the commit gate into THIS clone's .git/hooks
 $ intent bootstrap                                   # once per MACHINE: records the Intent install the gate execs
-$ intent sync --to-disk                              # writes steel_threads.md and todo.md, which init does not (issue 0448)
+$ intent sync --to-disk                              # needed on 3.0.3 only: init wrote neither aggregate view (0448, fixed 2026-09-18 at 21d1a6652)
 $ git add -A && git commit -m "intent init" && git push -u origin main
 ```
 
-`intent init` writes the three ignore lines a project needs (`intent/.cache/`, `intent/events.jsonl`, `intent/.backup/`), so nothing per-machine can reach the repository; `docs/concepts/the-store.md` still says it does not, and P4 corrects that. Without the `sync --to-disk` the first commit is refused by the gate the previous line installed, because doctor counts the two absent aggregate views as skew (0448, filed from this drive).
+`intent init` writes the three ignore lines a project needs (`intent/.cache/`, `intent/events.jsonl`, `intent/.backup/`), so nothing per-machine can reach the repository; `docs/concepts/the-store.md` still says it does not, and P4 corrects that. On 3.0.3, without the `sync --to-disk`, the first commit was refused by the gate the previous line installed, because doctor counted the two absent aggregate views as skew; 0448 was filed from this drive and is fixed at 21d1a6652, so a project `init` creates now commits clean without it.
 
 Bob, once per clone, then once per machine:
 
