@@ -198,6 +198,14 @@ pub fn files_under(root: &Path, rev: &str, prefix: &str) -> Result<Vec<String>, 
   )
 }
 
+/// Is `path` in the index? Outside a work tree nothing is.
+pub fn is_tracked(root: &Path, path: &str) -> Result<bool, GitStateError> {
+  if !is_work_tree(root) {
+    return Ok(false);
+  }
+  run(root, &["ls-files", "-z", "--", path]).map(|out| !out.is_empty())
+}
+
 /// The bytes a commit holds at `path`, or `None` when it holds nothing there.
 pub fn blob(root: &Path, rev: &str, path: &str) -> Result<Option<Vec<u8>>, GitStateError> {
   // `./` makes the path relative to the project root rather than to the

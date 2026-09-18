@@ -204,6 +204,28 @@ pub struct Upgraded {
   /// and the tree did not (ST0078 P1's backfill), so a project's history from
   /// before its events travelled travels too. Zero on every later run.
   pub events_backfilled: usize,
+  /// What this run did with the `intent/events.jsonl` an earlier v3 upgrade
+  /// left in the tree (issue 0459), or `None` when there was none.
+  pub event_log_leftover: Option<EventLogLeftover>,
+}
+
+/// The single-file event log an earlier v3 upgrade left behind, and what this
+/// upgrade did with it (issue 0459).
+///
+/// **Every 3.0.x upgrade wrote an empty `intent/events.jsonl`, hidden by an
+/// ignore rule that this release retires**, so on an existing project the rule
+/// goes and the file surfaces as untracked beside what the upgrade asks the
+/// operator to commit. An upgrade removes what an upgrade left, and nothing it
+/// cannot prove is that.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EventLogLeftover {
+  /// Zero bytes and untracked, so it held nothing and git never had it: removed.
+  Removed(std::path::PathBuf),
+  /// Left where it is, with why.
+  Kept {
+    path: std::path::PathBuf,
+    why: String,
+  },
 }
 
 /// Ensure the runtime store's directory is gitignored.
@@ -425,6 +447,59 @@ pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error
     return Ok(());
   }
   std::fs::write(&path, next)
+}
+
+/// Remove the empty, untracked `intent/events.jsonl` an earlier upgrade left
+/// (issue 0459), or name why a file there is left alone.
+///
+/// **ONLY THE ONE SHAPE AN UPGRADE WROTE IS REMOVED**: a regular file of zero
+/// bytes that git does not track. A tracked file is the project's history, and
+/// removing it would be a change for its owner to commit; a file with content
+/// holds bytes no build of Intent wrote there. Both are named with why. A git
+/// that cannot answer leaves the file too, because not knowing is not untracked.
+/// A later step that halts the upgrade does not bring the file back, and that
+/// loses nothing: it held no bytes and git never had it.
+pub(crate) fn remove_event_log_leftover(
+  project: &Project,
+) -> Result<Option<EventLogLeftover>, std::io::Error> {
+  let path = project.intent_dir().join(crate::event::JSONL);
+  let meta = match std::fs::symlink_metadata(&path) {
+    Ok(meta) => meta,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+    Err(e) => return Err(e),
+  };
+  let kept = |why: String| {
+    Ok(Some(EventLogLeftover::Kept {
+      path: path.clone(),
+      why,
+    }))
+  };
+  if !meta.is_file() {
+    return kept(
+      "it is not a regular file, so it is not the empty log an earlier upgrade wrote".to_string(),
+    );
+  }
+  match crate::gitstate::is_tracked(project.root(), &project.relative(&path)) {
+    Err(e) => {
+      return kept(format!(
+        "git could not say whether it is tracked ({e}), so it is left for you to read"
+      ));
+    }
+    Ok(true) => {
+      return kept(
+        "it is tracked in git, so removing it is a change to your history -- `git rm` it yourself if you mean to".to_string(),
+      );
+    }
+    Ok(false) => {}
+  }
+  if meta.len() > 0 {
+    return kept(format!(
+      "it holds {} byte(s), which no build of Intent wrote there -- read it, and delete it yourself if you do not need it",
+      meta.len()
+    ));
+  }
+  std::fs::remove_file(&path)?;
+  Ok(Some(EventLogLeftover::Removed(path)))
 }
 
 /// `text` without the lines that equal `rule`, and for each one the `comment`
@@ -3777,15 +3852,16 @@ impl Facade {
     // stamp has landed.
     // Returns what the prune did, because the caller reports it and a closure
     // that swallowed it would make the removal unreviewable.
-    let finish = || -> Result<
-      (
-        Vec<std::path::PathBuf>,
-        Vec<std::path::PathBuf>,
-        crate::legacy::Leftovers,
-        usize,
-      ),
-      FacadeError,
-    > {
+    // What the prune removed, what it deferred, the leftovers it judged, the
+    // events backfilled, and the old single-file log's fate (issue 0459).
+    type Finished = (
+      Vec<std::path::PathBuf>,
+      Vec<std::path::PathBuf>,
+      crate::legacy::Leftovers,
+      usize,
+      Option<EventLogLeftover>,
+    );
+    let finish = || -> Result<Finished, FacadeError> {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
       // The store has just been built from the canon these writes landed, so
@@ -3834,6 +3910,11 @@ impl Facade {
         step: "adding the per-machine artefacts to .gitignore",
         cause,
       })?;
+      let event_log_leftover =
+        remove_event_log_leftover(project).map_err(|cause| FacadeError::MigrationHalted {
+          step: "removing the empty event log an earlier upgrade left",
+          cause,
+        })?;
       let events_backfilled = backfill_event_files(project, &mut store)?;
       converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "keeping the formatter off generated views",
@@ -3849,10 +3930,16 @@ impl Facade {
         step: "stamping the project version",
         cause,
       })?;
-      Ok((pruned, deferred, leftovers, events_backfilled))
+      Ok((
+        pruned,
+        deferred,
+        leftovers,
+        events_backfilled,
+        event_log_leftover,
+      ))
     };
     match finish() {
-      Ok((pruned, prune_deferred, leftovers, events_backfilled)) => {
+      Ok((pruned, prune_deferred, leftovers, events_backfilled, event_log_leftover)) => {
         applied.keep();
         // **THE VIEWS OF EVERY UNDECLARED THREAD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
@@ -3897,6 +3984,7 @@ impl Facade {
           already_migrated_issues,
           dispositions,
           events_backfilled,
+          event_log_leftover,
         })
       }
       Err(halted) => {

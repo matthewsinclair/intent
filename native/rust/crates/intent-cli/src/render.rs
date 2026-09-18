@@ -5160,6 +5160,18 @@ fn upgrade() -> Result<(), Failure> {
       done.events_backfilled
     );
   }
+  // Issue 0459: the empty single-file log an earlier upgrade left, removed or
+  // named with why it stays.
+  match &done.event_log_leftover {
+    Some(intentsvcs::facade::EventLogLeftover::Removed(path)) => eprintln!(
+      "removed: {} -- the empty single-file event log an earlier upgrade wrote; no verb writes it now",
+      path.display()
+    ),
+    Some(intentsvcs::facade::EventLogLeftover::Kept { path, why }) => {
+      eprintln!("kept: {} -- {why}", path.display())
+    }
+    None => {}
+  }
   for refusal in &done.dehydrate_refused {
     eprintln!("{refusal}");
   }

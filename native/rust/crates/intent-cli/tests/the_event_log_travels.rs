@@ -18,8 +18,10 @@
 //!   and `the_sync_plan_names_waiting_event_files_and_apply_takes_them`.
 //! - ST0078 AT-01.3 (AC-01.3): `doctor_reports_bad_event_files_and_events_the_store_lacks`.
 //! - ST0078 AT-01.4 (AC-01.4): `upgrade_retires_the_ignore_rule_and_export_keeps_one_file`,
-//!   `upgrade_backfills_the_history_the_store_held_once` and
-//!   `upgrade_on_a_migrated_estate_writes_no_event_log_file`.
+//!   `upgrade_backfills_the_history_the_store_held_once`,
+//!   `upgrade_on_a_migrated_estate_writes_no_event_log_file`,
+//!   `upgrade_removes_the_empty_event_log_an_earlier_upgrade_left` and
+//!   `upgrade_names_an_event_log_with_content_and_leaves_it`.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -500,6 +502,86 @@ fn upgrade_on_a_migrated_estate_writes_no_event_log_file() {
   assert!(
     !alice.root.join("intent/events.jsonl").exists(),
     "and no ignore rule hides one"
+  );
+}
+
+/// An estate as a 3.0.x upgrade left it: the old ignore rule in `.gitignore`,
+/// committed, and `intent/events.jsonl` holding `body` beside it, ignored.
+fn an_estate_from_before_st0078(alice: &Clone, body: &str) -> String {
+  let gitignore = alice.root.join(".gitignore");
+  let converged = std::fs::read_to_string(&gitignore).expect("read .gitignore");
+  std::fs::write(
+    &gitignore,
+    format!(
+      "{converged}\n# The event log lives in the store (D53); its file form is produced by `intent export`.\nintent/events.jsonl\n"
+    ),
+  )
+  .expect("write .gitignore");
+  std::fs::write(alice.root.join("intent/events.jsonl"), body).expect("plant the log");
+  alice.commit("an estate from before ST0078");
+  assert!(
+    !alice
+      .git(&["ls-files", "--", "intent/events.jsonl"])
+      .contains("events.jsonl"),
+    "the planted log is ignored, as a 3.0.x upgrade left it"
+  );
+  converged
+}
+
+/// **Issue 0459: `upgrade` removes the empty `intent/events.jsonl` a 3.0.x
+/// upgrade left**, once it has retired the rule that hid it. Otherwise every
+/// existing project meets the file as untracked beside what the upgrade asks
+/// its operator to commit. The status read is the whole tree's.
+#[test]
+fn upgrade_removes_the_empty_event_log_an_earlier_upgrade_left() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob) = two_clones(dir.path());
+  let converged = an_estate_from_before_st0078(&alice, "");
+
+  let out = alice.run(&["upgrade"]);
+  let said = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  assert!(
+    said.contains("removed: ")
+      && said.contains("intent/events.jsonl -- the empty single-file event log"),
+    "the removal is said: {said}"
+  );
+  assert!(
+    !alice.root.join("intent/events.jsonl").exists(),
+    "the empty log is gone"
+  );
+  assert_eq!(
+    std::fs::read_to_string(alice.root.join(".gitignore")).expect("read .gitignore"),
+    converged,
+    "and so is the rule that hid it"
+  );
+  let status = alice.git(&["status", "--short", "--untracked-files=all"]);
+  assert!(
+    !status.contains("events.jsonl"),
+    "an unscoped status shows no event log:\n{status}"
+  );
+}
+
+/// **Issue 0459's other half: a log with content is not an upgrade's to
+/// remove.** It is left where it is and named with why.
+#[test]
+fn upgrade_names_an_event_log_with_content_and_leaves_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob) = two_clones(dir.path());
+  let body = "{\"op\":\"st.new\"}\n";
+  an_estate_from_before_st0078(&alice, body);
+
+  let out = alice.run(&["upgrade"]);
+  let said = String::from_utf8_lossy(&out.stderr);
+  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  assert!(
+    said.contains("kept: ") && said.contains(&format!("it holds {} byte(s)", body.len())),
+    "the log is named with why it stays: {said}"
+  );
+  assert_eq!(
+    std::fs::read_to_string(alice.root.join("intent/events.jsonl")).expect("the log stays"),
+    body,
+    "byte for byte"
   );
 }
 
