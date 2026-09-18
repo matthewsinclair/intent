@@ -376,6 +376,8 @@ mod refused_ingest_blocks_egest;
 mod related_links;
 #[path = "remedy_coverage.rs"]
 mod remedy_coverage;
+#[path = "renumber_moves_an_id_and_what_names_it.rs"]
+mod renumber_moves_an_id_and_what_names_it;
 #[path = "replacing_the_prose_index_truncates_it.rs"]
 mod replacing_the_prose_index_truncates_it;
 #[path = "retired_st_prefix.rs"]

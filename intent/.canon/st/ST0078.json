@@ -180,6 +180,28 @@
   ],
   "tests": [
     {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/renumber_moves_an_id_and_what_names_it.rs",
+      "covers": [
+        "AC-02.1",
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs",
+      "covers": [
+        "AC-02.1",
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean"
+    },
+    {
       "id": "AT-03.1",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs",

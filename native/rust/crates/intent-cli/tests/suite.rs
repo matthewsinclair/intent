@@ -279,6 +279,8 @@ mod the_structural_doors_take_the_filters;
 mod the_web_face_answers_on_the_published_port;
 #[path = "twin_spellings_agree.rs"]
 mod twin_spellings_agree;
+#[path = "two_clones_that_mint_one_id_are_repaired_by_renumber.rs"]
+mod two_clones_that_mint_one_id_are_repaired_by_renumber;
 #[path = "uninstall_names_what_it_removed.rs"]
 mod uninstall_names_what_it_removed;
 #[path = "unmigrated_surface.rs"]

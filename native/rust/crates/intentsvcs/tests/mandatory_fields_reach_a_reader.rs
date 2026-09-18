@@ -87,6 +87,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // there is no field the caller failed to supply -- the remedy is a
     // different key, not a fuller call.
     | FacadeError::IssueExists { .. }
+    // A renumber's refusals, the same argument: the id asked for is taken, or
+    // the filesystem refused a move. Neither is a field left out of the call.
+    | FacadeError::RenumberTargetTaken { .. }
+    | FacadeError::RenumberDiskStep { .. }
     // The child-row halves of the same ruling, and the same reasoning: they
     // report that a KEY is taken, so there is no field the caller failed to
     // supply -- the remedy is `ac edit` / `at edit`, not a fuller create.

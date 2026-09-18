@@ -22,8 +22,8 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
 
-- AC-02.1 intent st renumber <old> <new> refuses when <new> exists and otherwise rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, related references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references it found with the index and did not rewrite. -- satisfied: no (computed)
-- AC-02.2 intent issues renumber <old> <new> does the same for an issue: refuses a taken id, rewrites the canon file, its name and its view, emits its own event, and prints the prose references it did not rewrite. -- satisfied: no (computed)
+- AC-02.1 intent st renumber <old> <new> refuses when <new> exists and otherwise rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, related references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references it found with the index and did not rewrite. -- satisfied: yes (computed)
+- AC-02.2 intent issues renumber <old> <new> does the same for an issue: refuses a taken id, rewrites the canon file, its name and its view, emits its own event, and prints the prose references it did not rewrite. -- satisfied: yes (computed)
 
 ### WP-03 -- P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply (status: WIP)
 
@@ -51,7 +51,8 @@ _(no tests in this group)_
 
 ### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intentsvcs/tests/renumber_moves_an_id_and_what_names_it.rs` -- covers AC-02.1, AC-02.2 -- status: green -- judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean
+- AT-02.2 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs` -- covers AC-02.1, AC-02.2 -- status: green -- judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean
 
 ### WP-03 -- P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply (status: WIP)
 

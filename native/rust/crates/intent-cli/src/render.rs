@@ -2652,6 +2652,14 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
+    // ST0078 WP-02: move a thread to a free id after two clones minted one.
+    Some(("renumber", a)) => {
+      let old = thread_arg(a, "old")?;
+      let new = thread_arg(a, "new")?;
+      let done = open()?.st_renumber(&old, &new).map_err(fail)?;
+      print_renumbering(&done, &format!("{old} renumbered to {new}"), "thread");
+      Ok(())
+    }
     Some(("show", a)) => {
       let id = thread_arg(a, "id")?;
       // **`file` IS READ, AND A VALUE OUTSIDE ITS DECLARED SET IS REFUSED AT
@@ -10316,6 +10324,18 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
+    // ST0078 WP-02: the issue half of `st renumber`.
+    Some(("renumber", a)) => {
+      let old = issue_arg(a, "old")?;
+      let new = issue_arg(a, "new")?;
+      let done = open()?.issue_renumber(old, new).map_err(fail)?;
+      print_renumbering(
+        &done,
+        &format!("issue {old:04} renumbered to {new:04}"),
+        "issue",
+      );
+      Ok(())
+    }
     Some(("open", a)) => {
       let number = issue_arg(a, "id")?;
       reported(
@@ -10518,6 +10538,34 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
 /// The notes half of [`reported`], for a verb whose result line is its own --
 /// `st new --start` prints `created:` for v2 parity, and its `st start` must
 /// not lose what the transition had to say (issue 0209).
+/// A renumber's report: what moved, what was rewritten, and the prose left
+/// alone, which is the part the operator still has to read.
+fn print_renumbering(done: &intentsvcs::facade::Renumbering, what: &str, kind: &str) {
+  report_notes(&done.outcome, &done.to);
+  println!("ok: {what}");
+  for line in &done.moved {
+    println!("moved: {line}");
+  }
+  for line in &done.rewritten {
+    println!("rewritten: {line}");
+  }
+  for mention in &done.prose {
+    match mention.line {
+      Some(line) => println!("prose: {}:{line}", mention.path),
+      None => println!("prose: {}", mention.path),
+    }
+  }
+  if !done.prose.is_empty() {
+    println!(
+      "note: {} place(s) above still name {} in text somebody wrote -- a renumber does not \
+       rewrite prose, so read each one and change the ones that mean this {}",
+      done.prose.len(),
+      done.from,
+      kind
+    );
+  }
+}
+
 fn report_notes(outcome: &Outcome, subject: &str) {
   print_notes(outcome.notes(), subject);
 }

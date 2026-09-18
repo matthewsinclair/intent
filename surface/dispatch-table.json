@@ -1219,6 +1219,50 @@
           "recoverability": "one-way"
         },
         {
+          "path": "st renumber",
+          "help": "Move a steel thread to a free id, with everything that names it structurally",
+          "args": [
+            {
+              "name": "old",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "new",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0078 WP-02 (AC-02.1), vc's order of 2026-09-18 on hv's ruling that ST0078 goes into 3.1.0 whole. **Two clones mint ids highest-plus-one over their own canon, so both can mint one id**; git refuses the merge with an add/add conflict on the canon file (driven, ST0078 design.md E4), so the collision stays git's to catch and this is the repair the losing side runs before merging again. It refuses when `<new>` is held by the store OR the tree -- a canon file or directory the store does not hold is usually a pull not yet loaded. Otherwise it moves the canon file, the realised directory whole (views, attachments and any file nobody modelled), the canon sidecars and the `.intentfiles` row; rewrites every `related` reference in other threads and every board claim on the thread or its packages; writes its own `st.renumber` event; and prints the prose references the index found and did NOT rewrite, because prose is authored.",
+          "owner_wp": "WP-02",
+          "acceptance": "AC-02.1",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "renumbered: the store, canon, the realised files, the manifest row, related references and claims name `<new>`"
+              },
+              {
+                "code": 1,
+                "when": "`<old>` does not exist, `<new>` is taken by the store or the tree, or the filesystem refused a move -- in each case nothing is renumbered"
+              }
+            ],
+            "stdout": "`ok: <old> renumbered to <new>`, then `moved: ...` per path or manifest row, `rewritten: ...` per structured reference, and `prose: <path>[:<line>]` per mention the index found and left alone, with a closing `note:` saying so",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).",
+          "facade": "st_renumber"
+        },
+        {
           "path": "st sync",
           "help": "Synchronize steel_threads.md with individual ST files",
           "args": [],
@@ -4015,6 +4059,50 @@
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
           "facade": "issue_open"
+        },
+        {
+          "path": "issues renumber",
+          "help": "Move an issue to a free number, with its canon file and view",
+          "args": [
+            {
+              "name": "old",
+              "type": "issue-id",
+              "arity": "1"
+            },
+            {
+              "name": "new",
+              "type": "issue-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0078 WP-02 (AC-02.2): the issue half of `st renumber`, for the same collision -- issue numbers are minted highest-plus-one over the local canon exactly as thread ids are. It refuses a number the store or the tree holds, moves the canon file, the view and the `.intentfiles` row, writes its own `issues.renumber` event, and prints the prose references it did not rewrite -- including an issue body's own `# <nnnn>:` line, which is carried text rather than a rendered heading.",
+          "owner_wp": "WP-02",
+          "acceptance": "AC-02.2",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "renumbered: the store, canon, the view and the manifest row name `<new>`"
+              },
+              {
+                "code": 1,
+                "when": "`<old>` does not exist, or `<new>` is taken by the store or the tree -- nothing is renumbered"
+              }
+            ],
+            "stdout": "`ok: issue <old> renumbered to <new>`, then `moved:` and `prose:` lines as for `st renumber`",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).",
+          "facade": "issue_renumber"
         },
         {
           "path": "issues hydrate",
@@ -10077,8 +10165,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 75,
-      "census_note": "75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
+      "n": 77,
+      "census_note": "77 since 2026-09-18: `st renumber` and `issues renumber`, the verbs that move a thread or an issue to a free id after two clones minted the same one (ST0078 WP-02); 75 since 2026-09-17: `index resolve`, the verb that runs each language's toolchain over the project and stores the references that join a written one (ST0076 WP-05, vc decision 25); 74 since 2026-09-14: `st detach`, the verb that removes an attachment's record from the store and canon and leaves its file on disk (issue 0394); 73 earlier the same day: `wp gate`, the work package's own close-gate verdict (issue 0310); 72 earlier the same day: `daemon logs`, the verb Intent.app's Console tails, printing intentd's recent log lines and following them with `--follow` (ST0075 WP-01 AC-01.1); 71 since 2026-09-13: `discover`, the verb that finds Intent projects under a directory and registers the ones this build can serve (ST0074 WP-03 AC-03.3); 70 since 2026-09-12: `wb migrate`, the verb that carries a hand-authored board into the model (ST0069 WP-14 AC-14.9); 69 earlier the same day: `wb add`, the door the generated view would otherwise have closed (ST0069 WP-14); 68 earlier the same day: `wb archive` (ST0069 WP-14 AC-14.6, vc's ruling that the state change IS the schedule); 67 earlier the same day: `wb pickup`, `wb touch` and `wb release`, the lifecycle half of the `wb` family (ST0069 WP-14); 64 earlier the same day: `wb decide`, `wb claim` and `wb unclaim`, the item half of the `wb` family (ST0069 WP-14); 61 earlier the same day: `wb ask`, `wb announce` and `wb clear`, the message half of the `wb` family (ST0069 WP-14 AC-14.5); 58 earlier the same day: `wb status` and `wb show`, the read half of the `wb` family (ST0069 WP-14 AC-14.7); 56 earlier the same day: the `wb` family and `wb register` (the same criterion); 54 earlier the same day: the `index` family and its two verbs (`index`, `index status`, `index rebuild`, ST0069 WP-19 AC-19.6); 51 since 2026-09-11 with `set` (issues 0154 + 0185, vc's option (1)); 50 before it, with `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -10311,6 +10399,7 @@
       "st edit",
       "st attach",
       "st detach",
+      "st renumber",
       "st sync",
       "st repair",
       "st organize",
@@ -10355,6 +10444,7 @@
       "issues show",
       "issues close",
       "issues open",
+      "issues renumber",
       "issues hydrate",
       "issues dehydrate",
       "todo",
@@ -10483,6 +10573,7 @@
       "st edit",
       "st attach",
       "st detach",
+      "st renumber",
       "st sync",
       "wp",
       "wp new",
@@ -10524,6 +10615,7 @@
       "issues show",
       "issues close",
       "issues open",
+      "issues renumber",
       "todo",
       "todo list",
       "todo update",
@@ -10657,6 +10749,7 @@
       "st edit",
       "st attach",
       "st detach",
+      "st renumber",
       "st sync",
       "wp",
       "wp new",
@@ -10698,6 +10791,7 @@
       "issues show",
       "issues close",
       "issues open",
+      "issues renumber",
       "todo",
       "todo list",
       "todo update",

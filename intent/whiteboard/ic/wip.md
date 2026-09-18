@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 09:53Z
+heartbeat_at: 2026-09-18 10:27Z
 status: active
-focus: "HOLDING for dc's P3 landing; ST0078 P2 banked (refs/bank/ic/st0078/p2, f3da1ca9e), rebase + whole run next; P4 drafted, closes last. NO RELEASE, NO PUSH."
+focus: "ST0078 P2 LANDED (renumber verbs). P4 drafted, drive waits for P5 and P1, closes last. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,15 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 2026-09-18 09:53Z, localfold before hv's compact. ic is HOLDING: no compile or suite until dc's SUITE END (P3 judging, started 09:48Z), then nothing until P3 LANDS.** ST0078 WP-02 (P2, renumber verbs) is BUILT and BANKED at `refs/bank/ic/st0078/p2`, patch-id `f3da1ca9e`, base `0b0a288ac`, 15 files, worktree `wt-p2` under ic's scratchpad; summary `p2-summary.md` there. Judged: run 1 intent-cli 1007/0, bats 678/0, doc/clippy/fmt clean, intentsvcs 2 census reds (fixed); run 2 intentsvcs 1792/0 -- vc ruled that incomplete (a match arm owes WHOLE crates + bats) and that the POST-REBASE run is P2's judging run. **NEXT, in order:** (1) when P3 lands, rebase the bank onto it (read the bank's path list against main's move); (2) the WHOLE run: intentd, intentsvcs + intent-cli --no-fail-fast, release pair + bats, doc in CI's form, clippy both forms, fmt; one summary; (3) mint AT-02.1/AT-02.2 (`intent at new ST0078 AT-02.<n> --covers AC-02.<n> --file <test>`) into the bank's write set, re-bank, send vc the new patch-id; (4) land on vc's word with CHAIN START/END, landing order P3, P2, P1, P4 last. **P4 (WP-04)** drafted, not driven: `scratchpad/p4/drive-team.sh` and `p4/doctor-job.yml`; the page documents `intent sync` / `intent sync --apply` as THE one command after a pull (hv's ruling, design P5 at a46643afb), notes a first pull into an empty store prints nothing, and its drive waits for P1, P3, P5 and P2. P5 is dc's and composes `st_renumber`/`issue_renumber` (vc put ic's two constraints in the design). Worktree removals (todo 35) at the close-out's end. Rules: fmt with `rustfmt --edition 2024 --check` before banking; a re-bank goes to vc before any commit; build intentd after a revert-and-restore; any source change owes the whole crates and bats. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
+- **ST0078 WP-04 (P4, working in a team): drafted, and its drive waits for P5 (dc) and P1 (cc) to land. It closes last.** Drafts are in ic's scratchpad under p4/:
+- `working-in-a-team.md`: the page, with `DRIVE` placeholders for every output.
+- `drive-team.sh`: sections 1 to 9, including the unsynced-edit gate claim and a reset that the hooks do not see.
+- `the-store.md`: two corrections rebased on P3's edit. `init` writes the ignore lines and the store is truth on its machine; machine events stay in the store and project events travel.
+- `doctor-job.yml`: the CI doctor job on the merge result.
+
+The fresh-clone doctor measurement (69784fc20): rc 1 on two view-skews, from inbox renders committed out of step. vc decision 48 rules that a board commit carries the node's whole directory render. The page says so beside the reset line.
+
+**NEXT:** when P5 and P1 land, build the pair in a worktree, drive `drive-team.sh` against it, and replace every DRIVE placeholder from the log. Pin the `--yes` and `--apply` flags as P5 ships them. Bank the page, the script, the log, the-store.md and the job, then judge, and land on vc's word. NO RELEASE, NO PUSH.
 
 ## TODO
 

@@ -874,6 +874,15 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a repo-relative attachment path names nowhere in the thread"),
   ));
 
+  // **ST0078 WP-02's REFUSAL, PROVOKED.** A renumber onto an id the store
+  // already holds: here the thread's own, which is the smallest bad call.
+  out.push((
+    "a renumber onto an id the store holds",
+    facade
+      .st_renumber("ST0056", "ST0056")
+      .expect_err("ST0056 is taken by ST0056"),
+  ));
+
   // **`0394`'s REFUSAL, PROVOKED.** A detach naming an attachment the thread
   // does not carry: nothing is removed, and the remedy says where the paths it
   // does carry are.
@@ -1045,6 +1054,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",
+    FacadeError::RenumberTargetTaken { .. } => "RenumberTargetTaken",
+    FacadeError::RenumberDiskStep { .. } => "RenumberDiskStep",
     FacadeError::CriterionExists { .. } => "CriterionExists",
     FacadeError::TestExists { .. } => "TestExists",
     FacadeError::NothingToChange { .. } => "NothingToChange",
@@ -1179,6 +1190,8 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchThread",
   "ThreadExists",
   "IssueExists",
+  "RenumberTargetTaken",
+  "RenumberDiskStep",
   "CriterionExists",
   "TestExists",
   "NothingToChange",
@@ -1373,6 +1386,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // because that needs two facades and a shared store rather than a bad call.
   "ThreadExists",
   "IssueExists",
+  // A renumber's disk move refused by the filesystem, a property of the world
+  // rather than of the call. Driven in `renumber_moves_an_id_and_what_names_it.rs`,
+  // which makes the threads directory unwritable and asserts the refusal, its
+  // remedy, and that nothing was renumbered.
+  "RenumberDiskStep",
   "BadQuery", // FTS5 syntax -- `facade_search.rs` territory
   // Issue 0443: a store fault met while ANSWERING a search. Needs the store
   // broken underneath a live facade, which a bad call cannot do; provoked in

@@ -90,6 +90,7 @@ pub mod projects;
 pub mod prose;
 pub mod realise;
 pub mod remedy;
+pub mod renumber;
 pub mod resolve;
 pub mod rootfiles;
 pub mod rules;

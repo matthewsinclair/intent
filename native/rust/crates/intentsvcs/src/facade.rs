@@ -1334,6 +1334,26 @@ pub enum FacadeError {
   /// machine, and one message for both tells them to guess.
   #[error("issue {number:04} already exists, and a create must not replace it")]
   IssueExists { number: u32 },
+  /// **A RENUMBER NAMED AN ID SOMETHING ALREADY HOLDS** (ST0078 WP-02).
+  ///
+  /// One variant for both kinds and both holders, because the next move is the
+  /// same: pick another id. `held_by` says which holder, since a canon file or
+  /// directory the store does not know is usually a pull not yet loaded, and
+  /// that has its own remedy. Not [`Self::ThreadExists`] or
+  /// [`Self::IssueExists`], whose remedies send the operator to a create verb.
+  #[error("{subject} is already taken, held by {held_by}")]
+  RenumberTargetTaken { subject: String, held_by: String },
+  /// A renumber could not move a path on disk (ST0078 WP-02).
+  ///
+  /// Raised before the write, after every earlier move is put back, so nothing
+  /// is renumbered. After the write the same failure is a note carrying its own
+  /// remedy, because the store has already moved.
+  #[error("could not {step}")]
+  RenumberDiskStep {
+    step: String,
+    #[source]
+    source: std::io::Error,
+  },
   /// **THE WRITE WAS DERIVED FROM A RECORD THAT HAS SINCE MOVED** (issue 0206,
   /// vc ruled 2026-09-01: refuse and name, never retry).
   ///
@@ -2248,6 +2268,18 @@ impl crate::remedy::Remedy for FacadeError {
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
       Self::NotEditable { author_with, .. } => format!("author it with {author_with}"),
+      Self::RenumberTargetTaken { .. } => {
+        "nothing was renumbered. Pick an id nothing holds: `intent st list --status all` and \
+         `intent issues list` show what the store holds, and a canon file or directory on disk \
+         that the store does not hold is usually a pull not yet loaded, which `intent sync \
+         --apply` loads without discarding anything the store holds"
+          .to_string()
+      }
+      Self::RenumberDiskStep { .. } => {
+        "nothing was renumbered: the store, canon, the realised files and `.intentfiles` are as \
+         they were. Clear the filesystem cause and run the renumber again"
+          .to_string()
+      }
       Self::IssueExists { number } => format!(
         "nothing was written and issue {number:04} still holds what it held. Re-run `intent \
          issues add` to take the next free number, or `intent issues show {number:04}` to see \
@@ -2792,6 +2824,28 @@ impl Outcome {
 /// IN.** `render.rs` turns the same notes into sentences with remedies in
 /// them; that is a different concern with a different reader, not a divergent
 /// spelling of this one.
+/// What a renumber did (ST0078 WP-02): the write's outcome, what moved with
+/// the id, and the prose that still names the old one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Renumbering {
+  pub from: String,
+  pub to: String,
+  pub outcome: Outcome,
+  /// Structured references outside the record that now name `to`.
+  pub rewritten: Vec<String>,
+  /// Paths and manifest rows the renumber moved or removed.
+  pub moved: Vec<String>,
+  /// Where the index found `from` in text somebody wrote. Left alone.
+  pub prose: Vec<ProseMention>,
+}
+
+/// One place the index found an id in authored text.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProseMention {
+  pub path: String,
+  pub line: Option<u32>,
+}
+
 pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
   serde_json::json!({
     "subject": subject,
@@ -3033,6 +3087,10 @@ fn declared_list_edit(op: &str) -> Option<(Sigil, ListAction)> {
     // (hv, 16:43Z). Both belong here rather than in a `_` that cannot tell a
     // ruled `None` from an op nobody wired.
     "st.new" | "st.reinstate" => None,
+    // **A RENUMBER MOVES THE ROW RATHER THAN ADDING OR REMOVING ONE** (ST0078
+    // WP-02): the old id's line becomes the new id's, and only if it was there.
+    // `land_renumber` does that edit itself, so this table has nothing to add.
+    "st.renumber" | "issues.renumber" => None,
     // **AND THE WILDCARD NOW ANSWERS FOR OTHER ENTITIES ONLY.** `wp.*`, `ac.*`,
     // `at.*` and the rest never edit a thread's declaration, and
     // `every_st_op_has_a_declared_list_answer.rs` holds it to that: every
@@ -9994,6 +10052,352 @@ impl Facade {
     )
   }
 
+  /// `intent st renumber <old> <new>` (ST0078 WP-02, AC-02.1): move a thread
+  /// to a free id, with everything that names it structurally.
+  ///
+  /// **THE REPAIR FOR TWO CLONES THAT MINTED ONE ID.** Git refuses that merge
+  /// loudly, so the collision stays git's to catch; this is what the person on
+  /// the losing side runs before merging again.
+  ///
+  /// **`new` IS TAKEN IF THE STORE OR THE TREE HOLDS IT.** A canon file or a
+  /// directory the store does not know is most often a pull not yet loaded,
+  /// and renumbering onto it would put two threads in one place.
+  pub fn st_renumber(&mut self, old: &str, new: &str) -> Result<Renumbering, FacadeError> {
+    self.st_show(old)?;
+    let subject = format!("steel thread {new}");
+    if self.canon.threads.iter().any(|t| t.id == new) {
+      return Err(FacadeError::RenumberTargetTaken {
+        subject,
+        held_by: "the store".to_string(),
+      });
+    }
+    self.refuse_a_taken_path(
+      &subject,
+      &[
+        self.project.thread_json(new),
+        self.project.thread_dir(new),
+        self.project.canon_st_dir().join(new),
+      ],
+    )?;
+    let model =
+      crate::renumber::thread(&self.canon, old, new).ok_or_else(|| FacadeError::NoSuchThread {
+        id: old.to_string(),
+      })?;
+    let foreign = self.foreign_under(&self.project.thread_dir(old))?;
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      "st.renumber",
+      Subject {
+        kind: "thread".to_string(),
+        id: new.to_string(),
+      },
+      json!({ "from": old, "to": new }),
+    );
+    self.land_renumber(RenumberPlan {
+      from: old.to_string(),
+      to: new.to_string(),
+      sigil: Sigil::SteelThread,
+      // The realised directory carries the attachments, the views and any file
+      // nobody modelled; the canon directory carries the opaque sidecars.
+      moves: vec![
+        (self.project.thread_dir(old), self.project.thread_dir(new)),
+        (
+          self.project.canon_st_dir().join(old),
+          self.project.canon_st_dir().join(new),
+        ),
+      ],
+      stale: vec![self.project.thread_json(old)],
+      rerender: Some(self.project.thread_dir(new)),
+      envelope,
+      model,
+      foreign,
+    })
+  }
+
+  /// `intent issues renumber <old> <new>` (ST0078 WP-02, AC-02.2): the same
+  /// move for an issue, whose canon file and view are named by its number.
+  pub fn issue_renumber(&mut self, old: u32, new: u32) -> Result<Renumbering, FacadeError> {
+    self.issue_show(old)?;
+    let subject = format!("issue {}", crate::model::issue_id(new));
+    if self.canon.issues.iter().any(|i| i.number == new) {
+      return Err(FacadeError::RenumberTargetTaken {
+        subject,
+        held_by: "the store".to_string(),
+      });
+    }
+    self.refuse_a_taken_path(
+      &subject,
+      &[self.project.issue_json(new), self.project.issue_view(new)],
+    )?;
+    let model = crate::renumber::issue(&self.canon, old, new)
+      .ok_or(FacadeError::NoSuchIssue { number: old })?;
+    let foreign = self.foreign_under(&self.project.issue_view(old))?;
+    let (from, to) = (crate::model::issue_id(old), crate::model::issue_id(new));
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      "issues.renumber",
+      Subject {
+        kind: "issue".to_string(),
+        id: to.clone(),
+      },
+      json!({ "from": from, "to": to }),
+    );
+    self.land_renumber(RenumberPlan {
+      from,
+      to,
+      sigil: Sigil::Issue,
+      moves: Vec::new(),
+      stale: vec![self.project.issue_json(old), self.project.issue_view(old)],
+      rerender: None,
+      envelope,
+      model,
+      foreign,
+    })
+  }
+
+  fn refuse_a_taken_path(
+    &self,
+    subject: &str,
+    paths: &[std::path::PathBuf],
+  ) -> Result<(), FacadeError> {
+    match paths.iter().find(|p| p.exists()) {
+      Some(path) => Err(FacadeError::RenumberTargetTaken {
+        subject: subject.to_string(),
+        held_by: self.project.relative(path),
+      }),
+      None => Ok(()),
+    }
+  }
+
+  /// The paths under `root` holding bytes the store did not render, asked
+  /// BEFORE a renumber moves or removes them -- the same predicate a write
+  /// asks of the paths it overwrites.
+  fn foreign_under(&self, root: &std::path::Path) -> Result<Vec<String>, FacadeError> {
+    let ctx = self.render_ctx()?;
+    let mut set = WriteSet::new();
+    for view in views::render_all(&self.project, &self.canon, &ctx) {
+      if view.path.starts_with(root) {
+        set.add(view.path, view.content);
+      }
+    }
+    self.foreign_bytes(&set)
+  }
+
+  /// Land a renumber: the manifest row and the disk moves first, because the
+  /// projection inside the write reads the manifest and renders into the moved
+  /// directory; then the one write; then what follows it.
+  ///
+  /// **A REFUSED WRITE PUTS BACK EVERYTHING IT MOVED**, in reverse, so a
+  /// refusal means nothing was renumbered. After the write the store has
+  /// moved, so every later failure is a note with its own remedy.
+  fn land_renumber(&mut self, plan: RenumberPlan) -> Result<Renumbering, FacadeError> {
+    let RenumberPlan {
+      from,
+      to,
+      sigil,
+      moves,
+      stale,
+      rerender,
+      envelope,
+      model,
+      foreign,
+    } = plan;
+    let mut moved = Vec::new();
+    let manifest = self.project.intentfiles_path();
+    let before = match std::fs::read_to_string(&manifest) {
+      Ok(text) => Some(text),
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: manifest.display().to_string(),
+          source,
+        });
+      }
+    };
+    if let Some(text) = &before {
+      let unpinned = intentfiles::unpin(text, sigil, &from)?;
+      if &unpinned != text {
+        let after = intentfiles::pin(&unpinned, sigil, &to, None)?;
+        let mut set = WriteSet::new();
+        set.add(manifest.clone(), after);
+        set.commit()?.keep();
+        moved.push(format!(
+          "{}: {} -> {}",
+          self.project.relative(&manifest),
+          intentfiles::declared_key(sigil, &from),
+          intentfiles::declared_key(sigil, &to)
+        ));
+      }
+    }
+    let mut done: Vec<(std::path::PathBuf, std::path::PathBuf)> = Vec::new();
+    for (source_path, target) in moves {
+      if !source_path.exists() {
+        continue;
+      }
+      if let Err(source) = std::fs::rename(&source_path, &target) {
+        self.undo_renumber_moves(&done)?;
+        self.restore_manifest(before)?;
+        return Err(FacadeError::RenumberDiskStep {
+          step: format!(
+            "move {} to {}",
+            self.project.relative(&source_path),
+            self.project.relative(&target)
+          ),
+          source,
+        });
+      }
+      moved.push(format!(
+        "{} -> {}",
+        self.project.relative(&source_path),
+        self.project.relative(&target)
+      ));
+      done.push((source_path, target));
+    }
+    let applied = match self.apply_envelopes(
+      vec![envelope],
+      model.canon,
+      crate::store::ProjectStateEdit::Unchanged,
+    ) {
+      Ok(applied) => applied,
+      Err(refused) => {
+        self.undo_renumber_moves(&done)?;
+        self.restore_manifest(before)?;
+        return Err(refused);
+      }
+    };
+    let mut notes = Vec::new();
+    for path in stale {
+      match std::fs::remove_file(&path) {
+        Ok(()) => moved.push(format!("{} removed", self.project.relative(&path))),
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => {}
+        Err(source) => {
+          let rel = self.project.relative(&path);
+          notes.push(Note::after_write(
+            &format!("removing {rel}"),
+            &FacadeError::RenumberDiskStep {
+              step: format!("remove {rel}"),
+              source,
+            },
+            &format!(
+              "the renumber is in the store and {to} is written -- do NOT run it again. Delete \
+               {rel} by hand; until it is gone, `intent sync --to-store` would load {from} back"
+            ),
+          ));
+        }
+      }
+    }
+    // **A MOVED DIRECTORY'S VIEWS STILL NAME THE OLD ID.** The write re-renders
+    // them for a declared thread; an undeclared one keeps its files and is
+    // never re-rendered by a write, so this does it, for exactly the views the
+    // directory already held.
+    if let Some(root) = rerender
+      && let Err(cause) = self.rerender_existing_under(&root)
+    {
+      notes.push(Note::after_write(
+        "re-rendering the moved views",
+        &cause,
+        RERENDER_REMEDY,
+      ));
+    }
+    let mut rewritten = model.rewritten;
+    if !model.claims.is_empty() {
+      // Only this call's board notes: a long-lived facade may hold others.
+      let mark = self.after_write.len();
+      for (node, claims) in &model.claims {
+        let event = self.wb_event("st.renumber", node, json!({ "from": from, "to": to }));
+        if let Err(cause) = self
+          .store
+          .wb_write(&event, |w| w.set_claims(node, claims))
+          .map_err(FacadeError::Store)
+        {
+          rewritten.retain(|line| !line.starts_with(&format!("{node}'s claims:")));
+          notes.push(Note::after_write(
+            &format!("moving {node}'s claims"),
+            &cause,
+            &format!(
+              "the renumber is in the store -- do NOT run it again. Move the claim by hand with \
+               `intent wb unclaim {from} --node {node}` and `intent wb claim {to} --node {node}`"
+            ),
+          ));
+        }
+      }
+      self.land_board_write_noting()?;
+      notes.extend(self.after_write.drain(mark..));
+    }
+    let prose = match self.search_all(&from, &crate::search::SearchQuery::default()) {
+      Ok(answer) => prose_mentions(&answer),
+      Err(cause) => {
+        notes.push(Note::after_write(
+          &format!("asking the index for the prose that names {from}"),
+          &cause,
+          &format!("the renumber is done; `intent search {from}` lists what still names it"),
+        ));
+        Vec::new()
+      }
+    };
+    let mut outcome = Outcome::Moved.with_overwrites(Applied {
+      foreign: [foreign, applied.foreign].concat(),
+      after_write: applied.after_write,
+    });
+    if !notes.is_empty() {
+      outcome = match outcome {
+        Outcome::MovedWith { notes: mut had } => {
+          had.extend(notes);
+          Outcome::MovedWith { notes: had }
+        }
+        _ => Outcome::MovedWith { notes },
+      };
+    }
+    Ok(Renumbering {
+      from,
+      to,
+      outcome,
+      rewritten,
+      moved,
+      prose,
+    })
+  }
+
+  /// Put back a renumber's disk moves, last first.
+  fn undo_renumber_moves(
+    &self,
+    done: &[(std::path::PathBuf, std::path::PathBuf)],
+  ) -> Result<(), FacadeError> {
+    for (source_path, target) in done.iter().rev() {
+      std::fs::rename(target, source_path).map_err(|source| FacadeError::RenumberDiskStep {
+        step: format!(
+          "put {} back at {} after the renumber was refused",
+          self.project.relative(target),
+          self.project.relative(source_path)
+        ),
+        source,
+      })?;
+    }
+    Ok(())
+  }
+
+  /// Re-render the views under `root` that are on disk, from the store.
+  fn rerender_existing_under(&mut self, root: &std::path::Path) -> Result<(), FacadeError> {
+    let ctx = self.render_ctx()?;
+    let mut set = WriteSet::new();
+    for view in views::render_all(&self.project, &self.canon, &ctx) {
+      if view.path.starts_with(root) && view.path.exists() {
+        set.add(view.path, view.content);
+      }
+    }
+    drop(ctx);
+    if set.is_empty() {
+      return Ok(());
+    }
+    let applied = set.commit()?;
+    let written: Vec<std::path::PathBuf> =
+      applied.written().map(std::path::PathBuf::from).collect();
+    applied.keep();
+    self.record_landed(&[], &written)
+  }
+
   pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
     self.st_cancel_listing(id, reason, ListEdit::AsDeclared, None)
   }
@@ -15277,6 +15681,38 @@ fn find_issue_mut(canon: &mut Canon, number: u32) -> Result<&mut crate::model::I
     .iter_mut()
     .find(|i| i.number == number)
     .ok_or(FacadeError::NoSuchIssue { number })
+}
+
+/// Everything [`Facade::land_renumber`] needs, gathered by the verb that knows
+/// its kind's paths.
+struct RenumberPlan {
+  from: String,
+  to: String,
+  sigil: Sigil,
+  /// Directories that move whole, each skipped when it is not there.
+  moves: Vec<(std::path::PathBuf, std::path::PathBuf)>,
+  /// Files named by the old id that the write does not replace.
+  stale: Vec<std::path::PathBuf>,
+  /// Where views that moved with a directory are re-rendered.
+  rerender: Option<std::path::PathBuf>,
+  envelope: Envelope,
+  model: crate::renumber::Renumbered,
+  foreign: Vec<String>,
+}
+
+/// Each place an answer found the id, once, in the order the index gave.
+fn prose_mentions(answer: &crate::search::SearchAnswer) -> Vec<ProseMention> {
+  let mut out: Vec<ProseMention> = Vec::new();
+  for hit in answer.groups.iter().flat_map(|g| &g.hits) {
+    let mention = ProseMention {
+      path: hit.path.clone(),
+      line: hit.span.as_ref().map(|s| s.start_line),
+    };
+    if !out.contains(&mention) {
+      out.push(mention);
+    }
+  }
+  out
 }
 
 fn find_thread_mut<'a>(canon: &'a mut Canon, id: &str) -> Result<&'a mut Thread, FacadeError> {
