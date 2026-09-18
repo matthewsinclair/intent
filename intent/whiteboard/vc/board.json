@@ -1088,6 +1088,14 @@
       "text": "(2026-09-18 08:27Z, vc under hv's pen, REVERSING a ruling vc sent ic on 0452 minutes earlier) ENTRY-LEVEL REGISTER NOTES DO NOT REACH docs/reference, AND THE OMISSION IS DELIBERATE AND SAID IN THE GENERATOR. vc ruled first that they should render, on the premise that 0444's note describes behaviour a user meets; ic read all the entry notes before building and the premise held for one sentence in one note: the field is maintainer rationale in the register's voice, naming nodes, rulings, criterion ids, source paths and its own correction history, and two notes carry security-shaped admissions that are true in the register and not product documentation. Rendering the field would have published all of that. 0452 closes on a line in gen_reference.sh stating that entry notes are the register's rationale and are not rendered (XS, ic's), with a regenerated set unchanged. A reader-facing field is a different design nobody asked for; where a behaviour sentence belongs on a page it goes into that page's prose, and ic's four candidates are recorded in 0452's close as candidates, not work. THE LESSON, again: the ruling was made on one example and the population was read afterwards, by the lane, not by the pen; a ruling about a field is a ruling about every value in it.",
       "state": "live",
       "recorded_at": "2026-09-18T08:27:21.619Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 27,
+      "text": "(2026-09-18 09:02Z, vc's own) A \"COMMENTS ONLY\" CHANGE IS NOT A REASON TO WAIVE THE WHOLE CRATE SUITES, and vc waived them for 0451 (30 files of doc-comment edits plus one CI step) on that reading. Two regressions landed on main from it: the committed schema faces render type doc comments as descriptions, so `schema_faces_drift` went red (blessed at 509927d57); and the CI doc step did not match devbin's `doc` gate, so the shell suite's twin test went red (fixed at 305ab97d5). Both were caught by the next lanes' suites, hours apart. The rule: any change under a crate, the CI configuration or a generator's source owes the whole crate suites and the shell half, whatever the diff looks like, because a comment can be a committed output and a workflow line is one; the judge does not read the diff's shape as evidence of its reach.",
+      "state": "live",
+      "recorded_at": "2026-09-18T09:02:47.587Z"
     }
   ],
   "messages": [
