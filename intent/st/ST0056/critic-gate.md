@@ -1,5 +1,5 @@
 ---
-verblock: "15 Sep 2026:v0.3: citations and the install-root pointer re-synced to the tree at a0c7300eb"
+verblock: "19 Sep 2026:v0.4: citations re-synced to the tree at 6d761cf69 and the declared languages completed. 15 Sep 2026:v0.3: citations and the install-root pointer re-synced to the tree at a0c7300eb"
 ---
 
 # The pre-commit critic gate
@@ -23,7 +23,7 @@ Nothing there was a bug on its own. The version guard was right, exit 2 was a le
 
 ### As built
 
-The v2 dispatcher and its version guard are gone, so the refusal half of the composition no longer exists. The gate chain is: `.git/hooks/pre-commit` chains to `.git/hooks/pre-commit.intent`, a shim installed by `intent claude upgrade --apply` (`canon.rs:608`), which reads the install root from `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`, `pre-commit-shim.sh:59`) and execs `<root>/lib/templates/hooks/pre-commit.sh`. That hook runs `intent critic "$lang" --staged --severity-min "$SEVERITY" --format text` for each declared language (`lib/templates/hooks/pre-commit.sh:557`) and branches on the exit code the critic defines (`critic.rs:361`):
+The v2 dispatcher and its version guard are gone, so the refusal half of the composition no longer exists. The gate chain is: `.git/hooks/pre-commit` chains to `.git/hooks/pre-commit.intent`, a shim installed by `intent claude upgrade --apply` (`canon.rs:715`), which reads the install root from `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`, `pre-commit-shim.sh:59`) and execs `<root>/lib/templates/hooks/pre-commit.sh`. That hook runs `intent critic "$lang" --staged --severity-min "$SEVERITY" --format text` for each declared language (`lib/templates/hooks/pre-commit.sh:557`) and branches on the exit code the critic defines (`critic.rs:361`):
 
 | code | meaning (`intent critic`)                        | gate                                                 |
 | ---- | ------------------------------------------------ | ---------------------------------------------------- |
@@ -86,15 +86,15 @@ Rules added to either pack since carry their own classification; the census is t
 
 ### FINDING: the critic answers no clippy-armed rule, and CI answers them only in part
 
-**The census counts the three clippy rules as armed, and the critic runs none of them.** It reports them `not-run:out-of-context` (a per-file run never invokes clippy), so what answers each is a workspace run. **`IN-RS-CODE-001`, the critical rust rule, is answered by CI's own step for it** in `.github/workflows/rust.yml`: `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic`, over the library targets and never `--all-targets`, with the build scripts out behind a crate-level allow because a build-script panic fails the build the way `main.rs` exits (vc, 2026-09-15). The whole-workspace runs -- `cargo clippy --workspace --all-targets -- -D warnings` in `.github/workflows/rust.yml:113` and the devbin's `check clippy` (`bin/.devbin/config.yaml:197`) -- use clippy's default lint groups, and no `[lints]` table or crate attribute in `native/rust` enables `needless_pass_by_value` (pedantic) or `redundant_clone` (nursery). So `IN-RS-CODE-005` and `IN-RS-CODE-002`'s `clone_on_copy` are enforced by the workspace run, and the rest of `IN-RS-CODE-002` is enforced nowhere.
+**The census counts the three clippy rules as armed, and the critic runs none of them.** It reports them `not-run:out-of-context` (a per-file run never invokes clippy), so what answers each is a workspace run. **`IN-RS-CODE-001`, the critical rust rule, is answered by CI's own step for it** in `.github/workflows/rust.yml`: `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic`, over the library targets and never `--all-targets`, with the build scripts out behind a crate-level allow because a build-script panic fails the build the way `main.rs` exits (vc, 2026-09-15). The whole-workspace runs -- `cargo clippy --workspace --all-targets -- -D warnings` in `.github/workflows/rust.yml:113` and the devbin's `check clippy` (`bin/.devbin/config.yaml:212`) -- use clippy's default lint groups, and no `[lints]` table or crate attribute in `native/rust` enables `needless_pass_by_value` (pedantic) or `redundant_clone` (nursery). So `IN-RS-CODE-005` and `IN-RS-CODE-002`'s `clone_on_copy` are enforced by the workspace run, and the rest of `IN-RS-CODE-002` is enforced nowhere.
 
 ### BOUNDARY -- `.bats` files are invisible to the shell critic
 
-`--staged` passes every added, copied or modified path (`git diff --cached --name-only --diff-filter=ACM`, `render.rs:12235`), and each rule's `applies_to` globs then select the files it sees (`critic.rs:757`). No shell rule's globs admit `*.bats`. Driven: the same unquoted-expansion fixture is reported at exit 1 as `t.sh` and passes at exit 0 as `tests/t.bats`. **The `.bats` suite -- the largest body of shell-adjacent code in this repository -- never reaches the shell critic**, so nobody should measure the shell pack's effect against a denominator that includes it.
+`--staged` passes every added, copied or modified path (`git diff --cached --name-only --diff-filter=ACM`, `render.rs:13125`), and each rule's `applies_to` globs then select the files it sees (`critic.rs:757`). No shell rule's globs admit `*.bats`. Driven: the same unquoted-expansion fixture is reported at exit 1 as `t.sh` and passes at exit 0 as `tests/t.bats`. **The `.bats` suite -- the largest body of shell-adjacent code in this repository -- never reaches the shell critic**, so nobody should measure the shell pack's effect against a denominator that includes it.
 
 ### What this project actually is
 
-Intent is a Rust workspace plus shell: the devbin, the shipped hooks and guards, and the `.bats` suite. It declares `elixir` and `swift` as well, but its only Elixir sources are the rule library's `good.exs` / `bad.exs` examples, and every swift rule is UNDECLARED -- the census names each one on every run. **A gate enforcing Elixir rules on a project that is essentially not Elixir** is why Half B mattered here.
+Intent is a Rust workspace plus shell: the devbin, the shipped hooks and guards, and the `.bats` suite. It declares `elixir`, `swift`, `author` and `content` as well, but its only Elixir sources are the rule library's `good.exs` / `bad.exs` examples, and every swift rule is UNDECLARED -- the census names each one on every run. **A gate enforcing Elixir rules on a project that is essentially not Elixir** is why Half B mattered here.
 
 ### The constraint that still stands
 
@@ -102,9 +102,9 @@ Intent is a Rust workspace plus shell: the devbin, the shipped hooks and guards,
 
 ## The release pre-flight runs the Rust suite
 
-**`preflight()` in `bin/.devbin/cmd/build.d/release` now runs `cargo build -p intentd` and `cargo test --workspace --no-fail-fast` after the bats suite and aborts on failure** (`:600`), and refuses to release when the native manifest is present and `cargo` is not on `PATH` (`:569-571`). The gate runs in a private worktree at HEAD under an isolated HOME with its own target directory, never in the shared checkout beside the live daemon, and a red confined to the arms that wait on an FSEvents-driven event re-runs intentd's tests once (issue 0389, `:572-604`). On a product whose shipped artefacts ARE the Rust binaries, the tag path no longer skips the Rust suite.
+**`preflight()` in `bin/.devbin/cmd/build.d/release` now runs `cargo build -p intentd` and `cargo test --workspace --no-fail-fast` after the bats suite and aborts on failure** (`:653`), and refuses to release when the native manifest is present and `cargo` is not on `PATH` (`:622`). The gate runs in a private worktree at HEAD under an isolated HOME with its own target directory, never in the shared checkout beside the live daemon, and a red confined to the arms that wait on an FSEvents-driven event re-runs intentd's tests once (issue 0389, `:625-666`). On a product whose shipped artefacts ARE the Rust binaries, the tag path no longer skips the Rust suite.
 
-**`--skip-tests` still returns from `preflight()` before doctor, the bats suite and the cargo gate** (`:530-533`). The dirty-tree refusal on the tag path no longer recommends it (`:1176`): its message is `refusing to tag a dirty tree -- commit or revert the above, then re-run`, because following an instruction to re-run with every correctness gate off, on exactly the run that tags, was the realistic failure.
+**`--skip-tests` still returns from `preflight()` before doctor, the bats suite and the cargo gate** (`:583-585`). The dirty-tree refusal on the tag path no longer recommends it (`:1229`): its message is `refusing to tag a dirty tree -- commit or revert the above, then re-run`, because following an instruction to re-run with every correctness gate off, on exactly the run that tags, was the realistic failure.
 
 **Boundary worth stating with it: the dirty-tree check reads `git status --porcelain`, so it structurally cannot see a writer that only writes GITIGNORED paths** -- the runtime store being the live example. That is the limit of what that gate can be asked to prove, not an argument against it.
 

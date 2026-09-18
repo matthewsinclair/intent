@@ -6,7 +6,7 @@ The strawman was Rust + ratatui 0.29 + portable-pty + tui-term, READ-ONLY agains
 
 ## 1. What is being built
 
-`intent explore [ADDRESS]` opens the model in a TUI, at the threads list or near the address given. `intent browse <kind> <id>` (twin: `intent edit <kind> <id> --browser`) opens one entity in a browser served by `intentd`. Both are realisers over one declaration; neither is a second implementation of the model.
+`intent explore [ADDRESS]` opens the model in a TUI, at the threads list or near the address given. `intent browse <kind> <id>` (twin for `st` and `wp`: `intent edit <kind> <id> --browser`; an issue has the `browse` spelling alone) opens one entity in a browser served by `intentd`. Both are realisers over one declaration; neither is a second implementation of the model.
 
 **The form is declared, not coded.** A JSON declaration, `surface/forms.json`, compiled into the binary (JSON rather than the YAML first specified: no YAML parser is in the workspace, and the estate's authored canon is already JSON), carries LAYOUT — order, label, widget, editability — and takes field existence and type from the entity's schema face. **It never enumerates the field set.** A hand-authored field list is a second home for what `schema/*.json` already declares and goes stale exactly the way `populations.shipped` did; that is `AC-17.2`, and the converse is held too — an editable property appearing in no form is named rather than silently unreachable.
 
@@ -200,13 +200,13 @@ Rendering it was the obvious repair and the ranker refuses it: the boosted prefi
 
 Navigation is a **stack**: `⏎` pushes; `Backspace` on an empty composer, or `/back`, pops; popping the root is a no-op. Cursor and scroll reset with the view, because a row index means nothing once the row set changes. `intent explore` roots the stack at the threads list.
 
-Views are one generic ladder derived from the declaration (`intentsvcs::nav::View`), and each has a path: the entity kinds (`/`), a collection (`/thread`), an item (`/thread/ST0056`), a child collection (`/thread/ST0056/wps`) and a child item (`/thread/ST0056/wps/17`), plus the reserved `/settings`, `/help` (with `/help/<command>`) and `/search` (with `/search/<query>`, the query being the rest of the path). The browser's URL is the same path.
+Views are one generic ladder derived from the declaration (`intentsvcs::nav::View`), and each has a path: the entity kinds (`/`), a collection (`/thread`), an item (`/thread/ST0056`), a child collection (`/thread/ST0056/wps`) and a child item (`/thread/ST0056/wps/17`), plus the reserved `/settings`, `/help` (with `/help/<command>`), `/search` (with `/search/<query>`, the query being the rest of the path) and `/projects`. The browser's URL is the same path.
 
 - **A view's rows and its heading are both functions of the one `View` the stack holds**: `Source::rows(view)` builds the rows and `views::app_line(view)` names the view on the APP row, so the heading cannot name a different place from its rows. The heading carries the view's kind and id, not the entity's title.
 - **A row's door is DECLARED on the row, not inferred from its kind.** Working out where `documents` goes from the fact that it looks like a pane is the same guess-from-shape that once made `intent edit st 68` parse `st` as the address.
 - **Opening a real file is a separate action from navigating.** Modelling it as a view was wrong and the compiler said so immediately.
 - **When nested, the APP ROW carries the trail and the exit key.** A way back that is wired and unlabelled is a way back nobody finds — this was a real defect in the strawman: `Backspace` worked and nothing on screen said so, so every key a user tried was a reasonable guess and none was the one.
-- **`/settings`, `/help` and `/search` are the views not derived from the declaration, and their path segments are RESERVED** (`nav::RESERVED`). Each is a `View` because a `View` is what the stack holds — a settings screen that was not one would need a second place for the face to remember it was there, which is the parallel navigation model `nav.rs` exists to refuse. Being a `View` also buys `AC-17.7`'s no-trap property for free. **The reservation is a real cost, paid deliberately:** `/settings` would otherwise parse as the collection of an entity kind called `settings`, so that kind becomes unaddressable — and silently, since `View::parse` would go on returning a perfectly good view. A test (`no_declared_entity_kind_is_reserved`) holds every reserved segment against the REAL declaration, so a form declared with that name fails the suite instead of disappearing from both faces.
+- **`/settings`, `/help`, `/search` and `/projects` are the views not derived from the declaration, and their path segments are RESERVED** (`nav::RESERVED`). Each is a `View` because a `View` is what the stack holds — a settings screen that was not one would need a second place for the face to remember it was there, which is the parallel navigation model `nav.rs` exists to refuse. Being a `View` also buys `AC-17.7`'s no-trap property for free. **The reservation is a real cost, paid deliberately:** `/settings` would otherwise parse as the collection of an entity kind called `settings`, so that kind becomes unaddressable — and silently, since `View::parse` would go on returning a perfectly good view. A test (`no_declared_entity_kind_is_reserved`) holds every reserved segment against the REAL declaration, so a form declared with that name fails the suite instead of disappearing from both faces.
 
 ### Documents are not fields
 
@@ -314,7 +314,7 @@ A row opens the realised file itself -- `intent/st/<ID>/<file>.md` -- exactly as
 
 ## 9. The `intent edit` surface
 
-`intent edit` takes `[KIND] [ID] [FILE]`, FILE defaulting to `info`; a first positional that is an `intent:///` address is the whole address, and the next positional is the FILE. So `intent edit st 68` names thread ST0068's `info.md`, and `intent edit issue 0056` names the issue.
+`intent edit` takes `[KIND] [ID] [FILE]`, FILE defaulting to `info`; a first positional that is an `intent:///` address is the whole address, and the next positional is the FILE. So `intent edit st 68` names thread ST0068's `info.md`, and `intent edit issue 0056` is refused, because an issue has no authored file: `intent browse issue 0056` opens it and `intent issues edit` corrects it.
 
 The shape keeps the TTY-aware design:
 

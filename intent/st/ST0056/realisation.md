@@ -1,5 +1,5 @@
 ---
-verblock: "18 Aug 2026:v0.1: vc - selective realisation: .intentfiles, organize, edit"
+verblock: "19 Sep 2026:v0.2: vc - the as-built notes re-read against the tree at 6d761cf69: the event canon and project.json rows, st fc and the renumber verbs on the manifest, agents template, two citations by name. 18 Aug 2026:v0.1: vc - selective realisation: .intentfiles, organize, edit"
 ---
 
 # Selective realisation -- disk as a sparse projection of the store
@@ -10,11 +10,11 @@ This document takes that brief, names the one thing in it that cannot be true as
 
 ## 1. The model is THREE layers, and the brief collapses two of them
 
-| layer     | what                                                                                                                  | where                                                                                                  | committed            | who derives it              |
-| --------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------- | --------------------------- |
-| **canon** | one JSON file per thread (carrying its attachments) and per issue                                                     | `intent/.canon/st/<ID>.json`, `intent/.canon/issues/<NNNN>.json`                                       | **yes**              | authored through the facade |
-| **store** | `intent/.cache/intent.db`                                                                                             | machine-local                                                                                          | **NO -- gitignored** | rebuilt from canon          |
-| **disk**  | a realised thread's views (`info.md`, `acceptance.md`, WP `info.md`) and its attachments, and a realised issue's view | `intent/st/<ID>/` and `intent/issues/<NNNN>.md`, plus the index views `steel_threads.md` and `todo.md` | yes                  | written from the store      |
+| layer     | what                                                                                                                                                                                  | where                                                                                                  | committed            | who derives it              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------- | --------------------------- |
+| **canon** | one JSON file per thread (carrying its attachments) and per issue, one per project event under `intent/.canon/events/<YYYY>/<MM>/<DD>/` (ST0078 P1), and `intent/.canon/project.json` | `intent/.canon/st/<ID>.json`, `intent/.canon/issues/<NNNN>.json`                                       | **yes**              | authored through the facade |
+| **store** | `intent/.cache/intent.db`                                                                                                                                                             | machine-local                                                                                          | **NO -- gitignored** | rebuilt from canon          |
+| **disk**  | a realised thread's views (`info.md`, `acceptance.md`, WP `info.md`) and its attachments, and a realised issue's view                                                                 | `intent/st/<ID>/` and `intent/issues/<NNNN>.md`, plus the index views `steel_threads.md` and `todo.md` | yes                  | written from the store      |
 
 **The store is SSOT for a running tool on one machine. It is not what travels.** `intent/.cache/` is gitignored at `.gitignore:125`, and the ignore rule's own comment says the name contradicts the model. `intent sync --to-disk` is documented as _"Write the store out to **the committed extract**"_ -- the tool's own vocabulary already distinguishes the runtime store from the durable record.
 
@@ -50,11 +50,11 @@ The set it governs is committed. If the manifest were machine-local, `organize` 
 
 Many writers, one meaning:
 
-- `st start`, `st resume` and `st reopen` add the thread's id; `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and `st reinstate` do neither; `issues add` and `issues open` add an issue's id and `issues close` removes it. The op decides, not the status it lands on.
+- `st start`, `st resume` and `st reopen` add the thread's id; `st done`, `st cancel`, `st hold` and `st triage` remove it; `st new` and `st reinstate` do neither; `issues add` and `issues open` add an issue's id and `issues close` removes it. The op decides, not the status it lands on. `st fc` removes it as `st done` does; `st renumber` and `issues renumber` move the line to the new id.
 - `st hydrate <ID>` and `st dehydrate <ID>` add or remove it directly and write or delete the files.
 - `intent edit` adds the id of a thread it realises.
 - A human may edit the file by hand.
-- `intent organize --default` writes the file from status -- one `STEELTHREAD:` line per WIP thread and one `ISSUE:` line per open issue, nothing else -- when it is absent, and `--force` regenerates an existing one (refused without a tty; confirmed on one). `intent init` writes the header with no declarations, and `intent upgrade` writes the default when the file is absent.
+- `intent organize --default` writes the file from status -- one `STEELTHREAD:` line per open thread (any status that is not closed, `intentfiles::default_declaration`) and one `ISSUE:` line per open issue, nothing else -- when it is absent, and `--force` regenerates an existing one (refused without a tty; confirmed on one). `intent init` writes the header with no declarations, and `intent upgrade` writes the default when the file is absent.
 
 **ABSENT is not EMPTY.** A missing file means nobody has said, and everything stays; a present file declaring nothing means keep nothing.
 
@@ -137,7 +137,7 @@ The two are different facts:
 
 **The disposition record is a LICENCE, not an account.** `conservation_check.sh` reads a declared drop as _"removed on purpose, not loss"_ and stops reporting it. Admitting uncarried files under that verdict would silence the exact population the check exists to find -- **which is the attack ic drove on 2026-08-18 through `--out-of-model`: the migrator zeroes a counter by naming everything, certifying its own denominator.** Same move, different door.
 
-**Home for the fact: `doctor`.** As built, any file a human puts under a thread is an attachment when it fits under `ATTACHMENT_CAP_BYTES` (1 MiB, inclusive; `project.rs:50`), and a file over the cap is the uncarried case, which `doctor` names with its size (`doctor.rs:1254`). An uncarried file is a LIVE CONDITION, not a record of what a migration once did.
+**Home for the fact: `doctor`.** As built, any file a human puts under a thread is an attachment when it fits under `ATTACHMENT_CAP_BYTES` (1 MiB, inclusive; `project.rs:50`), and a file over the cap is the uncarried case, which `doctor` names with its size (the over-cap arm in `doctor.rs`). An uncarried file is a LIVE CONDITION, not a record of what a migration once did.
 
 ### 5.2 Idempotence is a measured requirement, not an aspiration
 
@@ -183,7 +183,7 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 - **Attachments.** `Attachment{path,text,bytes,sha256}`, one constructor, `text` carried with NO trim so a round trip cannot cost a byte (landed `36bc02c5`). Any file under a thread that fits under the attachment cap is an attachment; the extension allowlist that once left files uncarried is retired. **A TEXT attachment's bytes are in canon, so it dehydrates and hydrates like a view. An OPAQUE one is recorded by path, size and sha256 with `text: None`, so its bytes cannot be put back: `organize` refuses to remove it and does not hydrate it as an empty file.**
 - **The typed thread documents.** `design.md`, `impl.md` and `tasks.md` were classified as typed documents the model had no field for. **Resolved by D57-6: they left the classifier's `THREAD_PROSE` list and are carried as attachments**, verbatim, each indexed as one unsplit section for search (`ingest.rs`).
 - **Issue bodies.** `Issue.body` is carried VERBATIM rather than trimmed -- cc's ruling: _a normalisation that requires a future component to compensate is a scheduled defect_. An issue's realised form is its generated view `intent/issues/<NNNN>.md` (`views::issue`), declared by an `ISSUE:` line.
-- **`ROOT_FILES`.** `AGENTS.md`, `CLAUDE.md`, `usage-rules.md` stay out of `.intentfiles` scope. `AGENTS.md` has its generator (`intent agents init|generate|sync|validate`).
+- **`ROOT_FILES`.** `AGENTS.md`, `CLAUDE.md`, `usage-rules.md` stay out of `.intentfiles` scope. `AGENTS.md` has its generator (`intent agents init|generate|sync|validate|template`).
 - **The estate-level verdict.** The dehydration ship gate reads the project's declared preconditions (5.1).
 
 **Dehydration ships behind both gates. Hydration and `edit` are additive and safe.**
@@ -196,7 +196,7 @@ hv proposed `intent wip {{STID}} | {{ISSUEID}}`.
 4. **Default rule.** Proposed as every thread whose status is not terminal; **built as every WIP thread and nothing else** among threads, plus every open issue since ST0069 WP-01 (hv, 2026-08-26: _"It should ONLY HAVE WIP STs!!!!!"_). Stated positively, the realised set cannot acquire members by accident: it is the set somebody is working on (`intentfiles::default_declaration`).
 5. **Work packages.** A WP is realised with its thread, not independently. There is no `WORKPACKAGE:` sigil.
 6. **The typed documents** (`design.md` / `impl.md` / `tasks.md`) -- give the model fields for them, or reclassify them as attachments. **Attachments, on this spec's own rule 2 (D57-6).** A typed field earns its parsing because the model has fields for what comes out. These are freeform prose under arbitrary headings and the model has no fields for what is inside them, **so parsing them would discard structure into nothing -- which is precisely how `## Related Steel Threads` became rows of `LOST-PROSE`.** Carry them verbatim. The one-off `.md` files under a thread (`parity.md`, `data-model.md`, the fleet reports) were already carried as attachments, so the fix was subtractive: three names came out of the classifier's list.
-7. **Issues have no rendered-view path in v3.** Settled by retiring `ISSUE:` from the grammar (hv, 2026-08-20): an issue lives in canon (`intent/.canon/issues/<NNNN>.json`, carrying its `body`) and in the store, and has no realised form. The only rendered issue markdown in a v2 estate is its `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is residue this design retires. **Reopened by ST0069 WP-01:** as built (2026-09-13), an issue renders to `intent/issues/<NNNN>.md`, `ISSUE:` is back in the grammar, and `organize` realises and dehydrates issue views under the same per-file gate (`intentfiles.rs:87-99`, `views.rs:1528`).
+7. **Issues have no rendered-view path in v3.** Settled by retiring `ISSUE:` from the grammar (hv, 2026-08-20): an issue lives in canon (`intent/.canon/issues/<NNNN>.json`, carrying its `body`) and in the store, and has no realised form. The only rendered issue markdown in a v2 estate is its `issues/<BUCKET>/NNNN/NNNN-slug.md`, which is residue this design retires. **Reopened by ST0069 WP-01:** as built (2026-09-13), an issue renders to `intent/issues/<NNNN>.md`, `ISSUE:` is back in the grammar, and `organize` realises and dehydrates issue views under the same per-file gate (the `Issue` sigil's doc in `intentfiles.rs`, `views::issue`).
 
 ## 9. The second derivation
 
