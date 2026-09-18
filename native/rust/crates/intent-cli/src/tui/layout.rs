@@ -479,7 +479,7 @@ pub const BRAND: &str = "\u{1f422} Intent";
 /// would then have to be right about everywhere.
 ///
 /// **IT IS A RULE, NOT A MAGIC NUMBER**, and
-/// [`the_brand_costs_what_it_says_it_costs`] holds it: ASCII is one column,
+/// `the_brand_costs_what_it_says_it_costs` holds it: ASCII is one column,
 /// anything else is two. **The caveat is real and stated: a terminal that
 /// renders the turtle single-width shifts the brand one column right.** That
 /// is a display wart, not a correctness failure -- nothing is clipped by it,

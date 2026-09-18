@@ -277,7 +277,7 @@ impl Omnibox {
     self.pick = 0;
   }
 
-  /// Where the caret may not go left of. See [`Omnibox::floor`].
+  /// Where the caret may not go left of. See `Omnibox::floor`.
   pub fn set_floor(&mut self, floor: usize) {
     self.floor = floor.min(self.len());
     self.cursor = self.cursor.max(self.floor);

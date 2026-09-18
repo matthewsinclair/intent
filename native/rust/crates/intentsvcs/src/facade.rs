@@ -30,7 +30,7 @@
 //! remedies that named a command after the reasoning behind it had moved.
 //!
 //! **The facade has no clock.** Dates arrive from the caller in
-//! [`FacadeContext::today`]. That is not the renderer's no-clock law (D23) --
+//! `FacadeContext::today`. That is not the renderer's no-clock law (D23) --
 //! a mutation genuinely happens at a time -- but it keeps every verb a pure
 //! function of its inputs, which is what makes them testable without freezing
 //! time. The event log is the one place a real timestamp is minted, because an
@@ -1419,7 +1419,7 @@ pub enum FacadeError {
   )]
   EgestFromStaleStore { subjects: String },
   /// An ingest pass found another connection's commit after each of its
-  /// [`INGEST_RENDERS`] snapshots, so it wrote none of its renders (issue
+  /// `INGEST_RENDERS` snapshots, so it wrote none of its renders (issue
   /// `0441`). `paths` names what the last one would have changed.
   #[error(
     "the store moved under each of this sync's {renders} renders, so it wrote none of them; the last would have changed {paths}"
@@ -2591,7 +2591,7 @@ pub enum Note {
   /// reason not to say it is going.
   ///
   /// **SAID BEFORE THE REMOVAL IS ARMED, not after it happens** (AC-03.9, and
-  /// the same argument [`Facade::closing_notes`] already makes): the close
+  /// the same argument `Facade::closing_notes` already makes): the close
   /// itself removes nothing, so this is the moment the operator can still
   /// decide otherwise.
   DehydratesOnNextOrganize(Vec<String>),
@@ -3741,7 +3741,7 @@ impl Facade {
   /// precisely what makes it reachable. Carrying the catch-all down here would
   /// have moved the bug rather than fixed it.
   ///
-  /// **THE `wp` ARM RESOLVES THROUGH [`Self::wp_of`]**, which is also what
+  /// **THE `wp` ARM RESOLVES THROUGH `Self::wp_of`**, which is also what
   /// [`Self::edit`] checks existence with, so a work package that this door
   /// can describe and a work package that door will open are the same set.
   pub fn entity_json(
@@ -4640,7 +4640,7 @@ impl Facade {
   /// inline, so the CLI face owned an operation every other face would have
   /// had to re-compose.
   ///
-  /// **NOT [`Self::render_ctx`], AND THE DIFFERENCE IS A STORE READ.** Nothing
+  /// **NOT `Self::render_ctx`, AND THE DIFFERENCE IS A STORE READ.** Nothing
   /// on this path renders `todo.md`, so there is no watermark to carry and
   /// asking the store for one would be a read with no reader.
   pub fn agents_generate(&self) -> Result<String, FacadeError> {
@@ -5295,13 +5295,13 @@ impl Facade {
   /// over it. That is worse than no preview at all: it is a specific promise
   /// about which files go, made about a different run.
   ///
-  /// `shown` is the digest of the plan the caller rendered ([`Report::digest`]).
+  /// `shown` is the digest of the plan the caller rendered (`Report::digest`).
   /// If this run's plan does not carry the same digest, the run REFUSES and
   /// removes nothing rather than acting on the difference.
   ///
   /// **THIS IS NOT THE MOMENT-OF-ACT GUARD AND DOES NOT REPLACE IT.** That one
   /// stands between THIS run's plan and its own irreversible step, inside
-  /// [`Plan::run`]; this one stands between the plan a HUMAN READ and the plan
+  /// `Plan::run`; this one stands between the plan a HUMAN READ and the plan
   /// about to be performed. Two different windows, and only the second is
   /// closed by a person having looked.
   pub fn organize_as_shown(
@@ -7625,7 +7625,7 @@ impl Facade {
   /// `0216`).
   ///
   /// The same engine as [`Facade::sync_from_disk`] under a different
-  /// [`ingest::Load`], so the daemon runs no second sync implementation (D32).
+  /// `ingest::Load`, so the daemon runs no second sync implementation (D32).
   /// It is NOT the restore: nobody typed it and nobody was shown an OVERWRITES
   /// preview, so it must not destroy a write whose commit has landed and whose
   /// canon file has not -- which the restore's wholesale rebuild did, ~1s after
@@ -7639,7 +7639,7 @@ impl Facade {
   /// nothing said so until the next write to the subject warned. So a render
   /// lands only under a held writer lock that finds no other connection's commit
   /// since the snapshot; a pass that finds one renders again, at most
-  /// [`INGEST_RENDERS`] times, and then refuses, naming what it did not write.
+  /// `INGEST_RENDERS` times, and then refuses, naming what it did not write.
   pub fn ingest_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
     let mut unwritten = Vec::new();
     for _ in 0..INGEST_RENDERS {
@@ -8713,7 +8713,7 @@ impl Facade {
   /// where the ordinary preconditions do not hold.
   ///
   /// **It is the DOOR rather than the implementation** -- one line today,
-  /// because [`ingest::from_md`] refuses until WP-10 lands the parser. It
+  /// because `ingest::from_md` refuses until WP-10 lands the parser. It
   /// exists now so the CLI has one entry point that does not move when the body
   /// arrives, and so the layer the parser plugs into is settled before there is
   /// a parser arguing for a different one.
@@ -9547,7 +9547,7 @@ impl Facade {
   /// shared test files, and nothing to say in any of them.
   ///
   /// **WHAT `--dehydrate` DOES NOT DO, AND ITS HELP TEXT CLAIMS IT DOES:**
-  /// suppress the FILES. [`Facade::apply`] projects every changed thread
+  /// suppress the FILES. `Facade::apply` projects every changed thread
   /// unconditionally and consults no manifest, so the views are written either
   /// way and the next `organize` is what removes them. The flag's real and only
   /// effect is on the list. Reported rather than worked around: filtering
@@ -9721,7 +9721,7 @@ impl Facade {
   /// Close a thread. Consults the close gate first -- the single authority, so
   /// there is no path that closes without it.
   /// Close a thread. The gate is a DECLARED guard and is run by the shared
-  /// setter, after the self-loop test -- see [`Facade::check_gate`].
+  /// setter, after the self-loop test -- see `Facade::check_gate`.
   pub fn st_done(&mut self, id: &str) -> Result<Outcome, FacadeError> {
     self.st_done_listing(id, ListEdit::AsDeclared, None)
   }
@@ -10451,7 +10451,7 @@ impl Facade {
 
   /// Close a work package, gated on its own scope.
   /// Close a work package. The gate is a DECLARED guard, run by the shared
-  /// setter after the self-loop test -- see [`Facade::check_gate`].
+  /// setter after the self-loop test -- see `Facade::check_gate`.
   pub fn wp_done(&mut self, st: &str, seq: u32) -> Result<Outcome, FacadeError> {
     self.set_wp_status(st, seq, WpStatus::Done, "wp.done", None)
   }
@@ -11509,7 +11509,7 @@ impl Facade {
   ///
   /// **`at` GOES IN EMPTY AND COMES BACK FILLED** (D42), exactly as `st new`'s
   /// `created` does. Nothing here knows what time it is: the database stamps
-  /// the event inside the INSERT and [`Facade::apply_with_state`] patches the
+  /// the event inside the INSERT and `Facade::apply_with_state` patches the
   /// value that landed back into the record before the extract is rendered.
   /// Reading a process clock here is the defect hv ruled out on 2026-08-15 --
   /// it would make the log's ordering an accident of which machine ran the
@@ -11521,7 +11521,7 @@ impl Facade {
   /// one somebody actually looked at.
   ///
   /// **The empty-`because` refusal is NOT written here.** It is the machine's
-  /// `Guard::ReasonRecorded`, read through [`Self::justification`], so the
+  /// `Guard::ReasonRecorded`, read through `Self::justification`, so the
   /// guard, the schema's `length(min = 1)` and this verb cannot drift apart --
   /// there is only one of them.
   pub fn ac_fc(
@@ -11985,13 +11985,13 @@ impl Facade {
   ///
   /// **`at` GOES IN EMPTY AND COMES BACK FILLED** (D42), exactly as `ac_fc`'s
   /// does. Nothing here knows what time it is: the database stamps the event
-  /// inside the INSERT and [`Facade::apply_with_state`] patches the value that
+  /// inside the INSERT and `Facade::apply_with_state` patches the value that
   /// landed back into the record before the extract is rendered.
   ///
   /// **THE MACHINE IS CONSULTED BEFORE THE REASON, AND THE ORDER IS THE POINT.**
   /// `at_set` beside this reads no declaration at all -- its edges carry
   /// `from: &[]`, so there was never a from-state to check. This verb has one,
-  /// and it goes through [`Self::check_transition`] rather than a hand-written
+  /// and it goes through `Self::check_transition` rather than a hand-written
   /// `match`: issues 0051 and 0053 are four instances of a hand-rolled
   /// from-state check placed ahead of the shared setter, each making the common
   /// arm unreachable for one verb. The refusal for an already-closed row is
@@ -12923,7 +12923,7 @@ impl Facade {
   /// carried back in by the next ingest, which is the one fact that makes
   /// "left on disk" an instruction rather than a reassurance.
   ///
-  /// Written through the same [`Facade::apply`] as [`Facade::put_attachment`],
+  /// Written through the same `Facade::apply` as [`Facade::put_attachment`],
   /// so the canon, the store and the event log move together.
   pub fn detach_attachment(&mut self, address: &Address) -> Result<Outcome, FacadeError> {
     require_local(address)?;
@@ -13308,7 +13308,7 @@ impl Facade {
   /// create door missing, and it was correct only because every caller was
   /// `rebuild`. **The door is a property of the ACT, not of the entity.**
   ///
-  /// It is NOT taken from [`Ctx::principal`], which is the hard-coded `local`
+  /// It is NOT taken from `Ctx::principal`, which is the hard-coded `local`
   /// until the 3.2 agent bus gives principals meaning. Writing that here would
   /// assert every issue was reported by somebody called `local` -- a wrong
   /// value where `None` at least reads as nobody said.

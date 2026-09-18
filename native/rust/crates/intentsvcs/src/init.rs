@@ -164,7 +164,7 @@ pub enum InitError {
   /// Carries EVERY collision rather than the first: an operator told about one
   /// moves it, re-runs, and loses the next.
   WouldOverwrite(Vec<PathBuf>),
-  /// An embedded template has no entry in [`DESTINATIONS`]. Loud, because the
+  /// An embedded template has no entry in `DESTINATIONS`. Loud, because the
   /// alternative is writing fewer files than were embedded and saying nothing.
   NoDisposition(&'static str),
   Io(PathBuf, std::io::Error),

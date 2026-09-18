@@ -40,7 +40,7 @@ pub struct Outcome {
 /// operator runs from the explorer is by construction the command they would
 /// have got from a shell.
 ///
-/// **THE ARGV CARRIES THE PROGRAM NAME**, because `clap` reads argv[0] as the
+/// **THE ARGV CARRIES THE PROGRAM NAME**, because `clap` reads `argv[0]` as the
 /// binary and a caller that forgets it loses its first real argument silently.
 ///
 /// Printing is NOT done here. The two callers want different things -- `main`

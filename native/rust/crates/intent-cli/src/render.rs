@@ -184,7 +184,7 @@ pub(crate) enum StoreNeed {
 /// `--daemon` can address at all.
 ///
 /// **ONE DECLARATION WITH THREE CONSUMERS, WHICH IS WHAT MAKES `AC-08.2`
-/// MEASURABLE.** [`served`] consults it to find the op; [`crate::spine`]'s
+/// MEASURABLE.** `served` consults it to find the op; [`crate::spine`]'s
 /// caller-side guard consults it to refuse `--daemon` on a verb no daemon can
 /// answer; the conformance and fallback harnesses read it to form their
 /// expectations. **Declared at the client, observed at the server -- two

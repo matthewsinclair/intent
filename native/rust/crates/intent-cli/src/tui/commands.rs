@@ -76,7 +76,7 @@ pub enum Act {
   /// **THE VERB ONLY. The arguments are read from the buffer at run time**, for
   /// the reason [`Act::Settings`] gives one line up.
   Cli(String),
-  /// The search results pane: `/search <query>` opens [`View::Search`]
+  /// The search results pane: `/search <query>` opens `View::Search`
   /// (AC-21.1).
   ///
   /// **IT IS AN ACT RATHER THAN A ROSTER ENTRY, WHICH IS WHAT TOOK `search` OFF
@@ -109,7 +109,7 @@ pub enum Act {
   /// argument there is refused on the info row rather than guessed at.
   ///
   /// The kind is a spelling here and the declaration is its authority:
-  /// [`every_collection_act_opens_a_declared_kind_and_runs_a_real_verb`] fails
+  /// `every_collection_act_opens_a_declared_kind_and_runs_a_real_verb` fails
   /// the suite when a form is renamed underneath it.
   Collection { kind: String, cli: Option<String> },
 }
@@ -187,7 +187,7 @@ pub struct Command {
 /// tool in -- **and it is also the collision rule made structural.** The acts
 /// come first and a roster name that collides with one is DROPPED, so `/help`
 /// is the help view and never `intent help`. The drop is a guard rather than a
-/// policy: [`the_roster_never_collides_with_an_act`] holds that it has no work
+/// policy: `the_roster_never_collides_with_an_act` holds that it has no work
 /// to do, because a silently-swallowed roster entry is the same defect as a
 /// silently-ignored one.
 ///
@@ -198,7 +198,7 @@ pub struct Command {
 /// dupe it, but rather got it from the same place that `--help` gets it from.*
 ///
 /// A roster name the surface does not carry is dropped too, and
-/// [`every_roster_name_is_a_real_command`] refuses that in a test -- **at run
+/// `every_roster_name_is_a_real_command` refuses that in a test -- **at run
 /// time an unknown verb must not become a palette entry that fails on Enter**,
 /// and in the suite it must not be tolerated at all.
 pub fn vocabulary(cli: &clap::Command) -> Vec<Command> {
@@ -318,7 +318,7 @@ pub fn query_of(buffer: &str) -> Option<&str> {
 /// and match nothing -- the palette would empty out mid-argument and Enter
 /// would run nothing, with the operator watching a correct-looking prompt.
 ///
-/// **NO COMMAND NAME CONTAINS A SPACE, and [`no_command_name_contains_a_space`]
+/// **NO COMMAND NAME CONTAINS A SPACE, and `no_command_name_contains_a_space`
 /// holds that** -- the split is unambiguous only while that is true, and it is
 /// the sort of thing a two-word command would quietly break.
 pub fn parts_of(buffer: &str) -> Option<(&str, &str)> {

@@ -142,7 +142,7 @@ fn describe(name: &'static str, content: String) -> SchemaFace {
 /// cannot open a facade to ask. The MCP tier reaches everything through the
 /// facade, by the ruleset vc recorded (one method per exposed row; add one
 /// rather than compose in the tier). So the selection lives here, store-free,
-/// and [`Facade::schema`] is the facade's door onto exactly this function:
+/// and `Facade::schema` is the facade's door onto exactly this function:
 /// two callers, one body, and the refusal cannot drift between them.
 pub fn schema(face: Option<&str>) -> Result<Vec<SchemaFace>, crate::facade::FacadeError> {
   let all: Vec<SchemaFace> = faces()

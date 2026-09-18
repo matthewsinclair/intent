@@ -820,7 +820,7 @@ pub fn serve_md(
 /// # Why the promotion is safe, and it is not because ids "look different"
 ///
 /// **It DELEGATES rather than guesses.** [`model::is_thread_id`] and
-/// [`model::is_issue_id`] own the question of what an id is; [`Sigil::accepts`]
+/// [`model::is_issue_id`] own the question of what an id is; `Sigil::accepts`
 /// already calls exactly these two, so this adds no second declaration of
 /// identity. An inference from SHAPE that reads a spelling is the class the
 /// dispatch table's `intrinsic` discussion exists to kill; an inference that

@@ -2022,7 +2022,7 @@ impl std::fmt::Display for EntityKind {
 
 impl StoreError {
   /// SQLite refused because another connection held the writer lock for the
-  /// whole of this connection's wait ([`Store::BUSY_TIMEOUT_MS`]).
+  /// whole of this connection's wait (`Store::BUSY_TIMEOUT_MS`).
   ///
   /// **ONE HOME FOR THE CLASSIFICATION** (issue 0436): the remedy below reads
   /// it, and so does every error that wraps a store cause and would otherwise
@@ -2453,7 +2453,7 @@ pub struct Store {
 /// which did not open a transaction at all.
 /// How a backup attempt ended.
 ///
-/// Named rather than a `bool`, for the reason [`Stamp`] is: `finish(id, true)`
+/// Named rather than a `bool`, for the reason `Stamp` is: `finish(id, true)`
 /// at a call site says nothing about which world it is in, and the two worlds
 /// are "a snapshot exists" and "a snapshot was supposed to exist".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2507,7 +2507,7 @@ pub struct FailedAttempts {
 
 /// How a load from canon ended (AC-03.13).
 ///
-/// Named rather than a `bool` for the reason [`Stamp`] and [`SnapshotOutcome`]
+/// Named rather than a `bool` for the reason `Stamp` and [`SnapshotOutcome`]
 /// are: the two worlds here are "the store now holds what canon holds" and "the
 /// store is older than the canon beside it", and a `true` at a call site says
 /// neither.
@@ -2611,7 +2611,7 @@ pub struct StoredDates {
   /// a fiat close is the third case, and it is not an entity date at all -- it
   /// is a value nested inside a criterion's state, which no column can fill.
   ///
-  /// [`Store::write_event`] has always RETURNED the stamp it wrote, precisely
+  /// `Store::write_event` has always RETURNED the stamp it wrote, precisely
   /// because "the caller has no other way to learn it and must never compute
   /// it". `commit_mutation` discarded that return for as long as nothing needed
   /// it. Carrying it here is what lets `FiatRecord.at` obey D42 by the same
@@ -4581,7 +4581,7 @@ impl Store {
   /// original defect, reproduced by the fix for it.
   ///
   /// Re-entrant: an inner load joins the outer one and does not open a second
-  /// row. See [`Store::ingest_depth`]'s note for why the outermost caller has
+  /// row. See `Store::ingest_depth`'s note for why the outermost caller has
   /// to be the one that owns the outcome.
   pub fn begin_ingest(&mut self) -> Result<(), StoreError> {
     if self.ingest_depth == 0 {
@@ -5842,7 +5842,7 @@ impl Store {
   /// sits beside: nothing else writes code rows, so a row this pass did not
   /// produce is a file that has left the corpus.
   ///
-  /// The `rebuild` is [`Store::write_doc_sections`]'s, for the reason recorded
+  /// The `rebuild` is `Store::write_doc_sections`'s, for the reason recorded
   /// there: a `DELETE` from an FTS5 table leaves a tombstone per row in the
   /// inverted index, and wholesale replacement is this table's only write
   /// pattern, so without this they accumulate for the life of the store with

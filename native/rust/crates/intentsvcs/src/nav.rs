@@ -133,7 +133,7 @@ pub enum View {
   ///
   /// **ITS SEGMENT IS RESERVED, WHICH IS A REAL COST AND IS PAID DELIBERATELY.**
   /// `/settings` would otherwise parse as `Collection { kind: "settings" }`, so
-  /// an entity kind of that name becomes unaddressable. [`reserved_is_free`]
+  /// an entity kind of that name becomes unaddressable. `reserved_is_free`
   /// holds the reservation against the REAL declaration rather than against an
   /// assumption -- a kind named `settings` fails the suite rather than
   /// disappearing from the browser.
@@ -323,7 +323,7 @@ pub fn descents(loaded: &Loaded, kind: &str) -> Vec<Descent> {
 ///
 /// The parsed schema face for `kind`, resolved through its fragment.
 ///
-/// **THE POINTER COMES FROM [`crate::form::face_for`], WHICH IS NOW ITS ONLY
+/// **THE POINTER COMES FROM `crate::form::face_for`, WHICH IS NOW ITS ONLY
 /// HOME.** This module carried its own `face_pointer` with byte-identical
 /// arms until 2026-08-30, and the comment on it named the other copy without
 /// removing it -- *`crate::form` says the same thing about the same pointer.*

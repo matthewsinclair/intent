@@ -1020,8 +1020,8 @@ impl Payload {
   /// named on [`Outcome::Conflicted`] and [`Outcome::Undecidable`].
   /// **`dry_run` PREDICTS THIS EXACT RUN RATHER THAN DESCRIBING A SIMILAR
   /// ONE.** Every arm below reaches the same decision it would otherwise; only
-  /// the write is withheld, and the counts it reports come from [`Self::plan`],
-  /// which is the computation [`Self::materialise`] itself executes. A preview
+  /// the write is withheld, and the counts it reports come from `Self::plan`,
+  /// which is the computation `Self::materialise` itself executes. A preview
   /// derived a second way would agree on the day it was written
   /// (IN-AG-HIGHLANDER-001), and the one thing an operator needs from a preview
   /// is that it is not a different question.

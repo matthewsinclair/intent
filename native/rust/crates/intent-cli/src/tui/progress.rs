@@ -83,7 +83,7 @@ pub fn line(elapsed: Duration) -> Option<String> {
   Some(format!("{MARK} {}", ".".repeat(dots)))
 }
 
-/// The bytes that erase whatever [`line`] last wrote.
+/// The bytes that erase whatever [`line`](fn@line) last wrote.
 ///
 /// **CARRIAGE RETURN PLUS SPACES PLUS CARRIAGE RETURN, NOT A CLEAR-LINE ESCAPE.**
 /// This runs before the terminal is taken, so it must not assume the terminal
@@ -94,7 +94,7 @@ pub fn erase(width: usize) -> String {
   format!("\r{}\r", " ".repeat(width))
 }
 
-/// The widest line [`line`] can produce, for [`erase`].
+/// The widest line [`line`](fn@line) can produce, for [`erase`].
 ///
 /// **DERIVED FROM THE SAME CONSTANTS THE RENDERER USES**, so the eraser cannot
 /// drift narrower than the thing it erases and leave dots on the screen.

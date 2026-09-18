@@ -161,7 +161,7 @@ impl Library {
   /// Where this install's CANON rules would be, present or not.
   ///
   /// **EXPOSED SO A CALLER CAN TELL AN EMPTY LIBRARY FROM AN ABSENT ONE**
-  /// (`0275`). [`Library::files`] returns an empty list for a root that is not a
+  /// (`0275`). `Library::files` returns an empty list for a root that is not a
   /// directory -- correct there, because no rules installed is an ordinary state
   /// -- and that makes the two indistinguishable one layer up, where the
   /// difference is the whole answer. It is the CANON root specifically and not
@@ -596,7 +596,7 @@ pub struct Finding {
 /// A rule document as READ, before anything has judged it.
 ///
 /// **THIS IS THE VALIDATOR'S INPUT AND [`Rule`] IS NOT.** `Rule` is the parsed,
-/// believed model -- it cannot represent a file with no id, because [`Library::read`]
+/// believed model -- it cannot represent a file with no id, because `Library::read`
 /// refuses one. A validator whose input type cannot hold the defect it looks for
 /// can only ever report that everything is fine.
 #[derive(Debug)]

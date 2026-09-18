@@ -238,7 +238,7 @@ pub fn vi(key: KeyEvent) -> Option<Vi> {
 /// that listed the bindings from memory would go stale the first time one moved
 /// -- silently, because nothing reads help. The population here is ENUMERABLE:
 /// every printable ASCII character with `CONTROL` held. So
-/// [`the_chord_roster_and_the_keymap_agree_in_both_directions`] drives all of
+/// `the_chord_roster_and_the_keymap_agree_in_both_directions` drives all of
 /// them and asserts the roster and the map name exactly the same set. A chord
 /// added to `edit` without a row here FAILS, and a row naming a chord `edit`
 /// does not bind fails too.

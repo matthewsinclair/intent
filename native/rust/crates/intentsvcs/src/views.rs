@@ -551,7 +551,7 @@ fn regions(text: &str) -> Vec<(Option<String>, String)> {
 /// **THE SAME HEADING CAN BE AUTHORED OR GENERATED AND THE BYTES DO NOT SAY
 /// WHICH.** [`info`] emits `## Work Packages` itself, UNLESS the thread's
 /// `body` already carries one, in which case the authored copy is rendered
-/// verbatim from `body` and the generated one defers ([`carries_heading`]). A
+/// verbatim from `body` and the generated one defers (`carries_heading`). A
 /// reader looking only at the file cannot tell those apart, so any rule of the
 /// form "these headings are generated" is wrong on some real thread.
 ///
@@ -738,7 +738,7 @@ fn after_banner(text: &str) -> &str {
 /// banner, or `None` when the text does not end with one.
 ///
 /// **NOTHING MAY FOLLOW THE BANNER LINE.** Text there is an author's (see
-/// [`after_banner`]), so a file carrying any is not a view as the renderer left
+/// `after_banner`), so a file carrying any is not a view as the renderer left
 /// it, and is read whole.
 ///
 /// **IT IS HOW `wb migrate` TELLS THE RENDERER'S LINES FROM A BOARD'S** (issue
@@ -842,10 +842,10 @@ const RENDERER_OWNED_LINES: &[&str] = &[
 /// A view's text with the parts its RENDERER owns masked, or `None` when it
 /// carries no banner and so did not come from this renderer at all.
 ///
-/// Masked: the trailing banner LINE (see [`after_banner`]: the line is the
+/// Masked: the trailing banner LINE (see `after_banner`: the line is the
 /// renderer's, and its WORDING has moved as well as its version: the source it
 /// names lost its backticks between releases) and each
-/// [`RENDERER_OWNED_LINES`] line. Kept byte for byte: every other line before
+/// `RENDERER_OWNED_LINES` line. Kept byte for byte: every other line before
 /// the banner, and everything after the banner's line, which is the author's.
 ///
 /// **ONE HOME FOR "WHAT A HAND EDIT COULD HAVE TOUCHED"**, asked by
@@ -1413,7 +1413,7 @@ pub struct TodoBuckets {
 
 /// **THE bucketing.** Both renderings go through it.
 ///
-/// Split out from [`todo`] when `--json` arrived: the alternative was a second
+/// Split out from [`todo`](fn@todo) when `--json` arrived: the alternative was a second
 /// traversal applying the same status rules, and the rules are the whole
 /// content of this view. Two copies would agree until someone changed one.
 pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets {
@@ -2131,7 +2131,7 @@ pub fn aggregate_views(
 /// **THIS FUNCTION HAS NO PRODUCTION CALLER AND IS NOT A SECOND WRITE PATH.**
 /// Every caller is a test. It once wrote views itself with a bare `fs::write`
 /// loop, which made it a divergent expression of the db -> disk direction that
-/// [`crate::facade::Facade::projection`] already declares it owns -- and the
+/// `crate::facade::Facade::projection` already declares it owns -- and the
 /// consequence was not theoretical. A skip-when-unchanged guard was added
 /// HERE, was correct, and reached nothing; `view_determinism.rs` drove it
 /// directly and stayed green while every real verb churned the estate.

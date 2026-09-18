@@ -8,10 +8,10 @@
 //! face without anyone remembering to update it.
 //!
 //! **The one projection, and why it exists.** GraphQL's type system cannot
-//! express [`AcScope`] -- a tagged enum whose variants carry different fields.
+//! express `AcScope` -- a tagged enum whose variants carry different fields.
 //! There is no derive for it: `Enum` takes unit variants only, and `Union`
 //! members must be objects, which would mean reshaping the master to suit one
-//! face. So [`AcScopeView`] flattens it exactly the way serde's
+//! face. So `AcScopeView` flattens it exactly the way serde's
 //! `#[serde(tag = "state")]` already does, which is the shape the JSON face is
 //! committed to -- one wire form, described twice, in two type systems.
 //!

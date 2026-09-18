@@ -483,7 +483,7 @@ impl Scanned {
   /// Build the predicate for a project root.
   ///
   /// **NOT CHEAP, AND CALLED ONCE PER BATCH RATHER THAN ONCE PER PATH.**
-  /// [`Ignored::for_root`] runs two walks; the note on that function records
+  /// `Ignored::for_root` runs two walks; the note on that function records
   /// why the domain is narrow and what it cost when it was not.
   pub fn for_root(root: &Path) -> Scanned {
     Scanned {
@@ -631,7 +631,7 @@ impl Scanned {
 /// else, by reconciling against what the store last recorded.
 ///
 /// **SCOPE AND POLICY STAY IN THIS MODULE, WHICH IS THE POINT OF THE FUNCTION
-/// EXISTING AT ALL.** The walk is [`walk`] with the same [`Scanned`] the sync
+/// EXISTING AT ALL.** The walk is `walk` with the same [`Scanned`] the sync
 /// engine uses, so the skip list speaks at the LEAF as the walk descends --
 /// which is why the daemon's own `intent/.cache/` write reconciles to an empty
 /// set without anything having to name `.cache` here. The comparison is
@@ -729,7 +729,7 @@ fn candidates(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
 
 /// Every file in the INDEX's scope: the gitignore-aware repository.
 ///
-/// **THE COUNTERPART OF [`candidates`], SHARING ITS WALK AND ITS SCOPE OBJECT.**
+/// **THE COUNTERPART OF `candidates`, SHARING ITS WALK AND ITS SCOPE OBJECT.**
 /// `candidates` enumerates the canon corpus -- the named [`ROOT_FILES`] plus
 /// `intent/` -- and this enumerates everything git would carry. Two
 /// populations, one walker, one statement of what git ignores, and neither
@@ -1347,7 +1347,7 @@ fn git_paths(root: &Path, args: &[&str]) -> Option<Vec<String>> {
 ///
 /// # No repository is `None`, not an empty list
 ///
-/// Same reason as [`git_paths`]: an unanswered question reported as a clean
+/// Same reason as `git_paths`: an unanswered question reported as a clean
 /// answer is worse than no check. The caller decides what to do about not
 /// knowing; this cannot decide it by returning a reassuring value.
 pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
@@ -1410,7 +1410,7 @@ fn head_holds(root: &Path, path: &str) -> bool {
 /// What git says about the working tree, for the MIGRATION preconditions.
 ///
 /// **`NoWorkTree` is a third value and not a flavour of clean**, for
-/// [`git_paths`]'s reason one level up: a question git could not answer is not
+/// `git_paths`'s reason one level up: a question git could not answer is not
 /// an answer, and the migration precondition it feeds refuses on exactly that.
 pub enum TreeState {
   /// git reported no work tree here -- no repository, or no runnable git.

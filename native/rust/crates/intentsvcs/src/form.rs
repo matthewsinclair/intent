@@ -625,7 +625,7 @@ fn one_line(s: &str) -> String {
 /// The bytes a field HANDS TO AN EDITOR: the entity's own value, uncollapsed.
 ///
 /// **THIS EXISTS BECAUSE [`Triple::value`] IS LOSSY BY DESIGN AND IS THE
-/// OBVIOUS THING TO REACH FOR.** A row is one line, so [`one_line`] collapses
+/// OBVIOUS THING TO REACH FOR.** A row is one line, so `one_line` collapses
 /// every run of whitespace in it -- correct on screen, and catastrophic the
 /// moment that same string is what gets written to a scratch file and handed
 /// to `$EDITOR`. **The operator opens their objective, changes one word, saves,

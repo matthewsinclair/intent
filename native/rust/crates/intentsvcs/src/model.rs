@@ -335,7 +335,7 @@ fn fits(seq: u32, width: usize) -> Result<u32, IdError> {
 /// found: info.md for steel thread ST46abc*. **So v2's normaliser MANUFACTURES
 /// the not-found-for-a-non-name defect this function exists to prevent**, by
 /// fabricating a plausible id before anything looks it up. The other is the
-/// width hole [`fits`] documents. **The parity contract is the five accepted
+/// width hole `fits` documents. **The parity contract is the five accepted
 /// forms, never the function.**
 pub fn normalise_thread_id(raw: &str) -> Result<String, IdError> {
   let s = spelling(raw)?;
@@ -501,7 +501,7 @@ pub struct Thread {
   /// different reason: there, a payload was impossible; here, hv ruled the status
   /// value must not move at all. So the invariant is every verb's to keep --
   /// `st.fc` writes the pair together, every other transition out of
-  /// `completed` clears it, and [`Facade::put`] refuses to write it.
+  /// `completed` clears it, and `Facade::put` refuses to write it.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub fiat: Option<FiatRecord>,
   /// ISO 8601 date, `YYYY-MM-DD`.
@@ -972,7 +972,7 @@ pub struct WorkPackage {
   /// **NOTHING STRUCTURAL HOLDS THIS FIELD AND [`WorkPackage::status`] IN
   /// AGREEMENT**, so the invariant is every verb's to keep: `wp.fc` writes the
   /// pair together, every other transition out of `done` clears it, and
-  /// [`Facade::put`] refuses to write it.
+  /// `Facade::put` refuses to write it.
   ///
   /// **This is also the field a cascade writes into.** A fiat close on a thread
   /// reaches its work packages, and a cascaded record carries

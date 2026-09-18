@@ -781,7 +781,7 @@ impl crate::remedy::Remedy for ConfigWriteError {
 
 /// Write a [`Config`] back to `<root>/intent/.config/config.json`.
 ///
-/// **Atomically, via [`crate::write_set::write_atomically`] rather than a
+/// **Atomically, via `crate::write_set::write_atomically` rather than a
 /// second copy of that logic.** A half-written `config.json` is not a damaged
 /// file, it is a directory that has stopped being an Intent project -- every
 /// verb discovers a project by finding and parsing this one file -- so the
@@ -795,7 +795,7 @@ impl crate::remedy::Remedy for ConfigWriteError {
 /// first `lang init` froze `author`, `intent_dir`, `todo` and `backup` at that
 /// day's defaults and the project silently stopped tracking the tool. v2 edited
 /// the one key with `jq` and left the rest alone; this is the same rule for a
-/// typed writer -- see [`changed_members`]. A key absent from the file stays
+/// typed writer -- see `changed_members`. A key absent from the file stays
 /// absent unless its value changed, and a key present keeps its place and,
 /// unless changed, its bytes.
 pub fn write_config(root: &Path, config: &Config) -> Result<(), ConfigWriteError> {
@@ -1848,7 +1848,7 @@ impl Project {
   }
 
   /// The generated views as formatter-ignore GLOBS, relative to the project
-  /// root -- what [`crate::facade::converge_formatter_exclusion`] writes into a
+  /// root -- what `crate::facade::converge_formatter_exclusion` writes into a
   /// consumer's `.prettierignore` (AC-07.6).
   ///
   /// **THIS SITS HERE, TOUCHING THE VIEW-PATH METHODS, ON PURPOSE.** A roster

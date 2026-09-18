@@ -228,7 +228,7 @@ fn render(author: Option<&str>, kept: Option<serde_json::Value>) -> String {
 
 /// The author this machine has recorded, if `bootstrap` has run.
 ///
-/// **THE READER LIVES BESIDE THE WRITER ON PURPOSE.** [`render`] decides the
+/// **THE READER LIVES BESIDE THE WRITER ON PURPOSE.** `render` decides the
 /// config's shape; a second module parsing that shape is two definitions of one
 /// file kept in step by hand, which is the Highlander case this estate keeps
 /// meeting. `init` calls this rather than reaching for the path itself.

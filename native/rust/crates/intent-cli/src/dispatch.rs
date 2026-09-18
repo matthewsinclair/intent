@@ -387,7 +387,7 @@ pub struct Arg {
   ///
   /// The discriminator is the arg's own `type`, not a list of exempt names:
   /// `enum` and `subcommand` have a CLOSED domain, so a default has to name a
-  /// member of it and [`check_vocabularies`] checks that it does. `string` has
+  /// member of it and `check_vocabularies` checks that it does. `string` has
   /// an open domain, so nothing can tell a value from a description of one --
   /// and the only row that is not a literal is the only `string` row.
   #[serde(default)]
@@ -456,7 +456,7 @@ impl Arg {
   /// value -- which is the defect this predicate was extracted carrying, and
   /// the reason `ends_with('n')` is here rather than a tidier two-arm test.
   ///
-  /// Proven by [`tests::an_arity_is_read_the_same_way_by_every_reader`], which
+  /// Proven by `tests::an_arity_is_read_the_same_way_by_every_reader`, which
   /// drives all four declared spellings and asserts the two open-ended ones
   /// come back repeated. Co-located deliberately: a proof that lives only in a
   /// commit message cannot answer "has this ever refused anything" without a
@@ -480,7 +480,7 @@ impl Arg {
 /// than defensive breadth.** `repeated()` shipped testing for those two alone,
 /// which read the table's own `0..n` as a single value; `ends_with('n')` was
 /// added over the top rather than instead. Neither spelling occurs, and
-/// [`tests::an_arity_is_read_the_same_way_by_every_reader`] is what makes
+/// `tests::an_arity_is_read_the_same_way_by_every_reader` is what makes
 /// removing them safe rather than merely tidy: its closure check refuses any
 /// spelling these four arms were never driven over, so a fifth cannot arrive
 /// unnoticed and be silently read as non-repeating. That check now censuses
@@ -756,7 +756,7 @@ impl Entry {
 
   /// The alias spellings as clap registers them: each alias's last segment.
   ///
-  /// The prefix is validated at load ([`check_vocabularies`]), so by the time
+  /// The prefix is validated at load (`check_vocabularies`), so by the time
   /// anything calls this an alias is known to belong to the command it sits on.
   pub fn alias_verbs(&self) -> Vec<&str> {
     self

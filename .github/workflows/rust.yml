@@ -119,5 +119,13 @@ jobs:
         # 2026-09-15). The three lints are in clippy's restriction group, so this
         # step is the only thing that turns them on.
         run: cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+      - name: doc (every intra-doc link resolves, issue 0451)
+        # Broken links accumulated with nothing reporting them -- links to items
+        # that were renamed, to test functions, to private items from public docs
+        # -- because `cargo doc` ran nowhere. Under `-D warnings` a new one fails
+        # here instead of adding to a count nobody reads.
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps
       - name: test (includes the schema-face drift check and the dep-graph guard)
         run: cargo test --workspace --no-fail-fast

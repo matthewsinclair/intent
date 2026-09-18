@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 /// replacing one count with another would just restart the clock.
 ///
 /// So the description is per-variant, where the variant is, and nothing here
-/// counts. What IS enforced lives in [`FindingClass::meta`]: one exhaustive
+/// counts. What IS enforced lives in `FindingClass::meta`: one exhaustive
 /// match supplies rank, wire spelling and remedy, so a new variant does not
 /// compile until all three are decided.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -811,7 +811,7 @@ impl Finding {
   /// **For a caller that has already said the class**, which is what grouping
   /// by class makes possible: repeating the class on every member of a group
   /// headed by that class is the same duplication as repeating the remedy, one
-  /// field over. [`Finding::body`] stays as it is, because an ungrouped line
+  /// field over. `Finding::body` stays as it is, because an ungrouped line
   /// still has to name its own class.
   pub fn where_and_what(&self) -> String {
     let line = self.line.map(|l| format!(":{l}")).unwrap_or_default();
@@ -838,7 +838,7 @@ impl Finding {
   /// **A MODELLED-NOT-BUILT record: one line, no remedy, and never `residue:`.**
   ///
   /// `carried_line`'s argument, arriving at a third class and settled the same
-  /// way: the facts are factored into [`Finding::body`] so the renderings
+  /// way: the facts are factored into `Finding::body` so the renderings
   /// cannot drift, and what differs is the lead and whether anything is owed.
   ///
   /// **NO REMEDY, AND HERE THAT IS ABOUT VOLUME AS WELL AS TRUTH.** The class
@@ -927,7 +927,7 @@ impl Refusal {
   /// list version was a hand-maintained array the compiler could not check, so
   /// a class added to the enum would simply never appear in the totals line --
   /// a silent undercount, in the function that exists to honour the
-  /// no-silent-caps rule. Ordering comes from [`FindingClass::rank`], which is
+  /// no-silent-caps rule. Ordering comes from `FindingClass::rank`, which is
   /// an exhaustive match, so a new variant cannot be silently dropped OR
   /// silently unordered.
   pub fn totals(&self) -> Vec<(FindingClass, usize)> {

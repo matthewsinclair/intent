@@ -5,7 +5,7 @@
 //! falls in, and do the minimum that makes disk agree with the declaration.
 //!
 //! **PLAN AND APPLY ARE SPLIT, AND THE SPLIT IS THE TESTABILITY.** [`plan`]
-//! reads and decides; [`Plan::apply`] is the only thing that writes or removes.
+//! reads and decides; `Plan::apply` is the only thing that writes or removes.
 //! All five rows are therefore drivable without a filesystem mutation, which
 //! matters because four of the six criteria on this work package are about what
 //! `organize` REFUSES to do -- and a refusal is only observable if the thing it
@@ -997,7 +997,7 @@ fn would_be_emptied(dir: &Path, going: &BTreeSet<PathBuf>) -> bool {
 /// deletion). `st dehydrate` removes files and then prunes what they emptied,
 /// and a caller announcing only the files would announce less than the run
 /// takes. It is the same body the act uses, asked in the mode that withholds
-/// the act -- see [`prune_emptied`].
+/// the act -- see `prune_emptied`.
 pub fn prunes_for(root: &Path, removed: &[PathBuf]) -> Vec<PathBuf> {
   let mut out = Vec::new();
   prune_emptied(root, removed, &mut out, Mode::Preview);

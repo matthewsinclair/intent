@@ -25,7 +25,7 @@
 //! -- the schema and its resolvers -- is [`crate::graphql`]. This is the
 //! envelope that carries a request to a project and an answer back --
 //! addressing, binding and failure -- and it is deliberately separable from
-//! what is being asked. [`Op::Graphql`] is that separation kept rather than
+//! what is being asked. [`Op::Graphql`](crate::wire::Op::Graphql) is that separation kept rather than
 //! broken: ONE op whose payload is a document, answered by ONE value whose
 //! shape the GraphQL specification owns, so the envelope learns nothing about
 //! fields and a schema change never reaches this file.
@@ -352,7 +352,7 @@ pub struct RegisteredProject {
   /// refuses runs the rule has no reason to refuse**: `intent sync` on project
   /// B was declined because a daemon three directories away had project A open.
   ///
-  /// The daemon has always known: [`Registry`] holds each project's watch
+  /// The daemon has always known: `Registry` holds each project's watch
   /// beside its handle, so its lifetime is the registration's. What was missing
   /// was any way to ASK, and a fact the answering side knows and the asking
   /// side cannot reach is not a design boundary, it is an omission.

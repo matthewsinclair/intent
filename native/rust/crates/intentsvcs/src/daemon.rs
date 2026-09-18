@@ -338,8 +338,8 @@ impl Endpoint {
   ///   **nothing ever accepts.** Measured in this estate's own test process at
   ///   1 in 300 with a sibling thread spawning children, 0 in 2000 without.
   ///
-  /// So the probe writes [`PROBE_FRAME`] and requires a byte back inside
-  /// [`PROBE_DEADLINE`]. **The daemon still closes the window it can** -- set
+  /// So the probe writes `PROBE_FRAME` and requires a byte back inside
+  /// `PROBE_DEADLINE`. **The daemon still closes the window it can** -- set
   /// `FD_CLOEXEC` immediately, keep child spawns off the bind path -- **and
   /// this rule must never come to depend on that having worked**, because the
   /// window is a race the daemon can narrow and cannot eliminate. The client is
@@ -351,7 +351,7 @@ impl Endpoint {
   /// -- but it is right at a cost that the earlier bare-connect form did not
   /// carry. Getting this WRONG now means running in-process against a store a
   /// live daemon owns, which is two sync engines; getting the old form wrong
-  /// meant a failed request and an intact store. See [`PROBE_DEADLINE`] for the
+  /// meant a failed request and an intact store. See `PROBE_DEADLINE` for the
   /// obligation that keeps the trade sound.
   ///
   /// **FALSE IS THE FAIL-SAFE ANSWER FOR EVERY *ERROR*, WHICH IS A NARROWER
@@ -772,7 +772,7 @@ pub fn candidates() -> Result<Vec<Endpoint>, DaemonError> {
 /// [`candidates`] against any [`crate::userstate::Dirs`]: the one ambient read stays above, and the
 /// policy below is a pure mapping a test can drive against a temp directory.
 ///
-/// The same split [`crate::userstate::daemon_state_dir_under`] uses, for the
+/// The same split `crate::userstate::daemon_state_dir_under` uses, for the
 /// same reason -- without it the only way to test this is to mutate `$HOME`,
 /// which is process-global and races every sibling test.
 pub fn candidates_under(dirs: &crate::userstate::Dirs) -> Result<Vec<Endpoint>, DaemonError> {

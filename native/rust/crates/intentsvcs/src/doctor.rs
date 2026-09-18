@@ -88,7 +88,7 @@ pub enum Scope {
 impl Scope {
   /// Whether a run at this scope is about a thread in `status`.
   ///
-  /// It asks [`ThreadStatus::is_closed`] rather than listing statuses, so a
+  /// It asks `ThreadStatus::is_closed` rather than listing statuses, so a
   /// seventh state added to the machine is classified by the type that owns the
   /// vocabulary instead of by a match here that would silently admit it.
   pub fn admits(self, status: crate::model::ThreadStatus) -> bool {

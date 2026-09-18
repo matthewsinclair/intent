@@ -231,7 +231,7 @@ pub struct App {
   /// would have to duplicate every OMNI and MENU edge to say nothing new.
   ///
   /// Meaningless while [`App::keymap`] is `Emacs`, and
-  /// [`vi_normal_is_unreachable_under_the_emacs_keymap`] holds that.
+  /// `vi_normal_is_unreachable_under_the_emacs_keymap` holds that.
   pub vi_normal: bool,
 }
 
