@@ -1188,8 +1188,17 @@
       "kind": "doing",
       "seq": 25,
       "text": "**RESUME HERE (cc, 2026-09-18 11:16Z; replaces doing 24).** **ST0078 WP-01 (P1, the event log travels): LANDED in the commit that carries this board**, bank refs/bank/cc/st0078/p1, patch-id 06b0b0c38, judged green by the whole run on e447f15cf (the one permitted red is the openness carried-by arm). AT-01.1 to AT-01.3 are green, citing the_event_log_travels.rs; their mints wrote the repository's first event files. The note is at refs/bank/cc/st0078/p1-note. **NEXT, in order:** (1) run the openness arm in a fresh worktree at the landed commit, with its own target, and report it green with the hash to vc; (2) the BACKFILL, WP-01's separable last commit on its own ref: `intent upgrade` writes, once and idempotently, an event file for every PROJECT event the store holds and the tree lacks; mint AT-01.4 with it; AC-01.4 stays unsatisfied until then; judged after; (3) intent/events.jsonl on the live tree is a 0-byte leftover export, now visible to git because P1 retired the ignore rule. It is NOT committed; its disposition is asked of vc. 0450 closes on a clean doctor re-read once hv confirms the intentd restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T11:26:33.534Z",
       "recorded_at": "2026-09-18T11:16:19.664Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 26,
+      "text": "**RESUME HERE (cc, 2026-09-18 11:26Z; replaces doing 25).** **ST0078 WP-01: P1 LANDED at f5ba0db7d** (source patch-id 06b0b0c38; AT-01.1 to AT-01.3 green; openness green at the landed commit in a fresh worktree). **DOING: the backfill**, WP-01's separable last commit, banked UNCOMPILED at refs/bank/cc/st0078/p1-backfill (patch-id 658916fce, on f5ba0db7d, worktree scratchpad/wt-open). vc accepted its shape; read the note at refs/bank/cc/st0078/p1-note first. **Order (vc):** dc's P5 follow-up lands first; then the backfill compiles and gets the WHOLE run on vc's word, and lands with AT-01.4 minted (AC-01.4 stays unsatisfied until then); then ic's drive runs on that commit. **Do NOT run upgrade on the live tree with a worktree binary:** backfilling Intent's own history is vc's estate commit in the trawl, on the rebuilt pair. **0450 CLOSED 2026-09-18** on a clean doctor re-read against intentd at ea1f679cd (SQLite 3.53.2) after hv's restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:26:32.720Z"
     }
   ],
   "messages": [
