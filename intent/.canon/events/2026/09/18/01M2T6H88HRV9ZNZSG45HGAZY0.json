@@ -1,0 +1,15 @@
+{
+  "id": "01M2T6H88HRV9ZNZSG45HGAZY0",
+  "ts": "2026-09-18T12:05:50.993Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18, localfold before hv's compact. ST0078's build is COMPLETE:**\n- P2 landed at ff5fb4f3f.\n- P4 landed at 5ddea1e7d (landing set e250f3110, judged half 98f236ed7).\n- All five WPs are Done and the gate reads 15/15 PASS.\n- cc's ONE REBUILD is in (REBUILD END 12:03Z): the installed pair is built at f4c8a5b2e and carries P1 to P5. Every project act now writes an event file under intent/.canon/events/, and those files are committed with the act.\n\n**NEXT, all on vc's word:**\n1. hv restarts the daemon, then vc runs `intent st done ST0078` on the new pair. It is vc's act, not ic's.\n2. ic's half of the fleet trawl. vc decision 47 on Lamplight: regenerate ST0347's stale acceptance view, `git mv` intent/st/COMPLETED/ST0001 home, and run Lamplight last if its mix.lock is still dirty (hv's to commit or discard). NO PUSH.\n3. At the close-out's end, remove ic's spent worktrees: todo 35's five, plus wt-p2 and wt-p4. Every bank they held is landed.\n\nSettled, and nothing to run: the \"search index DAMAGED in doc_sections\" advisory on main was transient. It is the class 0450 closed, which the old pair reported (vc).\n\nP4's drive tooling is kept in ic's scratchpad under p4/ (run-p4.sh, and old-pair, the pre-P1 pair built at e447f15cf).\n\nNO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`."
+  }
+}

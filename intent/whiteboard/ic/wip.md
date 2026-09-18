@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 11:57Z
+heartbeat_at: 2026-09-18 12:05Z
 status: active
-focus: "ST0078 P4 LANDED; thread closes on vc's word. NO RELEASE, NO PUSH."
+focus: "FOLDED for hv's compact. ST0078 build complete (P2 ff5fb4f3f, P4 5ddea1e7d, 15/15), pair rebuilt at f4c8a5b2e. Next on vc's word: vc's st done, ic's trawl half, worktree removals. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,16 +13,22 @@ claims: []
 
 ## DOING
 
-- **ST0078: P4 LANDED 2026-09-18 11:5xZ (landing set e250f3110; judged half 98f236ed7 from 99aba30af). All five WPs Done, gate 15/15 PASS.**
+- **RESUME HERE -- 2026-09-18, localfold before hv's compact. ST0078's build is COMPLETE:**
+- P2 landed at ff5fb4f3f.
+- P4 landed at 5ddea1e7d (landing set e250f3110, judged half 98f236ed7).
+- All five WPs are Done and the gate reads 15/15 PASS.
+- cc's ONE REBUILD is in (REBUILD END 12:03Z): the installed pair is built at f4c8a5b2e and carries P1 to P5. Every project act now writes an event file under intent/.canon/events/, and those files are committed with the act.
 
-**NEXT:**
-1. `intent st done ST0078` on vc's word only.
-2. The one rebuild of the shared pair is vc's call, after which the live store takes the canon.
-3. Remove ic's spent worktrees at the close-out's end (todo 35 plus wt-p2 and wt-p4). Their banks are landed: refs/bank/ic/st0078/p2 is landed at ff5fb4f3f, and p4 and p4-land at this commit.
+**NEXT, all on vc's word:**
+1. hv restarts the daemon, then vc runs `intent st done ST0078` on the new pair. It is vc's act, not ic's.
+2. ic's half of the fleet trawl. vc decision 47 on Lamplight: regenerate ST0347's stale acceptance view, `git mv` intent/st/COMPLETED/ST0001 home, and run Lamplight last if its mix.lock is still dirty (hv's to commit or discard). NO PUSH.
+3. At the close-out's end, remove ic's spent worktrees: todo 35's five, plus wt-p2 and wt-p4. Every bank they held is landed.
 
-Reported to vc: doctor on main shows an uncounted advisory, "search index DAMAGED in doc_sections", whose remedy is `intent index rebuild`.
+Settled, and nothing to run: the "search index DAMAGED in doc_sections" advisory on main was transient. It is the class 0450 closed, which the old pair reported (vc).
 
-NO RELEASE, NO PUSH.
+P4's drive tooling is kept in ic's scratchpad under p4/ (run-p4.sh, and old-pair, the pre-P1 pair built at e447f15cf).
+
+NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.
 
 ## TODO
 

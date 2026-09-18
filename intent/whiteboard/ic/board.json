@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-18T11:57:07.402Z",
+    "heartbeat_at": "2026-09-18T12:05:51.819Z",
     "status": "active",
-    "focus": "ST0078 P4 LANDED; thread closes on vc's word. NO RELEASE, NO PUSH.",
+    "focus": "FOLDED for hv's compact. ST0078 build complete (P2 ff5fb4f3f, P4 5ddea1e7d, 15/15), pair rebuilt at f4c8a5b2e. Next on vc's word: vc's st done, ic's trawl half, worktree removals. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1845,8 +1845,17 @@
       "kind": "doing",
       "seq": 74,
       "text": "**ST0078: P4 LANDED 2026-09-18 11:5xZ (landing set e250f3110; judged half 98f236ed7 from 99aba30af). All five WPs Done, gate 15/15 PASS.**\n\n**NEXT:**\n1. `intent st done ST0078` on vc's word only.\n2. The one rebuild of the shared pair is vc's call, after which the live store takes the canon.\n3. Remove ic's spent worktrees at the close-out's end (todo 35 plus wt-p2 and wt-p4). Their banks are landed: refs/bank/ic/st0078/p2 is landed at ff5fb4f3f, and p4 and p4-land at this commit.\n\nReported to vc: doctor on main shows an uncounted advisory, \"search index DAMAGED in doc_sections\", whose remedy is `intent index rebuild`.\n\nNO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T12:05:50.152Z",
       "recorded_at": "2026-09-18T11:57:06.565Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 75,
+      "text": "**RESUME HERE -- 2026-09-18, localfold before hv's compact. ST0078's build is COMPLETE:**\n- P2 landed at ff5fb4f3f.\n- P4 landed at 5ddea1e7d (landing set e250f3110, judged half 98f236ed7).\n- All five WPs are Done and the gate reads 15/15 PASS.\n- cc's ONE REBUILD is in (REBUILD END 12:03Z): the installed pair is built at f4c8a5b2e and carries P1 to P5. Every project act now writes an event file under intent/.canon/events/, and those files are committed with the act.\n\n**NEXT, all on vc's word:**\n1. hv restarts the daemon, then vc runs `intent st done ST0078` on the new pair. It is vc's act, not ic's.\n2. ic's half of the fleet trawl. vc decision 47 on Lamplight: regenerate ST0347's stale acceptance view, `git mv` intent/st/COMPLETED/ST0001 home, and run Lamplight last if its mix.lock is still dirty (hv's to commit or discard). NO PUSH.\n3. At the close-out's end, remove ic's spent worktrees: todo 35's five, plus wt-p2 and wt-p4. Every bank they held is landed.\n\nSettled, and nothing to run: the \"search index DAMAGED in doc_sections\" advisory on main was transient. It is the class 0450 closed, which the old pair reported (vc).\n\nP4's drive tooling is kept in ic's scratchpad under p4/ (run-p4.sh, and old-pair, the pre-P1 pair built at e447f15cf).\n\nNO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.",
+      "state": "live",
+      "recorded_at": "2026-09-18T12:05:50.993Z"
     }
   ],
   "messages": [
