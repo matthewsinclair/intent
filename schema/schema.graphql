@@ -503,7 +503,7 @@ type Thread {
   different reason: there, a payload was impossible; here, hv ruled the status
   value must not move at all. So the invariant is every verb's to keep --
   `st.fc` writes the pair together, every other transition out of
-  `completed` clears it, and [`Facade::put`] refuses to write it.
+  `completed` clears it, and `Facade::put` refuses to write it.
   """
   fiat: FiatRecord
   """
@@ -773,7 +773,7 @@ type WorkPackage {
   **NOTHING STRUCTURAL HOLDS THIS FIELD AND [`WorkPackage::status`] IN
   AGREEMENT**, so the invariant is every verb's to keep: `wp.fc` writes the
   pair together, every other transition out of `done` clears it, and
-  [`Facade::put`] refuses to write it.
+  `Facade::put` refuses to write it.
   
   **This is also the field a cascade writes into.** A fiat close on a thread
   reaches its work packages, and a cascaded record carries
