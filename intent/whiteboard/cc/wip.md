@@ -18,6 +18,7 @@ claims: []
 ## TODO
 
 - The trawl carry. Part A is GO and Part B is on vc's disposition; the plan is at `refs/bank/cc/trawl/carry-plan.md`. Re-run the rehearsal with the ruled HOLDS immediately before the carry. Make one mechanical commit per estate, run doctor after each, and have vc check each. NO PUSH.
+- **The queue after ST0078 (vc, 2026-09-18 11:44Z; each item on vc's word, in this order).** (1) THE ONE REBUILD of the pair after P4 lands: `bin/devbin build all` from the landed commit. Announce it to every lane at both ends, with the hash and the binaries' sha256. No other build on the host in the window, and HEAD does not move during it. Then read back `intent --version` and `intent doctor` on the live store. `~/.local/bin/intent` links into native/rust/target/release, so this swaps what every node runs. `devbin build all` has no dry run and runs `cargo clean` first, so pass it no unknown flags. The daemon restart is hv's act; vc asks hv. (2) Intent's own estate commit: `intent upgrade` on this repository with the rebuilt pair, which backfills the history the store holds, committed with the count in the message. (3) Conflab's 67 (ruled DROP) as owner of record, and the trawl carry (todo 30), on the rebuilt pair with dc and ic's halves. Until P4 lands, compile nothing on the host. NO RELEASE, NO PUSH.
 
 ## Holds
 

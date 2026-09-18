@@ -1217,6 +1217,14 @@
       "text": "**RESUME HERE (cc, 2026-09-18 11:43Z; replaces doing 26 and 27, whose \"11:45Z\" stamp was typed from feel: the clock read 11:43:43Z).** **ST0078 WP-01 is DONE:** P1 at f5ba0db7d, the backfill at bc6833413, and the AT id literals plus `wp done ST0078/01` in the commit that carries this board. AC-01.1 to AC-01.4 are satisfied and `intent at lint ST0078` is clean. The note is at refs/bank/cc/st0078/p1-note. **The rule this taught (vc, for restart.md):** a landing chain that mints AT rows runs `intent ac status <ST>` before its commit, because doctor does not lint AT rows. **Not mine, and waiting:** backfilling Intent's own history is vc's estate commit in the trawl, on the rebuilt pair; ic's drive runs on this commit. **NEXT, on vc's word:** Conflab's 67 (ruled DROP) and the trawl carry (todo 30), both behind ST0078. The worktrees wt-p1, wt-p1r and wt-open in the scratchpad can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH.",
       "state": "live",
       "recorded_at": "2026-09-18T11:43:57.237Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 32,
+      "text": "**The queue after ST0078 (vc, 2026-09-18 11:44Z; each item on vc's word, in this order).** (1) THE ONE REBUILD of the pair after P4 lands: `bin/devbin build all` from the landed commit. Announce it to every lane at both ends, with the hash and the binaries' sha256. No other build on the host in the window, and HEAD does not move during it. Then read back `intent --version` and `intent doctor` on the live store. `~/.local/bin/intent` links into native/rust/target/release, so this swaps what every node runs. `devbin build all` has no dry run and runs `cargo clean` first, so pass it no unknown flags. The daemon restart is hv's act; vc asks hv. (2) Intent's own estate commit: `intent upgrade` on this repository with the rebuilt pair, which backfills the history the store holds, committed with the count in the message. (3) Conflab's 67 (ruled DROP) as owner of record, and the trawl carry (todo 30), on the rebuilt pair with dc and ic's halves. Until P4 lands, compile nothing on the host. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:45:19.262Z"
     }
   ],
   "messages": [
