@@ -1,0 +1,15 @@
+{
+  "id": "01M2TN7HNPGZMNBNAZHW965AZ6",
+  "ts": "2026-09-18T16:22:41.590Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, Devbin only.** The dc half is done and vc verified it, 8 of 8 (2026-09-18 15:01Z): a3-content a0d4a66, Anvil 8c26393, arca_cli a53327f, arca_config b40124c, arca_notionex e28fac4, Baize e73174a, Courses f786c57, Gtools e414831. All are NOT pushed, doctor 0, trees clean. RELEASED WHEN Devbin's own nodes have folded and committed their board files so its tree is clean (decision 47). Then one run of the kit at refs/bank/dc/trawl/trawl-estate.sh 8cfac07a2, whose precondition removes the zero-byte 3.0.0 intent/events.jsonl Devbin also carries, pinned at both ends, one commit, NO PUSH."
+  }
+}
