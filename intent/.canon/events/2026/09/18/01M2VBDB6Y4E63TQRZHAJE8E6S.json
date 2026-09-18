@@ -1,0 +1,15 @@
+{
+  "id": "01M2VBDB6Y4E63TQRZHAJE8E6S",
+  "ts": "2026-09-18T22:50:20.254Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-18 22:47Z, localfold before hv's compact, replaces todo 47). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) THE 3.1.0 CUT IS IN hv's HANDS AT STEP 3 of intent/docs/releasing.md. Step 1 is done (doctor 0, every landing on main). Step 2 is landed at 453510ed8 (cc: the twenty reference pages and cut-surface.md regenerated at 27dacb91c against v3.0.3, every content change traced to ST0078 P2, P3 or P5; the preflight reads \"docs/reference describes HEAD against v3.0.3\"). ic's heartbeat render is committed at f99ef1421 so the tree reads clean. hv's first `dvb build release --dry-run v3.1.0` passed every preflight check and went red in `cargo test --workspace` on three intentd watcher arms under a host load above 200 (the_daemon_lists_the_project_registry, a_source_edit_reaches_the_index_and_costs_canon_nothing, daemon_watch::a_change_to_a_path_outside_the_sync_scope_drives_no_ingest: an edit \"never reached\" or \"did not happen in 500 attempts\"); by the standing rule that family re-runs ONCE, and hv's re-run is in flight (`/private/tmp/claude-501/.../tasks/bqq4u9zwr.output` in vc's session). GREEN: hv fires `dvb build release v3.1.0` (bump, dated CHANGELOG, sidecars, commit, tag, push to both remotes, GitHub release), then step 4 at the tag: `int macos prepare`, `formula`, `publish`, `smoke --reinstall`. RED ON THE SAME THREE AGAIN on a quiet host: a finding on the watcher under load, looked at before the tag, never tagged past. (1) THE LANES HOLD: cc, dc and ic run no intent verb, no tree write, no build and no cargo until vc's \"CUT DONE\", which vc sends after step 4, because `prepare` rebuilds the binary every node runs. Open issues (`intent issues list`): 0453, 0458, 0460, 0461, the next line's. (2) DONE AND PUSHED: the fleet trawl, 22 of 22 (decision 53), every estate's main pushed to every remote on hv's word (todo 47's census), Anvil's upstream refspec fixed by hv and verified at parity. (3) DEFERRED BY hv's RULING in devbin-vc's session: devbin#0083's sweep follows Devbin's own ST0007 and release, then its pre-notice, then ONE sweep; it does not gate 3.1.0 (the cut runs no fullcycle); when devbin-vc sends START, vc relays SWEEP START to the lanes and checks each swept estate after. (4) AFTER THE CUT: gyges and ST0056 on the clean-install log; the worktree removals (ic todo 35, cc todo 33) on vc's one call at the close-out's end. NO RELEASE except by hv's hand."
+  }
+}
