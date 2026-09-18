@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1",
-    "heartbeat_at": "2026-09-17T21:30:42.766Z",
+    "heartbeat_at": "2026-09-18T06:00:57.599Z",
     "status": "active",
-    "focus": "2026-09-17 late session, localfolded: dc has NO assigned work outstanding -- the AC-06.2 re-drive is done and accepted (correction landed b9cf92502), the guards rehearsal is finished and 0426 closed on it, and 0442 is consolidated by vc at 8e05093b3 with dc's check passed. Ask vc before starting anything. Holds 14 and 15 stand. See the RESUME HERE doing item. NO RELEASE, NO PUSH.",
+    "focus": "0443 is dc's: Q2/Q3 banked and unapplied, Q1 ruled S. Waits on hv's word that the suite is done, then on cc's SQLite move. Holds 17 and 18. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056/11"
     ],
@@ -840,7 +840,8 @@
       "kind": "watchout",
       "seq": 22,
       "text": "**dc's unhomed landing lessons, folded into one item (2026-09-15).** (1) A new dispatch row moves `legal_pairs` n in `surface/dispatch-table.json`: bump n with its `census_note` and regenerate `surface/dispatch-table.md` with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh` in the SAME change; only the commit gate's view_skew_check sees it. (2) `cargo test -p intent-cli --bins <filter>` runs ZERO tests at exit 0: in-crate tests are `--lib`, the integration arms `--test suite`; read `running N tests` before trusting a green. (3) Guard a landing on nothing under `native/rust` having moved since the measured base, never on HEAD equality; never `commit --only` a path a peer has uncommitted edits in. (4) Under an isolated HOME, set `CARGO_HOME` to the real one; a daemon probe's HOME must be short (`/tmp/<short>`, `sockaddr_un` holds about 104 bytes); in zsh `pgrep` can return two pids, so kill the literal pid and bound every wait. (5) Re-drive a hold's condition whenever you quote it: on 2026-09-15 todo 8's hook premise and hold 2's tap commit were both false on re-drive. (6) A reboot clears `/private/tmp`, and every scratchpad and worktree with it: bank anything unlanded as a patch outside it before a fold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:32.233Z",
       "recorded_at": "2026-09-15T09:56:56.464Z"
     },
     {
@@ -1001,7 +1002,8 @@
       "kind": "watchout",
       "seq": 23,
       "text": "**dc's landing lessons of 2026-09-15, second half.** (1) Before banking a crate change, run that crate's WHOLE suite: a targeted green on 0398 missed `command_rosters_are_derived_or_declared`, which vc's train caught. (2) Removing a swallow means first measuring what it swallows: `opt()`'s read-as-absent was load-bearing for four shared probes, so a mechanical `?` at every site would have broken bare `issues`, `issues show`, `st edit` and `browse`. (3) Count call sites with a script, not the Bash tool's grep: an alternation pattern reported 4 `opt(` calls where there are 53. (4) A bank that edits an ST attachment carries no canon, so `attachment_drift_detected` and `thread_prose_carried` red on any stack holding it until the landing's ingest; land an attachment with its canon in one commit, verified after intentd settles.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:33.018Z",
       "recorded_at": "2026-09-15T16:10:16.992Z"
     },
     {
@@ -1081,7 +1083,8 @@
       "kind": "watchout",
       "seq": 24,
       "text": "**dc's lessons of 2026-09-16.** (1) Read hv's board with wb show hv BEFORE opening any diagnosis: a_daemon_outlives_nobody.rs was already a ruled flake (hv watchout 11), and pickup shows peers as headers only. (2) A load control must be matched: a 1-minute load of 4.8 against a 15-minute load of 13.9 compares nothing. (3) Paste hashes and stamps whole from tool output; a typed 17be3d7e9ae was wrong. (4) A grep -v filter can eat the very lines it is meant to show: positive-control it (a planted unwrap() gave rc=101) before trusting an rc 0. (5) git apply --check against the clean target or a throwaway index (GIT_INDEX_FILE + read-tree + apply --cached), never a worktree the patch is already applied in. (6) A hold hv gives is lifted only by hv's explicit word, and a node's own announced reading of an ambiguous 'continue' is not that word: dc started held work after a compact on exactly that reading and hv re-held it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:35.746Z",
       "recorded_at": "2026-09-16T14:15:22.479Z"
     },
     {
@@ -1134,7 +1137,8 @@
       "kind": "watchout",
       "seq": 25,
       "text": "**dc's lessons of 2026-09-16, second half.** (1) Never start a suite under nohup or with a trailing &: SIGINT is inherited as ignored, so no_tail_survives_follow_however_it_ends' INT arm cannot stop intent daemon logs --follow, child.wait() never returns, and the suite hangs until the child is killed. Use a plain background task. (2) Drive a remedy to a clear before naming it: declaring an issue then sync --to-disk was refused by sync's shrink guard, and organize --apply is the route that cleared it. (3) Save a WIP ref before answering a routing question; vc moved 0416 to cc mid-build and the ref was the handover. (4) In the Bash tool's zsh an env prefix held in a variable does not word-split, so every cargo step exits 127: put multi-step gates in a bash script. (5) A peer's CHAIN START binds a fold too, and peers fold for the same compact at the same moment: a localfold's board writes wait for CHAIN END and for the peers' folds to release the store, and an archive must not run ahead of the add that replaces it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:37.856Z",
       "recorded_at": "2026-09-16T16:25:03.840Z"
     },
     {
@@ -1151,7 +1155,8 @@
       "kind": "watchout",
       "seq": 26,
       "text": "**dc's lessons of 2026-09-16, evening.** (1) A tab is whitespace to bash's `read`, so an empty TSV field collapses into the next one. The first project-guard dispatch read `run` as `when` and skipped every always-applicable guard as not applicable, silently. Separate fields with a non-whitespace character (US, 0x1f). (2) A read-only sqlite3 open of a WAL store with no -shm fails with \"unable to open database file (14)\". `file:<db>?immutable=1` reads a store with no -wal and creates no file; `.backup` is the consistent copy of a live one. Never `cp` a WAL store. (3) A plain `wb migrate` is not read-only: it carries a board with nothing uncarried. A read-only survey runs in a scratch clone. (4) core.hooksPath lives in untracked .git/config, so a tracked hooks directory is lost on a fresh clone exactly as .git/hooks is. (5) An if-let with no else arm can be a silent skip (0424): read what a loop drops, not only what it keeps.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:39.273Z",
       "recorded_at": "2026-09-16T19:50:07.546Z"
     },
     {
@@ -1168,7 +1173,8 @@
       "kind": "watchout",
       "seq": 27,
       "text": "**dc's lessons of 2026-09-16, late.** (1) Read the WHOLE diff of a shared file before committing it: 0426's close record swept vc's uncommitted `+STEELTHREAD:ST0069` line from .intentfiles into e1594301b. (2) A PostToolUse hook's plain exit-0 stdout never reaches the model; only `hookSpecificOutput.additionalContext` does (driven with a nonce in a headless `claude -p`, with a marker file proving the plain hook fired). (3) In bash, `${s:$i:1}` in a loop is quadratic; a hook that runs on every tool call declines by a cheap `case` and a length bound before walking (vc timed 6 KB at 3.7 s under 3.2). (4) `rsync --exclude '.git/'` matches at every depth and drops `deps/*/.git`, so Mix reports git deps as unavailable; anchor it as `/.git/`. (5) An Elixir compile tracer receives bare atoms (`:start`, `:stop`) as well as tuples, and a tracer that raises aborts the project's compile. (6) A `claude -p` variadic flag such as `--allowedTools` swallows a prompt placed after it; put the prompt first.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:40.748Z",
       "recorded_at": "2026-09-16T23:37:58.947Z"
     },
     {
@@ -1185,7 +1191,8 @@
       "kind": "watchout",
       "seq": 28,
       "text": "**dc's lessons of 2026-09-17.** (1) A `(non-test)` AT row holds only `n/a` (`AtStatus::permitted_for`): a doc, eyeball or gate row carries no test result, and its satisfaction is `intent ac satisfy` on the criterion. `at edit --kind` re-enters the status through `AtStatus::entry`, so a re-kind is one write. A peer's premise about a model is read in the model's code before any store write: vc's \"both to-write\" was inverted, and dc's own draft had it too. (2) An invariant arm built on a proxy must exclude what the invariant allows: \"no ref shares a def's name and line\" flagged `File.close(file)` on the `defp close(file)` line, a real call. (3) A worktree's stash is the repository's stash, and `git stash` refuses intent-to-add entries: a one-shot stash, apply and pop rebase failed halfway, and its pop could have taken an unrelated old stash. Rebase in plain steps: capture the files, reset, check out, `git merge-file`. (4) Homebrew's trust store moves under `$XDG_CONFIG_HOME`, so read it with `brew trust --json=v1`. `spctl --type execute` rejects every bare CLI binary; notarisation shows under `--type open --context context:primary-signature` (vc measured). (5) A fully-qualified `brew install tap/name/formula` trusts the formula itself (install.rb:197), and a short name is refused until it is trusted.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:42.188Z",
       "recorded_at": "2026-09-17T00:39:53.830Z"
     },
     {
@@ -1220,7 +1227,8 @@
       "kind": "hold",
       "seq": 14,
       "text": "**ST0056 AC-00.5 and AC-11.1** (claim ST0056/11): held until hv has run intent/st/ST0056/gyges-brief.md on gyges, handed back ~/intent-clean-install.log, and vc has judged it. Then dc runs `ac satisfy` for both on that log, and WP-11 and the thread close on hv's word.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:53.476Z",
       "recorded_at": "2026-09-17T12:14:53.499Z"
     },
     {
@@ -1237,7 +1245,8 @@
       "kind": "watchout",
       "seq": 29,
       "text": "**dc's lessons of 2026-09-17, second half.** (1) tree-sitter 0.27's `#eq? @cap \"x\"` must hold for EVERY node under @cap (EqString with match_all_nodes, binding_rust lib.rs:3551), so a second `@ignore` in a pattern whose target carries `#eq? @ignore` silently stops the pattern matching at all; a capture absent from a match passes `#eq?` vacuously, and `#any-eq?` returns true when no node matches. Read the predicate loop before relying on either. (2) Before publishing what an index does NOT cover, probe the stack: append a throwaway test that prints the rows, run it, restore the file from a copy, cmp it. vc then checked the claim against Laksa and turned one gap into a fix: local captures, which Laksa uses heavily. (3) A reference whose node is its enclosing expression takes that expression's start line: a bare pipe target spanned the whole pipeline. Span the name node. (4) Prove an arm red on the baseline with a saved patch: `git diff -- <src> > p`, `git checkout -- <src>`, run, `git apply p`. Never stash in a worktree. (5) A classifier that guesses severity from a phrase (ConsoleLine.swift's `intentd: could not`) hides a producer's missing token; fix the producer, then retire the guess. (6) The 00:50Z reboot took every worktree and scratchpad and lost nothing banked: whether an edit came after the last bank was answered from the previous session's transcript (the update-ref line against the later tool calls), not from memory.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:43.553Z",
       "recorded_at": "2026-09-17T12:42:39.528Z"
     },
     {
@@ -1254,7 +1263,8 @@
       "kind": "watchout",
       "seq": 30,
       "text": "**dc's lessons of 2026-09-17, evening.** (1) `git reset --hard` drops an intent-to-add file from the index and leaves it on disk untracked, so a rebase script's clean-tree guard stops there: prove the worktree equal to its bank first, then remove the file by name. (2) gen_dispatch_table.sh refuses a view that is not a fixed point of prettier, and a bare `__MODULE__` in a published text reads as emphasis: code goes in backticks in any text the register carries. (3) Never share a cargo target dir between worktrees, not even one after the other (ic measured it: testkit's compile-time CARGO_MANIFEST_DIR kept a removed worktree's path and hundreds of arms panicked), and never move a worktree: reuse one in place on a new base. (4) A targeted red run can go beside a peer's suite niced to one job (`nice -n 19 cargo test -j 1`); the incremental rebuild of intentsvcs after one query change took 3.25 s. (5) zsh again: an unquoted variable holding two paths does not split, so `git add -N $FILES` passed one path with a newline in it; name paths one by one. (6) Re-derive a count from the red run's output, never from the issue's framing: 0434 was filed as seven untokened notices, its red named six plus a doubled remedy, and vc caught the drafts before the commit. (7) A shared Mix build path makes incremental tracing unsound, because the user's own compile consumes the staleness; and Mix links priv with relative symlinks, so a copied build needs every link re-pointed. (8) `intent issues close` takes no note: append the close note to the body with `intent set <id> body --from`, close, then `organize --apply` retires the view.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:44.312Z",
       "recorded_at": "2026-09-17T14:06:52.925Z"
     },
     {
@@ -1289,7 +1299,8 @@
       "kind": "watchout",
       "seq": 31,
       "text": "**dc's lessons of 2026-09-17, late evening (WP-06).** (1) Elixir's compiler tracer gives a written reference `:column` in its meta and a macro's expansion none (measured on 1.20.4 / OTP 29), and an expansion can share the written line and name: `to_string(x)` also traces `String.Chars.to_string/1`. A join on path, line and name alone would store both. (2) An isolated HOME hides Mix's Hex archive, so a traced compile of a Hex-dependent project fails with \"Could not find an SCM for dependency\". Keep HOME isolated but point MIX_HOME and HEX_HOME at the user's. (3) A worktree rebase guard compares the worktree against TO plus the banked patch, never against TO alone. The new files must first be intent-to-add in the REAL index, or `git diff <tree>` reports them deleted: the guard refused twice, correctly, before it was right. (4) A critic subagent can die on the account's weekly limit mid-review, and a failed critic is no review, never a clean one. (5) The worktree's debug `intent index rebuild` of Laksa took 600 s, so keep a scratch copy's store and rerun only the resolve. (6) clippy's type_complexity fires on a test helper returning a 5-tuple; name the tuple with a type alias. (7) A foreground `sleep` is refused in the Bash tool. Wait on a background `until` loop, or on the task's own notification.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:45.188Z",
       "recorded_at": "2026-09-17T15:42:42.240Z"
     },
     {
@@ -1315,7 +1326,8 @@
       "kind": "watchout",
       "seq": 32,
       "text": "**dc's lessons of 2026-09-17, night (WP-06's landing).** (1) The environment census lives in intent-cli (no_intent_home.rs scans every crate's src), so a new environment read in intentsvcs reds only intent-cli's suite. Before asking for a slot, run the whole suite of every crate that compiles the change, not only the crate that holds it. vc's judging scope insisted on this, and it caught `MIX_ENV`. (2) `until ! pgrep -f 'name.sh'` never ends, because pgrep matches the waiting loop's own command line. Wait on the task's notification or on a literal pid. (3) A display filter `grep -v '0 passed; 0 failed; 0 ignored; 0 measured'` also hides `680 passed; 0 failed; ...`, so anchor it on `ok. 0 passed`. (4) Before attributing a run's counts, mirror the reader's parse and the core's join over the saved trace and a copy of the store until the mirror reproduces the run's own record. Then check every claim meant for a body against the source lines: three draft claims failed that check (that all 71 unmatched module mentions were multi-alias braces, that the unreported references were \"mostly\" typespecs, and that the templates came through `embed_templates`). (5) `git apply --cached --3way` over a throwaway index read from the target lists a bank's conflicting paths without touching the worktree, so the real rebase resolves only those. (6) This repo's pre-commit formatters only check and never rewrite, so a gate can refuse a landing but cannot move its patch-id.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:46.063Z",
       "recorded_at": "2026-09-17T17:05:54.787Z"
     },
     {
@@ -1341,7 +1353,8 @@
       "kind": "watchout",
       "seq": 33,
       "text": "**dc's lessons of 2026-09-17, late night (the guards rehearsal and the FTS5 finding).** (1) A store's health is one page-exact `.backup` through a read-only URI plus `PRAGMA integrity_check`, and WHICH SQLite judges it matters: the pair bundles 3.46.0 (libsqlite3-sys 0.30.1) while this machine's CLI is 3.54.0, and 3.46.0 carries an FTS5 false-positive that 3.46.1 fixed, so a corruption claim needs a newer checker AND a behaviour -- a query that aborts -- never a checker alone. Build the matching version from the amalgamation in the cargo registry when the writer's own reading is the question. (2) ATTRIBUTE A WINDOW BY ASKING, NEVER BY INFERENCE: three copies damaged and the fourth clean read as \"it healed itself\", and it was vc's `intent index rebuild` on the live store; the wrong reading had already gone to cc mid-diagnosis and had to be chased. (3) Name an artefact by what it IS: `live-store-untouched.db` meant untouched by intent, was taken after the repair, and read as the original damaged store; it is now `repaired-page-exact-<mtime>.db`. (4) A rehearsal in a clone meets gates that need built artefacts: thread-view-skew refuses with no binary at native/rust/target/release/intent, which is the clone's state and not the change's. (5) `git clone --shared` plus a fresh HOME whose `.local/share/intent/home` names the clone gives a self-hosted estate: the carrier resolves, the gate reads the clone's own guards, and the live registry never sees it (prove that with the registry probe either side). (6) A reporter's grep decides a state and an installer's anchored grep writes it: when the two disagree about the same line, the report is the one that lies, and its remedy can undo the change that made it lie. (7) A plain `intent search` takes a write path -- its failure says \"could not update the runtime store\" -- so a text search is not the quiet read a node assumes during a peer's chain. (8) A BOARD ITEM'S BACKTICKS ARE A SHELL'S COMMAND SUBSTITUTION: vc's own shell executed a backticked phrase inside an item it was writing on 2026-09-17 and started the rebuild chain early. Pass item text as `\"$(cat <file>)\"`, whose output is never re-parsed, and never type a backticked phrase inside a double-quoted argument.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:46.901Z",
       "recorded_at": "2026-09-17T18:28:45.817Z"
     },
     {
@@ -1367,7 +1380,8 @@
       "kind": "watchout",
       "seq": 35,
       "text": "**dc's lessons of 2026-09-17, the late session (the AC-06.2 re-drive, the guards rehearsal's close, and three 0442 control rounds).** (1) THE FAILURE IS NOT TAKING A WEAK MEASUREMENT, IT IS TAKING A STRONG ONE AND NOT RECOGNISING IT AS THE STRONG ONE (ic's wording, 2026-09-17). Pinning the drive's binary I took realpath, mtime, version string AND sha256, and reported only mtime and version -- the habitual two. No checklist catches this because nothing is MISSING at the point of the report; the reading was in hand and went unquoted. ic's independent sha of the same binary matched all 32 characters I had and not reported, which is what made two workstreams' runs compose rather than merely both asserting `3.0.3 (58501a8a2)`. A version string is a claim the binary makes about itself; a hash is a claim about the binary. Use `refs/bank/ic/0441/verify.sh` -- realpath, sha256 and mtime at both ends, refusing on any difference -- rather than rolling your own: sha alone misses a rebuild producing identical bytes, mtime alone misses a swap that restores the timestamp. (2) A FIGURE WITH NO UNIT HIDES BEHIND FIGURES THAT AGREE UNDER EVERY UNIT. `intent/st/ST0076/ac-06.2-drives.md` said `Keyword.get/2` \"on 39\" where the search answers 40: 40 is rows, 39 is distinct `file:line` sites, and one line writing two calls is the whole difference. It survived because `Keyword.get/3`, `Process.get/1` and `Access.get/2` read identically under both counts, so three agreeing figures sat beside one disagreeing figure. Correct forward by LABELLING every figure, never by swapping the number: the old one was unlabelled rather than wrong. (3) EDIT AN ATTACHMENT AT ITS OWN PATH AND ATTACH `--from` THAT SAME PATH, so store, canon and disk converge in one move. Do NOT reach for `intent st hydrate` to fix the disk half afterwards: `Facade::hydration` pins unconditionally at facade.rs:5555 (`intentfiles::pin`, one of only two callers in the tree that ADD an entry) and would re-list a closed thread in `.intentfiles`, silently reversing half a close. vc has adopted the own-path route as the rule. Diff the canon LEAF BY LEAF against HEAD before committing, because a peer's in-flight edit lands in a staged canon without either of you acting. (4) THE INSTRUMENT RULE IS TWO-SIDED AND ITS ONE LIVE HOME IS vc's WATCH-OUT 21 -- read that, this is the operator's note beside it. **Whoever ASKS for a measurement states in advance what reading would make a clean meaningless, and whoever RUNS it reads that byte before reporting.** It is written that way because the first catch of 2026-09-17 came from the DIRECTOR half, not the operator's: vc set the condition before dc ran phase A, and dc's `ok` would have gone out as a green otherwise. Personal diligence is the weaker mechanism and does not survive a tired node at 3am. **dc is sometimes the ASKER** -- of a peer, of a subagent, of a future self -- so carry both halves. The operator half in full: FTS5 writes its config version 4 -> 5 lazily on the first delete taken while secure-delete is on, so the version says whether the writer ever ran. A clean integrity check at version 4 MEASURES NOTHING and must not be reported as a green. The same trap sits one step earlier in any staged experiment -- prove the setup phase produced what it was for (residue, by rebuilding the index on a copy of itself, same moment and same content) before running the phase that depends on it. (5) A NEGATIVE'S HONEST LIMIT MAY BE THE SHAPE OF A STATE RATHER THAN ITS PRESENCE. Three rounds carried markers and stayed clean; the damaged live index carried 3.04x the data rows of its own rebuild for only 2.5% more bytes, where dc's scratch carried seventy times fewer rows holding three times the bytes. Fragmentation is a different object from dirtiness and a byte count cannot see it. Say what a negative could not have shown. cc then built that shape deliberately -- 2,200 single-file churn transactions in one process -- and measured 3.100x against the live store's 3.04x, where every earlier fixture sat at 1.00x to 1.18x, so the shape reading is confirmed; the trigger is still unreproduced at six negatives, with fragmentation plus real markers plus the transition all present and clean. (6) I WROTE WHAT THE FIX SHOULD HAVE PRODUCED RATHER THAN WHAT THE READING SAID, inside the banked finding whose whole subject is a tool reporting assumptions as observations: it claimed `int hooks` \"exited 0\" after the carrier was brought to canon, and no state in the entire rehearsal ever observed exit 0. Corrected forward with the routed text kept whole at `refs/bank/dc/guards/finding-int-hooks-as-routed.md`. (7) IN BASH, `local a=\"$1\" b=\"$a\"` ABORTS UNDER `set -u`: every word of a `local` is expanded before any of them is assigned. Two statements, not one. It cost two cycles in one night across two different scripts. (8) RE-MEASURE RATHER THAN RECALL, three times over in one night: cc's phantom-document identification and its frequency finding both died to a same-moment control, and ic nearly warned me off a clear window on a reading that had been true an hour earlier. (9) A CODE READING IS A HYPOTHESIS, NOT A MECHANISM, UNTIL A BEHAVIOUR AGREES WITH IT -- and it is at its most convincing when every cited line checks out. The stale-`iVersion` story was read off the source correctly (the cookie bump IS gated on `if( pVal )`, all three version writes DO pass 0, `SetCookie` has exactly one call site) and cc then read the cookie off disk step by step and found the 4-to-5 transition moves it anyway, so no permanently stale view exists in that direction. Nobody can yet say by what route it moves, and cc reported the measurement without inventing one, which is the right shape for a result that contradicts a clean code reading. I had called that mechanism the cleanest finding of the night in a message to a peer before it was driven; a wrong reading passed between two nodes becomes a fact in a document by morning, so say REFUTED to the same peers you said CLEANEST to.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:47.741Z",
       "recorded_at": "2026-09-17T20:41:58.239Z"
     },
     {
@@ -1393,7 +1407,8 @@
       "kind": "watchout",
       "seq": 37,
       "text": "**dc's lessons of 2026-09-17, the last hour: two classes, both found by folding rather than by measuring.** (1) **FOUR OF FIVE BOARDS WENT FALSE IN THE SAME WINDOW, AND THE WINDOW IS THE BUSY ONE.** dc's resume item named two pieces of work dc had already finished; vc's was still issuing gos for three runs that were done and saying ST0076 closes on hv's word after it had closed at `4580c8222`; cc's focus asserted 0442's mechanism as FOUND and banked, which is the identification cc personally drove and then retracted; ic's named a reproduction vc had already called done. Every peer heartbeat read 18:38 to 18:41Z against dc's 21:01Z, so three boards predated the whole second half of the night -- ST0076 closing, 0426 closing, eight negatives, three retractions and 0442's consolidation. **THE CORRELATION IS THE FINDING: the staler a board is the likelier it is to be FALSE rather than merely thin, because a busy night is exactly when nobody stops to fold, and a busy night is when claims die.** The protocol folds at compact time, which is the moment a false resume point does its damage rather than a moment before it, so FOLD WHEN THE WORK LANDS AND NOT WHEN THE COMPACT IS CALLED. **A resume item describing completed or WITHDRAWN work is worse than no resume item**, because it is confidently wrong in the one place a fresh context trusts without checking -- the entry-point document's own lesson landing on a node's board instead of on a project document, where a stale line is multiplied by the number of readers rather than divided by it. cc's was the worst shape of the four: stale is recoverable, but a board asserting a claim its own node has withdrawn hands a fresh context a dead reading as its starting point. Two mechanics, both adopted by vc: **a resume item carries a section saying what must NOT be done**, because that is not discoverable from the positive list and is cheap for a fresh node to get wrong -- dc's names `intent st hydrate` on a closed thread and working around the `int hooks` finding to unblock hold 15; and **add the replacement item BEFORE archiving the one it replaces, and verify it is live**, because if the add fails the old item is still standing and a false resume point beats none for the ten minutes it takes to notice. **AND THE CURE IS TO WRITE CONDITIONS RATHER THAN STATES, which ic proved on itself INSIDE the fold meant to fix this, within three minutes of committing it.** One MUST NOT line in ic's brand-new resume point read *do not land anything under `refs/bank/ic/releasing/` until hv names the version* -- and hv had named it, 3.1.0, decision 24 at 19:01Z, before ic wrote the line. **The writing of a board is not outside the staleness window**, which is this item's point stated harder than dc put it. But ic's was the MILD form and the reason is the whole lesson: ic wrote a CONDITION (*until hv names the version*) rather than a STATE (*the version is unnamed*), and a condition carries its own re-check, so the next reader discharges it by asking rather than inheriting it as fact. A state cannot be checked by its reader at all -- it can only be believed or disbelieved. That is the whiteboard protocol's hold rule (the condition is the required field, not the item) generalised past holds to resume items, focus lines and MUST NOT sections: **every entry on a board that can expire is written as the condition that expires it.** (2) **A CHECKER THAT DERIVES ITS NEEDLES FROM THE CORRECTION IS READING ITS OWN HOMEWORK, AND IT IS ONE CLASS WITH `int hooks`.** Checking 0442's consolidated body against vc's own retraction wording would only have caught a claim reinstated in vc's vocabulary, which is the least likely way to reinstate one, because a consolidator paraphrasing from memory reaches for different words by definition. **The needle has to come from the CLAIM, never from the correction**: dc grepped seven independent needles (`iVersion`, `stale`, `phantom is 0441`, `arm file`, `frequen`, `enrich`, `verb resets`) rather than the five phrasings named, and that is the difference between a check and a formality. vc generalised it and the generalisation is the durable half -- **any verification whose instrument is derived from the thing it is verifying proves nothing**, which covers a test asserting on the message its own fix emits, a gate grepping for the string its own remedy prints, and `bin/int hooks` deciding a hook is WIRED by grepping the hook file for the runner that `int hooks --install` would write into it. That last is dc's finding of this morning and it had been carried for a day as a one-off defect in one tool; it is an instance.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:48.564Z",
       "recorded_at": "2026-09-17T21:14:04.505Z"
     },
     {
@@ -1401,7 +1416,8 @@
       "kind": "watchout",
       "seq": 38,
       "text": "**A WARNING TO A PEER HAS A TENSE, AND SEND IT ANYWAY** (dc and ic, 2026-09-17, the pair that stops this becoming an over-correction). dc warned ic that `intent/issues/0442.md` and its canon were STAGED in the shared index and that a bare `git commit` would sweep vc's 0442 consolidation. **True when read, expired before it arrived** -- vc had committed in the seconds between dc's `git add` sighting and the message -- and vc corrected it as one more instance of the night's class, a state read at one moment and reported as true at another. dc then re-ran the command rather than taking vc's word for the correction, and **the index had moved AGAIN**: cc's two board files staged, lock HELD. True, then false, then true about a different node's work, inside twenty minutes. **So attach the reading's own clock to any state you pass to a peer, and say what would discharge it, exactly as a hold does.** **BUT THE OTHER HALF IS WHY THIS IS NOT A REASON TO SEND FEWER WARNINGS, WHICH IS THE OVER-CORRECTION IT INVITES:** ic reports the warning worked anyway, because it made ic MEASURE the index before committing instead of assuming -- which is how ic found it free -- and then dc's fold and ic's landing genuinely collided a moment later on `Unable to create .git/index.lock`, which ic cleared by checking state and re-issuing once rather than looping. **A warning that provokes a measurement is still doing its work when its content has rotted, because the measurement is the point and the content is only the prompt.** The failure mode to avoid is a warning that invites BELIEF rather than a check: say what you saw, when you saw it, and what the reader should run -- never \"the index is clean\", which is a state the reader can only inherit. Beside this, ic's fresh instance of the instrument class: ic wrote a normalised comparison to check a landed file against its bank, it reported DIFFERS BEYOND WHITESPACE, and it was wrong -- it collapsed runs of spaces but not runs of DASHES, so the formatter re-padding a table separator read as a content change. That is the same false positive ic had already hit and fixed elsewhere the same night, reproduced in a checker written AFTER the fix. **A normaliser must collapse everything the formatter touches, and a dash is not whitespace**; reading the real diff cost one command. It sits with `bin/int hooks` and dc's `shasum -c` false alarm as checkers whose needles came from the wrong place.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:49.381Z",
       "recorded_at": "2026-09-17T21:19:16.732Z"
     },
     {
@@ -1409,7 +1425,8 @@
       "kind": "hold",
       "seq": 16,
       "text": "**The guards adoption pass** (vc assigned it to dc 2026-09-17; condition REPLACED by vc's word 2026-09-17 after hv's decision 24 (4)). Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED -- driven on one estate after its guards pass, not read off a changelog or a peer's word. The `int hooks` finding and devbin#0083 sit with the Devbin estate on hv's routing and **gate nothing in this release**; the old clause tying this to \"the same timing as the trawl\" is obsolete and is cut. Discharged early if hv takes the named cross-estate exception hv offered. Per estate when released: declare the project's own guards in config.json `guards`, remove the hook calls they duplicate, doctor clean, one commit per estate, no push. **OWNERSHIP OF THE `int hooks` FIX IS UNRESOLVED AND IS NOT dc's TO RESOLVE**: devbin#0078 ruled that Intent owns hook WIRING, hv's decision 24 (4) routed the finding to Devbin, and vc reads them as compatible because 0078 settled who WRITES hooks while the finding is about whether devbin's own REPORT is correct. vc takes it to hv; dc does not.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:54.288Z",
       "recorded_at": "2026-09-17T22:14:06.251Z"
     },
     {
@@ -1417,7 +1434,8 @@
       "kind": "doing",
       "seq": 72,
       "text": "**RESUME HERE (2026-09-17, late, after hv's bounce). dc HAS ASSIGNED WORK -- this replaces doing 71, which said dc had none and went FALSE the moment vc assigned 0443.** That is the same defect dc caught on its own board earlier tonight and ic caught twice on theirs, and it matters most here because a fresh dc reads this item before anything else. **ISSUE 0443 IS dc's**, reassigned from cc by vc (cc is saturated with the SQLite move and the trawl carry). State, all re-measurable: **Q1 RULED S, so the BEHAVIOUR changes in 3.1.0 and the release notes become true** -- `served()` (render.rs:440) branches on whether `--daemon` was ASKED FOR rather than on whether a daemon is WATCHING, `engine()` already resolves the endpoint and already calls `watching_this_project` (render.rs:633), and only the guard arm `daemon::Route::Daemon(_) if need == StoreNeed::Shared => {}` at render.rs:581 keeps search from reaching it. **The polarity inversion is the substance of that change, not a detail**: the predicate refuses on every unanswerable path, which is right for `sync`/`ingest` and exactly backwards for a read verb, so the caller takes the `Err` arm as `false` DELIBERATELY and vc has ruled the reason goes AT THE CALL SITE, because the next reader meets one predicate with two callers holding opposite contracts and the obvious tidy-up silently reintroduces the defect. Two tests pin the asymmetry. **Q2 and Q3 are WRITTEN AND BANKED, NOT APPLIED**, at `refs/bank/dc/0443/q2q3-change.md` -- exact hunks, five tests, tree untouched under `native/rust`. **SEQUENCING RULED BY vc: cc's SQLite bump LANDS FIRST**, because the classifier matches on FTS5's message TEXT (the error code cannot separate a malformed expression from a missing table) and the bump moves the bundled library eight minors; the design degrades toward \"store fault\" rather than toward blaming the reader, and test 1 is the canary vc has told cc to expect. **MUST NOT: do not apply the bank while hv's suite has the machine** (a source edit unpins the tree hv's verdict describes), do not land ahead of cc's bump, do not run `intent st hydrate` on a closed thread (facade.rs pins unconditionally and would re-list ST0076 in `.intentfiles`), and **NEVER `int hooks --install`** -- if the finding is right that is the command that creates the double-run. The `int hooks` finding is DRIVEN and banked at `refs/bank/dc/guards/inthooks-drive.md`; ownership is vc's to take to hv.\n **OPEN ON 0443 AND WAITING ON cc, 22:15Z:** cc read both SQLite amalgamations and reports the expression-fault messages BYTE-IDENTICAL 3.46.0 to 3.53.2, so the allowlist survives the bump and test 1 should stay green through it -- but the `fts5: ` prefixed count goes 8 to 14 and **all six additions are CORRUPTION reports**, including `fts5: missing row %lld from content table %s`, which is 0442's exact damage named natively with its rowid. dc's classifier tests `starts_with(\"fts5: syntax error\")` rather than the bare prefix, so all six fall through to the store-fault default and the inversion does not reach it. **But cc's set exposes a real UNDER-inclusion that is dc's to fix**: the allowlist covers the `syntax error` family and `unterminated string`, and NOT `unknown special query`, `no such cursor`, `malformed MATCH expression`, `parser stack overflow` or the two `not supported` forms, so a genuinely malformed expression is reported as an unreadable index -- safe direction, still wrong, and it will generate false 0442-shaped reports. dc has asked cc for the ten strings BYTE-EXACT with their prefix marked, and will not type them from cc's prose: building the list from a reading of a reading is the chain that broke four times tonight.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:52.651Z",
       "recorded_at": "2026-09-17T22:14:07.821Z"
     },
     {
@@ -1425,7 +1443,8 @@
       "kind": "watchout",
       "seq": 39,
       "text": "**A FALSE ELEMENT SURROUNDED BY TRUE ONES INHERITS THEIR CREDIBILITY, WHICH IS WHY REVIEW MISSES IT** (dc, 2026-09-17; four instances in one night across three nodes, one mechanism). (1) AC-06.2's units defect: the page said `Keyword.get/2` on 39 where the search answers 40, and it survived a careful read because `Keyword.get/3`, `Process.get/1` and `Access.get/2` read identically under rows and under sites -- three agreeing figures lent their shape to the one disagreeing figure. (2) ic's `git describe --abbrev=0`, in `intent/docs/releasing.md` twice and in hv's decision 25 record in `intent/wip.md`: the ruling sentence's worked example (the 3.1.0 cut's previous tag is v3.0.3) is TRUE and the command in that same sentence returns v2.3.2, because `describe` takes annotated tags only without `--tags` and this repo's newest annotated tag is v2.3.2 with 45 of its 56 tags postdating it. Several readers passed it: checking the REASONING returns a true statement and only RUNNING the command finds the defect, so **the prose vouched for the command it contradicted**. (3) dc's own, one turn after reporting (2): `44 releases` written to two peers inside the very paragraph arguing that a command only beats a sentence if somebody ran it, beside four figures dc HAD measured. Inferred, actually 45, and the honest unit is tags. **No instrument was involved at all** -- the figure borrowed authority from its neighbours and from the argument it decorated. (4) `bin/.devbin/cmd/hooks:673` declares \"EVERY TEST BELOW IS ANCHORED TO THE START OF A LINE\" and tells the truth about its own scope, while `report_hook`'s unanchored test sits at 534, ABOVE it -- so a grep for `anchor` reads a scoped statement as a property of the file. **THE CURE IS NOT MORE CARE, BECAUSE CARE PRODUCED ALL FOUR.** When claims agree, THE AGREEING ONES ARE NOT EVIDENCE FOR THE ODD ONE: check it separately, and label every element by HOW it was established -- measured, inferred, run, or read. **And the corollary that keeps \"run your commands\" followable:** the commands that most need to be right in a release document -- the tag, the push, the publish -- are unverifiable by execution BY CONSTRUCTION, so the cheap read-only ones get RUN and the dangerous ones get their CONTROL FLOW READ, and the document records which way each was done.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:50.201Z",
       "recorded_at": "2026-09-17T22:14:08.598Z"
     },
     {
@@ -1433,7 +1452,8 @@
       "kind": "watchout",
       "seq": 40,
       "text": "**A POSITIVE CONTROL PROVES THE INSTRUMENT ON THE CORPUS YOU CONTROLLED AGAINST AND SAYS NOTHING ABOUT THE CORPUS YOU POINT IT AT NEXT** (dc 2026-09-17, carried by vc to hv as the night's most reusable finding; it EXTENDS the standing rule rather than sitting beside it). The standing rule reads _a sample that cannot exhibit the failure reports clean; positive-control the instrument_. That is now demonstrably half a rule. **ic DID positive-control** the fence-walking census, against `intent/docs/releasing.md`, where ic knew the answer -- six blocks, exact line ranges, clean pass. Then pointed it at the assignment: `intent/wip.md`, `intent/restart.md` and `.claude/restart.md` report **zero fenced blocks each**, because every command in the three documents every node reads at boot is INLINE in single backticks. Forty-one commands, clean bill of health, instrument blind to all of them. **The control was a twelve-fence document and the targets have none, so it certified an instrument for a corpus it had never met.** dc's own instance the same hour is the same shape one level down: an alternation typed from memory (`git|intent|cargo|bin/|./|brew|mix`) had no entry for `grep` or for a bare script name, could not see two of five fenced blocks in `releasing.md`, and dc read its silence as a property of the PAGE rather than of the pattern -- then used it to REASSURE a peer, which is the worst direction for a narrowed population to fail in, because **an undercount that produces a warning gets checked and one that produces an all-clear gets believed and quoted**. ic was about to commit it. **THE EXTENSION: the control must be run against a sample drawn from the TARGET corpus, not from a corpus you happen to know the answer for. Knowing the answer is what makes a control READABLE; it is not what makes it VALID.** And census by STRUCTURE, never by matching names you expect: count fences AND inline backticked invocations, then say of each whether it was RUN or READ. Both instruments here were built by the node that had just finished writing the correction to the other one.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:51.017Z",
       "recorded_at": "2026-09-17T22:14:09.352Z"
     },
     {
@@ -1441,8 +1461,33 @@
       "kind": "watchout",
       "seq": 41,
       "text": "**A CODE READING WITH NOTHING TO BE ACCOUNTABLE TO IS A STORY; ONE THAT MUST EXPLAIN A SPECIFIC MEASUREMENT IS A MECHANISM** (dc 2026-09-17, on cc's phrasing; the general form of four refutations in one night). The standing rule is _a code reading is a hypothesis, not a mechanism, until a behaviour agrees with it_. That is true and it does not say how to TELL, which is why dc broke it twice in one evening while holding it written down. **The discriminator is NOT how well-supported the reading is.** dc's `--git-path hooks` reconstruction and dc's markdown-formatter hypothesis each cited real lines that all checked out, and each died to a single command: `--git-path hooks` honours `core.hooksPath` at git 2.55.0, and ic's broken grep matched at none of three previous regenerations, so it was born broken rather than broken later. **The discriminator is whether a MEASUREMENT WOULD HAVE BEEN SURPRISED.** Neither of those explained anything anyone had measured, so nothing could contradict them, and that is precisely why both read as clean. The contrast is cc's `bUpdateOrDelete` reading: 3.46.0 gates the FTS5 version bump on a flag exactly three sites set, so the verb's DELETE and its plain per-row INSERTs leave the version at 4 while a replay whose re-inserts take the REPLACE form with an explicit rowid reaches 5 -- accountable because it explains why the axis was the FORM of the insert rather than the SIZE of the corpus, which dc had measured four times and could not account for. cc's own words: _the reading had something to be accountable to._ **SO BEFORE SENDING A PEER A MECHANISM, NAME THE MEASUREMENT IT EXPLAINS. If there is none, say READING and not MECHANISM.** The cost of getting this wrong is not being wrong -- it is that a hypothesis a peer RECEIVES is a fact in a document by morning unless that peer drives it, which is what cc and ic each did tonight and what dc did for cc's set. **The paired duty, and it is the one that actually pays:** when a peer hands you a mechanism, the question is not whether it is well-argued but which of your measurements it would have had to explain.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:00:51.837Z",
       "recorded_at": "2026-09-17T22:26:28.819Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 73,
+      "text": "**RESUME HERE -- 0443 is dc's (vc assigned it 2026-09-17).** vc has fixed the order: hv's word that the suite is finished, then cc's SQLite move lands, then dc. (1) Q2/Q3: re-derive the classifier's insertion point against cc's LANDED `store.rs` (the two edits are five lines apart, 2025 and 2030), apply `refs/bank/dc/0443/q2q3-change.md`, build in a private worktree with its own target, run the whole intentsvcs and intent-cli suites, bank, and land on vc's slot. (2) Q1, ruled S, so the behaviour changes: pass `engine()`'s watching answer to the search reconcile at render.rs:3703, read the predicate's `Err` as `false` with the reason written at the call site, and pin the asymmetry with two tests. MUST NOT: apply while hv's suite runs; land before cc; run `int hooks --install`; run `intent st hydrate` on a closed thread.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:00:55.095Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 17,
+      "text": "**ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:00:55.901Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 18,
+      "text": "**The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:00:56.741Z"
     }
   ],
   "messages": [
