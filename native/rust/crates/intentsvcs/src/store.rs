@@ -3196,8 +3196,8 @@ impl Store {
   /// How long a contended write waits before it is refused (issue `0152`).
   ///
   /// **SET EXPLICITLY, AND SETTING IT TO THE NUMBER WE ALREADY HAD IS NOT A
-  /// NO-OP.** `rusqlite` 0.32.1 calls `sqlite3_busy_timeout(db, 5000)` on every
-  /// open, in `inner_connection.rs:119`. Nothing in this workspace set it,
+  /// NO-OP.** `rusqlite` 0.40.2 calls `sqlite3_busy_timeout(db, 5000)` on every
+  /// open, in `inner_connection.rs:118`. Nothing in this workspace set it,
   /// nothing documented it, and **no reader of this file could see it** -- so
   /// the estate had a five-second block in its write path that nobody chose.
   ///

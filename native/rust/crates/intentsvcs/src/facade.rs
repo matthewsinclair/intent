@@ -5036,43 +5036,52 @@ impl Facade {
     let denied: std::sync::Arc<std::sync::Mutex<Option<String>>> =
       std::sync::Arc::new(std::sync::Mutex::new(None));
     let recorder = std::sync::Arc::clone(&denied);
-    conn.authorizer(Some(
-      move |ctx: rusqlite::hooks::AuthContext<'_>| match ctx.action {
-        AuthAction::Select | AuthAction::Read { .. } | AuthAction::Function { .. } => {
-          Authorization::Allow
-        }
-        AuthAction::Recursive => Authorization::Allow,
-        // **ONE PRAGMA, BY NAME, AND ONLY AS A READ** -- the door refused every
-        // FTS5 table until this existed, including a plain `select path from
-        // src_sections limit 2`, with a message blaming the operator for a
-        // PRAGMA they did not write. **SQLite's fts5 module issues
-        // `PRAGMA data_version` itself** when a virtual table is initialised,
-        // so the blanket refusal below shut the door on exactly the tables the
-        // door was built to join against: the whole stated purpose of `--sql`
-        // is a question that crosses the model and the INDEX.
-        //
-        // **THE NAME WAS READ OFF A LOGGING AUTHORIZER AGAINST THE REAL TABLE,
-        // NOT GUESSED** (ic, 2026-09-12, driven on `src_sections`): the set is
-        // `data_version` and nothing else. A CATEGORY -- "allow read pragmas"
-        // -- was the obvious fix and is the wrong one: this connection is the
-        // store's and outlives the statement, so a pragma that CHANGED
-        // something would outlive it too, and the read-only open flag would be
-        // the only thing left standing. Hence a name, and hence
-        // `pragma_value.is_none()`: `PRAGMA data_version` is a read and
-        // `PRAGMA data_version = x` is not the same act, whatever it would do.
-        AuthAction::Pragma {
-          pragma_name: "data_version",
-          pragma_value: None,
-          ..
-        } => Authorization::Allow,
-        other => {
-          if let Ok(mut slot) = recorder.lock() {
-            slot.get_or_insert_with(|| action_name(&other));
+    // **A GUARD THAT DID NOT INSTALL REFUSES THE STATEMENT.** In rusqlite 0.40
+    // registering a hook can fail (it checks that the connection is owned), and
+    // running somebody else's SQL without the authorizer or the budget is the
+    // one outcome this door exists to prevent, so both registrations below
+    // propagate.
+    conn
+      .authorizer(Some(
+        move |ctx: rusqlite::hooks::AuthContext<'_>| match ctx.action {
+          AuthAction::Select | AuthAction::Read { .. } | AuthAction::Function { .. } => {
+            Authorization::Allow
           }
-          Authorization::Deny
-        }
-      },
-    ));
+          AuthAction::Recursive => Authorization::Allow,
+          // **ONE PRAGMA, BY NAME, AND ONLY AS A READ** -- the door refused every
+          // FTS5 table until this existed, including a plain `select path from
+          // src_sections limit 2`, with a message blaming the operator for a
+          // PRAGMA they did not write. **SQLite's fts5 module issues
+          // `PRAGMA data_version` itself** when a virtual table is initialised,
+          // so the blanket refusal below shut the door on exactly the tables the
+          // door was built to join against: the whole stated purpose of `--sql`
+          // is a question that crosses the model and the INDEX.
+          //
+          // **THE NAME WAS READ OFF A LOGGING AUTHORIZER AGAINST THE REAL TABLE,
+          // NOT GUESSED** (ic, 2026-09-12, driven on `src_sections`): the set is
+          // `data_version` and nothing else. A CATEGORY -- "allow read pragmas"
+          // -- was the obvious fix and is the wrong one: this connection is the
+          // store's and outlives the statement, so a pragma that CHANGED
+          // something would outlive it too, and the read-only open flag would be
+          // the only thing left standing. Hence a name, and hence
+          // `pragma_value.is_none()`: `PRAGMA data_version` is a read and
+          // `PRAGMA data_version = x` is not the same act, whatever it would do.
+          AuthAction::Pragma {
+            pragma_name: "data_version",
+            pragma_value: None,
+            ..
+          } => Authorization::Allow,
+          other => {
+            if let Ok(mut slot) = recorder.lock() {
+              slot.get_or_insert_with(|| action_name(&other));
+            }
+            Authorization::Deny
+          }
+        },
+      ))
+      .map_err(|e| FacadeError::SqlDidNotRun {
+        detail: e.to_string(),
+      })?;
 
     // **THE BUDGET IS SPENT IN WORK, NOT IN SECONDS** -- see [`SQL_WORK_BUDGET`]
     // for why this workspace cannot read a clock. The unit is SQLite
@@ -5080,13 +5089,17 @@ impl Facade {
     // cannot reach: a cross join that returns nothing runs forever and returns
     // no rows at all.
     let mut spent: u64 = 0;
-    conn.progress_handler(
-      SQL_WORK_INTERVAL,
-      Some(move || {
-        spent += 1;
-        spent > SQL_WORK_BUDGET
-      }),
-    );
+    conn
+      .progress_handler(
+        SQL_WORK_INTERVAL,
+        Some(move || {
+          spent += 1;
+          spent > SQL_WORK_BUDGET
+        }),
+      )
+      .map_err(|e| FacadeError::SqlDidNotRun {
+        detail: e.to_string(),
+      })?;
 
     let refused = |e: rusqlite::Error| -> FacadeError {
       if let Some(name) = denied.lock().ok().and_then(|slot| slot.clone()) {

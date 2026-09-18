@@ -82,7 +82,13 @@ async-graphql = "7"
 # (a read-only connection happily reads another file on the machine, and this
 # door is exposed on MCP), and the PROGRESS HANDLER, which is the only way to
 # bound how long somebody else's SQL runs inside our process.
-rusqlite = { version = "0.32", features = ["bundled", "hooks"] }
+#
+# `fallible_uint` KEEPS THE `u64` CONVERSION 0.32 HAD UNCONDITIONALLY: a
+# `u64` binds and reads through `i64::try_from` and fails loudly past
+# `i64::MAX`. 0.40 carries it only behind this feature, and
+# `Attachment::bytes` is a `u64` the store writes and reads by field type,
+# which no call site names.
+rusqlite = { version = "0.40", features = ["bundled", "hooks", "fallible_uint"] }
 ulid = "1"
 # `project_id` (design.md D15 / the four cloud seams): a UUID stamped into
 # `config.json` at migration, namespacing human-legible natural keys so that
