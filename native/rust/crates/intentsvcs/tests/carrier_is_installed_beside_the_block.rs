@@ -99,7 +99,7 @@ fn the_block_alone_passes_every_commit_in_silence() {
   let hook = hooks.join("pre-commit");
   std::fs::write(
     &hook,
-    canon::insert_chain_block("").expect("an empty hook is written whole"),
+    canon::insert_chain_block("pre-commit", "").expect("an empty hook is written whole"),
   )
   .expect("write hook");
   std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).expect("chmod");
@@ -201,7 +201,7 @@ fn a_hook_already_carrying_the_block_is_made_executable() {
 
   std::fs::write(
     &hook,
-    canon::insert_chain_block("").expect("a hook with the block"),
+    canon::insert_chain_block("pre-commit", "").expect("a hook with the block"),
   )
   .expect("write hook");
   std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o644)).expect("chmod 644");

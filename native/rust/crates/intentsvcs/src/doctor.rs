@@ -389,6 +389,15 @@ impl Report {
       .filter(|f| !f.class.is_actionable())
       .count()
   }
+  /// Uncounted findings a default run does not print; the ones `--verbose`
+  /// adds. The class decides, through [`FindingClass::is_shown_by_default`].
+  pub fn hidden_by_default(&self) -> usize {
+    self
+      .findings
+      .iter()
+      .filter(|f| !f.class.is_shown_by_default())
+      .count()
+  }
   /// Findings that demand an action; the number the summary line reports.
   pub fn actionable(&self) -> usize {
     self.findings.len() - self.not_actionable()
@@ -1364,17 +1373,24 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   // file there is nothing to be stale, so this returns before opening, the
   // way `index_unreadable_without_a_facade` already does.
   //
-  // A store that EXISTS and will not open still returns here without a
-  // finding, as it did before; that is unchanged by 0454 and not its subject.
+  // **A STORE THAT EXISTS AND WILL NOT OPEN IS A FINDING** (issue 0455). It
+  // used to return here without one, which was the cache era's reasoning left
+  // in place after 0454. Driven: every other verb refused on such a store, and
+  // each remedy sent the reader to `doctor`, which printed `0 finding(s)`.
   let path = project.db_path();
   if !path.exists() {
     return;
   }
-  let Ok(store) = Store::open(&path) else {
-    return;
+  let unreadable = |out: &mut Vec<Finding>, cause: crate::store::StoreError| {
+    out.push(store_unreadable_finding(project, &cause));
   };
-  let Ok(on_disk) = store.derived_dump() else {
-    return;
+  let store = match Store::open(&path) {
+    Ok(store) => store,
+    Err(cause) => return unreadable(out, cause),
+  };
+  let on_disk = match store.derived_dump() {
+    Ok(on_disk) => on_disk,
+    Err(cause) => return unreadable(out, cause),
   };
 
   // A COLD store is not a stale one. `intent/.cache/` is gitignored (D21), so
@@ -2039,6 +2055,40 @@ fn index_unreadable_finding(project: &Project, store: &crate::store::Store) -> O
       crate::ingest::unreadable_index_remedy(table, newest_snapshot.as_deref(), &snapshot_dir)
     ),
   ))
+}
+
+/// A store file that exists and could not be opened or read back (issue 0455).
+///
+/// **A BUSY STORE IS NOT AN UNREADABLE ONE** (issue 0436's rule, which
+/// [`crate::ingest::read_sections`] follows too): a lock held past the wait
+/// means a peer is writing, and counting it would refuse a commit on a shared
+/// tree for someone else's write. It is still said, as an uncounted advisory,
+/// because the comparison this run skipped is a comparison nobody made.
+fn store_unreadable_finding(project: &Project, cause: &crate::store::StoreError) -> Finding {
+  let file = project.relative(&project.db_path());
+  if cause.is_busy() {
+    return Finding::new(
+      file,
+      FindingClass::Advisory,
+      format!(
+        "the store was held by another writer past the wait ({cause}), so this run did not compare it against the committed canon -- run `intent doctor` again once that write lands"
+      ),
+    );
+  }
+  let snapshot = match crate::backup::newest_snapshot_on_disk(project) {
+    Some(path) => format!("the newest snapshot is {}", project.relative(&path)),
+    None => format!(
+      "there is no snapshot of this store in {}",
+      project.relative(&crate::backup::snapshot_dir(project))
+    ),
+  };
+  Finding::new(
+    file,
+    FindingClass::StoreUnreadable,
+    format!(
+      "the store could not be read ({cause}) -- {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
+    ),
+  )
 }
 
 /// The same question when the caller had no store to hand in.

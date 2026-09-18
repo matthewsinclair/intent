@@ -27,9 +27,9 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-03 -- P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply (status: WIP)
 
-- AC-03.1 After a git pull, checkout or rewrite with no daemon running, the next verb answers from the merged canon: intent st show of a thread the pull brought answers, because the post-merge, post-checkout and post-rewrite hooks wired by intent claude upgrade --apply ran intent sync --apply with no terminal, printed one line when they took anything or when the pass refused, and exited 0 either way. -- satisfied: no (computed)
-- AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: no (computed)
-- AC-03.3 Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused. -- satisfied: no (computed)
+- AC-03.1 After a git pull, checkout or rewrite with no daemon running, the next verb answers from the merged canon: intent st show of a thread the pull brought answers, because the post-merge, post-checkout and post-rewrite hooks wired by intent claude upgrade --apply ran intent sync --apply with no terminal, printed one line when they took anything or when the pass refused, and exited 0 either way. -- satisfied: yes (computed)
+- AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: yes (computed)
+- AC-03.3 Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused. -- satisfied: yes (computed)
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
 
@@ -55,7 +55,10 @@ _(no tests in this group)_
 
 ### WP-03 -- P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply (status: WIP)
 
-_(no tests in this group)_
+- AT-03.1 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs` -- covers AC-03.1 -- status: green -- written; the judging run follows -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
+- AT-03.2 `native/rust/crates/intent-cli/tests/a_stale_store_shows_on_a_default_doctor_run.rs` -- covers AC-03.2 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
+- AT-03.3 `native/rust/crates/intentsvcs/tests/sync_ingest_takes_only_what_the_store_did_not_write.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
+- AT-03.4 `native/rust/crates/intent-cli/tests/sync_plan_and_apply_from_the_command_line.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
 

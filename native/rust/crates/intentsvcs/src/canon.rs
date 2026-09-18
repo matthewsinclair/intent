@@ -257,13 +257,23 @@ impl std::fmt::Display for CanonError {
   }
 }
 
-/// The chain block, verbatim. Emitted rather than templated because it is four
-/// lines and a template file would put its only copy behind a path lookup that
-/// can fail at exactly the moment the hook matters.
-fn chain_block() -> String {
+/// The hooks that bring the store up to a pull, a branch checkout or a rewrite
+/// (ST0078 WP-03). Each gets a chain block exactly as `pre-commit` does, and a
+/// `<hook>.intent` carrier written from the one template `hooks/post-pull.sh`.
+pub const POST_PULL_HOOKS: [&str; 3] = ["post-merge", "post-checkout", "post-rewrite"];
+
+/// The chain block for `hook`, verbatim. Emitted rather than templated because
+/// it is four lines and a template file would put its only copy behind a path
+/// lookup that can fail at exactly the moment the hook matters.
+///
+/// **ONE BLOCK FOR EVERY HOOK, NAMED BY THE HOOK IT SITS IN.** Each calls its
+/// own `<hook>.intent` carrier with git's arguments. A post-pull carrier always
+/// exits 0, so the `|| exit $?` that makes the pre-commit gate refuse costs
+/// those hooks nothing.
+fn chain_block(hook: &str) -> String {
   format!(
     "{CHAIN_START}\n\
-     _intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null)/pre-commit.intent\"\n\
+     _intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null)/{hook}.intent\"\n\
      if [ -x \"$_intent_chain\" ]; then\n\
      \x20 \"$_intent_chain\" \"$@\" || exit $?\n\
      fi\n\
@@ -297,7 +307,7 @@ pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
   out
 }
 
-/// Insert the chain block into an existing pre-commit hook's text.
+/// Insert `hook`'s chain block into that hook's existing text.
 ///
 /// **RETURNS `None` WHEN THE BLOCK IS ALREADY THERE**, so the caller writes
 /// nothing and the file's mtime does not move. Idempotence is a property of
@@ -305,7 +315,7 @@ pub fn lines_outside_chain_block(text: &str) -> Vec<(usize, &str)> {
 ///
 /// Everything not the inserted block is passed through byte for byte. See the
 /// module header for why that is a requirement and not a convenience.
-pub fn insert_chain_block(existing: &str) -> Option<String> {
+pub fn insert_chain_block(hook: &str, existing: &str) -> Option<String> {
   if existing.lines().any(opens_chain_block) {
     return None;
   }
@@ -313,7 +323,7 @@ pub fn insert_chain_block(existing: &str) -> Option<String> {
   // An empty or absent hook gets a shebang and the block, which is the whole
   // file. Handled first because the preamble walk below has nothing to walk.
   if existing.trim().is_empty() {
-    return Some(format!("#!/usr/bin/env bash\n\n{}", chain_block()));
+    return Some(format!("#!/usr/bin/env bash\n\n{}", chain_block(hook)));
   }
 
   let mut out = String::new();
@@ -333,7 +343,7 @@ pub fn insert_chain_block(existing: &str) -> Option<String> {
         out.push('\n');
         continue;
       }
-      out.push_str(&chain_block());
+      out.push_str(&chain_block(hook));
       out.push('\n');
       inserted = true;
     }
@@ -344,7 +354,7 @@ pub fn insert_chain_block(existing: &str) -> Option<String> {
   // A file that is nothing but preamble never hit the insertion point.
   if !inserted {
     out.push('\n');
-    out.push_str(&chain_block());
+    out.push_str(&chain_block(hook));
   }
   Some(out)
 }
@@ -613,7 +623,7 @@ pub fn apply(
     // The chain block. See the module header: region-edited, never regenerated.
     let hook = hooks.join("pre-commit");
     let existing = std::fs::read_to_string(&hook).unwrap_or_default();
-    match insert_chain_block(&existing) {
+    match insert_chain_block("pre-commit", &existing) {
       None => applied.unchanged.push(hook.clone()),
       Some(updated) => write_if_changed(&hook, &updated, opts.report, &mut applied)?,
     }
@@ -626,9 +636,47 @@ pub fn apply(
     if !opts.report {
       make_executable(&hook)?;
     }
+
+    // 5. The store after a pull (ST0078 WP-03): the same two halves, carrier
+    //    first, for each hook that follows a change git makes to the tree.
+    for name in POST_PULL_HOOKS {
+      install_post_pull_carrier(home, hooks, name, opts.report, &mut applied)?;
+      let hook = hooks.join(name);
+      let existing = std::fs::read_to_string(&hook).unwrap_or_default();
+      match insert_chain_block(name, &existing) {
+        None => applied.unchanged.push(hook.clone()),
+        Some(updated) => write_if_changed(&hook, &updated, opts.report, &mut applied)?,
+      }
+      if !opts.report {
+        make_executable(&hook)?;
+      }
+    }
   }
 
   Ok(applied)
+}
+
+/// Install `hooks/post-pull.sh` as `<hooks>/<hook>.intent`, the carrier the
+/// hook's chain block calls (ST0078 WP-03).
+///
+/// **A COPY OF ONE TEMPLATE UNDER THREE NAMES**, read from the resolved install
+/// root like [`install_carrier`]'s shim; the carrier reads its own name to
+/// know which hook ran it. Executable on the unchanged path too, for
+/// [`install_carrier`]'s reason: `[ -x ]` is what the chain block tests.
+fn install_post_pull_carrier(
+  home: &Path,
+  hooks: &Path,
+  hook: &str,
+  report: bool,
+  applied: &mut Applied,
+) -> Result<(), CanonError> {
+  let carrier = hooks.join(format!("{hook}.intent"));
+  let body = template(home, "hooks/post-pull.sh")?;
+  write_if_changed(&carrier, &body, report, applied)?;
+  if report {
+    return Ok(());
+  }
+  make_executable(&carrier)
 }
 
 /// Install the pre-commit shim as `<hooks>/pre-commit.intent` -- the carrier.

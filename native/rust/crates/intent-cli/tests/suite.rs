@@ -45,10 +45,14 @@ mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 mod a_fresh_project_commits_clean;
 #[path = "a_narrowed_render_names_its_scope.rs"]
 mod a_narrowed_render_names_its_scope;
+#[path = "a_pull_is_reflected_by_the_next_verb.rs"]
+mod a_pull_is_reflected_by_the_next_verb;
 #[path = "a_search_by_target_asks_one_question.rs"]
 mod a_search_by_target_asks_one_question;
 #[path = "a_skewed_views_printed_remedy_clears_it.rs"]
 mod a_skewed_views_printed_remedy_clears_it;
+#[path = "a_stale_store_shows_on_a_default_doctor_run.rs"]
+mod a_stale_store_shows_on_a_default_doctor_run;
 #[path = "a_tool_description_comes_from_its_row.rs"]
 mod a_tool_description_comes_from_its_row;
 #[path = "a_write_names_the_view_it_rewrote.rs"]
@@ -243,6 +247,8 @@ mod st_show_prints_the_file_it_names;
 mod subagents_sync_takes_the_preview_skills_has;
 #[path = "surface_is_declared.rs"]
 mod surface_is_declared;
+#[path = "sync_plan_and_apply_from_the_command_line.rs"]
+mod sync_plan_and_apply_from_the_command_line;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
 mod sync_to_store_does_not_contradict_itself;
 #[path = "table_driven_tests_fixture_their_home.rs"]

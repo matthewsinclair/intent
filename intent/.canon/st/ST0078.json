@@ -178,6 +178,48 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "written; the judging run follows -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_stale_store_shows_on_a_default_doctor_run.rs",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+    },
+    {
+      "id": "AT-03.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/sync_ingest_takes_only_what_the_store_did_not_write.rs",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+    },
+    {
+      "id": "AT-03.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/sync_plan_and_apply_from_the_command_line.rs",
+      "covers": [
+        "AC-03.3"
+      ],
+      "status": "green",
+      "note": "judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",

@@ -9144,7 +9144,7 @@
     },
     {
       "path": "sync",
-      "help": "Sync this machine's store with the committed extract, in both directions",
+      "help": "Print this clone's plan for bringing its store up to the committed extract (`--apply` applies it), or move the two in one named direction",
       "args": [
         {
           "name": "id",
@@ -9170,9 +9170,18 @@
           "help": "Read the committed extract into the store, through the API gate",
           "disposition": "keep",
           "disposition_basis": "RULED `keep` by ic, 2026-08-15, on the boundary declared at `boundary_ruled` below. It was `pending` on the ground that `sync --to-store` and `ingest` might be spellings of one act; they are not, and the flag ships. cc had already implemented it and stopped rather than let the code answer the open question -- which was right, and is the reason this row is ruled rather than discovered."
+        },
+        {
+          "spellings": [
+            "--apply"
+          ],
+          "type": "bool",
+          "help": "Apply this clone's plan, which bare `intent sync` prints: after a git pull, take the committed extract into the store only where it says something the store did not write",
+          "disposition": "keep",
+          "note": "ST0078, hv's ruling of 2026-09-18: `intent sync [--apply] [--to-disk|--to-store]`. Bare `sync` prints the plan and writes nothing; `--apply` applies it; `--apply` with a direction is refused. P3 seeds the plan with one quiet step, the daemon's own pass (`Facade::ingest_from_disk` under 0441's hold-unless-moved lock), so it runs beside a daemon rather than refusing like the two directions, and deletes a row only where the store wrote the canon file and the file is gone, never one whose file was never written. P5 adds the other steps. NOT the `ingest` verb, whose input is FOREIGN markdown (`boundary_ruled` below): this reads the extract this tool wrote. The git hooks' template spells this flag, held by a test."
         }
       ],
-      "direction_selector": "REQUESTED BY cc (2026-08-15): the bare verb refuses and names both directions, and needed a selector row. FLAGS NAME THE DESTINATION, NOT THE SOURCE, because the destination is the side that gets overwritten and therefore the side a user needs to be sure about. `--to-disk` / `--to-store` are symmetric and each says which way the bytes move without the reader having to hold D34's endpoint vocabulary in their head. **The bare verb continuing to REFUSE is right and should stay** -- the two directions have opposite blast radii, so there is no safe default, and picking one would make the dangerous case reachable by typing the short form. This is INV-01 territory rather than convenience.",
+      "direction_selector": "REQUESTED BY cc (2026-08-15): the bare verb refuses and names both directions, and needed a selector row. FLAGS NAME THE DESTINATION, NOT THE SOURCE, because the destination is the side that gets overwritten and therefore the side a user needs to be sure about. `--to-disk` / `--to-store` are symmetric and each says which way the bytes move without the reader having to hold D34's endpoint vocabulary in their head. **The bare verb continuing to REFUSE is right and should stay** -- the two directions have opposite blast radii, so there is no safe default, and picking one would make the dangerous case reachable by typing the short form. This is INV-01 territory rather than convenience. **SUPERSEDED FOR THE BARE VERB BY hv, 2026-09-18 (ST0078): bare `intent sync` no longer refuses; it prints the plan for this clone and writes nothing, and `--apply` applies it.** The reasoning above still holds for the two directions, which keep their meanings, and no plan step is the restore, so the dangerous case is still not reachable by typing the short form.",
       "boundary_ruled": "RULED by ic, 2026-08-15, after cc asked for it. **THE BOUNDARY IS THE INPUT DOMAIN, NOT THE DIRECTION.** `sync` moves bytes between this machine's store and THE EXTRACT THIS TOOL PRODUCED -- a self-produced artefact, round-trip-guaranteed and lossless by AC-02.6. `ingest` takes FOREIGN markdown -- v2 trees, hand-authored files, anything `sync --to-disk` did not write. **They have different ERROR CONTRACTS, which is what makes them separate commands rather than one**: a `sync --to-store` that drops a field is a bug, because the extract is supposed to round-trip; an `ingest` that cannot parse a v2 file is EXPECTED and must report per-file. cc's proposal was `sync` owns both directions and `ingest` retires, on the ground that both write the store through the same gate. **That reads the MECHANISM as the identity** -- by the same argument `st new` is also `ingest`. The gate is what they share, not what they are. Measured before ruling, they differ on five axes: input domain, error contract, owning WP (WP-06 vs WP-03, the latter shared with WP-10's migrator), MCP exposure (`sync` true, `ingest` false), and implementation state (`sync --to-store` is built; `intent ingest` is declared, reachable and refuses with `is a known command that is not implemented yet`).",
       "boundary_open_to_vc": "OPEN TO vc, NARROWED. The ruling above is a command-surface call and is mine (AC-05.1); what is NOT mine is that AC-02.3's ratified prose names _the disk-to-db ingest direction_, so retiring `ingest` would touch a ratified criterion. **I did not need to reach that question** -- I have a positive case for keeping both, so nothing blocks and cc is unblocked either way. If vc reads AC-02.3 as naming the COMMAND rather than the direction, the rows change and NOTHING IN THE BINARY DOES, because `ingest` is unimplemented today. That is the cheapest possible moment to disagree with me.",
       "v2": "new-surface",

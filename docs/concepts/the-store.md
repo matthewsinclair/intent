@@ -16,6 +16,8 @@ v3 inverts it. Objects live in a store with a real schema, and the Markdown you 
 
 **The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is a local cache that can always be rebuilt, and what your colleagues review in a pull request is the JSON extract, which has a schema and diffs sensibly. **`intent init` does not add the store to `.gitignore`**, so add `intent/.cache/` yourself.
 
+**After a `git pull`, `intent sync --apply` brings the store up to the pulled canon**, and the `post-merge`, `post-checkout` and `post-rewrite` hooks that `intent claude upgrade --apply` wires into each clone run it for you. They print one line when the store changed and nothing when it did not. It takes the files only where they say something your store did not write, so it never reverts your own unpushed work. Where a hook did not run, a default `intent doctor` shows `store-stale`. A bare `intent sync` prints what `--apply` would do and writes nothing. `intent sync --to-store` is the restore, and after a pull it is almost never what you meant.
+
 ## The generated views carry a banner and it means what it says
 
 Files under `intent/st/<ID>/` are **generated**. A hand edit is lost at the next render, and `intent doctor` reports it as view skew until then. **The one exception is the thread cover, `info.md`:** its `## Objective` and `## Context` sections are carried back into the store. Everything else in it is rendered.
@@ -28,7 +30,7 @@ If you want to change a thread, use a verb: `intent set <address> <field> <value
   $ intent sync --to-disk  ST0001
 ```
 
-**Always scope a sync to a thread id.** A bare `intent sync` is a whole-project operation and it is almost never what you meant.
+**Always scope a direction to a thread id.** An unscoped `--to-store` or `--to-disk` is a whole-project operation, and it is almost never what you meant.
 
 ### Sync reads the worktree, so sync before you commit
 

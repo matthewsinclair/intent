@@ -234,6 +234,18 @@ pub enum FindingClass {
   /// search-index probes**, which read a table that opens and judge its
   /// segments, and which are deliberately never counted.
   IndexUnreadable,
+  /// The store FILE exists and cannot be opened, or opens and cannot be read
+  /// back (issue 0455).
+  ///
+  /// **COUNTED, FOR [`FindingClass::IndexUnreadable`]'s REASON ONE LEVEL UP.**
+  /// Driven with a store file that is not a database: `st list`, `index
+  /// rebuild` and `sync --to-store` each refused at rc 1, and each remedy said
+  /// to run `intent doctor` -- which printed `0 finding(s)` at rc 0. The store-
+  /// stale check returned quietly on the failed open, reasoning from D01's
+  /// cache era, when a store that would not open was deleted and rebuilt by
+  /// the next command. D01 is reversed, so an unreadable store is the
+  /// project's data being unreadable.
+  StoreUnreadable,
   /// The backup mechanism is running and its attempts are failing.
   ///
   /// **THE OTHER HALF OF THE BACKUP RULE, AND [`FindingClass::BackupStale`]
@@ -553,10 +565,15 @@ impl FindingClass {
         "index-unreadable",
         "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. The detail names the table, says what no verb in this build can do about it, and names the newest snapshot if there is one",
       ),
+      Self::StoreUnreadable => (
+        8,
+        "store-unreadable",
+        "the committed canon is intact and is not at fault -- the store file exists and cannot be read, so every command that opens it refuses. No verb in this build repairs it in place (issue 0453). The detail names the cause and the newest snapshot if there is one; no restore verb ships, so a snapshot is a copy to recover from by hand, and it may be older than the store",
+      ),
       Self::StoreStale => (
         8,
         "store-stale",
-        "the store is refreshed by `intent sync` ONCE NO PEER IS MID-WRITE on this tree -- and on a shared tree that is the whole instruction, because a sync run over another node's write is the reversion the daemon already guards against. If you are the only writer here, run it now; if you are not, this clears itself when their write lands, and it was never yours to fix",
+        "run `intent sync --apply`: it takes the files only where they say something the store did not write, deletes no row whose file was never written, and waits for a peer's write rather than reverting it -- so it is safe on a shared tree. After a `git pull` this is the usual cause, and the hooks `intent claude upgrade --apply` wires run it for you. On a shared tree this also shows for the duration of ANOTHER node's canon write, and then clears itself when that write lands",
       ),
       // **Rank 8 beside `BackupStale`, and the two can BOTH fire**, which is
       // the state a store failing for longer than its period is actually in.
@@ -740,6 +757,26 @@ impl FindingClass {
         | Self::BackupStale
         | Self::StoreStale
     )
+  }
+
+  /// Whether a DEFAULT `doctor` run prints this class's findings.
+  ///
+  /// **A SECOND QUESTION, NOT A SECOND ANSWER TO THE FIRST.** [`Self::is_actionable`]
+  /// decides the count and the exit code; this decides only what a reader sees
+  /// without `--verbose`. Every counted class is shown. An uncounted class is
+  /// hidden unless it is named here, which puts it in the tier `unattached` and
+  /// the search-index readings already use: shown, not counted, and the exit
+  /// code does not move.
+  ///
+  /// **`StoreStale` IS HERE BECAUSE HIDING IT WAS A FAILURE WE MEASURED** (ST0078
+  /// WP-03, AC-03.2). After a `git pull` with no daemon, `st show` of the
+  /// pulled thread answered `no steel thread` at rc=1 and a default `doctor`
+  /// printed `0 finding(s)`. The check had fired, but only `--verbose` showed
+  /// it. It stays uncounted for 0313's reason, a peer's canon write on a shared
+  /// tree, and its detail still says so. One advisory line is the cost of never
+  /// again answering `no steel thread` after a pull.
+  pub fn is_shown_by_default(&self) -> bool {
+    self.is_actionable() || matches!(self, Self::StoreStale)
   }
 
   /// The word a report leads with for this class.

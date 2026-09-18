@@ -445,6 +445,7 @@ Change state through the verbs -- `st`, `wp`, `ac`, `at`, `issues` -- and let th
 
 - **`intent sync --to-disk`** writes the extract from the store. This is the routine one: you changed state through the verbs, and the change now belongs in git.
 - **`intent sync --to-store`** replaces the store from the extract. This is the recovery one, and it is **destructive** -- anything the store holds that has not been written to disk is gone.
+- **`intent sync`**, with no direction, prints the plan for this clone and writes nothing, and **`intent sync --apply`** applies it. This is the one after a `git pull`, and the hooks `intent claude upgrade --apply` wires run it for you. Its step takes the extract into the store only where it says something the store did not write. That is the daemon's own pass, so it is safe beside a running daemon and beside a peer's write.
 
 **Naming both flags chooses neither, and is refused.** They are opposite directions over the same two endpoints, so running both just makes whichever went last authoritative by accident of ordering.
 

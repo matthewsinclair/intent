@@ -41,7 +41,8 @@ bash \"$(dirname \"$0\")/live-doc-budget.sh\" || exit 1
 
 #[test]
 fn wiring_canon_has_never_heard_of_survives() {
-  let out = insert_chain_block(CONSUMER_HOOK).expect("a hook with no block is edited");
+  let out =
+    insert_chain_block("pre-commit", CONSUMER_HOOK).expect("a hook with no block is edited");
   for guard in ["whiteboard-inbox-guard", "live-doc-budget"] {
     assert!(
       out.contains(guard),
@@ -61,7 +62,7 @@ fn wiring_canon_has_never_heard_of_survives() {
 /// original order**, and the only additions are the block's own lines.
 #[test]
 fn a_regenerator_would_fail_this() {
-  let out = insert_chain_block(CONSUMER_HOOK).expect("edited");
+  let out = insert_chain_block("pre-commit", CONSUMER_HOOK).expect("edited");
   let original: Vec<&str> = CONSUMER_HOOK.lines().collect();
   let produced: Vec<&str> = out.lines().collect();
 
@@ -106,7 +107,7 @@ fi
 bash \"$(dirname \"$0\")/live-doc-budget.sh\" || exit 1
 ";
   assert!(
-    insert_chain_block(already).is_none(),
+    insert_chain_block("pre-commit", already).is_none(),
     "a block below the top was not recognised, so a second one would be inserted and \
      the chain would run twice"
   );
@@ -116,9 +117,9 @@ bash \"$(dirname \"$0\")/live-doc-budget.sh\" || exit 1
 /// applier a converger rather than a writer: run it twice, change nothing.
 #[test]
 fn a_second_pass_changes_nothing() {
-  let once = insert_chain_block(CONSUMER_HOOK).expect("first pass edits");
+  let once = insert_chain_block("pre-commit", CONSUMER_HOOK).expect("first pass edits");
   assert!(
-    insert_chain_block(&once).is_none(),
+    insert_chain_block("pre-commit", &once).is_none(),
     "the second pass wanted to edit again, so the applier is not idempotent and every \
      run would move the hook's mtime"
   );
@@ -131,7 +132,8 @@ fn a_second_pass_changes_nothing() {
 /// into the very hooks most likely to be near-empty.
 #[test]
 fn a_preamble_only_hook_still_gets_the_block() {
-  let out = insert_chain_block("#!/usr/bin/env bash\nset -euo pipefail\n").expect("edited");
+  let out =
+    insert_chain_block("pre-commit", "#!/usr/bin/env bash\nset -euo pipefail\n").expect("edited");
   assert!(
     out.contains("# intent-chain-block:start"),
     "an all-preamble hook never reached the insertion point and got no block:\n{out}"
@@ -142,7 +144,7 @@ fn a_preamble_only_hook_still_gets_the_block() {
 /// no shebang above it is not executable as a hook.
 #[test]
 fn an_absent_hook_is_written_whole() {
-  let out = insert_chain_block("").expect("an empty hook is written");
+  let out = insert_chain_block("pre-commit", "").expect("an empty hook is written");
   assert!(
     out.starts_with("#!"),
     "no shebang, so git cannot execute it:\n{out}"
@@ -176,7 +178,7 @@ fi
 #[test]
 fn the_marker_the_estate_actually_carries_is_recognised() {
   assert!(
-    insert_chain_block(ESTATE_HOOK).is_none(),
+    insert_chain_block("pre-commit", ESTATE_HOOK).is_none(),
     "a real, already-chained consumer hook read as UNCHAINED. `--apply` therefore \
      writes a second block, `pre-commit.intent` runs twice on every commit, and the \
      NEXT pass reports `0 written` -- certifying the doubled state as canonical."
@@ -194,7 +196,7 @@ fn a_hook_carrying_the_retired_marker_gets_no_further_block() {
     "{ESTATE_HOOK}\n# >>> intent-chain-block >>>\n_intent_chain=\"x\"\n# <<< intent-chain-block <<<\n"
   );
   assert!(
-    insert_chain_block(&doubled).is_none(),
+    insert_chain_block("pre-commit", &doubled).is_none(),
     "a hook carrying the retired marker was not recognised, so a third block would land"
   );
 }
@@ -215,7 +217,7 @@ set -euo pipefail
 # regenerates it, and it must keep running before the project's own gate.
 exec \"$(git rev-parse --show-toplevel)/bin/laksa\" precommit
 ";
-  let out = insert_chain_block(prose_only)
+  let out = insert_chain_block("pre-commit", prose_only)
     .expect("a hook that only MENTIONS the marker has no block and must get one");
   assert!(out.contains("# intent-chain-block:start"));
   assert!(
@@ -230,9 +232,9 @@ exec \"$(git rev-parse --show-toplevel)/bin/laksa\" precommit
 /// together. Drift here is silent and reintroduces the doubling exactly.
 #[test]
 fn the_emitted_block_is_recognised_by_the_next_pass() {
-  let fresh = insert_chain_block("").expect("an empty hook is written whole");
+  let fresh = insert_chain_block("pre-commit", "").expect("an empty hook is written whole");
   assert!(
-    insert_chain_block(&fresh).is_none(),
+    insert_chain_block("pre-commit", &fresh).is_none(),
     "the applier does not recognise its OWN output, so every run appends another \
      block:\n{fresh}"
   );

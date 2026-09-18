@@ -791,43 +791,27 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
   let root = dir.path();
   ok(root, &["st", "new", "A thread"]);
 
-  // **The bare verb REFUSES (AC-03.9).** It used to run disk -> db, which
-  // under D01 as reversed is a RESTORE that overwrites the source of truth
-  // with the re-creatable side. A verb whose two directions differ in
-  // destructiveness must not have a silent default, and the default it had was
-  // the destructive one.
-  let refusal = run(root, &["sync"]);
+  // **The bare verb prints the PLAN and writes nothing** (hv's ruling of
+  // 2026-09-18). It REFUSED until then (AC-03.9): it used to run disk -> db,
+  // which under D01 as reversed is a RESTORE, and a verb whose two directions
+  // differ in destructiveness must not have a silent destructive default. The
+  // plan keeps that rule by writing nothing and by having no restore step; it
+  // answers the question the refusal asked by reading the state.
+  let plan = run(root, &["sync"]);
   assert_eq!(
-    refusal.status.code(),
-    Some(1),
-    "the bare verb refuses rather than picking a direction"
+    plan.status.code(),
+    Some(0),
+    "the bare verb answers with a plan: {:?}",
+    String::from_utf8_lossy(&plan.stderr)
   );
-  let said = String::from_utf8_lossy(&refusal.stderr).to_string();
+  let said = stdout(&plan);
   assert!(
-    said.contains("two directions"),
-    "the refusal says WHY it refused: {said:?}"
-  );
-  assert!(
-    said.contains("DESTRUCTIVE"),
-    "and names which direction is the dangerous one, in a word that survives skimming: {said:?}"
+    said.starts_with("plan: "),
+    "the answer is a plan, on stdout where a pipe reads it: {said:?}"
   );
   assert!(
-    stdout(&refusal).is_empty(),
-    "a refusal writes nothing to stdout, so a pipe sees no result: {:?}",
-    stdout(&refusal)
-  );
-  // **The refusal's remedy names the SAFE direction only.** AC-03.9 is explicit
-  // that a remedy sending an operator to the destructive direction to recover
-  // is itself the defect, so `--to-store` may appear in the refusal as a COST
-  // and never on the `remedy:` line.
-  let remedy = said
-    .lines()
-    .find(|l| l.contains("remedy:"))
-    .expect("the refusal carries a remedy");
-  assert!(remedy.contains("--to-disk"), "{remedy:?}");
-  assert!(
-    !remedy.contains("--to-store"),
-    "no remedy sends an operator to the destructive direction: {remedy:?}"
+    !said.contains("--to-store"),
+    "no plan sends an operator to the destructive direction: {said:?}"
   );
 
   let index = ok(root, &["st", "sync"]);
@@ -836,8 +820,8 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
     "st sync still reports the index as a table: {index:?}"
   );
   assert!(
-    !index.contains("two directions"),
-    "st sync is a different command and is NOT the refusing one -- collapsing them is what this test exists to prevent: {index:?}"
+    !index.starts_with("plan: "),
+    "st sync is a different command and is NOT the planning one -- collapsing them is what this test exists to prevent: {index:?}"
   );
 }
 

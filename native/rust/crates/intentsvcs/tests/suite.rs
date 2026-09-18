@@ -319,6 +319,8 @@ mod rust_references_resolve_through_rust_analyzer;
 mod search_answers_one_envelope;
 #[path = "symbols_come_from_the_grammars_own_tags.rs"]
 mod symbols_come_from_the_grammars_own_tags;
+#[path = "sync_ingest_takes_only_what_the_store_did_not_write.rs"]
+mod sync_ingest_takes_only_what_the_store_did_not_write;
 #[path = "test_target_topology_guard.rs"]
 mod test_target_topology_guard;
 #[path = "the_source_tokeniser_is_measured.rs"]

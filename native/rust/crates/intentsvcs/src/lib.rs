@@ -82,6 +82,7 @@ pub mod nav;
 pub mod organize;
 pub mod output;
 pub mod payload;
+pub mod plan;
 pub mod plugins;
 pub mod preconditions;
 pub mod project;

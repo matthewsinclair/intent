@@ -104,6 +104,18 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    "hooks/post-pull.sh",
+    "sync",
+    Policy::Invokes(
+      "post-merge, post-checkout and post-rewrite run `intent sync --apply` after git has already moved the \
+       tree, so **the hook ALWAYS EXITS 0**: a non-zero exit cannot undo a pull and only prints a failure \
+       over one that succeeded. What it owes instead is that a failure is never silent: any non-zero code \
+       prints ONE stderr line saying the store was NOT brought up to date, with the code, the first line of \
+       the verb's answer and the command to run by hand, and so does a missing `intent` on PATH. At 0 it \
+       prints one line exactly when the answer begins `ok: took` (the store changed) and nothing otherwise.",
+    ),
+  ),
+  (
     ".claude/scripts/post-tool-symbol-context.sh",
     "search",
     Policy::Invokes(

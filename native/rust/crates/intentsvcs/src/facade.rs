@@ -3124,18 +3124,75 @@ pub struct IngestRender {
   canon: Canon,
   count: usize,
   projection: Projection,
+  /// What this render took from the disk: see [`Ingested::taken`].
+  taken: Vec<String>,
+}
+
+/// What an ingest pass that landed did (ST0078 WP-03).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Ingested {
+  /// The threads the pass read.
+  pub threads: usize,
+  /// Every thread and issue whose stored value this pass CHANGED, by subject
+  /// (`ST0002`, `issue 0003`), in id order: taken from the disk, or removed
+  /// because the store had written its canon file and the file is gone, which
+  /// is marked `ST0003 (removed)`.
+  ///
+  /// **A CHANGE IN THE STORE AND NOT A CHANGE ON DISK.** A file that differs
+  /// from the one the store recorded and parses to the same value is not
+  /// listed, so an empty list means the store already answered what the disk
+  /// says. `sync --apply` and the git hooks print on this and on nothing else.
+  pub taken: Vec<String>,
 }
 
 /// What [`Facade::ingest_commit`] did with a render.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IngestCommit {
   /// The files landed and the file index recorded them, under one hold of the
-  /// writer lock. The count is the threads the pass read.
-  Written(usize),
+  /// writer lock.
+  Written(Ingested),
   /// Another connection committed after the snapshot, so nothing was written
   /// and nothing recorded. `unwritten` is what the render would have changed,
   /// project-relative.
   StoreMoved { unwritten: Vec<String> },
+}
+
+/// The threads and issues whose value differs between `held` and `canon`, by
+/// subject, in id order: what an ingest pass changed in the store. A subject
+/// the pass removed says so, because `took ST0003` read as an arrival when
+/// driven on a pulled deletion.
+fn changed_subjects(held: &(Vec<Thread>, Vec<Issue>), canon: &Canon) -> Vec<String> {
+  fn changed<T: PartialEq, K: Ord + Clone>(
+    before: &[T],
+    after: &[T],
+    key: impl Fn(&T) -> K,
+  ) -> Vec<(K, bool)> {
+    let mut keys: Vec<K> = before.iter().chain(after).map(&key).collect();
+    keys.sort();
+    keys.dedup();
+    keys
+      .into_iter()
+      .filter_map(|k| {
+        let now = after.iter().find(|t| key(t) == k);
+        (before.iter().find(|t| key(t) == k) != now).then_some((k, now.is_none()))
+      })
+      .collect()
+  }
+  let named = |subject: String, removed: bool| match removed {
+    true => format!("{subject} (removed)"),
+    false => subject,
+  };
+  let threads = changed(&held.0, &canon.threads, |t| t.id.clone());
+  let issues = changed(&held.1, &canon.issues, |i| i.number);
+  threads
+    .into_iter()
+    .map(|(id, removed)| named(id, removed))
+    .chain(
+      issues
+        .into_iter()
+        .map(|(n, removed)| named(format!("issue {n:04}"), removed)),
+    )
+    .collect()
 }
 
 /// A canon file that exists and cannot be read. Reported, never read past: an
@@ -3277,8 +3334,15 @@ impl Facade {
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
     // The daily-driver path: answer from the store unless the tree moved.
     let canon = ingest::load_fresh(&project, &mut store)?;
+    Ok(Self::over(project, ctx, store, canon))
+  }
+
+  /// A facade over a store and the canon read from it: the one place the
+  /// struct is assembled, for both opens and for [`Facade::sync_plan`]'s
+  /// shadow.
+  fn over(project: Project, ctx: FacadeContext, store: Store, canon: Canon) -> Self {
     let embedder = crate::embed::from_config(&project.config().embed);
-    Ok(Self {
+    Self {
       project,
       store,
       canon,
@@ -3286,7 +3350,7 @@ impl Facade {
       embedder,
       resolvers: carried(&crate::index::resolved::readers()),
       after_write: Vec::new(),
-    })
+    }
   }
 
   /// Open against an in-memory store, for callers that do not want the DB on
@@ -3295,16 +3359,7 @@ impl Facade {
     Self::readable(&project)?;
     let mut store = Store::open_in_memory().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
-    let embedder = crate::embed::from_config(&project.config().embed);
-    Ok(Self {
-      project,
-      store,
-      canon,
-      ctx,
-      embedder,
-      resolvers: carried(&crate::index::resolved::readers()),
-      after_write: Vec::new(),
-    })
+    Ok(Self::over(project, ctx, store, canon))
   }
 
   pub fn project(&self) -> &Project {
@@ -7645,12 +7700,12 @@ impl Facade {
   /// lands only under a held writer lock that finds no other connection's commit
   /// since the snapshot; a pass that finds one renders again, at most
   /// `INGEST_RENDERS` times, and then refuses, naming what it did not write.
-  pub fn ingest_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
+  pub fn ingest_from_disk(&mut self, scope: &SyncScope) -> Result<Ingested, FacadeError> {
     let mut unwritten = Vec::new();
     for _ in 0..INGEST_RENDERS {
       let render = self.ingest_render(scope)?;
       match self.ingest_commit(scope, render)? {
-        IngestCommit::Written(count) => return Ok(count),
+        IngestCommit::Written(ingested) => return Ok(ingested),
         IngestCommit::StoreMoved { unwritten: last } => unwritten = last,
       }
     }
@@ -7663,6 +7718,49 @@ impl Facade {
     })
   }
 
+  /// The plan bare `intent sync` prints: what `--apply` would do to this
+  /// clone, computed WITHOUT WRITING (ST0078, hv's ruling of 2026-09-18).
+  ///
+  /// **THE INGEST STEP'S PREVIEW RUNS THE DAEMON'S OWN ENGINE**, against a
+  /// shadow: an in-memory store holding a copy of this store's estate and file
+  /// index, which is everything the ingest's decision reads. A second
+  /// implementation of the decision, written to answer without writing, would
+  /// be the drift D32 forbids; a copy of the whole database would cost this
+  /// project's 192 MB store on every bare `sync`. The shadow's render is never
+  /// committed, so no file moves and this store is only read.
+  ///
+  /// The estate and the index are read one after the other, not under one
+  /// transaction, so a peer's write landing between them can show in the plan.
+  /// The apply decides again under the lock, which is where correctness lives.
+  pub fn sync_plan(&self, scope: &SyncScope) -> Result<crate::plan::Plan, FacadeError> {
+    let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
+    let index = self.store.file_index().map_err(FacadeError::Store)?;
+    let mut shadow = Store::open_in_memory().map_err(FacadeError::Store)?;
+    shadow
+      .rebuild(&threads, &issues)
+      .map_err(FacadeError::Store)?;
+    shadow
+      .replace_file_index(&index)
+      .map_err(FacadeError::Store)?;
+    let mut shadow = Self::over(
+      self.project.clone(),
+      self.ctx.clone(),
+      shadow,
+      self.canon.clone(),
+    );
+    let render = shadow.ingest_render(scope)?;
+    Ok(crate::plan::Plan {
+      steps: vec![crate::plan::Step::ingest(render.taken)],
+    })
+  }
+
+  /// `intent sync --apply`: run the plan's steps, each decided again at the
+  /// moment it runs. Under P3 the one step is the ingest, which is quiet, so
+  /// nothing here asks.
+  pub fn sync_apply(&mut self, scope: &SyncScope) -> Result<Ingested, FacadeError> {
+    self.ingest_from_disk(scope)
+  }
+
   /// An ingest pass's first step: read the store's version, take the snapshot
   /// and render it (issue `0441`).
   ///
@@ -7670,14 +7768,22 @@ impl Facade {
   /// the snapshot is being taken moves it as well. That can discard a render
   /// that was already current, at the price of one more, and it never lets a
   /// stale one through.
+  ///
+  /// **WHAT THE STORE HELD IS READ AFTER THE VERSION TOO**, for the same
+  /// reason: a peer's commit between the two moves the version, so the render
+  /// is discarded rather than counting that peer's write as something this
+  /// pass took.
   pub fn ingest_render(&mut self, scope: &SyncScope) -> Result<IngestRender, FacadeError> {
     let baseline = self.store.data_version().map_err(FacadeError::Store)?;
+    let held = self.store.load_canon().map_err(FacadeError::Store)?;
     let (canon, count, projection) = self.render_from_disk(scope, ingest::Load::Ingest)?;
+    let taken = changed_subjects(&held, &canon);
     Ok(IngestRender {
       baseline,
       canon,
       count,
       projection,
+      taken,
     })
   }
 
@@ -7699,6 +7805,7 @@ impl Facade {
       canon,
       count,
       projection: Projection { set, canon_files },
+      taken,
     } = render;
     let Some(held) = self
       .store
@@ -7725,7 +7832,7 @@ impl Facade {
     held.release().map_err(FacadeError::Store)?;
     self
       .finish_from_disk(scope, canon, count, applied)
-      .map(IngestCommit::Written)
+      .map(|threads| IngestCommit::Written(Ingested { threads, taken }))
   }
 
   /// Take a disk load's snapshot and render it: what both directions do before

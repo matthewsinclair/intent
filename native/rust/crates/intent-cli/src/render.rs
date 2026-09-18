@@ -1147,7 +1147,8 @@ fn st_rows(
 /// It was `st sync` only until vc reached for `intent sync`, the spelling the
 /// dispatch table advertises and hv actually named, and got "not yet wired".
 /// The documented spelling being the broken one is the worst way round.
-/// **The bare verb REFUSES (AC-03.9).**
+/// **The bare verb prints the PLAN and writes nothing** (ST0078, hv's ruling of
+/// 2026-09-18: `intent sync [--apply] [--to-disk|--to-store]`).
 ///
 /// `sync` has two directions and they differ in destructiveness: db -> disk
 /// rewrites re-creatable files from the source of truth, and disk -> db
@@ -1155,9 +1156,11 @@ fn st_rows(
 /// second is a RESTORE, and it destroys any change that is in the store and
 /// not yet projected.
 ///
-/// A verb whose two directions differ in destructiveness must not have a
-/// silent default, so this one has none. It used to default to the
-/// destructive direction, which is how the defect existed.
+/// **AC-03.9's rule still holds: no silent destructive default.** The bare
+/// verb used to REFUSE, asking which direction was meant. It now answers by
+/// reading the state instead of guessing: it prints what `--apply` would do and
+/// writes nothing, and no plan step is the restore. It used to default to the
+/// destructive direction, which is how the defect existed in the first place.
 ///
 /// **The selector is `--to-disk` / `--to-store`, and the flags name the
 /// DESTINATION rather than the source** -- ic's row, and the reasoning is
@@ -1208,6 +1211,9 @@ fn sync_scope(m: &ArgMatches) -> Result<intentsvcs::sync::Scope, Failure> {
 
 fn sync(m: &ArgMatches) -> Result<(), Failure> {
   let scope = sync_scope(m)?;
+  if given(m, "apply") {
+    return sync_apply(m, &scope);
+  }
   match (given(m, "to-disk"), given(m, "to-store")) {
     // Both is not "do both": they are opposite directions over the same two
     // endpoints, so running them in either order makes one of them pointless
@@ -1316,61 +1322,69 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
-    (false, false) => {
-      let f = open()?;
-      let overwrite = f.sync_overwrite(&scope).map_err(fail)?;
-      eprintln!("error: `sync` has two directions and will not guess which one you mean");
-      // **`Safe` WAS AN UNCONDITIONAL CLAIM AND THE CONDITION IS REAL.** The
-      // files are re-derivable FROM THE STORE, so the word is only true while
-      // the store is faithful -- and the case that breaks it is not
-      // hypothetical. A porter defect (`e935734d`) put truncated AT citations
-      // into the store while the authored `acceptance.md` still carried the
-      // full line, which makes the FILES the only intact copy and this
-      // direction the one that destroys them. `finding.rs:319` already reasons
-      // exactly this way about a derivable artefact and says what it costs
-      // anyway; this line asserted the opposite of what it costs.
-      //
-      // AND IT COVERED TWO POPULATIONS THAT BEHAVE DIFFERENTLY (issue 0165).
-      // "rewrites the files" is true of a GENERATED view and false of an
-      // AUTHORED attachment, which nothing projects. The doc comment on this
-      // function already had it right -- "db -> disk rewrites RE-CREATABLE
-      // files" -- so the file was not saying two things at random: one of them
-      // was correct and this one drifted off it. Naming the population here is
-      // what makes the two agree; deleting the claim would make this line wrong
-      // for the views, which is the same defect pointed the other way.
-      eprintln!(
-        "  --to-disk   re-derives the GENERATED views from the store. Routine WHILE THE STORE IS FAITHFUL: anything the store did not capture is gone from them. It does NOT touch an AUTHORED attachment -- nothing projects those, so this direction neither overwrites a working copy nor rescues one"
-      );
-      eprintln!(
-        "  --to-store  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"
-      );
-      if overwrite.is_empty() {
-        eprintln!("  (nothing would be overwritten by `--to-store` right now)");
-      } else {
-        eprintln!("  `--to-store` would currently overwrite:");
-        for line in &overwrite {
-          eprintln!("    {line}");
-        }
-      }
-      // **The remedy names the SAFE direction only.** AC-03.9 is explicit that
-      // a remedy sending an operator to the destructive direction to recover is
-      // itself the defect, and the list above is the only place `--to-store`
-      // is named -- as a cost, not as a suggestion.
-      //
-      // **AND IT NOW CARRIES THE COPY-ASIDE STEP, WHICH IS THE HOUSE FORM AND
-      // WAS MISSING HERE ALONE.** `finding.rs:319` tells the operator the
-      // regeneration DISCARDS the hand edit and to copy anything they meant to
-      // keep out first; `:345` makes copying the file outside the project the
-      // FIRST instruction, on the grounds that it costs nothing and removes
-      // the irreversibility before any question of which version was meant.
-      // This site named neither, so the one remedy an operator reaches by
-      // typing a command wrong was the one that did not say what it costs.
-      eprintln!(
-        "  remedy: `intent sync --to-disk` is the routine direction. If this store came from a port or a migration, copy the files you care about outside the project FIRST -- that step costs nothing and is the only one that cannot lose anything"
-      );
-      Err(Failure::Verdict)
-    }
+    (false, false) => sync_plan(&scope),
   }
+}
+
+/// Bare `intent sync`: the plan for this clone, and nothing written.
+///
+/// **THE PLAN IS THE FACADE'S AND THIS ONLY PRINTS IT** (thin coordinator).
+/// Exit 0 whatever it says: a plan with work in it is an answer, not a failure,
+/// and `doctor` is the verb whose exit code is a verdict.
+fn sync_plan(scope: &intentsvcs::sync::Scope) -> Result<(), Failure> {
+  let f = open()?;
+  let plan = f.sync_plan(scope).map_err(fail)?;
+  let work: Vec<&intentsvcs::plan::Step> = plan.work().collect();
+  if work.is_empty() {
+    println!("plan: nothing to do -- this clone's store already holds what the files say");
+  } else {
+    println!(
+      "plan: {} step(s) for this clone, and nothing has been written -- `intent sync --apply` applies them",
+      work.len()
+    );
+  }
+  for (n, step) in plan.steps.iter().enumerate() {
+    println!(
+      "  {}. {} ({}): {}",
+      n + 1,
+      step.name(),
+      step.recoverability.as_str(),
+      step.describe()
+    );
+  }
+  Ok(())
+}
+
+/// `intent sync --apply`: apply the plan (ST0078 WP-03, AC-03.3).
+///
+/// **UNDER P3 THE PLAN IS ONE STEP, THE DAEMON'S ENGINE AND NOT A THIRD
+/// DIRECTION.** The step is [`intentsvcs::facade::Facade::ingest_from_disk`],
+/// the call `intentd` makes after a watched change (D32: one sync
+/// implementation). The files win only where they say something the store did
+/// not write, and that includes a canon file the store wrote and a pull
+/// removed. A row whose file was never written is an unprojected local act, and
+/// it survives.
+///
+/// **IT OPENS AS A SHARED VERB, AND THAT IS WHY IT RUNS BESIDE A DAEMON.** The
+/// `Exclusive` refusal keeps a second WATCHER off a watched tree. This pass
+/// watches nothing. It lands only under 0441's hold-unless-moved lock, so a
+/// daemon's pass and this one run the same engine under the same lock, and
+/// whichever goes second finds nothing to take. The git hooks run it on every
+/// pull, so refusing here would mean refusing every pull where a daemon runs.
+///
+/// **IT NAMES NO DIRECTION.** `--to-disk` or `--to-store` beside it is refused,
+/// the way the two directions refuse each other.
+fn sync_apply(m: &ArgMatches, scope: &intentsvcs::sync::Scope) -> Result<(), Failure> {
+  if given(m, "to-disk") || given(m, "to-store") {
+    return Err(
+      "error: `--apply` applies this clone's plan, and a direction beside it chooses two things at once\n  remedy: run `intent sync` to see the plan and `intent sync --apply` to apply it; `--to-disk` and `--to-store` are the explicit directions and take no `--apply`"
+        .into(),
+    );
+  }
+  let mut f = open()?;
+  let applied = f.sync_apply(scope).map_err(fail)?;
+  println!("ok: {}", intentsvcs::sync::ingested(&applied.taken));
+  Ok(())
 }
 
 /// A verb the dispatch table carries and the facade does not yet implement.
@@ -7469,13 +7483,27 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // The count still leads and the list is still complete -- every note appears,
   // none is elided. What is removed is duplication, not information, which is
   // the distinction `report.unattached` above already draws.
+  //
+  // **EXCEPT THE CLASSES A DEFAULT RUN SHOWS** (ST0078 WP-03): uncounted and
+  // printed anyway, in `unattached`'s tier, because hiding them was measured
+  // costing a reader the one line that explained `no steel thread` after a
+  // pull. The class says which, through `is_shown_by_default`; the pointer
+  // line counts only what it actually withholds.
   if verbose {
     print_grouped(report.findings.iter().filter(|f| !f.class.is_actionable()));
-  } else if !quiet && report.not_actionable() > 0 {
-    println!(
-      "advisory: {} note(s) not shown and not counted -- `intent doctor --verbose` reads them",
-      report.not_actionable()
+  } else if !quiet {
+    print_grouped(
+      report
+        .findings
+        .iter()
+        .filter(|f| !f.class.is_actionable() && f.class.is_shown_by_default()),
     );
+    if report.hidden_by_default() > 0 {
+      println!(
+        "advisory: {} note(s) not shown and not counted -- `intent doctor --verbose` reads them",
+        report.hidden_by_default()
+      );
+    }
   }
   // **`--quiet` DROPS WHAT IS NOT A FINDING, AND THESE ARE NOT FINDINGS** --
   // the doc comment on `withheld_flags` says so in those words, and

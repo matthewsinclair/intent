@@ -319,6 +319,24 @@ pub fn store_restored(scope: &Scope, differences: usize) -> String {
   }
 }
 
+/// The `--apply` confirmation (ST0078 WP-03), composed here beside
+/// [`store_restored`] for the same reason.
+///
+/// **IT BEGINS `took` EXACTLY WHEN SOMETHING WAS TAKEN, AND THE GIT HOOKS READ
+/// THAT WORD.** A hook prints one line when the pass changed the store and
+/// nothing otherwise, and it tells the two apart by this sentence's first word;
+/// `a_pull_is_reflected_by_the_next_verb.rs` holds the hook's template to it.
+pub fn ingested(taken: &[String]) -> String {
+  match taken {
+    [] => "nothing to take -- the store already holds what the files say".to_string(),
+    subjects => format!(
+      "took {} change(s) from the files into the store: {}",
+      subjects.len(),
+      subjects.join(", ")
+    ),
+  }
+}
+
 /// Which threads a `sync` run takes from its SOURCE.
 ///
 /// **Both directions were whole-estate only until hv ruled otherwise on
