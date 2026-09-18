@@ -1,6 +1,6 @@
 # Intent v3.1.0
 
-**v3.1.0 teaches Intent's index what a symbol IS, and then teaches it to resolve one.** v3.0.2 gave the index a search surface that could find a name; this release gives it the shape around the name -- what kind of thing it is in its own language's words, what type or module it is written in, how many arguments it takes -- and a third level that asks each language's own toolchain which definition a reference actually points at. **If you are running v3.0.3, the new questions are the reason to upgrade and the store migration is the thing to read about first**: it is one-way, and the Upgrading section says how to keep a way back.
+**v3.1.0 teaches Intent's index what a symbol IS, and then teaches it to resolve one.** v3.0.2 gave the index a search surface that could find a name; this release gives it the shape around the name -- what kind of thing it is in its own language's words, what type or module it is written in, how many arguments it takes -- and a third level that asks each language's own toolchain which definition a reference actually points at. **It is also the first release built for a project more than one person works on**: history travels in the repository, one command brings a clone's store up to date after a pull, and an id two clones both minted has a verb that repairs it. **If you are running v3.0.3, the new questions are the reason to upgrade and the store migration is the thing to read about first**: it is one-way, and the Upgrading section says how to keep a way back.
 
 ## Provenance
 
@@ -44,6 +44,16 @@
 
 **Every whiteboard verb records one event.** Board writes reached the event log nowhere, so the store could say what a row held and nothing about who put it there. Each verb now writes one event naming the acting node and its arguments, in the same transaction as the rows it writes.
 
+**`intent sync` prints what this clone needs after a pull, and `intent sync --apply` does it.** After a pull, every verb answered from the store as it stood before the pull: a thread the pull brought answered `no steel thread` until someone ran the whole-store restore, which is the destructive direction. Bare `intent sync` now reads the store, the tree and git's status and prints the steps, writing nothing. In order, they are a branch behind its upstream, an id both sides minted, a canon file both sides changed, the ingest of the committed canon and history, the views that need regenerating, the index, and `doctor` last as the exit code. **Each step says what kind of step it is**: a quiet one runs, a reversible one asks and `--yes` answers it, and a non-reversible one, taking a side in a conflict, always asks a person. **Intent never pulls, commits or pushes**; its one write to git is staging the files it wrote to resolve a conflict.
+
+**`intent claude upgrade --apply` wires three git hooks that run it for you.** `post-merge`, `post-checkout` and `post-rewrite` run `intent sync --apply` after a pull, a branch switch or a rebase. A hook has no terminal, so it runs only the quiet steps and names what it left, and it always exits 0, because a hook must never fail a checkout.
+
+**`intent st renumber` and `intent issues renumber` repair an id two clones both minted.** Ids are minted highest-plus-one over the local canon, so two people mint the same `ST0001`, and git refuses the merge. The only repair was a hand-renamed file, a hand-edited id and a store restore. Each verb moves the record and everything that names it structurally, records its own event, and **lists the prose that names the old id without rewriting it**, because prose is authored. Mid-merge, `intent sync --apply` does the renumber itself.
+
+**Every project act travels as its own committed file, so history crosses a clone.** The event log lived in each machine's store and nowhere else, so a clone got the present and none of how it was reached. Each act now writes one file under `intent/.canon/events/`, in the same write as the rows it records, naming its author. Acts that describe one machine, such as a heartbeat or a sync, stay on that machine. **`intent upgrade` writes, once, the files for the history a project's store already holds**, so what happened before this release travels too.
+
+**[Working in a team](../../concepts/working-in-a-team.md) says how a project works across several clones**, written from a driven run of two clones of one origin. It covers what travels and what does not, what a reviewer reads in a pull request, the one command after a pull, a twice-minted id, and a CI job that runs `intent doctor` on the merge result, because a merge made on the forge passes through nobody's commit gate.
+
 ## Changed
 
 **`intent wb migrate` refuses to carry a board that holds lines the model cannot hold, and names every one of them before it writes anything.** A sub-heading became an item whose text was a literal `###`, a markdown table became one item whose rows rendered as continuation lines, and a board's lead paragraph was reported and dropped -- and the run exited cleanly either way, so a script could not tell a complete carry from a lossy one, and the re-run that would have fixed it was refused as a second carry. Each of those is now one named unit, the exit status tells the two apart, and `--drop-uncarried` says in its closing line how many units it dropped. **Whichever way it goes the board's own markdown is kept byte for byte** under `.history/pre-migration/`, so a dropped line leaves the model and not the record.
@@ -61,6 +71,8 @@
 **A thread's or an issue's view in the explorer splits in half, and the selected field renders as markdown below it.** Every other row used to be one clipped line, so a field longer than the line could be read only by opening an editor on it.
 
 **A thread's `acceptance: exempt` is fixed when the thread is authored, and the close gate's refusal names the routes that exist.** The field was declared immutable while `intent set` wrote it happily -- two answers to one question -- and the gate's refusal for a thread whose contract had been emptied told the operator to declare it. The refusals now name what a verb can actually do.
+
+**`intent doctor` shows a store that lags the committed canon on a default run.** After a pull it was reported only under `--verbose`, so a default run printed `0 finding(s)` over a store that could not find a thread the pull had brought. It is shown and not counted, so the exit code is unchanged, and its remedy names `intent sync --apply`.
 
 ## Fixed
 
@@ -95,6 +107,12 @@
 **The whiteboard header guard refuses a header value detached from its key.** The header block is one line per key, so a value a formatter has broken onto its own line reads as empty -- a node claiming work packages reads as claiming none, and nothing about the board looks wrong. The guard names the limit it read from the repository's own formatter configuration, and says when rejoining is not the fix because the next commit would break the line again.
 
 **Intent.app no longer hangs on a command that fills its stderr.**
+
+**A store that will not open is a finding.** `doctor` passed over a store file that exists and will not open, while every other verb refused on it and sent the operator to `doctor`.
+
+**A write no longer creates `intent/.canon/project.json` when there is nothing to record in it.** On a branch that never committed it, the file was created untracked and the next merge refused to overwrite it, and the new `post-checkout` hook made that happen on every branch switch.
+
+**`intent upgrade` writes no `intent/events.jsonl`**, and its list of files naming a v2 path no longer lists the records Intent itself writes.
 
 The full list is in the [CHANGELOG](../../../CHANGELOG.md).
 
@@ -133,13 +151,15 @@ The full list is in the [CHANGELOG](../../../CHANGELOG.md).
 
 **If you do carry a board, the carry is now refusable and the refusal is the useful outcome.** It names every line the model cannot hold, with its file and line, before writing anything. Read that list before reaching for `--drop-uncarried`; the markdown is kept either way, but a line that leaves the model leaves the board's live surface.
 
-**Reinstall each project's pre-commit gate to pick up the new guards:** `intent claude upgrade --apply --skip-settings`. The carrier at `.git/hooks/pre-commit.intent` is copied into the project, so its text arrives only at that run, while the gate body and Intent's own guards are read live out of the resolved install and are in effect as soon as the install moves. `--skip-settings` leaves `.claude/settings.json` and `.mcp.json` as they are.
+**Run `intent upgrade` in each project, and commit what it writes.** It writes an event file for every project act the store holds, so the project's history travels with it, and it says how many. On a project with a long history that is a large commit, made once. It also removes the `intent/events.jsonl` ignore line earlier v3 versions wrote.
+
+**Reinstall each project's pre-commit gate to pick up the new guards:** `intent claude upgrade --apply --skip-settings`. The carrier at `.git/hooks/pre-commit.intent` is copied into the project, so its text arrives only at that run, while the gate body and Intent's own guards are read live out of the resolved install and are in effect as soon as the install moves. `--skip-settings` leaves `.claude/settings.json` and `.mcp.json` as they are. The same run wires the three git hooks that run `intent sync --apply` after a pull. `.git/hooks` is not cloned, so every clone runs it once.
 
 **Intent's own guard roster is unchanged.** What is new is that a project may declare its own guards in `intent/.config/config.json`, and that the declaration is strict on purpose: a guard whose body is missing, not executable or untracked blocks the commit, as does a `guards` array that cannot be read. That is deliberately stricter than a missing roster guard, which is an install behind its roster, where this is a broken tree. `intent doctor` reports what a clone will not receive as advisories it does not count.
 
 **If your gate's refusals ever told you to reinstall Intent, they now name `intent bootstrap`.** Reinstalling writes no home pointer, so the old remedy could not be followed.
 
-**Nothing about `.claude/settings.json` changed, and no hook name was added or removed.** The two shipped-and-off hooks remain shipped and off; a project opts in from its own `.claude/settings.local.json`.
+**Nothing about `.claude/settings.json` changed, and no Claude Code hook name was added or removed.** The two shipped-and-off hooks remain shipped and off; a project opts in from its own `.claude/settings.local.json`.
 
 **The bundled SQLite is 3.53.2, and an existing store's search index opens as it stands.** FTS5 has written two on-disk index versions, 4 and 5, and both 3.46.0 and 3.53.2 accept both, so nothing about the index format moves with the engine. If you build Intent from source: `rusqlite` is built with its `fallible_uint` feature, because 0.40 carries the `u64` conversion the store relies on only behind that feature. With it on, a `u64` converts through `i64::try_from` and fails loudly past `i64::MAX`, exactly as 0.32 did by default.
 

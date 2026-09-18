@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.0] - in progress
 
-**v3.1.0 teaches the index what a symbol IS, and then teaches it to resolve one.** Every symbol now carries its kind in its own language's words, the container it is written in and its arity, so a search can ask for the structs named `Config` or the methods of a type; and `intent index resolve` asks each language's own toolchain which definition a reference actually points at, which makes a caller list answerable for the first time. Beside that: the whiteboard's carry refuses a lossy migration instead of exiting clean, a project declares its own pre-commit guards in tracked configuration, the daemon's logs are readable through a verb and through Intent.app's new Console, and every search answer says when the index it read was last reconciled. **The store's schema moves 26 to 29 and the upgrade is one-way -- read the [release notes](docs/releases/3.1.0/RELEASE_NOTES.md) before upgrading if you might want a way back.**
+**v3.1.0 teaches the index what a symbol IS, and then teaches it to resolve one.** Every symbol now carries its kind in its own language's words, the container it is written in and its arity, so a search can ask for the structs named `Config` or the methods of a type; and `intent index resolve` asks each language's own toolchain which definition a reference actually points at, which makes a caller list answerable for the first time. **It is also the first release built for a project more than one person works on**: every project act travels as its own committed file, `intent sync` plans and applies what a clone needs after a pull, and an id two clones both minted has a verb that repairs it. Beside that: the whiteboard's carry refuses a lossy migration instead of exiting clean, a project declares its own pre-commit guards in tracked configuration, the daemon's logs are readable through a verb and through Intent.app's new Console, and every search answer says when the index it read was last reconciled. **The store's schema moves 26 to 29 and the upgrade is one-way -- read the [release notes](docs/releases/3.1.0/RELEASE_NOTES.md) before upgrading if you might want a way back.**
 
 ### Added
 
@@ -49,6 +49,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`intent doctor` reads the search index and says when it is damaged.** A malformed FTS5 source index could fail a search on an affected term while `doctor` and `intent index status` both read clean over it. `doctor` now reads both search tables two ways: every document the index holds, checked against its content table, and SQLite's own per-table FTS5 check. A damaged table gets one line saying what the two readings mean together, then what each read, with the orphaned document ids named and `intent index rebuild` as the remedy. It is shown on a default run and in `--format json`, it is not counted as a finding, and it leaves the exit code alone. Both readings read the index's own segments, so they share a blind spot, and a clean result says so on the summary line, under `--quiet` too.
 
+- **`intent sync` prints this clone's plan for bringing its store up to the committed canon, and `intent sync --apply` carries it out.** Bare `intent sync` used to refuse and ask which direction you meant. After a pull, every verb answered from the store as it stood before the pull -- `intent st show` on a thread the pull brought answered `no steel thread` -- until someone ran the whole-store restore, which is the destructive direction. Bare `sync` now reads the store, the tree and git's status and prints the steps this clone needs, in order, writing nothing:
+  - a branch behind its upstream, said and never pulled;
+  - unmerged paths Intent does not own, said and left;
+  - an id both sides minted, renumbered;
+  - a canon file both sides changed, a side to take;
+  - the ingest of the committed canon and event files the store does not hold;
+  - unmerged and stale generated views, regenerated;
+  - the index, refreshed;
+  - then `doctor`, whose verdict is the exit code.
+
+  `--apply` runs them. **Each step declares its recoverability.** A quiet step runs. A reversible one, eg a renumber or staging the views it regenerated, asks `y/N` on a terminal, and `--yes` answers it. A non-reversible one, taking a side, always asks a person, and no flag answers for it. With no terminal the quiet steps run and one `left:` line names the rest. `--plan <digest>` refuses an apply when the tree has moved since that plan was printed. The ingest takes the disk only where it says something the store did not write, so `--apply` runs beside a watching `intentd`. **Intent never pulls, commits or pushes**: its one write to git is staging the files it wrote to resolve a conflict. `--to-disk` and `--to-store` keep their meanings, and `--apply` with either is refused.
+
+- **`intent claude upgrade --apply` wires `post-merge`, `post-checkout` and `post-rewrite` hooks that run `intent sync --apply` after a pull.** They go through the same region-edited chain as the pre-commit gate, from one carrier template, and `post-checkout` runs only on a branch checkout. A hook has no terminal, so it runs the quiet steps and names what it left. It prints one line when the store changed and one naming the failure when it could not run, and it always exits 0, because a hook must never fail a checkout. `.git/hooks` is not cloned, so each clone runs `claude upgrade --apply` once.
+
+- **`intent st renumber <old> <new>` and `intent issues renumber <old> <new>` move a thread or an issue to a free id.** Ids are minted highest-plus-one over the local canon, so two clones mint the same `ST0001` or the same issue `0001`. Git refuses the merge with an add/add conflict, and the only repair was a hand-renamed canon file, a hand-edited id and a store restore. Each verb refuses an id the store holds, and an id a pull put in the tree that the store has not loaded yet.
+  - A thread's renumber moves its canon file, its realised directory, its views and its `.intentfiles` line, rewrites other threads' `related` references, and moves the whiteboard claims on the thread and its work packages.
+  - An issue's renumber moves its canon file and its view.
+  - Each records its own event, and a filesystem failure puts every move back.
+  - **Prose that names the old id is found through the index and listed, never rewritten**, because prose is authored.
+
+  Mid-merge, `intent sync --apply` renumbers this clone's side of a twice-minted id itself. Neither verb is offered on the MCP tool tier.
+
+- **Every project act travels as its own committed file, so a project's history crosses a clone.** The event log lived in each machine's store and nowhere else. A clone got the present and none of how it was reached, and `intent events` on two clones of one project told two stories.
+  - Each act now writes `intent/.canon/events/<YYYY>/<MM>/<DD>/<ULID>.json` in the same write as the rows it records. The file is named by its id, never rewritten, and names its author: git's `user.name <email>`, then the project config's author, then `local`.
+  - Acts that describe one machine stay in that machine's store: a heartbeat and a pickup's stamp, an organize, a sync in either direction, and a text realisation.
+  - A clone's ingest adds every event file whose id its store does not hold, and deletes nothing.
+  - `intent doctor` reads the files, and names by path one that is not an event or whose name is not its id.
+
+  **`intent upgrade` writes, once, an event file for every project event the store holds and the tree lacks**, so a project's history from before this release travels too, and it says how many it wrote. It also removes the `intent/events.jsonl` ignore rule earlier v3 versions wrote, with its comment.
+
+- **`docs/concepts/working-in-a-team.md` says how a project works across several clones.** It is written from a driven run of two clones of one bare origin, and it covers:
+  - what travels and what stays on each machine;
+  - the setup, once per machine and once per clone;
+  - what a reviewer reads in a pull request;
+  - the one command after a pull, and what the hooks do not see;
+  - an id both clones minted, and one thread edited on both sides;
+  - history travelling, and the schema refusal between Intent versions;
+  - a CI job that runs `intent doctor` on the merge result, because a merge made on the forge passes through nobody's commit gate.
+
 ### Changed
 
 - **The generated `CLAUDE.md` tells a session to ask Intent's index before grep, and how to reach it.** The MCP server already told a client on initialize what the index answers, and a session that had read that text still reached for grep first. The template now carries a `## Finding code` section naming the tool and the call: load `mcp__intent__intent_search` through ToolSearch, then ask for `kind` `def` with the name as `query`, or `context` with the name, and fall back to grep only when the answer says the index is not complete for the paths involved. It is in `CLAUDE.md` alone and not in `AGENTS.md`: ToolSearch and the tool's name are Claude Code's, and `AGENTS.md` is tool-agnostic. It offers no shell alternative on purpose, because a CLI line beside it invites Bash. Which tool a session reaches for is the model's choice and varies between runs, so this is a section that changes the odds and not a guarantee.
@@ -82,6 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A search does not reconcile the index itself where a daemon is watching the project.** Routing is opt-in, so a plain `intent search`, and the explorer's search pane, answer in this process even while `intentd` watches the tree, and each one reconciled the index first: a second writer beside the one already keeping that index current. Both now ask the same question the sync carve-out asks, and skip the reconcile when the daemon is watching. Where the daemon cannot answer, a search reconciles, as every search did before, because a daemon that hiccuped must not become a search that cannot run.
 
 - **The release preflight refuses a stale `docs/reference`.** v3.0.3's tag shipped the previous cut's reference pages, because the regeneration landed after the tag and nothing reported it. The preflight now regenerates both halves into scratch against the previous release tag and refuses on any difference, masking only the generation stamp and the revision row. `--allow-stale-reference` lets a cut proceed with a warning and the diff.
+
+- **`intent doctor` shows store-stale on a default run.** After a pull, a store that did not hold what the committed canon held was reported only under `--verbose`, so a default run printed `0 finding(s)` over a store that answered `no steel thread` for a thread the pull brought. It is now shown and not counted: the exit code is unchanged, the line prints, it counts the committed event files the store does not hold, and its remedy names `intent sync --apply`.
 
 ### Fixed
 
@@ -248,6 +289,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A view an older Intent rendered is no longer read as a hand edit when only the renderer's own text differs.** The checks that guard a generated view compared whole files, so a view whose footer or Acceptance cover paragraph an earlier release worded differently read as a possible hand edit: `intent doctor` reported it as blocking `view-skew`, which the pre-commit gate refuses, `intent organize` refused to dehydrate it, and `st sync --write` read a two-byte footer change on an empty estate as the store being behind. A project upgraded from v3.0.3 met the first on its two project-level views, whose footer's wording changed, with nothing edited. All of them now mask the banner line and the cover paragraph the renderer writes, so that difference reads as a stale render, while an edit to authored text, or text appended after the banner, still refuses.
 
 - **A new project's first commit is no longer refused by the gate it just installed.** `intent init` wrote neither `intent/st/steel_threads.md` nor `intent/todo.md`, and `doctor` counts a missing aggregate view as skew even on a project with no thread, so after `intent claude upgrade --apply` wired the pre-commit gate, the first `git commit` of every new project was refused with `generated view is missing` and a remedy the new user had to work out. `intent init` now writes both views, and a fresh project commits clean.
+
+- **A store that will not open is a finding.** A store file that exists and will not open, or opens and cannot be read back, was passed over by `doctor`. Every other verb refused on it with a remedy telling the operator to run `intent doctor`, which printed `0 finding(s)` at exit 0. It is now the counted finding `store-unreadable`. A store that is only busy stays an advisory.
+
+- **A write no longer creates `intent/.canon/project.json` when there is nothing to record in it.** Every write added the file, cutoff or not, and `intent init` writes none. So a first write on a branch created it and it was committed there; switching back removed it; the next write recreated it untracked; and the next merge of the branch refused to overwrite it. The `post-checkout` hook's sync made that happen on every branch switch. The file is now created only when there is a todo cutoff to record, and a file that exists is still rewritten.
+
+- **`intent upgrade` writes no `intent/events.jsonl`, and its list of files naming a v2 path no longer lists records Intent writes.** Every v3 upgrade re-emitted canon through a list that ended with an empty single-file event log. An ignore rule hid that file until this release retired the rule, and it would then have appeared as an untracked file. No verb writes it now. The list of authored files naming a v2 bucket path now skips everything under `intent/.canon/`, event files included, and the whiteboard's records and rendered views. Those are records Intent re-derives, where a reword is overwritten or rewrites history. A node's own files beside its board stay on the list.
 
 ### Removed
 
