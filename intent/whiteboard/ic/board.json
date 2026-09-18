@@ -1657,7 +1657,8 @@
       "kind": "todo",
       "seq": 29,
       "text": "Remove the `wt-0441` worktree (under the scratchpad, detached at `d8c6cc31c`) and its target dir with `git worktree remove` WHEN vc calls the close-out. That timing is vc's ruling of 2026-09-17. XS.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T08:22:40.966Z",
       "recorded_at": "2026-09-18T06:00:35.745Z"
     },
     {
@@ -1674,7 +1675,8 @@
       "kind": "todo",
       "seq": 30,
       "text": "**Regenerate `docs/reference` for the 3.1.0 cut -- ASSIGNED to ic by vc on 2026-09-18. S.** Released ONLY when all three of these hold: everything the cut carries has landed; **0444 has landed**, because its register note reaches `docs/reference` through the register (vc is adding 0444 to the unified plan, since cc's plan had dropped it); and vc says go. Follow `intent/docs/releasing.md` at HEAD and not any summary of it. Both halves go in ONE commit, and that commit lands BEFORE `build release` runs, or the tag will not contain its own reference pages.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T08:22:41.782Z",
       "recorded_at": "2026-09-18T06:01:42.771Z"
     },
     {
@@ -1682,7 +1684,8 @@
       "kind": "todo",
       "seq": 31,
       "text": "**Run the verification pass on vc's unified-plan rewrite of `intent/wip.md` -- ASSIGNED by vc on 2026-09-18. S.** Released when vc says it is off the file. Drive every read-only command, READ the dangerous ones as control flow, and resolve every pointer. Census the commands with `refs/bank/ic/census/tool` after re-running its positive control against `intent/docs/releasing.md`. Fix nothing and report everything to vc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T08:22:42.616Z",
       "recorded_at": "2026-09-18T06:01:43.597Z"
     },
     {
@@ -1708,8 +1711,25 @@
       "kind": "doing",
       "seq": 63,
       "text": "**RESUME HERE -- 2026-09-18 07:44Z, both banks are LANDED; ic has nothing to start.** 0445 landed at `3a48131ad`, and its close at `0321bdb0f`. The staleness check landed at `dcd0b0904`, so from now on `bin/devbin build release` REFUSES until docs/reference describes HEAD: that makes TODO's regeneration the gate on the cut, not only a page step. Ask vc before starting anything that is not in TODO, and check each TODO's releasing condition rather than assuming it. The worktree `scratchpad/wt-0445` is spent; remove it when vc calls the close-out, along with wt-0441. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T08:22:40.186Z",
       "recorded_at": "2026-09-18T07:44:11.830Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 64,
+      "text": "**RESUME HERE -- 2026-09-18 08:22Z, ic has nothing to start; everything vc assigned today is landed.** On main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the docs/reference regeneration for 3.1.0 (`d254b53b8`, and the check exits 0 on it), the releasing.md `--rev HEAD` fix (`4968bbf0e`), 0452 filed (`7ecf2f931`), and 0448 (`21d1a6652`, closed at `eed2f1f02`). The wip.md verification pass is done and vc took all five findings. Waiting on vc; the next event is cc's rebuild. **Two process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024`) BEFORE banking; and a re-bank after any gate refusal, fmt included, goes back to vc for its patch-id BEFORE the commit, because the judged patch-id is what lands. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.",
+      "state": "live",
+      "recorded_at": "2026-09-18T08:22:29.643Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 33,
+      "text": "Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17): `wt-0441` (detached at `d8c6cc31c`), `wt-0445` and `wt-0448`, all under ic's session scratchpad, each with its in-tree target dir. Every bank they held is landed. XS.",
+      "state": "live",
+      "recorded_at": "2026-09-18T08:22:31.723Z"
     }
   ],
   "messages": [
