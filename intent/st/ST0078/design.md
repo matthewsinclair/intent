@@ -291,7 +291,7 @@ D01 as reversed: the store is truth on its machine. D34: the extract is the inte
 
 ## Rulings
 
-hv, 2026-09-18: 1 yes; 2 by date, `YYYY/MM/DD`; 3 yes, one door; 4 bare `intent sync` is the plan and `--apply` applies it, which P5 records; 5 yes, all of it in 3.1.0. The author on an event is git's identity first, then the config author, then `local`, because `config.json` is committed and would name one author for every clone (vc, under the pen, after cc measured it). Open with hv as this is written: whether machine-scoped events (heartbeats, ingests, restores, index rebuilds) stay store-only while project acts travel, vc's recommendation; and whether `intent upgrade` backfills the events a store already holds into files once, vc's recommendation, held out of P1's bank until ruled.
+hv, 2026-09-18: 1 yes; 2 by date, `YYYY/MM/DD`; 3 yes, one door; 4 bare `intent sync` is the plan and `--apply` applies it, which P5 records; 5 yes, all of it in 3.1.0. The author on an event is git's identity first, then the config author, then `local`, because `config.json` is committed and would name one author for every clone (vc, under the pen, after cc measured it). hv, later the same morning, on vc's recommendations: machine-scoped events (heartbeats, ingests, the destructive restore, index rebuilds) stay store-only because they describe one machine and are false on every other clone, and project acts travel; and `intent upgrade` backfills the project events a store already holds into files once, idempotently, as WP-01's separable last commit, so a project's history before this change travels too.
 
 ## Acceptance sketch
 

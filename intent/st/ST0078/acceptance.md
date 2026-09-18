@@ -15,10 +15,10 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-01 -- P1: the event log travels -- one committed file per event under intent/.canon/events/YYYY/MM/DD, additive ingest, principal is the author (reverses D53) (status: WIP)
 
-- AC-01.1 Every event is written as its own file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json in the same write set as the canon and views of the act, with principal the author (the project's config author, else git's user.name and user.email, else local), so an act on one clone is readable with intent events on another after a pull, with its author. -- satisfied: no (computed)
+- AC-01.1 Every PROJECT act is written as its own event file at intent/.canon/events/<YYYY>/<MM>/<DD>/<ulid>.json in the same write set as the canon and views of the act, with principal the author (git's user.name and user.email, else the project's config author, else local), so an act on one clone is readable with intent events on another after a pull, with its author; machine-scoped acts (heartbeats, ingests, the destructive restore, index rebuilds) stay in the store only, because they describe one machine and are false on every other clone (hv, 2026-09-18). -- satisfied: no (computed)
 - AC-01.2 Ingest of committed event files is additive: a file whose id the store holds is skipped, one it lacks is inserted, a file is never rewritten, and no event_log row is deleted because its file is absent. -- satisfied: no (computed)
 - AC-01.3 intent doctor reports an event file that does not parse or whose id disagrees with its name, and reports a committed event the store lacks as store-stale; nothing rebuilds state from events and doctor never reconciles canon against them. -- satisfied: no (computed)
-- AC-01.4 intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and intent export keeps producing the single-file form on demand. -- satisfied: no (computed)
+- AC-01.4 intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and writes, once and idempotently, an event file for every project event the store already holds and the tree lacks, so a project's history from before this change travels too; intent export keeps producing the single-file form on demand. -- satisfied: no (computed)
 
 ### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
 
