@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 12:15Z
+heartbeat_at: 2026-09-18 15:01Z
 status: active
-focus: "ST0078 landed whole (P3, P5 and the P5 follow-up are mine). NEXT: hold 22, the fleet trawl's dc half, released when hv restarts intentd onto cc's f4c8a5b2e pair and cc commits this repo's backfill. Holds 17, 18, 22. NO RELEASE, NO PUSH."
+focus: "The fleet trawl dc half is done, 8 of 8 verified by vc. NEXT: Devbin alone, once its own nodes fold (hold 24). Holds 17, 18, 24. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -23,7 +23,7 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
-- **The fleet trawl, dc live half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Courses, Gtools). vc gave the word at 12:59Z after the re-rehearsal on the b9491a1f2 pair (census 12:58Z: seven pass, Conflab rc 4 on its 67, Devbin rc 4 on its board canon, Gtools rc 6 at its HOME-bound commit hook, a rehearsal artefact; no intent/events.jsonl anywhere). Kit refs/bank/dc/trawl/trawl-estate.sh 45769e51d, split.md 9884aa608. RELEASED WHEN hv allows the run in dc's session: the permission layer refused committing into other repositories as a shared-resource change, nothing ran, and the order moves to no other node. Then: re-pin HEAD and both sha256, skills sync once, the eight in the kit's order, one commit each, doctor after each, per-estate report to vc. Conflab waits on cc's ruling; Devbin waits on its own nodes folding (decision 47). NO PUSH.
+- **The fleet trawl, Devbin only.** The dc half is done and vc verified it, 8 of 8 (2026-09-18 15:01Z): a3-content a0d4a66, Anvil 8c26393, arca_cli a53327f, arca_config b40124c, arca_notionex e28fac4, Baize e73174a, Courses f786c57, Gtools e414831. All are NOT pushed, doctor 0, trees clean. RELEASED WHEN Devbin's own nodes have folded and committed their board files so its tree is clean (decision 47). Then one run of the kit at refs/bank/dc/trawl/trawl-estate.sh aa9395028, whose precondition removes the zero-byte 3.0.0 intent/events.jsonl Devbin also carries, pinned at both ends, one commit, NO PUSH.
 
 ## Watch-outs
 
