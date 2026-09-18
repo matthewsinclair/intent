@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 09:54Z
+heartbeat_at: 2026-09-18 12:04Z
 status: active
-focus: "0443, 0446, 0447 CLOSED. On the bounce: a work package from ST0078 via vc (expected P3: the non-destructive ingest door on the CLI, the post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply, store-stale into the shown-not-counted tier). Holds 17, 18, 21. NO RELEASE, NO PUSH."
+focus: "ST0078 landed whole (P3, P5 and the P5 follow-up are mine). NEXT: hold 22, the fleet trawl's dc half, released when hv restarts intentd onto cc's f4c8a5b2e pair and cc commits this repo's backfill. Holds 17, 18, 22. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **ST0078 WP-03 (P3, the store after a pull) plus issue 0455**, assigned by vc 2026-09-18. Built in wt-0443 at d634f0418 under an isolated HOME. Three parts: (1) store-stale shown on a default doctor run, not counted, plus 0455's unopenable-store finding at the same code site; (2) `intent sync --ingest`, the CLI door to the daemon's Load::Ingest; (3) post-merge, post-checkout and post-rewrite hooks wired by claude upgrade --apply, which always exit 0. Bank at refs/bank/dc/st0078/p3. It lands first of the four, on vc's word. NO RELEASE, NO PUSH.
+_(none)_
 
 ## TODO
 
@@ -23,7 +23,7 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
-- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22, only the banked stops; kit and log on refs/bank/dc/trawl/. hv ruled ST0078 whole into 3.1.0 (vc, 09:06Z), so this is released when ST0078's build has landed and the pair carrying P1 and P3 is rebuilt, so every estate is touched once; then one re-rehearsal on that pair, skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies, and Devbin's tree must be clean. NO PUSH.
+- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical steps only, Courses, Devbin, Gtools). ST0078 is landed whole (P1 to P5, 15/15), and cc rebuilt the pair at f4c8a5b2e (intent sha256 3ccc0100..., intentd c9bb8e5a...). RELEASED WHEN hv has restarted intentd onto that pair AND cc has committed this repository's own backfill. Then: one re-rehearsal with the updated kit (refs/bank/dc/trawl/trawl-estate.sh 5da068eb7: it backfills event files, and its rc 7 witness refuses a deleted or rewritten event file), pinned to cc's HEAD and both sha256 at both ends; the census to vc; skills sync once; the live dc half on vc's word. Conflab's 67 v2 copies need cc's ruling; Devbin's tree must be clean (its five board files wait on its own nodes' fold). NO PUSH.
 
 ## Watch-outs
 

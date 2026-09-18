@@ -1,0 +1,15 @@
+{
+  "id": "01M2T6DDGKZEJP9PV5ZCRNWV1S",
+  "ts": "2026-09-18T12:03:45.299Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical steps only, Courses, Devbin, Gtools). ST0078 is landed whole (P1 to P5, 15/15), and cc rebuilt the pair at f4c8a5b2e (intent sha256 3ccc0100..., intentd c9bb8e5a...). RELEASED WHEN hv has restarted intentd onto that pair AND cc has committed this repository's own backfill. Then: one re-rehearsal with the updated kit (refs/bank/dc/trawl/trawl-estate.sh 5da068eb7: it backfills event files, and its rc 7 witness refuses a deleted or rewritten event file), pinned to cc's HEAD and both sha256 at both ends; the census to vc; skills sync once; the live dc half on vc's word. Conflab's 67 v2 copies need cc's ruling; Devbin's tree must be clean (its five board files wait on its own nodes' fold). NO PUSH."
+  }
+}
