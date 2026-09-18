@@ -29,7 +29,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 - AC-03.1 After a git pull, checkout or rewrite with no daemon running, the next verb answers from the merged canon: intent st show of a thread the pull brought answers, because the post-merge, post-checkout and post-rewrite hooks wired by intent claude upgrade --apply ran intent sync --ingest, printed one line when they took anything, and exited 0 either way. -- satisfied: no (computed)
 - AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: no (computed)
-- AC-03.3 intent sync --ingest runs the daemon's non-destructive rule from the command line: it takes the disk only where it differs from what the store recorded writing, never deletes a store row because its file is absent, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock. -- satisfied: no (computed)
+- AC-03.3 intent sync --ingest runs the daemon's non-destructive rule from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock. -- satisfied: no (computed)
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
 

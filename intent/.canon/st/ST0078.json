@@ -114,7 +114,7 @@
     },
     {
       "id": "AC-03.3",
-      "text": "intent sync --ingest runs the daemon's non-destructive rule from the command line: it takes the disk only where it differs from what the store recorded writing, never deletes a store row because its file is absent, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock.",
+      "text": "intent sync --ingest runs the daemon's non-destructive rule from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock.",
       "kind": "test",
       "state": {
         "is": "computed"
