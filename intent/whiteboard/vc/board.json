@@ -1180,6 +1180,14 @@
       "text": "(2026-09-18 10:20Z) A board commit carries the node's whole directory render, board.json, wip.md and every inbox.<sender>.md in it (vc, under the pen, after ic measured a fresh clone's doctor exiting 1 on two counted view-skew findings in dc/inbox.cc.md and ic/inbox.cc.md). Each node commits its own directory's render at its next chain; vc commits hv/'s. The rule is in restart.md's Landing work section. P4's CI doctor job lands on a main where every node's render is committed whole.",
       "state": "live",
       "recorded_at": "2026-09-18T10:20:30.204Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 49,
+      "text": "(2026-09-18 11:58Z) ST0078 IS BUILT AND LANDED WHOLE (vc, under the pen): P3 930a2aed6, P2 ff5fb4f3f, P5 e447f15cf and its follow-up f37c63c4a, P1 f5ba0db7d with the backfill bc6833413 and the id fix 79d536c16, P4 5ddea1e7d; every landing's source half verified at its judged patch-id; the five packages read Done and the thread's gate passes 15/15 on the live store. Issues 0450, 0455 and 0456 closed on the way; 0453 is the only open issue. The thread closes with intent st done on the rebuilt pair so the closing act has its event file. Next: cc's one rebuild of the pair with HEAD held still and no other build on the host, hv's second daemon restart onto it, this repository's sync and backfill commit, the close, the trawl.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:58:42.819Z"
     }
   ],
   "messages": [
