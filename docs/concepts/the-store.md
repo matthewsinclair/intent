@@ -14,7 +14,7 @@ v3 inverts it. Objects live in a store with a real schema, and the Markdown you 
 | **Canon extracts** | `intent/.canon/st/ST####.json` — tracked in git   | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
 | **Views**          | `intent/st/<ID>/*.md` — generated, human-readable | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
 
-**The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is a local cache that can always be rebuilt, and what your colleagues review in a pull request is the JSON extract, which has a schema and diffs sensibly. **`intent init` does not add the store to `.gitignore`**, so add `intent/.cache/` yourself.
+**The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is truth on the machine that holds it, and what reaches your colleagues is the JSON extract, which has a schema and diffs sensibly; a fresh clone builds its store from the extracts on the first verb. **`intent init` writes the ignore lines** for the store and the backups (`intent/.cache/`, `intent/.backup/`). [Working in a team](working-in-a-team.md) is the whole two-clone story.
 
 **After a `git pull`, `intent sync --apply` brings the store up to the pulled canon**, and the `post-merge`, `post-checkout` and `post-rewrite` hooks that `intent claude upgrade --apply` wires into each clone run it for you. They print one line when the store changed and nothing when it did not. It takes the files only where they say something your store did not write, so it never reverts your own unpushed work. Where a hook did not run, a default `intent doctor` shows `store-stale`. A bare `intent sync` prints what `--apply` would do and writes nothing. `intent sync --to-store` is the restore, and after a pull it is almost never what you meant.
 
@@ -44,13 +44,13 @@ The compliant order is:
 2. `intent sync --to-store <ID>`, then `intent sync --to-disk <ID>`.
 3. Commit the file **and** the canon together, in one commit.
 
-**The pre-commit gate Intent installs does not check this**, so the order is your discipline. Canon on disk can be wrong between a sync and a commit, and nothing says so.
+**The pre-commit gate Intent installs runs `intent doctor`, and refuses a commit whose views disagree with the store**, so a view edited by hand and committed without a sync is refused with a `view-skew` finding naming the file. It cannot tell you which of two commits you meant a canon edit to travel in, so the order above is still yours.
 
 ## What lives only in the store
 
 Some things have no file projection at all, deliberately:
 
-- **The event log** — append-only, every state transition with who and when. This is what makes a fiat close permanent as a record even though the state it produced is reversible.
+- **Machine events** — heartbeats, ingests, restores and index rebuilds, which describe one machine and would be false on any other. The project's own acts, every state transition with who and when, are also written as files under `intent/.canon/events/` that travel in git, which is what makes a fiat close permanent as a record on every clone even though the state it produced is reversible.
 - **The file index** — a git-style index the sync engine uses to know what changed.
 - **Document sections** — the result of prose ingest, used by `intent search`.
 

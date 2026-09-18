@@ -167,3 +167,40 @@ jobs:
         else
           echo "✅ PR size is reasonable"
         fi
+
+  doctor-on-the-merge-result:
+    name: Intent doctor on the merge result
+    runs-on: ubuntu-latest
+    # ST0078 WP-04 (AC-04.2). The commit gate runs `intent doctor` on the
+    # AUTHOR's machine over the author's tree; the merge the forge makes is a
+    # tree nobody's gate judged. On `pull_request`, `actions/checkout` checks out
+    # `refs/pull/<n>/merge`, the merge result, so this is the gate for it.
+    #
+    # A fresh clone under the runner's empty HOME: the store is cold and is
+    # loaded from the committed canon on the first verb, which is exactly what a
+    # collaborator's clone does.
+    #
+    # Driven 2026-09-18 against a fresh clone of 69784fc20 under an empty HOME
+    # with no core.hooksPath: rc 1 on two counted view-skew findings, committed
+    # whiteboard inbox renders that lagged the store. `gate-not-running` does not
+    # fire, because it reads core.hooksPath and a runner sets none. vc's decision
+    # 48 fixed the cause (a board commit carries its node's whole render), and a
+    # fresh clone of the drive's merge result read 0 findings (ST0078,
+    # working-in-a-team-drive.log, section 7).
+    env:
+      XDG_CONFIG_HOME: ""
+      XDG_DATA_HOME: ""
+      XDG_STATE_HOME: ""
+      XDG_RUNTIME_DIR: ""
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: native/rust
+    - name: Build intent
+      run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli
+    - name: intent doctor
+      # No `|| true` (IN-AG-NO-SILENT-001): a finding fails the job.
+      run: native/rust/target/release/intent doctor

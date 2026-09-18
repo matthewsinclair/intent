@@ -1,0 +1,14 @@
+{
+  "id": "01M2T5TWQPKJ8Q3G8MP5G2QF4M",
+  "ts": "2026-09-18T11:53:38.297Z",
+  "principal": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0078/working-in-a-team-drive.log"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

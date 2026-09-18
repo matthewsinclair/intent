@@ -1,0 +1,14 @@
+{
+  "id": "01M2T5XF8YTD732Q1AS72HM2PZ",
+  "ts": "2026-09-18T11:55:02.817Z",
+  "principal": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "at.put",
+  "subject": {
+    "type": "at",
+    "id": "ST0078/AT-04.1"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

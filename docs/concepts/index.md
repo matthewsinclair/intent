@@ -7,6 +7,7 @@ Intent is a small model. Four ideas carry almost all of it, and the rest of the 
 | **[Steel threads and work packages](steel-threads.md)** | The unit of intention, and the units of work inside it                 |
 | **[Criteria and tests](criteria-and-tests.md)**         | How a thread's state is computed rather than asserted                  |
 | **[The store](the-store.md)**                           | Why the database is the source of truth and the files are a projection |
+| **[Working in a team](working-in-a-team.md)**           | Two clones, one origin: what travels, and what to run after a pull     |
 
 ## The one idea underneath all of them
 

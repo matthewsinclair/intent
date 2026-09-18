@@ -1,0 +1,14 @@
+{
+  "id": "01M2T5YAHM3HDCKE0TESA6SYYN",
+  "ts": "2026-09-18T11:55:30.743Z",
+  "principal": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-04.1"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0078/working-in-a-team-drive.log (driven by intent/st/ST0078/working-in-a-team-drive.sh on 79d536c16), AT-04.1"
+  }
+}

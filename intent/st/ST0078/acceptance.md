@@ -20,7 +20,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AC-01.3 intent doctor reports an event file that does not parse or whose id disagrees with its name, and reports a committed event the store lacks as store-stale; nothing rebuilds state from events and doctor never reconciles canon against them. -- satisfied: yes (computed)
 - AC-01.4 intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and writes, once and idempotently, an event file for every project event the store already holds and the tree lacks, so a project's history from before this change travels too; intent export keeps producing the single-file form on demand. -- satisfied: yes (computed)
 
-### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
+### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: Done)
 
 - AC-02.1 intent st renumber <old> <new> refuses when <new> exists and otherwise rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, related references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references it found with the index and did not rewrite. -- satisfied: yes (computed)
 - AC-02.2 intent issues renumber <old> <new> does the same for an issue: refuses a taken id, rewrites the canon file, its name and its view, emits its own event, and prints the prose references it did not rewrite. -- satisfied: yes (computed)
@@ -31,10 +31,10 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: yes (computed)
 - AC-03.3 Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused. -- satisfied: yes (computed)
 
-### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: WIP)
+### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Done)
 
-- AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and its log attached to ST0078 under intent/st/ST0078/ and named from the page; the-store.md says that after a pull the hook runs intent sync --apply and that --to-store is the restore. -- satisfied: no
-- AC-04.2 (non-test) A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate. -- satisfied: no
+- AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and its log attached to ST0078 under intent/st/ST0078/ and named from the page; the-store.md says that after a pull the hook runs intent sync --apply and that --to-store is the restore. -- evidence: intent/st/ST0078/working-in-a-team-drive.log (driven by intent/st/ST0078/working-in-a-team-drive.sh on 79d536c16), AT-04.1 -- satisfied: yes
+- AC-04.2 (non-test) A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate. -- evidence: .github/workflows/pr-checks.yml job doctor-on-the-merge-result; working-in-a-team-drive.log section 7 (fresh clone of the merge result, doctor 0 findings), AT-04.2 -- satisfied: yes
 
 ### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Done)
 
@@ -52,7 +52,7 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AT-01.3 `native/rust/crates/intent-cli/tests/the_event_log_travels.rs` -- covers AC-01.3 -- status: green -- doctor_reports_bad_event_files_and_events_the_store_lacks; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)
 - AT-01.4 `native/rust/crates/intent-cli/tests/the_event_log_travels.rs` -- covers AC-01.4 -- status: green -- upgrade_retires_the_ignore_rule_and_export_keeps_one_file and upgrade_backfills_the_history_the_store_held_once; green in the backfill's whole judging run on 658916fce over f37c63c4a (cc, 2026-09-18)
 
-### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: WIP)
+### WP-02 -- P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted (status: Done)
 
 - AT-02.1 `native/rust/crates/intentsvcs/tests/renumber_moves_an_id_and_what_names_it.rs` -- covers AC-02.1, AC-02.2 -- status: green -- judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean
 - AT-02.2 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs` -- covers AC-02.1, AC-02.2 -- status: green -- judged green by ic's P2 run of 2026-09-18 on 930a2aed6 (scratchpad judge-p2c: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean); re-judged green after vc's finding (the remedy and the CLI arm name sync --apply) by the re-run judge-p2d: intentsvcs 1798/0, intent-cli 1018/0, bats 678/0, doc, both clippy forms and fmt clean
@@ -64,9 +64,10 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 - AT-03.3 `native/rust/crates/intentsvcs/tests/sync_ingest_takes_only_what_the_store_did_not_write.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
 - AT-03.4 `native/rust/crates/intent-cli/tests/sync_plan_and_apply_from_the_command_line.rs` -- covers AC-03.3 -- status: green -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed
 
-### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: WIP)
+### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Done)
 
-_(no tests in this group)_
+- AT-04.1 (non-test) docs/concepts/working-in-a-team.md is written from a driven run: intent/st/ST0078/working-in-a-team-drive.sh drove every command the page shows, two clones of one bare origin with no daemon, on 79d536c16, and every output line the page quotes is in the attached working-in-a-team-drive.log; the-store.md says the hooks run intent sync --apply after a pull and that --to-store is the restore -- covers AC-04.1 -- status: n/a -- shown by ic's two P4 drives of 2026-09-18 on 79d536c16 (run-p4.sh: 94 commands 11:44Z, then 104 commands 11:52Z with the schema-refusal section vc's judging asked for), judged by vc at patch-id 99aba30af
+- AT-04.2 (non-test) The doctor-on-the-merge-result job in .github/workflows/pr-checks.yml builds intent-cli in release and runs intent doctor on the pull request's merge result, failing on a finding; section 7 of working-in-a-team-drive.log ran the same doctor on a fresh clone of the drive's merge result: 0 findings -- covers AC-04.2 -- status: n/a -- shown by ic's two P4 drives of 2026-09-18 on 79d536c16 (run-p4.sh: 94 commands 11:44Z, then 104 commands 11:52Z with the schema-refusal section vc's judging asked for), judged by vc at patch-id 99aba30af
 
 ### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Done)
 

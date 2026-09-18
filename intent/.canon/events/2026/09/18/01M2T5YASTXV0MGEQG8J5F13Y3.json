@@ -1,0 +1,14 @@
+{
+  "id": "01M2T5YASTXV0MGEQG8J5F13Y3",
+  "ts": "2026-09-18T11:55:31.005Z",
+  "principal": "matts",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0078/AC-04.2"
+  },
+  "payload": {
+    "evidence": ".github/workflows/pr-checks.yml job doctor-on-the-merge-result; working-in-a-team-drive.log section 7 (fresh clone of the merge result, doctor 0 findings), AT-04.2"
+  }
+}

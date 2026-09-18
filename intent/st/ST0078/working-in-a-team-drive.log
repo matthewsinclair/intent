@@ -1,0 +1,597 @@
+pair: $BIN/intent
+$ intent --version
+intent 3.0.3 (79d536c163ba2a713830c49894c2ae175e6c4c8e)
+  rc=0
+
+===== 1 alice: start the project and share it
+$ intent init Team
+created: Team at $S/alice
+  author is unset -- run `intent bootstrap` to record it once for this machine, or set it in intent/.config/config.json
+  $S/alice/intent/.config/config.json
+  .gitignore
+  .prettierignore
+  AGENTS.md
+  CLAUDE.md
+  intent/.canon/events/2026/09/18/01M2T5QYT417QG01N0FAX623TK.json
+  intent/.intentfiles
+  intent/llm/ARCHITECTURE.md
+  intent/llm/RULES.md
+  intent/st/steel_threads.md
+  intent/todo.md
+  intent/wip.md
+  (3 embedded template(s) deliberately not written -- run with --help for the family notes)
+  rc=0
+$ grep -n -E ^intent/(\.cache|\.backup|events\.jsonl) .gitignore
+3:intent/.cache/
+6:intent/.backup/
+  rc=0
+$ intent bootstrap
+created: install root recorded -- $INSTALL_ROOT
+created: $S/home/.config/intent/config.json
+  author: matts
+done: this machine is set up
+  rc=0
+$ intent claude upgrade --apply --skip-settings
+written: usage-rules.md
+written: .intent_critic.yml
+written: .git/hooks/pre-commit.intent
+written: .git/hooks/pre-commit
+written: .git/hooks/post-merge.intent
+written: .git/hooks/post-merge
+written: .git/hooks/post-checkout.intent
+written: .git/hooks/post-checkout
+written: .git/hooks/post-rewrite.intent
+written: .git/hooks/post-rewrite
+unchanged: CLAUDE.md
+unchanged: AGENTS.md
+skipped: .claude/settings.json (--skip-settings)
+skipped: .mcp.json (--skip-settings)
+ok: 10 written, 2 already canonical, 0 preserved, 0 held, 2 skipped.
+note: this writes no generated view -- `intent organize --apply` is the one door for a stale one
+  rc=0
+committed: intent init
+$ git push -q -u origin main
+  rc=0
+
+===== 1 bob: clone it, then once per machine and once per clone
+$ intent bootstrap
+ok: install root already recorded -- $INSTALL_ROOT
+ok: configuration already exists -- $S/home/.config/intent/config.json
+  use --force to recreate it
+done: this machine is set up
+  rc=0
+$ intent claude upgrade --apply --skip-settings
+written: .git/hooks/pre-commit.intent
+written: .git/hooks/pre-commit
+written: .git/hooks/post-merge.intent
+written: .git/hooks/post-merge
+written: .git/hooks/post-checkout.intent
+written: .git/hooks/post-checkout
+written: .git/hooks/post-rewrite.intent
+written: .git/hooks/post-rewrite
+unchanged: CLAUDE.md
+unchanged: AGENTS.md
+preserved: usage-rules.md (yours, not canon's)
+preserved: .intent_critic.yml (yours, not canon's)
+skipped: .claude/settings.json (--skip-settings)
+skipped: .mcp.json (--skip-settings)
+ok: 8 written, 2 already canonical, 2 preserved, 0 held, 2 skipped.
+note: this writes no generated view -- `intent organize --apply` is the one door for a stale one
+  rc=0
+$ ls .git/hooks
+applypatch-msg.sample
+commit-msg.sample
+fsmonitor-watchman.sample
+post-checkout
+post-checkout.intent
+post-merge
+post-merge.intent
+post-rewrite
+post-rewrite.intent
+post-update.sample
+pre-applypatch.sample
+pre-commit
+pre-commit.intent
+pre-commit.sample
+pre-merge-commit.sample
+pre-push.sample
+pre-rebase.sample
+pre-receive.sample
+prepare-commit-msg.sample
+push-to-checkout.sample
+sendemail-validate.sample
+update.sample
+  rc=0
+$ intent st list --status all
+bob      | Title          | Status            | Created              | Completed                    
+---------|----------------|-------------------|----------------------|------------------------------
+  rc=0
+
+===== 2 alice: a thread on a branch, reviewed as a PR
+$ git switch -c alice/onboarding
+Switched to a new branch 'alice/onboarding'
+  rc=0
+$ intent st new Onboarding guide
+created: ST0001
+  rc=0
+$ intent st start ST0001
+ok: ST0001 started
+  rc=0
+$ intent wp new ST0001 Write the guide
+created: ST0001/01
+  rc=0
+$ git status --short
+ M intent/.intentfiles
+ M intent/st/steel_threads.md
+ M intent/todo.md
+?? intent/.canon/events/2026/09/18/01M2T5QZBB653R5FMGVYDRFF7G.json
+?? intent/.canon/events/2026/09/18/01M2T5QZBT30RKJ44E0EWZR693.json
+?? intent/.canon/events/2026/09/18/01M2T5QZCAS4KX0NC3SS3SFRWS.json
+?? intent/.canon/st/
+?? intent/st/ST0001/
+  rc=0
+committed: ST0001: onboarding guide, WP-01
+$ git push -q -u origin alice/onboarding
+  rc=0
+$ git diff --stat main...alice/onboarding
+ .../2026/09/18/01M2T5QZBB653R5FMGVYDRFF7G.json     | 14 ++++++++++
+ .../2026/09/18/01M2T5QZBT30RKJ44E0EWZR693.json     | 16 +++++++++++
+ .../2026/09/18/01M2T5QZCAS4KX0NC3SS3SFRWS.json     | 15 +++++++++++
+ intent/.canon/st/ST0001.json                       | 23 ++++++++++++++++
+ intent/.intentfiles                                |  1 +
+ intent/st/ST0001/WP/01/info.md                     | 20 ++++++++++++++
+ intent/st/ST0001/acceptance.md                     | 20 ++++++++++++++
+ intent/st/ST0001/info.md                           | 31 ++++++++++++++++++++++
+ intent/st/steel_threads.md                         |  5 ++--
+ intent/todo.md                                     |  3 ++-
+ 10 files changed, 145 insertions(+), 3 deletions(-)
+  rc=0
+$ git switch -q main
+intent (post-checkout): took 1 change(s) from the files into the store: ST0001 (removed)
+  rc=0
+$ git status --short
+  rc=0
+$ git merge -q --no-ff alice/onboarding -m Merge alice/onboarding
+  rc=0
+$ git push -q origin main
+  rc=0
+
+===== 3 bob: pull, and the store follows
+$ git pull -q
+  rc=0
+$ intent st list --status all
+bob         | Title                         | Status      | Created            | Completed          
+------------|-------------------------------|-------------|--------------------|--------------------
+ST0001      | Onboarding guide              | WIP         | 2026-09-18         |                    
+  rc=0
+$ intent st new Release checklist
+created: ST0002
+  rc=0
+committed: ST0002: release checklist
+$ git push -q origin main
+  rc=0
+$ git pull -q
+intent (post-merge): took 1 change(s) from the files into the store: ST0002; and 1 event file(s)
+  rc=0
+$ intent st list --status all
+bob         | Title                           | Status      | Created            | Completed        
+------------|---------------------------------|-------------|--------------------|------------------
+ST0002      | Release checklist               | Triage      | 2026-09-18         |                  
+ST0001      | Onboarding guide                | WIP         | 2026-09-18         |                  
+  rc=0
+$ intent st show ST0002
+ST0002: Release checklist
+status: Triage
+created: 2026-09-18
+objective: _(not yet written)_
+  rc=0
+$ intent doctor
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 2 thread(s), 0 issue(s), 7 view(s), 20 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+
+===== 4 both mint one id: renumber before the merge
+$ intent st new Alice's next
+created: ST0003
+  rc=0
+committed: alice: ST0003
+$ git push -q origin main
+  rc=0
+$ intent st new Bob's next
+created: ST0003
+  rc=0
+committed: bob: ST0003
+$ git pull --no-rebase -q
+Auto-merging intent/.canon/st/ST0003.json
+CONFLICT (add/add): Merge conflict in intent/.canon/st/ST0003.json
+Auto-merging intent/st/steel_threads.md
+CONFLICT (content): Merge conflict in intent/st/steel_threads.md
+Auto-merging intent/todo.md
+CONFLICT (content): Merge conflict in intent/todo.md
+Automatic merge failed; fix conflicts and then commit the result.
+  rc=1
+$ git diff --name-only --diff-filter=U
+intent/.canon/st/ST0003.json
+intent/st/steel_threads.md
+intent/todo.md
+  rc=0
+$ git merge --abort
+  rc=0
+$ intent st renumber ST0003 ST0004
+ok: ST0003 renumbered to ST0004
+moved: intent/.canon/st/ST0003.json removed
+  rc=0
+committed: renumber my ST0003 to ST0004
+$ git pull --no-rebase -q
+Auto-merging intent/st/steel_threads.md
+CONFLICT (content): Merge conflict in intent/st/steel_threads.md
+Auto-merging intent/todo.md
+CONFLICT (content): Merge conflict in intent/todo.md
+Automatic merge failed; fix conflicts and then commit the result.
+  rc=1
+$ git diff --name-only --diff-filter=U
+intent/st/steel_threads.md
+intent/todo.md
+  rc=0
+$ intent sync --apply --yes
+plan: 4 step(s) for this clone (plan 9bbdc7ed8689bf2c3fc85a408db4c13c41c9145f83382efa1c19eb77070a9bd1), and applying it now
+  1. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
+  2. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
+  3. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
+  4. events (quiet): 1 event file(s) to take
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+ok: took 1 change(s) from the files into the store: ST0003; and 1 event file(s)
+ok: regenerated and staged 2 view(s): intent/st/steel_threads.md, intent/todo.md
+doctor: 0 finding(s) across 4 thread(s), 0 issue(s), 11 view(s), 25 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ git diff --name-only --diff-filter=U
+  rc=0
+committed: merge main: Alice's ST0003, mine is ST0004
+$ git push -q origin main
+  rc=0
+$ intent st list --status all
+bob         | Title                           | Status      | Created            | Completed        
+------------|---------------------------------|-------------|--------------------|------------------
+ST0004      | Bob's next                      | Triage      | 2026-09-18         |                  
+ST0003      | Alice's next                    | Triage      | 2026-09-18         |                  
+ST0002      | Release checklist               | Triage      | 2026-09-18         |                  
+ST0001      | Onboarding guide                | WIP         | 2026-09-18         |                  
+  rc=0
+$ intent doctor
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 4 thread(s), 0 issue(s), 11 view(s), 25 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+
+===== 4b both mint one id again: one command repairs it mid-merge
+$ git pull -q
+intent (post-merge): took 1 change(s) from the files into the store: ST0004; and 2 event file(s)
+  rc=0
+$ intent st new Alice's fifth
+created: ST0005
+  rc=0
+committed: alice: ST0005
+$ git push -q origin main
+  rc=0
+$ intent st new Bob's fifth
+created: ST0005
+  rc=0
+committed: bob: ST0005
+$ git pull --no-rebase -q
+Auto-merging intent/.canon/st/ST0005.json
+CONFLICT (add/add): Merge conflict in intent/.canon/st/ST0005.json
+Auto-merging intent/st/steel_threads.md
+CONFLICT (content): Merge conflict in intent/st/steel_threads.md
+Auto-merging intent/todo.md
+CONFLICT (content): Merge conflict in intent/todo.md
+Automatic merge failed; fix conflicts and then commit the result.
+  rc=1
+$ git diff --name-only --diff-filter=U
+intent/.canon/st/ST0005.json
+intent/st/steel_threads.md
+intent/todo.md
+  rc=0
+$ intent sync
+plan: 5 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and nothing has been written -- `intent sync --apply` applies them
+  1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
+  2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
+  3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
+  4. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
+  5. events (quiet): 1 event file(s) to take
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+  rc=0
+$ intent sync --apply
+plan: 5 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and applying it now
+  1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
+  2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
+  3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
+  4. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
+  5. events (quiet): 1 event file(s) to take
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+ok: took 1 event file(s) from the files into the store
+left: 4 step(s): renumber (reversible), ingest (waits on the conflicts), resolve views (waits on the conflicts), views (waits on the conflicts) -- run `intent sync --apply` on a terminal, or with `--yes`
+doctor: 1 finding(s) -- the estate could not be read, so no thread, issue, view or file was checked -- 1 advisory(ies), not counted
+  rc=1
+$ intent sync --apply --yes
+plan: 4 step(s) for this clone (plan 0b09eed52ff2bb1af2608913de57e353d89e527dfa43ec7056f5d36f90ee1000), and applying it now
+  1. renumber (reversible): both sides minted steel thread ST0005: this clone's moves to ST0006 and the pulled one keeps ST0005, both staged
+  2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
+  3. resolve views (reversible): regenerate 2 unmerged view(s) from the merged canon and stage them: intent/st/steel_threads.md, intent/todo.md
+  4. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+ok: renumbered this clone's ST0005 to ST0006, kept the pulled ST0005, and staged 2 path(s)
+ok: took 1 change(s) from the files into the store: ST0005
+ok: regenerated and staged 2 view(s): intent/st/steel_threads.md, intent/todo.md
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 30 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ git diff --name-only --diff-filter=U
+  rc=0
+committed: merge main: the one command renumbered mine
+$ git push -q origin main
+  rc=0
+$ intent st list --status all
+bob         | Title                           | Status      | Created            | Completed        
+------------|---------------------------------|-------------|--------------------|------------------
+ST0006      | Bob's fifth                     | Triage      | 2026-09-18         |                  
+ST0005      | Alice's fifth                   | Triage      | 2026-09-18         |                  
+ST0004      | Bob's next                      | Triage      | 2026-09-18         |                  
+ST0003      | Alice's next                    | Triage      | 2026-09-18         |                  
+ST0002      | Release checklist               | Triage      | 2026-09-18         |                  
+ST0001      | Onboarding guide                | WIP         | 2026-09-18         |                  
+  rc=0
+$ intent doctor
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 30 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+
+===== 5 both edit one thread
+$ git pull -q
+intent (post-merge): took 1 change(s) from the files into the store: ST0006; and 2 event file(s)
+  rc=0
+$ intent set ST0002 objective Bring a new engineer to a first merged PR in a day
+ok: intent:///threads/ST0002 objective written
+  rc=0
+committed: ST0002 objective
+$ git push -q origin main
+  rc=0
+$ intent set ST0002 context Requested by support after three onboarding escalations
+ok: intent:///threads/ST0002 context written
+  rc=0
+committed: ST0002 context
+$ git pull --no-rebase -q
+Auto-merging intent/.canon/st/ST0002.json
+CONFLICT (content): Merge conflict in intent/.canon/st/ST0002.json
+Automatic merge failed; fix conflicts and then commit the result.
+  rc=1
+$ git diff --name-only --diff-filter=U
+intent/.canon/st/ST0002.json
+  rc=0
+$ grep -n -E ^(<<<<<<<|=======|>>>>>>>)|"objective"|"context" intent/.canon/st/ST0002.json
+8:<<<<<<< HEAD
+9:  "objective": "",
+10:  "context": "Requested by support after three onboarding escalations",
+11:=======
+12:  "objective": "Bring a new engineer to a first merged PR in a day",
+13:  "context": "",
+14:>>>>>>> 18fbc604f01f3fc23824300696c968ab446f5817
+  rc=0
+$ intent sync
+plan: 4 step(s) for this clone (plan 20b7c4afd2045204ed09f5a0f1a97c527164f23944fc187a089a96d3549f9fb5), and nothing has been written -- `intent sync --apply` applies them
+  1. take a side (non-reversible): both sides changed intent/.canon/st/ST0002.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
+  2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
+  3. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
+  4. events (quiet): 1 event file(s) to take
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+  rc=0
+(edited intent/.canon/st/ST0002.json by hand: kept both fields)
+$ git add intent/.canon/st/ST0002.json
+  rc=0
+$ intent sync --apply --yes
+plan: 2 step(s) for this clone (plan 8c6caad5d85070e1105562712762da0dcc200435354b01bf53601ff7195bdf0e), and applying it now
+  1. ingest (quiet): take 1 change(s) from the files into the store: ST0002
+  2. events (quiet): 1 event file(s) to take
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+ok: took 1 change(s) from the files into the store: ST0002; and 1 event file(s)
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 32 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ git diff --name-only --diff-filter=U
+  rc=0
+committed: merge: both ST0002 edits
+$ git push -q origin main
+  rc=0
+$ grep -n -E "objective"|"context" intent/.canon/st/ST0002.json
+8:  "objective": "Bring a new engineer to a first merged PR in a day",
+9:  "context": "Requested by support after three onboarding escalations",
+  rc=0
+$ intent doctor
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 32 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+
+===== 6 history travels
+$ git pull -q
+intent (post-merge): took 1 change(s) from the files into the store: ST0002; and 1 event file(s)
+  rc=0
+$ intent events --subject ST0002
+2026-09-18T11:52:03.506Z  01M2T5R05JY2M5T3XGKGQV8VPR  st.new  ST0002  by Alice <alice@example.com>
+2026-09-18T11:52:06.670Z  01M2T5R38EETCRYXYECFBEQV23  thread.set  ST0002  by Alice <alice@example.com>
+2026-09-18T11:52:06.905Z  01M2T5R3FRT76KKDBNAA2J899M  thread.set  ST0002  by Bob <bob@example.com>
+events: showing 3 of 3 matched, 13 in this store.
+  rc=0
+$ intent events --subject ST0002
+2026-09-18T11:52:03.506Z  01M2T5R05JY2M5T3XGKGQV8VPR  st.new  ST0002  by Alice <alice@example.com>
+2026-09-18T11:52:06.670Z  01M2T5R38EETCRYXYECFBEQV23  thread.set  ST0002  by Alice <alice@example.com>
+2026-09-18T11:52:06.905Z  01M2T5R3FRT76KKDBNAA2J899M  thread.set  ST0002  by Bob <bob@example.com>
+events: showing 3 of 3 matched, 16 in this store.
+  rc=0
+
+===== 6b a project whose history predates the event files: intent upgrade backfills it
+(with the pre-P1 pair: intent 3.0.3 (e447f15cf8d4105512f125a770475f2c2b1655b2))
+committed: legacy project
+$ ls intent/.canon
+project.json
+st
+  rc=0
+(with the pair under test from here)
+$ intent upgrade
+migrated: 1 thread(s), 0 issue(s), 6 file(s) written
+not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
+already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
+backfilled: 3 event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project
+ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
+  rc=0
+$ git status --short intent/.canon/events
+?? intent/.canon/events/
+  rc=0
+$ intent upgrade
+migrated: 1 thread(s), 0 issue(s), 6 file(s) written
+not carried into the model: prose, shipped content and wip/restart are not modelled and are unchanged on disk
+already migrated: 1 thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged
+ok: this project is now Intent v3.0.3 -- commit the canon and the generated views
+  rc=0
+
+===== 6c a canon file written by a newer Intent
+$ git status --short
+  rc=0
+$ grep -n "schema" intent/.canon/st/ST0002.json
+2:  "schema": "intent/thread@3.0",
+  rc=0
+(rewrote intent/.canon/st/ST0002.json schema to intent/thread@9.0, a version this binary does not know)
+$ grep -n "schema" intent/.canon/st/ST0002.json
+2:  "schema": "intent/thread@9.0",
+  rc=0
+$ intent sync
+error: could not read the committed canon
+  caused by: residue: intent/.canon/st/ST0002.json -- schema-invalid -- schema is "intent/thread@9.0"; this binary reads "intent/thread@3.0"
+  remedy: correct the field named above; `intent schema` prints the shape the file must match
+error: refused 1 finding(s) -- schema-invalid: 1
+  remedy: fix the artefacts named above, then retry -- run `intent doctor` to list them
+  rc=1
+$ intent sync --apply
+error: could not read the committed canon
+  caused by: residue: intent/.canon/st/ST0002.json -- schema-invalid -- schema is "intent/thread@9.0"; this binary reads "intent/thread@3.0"
+  remedy: correct the field named above; `intent schema` prints the shape the file must match
+error: refused 1 finding(s) -- schema-invalid: 1
+  remedy: fix the artefacts named above, then retry -- run `intent doctor` to list them
+  rc=1
+$ intent st show ST0002
+ST0002: Release checklist
+status: Triage
+created: 2026-09-18
+objective:
+  Bring a new engineer to a first merged PR in a day
+  rc=0
+$ intent doctor
+residue: schema-invalid -- 1 finding
+  remedy: correct the field named above; `intent schema` prints the shape the file must match
+  intent/.canon/st/ST0002.json -- schema is "intent/thread@9.0"; this binary reads "intent/thread@3.0"
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 1 finding(s) -- the estate could not be read, so no thread, issue, view or file was checked -- 1 advisory(ies), not counted
+  rc=1
+$ git checkout -- intent/.canon/st/ST0002.json
+  rc=0
+$ intent sync --apply
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 32 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ git status --short
+  rc=0
+
+===== 7 the CI job, run by hand on a fresh clone of the merge result
+$ intent doctor
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 32 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+
+===== 8 the-store.md: does the commit gate check canon against an unsynced edit
+$ intent st start ST0004
+ok: ST0004 started
+  rc=0
+$ ls intent/st/ST0004/info.md
+intent/st/ST0004/info.md
+  rc=0
+(edited intent/st/ST0004/info.md's Objective by hand, no sync)
+COMMIT REFUSED: unsynced objective edit
+  this project has code the rule library covers; otherwise only the guards above are enforcing.
+
+residue: view-skew -- 1 finding
+  remedy: each finding's line names what clears it -- regenerating a view DISCARDS a hand edit, so copy anything you meant to keep out first
+  intent/st/ST0004/info.md -- generated view differs from the model (867 bytes on disk, 836 rendered, first difference at byte 120): either it was edited by hand, or the store changed after it was last rendered -- `intent sync --to-disk` regenerates it from the store, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 1 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 35 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+intent doctor: the estate disagrees with the store -- commit refused.
+  each finding above names what clears it; regenerating a view DISCARDS a hand
+  edit, so copy anything you meant to keep out of it first.
+  to bypass this one commit (use sparingly): git commit --no-verify
+$ git log -1 --format=%s
+merge: both ST0002 edits
+  rc=0
+$ intent doctor
+residue: view-skew -- 1 finding
+  remedy: each finding's line names what clears it -- regenerating a view DISCARDS a hand edit, so copy anything you meant to keep out first
+  intent/st/ST0004/info.md -- generated view differs from the model (867 bytes on disk, 836 rendered, first difference at byte 120): either it was edited by hand, or the store changed after it was last rendered -- `intent sync --to-disk` regenerates it from the store, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 1 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 35 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=1
+
+===== 9 a reset the hooks do not see
+$ git pull -q
+  rc=0
+$ intent set ST0002 title Release checklist, v2
+ok: intent:///threads/ST0002 title written
+  rc=0
+committed: ST0002 retitled
+$ git push -q origin main
+  rc=0
+$ git fetch -q origin
+  rc=0
+$ git reset -q --hard origin/main
+  rc=0
+$ intent doctor
+advisory: store-stale -- 2 findings, not counted in the verdict
+  remedy: run `intent sync --apply`: it takes the files only where they say something the store did not write, deletes no row whose file was never written, and waits for a peer's write rather than reverting it -- so it is safe on a shared tree. After a `git pull` this is the usual cause, and the hooks `intent claude upgrade --apply` wires run it for you. On a shared tree this also shows for the duration of ANOTHER node's canon write, and then clears itself when that write lands
+  intent/.cache/intent.db -- the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted
+  intent/.cache/intent.db -- the store does not hold 1 committed event file(s), first intent/.canon/events/2026/09/18/01M2T5R5F0M77RJVNST80HEQJ9.json -- they arrived by a pull or a checkout the store has not ingested, and the next ingest of the tree takes them, since event ingest only ever adds
+advisory: 1 note(s) not shown and not counted -- `intent doctor --verbose` reads them
+surface: `index rebuild` withholds --corpus pending a decision on whether it ships -- it is declared and deliberately not built
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 33 file(s) -- 3 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ intent set ST0002 context Requested by support; retitled upstream
+warning: overwrote bytes that were not the store's render -- an edit to a generated file is gone:
+  intent/.canon/st/ST0002.json
+  intent/st/steel_threads.md
+  intent/todo.md
+  remedy: a generated view has one writer, so recover the text with `git diff` / `git checkout` if you need it, and make the change through the verb that owns the field
+ok: intent:///threads/ST0002 context written
+  rc=0
+$ git diff --stat
+ intent/.canon/st/ST0002.json |  4 ++--
+ intent/st/steel_threads.md   | 16 ++++++++--------
+ intent/todo.md               |  4 ++--
+ 3 files changed, 12 insertions(+), 12 deletions(-)
+  rc=0
+$ git checkout -- .
+  rc=0
+$ intent sync --apply
+plan: 3 step(s) for this clone (plan a9afa96304b247070e2c7a5a2790c4696968e6555c0867736035dfeb6ec69a21), and applying it now
+  1. ingest (quiet): take 2 change(s) from the files into the store: ST0002, ST0004
+  2. events (quiet): 1 event file(s) to take
+  3. index (quiet): bring 1 file(s) the search index has not caught up with into it
+  then: doctor (quiet): run doctor last; its verdict is the exit code
+ok: took 2 change(s) from the files into the store: ST0002, ST0004; and 1 event file(s)
+ok: index: brought 1 file(s) up to date
+doctor: 0 finding(s) across 6 thread(s), 0 issue(s), 15 view(s), 34 file(s) -- 1 advisory(ies), not counted -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)
+  rc=0
+$ intent set ST0002 context Requested by support; retitled upstream
+ok: intent:///threads/ST0002 context written
+  rc=0
+$ git diff --stat
+ intent/.canon/st/ST0002.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+  rc=0

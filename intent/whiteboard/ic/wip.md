@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 10:53Z
+heartbeat_at: 2026-09-18 11:57Z
 status: active
-focus: "ST0078 WP-04 (P4) started: rehearse the drive after cc's P1 run, the real drive on P1's landed commit, lands last. NO RELEASE, NO PUSH."
+focus: "ST0078 P4 LANDED; thread closes on vc's word. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,37 +13,16 @@ claims: []
 
 ## DOING
 
-- **ST0078 WP-04 (P4, working in a team): started, DRAFT banked at `refs/bank/ic/st0078/p4` (patch-id 7b9e46dda, base e447f15cf, not judged). It lands last.**
+- **ST0078: P4 LANDED 2026-09-18 11:5xZ (landing set e250f3110; judged half 98f236ed7 from 99aba30af). All five WPs Done, gate 15/15 PASS.**
 
-The draft is five paths:
-- docs/concepts/working-in-a-team.md: the page, with DRIVE placeholders.
-- docs/concepts/the-store.md: two corrections.
-- docs/concepts/index.md: the page's row.
-- .github/workflows/pr-checks.yml: the doctor-on-the-merge-result job.
-- intent/st/ST0078/working-in-a-team-drive.sh.
+**NEXT:**
+1. `intent st done ST0078` on vc's word only.
+2. The one rebuild of the shared pair is vc's call, after which the live store takes the canon.
+3. Remove ic's spent worktrees at the close-out's end (todo 35 plus wt-p2 and wt-p4). Their banks are landed: refs/bank/ic/st0078/p2 is landed at ff5fb4f3f, and p4 and p4-land at this commit.
 
-Newer than the bank, in ic's scratchpad under p4/:
-- drive-team.sh with section 6b: a pre-P1 project upgraded, the backfill line.
-- run-p4.sh passing `p4/old-pair` (the pair built at e447f15cf).
-- The page's upgrade paragraph.
+Reported to vc: doctor on main shows an uncounted advisory, "search index DAMAGED in doc_sections", whose remedy is `intent index rebuild`.
 
-The rehearsal (e447f15cf) found issue 0456 (a write creates an untracked project.json and the next merge refuses) plus F2 to F5 in `sync`'s plan. All are dc's follow-up.
-
-**ORDER (vc):**
-1. dc's follow-up lands.
-2. cc's backfill (refs/bank/cc/st0078/p1-backfill) lands.
-3. `run-p4.sh <that commit>`.
-4. Fill every DRIVE placeholder from the log.
-5. Attach working-in-a-team-drive.sh and .log to ST0078 (`intent st attach ... --from`).
-6. Re-bank and send vc the patch-id.
-
-**LANDING CHAIN (vc):**
-- `intent wp done ST0078/02`, whose criteria already compute satisfied.
-- Non-test rows satisfying AC-04.1 (the drive log) and AC-04.2 (the job plus the fresh-clone doctor).
-- `intent wp done ST0078/04`.
-- ST0078's canon and views plus ic/'s whole render in the one commit.
-
-Then the one rebuild. No compile while a peer's suite runs. NO RELEASE, NO PUSH.
+NO RELEASE, NO PUSH.
 
 ## TODO
 

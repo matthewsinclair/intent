@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-02: P2: renumber verbs -- intent st renumber and intent issues renumber repair an id two clones both minted
