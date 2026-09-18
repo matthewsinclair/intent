@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 09:06Z
+heartbeat_at: 2026-09-18 09:09Z
 status: active
 focus: "0443, 0446, 0447 CLOSED. On the bounce: a work package from ST0078 via vc (expected P3: the non-destructive ingest door on the CLI, the post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply, store-stale into the shown-not-counted tier). Holds 17, 18, 21. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
@@ -13,7 +13,7 @@ claims: [ST0056/11]
 
 ## DOING
 
-_(none)_
+- **ST0078 WP-03 (P3, the store after a pull) plus issue 0455**, assigned by vc 2026-09-18. Built in wt-0443 at d634f0418 under an isolated HOME. Three parts: (1) store-stale shown on a default doctor run, not counted, plus 0455's unopenable-store finding at the same code site; (2) `intent sync --ingest`, the CLI door to the daemon's Load::Ingest; (3) post-merge, post-checkout and post-rewrite hooks wired by claude upgrade --apply, which always exit 0. Bank at refs/bank/dc/st0078/p3. It lands first of the four, on vc's word. NO RELEASE, NO PUSH.
 
 ## TODO
 
