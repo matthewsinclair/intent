@@ -1121,6 +1121,14 @@
       "text": "(2026-09-18 09:17Z) ON THE BOUNCE (vc, under hv's pen): ST0078's four work packages and eleven criteria are minted from the accepted design at 78734a316 and assigned, cc WP-01 (P1, M), ic WP-02 (P2, M) and WP-04 (P4, S, closes last), dc WP-03 (P3, S, lands first); landing order P3, P2, P1, P4, each on vc's word. Issue 0455 moves from ic to dc because it is the code site P3 rewrites, and closes inside WP-03's bank. cc's 0450 bank (patch-id 4094e77bc) is judged green on its whole-suite run and vc's re-check on HEAD and has the word to land; 0450 stays open until hv restarts intentd and a live doctor re-read is clean. Two assumptions stated to hv: the ingest door is built as `intent sync --ingest` (hv has no strong preference and may rename it before WP-03 lands), and no backfill of the events the store already holds goes into WP-01's bank until hv rules (vc recommends an idempotent backfill in `intent upgrade` as the package's separable last commit, so this project's own history travels).",
       "state": "live",
       "recorded_at": "2026-09-18T09:17:42.439Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 45,
+      "text": "(2026-09-18 09:36Z) P1 rulings on cc's questions (vc, under the pen): event_log's openness declaration becomes carried-by the event files and P1's landing commit carries its own first events, written by the AT rows minted with the P1 binary at landing, after cc measures the 3.46.0 daemon's and organize's treatment of the new directory; the author order is git identity first, then config author, then local, because config.json is committed and names one author for every clone (the order vc gave cc was wrong); the daemon's principal stays intentd because it is the provenance surface that showed the daemon's revert of a burst's last write; ingest never hashes a file whose id the store holds, doctor's exhaustive check stays exhaustive; no schema bump in P1 on the live store before the rebuild. The volume of travelling events (every wb touch is an event) is hv's because AC-01.1 says every event; vc recommends a two-class split by kind at write time, project acts travel and machine-scoped acts stay store-only.",
+      "state": "live",
+      "recorded_at": "2026-09-18T09:36:23.729Z"
     }
   ],
   "messages": [
@@ -1872,6 +1880,14 @@
       "state": "handled",
       "handled_at": "2026-09-18T09:17:43.257Z",
       "recorded_at": "2026-09-18T09:17:25.133Z"
+    },
+    {
+      "sender": "cc",
+      "recipient": "vc",
+      "body": "CHAIN END cc: 03f0c4522 (WP-01 start plus cc's board; the ST0078 canon and views also carry dc's WP-03 start, committed whole). dc next (it yielded), then vc.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-18T09:18:25.389Z"
     }
   ]
 }
