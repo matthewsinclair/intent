@@ -2033,6 +2033,58 @@ impl StoreError {
       Self::Sqlite(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::DatabaseBusy
     )
   }
+
+  /// Is this FTS5 refusing the QUERY EXPRESSION, rather than the store being
+  /// unable to answer it?
+  ///
+  /// **ONE HOME FOR THE CLASSIFICATION, beside [`Self::is_busy`]** (issue 0436,
+  /// and now issue 0443): the caller is choosing which of two errors to raise
+  /// and would otherwise carry the pattern inline, where the next caller copies
+  /// it.
+  ///
+  /// **IT ANSWERS `false` FOR ANYTHING IT DOES NOT RECOGNISE, AND THAT IS THE
+  /// WHOLE DESIGN.** The two wrong answers are not symmetric. Calling a store
+  /// fault a bad query blames the reader's input for the store's state and
+  /// hands them a task that cannot succeed. Calling a bad query a store fault
+  /// says something is wrong and leaves FTS5's own message in the cause chain,
+  /// where it already prints. So this is an allowlist and drift lands on the
+  /// recoverable side.
+  ///
+  /// **IT MATCHES ON TEXT BECAUSE SQLite OFFERS NOTHING ELSE.** A malformed
+  /// expression and a missing table are both `SQLITE_ERROR`, so the code cannot
+  /// separate them. That couples this to the bundled SQLite, so the tests pin
+  /// it by DRIVING a malformed expression against the bundled library rather
+  /// than by asserting the string. **THE SET IS READ OUT OF THE fts5 REGION OF
+  /// THE AMALGAMATION, NOT TRANSCRIBED FROM PROSE**, and is byte-identical
+  /// between 3.46.0 and 3.53.2.
+  ///
+  /// **THREE STRINGS ARE OUT ON PURPOSE, AND EACH LOOKS LIKE IT BELONGS.**
+  /// `syntax error near "` UNPREFIXED is the core SQL parser's: operator SQL
+  /// reaches it on the `search_sql` door, and relaxing the prefix would call
+  /// every malformed statement an FTS5 expression fault. `no such cursor:` is a
+  /// cursor-lifecycle fault, not the reader's expression, and `BadQuery`
+  /// accuses the reader. `syntax error after column name` and `malformed MATCH
+  /// expression` are fts3/fts4's, which this store cannot emit.
+  ///
+  /// **AND `unterminated string` HAS TWO HOMES**, core and fts5, byte-identical.
+  /// Both are the reader's doing, so for choosing a remedy that is harmless;
+  /// it means this answer is not evidence that a fault came from the INDEX.
+  pub fn is_bad_fts5_expression(&self) -> bool {
+    let Self::Sqlite(rusqlite::Error::SqliteFailure(_, Some(msg))) = self else {
+      return false;
+    };
+    msg.starts_with("fts5: syntax error near ")
+      || msg == "fts5: parser stack overflow"
+      || msg.starts_with("unknown special query: ")
+      || msg == "unterminated string"
+      // Unreachable against this store's own tables -- `doc_sections` and
+      // `src_sections` both omit `detail=`, so both are `detail=full`, and they
+      // are the only fts5 tables there are. Carried for correctness, NOT
+      // counted as coverage.
+      || msg == "fts5: column queries are not supported (detail=none)"
+      || msg == "fts5: phrase queries are not supported (detail!=full)"
+      || msg == "fts5: NEAR queries are not supported (detail!=full)"
+  }
 }
 
 impl crate::remedy::Remedy for StoreError {

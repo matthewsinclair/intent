@@ -960,6 +960,20 @@ pub enum FacadeError {
     #[source]
     cause: StoreError,
   },
+  /// A store fault met while ANSWERING a search: the query is not at fault.
+  ///
+  /// **Lifted out of [`Self::BadQuery`] and [`Self::Store`] both** (issue
+  /// 0443). As `BadQuery` a malformed index or a busy database told the reader
+  /// their correct query was wrong and sent them after an unbalanced `(` that
+  /// was never there -- a task that cannot succeed, which every retry seems to
+  /// confirm. As `Store` it renders "could not update the runtime store", a
+  /// sentence about a WRITE, to a reader who asked a question.
+  #[error("the search `{query}` could not be answered")]
+  SearchUnanswerable {
+    query: String,
+    #[source]
+    cause: StoreError,
+  },
   #[error("no schema face named `{face}`")]
   NoSuchFace { face: String },
   #[error("no issue {number:04} in this project")]
@@ -2130,9 +2144,27 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WrongOffScopeState { verb, ac, .. } => {
         format!("run `intent ac {verb} <thread> {ac}` instead -- a descoped requirement still exists on another thread, and a withdrawn one does not exist at all")
       }
+      // `NEAR` is not in the list: `hello NEAR` is answered, not refused (driven
+      // on the pair and on a bare fts5 table, issue 0443), and naming it sent
+      // the reader after a fault that is not one.
       Self::BadQuery { .. } => {
-        "bare words and punctuation are searched literally, so this was refused as an FTS5 EXPRESSION -- check for an unbalanced `(` or `)`, or an `AND`/`OR`/`NOT`/`NEAR` with nothing on one side of it".to_string()
+        "bare words and punctuation are searched literally, so this was refused as an FTS5 EXPRESSION -- check for an unbalanced `(` or `)`, or an `AND`/`OR`/`NOT` with nothing on one side of it".to_string()
       }
+      // **IT NAMES ONLY WHAT WAS DRIVEN TO WORK.** Over an fts5 leaf page
+      // overwritten with random bytes, `intent index rebuild` cured the search
+      // and `intent index status` reported sizes at rc=0 without a word about
+      // the damage -- so pointing at status for the index's "health" would have
+      // been a remedy that cannot deliver, the defect this variant removes.
+      //
+      // **THE INDEX REMEDY ONLY WHERE THE INDEX IS THE SUSPECT.** A busy store
+      // is not a damaged one (issue 0436) and a schema mismatch is not fixed by
+      // a rebuild, so every cause the store already has a remedy for keeps it:
+      // a rebuild offered for a lock another process holds is a remedy that
+      // cannot work, which is the defect this variant exists to remove.
+      Self::SearchUnanswerable { cause, .. } => match cause {
+        StoreError::Sqlite(_) if !cause.is_busy() => "the query is not at fault -- the index could not be read to answer it. `intent index rebuild` rebuilds it from the tree, and the query will answer once it has".to_string(),
+        other => other.remedy(),
+      },
       // The alternatives are NAMED here rather than pointed at: the faces are
       // generated from the types and cost nothing to list, and a remedy that
       // says "run the command again differently" when it could say the answer
@@ -3841,13 +3873,20 @@ impl Facade {
       Ok(Vec::new())
     }
     .map_err(|cause| {
-      if matches!(cause, StoreError::Sqlite(_)) {
+      // **A STORE FAULT IS NOT A BAD QUERY** (issue 0443). This mapped every
+      // `StoreError::Sqlite` to `BadQuery`, so a malformed index, a busy
+      // database or an I/O fault each told the reader their correct query was
+      // wrong. Only an expression FTS5 itself refused is the reader's.
+      if cause.is_bad_fts5_expression() {
         FacadeError::BadQuery {
           query: query.to_string(),
           cause,
         }
       } else {
-        FacadeError::Store(cause)
+        FacadeError::SearchUnanswerable {
+          query: query.to_string(),
+          cause,
+        }
       }
     })?;
 
@@ -8886,6 +8925,24 @@ impl Facade {
     Ok(crate::index::Refreshed {
       updated: upserts.into_iter().map(|r| r.path).collect(),
       removed: change.removed,
+    })
+  }
+
+  /// Bring the whole index up to date IN ORDER TO ANSWER a search.
+  ///
+  /// **The same work as [`Self::index_refresh`] and a different error**, which
+  /// is the whole reason it exists (issue 0443). A reconcile that fails on a
+  /// read verb is not a failed update from the reader's side -- it is a search
+  /// that cannot be answered, and "could not update the runtime store" sends
+  /// them to look at a write they did not ask for. Every search door that
+  /// reconciles first calls this, so the sentence has one home.
+  pub fn index_refresh_for_search(&mut self, query: &str) -> Result<(), FacadeError> {
+    self.index_refresh(None).map(|_| ()).map_err(|e| match e {
+      FacadeError::Store(cause) => FacadeError::SearchUnanswerable {
+        query: query.to_string(),
+        cause,
+      },
+      other => other,
     })
   }
 

@@ -1059,6 +1059,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::OffScope { .. } => "OffScope",
     FacadeError::WrongOffScopeState { .. } => "WrongOffScopeState",
     FacadeError::BadQuery { .. } => "BadQuery",
+    FacadeError::SearchUnanswerable { .. } => "SearchUnanswerable",
     FacadeError::SqlMoreThanOneStatement => "SqlMoreThanOneStatement",
     FacadeError::SqlNoStatement => "SqlNoStatement",
     FacadeError::SqlUnterminated => "SqlUnterminated",
@@ -1192,6 +1193,7 @@ const ALL_VARIANTS: &[&str] = &[
   "OffScope",
   "WrongOffScopeState",
   "BadQuery",
+  "SearchUnanswerable",
   "NoSuchFace",
   "IllegalTransition",
   "ReasonRequired",
@@ -1372,6 +1374,10 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "ThreadExists",
   "IssueExists",
   "BadQuery", // FTS5 syntax -- `facade_search.rs` territory
+  // Issue 0443: a store fault met while ANSWERING a search. Needs the store
+  // broken underneath a live facade, which a bad call cannot do; provoked in
+  // `a_store_fault_is_not_a_bad_query.rs`.
+  "SearchUnanswerable",
   // Needs a projection that LIES -- a format claiming to round-trip and
   // dropping data. Only `export::project_with` can be handed one, and
   // `export_round_trip.rs` does exactly that; a call through the facade cannot

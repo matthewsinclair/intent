@@ -53,6 +53,8 @@ mod a_scheduled_backup_is_the_same_call;
 mod a_search_names_what_it_could_not_answer;
 #[path = "a_stale_store_does_not_overwrite_committed_canon.rs"]
 mod a_stale_store_does_not_overwrite_committed_canon;
+#[path = "a_store_fault_is_not_a_bad_query.rs"]
+mod a_store_fault_is_not_a_bad_query;
 #[path = "a_subkind_is_a_word_the_index_writes.rs"]
 mod a_subkind_is_a_word_the_index_writes;
 #[path = "a_sync_writes_no_render_the_store_has_moved_past.rs"]

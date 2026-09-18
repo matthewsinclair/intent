@@ -117,6 +117,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::OffScope { .. }
     | FacadeError::WrongOffScopeState { .. }
     | FacadeError::BadQuery { .. }
+    | FacadeError::SearchUnanswerable { .. }
     | FacadeError::NoSuchFace { .. }
     | FacadeError::IllegalTransition { .. }
     | FacadeError::DescopeTargetMissing { .. }

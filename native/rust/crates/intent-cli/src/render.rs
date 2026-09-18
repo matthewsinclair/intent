@@ -3701,7 +3701,7 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       // it would answer about a tree that has moved and say `complete: true`
       // beside the answer.
       if !m.get_flag("no-reconcile") {
-        f.index_refresh(None).map_err(fail)?;
+        f.index_refresh_for_search(&query).map_err(fail)?;
       }
       f.search_all(&query, &ask).map_err(fail)
     },
@@ -5722,8 +5722,8 @@ impl tui::run::Source for Live {
     // view. One call, both outputs, no second query to disagree with the first.
     if let intentsvcs::nav::View::Search { query } = view {
       // Issue 0372: the pane reconciles before it answers, as the CLI does.
-      let answer = match self.facade.index_refresh(None) {
-        Ok(_) => self
+      let answer = match self.facade.index_refresh_for_search(query) {
+        Ok(()) => self
           .facade
           .search_all(query, &intentsvcs::search::SearchQuery::default()),
         Err(why) => Err(why),

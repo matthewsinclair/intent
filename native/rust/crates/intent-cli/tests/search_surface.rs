@@ -341,6 +341,12 @@ fn a_malformed_query_is_refused_with_its_cause_and_a_remedy() {
   assert_eq!(out.status.code(), Some(1));
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert!(stderr.starts_with("error: "), "v2's voice: {stderr}");
+  // Issue 0443: a malformed expression is still the READER's, not a search
+  // that could not be answered -- the over-correction on the far side of that fix.
+  assert!(
+    stderr.contains("the search query `(foo` was refused"),
+    "{stderr}"
+  );
   assert!(
     stderr.contains("caused by: "),
     "the real complaint survives rather than being replaced by a guess: {stderr}"
