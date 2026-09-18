@@ -12,13 +12,13 @@ The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplig
 
 `hv` is **Workstream Zero** -- the always-present human node.
 
-| Node | Name                   | Scope (Intent)                                                                                                                      |
-| ---- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `hv` | Hypervisor (the human) | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing |
-| `cc` | Control Claude         | the engine: `native/rust/crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution               |
-| `vc` | Validation Claude      | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
-| `ic` | Interface Claude       | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
-| `dc` | DevX Claude            | dev-x and build environment, so that `cc` concentrates on functionality for the CLI / daemon (hv's words, 2026-08-15)               |
+| Node | Name              | Scope (Intent)                                                                                                                      |
+| ---- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `hv` | Hypervisor        | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing |
+| `cc` | Control Claude    | the engine: `native/rust/crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution               |
+| `vc` | Validation Claude | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
+| `ic` | Interface Claude  | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
+| `dc` | DevX Claude       | dev-x and build environment, so that `cc` concentrates on functionality for the CLI / daemon (hv's words, 2026-08-15)               |
 
 **THE hv INBOX'S READER IS `vc`, AND NAMING ONE IS NOW REQUIRED BY THE PROTOCOL RATHER THAN OPTIONAL HERE.** hv's own statement of it, 2026-08-19: _the workstreams can write in the hv channel FOR me, but I need that stuff surfaced TO me by vc._ So `hv/inbox.<node>.md` stays the durable write surface every node uses, and **`vc` is obliged to monitor it and surface its contents to hv in the live channel.** A node's escalation is not delivered when the write returns; it is delivered when vc has surfaced it.
 
@@ -28,7 +28,7 @@ This was added because the obligation did not exist in writing and its absence c
 
 `dc` was added by hv on 2026-08-15 and its scope line above is **hv's own framing, quoted rather than elaborated**, because the boundary between `dc` and `cc` is not yet ruled. vc's proposal, offered to hv and NOT adopted here: `dc` owns the environment the code builds and ships in (`native/` layout and workspace files, `.github/workflows/`, `.gitignore`, `bin/` (now only the devbin: `bin/int`, `bin/devbin`, `bin/.devbin/`), hooks and pre-commit gate wiring, toolchain pinning, release mechanics); `cc` owns the code (`native/rust/crates/**`); and a disputed file is settled by asking whether changing it changes what the tool DOES or only how it gets built.
 
-**This file has no single writer, which is why it goes stale.** It described `cc`'s lane as `crates/` for the whole of the `native/` reorganisation and nobody owned correcting it. Two candidate fixes, both open: give it a writer, or generate the roster rows from each node's own `wip.md` header so it cannot disagree with the boards it describes (cc's suggestion; the D30 direction, and probably free out of WP-14).
+**This file has no single writer, which is why its rows can lag.** It described `cc`'s lane as `crates/` for the whole of the `native/` reorganisation and nobody owned correcting it. The roster of record is the store: `intent wb register <moniker> --name <display> --role <role>` declares a node and `intent wb status` reads the roster back, so a row here that disagrees with `intent wb status` is this file's defect. What only this file carries is the scope column and the provenance.
 
 ## Layout + single-writer rule
 
@@ -36,13 +36,14 @@ This was added because the obligation did not exist in writing and its absence c
 intent/whiteboard/
   README.md                 # this file -- protocol pointer + roster
   <node>/
-    wip.md                  # the node's live board (single-writer = the node)
-    inbox.<sender>.md       # messages FROM <sender> (single-writer = the sender)
-    .history/YYYYMMDD/      # the node's archived DONE work + handled inbox entries
+    board.json              # the node's row, rendered from the store
+    wip.md                  # the node's board, rendered from the store (single-writer = the node, through `intent wb`)
+    inbox.<sender>.md       # messages FROM <sender>, rendered (single-writer = the sender)
+    .history/YYYYMMDD/      # the hand-authored era's archives; nothing writes here now
 ```
 
-- `<node>/wip.md` -- written only by `<node>`.
-- `<node>/inbox.<sender>.md` -- appended only by `<sender>`; read and cleansed only by `<node>` (the owner).
+- `<node>/wip.md` -- changed only by `<node>` acting through `intent wb --node <node>`; a hand edit is skew and `intent doctor` reports it.
+- `<node>/inbox.<sender>.md` -- appended only by `<sender>` through `intent wb ask` or `announce`; read and cleared only by `<node>` (the owner), with `intent wb clear`.
 
 ## The board's header block is NOT YAML
 
@@ -54,4 +55,4 @@ The `---` block at the top of a `wip.md` looks like YAML frontmatter and is not.
 
 Escaping a quote to be "valid YAML" puts a literal backslash in your board. The whiteboard header guard (`lib/templates/hooks/whiteboard-header-guard.sh`) refuses the escape forms at commit time and says nothing about YAML validity, because validity is not the contract. Full rationale in the `/in-whiteboard` skill.
 
-See the `/in-whiteboard` skill for the invariants (heartbeat reclaim, announce-before-shared-edit, archive-your-own-dir-only) and the per-subcommand procedures.
+See the `/in-whiteboard` skill for the invariants (heartbeat reclaim, announce-before-shared-edit, archive your own items only) and the per-subcommand procedures.

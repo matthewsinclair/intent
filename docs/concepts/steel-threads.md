@@ -39,13 +39,15 @@ Six states, and the transitions between them are the only way to move.
 
 ```
   (none) --> triage --> not-started --> wip --> completed
-                |            |           |
-                |            +--> hold <-+
-                |            |           |
-                +------------+-> cancelled
+                |            |           |  ^       |
+                |            +--> hold <-+  +-------+  (reopen, with a reason)
+                |            |     |     |
+                +------------+-----+-----+-> cancelled --> not-started  (reinstate, with a reason)
 ```
 
-**Every transition out of the happy path records a reason.** `st hold`, `st cancel`, `st reopen` and `st reinstate` all require one, as do `wp cancel` and `wp reinstate` — because a thread that stopped, restarted, or came back from cancelled is exactly the case where a future reader most needs to know why, and it is exactly the case where nobody remembers.
+`st start` takes a thread from `triage` straight to `wip` as well as from `not-started`; `st hold` enters `hold` from `not-started` or `wip` and `st resume` leaves it to `wip`; `st cancel` is legal from `triage`, `not-started`, `wip` and `hold`.
+
+**Every transition out of the happy path records a reason.** `st hold`, `st cancel`, `st reopen` and `st reinstate` all require one, as do `wp cancel`, `wp reopen` and `wp reinstate` — because a thread that stopped, restarted, or came back from cancelled is exactly the case where a future reader most needs to know why, and it is exactly the case where nobody remembers.
 
 **`st done` is guarded by `ac gate`.** A thread cannot be completed while a criterion in scope is unsatisfied. This is the single most important constraint in the model: **there is no way to make a thread look done that does not involve making it done.**
 

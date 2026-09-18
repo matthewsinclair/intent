@@ -19,18 +19,21 @@ You need a repository to work in. Intent does not create one:
 `intent init` prints what it wrote. That list is the tree, so there is one statement of it rather than two that have to agree:
 
 ```
-  intent/.config/config.json     project metadata, the declared languages
-  intent/.intentfiles            which threads are realised on disk
-  intent/wip.md                  current work in progress
-  intent/llm/                    ARCHITECTURE.md, RULES.md
+  .gitignore                     ignores the store and the backups
+  .prettierignore                keeps the formatter off generated views
   AGENTS.md                      the agent contract, generated from project state
   CLAUDE.md                      the Claude-specific overlay
-  .prettierignore                keeps the formatter off generated views
+  intent/.canon/events/...json   the record of this act, one file per project act
+  intent/.intentfiles            which threads are realised on disk
+  intent/llm/                    ARCHITECTURE.md, RULES.md
+  intent/st/steel_threads.md     the thread register, generated and empty for now
+  intent/todo.md                 the flat DOING / TODO / DONE view, generated
+  intent/wip.md                  current work in progress
 ```
 
-**Nothing else is there yet, and the directory you will most expect is not among them.** `intent/st/` arrives with your first thread in §2, so a tree showing it here would be describing a project one step older than the one you have.
+**`intent/st/` is there, holding only the empty register.** A thread's own directory, `intent/st/ST0001/`, arrives with your first thread in §2, so a tree showing one here would be describing a project one step older than the one you have.
 
-**One file is created and not listed: the store, `intent/.cache/intent.db`.** It is this machine's state and never belongs in history, but `intent init` does not write a `.gitignore` for it, so a `git add .` stages it. Add `intent/.cache/` to your `.gitignore` before your first commit.
+**Two files are created and not listed.** `intent/.config/config.json` holds the project's metadata and declared languages. The store, `intent/.cache/intent.db`, is this machine's state and never belongs in history, and the `.gitignore` above keeps it and `intent/.backup/` out of git, so a `git add .` is safe.
 
 `intent init` also tells you if no author is recorded for this machine; `intent bootstrap` records one once, or set it in `intent/.config/config.json`.
 
@@ -39,6 +42,8 @@ Then declare which languages the project is in:
 ```
   $ intent lang init rust
   declared: rust
+
+  Summary: 1 language(s) declared; 0 error(s).
 ```
 
 **It is a declaration, not a detection** — Intent will not guess from the files present, because file presence is unreliable evidence and a wrong guess loads the wrong rules. `lang init` takes more than one language and is idempotent, so you can add to it later.
@@ -85,7 +90,9 @@ Work packages are the units that get done. A thread with one work package is fin
   $ intent wp start ST0001/01
 ```
 
-`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled` (the listing prints them as `Not Started`, `WIP`, `Done` and `Cancelled`), and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` is legal only from `done`** — the machine has no terminal states, so there is always a route, but it goes through the states rather than around them.
+`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled` (the listing prints them as `Not Started`, `WIP`, `Done` and `Cancelled`), and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` is legal only from `done`** — the machine has no terminal states, so there is always a route, but it goes through the states rather than around them — and it, `wp cancel` and `wp reinstate` all require `--reason`.
+
+A work package has an objective of its own, and `wp new` leaves it unwritten: `intent set intent:///threads/ST0001/wp/01 objective "..."` writes it, and `wp done` warns when it closes a package whose objective still says nothing.
 
 ## 4. State the acceptance criteria
 
@@ -132,7 +139,7 @@ A test starts at `to-write`. When it exists and fails it is `red`; when it passe
   $ intent at green ST0001 AT-01.2 --note "passes across a restart"
 ```
 
-**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. See [Criteria and tests](concepts/criteria-and-tests.md).
+**Go through `red` first, and the tool holds you to it: `at green` is refused from `to-write`.** A test that went straight from `to-write` to `green` would never have been observed failing, so nothing would have demonstrated it can fail — which is the difference between a test and a decoration. See [Criteria and tests](concepts/criteria-and-tests.md).
 
 **Not everything is testable by a test, and Intent does not pretend otherwise.** `AC-02.1` was created `non-test` in §4. Its acceptance test cites what was read rather than a file, and **the criterion is then satisfied by naming the evidence**:
 
@@ -178,7 +185,9 @@ Finish or cancel the work packages, then close the thread:
   $ intent st done ST0001
 ```
 
-`st done` runs the gate first and refuses a thread that would not pass it. **The gate is over criteria, not work packages:** a work package left open does not stop the close, so closing them first is your discipline. `st done` is legal only from `WIP`, which is why §2 started the thread.
+`st done` runs the gate first and refuses a thread that would not pass it, and it refuses while a work package is still `not-started` or `wip`, naming each one: finish them with `wp done` or drop them with `wp cancel --reason`, then close the thread. `st done` is legal only from `WIP`, which is why §2 started the thread.
+
+Closing a thread unlists it from `intent/.intentfiles`, and `st done` says so: its realised files leave the disk at the next `intent organize --apply`, `intent st hydrate ST0001` writes them back, and `st done --keep` closes without unlisting. The thread itself is in the store and the canon either way.
 
 ## Where to go next
 

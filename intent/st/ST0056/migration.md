@@ -6,7 +6,7 @@ The migrator is the v3 binary's `intent upgrade` detecting a v2 project. Its par
 
 All three are checked only while the project is still unmigrated; a re-run over a project that already declares v3 is the convergent re-run and skips them (`facade.rs`, `Facade::upgrade`). Each refusal exits 1.
 
-1. **Floor: `intent_version >= 2.19.0`** in config.json (`MIGRATION_FLOOR`, `project.rs:1126`). Below the floor the refusal names the declared version and its remedy reads _bring it to that version with Intent v2.19.0 first (the v2.19.0 release, then its `intent upgrade`), then migrate it with v3_. No tap provides an `intent@2` formula, so the remedy points at the v2.19.0 release instead (issue 0333). The v2 ledger is never reimplemented in Rust (D09).
+1. **Floor: `intent_version >= 2.19.0`** in config.json (`MIGRATION_FLOOR` in `project.rs`). Below the floor the refusal names the declared version and its remedy reads _bring it to that version with Intent v2.19.0 first (the v2.19.0 release, then its `intent upgrade`), then migrate it with v3_. No tap provides an `intent@2` formula, so the remedy points at the v2.19.0 release instead (issue 0333). The v2 ledger is never reimplemented in Rust (D09).
 2. **Clean git tree.** The migrator does not commit; it refuses to start over dirt, naming each uncommitted path, so that the operator's commit of its output holds the migration and nothing else (the `bin/release` lesson: a half-done abort over a dirty tree is worse than an early refusal).
 3. **A git repository.** A project with no work tree is refused with the reason (rollback is git; migrating without an undo is a lossy operation by construction).
 
@@ -17,10 +17,10 @@ All three are checked only while the project is still unmigrated; a re-run over 
 **Phase B -- convert (only from a clean Phase A).** `migrate::plan` builds the whole write set and writes nothing; the facade then commits the files and runs the remaining steps, and a failure at any later step rolls the files back.
 
 1. Emit structured canon: `intent/.canon/st/<ID>.json` per thread (metadata, WPs, full acceptance contract, and every carried attachment) and `intent/.canon/issues/<NNNN>.json` per issue, with the issue body carried inside the JSON.
-2. Regenerate the views of every thread `.intentfiles` realises (its `info.md`, `acceptance.md` and WP `info.md` covers), plus `steel_threads.md` and `todo.md`. When `.intentfiles` is absent the default declaration -- every WIP thread -- decides.
+2. Regenerate the views of every thread `.intentfiles` realises (its `info.md`, `acceptance.md` and WP `info.md` covers), plus `steel_threads.md` and `todo.md`. When `.intentfiles` is absent the default declaration decides: every open thread, where open is any status that is not closed, so WIP, Triage, Not Started and On Hold alike (`intentfiles::default_declaration`).
 3. Prose carried verbatim into canon -- authored sections into the modelled fields, other files as attachments -- byte-conserved, never reflowed.
 4. Build the DB from the emitted canon (first ingest), recording the canon files' bytes.
-5. Converge the project files: `.gitignore` gains `intent/.cache/`, `intent/events.jsonl` and `intent/.backup/` where absent; `.prettierignore` gains the generated views; `.intentfiles` is written with the default declaration if absent.
+5. Converge the project files: `.gitignore` gains `intent/.cache/` and `intent/.backup/` where absent (`intent/events.jsonl` left that table with ST0078 P1, the log travelling as one committed file per event under `intent/.canon/events/`, and an upgrade removes the empty untracked `intent/events.jsonl` an earlier 3.0.x upgrade wrote, issue 0459); `.prettierignore` gains the generated views; `.intentfiles` is written with the default declaration if absent.
 6. Stamp config LAST: `intent_version` set to the running binary's version, and a `project_id` UUID minted only if absent (D15). Stamping last keeps a half-finished migration reporting itself as unmigrated.
 7. **No commit.** The run ends `ok: this project is now Intent v<version> -- commit the canon and the generated views`, and the operator makes the one commit.
 
@@ -105,7 +105,7 @@ The forcing fact: the sweep program is dead. Lamplight's hv ruled AT remediation
 - **LIVE threads keep BLOCKED-until-clean.** Residue in a live thread is fixed under v2 tooling, then re-run.
 - **Neither class ever gets a lossy path.**
 
-**Model consequence:** carrying needs an explicit marked-legacy form on the AT row -- the raw v2 reference preserved verbatim beside the parsed fields, never reformatted. Built as `AcceptanceTest.legacy: Option<Legacy>` (`model.rs:1732`, the `Legacy` type at `:1746`), published in `schema/thread.schema.json`.
+**Model consequence:** carrying needs an explicit marked-legacy form on the AT row -- the raw v2 reference preserved verbatim beside the parsed fields, never reformatted. Built as `AcceptanceTest.legacy: Option<Legacy>` (the `Legacy` type beside it in `model.rs`), published in `schema/thread.schema.json`.
 
 ## What the migrator does not do
 

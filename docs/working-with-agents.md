@@ -28,7 +28,7 @@ Three files make up the contract, and the split is deliberate:
 | `CLAUDE.md`      | A Claude Code overlay, adding what is Claude-specific  | `intent init`, then `intent claude upgrade --apply`, keeping what you write between its `user` markers |
 | `usage-rules.md` | Terse DO / NEVER rules, an Elixir-community convention | Seeded by `intent claude upgrade --apply` when absent, then yours                                      |
 
-`intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml` and the pre-commit gate, and wires Claude Code session hooks into `.claude/settings.json` unless you pass `--skip-settings`. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
+`intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml`, the pre-commit gate and the three post-pull hooks (`post-merge`, `post-checkout`, `post-rewrite`, which run `intent sync --apply` for you), and it wires the Claude Code harness, session hooks in `.claude/settings.json` and the MCP server in `.mcp.json`, unless you pass `--skip-settings`, which leaves both alone. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
 
 **One index is stated twice, on purpose.** `CLAUDE.md` and `AGENTS.md` both carry the short index of the four agnostic rules, because `AGENTS.md` is not a file Claude Code reads. The rule bodies have one home, the rule library, and the two indexes are held identical by a test rather than by care.
 
@@ -85,7 +85,7 @@ Inside Claude Code the same critics are subagents:
 
 `intent claude upgrade --apply` installs a pre-commit gate. It runs the critics for your declared languages over the staged files, and four guards, each only where its subject exists: a whiteboard timestamp that did not come from a clock, a whiteboard header written as escaped YAML, an ignore rule that would hide `intent/.canon/`, and lines removed from an append-only path.
 
-**They are backstops on specific failures, not a review.** Passing them means you did not do one of a short list of known-bad things. The guard bodies are read from the installed tool at commit time, so a fixed guard reaches your project on the next `intent upgrade` without reinstalling the hook.
+**They are backstops on specific failures, not a review.** Passing them means you did not do one of a short list of known-bad things. The guard bodies are read from the installed tool at commit time, through the install pointer `intent bootstrap` records, so a fixed guard reaches your project as soon as the Intent on this machine carries it, without reinstalling the hook.
 
 **Deeper:** [`intent/docs/pre-commit-hook.md`](../intent/docs/pre-commit-hook.md).
 

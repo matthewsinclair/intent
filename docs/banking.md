@@ -49,7 +49,7 @@ git cat-file -p refs/bank/<node>/<topic>/<name> | git apply
 Each of these was tried and each lost work or nearly did.
 
 - **A temporary directory.** The host rebooted on 2026-09-15 and `/private/tmp` went with it, taking every scratch directory, every worktree kept in one, and a judged, unlanded patch that then had to be regenerated from a transcript.
-- **A worktree commit.** The pre-commit gate refuses a commit made in a worktree as `GATE ABSENT`, because the gate's shim is installer canon that is not in the tree, and copying the shim in then meets the doctor gate on views the commit does not carry. Nobody bypasses the gate.
+- **A worktree commit.** In Intent's own repository the pre-commit hook lives in the tracked `.githooks/` and its shim `pre-commit.intent` is ignored, so a worktree's checkout has the hook and not the gate, and the hook refuses the commit as `GATE ABSENT` rather than committing unguarded; copying the shim in then meets the doctor gate on views the commit does not carry. Nobody bypasses the gate.
 - **`git stash`.** A worktree's stash is the whole repository's stash, shared with every session and holding entries months old. It also refuses a tree with intent-to-add entries, and the `pop` that follows a refused `stash` then reaches for somebody else's entry (2026-09-17).
 - **The shared index.** `git add` publishes to a surface every peer's commit gate reads, so parked work in the index froze every node's commits at once (2026-08-22).
 
@@ -58,7 +58,7 @@ Each of these was tried and each lost work or nearly did.
 A bank is judged, by a whole-suite run in a private worktree and by a read of the diff, at one `git patch-id --stable`. The commit that lands must give the same id, read back from the applied tree before the commit is made.
 
 - **A gate refusal is re-banked and re-judged before any commit, formatting included.** On 2026-09-17 two lines were recomposed at the gate and the landed id differed from the judged one; on 2026-09-18 a `rustfmt` refusal changed the id and the landing went in before the new id was judged. In both cases the difference had to be proved harmless afterwards, per file, which is the expensive direction. Fix it in the worktree, bank again, hand over the new id.
-- **Format-check with the gate's edition before banking.** The gate runs `rustfmt --edition 2024 --check`; the 2021 edition disagrees with it on import order, so a 2021 check passes files the gate refuses.
+- **Format-check with the gate's edition before banking.** Intent's own gate runs `rustfmt --edition 2024 --check`; the 2021 edition disagrees with it on import order, so a 2021 check passes files the gate refuses.
 - **When main moves after the run, the run stands for the bank only if the move is invisible to it.** Bank the diff against the new base and read the bank's path list: it must be exactly the change's own paths. A path main moved that also appears in the bank means landing it would undo main's change in that file, so apply the bank three-way onto the new base and run again. Applying the bank onto the new base and matching the tree hash proves only that the blob applies; the path list is the check that carries the claim.
 
 ## The rules around it

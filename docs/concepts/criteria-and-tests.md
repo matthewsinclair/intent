@@ -68,16 +68,15 @@ A criterion with nothing behind it is a promise. An acceptance test is what make
   $ intent at new ST0001 AT-01.1 --covers AC-01.1 --file tests/cache_eviction.rs
 ```
 
-| Status     | Meaning                     |
-| ---------- | --------------------------- |
-| `to-write` | Named, does not exist yet   |
-| `red`      | Exists and fails            |
-| `green`    | Exists and passes           |
-| `n/a`      | Deliberately not applicable |
+| Status     | Meaning                                                          |
+| ---------- | ---------------------------------------------------------------- |
+| `to-write` | Named, does not exist yet (a test row's entry state)             |
+| `red`      | Exists and fails (test rows)                                     |
+| `green`    | Exists and passes (test rows)                                    |
+| `n/a`      | The non-test row's verdict: the document, review or read is done |
+| `fiat`     | Closed unmet by a named human decision, from `to-write` or `red` |
 
-**Take a test through `red` before `green`, and know that the tool does not make you.** A test that goes straight from `to-write` to `green` has never been observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration.
-
-**v2 enforced this and v3 does not.** `at green` accepts any status from any status, and the guard is recorded as owed rather than dropped. It is a discipline you keep, not one you are held to.
+**Take a test through `red` before `green`, and the tool holds you to it.** `at green` is declared only from `red` and refuses a row that is still `to-write`; `at red` is accepted from any status, so a test that stops passing goes back to `red` and earns `green` again. A test that went straight from `to-write` to `green` would never have been observed failing, so nothing would have demonstrated it can fail — which is the difference between a test and a decoration.
 
 **`to-write` is a state you can leave and cannot return to.** The status verbs are `at green`, `at red` and `at na`, and none of them spells `to-write` — a test enters there when `at new` creates it, and no command walks it back. That is recorded rather than fixed: inventing a verb so the diagram looks symmetrical is how a surface grows commands nobody asked for.
 

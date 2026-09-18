@@ -71,9 +71,11 @@ intent bootstrap; echo "bootstrap rc=$?"
 P=$(mktemp -d /tmp/intent-clean.XXXX); cd "$P" && git init -q
 intent init clean-check; echo "init rc=$?"
 intent st new "Clean machine check"; echo "st new rc=$?"
-intent st list
+intent st list --status all
 intent doctor; echo "doctor rc=$?"
 ```
+
+Expected: every rc 0. `bootstrap` prints `created: install root recorded -- /opt/homebrew/Cellar/intent/<version>/libexec` and ends `done: this machine is set up` (a machine that has run it before prints `ok: install root already recorded -- ...` instead); `init` prints `created: clean-check at <dir>` and the files it wrote; `st new` prints `created: ST0001`; `st list --status all` lists ST0001 `Clean machine check` as `Triage`, which is where a new thread starts (a bare `st list` shows WIP threads only and would report no match); `doctor` reports `0 finding(s)`.
 
 ### 5. The daemon lifecycle (AC-00.5)
 
@@ -91,7 +93,7 @@ intent daemon status; echo "status rc=$?"
 pgrep -lf intentd; echo "pgrep rc=$?"
 ```
 
-Expected: not running, then running with an address, the daemon answers `st list`, restart comes back running, the logs show the start and the restart with no error, panic or fatal line (grep rc 1), and after stop nothing is running (pgrep rc 1).
+Expected: `ok: no intentd is answering; commands run in-process`, then `ok: intentd is answering at <endpoint>`, the daemon answers `st list`, restart comes back answering, the logs (after their `tailing ...` header line) show the start and the restart with no error, panic or fatal line (grep rc 1), and after stop the status line reads not answering and nothing is running (pgrep rc 1).
 
 ### 6. Hand back
 

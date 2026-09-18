@@ -2,7 +2,7 @@
 
 **Each person has their own store and the repository carries the canon.** Everything on this page follows from that: what you commit, what a reviewer reads, what happens to your store when you pull, and what to do when two people minted the same id.
 
-Every command below was driven, in the order this page shows it, against two clones of one bare origin with no daemon running. The script and its log are in Intent's own repository, attached to the steel thread that built this page: `intent/st/ST0078/working-in-a-team-drive.sh` and `intent/st/ST0078/working-in-a-team-drive.log`.
+Every command below was driven, in the order this page shows it, against two clones of one bare origin with no daemon running. The script and its log are attached to the steel thread that built this page, ST0078, in Intent's own repository; the thread is closed, so `intent st hydrate ST0078` writes them to `intent/st/ST0078/working-in-a-team-drive.sh` and `intent/st/ST0078/working-in-a-team-drive.log`.
 
 ## What travels and what does not
 
