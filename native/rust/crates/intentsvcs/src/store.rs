@@ -679,10 +679,12 @@ CREATE TABLE IF NOT EXISTS ingests (
   started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
--- openness: ON DEMAND events.jsonl -- produced by `intent export`, not projected
--- into the working tree. The tracked extract was deleted: it was the sole carrier of
--- history across a clone, and git already is that carrier for everything the canon
--- describes. The file form itself is unchanged and still lossless.
+-- openness: carried by intent/.canon/events/<YYYY>/<MM>/<DD>/<ULID>.json -- one
+-- committed file per event, written in the same write set as the act it records,
+-- named by its id and never rewritten. Acts that describe one machine only, such
+-- as heartbeats and restores, stay in this table. Ingest adds every file whose id
+-- this table does not hold and deletes nothing. `intent export`
+-- still produces the single-file form, events.jsonl, on demand.
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
   ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -2383,11 +2385,41 @@ impl Held<'_> {
     upsert_file_entries(&self.tx, entries)
   }
 
+  /// Take the committed event files the log does not hold, under the held
+  /// lock -- the write [`Store::ingest_events`] makes in a transaction of its
+  /// own (ST0078 P1).
+  pub fn ingest_events(&self, events: &[Envelope]) -> Result<Vec<String>, StoreError> {
+    insert_absent_events(&self.tx, events)
+  }
+
   /// Commit what was recorded and let the next writer in.
   pub fn release(self) -> Result<(), StoreError> {
     self.tx.commit()?;
     Ok(())
   }
+}
+
+/// Insert each envelope whose id the log does not hold, through
+/// [`Store::write_event`] with the envelope's own stamp, and return the ids
+/// inserted. An id the log holds is skipped, never compared: the row is the
+/// record this machine holds.
+fn insert_absent_events(
+  conn: &rusqlite::Connection,
+  events: &[Envelope],
+) -> Result<Vec<String>, StoreError> {
+  let mut taken = Vec::new();
+  for e in events {
+    let held: bool = conn.query_row(
+      "SELECT EXISTS (SELECT 1 FROM event_log WHERE id = ?1)",
+      params![e.id],
+      |row| row.get(0),
+    )?;
+    if !held {
+      Store::write_event(conn, e, Stamp::CarriedFromTheExtract)?;
+      taken.push(e.id.clone());
+    }
+  }
+  Ok(taken)
 }
 
 fn upsert_file_entries(
@@ -2441,6 +2473,18 @@ pub struct Store {
   ingest_depth: u32,
   /// The row the outermost open load is recording into.
   ingest_attempt: Option<i64>,
+  /// Every event this store has written and COMMITTED since the last
+  /// [`Store::take_landed_events`], carrying the stamp the database gave it.
+  ///
+  /// **THE ONE PLACE THE FACADE LEARNS WHICH EVENTS NEED A FILE** (ST0078 P1).
+  /// `write_event` is the only place an envelope becomes a row, and it is
+  /// reached from four doors -- a mutation, a whiteboard write, a disk act and
+  /// `init` -- so collecting here means a door added later is covered without
+  /// remembering to be. An envelope is pushed only once its transaction has
+  /// committed, because a file for an event the store rolled back would be a
+  /// record of something that did not happen. `RefCell` because
+  /// [`Store::append_event`] writes through `&self`.
+  landed_events: std::cell::RefCell<Vec<Envelope>>,
 }
 
 /// Everything ONE mutation changes, written in ONE transaction.
@@ -3440,6 +3484,7 @@ impl Store {
       path: at.map(std::path::Path::to_path_buf),
       ingest_depth: 0,
       ingest_attempt: None,
+      landed_events: std::cell::RefCell::default(),
     })
   }
 
@@ -3923,11 +3968,13 @@ impl Store {
     // `event_log` carries no foreign key to `threads`, so an event may precede
     // the row it names.
     let mut event_ts = String::new();
+    let mut written = Vec::with_capacity(change.envelopes.len());
     for (i, envelope) in change.envelopes.iter().enumerate() {
-      let ts = Self::write_event(&tx, envelope, Stamp::ByTheDatabase)?;
+      let landed = Self::write_landed(&tx, envelope, Stamp::ByTheDatabase)?;
       if i == 0 {
-        event_ts = ts;
+        event_ts = landed.ts.clone();
       }
+      written.push(landed);
     }
     let mut dates = StoredDates::default();
     for t in change.threads {
@@ -3989,6 +4036,7 @@ impl Store {
       )?;
     }
     tx.commit()?;
+    self.landed_events.borrow_mut().extend(written);
     Ok(StoredDates { event_ts, ..dates })
   }
 
@@ -4968,7 +5016,50 @@ impl Store {
   /// the stamp it assigned is returned, because the caller has no other way to
   /// learn it and must never compute it.
   pub fn append_event(&self, e: &Envelope) -> Result<String, StoreError> {
-    Self::write_event(&self.conn, e, Stamp::ByTheDatabase)
+    let landed = Self::write_landed(&self.conn, e, Stamp::ByTheDatabase)?;
+    let ts = landed.ts.clone();
+    self.landed_events.borrow_mut().push(landed);
+    Ok(ts)
+  }
+
+  /// The events written since the last call, oldest first, each carrying the
+  /// stamp the database gave it -- and the list is emptied, so each event is
+  /// handed out once. The `landed_events` field says why this lives on the
+  /// store.
+  pub fn take_landed_events(&self) -> Vec<Envelope> {
+    self.landed_events.take()
+  }
+
+  /// Insert every committed event file's envelope whose id the log does not
+  /// hold, and skip the rest (ST0078 P1). Returns the ids it inserted, in the
+  /// order given.
+  ///
+  /// **ADDITIVE, AND THAT IS THE WHOLE CONTRACT.** A file whose id is already a
+  /// row changes nothing, even if its bytes differ -- an event is written once,
+  /// and the row is the record this machine holds. And nothing is DELETED
+  /// because its file is absent: a local act that was never committed is still
+  /// a fact. The stamp is the file's own (`Stamp::CarriedFromTheExtract`),
+  /// because re-stamping would rewrite when it happened to the moment of the
+  /// pull. One transaction, so a pull's events land together. The ingest pass
+  /// that already holds the writer lock takes them through
+  /// [`Held::ingest_events`] instead; both are `insert_absent_events`.
+  pub fn ingest_events(&mut self, events: &[Envelope]) -> Result<Vec<String>, StoreError> {
+    let tx = Self::write_tx(&mut self.conn)?;
+    let taken = insert_absent_events(&tx, events)?;
+    tx.commit()?;
+    Ok(taken)
+  }
+
+  /// Every event id the log holds, for doctor's store-stale reading of the
+  /// committed event files.
+  pub fn event_ids(&self) -> Result<std::collections::HashSet<String>, StoreError> {
+    let mut stmt = self.conn.prepare("SELECT id FROM event_log")?;
+    let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+    let mut out = std::collections::HashSet::new();
+    for row in rows {
+      out.insert(row?);
+    }
+    Ok(out)
   }
 
   /// Take an envelope back from the committed extract, carrying the time it
@@ -4982,6 +5073,19 @@ impl Store {
   /// happened today.
   pub fn restore_event(&self, e: &Envelope) -> Result<String, StoreError> {
     Self::write_event(&self.conn, e, Stamp::CarriedFromTheExtract)
+  }
+
+  /// [`Store::write_event`], handing back the envelope as the database wrote
+  /// it: the same record, carrying the stamp the INSERT returned. The stamp is
+  /// read here and never passed in, so no signature accepts a time (D42); this
+  /// is what the committed event file of a landed act is written from.
+  fn write_landed(
+    conn: &rusqlite::Connection,
+    e: &Envelope,
+    stamp: Stamp,
+  ) -> Result<Envelope, StoreError> {
+    let ts = Self::write_event(conn, e, stamp)?;
+    Ok(Envelope { ts, ..e.clone() })
   }
 
   /// THE ONLY PLACE AN ENVELOPE BECOMES A ROW. Takes anything that derefs to a
@@ -5351,8 +5455,9 @@ impl Store {
     };
     let out = write(&mut w)?;
     if w.moved > 0 {
-      Self::write_event(&w.tx, event, Stamp::ByTheDatabase)?;
+      let landed = Self::write_landed(&w.tx, event, Stamp::ByTheDatabase)?;
       w.tx.commit()?;
+      self.landed_events.borrow_mut().push(landed);
     }
     Ok(out)
   }

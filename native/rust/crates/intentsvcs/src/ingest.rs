@@ -21,6 +21,7 @@ use std::sync::OnceLock;
 
 use serde::de::DeserializeOwned;
 
+use crate::event::{Envelope, EventFileError};
 use crate::finding::{Finding, FindingClass, Refusal};
 use crate::model::{ISSUE_SCHEMA, Issue, PROJECT_SCHEMA, ProjectState, THREAD_SCHEMA, Thread};
 use crate::project::Project;
@@ -458,6 +459,7 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
     swap_board_sections(project, &mut canon.sections, &stored);
     store.replace_doc_sections(&canon.sections)?;
     carry_project_state(project, store)?;
+    take_event_files(project, store)?;
     record_canon_files(
       project,
       store,
@@ -465,6 +467,133 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
     )?;
     Ok(canon)
   })
+}
+
+/// One committed event file: where it is, and what reading it gave.
+pub type EventFileRead = (PathBuf, Result<Envelope, EventFileError>);
+
+/// Every committed event file under `.canon/events/`, each read and checked
+/// against its name (ST0078 P1), in path order -- which is date, then id.
+///
+/// **A FILE THAT DOES NOT READ IS RETURNED, NOT DROPPED**, so doctor reports it
+/// by path. An absent directory is a project with no committed event yet.
+pub fn read_event_files(project: &Project) -> Result<Vec<EventFileRead>, IngestError> {
+  event_paths(project)?
+    .into_iter()
+    .map(read_event_file)
+    .collect()
+}
+
+/// Where every committed event file is, sorted, without reading one.
+fn event_paths(project: &Project) -> Result<Vec<PathBuf>, IngestError> {
+  let mut paths = Vec::new();
+  collect_event_paths(&project.events_dir(), &mut paths)?;
+  paths.sort();
+  Ok(paths)
+}
+
+/// The id a committed event file claims by its NAME, which is the key additive
+/// ingest dedups on.
+fn event_id_of(path: &std::path::Path) -> String {
+  path
+    .file_stem()
+    .map(|s| s.to_string_lossy().into_owned())
+    .unwrap_or_default()
+}
+
+fn read_event_file(path: PathBuf) -> Result<EventFileRead, IngestError> {
+  let text = read_to_string(&path)?;
+  let read = crate::event::from_file(&event_id_of(&path), &text);
+  Ok((path, read))
+}
+
+/// The `.json` files under `dir`, recursively. Dotfiles are skipped: a write
+/// in flight is a `.<name>.intent-tmp` sibling, and it is not an event yet.
+fn collect_event_paths(dir: &std::path::Path, out: &mut Vec<PathBuf>) -> Result<(), IngestError> {
+  let entries = match std::fs::read_dir(dir) {
+    Ok(entries) => entries,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+    Err(source) => {
+      return Err(IngestError::Io {
+        path: dir.display().to_string(),
+        source,
+      });
+    }
+  };
+  for entry in entries {
+    let entry = entry.map_err(|source| IngestError::Io {
+      path: dir.display().to_string(),
+      source,
+    })?;
+    let path = entry.path();
+    if entry.file_name().to_string_lossy().starts_with('.') {
+      continue;
+    }
+    if path.is_dir() {
+      collect_event_paths(&path, out)?;
+    } else if path.extension().is_some_and(|x| x == "json") {
+      out.push(path);
+    }
+  }
+  Ok(())
+}
+
+/// Take every committed event the store does not hold, and nothing else
+/// (ST0078 P1). **ADDITIVE**: see [`Store::ingest_events`].
+///
+/// **A FILE THAT DOES NOT READ IS LEFT FOR DOCTOR, NOT REFUSED HERE.** Canon is
+/// read strictly because a bad canon file is a model this binary would
+/// misread; a bad event file is one missing record in a log whose other records
+/// are intact, and refusing every load over it would take the whole store away
+/// to protect one line of history. It is not silent: doctor reports it as a
+/// counted finding by path, and a file that is not even JSON already refuses
+/// the tree scan.
+///
+/// **A FILE WHOSE NAME THE STORE ALREADY HOLDS IS NOT READ AT ALL** (vc,
+/// 2026-09-18). The name is the id and a file never changes by construction,
+/// so whether to take it is set membership on the ULID, and a store that holds
+/// its history pays for listing the directory and nothing more. A held file
+/// whose bytes were edited is therefore not even looked at, which is the
+/// additive rule rather than a gap in it; doctor reads every file.
+pub(crate) fn take_event_files(
+  project: &Project,
+  store: &mut Store,
+) -> Result<Vec<String>, IngestError> {
+  let events = read_events_to_take(project, &store.event_ids()?)?;
+  if events.is_empty() {
+    return Ok(Vec::new());
+  }
+  Ok(store.ingest_events(&events)?)
+}
+
+/// The committed event files whose id `held` does not contain, chosen by NAME
+/// and read not at all (ST0078 P1). `intent sync`'s plan counts these, so a
+/// plan costs a directory listing however long the history is.
+pub(crate) fn event_files_to_take(
+  project: &Project,
+  held: &std::collections::HashSet<String>,
+) -> Result<Vec<PathBuf>, IngestError> {
+  Ok(
+    event_paths(project)?
+      .into_iter()
+      .filter(|path| !held.contains(&event_id_of(path)))
+      .collect(),
+  )
+}
+
+/// The envelopes of [`event_files_to_take`], read. A file that does not read
+/// is left for doctor, as [`take_event_files`] says.
+pub(crate) fn read_events_to_take(
+  project: &Project,
+  held: &std::collections::HashSet<String>,
+) -> Result<Vec<Envelope>, IngestError> {
+  let mut events = Vec::new();
+  for path in event_files_to_take(project, held)? {
+    if let (_, Ok(event)) = read_event_file(path)? {
+      events.push(event);
+    }
+  }
+  Ok(events)
 }
 
 /// Every thread and issue canon file for these records, where they live on disk.
@@ -1038,6 +1167,15 @@ fn resync_inner(
   swap_board_sections(project, &mut canon.sections, &canon.boards);
   store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
+  // **AN INGEST RENDER NEVER TOUCHES THE EVENT FILES; ITS COMMIT TAKES THEM.**
+  // The plan previews an ingest against a shadow store that holds no events,
+  // so a render that took them would read the whole history on every bare
+  // `intent sync`. They change nothing in the canon a render compares, so
+  // `Facade::ingest_commit` takes them on the real store, and the plan counts
+  // them by name (vc, 2026-09-18).
+  if load != Load::Ingest {
+    take_event_files(project, store)?;
+  }
   // **The file index is left alone under a scope, deliberately.** It records
   // what was last INGESTED, and a scoped run ingested only part of what the
   // scan saw -- so writing the whole scan would mark a peer's file as seen

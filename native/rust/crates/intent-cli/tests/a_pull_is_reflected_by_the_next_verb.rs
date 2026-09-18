@@ -179,7 +179,11 @@ fn a_pull_brings_the_pulled_thread_into_the_store_and_says_so_once() {
       .lines()
       .filter(|l| l.starts_with("intent ("))
       .collect::<Vec<_>>(),
-    vec!["intent (post-merge): took 1 change(s) from the files into the store: ST0002"],
+    // The pull carries Alice's `st.new` as a committed event file too (ST0078
+    // P1), and the same line names it.
+    vec![
+      "intent (post-merge): took 1 change(s) from the files into the store: ST0002; and 1 event file(s)"
+    ],
     "one line, naming what the pull changed in the store: {}",
     pulled.said
   );
@@ -300,7 +304,7 @@ fn the_hook_template_speaks_the_verbs_words() {
     "the template calls a flag the table does not declare"
   );
 
-  let took = intentsvcs::sync::ingested(&["ST0002".to_string()]);
+  let took = intentsvcs::sync::ingested(&["ST0002".to_string()], &[]);
   assert!(
     took.starts_with("took ") && template.contains("\"ok: took \"*)"),
     "the template prints on the word the verb begins with when it took something: {took}"
@@ -310,7 +314,7 @@ fn the_hook_template_speaks_the_verbs_words() {
     "and on the line naming what was left, and tells doctor's verdict from a refusal"
   );
   assert!(
-    !intentsvcs::sync::ingested(&[]).starts_with("took"),
+    !intentsvcs::sync::ingested(&[], &[]).starts_with("took"),
     "and a pass that took nothing does not begin with it"
   );
 }

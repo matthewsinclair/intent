@@ -5,7 +5,7 @@
 //! the one shape that never got it.
 //!
 //! The rules come from the one converger both doors call, so this asserts the
-//! same three path rules `migrate_v2_project.rs` asserts after a migration --
+//! same path rules `migrate_v2_project.rs` asserts after a migration --
 //! and then asks GIT, because the property is that git ignores the store, and a
 //! line in a file is only evidence of that until something asks.
 
@@ -19,12 +19,18 @@ fn a_fresh_init_ignores_the_store_by_path_as_a_migration_does() {
 
   let ignored = std::fs::read_to_string(root.join(".gitignore"))
     .expect("init wrote no .gitignore, so the store is staged by the first `git add .`");
-  for rule in ["intent/.cache/", "intent/events.jsonl", "intent/.backup/"] {
+  for rule in ["intent/.cache/", "intent/.backup/"] {
     assert!(
       ignored.lines().any(|l| l.trim() == rule),
       "a fresh init does not ignore `{rule}`: {ignored:?}"
     );
   }
+  // ST0078 P1 reverses D53: the event log travels as committed files under
+  // `.canon/events/`, so its old single-file form is no longer ignored.
+  assert!(
+    !ignored.lines().any(|l| l.trim() == "intent/events.jsonl"),
+    "a fresh init still ignores the retired `intent/events.jsonl` rule: {ignored:?}"
+  );
   assert!(
     !ignored.contains("*.db"),
     "the rule is a PATH rule, as the migration's is -- `*.db` would swallow a database the \

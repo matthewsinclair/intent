@@ -180,6 +180,36 @@
   ],
   "tests": [
     {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "an_act_on_one_clone_is_read_on_another_with_its_author, the_author_is_git_then_the_config_then_local and a_heartbeat_stays_on_the_machine_that_beat; the machine-scoped roster is held by op_roster_and_the_live_log's machine_scoped_ops_are_rostered_and_stay_on_the_machine; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "ingest_takes_what_is_missing_and_changes_nothing_else and the_sync_plan_names_waiting_event_files_and_apply_takes_them; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)"
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "doctor_reports_bad_event_files_and_events_the_store_lacks; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)"
+    },
+    {
       "id": "AT-02.1",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/renumber_moves_an_id_and_what_names_it.rs",

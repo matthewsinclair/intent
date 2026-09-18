@@ -300,9 +300,12 @@ pub fn init(
   }
 
   let store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
+  // The event names who created the project by the rule every later event
+  // uses (ST0078 P1), so an `init` with no recorded author names git's identity.
+  let principal = crate::facade::author_at(root, author);
   let stamp = store
     .append_event(&Envelope::minted(
-      author,
+      &principal,
       project_name,
       "init",
       // The subject of an `init` event is the PROJECT, which has no natural
@@ -453,6 +456,24 @@ pub fn init(
   for view in crate::views::aggregate_views(&project, &[], &ctx) {
     write(&view.path, &view.content)?;
     written.push(view.path);
+  }
+
+  // **THE `init` EVENT'S COMMITTED FILE** (ST0078 P1). Every event travels as
+  // its own file under `.canon/events/`, and `init` is the first one a project
+  // has, so a clone knows who created it. Written from what the store actually
+  // recorded, stamp included.
+  for event in store
+    .take_landed_events()
+    .into_iter()
+    .filter(|e| crate::event::travels(&e.op))
+  {
+    let path = project
+      .event_file(&event)
+      .map_err(|e| InitError::Io(project.events_dir(), std::io::Error::other(e)))?;
+    let body = crate::event::to_file(&event)
+      .map_err(|e| InitError::Io(path.clone(), std::io::Error::other(e)))?;
+    write(&path, &body)?;
+    written.push(path);
   }
 
   crate::facade::converge_formatter_exclusion(&project)

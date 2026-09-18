@@ -636,6 +636,7 @@ fn examine(
   // check that does not run looks the same as one that found nothing.
   status_gate_disagreement(&canon, project, &mut report);
   db_checks(&canon, project, &mut report.findings);
+  event_checks(project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
 
   report
@@ -1424,6 +1425,93 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
       "intent/.cache/intent.db",
       FindingClass::StoreStale,
       "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted",
+    ));
+  }
+}
+
+/// The committed event files (ST0078 P1): each must read as an envelope under
+/// its own id, and the store must hold every one.
+///
+/// **WHAT THIS DOES NOT DO IS THE BOUNDARY THAT KEEPS D01 INTACT.** Nothing here
+/// rebuilds state from events, and nothing compares canon against them: canon
+/// is the state extract and the events are the act record, so a disagreement
+/// between the two is history, not a defect. Only the files' own integrity and
+/// whether the store has taken them are checked.
+///
+/// A file that is not JSON at all is not reported here: the tree scan reports
+/// every such `.json` file as `malformed-json` already.
+///
+/// **A committed event the store lacks is store-stale**, the same reading as a
+/// store behind its canon: the next ingest takes it, since ingest is additive. A
+/// cold store is skipped for the reason [`db_checks`] gives -- an empty store
+/// is every fresh clone's healthy state -- and so is a store that will not
+/// open, which that function also leaves unreported.
+fn event_checks(project: &Project, out: &mut Vec<Finding>) {
+  use crate::event::EventFileError;
+  let files = match crate::ingest::read_event_files(project) {
+    Ok(files) => files,
+    Err(e) => {
+      out.push(Finding::new(
+        project.relative(&project.events_dir()),
+        FindingClass::UnknownFileShape,
+        format!("the committed event files could not be read: {e}"),
+      ));
+      return;
+    }
+  };
+  let mut committed = Vec::new();
+  for (path, read) in files {
+    let rel = project.relative(&path);
+    match read {
+      Ok(event) => committed.push((rel, event.id)),
+      Err(EventFileError::NotJson(_)) => {}
+      Err(e @ EventFileError::NotAnEnvelope(_)) => {
+        out.push(Finding::new(
+          rel,
+          FindingClass::SchemaInvalid,
+          e.to_string(),
+        ));
+      }
+      Err(e @ (EventFileError::NameDisagrees { .. } | EventFileError::Unstamped { .. })) => {
+        out.push(Finding::new(
+          rel,
+          FindingClass::UnknownFileShape,
+          format!(
+            "{e} -- an event file is named by its own id and written once, so restore it from git rather than renaming or editing it"
+          ),
+        ));
+      }
+    }
+  }
+  if committed.is_empty() {
+    return;
+  }
+  let path = project.db_path();
+  if !path.exists() {
+    return;
+  }
+  let Ok(store) = Store::open(&path) else {
+    return;
+  };
+  let (Ok(held), Ok(derived)) = (store.event_ids(), store.derived_dump()) else {
+    return;
+  };
+  if held.is_empty() && is_empty_snapshot(&derived) {
+    return;
+  }
+  let missing: Vec<&str> = committed
+    .iter()
+    .filter(|(_, id)| !held.contains(id))
+    .map(|(rel, _)| rel.as_str())
+    .collect();
+  if let Some(first) = missing.first() {
+    out.push(Finding::new(
+      "intent/.cache/intent.db",
+      FindingClass::StoreStale,
+      format!(
+        "the store does not hold {} committed event file(s), first {first} -- they arrived by a pull or a checkout the store has not ingested, and the next ingest of the tree takes them, since event ingest only ever adds",
+        missing.len()
+      ),
     ));
   }
 }

@@ -1709,6 +1709,20 @@ impl Project {
     self.intent_dir().join(canon_thread_rel(id))
   }
 
+  /// `.canon/events/` -- the committed event files, one per event, under
+  /// dated directories (ST0078 P1).
+  pub fn events_dir(&self) -> PathBuf {
+    self.canon_dir().join(crate::event::EVENTS_DIR)
+  }
+
+  /// Where one written event's committed file lives.
+  pub fn event_file(
+    &self,
+    e: &crate::event::Envelope,
+  ) -> Result<PathBuf, crate::event::EventFileError> {
+    Ok(self.events_dir().join(crate::event::file_rel(e)?))
+  }
+
   /// `.canon/st/` -- thread canon, flat, one file per thread.
   pub fn canon_st_dir(&self) -> PathBuf {
     self.canon_dir().join("st")

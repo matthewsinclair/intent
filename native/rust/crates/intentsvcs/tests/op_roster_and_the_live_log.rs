@@ -70,7 +70,7 @@
 
 use crate::common::Fixture;
 use intentsvcs::doctor;
-use intentsvcs::event::{Envelope, KNOWN_OPS, Subject};
+use intentsvcs::event::{Envelope, KNOWN_OPS, MACHINE_SCOPED_OPS, Subject, travels};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::transitions::{Disposition, find};
 use std::collections::BTreeSet;
@@ -345,4 +345,30 @@ fn every_transition_op_is_in_the_roster() {
      does not list, so `doctor` would report their own events as ops this build \
      does not declare"
   );
+}
+
+/// **EVERY MACHINE-SCOPED OP IS A ROSTERED OP, AND NONE OF THEM TRAVELS.**
+///
+/// The carve-out is a list of names, and a name that stops matching fails
+/// open: a renamed heartbeat op would silently start writing a committed file
+/// for every touch. Holding each entry to the roster turns that into a red,
+/// because the roster is itself held to the call sites above.
+#[test]
+fn machine_scoped_ops_are_rostered_and_stay_on_the_machine() {
+  let unknown: Vec<&str> = MACHINE_SCOPED_OPS
+    .iter()
+    .copied()
+    .filter(|op| !KNOWN_OPS.contains(op))
+    .collect();
+  assert!(
+    unknown.is_empty(),
+    "{unknown:?} are in `event::MACHINE_SCOPED_OPS` and not in `event::KNOWN_OPS`"
+  );
+  let travelling: Vec<&str> = MACHINE_SCOPED_OPS
+    .iter()
+    .copied()
+    .filter(|op| travels(op))
+    .collect();
+  assert_eq!(travelling, Vec::<&str>::new());
+  assert!(travels("st.new"), "a project act must travel");
 }

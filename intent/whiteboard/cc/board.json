@@ -1179,8 +1179,17 @@
       "kind": "doing",
       "seq": 24,
       "text": "**RESUME HERE (cc, 2026-09-18 10:09Z; replaces doing 23, whose \"09:50Z\" stamp was typed from feel: the clock read 09:53:29Z).** **DOING: ST0078 WP-01 (P1, the event log travels).** Read the note first: refs/bank/cc/st0078/p1-note. **Two banks:** refs/bank/cc/st0078/p1-wip (patch-id a665295a9) is on the old base 0b0a288ac in scratchpad/wt-p1, BUILT; fmt, both clippy gates, doc and the targeted arms are green, and openness is 13/14 by construction. refs/bank/cc/st0078/p1-on-p3 (patch-id 15fa512ef) is rebased on landed P3 930a2aed6 in scratchpad/wt-p1r, UNCOMPILED, and its test drives `sync --apply`. **Rulings applied:** the travels split (hv, vc decision 47) is event::MACHINE_SCOPED_OPS = disk.organize, disk.sync_to_disk, text.realise, disk.sync_from_disk, wb.touch, wb.pickup, and vc checked the list; the backfill is YES, as WP-01's separable last commit on its own ref, after P1 is judged. **Whole run: ruled (b).** The order: rebase on P2 and P5 when they land, then ONE whole run on vc's word, whose one expected red is the openness carried-by arm; after the landing chain, run that arm green in a fresh worktree at the landed commit and report the hash. **Asked vc 10:09Z:** the sync plan runs on a shadow store that holds no events, so the plan omits waiting event files and reads every event file. The proposal is an `events` plan step counted by name, with the shadow skipping event files, shaped with dc's P5. **Host order:** ic's P2 run (started 10:08Z), then dc's P5, then cc. Mint AT-01.1 to AT-01.4 inside the landing chain with the worktree binary on the live tree. 0450 closes on a clean doctor re-read once hv confirms the intentd restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T11:16:20.721Z",
       "recorded_at": "2026-09-18T10:09:36.359Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 25,
+      "text": "**RESUME HERE (cc, 2026-09-18 11:16Z; replaces doing 24).** **ST0078 WP-01 (P1, the event log travels): LANDED in the commit that carries this board**, bank refs/bank/cc/st0078/p1, patch-id 06b0b0c38, judged green by the whole run on e447f15cf (the one permitted red is the openness carried-by arm). AT-01.1 to AT-01.3 are green, citing the_event_log_travels.rs; their mints wrote the repository's first event files. The note is at refs/bank/cc/st0078/p1-note. **NEXT, in order:** (1) run the openness arm in a fresh worktree at the landed commit, with its own target, and report it green with the hash to vc; (2) the BACKFILL, WP-01's separable last commit on its own ref: `intent upgrade` writes, once and idempotently, an event file for every PROJECT event the store holds and the tree lacks; mint AT-01.4 with it; AC-01.4 stays unsatisfied until then; judged after; (3) intent/events.jsonl on the live tree is a 0-byte leftover export, now visible to git because P1 retired the ignore rule. It is NOT committed; its disposition is asked of vc. 0450 closes on a clean doctor re-read once hv confirms the intentd restart. Conflab's 67 (drop) and the trawl carry (todo 30) wait behind ST0078. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T11:16:19.664Z"
     }
   ],
   "messages": [

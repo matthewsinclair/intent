@@ -716,11 +716,7 @@ pub(crate) fn context() -> Result<(Project, FacadeContext), Failure> {
     use intentsvcs::remedy::Remedy;
     e.render()
   })?;
-  let ctx = FacadeContext {
-    principal: "local".to_string(),
-    project_id: project.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
   Ok((project, ctx))
 }
 
@@ -5314,9 +5310,13 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // `--default --force`, which is the arm hv described as the destructive one
   // and the only one. An unconditional claim would now be a report that says
   // nothing was removed on the run that removed things.
+  // **"THREAD FILE", BECAUSE THE ACT'S OWN RECORD IS A FILE** (ST0078 P1, vc
+  // 2026-09-18): `disk.declare_default` changes the register, so it travels as
+  // a committed event file. The sentence is about the realised threads, and
+  // saying "no file" would be false on every run.
   if !force {
     println!(
-      "    no file was created or removed. `intent organize` previews what this declaration implies."
+      "    no thread file was created or removed. `intent organize` previews what this declaration implies."
     );
     return Ok(());
   }
@@ -7096,7 +7096,7 @@ pub(crate) fn events_json(page: &intentsvcs::facade::EventPage) -> serde_json::V
     .iter()
     .map(|e| {
       serde_json::json!({
-        "id": e.id, "ts": e.ts, "op": e.op,
+        "id": e.id, "ts": e.ts, "op": e.op, "principal": e.principal,
         "subject": { "kind": e.subject.kind, "id": e.subject.id },
         "payload": e.payload,
       })
@@ -7146,11 +7146,11 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
     return Ok(());
   }
 
-  // **AN EMPTY STORE SAYS SO, AND IT IS NOT A CLEAN BILL OF HEALTH.** A fresh
-  // clone has no history at all -- that is the accepted cost of the log living
-  // only in the store -- and silence at exit 0 cannot tell "nothing happened
-  // here" from "everything is fine", which is the distinction the prose critics
-  // lost by emitting nothing.
+  // **AN EMPTY STORE SAYS SO, AND IT IS NOT A CLEAN BILL OF HEALTH.** A store
+  // that has recorded nothing -- a project whose history predates the
+  // committed event files, on a fresh clone -- has no history to show, and
+  // silence at exit 0 cannot tell "nothing happened here" from "everything is
+  // fine", which is the distinction the prose critics lost by emitting nothing.
   if page.total == 0 {
     println!("events: no history in this store -- nothing has been recorded here yet.");
     return Ok(());
@@ -7167,9 +7167,12 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
     // The disk verbs name a PATH SET rather than an artefact, so their subject
     // id is empty by design; printing an empty column for them would read as a
     // missing value rather than an inapplicable one.
+    // **WHO ACTED CLOSES THE LINE** (ST0078 P1): events travel between clones,
+    // so an act read here may be somebody else's. Last, so the columns before
+    // it keep their places.
     match e.subject.id.as_str() {
-      "" => println!("{}  {}  {}", e.ts, e.id, e.op),
-      id => println!("{}  {}  {}  {}", e.ts, e.id, e.op, id),
+      "" => println!("{}  {}  {}  by {}", e.ts, e.id, e.op, e.principal),
+      id => println!("{}  {}  {}  {}  by {}", e.ts, e.id, e.op, id, e.principal),
     }
   }
   // **THE DENOMINATOR IS ROWS, NEVER VERBS, AND ALL THREE NUMBERS ARE SAID
@@ -8065,7 +8068,9 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // else; it is edited here in the same commit that falsified it, because the
   // next reader has no way to tell a stale claim from a current one.
   let recorded = intentsvcs::bootstrap::recorded_author();
-  let author = recorded.as_deref().unwrap_or("unknown");
+  let author = recorded
+    .as_deref()
+    .unwrap_or(intentsvcs::event::UNKNOWN_AUTHOR);
 
   // `author` and not `&author`: it became a `&str` when the `$USER` read came
   // out for AC-11.3, and the borrow that was right for the `String` before it
@@ -10135,11 +10140,7 @@ fn info_project(cwd: Option<&std::path::Path>) {
       println!("  remedy: {}", pending.remedy());
     }
     intentsvcs::project::Migration::Done => {
-      let ctx = FacadeContext {
-        principal: "local".to_string(),
-        project_id: config.project_id.clone().unwrap_or_default(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
-      };
+      let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
       match engine(project, ctx, StoreNeed::Shared) {
         Ok(facade) => {
           let threads = facade.st_list();

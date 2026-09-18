@@ -423,7 +423,7 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
 /// Hydration is not gated. So the fixture is inverted -- a thread that IS
 /// declared and is NOT on disk -- and the assertion is that `--default` writes
 /// no file it did not have to. The verb's own report claims exactly this in the
-/// sentence *no file was created or removed*, and until now nothing drove the
+/// sentence *no thread file was created or removed*, and until now nothing drove the
 /// first half of it.
 ///
 /// **THE ORDERING IS THE FIXTURE AND IT IS EASY TO GET BACKWARDS.** `st start`
@@ -463,11 +463,15 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
     .keys()
     .filter(|k| !before.contains_key(*k))
     .filter(|k| !k.ends_with(".intentfiles") && !k.contains(".cache"))
+    // The act's own record is a committed event file (ST0078 P1): canon and the
+    // realised tree are the state, an event file is the act, and this property
+    // is about the state.
+    .filter(|k| !k.starts_with("intent/.canon/events/"))
     .collect();
   assert!(
     created.is_empty(),
-    "`--default` writes the declaration and nothing else -- its own report says `no file \
-     was created or removed`, and these appeared: {created:?}"
+    "`--default` writes the declaration and nothing else -- its own report says `no thread \
+     file was created or removed`, and these appeared: {created:?}"
   );
 
   // And the follow-up preview agrees the thread is declared-but-absent, which is

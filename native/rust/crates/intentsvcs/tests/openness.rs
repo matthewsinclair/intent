@@ -630,12 +630,11 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
       .any(|m| m.body == "the kestrel combinator returns its first argument"),
     "and the message addressed to that board: {boards:?}"
   );
-  // **THE EVENT LOG'S ROUND TRIP MOVED WITH D53; IT DID NOT DISAPPEAR, AND
-  // THIS ARM PINS BOTH HALVES.** `intent/events.jsonl` is no longer projected
-  // into the working tree, so the disk trip above cannot carry history --
-  // asserting that it does would be asserting the design hv replaced. The
-  // accepted COST is asserted here rather than left implicit, because a cost
-  // nobody wrote down is one the next reader repairs by accident.
+  // **THE EVENT LOG'S DISK ROUND TRIP IS BACK, AS ONE FILE PER EVENT** (ST0078
+  // P1, which reverses D53). Every event the fixture's verbs wrote landed as a
+  // committed file under `intent/.canon/events/`, in the verb's own write set,
+  // so the clone's ingest carries every one of them -- and history is the one
+  // table nothing recomputes, so a lost one here is lost everywhere.
   let back: Vec<String> = restored
     .store()
     .events()
@@ -645,19 +644,15 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     .collect();
   for id in &minted {
     assert!(
-      !back.contains(id),
-      "the disk round trip carried an event ({id}) -- under D53 the log is not projected, so \
-       something has re-added a working-tree extract and the deletion is being undone by \
-       accident rather than by a ruling"
+      back.contains(id),
+      "the disk round trip dropped an event ({id}) -- every event is written as its own file \
+       under intent/.canon/events/, so a clone that ingested the tree must hold it"
     );
   }
 
-  // **AND THE GUARANTEE THAT REMAINS IS DRIVEN, NOT ASSUMED.** `event_log`
-  // declares its file form ON DEMAND, so AC-02.6's losslessness for this table
-  // is proved through the exporter. **Deleting the assertion along with the
-  // mechanism it outlived would leave hv's standing requirement held by
-  // nobody** -- which is the failure mode the requirement exists to prevent,
-  // reached by tidying rather than by neglect.
+  // **AND THE SINGLE-FILE FORM IS STILL DRIVEN, NOT ASSUMED.** `intent export`
+  // produces `events.jsonl` on demand, so AC-02.6's losslessness for that form
+  // is proved through the exporter as well as through the committed files.
   let events = restored.store().events().expect("events for the bundle");
   let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), events.clone());
   let parts = intentsvcs::export::canon_parts(&bundle).expect("canon parts");
@@ -695,10 +690,9 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
     // A board's extract, which AC-14.1 holds to the same byte-for-byte rule as
     // every other file form: the fixture wrote its rows, so there is one to emit.
     "intent/whiteboard/cc/board.json",
-    // **NOT `intent/events.jsonl` (D53).** It is no longer projected, so a
-    // second machine writes no bytes for it and there is nothing here for the
-    // two repositories to fight over -- which was this arm's whole subject for
-    // that path.
+    // **NOT `intent/events.jsonl`.** It is produced by `intent export`, never
+    // projected, so a second machine writes no bytes for it. The committed event
+    // files are written once and never re-emitted, so they are not here either.
   ];
   let first: Vec<String> = paths.iter().map(|p| fx.read(p)).collect();
 

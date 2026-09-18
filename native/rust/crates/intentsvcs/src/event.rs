@@ -1,30 +1,33 @@
 //! The append-only event log (design.md D15): every mutation writes an
 //! envelope. It is the audit trail, the subscription feed the TUI/bus will
-//! consume, and the substrate a future intentc sync protocol replays.
+//! consume, and the record of what happened that travels between clones.
 //!
 //! **Nothing derives it, which makes it the sharpest case in the truth model.**
 //! Under D01 as reversed the DB is truth and the files are an extract; for
 //! every other entity that extract is a faithful copy, so losing the DB costs
 //! the work of rebuilding and nothing else. History is where that stops being
-//! true: nothing recomputes what happened, so the log's committed file form is
-//! **the only thing that can carry it off this machine** (D34).
+//! true: nothing recomputes what happened, so a committed file form is the
+//! only thing that can carry it off this machine.
 //!
-//! That file form is [`JSONL`] -- one envelope per line, in log order -- and it
-//! is built here. It was owed for exactly as long as the log had no way to
-//! travel, and while it was owed the DB was the only copy of history there was.
+//! **ONE COMMITTED FILE PER EVENT, UNDER `.canon/events/<YYYY>/<MM>/<DD>/`**
+//! (ST0078 P1, which reverses D53). The file is written in the same write set
+//! as the canon and views of the act that produced it, so an act and its record
+//! land together. One file per event is merge-free by construction: the name is
+//! the event's ULID, so no two writers ever touch one file, and a file is never
+//! rewritten. Ingest is additive -- [`from_file`] reads one back, and the store
+//! inserts an id it does not hold and skips one it does.
 //!
-//! **JSON Lines rather than a JSON array, and the reason is the append-only
-//! property.** A new envelope is a new line; an array would require rewriting
-//! the closing bracket, which turns every append into a whole-file rewrite and
-//! makes a truncated write indistinguishable from a corrupt one. Line-oriented
-//! also means the artefact stays greppable, diffable per event, and readable by
-//! anything that can read a line -- which is what openness asks of a file form.
+//! **THE BOUNDARY THAT KEEPS D01 INTACT.** Canon is the STATE extract and these
+//! files are the ACT record. Nothing rebuilds state by replaying events, and
+//! doctor never reconciles the two, so there is no second truth.
 //!
-//! **Merged on the way in, never replaced.** The log is append-only, so a
-//! restore that wiped it would destroy history that the extract simply had not
-//! caught up with. [`merge`] keys on the envelope's ULID and adds what is
-//! missing, so restoring an older extract over a newer log is a no-op rather
-//! than a loss.
+//! The single-file form is [`JSONL`] -- one envelope per line, in log order --
+//! and `intent export` still produces it on demand. JSON Lines rather than a
+//! JSON array because a new envelope is a new line; an array would turn every
+//! append into a whole-file rewrite and make a truncated write
+//! indistinguishable from a corrupt one. [`merge`] keys on the envelope's ULID
+//! and adds what is missing, so restoring an older extract over a newer log is
+//! a no-op rather than a loss.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -191,9 +194,98 @@ pub const KNOWN_OPS: &[&str] = &[
   "wb.unclaim",
 ];
 
-/// The principal a facade call runs as. `local` until the 3.2 agent bus
-/// gives principals meaning (vc/cc/hv) and intentc federates them (v4).
+/// The principal written when nothing names an author: no `author` in the
+/// project's config and no git identity.
 pub const LOCAL_PRINCIPAL: &str = "local";
+
+/// The `author` `intent init` records when no author is known (nothing
+/// bootstrapped on this machine). It is a placeholder, not a name, so
+/// [`author`] reads it as absent.
+pub const UNKNOWN_AUTHOR: &str = "unknown";
+
+/// Who an event says acted: git's `user.name` and `user.email`, else the
+/// project's configured `author`, else [`LOCAL_PRINCIPAL`] (ST0078 P1).
+///
+/// **The principal is what makes a travelling event mean anything.** Until the
+/// log travelled, every row read `local` and nobody could tell; once an act on
+/// one clone is read on another, `local` says only that somebody did something.
+///
+/// **GIT FIRST, BECAUSE `config.json` IS COMMITTED** (vc, 2026-09-18, reversing
+/// the order first given). A committed author is one name for every clone of the
+/// project, so on a team it would sign every teammate's act with whoever ran
+/// `init`; git's identity is the one that belongs to the person at this clone.
+/// The config's author is the fallback for a machine with no git identity.
+///
+/// Pure: the caller reads git and the config and hands the values in, so the
+/// order of preference has one home and is driven without a repository. A blank
+/// value counts as absent, because an empty `user.name` or `author` is a field
+/// nobody filled in, not a name, and so does [`UNKNOWN_AUTHOR`] in the config.
+pub fn author(git_name: Option<&str>, git_email: Option<&str>, config_author: &str) -> String {
+  fn present(v: Option<&str>) -> Option<&str> {
+    v.map(str::trim).filter(|v| !v.is_empty())
+  }
+  match (present(git_name), present(git_email)) {
+    (Some(name), Some(email)) => format!("{name} <{email}>"),
+    (Some(name), None) => name.to_string(),
+    (None, Some(email)) => format!("<{email}>"),
+    (None, None) => present(Some(config_author))
+      .filter(|a| *a != UNKNOWN_AUTHOR)
+      .unwrap_or(LOCAL_PRINCIPAL)
+      .to_string(),
+  }
+}
+
+/// The ops that describe one machine and are false on every other clone, so
+/// their events stay in the store and are never written as files (hv,
+/// 2026-09-18, AC-01.1; the classification is vc's, under the pen).
+///
+/// **The test is whether the act changes the model or re-derives from it.** An
+/// op that changes the model -- a thread, package, criterion, test, issue,
+/// field, attachment, board, claim or the register -- travels. An op that
+/// re-derives files or store state from the model on this machine stays:
+///
+/// - `disk.organize`, `disk.sync_to_disk` and `text.realise` render files from
+///   this machine's store. The files they write that git carries are explained
+///   by the commit that carries them, not by an event.
+/// - `disk.sync_from_disk` is the destructive restore, `sync --to-store`: this
+///   clone's store was replaced from its own tree.
+/// - `wb.touch` and `wb.pickup` stamp a heartbeat: this session, on this
+///   machine, was alive at this moment.
+///
+/// **What looks close and is not here, so it travels:** `wb.release` sets a
+/// node's status, which is board state every clone reads; `disk.hydrate`,
+/// `disk.dehydrate` and `disk.declare_default` change the register in
+/// `.intentfiles`; `todo.flush` moves the watermark in `project.json`.
+///
+/// **Two classes the ruling names mint no event at all, so they have no entry
+/// here.** An ingest is recorded in `ingest_log`, not `event_log`, and an index
+/// rebuild records nothing in either. If one of them ever mints an event, its
+/// op joins this list.
+///
+/// Every entry is also in [`KNOWN_OPS`], and a test holds that, so a rename
+/// cannot leave an entry here that matches nothing and quietly start carrying
+/// the renamed op off the machine.
+pub const MACHINE_SCOPED_OPS: &[&str] = &[
+  "disk.organize",
+  "disk.sync_from_disk",
+  "disk.sync_to_disk",
+  "text.realise",
+  "wb.pickup",
+  "wb.touch",
+];
+
+/// Does an event of this `op` travel -- is it written as a committed file?
+///
+/// **PROJECT ACTS TRAVEL AND MACHINE-SCOPED ACTS DO NOT** (hv, 2026-09-18). The
+/// rule is whether the act describes one machine and is false on another clone;
+/// [`MACHINE_SCOPED_OPS`] is that rule applied to [`KNOWN_OPS`], and this is the
+/// one place it is read. An op outside the roster travels: an act nobody has
+/// classified is a project act until someone says otherwise, and a record that
+/// travels and was not needed costs less than one that was needed and stayed
+/// behind. An event that does not travel is still written to the store.
+pub fn travels(op: &str) -> bool {
+  !MACHINE_SCOPED_OPS.contains(&op)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -415,6 +507,91 @@ pub fn merge<'a>(have: &[Envelope], incoming: &'a [Envelope]) -> Vec<&'a Envelop
     .iter()
     .filter(|e| !known.contains(e.id.as_str()))
     .collect()
+}
+
+// ---------------------------------------------------------------------------
+// The committed file form: one file per event (ST0078 P1)
+// ---------------------------------------------------------------------------
+
+/// The directory under `.canon/` that holds the committed event files.
+pub const EVENTS_DIR: &str = "events";
+
+/// Where one written event lives, relative to [`EVENTS_DIR`]:
+/// `<YYYY>/<MM>/<DD>/<ulid>.json`, dated by the event's own `ts`.
+///
+/// **Dated by `ts` and not by the ULID's time prefix.** The two agree for an
+/// event this binary wrote, but `ts` is the database's stamp (D42) and the one
+/// every reader orders by, so the directory a person opens for a day holds the
+/// events that say they happened that day.
+///
+/// Refuses an envelope with no `ts`: it was never written, so it is not
+/// history (the same refusal [`to_jsonl`] makes), and it has no day to live in.
+pub fn file_rel(e: &Envelope) -> Result<std::path::PathBuf, EventFileError> {
+  let day = e
+    .ts
+    .get(..10)
+    .filter(|d| {
+      let b = d.as_bytes();
+      b[4] == b'-' && b[7] == b'-' && d.chars().filter(|c| c.is_ascii_digit()).count() == 8
+    })
+    .ok_or_else(|| EventFileError::Unstamped { id: e.id.clone() })?;
+  Ok(
+    std::path::PathBuf::from(&day[..4])
+      .join(&day[5..7])
+      .join(&day[8..10])
+      .join(format!("{}.json", e.id)),
+  )
+}
+
+/// One event's committed bytes: 2-space pretty JSON with a trailing newline,
+/// the form every other canon file takes.
+pub fn to_file(e: &Envelope) -> Result<String, serde_json::Error> {
+  crate::model::to_canonical_json(e)
+}
+
+/// Read one committed event file back, refusing one whose name disagrees with
+/// the id it carries.
+///
+/// `stem` is the file name without `.json`. **The name IS the key additive
+/// ingest dedups on, so a file whose name and id disagree is two claims about
+/// one record** -- ingest would take the id and a reader would find it under
+/// another name -- and neither can be picked without guessing.
+pub fn from_file(stem: &str, text: &str) -> Result<Envelope, EventFileError> {
+  let value: serde_json::Value = serde_json::from_str(text).map_err(EventFileError::NotJson)?;
+  let e: Envelope = serde_json::from_value(value).map_err(EventFileError::NotAnEnvelope)?;
+  if e.id != stem {
+    return Err(EventFileError::NameDisagrees {
+      name: stem.to_string(),
+      id: e.id,
+    });
+  }
+  if e.ts.is_empty() {
+    return Err(EventFileError::Unstamped { id: e.id });
+  }
+  Ok(e)
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum EventFileError {
+  /// Not JSON at all. The tree scan already reports this as `malformed-json`
+  /// for every `.json` file, so a reader that also reports it says it twice.
+  #[error("not JSON: {0}")]
+  NotJson(#[source] serde_json::Error),
+  #[error("not an event envelope: {0}")]
+  NotAnEnvelope(#[source] serde_json::Error),
+  #[error("the file is named {name} and carries the id {id}")]
+  NameDisagrees { name: String, id: String },
+  #[error("event {id} has no timestamp, so it was never written to a store")]
+  Unstamped { id: String },
+}
+
+impl crate::remedy::Remedy for EventFileError {
+  /// **Restore the file from git; never edit it into agreement.** An event file
+  /// is written once and never rewritten, so a damaged one is repaired by
+  /// putting back the bytes that were committed.
+  fn remedy(&self) -> String {
+    "restore the file from git (`git checkout -- <path>`) -- an event file is written once and never rewritten, so the committed bytes are the record".to_string()
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -83,7 +83,7 @@ fn a_second_pass_over_the_same_files_takes_nothing() {
     again.taken
   );
   assert!(
-    intentsvcs::sync::ingested(&again.taken).starts_with("nothing"),
+    intentsvcs::sync::ingested(&again.taken, &again.events).starts_with("nothing"),
     "and the confirmation says so without the word the hooks print on"
   );
 }

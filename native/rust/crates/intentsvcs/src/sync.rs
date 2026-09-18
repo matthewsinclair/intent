@@ -326,11 +326,26 @@ pub fn store_restored(scope: &Scope, differences: usize) -> String {
 /// THAT WORD.** A hook prints one line when the pass changed the store and
 /// nothing otherwise, and it tells the two apart by this sentence's first word;
 /// `a_pull_is_reflected_by_the_next_verb.rs` holds the hook's template to it.
-pub fn ingested(taken: &[String]) -> String {
-  match taken {
-    [] => "nothing to take -- the store already holds what the files say".to_string(),
-    subjects => format!(
+///
+/// **THE EVENTS TAKEN ARE NAMED BESIDE THE SUBJECTS** (ST0078 P1), so a pull
+/// that brought only event files still begins `took` and the hook still says
+/// so. They are counted rather than listed: an event's id names nothing a
+/// reader would look up, and a pull can carry a great many.
+pub fn ingested(taken: &[String], events: &[String]) -> String {
+  let events_said = match events.len() {
+    0 => None,
+    n => Some(format!("{n} event file(s)")),
+  };
+  match (taken, events_said) {
+    ([], None) => "nothing to take -- the store already holds what the files say".to_string(),
+    ([], Some(events)) => format!("took {events} from the files into the store"),
+    (subjects, None) => format!(
       "took {} change(s) from the files into the store: {}",
+      subjects.len(),
+      subjects.join(", ")
+    ),
+    (subjects, Some(events)) => format!(
+      "took {} change(s) from the files into the store: {}; and {events}",
       subjects.len(),
       subjects.join(", ")
     ),

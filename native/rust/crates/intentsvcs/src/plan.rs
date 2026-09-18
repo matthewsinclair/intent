@@ -18,8 +18,9 @@
 //! 5. the store lagging the committed canon: the ingest;
 //! 6. unmerged generated views: regenerated from the merged canon and staged;
 //! 7. views stale against the store: regenerated, as `organize --apply` does;
-//! 8. the search index stale against the tree: brought up to date;
-//! 9. `doctor`, last, whose verdict is the exit code.
+//! 8. committed event files the store does not hold: taken (P1);
+//! 9. the search index stale against the tree: brought up to date;
+//! 10. `doctor`, last, whose verdict is the exit code.
 //!
 //! **THE UNMERGED VIEWS COME AFTER THE INGEST, NOT BESIDE THE OTHER CONFLICTS**,
 //! because a view is rendered from the store and the store holds the merged
@@ -120,6 +121,10 @@ pub enum Action {
   /// to write and files to remove. `None` when the canon conflicts above must
   /// be resolved first.
   RegenerateViews { would: Option<ViewWork> },
+  /// Committed event files whose id the store does not hold (ST0078 P1),
+  /// counted by name and read not at all. An event file cannot conflict, since
+  /// its name is its id, so this step never waits on the merged canon.
+  Events { to_take: usize },
   /// Files the search index has not caught up with.
   Reindex { paths: usize },
   /// `doctor`, last. Its verdict is the exit code.
@@ -212,6 +217,12 @@ impl Step {
     Self::quiet(Action::Reindex { paths })
   }
 
+  /// Taking the committed event files the store lacks. **QUIET**: the take is
+  /// additive, so it inserts records the store did not hold and changes none.
+  pub fn events(to_take: usize) -> Self {
+    Self::quiet(Action::Events { to_take })
+  }
+
   pub fn doctor() -> Self {
     Self::quiet(Action::Doctor)
   }
@@ -234,6 +245,7 @@ impl Step {
       Action::RegenerateViews { would } => would
         .as_ref()
         .is_none_or(|w| !w.writes.is_empty() || !w.removes.is_empty()),
+      Action::Events { to_take } => *to_take > 0,
       Action::Reindex { paths } => *paths > 0,
       Action::Doctor => false,
     }
@@ -272,6 +284,7 @@ impl Step {
       Action::Ingest { .. } => "ingest",
       Action::ResolveViews { .. } => "resolve views",
       Action::RegenerateViews { .. } => "views",
+      Action::Events { .. } => "events",
       Action::Reindex { .. } => "index",
       Action::Doctor => "doctor",
     }
@@ -331,6 +344,7 @@ impl Step {
           said
         }
       },
+      Action::Events { to_take } => format!("{to_take} event file(s) to take"),
       Action::Reindex { paths } => {
         format!("bring {paths} file(s) the search index has not caught up with into it")
       }

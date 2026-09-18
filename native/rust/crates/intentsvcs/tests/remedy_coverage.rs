@@ -36,6 +36,7 @@ fn implements<E: Remedy>() {}
 fn proofs() {
   implements::<intentsvcs::backup::BackupError>();
   implements::<intentsvcs::migrate::Blocked>();
+  implements::<intentsvcs::event::EventFileError>();
   implements::<intentsvcs::facade::FacadeError>();
   implements::<intentsvcs::gitstate::GitStateError>();
   implements::<intentsvcs::ingest::IngestError>();

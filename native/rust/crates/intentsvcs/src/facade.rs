@@ -69,13 +69,70 @@ use crate::{intentfiles, organize};
 /// a verb's result is a function of its arguments.
 #[derive(Debug, Clone)]
 pub struct FacadeContext {
-  /// Who is acting. `local` until the 3.2 agent bus gives principals meaning.
+  /// Who is acting, which every event records: the author
+  /// [`FacadeContext::for_project`] resolves (ST0078 P1).
   pub principal: String,
   /// The project's UUID (D15). Stamped at migration; empty on a pre-migration
   /// project, which the event log records honestly rather than inventing one.
   pub project_id: String,
   /// The Intent version, for generated banners.
   pub version: String,
+}
+
+impl FacadeContext {
+  /// The context a verb runs with on `project`, its principal the author.
+  ///
+  /// **ONE CONSTRUCTOR FOR EVERY DOOR THAT ACTS FOR A PERSON** -- the CLI --
+  /// so the rule for who an event names has one home. The rule itself is
+  /// [`crate::event::author`]: git's `user.name` and `user.email`, else the
+  /// project's configured `author`, else `local`. The daemon does not use it:
+  /// its own writes are ingests, and its events name the mechanism.
+  pub fn for_project(project: &Project, version: &str) -> Self {
+    Self {
+      principal: resolve_author(project),
+      project_id: project.config().project_id.clone().unwrap_or_default(),
+      version: version.to_string(),
+    }
+  }
+}
+
+/// The author of this project's acts: git's identity at its root, else its
+/// config's author.
+pub fn resolve_author(project: &Project) -> String {
+  author_at(project.root(), &project.config().author)
+}
+
+/// [`crate::event::author`] for a tree at `root` whose config names
+/// `configured`: the one reading both the CLI's context and `init` use.
+///
+/// **One git process, reading both keys.** Git comes first in the rule, so it
+/// is asked on every verb; a single `--get-regexp` keeps that to one spawn. A
+/// git that is absent, or a repository with no identity, is the absent
+/// identity the rule falls back through -- the fallback is the ruled answer for
+/// that case, not a swallowed failure.
+pub(crate) fn author_at(root: &std::path::Path, configured: &str) -> String {
+  let identity = std::process::Command::new("git")
+    .arg("-C")
+    .arg(root)
+    .args(["config", "--get-regexp", r"^user\.(name|email)$"])
+    .output()
+    .ok()
+    .filter(|out| out.status.success())
+    .and_then(|out| String::from_utf8(out.stdout).ok())
+    .unwrap_or_default();
+  let value = |key: &str| {
+    identity
+      .lines()
+      .filter_map(|line| line.split_once(' '))
+      .filter(|(k, _)| *k == key)
+      .map(|(_, v)| v.to_string())
+      .next_back()
+  };
+  crate::event::author(
+    value("user.name").as_deref(),
+    value("user.email").as_deref(),
+    configured,
+  )
 }
 
 /// What a completed migration did, for the door to report.
@@ -245,35 +302,45 @@ fn declare_default_if_absent(
 /// intent directory with the line that says why -- the same class Intent
 /// ignores in its own tree.
 ///
-/// **`events.jsonl` joined `.cache/` for issue `0101`.** D53 ruled the event log
-/// has one home, the store, and that the file is deleted and untracked; its only
-/// writer is `intent export`. Intent's own `.gitignore` carried that rule while
-/// this converger, which gives every OTHER estate its rules, knew only one
-/// member of the class.
-///
 /// **`.backup/` joined for issue `0120`, and with it the table is the WHOLE of
-/// the class, enumerated rather than patched.** Intent's own `.gitignore`
-/// ignores exactly three paths under its intent directory -- `.cache/` (:125),
-/// `.backup/` (:143) and `events.jsonl` (:149) -- and v3 writes per-machine
-/// artefacts nowhere else: `backup` and `export --text` both write under
-/// `<intent>/.backup/`. The ROOT `/.backup/` that file also ignores is v2's
-/// upgrade-rollback namespace, which v3 does not write, so it is not here.
-/// `.backup/` is the one that dirtied a consumer's tree through doctor's own
-/// remedy: `intent backup` left a 46MB snapshot untracked on Conflab.
+/// the class, enumerated rather than patched.** v3 writes per-machine artefacts
+/// nowhere else: `backup` and `export --text` both write under
+/// `<intent>/.backup/`. The ROOT `/.backup/` Intent's own `.gitignore` also
+/// ignores is v2's upgrade-rollback namespace, which v3 does not write, so it is
+/// not here. `.backup/` is the one that dirtied a consumer's tree through
+/// doctor's own remedy: `intent backup` left a 46MB snapshot untracked on
+/// Conflab.
+///
+/// **`events.jsonl` LEFT THE TABLE FOR ST0078 P1**, which reverses D53: the log
+/// travels as one committed file per event under `.canon/events/`, which is
+/// already tracked, so there is nothing new to ignore. It is in [`RETIRED`], so
+/// a converge removes the rule rather than leaving it behind.
 const IGNORED: &[(&str, &str)] = &[
   (
     ".cache/",
     "The Intent runtime store: per-machine, rebuilt from the committed extract.",
   ),
   (
-    "events.jsonl",
-    "The event log lives in the store (D53); its file form is produced by `intent export`.",
-  ),
-  (
     ".backup/",
     "Intent's store snapshots and text exports: per-machine, never committed.",
   ),
 ];
+
+/// Rules a converge REMOVES, each with the comment line an earlier converge
+/// wrote above it, which goes with it.
+///
+/// **THE COMMENT IS REMOVED ONLY WHEN IT IS THE ONE THIS CODE WROTE**, word for
+/// word. `.gitignore` is the operator's file, so a comment somebody wrote above
+/// the rule in their own words is theirs, and stays.
+///
+/// **SO EACH COMMENT HERE IS A MATCH KEY, NEVER PRINTED, AND KEEPS ITS OLD
+/// WORDS.** It is the exact line earlier converges wrote into operators'
+/// `.gitignore` files, internal decision id included; rewording it here would
+/// leave that line behind in every project that has it.
+const RETIRED: &[(&str, &str)] = &[(
+  "events.jsonl",
+  "The event log lives in the store (D53); its file form is produced by `intent export`.",
+)];
 
 pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
   let dir = project
@@ -294,10 +361,50 @@ pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error
     }
     next.push_str(&format!("\n# {why}\n{rule}\n"));
   }
+  for (member, why) in RETIRED {
+    next = without_rule(&next, &format!("{dir}/{member}"), &format!("# {why}"));
+  }
   if next == current {
     return Ok(());
   }
   std::fs::write(&path, next)
+}
+
+/// `text` without the lines that equal `rule`, and for each one the `comment`
+/// directly above it and the blank line that separated the pair from what came
+/// before, so a removal leaves the file as a converge that never added the rule
+/// would have.
+fn without_rule(text: &str, rule: &str, comment: &str) -> String {
+  let lines: Vec<&str> = text.lines().collect();
+  let mut drop = vec![false; lines.len()];
+  for (i, line) in lines.iter().enumerate() {
+    if line.trim() != rule {
+      continue;
+    }
+    drop[i] = true;
+    let mut top = i;
+    if i > 0 && lines[i - 1].trim() == comment {
+      drop[i - 1] = true;
+      top = i - 1;
+    }
+    let blank_after = lines.get(i + 1).is_none_or(|l| l.trim().is_empty());
+    if top > 0 && lines[top - 1].trim().is_empty() && blank_after {
+      drop[top - 1] = true;
+    }
+  }
+  if !drop.contains(&true) {
+    return text.to_string();
+  }
+  let mut out: String = lines
+    .iter()
+    .zip(&drop)
+    .filter(|(_, gone)| !**gone)
+    .map(|(line, _)| format!("{line}\n"))
+    .collect();
+  if !text.ends_with('\n') {
+    out.pop();
+  }
+  out
 }
 
 /// Ensure the project's formatter leaves generated views alone (AC-07.6).
@@ -3236,8 +3343,12 @@ pub struct Ingested {
   /// **A CHANGE IN THE STORE AND NOT A CHANGE ON DISK.** A file that differs
   /// from the one the store recorded and parses to the same value is not
   /// listed, so an empty list means the store already answered what the disk
-  /// says. `sync --apply` and the git hooks print on this and on nothing else.
+  /// says. `sync --apply` and the git hooks print on this and on `events`, and
+  /// on nothing else.
   pub taken: Vec<String>,
+  /// The ids of the committed event files this pass took into the store
+  /// (ST0078 P1), which the store did not hold.
+  pub events: Vec<String>,
 }
 
 /// What `intent sync --apply` did (ST0078 WP-05).
@@ -3252,6 +3363,8 @@ pub struct SyncApplied {
   pub left: Vec<crate::plan::Left>,
   /// What the ingest took, empty when it took nothing or did not run.
   pub taken: Vec<String>,
+  /// The committed event files taken, by id, whichever step took them.
+  pub events: Vec<String>,
   /// `doctor`, run last. Its verdict is the exit code.
   pub doctor: Option<crate::doctor::Report>,
 }
@@ -5155,7 +5268,7 @@ impl Facade {
   /// and bounded: a crash mid-run leaves the partial change unrecorded. Naming
   /// the paths that actually moved is worth more than covering that window with
   /// a claim about paths that might have.
-  fn record_disk_act(&self, op: &str, payload: serde_json::Value) -> Result<(), FacadeError> {
+  fn record_disk_act(&mut self, op: &str, payload: serde_json::Value) -> Result<(), FacadeError> {
     let envelope = Envelope::minted(
       &self.ctx.principal,
       &self.ctx.project_id,
@@ -5170,7 +5283,54 @@ impl Facade {
       .store
       .append_event(&envelope)
       .map_err(FacadeError::Store)?;
+    // The act's files have already landed, so its record lands as a set of its
+    // own (ST0078 P1): a disk act has no projection to ride in.
+    self.land_event_files()
+  }
+
+  /// Put the committed file of every event the store has written since the
+  /// last call into `set` (ST0078 P1).
+  ///
+  /// **THE SAME WRITE SET AS THE ACT'S CANON AND VIEWS**, so an act and its
+  /// record land together or not at all. The events come from
+  /// `Store::take_landed_events`, which is fed by the one place an envelope
+  /// becomes a row, so a door that writes an event cannot forget its file; an
+  /// event whose set did not land waits for the next act's.
+  fn add_event_files(&self, set: &mut WriteSet) -> Result<(), FacadeError> {
+    let unserialisable = |why: String| FacadeError::EntityUnserialisable {
+      form: "event file".to_string(),
+      why,
+    };
+    for event in self.store.take_landed_events() {
+      if !crate::event::travels(&event.op) {
+        continue;
+      }
+      let path = self
+        .project
+        .event_file(&event)
+        .map_err(|e| unserialisable(e.to_string()))?;
+      let body = crate::event::to_file(&event).map_err(|e| unserialisable(e.to_string()))?;
+      set.add(path, body);
+    }
     Ok(())
+  }
+
+  /// Land the pending events' files as a set of their own, for a door whose act
+  /// has no projection to carry them: a disk act, a realisation, a roster read.
+  /// What landed is recorded like any written file, so a watching daemon does
+  /// not read the store's own write back as an edit.
+  fn land_event_files(&mut self) -> Result<(), FacadeError> {
+    let mut set = WriteSet::new();
+    self.add_event_files(&mut set)?;
+    if set.is_empty() {
+      return Ok(());
+    }
+    let applied = set
+      .commit()
+      .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+    applied.keep();
+    self.record_landed(&[], &landed)
   }
 
   /// The paths an act really changed.
@@ -6472,6 +6632,7 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     // Index only: the headers this read stay hand-authored until a migration.
     self.reindex_boards()?;
+    self.land_event_files()?;
     Ok(registered)
   }
 
@@ -6561,6 +6722,7 @@ impl Facade {
       .map_err(FacadeError::Store)?;
     if hand_authored {
       self.reindex_boards()?;
+      self.land_event_files()?;
     } else {
       self.land_board_write_noting()?;
     }
@@ -6616,6 +6778,7 @@ impl Facade {
       self.land_board_write_noting()?;
     } else {
       self.reindex_boards()?;
+      self.land_event_files()?;
     }
     Ok(true)
   }
@@ -6748,6 +6911,8 @@ impl Facade {
     {
       boards.add_bytes(path.to_path_buf(), content.to_vec());
     }
+    // The board write's event travels with the boards it changed (ST0078 P1).
+    self.add_event_files(&mut boards)?;
     let applied = boards
       .commit()
       .map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
@@ -7912,6 +8077,7 @@ impl Facade {
       }
       steps.push(Step::regenerate_views(Some(views)));
     }
+    steps.push(Step::events(self.event_files_waiting()?));
     let change = self.index_change(None)?;
     steps.push(Step::reindex(change.upserts.len() + change.removed.len()));
     steps.push(Step::doctor());
@@ -7940,6 +8106,23 @@ impl Facade {
       self.canon.clone(),
     );
     shadow.ingest_render(scope)
+  }
+
+  /// How many committed event files the store does not hold, by NAME: a
+  /// directory listing, no file read (ST0078 P1).
+  fn event_files_waiting(&self) -> Result<usize, FacadeError> {
+    let held = self.store.event_ids().map_err(FacadeError::Store)?;
+    Ok(
+      ingest::event_files_to_take(&self.project, &held)
+        .map_err(FacadeError::Ingest)?
+        .len(),
+    )
+  }
+
+  /// Take the committed event files the store does not hold, and return their
+  /// ids. The sync plan's `events` step, for when no ingest pass took them.
+  fn take_event_files(&mut self) -> Result<Vec<String>, FacadeError> {
+    ingest::take_event_files(&self.project, &mut self.store).map_err(FacadeError::Ingest)
   }
 
   /// What `organize --apply` would write and remove, rendered from `canon`:
@@ -8093,6 +8276,10 @@ impl Facade {
         Action::RegenerateViews { would: None } => {
           Step::regenerate_views(Some(self.organize_preview_over(&self.canon)?))
         }
+        // The ingest step takes the event files too, so by now there is
+        // usually nothing left for this one; it runs on its own when the
+        // ingest had no canon to take or was left behind a conflict.
+        Action::Events { .. } => Step::events(self.event_files_waiting()?),
         _ => step.clone(),
       };
       if !step.has_work() {
@@ -8124,8 +8311,9 @@ impl Facade {
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
           let ingested = self.ingest_from_disk(scope)?;
-          let said = crate::sync::ingested(&ingested.taken);
+          let said = crate::sync::ingested(&ingested.taken, &ingested.events);
           applied.taken = ingested.taken;
+          applied.events.extend(ingested.events);
           said
         }
         (Action::ResolveViews { paths }, _) => self.resolve_views(paths)?,
@@ -8136,6 +8324,12 @@ impl Facade {
             report.hydrated.len() + report.rewritten.len(),
             report.dehydrated.len() + report.pruned_legacy.len() + report.pruned.len()
           )
+        }
+        (Action::Events { .. }, _) => {
+          let events = self.take_event_files()?;
+          let said = crate::sync::ingested(&[], &events);
+          applied.events.extend(events);
+          said
         }
         (Action::Reindex { .. }, _) => {
           let refreshed = self.index_refresh(None)?;
@@ -8530,6 +8724,15 @@ impl Facade {
       projection: Projection { set, canon_files },
       taken,
     } = render;
+    // **THE COMMITTED EVENT FILES LAND UNDER THE SAME HOLD AS THE CANON**
+    // (ST0078 P1), read here, before it, because a read needs no lock. The
+    // render never touched them (see `ingest::resync_inner`), and the insert
+    // skips any id a writer added in between, so reading early loses nothing.
+    let events = ingest::read_events_to_take(
+      &self.project,
+      &self.store.event_ids().map_err(FacadeError::Store)?,
+    )
+    .map_err(FacadeError::Ingest)?;
     let Some(held) = self
       .store
       .hold_unless_moved(baseline)
@@ -8552,10 +8755,17 @@ impl Facade {
     held
       .record_file_entries(&entries)
       .map_err(FacadeError::Store)?;
+    let events = held.ingest_events(&events).map_err(FacadeError::Store)?;
     held.release().map_err(FacadeError::Store)?;
     self
       .finish_from_disk(scope, canon, count, applied)
-      .map(|threads| IngestCommit::Written(Ingested { threads, taken }))
+      .map(|threads| {
+        IngestCommit::Written(Ingested {
+          threads,
+          taken,
+          events,
+        })
+      })
   }
 
   /// Take a disk load's snapshot and render it: what both directions do before
@@ -8710,11 +8920,11 @@ impl Facade {
     // it read, so files move under a verb whose name says nothing about
     // writing any.
     //
-    // **RECORDED AFTER `restore_event_log` HAS ALREADY REPLACED THE STORE'S LOG
-    // FROM THE FILE**, so an event the file did not carry is gone before this
-    // one is appended. That is the declared destructive direction behaving as
-    // declared, and it is stated here because it is the one place where the
-    // table that cannot be re-derived from disk IS re-derived from disk.
+    // **THE RESTORE TAKES THE COMMITTED EVENT FILES AND DELETES NO EVENT**
+    // (ST0078 P1). The canon is replaced from the files; the log only gains
+    // the files' events the store lacked, because an event is history and a
+    // local act never committed is still a fact. This event is machine-scoped
+    // (`event::MACHINE_SCOPED_OPS`), so it stays in this store.
     if !wrote.is_empty() {
       self.record_disk_act(
         "disk.sync_from_disk",
@@ -9080,6 +9290,10 @@ impl Facade {
       .store
       .append_event(&envelope)
       .map_err(FacadeError::Store)?;
+    // `text.realise` is machine-scoped and writes no file of its own, but this
+    // drains the landed queue, so a project event left pending by a failed set
+    // lands here rather than riding on the next act.
+    self.land_event_files()?;
     // Colons and dots are replaced for the same reason `backup.rs` replaces
     // them: an ISO timestamp is a poor filename on some filesystems and an
     // awkward one on all of them. The ORDER is preserved, because the
@@ -15396,7 +15610,10 @@ impl Facade {
     drop(changed_threads);
     drop(changed_issues);
     // Issue 0376: every step below returned its failure as the write's own, and a failed render left the canon behind the store.
-    let Projection { set, canon_files } = match projected {
+    let Projection {
+      mut set,
+      canon_files,
+    } = match projected {
       Ok(projection) => projection,
       Err(cause) => {
         self.canon = next;
@@ -15410,6 +15627,18 @@ impl Facade {
         });
       }
     };
+    // The act's events travel in the act's own write set (ST0078 P1).
+    if let Err(cause) = self.add_event_files(&mut set) {
+      self.canon = next;
+      return Ok(Applied {
+        foreign: Vec::new(),
+        after_write: Some(Note::after_write(
+          "rendering the event files",
+          &cause,
+          RERENDER_REMEDY,
+        )),
+      });
+    }
 
     // Truth has landed. The files are a projection of it, so a failure here is
     // REPORTED AND RECOVERABLE rather than corrupting: `intent sync` writes

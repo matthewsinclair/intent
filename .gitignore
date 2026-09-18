@@ -145,9 +145,6 @@ target/
 # The DDL face is a COMMITTED artefact (the global gitignore excludes *.sql).
 !schema/ddl.sql
 
-# D53: the event log lives in the store; its file form is produced by `intent export`.
-intent/events.jsonl
-
 # The critic gate is SHIPPED CANON, installed by `intent claude upgrade` into
 # whatever `git rev-parse --git-path hooks` resolves to -- which is this tracked
 # directory once core.hooksPath is set. Tracking it would be a SECOND HOME FOR

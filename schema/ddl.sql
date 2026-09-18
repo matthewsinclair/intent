@@ -596,10 +596,12 @@ CREATE TABLE IF NOT EXISTS ingests (
   started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
--- openness: ON DEMAND events.jsonl -- produced by `intent export`, not projected
--- into the working tree. The tracked extract was deleted: it was the sole carrier of
--- history across a clone, and git already is that carrier for everything the canon
--- describes. The file form itself is unchanged and still lossless.
+-- openness: carried by intent/.canon/events/<YYYY>/<MM>/<DD>/<ULID>.json -- one
+-- committed file per event, written in the same write set as the act it records,
+-- named by its id and never rewritten. Acts that describe one machine only, such
+-- as heartbeats and restores, stay in this table. Ingest adds every file whose id
+-- this table does not hold and deletes nothing. `intent export`
+-- still produces the single-file form, events.jsonl, on demand.
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
   ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),

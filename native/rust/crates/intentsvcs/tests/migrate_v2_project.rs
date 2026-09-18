@@ -306,11 +306,12 @@ fn a_clean_estate_converges_its_gitignore_by_path_and_not_by_glob() {
     ignored.lines().any(|l| l.trim() == "intent/.cache/"),
     "the runtime store is not gitignored after a migration: {ignored:?}"
   );
-  // Issue 0101: the other member of the per-machine class. D53 untracks the
-  // event log's file form everywhere, and Intent ignores it in its own tree.
+  // ST0078 P1 reverses D53 (and so issue 0101's rule): the event log travels
+  // as committed files under `.canon/events/`, so a migration no longer
+  // ignores its old single-file form.
   assert!(
-    ignored.lines().any(|l| l.trim() == "intent/events.jsonl"),
-    "the event log's file form is not gitignored after a migration: {ignored:?}"
+    !ignored.lines().any(|l| l.trim() == "intent/events.jsonl"),
+    "a migration still ignores the retired `intent/events.jsonl` rule: {ignored:?}"
   );
   // Issue 0120: store snapshots and text exports, which doctor's own remedy
   // (`intent backup`) writes into the consumer's tree.

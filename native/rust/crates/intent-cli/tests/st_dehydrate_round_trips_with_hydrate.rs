@@ -193,7 +193,11 @@ fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
         walk(&p, root, out);
       } else if let Ok(bytes) = std::fs::read(&p) {
         let rel = p.strip_prefix(root).unwrap_or(&p).display().to_string();
-        if rel.starts_with("intent/.cache") {
+        // **THE COMMITTED EVENT FILES ARE THE ACT RECORD, NOT THE TREE**
+        // (ST0078 P1, vc 2026-09-18): canon and the realised tree are the
+        // state, and each hydrate and dehydrate adds its own event file, which
+        // is never removed. A round trip is a property of the state.
+        if rel.starts_with("intent/.cache") || rel.starts_with("intent/.canon/events/") {
           continue;
         }
         out.insert(rel, bytes);
