@@ -27,14 +27,21 @@ title: Using Intent on a multi-person project with a Git workflow including PRs
 
 ### WP-03 -- P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply (status: WIP)
 
-- AC-03.1 After a git pull, checkout or rewrite with no daemon running, the next verb answers from the merged canon: intent st show of a thread the pull brought answers, because the post-merge, post-checkout and post-rewrite hooks wired by intent claude upgrade --apply ran intent sync --ingest, printed one line when they took anything, and exited 0 either way. -- satisfied: no (computed)
+- AC-03.1 After a git pull, checkout or rewrite with no daemon running, the next verb answers from the merged canon: intent st show of a thread the pull brought answers, because the post-merge, post-checkout and post-rewrite hooks wired by intent claude upgrade --apply ran intent sync --apply with no terminal, printed one line when they took anything or when the pass refused, and exited 0 either way. -- satisfied: no (computed)
 - AC-03.2 A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched. -- satisfied: no (computed)
-- AC-03.3 intent sync --ingest runs the daemon's non-destructive rule from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock. -- satisfied: no (computed)
+- AC-03.3 Bare intent sync prints the plan for this clone and writes nothing, and intent sync --apply applies it; under P3 the plan has one step, the daemon's non-destructive ingest rule run unchanged from the command line, the same engine and no second implementation: it takes the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deletes a row whose file was never written, and is safe beside a running daemon and a peer's write under the hold-unless-moved lock; --apply with --to-disk or --to-store is refused. -- satisfied: no (computed)
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
 
 - AC-04.1 (non-test) docs/concepts/working-in-a-team.md exists, is written from driven commands, and every command on it has been driven, with the drive script and log banked beside the page; the-store.md says that after a pull the hook runs sync --ingest and that --to-store is the restore. -- satisfied: no
 - AC-04.2 (non-test) A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate. -- satisfied: no
+
+### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Not Started)
+
+- AC-05.1 intent sync reads the store, the tree and git's status and prints the plan it would apply as ordered steps, each with its recoverability, under a digest, and writes nothing; intent sync --apply applies it; --plan <digest> refuses when the tree has moved since the plan was shown. -- satisfied: no (computed)
+- AC-05.2 The plan handles a pull's aftermath in order: a branch behind its upstream is reported and nothing is run; an unmerged generated view is regenerated from the merged canon and staged; a canon add/add is repaired by renumbering the local id to the next free one; a canon content conflict asks for a side; a store that lags canon is ingested; stale views are regenerated; a stale index is rebuilt; doctor runs last and its verdict is the exit code. -- satisfied: no (computed)
+- AC-05.3 A quiet step never asks; a reversible step asks y/N and --yes answers it; a non-reversible step always asks a person and no flag or environment variable answers for it; without a terminal and without --yes, --apply runs the quiet steps, skips every ask and prints one line naming what is left, which is what the hooks run. -- satisfied: no (computed)
+- AC-05.4 intent sync reads git's status and its unmerged index, stages only the files it regenerated to resolve a conflict it was asked to resolve, and never runs git pull, git commit or git push. -- satisfied: no (computed)
 
 ## Acceptance Tests
 
@@ -51,6 +58,10 @@ _(no tests in this group)_
 _(no tests in this group)_
 
 ### WP-04 -- P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-05 -- P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset (status: Not Started)
 
 _(no tests in this group)_
 

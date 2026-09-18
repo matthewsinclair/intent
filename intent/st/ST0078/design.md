@@ -247,18 +247,35 @@ Rejected: changing the minting scheme. `ST####` is the identity every reference 
 Three parts, smallest first.
 
 - **Store-stale moves out of the hidden tier** into shown-not-counted, the tier `report.unattached` uses: the exit code is untouched and the line prints on a default run. It was hidden because it fires during a peer's canon write on a shared tree (issue 0313); it keeps saying so, and one advisory line is the right cost for never again answering `no steel thread` after a pull. XS.
-- **A CLI door for the non-destructive ingest.** The daemon's pass is `Load::Ingest`, reachable today only through the daemon; the CLI's `--to-store` is `Load::Restore`, the declared destructive direction. `intent sync --ingest` (name open) runs the daemon's rule from the command line: take the disk only where it says something the store did not write, under the hold-unless-moved lock issue 0441 built, so it is safe beside a running daemon and beside a peer's write. S.
-- **Git hooks that run it.** `post-merge`, `post-checkout` and `post-rewrite`, wired by `intent claude upgrade --apply` the way the pre-commit gate is (a region-edited chain in `.git/hooks`, per clone, which is why every fresh clone runs `claude upgrade --apply` once already). The hook runs `intent sync --ingest`, prints one line when it took anything, and always exits 0: a hook must never fail a checkout. Where a daemon is also watching, both passes run the same engine under the same lock and the second finds nothing to take. S.
+- **A CLI door for the non-destructive ingest, as the first step of the plan P5 describes.** The daemon's pass is `Load::Ingest`, reachable today only through the daemon; the CLI's `--to-store` is `Load::Restore`, the declared destructive direction. Bare `intent sync` today refuses to guess a direction; under hv's ruling of 2026-09-18 it prints the plan for this clone instead, and `intent sync --apply` applies it. P3 builds that verb with one step in its plan, the ingest: the daemon's rule unchanged, the same engine and no second implementation, taking the disk only where it differs from what the store recorded writing, a recorded file the pull removed included, never deleting a row whose file was never written, under the hold-unless-moved lock issue 0441 built, so it is safe beside a running daemon and beside a peer's write. `--apply` combined with `--to-disk` or `--to-store` is refused. S.
+- **Git hooks that run it.** `post-merge`, `post-checkout` and `post-rewrite`, wired by `intent claude upgrade --apply` the way the pre-commit gate is (a region-edited chain in `.git/hooks`, per clone, which is why every fresh clone runs `claude upgrade --apply` once already). The hook runs `intent sync --apply` with no terminal, which applies the quiet steps only, prints one line when it took anything or when something is left for a person, and always exits 0: a hook must never fail a checkout. `post-checkout` runs only on a branch checkout. Where a daemon is also watching, both passes run the same engine under the same lock and the second finds nothing to take. S.
 
-`the-store.md` changes its sentence: after a pull, `sync --ingest` (which the hook runs for you); `--to-store` is the restore and is still almost never what you meant.
+`the-store.md` changes its sentence: after a pull, `intent sync --apply` (which the hook runs for you); `--to-store` is the restore and is still almost never what you meant.
 
 ### P4 — Documentation: working in a team
 
 One page, `docs/concepts/working-in-a-team.md`: what travels and what does not; what a reviewer reads in a PR (the canon extract) and what to review in it; the pull and the store (P3); id collisions and the repair (P2); JSON conflicts and `sync --to-store <ID>`; generated-view conflicts and regeneration (`intent st sync --write`, `intent todo update`, `intent organize --apply`); the watermark; version compatibility; the `.gitignore` lines a project needs; and a CI job that builds `intent` and runs `intent doctor` on the merge result, because a merge made on the forge is judged by nobody's commit gate. Size S, written from driven commands rather than composed.
 
+### P5 — One command after a pull
+
+hv, 2026-09-18: nobody should type ten commands to bring a clone and its store back into step. The shape hv chose is `intent sync [--apply] [--to-disk|--to-store]`: bare `intent sync` prints the plan for this clone and writes nothing, `--apply` applies it, and the two explicit directions keep their meanings. The refusal bare `sync` gives today asked which direction you meant; the plan answers by reading the state rather than guessing, so no published meaning changes.
+
+The plan is a pure function of the store, the tree and git's status; applying it is the impure half (PFIC). Its steps, in order, each a check with its repair:
+
+- The branch is behind its upstream: said, and nothing done. Intent never runs `git pull`, `git commit` or `git push`.
+- Unmerged paths. A generated view is regenerated from the merged canon and staged. A canon add/add is an id collision and the LOCAL id is renumbered to the next free one with P2's verb. A canon content conflict asks for a side.
+- The store lags the committed canon: P3's ingest, event files under P1 included.
+- Views stale against the store: regenerated, the way `organize --apply` does it.
+- The search index stale: rebuilt.
+- `doctor` last, and its verdict is the exit code.
+
+Every step declares its recoverability, the field the whiteboard verbs already carry. A quiet step never asks: the ingest, a regeneration. A reversible step asks `y/N`, and `--yes` answers those: the renumber, staging what was regenerated, the index rebuild. A non-reversible step always asks a person and no flag answers for it, the rule `organize --default --force` already enforces: taking a side in a canon conflict, or anything that overwrites local store state. Without a terminal and without `--yes`, `--apply` runs the quiet steps, skips every ask, and prints one line naming what is left; that is what the hooks run, so the hook and the person share one engine. `--plan <digest>` is reused from `organize`: an `--apply` after the tree moved is refused.
+
+The git boundary: the verb reads `git status` and the unmerged index, stages only the files it regenerated to resolve a conflict it was asked to resolve, and never pulls, commits or pushes. Without the staging the person is back to one `git add` per file. Size M, built after P2 and P3 land because it composes their engines.
+
 ## Sequencing
 
-P3 first: it closes the measured failure and is the smallest. Then P2, then P1 with the most design in it, and P4 alongside each. P1 and P3 are project-wide (an ignore rule and hook wiring reach every estate through `intent upgrade` and `claude upgrade --apply`), so the fleet trawl waits for them and runs once, on the pair that carries them. Recommended: all of ST0078 in 3.1.0, the trawl after the pair is rebuilt, the cut after the trawl. The cost is that the cut waits for an M to L build; the standing ruling is that completeness beats schedule.
+P3 first: it closes the measured failure and is the smallest. Then P2, then P5 on both, then P1 with the most design in it, and P4 alongside each and closing last, because it documents P5 as the one command. P1 and P3 are project-wide (an ignore rule and hook wiring reach every estate through `intent upgrade` and `claude upgrade --apply`), so the fleet trawl waits for them and runs once, on the pair that carries them. Recommended: all of ST0078 in 3.1.0, the trawl after the pair is rebuilt, the cut after the trawl. The cost is that the cut waits for an M to L build; the standing ruling is that completeness beats schedule.
 
 ## What does not change
 
@@ -271,6 +288,10 @@ D01 as reversed: the store is truth on its machine. D34: the extract is the inte
 3. The hooks are wired by `claude upgrade --apply`, the door the pre-commit gate already uses, rather than a new verb. Keep one door?
 4. The flag name for the non-destructive ingest.
 5. Does ST0078 go into 3.1.0, with the trawl and the cut waiting for it?
+
+## Rulings
+
+hv, 2026-09-18: 1 yes; 2 by date, `YYYY/MM/DD`; 3 yes, one door; 4 bare `intent sync` is the plan and `--apply` applies it, which P5 records; 5 yes, all of it in 3.1.0. The author on an event is git's identity first, then the config author, then `local`, because `config.json` is committed and would name one author for every clone (vc, under the pen, after cc measured it). Open with hv as this is written: whether machine-scoped events (heartbeats, ingests, restores, index rebuilds) stay store-only while project acts travel, vc's recommendation; and whether `intent upgrade` backfills the events a store already holds into files once, vc's recommendation, held out of P1's bank until ruled.
 
 ## Acceptance sketch
 
