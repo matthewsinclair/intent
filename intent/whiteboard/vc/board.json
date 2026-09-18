@@ -1143,7 +1143,8 @@
       "kind": "todo",
       "seq": 39,
       "text": "(2026-09-18 09:46Z) WRITE THE BANK AS DOCUMENTED POLICY (hv to cc, live, 2026-09-18 just before 09:45Z by cc's clock, relayed by cc's durable inbox message; hv's words: it needs documenting in the Intent docs so that it is more than just convention, but rather documented policy). What it covers: a patch saved as a git blob and named by a ref under refs/bank/<node>/<topic>/<name>, a ref and not a branch or a commit; how to list, read and apply one; the judged patch-id is what lands, a gate refusal is re-banked and re-judged; suites only in a private worktree under an isolated HOME; never git stash in a worktree; never a bank under /tmp or as a worktree commit; git add <paths> && git commit --only <paths> in one call; landings on the director's word inside CHAIN START and END. Placement is vc's. Discharged when the page is committed and restart.md and the memories point at it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T09:50:43.547Z",
       "recorded_at": "2026-09-18T09:46:13.595Z"
     }
   ],
