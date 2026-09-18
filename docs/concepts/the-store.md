@@ -50,7 +50,7 @@ The compliant order is:
 
 Some things have no file projection at all, deliberately:
 
-- **Machine events** — heartbeats, ingests, restores and index rebuilds, which describe one machine and would be false on any other. The project's own acts, every state transition with who and when, are also written as files under `intent/.canon/events/` that travel in git, which is what makes a fiat close permanent as a record on every clone even though the state it produced is reversible.
+- **Machine events** — a heartbeat or a pickup's stamp, an organize, a sync in either direction and a text realisation, which describe one machine and would be false on any other. The project's own acts, every state transition with who and when, are also written as files under `intent/.canon/events/` that travel in git, which is what makes a fiat close permanent as a record on every clone even though the state it produced is reversible.
 - **The file index** — a git-style index the sync engine uses to know what changed.
 - **Document sections** — the result of prose ingest, used by `intent search`.
 

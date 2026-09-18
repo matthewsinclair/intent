@@ -6,12 +6,12 @@ Every command below was driven, in the order this page shows it, against two clo
 
 ## What travels and what does not
 
-| Travels in git                                                             | Stays on your machine                                         |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `intent/.canon/st/` and `intent/.canon/issues/` — one JSON file per record | `intent/.cache/` — the store, `intent/.cache/intent.db`       |
-| `intent/.canon/events/YYYY/MM/DD/` — one JSON file per project act         | Machine events: heartbeats, ingests, restores, index rebuilds |
-| The generated views: `intent/st/`, `intent/issues/`, `intent/todo.md`      | `intent/.backup/` — backups                                   |
-| `intent/.config/config.json`, `intent/.intentfiles`                        | The search index                                              |
+| Travels in git                                                             | Stays on your machine                                                                           |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `intent/.canon/st/` and `intent/.canon/issues/` — one JSON file per record | `intent/.cache/` — the store, `intent/.cache/intent.db`                                         |
+| `intent/.canon/events/YYYY/MM/DD/` — one JSON file per project act         | Machine events: heartbeats and pickups, organizes, syncs in either direction, text realisations |
+| The generated views: `intent/st/`, `intent/issues/`, `intent/todo.md`      | `intent/.backup/` — backups                                                                     |
+| `intent/.config/config.json`, `intent/.intentfiles`                        | The search index                                                                                |
 
 **Your store is truth on your machine, and the canon is how it reaches anyone else's.** A clone's store starts empty and is built from the committed canon on the first verb, so a fresh clone needs no step of its own for the model.
 
@@ -252,7 +252,7 @@ Every project act is its own file under `intent/.canon/events/`, carrying who di
   2026-09-18T12:59:48.931Z  01M2T9M2A3TVZK2SJYEE4SF50Y  thread.set  ST0002  by Bob <bob@example.com>
 ```
 
-Both clones print those same three lines. The author is git's identity. Machine events, such as heartbeats, ingests, restores and index rebuilds, stay in the store, because they describe one machine and would be false on every other.
+Both clones print those same three lines. The author is git's identity. Machine events, which are a heartbeat or a pickup's stamp, an organize, a sync in either direction and a text realisation, stay in the store, because they describe one machine and would be false on every other.
 
 **A project older than this has its history only in the store that made it.** Run `intent upgrade` once on that clone and commit what it writes: the backfilled event files, a `.gitignore` without the retired `intent/events.jsonl` line, and `intent/.config/config.json` rewritten in key order. It says how many event files it backfilled, and a second run backfills none and leaves the tree as the first run left it:
 
