@@ -263,7 +263,7 @@ hv, 2026-09-18: nobody should type ten commands to bring a clone and its store b
 The plan is a pure function of the store, the tree and git's status; applying it is the impure half (PFIC). Its steps, in order, each a check with its repair:
 
 - The branch is behind its upstream: said, and nothing done. Intent never runs `git pull`, `git commit` or `git push`.
-- Unmerged paths. A generated view is regenerated from the merged canon and staged. A canon add/add is an id collision and the LOCAL id is renumbered to the next free one with P2's verb. A canon content conflict asks for a side.
+- Unmerged paths. A generated view is regenerated from the merged canon and staged. A canon add/add is an id collision and the LOCAL id is renumbered to the next free one with P2's engine. Two constraints ic measured while building P2: mid-merge the old id's paths hold the OTHER side's canon file and directory, so the plan cannot call the plain verb, which would move and delete them; it renumbers the local thread in the store, writes the new id's canon and directory from the store, restores the pulled side at the old id and stages both. And "next free" asks the store AND the tree, because the store's own `next_thread_id` can return an id the tree holds from a pull not yet loaded, which the renumber then refuses. A canon content conflict asks for a side.
 - The store lags the committed canon: P3's ingest, event files under P1 included.
 - Views stale against the store: regenerated, the way `organize --apply` does it.
 - The search index stale: rebuilt.
