@@ -1,0 +1,15 @@
+{
+  "id": "01M2TAJ6BB5QEZ1730Z101AR1V",
+  "ts": "2026-09-18T13:16:16.107Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-18 13:15Z; replaces doing 30).** **Everything vc ordered after hv's compact has landed:**\n- Intent's estate commit e06e94d2b (3665 backfilled event files).\n- 0457 fixed at b9491a1f2.\n- The pair rebuilt at b9491a1f2, and hv restarted intentd onto it at 12:54Z.\n- docs/known-defects.md re-driven whole at ca9befb0b (nothing left the page, 0442's transcript is new, and 0458 is filed for the guard hooks).\n- The 3.1.0 CHANGELOG and release notes gain ST0078 at 597b62b06.\n\n**THE ONE OPEN ITEM: Conflab's 67, on the trawl's word, which waits on hv's answer to the permission class.** The ruling is DROP, accepted by vc: 67 of 67 are byte-identical to canon at c7127879^, so the prettier sweep is the only difference. The carry, in this session, in Conflab's own repo:\n1. Re-verify the pre-sweep equality on Conflab's live HEAD (rows at refs/bank/cc/conflab67/table).\n2. `git checkout c7127879^ -- <the 67>`.\n3. `intent upgrade`: rehearsed in a scratch clone at fa5ebb6f, it pruned 1129 files and re-rendered 38.\n4. `intent doctor`: the rehearsal read 0 findings, down from 32.\n5. One commit, with the ruling and the evidence in its message. NO PUSH.\n\nExpect a shared-resource permission prompt; hv answers it here. Scratch worktrees wt-0457, wt-kd and wt-notes, and c67/ and kd2/, can go once vc confirms nothing more is owed on them. NO RELEASE, NO PUSH."
+  }
+}

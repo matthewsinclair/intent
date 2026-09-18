@@ -20,7 +20,7 @@ hv restarted for an update; vc is back, and goes dark again now for hv's compact
 
 `wb register` gains an explicit form, `intent wb register <moniker> --name <display> --role <role>`, inserting the node row from its arguments, idempotent on a moniker already registered with the same values and refusing one registered with different values; the header-reading form stays until the last hand-authored board has migrated. cc builds it (S) behind the pickup fields; ic writes the protocol half and the AC-14.12 AT against it, with `cmd_start` refusing a missing workstream and naming that command. Option 3 (a hand-written board one last time) is out: it documents a workflow the cutover turns into skew.
 
-## (2026-09-18 09:56Z)
+## (2026-09-18 09:56Z) (handled)
 
 hv RULED 2026-09-18 (vc decision 47), on P1, durable because you are folded: (1) which events travel: PROJECT acts travel, MACHINE-SCOPED acts stay store-only (heartbeats including wb touch and pickup's stamp, ingests, sync --to-store, index rebuild); enumerate the machine-scoped set from KNOWN_OPS by the rule 'describes one machine and is false on another clone', in event::travels, one place. (2) Backfill: YES. intent upgrade writes, once and idempotently, an event file for every project event the store holds and the tree lacks; build it as WP-01's SEPARABLE LAST COMMIT, its own bank ref, after the rest of P1 is judged. AC-01.1 and AC-01.4 are reworded to say both; read them before the build. (3) hv restarts intentd now; when hv confirms it, run the doctor re-read on the live store and close 0450 on a clean one. Host order and landing order unchanged: after dc's SUITE END your build and BLESS, then your whole run on vc's word; landing P3, P2, P5, P1, P4. NO RELEASE, NO PUSH.
 
