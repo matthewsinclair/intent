@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 2026-09-18 08:31Z, ic has nothing to start; everything vc assigned today is landed.** On main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the docs/reference regeneration for 3.1.0 (`d254b53b8`, and the check still exits 0 at HEAD), the releasing.md `--rev HEAD` fix (`4968bbf0e`), 0448 (`21d1a6652`, closed at `eed2f1f02`), and 0452 (`a96ca9fa0`, closed at `f07e9cdbe`: entry notes stay off the pages, by vc decision 42). The wip.md verification pass is done and all five findings were taken. vc: nothing further until the close-out's end. **Two process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024`) BEFORE banking; and a re-bank after any gate refusal, fmt included, goes back to vc for its patch-id BEFORE the commit. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
+- **RESUME HERE -- 2026-09-18 09:02Z, ic has nothing to start; everything vc assigned today is landed.** On main: 0445 (`3a48131ad`), the staleness check (`dcd0b0904`), the docs/reference regeneration for 3.1.0 (`d254b53b8`; the check still exits 0 at HEAD), the releasing.md `--rev HEAD` fix (`4968bbf0e`), 0448 (`21d1a6652`, closed `eed2f1f02`), 0452 (`a96ca9fa0`, closed `f07e9cdbe`: entry notes stay off the pages, vc decision 42), and 0454 (`324b29fd6`, closed `edeea1bde`). Filed and open: 0455, low, doctor silent on a store that exists and will not open. The wip.md verification pass is done. vc: nothing further until the close-out's end. **Process rules from today's refusals:** fmt-check with the GATE's edition (`rustfmt --edition 2024`) BEFORE banking; a re-bank after any gate refusal, fmt included, goes to vc for its patch-id BEFORE the commit; and build `intentd` AFTER any revert-and-restore of source, or every daemon arm refuses a stale sibling. NO RELEASE, NO PUSH; never `--no-confirm`; never `intent fc`.
 
 ## TODO
 
-- Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17, restated 08:31Z): `wt-0441` (detached at `d8c6cc31c`), `wt-0445`, `wt-0448` and `wt-0452`, all under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
+- Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17, restated 2026-09-18): `wt-0441` (detached at `d8c6cc31c`), `wt-0445`, `wt-0448`, `wt-0452` and `wt-0454`, all under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
 
 ## Holds
 
