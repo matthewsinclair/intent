@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 08:48Z
+heartbeat_at: 2026-09-18 09:06Z
 status: active
-focus: "0443, 0446, 0447 CLOSED; 0453 and 0454 filed. Nothing in DOING. The fleet trawl (hold 20) is ready and waits on hv's ST0078 ruling. Holds 17, 18, 20. NO RELEASE, NO PUSH."
+focus: "0443, 0446, 0447 CLOSED. On the bounce: a work package from ST0078 via vc (expected P3: the non-destructive ingest door on the CLI, the post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply, store-stale into the shown-not-counted tier). Holds 17, 18, 21. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -23,7 +23,7 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
-- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on the final pair ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22 end to end, the four stops all on the banked list. Script, harness, split and the rehearsal log are on refs/bank/dc/trawl/. Released by hv's ST0078 ruling; then skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies first, and Devbin's tree must be clean. NO PUSH.
+- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Rehearsed and judged on ea1f679cd (vc, 2026-09-18 08:47Z): 18 of 22, only the banked stops; kit and log on refs/bank/dc/trawl/. hv ruled ST0078 whole into 3.1.0 (vc, 09:06Z), so this is released when ST0078's build has landed and the pair carrying P1 and P3 is rebuilt, so every estate is touched once; then one re-rehearsal on that pair, skills sync once, then the split. Conflab needs cc's ruling on its 67 v2 copies, and Devbin's tree must be clean. NO PUSH.
 
 ## Watch-outs
 
