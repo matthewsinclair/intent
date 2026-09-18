@@ -53,7 +53,7 @@
 - Make the bad state unrepresentable rather than checked for.
 - Where a property belongs to a syscall or a dependency default, the outcome holds under any implementation.
 - A predicate is sound relative to what is done with the answer. **One predicate reused by two callers with opposite error contracts needs the reason written AT the call site**, or the next reader tidies them into agreement and silently reinstates the defect.
-- Highlander governs implementations, not witnesses: consolidating witnesses deletes the measurement.
+- Highlander governs implementations, not witnesses: consolidating witnesses deletes the measurement. **And a witness that cannot see the event is not a witness** (the 0442 detector, 2026-09-17): prove a second instrument can observe the fault before counting it, because independence from a failure mode is sometimes exactly what blinds it. Where only witnesses sharing a blind spot exist, declare that; never add a decoy to make the principle read as met.
 - Changing a published field's meaning without changing its shape is the worst version of that change.
 - A criterion is owned by whoever can satisfy it and must be able to fail.
 - Removing a swallow means finding out what it was swallowing, and the only way is to remove it.

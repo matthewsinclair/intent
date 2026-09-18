@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "5f420db0-02b8-4e46-9bb3-cf691eaac52c",
-    "heartbeat_at": "2026-09-17T22:29:11.388Z",
+    "heartbeat_at": "2026-09-18T06:05:08.973Z",
     "status": "active",
-    "focus": "2026-09-17 late, post-lean: EVERYTHING IN THE ESTATE WAITS ON ONE WORD FROM hv -- is the full test suite finished? That gates cc's compile and dc's apply and nothing else. Conditions, each discharged by a check: cc's SQLite move is BANKED and JUDGED at rusqlite 0.40.2 / libsqlite3-sys 0.38.2 / SQLite 3.53.2, patch-id 8dbd56bbba9d232b81f5273a755f75bd47dc3df6, and lands FIRST because dc's 0443 classifier reads FTS5 message text; dc's 0443 Q2/Q3 is banked unapplied and lands after cc; ic is folded and idle with nothing assigned. vc OWES 0442 two forward corrections, the crash-versus-WAL scope and decision 25's wrong stated reason. WITH hv: annotate release tags or take --tags; build ic's staleness check or not; hook ownership, which dc's drive has now settled on the merits as devbin's. The lean-out is DONE and verified. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-18 05:59Z, folded for hv's compact. ON THE BOUNCE vc COLLECTS EVERY LANE'S PLAN AND hv ITEMS AND SYNTHESISES ONE PLAN FOR THE DAY, questions to hv with context, options and a recommendation. hv's priority: close the open issues and threads, then trawl every project to pristine under doctor and organize. Conditions: nothing builds until hv says the 2026-09-17 suite is finished; cc's SQLite move lands before dc's 0443 because both edit store.rs; the 0442 detector is A2 (decision 37 corrects 36 -- A1 is blind to it). NO RELEASE, NO PUSH.",
     "claims": [
       "ST0056",
       "ST0060"
@@ -103,7 +103,8 @@
       "kind": "watchout",
       "seq": 5,
       "text": "**A parent build cannot read a newer build's fixture** (store 18 vs 17). Build each arm's fixture with its own binary.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:01.583Z",
       "recorded_at": "2026-09-13T10:24:40.402Z"
     },
     {
@@ -244,7 +245,8 @@
       "kind": "watchout",
       "seq": 14,
       "text": "**Count `intentd` by executable**, `ps -axo pid=,command=` on argv[0]'s basename.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:02.406Z",
       "recorded_at": "2026-09-13T10:24:40.402Z"
     },
     {
@@ -609,7 +611,8 @@
       "kind": "watchout",
       "seq": 18,
       "text": "A renderer change (a footer, a view's format) skews every generated view that organize does not touch: the whiteboard boards and inboxes, steel_threads.md and todo.md. Doctor refuses every commit until they match, intent sync --to-disk refuses while intentd watches, and the restarted intentd re-renders them itself, so after the rebuild and organize --apply re-read git status and commit those views with the rest (37e961bdb, 2026-09-15).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:03.224Z",
       "recorded_at": "2026-09-15T22:21:30.620Z"
     },
     {
@@ -635,7 +638,8 @@
       "kind": "decision",
       "seq": 20,
       "text": "(2026-09-16) vc, under the pen, on dc's costing read from the source at d24487079: devbin's migrate carry defects are fixed by a LOUDER MIGRATOR, not a richer model. The model is unchanged: no store rung, no face change, no new item verbs, because every new field would be data only migrate creates and no verb changes, which is devbin letter I recreated. wb migrate carries the pre-migration wip.md verbatim as a snapshot through the existing snapshot path, so nothing is lost; anything it cannot carry (a ### sub-heading, a table, a heading's text after the kind word, a board lead) is named as a unit BEFORE any write and the carry is REFUSED, the way WbSendersNotRegistered already refuses, unless an explicit drop flag is passed; prose it carries as an item is reported on a coerced: line and never silently; a .history file left in place gets its own word, not uncarried:. Devbin letter C (empty sections emitted, fixed section order) closes as intended: both are documented renderer rules in views.rs, and its real harm is the pickup gap, fixed separately. Size M, one crate.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:50.956Z",
       "recorded_at": "2026-09-16T12:27:37.126Z"
     },
     {
@@ -643,7 +647,8 @@
       "kind": "decision",
       "seq": 21,
       "text": "(2026-09-16) vc, under the pen, on cc's grouping of devbin letters J, O, N (store and audit) and H, I, M (identity): (1) a node's name and role are corrected by `intent wb register <moniker> --name --role --correct`, a flag on the one identity door rather than a new verb: registered monikers only (it never creates a node), name and role only, rc 0 reporting the node unchanged when nothing differs, WbRegisteredDifferently's remedy names it with both values, recoverability as register's, its dispatch row, legal pairs and table regen in the same change; hv may respell it before release. (2) Every whiteboard write logs an event, wb touch included, through one store door that stamps updated_at and appends the event in the same transaction; events are not carried into intent/.canon (issues/, project.json, st/), so a logged heartbeat dirties no tracked file.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:51.767Z",
       "recorded_at": "2026-09-16T12:29:59.626Z"
     },
     {
@@ -660,7 +665,8 @@
       "kind": "decision",
       "seq": 22,
       "text": "(2026-09-16) vc, under the pen, answering cc's replace_boards question for bank 1 (0411, 0415, 0414): sync --to-store APPLIES THE DIFFERENCE BY NATURAL KEY and never carries id or updated_at, so board.json and schema/board.schema.json do not move. replace_boards becomes delete-missing, update-changed, insert-new, the precedent replace_file_index already sets: wb_node keyed on moniker, wb_item on (node, kind, seq), wb_message on (sender, recipient, recorded_at, body) counted as a multiset so two identical rows stay two. An unchanged row keeps its id and updated_at; a changed row is updated through the one store door vc decision 21 (2) rules, stamping updated_at; an inserted row takes the next id in board.json order, which is today's order on a full restore. sync_overwrite lists the whiteboard differences (a node whose fields differ, an item or message added, changed or removed) beside threads and issues, so the no-overwrite line is printed only when it is true, and a run that differs names what it replaced. Size M with decision 21 (2), one crate.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:52.594Z",
       "recorded_at": "2026-09-16T14:15:53.855Z"
     },
     {
@@ -730,7 +736,8 @@
       "kind": "decision",
       "seq": 24,
       "text": "(2026-09-17) vc, under the pen, for ST0076. (1) The brace form `alias MyApp.{Repo, Mailer}`, the `__MODULE__` forms of every directive and `alias :crypto, as: Crypto` are all inside AC-03.1 as written: each directive entry is a level-1 row named by its whole module, by one mechanism in cc's shapes bank (@name.base and @self). Laksa has none of the `__MODULE__` or atom-alias forms (measured) and they stay in, because a row naming the wrong module is a claim wider than the build and the pattern costs less than a published sentence excusing it. (2) WP-03 and WP-04 share the published sentence of what a reference misses: each lander's text is true of the HEAD it lands on, decision 19 orders them, and the second lander rewrites the Elixir gap and level_words(2) with the register regen. (3) WP-05 measures the SCIP export with build scripts and proc macros off as well as on, and the join counts; if the export runs project code it runs only on an explicit verb and never from intentd unasked, and AC-05.1 is reworded to say so. (4) Level 3 is one core written once for both languages: a side table (replace_symbols_for deletes and re-inserts a file's rows, so columns on symbols would lose resolved rows at every re-extract), one join, one schema step, one envelope field for a missing or stale tier and one verb; its contract and its builder are ruled on cc's report. (5) Each train has one whole-suite judging run, in the warm worktree that already holds its stack, and every write to the live store goes through the installed pair. (6) The guards adoption pass is dc's, beside the trawl.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:53.381Z",
       "recorded_at": "2026-09-17T12:09:08.098Z"
     },
     {
@@ -738,7 +745,8 @@
       "kind": "decision",
       "seq": 25,
       "text": "(2026-09-17) vc, under the pen, on cc's WP-05 measurement report (one default export, one build-scripts-off export and one join on a fresh clone at c800b8319) and dc's Elixir requirements: LEVEL 3 FOR ST0076. (1) WHO RUNS IT: the SCIP export runs the project's build scripts and proc macros and this rust-analyzer has no switch that stops it, so level 3 runs only on one explicit verb for both languages (working name `intent index resolve [--lang] [--full]`; hv may respell it), never from intentd, reconcile or a hook, and it is not offered on the MCP tool tier in this release. (2) POPULATION: every written reference row, not level 2 alone (level 2 alone would store 26,167 of 144,554 Rust matches, and Elixir's unqualified rows are the ones level 3 exists for); AC-05.1 and AC-06.1 say `a written reference`. (3) ONE CORE, built once by cc as WP-05's first bank, which dc's WP-06 stacks on: a side table of one resolved row per (path, line, name, target), existence semantics, no tie-break at write, so a key naming two targets stores both and is counted as ambiguous; the target is one printable name per language with no tool or crate version in it, with the definition's path and line when the index holds it; staleness facts (the file's sha256 at trace, language, run) live once per file and not per row; a run joins only against the bytes the tool read, replaces exactly the files it resolved in one transaction, writes nothing when it fails, and purges rows whose path has left the index; reconcile never deletes resolved rows; one schema step. (4) COUNTS in `intent index status`, per language, from the last run: matched, unmatched, dropped, ambiguous and stale paths. (5) The SCIP decoder is hand-written in intentsvcs as a pure module, fields by number, unknown fields skipped. (6) Toolchain output goes to a directory of Intent's own under intent/.cache, never the project's target. (7) ARMS: decode, join, replace, staleness and counts are proven hermetically from a small checked-in fixture; the absent tool is proven with the tool off PATH; an arm that needs a real toolchain is `#[ignore]` with its reason and is run with --ignored where the tool exists. Whether CI installs Elixir and rust-analyzer on one leg to run those is hv's call.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:54.203Z",
       "recorded_at": "2026-09-17T12:24:40.694Z"
     },
     {
@@ -773,7 +781,8 @@
       "kind": "decision",
       "seq": 26,
       "text": "(2026-09-17) vc, under the pen, on cc's three questions for the Rust reader, ruled from a read of cc's drafts against the landed resolved.rs. (1) OPERATOR: a reference occurrence whose text is non-empty and holds no letter, digit or underscore is excluded by the reader as `operator`, declared in its roster; rust-analyzer's export puts an overloaded operator's reference on the operator and on the spaces beside it. It is the one word both languages publish for the class (dc's tracer measurement already uses it). The test is on the text and not on being a Rust identifier: a tuple-field index, `Self`, `crate`, `super` and a raw identifier stay in the join and count as unmatched, because those are the toolchain-only references hv's population ruling is about; an empty text is not an operator and goes to the join. (2) CARGO.LOCK: where a workspace root holds no Cargo.lock, cargo writes one there during the export, as any cargo command would; the reader leaves it and never deletes or moves a file in the project tree, no stable switch moves it, and AC-05.1's claim is about the build directory and stands. The sentence is published in `index resolve`'s recoverability_anomaly and the module doc; no detector, no note in the outcome; the fixture crate keeps a checked-in Cargo.lock. (3) THE PRINTABLE RUST TARGET stands as cc drafted it (0 collisions over 12,520 symbols here): `crate::path::Type::method()`, fields and types plain, `<Type as Trait>::method()`, `name!`, `#[Derive]`, `<impl Type>`; the `()` is part of the name because a field and a method of one name are two definitions; an impl's module is the one its block is written in, said in the doc and not canonicalised. ic's near-target refusal therefore compares with a trailing `()` removed as well as a trailing `/arity`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:55.013Z",
       "recorded_at": "2026-09-17T14:30:39.898Z"
     },
     {
@@ -781,7 +790,8 @@
       "kind": "decision",
       "seq": 27,
       "text": "(2026-09-17) vc, under the pen, on dc's WP-06 design points and ic's AC-07.2 question. ELIXIR READER: (1) the tracer records call events (remote_, imported_ and local_, function and macro) printed inspect(module).name/arity, a local call on env.module, and module references (alias_reference, alias, import, require) with the module as name and target, plus :start and :stop per file; no other event kind is recorded. (2) Its roster is `expansion`, `operator` and `quoted`. `expansion` is a call or module event whose meta carries no column, checked first: dc measured on Elixir 1.20.4 that every written reference kind carries a column and generated code carries none, and that a written `to_string(x)` traces both Kernel.to_string/1 with a column and the macro's own String.Chars.to_string/1 without one on the same line and name, so the join alone would store the twin; a trace whose reference events carry no column at all is Failed, never a run that drops everything; the doc says the test cannot see a macro that reuses a written node's meta. `operator` is one word with one test for both languages (decision 26), so OPERATOR and its test move into resolved.rs in dc's landing. `quoted` is an imported_quoted event, which names a list of arities and asserts none singly: counted, never a row per arity. (3) A file is read only if it ran :start to :stop and hashes the same before and after the compile; a non-zero exit, a :start with no :stop or a tracer fault record is Failed. (4) A run that seeds or re-seeds the cache forces the compile whatever --full says, because a seeded cache holds the user's compile state and would never trace what the user already compiled. (5) mix.exs is read at the index root only in this release, and NotApplicable's detail and the register's words say so. (6) dc corrects WP-06's body now (ruling 4 struck for AC-06.1's clause), with wp start. AC-07.2 (ic): stored rows answer whatever this build's readers are, and there is one refusal, keyed on the store alone, with the remedy `intent index resolve`; the readers()-dependent wording is dropped and the AC's last clause reworded at 41c8f9ad1.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:55.826Z",
       "recorded_at": "2026-09-17T14:40:32.804Z"
     },
     {
@@ -789,7 +799,8 @@
       "kind": "decision",
       "seq": 28,
       "text": "(2026-09-17) vc, under the pen. (1) ISSUE 0437 took the strictly narrower pattern, `Result<[^<>]*, *String>` and its Box<dyn Error> twin: cc measured that the old `[^>]*` stops at an inner `>`, so a generic first parameter never fired, and that vc's balanced pattern would strike six existing lines in four files (render.rs three, daemon.rs, graphql.rs, legacy.rs), five of them not violations by the rule's own words; a subset pattern strikes nothing new anywhere, `Result<Vec<u8>, String>` is pinned as not firing so that widening is a decision, and the six lines are in the issue's close note and not filed. (2) WHETHER A LANGUAGE APPLIES IS DECIDED AT ANSWER TIME, NEVER STORED: a search answer names a declared, carried language as unresolved, failed or missing only where the index holds the manifest its reader resolves from (Rust: any indexed Cargo.toml; Elixir: mix.exs at the root), through one seam on the Resolver trait that the reader's own not-applicable test also reads; a run of a language this build does not carry is named as recorded. The core still records a named not-applicable run as failed and index status says so; the answer does not, because no run can ever store there and the alarm would be permanent. This estate declares elixir and holds no mix.exs. (3) The words for unresolved name the verb as a person's (it runs the project's build and is withheld from the MCP tier), never as a next step. (4) AC-05.1's last clause is the run's record and AC-07.1 alone carries the envelope. (5) The all-estate board trawl's first pass is cc's, in scratch clones over the registry's estates, with the frozen v2 checkout named as excluded, read-only store copies checked by mtime, -wal and integrity_check, and a worklist by estate and by class of uncarried unit for hv.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:56.655Z",
       "recorded_at": "2026-09-17T15:10:45.271Z"
     },
     {
@@ -815,7 +826,8 @@
       "kind": "decision",
       "seq": 29,
       "text": "(2026-09-17) vc, under the pen, on cc's 0438/0439 bank (landed eac280b50 at the judged patch-id 1d3a0d9c, closed 5a0c34c98) and on ic's read of gen_reference.sh. (1) 0438: every hand-authored inbox holding a line the model cannot carry is kept byte for byte at <node>/.history/pre-migration/inbox.<sender>.md beside the board's copy, on disk and in the store's prose; every copy is checked against a file already at its path before any is written; the uncarried refusal names each copy a drop would keep, as a list. (2) 0439: a view Intent rendered is recognised by one predicate in the renderer's home (views::view_body, beside BANNER_MARKER, which finish now pushes itself), asked by both of migrate's readers, which set the banner aside; a view offering no unit once its banner is gone is named on a rendered: line and not kept, and a node whose files are all such views carries nothing at exit 0. A VIEW THAT STILL OFFERS UNITS IS CARRIED AS ANY BOARD IS: a fresh clone has no store, so its rendered views are the only record of its board. That is the one delta from the issue's body, and vc accepted it. (3) THE docs/reference REGENERATION FOLLOWS THE LAST LANDING THAT CHANGES THE REGISTER, NOT THE REBUILD: gen_reference.sh runs no binary and reads surface/dispatch-table.json at a revision (ic's pre-run is banked at refs/bank/ic/refgen-prerun/), so it is ic's commit (ic hold 10) once vc says the register is final, which is after WP-06's dispatch-table hunk lands; its baseline is named on purpose, --baseline v3.0.1, the one the committed pages used, unless hv's release version moves it. (4) vc's own no-columns guard in decision 27 was wrong as ruled and is corrected: every defmodule traces a columnless :elixir_utils.noop/0, so an incremental compile of a module with no written reference records events and no column legitimately; the run fails only where a FORCED compile traced references and none carried a column (dc's bank ac00b98e, the unit arm asserting both directions).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:57.481Z",
       "recorded_at": "2026-09-17T16:27:41.850Z"
     },
     {
@@ -832,7 +844,8 @@
       "kind": "decision",
       "seq": 30,
       "text": "(2026-09-17) vc, under the pen, on dc's WP-06 judging run and Laksa drive, and on ic's diagnosis of the 0439 canon warning. (1) THE ELIXIR READER READS NO ENVIRONMENT VARIABLE AND ALWAYS BUILDS dev, narrowing decision 27's <env>: AC-11.3's census (intent-cli no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable) went red on its read of MIX_ENV in the judging run of bank c4b326db, and Intent's own build must not change with the shell it was started from; MIX_ENV=dev is set on the child so the build directory's name and the compile's environment cannot disagree, the build is resolve/elixir/dev seeded from _build/dev/lib, and code only another environment compiles (test/support under elixirc_paths(:test)) is not traced; a project that needs another environment asks, and hv grants it with an ALLOWED row. (2) LEVEL 3's COUNTS STAY THE STORED RUN'S CONSERVATION LAW (issue 0440, cc's): an incremental Elixir run that traced nothing printed matched 0 while every row stayed stored; no sum over files can reproduce the counts because a trace's excluded counts carry no path, so status says what the stored run covered, `joined K of F files` from resolved_file.run, with no schema change. (3) A TOOLCHAIN-ONLY REFERENCE JOINING A WRITTEN ONE ON THE SAME LINE AND NAME (Access.get beside Map.get, to_string from interpolation) and A TARGET'S PLACE BEING THE RUN'S (an incremental compile leaves placements in files it did not recompile) are ST0077's, recorded in its context with dc's Laksa numbers; both are consequences of the ruled key and staleness model, both degrade honestly, and WP-06's body names each in one sentence. (4) ISSUE 0441 (ic's): intentd's ingest pass must commit its files only if no other connection committed since its snapshot, judged by PRAGMA data_version, with the check, the file commit and record_landed under one hold of the store's write lock; a moved store re-renders at most three times, then a logged line names the subjects not written; the command-line side's check, store commit and file commit are confirmed to hold the lock the same way or fixed in the same bank; no narrowing; one arm with a seam. The command-line side stays as it is (a sync in its post-commit gap either discards its render or renders the write's own rows byte for byte), with two writers crossing on one subject named in 0441's close note as a residual, and `Load::Restore` takes no guard. (5) THE TRAWL'S LIVE CARRY DOES NOT WAIT ON 0441: intentd's registry (one line, {\"root\":\"/\",\"op\":\"registry\"}, to its socket) names every estate it holds open, and an estate that reads not watched before its carry and before the carry's commit, with ingested unchanged, had no sync that could revert a board (ic's probe; only this estate was watched when ic drove it).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:58.301Z",
       "recorded_at": "2026-09-17T16:57:08.861Z"
     },
     {
@@ -858,7 +871,8 @@
       "kind": "decision",
       "seq": 31,
       "text": "(2026-09-17, after hv's compact) vc, under the pen. (1) ONE REBUILD CARRIES EVERYTHING: the rebuild waits for 0441's landing rather than preceding it, so level 3's surfaces, the Elixir reader, the counts, both migrate fixes and 0441 install together and the 3 s spacing rule retires with it; had the bank gone red the rebuild would have gone first without it. (2) docs/reference IS ONE COMMIT OF BOTH HALVES AT ONE REVISION: cut-surface.md is gen_cut_surface.sh's, not gen_reference.sh's, and it reads ALL_VARIANTS in intentsvcs/tests/error_remedies.rs at the revision, which 0441 moved, so the regeneration followed 0441's landing (d21550ae5 at 98c580d12, 21 pages, prettier clean). Between cuts the pages name a dev revision, which is the practice ic measured; at the cut both halves are regenerated at the TAG against the previous release, and ic writes that step's durable home beside the notes at the cut, because it survives in the commit record alone. (3) ISSUE 0442 IS cc's (dc's find: the live store's FTS5 index for src_sections malformed, a plain search failing on an affected term, doctor and index status both reading clean over it): it answers the cause with evidence before any change, the fix that stops it being produced, detection, and whether a plain search is a write path by design or only in its error's wording. (4) THE LIVE REPAIR RAN BEFORE THE REBUILD, intent index rebuild at 18:16Z through the installed pair, because the restart re-indexes the files 0441's landing changed and would write into the damaged index; integrity is ok on a page-exact copy and the failing search exits 0, and a repair is not a fix. (5) THE NEXT RELEASE'S NOTES ARE cc's, banked and not landed until hv names the version: bin/devbin build release refuses a cut with no '## [X.Y.Z] - in progress' section in CHANGELOG.md, and nothing has been written since v3.0.3.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:59.124Z",
       "recorded_at": "2026-09-17T18:17:45.967Z"
     },
     {
@@ -892,7 +906,8 @@
       "kind": "watchout",
       "seq": 19,
       "text": "**THE INSTALLED PAIR IS THIS TREE'S BUILD ARTEFACT, SO ANY RELEASE BUILD HERE SWAPS EVERY NODE'S BINARY MID-FLIGHT** (dc measured it 2026-09-17, vc drew the consequence): `~/.local/bin/intent` is a SYMLINK to `native/rust/target/release/intent` in this checkout, so \"drive it on the installed pair\" and \"drive it on this tree's release build\" are one run and a copy into a clone is a `cp`. The consequence nobody had written down is that `cargo build --release` in this checkout silently replaces the binary all four nodes are running, with nothing in the tree changing to mark it -- which is the MECHANISM under the rule that no commit lands while a rebuild builds, and it also means a scratch estate that resolves its binary through the symlink can have its subject swapped between an ancestry check and a verdict. A run that must name the version that produced its result pins the resolved file or copies it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:04.054Z",
       "recorded_at": "2026-09-17T18:48:52.644Z"
     },
     {
@@ -900,7 +915,8 @@
       "kind": "watchout",
       "seq": 20,
       "text": "**`intent st hydrate <ID>` RE-LISTS A CLOSED THREAD, AND `st done` OFFERS IT AS THE REMEDY FOR ITS OWN UNLISTING** (dc found and stopped on it, vc verified, 2026-09-17). Closing a thread removes its `STEELTHREAD:<ID>` line from `intent/.intentfiles` entirely, so nothing reconciles its tree afterwards and a disk edit to one of its attachments reads as `attachment-drift` rather than being ingested -- correct behaviour, and surprising after a close. The close then prints `intent st hydrate <ID>` as the way to write the files back, and `Facade::hydration` PINS UNCONDITIONALLY at `facade.rs:5555` (\"STEP ONE: PIN. First, and unconditionally, because it is the step the obvious ordering skips\"); `intentfiles::pin` has exactly two callers in the tree, that one and `edit_list`'s explicit `ListAction::Add`. So the offered remedy silently reverses half the close. Use the attachment route in vc decision 33 instead, and never reach for `hydrate` on a closed thread to fix one file.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:04.871Z",
       "recorded_at": "2026-09-17T20:07:44.291Z"
     },
     {
@@ -925,7 +941,8 @@
       "kind": "watchout",
       "seq": 22,
       "text": "**A SOURCE READING IS A CLAIM ABOUT CODE, NOT A CLAIM ABOUT WHAT RUNS** (vc's own error, 2026-09-17, caught by cc within the hour). vc read that FTS5's config cookie is bumped only under `if( rc==SQLITE_OK && pVal )` and that all three version writes pass `pVal = 0`, which is true of every line; inferred from it that another connection's cached format version is never invalidated, which is false; and labelled the inference \"a source fact rather than a hypothesis\" -- the strongest label available -- before testing it once. It reached two lanes, an issue body and a commit message inside ten minutes, and a peer was repeating it back as the night's cleanest finding. cc read the cookie off disk with a positive and a negative control and measured it MOVING. **THE CONFIDENCE WAS NOT THE DEFECT; SHIPPING AN UNTESTED INFERENCE INTO DURABLE PLACES WAS.** A reading that predicts something testable gets tested BEFORE it is written anywhere durable, and the cleaner the reading the more that applies, because a clean reading that predicts the wrong thing is harder to let go of than a sloppy one. Corollary, from dc's own correction the same night: **a correct rule with the wrong cause under it is as dangerous as a wrong rule**, because only the cause is load-bearing when someone builds a fix on it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:05.686Z",
       "recorded_at": "2026-09-17T20:33:33.874Z"
     },
     {
@@ -933,7 +950,8 @@
       "kind": "watchout",
       "seq": 23,
       "text": "**AN INSTRUMENT CAN REPORT A CLEAN IT HAS NO STANDING TO REPORT, AND THE FIX IS TWO-SIDED** (2026-09-17, three instances in one night; dc named the pattern and dc's own correction made it institutional. Replaces vc watchout 21, which stated only the operator half). (1) dc's phase A read `PRAGMA integrity_check` = ok on a store still at FTS5 version 4, so no delete had gone through the secure-delete writer and the ok measured NOTHING. (2) A `.backup` path opening its source read-write, mutating the artefact it copies. (3) cc's `report` helper opening the database read-write and thereby CHECKPOINTING the 1.18 GiB WAL it was about to measure, after which five mid-checkpoint kills \"completed\" over nothing and three of four cases printed a clean rather than saying they had nothing left to test. **THE COMMON SHAPE IS AN INSTRUMENT THAT EITHER MUTATES WHAT IT MEASURES OR MEASURES A CORPUS THAT COULD NOT HAVE EXHIBITED THE FAULT, AND ITS OUTPUT IS THEN INDISTINGUISHABLE FROM A REAL NEGATIVE.** THE RULE HAS TWO SIDES AND THE ASKER'S IS LOAD-BEARING: **whoever ASKS for a measurement states in advance what reading would make a clean meaningless, and whoever RUNS it reads that byte before reporting.** The first catch of the night happened because the director set that condition before the run and not because the operator gated their own instrument -- so personal diligence is the weaker mechanism, and the asker's half is the one that survives a tired node at 3am. Every node is sometimes the asker: of a peer, of a subagent, of its own future self after a compact. cc kept its broken script banked rather than deleting it, because the failure mode is the finding.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:06.504Z",
       "recorded_at": "2026-09-17T20:43:54.169Z"
     },
     {
@@ -959,7 +977,8 @@
       "kind": "watchout",
       "seq": 25,
       "text": "**A CONSOLIDATION IS WHERE A RETRACTED CLAIM GETS QUIETLY REINSTATED, AND FOLLOWING hv DECISION 7 CORRECTLY IS WHAT BUILDS THE TRAP** (dc, 2026-09-17, on vc's batched 0442 pass. Replaces vc watchout 24, whose check named the wrong instrument). Decision 7 says a false claim is corrected FORWARD and never rewritten, so a long-lived issue body carries every dead reading stated as confidently as the live ones, with its refutation somewhere further down. A consolidator reading FORWARD from that record meets each claim before its retraction and reinstates one. 0442 carried five in a single night -- vc's permanently-stale `iVersion`, cc's phantom-as-a-named-file, cc's frequency enrichment, dc's verb-versus-bare framing, and vc's promotion of 0443 -- every one of which had been in an inbox or a commit message as fact. **TWO MECHANISMS, KEPT TOGETHER BECAUSE THEY FAIL DIFFERENTLY: draft the consolidation from the RETRACTIONS first, listing the dead claims before a word of the body is written, which prevents at the start; and check the finished draft against that list, which catches at the end.** **AND THE CHECK'S NEEDLES COME FROM THE CLAIM, NEVER FROM THE CORRECTION** (dc's refinement, which is the difference between a check and a formality): grepping the phrasings the author used to RETRACT a claim only catches a reinstatement in the author's own retraction vocabulary, which is the least likely form -- a consolidator paraphrasing from memory reaches for different words by definition. dc checked vc's pass with seven needles drawn from the original claims and not from vc's five retraction phrasings. Decision 7 is still right; the consequence is that a consolidation is a different ACT from a read-forward and has to be worked differently. This estate has form at document scale -- the entry point was three copies of one narrative, each claiming to supersede the others, every one accreting rather than replacing.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:07.347Z",
       "recorded_at": "2026-09-17T21:08:41.882Z"
     },
     {
@@ -967,7 +986,8 @@
       "kind": "decision",
       "seq": 34,
       "text": "(2026-09-17 21:40Z, vc under hv's pen, correcting vc's own transcription forward) THE BASELINE COMMAND NEEDS --tags AND hv's RULING IS UNTOUCHED. hv ruled \"3: Tag\" -- the docs/reference baseline is the previous release tag -- and vc rendered it as `git describe --abbrev=0` in hv board decision 25, in this board's line 28 and in intent/wip.md, from where ic wrote it into intent/docs/releasing.md twice. Driven independently by vc and by ic at 21:35Z: the bare form answers v2.3.2 and the --tags form answers v3.0.3. `git describe` reads ANNOTATED tags only unless --tags is passed, this repository has 56 tags of which 6 are annotated and all 6 are v1.x or v2.x, and every v3 tag is lightweight because bin/.devbin/cmd/build.d/release:1221 is `git tag \"$TAG\"` with no -a. Reachability is not the cause; the default tag filter is. THE CONSEQUENCE, traced rather than assumed: surface_resolve_rev resolves v2.3.2 but surface_table_at then fails because surface/dispatch-table.json does not exist before v3.0.0, so gen_reference.sh:136 prints one note to stderr, clears BASE_SHA and ships pages reading \"none -- no register at the baseline\" in the one column those pages exist for. Nothing landed is wrong: both prior regenerations passed v3.0.1 by hand, so the ruled command has never been run, which IS the defect. THE CLASS, third instance in one night after vc's FTS5 cookie reading and ic's grep-hits-as-control-flow: a command written into a durable document is a claim and gets driven like one. ic argued in that very page that a command beats a sentence because it cannot drift with anyone's reading, wrote it in on that basis, and did not run it -- AN UNRUN COMMAND IS A SENTENCE IN A MONOSPACE FONT. ic also found the page's OTHER check command broken (a table-cell boundary defeats the -o pattern; the working form is `grep -rh 'reported against' docs/reference/ | sort | uniq -c`, reporting 19 pages at v3.0.1), which is the same defect twice in one page and the strongest argument yet for ic's banked staleness check, since a check computing its own baseline would have failed loudly on the missing register the first time it ran.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:04:59.935Z",
       "recorded_at": "2026-09-17T21:40:29.977Z"
     },
     {
@@ -992,7 +1012,8 @@
       "kind": "decision",
       "seq": 36,
       "text": "(2026-09-17 22:28Z, vc under hv's pen, on cc's design read) THE 0442 DETECTOR IS TWO WITNESSES THAT ARE NEVER RECONCILED. Build the anti-join as A1, `%_docsize` against `%_content`, two ordinary b-tree shadow tables that never read an index segment; keep fts5's own per-table check as the second witness; report them SEPARATELY and never merge them into one verdict. vc's prior was given before cc's read so it could not be fitted to it -- keep the halves independent, because Highlander governs implementations and not witnesses, and every instrument defect found on 2026-09-17 was caught by two differently-wrong instruments disagreeing rather than by either being scrutinised. Both of vc's movers were answered on evidence: A1 has a failure mode the checker catches (a docid in the segments but in neither shadow table) and the checker cannot enumerate, so they are complementary rather than redundant; and A1 costs two b-tree scans against a check that reads every segment and computes two checksums, so cadence differs by orders and A1 can run in doctor on every invocation while the checker is reachable on demand. THE FINDING IS cc's AND IT SITS A LEVEL BELOW WHERE vc AIMED THE PRIOR: the other anti-join, A2, reads the index through `fts5vocab`, which is itself an index reader that corruption can make lie and which upstream patched at 3.51.1, so A2 is DOWNSTREAM of the thing under test and would have bought the APPEARANCE of two witnesses over one shared failure mode -- worse than knowing you have one, because it turns a missing check into a passing one. cc flagged that A2 is what cc would have built by default, being what cc's own 0442 instruments were, which is the instinct to reuse the tool that found the fault producing a dependent witness. vc's ONE ADDITION is a requirement on the output: the disagreement semantics are PRINTED, not documented -- a clean A1 beside a corrupt checker verdict means structural damage with content rows intact, a dirty A1 beside a clean checker verdict means the shadow tables disagree with each other -- because a reader who has to derive what a disagreement means will reconcile the two in their head, which is one witness with extra steps.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:00.763Z",
       "recorded_at": "2026-09-17T22:29:09.171Z"
     },
     {
@@ -1000,8 +1021,25 @@
       "kind": "todo",
       "seq": 36,
       "text": "RESUME HERE (vc, 2026-09-17 late, replaces todo 35, which is INCOMPLETE rather than false -- it describes the lean-out as unstarted and the baseline command as wrong in four homes, and both are done. ic's distinction, taken: an incomplete resume item is the harder case, because every sentence in it is true and nothing ever fires, so the cost lands as duplicated work rather than as a visible error). EVERY LINE BELOW IS A CONDITION DISCHARGED BY A CHECK, NEVER BY HAVING READ IT.\n\n(1) THE WHOLE ESTATE WAITS ON ONE WORD FROM hv: is the full test suite finished? Nothing builds until hv says so -- not vc, not cc, not dc -- and nobody infers it from `ps`. That word releases cc's compile and dc's apply and nothing else.\n\n(2) THE ORDER AT LANDING IS FIXED AND IS vc's TO CALL: cc's SQLite move first (banked, judged, patch-id 8dbd56bbba9d232b81f5273a755f75bd47dc3df6), then dc's 0443 Q2/Q3 (banked unapplied at refs/bank/dc/0443/q2q3-change.md, b9da71fdf). The reason is MECHANICAL and not the one vc first gave: both banks edit native/rust/crates/intentsvcs/src/store.rs, so the shared-file rule decides it and cc banked first. At cc's landing vc reads `Cargo.lock`, which was deliberately NOT banked; anything moving outside the rusqlite chain stops the landing. cc owes one rebuild and one whole-suite run, announced at both ends because of the symlink, and cc brings the detector's design as a read before writing it -- vc's prior is on record in decision 35 and is not the ruling.\n\n(3) vc OWES 0442 TWO FORWARD CORRECTIONS and neither is written yet: \"the crash/WAL family is ruled out\" narrows to the crash family, because no arm tested a checkpoint-versus-commit race and cc has corrected the same overstatement in RESULT-2.md; and the passage recording `replace_src_sections` landing at version 4 as \"observed four ways, mechanism unlocated\" now HAS its mechanism -- cc read that only three sites set `bUpdateOrDelete` and a plain INSERT is not one of them, so the live verb ends at 4 while the replay's REPLACE-with-rowid re-inserts reach 5. It is a code reading; cc drives it in the same run, and the label comes off only if the drive takes it off.\n\n(4) THREE DECISIONS ARE hv's AND NOTHING IS BLOCKED ON THEM: whether release tags start being annotated or `--tags` is the durable answer, since `release:1221` is `git tag \"$TAG\"` with no -a; whether ic's banked staleness check is built; and hook ownership, which dc's live drive has now settled on the merits -- the confirmed defect is wholly inside `bin/.devbin/cmd/hooks`, writes no hook and sets no `core.hooksPath`, so devbin#0078 does not reach it.\n\n(5) dc's HOLD 15 stands on its condition and gates nothing in this release. ic is folded, idle, and has nothing assigned.\n\nMUST NOT: do not let any lane build while hv's suite runs; do not land dc's 0443 before cc's bump; do not re-bank cc's patch to include the lock; do not reopen 0442's cause, closed at eight negatives; do not restate `intent/restart.md`'s rules on any board, which is the duplication this evening cut; never `intent fc`; NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T06:05:08.163Z",
       "recorded_at": "2026-09-17T22:29:09.909Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 37,
+      "text": "(2026-09-18 05:59Z, vc under hv's pen, CORRECTING vc DECISION 36 FORWARD -- it said build the shadow-table anti-join A1 as the 0442 detector's independent witness, and that is WRONG. Do not build A1 as the detector.) cc measured A1 against the damaged copy opened immutable=1 and it reads 0 over real corruption with non-empty populations -- blind structurally, because sqlite3Fts5StorageDelete removes index records, then %_docsize, then %_content, each gated on the previous, so when the index keeps its postings while both shadow deletes succeed the two shadow tables are missing the row together and agree perfectly. THE DETECTOR IS A2, the index read through fts5vocab against %_content, which finds docid 2599 and 122 distinct terms in 0.13 s over 169 MB, reproducing by one query what the investigation reached by hand. THE CORRECTION TO vc's OWN PRINCIPLE, and it is the durable part: A WITNESS THAT CANNOT SEE THE EVENT IS NOT A WITNESS. vc selected A1 for independence without checking it could see the fault, and the property selected for was the property that disqualified it -- A1's independence from segment damage is exactly why it cannot see damage that lives only in segments. A2 and fts5's own check BOTH read segments, so they share a failure mode, and the two-witness principle CANNOT be met for this fault class: THAT IS DECLARED IN THE OUTPUT, never satisfied with a decoy, because a blind second witness reports clean forever and manufactures confidence, which is 0442's own defect. A1 stays as a third arm for a different fault (the shadow tables disagreeing with each other) and at zero it prints NOTHING -- absent, not quieter. THE OUTPUT, ruled on cc's read at refs/bank/cc/bump/detector-output: the pair's combination semantics get one verdict line of their own because a combination is a statement about a pair and no single finding class can own it, and FindingClass::remedy keeps its no-argument signature; the shared blind spot rides the summary AT ZERO, the inverse of every neighbouring suffix, with the reason written where the code lands so nobody tidies it into silence. THE TIER, an interpretation vc took under the pen and owes hv for reversal: hv's \"advisory rather than blocking\" means the exit code, not visibility, so the detector is SHOWN by default, NOT counted, exit code untouched -- the tier report.unattached already uses. doctor's own advisory tier prints only under --verbose, and placing the detector there would report real FTS5 corruption invisibly on a default run, which is 0442 rebuilt inside its own fix. PROVENANCE: hv's decision 25 specifies \"a document present IN THE INDEX with no row in the content table\"; cc paraphrased it to a shadow table, vc ruled on the paraphrase without returning to the sentence, and the specification was right both times.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:04:02.899Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 37,
+      "text": "RESUME HERE (vc, 2026-09-18 05:59Z, localfold before hv's compact, replaces todo 36). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK, NEVER BY HAVING READ IT.\n\n(0) THE UNIFIED PLAN IS WRITTEN AND BANKED at refs/bank/vc/plan/20260918 (`git cat-file -p` it); it synthesises cc's, dc's and ic's plans, and PRESENTING IT TO hv FOR REVIEW IS THE FIRST ACT ON THE BOUNCE. hv's instruction verbatim: every Claude syncs its plan and any hv items with vc; vc SYNTHESISES them into ONE unified plan for the day while the lanes localfold and compact; hv reviews it with vc on the bounce. Every question for hv carries its CONTEXT, the QUESTION, its OPTIONS and a RECOMMENDATION, in prose. hv's PRIORITY: first close out the open issues and steel threads; then trawl ALL projects so each is upgraded and pristine under `intent doctor` and `intent organize`.\n\n(1) THE WHOLE ESTATE WAITS ON ONE WORD FROM hv: is the full test suite that hv started on 2026-09-17 finished? Nothing builds until hv says so and nobody infers it from `ps`. It releases cc's compile and then dc's apply, in that order.\n\n(2) LANDING ORDER, vc's to call: cc's SQLite move first (rusqlite 0.40.2 / libsqlite3-sys 0.38.2 / SQLite 3.53.2, patch-id 8dbd56bbba9d232b81f5273a755f75bd47dc3df6), because it and dc's bank BOTH edit native/rust/crates/intentsvcs/src/store.rs and cc banked first. At cc's landing vc reads Cargo.lock, deliberately unbanked: anything moving outside the rusqlite chain stops the landing. Then dc's 0443 Q2/Q3 (refs/bank/dc/0443/q2q3-change.md, b9da71fdf). cc's bUpdateOrDelete drive rides in the bump's run.\n\n(3) THE 0442 DETECTOR IS A2, NOT A1 -- vc decision 37 corrects decision 36. cc writes it only after the build hold lifts, to the output contract ruled in decision 37.\n\n(4) FOR hv ON THE BOUNCE, each with context, options and a recommendation: the advisory-tier interpretation vc took (decision 37); annotate release tags or take --tags as durable; build ic's banked staleness check or not; hook ownership, which dc's live drive settled on the merits as devbin's -- the confirmed defect is wholly inside bin/.devbin/cmd/hooks and writes no hook.\n\n(5) 0442's body carries both forward corrections and the A2 design, landed 47c883c37 through `intent issues edit --from` -- NOT the disk view, which intentd reverts.\n\nMUST NOT: build anything while hv's suite runs; build A1 as the detector; put the detector in doctor's --verbose advisory tier; land dc's 0443 before cc's bump; re-bank cc's patch to include the lock; reopen 0442's cause; edit an issue's disk view instead of `intent issues edit`; never `intent fc`; NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-18T06:04:03.749Z"
     }
   ],
   "messages": [
