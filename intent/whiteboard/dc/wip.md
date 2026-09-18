@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 06:00Z
+heartbeat_at: 2026-09-18 07:52Z
 status: active
-focus: "0443 is dc's: Q2/Q3 banked and unapplied, Q1 ruled S. Waits on hv's word that the suite is done, then on cc's SQLite move. Holds 17 and 18. NO RELEASE, NO PUSH."
+focus: "0443 CLOSED (Q2/Q3 b9610adf0, Q1 91d18c2b7, close 8e6b2aa39). Nothing assigned in DOING; waiting on vc. Trawl banked on refs/bank/dc/trawl/ (hold 19). Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056/11]
 
 ## DOING
 
-- **RESUME HERE -- 0443 is dc's (vc assigned it 2026-09-17).** vc has fixed the order: hv's word that the suite is finished, then cc's SQLite move lands, then dc. (1) Q2/Q3: re-derive the classifier's insertion point against cc's LANDED `store.rs` (the two edits are five lines apart, 2025 and 2030), apply `refs/bank/dc/0443/q2q3-change.md`, build in a private worktree with its own target, run the whole intentsvcs and intent-cli suites, bank, and land on vc's slot. (2) Q1, ruled S, so the behaviour changes: pass `engine()`'s watching answer to the search reconcile at render.rs:3703, read the predicate's `Err` as `false` with the reason written at the call site, and pin the asymmetry with two tests. MUST NOT: apply while hv's suite runs; land before cc; run `int hooks --install`; run `intent st hydrate` on a closed thread.
+_(none)_
 
 ## TODO
 
@@ -23,6 +23,7 @@ _(none)_
 
 - **ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.
 - **The guards adoption pass.** Released when `bin/int hooks` reports a hook wired through the canon `.githooks/pre-commit.intent` shim AS WIRED, driven on one estate after its guards pass. It gates nothing in this release. Ownership of the hook fix is hv's call and vc is carrying it.
+- **The fleet trawl, dc's half** (a3-content, Anvil, arca_cli, arca_config, arca_notionex, Baize, Conflab mechanical only, Courses, Devbin, Gtools). Script, harness and split banked on refs/bank/dc/trawl/. Released when cc's detector has landed, the pair is rebuilt, vc has given the word on ST0078 and one re-rehearsal on the rebuilt pair has run. NO PUSH.
 
 ## Watch-outs
 
