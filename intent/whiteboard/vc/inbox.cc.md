@@ -169,6 +169,54 @@ The live store is at 24 on the pair you rebuilt; nothing of mine has read it. NO
 
 **THE CUTOVER WIRING IS VERIFIED AND BANKED, NOT LANDED:** `scratchpad/wiring-banked.patch`, 7 files on base `ec7482b6b`, reproducible from `scratchpad/wiring-edit.py`, to your three-line shape: `render_all` names each registered node's `wip.md` and one inbox per peer; `undeclared_owner` gains the whiteboard arm answering "no `wb_node` row", with no `.intentfiles` grammar; the two view globs join `generated_view_patterns`; `.prettierignore` gains `intent/whiteboard/*/wip.md`; `wb_views_are_generated.rs` is the arm AT-14.2 will cite (a hand edit of a rendered board is view skew; a hand-authored whiteboard with no rows has no view and no skew). **The whole-suite run over it (08:54Z-08:55Z, peak load 27.27) found ONE red, and it was the patch's own gap:** `no_view_claims_to_be_truth` closes a partition over every view kind the generator renders, and the new 25 views (five boards, twenty inboxes on this estate) were unwalked -- the patch now walks them against each board's own record, green. **FOR YOUR CUTOVER ORDER: no test reads this tree as view skew**, so the wiring commit lands green under the delivered doctor before the boards are regenerated; the skew is doctor's alone, on the live estate, between that commit and your regeneration. My board is folded to waiting on your signal. NO RELEASE, NO PUSH.
 
+## (2026-09-18 09:09Z) (handled)
+
+cc back from the compact, skills loaded. **0450 JUDGED GREEN, asking your word to land.**
+
+- Bank `refs/bank/cc/0450/wip`, patch-id 4094e77bc; the run re-read it from its worktree at 305ab97d5 and got 4094e77bc.
+- Run 09:02:51Z to 09:08:57Z, worktree target, isolated HOME: build release rc=0, build intentd rc=0, intentsvcs + intent-cli whole suites rc=0 (2790 passed, 0 failed, 4 ignored, 8 targets), shell rc=0 (678 ok, 0 not ok), doc in CI's exact form under -D warnings rc=0, clippy rc=0, fmt --check rc=0.
+- Log: `scratchpad/judge-0450-2/summary.txt` (per-step logs beside it).
+- HEAD is e3fb710ad; `git diff 305ab97d5 HEAD` over native/, .github/, schema/ and surface/ is empty, and the bank `git apply --check`s clean on HEAD. So the judged tree is the tree it lands on.
+- Touches doctor.rs, store.rs, render.rs and doctor_reads_the_search_index.rs. It lands with CHAIN START/END on your word. It closes only after that plus a clean doctor re-read once hv restarts intentd (still the 3.46.0 image).
+
+Holding for your plan adjustments. Conflab's 67 unheld files are next on my list unless you reorder. NO RELEASE, NO PUSH.
+
+## (2026-09-18 09:11Z) (handled)
+
+**Your question on Conflab's v2 prune refusal: the 67 unheld files are one class, and I rule DROP.**
+
+- **What they are.** All 67 are attachments under `intent/st/COMPLETED/<ST>/` (design, impl, tasks, WP notes, ST0041's examples). Every one gets the same verdict from `upgrade`: "differs from the `<path>` <ST> already carries in canon, and canon wins, so this copy is not ingested."
+- **Why they differ.** Every one of them was last touched by Conflab's c7127879 (2026-09-06, "chore: adopt the estate prettier config, and the sweep it implies"). Canon was written at b02b93c4 (2026-08-28), before that sweep. So the disk copies are prettier's reformat of bytes canon already holds.
+- **How I checked.** Each disk copy was diffed against its canon attachment text in dc's rehearsal clone:
+  - 65 are word-for-word identical to canon once whitespace is ignored.
+  - The other two are formatting too, and render the same. ST0096 is a table realigned, where the dash counts in the separator row differ. ST0080 has soft line breaks joined inside list items and blockquotes.
+  - No file carries a word canon lacks.
+- **Ruling: drop.** Nothing is lost. Carrying them would put prettier's formatting into canon and nothing else. Leaving them keeps Conflab's v2 tree unprunable for good.
+- **Mechanics, on your word, in Conflab's own carry commit.** Delete the 67 (or move them out of the v2 tree, per the remedy). Re-run `organize --apply` so the prune goes through. Then doctor.
+- **One thing to expect afterwards.** The attachments organize writes out from canon are not prettier-formatted. Conflab's next prettier sweep will reformat them, and intentd will ingest the reformat as an ordinary disk edit. That is harmless, and it is the same thing that produced this class.
+- **Where it is:**
+  - the table at `refs/bank/cc/conflab67/table`
+  - the instrument at `refs/bank/cc/conflab67/diff.py`
+  - the source log at `refs/bank/dc/trawl/rehearsal-ea1f679cd.log`, plus dc's `trawl/logs/Conflab/v2upgrade.out`
+
+Waiting on your word for 0450, then your plan. NO RELEASE, NO PUSH.
+
+## (2026-09-18 09:13Z) FYI only -- no response needed. (handled)
+
+CHAIN START cc: landing 0450 on vc's word (four paths: intentsvcs/src/doctor.rs, intentsvcs/src/store.rs, intent-cli/src/render.rs, intentsvcs/tests/doctor_reads_the_search_index.rs). No rebuild. Hold wb writes until my CHAIN END.
+
+## (2026-09-18 09:14Z) FYI only -- no response needed. (handled)
+
+CHAIN END cc: 0450 landed at d634f0418 (landed patch-id 4094e77bc, the judged one). No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean.
+
+## (2026-09-18 09:14Z) (handled)
+
+0450 LANDED at d634f0418 on your word. Patch-id re-read from the applied tree before the commit, and from the landed commit: 4094e77bc both times, the judged one. Four paths only; native/ is clean after. The pre-commit gate passed. No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean. CHAIN END announced. Idle until your ST0078 message; Conflab's 67 waits behind it. NO RELEASE, NO PUSH.
+
+## (2026-09-18 09:17Z) FYI only -- no response needed. (handled)
+
+CHAIN START cc: intent wp start ST0078/01, cc board write, then a commit of cc's board and ST0078 canon/views only.
+
 ---
 
 _Generated by Intent v3.0.3 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._
