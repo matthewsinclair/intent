@@ -7137,23 +7137,27 @@ fn scope_suffix(report: &intentsvcs::doctor::Report) -> String {
 /// backup check's rule, and then no sentence here claims anything.
 fn search_index_suffix(index: &intentsvcs::doctor::SearchIndex) -> String {
   use intentsvcs::doctor::SearchIndex;
+  let names = |rs: Vec<&intentsvcs::doctor::SearchIndexReading>| {
+    rs.iter()
+      .map(|r| r.table.as_str())
+      .collect::<Vec<_>>()
+      .join(" and ")
+  };
   match index {
     SearchIndex::NotAsked => String::new(),
     SearchIndex::Unreadable(e) => format!(" -- search index NOT checked: {e}"),
-    SearchIndex::Read(readings) => {
-      let damaged: Vec<&str> = readings
-        .iter()
-        .filter(|r| r.damaged())
-        .map(|r| r.table.as_str())
-        .collect();
-      match damaged.as_slice() {
-        [] => " -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)".to_string(),
-        tables => format!(
-          " -- search index DAMAGED in {}, not counted; `intent index rebuild` repairs it",
-          tables.join(" and ")
-        ),
-      }
-    }
+    SearchIndex::Read(_) if !index.damaged().is_empty() => format!(
+      " -- search index DAMAGED in {}, not counted; `intent index rebuild` repairs it",
+      names(index.damaged())
+    ),
+    // **A TRANSIENT IS NEVER SILENT** (issue 0450): it is not damage, so it
+    // does not say DAMAGED, and it is not a clean reading, so it does not carry
+    // the clean sentence either.
+    SearchIndex::Read(_) if !index.transient().is_empty() => format!(
+      " -- search index: one of two readings found damage in {} and the second read clean, not counted; re-run doctor when the tree is quiet",
+      names(index.transient())
+    ),
+    SearchIndex::Read(_) => " -- search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)".to_string(),
   }
 }
 
@@ -7162,40 +7166,62 @@ fn search_index_suffix(index: &intentsvcs::doctor::SearchIndex) -> String {
 /// it makes no claim about the index, and a line such as `shadow tables: ok`
 /// would be a true sentence producing a false belief, because that probe was
 /// measured reading zero over 0442's real damage.
+///
+/// A table dirty on one of two readings is a TRANSIENT and gets its own line,
+/// with what the dirty reading found under it (issue 0450).
 fn print_search_index(index: &intentsvcs::doctor::SearchIndex) {
-  use intentsvcs::doctor::Orphans;
-  let intentsvcs::doctor::SearchIndex::Read(readings) = index else {
-    return;
-  };
-  for r in readings.iter().filter(|r| r.damaged()) {
+  let reread = index.readings_taken() > 1;
+  for r in index.damaged() {
     println!(
-      "search-index: {} -- {}, not counted in the verdict",
+      "search-index: {} -- {}{}, not counted in the verdict",
       r.table,
-      r.pair().meaning()
+      r.pair().meaning(),
+      if reread {
+        " (on both of two readings)"
+      } else {
+        ""
+      }
     );
-    println!("  remedy: `intent index rebuild` re-derives the index from its content table");
-    match &r.orphaned {
-      Orphans::Docids(docs) if docs.is_empty() => {}
-      Orphans::Docids(docs) => println!(
-        "  orphaned: {} docid(s) the index holds with no content row: {}",
-        docs.len(),
-        docs
-          .iter()
-          .map(i64::to_string)
-          .collect::<Vec<_>>()
-          .join(", ")
-      ),
-      Orphans::Unreadable(e) => println!("  orphaned: the probe could not read the index -- {e}"),
-    }
-    if let Some(e) = &r.structure {
-      println!("  fts5 check: {e}");
-    }
-    if r.shadows_disagree() {
-      println!(
-        "  shadow tables disagree: {} docsize row(s) with no content row, {} content row(s) with no docsize row",
-        r.docsize_without_content, r.content_without_docsize
-      );
-    }
+    println!(
+      "  remedy: `intent index rebuild` re-indexes the tree (its store write runs FTS5's own rebuild)"
+    );
+    print_search_index_probes(r);
+  }
+  for r in index.transient() {
+    println!(
+      "search-index: {} -- one of two readings found {}, the second read clean; a write was in flight or the store is intermittently unreadable, re-run doctor when the tree is quiet, not counted in the verdict",
+      r.table,
+      r.found()
+    );
+    print_search_index_probes(r);
+  }
+}
+
+/// What each probe of one reading found, one line per probe that found
+/// something.
+fn print_search_index_probes(r: &intentsvcs::doctor::SearchIndexReading) {
+  use intentsvcs::doctor::Orphans;
+  match &r.orphaned {
+    Orphans::Docids(docs) if docs.is_empty() => {}
+    Orphans::Docids(docs) => println!(
+      "  orphaned: {} docid(s) the index holds with no content row: {}",
+      docs.len(),
+      docs
+        .iter()
+        .map(i64::to_string)
+        .collect::<Vec<_>>()
+        .join(", ")
+    ),
+    Orphans::Unreadable(e) => println!("  orphaned: the probe could not read the index -- {e}"),
+  }
+  if let Some(e) = &r.structure {
+    println!("  fts5 check: {e}");
+  }
+  if r.shadows_disagree() {
+    println!(
+      "  shadow tables disagree: {} docsize row(s) with no content row, {} content row(s) with no docsize row",
+      r.docsize_without_content, r.content_without_docsize
+    );
   }
 }
 
@@ -13355,30 +13381,50 @@ pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Va
 
 /// The search index's readings on the machine face. Each probe is its own
 /// key, and the shared blind spot travels with a clean pair as a field rather
-/// than being left to a reader to infer from two clean values.
+/// than being left to a reader to infer from two clean values. `tables` is the
+/// last reading; a re-read also carries the first, whole, as
+/// `first_reading`, and the verdict per table as `damaged` and `transient`
+/// (issue 0450).
 fn search_index_json(index: &intentsvcs::doctor::SearchIndex) -> serde_json::Value {
-  use intentsvcs::doctor::{Orphans, Pair, SearchIndex};
+  use intentsvcs::doctor::{Orphans, Pair, SearchIndex, SearchIndexReading};
+  let tables = |pass: &[SearchIndexReading]| -> Vec<serde_json::Value> {
+    pass
+      .iter()
+      .map(|r| {
+        serde_json::json!({
+          "table": r.table,
+          "damaged": r.damaged(),
+          "pair": r.pair().meaning(),
+          "shared_blind_spot": r.pair() == Pair::BothClean,
+          "orphaned": match &r.orphaned {
+            Orphans::Docids(docs) => serde_json::json!(docs),
+            Orphans::Unreadable(e) => serde_json::json!({ "error": e }),
+          },
+          "fts5_check": match &r.structure {
+            None => serde_json::json!("ok"),
+            Some(e) => serde_json::json!(e),
+          },
+          "docsize_without_content": r.docsize_without_content,
+          "content_without_docsize": r.content_without_docsize,
+        })
+      })
+      .collect()
+  };
+  let names = |rs: Vec<&SearchIndexReading>| rs.iter().map(|r| r.table.clone()).collect::<Vec<_>>();
   match index {
     SearchIndex::NotAsked => serde_json::Value::Null,
     SearchIndex::Unreadable(e) => serde_json::json!({ "checked": false, "error": e }),
-    SearchIndex::Read(readings) => serde_json::json!({
+    SearchIndex::Read(passes) => serde_json::json!({
       "checked": true,
-      "tables": readings.iter().map(|r| serde_json::json!({
-        "table": r.table,
-        "damaged": r.damaged(),
-        "pair": r.pair().meaning(),
-        "shared_blind_spot": r.pair() == Pair::BothClean,
-        "orphaned": match &r.orphaned {
-          Orphans::Docids(docs) => serde_json::json!(docs),
-          Orphans::Unreadable(e) => serde_json::json!({ "error": e }),
-        },
-        "fts5_check": match &r.structure {
-          None => serde_json::json!("ok"),
-          Some(e) => serde_json::json!(e),
-        },
-        "docsize_without_content": r.docsize_without_content,
-        "content_without_docsize": r.content_without_docsize,
-      })).collect::<Vec<_>>(),
+      "readings_taken": passes.len(),
+      "damaged": names(index.damaged()),
+      "transient": names(index.transient()),
+      "tables": passes.last().map(|p| tables(p)).unwrap_or_default(),
+      "first_reading": if passes.len() > 1 {
+        serde_json::json!(tables(&passes[0]))
+      } else {
+        serde_json::Value::Null
+      },
     }),
   }
 }

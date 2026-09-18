@@ -118,3 +118,58 @@ fn the_pair_verdict_is_a_statement_about_both_probes() {
   assert_eq!(shadows.pair(), Pair::BothClean);
   assert!(shadows.damaged());
 }
+
+/// Issue 0450: a dirty reading is read again once, and the PAIR is the verdict.
+/// A table dirty on one of two readings is a transient -- reported, never
+/// counted as damage and never dropped -- and a table dirty on both is damage
+/// as it was before the re-read existed.
+#[test]
+fn a_dirty_reading_that_reads_clean_again_is_a_transient_and_not_damage() {
+  use intentsvcs::doctor::SearchIndex;
+  let reading = |table: &str, orphaned: Vec<i64>| SearchIndexReading {
+    table: table.to_string(),
+    orphaned: Orphans::Docids(orphaned),
+    structure: None,
+    docsize_without_content: 0,
+    content_without_docsize: 0,
+  };
+  let dirty = || {
+    vec![
+      reading("src_sections", vec![2599]),
+      reading("doc_sections", vec![]),
+    ]
+  };
+  let clean = || {
+    vec![
+      reading("src_sections", vec![]),
+      reading("doc_sections", vec![]),
+    ]
+  };
+
+  let transient = SearchIndex::Read(vec![dirty(), clean()]);
+  assert!(
+    transient.damaged().is_empty(),
+    "one dirty reading of two is not damage"
+  );
+  let seen: Vec<&str> = transient
+    .transient()
+    .iter()
+    .map(|r| r.table.as_str())
+    .collect();
+  assert_eq!(seen, ["src_sections"]);
+  assert_eq!(
+    transient.transient()[0].orphaned,
+    Orphans::Docids(vec![2599]),
+    "the transient keeps what the DIRTY reading found"
+  );
+  assert_eq!(transient.transient()[0].found(), "1 orphaned docid(s)");
+
+  let damaged = SearchIndex::Read(vec![dirty(), dirty()]);
+  assert!(damaged.transient().is_empty());
+  let seen: Vec<&str> = damaged.damaged().iter().map(|r| r.table.as_str()).collect();
+  assert_eq!(seen, ["src_sections"], "dirty on both readings is damage");
+
+  let once = SearchIndex::Read(vec![clean()]);
+  assert!(once.damaged().is_empty() && once.transient().is_empty());
+  assert_eq!(once.readings_taken(), 1);
+}

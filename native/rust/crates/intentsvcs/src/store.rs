@@ -4759,15 +4759,20 @@ impl Store {
   /// which since SQLite 3.44 calls the table's integrity method and is a read,
   /// where the `'integrity-check'` command is an `INSERT`.
   pub fn read_search_index(&self) -> Result<Vec<crate::doctor::SearchIndexReading>, StoreError> {
+    // **ONE READ TRANSACTION, SO EVERY PROBE READS ONE SNAPSHOT** (issue 0450).
+    // Each probe was its own statement and so its own snapshot, and a write
+    // landing between them could make the orphan probe and fts5's check
+    // disagree about one index. Deferred, so it takes no writer lock; the temp
+    // table is created inside it and never touches the store's file.
+    let tx = self.conn.unchecked_transaction()?;
     let mut readings = Vec::new();
     for table in ["src_sections", "doc_sections"] {
       let vocab = format!("temp.doctor_{table}_instances");
-      self.conn.execute_batch(&format!(
+      tx.execute_batch(&format!(
         "DROP TABLE IF EXISTS {vocab};
          CREATE VIRTUAL TABLE {vocab} USING fts5vocab(main, {table}, instance);"
       ))?;
-      let orphaned = self
-        .conn
+      let orphaned = tx
         .prepare(&format!(
           "SELECT DISTINCT doc FROM {vocab}
             WHERE doc NOT IN (SELECT id FROM main.{table}_content) ORDER BY doc"
@@ -4781,9 +4786,8 @@ impl Store {
           |e| crate::doctor::Orphans::Unreadable(e.to_string()),
           crate::doctor::Orphans::Docids,
         );
-      self.conn.execute(&format!("DROP TABLE {vocab}"), [])?;
-      let structure = self
-        .conn
+      tx.execute(&format!("DROP TABLE {vocab}"), [])?;
+      let structure = tx
         .prepare(&format!("PRAGMA main.integrity_check({table})"))
         .and_then(|mut stmt| {
           stmt
@@ -4797,9 +4801,8 @@ impl Store {
             _ => Some(lines.join("; ")),
           },
         );
-      let count = |sql: String| -> Result<i64, StoreError> {
-        Ok(self.conn.query_row(&sql, [], |row| row.get(0))?)
-      };
+      let count =
+        |sql: String| -> Result<i64, StoreError> { Ok(tx.query_row(&sql, [], |row| row.get(0))?) };
       readings.push(crate::doctor::SearchIndexReading {
         table: table.to_string(),
         orphaned,
@@ -4814,6 +4817,7 @@ impl Store {
         ))?,
       });
     }
+    tx.commit()?;
     Ok(readings)
   }
 

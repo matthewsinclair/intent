@@ -198,8 +198,64 @@ pub enum SearchIndex {
   NotAsked,
   /// The store opened and the probes could not run.
   Unreadable(String),
-  /// One reading per FTS5 search table.
-  Read(Vec<SearchIndexReading>),
+  /// Every reading taken, each one reading per FTS5 search table: ONE when
+  /// the first read clean, TWO when a dirty first reading was read again
+  /// (issue 0450). Both are kept, because the pair is what the verdict is.
+  Read(Vec<Vec<SearchIndexReading>>),
+}
+
+impl SearchIndex {
+  /// Tables dirty on EVERY reading taken, as the last reading saw them.
+  pub fn damaged(&self) -> Vec<&SearchIndexReading> {
+    self.by_dirty_count(|dirty, taken| dirty == taken)
+  }
+
+  /// Tables dirty on one reading and clean on the other, as the DIRTY reading
+  /// saw them. **A transient is information and not damage**: a write in flight
+  /// or a store that is intermittently unreadable, which one re-read cannot
+  /// tell apart, so it is reported rather than counted or dropped.
+  pub fn transient(&self) -> Vec<&SearchIndexReading> {
+    let Self::Read(passes) = self else {
+      return Vec::new();
+    };
+    self
+      .by_dirty_count(|dirty, taken| dirty > 0 && dirty < taken)
+      .into_iter()
+      .filter_map(|last| {
+        passes
+          .iter()
+          .flatten()
+          .find(|r| r.table == last.table && r.damaged())
+      })
+      .collect()
+  }
+
+  /// How many readings were taken: 0 when none was.
+  pub fn readings_taken(&self) -> usize {
+    match self {
+      Self::Read(passes) => passes.len(),
+      _ => 0,
+    }
+  }
+
+  fn by_dirty_count(&self, keep: impl Fn(usize, usize) -> bool) -> Vec<&SearchIndexReading> {
+    let Self::Read(passes) = self else {
+      return Vec::new();
+    };
+    let Some(last) = passes.last() else {
+      return Vec::new();
+    };
+    last
+      .iter()
+      .filter(|r| {
+        let dirty = passes
+          .iter()
+          .filter(|pass| pass.iter().any(|p| p.table == r.table && p.damaged()))
+          .count();
+        keep(dirty, passes.len())
+      })
+      .collect()
+  }
 }
 
 /// What the three probes read on one FTS5 table. Read by
@@ -282,6 +338,23 @@ impl SearchIndexReading {
 
   pub fn damaged(&self) -> bool {
     self.pair() != Pair::BothClean || self.shadows_disagree()
+  }
+
+  /// What a dirty reading found, as a phrase for the transient advisory.
+  pub fn found(&self) -> String {
+    let mut parts = Vec::new();
+    match &self.orphaned {
+      Orphans::Docids(docs) if docs.is_empty() => {}
+      Orphans::Docids(docs) => parts.push(format!("{} orphaned docid(s)", docs.len())),
+      Orphans::Unreadable(_) => parts.push("an index its probe could not read".to_string()),
+    }
+    if self.structure.is_some() {
+      parts.push("fts5's own check objecting".to_string());
+    }
+    if self.shadows_disagree() {
+      parts.push("the shadow tables disagreeing".to_string());
+    }
+    parts.join(" and ")
   }
 }
 
@@ -512,10 +585,7 @@ fn examine(
     report
       .findings
       .extend(index_unreadable_finding(project, store));
-    report.search_index = match store.read_search_index() {
-      Ok(readings) => SearchIndex::Read(readings),
-      Err(e) => SearchIndex::Unreadable(e.to_string()),
-    };
+    report.search_index = read_search_index(store);
   } else {
     report
       .findings
@@ -1987,6 +2057,43 @@ fn index_unreadable_without_a_facade(project: &Project) -> Option<Finding> {
   }
   let store = crate::store::Store::open(&path).ok()?;
   index_unreadable_finding(project, &store)
+}
+
+/// Read the search index, and read it AGAIN once if the first reading is
+/// dirty (issue 0450), keeping both.
+///
+/// **ONCE, THE WAY AN EVENT-WAIT RED IS RE-RUN ONCE.** A dirty reading taken
+/// while another process writes the index can be the write in flight rather
+/// than damage -- measured 2026-09-18 on the live store: one dirty reading,
+/// then two clean ones, while the 3.46.0 daemon ingested regenerated pages.
+/// Two dirty readings are damage as before; a dirty reading and a clean one are
+/// a transient, which [`SearchIndex::transient`] reports rather than drops.
+///
+/// **A RE-READ THAT CANNOT RUN DOES NOT LOSE THE FIRST READING**: its refusal
+/// names what the first reading found, because a check that turned a damage
+/// reading into "not checked" would be the silence this detector exists to end.
+fn read_search_index(store: &crate::store::Store) -> SearchIndex {
+  let first = match store.read_search_index() {
+    Ok(first) => first,
+    Err(e) => return SearchIndex::Unreadable(e.to_string()),
+  };
+  if !first.iter().any(SearchIndexReading::damaged) {
+    return SearchIndex::Read(vec![first]);
+  }
+  match store.read_search_index() {
+    Ok(second) => SearchIndex::Read(vec![first, second]),
+    Err(e) => {
+      let dirty: Vec<String> = first
+        .iter()
+        .filter(|r| r.damaged())
+        .map(|r| format!("{} ({})", r.table, r.found()))
+        .collect();
+      SearchIndex::Unreadable(format!(
+        "the first reading found {} and the re-read could not run: {e}",
+        dirty.join(", ")
+      ))
+    }
+  }
 }
 
 fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {
