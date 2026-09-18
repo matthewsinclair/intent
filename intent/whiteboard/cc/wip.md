@@ -13,11 +13,10 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18, replacing doing 18).** The SQLite bump (47e269483) and the 0442 detector (633b13549) have landed, and 0442 is CLOSED (aecb68e94). Memory `judge-sqlite-corruption-by-writer-and-behaviour` carries both halves. The 3.1.0 notes' gap closure is banked at `refs/bank/cc/release-notes/RELEASE_NOTES-3.1.0.md` and stays banked until step 5. **Open, vc's or hv's to rule:** intentd is still the 3.46.0 image until it is restarted, and ST0076's pruned tree is uncommitted (organize's, not mine). **Next, in vc's order:** time the pre-commit gate's arms on a scratch commit in wt-bump when the host is quiet, and send vc the numbers; (4) 0444 before ic's regeneration; (5) the 3.1.0 CHANGELOG section and RELEASE_NOTES, with the detector's CHANGELOG bullet; (6) known-defects re-driven against a fresh build; then the trawl carry (todo 30). The pair is rebuilt once, after ic and dc land. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-18, replacing doing 19).** vc's close-out train for cc is landed: the SQLite bump (47e269483), the 0442 detector (633b13549) with 0442 closed, 0449's pipefail arm (e69b24967), 0444's words (0702809cf), 3.1.0's CHANGELOG and RELEASE_NOTES (600db8378, plus the 0446 line at 6292ca43f), and docs/known-defects.md re-driven for 3.1.0 (248aba0f3). **Holding** for ic's 0448 and the pair rebuild after it, on vc's order. **Open, not mine to act on:** intentd is still the 3.46.0 image until hv restarts it; vc's issue 0450 (the detector's transient reading during a live write) is mine to read and propose a drive for after the restart, and it now carries the remedy-wording fix. **Next after the rebuild:** the trawl carry (todo 30), on vc's word. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- At the landing, carry the gap closure into every document that recorded the gap: the banked 3.1.0 notes (Provenance and Upgrading, at `refs/bank/cc/release-notes/`) and the shared memory `judge-sqlite-corruption-by-writer-and-behaviour`, which names 3.46.0 and says doctor cannot detect this. Change neither before the patch lands. Then commit the 3.1.0 CHANGELOG section and RELEASE_NOTES BEFORE the release driver runs (`intent/docs/releasing.md` at HEAD).
 - The trawl carry. Part A is GO and Part B is on vc's disposition; the plan is at `refs/bank/cc/trawl/carry-plan.md`. Re-run the rehearsal with the ruled HOLDS immediately before the carry. Make one mechanical commit per estate, run doctor after each, and have vc check each. NO PUSH.
 
 ## Holds
