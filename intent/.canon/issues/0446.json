@@ -3,9 +3,10 @@
   "number": 446,
   "slug": "organize-s-dehydration-guard-and-st-sync-s-empty",
   "title": "organize's dehydration guard and st sync's empty-estate guard compare whole files, so a view an older renderer wrote reads as a possible hand edit and 68 refusals across four estates are renderer-owned text",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-09-18",
+  "closed": "2026-09-18",
   "reporter": "Matthew Sinclair",
   "body": "Measured by dc on 2026-09-18 while rehearsing the fleet trawl in scratch clones of every live estate (`refs/bank/dc/trawl/`, binary 3.0.3 `58501a8a2`). `intent organize` refuses to dehydrate 68 views across Lamplight, Molt, Utilz and Molt-matts. dc drove every one: declared it, realised it from the store, and diffed. 65 of the 68 differ from the store's render ONLY in renderer-owned text -- the footer (`the issue canon` in backticks against plain) or the renderer's own cover paragraph -- because the view on disk was written by an older renderer. One is a render the store has moved past (Lamplight ST0347 AC-01.4, withdrawn in the store). Two are blocked by a v2 bucket (Lamplight ST0001). No hand edit anywhere.\n\n## The defect\n\nThe guard compares whole files, so a view an older renderer wrote reads as a possible hand edit, and its remedy is a per-file human decision over 68 differences no human made. The same class hit `st sync --write`'s empty-estate guard on Prodinfra and Molt-flynn over a 2-byte footer change.\n\n## The fix (S to M)\n\nBoth guards stop counting renderer-owned text: compare the authored sections, or compare against the render the OLD renderer would have produced, or mask the footer and cover paragraph the way the staleness check masks the generated-at stamp. A hand edit inside authored text must still refuse. Fix before the live trawl runs: a trawl that deletes refused views would decide the thing the guard exists to make a human decide, and dc correctly did not work around it in the script.\n"
 }
