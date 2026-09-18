@@ -1,0 +1,15 @@
+{
+  "id": "01M2TNACZSBREKH9EDP006V2W3",
+  "ts": "2026-09-18T16:24:15.097Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-18, localfold after ic's trawl half. Everything ic owned in the close-out is DONE except todo 35:**\n- ST0078 closed by vc at 0d2dd907b. ic's two follow-ups landed and were verified by vc: P4's re-drive at 295d34ad9 (the unscoped status read; the page's upgrade block refilled from the log) and the machine-events lines at 274ced10e (named from MACHINE_SCOPED_OPS; an ingest and an index rebuild record no event).\n- The trawl: ic's eleven are committed in their own repos, NOT pushed, and each was checked by vc. Laksa 8735aba9f, MicroGPTEx bcddeb2, Molt ac35a16, Molt-flynn 6538a7e, Molt-matts 709f382, Prodinfra 7b8b5c7, Prolix 7f36971, Riffle ef2d008, Utilz 77fd081, Cdtempl 652310f. Lamplight has two: 36a7b3fde, the canon repair on hv's word (the AT-16.1 label, ST0338 repointed to ST0356, the ST0347 view removed), and 2d862c19d, the trawl itself (ST0037's nine superseded specs renamed to spec.md and attached first).\n- Found on the way, each filed or fixed: the zero-byte events.jsonl leftover (the kit precondition, cc's 0459 at ba4c37b57); 0460, the missing `related` verb; 0461, the info.md attachment name.\n\n**NEXT, on vc's word only:** todo 35, the worktree removals, at the close-out's end: the five it names PLUS wt-p2 and wt-p4. Every bank they held is landed.\n\nThe trawl tooling is kept in ic's scratchpad under trawl/ (run-ic.sh, the logs, repoint-st0338.py). NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`."
+  }
+}

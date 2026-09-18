@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-18T12:05:51.819Z",
+    "heartbeat_at": "2026-09-18T16:24:15.875Z",
     "status": "active",
-    "focus": "FOLDED for hv's compact. ST0078 build complete (P2 ff5fb4f3f, P4 5ddea1e7d, 15/15), pair rebuilt at f4c8a5b2e. Next on vc's word: vc's st done, ic's trawl half, worktree removals. NO RELEASE, NO PUSH.",
+    "focus": "FOLDED 2026-09-18 16:2xZ. ST0078 closed; ic's trawl half done (11 estates committed, NOT pushed, vc-checked). Only todo 35 left: the worktree removals at the close-out's end, on vc's word. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1854,8 +1854,17 @@
       "kind": "doing",
       "seq": 75,
       "text": "**RESUME HERE -- 2026-09-18, localfold before hv's compact. ST0078's build is COMPLETE:**\n- P2 landed at ff5fb4f3f.\n- P4 landed at 5ddea1e7d (landing set e250f3110, judged half 98f236ed7).\n- All five WPs are Done and the gate reads 15/15 PASS.\n- cc's ONE REBUILD is in (REBUILD END 12:03Z): the installed pair is built at f4c8a5b2e and carries P1 to P5. Every project act now writes an event file under intent/.canon/events/, and those files are committed with the act.\n\n**NEXT, all on vc's word:**\n1. hv restarts the daemon, then vc runs `intent st done ST0078` on the new pair. It is vc's act, not ic's.\n2. ic's half of the fleet trawl. vc decision 47 on Lamplight: regenerate ST0347's stale acceptance view, `git mv` intent/st/COMPLETED/ST0001 home, and run Lamplight last if its mix.lock is still dirty (hv's to commit or discard). NO PUSH.\n3. At the close-out's end, remove ic's spent worktrees: todo 35's five, plus wt-p2 and wt-p4. Every bank they held is landed.\n\nSettled, and nothing to run: the \"search index DAMAGED in doc_sections\" advisory on main was transient. It is the class 0450 closed, which the old pair reported (vc).\n\nP4's drive tooling is kept in ic's scratchpad under p4/ (run-p4.sh, and old-pair, the pre-P1 pair built at e447f15cf).\n\nNO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-18T16:24:14.318Z",
       "recorded_at": "2026-09-18T12:05:50.993Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 76,
+      "text": "**RESUME HERE -- 2026-09-18, localfold after ic's trawl half. Everything ic owned in the close-out is DONE except todo 35:**\n- ST0078 closed by vc at 0d2dd907b. ic's two follow-ups landed and were verified by vc: P4's re-drive at 295d34ad9 (the unscoped status read; the page's upgrade block refilled from the log) and the machine-events lines at 274ced10e (named from MACHINE_SCOPED_OPS; an ingest and an index rebuild record no event).\n- The trawl: ic's eleven are committed in their own repos, NOT pushed, and each was checked by vc. Laksa 8735aba9f, MicroGPTEx bcddeb2, Molt ac35a16, Molt-flynn 6538a7e, Molt-matts 709f382, Prodinfra 7b8b5c7, Prolix 7f36971, Riffle ef2d008, Utilz 77fd081, Cdtempl 652310f. Lamplight has two: 36a7b3fde, the canon repair on hv's word (the AT-16.1 label, ST0338 repointed to ST0356, the ST0347 view removed), and 2d862c19d, the trawl itself (ST0037's nine superseded specs renamed to spec.md and attached first).\n- Found on the way, each filed or fixed: the zero-byte events.jsonl leftover (the kit precondition, cc's 0459 at ba4c37b57); 0460, the missing `related` verb; 0461, the info.md attachment name.\n\n**NEXT, on vc's word only:** todo 35, the worktree removals, at the close-out's end: the five it names PLUS wt-p2 and wt-p4. Every bank they held is landed.\n\nThe trawl tooling is kept in ic's scratchpad under trawl/ (run-ic.sh, the logs, repoint-st0338.py). NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.",
+      "state": "live",
+      "recorded_at": "2026-09-18T16:24:15.097Z"
     }
   ],
   "messages": [
