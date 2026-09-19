@@ -1,0 +1,15 @@
+{
+  "id": "01M2WWS2GEGHNDB7XFC8JCTGEQ",
+  "ts": "2026-09-19T13:13:04.782Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-19 13:11Z, replaces todo 50; localfold before hv's compact after the cut). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) 3.1.0 IS CUT AND PUBLISHED: release commit and tag 11ce80ad5 on both remotes (`git ls-remote --tags upstream v3.1.0`), four assets on the GitHub release re-hashed from the published URL (`gh release view v3.1.0`), the formula live in the tap, the pair on this machine and the running intentd both 11ce80ad5 from the dev tree (`intent --version`, `intent daemon status`), brew unlinked and pinned by hv, doctor 0. Seven runs of `dvb build release` were needed and every refusal was the driver's; the sequence that works is in vc's memory `project_v310_cut_sequence_lessons.md` and goes into intent/docs/releasing.md in vc's next chain. (1) CUT DONE IS SENT (13:02Z) and the lanes run under the ordinary rules in the order cc, dc, ic, vc: dc landed the gate-directory fix cb74f9041 and cc its fourteen-file doc sweep e12e071d1 (skills and subagents resynced by vc from the dev tree's binary); STILL TO RUN, each one chain with CHAIN START and END: dc's doc-sweep edits and its release next-line issues (dc todo 27, 28); ic's board-only archive of todo 37; cc's todo 34 (the canon.rs comment issue plus init's unlisted config.json and the PostToolUse advisory's stdout); then vc's chain: `intent st detach ST0056 deferred.md` and `git rm` it (named to hv, unopposed), releasing.md step 4 gains `dvb build all` at the tag before `prepare`, a step 0 that stops intentd, the restore form and the brew unlink after smoke, the five issues drafted in vc's scratchpad issues/ (SUN_LEN remedy, the at na remedy's flag, the watcher arms after a build, Intent's own estate missing the post-pull hooks, post-checkout in worktrees), wip.md, and the fold. THEN vc's one call for the worktree removals (ic todo 38, cc todo 33). (2) WITH hv: the Linux CI rerun of the search arm (run 35442054472, in progress at 13:11Z): green means dc's fixture fix and a known-defects line for 3.1.0; red means the fix plus an issue with the run as evidence; either way dc banks it with the whole intent-cli suite and lands on vc's word. Then ST0056: hv runs intent/st/ST0056/gyges-brief.md on gyges against the published 3.1.0 and hands back ~/intent-clean-install.log; vc judges, dc satisfies AC-00.5 and AC-11.1, WP-11 and the thread close on hv's word. (3) DEFERRED BY hv's RULING: devbin#0083's sweep follows Devbin's own ST0007 and release. NO PUSH of anything after the tag without hv's word."
+  }
+}
