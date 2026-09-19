@@ -166,7 +166,7 @@ Frameworks like Ash and Phoenix LiveView ship as subdirectories of the language 
 
 For Ash-on-Elixir specifically, the `IN-EX-ASH-*` rules carry part of the historical "A1-A5" supplemental concerns: `IN-EX-ASH-001` (all database access through Ash domain code interfaces) and `IN-EX-ASH-002` (set the actor on the query or changeset, not on the action call); `intent claude rules list --lang elixir` lists the `ash` category as it stands. The other historical concerns (ash.codegen for migrations, code-interface options, cross-domain access) have no rule; carry them as architectural boundary checks where the audited project needs them.
 
-**Key**: `IN-AG-HIGHLANDER-001` (concretised as `IN-EX-CODE-006`, `IN-RS-CODE-002`, etc.) is universal. Every ecosystem benefits from deduplication auditing.
+**Key**: `IN-AG-HIGHLANDER-001` is universal, and the agnostic pack loads it for every ecosystem; Elixir also concretises it as `IN-EX-CODE-006`. Every ecosystem benefits from deduplication auditing.
 
 ## 0.2 Map the Codebase into Components
 
@@ -302,7 +302,7 @@ intent wp new ST{NNNN} "<Component name>"          # once per component, in orde
 intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
 ```
 
-`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory:
+`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`; until they are attached, `intent organize --verbose` lists them as unclaimed:
 
 ```
 intent/st/ST{NNNN}/
@@ -479,6 +479,7 @@ Polyglot projects dispatch one critic per language per WP. For pre-audit reconna
 2. **Verify file manifest** -- confirm all files listed in the WP's `info.md` actually exist (`ls` each file). Missing files indicate stale provisioning.
 3. **Verify the previous WP is committed** (no uncommitted audit files)
 4. **Check context usage** -- if above 70%, consider starting a fresh session
+5. **Start the WP in the store**: `intent wp start ST{NNNN}/{NN}`
 
 ### During Each WP
 
@@ -491,9 +492,10 @@ The critic dispatch runs autonomously. It will:
 
 ### After Each WP
 
-1. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit`
-2. **Log the summary** in your running tally
-3. **Move to the next WP**
+1. **Record it in the store**: `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`. Without these the store's WP status never moves.
+2. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit`
+3. **Log the summary** in your running tally
+4. **Move to the next WP**
 
 ### Crash Prevention
 
@@ -792,7 +794,7 @@ intent claude rules show IN-RS-CODE-001            # for a specific rule
 
 Or read the rule files directly at the Intent install (`intent claude rules show <id>` prints each rule's source path):
 
-- Rust: `intent/plugins/claude/rules/rust/code/<slug>/RULE.md`
+- Rust: `intent/plugins/claude/rules/rust/<category>/<slug>/RULE.md`
 - Swift: `intent/plugins/claude/rules/swift/<category>/<slug>/RULE.md`
 - Lua: `intent/plugins/claude/rules/lua/<category>/<slug>/RULE.md`
 - Shell: `intent/plugins/claude/rules/shell/code/<slug>/RULE.md`
