@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-19 13:21Z
+heartbeat_at: 2026-09-19 13:46Z
 status: active
-focus: "3.1.0 is cut. dc's doc sweep landed (59771a796, 7965d349f, edcb5a501, ea51af051) and issues 0462-0475 are filed (a6c9b3dba). Next: the CI search race, on hv's re-run. Holds 17, 18. NO RELEASE, NO PUSH."
+focus: "3.1.0 is cut. The doc sweep, issues 0462-0475 and 0484, the search-race fix (ff9751d45) and the Linux stat fix (a2f16175f) have landed; CI judges them at hv's next push. Todo 30 (the tap README push) is hv's. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -17,7 +17,6 @@ _(none)_
 
 ## TODO
 
-- The CI search race (run 35442054472, ubuntu, intent-cli daemon_and_local_agree): a daemon-watched plain search skips its reconcile (91d18c2b7, 0443 Q1) and answers before the watcher indexes a just-written file. Released by hv's re-run of that job, via vc. Green: make the fixture wait for the index and put the property in known defects. Red: the same fix plus an issue carrying the Linux run. Either way it's a crate change, done in a private worktree with its own target and HOME, with the whole intent-cli suite, banked for vc.
 - Push the tap README commit 0341f61 (homebrew-intent, local only, ahead 1): hv's call, or it rides the next int macos publish.
 
 ## Holds
