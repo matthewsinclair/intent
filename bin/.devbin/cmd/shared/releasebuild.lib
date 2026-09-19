@@ -154,6 +154,20 @@ guarded_release_build() {
 # the first rename had already succeeded, is the one path that could leave a
 # split pair PERMANENTLY. Refusing before the first rename is what makes the
 # second one safe to assume.
+#
+# device_of <path> -- IMPURE. The device number of the filesystem holding
+# <path>. GNU spells it `stat -c %d` and BSD `stat -f %d`, and GNU reads `-f` as
+# "report on the filesystem" with `%d` as a second path, so the BSD form alone
+# refused every promotion on Linux: release_pair_promotion.bats's success arm
+# was red on the Ubuntu CI leg while its cross-filesystem arm passed for the
+# wrong reason. An unreadable device refuses rather than comparing two blanks.
+device_of() {
+  local dev
+  dev="$(stat -c '%d' "$1" 2>/dev/null || stat -f '%d' "$1" 2>/dev/null)"
+  [ -n "$dev" ] || die "promote_pair: cannot read the device of $1"
+  printf '%s' "$dev"
+}
+
 promote_pair() {
   local from="$1" to="$2" b
   for b in intent intentd; do
@@ -161,7 +175,10 @@ promote_pair() {
       die "promote_pair: $from/$b is missing -- verify_pair passed and the file is not there, so refusing to move half a set"
   done
   mkdir -p "$to" || die "promote_pair: cannot create $to"
-  [ "$(stat -f '%d' "$from")" = "$(stat -f '%d' "$to")" ] ||
+  local dev_from dev_to
+  dev_from="$(device_of "$from")" || exit 1
+  dev_to="$(device_of "$to")" || exit 1
+  [ "$dev_from" = "$dev_to" ] ||
     die "promote_pair: $from and $to are on different filesystems, so a rename would not be atomic and could fail EXDEV between the two moves -- refusing before touching the shared pair"
 
   # NOTHING GOES BETWEEN THESE TWO LINES. No logging, no subshell, no command
