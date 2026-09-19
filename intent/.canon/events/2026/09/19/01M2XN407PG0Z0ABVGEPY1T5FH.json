@@ -1,0 +1,15 @@
+{
+  "id": "01M2XN407PG0Z0ABVGEPY1T5FH",
+  "ts": "2026-09-19T20:18:28.729Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0492"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A workspace test run publishes a worktree binary's own root as the machine's install pointer, and every estate's gate then runs that tree's guards silently"
+  }
+}

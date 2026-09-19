@@ -1,0 +1,15 @@
+{
+  "id": "01M2XM3KN2VME4976CDZJ1CGGQ",
+  "ts": "2026-09-19T20:00:47.833Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 2026-09-19 20:00Z, localfold on hv's word while cc lands T3/T4. DONE today: wave two (17 silent estates at 3.1.0, each committed in its own repo, not pushed); 0480, 0479, 0483 landed and closed at cef51f171, 3cf143dcc, 35b902fd9, pair rebuilt at 35b902fd9. NEXT, on vc's forwarded hash (after cc's T3/T4 END, then dc's train D END with its pair rebuild): land 0481 TEST-ONLY, no rebuild, 0481 STAYS OPEN. Steps: git apply the bank (refs/bank/ic/0481/patch, blob bc0ff5384, patch-id b654c01e7; git apply --check first), `intent issues edit 0481 --from` scratchpad landmsg/0481.body (keeps vc's body + the 'Landed, not closed' paragraph), commit the 4 intentd test files + 0481 canon + its event files by literal paths with landmsg/0481.msg, under CHAIN START/END to cc, dc, vc. Carry ic/'s board render and events in that chain. Closing condition: the next real dvb build release gate passes the six arms first time. AFTER: remove worktrees wt-0480, wt-0479, wt-0483, wt-0481, wt-0481base, wt-land under ic's scratchpad on vc's call. NO RELEASE, NO PUSH."
+  }
+}
