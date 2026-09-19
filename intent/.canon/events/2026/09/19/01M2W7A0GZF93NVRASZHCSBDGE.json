@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7A0GZF93NVRASZHCSBDGE",
+  "ts": "2026-09-19T06:57:51.135Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**After CUT DONE:** (1) File an issue for canon.rs's two stale comments (:531-536 quotes the old --force help; :567-569 says init makes no AGENTS.md). vc ruled them out of the doc chain because a crate change owes its suite. (2) Remove cc's scratch, WHEN vc MAKES THE ONE CALL FOR EVERY LANE: worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/ and drafts/. Every bank those held is landed; refs/bank/cc/doc-sweep stays until its chain lands."
+  }
+}

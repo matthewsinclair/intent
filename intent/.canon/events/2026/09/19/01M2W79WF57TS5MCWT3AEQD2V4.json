@@ -1,0 +1,15 @@
+{
+  "id": "01M2W79WF57TS5MCWT3AEQD2V4",
+  "ts": "2026-09-19T06:57:46.981Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 06:57Z, localfold).** Holding for vc's CUT DONE: no intent verb, no tree write, no build. On CUT DONE, run the hold below, then the todo. Issues 0460 and 0461 are open with no fix ordered. NO RELEASE, NO PUSH."
+  }
+}

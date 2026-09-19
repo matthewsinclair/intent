@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-18 16:38Z
+heartbeat_at: 2026-09-19 06:57Z
 status: active
-focus: "2026-09-18 16:38Z, folded: nothing owed before the cut (vc). 0460 and 0461 filed; Intent's estate organized at d58ce1593. What follows is hv's: pushes, devbin#0083, the 3.1.0 cut. Read doing 33. NO RELEASE, NO PUSH."
+focus: "2026-09-19 06:57Z, folded: holding for vc's CUT DONE. The doc-sweep chain is banked and ruled (see the hold). NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,15 +13,15 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-18 16:39Z, localfold; replaces doing 33).** **Nothing is owed to cc before the cut** (vc, 16:37Z): the fleet is 22 of 22, Intent's own estate is pristine at doctor 0, and what follows is hv's: the pushes, devbin#0083's sweep, and the 3.1.0 cut per intent/docs/releasing.md. Issues 0460 (related verb, medium) and 0461 (view name, low) are filed and open, with no fix ordered in this line. The scratch removal is the todo below. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-19 06:57Z, localfold).** Holding for vc's CUT DONE: no intent verb, no tree write, no build. On CUT DONE, run the hold below, then the todo. Issues 0460 and 0461 are open with no fix ordered. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- **Remove cc's scratch worktrees and dirs, WHEN vc MAKES THE ONE CALL FOR EVERY LANE AFTER hv'S CUT** (vc, 2026-09-18 16:39Z; the same timing ruling as ic's todo 35 of 2026-09-17, so a last re-drive before the tag has a worktree to hand). vc confirmed nothing more is owed on them: every bank they held is landed (b9491a1f2, ca9befb0b, 597b62b06, ba4c37b57), Conflab's carry is committed, the known-defects drive log is banked, and the related probe became 0460. The set: worktrees wt-0457, wt-kd, wt-notes and wt-0459; dirs c67/, kd2/ and related-probe/, all under the session scratchpad.
+- **After CUT DONE:** (1) File an issue for canon.rs's two stale comments (:531-536 quotes the old --force help; :567-569 says init makes no AGENTS.md). vc ruled them out of the doc chain because a crate change owes its suite. (2) Remove cc's scratch, WHEN vc MAKES THE ONE CALL FOR EVERY LANE: worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/ and drafts/. Every bank those held is landed; refs/bank/cc/doc-sweep stays until its chain lands.
 
 ## Holds
 
-_(none)_
+- **cc's doc-sweep chain, released by vc's CUT DONE** (ruled by vc 2026-09-18 23:21Z). A 14-file patch is banked at refs/bank/cc/doc-sweep/patch (blob 45f8cb0f4); the commit message is in the scratchpad's cc-sweep-commit.txt. On release: CHAIN START, then `git cat-file -p` the ref and `git apply --check` it at that HEAD, apply it, run prettier --check, then `git add` and `git commit --only` on the 14 paths, and send vc CHAIN END with the hash and every file's disposition. The one deletion (creating-custom-agents.md, 'Ensure JSON syntax is valid') is approved.
 
 ## Watch-outs
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M2W79YDFGX9MYMPPSTFDJA7K",
+  "ts": "2026-09-19T06:57:48.978Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**cc's doc-sweep chain, released by vc's CUT DONE** (ruled by vc 2026-09-18 23:21Z). A 14-file patch is banked at refs/bank/cc/doc-sweep/patch (blob 45f8cb0f4); the commit message is in the scratchpad's cc-sweep-commit.txt. On release: CHAIN START, then `git cat-file -p` the ref and `git apply --check` it at that HEAD, apply it, run prettier --check, then `git add` and `git commit --only` on the 14 paths, and send vc CHAIN END with the hash and every file's disposition. The one deletion (creating-custom-agents.md, 'Ensure JSON syntax is valid') is approved."
+  }
+}
