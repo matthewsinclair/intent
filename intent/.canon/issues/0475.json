@@ -3,9 +3,10 @@
   "number": 475,
   "slug": "intent-claude-rules-index-gets-clap-s-unknown-su",
   "title": "intent claude rules index gets clap's unknown-subcommand error at exit 1, not the retired refusal at exit 2",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "`intent claude rules index` was a shipped spelling in v3.0.3 (it answered \"is a known command that is not implemented yet\") and was deleted in d843f7aea. It has no row in the dispatch table's `retired` population, so 3.1.0 answers it with clap's generic `error: unrecognized subcommand 'index'` at exit 1, not the \"was retired in Intent v3\" refusal at exit 2 that `claude ws`, which was withdrawn the same way, gets (driven on 3.1.0 under an isolated HOME: `claude ws list` exits 2 naming `intent wb register`; `claude rules index` exits 1).\n\nFix: a `retire` row for it, or a ruling that a withdrawn unimplemented spelling does not need one. XS. Found in dc's doc sweep of 2026-09-18.\n"
+  "body": "`intent claude rules index` was a shipped spelling in v3.0.3 (it answered \"is a known command that is not implemented yet\") and was deleted in d843f7aea. It has no row in the dispatch table's `retired` population, so 3.1.0 answers it with clap's generic `error: unrecognized subcommand 'index'` at exit 1, not the \"was retired in Intent v3\" refusal at exit 2 that `claude ws`, which was withdrawn the same way, gets (driven on 3.1.0 under an isolated HOME: `claude ws list` exits 2 naming `intent wb register`; `claude rules index` exits 1).\n\nFix: a `retire` row for it, or a ruling that a withdrawn unimplemented spelling does not need one. XS. Found in dc's doc sweep of 2026-09-18.\n\n\n\nCLOSED 2026-09-19, by the landing at fb80369ab on vc's GO (T1, patch-id d5f451ba35dd, judged green at f46411fd7: intentsvcs 1804 passed 0 failed, intent-cli 1034 passed 0 failed). vc ruled the retire row. `claude rules index` has a row of its own in surface/dispatch-table.json, state and disposition `retire`, with an empty spelling because the binary serves the rule library and there is no index file to regenerate. The retire/retire census moved from 14 to 15. Driven on the worktree build: it exits 2 with \"`intent claude rules index` was retired in Intent v3 and is not a command in this build\", where 3.1.0 exited 1 with clap's `unrecognized subcommand`. retired_commands.rs covers the row from the table.\n"
 }
