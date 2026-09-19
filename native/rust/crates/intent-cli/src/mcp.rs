@@ -1225,7 +1225,8 @@ pub fn serve(
       // Issue 0372: reconcile first, as the CLI's in-process path does, so a
       // daemonless answer is not a confident subset of a tree that has moved.
       f.index_refresh(None)?;
-      let answer = f.search_all(query, &ask)?;
+      let mut answer = f.search_all(query, &ask)?;
+      answer.index.mark_reconciled();
       // The AC-06.4 distinction travels, and it is now READ OFF THE ENVELOPE
       // rather than asked as a second question: an empty result over an
       // unpopulated index is not a miss, and the envelope already says so.

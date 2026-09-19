@@ -3871,10 +3871,18 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
       // -- see [`a_search_here_reconciles`], which is also where the reading of
       // an unanswerable watching question is decided, and why it is the
       // opposite of `sync`'s.
-      if a_search_here_reconciles(f.project().root()) && !m.get_flag("no-reconcile") {
+      let reconciled = a_search_here_reconciles(f.project().root()) && !m.get_flag("no-reconcile");
+      if reconciled {
         f.index_refresh_for_search(&query).map_err(fail)?;
       }
-      f.search_all(&query, &ask).map_err(fail)
+      let mut answer = f.search_all(&query, &ask).map_err(fail)?;
+      // Issue 0484: the envelope says whether this answer reconciled first, so
+      // a `complete: true` over an index the watcher has not caught up with is
+      // told apart from one over a tree this search just walked.
+      if reconciled {
+        answer.index.mark_reconciled();
+      }
+      Ok(answer)
     },
   )?;
   report_search(m, &answer)
@@ -3969,6 +3977,11 @@ fn report_search(m: &ArgMatches, answer: &intentsvcs::search::SearchAnswer) -> R
         skipped.path, skipped.reason
       );
     }
+  }
+  // Issue 0484: an answer that did not reconcile first says so, because its
+  // `complete` is about the index it read and not about the tree.
+  if let Some(note) = answer.index.unreconciled_note() {
+    eprintln!("note: {note}");
   }
   // **BOTH DENOMINATORS, AND ONLY WHERE THEY DIFFER.** A capped answer is
   // never a silent subset; an uncapped one does not need telling.
@@ -5922,7 +5935,8 @@ impl tui::run::Source for Live {
     if let intentsvcs::nav::View::Search { query } = view {
       // Issue 0372: the pane reconciles before it answers, as the CLI does.
       // The same decision as the CLI's search arm, from the same home.
-      let refreshed = if a_search_here_reconciles(self.facade.project().root()) {
+      let reconciled = a_search_here_reconciles(self.facade.project().root());
+      let refreshed = if reconciled {
         self.facade.index_refresh_for_search(query)
       } else {
         Ok(())
@@ -5930,7 +5944,13 @@ impl tui::run::Source for Live {
       let answer = match refreshed {
         Ok(()) => self
           .facade
-          .search_all(query, &intentsvcs::search::SearchQuery::default()),
+          .search_all(query, &intentsvcs::search::SearchQuery::default())
+          .map(|mut answer| {
+            if reconciled {
+              answer.index.mark_reconciled();
+            }
+            answer
+          }),
         Err(why) => Err(why),
       };
       return match answer {

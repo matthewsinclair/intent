@@ -635,6 +635,75 @@ fn a_search_skips_its_reconcile_where_a_daemon_watches_and_not_elsewhere() {
   let _ = std::fs::remove_dir_all(&untouched);
 }
 
+/// `index.reconciled` in one search's `--json` envelope.
+fn reconciled(home: &Path, root: &Path, argv: &[&str]) -> bool {
+  let mut args = vec!["search", "--json"];
+  args.extend_from_slice(argv);
+  let out = run(home, root, &args);
+  assert_eq!(out.status.code(), Some(0), "{}", text(&out));
+  let answer: serde_json::Value =
+    serde_json::from_slice(&out.stdout).expect("`search --json` prints one JSON value");
+  answer["index"]["reconciled"]
+    .as_bool()
+    .unwrap_or_else(|| panic!("the envelope carries no `index.reconciled`: {answer}"))
+}
+
+#[test]
+fn a_search_says_whether_it_reconciled_before_it_answered() {
+  // **ISSUE 0484: `complete` IS ABOUT THE INDEX IT READ, NOT ABOUT THE TREE.**
+  // A search that skipped its reconcile -- beside a watching daemon, by
+  // `--no-reconcile`, or served by the daemon, which never reconciles per
+  // query -- answers the index as it stands and still says `complete: true`.
+  // `reconciled` is how a caller tells that answer from one over a tree the
+  // search just walked, and the terminal says it in one line on stderr.
+  //
+  // **ALL FOUR DOORS, BECAUSE EACH WAS A SEPARATE PLACE TO GET IT WRONG**, and
+  // the one that reconciles is the control: without it a build that never set
+  // the field would pass every other assertion here.
+  let daemon = RealDaemon::start();
+  let watched = project();
+  let untouched = project();
+  let contacted = run(daemon.home(), &watched, &["--daemon", "st", "list"]);
+  assert_eq!(contacted.status.code(), Some(0), "{}", text(&contacted));
+  assert!(
+    daemon.watching(&watched),
+    "precondition: the daemon is watching the project the skip arms are about"
+  );
+
+  assert!(
+    reconciled(daemon.home(), &untouched, &["anything"]),
+    "a search in a project no daemon watches reconciled and did not say so"
+  );
+  assert!(
+    !reconciled(daemon.home(), &watched, &["anything"]),
+    "a search beside a watching daemon skipped its reconcile and claimed one"
+  );
+  assert!(
+    !reconciled(daemon.home(), &untouched, &["--no-reconcile", "anything"]),
+    "a --no-reconcile search claimed a reconcile it was asked not to run"
+  );
+  assert!(
+    !reconciled(daemon.home(), &watched, &["--daemon", "anything"]),
+    "a daemon-served search claimed a reconcile the daemon never runs per query"
+  );
+
+  let said = run(daemon.home(), &watched, &["search", "anything"]);
+  assert!(
+    String::from_utf8_lossy(&said.stderr).contains("without reconciling it against the tree first"),
+    "the terminal answer beside a watching daemon does not say it skipped its reconcile: {}",
+    text(&said)
+  );
+  let quiet = run(daemon.home(), &untouched, &["search", "anything"]);
+  assert!(
+    !String::from_utf8_lossy(&quiet.stderr).contains("without reconciling"),
+    "a search that did reconcile says it did not: {}",
+    text(&quiet)
+  );
+
+  let _ = std::fs::remove_dir_all(&watched);
+  let _ = std::fs::remove_dir_all(&untouched);
+}
+
 #[test]
 fn when_the_daemon_cannot_say_a_search_reconciles_where_sync_refuses() {
   // **THE Err PATH, AND THE ASYMMETRY IS THE SUBJECT.** Both verbs ask one

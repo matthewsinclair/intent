@@ -406,6 +406,19 @@ pub struct IndexFreshness {
   /// until WP-18's reconcile exists to write it. A time read at render would
   /// be a plausible value that no event produced.
   pub reconciled_at: Option<String>,
+  /// Whether THIS answer's search reconciled the index against the tree before
+  /// it queried (issue 0484).
+  ///
+  /// **`false` IS THE DEFAULT, AND ONLY THE DOOR THAT RECONCILED SETS `true`.**
+  /// A plain search skips its reconcile where a daemon is watching the project
+  /// (0443 Q1), `--no-reconcile` skips it by request, and the daemon never
+  /// reconciles per query -- in all three the answer is the index as it stands,
+  /// and a file written since `reconciled_at` may be missing from it while
+  /// `complete` still reads `true`, because `complete` is about what the index
+  /// read, not about the tree. This is the field that tells a caller which of
+  /// the two it got. Defaulting to `false` means no door can claim a reconcile
+  /// it did not run.
+  pub reconciled: bool,
   /// Keyed by the corpus names the index itself uses (`canon`, and cc's
   /// `prose` and `code` when WP-18 lands). The keys are not enumerated here:
   /// a corpus the index gains appears in the answer the day it is added.
@@ -439,9 +452,10 @@ pub struct IndexFreshness {
 impl Serialize for IndexFreshness {
   fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
     use serde::ser::SerializeStruct;
-    let fields = 5 + usize::from(self.reconciled_at.is_some());
+    let fields = 6 + usize::from(self.reconciled_at.is_some());
     let mut out = serializer.serialize_struct("IndexFreshness", fields)?;
     out.serialize_field("complete", &self.complete())?;
+    out.serialize_field("reconciled", &self.reconciled)?;
     if let Some(at) = &self.reconciled_at {
       out.serialize_field("reconciled_at", at)?;
     }
@@ -467,6 +481,8 @@ impl<'de> Deserialize<'de> for IndexFreshness {
     struct Carried {
       #[serde(default)]
       reconciled_at: Option<String>,
+      #[serde(default)]
+      reconciled: bool,
       corpora: BTreeMap<String, CorpusState>,
       skipped: Vec<Skipped>,
       stale: Vec<String>,
@@ -476,6 +492,7 @@ impl<'de> Deserialize<'de> for IndexFreshness {
     let carried = Carried::deserialize(deserializer)?;
     Ok(Self {
       reconciled_at: carried.reconciled_at,
+      reconciled: carried.reconciled,
       corpora: carried.corpora,
       skipped: carried.skipped,
       stale: carried.stale,
@@ -490,6 +507,7 @@ impl IndexFreshness {
   pub fn new(corpora: BTreeMap<String, CorpusState>) -> Self {
     Self {
       reconciled_at: None,
+      reconciled: false,
       corpora,
       skipped: Vec::new(),
       stale: Vec::new(),
@@ -512,6 +530,29 @@ impl IndexFreshness {
   /// The skips that make this answer partial.
   pub fn gaps(&self) -> impl Iterator<Item = &Skipped> {
     self.skipped.iter().filter(|skip| skip.leaves_a_gap())
+  }
+
+  /// Say that this answer's search reconciled the index before it queried.
+  /// Called only by a door that ran the reconcile (issue 0484).
+  pub fn mark_reconciled(&mut self) {
+    self.reconciled = true;
+  }
+
+  /// What a reader is owed when this answer did not reconcile first, or `None`
+  /// when it did (issue 0484). The terminal prints it on stderr. The explorer's
+  /// pane keeps its one info row for the symbol level and the partial-index
+  /// notes, which its own tests hold, and carries `reconciled` in the envelope.
+  pub fn unreconciled_note(&self) -> Option<String> {
+    if self.reconciled {
+      return None;
+    }
+    let since = self
+      .reconciled_at
+      .as_deref()
+      .unwrap_or("the last reconcile");
+    Some(format!(
+      "answered from the index as it stands, without reconciling it against the tree first -- a file changed since {since} may be missing"
+    ))
   }
 
   /// Record a path whose indexed bytes no longer match the disk.
