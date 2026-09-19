@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7G5MY786VEC1T1FG4M695",
+  "ts": "2026-09-19T07:01:12.990Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After CUT DONE, one commit under CHAIN START/END: three as-written vs as-built fixes left after vc's sweep. (1) `docs/install.md:66`: the cwi row still names the retired `claude ws new/list/archive/hygiene`; the script answers `start` only. (2) `in-tca-init` SKILL.md section 5: since 0335 `tca-init.sh` registers each WP (`intent wp new`, :143) and seeds its body (`intent set`, :172), so the step's own `wp new` list double-registers WP N+1..2N; step 6 replaces the seeded objective and body, and must say how the \"Component NN\" titles get the component's name. (3) `in-tca-finish` SKILL.md:106 and `tca-report.sh:88`: Guard 2 runs `intent ac gate` itself. (2) and (3) reported by dc 2026-09-18 23:08Z. S."
+  }
+}

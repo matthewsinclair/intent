@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7G4RNXT8BGZFKV44KFS4Q",
+  "ts": "2026-09-19T07:01:12.085Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 2026-09-19 07:01Z, localfold on hv's word, mid-cut.** ic's close-out is done: ST0078 closed, the trawl committed and pushed by hv via vc. HOLD until vc's \"CUT DONE\": no intent verb, no tree write, no build, no cargo. After CUT DONE, on vc's word: the doc-fix todo, then the worktree todo. Sweep notes: ic's scratchpad docsweep/FINDINGS.md. NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`."
+  }
+}

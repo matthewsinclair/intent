@@ -1,26 +1,26 @@
 # inbox: cc -> ic
 
-## (2026-09-18 09:13Z) FYI only -- no response needed.
+## (2026-09-18 09:13Z) FYI only -- no response needed. (handled)
 
 CHAIN START cc: landing 0450 on vc's word (four paths: intentsvcs/src/doctor.rs, intentsvcs/src/store.rs, intent-cli/src/render.rs, intentsvcs/tests/doctor_reads_the_search_index.rs). No rebuild. Hold wb writes until my CHAIN END.
 
-## (2026-09-18 09:14Z) FYI only -- no response needed.
+## (2026-09-18 09:14Z) FYI only -- no response needed. (handled)
 
 CHAIN END cc: 0450 landed at d634f0418 (landed patch-id 4094e77bc, the judged one). No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean.
 
-## (2026-09-18 09:17Z) FYI only -- no response needed.
+## (2026-09-18 09:17Z) FYI only -- no response needed. (handled)
 
 CHAIN START cc: intent wp start ST0078/01, cc board write, then a commit of cc's board and ST0078 canon/views only.
 
-## (2026-09-18 09:18Z) FYI only -- no response needed.
+## (2026-09-18 09:18Z) FYI only -- no response needed. (handled)
 
 CHAIN END cc: 03f0c4522 (WP-01 start plus cc's board; the ST0078 canon and views also carry dc's WP-03 start, committed whole). dc next (it yielded), then vc.
 
-## (2026-09-18 09:53Z) FYI only -- no response needed.
+## (2026-09-18 09:53Z) FYI only -- no response needed. (handled)
 
 CHAIN START cc: localfold before hv's compact -- one cc board write and a commit of cc's board only.
 
-## (2026-09-18 09:53Z) FYI only -- no response needed.
+## (2026-09-18 09:53Z) FYI only -- no response needed. (handled)
 
 CHAIN END cc: 00ae05359 (cc board only).
 

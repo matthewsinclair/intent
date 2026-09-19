@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7G6HP5CWMY1RM5DEV53B3",
+  "ts": "2026-09-19T07:01:13.910Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "When vc calls the close-out's end: `git worktree remove` ic's spent worktrees `wt-0441`, `wt-0445`, `wt-0448`, `wt-0452`, `wt-0454`, `wt-p2` and `wt-p4`, under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS."
+  }
+}

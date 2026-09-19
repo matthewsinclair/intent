@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-18 16:31Z
+heartbeat_at: 2026-09-19 07:01Z
 status: active
-focus: "FOLDED 2026-09-18 16:2xZ. ST0078 closed; ic's trawl half done (11 estates committed, NOT pushed, vc-checked). Only todo 35 left: the worktree removals at the close-out's end, on vc's word. NO RELEASE, NO PUSH."
+focus: "FOLDED 2026-09-19 07:01Z mid-cut. Close-out done (ST0078 closed, trawl pushed by hv via vc). Holding for CUT DONE; then doing 77 -> todo 37 (docs) and todo 38 (worktrees) on vc's word. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,18 +13,12 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 2026-09-18, localfold after ic's trawl half. Everything ic owned in the close-out is DONE except todo 35:**
-- ST0078 closed by vc at 0d2dd907b. ic's two follow-ups landed and were verified by vc: P4's re-drive at 295d34ad9 (the unscoped status read; the page's upgrade block refilled from the log) and the machine-events lines at 274ced10e (named from MACHINE_SCOPED_OPS; an ingest and an index rebuild record no event).
-- The trawl: ic's eleven are committed in their own repos, NOT pushed, and each was checked by vc. Laksa 8735aba9f, MicroGPTEx bcddeb2, Molt ac35a16, Molt-flynn 6538a7e, Molt-matts 709f382, Prodinfra 7b8b5c7, Prolix 7f36971, Riffle ef2d008, Utilz 77fd081, Cdtempl 652310f. Lamplight has two: 36a7b3fde, the canon repair on hv's word (the AT-16.1 label, ST0338 repointed to ST0356, the ST0347 view removed), and 2d862c19d, the trawl itself (ST0037's nine superseded specs renamed to spec.md and attached first).
-- Found on the way, each filed or fixed: the zero-byte events.jsonl leftover (the kit precondition, cc's 0459 at ba4c37b57); 0460, the missing `related` verb; 0461, the info.md attachment name.
-
-**NEXT, on vc's word only:** todo 35, the worktree removals, at the close-out's end: the five it names PLUS wt-p2 and wt-p4. Every bank they held is landed.
-
-The trawl tooling is kept in ic's scratchpad under trawl/ (run-ic.sh, the logs, repoint-st0338.py). NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.
+- **RESUME HERE -- 2026-09-19 07:01Z, localfold on hv's word, mid-cut.** ic's close-out is done: ST0078 closed, the trawl committed and pushed by hv via vc. HOLD until vc's "CUT DONE": no intent verb, no tree write, no build, no cargo. After CUT DONE, on vc's word: the doc-fix todo, then the worktree todo. Sweep notes: ic's scratchpad docsweep/FINDINGS.md. NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.
 
 ## TODO
 
-- Remove ic's spent worktrees with `git worktree remove` WHEN vc calls the end of the close-out (vc's timing ruling of 2026-09-17, restated 2026-09-18): `wt-0441` (detached at `d8c6cc31c`), `wt-0445`, `wt-0448`, `wt-0452` and `wt-0454`, all under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
+- After CUT DONE, one commit under CHAIN START/END: three as-written vs as-built fixes left after vc's sweep. (1) `docs/install.md:66`: the cwi row still names the retired `claude ws new/list/archive/hygiene`; the script answers `start` only. (2) `in-tca-init` SKILL.md section 5: since 0335 `tca-init.sh` registers each WP (`intent wp new`, :143) and seeds its body (`intent set`, :172), so the step's own `wp new` list double-registers WP N+1..2N; step 6 replaces the seeded objective and body, and must say how the "Component NN" titles get the component's name. (3) `in-tca-finish` SKILL.md:106 and `tca-report.sh:88`: Guard 2 runs `intent ac gate` itself. (2) and (3) reported by dc 2026-09-18 23:08Z. S.
+- When vc calls the close-out's end: `git worktree remove` ic's spent worktrees `wt-0441`, `wt-0445`, `wt-0448`, `wt-0452`, `wt-0454`, `wt-p2` and `wt-p4`, under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
 
 ## Holds
 
