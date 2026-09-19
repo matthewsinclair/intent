@@ -61,10 +61,13 @@ VERBS=()
 READONLY_VERBS=(
   "st list" "wp list" "ac list" "at list" "todo" "issues list" "info" "doctor"
   "claude skills list" "claude rules list" "claude subagents list"
-  "agents sync" "critic" "lang" "llm" "modules" "fileindex bin" "version" "search"
+  "critic" "lang" "llm" "modules" "version" "search"
 )
 # SAFE ONLY IN A CLONE. Named here rather than in prose so the boundary is data.
-MUTATING_VERBS=( "claude upgrade" "claude prime" "init" "bootstrap" "upgrade" )
+# `agents sync` is here because it rewrites AGENTS.md (the incident record below
+# says so), and the retired `fileindex` and `claude prime` are in neither list:
+# they can only refuse (issue 0472).
+MUTATING_VERBS=( "claude upgrade" "agents sync" "init" "bootstrap" "upgrade" )
 
 for a in "$@"; do
   case "$a" in
@@ -157,4 +160,5 @@ if [ "$INCLUDE_MUTATING" -eq 0 ]; then
   printf '         sweep is INCOMPLETE BY CONSTRUCTION -- pass --include-mutating, which is\n'
   printf '         safe here ONLY because the subject is a throwaway clone.\n'
 fi
+# shellcheck disable=SC2016 # the backticks are literal text in the message
 printf 'hosting: `claude start` is excluded in BOTH modes -- it SPAWNS, and a clone does not contain that.\n'
