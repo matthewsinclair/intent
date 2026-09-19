@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXXT6587RE4F64J4B9XXGX",
+  "ts": "2026-09-19T13:33:09.580Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0481"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intentd's watcher arms go red inside the release gate right after the workspace build and pass alone at the same load"
+  }
+}

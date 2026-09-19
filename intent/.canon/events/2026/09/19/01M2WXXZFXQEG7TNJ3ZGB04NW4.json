@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXXZFXQEG7TNJ3ZGB04NW4",
+  "ts": "2026-09-19T13:33:14.113Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0482"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Intent's own estate never received the 3.1.0 post-pull hook carriers the trawl gave every other estate"
+  }
+}

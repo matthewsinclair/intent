@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXXFMEP6ZPZVRREB7WNMJQ",
+  "ts": "2026-09-19T13:32:57.874Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0479"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intentd refuses to start on a socket path over SUN_LEN, and neither the refusal nor the log names the remedy"
+  }
+}

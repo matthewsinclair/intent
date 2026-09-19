@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXXMTAMGS3Y4CG1RTVKF32",
+  "ts": "2026-09-19T13:33:03.277Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0480"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the at na refusal's remedy names an intent at new --status flag that does not exist"
+  }
+}

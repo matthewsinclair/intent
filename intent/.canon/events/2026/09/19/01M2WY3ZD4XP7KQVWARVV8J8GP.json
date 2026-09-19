@@ -1,0 +1,15 @@
+{
+  "id": "01M2WY3ZD4XP7KQVWARVV8J8GP",
+  "ts": "2026-09-19T13:36:30.628Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-19 13:36Z, hv first-hand in prose, answering vc on the fleet's 3.0.3 to 3.1.0 upgrade; hv, verbatim: \"Agree. Get the live projects to do it themselves, then once that's done, we should then do it for the others.\") THE FLEET UPGRADE RUNS IN TWO WAVES, wording vc's, authority hv's. Wave one: each estate with live sessions today (Lamplight, Laksa, Utilz, Devbin) is upgraded by its own nodes under its own vc's pen, in the order lamplight-vc holds: this morning's hand-edited boards committed first, then `intent upgrade`, `intent claude upgrade` dry then `--apply --skip-settings`, and where the boards are still hand-authored `intent wb register` with no arguments then `intent wb migrate <node>` per node with hv first and `--drop-uncarried` only after the Part B disposition (decision 24), then doctor 0, organize clean and one commit by literal paths. Wave two: the estates with no session get the same from here with the trawl kit, after the close-out's chains, split between dc and ic as the trawl was. The whiteboard carry's hold (3.0.3 dropped hv's standing directives) is lifted because 3.1.0 carries the directive kind. What the measurement said when this was ruled: every registered estate is at 3.0.3 except Intent and Utilz, and Lamplight, Baize, Conflab, Prolix, Molt, Riffle, arca_cli and arca_config still have hand-authored boards. Nothing is pushed without hv's word."
+  }
+}

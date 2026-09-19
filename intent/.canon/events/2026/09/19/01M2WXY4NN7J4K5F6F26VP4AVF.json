@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXY4NN7J4K5F6F26VP4AVF",
+  "ts": "2026-09-19T13:33:20.972Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0483"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "post-checkout.intent runs intent sync --apply in every new git worktree, and what that does there is unmeasured"
+  }
+}

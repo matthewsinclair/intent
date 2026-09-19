@@ -1,0 +1,14 @@
+{
+  "id": "01M2WXX6RPXT7WMZ9ZJTTDFE8G",
+  "ts": "2026-09-19T13:32:48.835Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/deferred.md"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

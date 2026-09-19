@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 482,
+  "slug": "intent-s-own-estate-never-received-the-3-1-0-pos",
+  "title": "Intent's own estate never received the 3.1.0 post-pull hook carriers the trawl gave every other estate",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "Intent's own estate never received the post-pull carriers the 3.1.0 canon installs, and the release found out.\n\n**Seen 2026-09-19** at the 3.1.0 cut: the driver's canon regeneration (`claude upgrade --apply`) wrote `.githooks/post-checkout`, `post-merge`, `post-rewrite` and their `.intent` shims as new files and refused to fold them into the release commit, correctly. Every other estate got these hooks in the fleet trawl of 2026-09-18; Intent's own repository, whose hooks live in the tracked `.githooks/` reached by `core.hooksPath`, did not. They were landed by hand at 3d778acf4 with the shims ignored like `pre-commit.intent`.\n\n**The ask:** find why the trawl's Intent run did not converge its own `.githooks/` (the kit's step 3 runs `claude upgrade --apply --skip-settings` on the other estates), and whether a self-hosted tree needs its own line in the kit or in `claude upgrade`. S.\n"
+}

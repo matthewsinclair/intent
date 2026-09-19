@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 479,
+  "slug": "intentd-refuses-to-start-on-a-socket-path-over-s",
+  "title": "intentd refuses to start on a socket path over SUN_LEN, and neither the refusal nor the log names the remedy",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "intentd refuses to start when its socket path exceeds SUN_LEN, and neither the CLI's refusal nor the log names the remedy.\n\n**Seen 2026-09-18** while driving `intent/st/ST0056/gyges-brief.md` in a scratch project under an isolated HOME 106 characters long: `intent daemon start` exited 1 with `intentd was started and is not answering` and a remedy naming the log; the log said `could not bind the daemon's socket listener: path must be shorter than SUN_LEN`. The socket lives at `<XDG_STATE_HOME or ~/.local/state>/intent/run/intentd.sock` (userstate.rs), so any long state directory hits the 104-byte limit macOS puts on a Unix socket path.\n\n**The ask:** the refusal that reaches the person names the cause and the remedy in one line: the socket path, its length, the limit, and that a shorter `XDG_STATE_HOME` moves it. XS.\n"
+}
