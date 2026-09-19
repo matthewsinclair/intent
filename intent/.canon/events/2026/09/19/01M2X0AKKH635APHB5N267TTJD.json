@@ -1,0 +1,15 @@
+{
+  "id": "01M2X0AKKH635APHB5N267TTJD",
+  "ts": "2026-09-19T14:15:05.076Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0485"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade writes an unflushed todo.md on a project that has flushed its DONE list, which doctor then refuses"
+  }
+}
