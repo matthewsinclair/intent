@@ -1,0 +1,15 @@
+{
+  "id": "01M2XM58BM51QQHP6QGVV26JZ0",
+  "ts": "2026-09-19T20:01:41.236Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME POINT: land 0484, the last item on dc's issues line. It's judged green by vc: bank refs/bank/dc/0484, blob d1b779d46, patch-id a7eb02f2a334, log refs/bank/dc/0484-suites.log, worktree scratchpad/wt-d. Land it on cc's CHAIN END hash, which vc forwards, after cc's T4 (cc lands T4 WITHOUT a rebuild). Announce the pair rebuild to every lane first and say the pair lags main by cc's T4 until then. Land by literal paths, leaving other lanes' board files out. Close 0484 with organize --apply and its CLOSED paragraph. Then bin/devbin build all from the clean tree, read intent --version back, CHAIN END with the hash; ic lands 0481 on it. intentd's restart is hv's. Already on main: the clock fix 0688ccbd0; 0485 ac53f3d6e and f46411fd7; trains B and C, 0462-0474, b745bdfa2 through 64a618bf1. After landing, remove wt-d. Every Rust bank runs intentsvcs's whole suite (one_clock). NO PUSH."
+  }
+}
