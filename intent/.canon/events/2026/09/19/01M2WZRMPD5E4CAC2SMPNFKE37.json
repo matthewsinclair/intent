@@ -1,0 +1,15 @@
+{
+  "id": "01M2WZRMPD5E4CAC2SMPNFKE37",
+  "ts": "2026-09-19T14:05:16.365Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**Fleet upgrade wave two: the silent estates, run from here with the trawl kit.** RELEASED BY vc's word, which comes once the live estates report wave one (vc, 2026-09-19 14:0xZ). The trawl kit is banked under refs/bank/cc/trawl/."
+  }
+}

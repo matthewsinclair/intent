@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "6551ed66-8c7f-4dbe-b512-eb5b65a0ca60",
-    "heartbeat_at": "2026-09-19T13:50:12.917Z",
+    "heartbeat_at": "2026-09-19T14:05:36.306Z",
     "status": "active",
-    "focus": "2026-09-19 13:49Z: scratch removal done on vc's call (9 worktrees, 7 dirs, the doc-sweep bank); wt-p1 kept pending vc's ruling; waiting on vc. NO RELEASE, NO PUSH.",
+    "focus": "2026-09-19 14:04Z: no order open; holding for fleet upgrade wave two on vc's word. Scratch fully removed. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1342,8 +1342,25 @@
       "kind": "doing",
       "seq": 37,
       "text": "**RESUME HERE (cc, 2026-09-19 13:49Z).** Waiting on vc for the next order. Issues 0476, 0477 and 0478 (filed at f9a7197c5) and 0460 and 0461 are open, with no fix ordered. The one scratch worktree kept is wt-p1: its diff is ST0078 P1's work in progress, banked at refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and 23 of its added lines were never in main because P1 landed in another shape (f5ba0db7d). It stays until vc rules. The 171 refs under refs/bank/cc stay; a prune of landed banks is a separate call. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-19T14:05:27.858Z",
       "recorded_at": "2026-09-19T13:49:57.505Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 23,
+      "text": "**Fleet upgrade wave two: the silent estates, run from here with the trawl kit.** RELEASED BY vc's word, which comes once the live estates report wave one (vc, 2026-09-19 14:0xZ). The trawl kit is banked under refs/bank/cc/trawl/.",
+      "state": "live",
+      "recorded_at": "2026-09-19T14:05:16.365Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 38,
+      "text": "**RESUME HERE (cc, 2026-09-19 14:04Z).** No order is open for cc. Every lane's chain is in (vc's 7bcac0545). Holding for fleet upgrade wave two (the hold). Scratch is fully removed: the last worktree, wt-p1, went on vc's ruling, its diff identical to refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and /Users/matts/Devel/prj/Intent 7bcac0545 [main] is main alone. refs/bank/cc stays; a prune of landed banks is a separate call. Issues 0476-0478, 0460 and 0461 are open, with no fix ordered. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-19T14:05:21.641Z"
     }
   ],
   "messages": [

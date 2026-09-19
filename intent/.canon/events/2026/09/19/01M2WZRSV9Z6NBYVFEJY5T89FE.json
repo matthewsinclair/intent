@@ -1,0 +1,15 @@
+{
+  "id": "01M2WZRSV9Z6NBYVFEJY5T89FE",
+  "ts": "2026-09-19T14:05:21.641Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 14:04Z).** No order is open for cc. Every lane's chain is in (vc's 7bcac0545). Holding for fleet upgrade wave two (the hold). Scratch is fully removed: the last worktree, wt-p1, went on vc's ruling, its diff identical to refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and /Users/matts/Devel/prj/Intent 7bcac0545 [main] is main alone. refs/bank/cc stays; a prune of landed banks is a separate call. Issues 0476-0478, 0460 and 0461 are open, with no fix ordered. NO RELEASE, NO PUSH."
+  }
+}
