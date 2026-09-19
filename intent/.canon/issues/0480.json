@@ -3,9 +3,10 @@
   "number": 480,
   "slug": "the-at-na-refusal-s-remedy-names-an-intent-at-ne",
   "title": "the at na refusal's remedy names an intent at new --status flag that does not exist",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "The `at na` refusal's remedy names a flag that does not exist.\n\n**Seen 2026-09-18** driving `docs/concepts/criteria-and-tests.md` in a scratch project: `intent at na` on a test row refuses (a test row holds to-write, red or green and a non-test row holds n/a) and its remedy says to create the row with \"`intent at new` with no `--status`\". `intent at new --help` carries no `--status` flag; the kind is chosen with `--kind`.\n\n**The ask:** the remedy names `--kind non-test`, the flag that exists, and a test holds the remedy's flags to `at new`'s declared ones. XS.\n"
+  "body": "The `at na` refusal's remedy names a flag that does not exist.\n\n**Seen 2026-09-18** driving `docs/concepts/criteria-and-tests.md` in a scratch project: `intent at na` on a test row refuses (a test row holds to-write, red or green and a non-test row holds n/a) and its remedy says to create the row with \"`intent at new` with no `--status`\". `intent at new --help` carries no `--status` flag; the kind is chosen with `--kind`.\n\n**The ask:** the remedy names `--kind non-test`, the flag that exists, and a test holds the remedy's flags to `at new`'s declared ones. XS.\n\n\n\nCLOSED 2026-09-19, by the commit that carries this close, in ic's stacked landing on vc's GO (patch-id 28da6d7e5, judged green: intentsvcs 1506 passed 0 failed, intent-cli 712 passed 0 failed; the landing run over 0480, 0479 and 0483 together on 2cd1de145: intentsvcs 1510, intent-cli 716, intentd 39, 0 failed). The remedy names `--kind non-test`. The new arm remedies_are_reachable::every_flag_a_remedy_names_is_one_its_verb_accepts holds every flag a remedy names to the flags the built surface accepts on that verb; it was red on the unfixed remedy with exactly `intent at new --status` and green after.\n"
 }

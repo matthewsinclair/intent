@@ -951,9 +951,10 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
       // remedy in this estate, and matching it whole against `declared_paths()`
       // finds nothing -- so before this stripping it fell out of the corpus in
       // SILENCE, which is the same defect this arm exists to repair, one level
-      // down. The verb is verified here; whether the FLAG is declared and read
-      // is `flag_reachability.rs` under AC-06.8, and duplicating that check
-      // here would be a second home for it.
+      // down. The verb is verified here; whether the FLAG is one the verb
+      // accepts is [`every_flag_a_remedy_names_is_one_its_verb_accepts`]
+      // (issue 0480). This said `flag_reachability.rs` until then, which checks
+      // that declared flags are read and never reads a remedy.
       let verb: String = r
         .split_whitespace()
         .take_while(|w| !w.starts_with("--"))
@@ -987,7 +988,7 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
     DOES NOT cover a reference assembled at runtime (`format!(\"`intent {{verb}}`\")`), \
     which has a placeholder where the command would be. \
     DOES NOT judge whether the named verb is the RIGHT one for that error. \
-    DOES NOT judge a FLAG named in a remedy: the verb is checked here and the flag is `flag_reachability.rs` under AC-06.8."
+    DOES NOT judge a FLAG named in a remedy: the verb is checked here and the flag by `every_flag_a_remedy_names_is_one_its_verb_accepts`."
   );
 
   assert!(
@@ -1015,5 +1016,145 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
      FIXED (shrink INHERITED_UNREACHABLE to match): {:?}",
     unreachable.difference(&inherited).collect::<Vec<_>>(),
     inherited.difference(&unreachable).collect::<Vec<_>>()
+  );
+}
+
+/// The long flags the BUILT surface accepts on `path`, globals and `--help`
+/// included, or `None` when `path` is not a subcommand of it.
+///
+/// **THE BINARY'S PARSER, NOT THE TABLE, AND THAT IS WHAT ISSUE 0480 TURNED
+/// ON.** `at new --status` is still DECLARED in the table -- as a retired row,
+/// which is how a retirement is recorded -- so a check against declarations
+/// would have passed the remedy that names it. `spine::surface()` is the
+/// Command the binary parses with; after `build()` its subcommands carry the
+/// propagated globals (`--daemon`) and the generated `--help`, so a flag is
+/// accepted here exactly when a person typing it would have it accepted.
+fn accepted_flags(surface: &clap::Command, path: &[&str]) -> Option<BTreeSet<String>> {
+  let mut cmd = surface;
+  for word in path {
+    cmd = cmd.find_subcommand(word)?;
+  }
+  Some(
+    cmd
+      .get_arguments()
+      .filter_map(|a| a.get_long().map(|l| format!("--{l}")))
+      .collect(),
+  )
+}
+
+/// The longest run of leading words in an `intent ...` span that names a
+/// subcommand, and the words after it.
+fn split_verb<'a>(surface: &clap::Command, words: &'a [&'a str]) -> (Vec<&'a str>, &'a [&'a str]) {
+  let mut cmd = surface;
+  let mut n = 0;
+  for w in words {
+    match cmd.find_subcommand(w) {
+      Some(sub) => {
+        cmd = sub;
+        n += 1;
+      }
+      None => break,
+    }
+  }
+  (words[..n].to_vec(), &words[n..])
+}
+
+/// The flag a token names, if it names one: `--kind`, `--note=...` as `--note`.
+fn flag_of(token: &str) -> Option<String> {
+  let t = token.trim_matches(|c: char| c == ',' || c == '.' || c == ';');
+  let name = t.split('=').next().unwrap_or(t);
+  (name.starts_with("--")
+    && name.len() > 2
+    && name[2..]
+      .chars()
+      .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-'))
+  .then(|| name.to_string())
+}
+
+/// Every `(verb, flag)` a remedy literal names, in the two shapes a remedy
+/// uses: a flag inside the command span (`` `intent at new --kind non-test` ``)
+/// and a flag in its own span after one (`` `intent at new` with no `--status` ``,
+/// the shape issue 0480's remedy had). A bare flag span is read against the
+/// nearest `intent ...` span before it in the same literal; one with no such
+/// span names no verb and is not judged.
+fn named_flags(surface: &clap::Command, literal: &str) -> Vec<(String, String)> {
+  let mut out = Vec::new();
+  let mut verb: Option<Vec<String>> = None;
+  for span in literal.split('`').skip(1).step_by(2) {
+    let words: Vec<&str> = span.split_whitespace().collect();
+    if let Some(rest) = words.strip_prefix(&["intent"]) {
+      let (path, tail) = split_verb(surface, rest);
+      if path.is_empty() {
+        verb = None;
+        continue;
+      }
+      let path: Vec<String> = path.iter().map(|w| w.to_string()).collect();
+      for t in tail {
+        if let Some(f) = flag_of(t) {
+          out.push((path.join(" "), f));
+        }
+      }
+      verb = Some(path);
+    } else if let (Some(path), [only]) = (&verb, words.as_slice())
+      && let Some(f) = flag_of(only)
+    {
+      out.push((path.join(" "), f));
+    }
+  }
+  out
+}
+
+/// **THE PROPERTY: every flag a remedy names is one its verb accepts** (issue
+/// 0480).
+///
+/// The two arms above check the VERB a remedy names and said the FLAG was
+/// `flag_reachability.rs`'s -- which checks the opposite direction, that every
+/// declared flag is read by the renderer, and never reads a remedy. So nothing
+/// held a remedy's flags to anything, and the `at na` refusal sent a reader to
+/// `intent at new` "with no `--status`" after `--status` was
+/// retired from `at new` (issue 0339).
+///
+/// Same corpus as the source arm, every `remedy()` body in intentsvcs/src.
+#[test]
+fn every_flag_a_remedy_names_is_one_its_verb_accepts() {
+  let mut surface = intent_cli::spine::surface();
+  surface.build();
+
+  let bodies = remedy_bodies();
+  let mut named: BTreeSet<(String, String)> = BTreeSet::new();
+  for (_, body) in &bodies {
+    for lit in string_literals(body) {
+      named.extend(named_flags(&surface, &lit));
+    }
+  }
+
+  let refused: BTreeSet<String> = named
+    .iter()
+    .filter(|(verb, flag)| {
+      let path: Vec<&str> = verb.split(' ').collect();
+      !accepted_flags(&surface, &path).is_some_and(|ok| ok.contains(flag))
+    })
+    .map(|(verb, flag)| format!("intent {verb} {flag}"))
+    .collect();
+
+  println!(
+    "POPULATION: {} `remedy()` bodies read from intentsvcs/src, {} distinct (verb, flag) pairs named",
+    bodies.len(),
+    named.len()
+  );
+  println!(
+    "REACH: COVERS a flag inside an `intent ...` span and a lone flag span after one. \
+    DOES NOT cover a flag assembled at runtime, a flag named outside backticks, \
+    or whether the flag is the RIGHT one for that error."
+  );
+
+  assert!(
+    named.iter().any(|(v, f)| v == "at edit" && f == "--note"),
+    "the harvest did not reach `intent at edit ... --note`, which the NoteWouldBeLost remedy names \
+     -- an empty corpus is how this check passes by having nothing to examine"
+  );
+  assert!(
+    refused.is_empty(),
+    "a remedy names a flag its verb does not accept -- the reader types it and clap refuses: {refused:?}"
   );
 }

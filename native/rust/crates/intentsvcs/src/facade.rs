@@ -2298,7 +2298,7 @@ impl crate::remedy::Remedy for FacadeError {
       Self::VerdictWrongForKind { st, at, .. } => {
         format!(
           "a test row holds to-write, red or green and a non-test row holds n/a. Creating it, `intent at new` \
-           with no `--status` starts the row at its kind's entry. On an existing row, a test row takes \
+           starts the row at its kind's entry: to-write, or n/a with `--kind non-test`. On an existing row, a test row takes \
            `intent at red|green {st} {at}` and a non-test row takes `intent at na {st} {at}`; if the row's kind is \
            what is wrong, re-kind it with `intent at edit {st} {at} --kind <test|non-test>`"
         )
