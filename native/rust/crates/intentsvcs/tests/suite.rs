@@ -89,6 +89,8 @@ mod address_views_have_no_url;
 mod an_issue_body_can_be_corrected;
 #[path = "an_unreadable_index_table_is_named_and_the_canon_is_not_blamed.rs"]
 mod an_unreadable_index_table_is_named_and_the_canon_is_not_blamed;
+#[path = "an_unreadable_index_table_is_rebuilt_in_place.rs"]
+mod an_unreadable_index_table_is_rebuilt_in_place;
 #[path = "attachment_cap.rs"]
 mod attachment_cap;
 #[path = "attachment_carry.rs"]

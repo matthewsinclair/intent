@@ -172,6 +172,21 @@ pub(crate) enum StoreNeed {
   /// **Narrowing it is a ruling rather than an inversion, because refusing
   /// preserves and running does not.**
   Exclusive,
+  /// A [`StoreNeed::Shared`] verb whose store may be unreadable through the
+  /// very index it is about to rebuild: `intent index rebuild`, and nothing
+  /// else (issue 0453). Routed exactly as `Shared`; what differs is the open,
+  /// which recreates the two derived search-index tables before reading them.
+  IndexRepair,
+}
+
+impl StoreNeed {
+  /// How the one construction site opens the store for this need.
+  fn opening(self) -> intentsvcs::facade::Opening {
+    match self {
+      Self::IndexRepair => intentsvcs::facade::Opening::RepairingIndex,
+      Self::Shared | Self::Exclusive => intentsvcs::facade::Opening::Ordinary,
+    }
+  }
 }
 
 /// The verb paths a daemon can answer, and the op each becomes.
@@ -578,7 +593,7 @@ pub(crate) fn engine(
     // as the residual: duplicated work and last-writer-wins about which ingest
     // lands. Neither is corruption. Each op the daemon learns moves a verb from
     // here to routed, and nothing is broken in between.
-    daemon::Route::Daemon(_) if need == StoreNeed::Shared => {}
+    daemon::Route::Daemon(_) if matches!(need, StoreNeed::Shared | StoreNeed::IndexRepair) => {}
     // **THE CARVE-OUT ASKS ABOUT THIS PROJECT, NOT ABOUT THIS MACHINE** (vc,
     // 2026-08-30). The prohibition is that two sync engines must not both watch
     // and both ingest ONE TREE. *Is any daemon alive?* is a strictly wider
@@ -604,7 +619,7 @@ pub(crate) fn engine(
   // `fn engine`", which is a real property and a weaker one.** Restructuring so
   // the match decides only WHETHER to refuse keeps the guard exactly as strong
   // as it was, and reads better besides.
-  Facade::open(project, ctx).map_err(fail)
+  Facade::open_as(project, ctx, need.opening()).map_err(fail)
 }
 
 /// Should a search answered IN THIS PROCESS reconcile the index first?
@@ -4712,7 +4727,10 @@ fn index(m: &ArgMatches) -> Result<(), Failure> {
       report_index(&status, m.get_flag("json"), false)
     }
     Some(("rebuild", m)) => {
-      let mut f = open()?;
+      // **THE ONE VERB THAT OPENS THROUGH THE REPAIR** (issue 0453): every
+      // other door reads the index at open, so a rebuild that opened the
+      // ordinary way refused behind the damage it exists to repair.
+      let mut f = open_for(StoreNeed::IndexRepair)?;
       let status = f.index_rebuild().map_err(fail)?;
       report_index(&status, m.get_flag("json"), true)
     }

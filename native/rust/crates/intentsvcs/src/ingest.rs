@@ -136,8 +136,11 @@ impl IngestError {
 /// **IT SAYS ONLY WHAT IS TRUE, AND THAT INCLUDES WHAT DOES NOT EXIST.** Driven
 /// on a damaged store, `intent index rebuild`, `intent backup` and `intent
 /// backup --list` each refused with this same error, because each opens the
-/// store through the read that failed -- so none of them is named as a way
-/// out, and no restore verb ships to name either.
+/// store through the read that failed. Since issue 0453 `intent index rebuild`
+/// opens through a repair instead -- it drops and recreates the two derived
+/// index tables before reading them -- so it is named, and it is the only verb
+/// named. No restore verb ships, so the snapshot stays a copy recovered by
+/// hand, for the case the rebuild itself refuses.
 pub fn unreadable_index_remedy(
   table: &str,
   newest_snapshot: Option<&str>,
@@ -150,7 +153,7 @@ pub fn unreadable_index_remedy(
     None => format!("There is no snapshot of this store in {snapshot_dir}"),
   };
   format!(
-    "the committed canon is intact and is not at fault -- the store's `{table}` search-index table could not be read. No verb in this build repairs it in place: every command opens the store through this read, `intent index rebuild` and `intent backup` included (issue 0453). {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
+    "the committed canon is intact and is not at fault -- the store's `{table}` search-index table could not be read. Run `intent index rebuild`: it drops and recreates the two derived search-index tables and fills them again from the store's records and the tree, so nothing authored is lost, and it refuses rather than touch any other table (issue 0453). If it refuses too: {snapshot}. Do NOT delete the store to get past this: it is the source of truth, and the committed extract may be older than it"
   )
 }
 

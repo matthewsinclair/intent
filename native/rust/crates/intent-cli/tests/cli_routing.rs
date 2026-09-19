@@ -905,7 +905,10 @@ fn sources(dir: &Path) -> Vec<PathBuf> {
 #[test]
 fn the_in_process_engine_has_exactly_one_door() {
   const DOOR: &str = "fn engine(";
-  const CALL: &str = "Facade::open(";
+  // Both spellings construct the engine: `open` is `open_as` with the
+  // ordinary opening, and `index rebuild`'s repairing open is the other
+  // (issue 0453). Counting one would let the other become an unguarded twin.
+  const CALLS: [&str; 2] = ["Facade::open(", "Facade::open_as("];
 
   let src = testkit::workspace_root()
     .join("crates")
@@ -942,7 +945,7 @@ fn the_in_process_engine_has_exactly_one_door() {
       if line.trim_start().starts_with("//") {
         continue;
       }
-      if line.contains(CALL) {
+      if CALLS.iter().any(|call| line.contains(call)) {
         let shown = file.file_name().expect("file name").to_string_lossy();
         sites.push(format!("{shown}:{} in `{enclosing}`", n + 1));
       }

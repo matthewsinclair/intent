@@ -563,12 +563,12 @@ impl FindingClass {
       Self::IndexUnreadable => (
         8,
         "index-unreadable",
-        "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. The detail names the table, says what no verb in this build can do about it, and names the newest snapshot if there is one",
+        "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. `intent index rebuild` recreates it and fills it again; the detail names the table, and the newest snapshot if there is one for the case the rebuild refuses",
       ),
       Self::StoreUnreadable => (
         8,
         "store-unreadable",
-        "the committed canon is intact and is not at fault -- the store file exists and cannot be read, so every command that opens it refuses. No verb in this build repairs it in place (issue 0453). The detail names the cause and the newest snapshot if there is one; no restore verb ships, so a snapshot is a copy to recover from by hand, and it may be older than the store",
+        "the committed canon is intact and is not at fault -- the store file exists and cannot be read, so every command that opens it refuses. No verb in this build repairs it in place: `intent index rebuild` recreates only the two search-index tables, and refuses when any other table cannot be read. The detail names the cause and the newest snapshot if there is one; no restore verb ships, so a snapshot is a copy to recover from by hand, and it may be older than the store",
       ),
       Self::StoreStale => (
         8,

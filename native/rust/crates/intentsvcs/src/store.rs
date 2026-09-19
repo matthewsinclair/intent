@@ -1999,6 +1999,46 @@ pub enum StoreError {
     "{kind} {key} changed while this command was running, and this write was derived from the copy it held before that"
   )]
   RecordMovedUnderTheWrite { kind: EntityKind, key: String },
+  /// **`intent index rebuild` WILL NOT REPAIR A TABLE IT DOES NOT OWN** (issue
+  /// 0453). The two search-index tables are derived and are dropped and
+  /// recreated; every other table holds records the store owns, so one that
+  /// cannot be read stops the repair before anything is dropped.
+  #[error(
+    "the store's `{table}` table could not be read, and it is not a search-index table `intent index rebuild` can recreate"
+  )]
+  IndexRepairBlocked {
+    table: String,
+    #[source]
+    cause: rusqlite::Error,
+  },
+  /// A search-index table could not be dropped, recreated or read back by
+  /// `intent index rebuild` (issue 0453).
+  #[error("the search-index table `{table}` could not be rebuilt")]
+  IndexRepairFailed {
+    table: &'static str,
+    #[source]
+    cause: rusqlite::Error,
+  },
+}
+
+/// Is this SQLite failure the writer lock held past the wait? The one test
+/// [`StoreError::is_busy`] and [`repair_fault`] both ask.
+fn busy(cause: &rusqlite::Error) -> bool {
+  matches!(cause, rusqlite::Error::SqliteFailure(e, _) if e.code == rusqlite::ErrorCode::DatabaseBusy)
+}
+
+/// An index repair's SQLite failure, as the refusal `wrap` names -- **unless
+/// it is a busy store, which keeps its own remedy** (issue 0436): a lock held
+/// past the wait is not a table that cannot be read.
+fn repair_fault(
+  cause: rusqlite::Error,
+  wrap: impl FnOnce(rusqlite::Error) -> StoreError,
+) -> StoreError {
+  if busy(&cause) {
+    StoreError::Sqlite(cause)
+  } else {
+    wrap(cause)
+  }
 }
 
 /// Which estate a key belongs to.
@@ -2030,10 +2070,7 @@ impl StoreError {
   /// it, and so does every error that wraps a store cause and would otherwise
   /// give that cause a remedy of its own.
   pub fn is_busy(&self) -> bool {
-    matches!(
-      self,
-      Self::Sqlite(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::DatabaseBusy
-    )
+    matches!(self, Self::Sqlite(cause) if busy(cause))
   }
 
   /// Is this FTS5 refusing the QUERY EXPRESSION, rather than the store being
@@ -2184,6 +2221,15 @@ impl crate::remedy::Remedy for StoreError {
       // so the store is still at its old version and its old shape -- which is
       // the recoverable case, and worth saying, because "migration failed"
       // reads as damage.
+      // **IT NAMES WHAT WAS NOT TOUCHED, BECAUSE THAT IS THE QUESTION.** The
+      // operator asked for a repair and is being refused one; what they need
+      // next is to know the store is exactly as they found it.
+      Self::IndexRepairBlocked { table, .. } => format!(
+        "nothing was dropped or changed. `intent index rebuild` recreates only the two derived search-index tables, `doc_sections` and `src_sections`; `{table}` holds records the store owns, so it is not recreated from anything. Do NOT delete the store to get past this: it is the source of truth. Recover from a snapshot of it under `intent/.backup/db/` by hand, and run `intent doctor` to see what else it reports"
+      ),
+      Self::IndexRepairFailed { table, .. } => format!(
+        "SQLite refused the rebuild of `{table}` with the error above. The canon and every table the store owns are untouched, and the search-index tables are as SQLite left them -- `intent index status` reports what they hold. Do NOT delete the store to get past this: it is the source of truth. Recover from a snapshot of it under `intent/.backup/db/` by hand"
+      ),
       Self::MigrationLeftDanglingRows { .. } => {
         "the migration was rolled back and the store is untouched at its previous version -- this is a defect in intent rather than in your data; report it with the version `intent doctor` prints".to_string()
       }
@@ -4547,6 +4593,122 @@ impl Store {
         },
       )
       .collect()
+  }
+
+  /// The two search-index tables, the only tables [`Store::recreate_index_tables`]
+  /// drops.
+  pub const INDEX_TABLES: [&'static str; 2] = ["doc_sections", "src_sections"];
+
+  /// Drop and recreate the two search-index tables from this store's own DDL,
+  /// leaving them empty and readable (issue 0453).
+  ///
+  /// **THE DOOR `intent index rebuild` NEEDS, BECAUSE EVERY OTHER DOOR READS
+  /// THE TABLE IT WOULD REPAIR.** A store whose `doc_sections` cannot be read
+  /// refuses at open (issue 0447), so a rebuild that opened the ordinary way
+  /// sat behind the wall it was meant to take down. Both tables are DERIVED:
+  /// every row is recomputed from the model and from the files on disk, so
+  /// dropping them loses nothing the caller cannot put back, and the caller is
+  /// the one that puts it back.
+  ///
+  /// **EVERY OTHER TABLE IS READ FIRST AND NONE IS EVER DROPPED.** A table the
+  /// store owns that cannot be read is not this verb's to repair, so it is
+  /// named and the run stops before the first write. The fts5 shadow tables
+  /// belong to the index tables and are not probed on their own.
+  ///
+  /// **AN fts5 TABLE WHOSE OWN SHADOW IS GONE CANNOT ALWAYS BE DROPPED** --
+  /// SQLite answers `vtable constructor failed` -- and that is refused with
+  /// SQLite's error rather than forced through `writable_schema`. The
+  /// transaction rolls back, so the store is left as it was found.
+  pub fn recreate_index_tables(&mut self) -> Result<(), StoreError> {
+    let owned: Vec<String> = {
+      let mut stmt = self.conn.prepare(
+        "SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY name",
+      )?;
+      let names = stmt.query_map([], |row| row.get::<_, String>(0))?;
+      let mut out = Vec::new();
+      for name in names {
+        let name = name?;
+        let ours = Self::INDEX_TABLES
+          .iter()
+          .any(|t| name == *t || name.starts_with(&format!("{t}_")));
+        if !ours {
+          out.push(name);
+        }
+      }
+      out
+    };
+    for table in &owned {
+      // Names come from `sqlite_master`, never from input, and are quoted.
+      let sql = format!("SELECT * FROM \"{}\" LIMIT 1", table.replace('"', "\"\""));
+      let probe = self
+        .conn
+        .prepare(&sql)
+        .and_then(|mut stmt| stmt.query([]).and_then(|mut rows| rows.next().map(|_| ())));
+      probe.map_err(|cause| {
+        repair_fault(cause, |cause| StoreError::IndexRepairBlocked {
+          table: table.clone(),
+          cause,
+        })
+      })?;
+    }
+
+    let tx = Self::write_tx(&mut self.conn)?;
+    for table in Self::INDEX_TABLES {
+      let failed = |cause| {
+        repair_fault(cause, |cause| StoreError::IndexRepairFailed {
+          table,
+          cause,
+        })
+      };
+      tx.execute_batch(&format!("DROP TABLE IF EXISTS {table}"))
+        .map_err(failed)?;
+      // A plain table put where the index was, or an index dropped without
+      // its shadows, leaves shadow names behind that the recreate would
+      // collide with.
+      for shadow in ["data", "idx", "content", "docsize", "config"] {
+        tx.execute_batch(&format!("DROP TABLE IF EXISTS {table}_{shadow}"))
+          .map_err(failed)?;
+      }
+    }
+    // The whole DDL rather than two extracted statements: every other
+    // statement in it is `IF NOT EXISTS` and a no-op here, and a copy of the
+    // two would be a second home for their shape.
+    let recreate = |cause| {
+      repair_fault(cause, |cause| StoreError::IndexRepairFailed {
+        table: Self::INDEX_TABLES[0],
+        cause,
+      })
+    };
+    tx.execute_batch(DDL).map_err(recreate)?;
+    tx.execute_batch(FTS_SECURE_DELETE).map_err(recreate)?;
+    tx.commit()?;
+
+    // **READ BACK THROUGH THE SAME READ THE OPEN USES**, so a table that
+    // recreated and still cannot be read is reported here rather than at the
+    // next command.
+    let doc = self
+      .conn
+      .prepare(
+        "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections LIMIT 1",
+      )
+      .and_then(|mut stmt| stmt.query([]).and_then(|mut rows| rows.next().map(|_| ())));
+    doc.map_err(|cause| {
+      repair_fault(cause, |cause| StoreError::IndexRepairFailed {
+        table: "doc_sections",
+        cause,
+      })
+    })?;
+    let src = self
+      .conn
+      .prepare("SELECT path, seq, start_line, end_line, kind, name, name_parts, body FROM src_sections LIMIT 1")
+      .and_then(|mut stmt| stmt.query([]).and_then(|mut rows| rows.next().map(|_| ())));
+    src.map_err(|cause| {
+      repair_fault(cause, |cause| StoreError::IndexRepairFailed {
+        table: "src_sections",
+        cause,
+      })
+    })?;
+    Ok(())
   }
 
   /// Every prose section in the index, in a total order.

@@ -68,15 +68,16 @@ fn the_open_names_the_table_and_does_not_blame_the_canon() {
     !remedy.contains("fix the artefacts"),
     "the artefacts remedy names none, because none is at fault: {remedy}"
   );
-  // **NO VERB BEHIND THE SAME WALL IS OFFERED AS A WAY OUT.** They are named
-  // only as what does NOT repair it.
+  // **THE ONE VERB THAT OPENS THROUGH A REPAIR IS THE WAY OUT, AND ONLY IT**
+  // (issue 0453). `intent backup` still opens through this read, so it is not
+  // offered.
   assert!(
-    remedy.contains("No verb in this build repairs it in place") && remedy.contains("issue 0453"),
-    "the remedy says nothing repairs it yet and names the issue that will: {remedy}"
+    remedy.contains("Run `intent index rebuild`") && remedy.contains("issue 0453"),
+    "the remedy names the verb that repairs it: {remedy}"
   );
   assert!(
-    !remedy.contains("run `intent index rebuild`"),
-    "`intent index rebuild` refuses on this same open, so it cannot be the remedy: {remedy}"
+    !remedy.contains("intent backup`"),
+    "`intent backup` refuses on this same open, so it cannot be the remedy: {remedy}"
   );
   assert!(
     remedy.contains("There is no snapshot of this store in intent/.backup/db"),

@@ -65,6 +65,19 @@ use crate::views::{self, RenderContext};
 use crate::write_set::{WriteError, WriteSet};
 use crate::{intentfiles, organize};
 
+/// How a door opens the store: the ordinary way, or the way `intent index
+/// rebuild` must when the search index itself may be what cannot be read
+/// (issue 0453).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Opening {
+  /// Load the model through the store's ordinary reads.
+  Ordinary,
+  /// Drop and recreate the two derived search-index tables before the first
+  /// read of them, then put the model's prose back. Every other table is read
+  /// first and never dropped; see [`Store::recreate_index_tables`].
+  RepairingIndex,
+}
+
 /// Ambient facts a facade call runs with. Explicit rather than discovered, so
 /// a verb's result is a function of its arguments.
 #[derive(Debug, Clone)]
@@ -3686,11 +3699,66 @@ impl Facade {
 
   /// Open a project, loading and validating its whole canon.
   pub fn open(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
+    Self::open_as(project, ctx, Opening::Ordinary)
+  }
+
+  /// Open a project the way `opening` says: [`Opening::Ordinary`] is
+  /// [`Facade::open`], and [`Opening::RepairingIndex`] is the door `intent
+  /// index rebuild` takes (issue 0453).
+  pub fn open_as(
+    project: Project,
+    ctx: FacadeContext,
+    opening: Opening,
+  ) -> Result<Self, FacadeError> {
     Self::readable(&project)?;
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
+    if opening == Opening::RepairingIndex {
+      store.recreate_index_tables().map_err(FacadeError::Store)?;
+    }
     // The daily-driver path: answer from the store unless the tree moved.
     let canon = ingest::load_fresh(&project, &mut store)?;
-    Ok(Self::over(project, ctx, store, canon))
+    let mut facade = Self::over(project, ctx, store, canon);
+    if opening == Opening::RepairingIndex {
+      facade.rederive_prose()?;
+    }
+    Ok(facade)
+  }
+
+  /// Put the model's prose back into the recreated `doc_sections`: canon's
+  /// half from the records the store holds, and each migrated board's carried
+  /// `.history/` from the files it was carried from (issue 0453).
+  ///
+  /// **THE FILES' HALF AND THE SOURCE TABLE ARE NOT HERE**: they are
+  /// [`Facade::index_rebuild`]'s, which the verb runs next, and a second
+  /// writer of them here would be a second home for the walk.
+  fn rederive_prose(&mut self) -> Result<(), FacadeError> {
+    self.canon.sections = ingest::sections_of(
+      &self.project,
+      &self.canon.threads,
+      &self.canon.issues,
+      &self.canon.boards,
+    );
+    self
+      .store
+      .replace_doc_sections(&self.canon.sections)
+      .map_err(FacadeError::Store)?;
+    let migrated: Vec<String> = self
+      .canon
+      .boards
+      .iter()
+      .filter(|b| b.node.migrated_at.is_some())
+      .map(|b| b.node.moniker.clone())
+      .collect();
+    for node in migrated {
+      let home = self.project.whiteboard_dir().join(&node);
+      let (_, mut sections, _) = self.read_snapshots(&node, &home)?;
+      sections.sort_by(|a, b| (&a.file, a.seq).cmp(&(&b.file, b.seq)));
+      self
+        .store
+        .replace_wb_sections_for(&node, &sections)
+        .map_err(FacadeError::Store)?;
+    }
+    Ok(())
   }
 
   /// A facade over a store and the canon read from it: the one place the
