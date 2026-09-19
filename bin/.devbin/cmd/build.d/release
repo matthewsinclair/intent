@@ -559,7 +559,13 @@ $faces_stale
   # here: the runner that enforces the rule is the authority on what the rule is.
   frozen_hit=""
   if [ -x "$PROJECT_ROOT/bin/int" ]; then
-    for frozen in $("$PROJECT_ROOT/bin/int" prepush --list-frozen 2>/dev/null || true); do
+    # A LISTING THAT FAILS IS NOT AN EMPTY LIST (issue 0465). It was read as
+    # `2>/dev/null || true`, so a failed listing let the gate pass unchecked and
+    # the release then pushed to both remotes.
+    frozen_list="$("$PROJECT_ROOT/bin/int" prepush --list-frozen 2>&1)" ||
+      abort "the frozen-remote check could not run: 'bin/int prepush --list-frozen' failed, so nothing says whether a remote this release pushes to is closed. Its output:
+$frozen_list"
+    for frozen in $frozen_list; do
       case "$frozen" in
         local | upstream) frozen_hit="$frozen" ;;
       esac

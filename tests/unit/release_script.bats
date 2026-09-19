@@ -573,3 +573,19 @@ STUB
   [[ "$output" == *"the canon-spill check could not run"* ]]
   [[ "$output" == *"the canon could not be read"* ]]
 }
+
+# A frozen-remote listing that fails is not an empty list (issue 0465): the
+# cut refuses and shows the listing's output rather than pushing on no evidence.
+@test "release refuses when the frozen-remote listing fails, and shows its output" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  printf '#!/usr/bin/env bash\necho "prepush: the frozen list could not be read" >&2\nexit 1\n' > bin/int
+  chmod +x bin/int
+  git add -A && git commit -q -m "a bin/int whose frozen listing fails"
+  run_release --dry-run --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"the frozen-remote check could not run"* ]]
+  [[ "$output" == *"the frozen list could not be read"* ]]
+}
