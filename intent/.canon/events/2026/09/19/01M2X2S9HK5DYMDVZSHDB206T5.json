@@ -1,0 +1,15 @@
+{
+  "id": "01M2X2S9HK5DYMDVZSHDB206T5",
+  "ts": "2026-09-19T14:58:03.443Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-19 14:58Z, hv first-hand in prose, answering vc's wave-two question and the open set; hv, verbatim: \"Ok, fix those please. Also, we have a _ton_ of new issues. They need to be fixed, too.\") TWO RULINGS, wording vc's, authority hv's. (1) WAVE TWO RUNS NOW: the seventeen silent 3.0.3 estates are upgraded from here by ic with the re-banked kit (blob cc9427427, --skip-settings always), one estate at a time, each committed in its own repo and not pushed, Prodinfra's usage-rules.md [[PROJECT_NAME]] fixed by hand in its commit; Laksa and Devbin finish wave one on their own clocks behind their releases; the whiteboard carry of the seven hand-authored estates is not part of it. (2) THE ISSUES LINE: every open issue (`intent issues list`) is fixed, not triaged, under the close-out's bank, train and landing rules in intent/restart.md: dc has 0485, 0464, the release driver set 0462-0470, the devbin set 0471-0474 and 0484; cc has 0453, 0458, 0460, 0461, 0475, 0476, 0477, 0478; ic has 0479, 0480, 0481, 0483 after wave two. Each lane plans first (size, approach, ruling needed), 0453's and 0460's new surface goes to hv before it is built, one lane lands at a time on vc's word, a landed crate change rebuilds the pair announced first with intentd's restart hv's hand. NO PUSH and NO RELEASE except by hv's hand."
+  }
+}

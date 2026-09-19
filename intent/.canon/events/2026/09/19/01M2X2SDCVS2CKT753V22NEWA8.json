@@ -1,0 +1,15 @@
+{
+  "id": "01M2X2SDCVS2CKT753V22NEWA8",
+  "ts": "2026-09-19T14:58:07.387Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-19 14:58Z, replaces todo 53; hv opened the issues line and wave two). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) 3.1.0 IS CUT AND PUBLISHED at 11ce80ad5; main carries the post-cut landings unpushed (`git log v3.1.0..main --oneline`); the push is hv's word. (1) WAVE TWO IS RUNNING: ic upgrades the seventeen silent estates with the re-banked kit (blob cc9427427), reports in batches of five; vc checks each (`git log -1`, clean tree, doctor, `intent_version` 3.1.0 in config.json, the settings line); Laksa (behind its deploy) and Devbin (behind its 0.1.2 cut) finish wave one on hv's go in their own sessions and report to vc; the seven hand-authored whiteboards (Baize, Conflab, Prolix, Molt, Riffle, arca_cli, arca_config) wait for their decision-24 judgment owners. (2) THE ISSUES LINE (decision 55): dc 0485 then 0464 then 0462-0463, 0465-0474, 0484; cc 0453, 0458, 0460, 0461, 0475-0478; ic 0479-0481, 0483 after wave two; each lane's PLAN arrives first and vc reads it for rulings needed (0453 and 0460 add surface: to hv before building), then trains bank in private worktrees with whole suites, vc judges blob and patch-id and the log, one lane lands at a time on vc's word, a landed crate change means the pair rebuilds (announce to every lane; `bin/devbin build all`; hv restarts intentd). (3) WITH hv: the push; dc's tap README 0341f61; the three stash entries; ST0056's gyges run against the published 3.1.0 (vc judges the log, dc satisfies AC-00.5 and AC-11.1, WP-11 and the thread close on hv's word). (4) DEFERRED: devbin#0083's sweep behind Devbin's ST0007 and release. NO PUSH, NO RELEASE except by hv's hand."
+  }
+}
