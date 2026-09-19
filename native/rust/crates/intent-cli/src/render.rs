@@ -8139,20 +8139,22 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
     })?;
 
   println!("created: {} at {}", made.project_name, made.root.display());
+  // **EVERY LISTED FILE IS NAMED FROM THE ROOT THE LINE ABOVE PRINTS, THE
+  // CONFIG INCLUDED** (issue 0477). The config was the one line printed
+  // absolute, so the file that makes the directory a project read as if it
+  // lived somewhere else, and a reader scanning the list for it by its project
+  // path did not find it.
+  let config = made.config.strip_prefix(&made.root).unwrap_or(&made.config);
   // **ONLY SAID WHEN IT IS TRUE.** An unconditional "author is unset" line
   // survived into every run that DID resolve one, which is the same
   // stale-by-construction shape as the comment above.
   if recorded.is_none() {
     println!(
       "  author is unset -- run `intent bootstrap` to record it once for this machine, or set it in {}",
-      made
-        .config
-        .strip_prefix(&made.root)
-        .unwrap_or(&made.config)
-        .display()
+      config.display()
     );
   }
-  println!("  {}", made.config.display());
+  println!("  {}", config.display());
   for p in &made.written {
     println!("  {}", p.strip_prefix(&made.root).unwrap_or(p).display());
   }

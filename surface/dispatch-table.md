@@ -2671,17 +2671,18 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
 - `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
 
-| command            | args             | flags                             | help                                            | disposition |
-| ------------------ | ---------------- | --------------------------------- | ----------------------------------------------- | ----------- |
-| `claude`           | <subcommand>     | --                                | Claude Code integration                         | keep        |
-| `claude subagents` | <verb> [name]... | -v, --force/-f, --all, --dry-run  | Manage Claude Code subagents                    | keep        |
-| `claude skills`    | <verb> [name]... | -v, --force/-f, --dry-run, --all  | Manage Claude Code skills                       | keep        |
-| `claude rules`     | [verb] [id]      | --lang <lang>                     | List and show rule-library rules                | keep        |
-| `claude hook`      | <name>           | --                                | Run a named Intent hook                         | keep        |
-| `claude upgrade`   | --               | --apply, --force, --skip-settings | Apply Claude canon to the project               | keep        |
-| `claude prime`     | --               | --                                | Generate MEMORY.md content for a Claude session | retire      |
-| `claude ws`        | <verb> [wsid]    | --                                | Manage whiteboard workstreams                   | retire      |
-| `claude start`     | <ws>             | --                                | Launch a Claude session bound to a workstream   | keep        |
+| command              | args             | flags                             | help                                            | disposition |
+| -------------------- | ---------------- | --------------------------------- | ----------------------------------------------- | ----------- |
+| `claude`             | <subcommand>     | --                                | Claude Code integration                         | keep        |
+| `claude subagents`   | <verb> [name]... | -v, --force/-f, --all, --dry-run  | Manage Claude Code subagents                    | keep        |
+| `claude skills`      | <verb> [name]... | -v, --force/-f, --dry-run, --all  | Manage Claude Code skills                       | keep        |
+| `claude rules`       | [verb] [id]      | --lang <lang>                     | List and show rule-library rules                | keep        |
+| `claude rules index` | --               | --                                | Regenerate rules/index.json (canon only)        | retire      |
+| `claude hook`        | <name>           | --                                | Run a named Intent hook                         | keep        |
+| `claude upgrade`     | --               | --apply, --force, --skip-settings | Apply Claude canon to the project               | keep        |
+| `claude prime`       | --               | --                                | Generate MEMORY.md content for a Claude session | retire      |
+| `claude ws`          | <verb> [wsid]    | --                                | Manage whiteboard workstreams                   | retire      |
+| `claude start`       | <ws>             | --                                | Launch a Claude session bound to a workstream   | keep        |
 
 ### `claude`
 
@@ -2800,6 +2801,22 @@ List and show rule-library rules
 - **Note:** hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`.
 - **MCP:** not exposed -- read-only
 - **recoverability anomaly:** RECOVERABILITY DROPPED 2026-09-16 WITH THE RECLASSIFICATION (vc's ruling, on ic's review of issue 0331), AND THE SUPERSEDED VALUE IS NAMED SO THIS FIELD STILL PARSES AS AN ARGUMENT: the row read `mutate` and `idempotent`, and the only basis for `mutate` was `index`'s write primitives, which hv's ruling of 2026-09-15 retired with the rules-index trio. `list`, `show` and `validate` write nothing, so the row is a `read`, and `dispatch.rs` refuses a read that declares recoverability. **THE WITHHOLD GROUND IS UNTOUCHED BY THAT**, the same as `llm usage_rules`, whose reclassification is the precedent. WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
+
+### `claude rules index`
+
+Regenerate rules/index.json (canon only)
+
+- **v2:** bin/intent claude arm, the `index` value of `claude rules`
+- **Exit codes:**
+  - `0` -- regenerated
+- **stdout:** the regeneration report
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** In v2 it MUTATED `INTENT_HOME`: it rewrote a tracked file, intent/plugins/claude/rules/index.json, in the installation. v3.0.3 shipped the spelling as a value of `claude rules` answering `is a known command that is not implemented yet`.
+- **Target:** `retire` -- ratified: hv, 2026-09-15, rulings item 3 (issue 0331 (a)): every dead artefact is deleted, and the rules-index trio (index-generator.md, rules/index.json, index.json.template) went with `index` struck from `claude rules`'s verb values in d843f7aea. This row is issue 0475: striking the VALUE left the spelling with no retired row, so 3.1.0 answered it with clap's generic `unrecognized subcommand` at exit 1 where `claude ws`, withdrawn the same way, answers the retired refusal at exit 2. vc ruled the retire row 2026-09-19.
+- **Note:** `spelling` is empty because nothing replaces it: v3 serves the rule library from the binary (`intent claude rules list` and `show` read it directly), so there is no index file for anything to regenerate. RETIRED RATHER THAN LEFT ABSENT so a script still calling it is told the command is gone, at the exit code the gate and every other retired spelling use.
+- **spelling:** _(declared empty)_
+- **MCP:** not exposed -- **mutates**
+- **recoverability:** idempotent
 
 ### `claude hook`
 

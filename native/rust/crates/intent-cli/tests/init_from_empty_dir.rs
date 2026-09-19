@@ -210,3 +210,31 @@ fn init_lang_with_an_undeclarable_name_refuses_and_leaves_nothing() {
     "the refusal left something behind"
   );
 }
+
+/// **THE REPORT NAMES THE CONFIG THE WAY IT NAMES EVERY OTHER FILE** (issue
+/// 0477): from the root the `created:` line prints. It was the one listed line
+/// printed absolute, so the file that makes the directory a project read as a
+/// path somewhere else. Asserted on the listed lines as a population -- every
+/// indented line that names a path is relative -- so a second absolute line
+/// fails here too, not only the config's.
+#[test]
+fn init_lists_the_config_relative_like_every_other_file() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "fixture-project"], dir.path());
+  assert_eq!(code, 0, "init failed: {err}");
+
+  let listed: Vec<&str> = out
+    .lines()
+    .filter(|l| l.starts_with("  ") && !l.starts_with("  (") && !l.contains(" -- "))
+    .map(str::trim)
+    .collect();
+  assert!(
+    listed.contains(&"intent/.config/config.json"),
+    "the config is not listed relative to the project root: {out}"
+  );
+  let absolute: Vec<&&str> = listed.iter().filter(|l| l.starts_with('/')).collect();
+  assert!(
+    absolute.is_empty(),
+    "init listed a file by its absolute path, where every other line is relative to the root: {absolute:?}\n{out}"
+  );
+}
