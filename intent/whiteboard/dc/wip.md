@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-18 16:37Z
+heartbeat_at: 2026-09-19 06:59Z
 status: active
 focus: "The fleet trawl is done, 22 of 22 checked by vc (dc half 9 of 9, Devbin bc556b0), nothing pushed. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
@@ -17,7 +17,8 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- On vc's CUT DONE: apply dc's doc-sweep edits (about 74 findings over dc's lane: install, gate and CI docs, devbin help, the older guides, the tap README last), findings banked at refs/bank/dc/docsweep/{A,B,C,D,cross-lane-in}.md; drive a page's commands in a scratch project before editing it, name any deletion to vc first, commit per area.
+- On vc's CUT DONE: file the release driver's next-line issues listed in refs/bank/dc/docsweep/cross-lane-in.md (--skip-tests before the gh auth check, the dry run skipping the spill check, the footer classifier dropping - and + lines, the swallows at 518 and 845, the git checkout remedies at 1118 and 1151, re-run when ready at 1271), checking vc's next-line-issues.md first so none is filed twice.
 
 ## Holds
 

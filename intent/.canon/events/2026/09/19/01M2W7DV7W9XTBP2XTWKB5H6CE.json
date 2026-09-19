@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7DV7W9XTBP2XTWKB5H6CE",
+  "ts": "2026-09-19T06:59:56.796Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "On vc's CUT DONE: file the release driver's next-line issues listed in refs/bank/dc/docsweep/cross-lane-in.md (--skip-tests before the gh auth check, the dry run skipping the spill check, the footer classifier dropping - and + lines, the swallows at 518 and 845, the git checkout remedies at 1118 and 1151, re-run when ready at 1271), checking vc's next-line-issues.md first so none is filed twice."
+  }
+}
