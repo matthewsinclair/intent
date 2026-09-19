@@ -4,13 +4,17 @@
 #
 # bin/devbin build release -- Intent release orchestrator
 #
-# Cuts an Intent release in one invocation: pre-flight checks (clean tree on
-# main, both remotes configured and not frozen, `intent doctor`, the bats suite,
-# `cargo test --workspace`, gh authenticated), version bump, CHANGELOG date
-# finalisation, sidecar sync (VERSION and native/rust/Cargo.toml through
-# `bin/devbin version set`, native/rust/Cargo.lock through cargo,
-# config.json intent_version, AGENTS.md, CLAUDE.md), commit, tag, push to both
-# remotes, and GitHub release publication. Every sidecar is stamped BEFORE the
+# Cuts an Intent release in one invocation: pre-flight checks (clean tree, the
+# published schema faces carry VERSION, on main, both remotes configured and not
+# frozen, contract_check.sh reported but not gating, docs/reference describes
+# HEAD, `intent doctor`, the bats suite, `cargo test --workspace` in a private
+# worktree, gh authenticated), a canon-spill check before anything is stamped,
+# version bump, CHANGELOG date finalisation, sidecar sync (VERSION and
+# native/rust/Cargo.toml through `bin/devbin version set`, config.json
+# intent_version, the schema faces regenerated, native/rust/Cargo.lock through
+# cargo, AGENTS.md and CLAUDE.md rendered by a CLI built at the target version,
+# and the generated views re-rendered with footer-only changes folded in),
+# commit, tag, push to both remotes, and GitHub release publication. Every sidecar is stamped BEFORE the
 # commit, so the tag describes a self-consistent tree -- there is no post-tag
 # wrap to remember.
 #
@@ -38,8 +42,9 @@
 #
 # Flags:
 #   --dry-run            Run the pre-flight gates, then print every write step
-#                        (stamps, lock, canon, commit, tag, push, release)
-#                        instead of performing it.
+#                        (version set, CHANGELOG date, config stamp, schema
+#                        faces, lock, stamp CLI, canon, views, commit, tag,
+#                        push, release) instead of performing it.
 #   --no-confirm         Skip the interactive confirmation before the push.
 #   --skip-tests         Skip the pre-flight doctor, bats and cargo test gates
 #                        (re-run mode).
@@ -74,7 +79,7 @@ set -u
 # handler now sits four levels down at bin/.devbin/cmd/build.d/, where the same
 # expression would resolve to bin/.devbin/cmd. Taking it from the dispatcher is
 # both correct here and immune to the handler moving again.
-: "${DEVBIN_LIB:?run me through the devbin dispatcher -- 'intent build release'}"
+: "${DEVBIN_LIB:?run me through the devbin dispatcher -- 'bin/devbin build release'}"
 : "${PROJECT_ROOT:?the devbin dispatcher did not export PROJECT_ROOT}"
 
 # Pin INTENT_HOME to the checkout being released, so any child process that
@@ -167,7 +172,7 @@ stamp_project_version() {
 # would let the later ones through when that one is skipped.
 require_intent_bin() {
   [ -x "$INTENT_BIN" ] && return 0
-  abort "no built CLI at $INTENT_BIN -- this script drives the binary built FROM the tree it is releasing, and does not build it. Run \`intent build cli --release\` (or \`intent build all\`) first. It is resolved by path rather than through PATH deliberately: two of the calls below regenerate canon that ships in this cut, so an ambient binary would make the released bytes a function of your shell."
+  abort "no built CLI at $INTENT_BIN -- this script drives the binary built FROM the tree it is releasing, and does not build it. Run \`bin/devbin build all\` (or \`bin/devbin local build\`) first. It is resolved by path rather than through PATH deliberately: two of the calls below regenerate canon that ships in this cut, so an ambient binary would make the released bytes a function of your shell."
 }
 
 abort() {
@@ -1082,13 +1087,13 @@ fi
 #
 # THE HAZARD IS MEASURED RATHER THAN REPEATED. `intent claude upgrade` without
 # `--apply` reports what `--apply` writes here: `.claude/settings.json`,
-# `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `.intent_critic.yml`, and the
+# `.mcp.json` (seeded only when absent), `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `.intent_critic.yml`, and the
 # `pre-commit` and `pre-commit.intent` files in the hooks directory
 # (`.githooks/`). All but `pre-commit.intent` are TRACKED, and only CLAUDE.md and
 # AGENTS.md are in `SIDECAR_FILES`. If any other tracked one differs from canon
 # when a release runs, the engine rewrites it, the tree is left dirty outside
 # the sidecar list, and the cut aborts. `--skip-settings` would spare only
-# `.claude/settings.json`; the rest would still be rewritten.
+# `.claude/settings.json` and `.mcp.json`; the rest would still be rewritten.
 #
 # It aborted LATE, and that was the damaging part: the leftover check sits AFTER
 # the commit block, so the version commit landed and then the release stopped --

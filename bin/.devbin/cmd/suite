@@ -84,7 +84,7 @@ printf '    clone at %s\n' "$clone_sha"
 
 if [ "$WITH_BUILD" -eq 1 ]; then
   command -v cargo >/dev/null 2>&1 || die "cargo not on PATH and --with-build was asked for"
-  step "suite: cold-building the clone so the conformance harness can run"
+  step "suite: cold-building the clone (debug profile -- the suite reads native/rust/target/release/intent, which this does not produce)"
   workspace="$(clone_workspace "$TMP/clone")"
   ( cd "$workspace" && cargo build --workspace --bins ) ||
     die "the pushed repository does not build -- run 'int prepush --force' for the full diagnosis"
@@ -105,10 +105,6 @@ printf 'suite: DESCRIBES=%s\n' "$clone_sha"
 printf 'suite: BATS_RC=%s  plan=%s  ok=%s  notok=%s\n' "$rc" "${plan:-<none>}" "$ok" "$notok"
 printf 'suite: this figure names a revision BY CONSTRUCTION -- the tree it measured had one\n'
 printf '       writer and no other session could reach it. No freeze was asked of anyone.\n'
-if [ "$WITH_BUILD" -eq 0 ]; then
-  printf 'suite: NOT COVERED -- tests/conformance/run_v2_suite.bash needs a built v3 binary\n'
-  printf '       and this run did not build one. Pass --with-build to include it.\n'
-fi
 
 # A MISSING PLAN IS NOT A FAILING TEST, AND CONFLATING THEM IS ABSENCE DRESSED
 # AS A RESULT. `BATS_RC=1  plan=<none>  notok=0` is what a runner that never

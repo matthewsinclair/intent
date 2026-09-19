@@ -537,7 +537,7 @@ cmd_use() {
   else
     if brew_has_intent; then
       brew unlink intent >/dev/null 2>&1 ||
-        die "brew unlink intent failed -- refusing to repoint anything while brew still wins at PATH 1"
+        die "brew unlink intent failed -- refusing to repoint anything while brew still wins on PATH"
       # PIN so `brew upgrade` cannot silently re-link and put you back on prod
       # without saying so. A switch that a later unrelated command can undo is
       # not a switch.
@@ -550,7 +550,7 @@ cmd_use() {
       # cannot undo it because there is no formula to link. Machine-wide and
       # one-way, so it asks, exactly as `install` does for the same reason.
       [ -n "$yes" ] ||
-        die "no intent formula is installed, so nothing shadows PATH 17 -- repointing it switches EVERY project on this machine to this checkout's build, and 'use prod' cannot undo it until a formula exists. Re-run with --yes if that is what you want."
+        die "no intent formula is installed, so nothing shadows $BINDIR -- repointing it switches EVERY project on this machine to this checkout's build, and 'use prod' cannot undo it until a formula exists. Re-run with --yes if that is what you want."
       printf '    brew formula not installed -- nothing to unlink\n'
     fi
 

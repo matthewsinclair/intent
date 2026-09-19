@@ -107,7 +107,7 @@ set -euo pipefail
 
 case "${1:-}" in
   -h | --help | help)
-    sed -n '3,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
     exit 0
     ;;
   "") ;;

@@ -131,8 +131,8 @@ if [ -n "$REMOTE" ] && [ -z "${INTENT_ALLOW_FROZEN_PUSH:-}" ]; then
 
 BLOCKED: '$frozen' is a FROZEN remote and this push would reach it.
 
-  hv closed it on 2026-08-16: the CI/CD budget has been hit, and every push
-  to '$frozen' triggers the workflows that spend it.
+  '$frozen' is listed in FROZEN_REMOTES in bin/.devbin/cmd/prepush; the commit
+  that added it says why.
 
   Push 'local' instead -- it is a Dropbox path, it costs nothing, and it is
   where this estate's work has been landing since the freeze:

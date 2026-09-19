@@ -1526,8 +1526,9 @@ ${revline}
     sha256 "$sha_daemon"
   end
 
-  # The hooks and guards the binaries exec. Not signed and not notarised --
-  # there is no Mach-O in it. See SUPPORT_ASSET in bin/.devbin/cmd/macos.
+  # The support tree the binaries read and exec: templates, hooks, guards, the
+  # rule library, skills and subagents. Not signed and not notarised -- there is
+  # no Mach-O in it. See SUPPORT_PATHS in bin/.devbin/cmd/macos.
   resource "support" do
     url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/$SUPPORT_ASSET"
     sha256 "$sha_support"
@@ -2992,9 +2993,10 @@ bin/devbin macos <subcommand>        (int macos <subcommand>)
   app-test     xcodebuild test -- the IntentTests target
   app-install  Build Release, install to /Applications, register intent://,
                launch. An unsigned dev build, never the distributable
-  app-verify   Checks on a bundle: executable present, LSUIElement set,
-               Info.plist stamps are the built ones. `app-verify dist` adds the
-               signature read back off the bytes, the stapled ticket, and
+  app-verify   [debug|release|dist] (Debug default). Checks on a bundle:
+               executable present, LSUIElement set, Info.plist stamps are the
+               built ones. `app-verify dist` adds the signature read back
+               off the bytes, the stapled ticket, and
                Gatekeeper on a quarantined copy
   app-sign     Build Release, stage a copy off the shared build products, and
                Developer ID sign it inside-out (nested code, then the bundle),

@@ -235,7 +235,7 @@ commands:
       # SHOW YOU. `grammar:` is read only on the sealed path (lib/resolve reads
       # it, then gates the whole run_gate call on a non-empty suffix), and a
       # suffix is inherited from the catalogue only for a name the catalogue
-      # KNOWS. `clippy`, `format` and `toolchain` above are catalogue names and
+      # KNOWS. `clippy`, `format` and `toolchain` in this block are catalogue names and
       # inherit both; `doc` is a project invention and runs bare. This option is
       # a project invention too, so without `log:` it would run bare and
       # `grammar: cargo` would be dead config -- the ST0002 WP-08 shape

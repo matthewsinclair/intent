@@ -6,7 +6,7 @@
 # `intentd` daemon.
 #
 # Same shape as `build cli`: release profile by default, and a release build of
-# this one binary is REFUSED unless CARGO_TARGET_DIR names a private target,
+# this one binary is REFUSED unless CARGO_TARGET_DIR is set,
 # because it would split the shared intent/intentd pair. `--debug` for a debug
 # build; `bin/devbin build all` for the release pair. Extra arguments ride
 # through to cargo untouched.

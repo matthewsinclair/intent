@@ -40,7 +40,7 @@
 # stopgap with no expiry condition is just a duplicate.
 #
 # IT REFUSES TO BUILD INSIDE AN EXISTING PROJECT. A v3 config.json nested under
-# this v2 tree would be found by upward path resolution and would make some
+# this tree would be found by upward path resolution and would make some
 # tool, somewhere, silently answer for the wrong project.
 #
 set -euo pipefail
@@ -61,11 +61,11 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --fresh) FRESH=1; shift ;;
     --at) DEST="${2:?--at needs a directory}"; shift 2 ;;
-    *) die "unknown argument: $1 (see: int dogfood --help)" ;;
+    *) die "unknown argument: $1 (takes --fresh and --at DIR)" ;;
   esac
 done
 
-[ -x "$BIN" ] || die "no v3 binary at native/rust/target/debug/intent -- run 'int build' first"
+[ -x "$BIN" ] || die "no v3 binary at native/rust/target/debug/intent -- run 'bin/devbin build cli --debug' first"
 
 # Never inside a project. Walk up from the destination the way the tool does.
 probe="$(cd "$(dirname "$DEST")" 2>/dev/null && pwd || echo "")"
@@ -141,5 +141,5 @@ printf '  %s st list --status all      # st new enters at Triage, which the\n' "
 printf '                                        # default list does NOT show\n'
 printf '\n'
 printf '  THROWAWAY. It is under %s and nothing backs it up.\n' "${TMPDIR:-/tmp}"
-printf '  STOPGAP. When `intent init` is wired (WP-06) this command delegates to\n'
-printf '  it or goes away -- it hand-writes the one file init will own.\n'
+printf '  STOPGAP. `intent init` is wired and this command still hand-writes the one\n'
+printf '  file init owns; it is due to delegate to init or be deleted.\n'

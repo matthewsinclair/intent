@@ -1,6 +1,6 @@
 # Intent — design system
 
-**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/theme.yaml`, `theme/layout.liquid`, `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure.
+**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/theme.yaml`, `theme/layout.liquid`, `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure. Intent.app's Console also takes §3's dark tokens and §4's mono family, typed by hand in `native/macos/Intent/Intent/Utilities/Theme.swift`; change a dark token here first, then there.
 
 **It specifies a one-page site.** Intent's documentation lives in this repository at [`docs/`](../) and the site links to it rather than reproducing it. Sections marked _docs shell_ apply only if the documentation is later hosted; everything else is needed for the one page.
 
@@ -442,7 +442,7 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 ## 12. What this document is not
 
-**It is not ratified, and the decisions in §11 are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks, and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
+**It is not ratified, and the decisions in §11 other than A are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks, and Intent.app's Console carries §3's dark set and §4's mono family (`Theme.swift`), and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
 
 ---
 

@@ -5,7 +5,7 @@
 # bin/devbin build cli [--debug] [cargo opts] -- build the native `intent` CLI.
 #
 # Defaults to a release profile, and a release build of this one binary is
-# REFUSED unless CARGO_TARGET_DIR names a private target: it would split the
+# REFUSED unless CARGO_TARGET_DIR is set: it would split the
 # shared intent/intentd pair (refuse_single_package_release, below). Pass
 # --debug for a debug build, or use `bin/devbin build all` for the release
 # pair. Extra arguments ride through to cargo untouched.

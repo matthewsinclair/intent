@@ -2,8 +2,9 @@
 #
 # devbin: summary = Report which devbin-owned files this project has locally patched
 #
-# bin/devbin vendor  -- REPORT the divergence between the vendored lib/ tree and
-#                       the checksums in bin/.devbin/manifest.sha256. Takes no
+# bin/devbin vendor  -- REPORT the divergence between the vendored files
+#                       (bin/devbin and bin/.devbin/lib/) and the checksums in
+#                       bin/.devbin/manifest.sha256. Takes no
 #                       arguments. Exit 1 when a listed file is missing or no
 #                       file matches; local patches and unlisted files are
 #                       reported at exit 0.

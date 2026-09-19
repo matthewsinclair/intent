@@ -130,6 +130,9 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 # read. `Intentv2/bin/int` then reported `gate ABSENT` about its own tree.
 #
 # So: say it, do not fix it. A warning belongs where the misreading happens.
+# Since the dispatcher's wrong-tree guard (bin/devbin, exit 4) that route refuses
+# before this file runs; the warning below now fires only for a repository nested
+# under PROJECT_ROOT.
 CWD_REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 FOREIGN=""
 if [ -n "$CWD_REPO" ] && [ "$CWD_REPO" != "$ROOT" ]; then
@@ -172,7 +175,7 @@ resolve_guard_home() {
 #
 # WHY IT IS OWED AT ALL. There is no flag that installs the carrier alone; the
 # verb's only narrowing flag is `--skip-settings`, which spares
-# .claude/settings.json and nothing else. So the only offered repair for ONE
+# .claude/settings.json and .mcp.json and nothing else. So the only offered repair for ONE
 # hook file also regenerates AGENTS.md, regenerates CLAUDE.md when it carries
 # the generated marker, and region-edits the chain block -- and until this
 # printed, none of that was said where the verb was offered.
@@ -197,11 +200,11 @@ upgrade_apply_scope() {
   local i="${1:-                 }"
   printf '%sSCOPE -- that verb applies the WHOLE canon set, not just this file. It has no
 ' "$i"
-  printf '%snarrower mode: it rewrites CLAUDE.md, AGENTS.md and .claude/settings.json, and
+  printf '%snarrower mode: it rewrites CLAUDE.md, AGENTS.md and .claude/settings.json, installs the
 ' "$i"
-  printf '%sregion-edits the pre-commit chain block. Preserved if already present:
+  printf '%spre-commit.intent carrier, and region-edits the pre-commit chain block. Seeded only if absent:
 ' "$i"
-  printf '%susage-rules.md and .intent_critic.yml. `intent claude upgrade` with no --apply
+  printf '%susage-rules.md, .mcp.json and .intent_critic.yml. `intent claude upgrade` with no --apply
 ' "$i"
   printf '%sreports what it would do without writing.
 ' "$i"
@@ -680,7 +683,7 @@ install_chain() {
   # check; it is the same defect as a guard roster that names what it does not
   # run.
   local call_re="^[[:space:]]*bin/int $runner([[:space:]]|\$)"
-  local fwd_re="^[[:space:]]*bin/int $runner[[:space:]]+\"\\\$@\""
+  local fwd_re="^[[:space:]]*bin/int ${runner}[[:space:]]+\"\\\$@\""
   if grep -qE "$fwd_re" "$path" 2>/dev/null; then
     printf 'ok: %s already invokes `int %s "$@"` -- unchanged\n' "$hook" "$runner"
   elif grep -qE "$call_re" "$path" 2>/dev/null; then
@@ -714,7 +717,7 @@ install_chain() {
     cat >> "$path" <<EOF
 
 # Repo-local gate, wired by \`int hooks --install\`. The runner is tracked at
-# bin/.devbin/cmd/$runner; this line is not, because .git/hooks never is.
+# bin/.devbin/cmd/$runner, and so is this line when core.hooksPath points at .githooks.
 #
 # \`"\$@"\` forwards git's own arguments -- for pre-push that is
 # \`<remote-name> <remote-url>\`, which is the only way the runner can know

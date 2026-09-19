@@ -271,7 +271,7 @@ refuse_single_package_release() {
   local verb="$1"
   [ -z "${CARGO_TARGET_DIR:-}" ] || return 0
   die "int build $verb builds ONE binary, and a release build of one binary would land in the
-       SHARED target that four other sessions invoke. The pair is the unit every
+       SHARED target that other sessions invoke. The pair is the unit every
        guard reads -- intent and intentd must name the same commit -- and a
        single-package build splits it the moment HEAD moves.
 
