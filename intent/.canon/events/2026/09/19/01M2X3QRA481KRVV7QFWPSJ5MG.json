@@ -1,0 +1,15 @@
+{
+  "id": "01M2X3QRA481KRVV7QFWPSJ5MG",
+  "ts": "2026-09-19T15:14:41.609Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0487"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb announce beside peers running pickup lands the row and not the views, and its warning names no remedy"
+  }
+}

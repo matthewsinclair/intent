@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 487,
+  "slug": "wb-announce-beside-peers-running-pickup-lands-th",
+  "title": "wb announce beside peers running pickup lands the row and not the views, and its warning names no remedy",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent wb announce` beside peers running `pickup` lands the row and not the views, and its warning names no remedy.\n\n**Seen 2026-09-19** in Lamplight, straight after the whiteboard carry while four peer sessions ran `intent wb pickup`: `wb announce` printed `warning: the write landed, and landing the board's views did not: could not read the committed canon / caused by: sqlite: database is locked`. The store row was written; the rendered board and inbox files were not, until a later write re-rendered them; `intent doctor` read 0 afterwards because the next render caught up.\n\n**The ask:** either the view landing retries its read once when the store reports a lock (the same single re-issue the CLI already gives a locked write), or the warning names the command that lands the views (`intent organize`, or the next board write) so a node knows the tree is behind the store and what to run. XS to S.\n"
+}

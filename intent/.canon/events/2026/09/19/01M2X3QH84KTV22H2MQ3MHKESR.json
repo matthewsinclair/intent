@@ -1,0 +1,15 @@
+{
+  "id": "01M2X3QH84KTV22H2MQ3MHKESR",
+  "ts": "2026-09-19T15:14:34.376Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0486"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb register records one event file where the skill and changelog say it writes no file"
+  }
+}
