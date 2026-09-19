@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 490,
+  "slug": "intent-st-attach-does-not-go-through-the-attachm",
+  "title": "intent st attach does not go through the attachment naming gate, so canon can hold a name the address layer refuses",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent st attach` does not go through the attachment naming gate, so canon can hold an attachment whose name the address layer refuses. Found by cc while building 0461's fix (T4), on 2026-09-19.\n\n**Driven on 3.1.0 (11ce80ad5), in a scratch project:** `intent st attach ST0001 WP/_superseded/01/info.md --from <file>` and `intent st attach ST0001 todo.md --from <file>` both succeed, although `address::parse` refuses both names (`intent:///threads/ST0001/attachments/todo.md` answers as a view). So the thread carries an attachment that no address can reach. What the ingest and the prune then do with such a name has not been driven.\n\n**Where, read from the code at fa4841fd3:**\n\n- `render.rs`'s `st attach` arm builds `Entity::Attachment { thread, path }` directly rather than parsing a spelled address (its comment: \"THE ADDRESS IS CONSTRUCTED, NOT SPELLED\"), so `parse`'s view check never sees the name.\n- The naming gate is `project::attachment_name`, called from `Facade::put` (facade.rs, the attachment arm) and from the ingest's bucket walk (project.rs). The attach path does not reach it.\n\n**Relation to 0461:** 0461's fix (T4) moves `parse`, so a view basename below the thread root is addressable when `classify` calls it an attachment. The thread root stays a view's depth, so a root `todo.md` stays unaddressable, and `st attach` would still write it. 0461's body line \"`intent st attach` refuses the name\" is false on 3.1.0, and 0461's close note says so.\n\n**Fix direction:** `st attach` runs the same `attachment_name` gate before it writes, and refuses a name the address layer cannot reach, with a remedy naming a legal name. One gate for every door that names an attachment. Then an arm: every door that writes an attachment refuses what `parse` refuses. S.\n"
+}

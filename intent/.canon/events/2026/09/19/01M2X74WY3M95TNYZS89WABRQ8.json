@@ -1,0 +1,15 @@
+{
+  "id": "01M2X74WY3M95TNYZS89WABRQ8",
+  "ts": "2026-09-19T16:14:18.055Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0490"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent st attach does not go through the attachment naming gate, so canon can hold a name the address layer refuses"
+  }
+}
