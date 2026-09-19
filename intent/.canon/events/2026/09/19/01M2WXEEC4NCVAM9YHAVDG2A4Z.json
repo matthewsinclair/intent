@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXEEC4NCVAM9YHAVDG2A4Z",
+  "ts": "2026-09-19T13:24:45.064Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0477"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent init's report of what it wrote omits intent/.config/config.json"
+  }
+}

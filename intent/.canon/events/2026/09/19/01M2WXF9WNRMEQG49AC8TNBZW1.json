@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXF9WNRMEQG49AC8TNBZW1",
+  "ts": "2026-09-19T13:25:13.237Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**Scratch removal, WHEN vc MAKES THE ONE CALL FOR EVERY LANE:** worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/, drafts/ and issues/; and refs/bank/cc/doc-sweep, whose chain landed at e12e071d1. Every bank those held is landed."
+  }
+}

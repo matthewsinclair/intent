@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXFF7KQZ5EB5KXRRMPJ9FN",
+  "ts": "2026-09-19T13:25:18.707Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 13:2xZ).** The doc sweep landed at e12e071d1 and vc resynced skills and subagents from it. Issues 0476 (canon.rs's stale comments), 0477 (init's report omits config.json) and 0478 (post-tool-advisory's plain stdout, not driven) are filed, with no fix ordered, and so are 0460 and 0461. Waiting on vc for the next order; the todo below waits on vc's one call. NO RELEASE, NO PUSH."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXED8SRZ5Y9GMGCSYJW0JJ",
+  "ts": "2026-09-19T13:24:43.933Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0476"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "canon.rs: two stale comments, the --force help quoted for .mcp.json and init not seeding AGENTS.md"
+  }
+}

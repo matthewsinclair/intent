@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXEFN8HY0WZ6QDNSTP0YC6",
+  "ts": "2026-09-19T13:24:47.049Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0478"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "post-tool-advisory.sh prints plain stdout at exit 0, which a PostToolUse hook's model may never see"
+  }
+}

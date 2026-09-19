@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 477,
+  "slug": "intent-init-s-report-of-what-it-wrote-omits-inte",
+  "title": "intent init's report of what it wrote omits intent/.config/config.json",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent init`'s report of what it wrote omits `intent/.config/config.json` while listing every other file it created. Found by vc during the 2026-09-19 doc sweep; cc filed it.\n\n`written` is filled only by the starter-content loop (`init.rs:367-371`). The config is written by a separate path, so it never enters the list the report prints. The only absence the code explains is `.prettierignore`'s, and that explanation (`init.rs:274`) belongs to the occupied-destination check, not to the report. The report of a fresh project therefore leaves out the one file that makes the directory a project.\n\nFix: report the config as written (or, if its absence is deliberate, say why next to the report). XS.\n"
+}

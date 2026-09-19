@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-19 06:57Z
+heartbeat_at: 2026-09-19 13:25Z
 status: active
-focus: "2026-09-19 06:57Z, folded: holding for vc's CUT DONE. The doc-sweep chain is banked and ruled (see the hold). NO RELEASE, NO PUSH."
+focus: "2026-09-19 13:2xZ: doc sweep landed (e12e071d1), issues 0476-0478 filed; waiting on vc for the next order, scratch removal on vc's one call. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,15 +13,15 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-19 06:57Z, localfold).** Holding for vc's CUT DONE: no intent verb, no tree write, no build. On CUT DONE, run the hold below, then the todo. Issues 0460 and 0461 are open with no fix ordered. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-19 13:2xZ).** The doc sweep landed at e12e071d1 and vc resynced skills and subagents from it. Issues 0476 (canon.rs's stale comments), 0477 (init's report omits config.json) and 0478 (post-tool-advisory's plain stdout, not driven) are filed, with no fix ordered, and so are 0460 and 0461. Waiting on vc for the next order; the todo below waits on vc's one call. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- **After CUT DONE:** (1) File an issue for canon.rs's two stale comments (:531-536 quotes the old --force help; :567-569 says init makes no AGENTS.md). vc ruled them out of the doc chain because a crate change owes its suite. (2) Remove cc's scratch, WHEN vc MAKES THE ONE CALL FOR EVERY LANE: worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/ and drafts/. Every bank those held is landed; refs/bank/cc/doc-sweep stays until its chain lands.
+- **Scratch removal, WHEN vc MAKES THE ONE CALL FOR EVERY LANE:** worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/, drafts/ and issues/; and refs/bank/cc/doc-sweep, whose chain landed at e12e071d1. Every bank those held is landed.
 
 ## Holds
 
-- **cc's doc-sweep chain, released by vc's CUT DONE** (ruled by vc 2026-09-18 23:21Z). A 14-file patch is banked at refs/bank/cc/doc-sweep/patch (blob 45f8cb0f4); the commit message is in the scratchpad's cc-sweep-commit.txt. On release: CHAIN START, then `git cat-file -p` the ref and `git apply --check` it at that HEAD, apply it, run prettier --check, then `git add` and `git commit --only` on the 14 paths, and send vc CHAIN END with the hash and every file's disposition. The one deletion (creating-custom-agents.md, 'Ensure JSON syntax is valid') is approved.
+_(none)_
 
 ## Watch-outs
 
