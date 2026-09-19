@@ -3721,6 +3721,17 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
     ThreadFile::Attachment => {
       let name = within.to_string_lossy().to_string();
       let Some(held) = thread.attachments.iter().find(|a| a.path == name) else {
+        // **AN UNNAMEABLE FILE GETS THE REMEDY, BECAUSE NOTHING ELSE WILL EVER
+        // HOLD IT** (issue 0461). The ingest skips a name `attachment_name`
+        // refuses and `st attach` refuses it too, so this line repeats on every
+        // run until someone renames the file -- and until 0461 it said only
+        // that the content was on disk, which named no way out.
+        if let Err(bad) = crate::project::attachment_name(id, &name) {
+          return Holding::NotHeld(format!(
+            "{id} carries no attachment `{name}` and cannot: {bad}. Its content is on disk and \
+             nowhere else -- rename the file, then `intent st attach {id} <new name> --from <file>`"
+          ));
+        }
         return Holding::NotHeld(format!(
           "{id} carries no attachment `{name}`, so its content is on disk and nowhere else"
         ));

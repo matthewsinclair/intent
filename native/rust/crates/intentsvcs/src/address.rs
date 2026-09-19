@@ -444,6 +444,52 @@ const VIEW_NAMES: &[&str] = &[
   "acceptance",
 ];
 
+/// The segment that makes an address name a VIEW, if one does.
+///
+/// **INSIDE AN ATTACHMENT PATH, `Project::classify` DECIDES, AND NOTHING HERE
+/// RESTATES IT** (issue 0461, vc's ruling of 2026-09-19). Until then this
+/// refused a `VIEW_NAMES` segment at any depth, while `classify` calls a deep
+/// `info.md` -- `WP/_superseded/01/info.md` -- the author's. `attachment_name`
+/// round-trips every attachment through here, so the author's file was an
+/// attachment that could not be named: the ingest left it unheld, `st attach`
+/// refused it, and the v2 prune withheld it on every run. Nine such files on
+/// Lamplight were repaired only by renaming.
+///
+/// **ASKING `classify` IS WHAT KEEPS THE TWO ANSWERS FROM DRIFTING AGAIN.** A
+/// second encoding of "a view's depth" here -- `WP/<nn>/` -- would agree today
+/// and could be edited apart tomorrow, which is the defect this closes. So
+/// below the thread root the remainder is refused exactly when `classify` calls
+/// it a generated view.
+///
+/// **AT THE THREAD ROOT EVERY VIEW NAME STAYS RESERVED**, a superset of the two
+/// `classify` owns there, because AT-07.2 (`address_views_have_no_url.rs`)
+/// requires `/threads/<ID>/attachments/<view>` to refuse for every name in
+/// `VIEW_NAMES`, `todo.md` and `steel_threads.md` included. The cost is stated
+/// rather than hidden: a thread-root file named `todo.md` is the author's by
+/// `classify` and still cannot be named, and the prune's withheld line names
+/// rename-and-attach for it.
+///
+/// Outside an attachment's remainder the rule is unchanged: a `VIEW_NAMES`
+/// segment anywhere else is a view, so `/threads/ST0000/info.md` and
+/// `/threads/ST0000/wp/01/info.md` stay refused.
+fn view_segment<'a>(segments: &[&'a str]) -> Option<&'a str> {
+  let (head, remainder): (&[&str], &[&str]) = match segments {
+    ["threads", _, "attachments", rest @ ..] => (&segments[..3], rest),
+    _ => (segments, &[]),
+  };
+  if let Some(s) = head.iter().find(|s| VIEW_NAMES.contains(s)) {
+    return Some(s);
+  }
+  let rel: std::path::PathBuf = remainder.iter().collect();
+  match remainder {
+    [name] if VIEW_NAMES.contains(name) => Some(name),
+    [.., name] if Project::classify(&rel) == crate::project::ThreadFile::GeneratedView => {
+      Some(name)
+    }
+    _ => None,
+  }
+}
+
 /// Parse an `intent://` address. **The one implementation** (AC-07.1).
 /// The first non-empty segment of a path, for naming what a mis-slashed
 /// address ACTUALLY asked for.
@@ -490,12 +536,10 @@ pub fn parse(input: &str) -> Result<Address, AddressError> {
       input: input.to_string(),
     });
   }
-  for s in &segments {
-    if VIEW_NAMES.contains(s) {
-      return Err(AddressError::ViewAddressed {
-        segment: s.to_string(),
-      });
-    }
+  if let Some(segment) = view_segment(&segments) {
+    return Err(AddressError::ViewAddressed {
+      segment: segment.to_string(),
+    });
   }
 
   let entity = parse_entity(&segments, input)?;

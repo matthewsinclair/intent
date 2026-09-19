@@ -17,7 +17,15 @@
 //! **ONLY THEIR OVERLAP HAS TO AGREE, AND THAT DIRECTION IS ONE-WAY**: every
 //! basename `classify` calls a [`ThreadFile::GeneratedView`] must appear in
 //! `VIEW_NAMES`, or that view becomes addressable and `ViewAddressed` stops
-//! refusing it. The reverse is not required and is not asserted.
+//! refusing it.
+//!
+//! **AND SINCE ISSUE 0461 THE OTHER DIRECTION IS ASSERTED TOO**: every path
+//! `classify` hands to the ATTACHMENT side must not be refused as a view when it
+//! is named as an attachment. Until then only the first direction was checked,
+//! and a deep `info.md` -- the author's, by `classify` -- was refused by `parse`
+//! at any depth, so the file could never be carried. `parse` now refuses a view
+//! basename inside an attachment path only at a view's depth (vc's ruling of
+//! 2026-09-19), and the arms below hold the two answers together at both edges.
 //!
 //! # This test exists because the constant asked for it, in these words
 //!
@@ -38,7 +46,7 @@
 //! guarded this before.
 
 use intentsvcs::address::{AddressError, SCHEME, parse};
-use intentsvcs::project::{Project, ThreadFile};
+use intentsvcs::project::{Project, ThreadFile, attachment_name};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use testkit::repo_root;
@@ -149,4 +157,111 @@ fn the_probe_lets_a_non_view_segment_through() {
     "`design.md` is not a generated view, so a `ViewAddressed` refusal here means the probe \n       \
      refuses everything and the population test above is vacuous. Got: {outcome:?}"
   );
+}
+
+/// Name `rel` as an attachment of ST0056 and say whether `parse` refused it as
+/// a view.
+fn refused_as_a_view(rel: &str) -> bool {
+  matches!(
+    parse(&format!("{SCHEME}/threads/ST0056/attachments/{rel}")),
+    Err(AddressError::ViewAddressed { .. })
+  )
+}
+
+/// **THE DIRECTION THIS FILE USED TO SKIP, OVER THE ESTATE** (issue 0461). Every
+/// file `classify` calls an attachment must be nameable as one without a view
+/// refusal, or the ingest leaves it unheld and the prune withholds it forever.
+#[test]
+fn no_file_classify_calls_an_attachment_is_refused_as_a_view() {
+  let st_root = repo_root().join("intent").join("st");
+  let mut examined = 0usize;
+  let mut refused: Vec<String> = Vec::new();
+  let Ok(entries) = std::fs::read_dir(&st_root) else {
+    panic!("no estate at {} to walk", st_root.display());
+  };
+  for entry in entries.flatten() {
+    let thread_dir = entry.path();
+    if !thread_dir.is_dir() {
+      continue;
+    }
+    let mut files = Vec::new();
+    files_under(&thread_dir, &mut files);
+    for file in &files {
+      let Ok(rel) = file.strip_prefix(&thread_dir) else {
+        continue;
+      };
+      if Project::classify(rel) != ThreadFile::Attachment {
+        continue;
+      }
+      examined += 1;
+      let rel = rel.to_string_lossy();
+      if refused_as_a_view(&rel) {
+        refused.push(rel.into_owned());
+      }
+    }
+  }
+  assert!(
+    examined > 0,
+    "the walk found no attachment under {}, so it proved nothing",
+    st_root.display()
+  );
+  assert!(
+    refused.is_empty(),
+    "`classify` calls these the author's and `parse` refuses them as views, so they can \n     \
+     never be carried: {refused:?}"
+  );
+}
+
+/// **BOTH EDGES OF THE DEPTH RULE, PLANTED, BECAUSE THE ESTATE MAY HOLD NEITHER.**
+/// The shapes `classify` calls views -- the thread root's `info.md` and
+/// `acceptance.md`, and `info.md` directly under any `WP/` directory -- are
+/// refused as attachment names, and so is every view name at the thread root,
+/// which AT-07.2 reserves; the same basenames anywhere deeper that `classify`
+/// calls the author's are addressable and nameable. The view side pins that 0461's
+/// fix did not open a door onto a generated file.
+#[test]
+fn a_view_basename_is_refused_only_at_a_views_depth() {
+  for view in [
+    "info.md",
+    "acceptance.md",
+    "todo.md",
+    "steel_threads.md",
+    "info",
+    "WP/01/info.md",
+    "WP/_superseded/info.md",
+  ] {
+    assert!(
+      refused_as_a_view(view),
+      "`{view}` is at a view's depth and must be refused as a view"
+    );
+  }
+  for rel in [
+    "WP/_superseded/01/info.md",
+    "parity/tools/info.md",
+    "WP/01/acceptance.md",
+  ] {
+    assert_eq!(
+      Project::classify(std::path::Path::new(rel)),
+      ThreadFile::Attachment,
+      "`{rel}` is the author's by `classify`, which this arm assumes"
+    );
+    assert!(
+      !refused_as_a_view(rel),
+      "`{rel}` is the author's, so naming it as an attachment must not be a view refusal"
+    );
+    assert_eq!(
+      attachment_name("ST0056", rel),
+      Ok(()),
+      "`{rel}` must round-trip as an attachment name, or the ingest leaves it unheld"
+    );
+  }
+  for view in ["info.md", "wp/01/info.md"] {
+    assert!(
+      matches!(
+        parse(&format!("{SCHEME}/threads/ST0056/{view}")),
+        Err(AddressError::ViewAddressed { .. })
+      ),
+      "`/threads/ST0056/{view}` is a view outside the attachment path and stays refused"
+    );
+  }
 }

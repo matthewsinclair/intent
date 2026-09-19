@@ -376,3 +376,82 @@ fn a_bucket_file_the_ingest_declines_is_named_with_its_reason_and_the_upgrade_st
     "the ingested file is in canon"
   );
 }
+
+/// **AN AUTHORED `info.md` BELOW A VIEW'S DEPTH IS CARRIED, AND AN UNNAMEABLE
+/// FILE IS WITHHELD WITH ITS WAY OUT** (issue 0461, vc's ruling of 2026-09-19).
+/// Lamplight's shape: ST0037's `WP/_superseded/<nn>/info.md` are authored files
+/// at depth 4. `classify` called them attachments and `parse` refused the name,
+/// so the ingest skipped them and the prune withheld them on every run with a
+/// line that named no remedy. Beside it, a name that stays unaddressable (a
+/// `?` cannot survive the URL) must be withheld with the rename-and-attach
+/// remedy, and the thread's own `WP/01/info.md` view is not carried at all.
+#[test]
+fn a_deep_info_md_is_carried_and_an_unnameable_file_is_withheld_with_its_remedy() {
+  let fixture = Fixture::new();
+  fixture.write_thread(&sample_thread("ST0012"));
+  let bucket = "intent/st/COMPLETED/ST0012";
+  fixture.write_file(
+    &format!("{bucket}/WP/_superseded/01/info.md"),
+    "# Superseded WP 01\n\nphrase-deep-info-authored.\n",
+  );
+  fixture.write_file(
+    &format!("{bucket}/bad?name.md"),
+    "# bad\n\nUnaddressable.\n",
+  );
+
+  let done =
+    Facade::upgrade(&fixture.project(), &facade_ctx()).expect("the upgrade runs over both files");
+  let project = fixture.project();
+  let root = project.st_dir().join("COMPLETED").join("ST0012");
+  let ingested: Vec<String> = done
+    .ingested
+    .iter()
+    .filter_map(|p| p.strip_prefix(&root).ok())
+    .map(|p| p.to_string_lossy().into_owned())
+    .collect();
+  assert_eq!(
+    ingested,
+    vec!["WP/_superseded/01/info.md".to_string()],
+    "the deep info.md is the author's and is ingested; not ingested: {:?}",
+    done.not_ingested
+  );
+
+  let facade = fixture.facade_on_disk();
+  let held = facade
+    .canon()
+    .threads
+    .iter()
+    .find(|t| t.id == "ST0012")
+    .expect("ST0012 is in canon");
+  assert!(
+    held
+      .attachments
+      .iter()
+      .any(|a| a.path == "WP/_superseded/01/info.md"
+        && a
+          .text
+          .as_deref()
+          .is_some_and(|t| t.contains("phrase-deep-info-authored"))),
+    "canon carries the deep info.md with its own content: {:?}",
+    held.attachments.iter().map(|a| &a.path).collect::<Vec<_>>()
+  );
+
+  let withheld = legacy::leftovers(&project, facade.canon()).withheld;
+  let names: Vec<String> = withheld
+    .iter()
+    .filter_map(|w| w.path.strip_prefix(&root).ok())
+    .map(|p| p.to_string_lossy().into_owned())
+    .collect();
+  assert_eq!(
+    names,
+    vec!["bad?name.md".to_string()],
+    "only the unnameable file is withheld: {withheld:?}"
+  );
+  assert!(
+    withheld[0]
+      .reason
+      .contains("rename the file, then `intent st attach ST0012 <new name> --from <file>`"),
+    "the withheld line names the rename-and-attach remedy: {}",
+    withheld[0].reason
+  );
+}
