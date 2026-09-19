@@ -3,9 +3,10 @@
   "number": 462,
   "slug": "release-skip-tests-returns-before-the-gh-auth-ch",
   "title": "release: --skip-tests returns before the gh auth check, so an unauthenticated gh is found only after tag and push",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "`bin/devbin build release --skip-tests` returns from `preflight` (`bin/.devbin/cmd/build.d/release:599`) before the `gh auth status` check (`:693`), so a re-run with `--skip-tests` on an unauthenticated `gh` commits, tags and pushes to both remotes, and only `gh release create` finds the problem. The header lists gh auth as a pre-flight gate, and the script's own rule for the contract and docs/reference checks is that a read that is not a suite is not skipped by `--skip-tests`.\n\nFix: move the gh check above the `--skip-tests` return. XS. Found in dc's doc sweep of 2026-09-18 (vc's next-line list, item 2).\n"
+  "body": "`bin/devbin build release --skip-tests` returns from `preflight` (`bin/.devbin/cmd/build.d/release:599`) before the `gh auth status` check (`:693`), so a re-run with `--skip-tests` on an unauthenticated `gh` commits, tags and pushes to both remotes, and only `gh release create` finds the problem. The header lists gh auth as a pre-flight gate, and the script's own rule for the contract and docs/reference checks is that a read that is not a suite is not skipped by `--skip-tests`.\n\nFix: move the gh check above the `--skip-tests` return. XS. Found in dc's doc sweep of 2026-09-18 (vc's next-line list, item 2).\n\n\nCLOSED 2026-09-19, by its landing in dc's train B on vc's word (bank 37ee12a59, patch-id 2e0288cdc720, judged green on the train's bats log refs/bank/dc/trainB/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }

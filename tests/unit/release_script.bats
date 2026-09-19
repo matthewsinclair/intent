@@ -511,3 +511,22 @@ EOF
   [[ "$output" == *"reference_current_check gave NO VERDICT (rc=2)"* ]]
   unset REFERENCE_STUB_RC
 }
+
+# --skip-tests skips suites, not reads: an unauthenticated gh refuses the cut
+# before anything is stamped (issue 0462). It used to be checked after the
+# --skip-tests return, so a re-run tagged and pushed before gh release create
+# found out.
+@test "release --skip-tests still refuses an unauthenticated gh in pre-flight" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  local shim_dir="$TEST_TEMP_DIR/noauth"
+  mkdir -p "$shim_dir"
+  printf '#!/usr/bin/env bash\n[ "$1 $2" = "auth status" ] && exit 1\nexit 0\n' > "$shim_dir/gh"
+  chmod +x "$shim_dir/gh"
+  export PATH="$shim_dir:$PATH"
+  cd "$repo" || return 1
+  run_release --dry-run --skip-tests --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"gh CLI is not authenticated"* ]]
+  [[ "$output" != *"would create tag"* ]]
+}

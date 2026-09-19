@@ -624,6 +624,18 @@ $faces_stale
     *) abort "reference_current_check gave NO VERDICT (rc=$ref_rc), so the cut cannot say its reference pages are current. full output: $ref_log" ;;
   esac
 
+  # gh auth, ABOVE the --skip-tests return (issue 0462). It is a read, not a
+  # suite, so the flag has no reason to skip it -- the rule the contract and
+  # reference checks above already follow -- and skipping it let a re-run on an
+  # unauthenticated gh commit, tag and push before gh release create refused.
+  if ! command -v gh >/dev/null 2>&1; then
+    abort "gh CLI not found in PATH"
+  fi
+  if ! gh auth status >/dev/null 2>&1; then
+    abort "gh CLI is not authenticated (run: gh auth login)"
+  fi
+  log_info "gh CLI authenticated"
+
   if [ "$SKIP_TESTS" = "true" ]; then
     log_warn "--skip-tests: skipping doctor + test suite"
     return 0
@@ -714,14 +726,6 @@ $faces_stale
     log_info "cargo test green"
   fi
 
-  # gh auth (we'll need it later).
-  if ! command -v gh >/dev/null 2>&1; then
-    abort "gh CLI not found in PATH"
-  fi
-  if ! gh auth status >/dev/null 2>&1; then
-    abort "gh CLI is not authenticated (run: gh auth login)"
-  fi
-  log_info "gh CLI authenticated"
 }
 
 # --------------------------------------------------------------------
