@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-19 13:46Z
+heartbeat_at: 2026-09-19 13:57Z
 status: active
-focus: "3.1.0 is cut. The doc sweep, issues 0462-0475 and 0484, the search-race fix (ff9751d45) and the Linux stat fix (a2f16175f) have landed; CI judges them at hv's next push. Todo 30 (the tap README push) is hv's. Holds 17, 18. NO RELEASE, NO PUSH."
+focus: "3.1.0 is cut and dc's post-cut work is on main. dc's worktrees are removed (wt-0443, wt-p5; diffs proven on main and saved). Todo 30 (the tap README push) is hv's. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
