@@ -700,7 +700,8 @@ $frozen_list"
     local cargo_log gate_dir gate_native gate_rc reds
     local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
     cargo_log="$(release_log_dir)/cargo-test.log"
-    gate_dir="$(mktemp -d "${TMPDIR:-/tmp}/intent-release-gate.XXXXXX")"
+    gate_dir="$(mktemp -d "${TMPDIR:-/tmp}/intent-release-gate.XXXXXX")" ||
+      abort "cannot create a temp dir for the cargo test gate under ${TMPDIR:-/tmp}"
     if ! git -C "$PROJECT_ROOT" worktree add --quiet --detach "$gate_dir/tree" HEAD >/dev/null 2>&1; then
       rm -rf "$gate_dir"
       abort "could not create a private worktree at HEAD for the test gate under $gate_dir"
@@ -723,7 +724,10 @@ $frozen_list"
         fi
       fi
     fi
-    git -C "$PROJECT_ROOT" worktree remove --force "$gate_dir/tree" >/dev/null 2>&1
+    # A failed removal leaves a registered worktree behind (issue 0470): say
+    # where, rather than dropping it.
+    git -C "$PROJECT_ROOT" worktree remove --force "$gate_dir/tree" >/dev/null 2>&1 ||
+      log_warn "could not remove the test gate's worktree at $gate_dir/tree -- remove it with \`git -C '$PROJECT_ROOT' worktree remove --force '$gate_dir/tree'\`"
     rm -rf "$gate_dir"
     if [ "$gate_rc" != 0 ]; then
       abort_with_log "cargo test --workspace failed -- fix before releasing" "$cargo_log" '^test .* FAILED|^test result: FAILED'
@@ -738,7 +742,10 @@ $frozen_list"
 # Main flow
 # --------------------------------------------------------------------
 
-CURRENT="$(cat "$PROJECT_ROOT/VERSION" 2>/dev/null || echo "0.0.0")"
+# AN UNREADABLE VERSION REFUSES (issue 0470). It fell back to 0.0.0, so every
+# comparison below was made against a number nobody wrote.
+CURRENT="$(cat "$PROJECT_ROOT/VERSION")" && [ -n "$CURRENT" ] ||
+  abort "cannot read a version from $PROJECT_ROOT/VERSION -- the release compares its target against it, and a made-up one would pass"
 log_info "current version: $CURRENT"
 
 if [ -n "$BUMP" ]; then
@@ -1027,8 +1034,9 @@ fi
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would refresh $NATIVE_LOCK_REL via cargo, refusing any change beyond workspace member versions"
 else
-  lock_before="$(mktemp)"
-  cp "$PROJECT_ROOT/$NATIVE_LOCK_REL" "$lock_before"
+  lock_before="$(mktemp)" || abort "cannot create a temp file to snapshot $NATIVE_LOCK_REL"
+  cp "$PROJECT_ROOT/$NATIVE_LOCK_REL" "$lock_before" ||
+    abort "cannot snapshot $NATIVE_LOCK_REL, so the lock check would have nothing to compare against"
 
   # No --locked: the point is to let cargo rewrite the lock. Not --offline
   # either: the lock legitimately names targets this machine never builds
@@ -1036,8 +1044,11 @@ else
   # exactly like an inconsistent lockfile. Measured, and it cost a wrong
   # diagnosis before it was.
   if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo metadata --format-version 1 >/dev/null 2>&1); then
-    cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
-    rm -f "$lock_before"
+    if cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"; then
+      rm -f "$lock_before"
+    else
+      log_warn "could not restore $NATIVE_LOCK_REL -- its pre-stamp copy is kept at $lock_before"
+    fi
     abort "cargo could not refresh $NATIVE_LOCK_REL after the version stamp"
   fi
 
@@ -1060,8 +1071,11 @@ else
   # changes, so the check would ACCEPT ANYTHING and say so confidently. An
   # empty parse is a broken parse, never a clean lockfile.
   if ! unexpected="$(lock_nonmember_changes "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL")"; then
-    cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
-    rm -f "$lock_before"
+    if cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"; then
+      rm -f "$lock_before"
+    else
+      log_warn "could not restore $NATIVE_LOCK_REL -- its pre-stamp copy is kept at $lock_before"
+    fi
     abort "could not read packages or workspace members out of $NATIVE_LOCK_REL -- refusing to check nothing and call it clean"
   fi
 
@@ -1351,7 +1365,7 @@ fi
 # --------------------------------------------------------------------
 log_step "github release"
 
-NOTES_FILE="$(mktemp -t intent-release-notes.XXXXXX)"
+NOTES_FILE="$(mktemp -t intent-release-notes.XXXXXX)" || abort "cannot create a temp file for the release notes"
 # Re-extract after sidecar rewrite so the notes match what's on disk now.
 extract_changelog_section "$TARGET" > "$NOTES_FILE"
 

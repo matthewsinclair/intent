@@ -621,3 +621,26 @@ STUB
   [[ "$code" == *'Its output:
 $stamp_sync_out"'* ]]
 }
+
+# An unreadable VERSION refuses rather than becoming 0.0.0 (issue 0470), and
+# the gate's temp dir, worktree removal and lock snapshot say when they fail.
+@test "release refuses an empty VERSION rather than comparing against 0.0.0" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  : > VERSION
+  git add -A && git commit -q -m "an empty VERSION"
+  run_release --dry-run v2.10.1
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"cannot read a version from"* ]]
+}
+
+@test "no release step drops a temp-file, lock or worktree failure" {
+  code="$(grep -v '^[[:space:]]*#' "$RELEASE")"
+  [[ "$code" != *'echo "0.0.0"'* ]]
+  [[ "$code" == *'cannot create a temp dir for the cargo test gate'* ]]
+  [[ "$code" == *"could not remove the test gate's worktree"* ]]
+  [[ "$code" == *'cannot snapshot $NATIVE_LOCK_REL'* ]]
+  [[ "$code" == *'cannot create a temp file for the release notes'* ]]
+}
