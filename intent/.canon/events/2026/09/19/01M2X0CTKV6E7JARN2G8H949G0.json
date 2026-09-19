@@ -1,0 +1,15 @@
+{
+  "id": "01M2X0CTKV6E7JARN2G8H949G0",
+  "ts": "2026-09-19T14:16:17.787Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Fleet 3.1.0 upgrade wave two, dc's half of the silent 3.0.3 estates, split with ic as the trawl was. Released by vc's word once the live estates report wave one. Run the kit at refs/bank/dc/trawl/trawl-estate.sh (blob cc9427427; the old one, 8cfac07a2, is at .prev): --skip-settings always, the dry run's settings.json line logged per estate, rehearsed clean on a Cdtempl clone. Pin intent --version at both ends. Wave two is unaffected by 0485, since no 3.0.3 estate has a todo watermark. Prodinfra's [[PROJECT_NAME]] is hv's hand fix. NO PUSH."
+  }
+}

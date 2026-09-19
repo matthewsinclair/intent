@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-19 13:57Z
+heartbeat_at: 2026-09-19 14:16Z
 status: active
-focus: "3.1.0 is cut and dc's post-cut work is on main. dc's worktrees are removed (wt-0443, wt-p5; diffs proven on main and saved). Todo 30 (the tap README push) is hv's. Holds 17, 18. NO RELEASE, NO PUSH."
+focus: "Holding for vc's word on wave two of the fleet 3.1.0 upgrade (todo 31, kit re-banked). 0485 filed, 0482 closed. Todo 30 (the tap README push) is hv's. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -18,6 +18,7 @@ _(none)_
 ## TODO
 
 - Push the tap README commit 0341f61 (homebrew-intent, local only, ahead 1): hv's call, or it rides the next int macos publish.
+- Fleet 3.1.0 upgrade wave two, dc's half of the silent 3.0.3 estates, split with ic as the trawl was. Released by vc's word once the live estates report wave one. Run the kit at refs/bank/dc/trawl/trawl-estate.sh (blob cc9427427; the old one, 8cfac07a2, is at .prev): --skip-settings always, the dry run's settings.json line logged per estate, rehearsed clean on a Cdtempl clone. Pin intent --version at both ends. Wave two is unaffected by 0485, since no 3.0.3 estate has a todo watermark. Prodinfra's [[PROJECT_NAME]] is hv's hand fix. NO PUSH.
 
 ## Holds
 
