@@ -28,10 +28,10 @@ Targets are one or more files, directories, or globs. `critic-shell` supports on
 
 ### Mode semantics
 
-- `code` mode loads agnostic + language code rules (`rules/agnostic/*/RULE.md` and `rules/<lang>/code/*/RULE.md`, plus framework subdirectories for `critic-elixir`: `ash/`, `phoenix/`, `lv/`).
-- `test` mode loads agnostic + language test rules (`rules/<lang>/test/*/RULE.md`).
+- `code` mode applies every `agnostic` rule plus the language's rules whose `category` is `code` (for `critic-elixir`, also the framework categories `ash`, `phoenix` and `lv`).
+- `test` mode applies every `agnostic` rule plus the language's rules whose `category` is `test`.
 
-Each rule's own `applies_to` glob provides further gating — Phoenix rules gate on controller paths; LiveView rules on `*_live.ex`; Rust test rules on `#[cfg(test)]` or `tests/**` context.
+Each rule's own `applies_to` glob provides further gating — the Phoenix rule gates on `lib/**/controllers/**/*.ex`, the LiveView rules on `lib/**/live/**/*.ex`, and the Rust test rules on `src/**/*.rs` and `tests/**/*.rs` (the two test-topology rules on `**/Cargo.toml`).
 
 ### Ambiguity handling
 
@@ -39,10 +39,10 @@ If the first whitespace-delimited token of the prompt is neither `review` nor `t
 
 ## Rule loading order
 
-Every invocation re-reads the rule files; caches are not used. The load order for one invocation:
+Every invocation re-reads the rule library; caches are not used. A critic subagent does not glob rule files: it enumerates and reads them through the installed tool (`intent claude rules list --lang <lang>`, `intent claude rules list --lang agnostic`, then `intent claude rules show <id>` for each selected id) and selects by the `category` column. The load order for one invocation:
 
-1. **Agnostic rules**: `intent/plugins/claude/rules/agnostic/*/RULE.md`.
-2. **Language rules, mode-filtered**: `intent/plugins/claude/rules/<lang>/<code-or-test>/**/RULE.md` (for `critic-elixir` in `code` mode this expands across `code/`, `ash/`, `phoenix/`, and `lv/`).
+1. **Agnostic rules**: `intent claude rules list --lang agnostic`.
+2. **Language rules, mode-filtered by category**: `intent claude rules list --lang <lang>`, keeping category `code` in `code` mode (for `critic-elixir` also `ash`, `phoenix` and `lv`) or `test` in `test` mode.
 3. **Extension rules**: not read in v3. `userstate::ext_base()` answers `None`, so `intent claude rules list`/`show` serve canon only and nothing under `~/.local/share/intent/ext/` is reached or can shadow a canon rule.
 4. **Upstream interop** (Elixir only): if `~/.claude/plugins/elixir-test-critic/rules/` exists, its RULE.md files are loaded and deduped against Intent rules by the `upstream_id` frontmatter field. Absence is silent.
 
@@ -103,14 +103,14 @@ severity_min: warning
 # show_all: true    # uncomment to render recommendation + style in the body
 ```
 
-| Key                      | Value                                                                           | Default   |
-| ------------------------ | ------------------------------------------------------------------------------- | --------- |
-| `disabled`               | List of rule IDs to suppress entirely for this project.                         | `[]`      |
-| `severity_min`           | `critical` \| `warning` \| `recommendation` \| `style`. Body threshold.         | `warning` |
-| `show_all`               | Shorthand for `severity_min: style`.                                            | `false`   |
-| `post_tool_use_advisory` | Opt-in PostToolUse critic advisory via `.claude/scripts/post-tool-advisory.sh`. | `false`   |
+| Key                      | Value                                                                               | Default   |
+| ------------------------ | ----------------------------------------------------------------------------------- | --------- |
+| `disabled`               | List of rule IDs to suppress entirely for this project.                             | `[]`      |
+| `severity_min`           | `critical` \| `warning` \| `recommendation` \| `style`. Body threshold.             | `warning` |
+| `show_all`               | Shorthand for `severity_min: style`.                                                | `false`   |
+| `post_tool_use_advisory` | Opt-in PostToolUse critic advisory, run by `intent claude hook post-tool-advisory`. | `false`   |
 
-Who reads which key: the headless runner (`intent critic`) reads only `disabled`; the pre-commit gate reads `severity_min` and passes it as `--severity-min`; `show_all` is honoured by the critic subagents only (the gate ignores it); `post_tool_use_advisory` is read only by `.claude/scripts/post-tool-advisory.sh`.
+Who reads which key: the headless runner (`intent critic`) reads only `disabled`; the pre-commit gate reads `severity_min`, falling back to `style` when `show_all: true` is set and `severity_min` is not, and passes it as `--severity-min`; the critic subagents honour `severity_min` and `show_all`; `post_tool_use_advisory` is read only by the `post-tool-advisory` hook body, which ships in the Intent install (`lib/templates/.claude/scripts/post-tool-advisory.sh`) and runs through `intent claude hook post-tool-advisory` once the project adds that stanza to its own `.claude/settings.local.json`.
 
 The install template is `lib/templates/_intent_critic.yml`; `intent claude upgrade --apply` seeds it only when the project has no `.intent_critic.yml`, and overwrites an existing one only with `--force`. A worked sample with example `disabled:` entries lives at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
 
@@ -122,7 +122,7 @@ Behaviour under edge conditions:
 
 ## Headless runner (`intent critic`)
 
-The same rule library is also enforceable without an LLM round-trip via `intent critic <lang>`. The runner parses each rule's YAML frontmatter, extracts the Greppable proxy fenced bash block from the Detection section, and applies the grep regex to target files. Text output opens with a census line (`critic: <lang> -- <asked> of <total> rule(s) ASKED of this run; <armed> armed in total.`), then lines naming declared, undeclared, unrunnable, out-of-context and tool-absent rules, then either `ok: no <lang> findings at severity >= <min> across <n> file(s)` or findings grouped as `== CRITICAL (<n>) ==` with `[CRITICAL] <id> at <file>:<line>` and `  > <line>`. It is not the subagent report format. A parallel `--format json` is available for CI. The JSON document is `{language, asked, armed, total, findings: [{rule, severity, file, line, text}], census: [{rule, arming, disposition, by}], refused: [...], disabled: [...]}` on stdout. `arming` is `armed|declared|unrunnable|undeclared`; `disposition` is `ran|not-run:tool-absent|not-run:out-of-context|n-a`.
+The same rule library is also enforceable without an LLM round-trip via `intent critic <lang>`. The runner parses each rule's YAML frontmatter, extracts the Greppable proxy fenced bash block from the Detection section, and applies the grep regex to target files. Except at exit 2, where the refusal on stderr is the whole output, text output opens with a census line (`critic: <lang> -- <asked> of <total> rule(s) ASKED of this run; <armed> armed in total.`), then, where they apply, lines counting the rules disabled by `.intent_critic.yml`, naming staged files skipped because they sit under the rule library, and naming declared, undeclared, unrunnable, partly-run, out-of-context, tool-declined and tool-absent rules, then either `ok: no <lang> findings at severity >= <min> across <n> file(s)` (exit 0 only) or findings grouped as `== CRITICAL (<n>) ==` with `[CRITICAL] <id> at <file>:<line>` and `  > <line>`. It is not the subagent report format. A parallel `--format json` is available for CI. The JSON document is `{language, asked, armed, total, findings: [{rule, severity, file, line, text}], census: [{rule, arming, disposition, by}], refused: [...], disabled: [...], skipped_library: [...]}` on stdout. `arming` is `armed|declared|unrunnable|undeclared`; `disposition` is `ran|not-run:tool-absent|not-run:out-of-context|not-run:tool-declined|n-a`.
 
 ```
 intent critic <lang> [--files <path> ...] [--staged] [--severity-min <level>] [--format text|json] [--rules <dir>]
@@ -138,12 +138,12 @@ Use cases:
 
 Exit codes:
 
-| Exit | Meaning                                                                                                                                                                                                                     |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | Rules were asked and none produced a finding at or above `--severity-min` (also `author`/`content`, which run nothing).                                                                                                     |
-| `1`  | Findings at or above `--severity-min`.                                                                                                                                                                                      |
-| `2`  | The runner could not answer: unknown language, bad `--severity-min`, `--rules` not a directory, an unreadable file, `git` unavailable for `--staged`, or an empty rule library for the language. The gate fails open on it. |
-| `3`  | Refused: a rule armed on an external tool (`critic_tool`, eg shellcheck) whose tool is not on this machine. The gate blocks on it.                                                                                          |
+| Exit | Meaning                                                                                                                                                                                                                                                                                                                                                     |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Rules were asked and none produced a finding at or above `--severity-min` (also `author`/`content`, which run nothing).                                                                                                                                                                                                                                     |
+| `1`  | Findings at or above `--severity-min`. Also: the command was run outside an Intent project (it refuses with the project error and its remedy; `author` and `content` exit 0 before that check).                                                                                                                                                             |
+| `2`  | The runner could not answer: no language given, an unknown language, a bad `--severity-min` or `--format`, `--rules` not a directory, an unreadable file, `git` unavailable for `--staged`, a rule whose proxy pattern will not compile or whose `severity` this build does not know, or an empty rule library for the language. The gate fails open on it. |
+| `3`  | Refused: a rule armed on an external tool (`critic_tool`, eg shellcheck) whose tool is not on this machine. The gate blocks on it.                                                                                                                                                                                                                          |
 
 **Mechanical subset only**: only rules that publish a Greppable proxy block, or name an external tool with `critic_tool:` (shellcheck per-file; clippy is `workspace` context and not run per file), are runnable by the headless runner. Rules whose Detection is purely prose (eg "any function body longer than 50 lines") are not run, and the census names them on every run: `declared` when the rule says `No greppable proxy is authoritative`, `undeclared` when it says nothing. The LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
 
@@ -151,7 +151,7 @@ Exit codes:
 
 The runner reads the canon library shipped with the install (`intent/plugins/claude/rules/`), or the directory given with `--rules`, which replaces canon. User extension packs are not read in v3. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:` — see the schema section above.
 
-**Code locality** (clarified v2.11.4): the headless runner is `intent critic`, compiled into the v3 `intent` binary since the v2 shell runner was removed, and the canon rule library it reads is the one shipped with the install that the running `intent` binary resolves from its own location (`$INTENT_HOME` is not read), _not_ each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates; no per-project `intent claude upgrade` is required for the gate's behaviour to change. Per-project `intent claude upgrade --apply` refreshes the project's canon files (`.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, the seeded `usage-rules.md` and `.intent_critic.yml`) and the `pre-commit.intent` carrier and chain block, but it is not on the critical path for runner-or-rule fixes.
+**Code locality** (clarified v2.11.4): the headless runner is `intent critic`, compiled into the v3 `intent` binary since the v2 shell runner was removed, and the canon rule library it reads is the one shipped with the install that the running `intent` binary resolves from its own location (`$INTENT_HOME` is not read), _not_ each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates; no per-project `intent claude upgrade` is required for the gate's behaviour to change. Per-project `intent claude upgrade --apply` refreshes the project's canon files (`.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, and the seeded `usage-rules.md`, `.mcp.json` and `.intent_critic.yml`) and the git-hook carriers with their chain blocks (`pre-commit.intent`, and the `post-merge`, `post-checkout` and `post-rewrite` carriers), but it is not on the critical path for runner-or-rule fixes.
 
 ## Integration with `/in-review`
 
@@ -167,7 +167,7 @@ The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) d
 | `author`          | `critic-prose`  |
 | `content`         | `critic-prose`  |
 
-For each declared language, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets, then reports the union. Polyglot projects (more than one entry in `languages`) dispatch to each matching Critic with a target glob narrowed to its own subtree; array order is the explicit declaration, and the first entry is the primary where one is needed. An empty `languages` array runs no language Critic — only the agnostic checklist applies.
+For each declared code language, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets (`critic-shell` takes `review` only); for `author` or `content` it issues one `critic-prose` `review` call over the prose targets. It then reports the union. Polyglot projects (more than one entry in `languages`) dispatch to each matching Critic with a target glob narrowed to its own subtree; array order is the explicit declaration, and the first entry is the primary where one is needed. An empty `languages` array runs no language Critic — only the agnostic checklist applies.
 
 ## Test-spec handoff (Diogenes)
 
@@ -222,7 +222,7 @@ Expected outcomes:
 Interpreting the report:
 
 - Read severity headers top-down. Critical always comes first; fix those before touching warnings.
-- Each finding's `(<slug>)` lets you open the rule file directly: `intent/plugins/claude/rules/<lang>/<mode-or-subdir>/<slug>/RULE.md`.
+- Each finding's id opens the rule: `intent claude rules show <id>` prints it with its source path in the Intent install (`intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`).
 - The `Rules applied:` line tells you whether any rules were filtered out by `.intent_critic.yml` — if the count is unexpectedly low, check the config.
 
 ## Non-goals

@@ -85,7 +85,7 @@ fi
 # Guards (check-only only):
 #   Guard 1a: feedback-report.md exists at the canonical path
 #   Guard 1b: feedback-report.md has no unfilled [Fill in:] placeholders
-#   Guard 2: no unchecked - [ ] acceptance criteria in info.md
+#   Guard 2: `intent ac gate <ST>` passes (every criterion satisfied, descoped or withdrawn)
 # Guard order: existence -> content -> criteria. Fail fast on cheapest first.
 
 if [ "$CHECK_ONLY" = "1" ]; then

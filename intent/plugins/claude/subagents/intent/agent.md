@@ -47,7 +47,7 @@ Intent is a project management framework that captures the "why" behind code thr
 
 2. **Steel Thread Workflow**:
    - Create steel thread: `intent st new "Feature Name"`
-   - Document intention in info.md
+   - Record the intention through the store: `intent set intent:///threads/<STID> objective "..."` (`info.md` is a generated view, and `intent doctor` reports a hand edit as skew)
    - Break the work into work packages: `intent wp new <STID> "Title"`
 
 3. **Getting Help**:

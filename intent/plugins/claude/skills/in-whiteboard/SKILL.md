@@ -5,7 +5,7 @@ chains_to: []
 
 # Whiteboard -- Multi-Session Coordination (Protocol 3.0)
 
-Coordinator for multiple Claude Code sessions -- and the human -- running concurrently against one Intent project. Each participant is a **node** with its own board. **`intent wb` is how you read and write it**, and the files under `intent/whiteboard/<node>/` are rendered views of what the store holds. Every board and every inbox has exactly one writer, enforced by the API rather than by convention; that single-writer rule is what makes the board contention-free and cleansable. The whiteboard is the _live_ channel; `intent/wip.md` is the post-session snapshot.
+Coordinator for multiple Claude Code sessions -- and the human -- running concurrently against one Intent project. Each participant is a **node** with its own board. **`intent wb` is how you read and write it**, and the files under `intent/whiteboard/<node>/` are rendered views of what the store holds. Every board and every inbox has exactly one writer: no verb writes any board but the acting node's own, and a message is always recorded as sent by the acting node. The acting node is whatever `--node` names, so the rule holds only as far as every session passes its own moniker; that single-writer rule is what makes the board contention-free and cleansable. The whiteboard is the _live_ channel; `intent/wip.md` is the post-session snapshot.
 
 **Protocol 3.0** supersedes 2.0 (flat shared `asks.md` + per-stream files). v3.0 = per-node directories + a single-writer inbox model + the human as a first-class `hv` (hypervisor) node.
 
@@ -37,7 +37,7 @@ Intent's own roster names the validation node, in the human's words: _the workst
 
 ## The verbs at a glance
 
-**EVERY ONE OF THESE IS A COMMAND, AND `intent wb` IS THE ONLY DOOR.** They read and write the coordination model in the store; the files under `intent/whiteboard/` are rendered views of it. Each takes `--node <moniker>` to name the node acting.
+**EVERY ONE OF THESE IS A COMMAND, AND `intent wb` IS THE ONLY DOOR.** They read and write the coordination model in the store; the files under `intent/whiteboard/` are rendered views of it. Every verb that writes as a node takes `--node <moniker>` to name the node acting; `status`, `show <node>` and `register` do not, and `migrate` names the board it carries as a positional.
 
 | What you want                                        | The verb                           |
 | ---------------------------------------------------- | ---------------------------------- |
@@ -54,10 +54,11 @@ Intent's own roster names the validation node, in the human's words: _the workst
 | Say you are still alive                              | `intent wb touch`                  |
 | End a session                                        | `intent wb release`                |
 | Put the project's nodes on the board                 | `intent wb register`               |
+| Carry a hand-authored board into the store           | `intent wb migrate <node>`         |
 
-`intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`. `pickup` and `show` also take `--all`, which lists the handled messages a default read only counts.
+`intent wb ask` also takes `--re <anchor>` to thread a reply and `--fyi` to say no reply is expected. `pickup`, `status` and `show` take `--json`. `pickup` and `show` also take `--all`, which lists the handled messages a default read only counts. `pickup` also takes `--focus <line>`, which records what the node is on in its header and is the only way to set `focus:` on a generated board, and `--session <id>`, which records the session id; without `--session` it records the `CLAUDE_CODE_SESSION_ID` the process runs with.
 
-**NOT EVERY VERB IS ONE AN AGENT MAY REACH FOR UNASKED, AND THE RULE IS A FIELD RATHER THAN A LIST.** Each row declares its `recoverability`, and that is what decides whether the verb is offered on the tool tier: reads and writes whose second call changes nothing are, and a verb that ACCUMULATES something permanent is not. So reading a board, stamping a heartbeat, claiming a thread and marking a sender's messages handled are ordinary; putting a message, a decision or an item on a board is a thing you do because you were asked to, and registering who the participants of a project ARE is a human's declaration. **Read the field, never a list of names** -- a sentence here naming which verbs are which would go stale, silently, the first time one row's `recoverability` moved, and the split is a consequence rather than a policy.
+**NOT EVERY VERB IS ONE AN AGENT MAY REACH FOR UNASKED, AND THE RULE IS A FIELD RATHER THAN A LIST.** Each row declares `exposed_on_mcp`, and that is what decides whether the verb is offered on the tool tier. It follows the row's `recoverability`: reads and writes whose second call changes nothing are offered, and a verb that ACCUMULATES something permanent is not. A row that departs from that records why in `recoverability_anomaly`, as `wb register` does: it is idempotent and withheld anyway. So reading a board, stamping a heartbeat, claiming a thread and marking a sender's messages handled are ordinary; putting a message, a decision or an item on a board is a thing you do because you were asked to, and registering who the participants of a project ARE is a human's declaration. **Read the field, never a list of names** -- a sentence here naming which verbs are which would go stale, silently, the first time one row's field moved, and the split is a consequence rather than a policy.
 
 **WHAT THIS FILE IS FOR, NOW THAT THE VERBS EXIST, IS THE HALF A COMMAND CANNOT CARRY**: when a verb is the wrong thing to run, and what has to be true before you run it. A verb enforces its own shape -- the bound, the single writer, the clock -- and cannot know whether an inbox entry was actually handled or whether a ruling has been executed. That judgement is below, and it is the reason this skill is longer than the verb list.
 
@@ -65,13 +66,15 @@ Intent's own roster names the validation node, in the human's words: _the workst
 
 ```
 intent/whiteboard/
-  README.md                 # protocol reference + the project's node roster
+  README.md                 # protocol reference + the project's node roster (hand-authored)
   <node>/
-    wip.md                  # the node's live board: header block + DOING + TODO + watch-outs + decisions
-    inbox.<sender>.md       # one per OTHER node: messages FROM that sender (single-writer)
+    board.json              # the node's board as the store carries it: canon, tool-written
+    wip.md                  # generated view: header block + DOING + TODO + Holds + Watch-outs + Decisions
+    inbox.<sender>.md       # generated view, one per OTHER registered node: messages FROM that sender
     .history/
       .gitkeep              # tracks the otherwise-empty archive dir (git ignores empty dirs)
-      YYYYMMDD/             # the node's archived DONE work + handled inbox entries
+      YYYYMMDD/             # the hand-authored era's fold archives; not written any more
+      pre-migration/        # the copies `wb migrate` keeps of a hand-authored wip.md and any inbox it dropped a line from
 ```
 
 **THESE FILES ARE GENERATED VIEWS AND YOU DO NOT EDIT THEM.** The board and every inbox are rendered from the store, so a hand edit is not a write -- it is skew, and `intent doctor` reports it as skew. `intent wb` is what changes a board; the file is what the change looks like afterwards. The shapes below are documented because you READ them constantly, not because you author them.
@@ -80,9 +83,9 @@ intent/whiteboard/
 
 **A NODE JOINS BY BEING REGISTERED, AND ITS BOARD AND INBOXES RENDER FROM THAT ROW.** There is no directory to create and no file to seed: the row is the node, and everything under `intent/whiteboard/<node>/` is a view of it.
 
-`intent wb register <moniker> --name <display> --role <role>` names one node from its arguments. That is the form for every node that joins once boards are generated views, because there is no longer a hand-written header for anything to read. Running it again with the same values changes nothing; running it with different ones is refused rather than quietly taking the new values, so a node cannot be silently redefined.
+`intent wb register <moniker> --name <display> --role <role>` names one node from its arguments. That is the form for every node that joins once boards are generated views, because there is no longer a hand-written header for anything to read. Running it again with the same values changes nothing; running it with different ones is refused rather than quietly taking the new values, so a node cannot be silently redefined. A deliberate change is `intent wb register <moniker> --name <display> --role <role> --correct`, which changes only the name and role of a node that is already registered and keeps its board. Where the node still has a hand-authored `wip.md`, arguments that contradict its header's `name:` or `role:` are refused as well.
 
-`intent wb register` with no arguments is the other form, and it is the migration's: it reads the roster from each node's own hand-authored `wip.md` header. Idempotent by moniker, an edited header included -- a second run adds nothing and changes nothing. It has nothing left to read once the last hand-authored board has migrated.
+`intent wb register` with no arguments is the other form: it registers the roster from each node's own `wip.md` header, and refuses, naming every board, if any header lacks `node:`, `name:` or `role:`. Idempotent by moniker -- a second run adds nothing and changes nothing. **It registers configuration and carries no content.** A node whose board is still hand-authored markdown is carried into the store by `intent wb migrate <node>`, which refuses and names every line the model cannot carry unless `--drop-uncarried` is passed; the dropped lines are kept byte for byte under `<node>/.history/pre-migration/`. Until a node is migrated, every verb that writes its board, and every message addressed to it, is refused.
 
 **REGISTERING IS NOT A TIDY-UP.** Who the participants of a project are is a thing a human declares: every board, every item and every message afterwards hangs off the rows it writes, so an agent does not register a roster unasked.
 
@@ -108,6 +111,7 @@ claims: [STxxxx, ...]
 ## DOING        -- in-flight work (archived, as a state, when it is finished with)
 ## TODO         -- queued / next
 ## Holds        -- work you are NOT doing, each with the CONDITION that releases it
+## Standing directives -- hv's board only (see "The hv (hypervisor) node")
 ## Watch-outs   -- durable cautions peers should know (standing; not archived)
 ## Decisions    -- cross-node decisions, broadcast by being read at pickup
 ```
@@ -148,7 +152,7 @@ The fix is never a better escape. It is to stop treating the block as YAML.
 
 ## inbox.<sender>.md shape
 
-One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, `clear` into history).
+One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, then `clear`, which marks the entries handled).
 
 An inbox exists because the pair of nodes exists: once both are registered, the view renders in both directions whether or not a message has been sent. A fresh one is its header line plus the empty sentinel:
 
@@ -158,21 +162,21 @@ An inbox exists because the pair of nodes exists: once both are registered, the 
 _(empty)_
 ```
 
-The `# inbox: <sender> -> <recipient>` header restates the single-writer routing the path already encodes, so the file is self-describing when read alone. `_(empty)_` is the "no live entries" sentinel: `clear` and `archive` leave the header + `_(empty)_` behind when they remove the last handled entry, so an inbox is never an ambiguous zero-byte file.
+The `# inbox: <sender> -> <recipient>` header restates the single-writer routing the path already encodes, so the file is self-describing when read alone. `_(empty)_` is the sentinel for a pair that has never exchanged a message, so an inbox is never an ambiguous zero-byte file. `clear` removes nothing: a handled entry stays in the view with `(handled)` at the end of its heading, and leaves only the live count, which is what `pickup` and `show` list by default and what the inbox bound reads.
 
 ### Message-entry format
 
 Each entry appended by `ask` / `announce`:
 
 ```
-## (YYYY-MM-DD HH:MMZ) [Re: <prior-anchor>] [FYI only -- no response needed.]
+## (YYYY-MM-DD HH:MMZ) [claimed <stamp>] [Re: <prior-anchor>] [FYI only -- no response needed.] [(handled)]
 
 <text>
 ```
 
-Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
+Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers. The renderer adds two markers nobody writes: `claimed <stamp>` on an entry `wb migrate` carried from a hand-authored inbox, which is the stamp the markdown claimed, verbatim and never parsed, and `(handled)` on an entry the recipient has cleared. Every `announce` is sent as FYI.
 
-**THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found that NO heading carrying a `Re:` or `FYI` field had kept the documented spacing**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing parses the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and no other tool reads these fields at all -- so the spec moved rather than the files. **The existing headings are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
+**THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found that NO heading carrying a `Re:` or `FYI` field had kept the documented spacing**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing depends on the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and `wb migrate`, the one tool that reads these fields, finds them by their `Re: ` and `FYI only` tokens -- so the spec moved rather than the files. **The existing headings are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
 
 ### Every timestamp is READ FROM A CLOCK, never written from memory
 
@@ -228,7 +232,7 @@ Two things the guard deliberately does not do. It **never auto-corrects** -- a g
 
 ## Node-identity discovery
 
-Every verb takes `--node <moniker>`, and which node you are is the one thing the tool cannot work out for you.
+Every verb that writes as a node takes `--node <moniker>`, and which node you are is the one thing the tool cannot work out for you.
 
 1. If the invocation carries a moniker, use it.
 2. Otherwise infer from cues: the session's own name, the working directory, the user's framing, which node's board names this session.
@@ -280,7 +284,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 `intent wb claim <STxxxx> --node <you>`, and `unclaim` to drop it. It takes a work package as well as a thread.
 
-**Before you claim, look at who else does.** `intent wb status` prints every node's claims; if an active peer already holds it, stop and surface the overlap for the hypervisor to arbitrate rather than claiming alongside them.
+**Before you claim, look at who else does.** `intent wb status --json` carries every node's claims, and `intent wb show <node>` prints one node's; if an active peer already holds it, stop and surface the overlap for the hypervisor to arbitrate rather than claiming alongside them.
 
 ### `clear <sender>`
 
@@ -312,7 +316,7 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 ### `status` and `show`
 
-`intent wb status` for one line per node -- role, status, heartbeat, claims, and the focus line untruncated, because the focus is the field a person is actually reading for. `intent wb show <node>` for one node's board: its header, its live items, its live messages, and a count of the archived items and of the handled messages; `--all` lists the handled messages as well. Neither writes.
+`intent wb status` for one line per node -- role, name, status, heartbeat, its live item and message counts, and the focus line untruncated, because the focus is the field a person is actually reading for. Claims are in `--json` and in `show`. `intent wb show <node>` for one node's board: its header, its live items, its live messages, and a count of the archived items and of the handled messages; `--all` lists the handled messages as well. Neither writes.
 
 ### Folding: localfold and globalfold
 
@@ -349,7 +353,7 @@ A validation node is the independent check that the other nodes' landed or claim
 
 ## Protocol invariants
 
-1. **One writer per board, enforced by the API rather than by convention.** A node writing another node's board, or an inbox it does not own, is refused by name. `wip.md` = the node; `inbox.<sender>.md` = the sender; the recipient owns its inbox lifecycle. The rule did not change when it stopped being a convention -- it stopped being breakable.
+1. **One writer per board.** Every verb writes only the acting node's own board, a message is recorded under the acting node as sender, and only the recipient clears its inbox. `wip.md` = the node; `inbox.<sender>.md` = the sender; the recipient owns its inbox lifecycle. **The acting node is whatever `--node` names, so the rule is enforced against the moniker you pass and not against who you are**: passing somebody else's moniker is the one way to break it, and nothing detects it.
 2. **Live channel, not snapshot.** `intent/wip.md` is the post-session snapshot; `<node>/wip.md` is the live board.
 3. **Claims by ST ID** (in the `wip.md` header block), never glob paths.
 4. **Broadcast via `announce` -> peers' inboxes.** No shared file; a shared platform layer (eg `apps/lamplight/**`) is coordinated by announcing before you touch it.

@@ -71,7 +71,7 @@ bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | he
   -o intent/st/STXXXX/feedback-report.md
 ```
 
-This generates a template with the WP list and each WP's Complete/Pending status. Its severity columns parse `| High`/`| Medium`/`| Low` rows, not the critic `Summary:` line, so they read 0 for verbatim critic reports, and the dedup rate prints `?`. Fill both from the synthesis WP. The analytical sections are `[Fill in ...]` placeholders.
+This generates a template with the WP list and each WP's Complete/Pending status. Its severity columns parse `| High`/`| Medium`/`| Low` rows, not the critic `Summary:` line, so they read 0 for verbatim critic reports, and the dedup rate prints `N/A`. Fill both from the synthesis WP. The analytical sections are `[Fill in ...]` placeholders.
 
 ### 4. Fill in the feedback report
 
@@ -103,7 +103,7 @@ The guard verifies:
 - The TCA ST is properly shaped (WP/ directory, and a design.md containing the literal `rule set` -- or `Rule <N>` / `R<N>` -- case-sensitive)
 - `feedback-report.md` exists at the canonical location
 - The feedback report contains no unfilled `[Fill in:` placeholders
-- `info.md` has no `- [ ]` lines -- a v3 `info.md` never has any, so this check always passes; the acceptance contract is checked by `intent ac gate STXXXX` (step 5), and the guard does not replace it
+- Every acceptance criterion passes the thread's close gate: the guard runs `intent ac gate STXXXX` and refuses, printing the gate's output, while the gate is BLOCKED (step 5 is how to get it to PASS). It also refuses when `intent` is not on `PATH`
 
 If the guard fails, fix the flagged issue and re-run. **Do NOT hand-edit session docs or run `/in-finish` manually until this guard passes.** The failure mode this guard prevents is the Lamplight ST0121 24-hour window of lying docs (commits 75706c18 to 98616a0c, 2026-04-08) -- closing the TCA before the feedback report exists or before acceptance criteria are actually met.
 

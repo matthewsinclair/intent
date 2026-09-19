@@ -1,8 +1,8 @@
 # Critic Subagent Contract
 
-This document is the contract that every Critic subagent in Intent must satisfy. WP07 implements concrete Critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`) and WP12 adds `critic-shell` — all share the contract defined here. The `in-review` skill's stage-2 dispatches to one of these Critics based on project language indicators.
+This document is the contract that every Critic subagent in Intent must satisfy. The concrete Critics are `critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell` and `critic-prose` — all share the contract defined here. The `in-review` skill's stage-2 dispatches one Critic per language the project declares in `languages` in `intent/.config/config.json`.
 
-Draft lives here under `_schema/` for WP01. At WP10 this content migrates to `intent/docs/critics.md` as the user-facing reference; the copy here remains as the canonical schema-side definition.
+The user-facing reference is `intent/docs/critics.md`; this copy is the canonical schema-side definition.
 
 ## What a Critic is
 

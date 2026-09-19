@@ -1,8 +1,9 @@
 #!/bin/bash
-# tca-init.sh - Create TCA work package directory structure
-# Generates WP/01..WP/NN directories with templated info.md and empty socrates.md.
+# tca-init.sh - Register a TCA's work packages
+# Registers WP/01..WP/NN through `intent wp new`, writes each templated body
+# through `intent set`, and creates an empty socrates.md beside each view.
 # The last WP is always the synthesis WP.
-# bash 3.x compatible. No external dependencies.
+# bash 3.x compatible. Needs `intent` on PATH.
 #
 # Usage:
 #   tca-init.sh --tca-dir PATH --wp-count N --project NAME

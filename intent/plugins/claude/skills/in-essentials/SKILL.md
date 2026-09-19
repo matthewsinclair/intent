@@ -50,7 +50,7 @@ intent claude skills sync
 intent claude skills uninstall in-elixir-essentials
 ```
 
-**`sync` holds a skill you edited locally; `uninstall` does not** -- it deletes an edited skill at exit 0 without `--force`. Copy your edits out first.
+**`sync` and `uninstall` both hold a skill you edited locally.** `uninstall` reports it as HELD, deletes nothing and exits non-zero; `--force` removes it and reports the checksum of what it discarded, so copy your edits out first.
 
 ### 4. Steel thread document conventions
 

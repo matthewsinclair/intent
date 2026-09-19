@@ -156,7 +156,7 @@ Agnostic rules state a cross-language principle. Language rules concretise it.
 ```
 IN-AG-HIGHLANDER-001  "There can be only one"
 ├── concretised_by: IN-EX-CODE-006   "Module Highlander" (Elixir)
-├── concretised_by: IN-RS-CODE-002   "Crate Highlander" (Rust)
+├── concretised_by: IN-RS-CODE-002   "Ownership before clone" (Rust)
 └── ...
 ```
 
@@ -234,14 +234,14 @@ Skills cite rules by ID. The rule file owns the prose; the skill is a thin point
 
 The skill says "here are the rules that apply when this skill is loaded; read the RULE.md file when the situation matches". The skill never restates a rule's prose — that would create a Highlander violation between the skill and the rule.
 
-The `tests/unit/rule_reference_skills.bats` test enforces that every rule ID a skill cites resolves to a real RULE.md, and `tests/unit/highlander_audit.bats` enforces that no skill duplicates rule prose.
+`tests/unit/rule_reference_skills.bats` checks that each rule-pointer skill (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-standards`) cites every rule id of its pack, and `tests/unit/highlander_audit.bats` checks a proxy for restated rule prose over those skills: they carry no fenced code blocks and stay thin.
 
 ## How Critics consume rules
 
-Critics are thin orchestrators. On invocation, a Critic re-reads the rule library — no caching. The load order:
+Critics are thin orchestrators. On invocation, a Critic re-reads the rule library — no caching — through the installed tool rather than from a directory: `intent claude rules list --lang <lang>` and `--lang agnostic`, then `intent claude rules show <id>`. The load order:
 
-1. **Agnostic rules**: `intent/plugins/claude/rules/agnostic/*/RULE.md`.
-2. **Language rules, mode-filtered**: `intent/plugins/claude/rules/<lang>/<code-or-test>/**/RULE.md`. For `critic-elixir` in `code` mode, this expands across `code/`, `ash/`, `phoenix/`, and `lv/`.
+1. **Agnostic rules**: `intent claude rules list --lang agnostic`.
+2. **Language rules, mode-filtered by category**: `intent claude rules list --lang <lang>`, keeping category `code` in `code` mode (for `critic-elixir` also `ash`, `phoenix` and `lv`) or `test` in `test` mode.
 3. **Extension rules**: not read in v3 (`userstate::ext_base()` answers `None`), so `intent claude rules list`/`show` serve canon only.
 4. **Upstream interop** (Elixir only): if `~/.claude/plugins/elixir-test-critic/rules/` exists, its rules are deduped against Intent rules by `upstream_id:`. Absence is silent.
 

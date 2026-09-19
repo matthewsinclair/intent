@@ -19,9 +19,10 @@
 # The protocol rules the header block is NOT YAML: a line-oriented `key: value`
 # where a single pair of SURROUNDING quotes is a display delimiter, and quotes
 # INSIDE a value are literal and never escaped. The reader is `fm_get` (in
-# `intent_claude_cwi`, shared by `ws list` and `ws hygiene`), and it strips one
-# pair of surrounding double quotes and DELIBERATELY DOES NOT UNESCAPE. So the
-# two escape forms render, in the tool people actually read boards with, as:
+# `intent_claude_cwi`, which `intent claude start` still uses; the retired `ws
+# list` and `ws hygiene` shared it), and it strips one pair of surrounding
+# double quotes and DELIBERATELY DOES NOT UNESCAPE. So the two escape forms
+# rendered, in the tool people read boards with, as:
 #
 #   focus: "the \"counted\" body"   ->   the \"counted\" body     (backslashes)
 #   focus: 'ic''s ruling'           ->   'ic''s ruling'           (both, plus
@@ -143,8 +144,9 @@
 #     [<thread>/<wp>, <thread>/<wp> (shared, by file), <thread>/<wp>, <thread>/<wp>]
 #
 # `fm_get` reads everything after the first `: ` on the KEY's line, so the value
-# reads as EMPTY and `ws list` prints nothing for that key. RUN-VERIFIED rather
-# than reasoned (Laksa, 2026-09-12, a throwaway clone, the real `intent claude ws list`):
+# reads as EMPTY and the retired `ws list` printed nothing for that key.
+# RUN-VERIFIED rather than reasoned (Laksa, 2026-09-12, a throwaway clone, the
+# real `intent claude ws list` before its retirement):
 # a board with four claims detached exactly as above rendered `claims=`, while
 # every other field rendered perfectly. Nothing about the board looks wrong.
 #

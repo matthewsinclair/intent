@@ -192,7 +192,7 @@ This copies `agent.md` to `~/.claude/agents/your-agent-name.md` and records the 
 
 - `intent claude subagents install your-agent-name` - Install one or more by name
 - `intent claude subagents install --all` - Every subagent this install carries
-- `-f, --force` - Overwrite an agent manifest that already exists
+- `-f, --force` - Reinstall a subagent that is already installed, overwriting a copy changed locally and reporting the checksum of what was discarded
 
 ### 5. Verify Installation
 
@@ -319,12 +319,11 @@ Always evaluate:
 **Agent Not Listed**
 
 - Check directory structure matches `intent/plugins/claude/subagents/<agent-name>/` in the Intent install
-- Verify `agent.md` and `metadata.json` exist
-- Ensure JSON syntax is valid
+- Verify `agent.md` exists: it is the file that makes the directory a subagent (`metadata.json` is optional and not read)
 
 **Installation Fails**
 
-- Verify name consistency across directory, agent.md, and metadata.json
+- Verify name consistency between the directory and the `name:` in agent.md's frontmatter
 - Check YAML frontmatter syntax in agent.md
 - Ensure tools list is valid
 

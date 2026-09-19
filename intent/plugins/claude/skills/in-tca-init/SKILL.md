@@ -96,14 +96,13 @@ bash "$(find ~/.claude/skills/in-tca-init -name tca-init.sh 2>/dev/null | head -
   --project "ProjectName"
 ```
 
-The script writes files only. It refuses a `--tca-dir` inside an existing WP and refuses to overwrite populated `socrates.md` files, then creates `WP/01`..`WP/NN` on disk, each with a templated `info.md` and an empty `socrates.md`, titling the last one as the synthesis WP. It skips any WP directory that already exists. **The store does not register these directories**: `intent wp list STXXXX` reports no work packages, `intent set` refuses them, and `intent organize --verbose` lists them as unclaimed. Register each one, in order, synthesis last:
+The script registers the work packages itself, through the store. It refuses a `--tca-dir` inside an existing WP, refuses to overwrite populated `socrates.md` files, and refuses to run when `intent` is not on `PATH`. Then, for each of `01`..`NN` in order, it runs `intent wp new`, titling the components `Component NN` and the last one `Cross-Component Synthesis`, writes a templated body (Scope, Files, Applicable Rules, Cross-WP Highlander Dependencies) with `intent set`, and creates an empty `socrates.md` beside the realised view. It skips any number the store already has as a work package, so a re-run adds only the missing ones.
+
+**Do not run `intent wp new` yourself after the script.** The work packages already exist, and `intent wp new` numbers from the thread's highest existing number, so a second registration lands after the synthesis WP and breaks the rule that synthesis is last. Name each component in step 6 instead:
 
 ```bash
-intent wp new STXXXX "<Component name>"          # once per component, in order
-intent wp new STXXXX "Cross-Component Synthesis" # always last
+intent set intent:///threads/STXXXX/wp/NN title "<Component name>"
 ```
-
-On a fresh thread `intent wp new` numbers from 01, so each registration lands on the directory the script made. It re-renders that WP's `info.md` from the store, replacing the script's template; the empty `socrates.md` is kept. Step 6 writes the template's sections back through the store.
 
 ### 6. Write each WP's objective and body
 
