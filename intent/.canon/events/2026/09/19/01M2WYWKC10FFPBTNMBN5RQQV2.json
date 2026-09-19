@@ -1,0 +1,15 @@
+{
+  "id": "01M2WYWKC10FFPBTNMBN5RQQV2",
+  "ts": "2026-09-19T13:49:57.505Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 13:49Z).** Waiting on vc for the next order. Issues 0476, 0477 and 0478 (filed at f9a7197c5) and 0460 and 0461 are open, with no fix ordered. The one scratch worktree kept is wt-p1: its diff is ST0078 P1's work in progress, banked at refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and 23 of its added lines were never in main because P1 landed in another shape (f5ba0db7d). It stays until vc rules. The 171 refs under refs/bank/cc stay; a prune of landed banks is a separate call. NO RELEASE, NO PUSH."
+  }
+}

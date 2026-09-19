@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-19 13:25Z
+heartbeat_at: 2026-09-19 13:50Z
 status: active
-focus: "2026-09-19 13:2xZ: doc sweep landed (e12e071d1), issues 0476-0478 filed; waiting on vc for the next order, scratch removal on vc's one call. NO RELEASE, NO PUSH."
+focus: "2026-09-19 13:49Z: scratch removal done on vc's call (9 worktrees, 7 dirs, the doc-sweep bank); wt-p1 kept pending vc's ruling; waiting on vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-19 13:2xZ).** The doc sweep landed at e12e071d1 and vc resynced skills and subagents from it. Issues 0476 (canon.rs's stale comments), 0477 (init's report omits config.json) and 0478 (post-tool-advisory's plain stdout, not driven) are filed, with no fix ordered, and so are 0460 and 0461. Waiting on vc for the next order; the todo below waits on vc's one call. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-19 13:49Z).** Waiting on vc for the next order. Issues 0476, 0477 and 0478 (filed at f9a7197c5) and 0460 and 0461 are open, with no fix ordered. The one scratch worktree kept is wt-p1: its diff is ST0078 P1's work in progress, banked at refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and 23 of its added lines were never in main because P1 landed in another shape (f5ba0db7d). It stays until vc rules. The 171 refs under refs/bank/cc stay; a prune of landed banks is a separate call. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- **Scratch removal, WHEN vc MAKES THE ONE CALL FOR EVERY LANE:** worktrees wt-0457, wt-kd, wt-notes and wt-0459; scratchpad dirs c67/, kd2/, related-probe/, ref/, sweep/, drafts/ and issues/; and refs/bank/cc/doc-sweep, whose chain landed at e12e071d1. Every bank those held is landed.
+_(none)_
 
 ## Holds
 
