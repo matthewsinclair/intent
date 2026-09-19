@@ -152,21 +152,24 @@ fn stdout(out: &Output) -> String {
 /// **`--no-reconcile` IS WHAT KEEPS THE BRACKETS EXACT.** It answers in this
 /// process and writes nothing, so the daemon's dispatch counter does not move
 /// and the index this reads is the one the daemon built.
+///
+/// **BOUNDED BY ATTEMPTS, NOT BY A CLOCK**: `one_clock` allows no clock in the
+/// workspace but the daemon log's writer, so the bound is 300 tries 100ms
+/// apart, as `routing_is_opt_in`'s settle loop counts its own.
 fn wait_until_indexed(home: &Path, root: &Path, findable: &str) {
-  let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
-  loop {
+  let mut last = String::new();
+  for _ in 0..300 {
     let out = run(home, root, &["search", "--no-reconcile", findable]);
     if out.status.code() == Some(0) && stdout(&out).contains(findable) {
       return;
     }
-    assert!(
-      std::time::Instant::now() < deadline,
-      "the daemon had not indexed the seeded file 30s after opening the project, so no comparison \
-       below would be about the verbs: {}",
-      String::from_utf8_lossy(&out.stderr)
-    );
+    last = String::from_utf8_lossy(&out.stderr).to_string();
     std::thread::sleep(std::time::Duration::from_millis(100));
   }
+  panic!(
+    "the daemon had not indexed the seeded file after 300 tries 100ms apart, so no comparison \
+     below would be about the verbs: {last}"
+  );
 }
 
 #[test]
