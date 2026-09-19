@@ -1,0 +1,15 @@
+{
+  "id": "01M2WYK3C2ESTEYDBM18N2KY9P",
+  "ts": "2026-09-19T13:44:46.214Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0484"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "search --json reports complete: true for the last reconcile, not the tree, when a daemon is watching"
+  }
+}
