@@ -71,6 +71,6 @@
   ],
   "title": "Issue",
   "type": "object",
-  "x-intent-ver": "3.0.3",
+  "x-intent-ver": "3.1.0",
   "x-schema-json-ver": 21
 }

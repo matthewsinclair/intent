@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.0] - in progress
+## [3.1.0] - 2026-09-19
 
 **v3.1.0 teaches the index what a symbol IS, and then teaches it to resolve one.** Every symbol now carries its kind in its own language's words, the container it is written in and its arity, so a search can ask for the structs named `Config` or the methods of a type; and `intent index resolve` asks each language's own toolchain which definition a reference actually points at, which makes a caller list answerable for the first time. **It is also the first release built for a project more than one person works on**: every project act travels as its own committed file, `intent sync` plans and applies what a clone needs after a pull, and an id two clones both minted has a verb that repairs it. Beside that: the whiteboard's carry refuses a lossy migration instead of exiting clean, a project declares its own pre-commit guards in tracked configuration, the daemon's logs are readable through a verb and through Intent.app's new Console, and every search answer says when the index it read was last reconciled. **The store's schema moves 26 to 29 and the upgrade is one-way -- read the [release notes](docs/releases/3.1.0/RELEASE_NOTES.md) before upgrading if you might want a way back.**
 
