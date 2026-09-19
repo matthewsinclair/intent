@@ -3864,6 +3864,12 @@ impl Facade {
     let finish = || -> Result<Finished, FacadeError> {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
+      // **AND THE PROJECT STATE, WHICH THE REBUILD DOES NOT CARRY** (issue
+      // 0485). On a cold store the rebuild left no `project` row, so every
+      // later render read no DONE watermark from the store while `doctor` read
+      // one from canon, and `todo.md` disagreed with doctor until a
+      // `sync --to-store`. `load` and `resync` carry it; this is the third door.
+      ingest::carry_project_state(project, &mut store)?;
       // The store has just been built from the canon these writes landed, so
       // it records their bytes (0260); without a baseline, the first egest
       // after a hop could not tell a peer's committed change from its own.

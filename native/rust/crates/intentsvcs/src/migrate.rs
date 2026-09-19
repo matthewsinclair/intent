@@ -130,6 +130,16 @@ pub enum Blocked {
   /// renders the whole list twice and every residue count reads double.
   #[error("{0}")]
   Residue(Refusal),
+  /// `intent/.canon/project.json` is present and unreadable, so the DONE
+  /// watermark it carries cannot be honoured (issue 0485).
+  ///
+  /// **Refused rather than rendered without it**, because rendering without it
+  /// is the defect: on a project that has flushed, `todo.md` comes out with
+  /// every finished thread back in DONE and `doctor` then reports the
+  /// upgrade's own output as a hand edit. `doctor` reads a damaged file as
+  /// absent because it must still diagnose; a writer must not.
+  #[error("{0}")]
+  ProjectState(Refusal),
   /// The model would not serialise.
   ///
   /// **A defect in Intent, not in the estate, and it says so** -- everything
@@ -175,7 +185,7 @@ impl crate::remedy::Remedy for Blocked {
     match self {
       // The findings above have each named their own artefact and action;
       // `Refusal` already says so in the words the rest of the tool uses.
-      Self::Residue(refusal) => crate::remedy::Remedy::remedy(refusal),
+      Self::Residue(refusal) | Self::ProjectState(refusal) => crate::remedy::Remedy::remedy(refusal),
       Self::Canon { .. } => {
         "nothing in the project needs repair and a re-run will reproduce this -- report it with the cause line above, which names the field that would not serialise".to_string()
       }
@@ -469,13 +479,20 @@ fn assemble(
   issues: Vec<Issue>,
   carried: Vec<Finding>,
 ) -> Result<Plan, Blocked> {
+  // **THE WATERMARK COMES FROM CANON'S PROJECT STATE, THE AUTHORITY
+  // `Facade::doctor` READS** (issue 0485). This was `None`, on the reasoning
+  // that a conversion has never been flushed -- true of a v2 estate's first
+  // hop, where no `project.json` exists and this still reads `None`, and false
+  // of `intent upgrade` re-run on a v3 project that HAS flushed. There it wrote
+  // every finished thread back into DONE and doctor refused the upgrade's own
+  // `todo.md`: measured on a clone of Lamplight at 884f2e3ae, 122958 bytes
+  // written against 24247 rendered.
+  let todo_watermark = crate::ingest::read_project_state(project)
+    .map_err(|findings| Blocked::ProjectState(Refusal::new(findings)))?
+    .and_then(|state| state.todo_watermark);
   let ctx_render = RenderContext {
     version: &ctx.version,
-    // **`None` is the right answer and not a placeholder.** A conversion has
-    // never been flushed -- there is no `todo.flush` in the log it is building
-    // -- so every completed thread is in DONE, which is what a v2 estate's
-    // first v3 `todo.md` should show. The operator flushes when they choose to.
-    todo_watermark: None,
+    todo_watermark,
   };
 
   // `render_all` reads only `threads`, and `sections` is authored prose that

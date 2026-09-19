@@ -667,7 +667,7 @@ pub(crate) fn canon_file_entries(
 /// One function and two callers rather than two copies: [`load`] and
 /// [`resync_inner`] are both disk -> store, and a rule stated twice is a rule
 /// that will disagree with itself.
-fn carry_project_state(project: &Project, store: &mut Store) -> Result<(), IngestError> {
+pub(crate) fn carry_project_state(project: &Project, store: &mut Store) -> Result<(), IngestError> {
   if let Some(state) =
     read_project_state(project).map_err(|f| IngestError::from(Refusal::new(f)))?
   {

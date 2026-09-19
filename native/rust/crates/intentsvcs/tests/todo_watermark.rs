@@ -47,7 +47,12 @@
 //!
 //! **AC-14.7 (one transaction) and AC-14.8 (the migration) are NOT covered
 //! here, and AC-14.8 is not built at all** -- `git log -S TODO_FLUSH --
-//! migrate.rs` is empty. Both are left unsatisfied and visible rather than
+//! migrate.rs` is empty.
+//!
+//! **The cold-store upgrade is covered separately, under issue 0485**, by
+//! `an_upgrade_keeps_the_flush_on_a_clone_with_no_store`. It is not AC-14.8's
+//! arm: that row, withdrawn by hv on 2026-08-27, was about recovering a cutoff
+//! from the log, and this arm carries a cutoff canon already holds. Both are left unsatisfied and visible rather than
 //! softened, on vc's word: an unsatisfied criterion naming a real absence is
 //! worth more than a green work package.
 //!
@@ -234,6 +239,70 @@ fn doctor_does_not_report_a_flushed_view_as_hand_edited() {
     "with no store, doctor re-rendered todo.md without the watermark and called the committed \
      file hand-edited: {:?}",
     skew(&clone, None)
+  );
+}
+
+/// **`intent upgrade` keeps the flush, on a clone that has never had a store.**
+///
+/// Issue 0485. The migrator rendered its views with no watermark, on the reasoning that a
+/// conversion has never been flushed -- true of a v2 estate's first hop and
+/// false of an upgrade re-run on a v3 project that has. On a clone of
+/// Lamplight it wrote a `todo.md` of 122958 bytes against doctor's 24247, and
+/// doctor refused the upgrade's own output. Its cold-store rebuild also carried
+/// no project state, so the next `todo update` repeated the mistake.
+///
+/// **All three readings, because each was wrong on its own**: the file the
+/// upgrade wrote, doctor's verdict on it, and the watermark in the store the
+/// upgrade built -- the one later renders read.
+#[test]
+fn an_upgrade_keeps_the_flush_on_a_clone_with_no_store() {
+  let fx = Fixture::new();
+  fx.write_thread(&finished("ST0001", "2020-01-01"));
+  let mut facade = fx.facade_on_disk();
+  facade.todo_flush().expect("flush");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("sync");
+
+  let clone = fx.clone_extract();
+  assert!(
+    !clone.path("intent/.cache/intent.db").exists(),
+    "precondition: the clone genuinely has no store"
+  );
+  clone.git_init().git_commit_all();
+  intentsvcs::facade::Facade::upgrade(&clone.project(), &crate::common::facade_ctx())
+    .expect("the v3 project re-upgrades");
+
+  let todo = clone.read("intent/todo.md");
+  assert!(
+    todo.contains("## DONE:") && !todo.contains("ST0001"),
+    "the upgrade rendered todo.md without the flush, so a flushed item is back in DONE:\n{todo}"
+  );
+
+  let store = intentsvcs::store::Store::open(&clone.project().db_path()).expect("store");
+  assert!(
+    store
+      .todo_watermark()
+      .expect("read the watermark")
+      .is_some(),
+    "the upgrade's store carries no DONE watermark, so every later render reads none while doctor \
+     reads canon's"
+  );
+
+  let skew: Vec<String> = intentsvcs::facade::Facade::doctor(
+    &clone.project(),
+    &crate::common::facade_ctx(),
+    Some(&store),
+    intentsvcs::doctor::Scope::All,
+  )
+  .findings
+  .iter()
+  .filter(|f| f.file.contains("todo.md"))
+  .map(|f| format!("{}: {}", f.file, f.detail))
+  .collect();
+  assert!(
+    skew.is_empty(),
+    "doctor refuses the todo.md the upgrade wrote: {skew:?}"
   );
 }
 
