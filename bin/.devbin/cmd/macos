@@ -3024,6 +3024,15 @@ no_args() { # $1 the subcommand as typed, then whatever followed it
   [ $# -eq 0 ] || die "macos $sub takes no arguments, got: $* (try: bin/devbin macos --help)"
 }
 
+# A subcommand that takes ONE optional argument refuses a second, by name
+# (issue 0473, the same rule): `publish`, `app-build` and `app-verify` read only
+# `${1:-}`, so anything after it was dropped without a word.
+at_most_one() { # $1 the subcommand as typed, then whatever followed it
+  local sub="$1"
+  shift
+  [ $# -le 1 ] || die "macos $sub takes at most one argument, got: $* (try: bin/devbin macos --help)"
+}
+
 case "${1:-}" in
   "" | -h | --help) usage; exit 0 ;;
   env) no_args "$@"; cmd_env ;;
@@ -3035,16 +3044,16 @@ case "${1:-}" in
   checksum) no_args "$@"; cmd_checksum ;;
   prepare) no_args "$@"; cmd_prepare ;;
   formula) shift; cmd_formula "$@" ;;
-  publish) shift; cmd_publish "${1:-}" ;;
+  publish) at_most_one "$@"; shift; cmd_publish "${1:-}" ;;
   smoke) shift; cmd_smoke "$@" ;;
   store-creds) no_args "$@"; cmd_store_creds ;;
   app-doctor)  no_args "$@"; cmd_app_doctor ;;
   app-icons)   no_args "$@"; cmd_app_icons ;;
-  app-build)   shift; cmd_app_build "${1:-}" ;;
+  app-build)   at_most_one "$@"; shift; cmd_app_build "${1:-}" ;;
   app-run)     no_args "$@"; cmd_app_run ;;
   app-test)    no_args "$@"; cmd_app_test ;;
   app-install) no_args "$@"; cmd_app_install ;;
-  app-verify)  shift; cmd_app_verify "${1:-}" ;;
+  app-verify)  at_most_one "$@"; shift; cmd_app_verify "${1:-}" ;;
   app-sign)    no_args "$@"; cmd_app_sign ;;
   app-notarize | app-notarise) no_args "$@"; cmd_app_notarize ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;

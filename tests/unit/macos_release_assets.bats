@@ -411,3 +411,20 @@ git_fixture() {
   run grep -F 'libexec.install Dir["*"]' "$MACOS"
   assert_success
 }
+
+# A subcommand that takes one optional argument refuses a second by name before
+# it runs anything (issue 0473). publish, app-build and app-verify read only the
+# first and dropped the rest without a word, against 0395's rule.
+@test "macos publish, app-build and app-verify refuse a second argument by name" {
+  cd "$INTENT_PROJECT_ROOT" || return 1
+  # The first argument is one each subcommand refuses on its own, so a run
+  # against a script without the guard dies harmlessly instead of building or
+  # publishing: the guard is what this asserts, not what the command would do.
+  local sub
+  for sub in "publish bogus extra" "app-build bogus extra" "app-verify bogus extra"; do
+    # shellcheck disable=SC2086
+    run "$INTENT_PROJECT_ROOT/bin/devbin" macos $sub
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"takes at most one argument"* ]]
+  done
+}
