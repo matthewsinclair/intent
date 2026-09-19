@@ -589,3 +589,25 @@ STUB
   [[ "$output" == *"the frozen-remote check could not run"* ]]
   [[ "$output" == *"the frozen list could not be read"* ]]
 }
+
+# The remedies name commands that work (issue 0467). `git checkout -- <paths>`
+# restores from the INDEX, where the schema faces are staged by then, so it
+# leaves the tree stamped. The working restore is `git restore
+# --source=HEAD --staged --worktree`.
+@test "no spill remedy restores from the index" {
+  code="$(grep -v '^[[:space:]]*#' "$RELEASE")"
+  [[ "$code" != *'git checkout -- $SIDECAR_FILES'* ]]
+  [[ "$code" == *'restore --source=HEAD --staged --worktree -- $SIDECAR_FILES'* ]]
+}
+
+# A declined push happens after the release commit and the tag, so "re-run
+# when ready" was wrong: a re-run refuses, or cuts the next version on top.
+# The message lists the remaining steps, as the post-commit failures do.
+@test "a declined push lists the remaining steps and never says re-run" {
+  code="$(grep -v '^[[:space:]]*#' "$RELEASE")"
+  [[ "$code" != *'re-run when ready'* ]]
+  msg="$(grep 'user aborted before push' "$RELEASE")"
+  [[ "$msg" == *'Do not re-run this release'* ]]
+  [[ "$msg" == *'push upstream main $TAG'* ]]
+  [[ "$msg" == *'gh release create $TAG'* ]]
+}

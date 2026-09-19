@@ -1175,7 +1175,7 @@ else
     abort "refusing to cut: 'claude upgrade --apply' rewrote tracked files outside the sidecar list.
        \`--skip-settings\` would spare only .claude/settings.json and .mcp.json; the other files above would still be rewritten.
        Nothing has been committed, but the version IS stamped in the tree. Restore it and the files above with
-         git checkout -- $SIDECAR_FILES
+         git -C '$PROJECT_ROOT' restore --source=HEAD --staged --worktree -- $SIDECAR_FILES
        then bring the files above into line with canon in their own commit and re-run --
        a release restamps a version, it does not re-provision a project."
   fi
@@ -1209,7 +1209,7 @@ else
   if [ -n "$NOT_FOOTER" ]; then
     abort "refusing to cut: re-rendering the views at $TARGET changed more than their footers:
 $NOT_FOOTER       Nothing has been committed, but the version IS stamped in the tree. Restore it with
-         git checkout -- $SIDECAR_FILES
+         git -C '$PROJECT_ROOT' restore --source=HEAD --staged --worktree -- $SIDECAR_FILES
        bring the tree into line with its store (\`intent doctor\` names the skew), then re-run."
   fi
   if [ -n "$VIEW_FILES" ]; then
@@ -1329,7 +1329,11 @@ if [ "$DRY_RUN" = "true" ]; then
   log_dry "would push main + $TAG to 'upstream' (GitHub)"
 else
   if ! confirm "$PUSH_PROMPT"; then
-    log_warn "user aborted before push -- tag $TAG exists locally; re-run when ready"
+    # NOT "re-run when ready" (issue 0467): the release commit and the tag exist,
+    # VERSION already equals the target, and a re-run refuses -- or, with a bump
+    # flag, cuts the next version on top. What is left is listed by hand, as the
+    # post-commit failures above list it.
+    log_warn "user aborted before push -- the release commit and tag $TAG exist locally and nothing is pushed. Do not re-run this release: it cannot resume past its own commit. Finish by hand, in order: \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\`"
     exit 2
   fi
   (cd "$PROJECT_ROOT" && git push local main "$TAG") || abort "push to local failed -- $TAG is at HEAD, and local may hold part of the push or none of it. Do not re-run this release: it cannot resume past its own commit, and a re-run would try to cut a further version on top of it. Finish by hand, in order: \`git -C '$PROJECT_ROOT' push local main $TAG\`; \`git -C '$PROJECT_ROOT' push upstream main $TAG\`; write the notes with \`sed -n '/^## \[$TARGET\]/,/^## \[/p' '$PROJECT_ROOT/CHANGELOG.md' | sed '\$d' > /tmp/notes-$TAG.md\`; \`gh release create $TAG --title 'Intent v$TARGET' --notes-file /tmp/notes-$TAG.md\` (\`gh release edit\` with the same flags if $TAG already has a release)"
