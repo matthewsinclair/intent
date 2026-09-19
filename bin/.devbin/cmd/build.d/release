@@ -881,21 +881,21 @@ NATIVE_BEFORE="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MAN
 # Issue 0386: the canon spill is checked BEFORE anything is stamped, from
 # `claude upgrade`'s own dry run, so a refusal leaves the tree as it found it
 # and the re-run the refusal asks for is not blocked by the clean-tree gate.
-if [ "$DRY_RUN" != "true" ]; then
-  require_intent_bin
-  EARLY_SPILL=""
-  while IFS= read -r _path; do
-    [ -n "$_path" ] || continue
-    case " $SIDECAR_FILES " in *" $_path "*) continue ;; esac
-    (cd "$PROJECT_ROOT" && git ls-files --error-unmatch -- "$_path" >/dev/null 2>&1) || continue
-    EARLY_SPILL="$EARLY_SPILL  $_path
+# IN BOTH MODES (issue 0463): it is a read, and a dry run that skipped it
+# passed a tree the real run then refused.
+require_intent_bin
+EARLY_SPILL=""
+while IFS= read -r _path; do
+  [ -n "$_path" ] || continue
+  case " $SIDECAR_FILES " in *" $_path "*) continue ;; esac
+  (cd "$PROJECT_ROOT" && git ls-files --error-unmatch -- "$_path" >/dev/null 2>&1) || continue
+  EARLY_SPILL="$EARLY_SPILL  $_path
 "
-  done < <(cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade 2>/dev/null | sed -n 's/^would write: //p')
-  if [ -n "$EARLY_SPILL" ]; then
-    abort "refusing to cut: 'claude upgrade --apply' would rewrite tracked files outside the sidecar list:
+done < <(cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade 2>/dev/null | sed -n 's/^would write: //p')
+if [ -n "$EARLY_SPILL" ]; then
+  abort "refusing to cut: 'claude upgrade --apply' would rewrite tracked files outside the sidecar list:
 $EARLY_SPILL       Nothing has been stamped or committed. Bring these into line with canon in their own commit
        (\`intent claude upgrade --apply\` writes them), then re-run."
-  fi
 fi
 
 if [ "$DRY_RUN" = "true" ]; then

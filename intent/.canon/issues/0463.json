@@ -3,9 +3,10 @@
   "number": 463,
   "slug": "release-dry-run-skips-the-read-only-canon-spill",
   "title": "release: --dry-run skips the read-only canon-spill check, so a dry run passes a tree the real run refuses",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "`bin/devbin build release --dry-run` skips the canon-spill refusal: the block at `bin/.devbin/cmd/build.d/release:852` runs only when `DRY_RUN != true`. The check reads `intent claude upgrade` without `--apply`, which writes nothing, so a dry run could make it. As it is, a dry run passes a tree that the real run then refuses before stamping.\n\nFix: run the spill check in both modes. XS. vc's next-line list, item 3.\n"
+  "body": "`bin/devbin build release --dry-run` skips the canon-spill refusal: the block at `bin/.devbin/cmd/build.d/release:852` runs only when `DRY_RUN != true`. The check reads `intent claude upgrade` without `--apply`, which writes nothing, so a dry run could make it. As it is, a dry run passes a tree that the real run then refuses before stamping.\n\nFix: run the spill check in both modes. XS. vc's next-line list, item 3.\n\n\nCLOSED 2026-09-19, by its landing in dc's train B on vc's word (bank 2b824b882, patch-id c5a663b1b0c2, judged green on the train's bats log refs/bank/dc/trainB/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }

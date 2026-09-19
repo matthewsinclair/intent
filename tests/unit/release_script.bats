@@ -530,3 +530,24 @@ EOF
   [[ "$output" == *"gh CLI is not authenticated"* ]]
   [[ "$output" != *"would create tag"* ]]
 }
+
+# The canon-spill check is a read, so a dry run makes it too (issue 0463): a
+# dry run that skipped it passed a tree the real run then refused.
+@test "release --dry-run refuses a canon spill the real run would refuse" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  cat > native/rust/target/release/intent <<'STUB'
+#!/usr/bin/env bash
+if [ "$1 $2" = "claude upgrade" ] && [ -z "${3:-}" ]; then
+  echo "would write: tests/run_tests.sh"
+fi
+exit 0
+STUB
+  git add -A && git commit -q -m "a stub whose canon would spill"
+  run_release --dry-run --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"would rewrite tracked files outside the sidecar list"* ]]
+  [[ "$output" == *"tests/run_tests.sh"* ]]
+}
