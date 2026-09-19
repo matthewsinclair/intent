@@ -4,8 +4,9 @@
 #
 # Purpose:
 #   Run `intent critic` against a single edited file when all opt-in
-#   conditions are met. Emits findings as a system-reminder. Exits 0 always
-#   (never blocks tool use).
+#   conditions are met, and hand the findings to the model as
+#   `hookSpecificOutput.additionalContext`. Exits 0 always (never blocks tool
+#   use).
 #
 # Status:
 #   SHIPS with the canonical `.claude/` template but is NOT referenced by
@@ -30,6 +31,13 @@
 #   - Invoked by PostToolUse hook (when user opts in).
 #   - Receives tool-use JSON on stdin (includes tool_name, tool_input.file_path).
 #   - Exit 0 always.
+#   - The findings are printed as JSON, `hookSpecificOutput.additionalContext`,
+#     as `post-tool-symbol-context.sh` prints its answer. PLAIN STDOUT NEVER
+#     REACHES THE MODEL, and until issue 0478 this hook printed plain stdout.
+#     Driven 2026-09-19 with a headless session, the hook wired by hand: the
+#     hook fired and printed the critic's findings at exit 0, and the model,
+#     asked to quote any hook context it received, answered NONE. The same
+#     findings as `additionalContext` were quoted back.
 
 set -u
 
@@ -74,5 +82,6 @@ command -v intent >/dev/null 2>&1 || exit 0
 findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null || true)"
 [ -z "$findings" ] && exit 0
 
-printf 'Intent critic advisory (%s, %s):\n%s\n' "$lang" "$file_path" "$findings"
+jq -n --arg context "$(printf 'Intent critic advisory (%s, %s):\n%s' "$lang" "$file_path" "$findings")" \
+  '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $context}}'
 exit 0

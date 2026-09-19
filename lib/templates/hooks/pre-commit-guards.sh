@@ -70,7 +70,7 @@ GUARDS=(
   'intent/.canon|canon-ignore-guard.sh|an ignore rule reaching canon is UNCHECKED'
   # `intent` RATHER THAN EITHER SUBJECT, AND THE WIDTH IS DELIBERATE (cc's
   # proposal, taken). This guard's subjects are `intent/whiteboard/*/.history/**`
-  # and `intent/events.jsonl`, so neither path alone is right, and an entry per subject
+  # and `intent/.canon/events/**`, so neither path alone is right, and an entry per subject
   # would dispatch one guard twice. `intent` is the smallest path containing both.
   #
   # IT DOES WEAKEN THE PROPERTY ARGUED FOR ABOVE, and saying so is cheaper than
@@ -81,11 +81,11 @@ GUARDS=(
   # regardless of why it was dispatched** -- so `applies-when` is a cheap
   # pre-filter here and not the real gate.
   #
-  # D53 retired ONE of the subjects: the event log's home is the store,
-  # `intent/events.jsonl` is an `intent export` product, and the converger
-  # gitignores it (`facade.rs` `IGNORED`), so that entry now bites only a
-  # force-added file. `.history/**` is untouched, every node folds into it
-  # daily, and it is where the loss actually happened.
+  # The event-log subject is the per-event layout (Intent 3.1.0): one committed
+  # file per event under `intent/.canon/events/`, written once and never
+  # rewritten or deleted. It replaced `intent/events.jsonl` (issue 0458), a
+  # file no verb writes since 0457. `.history/**` is untouched, every node
+  # folds into it daily, and it is where the first loss happened.
   'intent|append-only-guard.sh|a write where an append was meant is UNCHECKED'
 )
 

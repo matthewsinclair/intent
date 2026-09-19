@@ -19,15 +19,28 @@
 #                                          clean. The ONLY signal anywhere was
 #                                          the deletion count in `git show --stat`.
 #
-#   intent/events.jsonl                    events destroyed 2026-08-19, by
-#                                          `intent upgrade` emitting an empty
-#                                          log over a populated one -- and it
-#                                          wrote no event for its own run, so
-#                                          the operation that destroyed the
-#                                          record left no trace in it.
+#   intent/.canon/events/**                the event log, one committed file
+#                                          per event. An event file
+#                                          is written once, by the verb whose
+#                                          act it records, and never rewritten
+#                                          or deleted, so ANY removed line in
+#                                          one -- an edit or a deletion -- is
+#                                          a loss.
 #
-# The first survived a full session. The second arrived while the guard proposed
-# for the first sat unruled.
+# The second subject was `intent/events.jsonl` until issue 0458: events were
+# destroyed there 2026-08-19, by `intent upgrade` emitting an empty log over a
+# populated one -- and it wrote no event for its own run, so the operation that
+# destroyed the record left no trace in it. That arrived while the guard
+# proposed for the `.history/` loss sat unruled. Intent 3.1.0 moved the log to
+# per-event files and 0457 stopped every verb writing the single file, so the
+# guard now protects the layout the log actually has.
+#
+# The append-only reading of the per-event layout is measured, not assumed:
+# `git log --diff-filter=DM -- 'intent/.canon/events/**'` is empty in Intent's
+# own repository, and no file removal in intentsvcs targets a committed event
+# file (read 2026-09-19: they remove v2 leftovers, views, a failed write set's
+# own uncommitted files, and one side of a conflicted path, and an event file
+# is named by its ULID, so it never conflicts).
 #
 # IT CANNOT FALSE-POSITIVE, which is the property that makes it a guard: an
 # append-only path only ever grows, so a removal is never legitimate. There is
@@ -45,7 +58,7 @@ set -euo pipefail
 # The append-only subjects, as git pathspecs. Both live under `intent/`.
 PATHS=(
   'intent/whiteboard/*/.history/**'
-  'intent/events.jsonl'
+  'intent/.canon/events/**'
 )
 
 # Nothing staged against either subject: nothing to say.
@@ -75,7 +88,11 @@ An append-only path only ever grows. A removal means a write landed where an
 append was meant, which is silent: the artefact looks correct afterwards and
 every other check passes.
 
-Recover the removed lines from git and merge them in timestamp order:
+An event file under intent/.canon/events/ is never edited or deleted: restore
+it with: git restore --staged --worktree --source=HEAD -- <path>
+
+A .history/ file: recover the removed lines from git and merge them in
+timestamp order:
 
   git show HEAD:<path> > /tmp/before
   # merge /tmp/before with the working copy, then diff both halves to prove
