@@ -9365,6 +9365,12 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
     return Ok(());
   }
 
+  // **REFUSED HERE, BEFORE ANYTHING IS SPAWNED** (issue 0479): a daemon that
+  // cannot bind says so only in its own log, and this verb would otherwise
+  // report *started and is not answering* with the cause one file away.
+  intentsvcs::daemon::socket_path_fits(&intentsvcs::userstate::daemon_socket_under(&dirs))
+    .map_err(|e| Failure::Error(e.render()))?;
+
   let binary = resolve_intentd()?;
 
   // **ENROLMENT COMES FIRST, AND THEN `launchd` DOES THE STARTING.** The plist

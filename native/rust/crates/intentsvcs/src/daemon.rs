@@ -90,7 +90,7 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::net::{UnixListener, UnixStream};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use std::time::Duration;
 use thiserror::Error;
@@ -612,6 +612,20 @@ pub enum DaemonError {
     #[source]
     source: std::io::Error,
   },
+  /// The socket path is too long for a unix socket address (issue 0479).
+  ///
+  /// **CHECKED BEFORE ANYTHING IS SPAWNED OR BOUND, BECAUSE THE BIND'S OWN
+  /// ERROR NEVER REACHED THE PERSON.** `intent daemon start` spawned intentd,
+  /// intentd failed to bind and wrote the reason to its log, and the CLI said
+  /// only *started and is not answering*. The limit is asked of the standard
+  /// library's own `sockaddr_un` construction rather than written here, so
+  /// macOS's 104 and Linux's 108 are each the one the kernel will enforce.
+  #[error("the daemon's socket path is {len} bytes and a unix socket address on this platform holds {limit} with its terminator: `{}`", path.display())]
+  SocketPathTooLong {
+    path: PathBuf,
+    len: usize,
+    limit: usize,
+  },
   /// `lsof` could not be started, so what holds the store is unknown.
   #[error("could not run `lsof` to see what holds `{store}`: {source}")]
   HoldersUnrunnable {
@@ -644,6 +658,7 @@ impl crate::remedy::Remedy for DaemonError {
       // against a constant: the limit is a platform ABI detail that differs
       // between macOS and Linux, and a number hardcoded here would be a second
       // home for something the OS already reports in `source`.
+      DaemonError::SocketPathTooLong { .. } => "the socket lives at `$XDG_RUNTIME_DIR/intent/intentd.sock` when that is set, else at `$XDG_STATE_HOME/intent/run/intentd.sock` (default `~/.local/state`). Set either to a shorter absolute directory and start again. A long $HOME, or a temporary directory used as one, is the usual cause.".to_string(),
       DaemonError::Unbindable { what, at, .. } if *what == "socket" => format!(
         "the socket could not be bound at `{at}` ({} bytes). Either its directory is not writable, or the path is too long for a unix socket address -- `sockaddr_un` holds a fixed-size path and the operating system's own message above says which. A long $HOME, or a temporary directory used as one, is the usual cause.",
         at.len()
@@ -661,6 +676,37 @@ impl crate::remedy::Remedy for DaemonError {
       ),
     }
   }
+}
+
+/// Refuse a socket path the platform cannot bind (issue 0479).
+///
+/// `sun_path` must hold the path AND its terminating NUL, so a path is
+/// bindable only when it is strictly shorter than the field.
+pub fn socket_path_fits(path: &Path) -> Result<(), DaemonError> {
+  let limit = sun_path_len();
+  let len = path.as_os_str().len();
+  if len < limit {
+    Ok(())
+  } else {
+    Err(DaemonError::SocketPathTooLong {
+      path: path.to_path_buf(),
+      len,
+      limit,
+    })
+  }
+}
+
+/// The size of this platform's `sun_path`, as the first path length the
+/// standard library refuses to put in a unix socket address.
+///
+/// **ASKED OF `std`, NEVER WRITTEN HERE.** `SocketAddr::from_pathname` builds
+/// the `sockaddr_un` the bind would, and refuses exactly the paths that cannot
+/// fit with their terminator, so the answer is macOS's 104 or Linux's 108 by
+/// the same rule the kernel enforces, with no platform table to keep.
+fn sun_path_len() -> usize {
+  (1..=4096)
+    .find(|n| std::os::unix::net::SocketAddr::from_pathname("a".repeat(*n)).is_err())
+    .unwrap_or(4096)
 }
 
 /// What holds a project's store right now (issue `0301`).
@@ -1438,6 +1484,9 @@ impl Bound {
       // is what stops one crash from making every future start impossible.
       std::fs::remove_file(&path).map_err(fail)?;
     }
+    // Checked before the bind so the log names the limit and the remedy
+    // (issue 0479); the CLI asks the same question before it spawns.
+    socket_path_fits(&path)?;
     let listener = UnixListener::bind(&path).map_err(|source| DaemonError::Unbindable {
       what: "socket",
       at: path.display().to_string(),
