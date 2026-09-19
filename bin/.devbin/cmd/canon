@@ -105,6 +105,15 @@ set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
 
+# A FAILED CONTROL EXITS 2, NOT 1 (issue 0471). `die` exits 1, the code a real
+# divergence uses, so a broken instrument read exactly like a finding -- the
+# conflation the header's exit-2 split exists to prevent. Every control and the
+# comparison's own internal refusal go through this; usage errors stay on `die`.
+die_control() {
+  printf '%s: %s\n' "$DEVBIN_NAME" "$*" >&2
+  exit 2
+}
+
 case "${1:-}" in
   -h | --help | help)
     sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
@@ -138,7 +147,7 @@ divergence() {
   case "$1" in
     disk-only) comm -13 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
     git-only) comm -23 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
-    *) die "divergence: unknown direction $1" ;;
+    *) die_control "divergence: unknown direction $1" ;;
   esac
 }
 
@@ -152,7 +161,7 @@ only_git="$(divergence git-only "$in_git" "$on_disk")"
 # establish. Both go through `divergence`, so a mutation of it kills them.
 ctl_pos="$(divergence disk-only "$in_git" "$(printf '%s\n%s\n' "$on_disk" "ZZZZ-control.json" | sort)")"
 grep -qx 'ZZZZ-control.json' <<<"$ctl_pos" ||
-  die "positive control FAILED -- an injected disk-only name was not detected through the same comparison the verdict uses, so this run's green would be worthless"
+  die_control "positive control FAILED -- an injected disk-only name was not detected through the same comparison the verdict uses, so this run's green would be worthless"
 
 # **THE MIRROR CONTROL, ADDED BECAUSE ITS ABSENCE WAS AN ASYMMETRY I ONLY SAW
 # BY MUTATING.** Mutating the `git-only` branch left the positive control above
@@ -161,13 +170,13 @@ grep -qx 'ZZZZ-control.json' <<<"$ctl_pos" ||
 # shipped one round of controls that turned out to be decoration.
 ctl_git="$(divergence git-only "$(printf '%s\n%s\n' "$in_git" "ZZZZ-gitonly.json" | sort)" "$on_disk")"
 grep -qx 'ZZZZ-gitonly.json' <<<"$ctl_git" ||
-  die "positive control FAILED for the git-only direction -- an injected git-only name was not detected, so the clone-facing arm's green would be worthless"
+  die_control "positive control FAILED for the git-only direction -- an injected git-only name was not detected, so the clone-facing arm's green would be worthless"
 
 first_both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk") | head -1)"
 if [ -n "$first_both" ]; then
   ctl_neg="$(divergence disk-only "$in_git" "$on_disk")"
   grep -qx "$first_both" <<<"$ctl_neg" &&
-    die "negative control FAILED -- \`$first_both\` is in git AND on disk and was still reported as divergent"
+    die_control "negative control FAILED -- \`$first_both\` is in git AND on disk and was still reported as divergent"
 fi
 
 # --- THE CONTENT ARM: for every file in BOTH, do the bytes agree with HEAD? ----
@@ -185,16 +194,16 @@ both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
 ctl_a="$(head -1 <<<"$both")"
 ctl_b="$(sed -n '2p' <<<"$both")"
 [ -n "$ctl_a" ] && [ -n "$ctl_b" ] ||
-  die "the content arm needs two committed files to control with and found fewer -- refusing rather than reporting a green over an uncontrolled comparison"
+  die_control "the content arm needs two committed files to control with and found fewer -- refusing rather than reporting a green over an uncontrolled comparison"
 [ "$(blob_state "$DIR/$ctl_a" "$DIR/$ctl_b")" = differs ] ||
-  die "content positive control FAILED -- two different committed files did not compare as differing, so this run's content green would be worthless"
+  die_control "content positive control FAILED -- two different committed files did not compare as differing, so this run's content green would be worthless"
 ctl_copy="$(mktemp)"
 git show "HEAD:$DIR/$ctl_a" > "$ctl_copy"
 [ "$(blob_state "$DIR/$ctl_a" "$ctl_copy")" = same ] ||
-  die "content negative control FAILED -- a file did not match a byte-exact copy of its own committed blob, so the comparison is firing on everything"
+  die_control "content negative control FAILED -- a file did not match a byte-exact copy of its own committed blob, so the comparison is firing on everything"
 rm -f "$ctl_copy"
 [ "$(blob_state "$DIR/ZZZZ-not-in-head.json" "$DIR/$ctl_a")" = absent ] ||
-  die "content third-state control FAILED -- a path absent from HEAD did not report \`absent\`, so a staged-but-uncommitted file would be miscounted as merely modified"
+  die_control "content third-state control FAILED -- a path absent from HEAD did not report \`absent\`, so a staged-but-uncommitted file would be miscounted as merely modified"
 
 n_compared=0
 diverged=""
@@ -214,22 +223,22 @@ printf '    controls: membership both directions fired, negative held; content p
 rc=0
 if [ -n "$only_disk" ]; then
   warn "ON DISK, NEVER IN GIT -- filed, resolvable by every verb, invisible to a clone:"
-  printf '      %s\n' $only_disk
+  printf '%s\n' "$only_disk" | sed '/^$/d; s/^/      /'
   rc=1
 fi
 if [ -n "$only_git" ]; then
   warn "IN GIT, ABSENT FROM DISK -- the direction that bites on a clone:"
-  printf '      %s\n' $only_git
+  printf '%s\n' "$only_git" | sed '/^$/d; s/^/      /'
   rc=1
 fi
 if [ -n "$diverged" ]; then
   warn "TRACKED BUT DIVERGED -- present in git and on disk, and the committed body is NOT the body every verb here resolves. A clone gets the stale one:"
-  printf '      %s\n' $diverged
+  printf '%s\n' "$diverged" | sed '/^$/d; s/^/      /'
   rc=1
 fi
 if [ -n "$not_in_head" ]; then
   warn "STAGED, NOT YET IN HEAD -- tracked in the index and absent from the commit a clone would take:"
-  printf '      %s\n' $not_in_head
+  printf '%s\n' "$not_in_head" | sed '/^$/d; s/^/      /'
   rc=1
 fi
 

@@ -3,9 +3,10 @@
   "number": 471,
   "slug": "devbin-canon-exits-1-when-its-controls-fail-the",
   "title": "devbin canon exits 1 when its controls fail, the code its header reserves for a real divergence",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "`bin/devbin canon`'s header says it exits 1 on divergence and 2 only if its controls fail (`bin/.devbin/cmd/canon`, \"Exit 1 on divergence so a fold can key on it; exit 2 only if the controls fail\"). Every control failure goes through `die`, which exits 1 (`bin/.devbin/lib/helpers`), so a broken instrument exits exactly as a real divergence does, which is the conflation the exit-2 split exists to prevent.\n\nFix: exit 2 from the control failures. XS. Found in dc's doc sweep of 2026-09-18 (finding C-22).\n"
+  "body": "`bin/devbin canon`'s header says it exits 1 on divergence and 2 only if its controls fail (`bin/.devbin/cmd/canon`, \"Exit 1 on divergence so a fold can key on it; exit 2 only if the controls fail\"). Every control failure goes through `die`, which exits 1 (`bin/.devbin/lib/helpers`), so a broken instrument exits exactly as a real divergence does, which is the conflation the exit-2 split exists to prevent.\n\nFix: exit 2 from the control failures. XS. Found in dc's doc sweep of 2026-09-18 (finding C-22).\n\n\nCLOSED 2026-09-19, by its landing in dc's train C on vc's word (bank cbc2cc078, patch-id 6ab41c6d1a2b, judged green on the train's bats log refs/bank/dc/trainC/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }
