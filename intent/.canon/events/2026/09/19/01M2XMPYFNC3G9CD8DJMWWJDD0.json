@@ -1,0 +1,15 @@
+{
+  "id": "01M2XMPYFNC3G9CD8DJMWWJDD0",
+  "ts": "2026-09-19T20:11:20.952Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0491"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "daemon_logs_prints_and_follows::no_tail_survives_follow_however_it_ends hangs forever under an ignored SIGINT: an unbounded child.wait(), and a killed child reads as a pass"
+  }
+}
