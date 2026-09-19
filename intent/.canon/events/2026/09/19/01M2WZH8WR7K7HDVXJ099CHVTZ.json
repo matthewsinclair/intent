@@ -1,0 +1,15 @@
+{
+  "id": "01M2WZH8WR7K7HDVXJ099CHVTZ",
+  "ts": "2026-09-19T14:01:14.904Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-19 14:01Z, replaces todo 52; the close-out's scratch is clean). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) 3.1.0 IS CUT AND PUBLISHED at 11ce80ad5 on both remotes, the pair and the running intentd on this machine both 11ce80ad5 from the dev tree (`intent --version`, `intent daemon status`), brew unlinked and pinned, doctor 0; the cut sequence that works is intent/docs/releasing.md steps 0 to 4. (1) LANDED ON MAIN AND UNPUSHED after the tag (`git log v3.1.0..main --oneline`): every lane's sweep chain (dc 59771a796 to a6c9b3dba, cc e12e071d1 and f9a7197c5, ic c3505cd42, vc 5d743f946), the sweep's issues 0462-0484 (`intent issues list`), dc's two CI fixes ff9751d45 (the search fixture waits for the daemon's index; docs/known-defects.md carries the race) and a2f16175f (promote_pair's GNU stat), and every lane's board folds. EVERY SCRATCH WORKTREE IS REMOVED with its diff proved landed or banked (`git worktree list` shows main alone); every refs/bank ref stays; the repo's three stash entries (stash@{0} on ee57d4288, stash@{1} on 33ac4348, stash@{2} on 29e7fcb) are named to hv and untouched. (2) WITH hv: THE PUSH of main past the tag (nothing after the tag is pushed without hv's word; the tag's Linux CI legs are judged again on that run); dc's tap README commit 0341f61 in homebrew-intent, local and unpushed; the stash entries' drop. THE FLEET UPGRADE IN TWO WAVES (decision 54): wave one by each live estate's own nodes (Lamplight, Laksa, Utilz, Devbin; lamplight-vc holds the steps and reports counts and refusals to vc; Laksa's and Devbin's vc are told by hv or by vc on hv's word), wave two from here with the trawl kit for the silent estates once wave one is done, dc and ic splitting the estates as the trawl did; vc checks each estate as it did the trawl (`git log -1`, a clean tree, doctor, `intent_version` in its config.json). Then ST0056: hv runs intent/st/ST0056/gyges-brief.md on gyges against the published 3.1.0 and hands back ~/intent-clean-install.log; vc judges, dc satisfies AC-00.5 and AC-11.1, WP-11 and the thread close on hv's word. (3) DEFERRED BY hv's RULING: devbin#0083's sweep follows Devbin's own ST0007 and release. NO PUSH without hv's word."
+  }
+}
