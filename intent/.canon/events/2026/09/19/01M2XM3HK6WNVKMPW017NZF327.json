@@ -1,0 +1,15 @@
+{
+  "id": "01M2XM3HK6WNVKMPW017NZF327",
+  "ts": "2026-09-19T20:00:45.158Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**T5: issue 0460, verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** RELEASED BY hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Shares dispatch-table.json and render.rs with T1 (landed), so it builds fresh on main in a private worktree. Also queued, no order yet: 0490 (st attach naming gate), filed by cc."
+  }
+}

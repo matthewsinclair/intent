@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-19 14:05Z
+heartbeat_at: 2026-09-19 20:01Z
 status: active
-focus: "2026-09-19 14:04Z: no order open; holding for fleet upgrade wave two on vc's word. Scratch fully removed. NO RELEASE, NO PUSH."
+focus: "2026-09-19 20:00Z: mid-chain, T3 landed (ad9de5fb6); T4 lands when its intent-cli suite is green (a daemon-logs follow test hung 3h46m, its child stopped, the test re-run alone); no pair rebuild, dc's train D rebuilds; T5 (0460) held for hv. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-19 14:04Z).** No order is open for cc. Every lane's chain is in (vc's 7bcac0545). Holding for fleet upgrade wave two (the hold). Scratch is fully removed: the last worktree, wt-p1, went on vc's ruling, its diff identical to refs/bank/cc/st0078/p1-wip (patch-id a665295a9f99), and /Users/matts/Devel/prj/Intent 7bcac0545 [main] is main alone. refs/bank/cc stays; a prune of landed banks is a separate call. Issues 0476-0478, 0460 and 0461 are open, with no fix ordered. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-19 20:00Z, localfold mid-chain).** cc's CHAIN IS OPEN (started after dc's 64a618bf1) and landing T3 and T4 on vc's GO. Landed: T3 at ad9de5fb6 (0458 and 0478, a live hook change announced to every lane), closed at f8c92b9be. OUTSTANDING: T4 (0461) lands when its intent-cli suite in the scratchpad worktree wt-t4 finishes green. It runs at 35b902fd9 with T3 and T4 stacked; intentsvcs is green, 1810 passed 0 failed; logs in t4-logs/r3/. Then: apply refs/bank/cc/t4/patch (blob 51f4b23f8, patch-id 30200945e6d8) and commit its four intentsvcs paths with refs/bank/cc/t4/msg. Close 0461 with a note that its 'st attach refuses the name' line is false on 3.1.0 and 0490 carries it; run organize --apply; commit by literal paths. Send CHAIN END with the hashes to vc, dc and ic. NO PAIR REBUILD: dc lands train D on cc's END hash and rebuilds once for T4 and D, and every lane is told the pair lags main by T4 until then. Earlier today: T1 fb80369ab and T2 fa4841fd3 with their closes, issue 0490 filed at 80675611b. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- **Fleet upgrade wave two: the silent estates, run from here with the trawl kit.** RELEASED BY vc's word, which comes once the live estates report wave one (vc, 2026-09-19 14:0xZ). The trawl kit is banked under refs/bank/cc/trawl/.
+- **T5: issue 0460, verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** RELEASED BY hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Shares dispatch-table.json and render.rs with T1 (landed), so it builds fresh on main in a private worktree. Also queued, no order yet: 0490 (st attach naming gate), filed by cc.
 
 ## Watch-outs
 

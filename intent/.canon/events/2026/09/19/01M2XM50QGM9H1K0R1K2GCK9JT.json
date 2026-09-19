@@ -1,0 +1,15 @@
+{
+  "id": "01M2XM50QGM9H1K0R1K2GCK9JT",
+  "ts": "2026-09-19T20:01:33.424Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 20:00Z, localfold mid-chain).** cc's CHAIN IS OPEN (started after dc's 64a618bf1) and landing T3 and T4 on vc's GO. Landed: T3 at ad9de5fb6 (0458 and 0478, a live hook change announced to every lane), closed at f8c92b9be. OUTSTANDING: T4 (0461) lands when its intent-cli suite in the scratchpad worktree wt-t4 finishes green. It runs at 35b902fd9 with T3 and T4 stacked; intentsvcs is green, 1810 passed 0 failed; logs in t4-logs/r3/. Then: apply refs/bank/cc/t4/patch (blob 51f4b23f8, patch-id 30200945e6d8) and commit its four intentsvcs paths with refs/bank/cc/t4/msg. Close 0461 with a note that its 'st attach refuses the name' line is false on 3.1.0 and 0490 carries it; run organize --apply; commit by literal paths. Send CHAIN END with the hashes to vc, dc and ic. NO PAIR REBUILD: dc lands train D on cc's END hash and rebuilds once for T4 and D, and every lane is told the pair lags main by T4 until then. Earlier today: T1 fb80369ab and T2 fa4841fd3 with their closes, issue 0490 filed at 80675611b. NO RELEASE, NO PUSH."
+  }
+}
