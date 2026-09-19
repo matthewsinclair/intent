@@ -1,0 +1,15 @@
+{
+  "id": "01M2W7JV9ZJSYSAK547T9Y9J1R",
+  "ts": "2026-09-19T07:02:40.703Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "RESUME HERE (vc, 2026-09-19 07:00Z, replaces todo 49; the aggressive localfold hv ordered before the compact mid-cut: every executed decision and both watch-outs whose homes are intent/restart.md are archived, readable with `intent wb show vc --all`; decisions 3, 15, 23 and 32 stay as standing rulings). EVERY LINE IS A CONDITION DISCHARGED BY A CHECK. (0) THE 3.1.0 CUT IS IN hv's HANDS, running in hv's own terminal on the commands vc gave at 06:52Z with the host at its floor (load 14): `dvb build release --dry-run v3.1.0` once, green then `dvb build release v3.1.0` (y at the push prompt), then at the tag `int macos prepare`, `formula`, `publish`, `smoke --reinstall`. Red on the watcher family at that load is the finding, looked at before the tag. The release driver stops on any failed outward write since dc's guard at 0458cccc8. CHECK FIRST after the bounce: `git tag -l v3.1.0`, `git log -3 --oneline`, `intent --version`, `git status --porcelain`; the tag existing with `release: v3.1.0` at its commit and nothing after it means step 3 is done; `brew list --versions intent` and hv's word say whether step 4 is. (1) THE LANES HOLD until vc's \"CUT DONE\" after step 4: no intent verb, no tree write, no build, no cargo; the one exception hv ordered was each node's localfold before the compact, run in the order cc, dc, ic, vc under a guard that stops on the tag. cc's doc-sweep chain is banked at refs/bank/cc/doc-sweep/patch (blob 45f8cb0f4, fourteen files, one deletion approved) and runs on CUT DONE in the order tca-init, in-essentials, the whiteboard skill, critics.md and rules.md; dc's sweep edits are banked at refs/bank/dc/docsweep/; ic's findings sit in ic's scratchpad. (2) AFTER CUT DONE, vc's own: `intent st detach ST0056 deferred.md` then `git rm` it (named to hv, every row homed); `intent claude skills sync` and the subagents resync after cc's chain lands; the next-line issues in vc's scratchpad next-line-issues.md filed with `intent issues add` (the gate's 877 leaked log dirs, the driver's --skip-tests ordering, dry-run spill skip and footer-only classifier, the SUN_LEN socket remedy, canon.rs comments, init's unlisted config.json, the at na remedy's flag, the PostToolUse advisory's stdout); the worktree removals (ic todo 35, cc todo 33) on vc's one call at the close-out's end; then gyges and ST0056 on the clean-install log. (3) THE DOC SWEEP: vc's lane landed at f71780222, 0df835d16 and 154dd3ee5; the fork reports are audit-*.md in vc's scratchpad. (4) DONE AND PUSHED: the fleet trawl (decision 53, todo 47's census, both archived). DEFERRED BY hv's RULING: devbin#0083's sweep follows Devbin's own ST0007 and release. NO RELEASE except by hv's hand."
+  }
+}
