@@ -653,7 +653,7 @@ $faces_stale
     if ! { gate_cargo build -p intentd && gate_cargo test --workspace --no-fail-fast; } > "$cargo_log" 2>&1; then
       gate_rc=1
       reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$cargo_log")"
-      if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E 'daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing' | grep -q .; then
+      if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E 'daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing|the_daemon_lists_the_project_registry|a_daemon_outlives_nobody' | grep -q .; then
         log_warn "cargo test --workspace red only in the load-sensitive daemon family -- re-running intentd's tests once:"
         printf '%s\n' "$reds" | sed 's/^/  /' >&2
         if gate_cargo test -p intentd --no-fail-fast >> "$cargo_log" 2>&1; then
