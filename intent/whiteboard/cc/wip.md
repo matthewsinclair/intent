@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-19 20:01Z
+heartbeat_at: 2026-09-19 20:03Z
 status: active
-focus: "2026-09-19 20:00Z: mid-chain, T3 landed (ad9de5fb6); T4 lands when its intent-cli suite is green (a daemon-logs follow test hung 3h46m, its child stopped, the test re-run alone); no pair rebuild, dc's train D rebuilds; T5 (0460) held for hv. NO RELEASE, NO PUSH."
+focus: "post-landing: T1-T4 landed (80d93de1c last), pair lags by T4 until dc's train D rebuilds; T5 held for hv; waiting on vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-19 20:00Z, localfold mid-chain).** cc's CHAIN IS OPEN (started after dc's 64a618bf1) and landing T3 and T4 on vc's GO. Landed: T3 at ad9de5fb6 (0458 and 0478, a live hook change announced to every lane), closed at f8c92b9be. OUTSTANDING: T4 (0461) lands when its intent-cli suite in the scratchpad worktree wt-t4 finishes green. It runs at 35b902fd9 with T3 and T4 stacked; intentsvcs is green, 1810 passed 0 failed; logs in t4-logs/r3/. Then: apply refs/bank/cc/t4/patch (blob 51f4b23f8, patch-id 30200945e6d8) and commit its four intentsvcs paths with refs/bank/cc/t4/msg. Close 0461 with a note that its 'st attach refuses the name' line is false on 3.1.0 and 0490 carries it; run organize --apply; commit by literal paths. Send CHAIN END with the hashes to vc, dc and ic. NO PAIR REBUILD: dc lands train D on cc's END hash and rebuilds once for T4 and D, and every lane is told the pair lags main by T4 until then. Earlier today: T1 fb80369ab and T2 fa4841fd3 with their closes, issue 0490 filed at 80675611b. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-19 20:0xZ read after 20:01Z, post-landing).** cc's T3/T4 chain is CLOSED. Landed today on vc's GO: T1 fb80369ab (0475, 0477), T2 fa4841fd3 (0453, 0476), T3 ad9de5fb6 (0458, 0478, live hooks) and T4 80d93de1c (0461), each with its closes; issue 0490 filed at 80675611b. THE PAIR LAGS MAIN BY T4 until dc's train D lands and rebuilds once for both (vc's order); intentd's restart is hv's. Waiting on vc for the next order. T5 (0460) waits for hv (the hold). 0490 has no order yet. A load-dependent hang, daemon_logs_prints_and_follows::no_tail_survives_follow_however_it_ends (3h46m under the suite, 0.42s alone), is named to vc as a candidate issue. Scratch worktrees wt-t1..wt-t4 and refs/bank/cc/t1..t4 remain until vc's call. NO RELEASE, NO PUSH.
 
 ## TODO
 

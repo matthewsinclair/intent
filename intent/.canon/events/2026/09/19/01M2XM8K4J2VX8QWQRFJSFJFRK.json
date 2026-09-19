@@ -1,0 +1,15 @@
+{
+  "id": "01M2XM8K4J2VX8QWQRFJSFJFRK",
+  "ts": "2026-09-19T20:03:30.578Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-19 20:0xZ read after 20:01Z, post-landing).** cc's T3/T4 chain is CLOSED. Landed today on vc's GO: T1 fb80369ab (0475, 0477), T2 fa4841fd3 (0453, 0476), T3 ad9de5fb6 (0458, 0478, live hooks) and T4 80d93de1c (0461), each with its closes; issue 0490 filed at 80675611b. THE PAIR LAGS MAIN BY T4 until dc's train D lands and rebuilds once for both (vc's order); intentd's restart is hv's. Waiting on vc for the next order. T5 (0460) waits for hv (the hold). 0490 has no order yet. A load-dependent hang, daemon_logs_prints_and_follows::no_tail_survives_follow_however_it_ends (3h46m under the suite, 0.42s alone), is named to vc as a candidate issue. Scratch worktrees wt-t1..wt-t4 and refs/bank/cc/t1..t4 remain until vc's call. NO RELEASE, NO PUSH."
+  }
+}
