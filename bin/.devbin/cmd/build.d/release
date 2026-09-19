@@ -642,6 +642,24 @@ $frozen_list"
   fi
   log_info "gh CLI authenticated"
 
+  # A LIVE intentd REFUSES THE CUT HERE, BEFORE ANYTHING IS STAMPED (issue 0468;
+  # vc's ruling, 2026-09-19). The stamp step runs `sync --to-disk` in-process,
+  # and sync refuses beside a daemon watching the project, which in the 3.1.0 cut
+  # meant hv stopping it by hand mid-release. This script never stops or starts
+  # the daemon itself: intentd's restart is the human's hand, and a release runs
+  # in the human's terminal on purpose. The predicate is "live" rather than
+  # "watching this project" because the CLI has no read-only question for the
+  # narrower one, and a live intentd watches this tree once it has opened it.
+  require_intent_bin
+  daemon_json="$("$INTENT_BIN" daemon status --format json 2>&1)" ||
+    abort "cannot tell whether intentd is running: 'intent daemon status' failed. Its output:
+$daemon_json"
+  case "$daemon_json" in
+    *'"state":"live"'*)
+      abort "intentd is running, and the stamp step's \`intent sync --to-disk\` refuses beside a daemon watching this project. Nothing has been stamped. Run \`intent daemon stop\`, re-run this release, then \`intent daemon start\` once it has finished." ;;
+  esac
+  log_info "no intentd is running"
+
   if [ "$SKIP_TESTS" = "true" ]; then
     log_warn "--skip-tests: skipping doctor + test suite"
     return 0
@@ -1415,6 +1433,7 @@ if [ "$DRY_RUN" = "true" ]; then
   log_info "to execute: re-run without --dry-run"
 else
   log_info "Intent $TAG cut and published"
+  log_info "  intentd:  stopped for the cut -- \`intent daemon start\` brings it back"
   log_info "  local:    pushed main + $TAG to ~/Dropbox/Repositories/Devel/Intent"
   log_info "  upstream: $(gh release view "$TAG" --json url -q .url 2>/dev/null || echo "(check gh release view $TAG)")"
 fi

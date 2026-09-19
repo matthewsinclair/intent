@@ -644,3 +644,41 @@ $stamp_sync_out"'* ]]
   [[ "$code" == *'cannot snapshot $NATIVE_LOCK_REL'* ]]
   [[ "$code" == *'cannot create a temp file for the release notes'* ]]
 }
+
+# A live intentd refuses the cut in pre-flight, and the refusal names the
+# human's two commands (issue 0468): the script never stops or starts it.
+@test "release refuses in pre-flight while intentd is live, naming daemon stop and start" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  cat > native/rust/target/release/intent <<'STUB'
+#!/usr/bin/env bash
+[ "$1 $2" = "daemon status" ] && echo '{"endpoint":"/x.sock","state":"live","url":"http://127.0.0.1:1"}'
+exit 0
+STUB
+  git add -A && git commit -q -m "a stub reporting a live daemon"
+  run_release --dry-run --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"intentd is running"* ]]
+  [[ "$output" == *"intent daemon stop"* ]]
+  [[ "$output" == *"intent daemon start"* ]]
+  ! grep -qE 'daemon (stop|start|restart)"? *($|;|\))' <(grep -v '^[[:space:]]*#' "$RELEASE" | grep -v 'abort\|log_info')
+}
+
+@test "release refuses when it cannot tell whether intentd is running" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  cat > native/rust/target/release/intent <<'STUB'
+#!/usr/bin/env bash
+if [ "$1 $2" = "daemon status" ]; then echo "error: the state dir is unreadable" >&2; exit 2; fi
+exit 0
+STUB
+  git add -A && git commit -q -m "a stub whose daemon status fails"
+  run_release --dry-run --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"cannot tell whether intentd is running"* ]]
+  [[ "$output" == *"the state dir is unreadable"* ]]
+}
