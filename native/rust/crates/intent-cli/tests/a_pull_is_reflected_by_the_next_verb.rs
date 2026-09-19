@@ -281,6 +281,57 @@ fn a_branch_checkout_is_ingested_and_a_file_checkout_is_not() {
   );
 }
 
+/// Issue 0483: **a fresh checkout builds no store, and a branch switch in it
+/// still syncs.** `git worktree add` runs post-checkout with the null object id
+/// as the previous HEAD, and the pass would build a whole store in what is
+/// usually a throwaway tree.
+#[test]
+fn a_fresh_worktree_builds_no_store_and_a_switch_inside_it_still_syncs() {
+  let team = Team::new();
+  let bob = team.bob();
+  team.alice_pushes("Release checklist");
+  team.git(&bob, &["pull", "-q"]);
+
+  let tree = team.dir.join("bobtree");
+  let added = team.git(
+    &bob,
+    &[
+      "worktree",
+      "add",
+      "-q",
+      "--detach",
+      tree.to_str().expect("utf-8 path"),
+      "HEAD",
+    ],
+  );
+  let store = tree.join("intent").join(".cache").join("intent.db");
+  assert!(
+    added
+      .said
+      .contains("intent (post-checkout): a fresh checkout"),
+    "a fresh worktree does not say why it skipped: {}",
+    added.said
+  );
+  assert!(
+    !store.exists(),
+    "a fresh worktree built a store: {}",
+    added.said
+  );
+
+  // A branch switch inside that worktree passes a real previous HEAD.
+  let switched = team.git(&tree, &["switch", "-q", "-c", "before", "HEAD~1"]);
+  assert!(
+    !switched.said.contains("a fresh checkout"),
+    "a branch switch was taken for a fresh checkout: {}",
+    switched.said
+  );
+  assert!(
+    store.exists(),
+    "a branch switch inside the worktree ran no pass: {}",
+    switched.said
+  );
+}
+
 #[test]
 fn a_hook_that_cannot_do_its_job_says_so_in_one_line_and_never_fails_the_pull() {
   let team = Team::new();

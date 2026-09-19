@@ -73,6 +73,23 @@ if [ ! -f intent/.config/config.json ]; then
   exit 0
 fi
 
+# A fresh checkout -- `git worktree add`, or a clone that carries hooks --
+# passes the null object id as the previous HEAD (issue 0483). There is no
+# store here yet, so the pass would BUILD one, from scratch, in what is usually
+# a throwaway tree, and on a large estate that costs minutes and a store the
+# size of the project's history. The first `intent` verb builds it when it is
+# wanted. A branch switch inside an
+# existing checkout passes a real previous HEAD and still syncs below.
+case "${1:-}" in
+  *[!0]* | "") ;;
+  *)
+    if [ "$_hook" = "post-checkout" ]; then
+      echo "intent (${_hook}): a fresh checkout -- the store is built by the first \`intent\` verb, or now by \`intent sync --apply\`"
+      exit 0
+    fi
+    ;;
+esac
+
 if ! command -v intent >/dev/null 2>&1; then
   echo "intent (${_hook}): the store was NOT brought up to date -- no \`intent\` on PATH; run \`intent sync --apply\` once it is" >&2
   exit 0
