@@ -188,8 +188,18 @@ abort() {
 # has already passed, so a gate meant to explain a refusal would start causing
 # one. It is removed on success and left behind on failure, which is the only
 # moment anybody wants it.
+#
+# **CREATED ONCE, IN THE RUN'S OWN SHELL, BY preflight.** Every reader takes the
+# path through `$(release_log_dir)`, a subshell, so the lazy create this used to
+# do there never persisted and its abort stopped only that subshell: the caller
+# carried on with an empty path and redirected to `/contract_check.log`. On
+# Linux that is how every dry run died, because the template was `-t` with no
+# X's, which BSD mktemp takes as a prefix and GNU mktemp refuses.
+open_release_log_dir() {
+  RELEASE_LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/intent-release-gates.XXXXXX")" || abort "cannot create a directory for the gate logs"
+}
+
 release_log_dir() {
-  [ -n "${RELEASE_LOG_DIR:-}" ] || RELEASE_LOG_DIR="$(mktemp -d -t intent-release-gates)" || abort "cannot create a directory for the gate logs"
   printf '%s' "$RELEASE_LOG_DIR"
 }
 
@@ -460,6 +470,7 @@ schema_faces_version_blockers() {
 
 preflight() {
   log_step "pre-flight"
+  open_release_log_dir
 
   # Working tree clean.
   if [ -n "$(cd "$PROJECT_ROOT" && git status --porcelain)" ]; then
