@@ -611,3 +611,13 @@ STUB
   [[ "$msg" == *'push upstream main $TAG'* ]]
   [[ "$msg" == *'gh release create $TAG'* ]]
 }
+
+# The stamp step's sync output reaches its abort (issue 0469). The step builds a
+# real CLI with cargo, so it is read structurally here rather than driven.
+@test "the stamp step's sync --to-disk failure shows its output" {
+  code="$(grep -v '^[[:space:]]*#' "$RELEASE")"
+  [[ "$code" != *'sync --to-disk >/dev/null'* ]]
+  [[ "$code" == *'stamp_sync_out="$(cd "$PROJECT_ROOT" && "$STAMP_BIN" sync --to-disk 2>&1)"'* ]]
+  [[ "$code" == *'Its output:
+$stamp_sync_out"'* ]]
+}

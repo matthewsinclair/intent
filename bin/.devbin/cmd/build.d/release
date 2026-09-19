@@ -1190,8 +1190,12 @@ VIEW_FILES=""
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent sync --to-disk' with the stamp CLI and fold footer-only view changes into the release commit"
 else
-  if ! (cd "$PROJECT_ROOT" && "$STAMP_BIN" sync --to-disk >/dev/null 2>&1); then
-    abort "intent sync --to-disk failed -- refusing to tag a release whose views still name the previous version"
+  # ITS OUTPUT IS KEPT AND SHOWN ON FAILURE (issue 0469). It went to /dev/null,
+  # so the abort named nothing, and in the 3.1.0 cut the real reason -- a
+  # watching intentd, which sync refuses beside -- took a hand re-run to find.
+  if ! stamp_sync_out="$(cd "$PROJECT_ROOT" && "$STAMP_BIN" sync --to-disk 2>&1)"; then
+    abort "intent sync --to-disk failed -- refusing to tag a release whose views still name the previous version. Its output:
+$stamp_sync_out"
   fi
   NOT_FOOTER=""
   while IFS= read -r _path; do

@@ -3,9 +3,10 @@
   "number": 469,
   "slug": "release-the-stamp-step-discards-sync-to-disk-s-o",
   "title": "release: the stamp step discards sync --to-disk's output and aborts naming nothing",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "The same stamp step runs `sync --to-disk >/dev/null 2>&1` and on failure aborts with \"intent sync --to-disk failed\" (`bin/.devbin/cmd/build.d/release:1149-1150`), naming nothing about why. That is the class the driver's own comment near line 178 condemns, and during the 3.1.0 cut the real reason (a watching daemon, see the companion issue) could only be found by re-running the command by hand.\n\nFix: capture the output and print it with the abort. XS. vc's next-line list, item 20.\n"
+  "body": "The same stamp step runs `sync --to-disk >/dev/null 2>&1` and on failure aborts with \"intent sync --to-disk failed\" (`bin/.devbin/cmd/build.d/release:1149-1150`), naming nothing about why. That is the class the driver's own comment near line 178 condemns, and during the 3.1.0 cut the real reason (a watching daemon, see the companion issue) could only be found by re-running the command by hand.\n\nFix: capture the output and print it with the abort. XS. vc's next-line list, item 20.\n\n\nCLOSED 2026-09-19, by its landing in dc's train B on vc's word (bank 508f6de15, patch-id 60972e6c2f0e, judged green on the train's bats log refs/bank/dc/trainB/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }
