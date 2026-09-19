@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX5T948W37RB9HRDC49CVG",
+  "ts": "2026-09-19T13:20:02.919Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0468"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "release: the stamp step's in-process sync --to-disk refuses beside a watching intentd"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX60ETS22T2JS4760YYVKS",
+  "ts": "2026-09-19T13:20:08.669Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0473"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "devbin macos publish, app-build and app-verify drop a second argument without a word"
+  }
+}

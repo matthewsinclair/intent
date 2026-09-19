@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 470,
+  "slug": "release-a-silenced-worktree-remove-a-version-tha",
+  "title": "release: a silenced worktree remove, a VERSION that falls back to 0.0.0, and unchecked mktemp/cp under set -u only",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "Three places in the release driver still drop a failure without a word (IN-AG-NO-SILENT-001):\n\n- `git worktree remove --force \"$gate_dir/tree\" >/dev/null 2>&1` (`bin/.devbin/cmd/build.d/release:680`): a failed removal leaves a registered worktree behind and says nothing.\n- `CURRENT=\"$(cat \"$PROJECT_ROOT/VERSION\" 2>/dev/null || echo \"0.0.0\")\"` (`:703`): an unreadable VERSION silently becomes 0.0.0, so the semver comparison that follows is made against a made-up number.\n- The script runs under `set -u` only (`:71`), and several `mktemp` and `cp` calls in the stamping section are unchecked.\n\nXS each. Found by critic-shell during dc's release-guard work on 2026-09-18.\n"
+}

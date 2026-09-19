@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 468,
+  "slug": "release-the-stamp-step-s-in-process-sync-to-disk",
+  "title": "release: the stamp step's in-process sync --to-disk refuses beside a watching intentd",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "The release driver's stamp step runs `\"$STAMP_BIN\" sync --to-disk` in-process (`bin/.devbin/cmd/build.d/release:1149`) while intentd may be watching the project, and `sync` refuses beside a watching daemon (exit 2, since c75a5b1a6). During the 3.1.0 cut hv had to stop the daemon by hand for this step.\n\nFix: the driver stops or pauses intentd for the stamp and restarts it afterwards, or asks the daemon to render once the pair is rebuilt. S. vc's next-line list, item 19.\n"
+}

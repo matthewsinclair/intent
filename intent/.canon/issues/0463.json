@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 463,
+  "slug": "release-dry-run-skips-the-read-only-canon-spill",
+  "title": "release: --dry-run skips the read-only canon-spill check, so a dry run passes a tree the real run refuses",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`bin/devbin build release --dry-run` skips the canon-spill refusal: the block at `bin/.devbin/cmd/build.d/release:852` runs only when `DRY_RUN != true`. The check reads `intent claude upgrade` without `--apply`, which writes nothing, so a dry run could make it. As it is, a dry run passes a tree that the real run then refuses before stamping.\n\nFix: run the spill check in both modes. XS. vc's next-line list, item 3.\n"
+}

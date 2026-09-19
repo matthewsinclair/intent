@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX5RVG3GWZH1FY43JGZDDM",
+  "ts": "2026-09-19T13:20:01.442Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0467"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "release: the spill remedies restore from the index where the faces are staged, and a declined push says re-run"
+  }
+}

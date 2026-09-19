@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 467,
+  "slug": "release-the-spill-remedies-restore-from-the-inde",
+  "title": "release: the spill remedies restore from the index where the faces are staged, and a declined push says re-run",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "Two of the release driver's remedies send the operator somewhere that does not work.\n\n- The spill refusals after stamping (`bin/.devbin/cmd/build.d/release:1134` and `:1167`) name `git checkout -- $SIDECAR_FILES` as the restore. At that point the schema faces are staged, and `git checkout -- <paths>` restores from the INDEX, so it brings back the new faces and leaves the tree stamped. Confirmed live on 2026-09-19 during the 3.1.0 cut; the working restore, used by hand, was `git restore --source=HEAD --staged --worktree -- <paths>`, which is what the post-commit messages landed at 0458cccc8 already say.\n- A declined push (`:1287`) logs \"tag $TAG exists locally; re-run when ready\". By then the release commit exists, VERSION equals the target, and a re-run refuses (or, with a bump flag, cuts the next version). The message should list the remaining manual steps, as the other post-commit messages do.\n\nXS. vc's next-line list, items 7 and 16.\n"
+}

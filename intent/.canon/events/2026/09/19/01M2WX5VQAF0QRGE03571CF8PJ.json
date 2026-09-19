@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX5VQAF0QRGE03571CF8PJ",
+  "ts": "2026-09-19T13:20:03.821Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0469"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "release: the stamp step discards sync --to-disk's output and aborts naming nothing"
+  }
+}

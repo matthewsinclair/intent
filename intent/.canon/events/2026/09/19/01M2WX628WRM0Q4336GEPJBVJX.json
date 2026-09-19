@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX628WRM0Q4336GEPJBVJX",
+  "ts": "2026-09-19T13:20:10.527Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0475"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent claude rules index gets clap's unknown-subcommand error at exit 1, not the retired refusal at exit 2"
+  }
+}

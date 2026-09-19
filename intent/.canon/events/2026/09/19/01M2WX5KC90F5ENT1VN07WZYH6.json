@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX5KC90F5ENT1VN07WZYH6",
+  "ts": "2026-09-19T13:19:55.276Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0462"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "release: --skip-tests returns before the gh auth check, so an unauthenticated gh is found only after tag and push"
+  }
+}

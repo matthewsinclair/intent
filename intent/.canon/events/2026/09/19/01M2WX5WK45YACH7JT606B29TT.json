@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX5WK45YACH7JT606B29TT",
+  "ts": "2026-09-19T13:20:05.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0470"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "release: a silenced worktree remove, a VERSION that falls back to 0.0.0, and unchecked mktemp/cp under set -u only"
+  }
+}

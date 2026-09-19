@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 465,
+  "slug": "release-a-failed-prepush-list-frozen-reads-as-no",
+  "title": "release: a failed prepush --list-frozen reads as no frozen remotes, so the frozen-remote gate passes unchecked",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "The release pre-flight reads the frozen remotes with `$(\"$PROJECT_ROOT/bin/int\" prepush --list-frozen 2>/dev/null || true)` (`bin/.devbin/cmd/build.d/release:534`). A listing that fails for any reason reads as \"no frozen remotes\", so the frozen-remote gate passes unchecked, and the release then pushes to both remotes.\n\nFix: capture the listing's exit status and abort when it fails (IN-AG-NO-SILENT-001). XS. vc's next-line list, item 5.\n"
+}

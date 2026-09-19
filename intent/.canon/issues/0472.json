@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 472,
+  "slug": "devbin-hosting-s-read-only-sweep-drives-agents-s",
+  "title": "devbin hosting's read-only sweep drives agents sync, a writer, and the retired fileindex",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`bin/devbin hosting` says its default sweep is READ-ONLY and drives only `READONLY_VERBS`, but that list includes `agents sync` (`bin/.devbin/cmd/hosting`), which rewrites AGENTS.md: the file's own incident record says so, and `docs/reference/commands.md` classes `intent agents sync` as a writer. The run happens in a clone, so the damage is contained, but the label and the closing \"READ-ONLY VERBS ONLY\" line are false.\n\nThe same list also carries `fileindex bin`, and `intent fileindex` was retired in v3 (it refuses at exit 2), so the default sweep drives a verb that can only refuse.\n\nFix: move `agents sync` to `MUTATING_VERBS` and drop `fileindex bin`. XS. Found in dc's doc sweep of 2026-09-18 (finding C-24).\n"
+}
