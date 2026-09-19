@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 488,
+  "slug": "wb-migrate-carries-a-numbered-list-as-one-item-w",
+  "title": "wb migrate carries a numbered list as one item, while bullets carry one per line",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent wb migrate` carries a numbered list as one item, while a bulleted list carries one item per bullet.\n\n**Seen 2026-09-19** in Lamplight's whiteboard carry (89ec8c350): ic's four-item numbered TODO became one todo, and hv's two unexecuted rulings of 2026-08-19, written as `1.` and `2.` lines, became one decision with an embedded `2.`, so neither could be archived without the other. `- ` lines carry one per item; `1.` lines do not. Both boards were re-split by hand afterwards (a19193c15).\n\n**The ask:** the carry treats an ordered-list line the way it treats a bullet, one item per line, and the plain pass's report says how many items each section yields so a node can compare it with the list it wrote. S.\n"
+}

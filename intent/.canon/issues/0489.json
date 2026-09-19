@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 489,
+  "slug": "wb-migrate-s-uncarried-list-cannot-tell-a-state",
+  "title": "wb migrate's uncarried list cannot tell a state-bearing sub-heading or lead from a date, and italic intros carry as items",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent wb migrate`'s uncarried list cannot tell a sub-heading or board lead that carries state from one that is a date, and an italic section intro carries as an item.\n\n**Seen 2026-09-19** in Lamplight's whiteboard carry, checked by each node against its pre-migration copy:\n\n- hv's sub-heading `### Still live from 2026-08-19 -- the two rulings that are NOT executed` was class 4 and dropped, and with it the only marker that those two rulings were unexecuted, so they read as history until re-marked by hand.\n- ic's board lead held every TODO behind hv's fences; dropped, the carried TODO read as actionable until ic re-added the fence as a hold.\n- dc's `todo 1`, `hold 1` and `watchout 1` were italic section intros, not items; dc archived them after the carry.\n\nMost sub-headings are dates and safe to drop, and the plain pass names every unit it will not carry, but it names them all alike, so a node dropping them under `--drop-uncarried` has no signal that one of them holds a state the items below depend on.\n\n**The ask:** the plain pass's uncarried list marks a sub-heading or lead whose text carries a marker word (`NOT executed`, `held`, `blocked`, `until`) or that precedes items as needing a read, and an italic-only line is reported as an intro rather than carried as an item. Sized after 0488's fix, since both touch the same classifier. S.\n"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M2X53J9WPD33EPZQNN721ESV",
+  "ts": "2026-09-19T15:38:37.247Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0489"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb migrate's uncarried list cannot tell a state-bearing sub-heading or lead from a date, and italic intros carry as items"
+  }
+}
