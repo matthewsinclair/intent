@@ -1,6 +1,6 @@
 # Pre-commit critic hook
 
-Intent's canonical pre-commit gate runs the repository guards, then `intent critic <lang> --staged --severity-min <sev> --format text` for each language the project declares. Findings at or above the configured severity threshold block the commit, and so does a critic that refuses because a rule the project armed cannot be enforced. The hook is the primary cadence for rule enforcement (design decision D8 in ST0035's `design.md`; `intent st edit ST0035 design --path` writes the thread's files if they are not on disk and prints the path): local, deterministic, offline, zero-latency feedback.
+Intent's canonical pre-commit gate runs the repository guards, then `intent critic <lang> --staged --severity-min <sev> --format text` for each language the project declares, then `intent doctor`. Findings at or above the configured severity threshold block the commit, and so does a critic that refuses because a rule the project armed cannot be enforced, and so does a `doctor` that exits 1. The hook is the primary cadence for rule enforcement (design decision D8 in ST0035's `design.md`; `intent st edit ST0035 design --path` writes the thread's files if they are not on disk and prints the path): local, deterministic, offline, zero-latency feedback.
 
 ## Installation
 
@@ -8,6 +8,8 @@ Intent's canonical pre-commit gate runs the repository guards, then `intent crit
 
 - **`pre-commit.intent`, the carrier.** A copy of `lib/templates/hooks/pre-commit-shim.sh` from the Intent install. It reads the install root from `~/.local/share/intent/home` and execs that install's `lib/templates/hooks/pre-commit.sh`. The gate body is never copied into a project, so a gate fix reaches every project when the install is updated.
 - **`pre-commit`, the chain block.** A block between `# intent-chain-block:start` and `# intent-chain-block:end` that runs `pre-commit.intent` when it is executable. A missing hook is created as a shebang plus the block. An existing hook keeps every line it has: the block is inserted after its shebang and `set` lines, and a hook that already carries the block is left untouched.
+
+The same run installs three post-pull carriers, `post-merge.intent`, `post-checkout.intent` and `post-rewrite.intent`, each reached from a chain block in its own hook. All three are copies of `lib/templates/hooks/post-pull.sh`, which runs `intent sync --apply` to bring this clone's store up to what a pull, checkout or rewrite put on disk, and always exits 0. They are not part of the commit gate; `docs/concepts/working-in-a-team.md` describes them.
 
 `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) is written by `intent bootstrap`. A carrier installed by a build before 3.0.2 reads `~/.intent/home` instead, which 3.0.2 moves; `intent claude upgrade --apply` in that project reinstalls the carrier. When it is absent, empty, or names a directory without `lib/templates/`, the carrier refuses every commit and names what it found, and `intent claude upgrade --apply` warns about it at install time. Check what the carrier resolves without running the gate:
 
@@ -40,7 +42,7 @@ fi
 
 ## Configuration
 
-The hook reads `severity_min` from `.intent_critic.yml` at the project root (`critical`, `warning`, `recommendation` or `style`; anything else, or no file, means `warning`), and `intent critic` reads the rest of the file. `intent claude upgrade --apply` seeds it from `lib/templates/_intent_critic.yml` only when it is absent:
+The hook reads `severity_min` from `.intent_critic.yml` at the project root (`critical`, `warning`, `recommendation` or `style`; anything else, or no file, means `warning`). `show_all: true` is shorthand for `severity_min: style`, and an explicit `severity_min` wins over it. `intent critic` reads the file's `disabled` list, and the opt-in PostToolUse advisory reads `post_tool_use_advisory`. A direct `intent critic` run does not read `severity_min`; pass `--severity-min` to it (see `docs/known-defects.md`, `intent#0288`). `intent claude upgrade --apply` seeds it from `lib/templates/_intent_critic.yml` only when it is absent:
 
 ```yaml
 severity_min: warning
@@ -56,7 +58,7 @@ post_tool_use_advisory: false
 git commit --no-verify -m "..."
 ```
 
-`--no-verify` bypasses all git hooks and leaves no trace in the commit. Use sparingly. When the gate blocks on critic findings or a refusal, or refuses because `intent` cannot run, it prints a one-line reminder of this escape hatch.
+`--no-verify` bypasses all git hooks and leaves no trace in the commit. Use sparingly. When the gate blocks on critic findings, a critic refusal or a `doctor` finding, or refuses because `intent` cannot run, it prints a one-line reminder of this escape hatch.
 
 ## Fail-open cases
 
@@ -66,6 +68,7 @@ The gate exits `0` (letting the commit through) when it cannot apply:
 - No `intent/.config/config.json` at the worktree root (the hook is in a non-Intent repo). The repository guards have already run by this point; only the critic is skipped.
 - A critic exits with a code other than `0`, `1` or `3` (eg `2`, the critic could not run). That language is reported `UNENFORCED` in a digest line that names it with a denominator (`N of M declared language(s) went UNENFORCED`).
 - The guard runner cannot be located. The hook prints `NO guard ran for this commit` and why, then carries on to the critic.
+- `intent doctor` exits with a code other than `0` or `1`. Estate health is reported `UNENFORCED` for that commit.
 
 Each case prints a stderr line saying what was skipped. The gate is a quality check, not an availability check.
 
@@ -121,6 +124,16 @@ An empty or absent array means no language critics run, and so does a machine wi
 `intent critic` owns the code-versus-prose classification from its single registry, so a prose discipline (`author`, `content`) returns a clean no-op here rather than needing the hook to know anything about languages.
 
 `shell` is **not** appended automatically — under the marker probe it was, and under explicit configuration it is a declaration like any other. A polyglot project that wants staged bash and zsh checked must list `shell` in `languages`. Each language's critic runs independently; a critic exit of `1` or `3` from any language blocks the commit.
+
+## Estate health: `intent doctor`
+
+After the critics, the gate runs `intent doctor` and reads its exit code and nothing else. It does not parse doctor's output or decide which of its classes matter: doctor splits its own classes into counted findings and advisories, and it carries that split in its exit code, which the release preflight also reads.
+
+- Exit `0` prints `intent doctor gate: estate clean.` and the commit proceeds.
+- Exit `1` prints doctor's findings, then `intent doctor: the estate disagrees with the store -- commit refused.` Each finding names what clears it. Regenerating a view discards a hand edit, so copy out anything you meant to keep first.
+- Any other exit prints `intent doctor did not check (exit N) -- estate health is UNENFORCED in this commit.` and lets the commit through. This includes `4`, an estate doctor could not judge, and an older binary without the verb.
+
+There is no flag that skips this arm; `git commit --no-verify` bypasses it along with every other arm. The critic arm and the doctor arm both report before either one refuses, so a commit carrying both kinds of defect shows both. The merge result of a pull request is checked by the same verb in CI: see `doctor-on-the-merge-result` in `.github/workflows/pr-checks.yml`.
 
 ## CI integration
 

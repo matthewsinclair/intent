@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the test suite for Intent. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+This directory contains Intent's bats suite, written with [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System). The Rust suites live under each crate's `tests/` in `native/rust/crates/` and run with `cargo test --workspace --no-fail-fast` (see `.github/workflows/README.md`).
 
 ## Directory Structure
 

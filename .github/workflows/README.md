@@ -11,7 +11,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 **What it does**:
 
 - Builds the v3 release binaries (`intent` and `intentd`) with cargo, then runs the bats suite against them on Ubuntu and macOS
-- Runs ShellCheck over `bin/intent*` (non-blocking)
+- Runs ShellCheck over the repository's shell scripts (`bin/devbin`, `bin/int`, and the shell scripts under `bin/.devbin/cmd/` and `lib/templates/hooks/`), non-blocking
 - Aggregates the Ubuntu and macOS legs into one pass/fail
 
 **Jobs**:
@@ -31,7 +31,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 - Installs the stable toolchain with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
-- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), and `cargo test --workspace --no-fail-fast`
+- Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-D warnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
 
 ### 3. PR Checks (`pr-checks.yml`)
 
@@ -40,10 +40,11 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 **Jobs**:
 
 - `validate-steel-thread`: builds the v3 `intent` binary, takes the first `ST####` in the PR description and runs `intent st show` on it. A referenced thread that does not exist fails the job; a description with no reference passes with a suggestion to add one.
-- `check-documentation`: warns when the diff against `origin/main` touches a path containing `bin/` and no path ending `.md` or containing `usr/` or `doc/`. Never fails.
-- `test-coverage`: warns when the diff against `origin/main` touches a path containing `bin/` and nothing under `tests/`. Never fails.
+- `check-documentation`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path ending `.md` or containing `usr/` or `doc/`. Never fails.
+- `test-coverage`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path containing `tests/`. Never fails.
 - `commit-message-check`: warns for each commit subject in `origin/main..HEAD` shorter than 10 or longer than 72 characters. Never fails.
 - `pr-size-check`: reports additions plus deletions, warns above 1000 changed lines and notes above 500. Never fails.
+- `doctor-on-the-merge-result`: builds the v3 `intent` binary and runs `intent doctor` on the pull request's merge result (`refs/pull/<n>/merge`), in a fresh clone under the runner's empty `HOME`, so the store loads from the committed canon as a collaborator's clone would. Doctor's exit code is the verdict: a counted finding fails the job. It is the merge-result twin of the pre-commit gate's doctor arm, which judges only the author's own tree.
 
 ## Local Testing
 
@@ -64,6 +65,7 @@ cd native/rust
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --document-private-items
 cargo test --workspace --no-fail-fast
 ```
 
