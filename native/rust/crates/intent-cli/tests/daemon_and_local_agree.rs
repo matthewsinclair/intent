@@ -139,6 +139,36 @@ fn stdout(out: &Output) -> String {
   String::from_utf8_lossy(&out.stdout).to_string()
 }
 
+/// Wait until the project's index holds `findable`, read WITHOUT reconciling.
+///
+/// **THE DAEMON BUILDS A NEWLY OPENED PROJECT'S INDEX IN THE BACKGROUND**
+/// (`intentd`'s store thread works through its unbuilt queue between requests),
+/// and a plain search in a project the daemon watches skips its own reconcile
+/// (issue 0443 Q1). So a local search asked the moment the daemon has opened
+/// the project answers from an index that may not hold the seeded file yet.
+/// Measured: the Ubuntu leg of CI run 35442054472 lost that race once, with an
+/// empty answer at exit 0, and its re-run was green.
+///
+/// **`--no-reconcile` IS WHAT KEEPS THE BRACKETS EXACT.** It answers in this
+/// process and writes nothing, so the daemon's dispatch counter does not move
+/// and the index this reads is the one the daemon built.
+fn wait_until_indexed(home: &Path, root: &Path, findable: &str) {
+  let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+  loop {
+    let out = run(home, root, &["search", "--no-reconcile", findable]);
+    if out.status.code() == Some(0) && stdout(&out).contains(findable) {
+      return;
+    }
+    assert!(
+      std::time::Instant::now() < deadline,
+      "the daemon had not indexed the seeded file 30s after opening the project, so no comparison \
+       below would be about the verbs: {}",
+      String::from_utf8_lossy(&out.stderr)
+    );
+    std::thread::sleep(std::time::Duration::from_millis(100));
+  }
+}
+
 #[test]
 fn every_servable_verb_answers_identically_locally_and_through_a_real_daemon() {
   let daemon = RealDaemon::start();
@@ -151,6 +181,18 @@ fn every_servable_verb_answers_identically_locally_and_through_a_real_daemon() {
     "this build declares no daemon-servable verb, so AC-08.2 has nothing to compare and this test \
      would pass over an empty set"
   );
+
+  // **THE DAEMON OPENS THE PROJECT, AND ITS INDEX IS BUILT, BEFORE THE FIRST
+  // BRACKET IS READ.** Both are this fixture's setup, not the subject: the
+  // counter moves here and nowhere the loop below measures.
+  let opened = run(daemon.home(), root, &["--daemon", "st", "list"]);
+  assert_eq!(
+    opened.status.code(),
+    Some(0),
+    "the daemon could not open the fixture project: {}",
+    String::from_utf8_lossy(&opened.stderr)
+  );
+  wait_until_indexed(daemon.home(), root, MINTED);
 
   for path in &servable {
     let argv = servable_argv(path, MINTED);

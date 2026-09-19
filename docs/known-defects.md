@@ -24,6 +24,10 @@
 
 It exits 0. The search index is shown and not counted, so it never moves `doctor`'s exit code, and the summary line carries it under `--quiet` too. **Run `intent index rebuild`**: it rewrites the index in one pass, the entities were never affected, and `doctor` then reads `search index: no orphaned document and fts5's check clean, from two probes that share one blind spot (both read the index's segments)`. That last clause is deliberate: both readings go through the index's own segments, so a clean pair is not two independent witnesses.
 
+**In a project a running `intentd` watches, a plain `intent search` can miss a file written a moment ago, and its answer still says the index is complete.** A search in this process skips its own reconcile when a daemon is watching the project (since issue 0443), and relies on the daemon's watcher to have indexed the change. Until the watcher has, the file is not in the answer, and `intent search --json` reports `"complete": true` with the `reconciled_at` of the last whole reconcile. Driven on 3.1.0 under an isolated `HOME`, with `intent daemon start`, then `intent --daemon st list` to open the project: a file written just before each search was missing from every one of five immediate searches. The same search with the daemon stopped reconciles first and finds it. How long the watcher takes depends on the machine's load, and this page does not put a number on it. CI saw the same race: the Ubuntu leg of the push run for 3.1.0's tag failed on it once, and its re-run was green.
+
+**To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up.
+
 ## A stray directory disables the whole project
 
 **An `STnnnn` directory anywhere under `intent/st/` that holds a thread's files is picked up as a thread, and one it cannot read stops every command** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
