@@ -884,6 +884,12 @@ NATIVE_BEFORE="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MAN
 # IN BOTH MODES (issue 0463): it is a read, and a dry run that skipped it
 # passed a tree the real run then refused.
 require_intent_bin
+# THE DRY RUN'S OWN FAILURE IS KEPT (issue 0466). It was read through
+# `2>/dev/null | sed`, so a claude upgrade that failed printed nothing, read as
+# "no spill", and the check passed on no evidence.
+spill_report="$(cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade 2>&1)" ||
+  abort "the canon-spill check could not run: 'intent claude upgrade' (its dry run) failed, so nothing says what --apply would rewrite. Nothing has been stamped. Its output:
+$spill_report"
 EARLY_SPILL=""
 while IFS= read -r _path; do
   [ -n "$_path" ] || continue
@@ -891,7 +897,7 @@ while IFS= read -r _path; do
   (cd "$PROJECT_ROOT" && git ls-files --error-unmatch -- "$_path" >/dev/null 2>&1) || continue
   EARLY_SPILL="$EARLY_SPILL  $_path
 "
-done < <(cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade 2>/dev/null | sed -n 's/^would write: //p')
+done < <(printf '%s\n' "$spill_report" | sed -n 's/^would write: //p')
 if [ -n "$EARLY_SPILL" ]; then
   abort "refusing to cut: 'claude upgrade --apply' would rewrite tracked files outside the sidecar list:
 $EARLY_SPILL       Nothing has been stamped or committed. Bring these into line with canon in their own commit

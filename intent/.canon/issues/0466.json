@@ -3,9 +3,10 @@
   "number": 466,
   "slug": "release-the-early-canon-spill-check-discards-cla",
   "title": "release: the early canon-spill check discards claude upgrade's failure and reads it as no spill",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "The release driver's early canon-spill check reads `intent claude upgrade 2>/dev/null | sed -n 's/^would write: //p'` (`bin/.devbin/cmd/build.d/release:861`). If `claude upgrade` fails, its stderr is discarded and the empty output reads as \"no spill\", so the check passes. The late check after `claude upgrade --apply` still catches a real spill, but only after VERSION, the lock and the schema faces have been stamped.\n\nFix: keep the command's exit status and stderr, and abort when it fails. XS. vc's next-line list, item 6.\n"
+  "body": "The release driver's early canon-spill check reads `intent claude upgrade 2>/dev/null | sed -n 's/^would write: //p'` (`bin/.devbin/cmd/build.d/release:861`). If `claude upgrade` fails, its stderr is discarded and the empty output reads as \"no spill\", so the check passes. The late check after `claude upgrade --apply` still catches a real spill, but only after VERSION, the lock and the schema faces have been stamped.\n\nFix: keep the command's exit status and stderr, and abort when it fails. XS. vc's next-line list, item 6.\n\n\nCLOSED 2026-09-19, by its landing in dc's train B on vc's word (bank 542739194, patch-id 342f1579fa74, judged green on the train's bats log refs/bank/dc/trainB/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }

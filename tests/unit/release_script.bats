@@ -551,3 +551,25 @@ STUB
   [[ "$output" == *"would rewrite tracked files outside the sidecar list"* ]]
   [[ "$output" == *"tests/run_tests.sh"* ]]
 }
+
+# A claude upgrade that fails is not "no spill" (issue 0466): its failure and
+# its output reach the operator, and nothing is stamped.
+@test "release refuses when the canon-spill dry run itself fails, and shows its output" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  cd "$repo" || return 1
+  cat > native/rust/target/release/intent <<'STUB'
+#!/usr/bin/env bash
+if [ "$1 $2" = "claude upgrade" ]; then
+  echo "error: the canon could not be read" >&2
+  exit 1
+fi
+exit 0
+STUB
+  git add -A && git commit -q -m "a stub whose claude upgrade fails"
+  run_release --dry-run --patch
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"the canon-spill check could not run"* ]]
+  [[ "$output" == *"the canon could not be read"* ]]
+}
