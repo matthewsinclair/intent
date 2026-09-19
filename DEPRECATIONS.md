@@ -1,6 +1,6 @@
 ---
-verblock: "11 Sep 2026:v0.6: Matthew Sinclair - Updated for Intent v3.0.1"
-intent_version: 3.0.1
+verblock: "19 Sep 2026:v0.7: Matthew Sinclair - Updated for Intent v3.1.0"
+intent_version: 3.1.0
 ---
 
 # Intent Deprecations
@@ -8,6 +8,32 @@ intent_version: 3.0.1
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
 
 Each entry's migration path is written for the version it names. To bring a v2 project to v3, see [Migrating from v2](docs/migrating-from-v2.md).
+
+## September 2026 (v3.0.2): `intent claude ws`, and the `~/.intent/` directory
+
+### What was deprecated
+
+`intent claude ws` and its verbs `new`, `list`, `archive` and `hygiene`, which managed whiteboard nodes as directories on disk. And `~/.intent/` as the home of Intent's per-user files.
+
+### Why it was deprecated
+
+A whiteboard node is a row in the store, and `intent/whiteboard/<id>/` is the rendered view of it, so verbs that managed nodes as directories had nothing left to manage. Intent's per-user files now follow the XDG Base Directory Specification.
+
+### Migration path
+
+- `intent wb register` creates a node, `intent wb status` lists them, `intent wb show` reads one board, and `intent wb archive` retires an item. `intent claude start <ws>` is unchanged.
+- The first command of v3.0.2 or later moves what Intent owns out of `~/.intent/`: its config goes to `$XDG_CONFIG_HOME/intent/` (default `~/.config/intent/`), and the install pointer, the skill and subagent manifests and `ext/` go to `$XDG_DATA_HOME/intent/` (default `~/.local/share/intent/`). It removes `~/.intent/` when that leaves it empty.
+- Run `intent claude upgrade --apply --skip-settings` in each project, so its pre-commit gate reads the pointer at its new path. If `~/.local/share/intent/home` does not exist, run `intent bootstrap`.
+
+### Impact
+
+- `intent claude ws` refuses at exit 2 with a message saying it was retired, and names `intent wb register`.
+- A pre-commit gate installed by v3.0.1 or earlier reads `~/.intent/home`, which the move takes away, so it refuses every commit until the project is re-upgraded as above.
+- Anything in `~/.intent/` that Intent did not put there is left where it is.
+
+### Version deprecated
+
+Intent version 3.0.2.
 
 ## August and September 2026 (v3.0.0, v3.0.1): the v2 Bash implementation
 
@@ -17,7 +43,7 @@ The Bash implementation of Intent: the `bin/intent` CLI and its `bin/intent_*` s
 
 With them went `INTENT_HOME`. v3 resolves its install root from its own location and does not read the variable.
 
-These v2 commands are retired, and v3 refuses each one at exit 2 with a message saying it was retired: `st organize`, `st repair`, `st_zero`, `st bootstrap`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `agents template`, `claude prime`. `intent init --with-st0000` is gone with `st bootstrap`.
+These v2 commands are retired, and v3 refuses each one at exit 2 with a message saying it was retired: `st organize`, `st repair`, `st_zero`, `st bootstrap`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `fileindex`, `agents template`, `claude prime`. `intent init --with-st0000` is gone with `st bootstrap`.
 
 ### Why it was deprecated
 

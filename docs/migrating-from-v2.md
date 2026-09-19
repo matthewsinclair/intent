@@ -15,16 +15,16 @@
 
 **Commit first.** `intent upgrade` refuses to convert a project that is not under git or has uncommitted changes, because the migration is one commit and `git revert` of that commit is the rollback.
 
-`intent ingest` checks that the project's markdown would migrate and names each line it could not carry; **it writes nothing.** `intent upgrade` does the migration. It reports each section it did not carry as-is (a section still byte-identical to the v2 template is dropped, because no author wrote it), then tells you to commit the canon and the generated views. Thread directories stay where v2 put them, status-bucket directories included.
+`intent ingest` checks that the project's markdown would migrate and names each line it could not carry; **it writes nothing.** `intent upgrade` does the migration. It reports each section it did not carry as-is (a section still byte-identical to the v2 template is dropped, because no author wrote it), then tells you to commit the canon and the generated views. Once the store holds every file of the v2 tree, the upgrade removes it and names each path (`pruned:`). If any file is not held, it removes none of them and names each one it withheld, with the reason. A run that ingested v2 status-bucket files defers the removal, and `intent organize --apply` carries it out.
 
 Then read a thread you know well and check it against what you remember writing. **Do this before you do anything else with the project**: the longer you work on top of a migration you have not checked, the harder any recovery gets.
 
 ### A project older than v2.19.0
 
-**v3 converts a project that v2.19.0 last upgraded, and nothing older.** Bring an older project to v2.19.0 with v2's own `intent upgrade` first: v2.19.0 is the `v2.19.0` tag of this repository. Two things v3 tells you on an older project are wrong:
+**v3 converts a project that v2.19.0 last upgraded, and nothing older.** Bring an older project to v2.19.0 with v2's own `intent upgrade` first: v2.19.0 is the `v2.19.0` tag of this repository. v3 names both older shapes and gives this route:
 
-- A project stamped with an older v2 version is refused with a remedy that says to run `install intent@2 && intent upgrade`. No tap provides an `intent@2` formula.
-- A project from before v2.10.0, which keeps its config at a top-level `.intent/`, is not recognised as a project at all: v3 says `no Intent project found` and suggests `intent init`. **Do not run `intent init` on it.** Upgrade it with v2.19.0.
+- A project stamped with an older v2 version is refused as below the v2.19.0 migration floor, with a remedy naming the v2.19.0 release.
+- A project from before v2.10.0, which keeps its config at a top-level `.intent/config.json`, is named as a pre-v2.10 project that this build cannot open, with the same remedy. **Do not run `intent init` on it.**
 
 ## If you migrated with v3.0.0
 
@@ -67,7 +67,7 @@ Three things a hand-rolled scanner gets wrong, and each of them is worth more th
 
 **The last row is the one that changes daily habits.** `info.md` and `acceptance.md` under `intent/st/<ID>/` are generated in v3. A hand-edit to one never reaches the store: `intent doctor` reports it as view-skew, and the next render overwrites it. See [The store](concepts/the-store.md) for the edit path that works.
 
-**These v2 commands are retired** and refuse at exit 2 with `` `intent <command>` was retired in Intent v3 and is not a command in this build ``: `st organize`, `st repair`, `st_zero`, `st bootstrap`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `agents template`, `claude prime`. A command v3 declares but has not built also refuses at exit 2, with `` `<command>` is a known command that is not implemented yet ``, so it is the message, not the exit code, that tells the two apart. `intent organize` is a v3 command: it reconciles the tree with `intent/.intentfiles`.
+**These v2 commands are retired** and refuse at exit 2 with `` `intent <command>` was retired in Intent v3 and is not a command in this build ``: `st organize`, `st repair`, `st_zero`, `st bootstrap`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `fileindex`, `agents template`, `claude prime`. `intent claude ws`, a v3 family retired in v3.0.2, refuses the same way and names `intent wb register`. A command v3 declares but has not built also refuses at exit 2, with `` `<command>` is a known command that is not implemented yet ``, so it is the message, not the exit code, that tells the two apart. `intent organize` is a v3 command: it reconciles the tree with `intent/.intentfiles`.
 
 **`intent help` and `intent <command> help` answer in v3.0.1**, as `intent --help` and `intent <command> --help` do. On v3.0.0 both refused, and `intent help`'s refusal said wrongly that there was no replacement; a script written against v3.0.0 that switched to `--help` works on both.
 

@@ -11,9 +11,11 @@ Intent is a binary plus a support tree. The support tree is not optional: severa
 
 This is the supported path. The formula installs the CLI (`intent`), the daemon (`intentd`) and the support tree into the keg, and sets no environment variable: the binary finds the tree from its own location, as a source build does (below).
 
+**Run `intent bootstrap` once on each machine, after installing.** It writes the install pointer, `~/.local/share/intent/home` (under `$XDG_DATA_HOME` when that is set), and your per-user config at `~/.config/intent/config.json`. A project's pre-commit gate finds Intent through that pointer, so until it exists every commit in a project with the gate installed is refused, and the refusal names `intent bootstrap`. Homebrew cannot run it for you, because a formula's `post_install` cannot write to your home directory, so the formula prints a caveat saying this. A source build needs it too. Re-running it repoints the pointer at the install you run it from and leaves an existing config alone; `--force` replaces the config.
+
 **The formula is macOS on Apple silicon only.** It declares `depends_on arch: :arm64` and `depends_on :macos`, and no Intel or Linux binary is built. Anywhere else, build [from source](#from-source).
 
-**The CLI does not need the daemon.** Every `intent` command does its work in-process unless you pass `--daemon`. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. The formula also declares a Homebrew service, so `brew services start intent` keeps `intentd` running under launchd instead; its stdout and stderr go to `intentd.log` under Homebrew's `var/log`.
+**The CLI does not need the daemon.** Every `intent` command except `intent graphql` does its work in-process unless you pass `--daemon`; `intent graphql` is answered only by a running `intentd`. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. The formula also declares a Homebrew service, so `brew services start intent` keeps `intentd` running under launchd instead; its stdout and stderr go to `intentd.log` under Homebrew's `var/log`.
 
 ## The menubar app
 
@@ -23,7 +25,7 @@ On its first run the app registers itself as a login item, so the menubar comes 
 
 ## From source
 
-Requires stable Rust 1.85 or later; the workspace is edition 2024.
+Requires stable Rust 1.90 or later: the workspace is edition 2024, and 1.90 is the highest `rust-version` a locked dependency declares. CI builds with the current stable toolchain.
 
 ```
   $ git clone https://github.com/matthewsinclair/intent
@@ -41,6 +43,12 @@ So a source build needs only the binary on `PATH`:
 
 **Do not set `INTENT_HOME`. v3 never reads it.** It is v2's variable. v3 resolves its install root from its own location and nothing else, so setting the variable cannot point a binary at a different tree and cannot repair an install that is missing part of its support tree. `intent info` prints the resolved root on a line labelled `INTENT_HOME`; that line is output, not a setting.
 
+## Per-user files
+
+Intent keeps each user's files in the XDG Base Directory layout. Configuration lives under `$XDG_CONFIG_HOME/intent/` (default `~/.config/intent/`). Data lives under `$XDG_DATA_HOME/intent/` (default `~/.local/share/intent/`): the install pointer, the skill and subagent manifests, and `ext/`. `intentd`'s logs live under `$XDG_STATE_HOME/intent/` (default `~/.local/state/intent/`). Its runtime files live under `$XDG_RUNTIME_DIR/intent/`, or under `~/.local/state/intent/run/` when that variable is unset, as it always is on macOS. A variable that is unset, empty or not an absolute path takes its default.
+
+The first command of v3.0.2 or later moves what an earlier build kept in `~/.intent/` into this layout, and removes `~/.intent/` when that leaves it empty. Anything else in it is left alone.
+
 ## Verifying an install
 
 ```
@@ -50,7 +58,7 @@ So a source build needs only the binary on `PATH`:
 
 **`intent claude rules list` is the install check, and you read its output, not its exit code.** It reads the rule library out of the install root. A healthy install lists rules and ends with a `total:` line. An install missing the library ends instead with `total: 0 rule(s) -- and there is NO RULE LIBRARY at <path>, so this install is incomplete rather than empty`, and **both exit 0**. `intent claude skills list` answers `no skills in this install` and `intent claude subagents list` answers `no subagents in this install` when their trees are missing, also at exit 0.
 
-**`intent doctor` is a different tool and it will not tell you this.** It reports on the _project_ you are standing in: backup staleness, a thread whose recorded status disagrees with its own gate, a generated view that differs from the store. Useful, and it inspects none of the install. Run it once you have a project; it is not an installation check.
+**`intent doctor` is a different tool and it will not tell you this.** It reports on the _project_ you are standing in: backup staleness, a thread whose recorded status disagrees with its own gate, a generated view that differs from the store. Useful, and it does not check the support tree: the only part of the install it reads is the hook templates it compares the project's pre-commit gate against. Run it once you have a project; it is not an installation check.
 
 ## What the install has to contain
 
@@ -62,8 +70,8 @@ Intent resolves these paths against its install root. **A binary on its own is n
 | `intent/plugins/claude/rules/`                | `intentsvcs::rules::Library::new` | `intent claude rules list` / `show`, `intent critic <lang>`                        |
 | `intent/plugins/claude/skills/`               | `intentsvcs::payload`             | `intent claude skills list` / `install` / `sync` / `uninstall`                     |
 | `intent/plugins/claude/subagents/`            | `intentsvcs::payload`             | `intent claude subagents list` / `install` / `sync` / `uninstall`                  |
-| `intent/plugins/`                             | `intentsvcs::plugins::root`       | Parent of the trees above; ships via its children                                  |
-| `intent/plugins/claude/bin/intent_claude_cwi` | `intentsvcs::install::cwi_script` | `intent claude start`, `intent claude ws new` / `list` / `archive` / `hygiene`     |
+| `intent/plugins/<name>/plugin.json`           | `intentsvcs::plugins::root`       | `intent plugin list` / `show` (each plugin is a directory holding a `plugin.json`) |
+| `intent/plugins/claude/bin/intent_claude_cwi` | `intentsvcs::install::cwi_script` | `intent claude start`                                                              |
 
 On a Homebrew install these root at `$KEG/libexec`, which is what `intent info` reports on its `INTENT_HOME` line. The support archive is rooted at the install root, so the tree lands directly under `libexec`:
 
@@ -73,26 +81,29 @@ On a Homebrew install these root at `$KEG/libexec`, which is what `intent info` 
   $KEG/libexec/lib/templates/
   $KEG/libexec/intent/plugins/claude/rules/
   $KEG/libexec/intent/plugins/claude/skills/
+  $KEG/libexec/intent/plugins/claude/subagents/
   $KEG/libexec/intent/plugins/claude/bin/intent_claude_cwi
 ```
 
-**The v3.0.1 keg carries no `intent/plugins/claude/subagents/` tree**, so on a Homebrew install `intent claude subagents list` answers `no subagents in this install` and there are no subagents to install. See [Known defects](known-defects.md).
-
 If a command fails with an error naming a path rather than an argument, this table is where to look first. **Nothing in the tool audits this table for you**; the closest thing is running one command per row and seeing whether it works. For the rules, skills and subagents rows, "works" means it lists something, because their empty answer comes back at exit 0.
 
-## Upgrading from v3.0.0
+## Upgrading
 
 ```
   $ brew upgrade intent
 ```
 
-The v3.0.0 keg shipped without the rule library, the skills and `intent_claude_cwi`; the v3.0.1 keg carries all three. **The first v3.0.1 command to touch a project migrates its store in place, and nothing migrates it back**, so take `intent backup` with v3.0.0 first if you might need to go back. The [v3.0.1 release notes](releases/3.0.1/RELEASE_NOTES.md) cover the migration and everything else that changed.
+**The first command of a newer build to open a project's store migrates it in place, and nothing migrates it back.** An older build then refuses that store and says it was written by a newer Intent. If you might need to go back, take `intent backup` with the older build first.
 
-A project whose views were rendered by v3.0.0 reports every one of them as view-skew under v3.0.1's `intent doctor`. [Known defects](known-defects.md) says what clears it.
+**Views an older build rendered report as `stale-render` in `intent doctor`.** This is advisory and does not block a commit, and `intent sync --to-disk` brings the views up to date.
+
+**From v3.0.1 or earlier,** the first command of v3.0.2 or later moves your per-user files out of `~/.intent/` (see [Per-user files](#per-user-files)). A pre-commit gate installed by the older build still reads the old pointer, so run `intent claude upgrade --apply --skip-settings` in each project, and run `intent bootstrap` if `~/.local/share/intent/home` does not exist.
+
+**From v3.0.0,** note that the v3.0.0 keg shipped without the rule library, the skills and `intent_claude_cwi`. The [v3.0.1 release notes](releases/3.0.1/RELEASE_NOTES.md) cover that migration.
 
 ## Known defects
 
-[Known defects](known-defects.md) lists every defect in v3.0.1 that a reader can reach by following the documentation correctly, including the ones above.
+[Known defects](known-defects.md) lists every defect in the current release that a reader can reach by following the documentation correctly.
 
 ---
 

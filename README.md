@@ -12,7 +12,7 @@ The Homebrew build is for macOS on Apple silicon; anywhere else, [build from sou
 
 ## What it is
 
-A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither.
+A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither, except `intent graphql`, which only a running `intentd` answers.
 
 A **steel thread** is one intention followed end to end. It breaks into **work packages**, and it states **acceptance criteria** — the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so whether a thread is satisfied is computed rather than asserted.
 
@@ -68,7 +68,7 @@ For the surface of a build you actually have in front of you, ask that build: `i
 ├── surface/           # The dispatch register the command reference is generated from
 ├── lib/templates/     # Single source for all generated content
 └── intent/            # This project's own Intent artefacts
-    ├── .canon/        # The committed extract of the store: threads and issues
+    ├── .canon/        # The committed extract of the store: threads, issues and events
     ├── .cache/        # This machine's store (intent.db); not committed
     ├── .config/       # Per-project config and metadata
     ├── st/            # Steel threads (info.md and acceptance.md are generated views)
@@ -92,7 +92,7 @@ Create a steel thread for the change, record what you are trying to achieve and 
 ## Getting help
 
 - [Documentation](./docs/index.md) — install, getting started, concepts, command reference, migration
-- [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not inspect the installation; `intent claude rules list` is the check that the support tree arrived
+- [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not check the support tree (the only part of the install it reads is the hook templates it compares the project's pre-commit gate against); `intent claude rules list` is the check that the support tree arrived
 - [GitHub Issues](https://github.com/matthewsinclair/intent/issues) — bug reports
 
 ## License
