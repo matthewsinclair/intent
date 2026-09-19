@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX8778AMG9C09FVA6FRAZ3",
+  "ts": "2026-09-19T13:21:21.129Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Push the tap README commit 0341f61 (homebrew-intent, local only, ahead 1): hv's call, or it rides the next int macos publish."
+  }
+}

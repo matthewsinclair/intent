@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-19 06:59Z
+heartbeat_at: 2026-09-19 13:21Z
 status: active
-focus: "The fleet trawl is done, 22 of 22 checked by vc (dc half 9 of 9, Devbin bc556b0), nothing pushed. Holds 17, 18. NO RELEASE, NO PUSH."
+focus: "3.1.0 is cut. dc's doc sweep landed (59771a796, 7965d349f, edcb5a501, ea51af051) and issues 0462-0475 are filed (a6c9b3dba). Next: the CI search race, on hv's re-run. Holds 17, 18. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -17,8 +17,8 @@ _(none)_
 
 ## TODO
 
-- On vc's CUT DONE: apply dc's doc-sweep edits (about 74 findings over dc's lane: install, gate and CI docs, devbin help, the older guides, the tap README last), findings banked at refs/bank/dc/docsweep/{A,B,C,D,cross-lane-in}.md; drive a page's commands in a scratch project before editing it, name any deletion to vc first, commit per area.
-- On vc's CUT DONE: file the release driver's next-line issues listed in refs/bank/dc/docsweep/cross-lane-in.md (--skip-tests before the gh auth check, the dry run skipping the spill check, the footer classifier dropping - and + lines, the swallows at 518 and 845, the git checkout remedies at 1118 and 1151, re-run when ready at 1271), checking vc's next-line-issues.md first so none is filed twice.
+- The CI search race (run 35442054472, ubuntu, intent-cli daemon_and_local_agree): a daemon-watched plain search skips its reconcile (91d18c2b7, 0443 Q1) and answers before the watcher indexes a just-written file. Released by hv's re-run of that job, via vc. Green: make the fixture wait for the index and put the property in known defects. Red: the same fix plus an issue carrying the Linux run. Either way it's a crate change, done in a private worktree with its own target and HOME, with the whole intent-cli suite, banked for vc.
+- Push the tap README commit 0341f61 (homebrew-intent, local only, ahead 1): hv's call, or it rides the next int macos publish.
 
 ## Holds
 

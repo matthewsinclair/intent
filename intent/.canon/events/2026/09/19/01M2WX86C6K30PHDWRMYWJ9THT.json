@@ -1,0 +1,15 @@
+{
+  "id": "01M2WX86C6K30PHDWRMYWJ9THT",
+  "ts": "2026-09-19T13:21:20.262Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "The CI search race (run 35442054472, ubuntu, intent-cli daemon_and_local_agree): a daemon-watched plain search skips its reconcile (91d18c2b7, 0443 Q1) and answers before the watcher indexes a just-written file. Released by hv's re-run of that job, via vc. Green: make the fixture wait for the index and put the property in known defects. Red: the same fix plus an issue carrying the Linux run. Either way it's a crate change, done in a private worktree with its own target and HOME, with the whole intent-cli suite, banked for vc."
+  }
+}
