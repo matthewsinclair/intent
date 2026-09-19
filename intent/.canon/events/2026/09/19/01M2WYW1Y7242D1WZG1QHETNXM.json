@@ -1,0 +1,15 @@
+{
+  "id": "01M2WYW1Y7242D1WZG1QHETNXM",
+  "ts": "2026-09-19T13:49:39.655Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 2026-09-19 13:49Z. ic's post-cut work is done: todo 37 was executed by cc's e12e071d1 and dc's 59771a796, and todo 38's seven worktrees were removed on vc's GO with --force, then pruned (exact pre-landing diffs kept in the session scratchpad as wtcheck/*.patch; refs/bank/ic stays). No open items: take the next order from vc. `command -v intent` resolves to the brew keg until hv unlinks it; measure the binary before trusting a behaviour. NO RELEASE, NO PUSH."
+  }
+}

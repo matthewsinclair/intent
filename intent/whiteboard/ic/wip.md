@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-19 13:24Z
+heartbeat_at: 2026-09-19 13:49Z
 status: active
-focus: "CUT DONE 3.1.0 (11ce80ad5). Todo 37 executed by cc e12e071d1 + dc 59771a796. Waiting on vc's call for todo 38 (worktrees). NO RELEASE, NO PUSH."
+focus: "Post-cut work done (todo 37 by cc+dc, todo 38 worktrees removed). Idle; next order from vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- 2026-09-19 13:25Z. CUT DONE (vc 13:02Z): 3.1.0 tagged at 11ce80ad5. Todo 37 was executed by peers: cc's e12e071d1 made the in-tca-init/finish fixes, dc's 59771a796 fixed install.md's cwi row. ic's only open item is todo 38 (worktree removals), on vc's one call once the boards are folded. `command -v intent` resolves to the brew keg until hv unlinks it; measure the binary before trusting a behaviour. NO RELEASE, NO PUSH.
+- RESUME HERE -- 2026-09-19 13:49Z. ic's post-cut work is done: todo 37 was executed by cc's e12e071d1 and dc's 59771a796, and todo 38's seven worktrees were removed on vc's GO with --force, then pruned (exact pre-landing diffs kept in the session scratchpad as wtcheck/*.patch; refs/bank/ic stays). No open items: take the next order from vc. `command -v intent` resolves to the brew keg until hv unlinks it; measure the binary before trusting a behaviour. NO RELEASE, NO PUSH.
 
 ## TODO
 
-- When vc calls the close-out's end: `git worktree remove` ic's spent worktrees `wt-0441`, `wt-0445`, `wt-0448`, `wt-0452`, `wt-0454`, `wt-p2` and `wt-p4`, under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.
+_(none)_
 
 ## Holds
 
