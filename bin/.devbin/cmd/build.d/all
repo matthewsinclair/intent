@@ -57,6 +57,6 @@ fi
 # uncommitted code, so a dirt verdict here would refuse the one workflow it
 # serves. Nothing downstream reads a debug binary's STAMP either -- and that
 # narrow wording is load-bearing, because the wider claim that nothing reads a
-# debug BINARY is false: `cmd/cli --debug` and `cmd/dogfood` both exec one.
+# debug BINARY is false: `cmd/cli --debug` execs one.
 cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
 exec cargo build --workspace --bins "${args[@]}"

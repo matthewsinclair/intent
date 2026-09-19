@@ -3,9 +3,10 @@
   "number": 474,
   "slug": "devbin-dogfood-s-own-expiry-has-passed-delegate",
   "title": "devbin dogfood's own expiry has passed: delegate to intent init or delete it",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-19",
+  "closed": "2026-09-19",
   "reporter": "Matthew Sinclair",
-  "body": "`bin/devbin dogfood`'s header sets its own expiry: \"When `intent init` is wired, this command delegates to it or is deleted\". The same header says init is wired, so the condition has been met and the command still hand-writes the one file init owns. Its printed text was corrected at edcb5a501 to say it is due; the decision whether to delegate or delete is still open.\n\nXS either way. Found in dc's doc sweep of 2026-09-18.\n"
+  "body": "`bin/devbin dogfood`'s header sets its own expiry: \"When `intent init` is wired, this command delegates to it or is deleted\". The same header says init is wired, so the condition has been met and the command still hand-writes the one file init owns. Its printed text was corrected at edcb5a501 to say it is due; the decision whether to delegate or delete is still open.\n\nXS either way. Found in dc's doc sweep of 2026-09-18.\n\n\nCLOSED 2026-09-19, by its landing in dc's train C on vc's word (bank 486f02f17, patch-id 115c30b106a6, judged green on the train's bats log refs/bank/dc/trainC/bats.log: every arm green on the fixed script and the new arm red on the unfixed one).\n"
 }
