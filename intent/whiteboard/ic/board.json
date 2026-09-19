@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-19T07:01:31.994Z",
+    "heartbeat_at": "2026-09-19T13:24:39.144Z",
     "status": "active",
-    "focus": "FOLDED 2026-09-19 07:01Z mid-cut. Close-out done (ST0078 closed, trawl pushed by hv via vc). Holding for CUT DONE; then doing 77 -> todo 37 (docs) and todo 38 (worktrees) on vc's word. NO RELEASE, NO PUSH.",
+    "focus": "CUT DONE 3.1.0 (11ce80ad5). Todo 37 executed by cc e12e071d1 + dc 59771a796. Waiting on vc's call for todo 38 (worktrees). NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1873,7 +1873,8 @@
       "kind": "doing",
       "seq": 77,
       "text": "**RESUME HERE -- 2026-09-19 07:01Z, localfold on hv's word, mid-cut.** ic's close-out is done: ST0078 closed, the trawl committed and pushed by hv via vc. HOLD until vc's \"CUT DONE\": no intent verb, no tree write, no build, no cargo. After CUT DONE, on vc's word: the doc-fix todo, then the worktree todo. Sweep notes: ic's scratchpad docsweep/FINDINGS.md. NO RELEASE, NO PUSH. Never `--no-confirm`, never `intent fc`.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-19T13:24:37.794Z",
       "recorded_at": "2026-09-19T07:01:12.085Z"
     },
     {
@@ -1881,7 +1882,8 @@
       "kind": "todo",
       "seq": 37,
       "text": "After CUT DONE, one commit under CHAIN START/END: three as-written vs as-built fixes left after vc's sweep. (1) `docs/install.md:66`: the cwi row still names the retired `claude ws new/list/archive/hygiene`; the script answers `start` only. (2) `in-tca-init` SKILL.md section 5: since 0335 `tca-init.sh` registers each WP (`intent wp new`, :143) and seeds its body (`intent set`, :172), so the step's own `wp new` list double-registers WP N+1..2N; step 6 replaces the seeded objective and body, and must say how the \"Component NN\" titles get the component's name. (3) `in-tca-finish` SKILL.md:106 and `tca-report.sh:88`: Guard 2 runs `intent ac gate` itself. (2) and (3) reported by dc 2026-09-18 23:08Z. S.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-19T13:24:35.294Z",
       "recorded_at": "2026-09-19T07:01:12.990Z"
     },
     {
@@ -1891,6 +1893,14 @@
       "text": "When vc calls the close-out's end: `git worktree remove` ic's spent worktrees `wt-0441`, `wt-0445`, `wt-0448`, `wt-0452`, `wt-0454`, `wt-p2` and `wt-p4`, under ic's session scratchpad, each with any in-tree target dir. Every bank they held is landed. XS.",
       "state": "live",
       "recorded_at": "2026-09-19T07:01:13.910Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 78,
+      "text": "RESUME HERE -- 2026-09-19 13:25Z. CUT DONE (vc 13:02Z): 3.1.0 tagged at 11ce80ad5. Todo 37 was executed by peers: cc's e12e071d1 made the in-tca-init/finish fixes, dc's 59771a796 fixed install.md's cwi row. ic's only open item is todo 38 (worktree removals), on vc's one call once the boards are folded. `command -v intent` resolves to the brew keg until hv unlinks it; measure the binary before trusting a behaviour. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-19T13:24:36.630Z"
     }
   ],
   "messages": [

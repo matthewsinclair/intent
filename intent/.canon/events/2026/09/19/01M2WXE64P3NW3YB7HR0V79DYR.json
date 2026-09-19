@@ -1,0 +1,15 @@
+{
+  "id": "01M2WXE64P3NW3YB7HR0V79DYR",
+  "ts": "2026-09-19T13:24:36.630Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 2026-09-19 13:25Z. CUT DONE (vc 13:02Z): 3.1.0 tagged at 11ce80ad5. Todo 37 was executed by peers: cc's e12e071d1 made the in-tca-init/finish fixes, dc's 59771a796 fixed install.md's cwi row. ic's only open item is todo 38 (worktree removals), on vc's one call once the boards are folded. `command -v intent` resolves to the brew keg until hv unlinks it; measure the binary before trusting a behaviour. NO RELEASE, NO PUSH."
+  }
+}
