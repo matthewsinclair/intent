@@ -4648,10 +4648,11 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
   // tells a reader a sentence is now counted as a unit of work.
   for item in carried.items.iter().filter(|i| i.coerced) {
     eprintln!(
-      "coerced: [{}] {} -- {}\n  reason: section prose, not a list entry, carried as one item",
+      "coerced: [{}] {} -- {}\n  reason: section prose, not a list entry, carried as one item{}",
       item_kind_word(&item.kind),
       item.at,
-      first_line(&item.text)
+      first_line(&item.text),
+      read_this(&item.text)
     );
   }
   for file in &carried.left_in_place {
@@ -4672,6 +4673,31 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
     0 => String::new(),
     n => format!(", {n} unit(s) dropped on --drop-uncarried"),
   };
+  // **WHAT EACH SECTION YIELDED, BECAUSE A TOTAL CANNOT BE COMPARED WITH THE
+  // BOARD** (issue 0488). The author of a board knows how many lines they wrote
+  // under DOING; they do not know how many items a carry should have made
+  // altogether, so a single total is a number nobody can check. Per section it
+  // is one glance -- and the defect that produced this issue, four numbered
+  // TODO lines arriving as one todo, is exactly the shape a per-section count
+  // shows and a total hides.
+  //
+  // Every kind is printed, zeros included: a section that yielded nothing is
+  // the case worth seeing, and printing only what appeared would hide it.
+  {
+    use intentsvcs::model::WbItemKind::*;
+    let counts = [Doing, Todo, Hold, Watchout, Decision, Directive]
+      .iter()
+      .map(|k| {
+        format!(
+          "{} {}",
+          carried.items.iter().filter(|i| i.kind == *k).count(),
+          item_kind_word(k)
+        )
+      })
+      .collect::<Vec<_>>()
+      .join(", ");
+    println!("by section: {counts}");
+  }
   println!(
     "ok: {} carried {} item(s), {} message(s), {} snapshot(s){dropped}",
     carried.node,
@@ -4708,11 +4734,32 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
 fn print_uncarried(units: &[intentsvcs::wbmigrate::Uncarried]) {
   for refused in units {
     eprintln!(
-      "uncarried: {} -- {}\n  reason: {}",
+      "uncarried: {} -- {}\n  reason: {}{}",
       refused.at,
       first_line(&refused.text),
-      refused.reason
+      refused.reason,
+      read_this(&refused.text)
     );
+  }
+}
+
+/// The `read this` mark, or nothing, for a unit the report is about to name.
+///
+/// **ONE CLASSIFIER, TWO LINES** (issue 0489): `uncarried:` and `coerced:` both
+/// name units whose text may hold a state the items around them depend on, and
+/// both used to name every unit alike. Most sub-headings are dates and safe;
+/// the one that said two rulings were NOT executed was not, and it read
+/// identically. The verdict comes from `wbmigrate::reads_as_state_bearing`, so
+/// the two lines cannot disagree about what looks state bearing.
+///
+/// **IT MARKS AND DECIDES NOTHING**, which is why it is a suffix on an existing
+/// line rather than a new refusal: the operator still chooses.
+fn read_this(text: &str) -> &'static str {
+  match intentsvcs::wbmigrate::reads_as_state_bearing(text) {
+    true => {
+      "\n  READ THIS: its words suggest it carries a state the items near it depend on -- check it before dropping or accepting it"
+    }
+    false => "",
   }
 }
 

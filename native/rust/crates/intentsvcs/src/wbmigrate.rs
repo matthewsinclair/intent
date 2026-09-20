@@ -390,16 +390,104 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
   out
 }
 
+/// Does this text read as though it carries a state the items under it depend
+/// on?
+///
+/// **THE ONE CLASSIFIER, AND IT SERVES TWO REPORT LINES** (`0489`): the
+/// `uncarried:` worklist and the `coerced:` list. A sub-heading or a board's
+/// lead is dropped or flattened alike whatever it says, so
+/// `### Still live from 2026-08-19 -- the two rulings that are NOT executed`
+/// went the same way as a date, and with it the only marker that those rulings
+/// were unexecuted; a board lead holding every TODO behind a fence went the
+/// same way, and the carried TODO then read as actionable.
+///
+/// **IT MARKS AND DECIDES NOTHING.** The report says "read this" and the
+/// operator reads it: a classifier that dropped or kept on its own verdict
+/// would be a second opinion about what a board means, and its false negatives
+/// would be silent -- which is the failure this exists to surface, not to
+/// reproduce one layer up.
+///
+/// The words are the ones that appeared in the boards this was measured on. A
+/// list in code goes stale, so it is small, it is here beside its callers
+/// rather than in two places, and a miss costs a line unmarked rather than a
+/// line lost.
+pub fn reads_as_state_bearing(text: &str) -> bool {
+  const MARKERS: [&str; 5] = ["not executed", "held", "blocked", "until", "unexecuted"];
+  let lowered = text.to_lowercase();
+  MARKERS.iter().any(|m| lowered.contains(m))
+}
+
+/// Which kind of list marker a block opens with.
+///
+/// **THE OPENER DECIDES THE WHOLE BLOCK, AND A MIXED BLOCK IS NOT AN ERROR**
+/// (`0488`). A block opening `- ` whose third line is `1. ` is a bullet list
+/// with a numbered continuation line, and a block opening `1. ` whose third
+/// line is `- ` is a numbered list the same way round. Splitting on whichever
+/// marker each line happens to carry would turn one author's list into two
+/// interleaved ones, so the kind is read once, at the top, and the rest of the
+/// block is read through it.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ListMarker {
+  Bullet,
+  Ordered,
+}
+
+/// The length of an ordered-list marker at the head of `line`, if it has one.
+///
+/// CommonMark's ordered marker: one or more DIGITS, then `.` or `)`, then a
+/// space. **DIGITS ONLY, ruled by vc 2026-09-20**: `a.` and `i.` are not
+/// markers here. A lettered list is rare on a board and a sentence opening
+/// `A. ` is not, so admitting letters would split prose that no author meant
+/// as a list -- the expensive direction, since the split is what makes each
+/// piece an item of work.
+fn ordered_marker(line: &str) -> Option<usize> {
+  let digits = line.find(|c: char| !c.is_ascii_digit())?;
+  if digits == 0 {
+    return None;
+  }
+  let after_digits = &line[digits..];
+  let after_delim = after_digits
+    .strip_prefix('.')
+    .or_else(|| after_digits.strip_prefix(')'))?;
+  after_delim.strip_prefix(' ')?;
+  // digits, one delimiter, one space.
+  Some(digits + 2)
+}
+
+/// The marker `line` opens with, reading it as the given kind.
+///
+/// Returns the marker's length, so the caller strips exactly what it matched.
+/// **UNINDENTED ONLY**, which is what keeps a nested list attached to its
+/// parent item as a continuation rather than being promoted beside it.
+fn marker_len(kind: ListMarker, line: &str) -> Option<usize> {
+  match kind {
+    ListMarker::Bullet => line.starts_with("- ").then_some(2),
+    ListMarker::Ordered => ordered_marker(line),
+  }
+}
+
 /// Split one blank-line-delimited block into items.
 ///
-/// A block opening with `- ` is a bullet list: one item per top-level bullet,
-/// with its continuation lines attached. Anything else is one item, verbatim,
-/// and the third field says which of the two it was.
+/// A block opening with `- ` is a bullet list and a block opening with `1. ` or
+/// `1) ` is an ordered one: either way, one item per top-level marker with its
+/// continuation lines attached. Anything else is one item, verbatim, and the
+/// third field says which of the two it was.
+///
+/// **ORDERED LINES USED TO FALL INTO THE `anything else` BRANCH** (`0488`), so
+/// a numbered TODO of four lines became ONE todo and two unexecuted rulings
+/// written `1.` and `2.` became one decision with an embedded `2.` -- neither
+/// archivable without the other, and both re-split by hand afterwards. Bullets
+/// carried one per line the whole time, so the board's author got one of two
+/// answers depending on a choice of punctuation nothing told them was load
+/// bearing.
 fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String, bool)> {
-  let opens_a_list = block
-    .first()
-    .is_some_and(|(_, l)| l.trim_start().starts_with("- "));
-  if !opens_a_list {
+  let opens_a_list = block.first().and_then(|(_, l)| {
+    let head = l.trim_start();
+    marker_len(ListMarker::Bullet, head)
+      .map(|_| ListMarker::Bullet)
+      .or_else(|| marker_len(ListMarker::Ordered, head).map(|_| ListMarker::Ordered))
+  });
+  let Some(kind) = opens_a_list else {
     let line_no = block.first().map(|(n, _)| *n).unwrap_or(0);
     let text = block
       .iter()
@@ -407,16 +495,24 @@ fn blocks_to_items(block: &[(usize, String)]) -> Vec<(usize, String, bool)> {
       .collect::<Vec<_>>()
       .join("\n");
     return vec![(line_no, text, false)];
-  }
+  };
   let mut out: Vec<(usize, String, bool)> = Vec::new();
   for (line_no, line) in block {
-    if line.starts_with("- ") {
-      out.push((*line_no, line.trim_start_matches("- ").to_string(), true));
-    } else if let Some((_, last, _)) = out.last_mut() {
-      last.push('\n');
-      last.push_str(line);
-    } else {
-      out.push((*line_no, line.clone(), true));
+    match marker_len(kind, line) {
+      // **THE BULLET BRANCH KEEPS `trim_start_matches` RATHER THAN SLICING.**
+      // It strips a REPEATED `- `, so `- - x` has always carried as `x`, and
+      // changing that here would move carries this issue is not about.
+      Some(_) if kind == ListMarker::Bullet => {
+        out.push((*line_no, line.trim_start_matches("- ").to_string(), true));
+      }
+      Some(n) => out.push((*line_no, line[n..].to_string(), true)),
+      None => match out.last_mut() {
+        Some((_, last, _)) => {
+          last.push('\n');
+          last.push_str(line);
+        }
+        None => out.push((*line_no, line.clone(), true)),
+      },
     }
   }
   out

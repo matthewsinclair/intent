@@ -454,3 +454,134 @@ The lanes as they stand:\n| lane | item |\n| ---- | ---- |\n";
   assert_eq!(board.uncarried.len(), 3, "{:?}", board.uncarried);
   assert!(board.reconciles());
 }
+
+/// **`0488`: A NUMBERED LIST CARRIES ONE ITEM PER LINE, AS BULLETS ALWAYS DID.**
+///
+/// Before this, an ordered line fell into the "anything else is one item,
+/// verbatim" branch: ic's four-item numbered TODO arrived as one todo and hv's
+/// two unexecuted rulings, written `1.` and `2.`, arrived as one decision with
+/// an embedded `2.` -- neither archivable without the other. The board's author
+/// got one of two answers depending on a choice of punctuation that nothing
+/// told them was load bearing.
+///
+/// The mixed block is in the same arm on purpose: the opener decides the whole
+/// block, so a `- ` line inside a numbered list is a continuation rather than a
+/// new item, and an author who mixes them gets one list rather than two
+/// interleaved ones.
+#[test]
+fn a_numbered_list_carries_one_item_per_line_and_a_mixed_block_follows_its_opener() {
+  const BOARD: &str = r#"---
+node: ic
+name: Interface Claude
+role: interface
+session_id: none
+heartbeat_at: 2026-09-19 12:00Z
+status: active
+focus: "numbered lists"
+claims: []
+---
+# Interface Claude (ic)
+
+## TODO
+
+1. the first numbered thing
+2. the second numbered thing
+3) the third, with a paren delimiter
+10. the tenth, to prove more than one digit
+
+## Decisions
+
+1. an ordered opener
+- a bullet inside it, which is a continuation and not a new item
+
+## Watch-outs
+
+- a bullet opener
+1. a numbered line inside it, which is a continuation too
+"#;
+
+  let board = wbmigrate::read_board("ic", BOARD, "intent/whiteboard/ic/wip.md");
+
+  let todos: Vec<&str> = board
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Todo)
+    .map(|i| i.text.as_str())
+    .collect();
+  assert_eq!(
+    todos,
+    vec![
+      "the first numbered thing",
+      "the second numbered thing",
+      "the third, with a paren delimiter",
+      "the tenth, to prove more than one digit",
+    ],
+    "a numbered list must carry one item per line, with its marker stripped"
+  );
+  assert!(
+    board
+      .items
+      .iter()
+      .filter(|i| i.kind == WbItemKind::Todo)
+      .all(|i| !i.coerced),
+    "an ordered line is a list entry, so it is not coerced prose"
+  );
+
+  let decisions: Vec<&str> = board
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Decision)
+    .map(|i| i.text.as_str())
+    .collect();
+  assert_eq!(
+    decisions,
+    vec!["an ordered opener\n- a bullet inside it, which is a continuation and not a new item"],
+    "an ordered block's bullet line is a continuation: the opener decides the block"
+  );
+
+  let watchouts: Vec<&str> = board
+    .items
+    .iter()
+    .filter(|i| i.kind == WbItemKind::Watchout)
+    .map(|i| i.text.as_str())
+    .collect();
+  assert_eq!(
+    watchouts,
+    vec!["a bullet opener\n1. a numbered line inside it, which is a continuation too"],
+    "and the same rule the other way round"
+  );
+  assert!(board.reconciles());
+}
+
+/// **`0489`: THE ONE CLASSIFIER BEHIND BOTH REPORT LINES.**
+///
+/// Most sub-headings are dates and safe to drop. The one reading
+/// `### Still live from 2026-08-19 -- the two rulings that are NOT executed`
+/// was not, and it was named in the uncarried list identically to the dates, so
+/// a node dropping them under `--drop-uncarried` had no signal. The renderer
+/// asks this function for the `uncarried:` line and for the `coerced:` line, so
+/// the two cannot disagree about what looks state bearing.
+///
+/// **NOT DRIVEN HERE: that the renderer prints the mark.** Those are two
+/// one-line suffixes in `render.rs` over this verdict, and a CLI fixture for a
+/// report line is more machinery than the mark is worth while the seven carries
+/// are waiting. What is driven is the verdict every such line is taken from.
+#[test]
+fn a_lead_that_carries_a_state_is_marked_and_a_date_is_not() {
+  use intentsvcs::wbmigrate::reads_as_state_bearing;
+
+  assert!(reads_as_state_bearing(
+    "### Still live from 2026-08-19 -- the two rulings that are NOT executed"
+  ));
+  assert!(reads_as_state_bearing(
+    "Everything below is held behind hv's fences until the cut"
+  ));
+  assert!(reads_as_state_bearing("This work is blocked on the daemon"));
+
+  assert!(!reads_as_state_bearing("### 2026-08-19"));
+  assert!(!reads_as_state_bearing("### cc's lane"));
+  assert!(
+    !reads_as_state_bearing("The lanes as they stand:"),
+    "a decorative lead must not be marked, or the mark means nothing"
+  );
+}
