@@ -1414,9 +1414,13 @@ gate_out_dir() {
 # Exists because built-in gates put user args after `--`, so a wrapper flag
 # typed at the command line arrived as a TOOL argument -- `test mix --purge`
 # asked mix to run a file called --purge. hv ruled the corpus purge semantics
-# back in on 2026-08-09 (`test all --purge`). ONE parser, used by BOTH gate
-# call sites -- gatecmd's run_builtin_gate and run_option's declared-gate
-# branch -- so the two paths cannot drift on what counts as a wrapper flag.
+# back in on 2026-08-09 (`test all --purge`). ONE parser, used by EVERY gate
+# site that forwards a user's argv, so they cannot drift on what counts as a
+# wrapper flag. THIS SENTENCE ONCE LISTED THE SITES, said "both", and was wrong
+# for as long as a third existed: run_command's gate forwarded "$@" whole until
+# issue 0087. The sites are not listed here any more; an arm in dispatch.bats
+# refuses any run_gate span that forwards a raw argv, which finds a new site
+# the day it is written.
 #
 # The purge pair and --allow-empty are recognised, both ruled in by hv on
 # 2026-08-09. --allow-empty does not weaken the default -- a gate that examines
@@ -1457,11 +1461,27 @@ gate_split_args() {
 # decline: run_option falls back to the catalogue row before calling this, so
 # an override that says nothing about sealing does not stop sealing.
 gate_log_suffix() {
-  case "$2" in
-    true | yes | 1) upper_snake "$1" ;;
-    - | false | no | 0) ;;
-    *) printf '%s' "$2" ;;
-  esac
+  if is_true_word "$2"; then
+    upper_snake "$1"
+  elif is_no_default "$2" || is_false_word "$2"; then
+    :
+  else
+    printf '%s' "$2"
+  fi
+}
+
+# gate_grammar <declared> -- the grammar a declared `grammar:` seals with: the
+# name it gives, or `generic` when it gives none or gives `-`.
+#
+# THE ONE RESOLVER, BESIDE gate_log_suffix (issue 0066). `-` meaning generic
+# was written out in run_option and again in run_command's command-level
+# reader, and gatecmd passed the catalogue's value through raw.
+gate_grammar() {
+  if [ -z "$1" ] || is_no_default "$1"; then
+    printf 'generic'
+  else
+    printf '%s' "$1"
+  fi
 }
 
 # run_gate [options] -- <command> [args...]
@@ -1681,7 +1701,27 @@ run_gate() {
   case "$-" in *e*) errexit_was_on=1 ;; esac
   set +e
   gate_heartbeat_start "$log" "$label"
-  "$@" 2>&1 | tee -a "$log"
+  # A GATED TOOL GETS NO INPUT (issue 0088, row 2; hv, 2026-09-18, amended
+  # twice the same day). It inherited the caller's stdin, so a tool run from a
+  # terminal was handed the person's keyboard: a tool that asks (`Shall I
+  # install Hex? [Yn]`) BLOCKED there, while every agent and CI run read EOF
+  # and took the no-answer path. Now every run takes that one path.
+  #
+  # THE FACT OF A TERMINAL STILL REACHES devbin's CODE, as DEVBIN_GATE_TTY
+  # (1 when this gate's own stdin is a terminal, else 0 -- always set, so a
+  # value inherited from an outer gate cannot stand). `clean` asks before it
+  # removes, and it asks on this flag; it reads the answer from /dev/tty, never
+  # from stdin. The first cut fed </dev/null with no flag and a person could
+  # no longer confirm a clean (clean.bats caught it). The first amendment let
+  # devbin's own functions keep stdin instead, and so handed the terminal to
+  # every tool such a function STARTS -- mix under `check format`, the
+  # formatters, fullcycle's phases (dc measured it): the split looked only at
+  # the gate's first word. One rule at this one site is the only form that
+  # covers a built-in not yet written. A tool that opens /dev/tty itself is
+  # outside this either way.
+  local gate_tty=0
+  [ -t 0 ] && gate_tty=1
+  DEVBIN_GATE_TTY="$gate_tty" "$@" </dev/null 2>&1 | tee -a "$log"
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
   # command to run. Stopping first would hand the gate the heartbeat's verdict.

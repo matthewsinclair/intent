@@ -213,7 +213,7 @@ infra_sender_pair_complete() {
 
 #
 # SC2016 is suppressed for the function, not line by line, for the same reason
-# `bin/.devbin/cmd/release` suppresses it for its renderers: every message below
+# `lib/release.notes` suppresses it for its renderers: every message below
 # names a config KEY, and the delimiter this project writes a key in is the
 # backtick. Single quotes are correct here precisely because the contents must
 # NOT expand -- which is the thing shellcheck is warning about. Added 2026-09-07

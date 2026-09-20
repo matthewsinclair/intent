@@ -1,0 +1,944 @@
+#!/usr/bin/env bash
+#
+# lib/release.steps -- the release core's steps as READERS, and the one renderer
+# of a step's row (ST0007, D38; WP-03).
+#
+#   release_row <n> <state> <detail>             the row a cut's summary and status both print
+#   release_tag_name <template> <version>        the tag a version is released under
+#   release_commit <tag>                         `<sha><TAB>tag|HEAD`: the release commit
+#   release_versions <template>                  every version a matching tag names, newest first
+#   release_resolve <template> <target>          step 1: `<version><TAB><tag><TAB>new|resume`
+#   release_scratch <project-root>               a scratch directory OUTSIDE the project
+#   release_materialise <commit> <dir> <path>... a commit's whole tree, written into <dir>
+#   release_owned <root> <version>               the paths a release owns before derived: runs
+#   release_dirt                                 every dirty path in the working tree
+#   release_outside <paths> <owned>              the paths the owned set does not hold
+#   release_tree_state                           `<hash><TAB><path>` per dirty path, now
+#   release_tree_changed <before> <after>        the paths two tree states disagree on
+#   release_read_stamp <root> <version> <views>  step 3's postcondition, read under <root>
+#   release_read_clean                           step 4's cleanliness clause, the working tree
+#   release_read_tag <tag> <root> <version>      step 7's postcondition, with the reuse report
+#   release_tag_reuse_note <tag> <root> <version>
+#                                                how a found tag is not the one the core makes
+#   release_read_remote <remote> <branch> <tag> <commit> [preflight|preflight-new|push]
+#                                                step 8's postcondition, one remote; pre-flight's
+#   release_git_remote <git-args>...             every git call that reaches a remote
+#   release_repo <declared-repo> <declared-remote>
+#                                                the repository gh is told about
+#   release_gh <repo> <group> <verb> [args...]   every gh call the release core makes
+#   release_read_object <object> <tag> <declared-repo> <declared-remote>
+#                                                step 9's postcondition, per D42
+#   release_read_object_content <repo> <tag> <title> <body-file>
+#                                                an existing object: this release's title and notes?
+#   release_seconds <duration>                   a declared wait (ci.wait, object_wait), in seconds
+#   release_run_bounded <seconds> <out> <err> <cmd>...
+#                                                a call killed at a deadline, 124 when it was
+#   release_bound <name> <value>                 a bound's override; the default unless a whole number
+#   release_wait <seconds> <keep> <cutoff-state> <reader>...
+#                                                ask, bounded, until the answer leaves <keep>
+#   release_ci_verdict <sha> <query-word>...     step 11's reader: the project's ci.query, parsed
+#
+# Every reader prints ONE line, `<state><TAB><detail>`, and returns 0 when it
+# answered, whatever the answer. The states are D38's: `already` (the
+# postcondition holds), `pending` (it does not, so a run has work here) and
+# `UNREADABLE` (the reader could not look). **UNREADABLE is never folded into
+# pending**: "looked and found it false" and "could not look" are different
+# answers, and a status that printed the second as the first would send a
+# resume to do work that may already be done -- or report a remote as behind
+# because this checkout never fetched it. `skipped` and `not re-run` do not come
+# from a reader; they come from the declaration and from other rows, and the
+# caller composes them.
+#
+# THE LIBRARY NEVER READS CONFIG, the rule lib/release.notes keeps for the same
+# reason: the handler reads the declaration once and passes the facts in, so no
+# reader can disagree with another about what the project declared. The notes
+# provider must already be selected (notes_select) before a stamp reader runs.
+#
+# WHY THE READERS ARE HERE AND NOT IN lib/cmd/release: each one is read at more
+# than one moment. R2 -- step 3's postcondition read against the release
+# commit's tree -- is step 4's postcondition for `status` AND pre-flight's
+# tag-sanity refusal for a cut (D38 step 2). Written twice, the resume map and
+# the resume come to disagree, which is the drift principle 2 exists to prevent.
+
+[ -n "${_DEVBIN_RELEASE_STEPS_LOADED:-}" ] && return 0
+if ! declare -F warn >/dev/null || ! declare -F read_version >/dev/null ||
+  ! declare -F notes_state >/dev/null; then
+  printf 'lib/release.steps: source lib/helpers and lib/release.notes first -- it reads warn and read_version, and the notes verbs\n' >&2
+  return 1
+fi
+_DEVBIN_RELEASE_STEPS_LOADED=1
+
+# The step names, in D38's order. Row <n> is element <n - 1>.
+_RELEASE_STEP_NAMES=(resolve pre-flight stamp commit gates confirm tag push object after ci)
+
+# release_row <n> <state> <detail> -- print one step's row.
+#
+# THE ONE RENDERER. `release status` prints every row through it, and a cut's
+# summary (WP-04 onward) will too, so the resume map and the summary of the run
+# it resumes are the same table rather than two tables that agree today.
+# releasestatus.bats holds that with a mutant of this function.
+release_row() {
+  local n="$1" state="$2" detail="${3:-}"
+  printf '%3s  %-10s  %-10s  %s\n' "$n" "${_RELEASE_STEP_NAMES[$((n - 1))]}" "$state" "$detail"
+}
+
+# release_tag_name <template> <version> -- the tag, `{version}` substituted.
+release_tag_name() {
+  printf '%s\n' "${1//\{version\}/$2}"
+}
+
+# release_versions <template> -- every version a tag matching <template> names,
+# one per line, newest first. A tag matches when it is the template with an
+# X.Y.Z where `{version}` stands; `v1.2`, `v1.2.3-rc1` and another project's
+# `x-1.2.3` do not, so they can neither be the newest release nor be bumped.
+release_versions() {
+  local tpl="$1" pre post tags t v
+  pre="${tpl%%\{version\}*}"
+  post="${tpl#*\{version\}}"
+  if ! tags="$(git tag --list 2>&1)"; then
+    warn "release: cannot list this repository's tags: ${tags//$'\n'/ }"
+    return 1
+  fi
+  while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    [[ "$t" == "$pre"*"$post" ]] || continue
+    v="${t#"$pre"}"
+    v="${v%"$post"}"
+    is_semver "$v" && printf '%s\n' "$v"
+  done <<<"$tags" | LC_ALL=C sort -t. -k1,1nr -k2,2nr -k3,3nr
+}
+
+# release_resolve <template> <target> -- step 1 (D36, D38): the version a cut of
+# <target> releases, its tag, and whether that tag already exists. Prints
+# `<version><TAB><tag><TAB>new|resume`, or refuses naming why.
+#
+# `--patch`, `--minor` and `--major` bump the NEWEST MATCHING TAG, not VERSION,
+# because after a stamp, or under a VERSION a human wrote, the two are equal and
+# the bump would skip a version. An explicit X.Y.Z is that version. Either way
+# the target must exceed the newest matching tag OTHER THAN ITS OWN: its own
+# existing is a resume past step 7, which a later release does not prevent.
+#
+# A RELATIVE TARGET RESUMES ONLY UNTIL THE TAG EXISTS. Once it does, the newest
+# tag is the target's own and `--patch` names the next version, so a run past
+# the tag is resumed by naming the version; the cut prints that command.
+release_resolve() {
+  local tpl="$1" target="$2" newest v tag
+  newest="$(release_versions "$tpl")" || return 1
+  newest="${newest%%$'\n'*}"
+  case "$target" in
+    --patch | --minor | --major)
+      if [ -z "$newest" ]; then
+        warn "release: $target bumps the newest tag matching $tpl, and there is none -- name the version: release vX.Y.Z"
+        return 1
+      fi
+      v="$(bump_semver "$newest" "${target#--}")" || return 1
+      ;;
+    *)
+      v="${target#v}"
+      if ! is_semver "$v"; then
+        warn "release: not a version: $target (want vX.Y.Z, X.Y.Z, --patch, --minor or --major)"
+        return 1
+      fi
+      ;;
+  esac
+  tag="$(release_tag_name "$tpl" "$v")"
+  if git rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1; then
+    printf '%s\t%s\tresume\n' "$v" "$tag"
+    return 0
+  fi
+  if [ -n "$newest" ] && ! semver_gt "$v" "$newest"; then
+    warn "release: $v is not greater than the newest release, $(release_tag_name "$tpl" "$newest") -- a release moves forward, and $tag does not exist to resume"
+    return 1
+  fi
+  printf '%s\t%s\tnew\n' "$v" "$tag"
+}
+
+# release_commit <tag> -- `<sha><TAB>tag` when the tag exists (its commit), else
+# `<sha><TAB>HEAD`. D38: the release commit is HEAD while no tag for the target
+# exists and the tag's commit once it does, so a finished release read after
+# development has moved on still names the commit that was tagged.
+release_commit() {
+  local sha
+  if sha="$(git rev-parse -q --verify "refs/tags/$1^{commit}" 2>/dev/null)"; then
+    printf '%s\ttag\n' "$sha"
+    return 0
+  fi
+  if ! sha="$(git rev-parse -q --verify 'HEAD^{commit}' 2>/dev/null)"; then
+    warn "release: this repository has no commit at HEAD, so there is no release commit"
+    return 1
+  fi
+  printf '%s\tHEAD\n' "$sha"
+}
+
+# release_scratch <project-root> -- make and print a scratch directory under
+# $TMPDIR, refusing when $TMPDIR is inside the project.
+#
+# OUTSIDE THE PROJECT IS THE CONTRACT, NOT A PREFERENCE (AC-3.2). A tree
+# materialised under the project root is untracked, non-ignored dirt -- exactly
+# what step 4's cleanliness clause and D38's tree rule read -- so a status run
+# would change the fact it reports. The check is made BEFORE anything is
+# created, on physical paths, so a symlinked $TMPDIR cannot hide inside.
+release_scratch() {
+  local root base dir
+  if ! root="$(cd -P "$1" 2>/dev/null && pwd -P)"; then
+    warn "release: cannot resolve the project root $1"
+    return 1
+  fi
+  if ! base="$(cd -P "${TMPDIR:-/tmp}" 2>/dev/null && pwd -P)"; then
+    warn "release: TMPDIR (${TMPDIR:-/tmp}) is not a directory, so there is nowhere to materialise a commit"
+    return 1
+  fi
+  case "$base/" in
+    "$root"/*)
+      warn "release: TMPDIR ($base) is inside the project ($root), and a tree materialised there is dirt this run would then report -- point TMPDIR outside the project"
+      return 1
+      ;;
+  esac
+  if ! dir="$(mktemp -d "$base/devbin-release.XXXXXX")"; then
+    warn "release: cannot make a scratch directory under $base"
+    return 1
+  fi
+  printf '%s\n' "$dir"
+}
+
+# release_materialise <commit> <dir> <path>... -- write the commit's WHOLE
+# tree into the empty <dir>, the commit's own bytes. Each <path> is one the
+# answer depends on (the version file, the note and its views), checked after.
+#
+# WHOLE, because notes_paths is what a release OWNS, not what a verb READS:
+# notes_views_check renders from every note, and a `command` provider runs its
+# own script from the root.
+#
+# THROUGH AN INDEX OF ITS OWN, NOT `git archive` (hv, 2026-09-18, vc decision
+# 18, on dc's proposal and measurement). The archive applies export attributes:
+# `export-ignore` drops a path, on a parent directory too, and `export-subst`
+# rewrites a file's bytes. Refusing them on the paths a release OWNS was not
+# enough -- an export-ignored OLDER note made the views read STALE for a
+# correctly stamped release, because the views render from every note.
+# `read-tree` into a scratch index and `checkout-index` from it apply no export
+# attribute, and leave .git/index, the refs and the working tree as they were.
+#
+# <dir> IS A NEW PATH INSIDE A release_scratch ROOT, NEVER THE ROOT ITSELF, and
+# the scratch index is `<dir>.index`, beside it. Both are then under the one
+# root the caller's one trap removes, so an interrupt between `read-tree` and
+# the index's removal leaves nothing behind (WP-04; until then the tree WAS the
+# root and the index its sibling, which the trap missed -- dc's review of
+# 4328583). checkout-index makes <dir>. The index is still removed before this
+# returns, so a caller materialising two commits under one root holds one
+# index at a time.
+#
+# THE ATTRIBUTES ARE THE COMMIT'S (`--attr-source`, dc's review of ea7bc47).
+# checkout-index otherwise reads .gitattributes from the WORKING TREE, so an
+# eol attribute committed after the tag, or one not committed at all, rewrote
+# the tagged release's bytes and rows 3 and 4 read UNREADABLE for a correct
+# release (dc, measured). `--attr-source` needs git 2.40; on an older git the
+# write fails and the rows say "could not materialise" -- loud, never wrong.
+#
+# THE POST-CHECK STAYS AS A GUARD: a depended path the commit holds
+# (`cat-file -e`) that the written tree lacks is refused, naming it. NO ARM
+# REACHES IT: checkout-index writes every path its index holds or fails, and a
+# mutant dropping the check lives (2026-09-18). It is kept because it costs
+# one `cat-file` per path, and it turns a future writer that skips a path into
+# a refusal, not a release read as unstamped.
+#
+# TWO LIMITS, declared, not checked:
+#   - checkout-index applies smudge and eol filters, so the bytes are the ones
+#     a checkout of the commit would hold under the commit's own attributes. A
+#     clone's own .git/info/attributes and core.attributesFile still apply, as
+#     they would to a checkout (dc, measured: a smudge filter there still
+#     rewrites the bytes). A required filter that fails fails the write (git
+#     2.55.0, measured 2026-09-18). On an LFS project the smudge downloads a
+#     missing object and writes .git/lfs/objects -- measured under git archive
+#     on 2026-09-17, which ran the same smudge filter -- so "status writes
+#     nothing" means the working tree, the refs, the remotes and the release
+#     object, and does NOT cover .git internals.
+#   - A submodule is not written: it materialises as an EMPTY DIRECTORY (git
+#     2.55.0, measured 2026-09-18). A
+#     release's version file and notes do not live in a submodule in any
+#     project that uses this core.
+release_materialise() {
+  local commit="$1" dir="$2" idx="$2.index" p dropped="" wrote=yes
+  shift 2
+  # NO ARM REACHES IT: every caller names its directory once per run under a
+  # fresh scratch root, so a mutant dropping this lives (vc's M8, 2026-09-18).
+  # Kept because a second tree written over the first would read as one.
+  if [ -e "$dir" ] || [ -e "$idx" ]; then
+    warn "release: $dir (or its index) already exists, so it cannot be a commit's tree alone"
+    return 1
+  fi
+  if ! GIT_INDEX_FILE="$idx" git read-tree "$commit" ||
+    ! GIT_INDEX_FILE="$idx" git --attr-source="$commit" checkout-index -a --prefix="$dir/"; then
+    wrote=no
+  fi
+  rm -f "$idx"
+  if [ "$wrote" = no ]; then
+    warn "release: could not materialise ${commit:0:12} into $dir"
+    return 1
+  fi
+  for p in "$@"; do
+    if git cat-file -e "$commit:$p" 2>/dev/null && [ ! -e "$dir/$p" ]; then
+      dropped+=", $p"
+    fi
+  done
+  if [ -n "$dropped" ]; then
+    warn "release: ${dropped#, } is in ${commit:0:12} but was not written into $dir, so the release commit would read as unstamped"
+    return 1
+  fi
+}
+
+# release_read_stamp <root> <version> <views> -- step 3's postcondition under
+# <root>: the version file reads <version>, the note is dated for it, and --
+# when <views> is `count` -- no generated view is STALE. The version file is
+# read as the dispatcher names it (DEVBIN_VERSION_FILE), relative to <root>.
+#
+# <views> IS `name` PAST THE TAG, and a STALE view is then named but not
+# counted. Staleness is measured against TODAY's renderer, and nothing can
+# regenerate a tagged commit's views: counted, every earlier release would read
+# unstamped the first time the generator changed. Found on devbin's own last
+# release tag, whose CHANGELOG.md reads STALE because WP-02 moved the generator after the
+# tag. Before the tag it counts, because step 3 regenerates the views.
+release_read_stamp() {
+  local root="$1" v="$2" mode="${3:-count}" have state views missing="" aside=""
+  have="$(PROJECT_ROOT="$root" read_version)"
+  if ! state="$(notes_state "$root" "$v" 2>&1)"; then
+    printf 'UNREADABLE\tthe note for %s cannot be read: %s\n' "$v" "${state//$'\n'/ }"
+    return 0
+  fi
+  if ! views="$(notes_views_check "$root" 2>&1)"; then
+    printf 'UNREADABLE\tthe generated views cannot be compared: %s\n' "${views//$'\n'/ }"
+    return 0
+  fi
+  [ "$have" = "$v" ] || missing+="; ${DEVBIN_VERSION_FILE:-VERSION} is $have"
+  case "$state" in
+    "dated "*) ;;
+    *) missing+="; the note for $v is $state" ;;
+  esac
+  local stale
+  stale="$(awk '$1 == "STALE" { printf "%s%s", sep, $2; sep = ", " }' <<<"$views")"
+  if [ -n "$stale" ]; then
+    if [ "$mode" = count ]; then
+      missing+="; STALE view(s): $stale"
+    else
+      aside="; STALE under today's renderer, not counted past the tag: $stale"
+    fi
+  fi
+  if [ -z "$missing" ]; then
+    printf 'already\t%s is %s and its note is %s%s\n' "${DEVBIN_VERSION_FILE:-VERSION}" "$v" "$state" "$aside"
+  else
+    printf 'pending\t%s\n' "${missing#; }"
+  fi
+}
+
+# release_owned <root> <version> -- the paths a release of <version> owns that
+# are known before a run: the version file, every sidecar `version set` writes
+# (DEVBIN_VERSION_SIDECARS, exported by the dispatcher, as DEVBIN_VERSION_FILE
+# is), and the note with its views (notes_paths). One per line, relative to the
+# root. D38's owned set is this PLUS every path a `derived:` command reports,
+# which only running those commands can tell; the cut adds them at step 3.
+release_owned() {
+  local root="$1" v="$2" notes s
+  printf '%s\n' "${DEVBIN_VERSION_FILE:-VERSION}"
+  while IFS= read -r s; do
+    [ -z "$s" ] || printf '%s\n' "$s"
+  done <<<"${DEVBIN_VERSION_SIDECARS:-}"
+  notes="$(notes_paths "$root" "$v")" || return 1
+  [ -z "$notes" ] || printf '%s\n' "$notes"
+}
+
+# release_dirt -- every dirty path in the working tree, one per line: staged,
+# modified, deleted, and untracked but not ignored, which D38's tree rule counts
+# as dirt too (vc's S2 (a)). A rename or copy is both of its paths.
+#
+# READ WITH -z, so a path holding a space or a quote is the path and not git's
+# quoting of it: the owned-set test compares these with notes_paths' spelling.
+# The status is git's, through `wait` on the process substitution.
+release_dirt() {
+  local entry second=no
+  while IFS= read -r -d '' entry; do
+    if [ "$second" = yes ]; then
+      printf '%s\n' "$entry"
+      second=no
+      continue
+    fi
+    printf '%s\n' "${entry:3}"
+    case "${entry:0:1}" in R | C) second=yes ;; esac
+  done < <(git status --porcelain=v1 -z --untracked-files=all)
+  wait "$!"
+}
+
+# release_outside <paths> <owned> -- the lines of <paths> that are not lines of
+# <owned>, each once: D38's tree rule, asked of the dirt and the owned set.
+# Whole lines, compared as text -- a path is owned, or it is not.
+release_outside() {
+  local p
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    grep -qxF -- "$p" <<<"$2" || printf '%s\n' "$p"
+  done <<<"$1" | LC_ALL=C sort -u
+}
+
+# release_tree_state -- `<hash><TAB><path>` for every dirty path, the hash of
+# its bytes now (`gone` for a path that is gone). Two states compared by
+# release_tree_changed name every path that changed between them, which is how
+# step 5 re-reads the tree after the gates (vc's S2): a path a gate modified,
+# created, deleted or cleaned. A path dirty before the gates and rewritten by
+# them is caught by its hash, where `git status` alone would read the same.
+release_tree_state() {
+  local dirt p h
+  dirt="$(release_dirt)" || return 1
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    if [ -e "$p" ] || [ -L "$p" ]; then
+      h="$(git hash-object --no-filters -- "$p")" || return 1
+    else
+      h=gone
+    fi
+    printf '%s\t%s\n' "$h" "$p"
+  done <<<"$dirt"
+}
+
+# release_tree_changed <before> <after> -- the paths whose line differs between
+# two release_tree_state reads, one per line, each once.
+release_tree_changed() {
+  LC_ALL=C comm -3 <(LC_ALL=C sort <<<"$1") <(LC_ALL=C sort <<<"$2") |
+    sed $'s/^\t//' | cut -f2- | sed '/^$/d' | LC_ALL=C sort -u
+}
+
+# release_read_clean -- step 4's cleanliness clause over the working tree: no
+# modification and no untracked, non-ignored file (D38's tree rule counts both).
+# The caller asks it only while the tag is absent (vc's N2).
+release_read_clean() {
+  local dirt
+  if ! dirt="$(release_dirt 2>&1)"; then
+    printf 'UNREADABLE\tgit status failed: %s\n' "${dirt//$'\n'/ }"
+    return 0
+  fi
+  if [ -z "$dirt" ]; then
+    printf 'already\tthe tree is clean\n'
+    return 0
+  fi
+  printf 'pending\tthe tree is not clean: %s\n' "${dirt//$'\n'/, }"
+}
+
+# release_read_tag <tag> <root> <version> -- step 7's postcondition. D38's
+# second clause, "points at the release commit", holds by the definition of the
+# release commit once the tag exists, so the question is existence. What is NOT
+# vacuous is D41's REUSE REPORT: a found tag that is lightweight, or whose
+# message is not the notes body read under <root>, is named on the line --
+# reported, never rewritten. The report is release_tag_reuse_note's.
+release_read_tag() {
+  local tag="$1"
+  if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1; then
+    printf 'pending\tno tag %s yet\n' "$tag"
+    return 0
+  fi
+  printf 'already\t%s exists%s\n' "$tag" "$(release_tag_reuse_note "$@")"
+}
+
+# release_tag_reuse_note <tag> <root> <version> -- for a tag that exists, how
+# it is not the tag the core makes: "; <why>", or nothing when it is annotated
+# and its message is the notes body read under <root>. A VERDICT, not only a
+# report: step 7 reads back the tag it just made through this, and an empty
+# answer is the one that passes (vc's W6), so no caller decides by matching
+# release_read_tag's prose.
+release_tag_reuse_note() {
+  local tag="$1" root="$2" v="$3" kind notes message
+  kind="$(git cat-file -t "refs/tags/$tag" 2>/dev/null)" || kind=unknown
+  if [ "$kind" != tag ]; then
+    printf '; it is lightweight, and the core makes annotated tags -- reused as found, never rewritten'
+  elif [ -z "$root" ]; then
+    printf '; its message could not be compared with the notes body, because the release commit could not be materialised (above)'
+  elif notes="$(notes_body "$root" "$v" 2>/dev/null | git stripspace)" &&
+    message="$(git for-each-ref --format='%(contents)' "refs/tags/$tag" | git stripspace)"; then
+    [ "$message" = "$notes" ] || printf '; its message is not the notes body -- reused as found, never rewritten'
+  else
+    printf '; its message could not be compared with the notes body'
+  fi
+}
+
+# release_git_remote <git-args>... -- every git call the release core makes to a
+# remote goes through here, so none can stop on a question at the terminal
+# (issue 0088, row 3). git asks for a credential on /dev/tty, not on stdin, so
+# capturing a call's output does not stop it: measured by dc, `ls-remote`
+# BLOCKS on a pty for an HTTP 401 and fails loudly with no tty. A human at a
+# terminal would get a question agents and CI never see.
+#
+# GIT_TERMINAL_PROMPT=0 turns git's own prompt off. ssh asks on /dev/tty too
+# (a passphrase, an unknown host key), so ssh runs with BatchMode=yes, APPENDED
+# to the person's own ssh command -- GIT_SSH_COMMAND, else core.sshCommand,
+# else `ssh`, which is git's own order -- never in place of it. Either way the
+# terminal run fails the way the no-tty run does: loudly, never waiting.
+#
+# THE LIMIT, DECLARED: under GIT_SSH (a program, not a command line) with no
+# GIT_SSH_COMMAND, ssh is left as the person set it, because setting
+# GIT_SSH_COMMAND would override their program; and an ssh command whose first
+# word is not OpenSSH (plink) is handed an OpenSSH option.
+release_git_remote() {
+  local ssh="${GIT_SSH_COMMAND:-}"
+  if [ -z "$ssh" ] && [ -z "${GIT_SSH:-}" ]; then
+    ssh="$(git config --get core.sshCommand 2>/dev/null)" || ssh=""
+    ssh="${ssh:-ssh}"
+  fi
+  if [ -n "$ssh" ]; then
+    GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="$ssh -o BatchMode=yes" git "$@" </dev/null
+  else
+    GIT_TERMINAL_PROMPT=0 git "$@" </dev/null
+  fi
+}
+
+# release_read_remote <remote> <branch> <tag> <commit> -- step 8's postcondition
+# for ONE remote: its <branch> contains <commit>, and it carries <tag> -- the
+# same tag object this checkout holds. Prints `already`, `pending` naming what
+# the remote lacks, or `UNREADABLE` naming what could not be looked at.
+#
+# NEVER FETCHES. A fetch writes remote-tracking refs, and status writes nothing.
+# So a remote head this checkout does not hold cannot be asked about ancestry,
+# and says so: `cat-file -e` is asked FIRST, because an ancestry test on a
+# commit this checkout lacks would call an unfetched remote behind. The
+# ancestry itself is commit_direction's (lib/helpers), the one reader (0079).
+#
+# `ls-remote` prints two lines for an annotated tag (the tag object, then its
+# `^{}` peel) and one for a lightweight tag, so the remote's tag shape is read
+# without fetching (measured).
+#
+# WITH `preflight`, ONE MORE ANSWER: `refused`, for a <branch> that has
+# DIVERGED from the release commit -- it neither contains it nor is an ancestor
+# of it, so the push cannot fast-forward (D38 step 2). For status that remote
+# simply lacks the release commit, `pending`; a cut must refuse it before any
+# gate runs (AC-4.4). A <branch> BEHIND the release commit stays `pending` in
+# both modes: that push fast-forwards. One reader for both, so the resume map
+# and pre-flight cannot come to disagree about what a remote holds.
+#
+# WITH `preflight-new`, <commit> is HEAD and step 4 has still to make the
+# release commit ON TOP OF IT. A <branch> that has moved past HEAD is then
+# refused as well: it holds HEAD today, and it will have diverged from the
+# commit made on HEAD. "Moved past the release commit passes" (D38 step 2)
+# holds only once the release commit exists, which is `preflight`.
+#
+# WITH `push`, step 8's reading: refused as `preflight` is, and a `pending`
+# answer's detail is the words `commit` and `tag` for the halves this remote
+# lacks, so the push sends exactly those and never re-sends a branch that has
+# moved past the release commit, which would be refused as a non-fast-forward.
+release_read_remote() {
+  local remote="$1" branch="$2" tag="$3" commit="$4" mode="${5:-status}"
+  local listing head="" rtag="" rpeel="" ltag="" lacks="" want=""
+  if ! listing="$(release_git_remote ls-remote "$remote" "refs/heads/$branch" "refs/tags/$tag" 2>&1)"; then
+    printf 'UNREADABLE\t%s did not answer ls-remote: %s\n' "$remote" "${listing//$'\n'/ }"
+    return 0
+  fi
+  head="$(awk -v r="refs/heads/$branch" '$2 == r { print $1 }' <<<"$listing")"
+  rtag="$(awk -v r="refs/tags/$tag" '$2 == r { print $1 }' <<<"$listing")"
+  rpeel="$(awk -v r="refs/tags/$tag^{}" '$2 == r { print $1 }' <<<"$listing")"
+  ltag="$(git rev-parse -q --verify "refs/tags/$tag" 2>/dev/null)" || ltag=""
+
+  # The commit, on the branch.
+  if [ -z "$head" ]; then
+    lacks+=", $branch"
+    want+=" commit"
+  elif [ "$head" != "$commit" ]; then
+    if ! git cat-file -e "$head^{commit}" 2>/dev/null; then
+      printf "UNREADABLE\\t%s's %s is at %s, which this checkout does not hold, so whether it contains the release commit cannot be read -- fetch %s and ask again\\n" \
+        "$remote" "$branch" "${head:0:12}" "$remote"
+      return 0
+    fi
+    # Through commit_direction, the one ancestry reader (0079): which way the
+    # remote's head has moved from the release commit.
+    case "$(commit_direction . "$commit" "$head")" in
+      same) ;;
+      forward)
+        if [ "$mode" = preflight-new ]; then
+          printf "refused\\t%s's %s (%s) has moved past HEAD (%s), and the release commit is still to be made on HEAD, so it could not fast-forward %s -- bring %s into this branch first\\n" \
+            "$remote" "$branch" "${head:0:12}" "${commit:0:12}" "$remote/$branch" "$remote/$branch"
+          return 0
+        fi
+        ;;
+      backward)
+        lacks+=", the release commit on $branch"
+        want+=" commit"
+        ;;
+      unrelated)
+        if [ "$mode" != status ]; then
+          printf "refused\\t%s's %s (%s) has diverged from the release commit (%s): it neither contains it nor is behind it, so the push cannot fast-forward -- bring %s into this branch first\\n" \
+            "$remote" "$branch" "${head:0:12}" "${commit:0:12}" "$remote/$branch"
+          return 0
+        fi
+        lacks+=", the release commit on $branch"
+        want+=" commit"
+        ;;
+      *)
+        printf "UNREADABLE\\tgit could not compare %s with %s's %s\\n" "${commit:0:12}" "$remote" "$branch"
+        return 0
+        ;;
+    esac
+  fi
+
+  # The tag: the same object this checkout holds.
+  if [ -z "$rtag" ]; then
+    lacks+=", $tag"
+    want+=" tag"
+  elif [ -z "$ltag" ]; then
+    printf 'UNREADABLE\t%s carries %s and this checkout does not -- fetch its tags and ask again\n' "$remote" "$tag"
+    return 0
+  elif [ "$rtag" != "$ltag" ]; then
+    local shape="a different $tag"
+    if [ -z "$rpeel" ] && [ "$(git cat-file -t "$ltag" 2>/dev/null)" = tag ]; then
+      shape="a lightweight $tag where this checkout's is annotated"
+    fi
+    printf 'UNREADABLE\t%s carries %s (%s, here %s), so the push can neither be skipped nor made\n' \
+      "$remote" "$shape" "${rtag:0:12}" "${ltag:0:12}"
+    return 0
+  fi
+
+  if [ -z "$lacks" ]; then
+    printf 'already\t%s holds the release commit on %s and %s\n' "$remote" "$branch" "$tag"
+  else
+    if [ "$mode" = push ]; then
+      printf 'pending\t%s\n' "${want# }"
+    else
+      printf 'pending\t%s lacks %s\n' "$remote" "${lacks#, }"
+    fi
+  fi
+}
+
+# release_repo <declared-repo> <declared-remote> -- the repository gh is told
+# about, as OWNER/NAME or HOST/OWNER/NAME (hv, 2026-09-18, vc decision 16).
+# <declared-repo> is `release.repo` and <declared-remote> the first declared
+# `remotes` entry, each empty when not declared: the handler reads them, since
+# the library never reads config. <declared-repo> when given; otherwise read
+# off the remote a release pushes to FIRST: <declared-remote>, else `origin`,
+# else the only remote. Not the first
+# `git remote` line, which is alphabetical and so an accident. The remote's
+# CONFIGURED url is read (`remote.<name>.url`), not `get-url`, which expands
+# insteadOf and would report where the bytes go rather than which repository
+# the project names. Anything that cannot be resolved fails, with the reason on
+# stderr naming the key -- never gh's own guess, which with no tty silently
+# picked another remote's repository (dc, measured on gh 2.101).
+release_repo() {
+  local repo="$1" remote="$2" all url rest host path
+  if [ -n "$repo" ]; then
+    printf '%s\n' "$repo"
+    return 0
+  fi
+  if [ -z "$remote" ]; then
+    all="$(git remote 2>/dev/null)" || all=""
+    if grep -qx origin <<<"$all"; then
+      remote=origin
+    elif [ -n "$all" ] && [ "$(grep -c . <<<"$all")" -eq 1 ]; then
+      remote="$all"
+    fi
+  fi
+  if [ -z "$remote" ]; then
+    warn "release: release.repo is not declared and there is no remote to read it from (no remotes: declared, no origin, not exactly one remote) -- declare release.repo: OWNER/NAME"
+    return 1
+  fi
+  if ! url="$(git config --get "remote.$remote.url")"; then
+    warn "release: release.repo is not declared and remote $remote has no url -- declare release.repo: OWNER/NAME"
+    return 1
+  fi
+  case "$url" in
+    *://*)
+      rest="${url#*://}"
+      rest="${rest#*@}"
+      host="${rest%%/*}"
+      host="${host%%:*}"
+      path="${rest#*/}"
+      ;;
+    *@*:*)
+      rest="${url#*@}"
+      host="${rest%%:*}"
+      path="${rest#*:}"
+      ;;
+    *)
+      warn "release: release.repo is not declared and remote $remote's url ($url) names no host -- declare release.repo: OWNER/NAME"
+      return 1
+      ;;
+  esac
+  path="${path%/}"
+  path="${path%.git}"
+  if ! [[ "$path" =~ ^[^/[:space:]]+/[^/[:space:]]+$ ]]; then
+    warn "release: release.repo is not declared and remote $remote's url ($url) is not HOST/OWNER/NAME -- declare release.repo: OWNER/NAME"
+    return 1
+  fi
+  if [ "$host" = github.com ]; then
+    printf '%s\n' "$path"
+  else
+    printf '%s/%s\n' "$host" "$path"
+  fi
+}
+
+# release_gh <repo> <group> <verb> [args...] -- every gh call the release core
+# makes goes through here, as every remote git call goes through
+# release_git_remote. `--repo` is always passed, after the verb so an argument
+# list holding `--` cannot swallow it; GH_PROMPT_DISABLED=1 and stdin from
+# /dev/null, so a human at a terminal takes the path agents and CI take (0088's
+# rule): a missing answer fails loudly, never waits.
+#
+# An EMPTY <repo> passes no `--repo`, for the one verb that names no
+# repository: pre-flight's `auth status`, which gh refuses `--repo` on.
+release_gh() {
+  local repo="$1" group="$2" verb="$3"
+  shift 3
+  if [ -z "$repo" ]; then
+    GH_PROMPT_DISABLED=1 gh "$group" "$verb" "$@" </dev/null
+  else
+    GH_PROMPT_DISABLED=1 gh "$group" "$verb" --repo "$repo" "$@" </dev/null
+  fi
+}
+
+# release_read_object <object> <tag> <declared-repo> <declared-remote> --
+# step 9's postcondition, per D42. The last two are release_repo's. Under
+# `local` and `ci` it asks gh whether a release object exists for the tag;
+# `gh release view` answers `release not found` for none. Any other failure,
+# gh missing included, is UNREADABLE -- never "no object". `none` is not read
+# at all; the caller reports it skipped.
+release_read_object() {
+  local object="$1" tag="$2" out rc=0 repo
+  if ! command -v gh >/dev/null 2>&1; then
+    printf 'UNREADABLE\tgh is not installed, so whether %s has a release object cannot be read (object: %s)\n' "$tag" "$object"
+    return 0
+  fi
+  if ! repo="$(release_repo "$3" "$4" 2>&1)"; then
+    printf 'UNREADABLE\t%s\n' "${repo#release: }"
+    return 0
+  fi
+  out="$(release_gh "$repo" release view "$tag" 2>&1 >/dev/null)" || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    printf 'already\ta release object exists for %s\n' "$tag"
+  elif grep -q 'release not found' <<<"$out"; then
+    if [ "$object" = ci ]; then
+      printf "pending\\tno release object for %s yet -- object: ci, so the project's workflow makes it\\n" "$tag"
+    else
+      printf 'pending\tno release object for %s yet\n' "$tag"
+    fi
+  else
+    printf 'UNREADABLE\tgh release view %s failed (exit %s): %s\n' "$tag" "$rc" "${out//$'\n'/ }"
+  fi
+}
+
+# release_read_object_content <repo> <tag> <title> <body-file> -- whether the
+# release object that exists for <tag> carries this release's title and notes
+# (vc's R2): `already` when both match, `pending` naming what differs, since a
+# confirmed run has work there, or UNREADABLE. Read through release_gh, one
+# field per call so gh's own --jq answers and nothing else is needed. The
+# notes are compared as text, trailing newlines aside, as gh keeps them.
+release_read_object_content() {
+  local repo="$1" tag="$2" title="$3" body_file="$4" name body differs=""
+  if ! name="$(release_gh "$repo" release view "$tag" --json name --jq .name 2>&1)"; then
+    printf 'UNREADABLE\tthe title of %s'"'"'s release object could not be read: %s\n' "$tag" "${name//$'\n'/ }"
+    return 0
+  fi
+  if ! body="$(release_gh "$repo" release view "$tag" --json body --jq .body 2>&1)"; then
+    printf 'UNREADABLE\tthe notes of %s'"'"'s release object could not be read: %s\n' "$tag" "${body//$'\n'/ }"
+    return 0
+  fi
+  [ "$name" = "$title" ] || differs="its title is \"$name\", not \"$title\""
+  if [ "$body" != "$(cat "$body_file")" ]; then
+    differs+="${differs:+, and }its notes are not this release's"
+  fi
+  if [ -z "$differs" ]; then
+    printf 'already\tthe release object for %s carries this release'"'"'s title and notes\n' "$tag"
+  else
+    printf 'pending\tthe release object for %s exists, and %s\n' "$tag" "$differs"
+  fi
+}
+
+# release_seconds <duration> -- a declared wait (`ci.wait`, `object_wait`) in
+# seconds. The config validator admits a whole number of s, m or h and nothing
+# else, so anything else here is a caller's mistake, refused naming it.
+release_seconds() {
+  local n
+  if [[ ! "$1" =~ ^([0-9]+)([smh])$ ]]; then
+    printf 'release: "%s" is not a duration (a whole number of s, m or h)\n' "$1" >&2
+    return 1
+  fi
+  n=$((10#${BASH_REMATCH[1]}))
+  case "${BASH_REMATCH[2]}" in
+    s) printf '%s\n' "$n" ;;
+    m) printf '%s\n' "$((n * 60))" ;;
+    h) printf '%s\n' "$((n * 3600))" ;;
+  esac
+}
+
+# release_run_bounded <seconds> <out> <err> <cmd>... -- run <cmd> with its
+# stdout in <out>, its stderr in <err> and no stdin, and kill it at <seconds>.
+# Returns the command's own status, or 124 when the deadline killed it.
+#
+# WHY, AND WHY HERE: from step 8 on, the release is published or being
+# published, so a call that hangs there hangs it with nothing reporting it (the
+# 0086 class). Every call those steps make that another machine answers -- the
+# pushes and their read-backs, gh, and the project's ci.query -- goes through
+# this. It lives beside its only callers; it moves to lib/helpers when a second
+# caller appears.
+#
+# The shape is Utilz's install_run_bounded, and so is its lesson (utilz#0032):
+# THE WATCHDOG HOLDS NONE OF ITS CALLER'S OUTPUT. A caller reading this through
+# $(...) waits for every holder of its pipe, and a TERM landing between
+# `sleep &` and `sleeper=$!` would otherwise leave that sleep holding it until
+# the deadline.
+#
+# THE CALL RUNS IN ITS OWN PROCESS GROUP, and the deadline kills the group. It
+# killed one level until dc's WP-06 review: a query script's own `sleep` was
+# orphaned, and it held every descriptor it had inherited -- measured, bats's
+# fd 3, so one arm added a minute to every run -- and the kill landed before
+# the reader's own cleanup. `set -m` in the wrapper puts the call in a group of
+# its own; the call is a shell function as often as a program, so a setsid-style
+# exec could not do it. A call that makes a session of its own is out of reach,
+# as it is for any group kill.
+#
+# AND A GROUP OF ITS OWN IS NOT THE TERMINAL'S FOREGROUND GROUP (dc, measured
+# under a pty): a call that opens /dev/tty to ask is stopped (SIGTTIN) until the
+# deadline, and reads as "did not finish within", instead of prompting. The core's
+# own calls never ask -- release_git_remote turns git's prompt off and runs ssh
+# in batch mode, and gh runs with GH_PROMPT_DISABLED -- so only a person's own
+# GIT_SSH program or git hook can reach this.
+release_run_bounded() {
+  local seconds="$1" out="$2" err="$3" fired="$3.deadline" group="$3.group" pid watchdog rc=0
+  shift 3
+  rm -f "$fired" "$group"
+  (
+    set -m
+    "$@" >"$out" 2>"$err" </dev/null &
+    printf '%s\n' "$!" >"$group"
+    wait "$!"
+  ) 2>/dev/null &
+  pid=$!
+  (
+    sleeper=""
+    trap 'kill "$sleeper" 2>/dev/null; exit 0' TERM
+    sleep "$seconds" &
+    sleeper=$!
+    wait "$sleeper"
+    if kill -0 "$pid" 2>/dev/null; then
+      : >"$fired"
+      g="$(cat "$group" 2>/dev/null)" || g=""
+      [ -z "$g" ] || kill -KILL -- "-$g" 2>/dev/null || true
+      kill -TERM "$pid" 2>/dev/null || true
+    fi
+  ) >/dev/null 2>&1 &
+  watchdog=$!
+  wait "$pid" 2>/dev/null || rc=$?
+  # Tolerated: when the deadline fired the watchdog has already exited, and the
+  # marker file -- not this kill or this wait -- is the record of that.
+  kill -TERM "$watchdog" 2>/dev/null || true
+  wait "$watchdog" 2>/dev/null || true
+  rm -f "$group"
+  if [ -f "$fired" ]; then
+    rm -f "$fired"
+    return 124
+  fi
+  return "$rc"
+}
+
+# THE BOUNDS. A read (release_wait's ask) is cut off at the time left and never
+# below the floor, so a zero wait still gives a slow answer a moment; a write
+# (a push, a gh create or edit) at the call bound. Each takes an override from
+# the environment FOR THE ARMS, which drive a hang in seconds rather than
+# minutes; it is not a project setting. A value that is not a whole number is
+# named on stderr and the default is used, never the value read as something
+# else.
+release_bound() {
+  local name="$1" value="$2"
+  if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+    printf 'release: %s is "%s", not a whole number of seconds\n' "$name" "$value" >&2
+    return 1
+  fi
+  printf '%s\n' "$value"
+}
+RELEASE_ASK_FLOOR_SECONDS="$(release_bound DEVBIN_RELEASE_ASK_FLOOR_SECONDS "${DEVBIN_RELEASE_ASK_FLOOR_SECONDS:-15}")" ||
+  RELEASE_ASK_FLOOR_SECONDS=15
+# Read by lib/cmd/release's cut_call, which shellcheck does not see from here.
+# shellcheck disable=SC2034
+RELEASE_CALL_SECONDS="$(release_bound DEVBIN_RELEASE_CALL_SECONDS "${DEVBIN_RELEASE_CALL_SECONDS:-120}")" ||
+  RELEASE_CALL_SECONDS=120
+
+# release_wait <seconds> <keep> <cutoff-state> <reader>... -- ask <reader> until
+# its answer's state is not one of <keep> (space-separated) or <seconds> have
+# passed, and print the last answer. It asks at least once, and then every
+# min(RELEASE_POLL_SECONDS, time left). Steps 9 and 11 wait through this, so
+# the two cannot come to disagree about what a wait is.
+#
+# EVERY ASK IS BOUNDED (release_run_bounded), at the time left and never below
+# RELEASE_ASK_FLOOR_SECONDS, so even a zero wait gives a slow answer a moment.
+# An ask cut off at its bound answers <cutoff-state> -- `UNREADABLE` for an
+# object, `unknown` for a verdict -- naming the bound, and a reader that answers
+# nothing at all answers the same, naming that.
+#
+# The caller tells "answered" from "ran out of time" by the answer's state:
+# still one of <keep> means the wait ran out.
+RELEASE_POLL_SECONDS=15
+RELEASE_WAIT_DIR=""
+release_wait() {
+  local seconds="$1" keep=" $2 " cutoff="$3" deadline left bound answer rc dir
+  shift 3
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/devbin-wait.XXXXXX")" || {
+    printf '%s\tno scratch directory to ask in\n' "$cutoff"
+    return 0
+  }
+  # The reader's scratch is this wait's, so a reader killed at its bound leaves
+  # nothing behind: the rm below removes it either way.
+  RELEASE_WAIT_DIR="$dir"
+  deadline=$((SECONDS + seconds))
+  while :; do
+    left=$((deadline - SECONDS))
+    bound=$((left > RELEASE_ASK_FLOOR_SECONDS ? left : RELEASE_ASK_FLOOR_SECONDS))
+    rc=0
+    release_run_bounded "$bound" "$dir/out" "$dir/err" "$@" || rc=$?
+    answer="$(head -n 1 "$dir/out")"
+    if [ "$rc" -eq 124 ]; then
+      answer="$(printf '%s\tdid not answer within %ss' "$cutoff" "$bound")"
+    elif [ -z "$answer" ]; then
+      answer="$(printf '%s\tanswered nothing (exit %s): %s' "$cutoff" "$rc" "$(head -n 1 "$dir/err")")"
+    fi
+    case "$keep" in *" ${answer%%$'\t'*} "*) ;; *) break ;; esac
+    left=$((deadline - SECONDS))
+    [ "$left" -gt 0 ] || break
+    sleep "$((left < RELEASE_POLL_SECONDS ? left : RELEASE_POLL_SECONDS))"
+  done
+  RELEASE_WAIT_DIR=""
+  rm -rf "$dir"
+  printf '%s\n' "$answer"
+}
+
+# release_ci_verdict <sha> <query-word>... -- the project's ci.query asked about
+# <sha>, as one line: `<verdict><TAB><detail>`, the verdict one of green,
+# failed, pending, none or unknown (D40).
+#
+# THE CONTRACT A QUERY KEEPS: it is run as `<query-word>... <sha>`, the sha
+# appended as notes.run receives its verb and version, with no stdin, and its
+# first line of output is `<verdict>[<TAB><detail>]`, the detail naming the run
+# (an id or a url) or the reason. That is Utilz's install_ci_state shape, with
+# the core's own verdict words rather than gh's conclusion words.
+#
+# IT NEVER GUESSES: a query that exits non-zero, prints nothing, or prints a
+# first word that is not a verdict is `unknown`, carrying what it said -- a
+# verdict nobody could read, recorded as anything else, is a pass nobody
+# measured. It is bounded by its caller, release_wait, and its scratch is that
+# wait's (RELEASE_WAIT_DIR), so a query killed at its bound leaves none behind.
+release_ci_verdict() {
+  local sha="$1" dir="${RELEASE_WAIT_DIR:-}" own=no rc=0 line verdict detail
+  shift
+  if [ -z "$dir" ]; then
+    dir="$(mktemp -d "${TMPDIR:-/tmp}/devbin-ci.XXXXXX")" || {
+      printf 'unknown\tno scratch directory to ask the query in\n'
+      return 0
+    }
+    own=yes
+  fi
+  "$@" "$sha" >"$dir/ci.out" 2>"$dir/ci.err" </dev/null || rc=$?
+  line="$(head -n 1 "$dir/ci.out")"
+  if [ "$rc" -ne 0 ]; then
+    detail="$(head -n 1 "$dir/ci.err")"
+    printf 'unknown\tthe query exited %s: %s\n' "$rc" "${detail:-${line:-it said nothing}}"
+  elif [ -z "$line" ]; then
+    printf 'unknown\tthe query printed nothing\n'
+  else
+    verdict="${line%%$'\t'*}"
+    detail=""
+    [ "$verdict" = "$line" ] || detail="${line#*$'\t'}"
+    case "$verdict" in
+      green | failed | pending | none | unknown) printf '%s\t%s\n' "$verdict" "${detail:-no detail given}" ;;
+      *) printf 'unknown\tthe query printed "%s", which is not a verdict (green, failed, pending, none or unknown)\n' "$line" ;;
+    esac
+  fi
+  if [ "$own" = yes ]; then rm -rf "$dir"; else rm -f "$dir/ci.out" "$dir/ci.err"; fi
+}

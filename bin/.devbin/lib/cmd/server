@@ -28,7 +28,9 @@ cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
 # be the plain form with `iex -S` in front; for Lamplight's `wrighter` it is not
 # -- plain runs a launcher expression and `--iex` drops it for a bare shell. A
 # framework option selects which command line runs; it does not transform one.
-if [ "${DEVBIN_OPT_IEX:-false}" = true ]; then
+# Through is_true_word (issue 0066): `options.iex.value: yes` or `1` ran the plain
+# form with no message, where every other flag reads those words as true.
+if is_true_word "${DEVBIN_OPT_IEX:-false}"; then
   exec iex -S mix phx.server "$@"
 fi
 exec mix phx.server "$@"

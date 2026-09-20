@@ -6,6 +6,12 @@
 # no config, no execution. `lib/resolve` asks it what exists and what language a
 # thing belongs to; `lib/cmd/<name>` asks it what to run. Both read ONE table.
 #
+# IT NEEDS lib/helpers LOADED FIRST, AND REFUSES TO LOAD WITHOUT IT (issue 0066).
+# Its readers ask `is_no_default` what the table's `-` means, and a missing
+# predicate does not fail there: `! is_no_default` turns "command not found"
+# into success, so `builtin_has_default_run` would claim a command line for a
+# row that has none, with no message (critic-shell, 2026-09-16).
+#
 # This replaces `_DEVBIN_BUILTIN_LANGS` and `_DEVBIN_BUILTIN_COMMANDS`, which
 # lived in lib/resolve as placeholders so D11 activation could be tested before
 # any built-in existed. They are MOVED here, not copied: two tables describing
@@ -24,6 +30,10 @@
 #           for its summary and a `-` for what to run.
 #
 [ -n "${_DEVBIN_BUILTINS_LOADED:-}" ] && return 0
+if ! declare -F is_no_default >/dev/null; then
+  printf 'lib/builtins: source lib/helpers first -- its readers need is_no_default\n' >&2
+  return 1
+fi
 _DEVBIN_BUILTINS_LOADED=1
 
 # THE catalogue, in declared order, which is the order `all` runs options in and
@@ -80,6 +90,7 @@ db               elixir  -           -          Data      - | Database lifecycle
 docs             any     -           -          Docs      @builtin | Generate and publish documentation
 content          opt-in  -           -          Docs      - | Content pipeline tasks
 version          any     -           -          Ship      @builtin | Show, set and bump the project version
+release          opt-in  -           -          Ship      @builtin | Cut a release: stamp, commit, gate, tag, push, and the release object
 publish          opt-in  -           -          Ship      - | Publish a release artifact
 macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
@@ -116,7 +127,7 @@ fmt.swift        swift   generic     FMTSWIFT   -         @builtin | Format Swif
 fmt.md           any     generic     FMTMD      -         @builtin | Format Markdown -- root only unless given paths
 clean.rust       rust    generic     CLEANRS    -         @builtin | Remove cargo target/ trees, release included
 clean.elixir     elixir  generic     CLEANEX    -         @builtin | Remove _build/ trees. deps/ is left alone
-clean.swift      swift   generic     CLEANSW    -         @builtin | Remove Swift .build/ and DerivedData trees
+clean.swift      swift   generic     CLEANSW    -         @builtin | Remove Swift .build/ trees
 "
 
 # The built-in COMMAND names, DERIVED from the catalogue's dotless rows rather
@@ -197,7 +208,7 @@ builtin_option_group() {
   local row g
   row="$(_builtin_row "$1" "${2:-}")" || return 1
   g="$(printf '%s' "$row" | awk '{print $4}')"
-  [ "$g" = "-" ] && g=""
+  if is_no_default "$g"; then g=""; fi
   printf '%s\n' "$g"
 }
 
@@ -318,5 +329,5 @@ builtin_command_group() { builtin_option_group "$1" ""; }
 builtin_has_default_run() {
   local run
   run="$(builtin_option_run "$1" "${2:-}")" || return 1
-  [ -n "$run" ] && [ "$run" != "-" ]
+  [ -n "$run" ] && ! is_no_default "$run"
 }

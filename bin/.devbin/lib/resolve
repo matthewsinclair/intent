@@ -98,9 +98,7 @@ option_declared() {
 
 option_active() {
   local cmd="$1" opt="$2" lang
-  case "$(cfg_get "commands.$cmd.options.$opt.enabled" true)" in
-    false | no | 0) return 1 ;;
-  esac
+  is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)" && return 1
   option_declared "$cmd" "$opt" && return 0
   # Past this point the option can only be a built-in, and a project handler
   # displaces the whole built-in option set (see has_project_handler).
@@ -140,15 +138,35 @@ option_unavailable_reason() {
   # declares exactly that language. The option was inactive for the right reason
   # (total shadowing) and reported with the wrong one.
   has_project_handler "$cmd" && return 1
-  case "$(cfg_get "commands.$cmd.options.$opt.enabled" true)" in
-    false | no | 0)
-      printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
-      return 0
-      ;;
-  esac
+  if is_false_word "$(cfg_get "commands.$cmd.options.$opt.enabled" true)"; then
+    printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
+    return 0
+  fi
   lang="$(_builtin_lang "$cmd" "$opt")" || return 1
-  printf "this project does not declare the '%s' language\n" "$lang"
+  # TEST THE ABSENCE BEFORE ASSERTING IT (issue 0062). This used to print the
+  # language sentence on the strength of option_active having already failed --
+  # true of today's order, and a false sentence the day that order changes. The
+  # command-level twin has always asked project_speaks first.
+  if project_speaks "$lang"; then
+    printf "devbin defect: its '%s' language is declared and it is not disabled, yet option_active refused it\n" "$lang"
+    return 0
+  fi
+  language_absence_reason "$lang"
   return 0
+}
+
+# language_absence_reason <language> -- the ONE sentence for a command or option
+# refused because project.languages does not declare its language.
+#
+# It names the list it read and the file that list lives in (issue 0062).
+# project.languages is GATE SCOPE; the list in intent/.config/config.json is
+# PROJECT COMPOSITION, and the two are different facts by design
+# (lib/config.reference.yaml). "does not declare the 'rust' language", naming
+# neither, sent Utilz toward "fixing" a correct Intent declaration. Both levels
+# print it from here, because two spellings of one refusal drift.
+language_absence_reason() {
+  printf "this project does not declare the '%s' language in project.languages (%s)\n" \
+    "$1" "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
 }
 
 # exec_handler <handler> [args...] -- descend the sub-handler chain and exec.
@@ -183,12 +201,10 @@ exec_handler() {
 command_unavailable_reason() {
   local cmd="$1" lang
   command_active "$cmd" && return 1
-  case "$(cfg_get "commands.$cmd.enabled" true)" in
-    false | no | 0)
-      printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
-      return 0
-      ;;
-  esac
+  if is_false_word "$(cfg_get "commands.$cmd.enabled" true)"; then
+    printf 'it is disabled in %s\n' "${DEVBIN_DIR:-bin/.devbin}/config.yaml"
+    return 0
+  fi
   is_builtin_command "$cmd" || return 1
   lang="$(builtin_command_lang "$cmd" 2>/dev/null)" || return 1
   if [ "$lang" = opt-in ]; then
@@ -218,7 +234,32 @@ command_unavailable_reason() {
     fi
     return 1
   fi
-  printf "this project does not declare the '%s' language\n" "$lang"
+  language_absence_reason "$lang"
+  return 0
+}
+
+# command_option_candidates <command> -- EVERY option this command could offer
+# here, active or not, in declared order and deduplicated.
+#
+# THE ONE ENUMERATION (issue 0063). It is the deduplicated union of what config
+# declares and what devbin ships, and it is NOT the catalogue read flat:
+# builtin_options is empty under a project handler, and an option both declared
+# and catalogued is one candidate. run_all's partition counts against exactly
+# this, so the denominator and the active set cannot come from two walks that
+# disagree.
+command_option_candidates() {
+  local cmd="$1" opt seen=""
+  # Config-declared options first, in declared order, so a project controls the
+  # sequence its `all` runs in. Built-ins devbin ships follow.
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    case " $seen " in *" $opt "*) continue ;; esac
+    seen="$seen $opt"
+    printf '%s\n' "$opt"
+  done <<EOF
+$(cfg_list "commands.$cmd.options")
+$(builtin_options "$cmd")
+EOF
   return 0
 }
 
@@ -227,17 +268,12 @@ command_unavailable_reason() {
 # This is the list `all` is built from, so an option added to config is in `all`
 # the moment it is added and the two cannot disagree (D8).
 command_options() {
-  local cmd="$1" opt seen=""
-  # Config-declared options first, in declared order, so a project controls the
-  # sequence its `all` runs in. Built-ins devbin ships follow.
+  local cmd="$1" opt
   while IFS= read -r opt; do
     [ -n "$opt" ] || continue
-    case " $seen " in *" $opt "*) continue ;; esac
-    seen="$seen $opt"
     option_active "$cmd" "$opt" && printf '%s\n' "$opt"
   done <<EOF
-$(cfg_list "commands.$cmd.options")
-$(builtin_options "$cmd")
+$(command_option_candidates "$cmd")
 EOF
   # EXPLICIT. A while loop returns the status of the last command in its body,
   # so when the final option is INACTIVE this returned 1 -- and the caller's
@@ -256,9 +292,7 @@ EOF
 # zero gates, which is the false-green the sealed gates exist to prevent.
 command_active() {
   local cmd="$1" lang
-  case "$(cfg_get "commands.$cmd.enabled" true)" in
-    false | no | 0) return 1 ;;
-  esac
+  is_false_word "$(cfg_get "commands.$cmd.enabled" true)" && return 1
   # A project handler is always active: its presence IS the declaration.
   has_project_handler "$cmd" && return 0
   # A config-declared `run:` activates the command, and this test sits AHEAD of
@@ -307,10 +341,8 @@ command_active() {
   # declared, and `opt-in` says only when the project asks. One column, one
   # question, no second table to drift.
   if [ "$lang" = opt-in ]; then
-    case "$(cfg_get "commands.$cmd.enabled" false)" in
-      true | yes | 1) return 0 ;;
-    esac
-    return 1
+    is_true_word "$(cfg_get "commands.$cmd.enabled" false)"
+    return
   fi
   project_speaks "$lang"
 }
@@ -404,6 +436,49 @@ EOF
   return 1
 }
 
+# word_count <words> -- how many whitespace-separated words, on stdout.
+word_count() {
+  local -a words=()
+  read -ra words <<<"$1"
+  printf '%s' "${#words[@]}"
+}
+
+# print_option_count <command> <ran> <candidates> <inactive> <skipped> -- the
+# one count line run_all prints on every path (issue 0063). Each list is
+# space-separated words. Members are not named here: `help --why` names the
+# inactive ones with their reasons, and the partition refusal names the rest.
+print_option_count() {
+  local cmd="$1" n_inactive where=""
+  n_inactive="$(word_count "$4")"
+  [ "$n_inactive" -eq 0 ] || where=" ($DEVBIN_INVOKE help --why names them)"
+  printf '\n%s%s of %s %s options ran; %s inactive here%s, %s skipped (in_all: false)%s\n' \
+    "${dim:-}" "$(word_count "$2")" "$(word_count "$3")" "$cmd" \
+    "$n_inactive" "$where" "$(word_count "$5")" "${reset:-}"
+}
+
+# option_partition_gap <candidates> <ran> <skipped> <inactive> -- nothing when
+# every candidate sits in exactly one of the three parts; otherwise one line per
+# kind of discrepancy, naming its members. Pure: lists in, lines out.
+option_partition_gap() {
+  local whole=" $1 " parts="$2 $3 $4" opt missing="" extra="" twice="" seen=" "
+  for opt in $1; do
+    case " $parts " in *" $opt "*) ;; *) missing="$missing $opt" ;; esac
+  done
+  for opt in $parts; do
+    case "$whole" in *" $opt "*) ;; *) extra="$extra $opt" ;; esac
+    case "$seen" in
+      *" $opt "*)
+        case " $twice " in *" $opt "*) ;; *) twice="$twice $opt" ;; esac
+        ;;
+    esac
+    seen="$seen$opt "
+  done
+  [ -z "$missing" ] || printf '  unaccounted for:%s\n' "$missing"
+  [ -z "$extra" ] || printf '  not an option here:%s\n' "$extra"
+  [ -z "$twice" ] || printf '  counted twice:%s\n' "$twice"
+  return 0
+}
+
 # run_all <command> [args...] -- the synthesised `all` (D8).
 #
 # Runs every active option in declared order and DOES NOT STOP at the first
@@ -414,8 +489,17 @@ run_all() {
   local cmd="$1"
   shift
   local opt failed="" skipped="" rc=0 ledger="" label path srr why disagreed=""
-  local executed=0
+  local executed=0 offered="" inactive="" ran="" gap=""
   init_colors auto
+  # THE DENOMINATOR, taken before anything is filtered (issue 0063). Inactive
+  # is asked of option_active on EACH CANDIDATE, never derived as candidates
+  # minus command_options: derived that way, a filter that wrongly drops an
+  # active option would count it inactive and the partition below would still
+  # sum -- the check would certify the very narrowing it exists to catch.
+  offered="$(command_option_candidates "$cmd" | tr '\n' ' ')"
+  for opt in $offered; do
+    option_active "$cmd" "$opt" || inactive="$inactive $opt"
+  done
   # ZERO options is a REFUSAL, not a pass. Without this the loop below runs no
   # times and the tail prints "all <cmd> options passed" -- success reported for
   # having done nothing, which is the exact false green the sealed gates exist
@@ -430,6 +514,7 @@ run_all() {
   # below covers.
   if [ -z "$(command_options "$cmd")" ]; then
     warn "'$DEVBIN_INVOKE $cmd all' has no options to run"
+    print_option_count "$cmd" "" "$offered" "$inactive" ""
     return 1
   fi
   # The seal ledger (lib/runlog): each gate appends its seal path when it fails,
@@ -449,13 +534,12 @@ run_all() {
     export DEVBIN_SEAL_LEDGER_RUN
   fi
   for opt in $(command_options "$cmd"); do
-    case "$(cfg_get "commands.$cmd.options.$opt.in_all" true)" in
-      false | no | 0)
-        skipped="$skipped $opt"
-        continue
-        ;;
-    esac
+    if is_false_word "$(cfg_get "commands.$cmd.options.$opt.in_all" true)"; then
+      skipped="$skipped $opt"
+      continue
+    fi
     executed=$((executed + 1))
+    ran="$ran $opt"
     if ! run_option "$cmd" "$opt" "$@"; then
       failed="$failed $opt"
     fi
@@ -464,6 +548,30 @@ run_all() {
   # skipped half its gates and printed "all passed" is a false green.
   if [ -n "$skipped" ]; then
     printf '\n%sskipped (in_all: false):%s%s\n' "${dim:-}" "$skipped" "${reset:-}"
+  fi
+  # ONE COUNT LINE ON EVERY PATH, AND THE PARTITION BEHIND IT (issue 0063). An
+  # option deactivated before this loop -- by language scope, `enabled: false`,
+  # or a filter not yet written -- used to appear nowhere, and the tail below
+  # spoke for the survivors as if they were the whole. The line states the
+  # reach beside the verdict without reciting members, which in a one-language
+  # project would be noise every run.
+  #
+  # The refusal is what makes the line trustworthy. Every candidate must be
+  # accounted for EXACTLY ONCE as ran, skipped or inactive: too wide fails loudly
+  # on its own, and only a partition that must sum catches too narrow, which is
+  # the direction that fails green. It closes the doorway rather than one more
+  # named door, including directions nobody has thought of.
+  print_option_count "$cmd" "$ran" "$offered" "$inactive" "$skipped"
+  gap="$(option_partition_gap "$offered" "$ran" "$skipped" "$inactive")"
+  if [ -n "$gap" ]; then
+    printf '\n%sREFUSING A VERDICT -- %s %s all cannot account for every option it offers:%s\n' \
+      "${red:-}" "$DEVBIN_INVOKE" "$cmd" "${reset:-}"
+    printf '%s\n' "$gap"
+    printf '  offered: %s\n  ran:%s\n  skipped:%s\n  inactive:%s\n' \
+      "$offered" "$ran" "$skipped" "$inactive"
+    printf '  %sthis is a bug in devbin, not a test failure: the count above is not the whole run.%s\n' \
+      "${dim:-}" "${reset:-}"
+    rc=1
   fi
   # A GATE'S RETURN CODE AND THE SEAL IT WRITES ARE TWO INDEPENDENT CLAIMS ABOUT
   # ONE RUN, and until 2026-08-17 nothing compared them. Measured that day: the
@@ -517,7 +625,7 @@ run_all() {
       "${dim:-}" "${reset:-}"
     rc=1
   fi
-  if [ "$executed" -gt 0 ] && [ -z "$failed" ] && [ -z "$disagreed" ]; then
+  if [ "$executed" -gt 0 ] && [ -z "$failed" ] && [ -z "$disagreed" ] && [ -z "$gap" ]; then
     printf '\n%sall %s options passed%s\n' "${green:-}" "$cmd" "${reset:-}"
   fi
   # THE SUMMARY IS WHERE THE INCIDENT HAPPENED, and covering only the per-gate
@@ -558,7 +666,8 @@ run_all() {
 # it as unknown, which is both wrong and confusing, since config plainly
 # declares it.
 run_option() {
-  local cmd="$1" opt="$2" handler run log_suffix grammar
+  local cmd="$1" opt="$2" handler run log_suffix grammar run_key
+  local -a words
   shift 2
 
   if has_project_handler "$cmd"; then
@@ -577,8 +686,15 @@ run_option() {
     return $?
   fi
 
-  run="$(cfg_get "commands.$cmd.options.$opt.run")"
-  if [ -n "$run" ]; then
+  # DECLARED IS `cfg_has`, NOT A NON-EMPTY VALUE (issue 0082). Every other
+  # reader of this key -- command_active, doctor, help -- asks whether it is
+  # declared, and only the two run sites asked whether it held something. So
+  # `run: ""` meant "declared" everywhere except here, where it fell through to
+  # the catalogue's own command line and ran that instead, silently. It carries
+  # no words, so it is refused below exactly as a line of spaces is.
+  run_key="commands.$cmd.options.$opt.run"
+  if cfg_has "$run_key"; then
+    run="$(cfg_get "$run_key")"
     # A declared `log:` makes this a sealed GATE, run through exactly the same
     # runner a built-in option uses. Without it the two halves of one surface
     # had different guarantees: `test mix` (shipped) sealed, while a project's
@@ -629,9 +745,11 @@ run_option() {
     fi
     if [ -z "$grammar" ]; then
       grammar="$(builtin_option_grammar "$cmd" "$opt" 2>/dev/null || true)"
-      [ "$grammar" = "-" ] && grammar=""
     fi
-    [ -n "$grammar" ] || grammar=generic
+    # `-` from EITHER source means generic (issue 0066), through gate_grammar. It
+    # was read on the catalogue's value alone, and a project writing
+    # `grammar: "-"` got `unknown grammar '-'` -- 0065's mistake one key over.
+    grammar="$(gate_grammar "$grammar")"
 
     if [ -n "$log_suffix" ]; then
       # In a SUBSHELL at the project root. A declared `run:` is a project
@@ -641,23 +759,27 @@ run_option() {
       # doing it here too is what makes the two halves one rig. The subshell
       # keeps the directory change from leaking into the next option of an
       # `all`.
-      # shellcheck disable=SC2086
       (
         cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+        # THE WORDS ARE TAKEN HERE, INSIDE THE cd, because every one of them is
+        # a glob pattern and the directory decides what it matches (issue 0082).
+        # Refusing here also refuses BEFORE run_gate opens a log, so a line with
+        # no words in it leaves no seal claiming a run.
+        run_words words "$run_key" "$run" || exit 1
         # Wrapper flags out of the tool's argv, purge pair to run_gate (one
-        # parser for both gate paths -- see gate_split_args in lib/runlog).
+        # parser for every gate path -- see gate_split_args in lib/runlog).
         gate_split_args "$@"
         run_gate --label "$cmd $opt" \
           --suffix "$log_suffix" \
           --grammar "$grammar" \
           --out-dir "$(gate_out_dir "$cmd")" \
-          --source "config key commands.$cmd.options.$opt.run, word-split unquoted (never eval'd)" \
+          --source "config key $run_key, split into words by run_words, each a glob pattern (never eval'd)" \
           ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
-          -- $run ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+          -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
       )
       return $?
     fi
-    # Unquoted expansion, deliberately NOT eval. Word splitting is what is
+    # Split by run_words, deliberately NOT eval'd. Word splitting is what is
     # wanted -- `run:` is a command line -- but eval would additionally
     # re-interpret quotes, substitutions and redirections in a config file,
     # which turns a declarative field into an execution surface for anything
@@ -667,10 +789,10 @@ run_option() {
     # containing spaces: `run: mix test --only "a b"` splits into four words.
     # That is the D1 boundary showing up in practice -- a command line that
     # needs real quoting needs a handler.
-    # shellcheck disable=SC2086
     (
       cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-      $run "$@"
+      run_words words "$run_key" "$run" || exit 1
+      "${words[@]}" "$@"
     )
     return $?
   fi
@@ -730,12 +852,18 @@ run_option() {
 # handlers for exactly this reason; this makes the declarative path agree with
 # the handler path instead of quietly differing from it.
 run_command() {
-  local cmd="$1" run log_suffix opts
+  local cmd="$1" run log_suffix opts run_key declared=no
+  local -a words
   shift
 
-  run="$(cfg_get "commands.$cmd.run")"
-
-  if [ -z "$run" ]; then
+  # Declared is `cfg_has`, as at option level and for the same reason (issue
+  # 0082): `run: ""` is declared everywhere else in devbin, and reading it as
+  # absent here ran devbin's own handler or the catalogue's line instead.
+  run_key="commands.$cmd.run"
+  if cfg_has "$run_key"; then
+    declared=yes
+    run="$(cfg_get "$run_key")"
+  else
     # devbin's own handler, before the catalogue's flat command line: a command
     # marked @builtin has logic a single command line cannot express.
     if is_handler "${DEVBIN_LIB:-}/cmd/$cmd"; then
@@ -748,12 +876,14 @@ run_command() {
     # `-` and `@builtin` both mean the catalogue ships no runnable command line
     # here: `-` because devbin defaults nothing (D18 tier 4), `@builtin` because
     # the handler above was meant to have taken it and is missing.
-    case "$run" in
-      - | @builtin) run="" ;;
-    esac
+    if is_no_default "$run" || [ "$run" = @builtin ]; then run=""; fi
+    # The catalogue's row, named for the refusal below: a line with no words in
+    # it is devbin's own packaging error here, not a project's config error, and
+    # the message has to say which.
+    run_key="the catalogue's command line for '$cmd'"
   fi
 
-  if [ -n "$run" ]; then
+  if [ "$declared" = yes ] || [ -n "$run" ]; then
     log_suffix="$(cfg_get "commands.$cmd.log")"
     # Resolved before the seal decision, as run_option does and for the same
     # reason (issue 0065): a declined `log:` has to reach the test below empty,
@@ -761,27 +891,42 @@ run_command() {
     log_suffix="$(gate_log_suffix "$cmd" "$log_suffix")" ||
       die "cannot resolve commands.$cmd.log -- refusing to run '$cmd' unsealed"
     if [ -n "$log_suffix" ]; then
-      # A command-level gate seals on exactly the terms an option-level one does
-      # (D19), including the subshell at the project root -- it has to RETURN so
-      # the seal gets written, so this is the one path here that does not exec.
-      # shellcheck disable=SC2086
+      # A command-level gate seals on the terms an option-level one does (D19),
+      # including the subshell at the project root -- it has to RETURN so the
+      # seal gets written, so this is the one path here that does not exec.
+      # THIS COMMENT ASSERTED THAT PARITY TWICE WHEN THE CODE DID NOT HAVE IT.
+      # The source line was missing until issue 0085, and the wrapper flags were
+      # handed to the tool as arguments until issue 0087. So the parity is held
+      # by arms rather than by this sentence: runlog.bats compares the two
+      # seals with their keys removed, and dispatch.bats refuses any run_gate
+      # span that forwards a raw argv.
       (
         cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+        # Inside the cd, since each word is a glob pattern matched there, and
+        # before run_gate opens a log (issue 0082).
+        run_words words "$run_key" "$run" || exit 1
+        # Wrapper flags out of the tool's argv, to run_gate (issue 0087: this
+        # site forwarded "$@" whole, so `--purge` ran as a tool argument).
+        gate_split_args "$@"
         # The suffix is passed AS RESOLVED. Resolving it again here was the
         # half of 0065 the first cut missed: harmless for every name in use,
         # and a refusal for a command named `0`, whose resolved suffix `0` is
         # itself a decline.
         run_gate --label "$cmd" \
           --suffix "$log_suffix" \
-          --grammar "$(cfg_get "commands.$cmd.grammar" generic)" \
-          --out-dir "$(gate_out_dir "$cmd")" -- $run "$@"
+          --grammar "$(gate_grammar "$(cfg_get "commands.$cmd.grammar")")" \
+          --out-dir "$(gate_out_dir "$cmd")" \
+          --source "config key $run_key, split into words by run_words, each a glob pattern (never eval'd)" \
+          ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
+          -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
       )
       return $?
     fi
     cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
-    # Unquoted, deliberately not eval -- the same D1 boundary run_option holds.
-    # shellcheck disable=SC2086
-    exec $run "$@"
+    # Split by run_words, deliberately not eval'd -- the same D1 boundary
+    # run_option holds, and the same glob rule (issue 0082).
+    run_words words "$run_key" "$run" || return 1
+    exec "${words[@]}" "$@"
     # Reached only if exec could not replace the process at all. Without this
     # line `exec` is silently doing control-flow duty as well as its own job:
     # drop it and the command runs and THEN reports itself unbuilt, which is
@@ -1036,9 +1181,7 @@ _shared_option_declares_shape() {
 
 # _shared_option_is_flag <name> -- a flag takes no value (--iex, --repl, --json).
 _shared_option_is_flag() {
-  case "$(cfg_get "options.$1.flag" false)" in
-    true | yes | 1) return 0 ;;
-  esac
+  is_true_word "$(cfg_get "options.$1.flag" false)" && return 0
   # Config wins on SHAPE wherever it declares shape -- a project may spell
   # `--iex` as a valued option if it wants. Only where config declares none does
   # the framework default apply, and every framework option is a flag.

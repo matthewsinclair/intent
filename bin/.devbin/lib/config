@@ -29,7 +29,9 @@
 #   cfg_get <path> [default] scalar at a dotted path, or default (or "")
 #   cfg_has <path>           true when the path has a value
 #   cfg_list <path>          immediate child keys under path, document order
-#   cfg_validate             schema check of the loaded config
+#   cfg_validate             schema check of the loaded config (needs lib/helpers)
+#   cfg_release_get <key>    a release: scalar, or its D37 default (ST0007)
+#   cfg_release_list <key>   a release: list, one item per line, or its default
 #   cfg_dump                 the flattened form (debugging, doctor)
 #
 [ -n "${_DEVBIN_CONFIG_LOADED:-}" ] && return 0
@@ -408,6 +410,13 @@ _cfg_path_known() {
       [ "$n" -eq 4 ] && [ "${p[2]}" = commands ] && _cfg_is_index "${p[3]}" && return 0
       return 1
       ;;
+    release)
+      # ST0007's release: block. Its keys, shapes and defaults are ONE table,
+      # _DEVBIN_RELEASE_SCHEMA below, and this branch reads it rather than
+      # listing the keys a second time.
+      [ "$n" -ge 2 ] && _cfg_release_known "${path#release.}" && return 0
+      return 1
+      ;;
     commands)
       if [ "$n" -eq 3 ]; then
         # `log` and `grammar` at COMMAND level, not just option level: a
@@ -442,8 +451,293 @@ _cfg_path_known() {
   return 1
 }
 
+# --- the release: block (ST0007, design D37) -------------------------------
+#
+# THE ONE STATEMENT OF THE RELEASE KEYS: shape, dotted key under `release.`,
+# and default. The schema branch above, the readers below and the value checks
+# all read it, so a key added here is known, defaulted and validated in one
+# edit. Every key has a default and every default can be overridden (hv,
+# 2026-09-16, decision 26).
+#
+# A list's default items are separated by `|`. A project declares a list
+# EXPLICITLY EMPTY as the single item `-` (devbin's no-default sentinel): the
+# grammar has no `[]`, and without it `gates` could not be overridden to none.
+# An undeclared `remotes` means every remote `git remote` lists, in that order,
+# which only the release command can read -- so `remotes` is the one list that
+# cannot be declared `-`: a reader who learned `gates: -` means no gates would
+# take `remotes: -` to mean no remotes, and the release would push everywhere.
+_DEVBIN_RELEASE_SCHEMA="
+scalar tag         v{version}
+list   remotes
+scalar branch      main
+scalar notes.kind  changelog
+scalar notes.run
+list   derived
+list   gates       check all|test all
+scalar ci.query
+scalar ci.wait     20m
+scalar object      local
+scalar title       {tag}
+scalar repo
+scalar object_wait 20m
+list   after
+"
+
+# _cfg_release_row <key> -- `<shape><TAB><default>` for a release key, or
+# non-zero when the schema has no such key.
+_cfg_release_row() {
+  local want="$1" shape key def IFS=$' \t\n'
+  while read -r shape key def; do
+    [ -n "$shape" ] || continue
+    if [ "$key" = "$want" ]; then
+      printf '%s\t%s\n' "$shape" "$def"
+      return 0
+    fi
+  done <<<"$_DEVBIN_RELEASE_SCHEMA"
+  return 1
+}
+
+# _cfg_release_known <sub> -- true when `release.<sub>` is a legal path: a
+# scalar key exactly, or a list key followed by an index.
+_cfg_release_known() {
+  local sub="$1" row
+  if row="$(_cfg_release_row "$sub")"; then
+    [ "${row%%$'\t'*}" = scalar ]
+    return
+  fi
+  case "$sub" in *.*) ;; *) return 1 ;; esac
+  _cfg_is_index "${sub##*.}" || return 1
+  row="$(_cfg_release_row "${sub%.*}")" || return 1
+  [ "${row%%$'\t'*}" = list ]
+}
+
+# _cfg_release_default <key> -- the default, a list's items joined by `|`.
+_cfg_release_default() {
+  local row
+  row="$(_cfg_release_row "$1")" || return 1
+  printf '%s\n' "${row#*$'\t'}"
+}
+
+# _cfg_release_shape_is <key> <shape> -- refuse, naming the key, a key the
+# schema lacks or one read in the wrong shape. A reader asking for `bump`
+# would otherwise get an empty default and read it as "declared nothing".
+_cfg_release_shape_is() {
+  local row
+  if ! row="$(_cfg_release_row "$1")"; then
+    printf 'config: the release: schema has no key: %s\n' "$1" >&2
+    return 1
+  fi
+  if [ "${row%%$'\t'*}" != "$2" ]; then
+    printf 'config: release.%s is a %s, not a %s\n' "$1" "${row%%$'\t'*}" "$2" >&2
+    return 1
+  fi
+}
+
+# cfg_release_declared <key> -- true when the project declared `release.<key>`:
+# a scalar with a value, or a list with at least one item, `-` included, since
+# `-` is a declaration that the list is empty. The one answer to "declared or
+# default": both readers below and `release check` ask it.
+cfg_release_declared() {
+  local row
+  row="$(_cfg_release_row "$1")" || return 1
+  case "${row%%$'\t'*}" in
+    scalar) cfg_has "release.$1" ;;
+    list) [ -n "$(cfg_list "release.$1")" ] ;;
+    *) return 1 ;;
+  esac
+}
+
+# cfg_release_get <key> -- the declared value of a release scalar, or its default.
+cfg_release_get() {
+  _cfg_release_shape_is "$1" scalar || return 1
+  if cfg_release_declared "$1"; then
+    cfg_get "release.$1"
+  else
+    _cfg_release_default "$1"
+  fi
+}
+
+# cfg_release_list <key> -- a release list's items, one per line: the declared
+# items, nothing when declared as `-`, or the default items.
+#
+# IFS IS PINNED, because the item indices are split from cfg_list's lines, and
+# under a caller's `IFS=` the whole list would arrive as one index -- the hole
+# _word_in in lib/helpers had until issue 0066's review pinned it there.
+cfg_release_list() {
+  local key="$1" i items="" def IFS=$' \t\n'
+  _cfg_release_shape_is "$key" list || return 1
+  for i in $(cfg_list "release.$key"); do
+    items="${items:+$items
+}$(cfg_get "release.$key.$i")"
+  done
+  if cfg_release_declared "$key"; then
+    is_no_default "$items" || printf '%s\n' "$items"
+    return 0
+  fi
+  def="$(_cfg_release_default "$key")"
+  [ -z "$def" ] || printf '%s\n' "${def//|/$'\n'}"
+  return 0
+}
+
+# _cfg_release_value_problem <path> <value> -- print why a release value
+# cannot be read, and succeed; fail when the value is fine.
+_cfg_release_value_problem() {
+  local v="$2" key="${1#release.}"
+  case "$key" in
+    tag)
+      case "$v" in *"{version}"*) return 1 ;; esac
+      printf 'must contain {version}, or every release would carry the same tag'
+      ;;
+    notes.kind)
+      case "$v" in changelog | releases | command) return 1 ;; esac
+      printf 'must be changelog, releases or command'
+      ;;
+    object)
+      case "$v" in local | ci | none) return 1 ;; esac
+      printf 'must be local, ci or none'
+      ;;
+    ci.wait | object_wait)
+      [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
+      printf 'must be a whole number of s, m or h, eg 20m'
+      ;;
+    repo)
+      [[ "$v" =~ ^([^/[:space:]]+/)?[^/[:space:]]+/[^/[:space:]]+$ ]] && return 1
+      printf 'must be OWNER/NAME or HOST/OWNER/NAME, as gh --repo takes it'
+      ;;
+    *)
+      [ -n "$v" ] && return 1
+      printf 'is empty -- leave the key out to take its default'
+      ;;
+  esac
+  return 0
+}
+
+# _cfg_release_problems -- the checks that need more than one key: a list
+# declared `-` beside other items, and a declared key the declared (or
+# default) mode never reads. A key nothing reads is silently ignored config,
+# the class issue 0080 closed for booleans.
+_cfg_release_problems() {
+  local rc=0 shape key i n sentinel kind object IFS=$' \t\n'
+  # NO PIPELINE, AND NOT FOR STYLE. The items were read through
+  # `... | grep -qx -- -`, and under pipefail, which every handler sets, a grep
+  # that matches on the first line exits before the writer has finished: the
+  # writer takes SIGPIPE, the pipeline fails, and the refusal was skipped. A `-`
+  # beside an item larger than the pipe buffer was accepted every time. A loop
+  # has no second process to lose, and it asks is_no_default, the one spelling
+  # of the sentinel test (issue 0066).
+  #
+  # THE LIST KEYS ARE READ FROM THE TABLE, not typed here: a typed list was a
+  # second statement of which keys are lists, and a list row added to the table
+  # would have skipped this refusal in silence.
+  while read -r shape key _; do
+    [ "$shape" = list ] || continue
+    n=0
+    sentinel=0
+    for i in $(cfg_list "release.$key"); do
+      n=$((n + 1))
+      if is_no_default "$(cfg_get "release.$key.$i")"; then sentinel=1; fi
+    done
+    if [ "$n" -gt 1 ] && [ "$sentinel" -eq 1 ]; then
+      printf 'config: %s: release.%s: "-" declares the list empty, so it must be the only item\n' "$_DEVBIN_CFG_FILE" "$key" >&2
+      rc=1
+    fi
+  done <<<"$_DEVBIN_RELEASE_SCHEMA"
+  # `remotes: -` IS REFUSED, see the table's comment: undeclared means every
+  # remote, so an explicitly empty list could only mean "push nowhere", which no
+  # release step does, and reading it as "every remote" would push where the
+  # project said not to.
+  if cfg_release_declared remotes && [ -z "$(cfg_release_list remotes)" ]; then
+    printf 'config: %s: release.remotes: "-" would push the release to no remote -- leave the key out for every remote, or name the remotes\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  kind="$(cfg_release_get notes.kind)"
+  object="$(cfg_release_get object)"
+  if [ "$kind" = command ] && ! cfg_has release.notes.run; then
+    printf 'config: %s: release.notes.run is required under notes.kind: command -- it is what does the work\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  if [ "$kind" != command ] && cfg_has release.notes.run; then
+    printf 'config: %s: release.notes.run is read only under notes.kind: command, and kind is %s\n' "$_DEVBIN_CFG_FILE" "$kind" >&2
+    rc=1
+  fi
+  if cfg_has release.ci.wait && ! cfg_has release.ci.query; then
+    printf 'config: %s: release.ci.wait is read only when release.ci.query is declared\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  if cfg_has release.title && [ "$object" != local ]; then
+    printf 'config: %s: release.title is read only under object: local, and object is %s\n' "$_DEVBIN_CFG_FILE" "$object" >&2
+    rc=1
+  fi
+  if cfg_has release.repo && [ "$object" = none ]; then
+    printf 'config: %s: release.repo is read only under object: local or ci, and object is none\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  if cfg_has release.object_wait && [ "$object" != ci ]; then
+    printf 'config: %s: release.object_wait is read only under object: ci, and object is %s\n' "$_DEVBIN_CFG_FILE" "$object" >&2
+    rc=1
+  fi
+  return "$rc"
+}
+
+# _cfg_path_boolean <path> -- true when devbin reads the path's value as a yes
+# or a no, through is_true_word or is_false_word (issue 0080).
+#
+# THE ONE LIST OF BOOLEAN KEYS. A validator that knows a key but not the words
+# its reader takes lets `enabled: off` through: neither word, so a built-in
+# stayed active and an opt-in stayed off, and nothing said so. config.bats holds
+# every `is_true_word "$(cfg_get ...` reader in lib/ to a path this accepts, so
+# a new boolean reader cannot land without joining it.
+#
+# NOT HERE, deliberately: `log:` reads the words but takes any other word as a
+# log suffix, and `options.<name>.value` is free text that one option (server's
+# --iex) happens to read as a boolean.
+_cfg_path_boolean() {
+  local -a p
+  IFS='.' read -ra p <<<"$1"
+  case "${#p[@]}:${p[0]}" in
+    3:commands) [ "${p[2]}" = enabled ] ;;
+    5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all) return 0 ;; *) return 1 ;; esac ;;
+    3:options) [ "${p[2]}" = flag ] ;;
+    *) return 1 ;;
+  esac
+}
+
+# _cfg_path_command_line <path> -- true when the path's value is a command line
+# that devbin splits into words and runs (issue 0082).
+#
+# THE ONE LIST OF COMMAND-LINE KEYS, and it is here because validation is the
+# only reader that sees every key in a file. A `run:` of nothing but spaces is
+# not empty, splits into no words, and used to run the arguments typed after the
+# command AS the command -- so it is refused here as well as at the site, since
+# `doctor` is not on the dispatch path and the site is not on doctor's.
+#
+# The limit worth stating: a command-line key added to the schema without
+# joining this list is validated as ordinary text. Nothing catches that but a
+# reader, the way `referent` and the `log`/`grammar` pair went unlisted above.
+_cfg_path_command_line() {
+  local -a p
+  IFS='.' read -ra p <<<"$1"
+  case "${#p[@]}:${p[0]}" in
+    3:commands) case "${p[2]}" in run | restore) return 0 ;; *) return 1 ;; esac ;;
+    5:commands) [ "${p[2]}" = options ] && [ "${p[4]}" = run ] ;;
+    3:release) [ "${p[1]}" = notes ] && [ "${p[2]}" = run ] ;;
+    *) return 1 ;;
+  esac
+}
+
+# cfg_validate -- every key is a schema path, project.name is present, and every
+# boolean key holds a word from lib/helpers's lists.
+#
+# REFUSES WITHOUT lib/helpers rather than failing each check. `! is_true_word`
+# on a missing function is true, so every boolean value would be reported as
+# wrong, naming the project's file for a defect in the loader.
 cfg_validate() {
-  local k v rc=0
+  local k v why rc=0
+  if ! declare -F is_true_word >/dev/null || ! declare -F is_false_word >/dev/null ||
+    ! declare -F has_words >/dev/null; then
+    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words and has_words there\n' >&2
+    return 1
+  fi
   if ! cfg_has project.name; then
     printf 'config: %s: required key missing: project.name\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
@@ -453,9 +747,23 @@ cfg_validate() {
     if ! _cfg_path_known "$k"; then
       printf 'config: %s: unknown key: %s\n' "$_DEVBIN_CFG_FILE" "$k" >&2
       rc=1
+    elif _cfg_path_boolean "$k" && ! is_true_word "$v" && ! is_false_word "$v"; then
+      printf 'config: %s: %s: "%s" is not a yes or a no -- use one of: %s (yes) or %s (no)\n' \
+        "$_DEVBIN_CFG_FILE" "$k" "$v" "$_DEVBIN_TRUE_WORDS" "$_DEVBIN_FALSE_WORDS" >&2
+      rc=1
+    elif [ "${k%%.*}" = release ] && why="$(_cfg_release_value_problem "$k" "$v")"; then
+      printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif _cfg_path_command_line "$k" && ! has_words "$v"; then
+      printf 'config: %s: %s: "%s" holds no words, so there is no command to run\n' \
+        "$_DEVBIN_CFG_FILE" "$k" "$v" >&2
+      rc=1
     fi
   done <<EOF
 $_DEVBIN_CFG
 EOF
+  if [ -n "$(cfg_list release)" ]; then
+    _cfg_release_problems || rc=1
+  fi
   return "$rc"
 }

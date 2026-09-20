@@ -73,9 +73,10 @@ project:
   #
   # Names the FILE, never how to parse it: devbin knows how to read a version
   # out of VERSION, mix.exs, Cargo.toml, package.json and a plist. Anything else
-  # is read as a bare version file -- one whose whole contents are the version --
-  # and a file that turns out to hold more than that reads as `unknown` rather
-  # than yielding its own text as a version number. That split is design D1 --
+  # is read as a bare version file -- one whose whole contents are the version.
+  # The file named here is read verbatim, because this declaration makes its
+  # whole content the version by definition; only a SIDECAR that holds more
+  # than a version reads as `unknown` (see version_sidecars). That split is design D1 --
   # the config states a fact about the project, the library holds the recipe.
   #
   # The corpus needed this: three projects kept a VERSION file, but Laksa's
@@ -209,6 +210,15 @@ help:
   # scroll-past)" survives the fold: it is authored prose doing real work, and a
   # sequence of maps -- the obvious way to carry a name and a note separately --
   # is outside the config subset (D7).
+  #
+  # The groups devbin's built-ins ship in are a DEFAULT, not a fleet convention
+  # (issue 0035, ruled 2026-09-16). They sort by what a command does to the
+  # project -- Build it, Test it, Check it, Ship it, open a Surface on it --
+  # with Docs, Data and Infra for the few that act on one subject, Install for
+  # `which`, and Devbin for devbin managing itself. `commands.<cmd>.group`
+  # overrides one; a project sorting by subject instead is choosing a different
+  # axis, which it may, and this note exists so that the choice is knowing
+  # rather than accidental.
   groups:
     - Surfaces
     - Build
@@ -293,7 +303,7 @@ commands:
   # ever run a release build.
   #
   # `fullcycle` is destructive: `clean rust` removes `target/` INCLUDING
-  # `release/`, and `test rust` builds debug binaries only. So on an estate
+  # `release/`, and `cargo test` builds debug binaries only. So on an estate
   # where something on PATH resolves through `target/release/`, the cycle
   # darkens it. The verb watches for exactly that and reports what it could not
   # put back -- and with this key declared, it puts it back first.
@@ -351,6 +361,12 @@ commands:
     # Optional. The usage hint in help's left column: `server [--iex]`. It is
     # prose, not a parser -- devbin never interprets it.
     args: "[--iex]"
+    # EVERY `run:` IS SPLIT INTO WORDS AND NEVER `eval`'d, AND EVERY WORD IS A
+    # GLOB PATTERN matched in the directory the command runs from -- the project
+    # root, or for release.notes.run the root it answers about. `bats opt/*/test`
+    # becomes one word per match; a word matching nothing is passed as written;
+    # quotes, `$` and `;` stay literal, so an argument cannot contain a space.
+    # A `run:` holding no words is refused, naming its key (issue 0082).
     run: mix phx.server
 
   # A multi-option command. `all` is NOT declared: the framework synthesises it
@@ -363,7 +379,7 @@ commands:
       mix:
         summary: ExUnit
         run: mix test
-        grammar: mix        # named extractor: mix|credo|cargo|xcodebuild|lua|shell|generic
+        grammar: mix        # named extractor: mix|credo|cargo|xcodebuild|lua|shell|bats|critic|generic
         #
         # The grammar reads failures out of the log AND decides whether an empty
         # run is refused. A tool that exits 0 having executed nothing -- a
@@ -375,6 +391,8 @@ commands:
         # test run: `check compile` uses this grammar for its failure reader),
         # and never under `generic` or `lua`, which have no counter. A gate
         # whose suite may legitimately be empty declares `grammar: generic`.
+        # `grammar: "-"`, devbin's "no default" sentinel, means no grammar and
+        # seals with `generic`, as the catalogue's own `-` does (issue 0066).
         # `log:` is what makes an option a sealed GATE (design D19). With it,
         # the option runs through the same runner a built-in uses and writes
         # tmp/<command>/<stamp>.<suffix>.{out,errors}; the .errors companion is
@@ -436,16 +454,65 @@ commands:
   precommit:
     enabled: false
 
-  # An OPT-IN built-in, switched on. `which`, `macos`, `precommit`, `publish`
-  # and `content` are shipped as names and are absent until a project asks for
-  # them (design D22) -- they are language-agnostic, so D11's language scoping
-  # cannot hide them, and most projects should never see them.
+  # An OPT-IN built-in, switched on. `which`, `macos`, `precommit`, `publish`,
+  # `content` and `release` are absent until a project asks for them (design
+  # D22) -- they are language-agnostic, so D11's language scoping cannot hide
+  # them, and most projects should never see them.
   #
-  # devbin ships no command line for any of the five: each is one or two of the
+  # `release` is the one devbin implements itself (ST0007; see `release:`
+  # below). It ships no command line for the other five: each is one or two of the
   # four source projects and encodes that project's shape. Enabling one means
   # supplying what it runs, here or as a handler in cmd/.
+  #
+  # `precommit` RUNS a project's pre-commit gate; it never installs or wires a
+  # git hook (issue 0035, ruled 2026-09-16). .git/hooks is untracked, so hook
+  # wiring a project does by hand is lost on every fresh clone -- that gap is
+  # its own issue, and not this command's.
   publish:
     enabled: true
     summary: Push a release to the registry
     group: Ship
     run: mix hex.publish
+
+# The release core (ST0007). `release` is OPT-IN, like `publish`: enable it
+# with `commands.release.enabled: true`. This block does NOT enable it by being
+# present, and `doctor` reports a block in a project that has not enabled
+# `release` as declared and inert.
+#
+# EVERY UNCOMMENTED VALUE IS THE DEFAULT. A project that enables `release`
+# and declares no block releases with all of them, and a block names only what
+# differs (hv, 2026-09-16: every key has a default, and every default can be
+# overridden). A COMMENTED line is one of two things. For `remotes`, `derived`,
+# `ci.query`, `after`, `notes.run` and `repo` the default is empty or derived, and the line shows an
+# example value, not the default. `ci.wait` and `object_wait` are commented out
+# because declaring them where the default mode never reads them is refused, not
+# ignored -- `ci.wait` without `ci.query`, `object_wait` outside object: ci --
+# and their lines show the default for the mode that does read them. The same
+# rule refuses `title` outside object: local and `notes.run` outside
+# notes.kind: command.
+#
+# A list is declared EMPTY as the single item "-": the grammar has no `[]`.
+# `remotes` is the exception and refuses "-": undeclared already means every
+# remote, so an empty list could only mean pushing nowhere.
+release:
+  tag: "v{version}"          # must contain {version}. Utilz declares "{version}".
+  # remotes:                 # undeclared: every remote `git remote` lists, in that order
+  #   - origin
+  branch: main
+  notes:
+    kind: changelog          # changelog | releases | command
+    # run: bin/release-notes # notes.kind: command only -- receives the verb and the version
+  # derived:                 # commands that regenerate derived files, each printing the paths it wrote
+  #   - cargo update --workspace
+  gates:                     # devbin verbs, run in order on the release commit; each must exit 0
+    - check all
+    - test all
+  # ci:                      # undeclared: CI is not consulted
+  #   query: bin/ci-state    # run as `<query> <sha>`: first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
+  #   wait: 20m              # how long the post-release verdict waits on pending or none
+  object: local              # local | ci | none -- who makes the release object
+  title: "{tag}"             # object: local only. {tag} and {version} expand.
+  # repo: owner/name         # object: local or ci. Undeclared: read off the first push remote's url
+  # object_wait: 20m         # object: ci only -- how long to wait for the workflow's release object
+  # after:                   # commands run after the release object, reported, outside the core's guarantees
+  #   - bin/announce

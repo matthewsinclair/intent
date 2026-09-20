@@ -132,7 +132,7 @@ $lang
   if [ $# -eq 0 ]; then
     set -- --staged
     if [ -z "$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null)" ]; then
-      warn "nothing staged -- the critic will examine NO files, which is not a failure here (stage changes, or pass --files <path>...)"
+      warn "nothing staged -- the critic will examine NO files, which is not a failure here (stage changes, or pass --files <path>, once per file)"
     fi
   fi
 
@@ -182,6 +182,7 @@ _fmt_arm_state() {
 
 builtin_check_format() {
   local lang cmd rc=0 ran=0
+  local -a words
 
   # This gate verifies whole trees, one arm per declared language. It used to
   # take arguments and silently DROP them: as a catalogue command line the
@@ -243,10 +244,14 @@ builtin_check_format() {
       _check_format_swift || rc=1
       continue
     fi
-    # Unquoted on purpose: a catalogue command line, expanded the way every
-    # other one is, and never eval'd (D1).
-    # shellcheck disable=SC2086
-    $cmd || rc=1
+    # Split by run_words: a catalogue command line, read the way every other one
+    # is, and never eval'd (D1, and issue 0082's one helper). run_builtin_gate
+    # has already cd'd to the project root, which is where the words are matched.
+    run_words words "the catalogue's format check for '$lang'" "$cmd" || {
+      rc=1
+      continue
+    }
+    "${words[@]}" || rc=1
   done
 
   # No formattable language declared. Devbin itself is this case -- it declares

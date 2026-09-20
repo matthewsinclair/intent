@@ -196,7 +196,7 @@ _direction_words() {
     forward) printf 'forward -- the source is ahead of what was vendored\n' ;;
     backward) printf 'backward -- the source is BEHIND this install; upgrading would revert it\n' ;;
     unrelated) printf 'unrelated -- the source shares no history with what was vendored\n' ;;
-    *) printf 'unknown -- no recorded commit to compare, so a downgrade cannot be detected\n' ;;
+    *) printf 'unknown -- what was vendored here cannot be placed against this source, so a downgrade cannot be detected\n' ;;
   esac
 }
 

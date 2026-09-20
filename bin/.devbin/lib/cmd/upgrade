@@ -55,9 +55,14 @@ EOF
 # ONE HOME. There were two copies before issue 0053 and the fix would have made
 # four, which is how the pair drifts into saying different things in the two
 # arms a reader compares.
+#
+# `upgrading to` IS ASKED THROUGH source_commit_of, NOT `git rev-parse HEAD`
+# (issue 0059). An install has no .git, so the bare git question printed
+# `unknown` beside a warning that the install's own stamp had just made
+# possible -- and on a dirty checkout it named a commit the bytes are not.
 _upgrade_provenance_lines() {
   warn "  vendored from: $(manifest_source_commit "$1" 2>/dev/null || printf 'unrecorded')"
-  warn "  upgrading to:  $(git -C "$2" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+  warn "  upgrading to:  $(source_commit_of "$2")"
 }
 
 # _upgrade_the_install <srcroot> <prefix-flag> -- replace the machine install.
@@ -120,7 +125,7 @@ _upgrade_the_install() {
   printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
   printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
   printf '\nThe estate still carries the OLD bytes until each project upgrades:\n'
-  printf '  bin/devbin fleet upgrade --dry-run\n'
+  printf '  %s     (previews the sweep; writes nothing)\n' "$(fleet_preview_hint)"
   return 0
 }
 
@@ -245,6 +250,17 @@ main() {
       else
         warn "this source shares NO history with what is vendored here"
         _upgrade_provenance_lines "$dstroot" "$srcroot"
+      fi
+      ;;
+    unknown)
+      # UNKNOWN SPEAKS WHEN BYTES WOULD MOVE (issue 0059). It was silent, and
+      # silence reads as "forward" -- which is the one reading `unknown` must
+      # never get. Level bytes stay quiet: with nothing to revert, a direction
+      # nobody can establish is not worth a line.
+      if ! seam_is_level "$dstroot" "$srcroot"; then
+        warn "cannot tell whether this source is ahead of or BEHIND what is vendored here"
+        _upgrade_provenance_lines "$dstroot" "$srcroot"
+        warn "  run '$DEVBIN_INVOKE vendor' first if you are not sure this moves forward"
       fi
       ;;
   esac

@@ -65,6 +65,7 @@ usage_options_for() {
 
 run_builtin_gate() {
   local cmd="$1" opt="${2:-}" run suffix grammar fn
+  local -a words
   shift || true
   shift || true
 
@@ -88,12 +89,14 @@ run_builtin_gate() {
   run="$(builtin_option_run "$cmd" "$opt")" ||
     die "unknown $cmd option: $opt (try: ${DEVBIN_INVOKE:-bin/devbin} $cmd all)"
   suffix="$(builtin_option_suffix "$cmd" "$opt")"
-  grammar="$(builtin_option_grammar "$cmd" "$opt")"
+  # Through gate_grammar, the one reading of `-` (issue 0066). No option row
+  # carries `-` today; one that did would otherwise warn `unknown grammar '-'`.
+  grammar="$(gate_grammar "$(builtin_option_grammar "$cmd" "$opt")")"
 
   cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
 
   # Wrapper flags out of the tool's argv, purge pair to run_gate (one parser
-  # for both gate paths -- see gate_split_args in lib/runlog).
+  # for every gate path -- see gate_split_args in lib/runlog).
   gate_split_args "$@"
 
   if [ "$run" = "@builtin" ]; then
@@ -128,21 +131,34 @@ run_builtin_gate() {
         [ -n "$gf" ] && own+=("$gf")
       done < <("${fn}_gateflags" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"} || true)
     fi
+    # WHAT THIS SEAL IS OVER, said rather than left to be inferred (issue 0085):
+    # a function in this process, so there is no command line and no config key,
+    # and a reader who goes looking for one is looking for something that cannot
+    # exist. The other four openers name a key or the catalogue.
     run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
       --out-dir "$(gate_out_dir "$cmd")" \
+      --source "devbin's own builtin $fn -- a function in this process, not a command line" \
       ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
       ${own[@]+"${own[@]}"} \
       -- "$fn" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
     return $?
   fi
 
-  # Unquoted expansion, deliberately not eval -- the same rule run_option
-  # applies to a config `run:`, for the same reason. The catalogue is devbin's
-  # own data rather than a user's, but the two paths behaving differently would
-  # be worse than either behaviour on its own.
-  # shellcheck disable=SC2086
+  # Split by run_words, deliberately not eval'd -- the same rule run_option
+  # applies to a config `run:`, for the same reason, and since issue 0082 the
+  # same helper. The catalogue is devbin's own data rather than a user's, but
+  # the two paths behaving differently would be worse than either behaviour on
+  # its own, and a handler that sources this file under a strict-mode
+  # `IFS=$'\n\t'` is where that stops being theoretical: the line would stay one
+  # word and resolve to nothing. The cd above is what the glob patterns are
+  # matched in.
+  run_words words "the catalogue's command line for '$cmd $opt'" "$run" || return 1
+  # The same phrase run_words is given for its refusal, for the same reason
+  # (issue 0085): the catalogue is devbin's own data, so there is no config key
+  # to name, and naming the row is what tells a reader where to look.
   run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
     --out-dir "$(gate_out_dir "$cmd")" \
+    --source "the catalogue's command line for '$cmd $opt', split into words by run_words, each a glob pattern (never eval'd)" \
     ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
-    -- $run ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+    -- "${words[@]}" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
 }

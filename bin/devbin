@@ -14,18 +14,11 @@
 #
 set -euo pipefail
 
-# THE FLOOR (issue 0022, reversing design D9). devbin requires bash >= 5 and
-# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the fleet
-# runs a Homebrew bash 5.x everywhere, and the guarantee now points at what
-# actually runs. This block must stay parseable by bash 3.2 -- the refusal
-# cannot be allowed to arrive as a syntax error that explains nothing.
-if [ "${BASH_VERSINFO[0]:-0}" -lt 5 ]; then
-  printf 'devbin: bash >= 5 is required; this is bash %s (%s)\n' \
-    "${BASH_VERSION:-unknown}" "${BASH:-unknown}" >&2
-  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
-  printf '  (issue 0022, reversing design D9, 2026-08-24)\n' >&2
-  exit 1
-fi
+# THE FLOOR (issue 0022) is checked by lib/helpers, sourced as soon as the
+# runtime is found below, and not here: one refusal, one home, reaching every
+# handler as well as this process (issue 0076). EVERYTHING UP TO THAT SOURCE
+# LINE MUST STAY PARSEABLE BY BASH 3.2, or an old bash meets a syntax error
+# before it meets the refusal.
 
 # Resolve this script's real location (symlink-safe) into BIN_DIR and the
 # project root, so the launcher works from any CWD and through a symlink on
@@ -58,6 +51,10 @@ else
   exit 1
 fi
 export BIN_DIR PROJECT_ROOT DEVBIN_DIR DEVBIN_LIB
+
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+require_path_bash_floor
 
 # ---- THE TREE A RUN IS ABOUT IS THE TREE YOU ARE STANDING IN ---------------
 #
@@ -111,11 +108,13 @@ esac
 # which is both confusing and false. The install-tree refusal says what is
 # actually true and names `install --into` and `upgrade --from`.
 #
-# The manifest line is read inline rather than through `manifest_field`: this
-# guard deliberately runs BEFORE lib/helpers is sourced, so that helper does not
-# exist yet. One grep for the line that function would return.
+# The manifest line is read through `manifest_field`. It was an inline grep while
+# this guard ran before lib/helpers was sourced; helpers now loads first, for the
+# floor (issue 0076), so the one manifest reader is available and a second one
+# here would be the copy Highlander forbids. No manifest reads as empty, which
+# is not an install.
 if [ "$_devbin_wrong_tree_check" = yes ] &&
-  grep -q '^# kind: install$' "$PROJECT_ROOT/bin/.devbin/manifest.sha256" 2>/dev/null; then
+  [ "$(manifest_field "$PROJECT_ROOT" kind)" = install ]; then
   _devbin_wrong_tree_check=no
 fi
 if [ "$_devbin_wrong_tree_check" = yes ]; then
@@ -140,7 +139,7 @@ if [ "$_devbin_wrong_tree_check" = yes ]; then
         printf 'Run that project'"'"'s own bin/devbin, or cd into it first.\n'
       } >&2
       # 4, NOT 2. This dispatcher already exits 2 for an unknown command and 3
-      # elsewhere, and 18 assertions in the suite turn on that 2 -- so a guard
+      # elsewhere, and suite assertions turn on that 2 -- so a guard
       # sharing it would let a test asserting a usage refusal be satisfied by a
       # WRONG-TREE refusal instead. Different refusals need different codes or
       # the green stops naming its own cause.
@@ -151,8 +150,6 @@ if [ "$_devbin_wrong_tree_check" = yes ]; then
 fi
 unset _devbin_wrong_tree_check
 
-# shellcheck source=lib/helpers
-. "$DEVBIN_LIB/helpers"
 # shellcheck source=lib/config
 . "$DEVBIN_LIB/config"
 # shellcheck source=lib/builtins
@@ -468,6 +465,10 @@ export DEVBIN_NAME DEVBIN_INVOKE
 # The assignment form of export, not eval: the config supplies the NAME here, so
 # eval would let a config file that can name a variable also run code.
 export "$PROJECT_ROOT_VAR=$PROJECT_ROOT"
+# And its NAME beside it, so a reader that must re-point the root variable -- a
+# notes command answering for a root that is not this tree (ST0007 D39) -- never
+# re-derives project.root_var's default. The name has one home: the lines above.
+export DEVBIN_ROOT_VAR="$PROJECT_ROOT_VAR"
 
 # Where read_version looks. Exported because handlers get it from lib/helpers,
 # which cannot read config (see the layering note in that file).
@@ -523,7 +524,7 @@ DEVBIN_FMT_ARMS="$(
 export DEVBIN_FMT_ARMS
 
 
-# THE VENDORED RUNTIME MAY HAVE MOVED ON. Once a day, on a terminal only, to
+# THE VENDORED RUNTIME MAY HAVE MOVED ON, OR BEHIND. Once a day, on a terminal only, to
 # stderr, never fatal -- see devbin_update_notice in lib/helpers for why each of
 # those four is load-bearing. Placed here so it precedes every command including
 # help, and after config so DEVBIN_NAME is set for the remediation line.

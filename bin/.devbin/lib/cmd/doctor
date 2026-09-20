@@ -109,11 +109,31 @@ check_config() {
     return 0
   fi
   if ! cfg_validate >/dev/null 2>&1; then
-    _fail "config: $file has keys the schema does not know"
+    _fail "config: $file has keys or values the schema does not know"
     cfg_validate 2>&1 >/dev/null | while IFS= read -r line; do _detail "$line"; done
     return 0
   fi
   _pass "config: bin/.devbin/config.yaml parses and validates"
+  return 0
+}
+
+# check_release -- a release: block that nothing reads (ST0007, design D35).
+#
+# `release` is opt-in, and a release: block does not enable it by being
+# present: that would be a second activation route for one row. So a block in
+# a project that has not enabled `release` configures nothing, and inert
+# configuration otherwise says nothing. A note, not a failure: declaring the
+# block before enabling the command is a legitimate order to adopt in.
+#
+# A config that does not load returns quietly HERE because check_config, which
+# runs first, already FAILS on it by name; a second report would say the same
+# thing about a file this check could not read.
+check_release() {
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 || return 0
+  [ -n "$(cfg_list release)" ] || return 0
+  command_active release && return 0
+  _note "release: a release: block is declared and inert -- release is not enabled here"
+  _detail "enable it with commands.release.enabled: true, or remove the block"
   return 0
 }
 
@@ -395,6 +415,8 @@ check_handlers() {
     case "$base" in *.yaml | *.md) continue ;; esac
     if [ -d "$f" ]; then
       case "$base" in
+        # doctor.d is doctor's own: the project checks it runs (0093).
+        doctor.d) ;;
         *.d)
           if ! is_handler "$dir/${base%.d}"; then
             [ "$orphans" -eq 0 ] && _fail "handlers: unreachable files in cmd/"
@@ -509,6 +531,57 @@ check_symlinks() {
   return 0
 }
 
+# check_source_currency -- is this project level with the devbin it came from?
+#
+# A NOTE, NEVER A FAILURE, IN EVERY STATE. Being behind the source is a
+# normal condition -- it is what `upgrade` is for -- and a project on an older
+# runtime is not broken. Failing here would make `doctor` red on the ordinary
+# case, which is the argument that killed the `> 1 declared test target` rule.
+#
+# WHAT THIS ADDS OVER THE UPDATE NOTICE (ST0005, AC-2.4). The notice prints or
+# stays quiet, and quiet covers BOTH "level" and "could not tell". That is right
+# for something that must never nag, and useless as an answer. Here every state
+# is kept apart, because a check that cannot reach the source and says nothing
+# gets read as currency it never established. Absent is not clean.
+check_source_currency() {
+  local state word rec cur why
+  is_devbin_installed "$PROJECT_ROOT" || return 0
+
+  state="$(devbin_source_state "$PROJECT_ROOT")"
+  IFS=' ' read -r word rec cur why <<<"$state"
+  case "$word" in
+    level)
+      _pass "source: level with the devbin it was vendored from"
+      ;;
+    behind)
+      _note "source: the devbin this project came from has moved on"
+      _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
+      _detail "run: $DEVBIN_INVOKE upgrade"
+      ;;
+    ahead)
+      # NEVER THE UPGRADE LINE (issue 0079). Any difference read as `behind`, so
+      # a project AHEAD of a rewound source was told to run the upgrade that
+      # reverts it.
+      _note "source: the devbin this project came from is BEHIND this project"
+      _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
+      _detail "run: $DEVBIN_INVOKE vendor -- it says which vendored files an upgrade from it would change"
+      ;;
+    differs)
+      _note "source: differs from what this project vendored, and is not known to be newer"
+      _detail "$why"
+      _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
+      _detail "run: $DEVBIN_INVOKE vendor"
+      ;;
+    *)
+      # NOT SILENCE, AND NOT A PASS. The whole point of keeping `unknown` apart.
+      _note "source: CANNOT TELL whether this project is current"
+      _detail "${state#* }"
+      _detail "this is not a clean bill -- nothing was established either way"
+      ;;
+  esac
+  return 0
+}
+
 # check_bash -- the floor, asserted where a human reads it.
 #
 # Issue 0022 (2026-08-24) reversed design D9: devbin REQUIRES bash >= 5, and
@@ -516,45 +589,6 @@ check_symlinks() {
 # this line is already on a compliant bash. The row still earns its place: it
 # names WHICH bash, and it is the check that goes red if the dispatcher guard
 # is ever removed while this one survives it.
-# check_source_currency -- is this project level with the devbin it came from?
-#
-# A NOTE, NEVER A FAILURE, IN ALL THREE STATES. Being behind the source is a
-# normal condition -- it is what `upgrade` is for -- and a project on an older
-# runtime is not broken. Failing here would make `doctor` red on the ordinary
-# case, which is the argument that killed the `> 1 declared test target` rule.
-#
-# WHAT THIS ADDS OVER THE UPDATE NOTICE (ST0005, AC-2.4). The notice prints or
-# stays quiet, and quiet covers BOTH "level" and "could not tell". That is right
-# for something that must never nag, and useless as an answer. Here the three
-# are separated, because a check that cannot reach the source and says nothing
-# gets read as currency it never established. Absent is not clean.
-check_source_currency() {
-  local state rest rec cur
-  is_devbin_installed "$PROJECT_ROOT" || return 0
-
-  state="$(devbin_source_state "$PROJECT_ROOT")"
-  rest="${state#* }"
-  case "$state" in
-    level*)
-      _pass "source: level with the devbin it was vendored from"
-      ;;
-    behind*)
-      rec="${rest%% *}"
-      cur="${rest##* }"
-      _note "source: the devbin this project came from has moved on"
-      _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
-      _detail "run: $DEVBIN_INVOKE upgrade"
-      ;;
-    *)
-      # NOT SILENCE, AND NOT A PASS. The whole point of the third state.
-      _note "source: CANNOT TELL whether this project is current"
-      _detail "$rest"
-      _detail "this is not a clean bill -- nothing was established either way"
-      ;;
-  esac
-  return 0
-}
-
 check_bash() {
   if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
     _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5, issue 0022)"
@@ -564,32 +598,121 @@ check_bash() {
   return 0
 }
 
+# PROJECT CHECKS (issue 0093; hv, 2026-09-19): every executable in
+# bin/.devbin/cmd/doctor.d/ runs after devbin's own checks, and is counted into
+# the one summary. Discovered, as cmd/ is: a project adds a check by adding a
+# file. The directory is cmd/<name>.d/ because that is where a word under a
+# command already lives, so `doctor <check>` runs one check by the same rule.
+#
+# Until this a project's only way in was a handler at cmd/doctor, which shadows
+# devbin's doctor totally -- so its own checks stopped running -- or a handler
+# that called lib/cmd/doctor by path, reaching into devbin's side of the seam
+# and printing two summaries. A total shadow stays available for a project that
+# genuinely wants one.
+#
+# THE CONTRACT A CHECK KEEPS: it runs from the project root with no stdin. A
+# line whose first word is `ok`, `FAIL` or `note` counts exactly as devbin's own
+# do, and any other line is shown under it as detail. The exit status is read
+# too, and neither can hide the other: a non-zero exit with no FAIL line fails,
+# naming the exit, and a FAIL line fails even when the check exits 0. A check
+# that exits 0 and prints no verdict line is one pass, by its name.
+#
+# THE LIMIT, DECLARED: a check is not bounded. One that hangs -- an ssh with no
+# BatchMode, say -- holds doctor, which is a person's command at a terminal.
+project_checks_dir() { printf '%s/cmd/doctor.d' "$DEVBIN_DIR"; }
+
+# run_project_check <path> -- run one project check, relay it, count it.
+run_project_check() {
+  local f="$1" name="${1##*/}" out rc=0 line first rest verdicts=0 failed=0
+  out="$(cd "$PROJECT_ROOT" && "$f" </dev/null 2>&1)" || rc=$?
+  while IFS= read -r line; do
+    read -r first rest <<<"$line" || true
+    case "$first" in
+      ok)
+        _pass "$name${rest:+: $rest}"
+        verdicts=$((verdicts + 1))
+        ;;
+      FAIL)
+        _fail "$name${rest:+: $rest}"
+        verdicts=$((verdicts + 1))
+        failed=$((failed + 1))
+        ;;
+      note) _note "$name${rest:+: $rest}" ;;
+      *) [ -z "$line" ] || _detail "$line" ;;
+    esac
+  done <<<"$out"
+  if [ "$rc" -ne 0 ] && [ "$failed" -eq 0 ]; then
+    _fail "$name: exited $rc, printing no FAIL line"
+  elif [ "$rc" -eq 0 ] && [ "$verdicts" -eq 0 ]; then
+    _pass "$name"
+  fi
+  return 0
+}
+
+# run_project_checks -- every check in doctor.d, in name order, under a heading.
+run_project_checks() {
+  local dir f LC_ALL=C
+  dir="$(project_checks_dir)"
+  [ -d "$dir" ] || return 0
+  printf '\n  project checks (bin/.devbin/cmd/doctor.d):\n'
+  for f in "$dir"/*; do
+    [ -e "$f" ] || continue
+    if [ -d "$f" ]; then
+      _note "doctor.d: ${f##*/}/ is a directory, not a check, so nothing in it was run"
+    elif ! is_handler "$f"; then
+      _note "doctor.d: ${f##*/} is not executable, so it was not run -- fix: chmod +x bin/.devbin/cmd/doctor.d/${f##*/}"
+    else
+      run_project_check "$f"
+    fi
+  done
+  return 0
+}
+
 usage() {
   cat <<EOF
-usage: $DEVBIN_INVOKE doctor
+usage: $DEVBIN_INVOKE doctor [<check>]
 
-Checks this install and reports every finding. Exits non-zero if anything
-failed. Notes are things worth knowing that are not faults.
+Checks this install and reports every finding, then runs every project check
+in bin/.devbin/cmd/doctor.d/. With <check>, runs that project check alone.
+Exits non-zero if anything failed. Notes are things worth knowing that are not
+faults.
 EOF
 }
 
 main() {
+  local only=""
   case "${1:-}" in
     -h | --help)
       usage
       return 0
       ;;
     "") ;;
-    *) die "unknown argument '$1' (try: $DEVBIN_INVOKE doctor --help)" ;;
+    *)
+      # One project check by name, by the cmd/<name>.d/<word> rule. Anything
+      # else is refused, as it always was.
+      if [ $# -eq 1 ] && is_handler "$(project_checks_dir)/$1"; then
+        only="$1"
+      else
+        die "unknown argument '$1' (try: $DEVBIN_INVOKE doctor --help)"
+      fi
+      ;;
   esac
 
   init_colors auto
   printf 'devbin doctor -- %s\n\n' "$PROJECT_ROOT"
 
+  if [ -n "$only" ]; then
+    run_project_check "$(project_checks_dir)/$only"
+    printf '\n%d checks, %d failed, %d notes\n' "$CHECKS" "$FAILURES" "$NOTES"
+    [ "$FAILURES" -eq 0 ] || return 1
+    return 0
+  fi
+
   check_dispatcher
   check_runtime
   check_config
   check_languages
+  check_release
   check_devbin_version
   check_manifest
   check_commands
@@ -598,6 +721,7 @@ main() {
   check_symlinks
   check_source_currency
   check_bash
+  run_project_checks
 
   printf '\n%d checks, %d failed, %d notes\n' "$CHECKS" "$FAILURES" "$NOTES"
 

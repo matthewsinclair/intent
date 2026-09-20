@@ -86,10 +86,22 @@ _fullcycle_usage() {
 #
 # So the list is a list. The guard is a guard, it lives in `cmd_fullcycle`, and
 # there is exactly one of it.
+#
+# THE TEST PHASE IS `test all` (issue 0083). It was `test rust`, so a project's
+# other declared test options never ran in a full cycle, and nothing a project
+# declared could change that short of editing this vendored file. Intent found
+# it with tests that need a real toolchain, run by a second declared option,
+# which hv ruled must run under `fullcycle` as they do under `test all`. So the
+# two run the same tests: an option marked `in_all: false` is kept out of this
+# cycle as it is kept out of `all`, and reported as skipped, and a `test`
+# handler that declares no options receives `all` and decides for itself. It
+# mirrors `build all` beside it. Where `all` runs a project's options, the
+# phase's rc is `all`'s, 1 on any failure, where `test rust` passed cargo's own
+# code through; a handler that receives `all` still returns its own.
 _fullcycle_phases() {
   printf '%s\n' "clean rust"
   printf '%s\n' "build all"
-  printf '%s\n' "test rust"
+  printf '%s\n' "test all"
 }
 
 # _fullcycle_can_rebuild <launcher> -- true when this project HAS a build verb.
@@ -270,10 +282,66 @@ _fullcycle_launcher() {
 # Space-joined, split by the caller. Safe here and only here: every element is
 # a literal written in this function, so there is no field a split can damage.
 # A flag that could ever carry a space has to move to an array return.
+#
+# ALWAYS `--force` TOO, SINCE 0089 (hv, option B). The clean phase never asks:
+# fullcycle asks the person once, at the top, where its own gate knows whether
+# one is there, and a y is what this `--force` carries. Without `--force` given
+# on the command line, the phase is reached only after that y. So the command
+# is the same either way, and `--force` decides only whether the question is
+# asked (_fullcycle_confirm).
 _fullcycle_clean_flags() {
-  local out="--force-blocked"
-  [ "${1:-0}" = 1 ] && out="$out --force"
-  printf '%s' "$out"
+  printf '%s' "--force-blocked --force"
+}
+
+# _fullcycle_clean_phase -- the clean phase, as the phase list spells it.
+_fullcycle_clean_phase() {
+  local phase
+  while IFS= read -r phase; do
+    case "$phase" in clean*)
+      printf '%s' "$phase"
+      return 0
+      ;;
+    esac
+  done < <(_fullcycle_phases)
+}
+
+# _fullcycle_confirm <launcher> -- show what the clean phase would remove, then
+# ask the person once (issue 0089; hv, option B). 0 on a y; otherwise it says
+# why and returns 1, and nothing has been removed.
+#
+# WHY HERE AND NOT IN clean. Each phase is a child devbin run behind its own
+# gate, whose stdin is /dev/null, so the child reports no person
+# (DEVBIN_GATE_TTY=0) whoever is at the terminal; that flag is always set from
+# the gate's own stdin so a stale value cannot stand (0088). This function runs
+# inside fullcycle's gate, whose flag is the person's. Asking here keeps 0088's
+# rule at one site, reading one variable.
+#
+# THE PREVIEW IS THE PHASE'S OWN COMMAND plus --dry-run, so what is shown is
+# what a y runs.
+_fullcycle_confirm() {
+  local launcher="$1" clean rc=0
+  local -a pass=()
+  clean="$(_fullcycle_clean_phase)"
+  read -r -a pass <<<"$(_fullcycle_clean_flags)"
+  printf '\n    What the clean phase would remove:\n'
+  # shellcheck disable=SC2086 # the phase is words from the phase list
+  if ! "$launcher" $clean "${pass[@]}" --dry-run; then
+    printf '    STOPPING: the preview of %s failed. Nothing was removed.\n' "$clean"
+    return 1
+  fi
+  ask_person "    Remove these and run the full cycle?" || rc=$?
+  case "$rc" in
+    0) return 0 ;;
+    1)
+      printf '    left alone. Nothing was removed; the cycle did not run.\n'
+      return 1
+      ;;
+    *)
+      printf '    no tty: fullcycle removes the build trees and asks first, and nobody is here to answer.\n'
+      printf '    Nothing was removed. Pass --force to run it without asking.\n'
+      return 1
+      ;;
+  esac
 }
 
 # _fullcycle_consent_notice <force> -- what fullcycle has answered on the
@@ -289,13 +357,15 @@ _fullcycle_consent_notice() {
   printf '      - fullcycle HAS answered clean'"'"'s blocked-binaries refusal for you,\n'
   printf '        because rebuilding what it darkens is this verb'"'"'s contract and\n'
   printf '        the after-half verifies the restore rather than assuming it.\n'
-  printf '      - it has NOT answered the removal prompt. clean asks on the tty,\n'
-  printf '        and refuses without one. That is the refusal you will meet.\n'
+  printf '      - it has NOT answered the removal prompt. It shows what clean would\n'
+  printf '        remove and asks you once, on the tty, before anything is removed,\n'
+  printf '        and refuses without one. A y is passed to clean as --force.\n'
   return 0
 }
 
 _fullcycle_run() {
   local force="$1" launcher phase rc=0 prc start elapsed cleaned=0 rebuilt="" link broken=0 restore_cmd
+  local -a restore_words
   local -a pass=()
   # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, hv: option 3).
   #
@@ -310,7 +380,7 @@ _fullcycle_run() {
   # the verb exists for: a dev tree whose PATH resolves into its own
   # `target/release/` hit the blocked refusal every time, so the happy path
   # required `--force` precisely where the stakes were highest.
-  read -r -a pass <<<"$(_fullcycle_clean_flags "$force")"
+  read -r -a pass <<<"$(_fullcycle_clean_flags)"
   launcher="$(_fullcycle_launcher)"
 
   _fullcycle_header
@@ -357,22 +427,29 @@ _fullcycle_run() {
   # safety question for someone must say so where they will read it.
   _fullcycle_consent_notice "$force"
 
-  while IFS= read -r phase; do
+  if [ "$force" = 0 ] && ! _fullcycle_confirm "$launcher"; then
+    return 1
+  fi
+
+  # THE PHASE LIST IS READ ON fd 3, AND CLOSED FOR EACH PHASE (issue 0089). It
+  # was read on stdin, so every phase inherited the rest of the list as its
+  # stdin: a phase that read input would have eaten the phases after it, and
+  # clean never saw a terminal. Today each phase's own gate hands its tool
+  # </dev/null, so nothing reads it -- but that protection is the child's, and
+  # this loop should not depend on it. No arm can reach it while it holds.
+  while IFS= read -r phase <&3; do
     [ -n "$phase" ] || continue
     printf '\n    --- phase: %s ---\n' "$phase"
     start=$SECONDS
     prc=0
-    # NO `< /dev/null`. Redirecting the tool's stdin hides terminal-only hangs,
-    # and here it would also defeat `clean`'s confirmation, turning a refusal
-    # into a silent proceed.
     case "$phase" in
       clean*)
         # shellcheck disable=SC2086
-        "$launcher" $phase ${pass[@]+"${pass[@]}"} || prc=$?
+        "$launcher" $phase ${pass[@]+"${pass[@]}"} 3<&- || prc=$?
         ;;
       *)
         # shellcheck disable=SC2086
-        "$launcher" $phase || prc=$?
+        "$launcher" $phase 3<&- || prc=$?
         ;;
     esac
     # THE RC IS CAPTURED BEFORE THE TIMING IS PRINTED. A printf placed after a
@@ -445,7 +522,7 @@ _fullcycle_run() {
       fi
       break
     fi
-  done < <(_fullcycle_phases)
+  done 3< <(_fullcycle_phases)
 
   # THE RESTORE HALF (issue 0050, hv's ruling: the TARGETED option).
   #
@@ -470,7 +547,14 @@ _fullcycle_run() {
   # the after-check made the proxy HARMLESS -- damage was reported rather than
   # prevented. Now the cycle attempts the restore it always claimed to be
   # capable of, and reports only what it could not put back.
-  if [ "$cleaned" = 1 ] && [ "${#atrisk[@]}" -gt 0 ] && [ "$rc" -eq 0 ]; then
+  #
+  # GATED ON A BUILD HAVING PASSED SINCE THE CLEAN, NOT ON THE CYCLE'S RC (issue
+  # 0070). The rc gate meant a TEST failure after a passing build left the
+  # toolchain dark and said nothing about the restore it skipped -- in exactly
+  # the estates that had declared one so a cycle would put back what it darkens.
+  # A passing build is what makes a restore meaningful; whether the tests passed
+  # is a different question, and the failing phase's rc stays the run's verdict.
+  if [ "$cleaned" = 1 ] && [ -n "$rebuilt" ] && [ "${#atrisk[@]}" -gt 0 ]; then
     local dark=0
     for link in "${atrisk[@]}"; do
       [ -e "$link" ] || dark=$((dark + 1))
@@ -509,8 +593,12 @@ _fullcycle_run() {
       # declares what performs it. Undeclared, the cycle reports what it could
       # not put back -- which is the state 0050 found, now with the reason and
       # the remedy attached instead of silence.
+      # Declared is `cfg_has`, as at every other command line (issue 0082): a
+      # `restore: ""` is a declaration with nothing in it, and reading it as
+      # undeclared reported "NO RESTORE COMMAND DECLARED" for config that plainly
+      # declares one.
       restore_cmd="$(cfg_get "commands.fullcycle.restore")"
-      if [ -z "$restore_cmd" ]; then
+      if ! cfg_has commands.fullcycle.restore; then
         printf '    NO RESTORE COMMAND DECLARED -- this cycle cannot put them back.\n'
         printf '    devbin will not run a release build it cannot know is safe here:\n'
         printf '    at least one estate guards its release path because several nodes\n'
@@ -519,13 +607,20 @@ _fullcycle_run() {
       else
         start=$SECONDS
         prc=0
-        # Unquoted expansion, deliberately NOT eval -- the same rule run_option
-        # applies to a config `run:`, for the same reason.
-        # shellcheck disable=SC2086
-        ( cd "$PROJECT_ROOT" && $restore_cmd ) || prc=$?
+        # Split by run_words, deliberately NOT eval'd -- the same rule run_option
+        # applies to a config `run:`, for the same reason, and since issue 0082
+        # the same helper. Its words are glob patterns matched at the root, and
+        # a restore with no words in it is refused there rather than running the
+        # cycle's own arguments: before this, `restore: "   "` made an empty
+        # command, which exits 0, and the phase reported rc=0 having restored
+        # nothing.
+        ( cd "$PROJECT_ROOT" && run_words restore_words commands.fullcycle.restore "$restore_cmd" &&
+          "${restore_words[@]}" ) || prc=$?
         elapsed=$((SECONDS - start))
         printf '    phase: %-14s %8s  rc=%d\n' "restore" "$(fmt_duration "$elapsed")" "$prc"
-        [ "$prc" -eq 0 ] || rc="$prc"
+        # A failed restore reddens a green cycle; it never replaces the rc of a
+        # phase that had already failed, which is the reason the run is red.
+        [ "$prc" -eq 0 ] || [ "$rc" -ne 0 ] || rc="$prc"
       fi
     fi
   fi
@@ -644,7 +739,9 @@ _fullcycle_run() {
         printf '    The clean failed and may have removed what these resolved through.\n'
         _fullcycle_rebuild_remedy
       fi
-      rc=1
+      # Reddens a green cycle; a phase that already failed keeps its own rc as
+      # the verdict (issue 0070), rather than every dark link reading as rc 1.
+      [ "$rc" -ne 0 ] || rc=1
     fi
   fi
 
@@ -681,7 +778,7 @@ cmd_fullcycle() {
 
   # FAIL CLOSED WHEN THE CYCLE CANNOT PUT BACK WHAT IT TAKES AWAY.
   #
-  # `clean rust` removes `target/` including `release/`, and `test rust` builds
+  # `clean rust` removes `target/` including `release/`, and `cargo test` builds
   # debug binaries only. Without a rebuild phase this verb is net-destructive,
   # and on at least one estate the deleted path is what `~/.local/bin/intent`
   # resolves through -- so the cost is not a slow next build, it is every
@@ -693,10 +790,17 @@ cmd_fullcycle() {
   # not need this one.
   if ! _fullcycle_can_rebuild "$launcher"; then
     printf 'fullcycle: REFUSING -- this project has no build command, so the cycle cannot rebuild what it deletes.\n' >&2
-    printf '  clean rust removes target/ INCLUDING release/, and test rust builds debug binaries only.\n' >&2
+    printf '  clean rust removes target/ INCLUDING release/, and cargo test builds debug binaries only.\n' >&2
     printf '  Anything on PATH resolving through target/release/ would stop resolving and stay broken.\n' >&2
-    printf '  Run %s clean rust and %s test rust yourself if that is really what you want,\n' \
-      "${DEVBIN_INVOKE:-bin/devbin}" "${DEVBIN_INVOKE:-bin/devbin}" >&2
+    # WHAT TO RUN INSTEAD IS READ FROM THE PHASE LIST, less its build (issue
+    # 0083). This sentence named `clean rust` and `test rust` itself, a second
+    # copy of the list that would have gone on offering `test rust` after the
+    # phase became `test all`.
+    printf '  If that is really what you want, run the rest of the cycle yourself:\n' >&2
+    while IFS= read -r phase; do
+      case "$phase" in build*) continue ;; esac
+      printf '    %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$phase" >&2
+    done < <(_fullcycle_phases)
     printf '  or declare a build command this project can rebuild through.\n' >&2
     return 1
   fi
@@ -707,10 +811,14 @@ cmd_fullcycle() {
     # did not happen would put a record of work beside work that was not done.
     _fullcycle_header
     printf '\n    DRY RUN -- nothing below is executed.\n'
+    if [ "$force" = 0 ]; then
+      printf '      (asks first, on the tty: shows what %s would remove, then runs the cycle on a y)\n' \
+        "$(_fullcycle_clean_phase)"
+    fi
     while IFS= read -r phase; do
       [ -n "$phase" ] || continue
       printf '      %s %s%s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$phase" \
-        "$(case "$phase" in clean*) printf ' %s' "$(_fullcycle_clean_flags "$force")" ;; esac)"
+        "$(case "$phase" in clean*) printf ' %s' "$(_fullcycle_clean_flags)" ;; esac)"
     done < <(_fullcycle_phases)
     # THE CONSENT NOTICE BELONGS HERE TOO, and its absence was the half of 0054
     # that was not cosmetic. This branch returns before `_fullcycle_run`, so the
@@ -729,6 +837,7 @@ cmd_fullcycle() {
 
   run_gate --label fullcycle --suffix FULLCYC --grammar generic \
     --out-dir "$(gate_out_dir fullcycle)" \
+    --source "devbin's own full cycle -- _fullcycle_run in this process, not a command line" \
     -- _fullcycle_run "$force"
 }
 

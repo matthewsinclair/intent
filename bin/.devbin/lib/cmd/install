@@ -368,7 +368,7 @@ EOF
   if [ "$mode" = publish ]; then
     printf '\nPublished. Consumers vendor from here:\n'
     printf '  cd <a project> && bin/devbin upgrade --from %s\n' "$dstroot"
-    printf '  bin/devbin fleet upgrade --dry-run     (from this tree, to see the estate)\n'
+    printf '  %s     (from this tree: previews the sweep, writes nothing)\n' "$(fleet_preview_hint)"
     return 0
   fi
 

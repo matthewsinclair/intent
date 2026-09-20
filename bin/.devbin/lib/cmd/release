@@ -1,0 +1,1250 @@
+#!/usr/bin/env bash
+#
+# The built-in `release` (ST0007): one copy of the release sequence for every
+# project that releases. Opt-in, like `publish` (design D35): a project enables
+# it with `commands.release.enabled: true`, and a `release:` block does not
+# enable it by being present.
+#
+#   release <--patch|--minor|--major|vX.Y.Z> [--dry-run] [--yes]   cut a release
+#   release status <vX.Y.Z>                                         the resume map
+#   release notes                                                   regenerate the notes views
+#   release check                                                   the declaration, and the notes views
+#   release                                                         usage, exit 1
+#
+# EVERY ARGUMENT IS PARSED BEFORE ANYTHING ACTS, and `-h` or `--help` in any
+# position prints usage and exits 0 (D36). Issue 0064 recorded
+# `macos prepare --help` rebuilding Intent.app: a handler that acts on its
+# first word before reading the rest cannot promise that --help is safe.
+#
+# AS BUILT BY WP-06: the argument loop, `release check` (the declaration and the
+# notes), `release notes`, whose providers are lib/release.notes, `release
+# status`, whose readers are lib/release.steps, and a cut's steps 1 to 11 with
+# --dry-run (cut_run), under every `object:`. Nothing in a cut exits 3 now.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/release.notes
+. "$DEVBIN_LIB/release.notes"
+# shellcheck source=lib/release.steps
+. "$DEVBIN_LIB/release.steps"
+
+usage() {
+  local me="${DEVBIN_INVOKE:-bin/devbin} release"
+  printf 'usage: %s <--patch|--minor|--major|vX.Y.Z> [--dry-run] [--yes]\n' "$me"
+  printf '       %s status <vX.Y.Z>\n' "$me"
+  printf '       %s notes\n' "$me"
+  printf '       %s check\n\n' "$me"
+  printf '  Cut a release: stamp, commit, gate, tag, push, and the release object,\n'
+  printf '  each step checked first so a re-run continues. Declared in the release:\n'
+  printf '  block of bin/.devbin/config.yaml; see docs/configuration.md.\n'
+}
+
+# refuse <message> -- a usage refusal: usage on stderr, the reason, exit 1.
+refuse() {
+  usage >&2
+  printf '\n' >&2
+  die "release: $1"
+}
+
+# --help first, over every argument, so no later word can act or refuse first.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+if [ $# -eq 0 ]; then
+  usage >&2
+  exit 1
+fi
+
+# --- parse ----------------------------------------------------------------
+verb="cut"
+target=""
+version=""
+dry_run=0
+assume_yes=0
+
+case "$1" in
+  status | notes | check)
+    verb="$1"
+    shift
+    ;;
+esac
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --patch | --minor | --major)
+      [ "$verb" = cut ] || refuse "$1 is a cut's target, and this is release $verb"
+      [ -z "$target" ] || refuse "one target only, got $target and $1"
+      target="$1"
+      ;;
+    --dry-run)
+      [ "$verb" = cut ] || refuse "--dry-run applies to a cut, not to release $verb"
+      dry_run=1
+      ;;
+    --yes)
+      [ "$verb" = cut ] || refuse "--yes applies to a cut, not to release $verb"
+      assume_yes=1
+      ;;
+    -*)
+      refuse "unknown argument: $1"
+      ;;
+    *)
+      case "$verb" in
+        cut)
+          [ -z "$target" ] || refuse "one target only, got $target and $1"
+          is_semver "${1#v}" || refuse "not a version: $1 (want vX.Y.Z or X.Y.Z)"
+          target="v${1#v}"
+          ;;
+        status)
+          [ -z "$version" ] || refuse "release status takes one version, got $version and $1"
+          is_semver "${1#v}" || refuse "not a version: $1 (want vX.Y.Z or X.Y.Z)"
+          version="${1#v}"
+          ;;
+        *)
+          refuse "release $verb takes no argument, got: $1"
+          ;;
+      esac
+      ;;
+  esac
+  shift
+done
+
+case "$verb" in
+  cut) [ -n "$target" ] || refuse "a cut needs a target: --patch, --minor, --major or vX.Y.Z" ;;
+  status) [ -n "$version" ] || refuse "release status needs a version" ;;
+esac
+
+# --- act ------------------------------------------------------------------
+
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+# THE CONFIG CACHE DOES NOT CROSS INTO A HANDLER, and an empty cache would read
+# as "declared nothing" -- every key at its default, in a project that declared
+# otherwise. So a config that does not load stops the command.
+cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "release: cannot read $DEVBIN_DIR/config.yaml"
+
+# check_declaration -- validate, then print every release key with its value
+# and whether the project declared it or it is the default.
+check_declaration() {
+  local key shape value from IFS=$' \t\n'
+  if ! cfg_validate; then
+    die "release check: $DEVBIN_DIR/config.yaml does not validate (above)"
+  fi
+  printf 'release: declaration (%s)\n' "$DEVBIN_DIR/config.yaml"
+  while read -r shape key _; do
+    [ -n "$shape" ] || continue
+    if cfg_release_declared "$key"; then from=declared; else from=default; fi
+    if [ "$shape" = scalar ]; then
+      value="$(cfg_release_get "$key")"
+    else
+      value="$(cfg_release_list "$key")"
+      value="${value//$'\n'/, }"
+      if [ -z "$value" ] && [ "$key" = remotes ]; then
+        value="every remote git lists"
+      fi
+    fi
+    printf '  %-12s %-28s %s\n' "$key" "${value:-(none)}" "$from"
+  done <<<"$_DEVBIN_RELEASE_SCHEMA"
+  check_release_writers
+}
+
+# check_release_writers -- D42: one writer per release object. A tag-triggered
+# workflow that calls `gh release` races a local `gh release create`, and a
+# workflow that recreates its release discards the local one. Reported for the
+# project to decide, never guessed.
+#
+# A WORKFLOW GREP COULD NOT READ IS NAMED, NOT SKIPPED. grep exits 2 on an
+# unreadable file, and `|| continue` read that as "no match", so the silence
+# would have said there is no second writer when nobody looked.
+check_release_writers() {
+  local wf rc
+  [ "$(cfg_release_get object)" = local ] || return 0
+  [ -d .github/workflows ] || return 0
+  for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+    [ -f "$wf" ] || continue
+    rc=0
+    grep -qE '^[[:space:]]*tags:' "$wf" && grep -qE 'gh release' "$wf" || rc=$?
+    case "$rc" in
+      0) ;;
+      1) continue ;;
+      *)
+        printf 'release: WARNING: could not read %s (grep exited %s), so whether it also makes the release object was not checked\n' "$wf" "$rc"
+        continue
+        ;;
+    esac
+    printf 'release: WARNING: %s runs gh release on a pushed tag, and object is local:\n' "$wf"
+    printf '         both would make the release object. Declare release.object: ci if the\n'
+    printf '         workflow makes it, or remove its gh release step.\n'
+  done
+  return 0
+}
+
+# select_notes -- the notes provider this project declares (D39). The library
+# never reads config, so the facts it needs are read here and passed in.
+select_notes() {
+  local kind run
+  kind="$(cfg_release_get notes.kind)" || die "release: cannot read release.notes.kind"
+  run="$(cfg_release_get notes.run)" || die "release: cannot read release.notes.run"
+  notes_select "$kind" "$run" "${DEVBIN_NAME:?}" || die "release: no notes provider (above)"
+}
+
+# check_notes -- the notes half of `release check` (D36): the generated views
+# match their source, and the version this project claims has a note.
+#
+# BOTH HALVES WARN AND CARRY ON, so one run names everything wrong; the status
+# is 1 if either found anything. A kind that generates no views says so, in
+# words that cannot be read as "every view is current" -- zero views compared is
+# a fact about the kind, and a count of zero printed as a pass would hide it.
+check_notes() {
+  local kind compare verdict path n=0 stale=0 rc=0 v state
+  kind="$(cfg_release_get notes.kind)" || die "release: cannot read release.notes.kind"
+  if compare="$(notes_views_check "$PROJECT_ROOT")"; then
+    while read -r verdict path; do
+      [ -n "$verdict" ] || continue
+      n=$((n + 1))
+      case "$verdict" in
+        current) ;;
+        STALE)
+          warn "$path is STALE -- regenerate with: $DEVBIN_INVOKE release notes"
+          stale=$((stale + 1))
+          ;;
+        *)
+          # Not reachable through the three kinds, which print only the two
+          # verdicts; refused here all the same, because an answer this reader
+          # does not recognise must never count as current.
+          warn "release check: the notes provider answered '$verdict $path', which is neither current nor STALE"
+          stale=$((stale + 1))
+          ;;
+      esac
+    done <<<"$compare"
+    if [ "$n" -eq 0 ]; then
+      printf 'release: notes.kind %s generates no views, so none were compared\n' "$kind"
+    else
+      printf 'release: %s of %s generated view(s) current\n' "$((n - stale))" "$n"
+    fi
+    [ "$stale" -eq 0 ] || rc=1
+  else
+    warn "release check: the generated views could not be compared (above)"
+    rc=1
+  fi
+
+  v="$(read_version)"
+  if ! is_semver "$v"; then
+    warn "release check: this project's version reads '$v', which is not X.Y.Z, so its note cannot be looked up"
+    rc=1
+  elif ! state="$(notes_state "$PROJECT_ROOT" "$v")"; then
+    warn "release check: the note for $v could not be read (above)"
+    rc=1
+  elif [ "$state" = absent ]; then
+    warn "this project's version is $v and there is no $(notes_where "$v") -- the notes describe a version it no longer claims to be"
+    rc=1
+  else
+    printf 'release: the note for %s is %s\n' "$v" "$state"
+  fi
+  return "$rc"
+}
+
+# write_notes -- `release notes`: regenerate the generated views (D39).
+write_notes() {
+  local written path n=0
+  written="$(notes_views "$PROJECT_ROOT")" || die "release notes: the views were not regenerated (above)"
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    printf 'release: wrote %s\n' "$path"
+    n=$((n + 1))
+  done <<<"$written"
+  if [ "$n" -eq 0 ]; then
+    printf 'release: notes.kind %s generates no views, so nothing was written\n' "$(cfg_release_get notes.kind)"
+  fi
+  return 0
+}
+
+# open_scratch <who> -- the run's ONE scratch root, outside the project, and the
+# ONE trap that removes it (WP-04). Every commit the run materialises is written
+# into a directory of its own under the root, with its index beside that
+# directory, so an interrupt at any point leaves nothing behind: until WP-04
+# the tree WAS the root and the index its sibling, which the trap missed (dc's
+# review of 4328583). Opened in this shell, never in a `$(...)`, because a trap
+# set in a subshell is gone when the subshell is.
+SCRATCH=""
+open_scratch() {
+  [ -z "$SCRATCH" ] || return 0
+  SCRATCH="$(release_scratch "$PROJECT_ROOT")" || die "$1: no scratch directory to read a commit in (above)"
+  # shellcheck disable=SC2064 # expand now: the path is fixed, and a later
+  # reassignment must not change what is removed.
+  trap "rm -rf '$SCRATCH'" EXIT
+}
+
+# materialise <name> <commit> <version> -- <commit>'s whole tree, written into
+# $SCRATCH/<name>, checked for every path the release owns. The reason is on
+# stderr when it cannot be. open_scratch first.
+materialise() {
+  local owned
+  local -a paths=()
+  owned="$(release_owned "$PROJECT_ROOT" "$3")" || return 1
+  mapfile -t paths <<<"$owned"
+  release_materialise "$2" "$SCRATCH/$1" "${paths[@]}"
+}
+
+# ---------------------------------------------------------------------------
+# THE CUT, STEPS 1 TO 5 (WP-04; D38)
+#
+# Each step reads its postcondition first, so a re-run of the same target
+# continues, and each step's row is one of D38's states: `done`, `already`,
+# `skipped`, `not re-run`, `FAILED`, or under --dry-run `would`. The rows are
+# collected and printed as one table when the run stops, through release_row,
+# the renderer `release status` prints through: the summary of a run and the
+# map of where it got to are the same table. A step's own output (a gate's, a
+# commit hook's) is printed as it happens, above that table.
+#
+# A FAILED STEP STOPS THE RUN, exit 1, and its row names what failed. Steps 1 to
+# 5 are local and reversible (principle 3), so a stop leaves nothing another
+# machine has seen, and the remedy is forward: fix it and run the same target.
+#
+# PAST THE PUSH THE RULE CHANGES. Step 9 under `object: ci` fails as any step
+# does, since a re-run continues it. Steps 10 and 11 run on a published
+# release (D40): a failed `after:` or a CI verdict that is not green is
+# reported, undoes nothing, and ends the cut at exit 1 with the remedy, which
+# is forward -- the next release, never a moved tag.
+# ---------------------------------------------------------------------------
+
+CUT_ROWS=()
+CUT_HEAD=""
+CUT_UNREACHED=()
+CUT_OUTWARD=""
+
+cut_row() { CUT_ROWS+=("$(release_row "$1" "$2" "$3")"); }
+
+cut_summary() {
+  printf '\n%s\n' "$CUT_HEAD"
+  printf '%s\n' "${CUT_ROWS[@]}"
+}
+
+# cut_fail <n> <detail> [rc] -- step <n> FAILED: its row, the table so far, and
+# what this run did that another machine can see, then exit <rc> (1, or 2 when
+# nobody could be asked, AC-5.3).
+cut_fail() {
+  cut_row "$1" FAILED "$2"
+  cut_summary
+  printf '\nrelease: stopped at step %s (%s). %s. Fix it and run the same release again.\n' \
+    "$1" "${_RELEASE_STEP_NAMES[$(($1 - 1))]}" "$(cut_outward)"
+  exit "${3:-1}"
+}
+
+# cut_outward -- what this run has done that is not local and reversible, as a
+# sentence: EVERY such act, in order, or that there was none. Every act, not
+# the last: a run that pushed to two remotes and then failed must name both.
+cut_outward() {
+  if [ -n "$CUT_OUTWARD" ]; then
+    printf 'This run %s' "${CUT_OUTWARD#, }"
+  else
+    printf 'This run tagged nothing and pushed nothing'
+  fi
+}
+
+# cut_call <step> <what> <cmd>... -- one write to another machine (a push, a
+# gh create or edit), bounded at RELEASE_CALL_SECONDS (release_run_bounded),
+# its output shown as it was when it ran unbounded. A failure or a hang fails
+# <step>, naming <what>; a hang also says the effect is unknown, since a push
+# cut off mid-flight may or may not have landed, and `release status` reads it.
+cut_call() {
+  local step="$1" what="$2" rc=0
+  shift 2
+  release_run_bounded "$RELEASE_CALL_SECONDS" "$SCRATCH/call.out" "$SCRATCH/call.err" "$@" || rc=$?
+  cat "$SCRATCH/call.out" "$SCRATCH/call.err"
+  case "$rc" in
+    0) return 0 ;;
+    124) cut_fail "$step" "$what did not finish within ${RELEASE_CALL_SECONDS}s and was stopped -- whether it took effect is unknown; release status reads it" ;;
+    *) cut_fail "$step" "$what failed (exit $rc, above)" ;;
+  esac
+}
+
+# one_line <text> -- the text on one line, for a row's detail.
+one_line() { printf '%s' "${1//$'\n'/ }"; }
+
+# cut_remotes -- the remotes a release pushes to: the declared list, else every
+# remote git lists (D37).
+cut_remotes() {
+  if cfg_release_declared remotes; then
+    cfg_release_list remotes
+  else
+    git remote
+  fi
+}
+
+# declared_remote -- the first declared `remotes` entry, or nothing when none is
+# declared: release_repo's second argument.
+declared_remote() {
+  local r=""
+  if cfg_release_declared remotes; then
+    IFS= read -r r <<<"$(cfg_release_list remotes)"
+  fi
+  printf '%s\n' "$r"
+}
+
+# object_title <tag> <version> -- the release object's title: `title:`, with
+# {tag} and {version} filled in. One home, read by a cut's step 6 and by status.
+object_title() {
+  local title
+  title="$(cfg_release_get title)"
+  title="${title//\{tag\}/$1}"
+  printf '%s\n' "${title//\{version\}/$2}"
+}
+
+# cut_gh_signed_in <object> -- pre-flight's gh half (D38 step 2): gh is there,
+# the repository resolves, and gh is signed in to its host. Prints the refusal
+# and returns 1; `object: none` never needs gh.
+cut_gh_signed_in() {
+  local repo host out
+  case "$1" in local | ci) ;; *) return 0 ;; esac
+  if ! command -v gh >/dev/null 2>&1; then
+    printf 'gh is not installed, and object: %s needs it' "$1"
+    return 1
+  fi
+  if ! repo="$(release_repo "$(cfg_release_get repo)" "$(declared_remote)" 2>&1)"; then
+    one_line "$repo"
+    return 1
+  fi
+  host=github.com
+  [[ "$repo" != */*/* ]] || host="${repo%%/*}"
+  if ! out="$(release_gh "" auth status --hostname "$host" 2>&1)"; then
+    printf 'gh is not signed in to %s: %s' "$host" "$(one_line "$out")"
+    return 1
+  fi
+}
+
+# cut_notes_body <commit> <version> <file> <step> -- the notes body, read from
+# the release commit's own tree (materialised once, as `rel`) into <file>: the
+# tag's message and the release object's notes (D41). A failure is <step>'s.
+cut_notes_body() {
+  local out
+  if [ ! -d "$SCRATCH/rel" ]; then
+    out="$(materialise rel "$1" "$2" 2>&1)" ||
+      cut_fail "$4" "the release commit could not be materialised: $(one_line "$out")"
+  fi
+  notes_body "$SCRATCH/rel" "$2" >"$3" 2>"$3.err" ||
+    cut_fail "$4" "the notes body could not be read: $(one_line "$(cat "$3.err")")"
+}
+
+# cut_stamp_read <name> <commit> <version> <views> -- step 3's postcondition
+# read against <commit>'s own tree, materialised as $SCRATCH/<name>.
+cut_stamp_read() {
+  local why
+  if ! why="$(materialise "$1" "$2" "$3" 2>&1)"; then
+    printf 'UNREADABLE\t%s\n' "$(one_line "$why")"
+    return 0
+  fi
+  release_read_stamp "$SCRATCH/$1" "$3" "$4"
+}
+
+# cut_run -- a cut of $target: steps 1 to 11. With --dry-run, the same reads
+# and gates with every write, every wait and every after: reported as `would`.
+cut_run() {
+  local tpl branch object today launcher line v tag how rc_line commit source
+  local state detail remotes remote answer nremote=0 owned dirt outside="" deferred=""
+  local derived gates out written="" have n
+  local -a refusals=()
+
+  cfg_validate || die "release: $DEVBIN_DIR/config.yaml does not validate (above)"
+  select_notes
+  tpl="$(cfg_release_get tag)"
+  branch="$(cfg_release_get branch)"
+  object="$(cfg_release_get object)"
+  derived="$(cfg_release_list derived)"
+  gates="$(cfg_release_list gates)"
+  # ONE READ OF THE CLOCK, so the release carries one date (notes_date's rule).
+  # The person's local date: the day they released on.
+  today="$(date +%F)"
+  launcher="$PROJECT_ROOT/bin/devbin"
+  [ -x "$launcher" ] || die "release: no launcher at $launcher -- the cut runs this project's own verbs through it"
+  open_scratch release
+  local dry_note=""
+  [ "$dry_run" = 0 ] || dry_note=" (DRY RUN: nothing is written)"
+  CUT_HEAD="release: $target$dry_note"
+
+  # --- step 1: resolve -----------------------------------------------------
+  if ! line="$(release_resolve "$tpl" "$target" 2>&1)"; then
+    cut_fail 1 "$(one_line "$line")"
+  fi
+  IFS=$'\t' read -r v tag how <<<"$line"
+  if ! rc_line="$(release_commit "$tag" 2>&1)"; then
+    cut_fail 1 "$(one_line "$rc_line")"
+  fi
+  commit="${rc_line%%$'\t'*}"
+  source="${rc_line#*$'\t'}"
+  CUT_HEAD="release: $tag$dry_note -- resume with: ${DEVBIN_INVOKE:-bin/devbin} release v$v"
+  if [ "$how" = resume ]; then
+    cut_row 1 "done" "$tag exists, at ${commit:0:12}: resuming it"
+  else
+    cut_row 1 "done" "$v from $target, tag $tag, new"
+  fi
+
+  # --- step 2: pre-flight --------------------------------------------------
+  # Every check runs and every refusal is named, so one run says everything
+  # that is wrong; nothing here writes.
+  line="$(git symbolic-ref -q --short HEAD)" || line=""
+  [ "$line" = "$branch" ] || refusals+=("not on $branch: HEAD is ${line:-detached}")
+
+  # STEP 4'S POSTCONDITION, READ ONCE HERE AND USED AT STEPS 3 AND 4: whether
+  # HEAD is already the release commit (it carries the stamp and the tree is
+  # clean). That one answer decides what a remote that has moved past HEAD
+  # means (release_read_remote, preflight-new), whether step 3 runs, and
+  # whether step 4 commits. So a cut never commits on HEAD under `preflight`:
+  # the mode and the commit are the same answer (vc's F1).
+  local mode=preflight head_read="" head_is_release=no
+  if [ "$source" = HEAD ]; then
+    head_read="$(cut_stamp_read head "$commit" "$v" count)"
+    if [ "${head_read%%$'\t'*}" = already ] && [ "$(release_read_clean | cut -f1)" = already ]; then
+      head_is_release=yes
+    else
+      mode=preflight-new
+    fi
+  fi
+
+  if ! remotes="$(cut_remotes 2>&1)"; then
+    refusals+=("cannot list the remotes: $(one_line "$remotes")")
+    remotes=""
+  elif [ -z "$remotes" ]; then
+    refusals+=("this repository has no remote to push to")
+  fi
+  while IFS= read -r remote <&3; do
+    [ -n "$remote" ] || continue
+    nremote=$((nremote + 1))
+    if ! git remote get-url "$remote" >/dev/null 2>&1; then
+      refusals+=("remote $remote is declared and does not exist")
+      continue
+    fi
+    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" "$mode" 3<&-)"
+    case "${answer%%$'\t'*}" in
+      already | pending) ;;
+      *) refusals+=("${answer#*$'\t'}") ;;
+    esac
+  done 3<<<"$remotes"
+
+  if [ "$source" = HEAD ]; then
+    # THE TREE RULE, while the tag is absent (vc's N2): dirt inside the owned
+    # set belongs in the release commit, whoever wrote it; dirt outside it is
+    # refused, untracked files included. A `derived:` path is owned too, and
+    # only running the command says which paths those are, so with `derived:`
+    # declared the rest is checked at step 3, after they run.
+    if ! owned="$(release_owned "$PROJECT_ROOT" "$v" 2>&1)"; then
+      refusals+=("the paths this release owns cannot be listed: $(one_line "$owned")")
+    elif ! dirt="$(release_dirt 2>&1)"; then
+      refusals+=("git status failed: $(one_line "$dirt")")
+    else
+      outside="$(release_outside "$dirt" "$owned")"
+      if [ -n "$outside" ] && [ -n "$derived" ]; then
+        deferred="$outside"
+      elif [ -n "$outside" ]; then
+        refusals+=("dirty outside what this release owns: ${outside//$'\n'/, } -- commit or stash it first")
+      fi
+    fi
+    if ! out="$(notes_check "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
+      refusals+=("$(one_line "$out")")
+    fi
+    # THE RUN LOGS MUST BE IGNORED. A cut runs behind its own gate, and its gates
+    # are devbin verbs behind theirs, so every one writes a log under
+    # $(gate_out_dir <name>) for the whole of its run. Not ignored, each is dirt:
+    # the tree rule would refuse the cut's own log, and step 5's re-read would
+    # see every gate change the tree. So it is refused here, naming the remedy,
+    # rather than the core writing to the project's .gitignore.
+    if ! git check-ignore -q "$(gate_out_dir release)/probe.out"; then
+      refusals+=("$(gate_out_dir release)/ is not ignored, and every gated run writes its log there -- add tmp/ to .gitignore")
+    fi
+  else
+    # A TAG FOR THE TARGET MUST CARRY THE RELEASE, or it is refused and never
+    # moved or deleted (AC-4.5): its commit's VERSION is the target and its note
+    # is dated for it, read from the tagged commit's own tree.
+    answer="$(cut_stamp_read tag "$commit" "$v" name)"
+    case "${answer%%$'\t'*}" in
+      already) ;;
+      *) refusals+=("$tag exists and its commit (${commit:0:12}) does not carry the release: ${answer#*$'\t'} -- a tag is never moved or deleted; release a later version") ;;
+    esac
+  fi
+
+  if ! out="$(cut_gh_signed_in "$object")"; then
+    refusals+=("$out")
+  fi
+
+  if [ "${#refusals[@]}" -gt 0 ]; then
+    cut_fail 2 "$(printf '%s; ' "${refusals[@]}" | sed 's/; $//')"
+  fi
+  cut_row 2 "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")"
+  if [ -n "$deferred" ] && [ "$dry_run" = 1 ]; then
+    CUT_UNREACHED+=("step 3 checks ${deferred//$'\n'/, } against what derived: writes, after it runs")
+  fi
+
+  # --- step 3: stamp -------------------------------------------------------
+  if [ "$source" = tag ]; then
+    cut_row 3 already "$tag's commit carries it (read at pre-flight)"
+  elif [ "$head_is_release" = yes ]; then
+    # THE RELEASE COMMIT EXISTS, so derived: is not re-run: its output need not
+    # be byte-stable, and a second run of it would make a second release commit
+    # on top of one a remote may already carry (vc's F1).
+    cut_row 3 already "${commit:0:12} carries the stamp and the tree is clean (read at pre-flight); derived: is not re-run"
+  else
+    answer="$(release_read_stamp "$PROJECT_ROOT" "$v" count)"
+    state="${answer%%$'\t'*}"
+    detail="${answer#*$'\t'}"
+    if [ "$state" = UNREADABLE ]; then
+      cut_fail 3 "$detail"
+    elif [ "$state" = already ] && [ -z "$derived" ]; then
+      cut_row 3 already "$detail"
+    elif [ "$dry_run" = 1 ]; then
+      have="$(read_version)"
+      cut_row 3 would "$([ "$have" = "$v" ] || printf 'version set %s (it is %s); ' "$v" "$have")$([ -z "$derived" ] || printf 'run derived: (%s command(s)); ' "$(grep -c . <<<"$derived")")date the note $today; regenerate the views"
+      [ -z "$derived" ] || CUT_UNREACHED+=("step 3's owned-set check of what derived: writes: a dry run does not run derived: commands")
+    else
+      have="$(read_version)"
+      if [ "$have" != "$v" ]; then
+        "$launcher" version set "$v" </dev/null || cut_fail 3 "version set $v failed (exit $?, above)"
+      fi
+      local d
+      local -a words=()
+      while IFS= read -r d <&3; do
+        [ -n "$d" ] || continue
+        run_words words release.derived "$d" 2>/dev/null || cut_fail 3 "the derived: command '$d' holds no words"
+        out="$("${words[@]}" 3<&-)" || cut_fail 3 "the derived: command '$d' failed (exit $?)"
+        written+="$out"$'\n'
+      done 3<<<"$derived"
+      if ! out="$(notes_date "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
+        cut_fail 3 "dating the note failed: $(one_line "$out")"
+      fi
+      if ! out="$(notes_views "$PROJECT_ROOT" 2>&1)"; then
+        cut_fail 3 "regenerating the views failed: $(one_line "$out")"
+      fi
+      # The owned set is now whole: what was known, plus what derived: wrote.
+      local w norm=""
+      while IFS= read -r w; do
+        [ -z "$w" ] || norm+="${w#"$PROJECT_ROOT"/}"$'\n'
+      done <<<"$written"
+      written="$norm"
+      if ! dirt="$(release_dirt 2>&1)"; then
+        cut_fail 3 "git status failed: $(one_line "$dirt")"
+      fi
+      outside="$(release_outside "$dirt" "$owned"$'\n'"$written")"
+      [ -z "$outside" ] || cut_fail 3 "dirty outside what this release owns: ${outside//$'\n'/, } -- commit or stash it first"
+      # The postcondition, read again: a write that did not take is a failure,
+      # never a `done`. NO ARM REACHES IT: version set and notes_date each read
+      # their own write back, so a mutant dropping this lives (2026-09-18). It is
+      # kept because it is one read, and it holds for a writer that does not.
+      answer="$(release_read_stamp "$PROJECT_ROOT" "$v" count)"
+      [ "${answer%%$'\t'*}" = already ] || cut_fail 3 "the stamp did not take: ${answer#*$'\t'}"
+      cut_row 3 "done" "${answer#*$'\t'}$([ -z "$derived" ] || printf '; derived: ran')"
+    fi
+  fi
+
+  # --- step 4: commit ------------------------------------------------------
+  if [ "$source" = tag ]; then
+    cut_row 4 already "${commit:0:12}, $tag's commit, is the release commit"
+  else
+    answer="$head_read"
+    state="${answer%%$'\t'*}"
+    if [ "$head_is_release" = yes ]; then
+      cut_row 4 already "${commit:0:12} carries the stamp and the tree is clean"
+    elif [ "$state" = UNREADABLE ]; then
+      cut_fail 4 "${answer#*$'\t'}"
+    elif [ "$dry_run" = 1 ]; then
+      cut_row 4 would "commit the stamp as \"release: $tag\""
+    else
+      dirt="$(release_dirt)" || cut_fail 4 "git status failed"
+      [ -n "$dirt" ] || cut_fail 4 "${commit:0:12} does not carry the stamp, and there is nothing to commit: ${answer#*$'\t'}"
+      local -a paths=()
+      mapfile -t paths <<<"$dirt"
+      git add -- "${paths[@]}" || cut_fail 4 "git add failed (exit $?)"
+      # `--only` is EQUIVALENT here and no arm can tell it gone (vc's M12,
+      # 2026-09-18): pre-flight and step 3 refuse any dirt outside the owned
+      # set, staged included, so the index holds nothing these paths do not.
+      # Kept so the commit stays exactly these paths if that rule ever moves.
+      git commit -q --only -m "release: $tag" -- "${paths[@]}" </dev/null ||
+        cut_fail 4 "git commit failed (exit $?, above)"
+      commit="$(git rev-parse HEAD)"
+      # Read again on the new HEAD. NO ARM REACHES IT: step 3 left the stamp in
+      # the tree and every dirty path is in this commit, so a mutant dropping it
+      # lives (2026-09-18). Kept as the guard that a commit hook rewriting the
+      # commit, or a commit of the wrong paths, is FAILED rather than done.
+      answer="$(cut_stamp_read commit "$commit" "$v" count)"
+      [ "${answer%%$'\t'*}" = already ] || cut_fail 4 "${commit:0:12} does not carry the stamp: ${answer#*$'\t'}"
+      [ "$(release_read_clean | cut -f1)" = already ] || cut_fail 4 "the tree is not clean after the commit: $(release_read_clean | cut -f2-)"
+      cut_row 4 "done" "${commit:0:12} \"release: $tag\", ${#paths[@]} path(s)"
+    fi
+  fi
+
+  # --- step 5: gates -------------------------------------------------------
+  # In place, on the release commit, and checked rather than trusted (vc's S2):
+  # the tree is read before and after, and a path any gate changed or created
+  # fails the step. Never `already` (principle 4).
+  if [ -z "$gates" ]; then
+    cut_row 5 skipped "no gates: declared"
+  elif [ "$source" = tag ]; then
+    cut_row 5 "not re-run" "the tag exists, so the gates are not re-run -- this says nothing about a verdict"
+  else
+    local gate before after changed head_before head_after
+    local -a gw=()
+    before="$(release_tree_state)" || cut_fail 5 "the tree could not be read before the gates"
+    head_before="$(git rev-parse HEAD)" || cut_fail 5 "HEAD could not be read before the gates"
+    n=0
+    while IFS= read -r gate <&3; do
+      [ -n "$gate" ] || continue
+      run_words gw release.gates "$gate" 2>/dev/null || cut_fail 5 "the gate '$gate' holds no words"
+      printf '\nrelease: gate: %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$gate"
+      "$launcher" "${gw[@]}" 3<&- || cut_fail 5 "gate '$gate' failed (exit $?)"
+      n=$((n + 1))
+    done 3<<<"$gates"
+    after="$(release_tree_state)" || cut_fail 5 "the tree could not be read after the gates"
+    changed="$(release_tree_changed "$before" "$after")"
+    [ -z "$changed" ] || cut_fail 5 "a gate changed the tree: ${changed//$'\n'/, } -- the gates examine the release commit and must not write to it"
+    # A GATE THAT COMMITS leaves the tree clean and HEAD somewhere else, so the
+    # tree's re-read cannot see it: HEAD is read too (found by WP-05's mutants).
+    head_after="$(git rev-parse HEAD)" || cut_fail 5 "HEAD could not be read after the gates"
+    [ "$head_after" = "$head_before" ] ||
+      cut_fail 5 "a gate moved HEAD from ${head_before:0:12} to ${head_after:0:12} -- the gates examine the release commit and must not commit"
+    if [ "$dry_run" = 1 ]; then
+      cut_row 5 "done" "$n gate(s) passed on HEAD ${commit:0:12} in place -- a dry run makes no release commit, so this predicts the gates rather than gating the release"
+    else
+      cut_row 5 "done" "$n gate(s) passed on ${commit:0:12}, and none wrote to the tree"
+    fi
+  fi
+
+  # --- step 6: confirm ------------------------------------------------------
+  # What is left that another machine will see: each remote still to receive
+  # the commit or the tag, and under `object: local` the release object. Read
+  # through the same readers `release status` reads step 6 from, so the two
+  # cannot disagree about whether anything is left (vc's N3).
+  local -a left=() push_plan=()
+  local object_work="" object_detail="" title repo="" declared_repo drem
+  declared_repo="$(cfg_release_get repo)"
+  drem="$(declared_remote)"
+  while IFS= read -r remote <&3; do
+    [ -n "$remote" ] || continue
+    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit" push 3<&-)"
+    case "${answer%%$'\t'*}" in
+      already) ;;
+      pending)
+        push_plan+=("$remote ${answer#*$'\t'}")
+        left+=("push ${answer#*$'\t'} to $remote")
+        ;;
+      *) cut_fail 6 "${answer#*$'\t'}" ;;
+    esac
+  done 3<<<"$remotes"
+  title="$(object_title "$tag" "$v")"
+  # THE OBJECT IS READ HERE, whole: whether it exists, and when it does, whether
+  # it carries this release's title and notes. A difference is work left, so it
+  # is named in the question and only a confirmed run changes it; no run reports
+  # `already` over an object that differs (vc's R2).
+  local body_file="$SCRATCH/notes-body"
+  if [ "$object" = local ]; then
+    repo="$(release_repo "$declared_repo" "$drem" 2>&1)" || cut_fail 6 "$(one_line "$repo")"
+    answer="$(release_read_object local "$tag" "$declared_repo" "$drem")"
+    case "${answer%%$'\t'*}" in
+      already)
+        cut_notes_body "$commit" "$v" "$body_file" 6
+        answer="$(release_read_object_content "$repo" "$tag" "$title" "$body_file")"
+        case "${answer%%$'\t'*}" in
+          already) object_detail="${answer#*$'\t'}" ;;
+          pending)
+            object_work=edit
+            object_detail="${answer#*$'\t'}"
+            left+=("set the release object's title and notes: $object_detail")
+            ;;
+          *) cut_fail 6 "${answer#*$'\t'}" ;;
+        esac
+        ;;
+      pending)
+        object_work=create
+        left+=("make the release object \"$title\"")
+        ;;
+      *) cut_fail 6 "${answer#*$'\t'}" ;;
+    esac
+  fi
+  [ "$how" = resume ] || left=("tag $tag at ${commit:0:12}" "${left[@]}")
+
+  local confirmed=no
+  if [ "${#left[@]}" -eq 0 ]; then
+    cut_row 6 "not re-run" "no irreversible step has work left"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row 6 would "ask before: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+    CUT_UNREACHED+=("step 6's confirmation: a dry run never asks")
+  elif [ "$assume_yes" = 1 ]; then
+    confirmed=yes
+    cut_row 6 "done" "--yes given: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+  else
+    printf '\nrelease: %s, release commit %s. Still to do, and seen by other machines once done:\n' "$tag" "${commit:0:12}"
+    printf '  - %s\n' "${left[@]}"
+    local asked=0
+    ask_person "release: go ahead?" || asked=$?
+    case "$asked" in
+      0)
+        confirmed=yes
+        cut_row 6 "done" "confirmed: $(printf '%s; ' "${left[@]}" | sed 's/; $//')"
+        ;;
+      1) cut_fail 6 "declined at the prompt" ;;
+      *) cut_fail 6 "nobody to ask: no terminal, and --yes was not given" 2 ;;
+    esac
+  fi
+
+  # --- step 7: tag ----------------------------------------------------------
+  # Annotated, at the release commit's SHA and never HEAD, its message the notes
+  # body read from the release commit's own tree (D41). A tag found is reused
+  # and reported, never rewritten (release_read_tag).
+  cut_notes_body "$commit" "$v" "$body_file" 7
+  if [ "$how" = resume ]; then
+    answer="$(release_read_tag "$tag" "$SCRATCH/rel" "$v")"
+    cut_row 7 already "${answer#*$'\t'}"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row 7 would "annotated tag $tag at ${commit:0:12}, its message the notes body"
+  else
+    # At the release commit's SHA, never HEAD (D38). NO ARM REACHES THE
+    # DIFFERENCE: step 5 fails a gate that moves HEAD, so HEAD is the release
+    # commit here unless someone commits while step 6 waits for its answer.
+    git tag -a "$tag" "$commit" -F "$body_file" --cleanup=whitespace </dev/null ||
+      cut_fail 7 "git tag failed (exit $?, above)"
+    CUT_OUTWARD+=", tagged $tag locally"
+    # Read back by its FIELDS: the status is `already` and the reuse note is
+    # empty, never a match on the detail's wording (vc's W6).
+    answer="$(release_read_tag "$tag" "$SCRATCH/rel" "$v")"
+    [ "${answer%%$'\t'*}" = already ] && [ -z "$(release_tag_reuse_note "$tag" "$SCRATCH/rel" "$v")" ] ||
+      cut_fail 7 "the tag was made and does not read back as made: ${answer#*$'\t'}"
+    cut_row 7 "done" "annotated $tag at ${commit:0:12}, its message the notes body"
+  fi
+
+  # --- step 8: push ---------------------------------------------------------
+  # Per remote, in order: the RELEASE COMMIT to its branch (never HEAD, which
+  # may have moved on), then the tag -- each only if the remote lacks it, so a
+  # branch that has moved past the release commit is never pushed at.
+  #
+  # NEVER --force, ON EITHER PUSH (vc's W5). Both are fast-forwards when step 6
+  # read the remote, so a forced push reads the same to every arm -- and when
+  # the remote has moved since that read, a rejected push is the remote saying
+  # someone else's work is there. Forcing it would overwrite that work. A
+  # rejection stops step 8, naming what this run already sent (cut_outward).
+  local plan r halves pushed=""
+  if [ "${#push_plan[@]}" -eq 0 ]; then
+    cut_row 8 already "every remote holds the release commit on $branch and $tag"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row 8 would "$(printf '%s; ' "${push_plan[@]}" | sed 's/; $//')"
+  else
+    for plan in "${push_plan[@]}"; do
+      r="${plan%% *}"
+      halves=" ${plan#* } "
+      if [[ "$halves" == *" commit "* ]]; then
+        # The release commit, never HEAD: the same declaration as step 7's. No
+        # --force (above).
+        cut_call 8 "pushing the release commit to $r's $branch" \
+          release_git_remote push -q "$r" "$commit:refs/heads/$branch"
+        CUT_OUTWARD+=", pushed $branch to $r"
+      fi
+      if [[ "$halves" == *" tag "* ]]; then
+        # No --force (above): a tag the remote already has differently is not
+        # this run's to replace (D40: a tag is never moved).
+        cut_call 8 "pushing $tag to $r" \
+          release_git_remote push -q "$r" "refs/tags/$tag:refs/tags/$tag"
+        CUT_OUTWARD+=", pushed $tag to $r"
+      fi
+      answer="$(release_wait 0 "" UNREADABLE release_read_remote "$r" "$branch" "$tag" "$commit")"
+      [ "${answer%%$'\t'*}" = already ] || cut_fail 8 "$r does not hold the release after the push: ${answer#*$'\t'}"
+      pushed+=", $r (${plan#* })"
+    done
+    cut_row 8 "done" "pushed to ${pushed#, }"
+  fi
+
+  # --- step 9: the release object (D42) ------------------------------------
+  case "$object" in
+    none) cut_row 9 skipped "object: none" ;;
+    ci)
+      # THE PROJECT'S WORKFLOW MAKES THE OBJECT, from the tag step 8 pushed, and
+      # the core makes none (D42). Step 9 reads the OBJECT, through the reader
+      # status reads it with, never a CI verdict: another workflow's run on the
+      # release commit cannot stand in for it (AC-6.1, vc's finding 4).
+      local wait_for
+      wait_for="$(cfg_release_get object_wait)"
+      if [ "$dry_run" = 1 ]; then
+        answer="$(release_wait 0 "" UNREADABLE release_read_object ci "$tag" "$declared_repo" "$drem")"
+        if [ "${answer%%$'\t'*}" = already ]; then
+          cut_row 9 already "${answer#*$'\t'}"
+        else
+          cut_row 9 would "wait up to $wait_for (object_wait) for the workflow's release object for $tag; the core makes none"
+        fi
+      else
+        # The postcondition first, one bounded ask, as every step reads its own:
+        # an object already there is `already`, and only an absent one is waited
+        # for.
+        local secs
+        secs="$(release_seconds "$wait_for" 2>&1)" || cut_fail 9 "$(one_line "$secs")"
+        answer="$(release_wait 0 "" UNREADABLE release_read_object ci "$tag" "$declared_repo" "$drem")"
+        if [ "${answer%%$'\t'*}" = already ]; then
+          cut_row 9 already "${answer#*$'\t'}; the core made none"
+        else
+          answer="$(release_wait "$secs" "pending UNREADABLE" UNREADABLE \
+            release_read_object ci "$tag" "$declared_repo" "$drem")"
+          case "${answer%%$'\t'*}" in
+            already) cut_row 9 "done" "the workflow made the release object for $tag within $wait_for; the core made none" ;;
+            *) cut_fail 9 "no release object within $wait_for (object_wait): ${answer%%$'\t'*}, ${answer#*$'\t'}" ;;
+          esac
+        fi
+      fi
+      ;;
+    local)
+      if [ "$object_work" = create ]; then
+        if [ "$dry_run" = 1 ]; then
+          cut_row 9 would "gh release create $tag --title \"$title\""
+        else
+          # --verify-tag: without it GitHub MAKES a tag it lacks, from the
+          # default branch (vc's W1). THE LIMIT, DECLARED (vc's Q1): nothing
+          # checks that a remote in `remotes` reaches $repo. With `repo:`
+          # declared and every push going elsewhere, --verify-tag refuses here,
+          # after the pushes. A pre-flight check would have to map a remote's
+          # url to a repository, which ssh host aliases, insteadOf and mirrors
+          # all defeat, so a refusal there would refuse working setups.
+          cut_call 9 "gh release create $tag" \
+            release_gh "$repo" release create "$tag" --verify-tag --title "$title" --notes-file "$body_file"
+          CUT_OUTWARD+=", made the release object for $tag"
+          answer="$(release_wait 0 "" UNREADABLE release_read_object local "$tag" "$declared_repo" "$drem")"
+          [ "${answer%%$'\t'*}" = already ] || cut_fail 9 "gh made no release object that reads back: ${answer#*$'\t'}"
+          cut_row 9 "done" "made the release object \"$title\""
+        fi
+      elif [ "$object_work" = edit ]; then
+        # Step 6 named the difference, and only a confirmed run gets here: the
+        # object is brought to this release's title and notes, never made twice.
+        if [ "$dry_run" = 1 ]; then
+          cut_row 9 would "gh release edit $tag: $object_detail"
+        else
+          # NO ARM REACHES IT: an edit is work left, so step 6 has confirmed it or
+          # stopped the run. Kept so step 9 never edits on its own say-so.
+          [ "$confirmed" = yes ] || cut_fail 9 "the release object differs and nobody confirmed changing it: $object_detail"
+          cut_call 9 "gh release edit $tag" \
+            release_gh "$repo" release edit "$tag" --title "$title" --notes-file "$body_file"
+          CUT_OUTWARD+=", set the release object's title and notes for $tag"
+          answer="$(release_wait 0 "" UNREADABLE release_read_object_content "$repo" "$tag" "$title" "$body_file")"
+          [ "${answer%%$'\t'*}" = already ] || cut_fail 9 "the release object does not read back as set: ${answer#*$'\t'}"
+          cut_row 9 "done" "the release object existed ($object_detail); its title and notes were set to this release's"
+        fi
+      else
+        cut_row 9 already "$object_detail"
+      fi
+      ;;
+  esac
+
+  # --- step 10: after ------------------------------------------------------
+  # Each command in order, reported. Outside the core's guarantees (D38): the
+  # release is published by now, so a failure is reported and undoes nothing,
+  # and the next command and step 11 still run. D38 gives this step no
+  # postcondition, so a re-run of a finished release runs them again.
+  local after cmd after_failed="" ran=0
+  local -a aw=()
+  after="$(cfg_release_list after)"
+  if [ -z "$after" ]; then
+    cut_row 10 skipped "no after: declared"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row 10 would "run: $(printf '%s; ' "${after//$'\n'/; }" | sed 's/; $//')"
+  else
+    while IFS= read -r cmd <&3; do
+      [ -n "$cmd" ] || continue
+      run_words aw release.after "$cmd" 2>/dev/null || {
+        after_failed+=", after: $cmd holds no words"
+        continue
+      }
+      printf '\nrelease: after: %s\n' "$cmd"
+      local arc=0
+      # NOT THE ONLY THING KEEPING THE TERMINAL AWAY (dc's m7): the real cut runs
+      # inside run_gate, whose stdin is /dev/null for everything in it, and a dry
+      # run never gets here. So dropping this redirect changes nothing today and
+      # no arm can see it; it stays so step 10 does not depend on its caller.
+      "${aw[@]}" </dev/null 3<&- || arc=$?
+      if [ "$arc" -eq 0 ]; then
+        ran=$((ran + 1))
+      else
+        after_failed+=", after: $cmd failed (exit $arc)"
+      fi
+    done 3<<<"$after"
+    if [ -z "$after_failed" ]; then
+      cut_row 10 "done" "$ran command(s) ran"
+    else
+      cut_row 10 FAILED "${after_failed#, }; $ran ran -- the release is published and nothing was undone"
+    fi
+  fi
+
+  # --- step 11: the CI verdict (D40) ---------------------------------------
+  # Fail forward: CI does not gate the release, it reports on it. The project's
+  # ci.query is asked about the RELEASE COMMIT, the tagged commit and never
+  # HEAD, while it answers pending or none, up to ci.wait. Only green is 0: a
+  # cut that could not confirm green must not exit as though it had.
+  local verdict_failed=""
+  if ! cfg_release_declared ci.query; then
+    cut_row 11 skipped "no ci.query declared"
+  elif [ "$dry_run" = 1 ]; then
+    cut_row 11 would "ask ci.query about ${commit:0:12} for up to $(cfg_release_get ci.wait) (ci.wait)"
+  else
+    local query ci_wait ci_secs
+    local -a qw=()
+    query="$(cfg_release_get ci.query)"
+    ci_wait="$(cfg_release_get ci.wait)"
+    run_words qw release.ci.query "$query" 2>/dev/null || cut_fail 11 "ci.query holds no words"
+    ci_secs="$(release_seconds "$ci_wait" 2>&1)" || cut_fail 11 "$(one_line "$ci_secs")"
+    answer="$(release_wait "$ci_secs" "pending none" unknown release_ci_verdict "$commit" "${qw[@]}")"
+    case "${answer%%$'\t'*}" in
+      green) cut_row 11 "done" "green on ${commit:0:12}: ${answer#*$'\t'}" ;;
+      pending | none)
+        verdict_failed=yes
+        cut_row 11 FAILED "no verdict within $ci_wait (ci.wait) on ${commit:0:12}; last: ${answer%%$'\t'*}, ${answer#*$'\t'}"
+        ;;
+      *)
+        verdict_failed=yes
+        cut_row 11 FAILED "${answer%%$'\t'*} on ${commit:0:12}: ${answer#*$'\t'}"
+        ;;
+    esac
+  fi
+
+  cut_summary
+  if [ "$dry_run" = 1 ]; then
+    if [ "${#CUT_UNREACHED[@]}" -gt 0 ]; then
+      printf '\nrelease: NOT REACHED by this dry run, so not predicted:\n'
+      printf '  - %s\n' "${CUT_UNREACHED[@]}"
+    fi
+    return 0
+  fi
+  if [ -n "$after_failed$verdict_failed" ]; then
+    # THE RELEASE STANDS, and saying so is half the message: nothing here is
+    # undone, and the tag is never moved (D41). The other half is the remedy,
+    # which is forward.
+    printf '\nrelease: %s is published, and the tag and the release stand.\n' "$tag"
+    [ -z "$after_failed" ] ||
+      printf 'release: %s -- after: runs outside the core'"'"'s guarantees; run what failed by hand.\n' "${after_failed#, }"
+    [ -z "$verdict_failed" ] ||
+      printf 'release: CI did not report green on %s. Fix forward: fix it on %s and cut the next patch -- never move, delete or re-point %s.\n' \
+        "${commit:0:12}" "$branch" "$tag"
+    exit 1
+  fi
+  printf '\nrelease: %s is released.\n' "$tag"
+}
+
+# status_report <version> -- `release status`: every step of D38, read from the
+# repository, its remotes and the release object, printed as the table a cut's
+# summary prints (release_row), writing nothing. Exit 0 when every row was
+# read, 1 when any row is UNREADABLE -- a map with a hole in it is not a
+# complete answer, and a script reading the status must not take it for one.
+#
+# THE RELEASE COMMIT'S TREE IS ALWAYS MATERIALISED, before the tag as well as
+# after it, so step 4 reads a commit and never the working tree: "HEAD's tree
+# carries the stamp" is a question about HEAD, and a working tree carrying it
+# uncommitted must read pending. Step 3 reads the working tree while the tag is
+# absent and the release commit once it exists, since nothing after step 7
+# writes the tree (vc's N2).
+# status_object_content <tag> <version> <materialised> <tree> <why> -- row 9's
+# answer for an object that exists under `object: local`: its title and notes
+# against this release's, the notes read from the release commit's own tree.
+# Anything that cannot be read is UNREADABLE, never `already`.
+status_object_content() {
+  local tag="$1" v="$2" repo body_file="$SCRATCH/notes-body"
+  if [ "$3" != yes ]; then
+    printf 'UNREADABLE\ta release object exists for %s, and its notes cannot be compared: %s\n' "$tag" "$(one_line "$5")"
+    return 0
+  fi
+  if ! notes_body "$4" "$v" >"$body_file" 2>"$body_file.err"; then
+    printf 'UNREADABLE\ta release object exists for %s, and the notes body could not be read: %s\n' "$tag" "$(one_line "$(cat "$body_file.err")")"
+    return 0
+  fi
+  if ! repo="$(release_repo "$(cfg_release_get repo)" "$(declared_remote)" 2>&1)"; then
+    printf 'UNREADABLE\t%s\n' "$(one_line "${repo#release: }")"
+    return 0
+  fi
+  release_read_object_content "$repo" "$tag" "$(object_title "$tag" "$v")" "$body_file"
+}
+
+status_report() {
+  local v="$1" tag rc_line commit source tree state detail unreadable=0
+  local clean tag_row push_state push_detail object gates after
+  tag="$(release_tag_name "$(cfg_release_get tag)" "$v")"
+  rc_line="$(release_commit "$tag")" || exit 1
+  commit="${rc_line%%$'\t'*}"
+  source="${rc_line#*$'\t'}"
+
+  open_scratch "release status"
+  tree="$SCRATCH/commit"
+  local materialised=yes why=""
+  if ! why="$(materialise commit "$commit" "$v" 2>&1)"; then
+    materialised=no
+  fi
+
+  row() {
+    [ "$1" != UNREADABLE ] || unreadable=1
+    release_row "$2" "$1" "$3"
+  }
+  split() {
+    state="${1%%$'\t'*}"
+    detail="${1#*$'\t'}"
+  }
+
+  printf 'release: status of %s, release commit %s (%s)\n' "$tag" "${commit:0:12}" \
+    "$([ "$source" = tag ] && printf "the tag's commit" || printf 'HEAD, no tag yet')"
+
+  row pending 1 "no postcondition: tag $tag, release commit ${commit:0:12}"
+  row pending 2 "no postcondition: every run pre-flights"
+
+  # Step 3.
+  if [ "$source" = tag ]; then
+    if [ "$materialised" = yes ]; then
+      split "$(release_read_stamp "$tree" "$v" name)"
+    else
+      state=UNREADABLE detail="${why//$'\n'/ }"
+    fi
+  else
+    split "$(release_read_stamp "$PROJECT_ROOT" "$v" count)"
+  fi
+  row "$state" 3 "$detail"
+
+  # Step 4: the stamp read against the release commit, and while the tag is
+  # absent, the tree clean.
+  if [ "$materialised" = yes ]; then
+    split "$(release_read_stamp "$tree" "$v" "$([ "$source" = tag ] && printf name || printf count)")"
+    if [ "$state" = already ]; then
+      detail="${commit:0:12} carries the stamp"
+      if [ "$source" = HEAD ]; then
+        clean="$(release_read_clean)"
+        state="${clean%%$'\t'*}"
+        [ "$state" = already ] || detail="${clean#*$'\t'}"
+      fi
+    elif [ "$state" = pending ]; then
+      detail="${commit:0:12} does not carry the stamp: $detail"
+    fi
+  else
+    state=UNREADABLE detail="${why//$'\n'/ }"
+  fi
+  row "$state" 4 "$detail"
+
+  # Step 5: never already (principle 4).
+  gates="$(cfg_release_list gates)"
+  if [ -z "$gates" ]; then
+    row skipped 5 "no gates: declared"
+  elif [ "$source" = tag ]; then
+    row "not re-run" 5 "the tag exists, so the gates are not re-run -- this says nothing about a verdict"
+  else
+    row pending 5 "never already: the gates run on every run until the tag exists"
+  fi
+
+  # Steps 7, 8 and 9 are read before 6, whose state is a predicate over them.
+  # With no materialised tree the message has nothing honest to be compared
+  # with: the working tree's note is another commit's (dc's WP-03 review).
+  tag_row="$(release_read_tag "$tag" "$([ "$materialised" = yes ] && printf '%s' "$tree")" "$v")"
+
+  local remotes remote r_state r_detail branch
+  branch="$(cfg_release_get branch)"
+  if cfg_release_declared remotes; then
+    remotes="$(cfg_release_list remotes)"
+  else
+    remotes="$(git remote)" || die "release status: cannot list this repository's remotes"
+  fi
+  push_state=already push_detail=""
+  if [ -z "$remotes" ]; then
+    push_state=UNREADABLE push_detail="this repository has no remote to push to"
+  fi
+  while IFS= read -r remote; do
+    [ -n "$remote" ] || continue
+    local answer
+    answer="$(release_read_remote "$remote" "$branch" "$tag" "$commit")"
+    r_state="${answer%%$'\t'*}"
+    r_detail="${answer#*$'\t'}"
+    push_detail+="; $r_detail"
+    case "$r_state" in
+      UNREADABLE) push_state=UNREADABLE ;;
+      pending) [ "$push_state" = UNREADABLE ] || push_state=pending ;;
+    esac
+  done <<<"$remotes"
+  push_detail="${push_detail#; }"
+
+  local object_row object_state
+  object="$(cfg_release_get object)"
+  if [ "$object" = none ]; then
+    object_row=$'skipped\tobject: none'
+  else
+    object_row="$(release_read_object "$object" "$tag" "$(cfg_release_get repo)" "$(declared_remote)")"
+  fi
+  # UNDER object: local AN OBJECT THAT EXISTS IS READ WHOLE, as a cut's step 6
+  # reads it and through the same reader (vc's R4, D42): `already` only when it
+  # carries this release's title and notes, so status and a cut cannot disagree
+  # about whether step 9 has work left (vc's N3).
+  if [ "$object" = local ] && [ "${object_row%%$'\t'*}" = already ]; then
+    object_row="$(status_object_content "$tag" "$v" "$materialised" "$tree" "$why")"
+  fi
+  object_state="${object_row%%$'\t'*}"
+
+  # Step 6: not re-run only when no irreversible step has work left (vc's N3).
+  # The object holds it only when it is the core's to make (object: local).
+  if [ "$push_state" = UNREADABLE ] || { [ "$object" = local ] && [ "$object_state" = UNREADABLE ]; }; then
+    row UNREADABLE 6 "whether an irreversible step has work left cannot be read (push or object, below)"
+  elif [ "$push_state" = already ] && { [ "$object" != local ] || [ "$object_state" = already ]; }; then
+    row "not re-run" 6 "no irreversible step has work left"
+  else
+    row pending 6 "never already: an irreversible step has work left"
+  fi
+
+  split "$tag_row"
+  row "$state" 7 "$detail"
+  row "$push_state" 8 "$push_detail"
+  split "$object_row"
+  row "$state" 9 "$detail"
+
+  after="$(cfg_release_list after)"
+  if [ -z "$after" ]; then
+    row skipped 10 "no after: declared"
+  else
+    row pending 10 "no postcondition: after: runs on every run that reaches it"
+  fi
+  if cfg_release_declared ci.query; then
+    row pending 11 "no postcondition: ci.query is read on every run that reaches it"
+  else
+    row skipped 11 "no ci.query declared"
+  fi
+
+  return "$unreadable"
+}
+
+case "$verb" in
+  check)
+    check_declaration
+    select_notes
+    check_notes || exit 1
+    ;;
+  notes)
+    # Validated first, as `check` is: a malformed release: block must never be
+    # read as its defaults and regenerate views from the wrong provider.
+    cfg_validate || die "release notes: $DEVBIN_DIR/config.yaml does not validate (above)"
+    select_notes
+    write_notes
+    ;;
+  status)
+    # Validated first, as `check` and `notes` are: a malformed release: block
+    # read as its defaults would report a different project's release.
+    cfg_validate || die "release status: $DEVBIN_DIR/config.yaml does not validate (above)"
+    select_notes
+    status_report "$version" || exit 1
+    ;;
+  cut)
+    # THE REAL CUT RUNS BEHIND A GATE, THE DRY RUN DOES NOT (WP-05). Step 6 asks
+    # through ask_person, which answers only inside a gate: the gate says
+    # whether ITS stdin was a person's terminal (DEVBIN_GATE_TTY, 0088), and
+    # hands everything inside it </dev/null. The generic grammar passes the
+    # cut's own exit through, so 1 (a step failed), 2 (nobody to ask) and 3
+    # (a step not built) reach the caller as they are. A dry run executes no
+    # write, so it has no verdict to seal, as fullcycle's has none.
+    if [ "$dry_run" = 1 ]; then
+      cut_run
+    else
+      run_gate --label release --suffix RELEASE --grammar generic \
+        --out-dir "$(gate_out_dir release)" \
+        --source "devbin's own release sequence -- cut_run in this process, not a command line" \
+        -- cut_run
+    fi
+    ;;
+esac

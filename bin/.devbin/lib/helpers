@@ -2,8 +2,11 @@
 #
 # lib/helpers -- shared output and guard primitives.
 #
-# Sourced, not executed: defines functions and sets no shell options (the
-# dispatcher owns those).
+# Sourced, not executed: defines functions, and sets exactly ONE shell option,
+# `inherit_errexit`, below. The rest (errexit, nounset, pipefail) stay the
+# caller's. This file said it set none until issue 0060: handlers are separate
+# processes that source this file and nothing else from the dispatcher, so this
+# is the one place a line reaches every one of them.
 #
 # THIS FILE HAS NO DEPENDENCIES, and that is a load-bearing rule rather than a
 # happy accident. Command handlers are separate processes that source this file
@@ -24,8 +27,69 @@
 # `conflab:` / `laksa:` / `baize:` / `lamplight:` from four copies of the same
 # two lines becomes one line reading a value.
 #
+# bash_floor_refuse <version> <path> [<how it was reached>] -- the ONE refusal
+# for a bash below devbin's floor, and it exits.
+#
+# THE FLOOR (issue 0022, reversing design D9). devbin requires bash >= 5 and
+# REFUSES older: macOS ships /bin/bash 3.2.57 permanently (GPLv3), the fleet
+# runs a Homebrew bash 5.x everywhere, and the guarantee points at what actually
+# runs. EVERYTHING FROM HERE TO THE LOAD GUARD MUST STAY PARSEABLE BY BASH 3.2 --
+# the refusal cannot be allowed to arrive as a syntax error that explains
+# nothing.
+bash_floor_refuse() {
+  printf '%s: bash >= 5 is required; this is bash %s (%s)\n' \
+    "${DEVBIN_NAME:-devbin}" "${1:-unknown}" "${2:-unknown}" >&2
+  [ -z "${3:-}" ] || printf '  %s\n' "$3" >&2
+  printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash\n' >&2
+  printf '  (issue 0022, reversing design D9, 2026-08-24)\n' >&2
+  exit 1
+}
+
+# THE FLOOR IS CHECKED WHERE EVERY PROCESS PASSES (issue 0076). It lived in the
+# dispatcher alone, and handlers are separate processes: one run directly, or
+# exec'd under a PATH that finds 3.2, ran on 3.2 with nothing refusing. Every
+# built-in handler and the dispatcher source this file, so the check sits here,
+# ahead of the load guard, and a handler below the floor stops at load.
+if [ "${BASH_VERSINFO[0]:-0}" -lt 5 ]; then
+  bash_floor_refuse "${BASH_VERSION:-}" "${BASH:-}"
+fi
+
 [ -n "${_DEVBIN_HELPERS_LOADED:-}" ] && return 0
 _DEVBIN_HELPERS_LOADED=1
+
+# ERREXIT REACHES EVERY DEPTH (issue 0060, ruled option A 2026-09-16). Command
+# substitution does not inherit errexit without this, so a `die` two `$( )`
+# deep kills only its own subshell: the middle function carries on and the
+# outer caller reads its output as success. Measured live at `release notes`,
+# which wrote both views and exited 0 over a refusal it had printed twice.
+# Unguarded, because the floor above has already refused every bash without it.
+shopt -s inherit_errexit
+
+# require_path_bash_floor -- refuse when the bash PATH resolves is below the
+# floor, since every `#!/usr/bin/env bash` handler runs on THAT bash and not on
+# the dispatcher's own (issue 0076).
+#
+# Measured before this existed: `env PATH=/usr/bin:/bin /opt/homebrew/bin/bash
+# bin/devbin probe` passed the dispatcher's own check on 5.3 and ran the handler
+# on 3.2.57 at rc 0. The ordinary case costs one PATH lookup: the same file as
+# the running bash needs no second process.
+require_path_bash_floor() {
+  local path_bash answer
+  # No bash on PATH at all is not a floor question: every `env bash` handler
+  # then fails at exec, loudly, naming bash.
+  path_bash="$(type -P bash)" || return 0
+  [ "$path_bash" -ef "${BASH:-}" ] && return 0
+  # Single-quoted on purpose: the CHILD bash expands these, not this one.
+  # shellcheck disable=SC2016
+  answer="$("$path_bash" -c 'printf "%s %s" "${BASH_VERSINFO[0]}" "$BASH_VERSION"')" ||
+    die "could not ask $path_bash its version, and handlers run on the bash PATH resolves"
+  case "${answer%% *}" in
+    '' | *[!0-9]*) die "$path_bash answered its version as '$answer', which is not a bash version" ;;
+  esac
+  [ "${answer%% *}" -ge 5 ] && return 0
+  bash_floor_refuse "${answer#* }" "$path_bash" \
+    "PATH resolves bash to it, and every handler runs on the bash PATH resolves (this dispatcher is on $BASH_VERSION)"
+}
 
 # The prefix on diagnostics. Set by the dispatcher once config is loaded;
 # defaults to `devbin` so a failure BEFORE config load still says something
@@ -147,22 +211,363 @@ upper_snake() {
   printf '%s' "$1" | tr '[:lower:]-' '[:upper:]_'
 }
 
+# is_true_word <value> -- `true`, `yes` or `1`.
+# is_false_word <value> -- `false`, `no` or `0`.
+# is_no_default <value> -- the catalogue's `-`: "devbin ships no default here".
+#
+# ONE PREDICATE PER VOCABULARY (issue 0066). These were written out at thirteen
+# sites across lib/resolve, lib/runlog and lib/builtins. Every copy agreed, and
+# nothing would have said so on the day one learned a word the others did not
+# -- which is how 0065 happened: `-` was honoured for `log:` on the catalogue's
+# value alone, and a project writing `log: "-"` sealed a gate named `-`. The
+# words are exact and case-sensitive, as every copy was; `off` is not false.
+#
+# THE WORDS ARE DATA, AND THE PREDICATES READ THEM. docs/configuration.md and
+# lib/config.reference.yaml both state the `log:` decline spellings, and
+# tests/unit/helpers.bats holds each statement to these lists. It first read the
+# words back out of the function's source, which a second `return 0` line or an
+# `OFF)` arm slipped past (critic-shell, 2026-09-16); a list has no layout to
+# parse around.
+_DEVBIN_TRUE_WORDS="true yes 1"
+_DEVBIN_FALSE_WORDS="false no 0"
+_DEVBIN_NO_DEFAULT="-"
+
+# _word_in <value> <words> -- <value> is exactly one of the space-separated
+# <words>. Split with `read -a`, which never globs, so a word is only ever a
+# literal.
+#
+# IFS IS PINNED HERE, because `read -a` splits on the CALLER'S. Under the common
+# strict-mode `IFS=$'\n\t'`, or `IFS=`, the list stayed one word and `true`,
+# `yes`, `1` and `no` all read as not-a-word -- so `log: false` stopped declining,
+# 0065 again, in any estate handler that sources lib/helpers under strict mode
+# (vc, 2026-09-16). The case statements this replaced never read IFS.
+_word_in() {
+  local w IFS=' '
+  local -a words
+  read -r -a words <<<"$2"
+  for w in "${words[@]}"; do
+    [ "$1" = "$w" ] && return 0
+  done
+  return 1
+}
+
+is_true_word() { _word_in "$1" "$_DEVBIN_TRUE_WORDS"; }
+is_false_word() { _word_in "$1" "$_DEVBIN_FALSE_WORDS"; }
+is_no_default() { _word_in "$1" "$_DEVBIN_NO_DEFAULT"; }
+
+# has_words <value> -- true when <value> holds a character bash would not split
+# on, which is the same question as "run_words would find at least one word".
+#
+# SEPARATE FROM run_words BECAUSE VALIDATION MAY NOT GLOB: cfg_validate reads
+# every declared command line wherever `doctor` happens to be standing, and
+# matching a pattern there would say nothing about the directory the command
+# will run in. This asks the only half validation can answer.
+#
+# The characters are the three run_words splits on, not `[[:space:]]`: a value
+# of one carriage return is a word to bash and is not a space to that class, and
+# a refusal that disagreed with the split would refuse a line that runs.
+has_words() {
+  case "$1" in
+    *[!$' \t\n']*) return 0 ;;
+  esac
+  return 1
+}
+
+# run_words <array> <key> <value> -- fill <array> with the words <value> runs
+# as, or refuse, naming <key>, a value with no words in it.
+#
+# THE ONE READING OF A DECLARED COMMAND LINE (issue 0082, hv's ruling of
+# 2026-09-17). Every place devbin runs one asks this: an option's `run:` bare
+# and under a gate, a command's `run:` exec'd and under a gate,
+# `commands.fullcycle.restore`, `release.notes.run`, and the catalogue's own
+# command lines, which follow the same rule because two halves of one surface
+# differing would be worse than either behaviour on its own.
+#
+# - SPLIT ON SPACE, TAB AND NEWLINE, never on the caller's IFS. Under the
+#   common strict-mode `IFS=$'\n\t'` a whole command line stays one word and
+#   resolves to nothing, and that class has been measured twice in this tree in
+#   two days (`_word_in`, `cfg_release_list`).
+# - EVERY WORD IS A GLOB PATTERN, matched in the directory the caller stands in,
+#   which each site makes the directory the command runs from: the project root,
+#   or for `notes.run` the root it answers for. A word matching nothing is
+#   passed as written, a word matching several becomes several words, and a
+#   dotfile is matched only by a pattern that names the dot. hv ruled the
+#   globbing KEPT and documented after the census of 2026-09-17: one word in the
+#   fleet relies on it, Utilz's `bats opt/*/test`, and it matches 16 directories.
+# - THE READING IS DEVBIN'S, NOT THE PROCESS'S. `set -f` and the glob options
+#   are pinned here for the split alone and put back before this returns, so an
+#   inherited `SHELLOPTS=noglob` or `BASHOPTS=nullglob:dotglob` cannot quietly
+#   change what a declared line runs -- both measured on bash 5.3, 2026-09-17,
+#   turning globbing off entirely and dropping a word that matches nothing.
+#   **NOT pinned, deliberately: `GLOBIGNORE` and `GLOBSORT`.** Both are inert
+#   when they arrive in the environment, measured the same day, and `local
+#   GLOBIGNORE` would ACTIVATE the inherited value for the rest of the process
+#   as the local goes out of scope. devbin assigns neither, and a test holds it.
+#   **AND NOT PINNING IS THE ONLY CORRECT ANSWER, NOT THE CONVENIENT ONE**, which
+#   is stronger than this note said until dc drove it on 2026-09-17: bash runs
+#   these hooks on ASSIGNMENT, so once the variable is touched at all the inert
+#   state cannot be restored by any assignment -- saving it, unsetting it and
+#   writing the same bytes back leaves it ACTIVE. A pin here would therefore be
+#   a one-way door for the whole process, which is why the rule is "never touch"
+#   rather than "save and restore" as it is for the shopts above.
+# - NEVER EVAL'D (D1). Quotes, `$`, `;` and redirections in the value are
+#   literal characters, so a declared line cannot carry an argument with a space
+#   in it; a command line that needs real quoting needs a handler.
+# - A VALUE WITH NO WORDS IS REFUSED, NAMING <key>. A `run:` of only spaces is
+#   not empty to `[ -n "$run" ]` and splits into nothing, after which `$run "$@"`
+#   ran the arguments typed after the command AS the command, at exit 0.
+run_words() {
+  # A NAMEREF CANNOT BE HONOURED IF THE NAME IS ONE OF OURS, AND FAILING THAT
+  # QUIETLY WOULD REBUILD THE DEFECT THIS HELPER EXISTS TO KILL. `local -n
+  # _rw_out="$1"` binds first and the `local` on the next line then SHADOWS the
+  # caller's variable when the name matches, so the words land in the local, the
+  # local dies at return, and run_words hands back 0 with the caller's array
+  # never set -- after which `"${words[@]}" "$@"` is an empty command line that
+  # runs the arguments typed after the command, at exit 0. That is 0082 exactly.
+  # Measured on bash 5.3: `_rw_o`, `_rw_on` and `IFS` each do it silently, and
+  # `_rw_on` additionally hands the split words to `shopt -s`. No caller can
+  # reach it -- every site passes `words` or `restore_words` -- so this is a
+  # trap for the next caller rather than a live bug, and status 2 marks it as a
+  # programming error rather than the config error 1 means.
+  # TWO CHECKS, BECAUSE A BLACKLIST ALONE LEAVES 0082'S OWN SHAPE NEXT TO IT.
+  # The first cut here listed the colliding names and stopped, and dc drove the
+  # hole: `run_words 2bad ...` makes `local -n` fail with bash's own `invalid
+  # variable name for name reference`, execution FALLS THROUGH, and run_words
+  # returns 0 with the caller's array never set -- which is the empty command
+  # line again. Measured on bash 5.3, all at rc=0: `2bad`, `a b`, `a-b`, `-x`,
+  # `a;b`. `arr[0]` got as far as the copy and returned 1, reporting a valid
+  # name as "the config's line held no words". A name that IS a name is the
+  # question, so it is asked positively, through the one definition of it.
+  if ! is_identifier "$1"; then
+    warn "run_words: '$1' is not a shell variable name, so there is no array to fill"
+    return 2
+  fi
+  case "$1" in
+    _rw_out | _rw_o | _rw_on | _rw_split | IFS)
+      warn "run_words: cannot fill an array named '$1' -- it is one of run_words's own names"
+      return 2
+      ;;
+  esac
+  local -n _rw_out="$1"
+  local IFS=$' \t\n' _rw_o _rw_on=""
+  # The split lands in a local and is copied to the caller AFTER the shopts are
+  # put back, so a target bash refuses to assign -- a readonly one -- cannot
+  # leave the six options unset in the caller's shell. dc's finding; unreachable
+  # from the eight sites, which all pass a plain indexed array.
+  #
+  # **AN INTEGER TARGET IS NOT REFUSED AND THE GUARD ABOVE CANNOT REFUSE IT**,
+  # because `declare -ia w` carries a name that IS a name: the defect is the
+  # attribute, not the spelling. This comment claimed a `declare -ia` target
+  # refuses, and that was wrong in both directions, measured on bash 5.3 --
+  # under `set +u` the word `abc` COERCES, silently, to `(0)`, so the caller
+  # runs the command `0`; under devbin's own `set -euo pipefail` the arithmetic
+  # on an unset name kills the shell outright. Loud in devbin, silent in a
+  # caller that relaxed `set -u`. It is declared rather than closed: no site
+  # passes an integer array, and a check on the target's attributes would be
+  # reading `declare -p` output as a string.
+  local -a _rw_split=()
+  # `set` options are restored on return; the shopt ones are put back below,
+  # which is why the split and the restore sit between no other statements.
+  local -
+  set +f
+  for _rw_o in nullglob failglob dotglob nocaseglob globstar extglob; do
+    shopt -q "$_rw_o" || continue
+    _rw_on="$_rw_on $_rw_o"
+    shopt -u "$_rw_o"
+  done
+  if has_words "$3"; then
+    # shellcheck disable=SC2206  # split and globbed on purpose -- see above
+    _rw_split=($3)
+  fi
+  # shellcheck disable=SC2086  # a list of option names, split on purpose
+  [ -z "$_rw_on" ] || shopt -s $_rw_on
+  _rw_out=(${_rw_split[@]+"${_rw_split[@]}"})
+  if [ "${#_rw_out[@]}" -eq 0 ]; then
+    warn_no_words "$2"
+    return 1
+  fi
+}
+
+# warn_no_words <key> -- the ONE sentence devbin says when a declared command
+# line holds no words. run_words says it at the site, where the words are about
+# to be run; a caller that may not glob says it through has_words and this. Two
+# readers of a command line and one sentence, rather than the same sentence
+# written out wherever it happens to be needed (issue 0082).
+warn_no_words() { warn "$1 holds no words, so there is no command to run"; }
+
+# follow_links <path> -- print the path of the file <path> names: <path> itself
+# when it is not a symbolic link, otherwise the end of its chain of links.
+# Refuses, naming <path>, a link that leads to no file and a link it cannot
+# follow exactly.
+#
+# THE ONE WALK OF A CHAIN OF LINKS: stage_beside's, so that every writer that
+# replaces a file writes through a link to it (issue 0084), and clean's real
+# path. bin/devbin keeps a walk of its own, because it runs before this file can
+# be found and must parse under bash 3.2.
+#
+# - PLAIN `readlink`, NO FLAGS. `readlink -f` and `realpath` also resolve every
+#   directory on the way, and they are not the same program on BSD and GNU.
+#   Plain readlink printed the same bytes on both for an absolute target, a
+#   relative one, `..`, a space, a leading dash, a dangling link and a loop
+#   (measured 2026-09-17: macOS's readlink and GNU coreutils 9.12).
+# - A RELATIVE TARGET IS JOINED TO ITS LINK'S DIRECTORY AS WRITTEN, and never
+#   tidied: when `a` is itself a link, the kernel reads the `..` in `a/../t`
+#   after following `a`, so a tidied `t` can name a different file.
+# - A LINK THAT LEADS TO NO FILE IS REFUSED, dangling or in a loop alike. Writing
+#   through it would create a file nobody put there, and replacing it would
+#   throw the link away.
+# - ONE TARGET CANNOT BE READ BACK EXACTLY: a name ending in a newline, which
+#   BSD's readlink prints with one newline fewer than GNU's, and whose remaining
+#   newlines a command substitution strips. So the end of the walk must be the
+#   file the kernel reaches (`-ef`), and the walk is bounded, since a misread
+#   name can lead back into the chain. A correct walk never meets the bound,
+#   because the link was reachable: macOS follows 32 links (measured) and Linux
+#   documents 40.
+follow_links() {
+  local path="$1" p="$1" t n=0
+  if [ -L "$p" ] && [ ! -e "$p" ]; then
+    warn "$path is a symbolic link that leads to no file"
+    return 1
+  fi
+  while [ -L "$p" ]; do
+    n=$((n + 1))
+    if [ "$n" -gt 40 ] || ! t="$(readlink -- "$p")"; then
+      warn "cannot tell which file $path is a symbolic link to"
+      return 1
+    fi
+    case "$t" in
+      /*) ;;
+      *) case "$p" in */*) t="${p%/*}/$t" ;; esac ;;
+    esac
+    p="$t"
+  done
+  if [ "$n" -gt 0 ] && ! [ "$path" -ef "$p" ]; then
+    warn "cannot tell which file $path is a symbolic link to"
+    return 1
+  fi
+  printf '%s\n' "$p"
+}
+
+# stage_beside <file> <command> [args...] -- write what <command> prints into a
+# temporary that will REPLACE <file>, and print the temporary's name.
+# rename_staged <temporary> -- rename a temporary stage_beside printed over the
+# file it will replace; on a failure, remove it.
+# replace_file <file> <command> [args...] -- replace <file> with what <command>
+# prints: staged beside it, then renamed over it.
+#
+# THE ONE HOME FOR "write a temporary, then rename it over the file" -- the
+# temporary, the write into it, its mode, the rename and the cleanup, each of
+# which every writer that replaced a file once had its own copy of:
+#
+# - THE TEMPORARY IS BESIDE THE FILE, NOT IN TMPDIR. A rename is atomic only
+#   within one filesystem; across two, `mv` quietly copies, and a kill mid-copy
+#   leaves the truncated file this pattern exists to rule out (issue 0002).
+# - THROUGH A LINK, THE FILE IT NAMES IS REPLACED AND THE LINK SURVIVES. The
+#   temporary is staged beside the file at the end of the link (follow_links),
+#   so the rename stays on that file's filesystem, and rename_staged renames it
+#   over that file, which the temporary's name records. Renamed over the link's
+#   own path, it turned the link into a regular file holding the edit, while the
+#   file the link named kept its old content and the writer exited 0 (issue
+#   0084). So a caller renaming a staged temporary itself renames it with
+#   rename_staged, never over the path it staged.
+# - IT HAS THE FILE'S MODE. mktemp creates 0600, and the rename carries that
+#   onto the file, so every writer that renamed a temporary into place left a
+#   0644 file 0600 -- CHANGELOG.md and RELEASES.md were, on the machine that
+#   generated them, with nothing to show it, since git records only the
+#   executable bit. `cp -p` gives the temporary the file's mode before the
+#   write; a file that does not exist yet gets the mode the umask gives a new
+#   file.
+# - A READ-ONLY FILE IS STILL REPLACED, AND KEEPS ITS MODE. Copied first, a 0444
+#   file's mode made its temporary 0444 too, and the write into it was refused
+#   (ST0007 WP-02 review, K3). So the owner's write bit is added for the write
+#   when the copied mode lacks it, and taken away again after. The mode is never
+#   READ, which keeps this off stat, whose flags differ between BSD and GNU.
+# - ON A FAILURE IT RETURNS, THE FILE IS UNTOUCHED AND THE TEMPORARY REMOVED,
+#   and a failure of the mechanics is named here, so a caller adds only what it
+#   was doing. A failing <command> names its own failure. Two ways still leave a
+#   temporary beside the file: a process killed before the rename, and a file
+#   flag that `cp -p` copies onto the temporary -- BSD's uchg refuses the write
+#   and the removal alike, so the helper returns 1 and rm's own error names the
+#   temporary (measured by vc, ST0007 WP-02 review).
+stage_beside() {
+  local file tmp restore=""
+  # The x keeps a name that ends in a newline, which a bare capture strips, and
+  # the temporary would then be staged for a different file.
+  file="$(follow_links "$1" && printf x)" || return 1
+  file="${file%$'\n'x}"
+  shift
+  if ! tmp="$(mktemp "${file}.XXXXXX")"; then
+    warn "could not create a temporary file beside $file"
+    return 1
+  fi
+  if [ -e "$file" ]; then
+    if ! cp -p "$file" "$tmp"; then
+      rm -f "$tmp"
+      warn "could not give the temporary file $file's mode"
+      return 1
+    fi
+    if [ ! -w "$tmp" ]; then
+      if ! chmod u+w "$tmp"; then
+        rm -f "$tmp"
+        warn "could not make the temporary file for $file writable"
+        return 1
+      fi
+      restore=u-w
+    fi
+  elif ! chmod "$(printf '%o' "$((0666 & ~$(umask)))")" "$tmp"; then
+    rm -f "$tmp"
+    warn "could not give the temporary file for $file a new file's mode"
+    return 1
+  fi
+  if ! "$@" >"$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  if [ -n "$restore" ] && ! chmod "$restore" "$tmp"; then
+    rm -f "$tmp"
+    warn "could not give the temporary file $file's mode back"
+    return 1
+  fi
+  printf '%s\n' "$tmp"
+}
+
+# The file is the temporary's name without mktemp's six characters, which is
+# where stage_beside staged it: through a link, not the link's path.
+#
+# `-f` IS NOT DEFENSIVE, IT IS WHAT STOPS THIS BLOCKING FOREVER ON A TERMINAL.
+# POSIX mv prompts when the destination exists, permissions do not allow writing
+# it, and stdin is a tty -- and a replace of a READ-ONLY file is exactly that
+# case, which is the one stage_beside goes to the most trouble to support. With
+# no tty the prompt never appears, so every agent-run and CI run of the suite
+# passed while `bin/devbin test all` from a human's terminal stopped dead at
+# `replace_file replaces a read-only file` and stayed quiet for eight hours
+# (2026-09-17, hv). A false green that is green for everyone who can see it.
+# lib/install:379 already wrote `mv -f` for its own rename; this is the second
+# of the two mv calls in the runtime and it had not.
+rename_staged() {
+  local file="${1%.??????}"
+  if ! mv -f "$1" "$file"; then
+    rm -f "$1"
+    warn "could not rename the temporary file over $file"
+    return 1
+  fi
+}
+
+replace_file() {
+  local tmp
+  tmp="$(stage_beside "$@")" || return 1
+  rename_staged "$tmp"
+}
+
 # sed_inplace <expression> <file> -- edit a file in place, portably.
 #
 # `sed -i` is not portable: BSD sed (macOS) requires an argument to -i and GNU
 # sed (Linux CI) refuses one. The corpus wrote `sed -i ''`, which is correct on
-# a Mac and fails on Ubuntu. Writing through a temporary and renaming sidesteps
-# the divergence and is atomic besides, which matters when the file being
-# rewritten is the project's version.
+# a Mac and fails on Ubuntu. Writing through replace_file sidesteps the
+# divergence and is atomic besides, which matters when the file being rewritten
+# is the project's version.
 sed_inplace() {
-  local expr="$1" file="$2" tmp
-  tmp="$(mktemp "${file}.XXXXXX")" || return 1
-  if sed "$expr" "$file" >"$tmp"; then
-    mv "$tmp" "$file"
-    return 0
-  fi
-  rm -f "$tmp"
-  return 1
+  replace_file "$2" sed "$1" "$2"
 }
 
 # bump_semver <current> <major|minor|patch> -- print the next version.
@@ -181,6 +586,20 @@ EOF
     patch) printf '%d.%d.%d\n' "$major" "$minor" "$((patch + 1))" ;;
     *) die "invalid bump part '$part' (use major, minor or patch)" ;;
   esac
+}
+
+# semver_gt <a> <b> -- true when X.Y.Z <a> is greater than <b>, part by part,
+# numerically (base 10, so a leading zero is not octal). 1 when it is not, and
+# 2 when either is not X.Y.Z: "not greater" and "not a version" are different
+# answers, and an ordering guessed from text would put 1.10.0 below 1.9.0.
+semver_gt() {
+  local a1 a2 a3 b1 b2 b3
+  is_semver "${1:-}" && is_semver "${2:-}" || return 2
+  IFS=. read -r a1 a2 a3 <<<"$1"
+  IFS=. read -r b1 b2 b3 <<<"$2"
+  if ((10#$a1 != 10#$b1)); then ((10#$a1 > 10#$b1)); return; fi
+  if ((10#$a2 != 10#$b2)); then ((10#$a2 > 10#$b2)); return; fi
+  ((10#$a3 > 10#$b3))
 }
 
 # abs_path <path> -- absolutise against the project root, leaving absolutes be.
@@ -674,13 +1093,32 @@ git_head_watch_paths() {
 # handler exec then fails with `env: bash: No such file or directory` and exit
 # 127, and nothing in that message points anywhere near the config that caused
 # it. Refusing beats diagnosing.
+# is_identifier <value> -- true when <value> is a shell variable name: a letter
+# or underscore, then letters, digits and underscores. THE ONE DEFINITION, and
+# it is a predicate rather than a refusal because its two callers refuse
+# differently: assert_identifier dies with a message naming which rule the value
+# broke, and run_words warns and returns, since nothing in the release library
+# may die. The charset lived only inside assert_identifier until run_words
+# needed the same question (issue 0082), and a second spelling of "is a name"
+# is exactly the divergence Highlander is about.
+is_identifier() {
+  case "${1:-}" in
+    '' | [!A-Za-z_]* | *[!A-Za-z0-9_]*) return 1 ;;
+  esac
+  return 0
+}
+
 assert_identifier() {
   local value="${1:-}" what="${2:-value}"
-  case "$value" in
-    '') die "$what is empty -- it has to be a shell variable name" ;;
-    [!A-Za-z_]*) die "$what must start with a letter or underscore, got '$value'" ;;
-    *[!A-Za-z0-9_]*) die "$what may contain only letters, digits and underscore, got '$value'" ;;
-  esac
+  # is_identifier gives the VERDICT; the case below only chooses the sentence,
+  # which is why it no longer has a rule the predicate does not have.
+  if ! is_identifier "$value"; then
+    case "$value" in
+      '') die "$what is empty -- it has to be a shell variable name" ;;
+      [!A-Za-z_]*) die "$what must start with a letter or underscore, got '$value'" ;;
+      *) die "$what may contain only letters, digits and underscore, got '$value'" ;;
+    esac
+  fi
   case "$value" in
     PATH | IFS | HOME | PWD | OLDPWD | SHELL | BASH_ENV | ENV | LD_PRELOAD | LD_LIBRARY_PATH)
       die "$what must not be '$value' -- overwriting it breaks the commands devbin runs"
@@ -691,13 +1129,28 @@ assert_identifier() {
     # `DEVBIN_ROOT` -- a legitimate name devbin does not use, refused by a
     # pattern aimed at names it does. Devbin uses devbin (D12), so the guard's
     # own overreach failed here before it could reach a live project.
-    DEVBIN_NAME | DEVBIN_INVOKE | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_COMMAND | DEVBIN_ARGS | \
-      DEVBIN_SEAL_LEDGER | DEVBIN_SEAL_LEDGER_RUN | DEVBIN_RUN_WITNESS | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | \
-      DEVBIN_TREEINDEX_DIRS | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
+    #
+    # EVERY NAME THE DISPATCHER EXPORTS TO A HANDLER, and a pattern only for the
+    # two families whose names it composes. The list is a copy of exports that
+    # live in bin/devbin and lib/resolve, so it drifts each time one is added: it
+    # fell six names and DEVBIN_ACTIVE_* behind, and root_var overwrote the run
+    # id, the stamp, the referent and the cli task with the project root, rc 0
+    # (issue 0081). tests/unit/review.bats now holds it to the names a handler
+    # receives. DEVBIN_TREEINDEX_DIRS left it when its export did (issue 0032).
+    DEVBIN_NAME | DEVBIN_INVOKE | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_ROOT_VAR | DEVBIN_COMMAND | DEVBIN_ARGS | \
+      DEVBIN_SEAL_LEDGER | DEVBIN_SEAL_LEDGER_RUN | DEVBIN_RUN_ID | DEVBIN_RUN_STAMP | DEVBIN_RUN_WITNESS | \
+      DEVBIN_RUN_REFERENT | DEVBIN_CLI_TASK | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | DEVBIN_LANGUAGES | \
+      DEVBIN_FMT_ARMS | DEVBIN_ACTIVE_* | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
       die "$what must not be '$value' -- that name belongs to devbin's own environment"
       ;;
   esac
   return 0
+}
+
+# is_semver <value> -- true for MAJOR.MINOR.PATCH, digits only. The one test;
+# assert_semver dies on it, and release reads a target through it.
+is_semver() {
+  [[ "${1:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 }
 
 # assert_semver <version> -- refuse anything that is not X.Y.Z.
@@ -706,7 +1159,7 @@ assert_identifier() {
 # is why four copies existed at all. The example is generic here; the value the
 # caller passed is what the reader actually needs to see.
 assert_semver() {
-  [[ "${1:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+  is_semver "${1:-}" ||
     die "version must be semver (eg 1.2.3), got '${1:-}'"
 }
 
@@ -813,7 +1266,7 @@ rlwrap_exec() {
 # documents must not lose the rest of them to the first refusal.
 generated_doc_write() {
   local target="" begin="" end="" expect_lines=0
-  local block tmp nb ne bl el v s n
+  local block nb ne bl el v s n
   local -a deny=() expect_contains=()
 
   while [ $# -gt 0 ]; do
@@ -930,35 +1383,29 @@ generated_doc_write() {
     esac
   done
 
-  # R3 -- ATOMIC REPLACE. The temp is created BESIDE THE TARGET, not in TMPDIR:
-  # rename is atomic only within a filesystem, so a temp under /tmp renaming
-  # onto a project path can fail cross-device. sed_inplace above already learned
-  # this; the pattern is shared deliberately.
+  # R3 -- ATOMIC REPLACE, through replace_file above: the temporary beside the
+  # target (a temp under /tmp renaming onto a project path can fail
+  # cross-device), the target's mode, the rename, and the temporary removed on
+  # a failure it returns -- the comment above stage_beside names the two ways
+  # one can still be left.
   #
   # What this gives and does NOT give: the reader sees the old file or the new
   # one and never a half-written one. It is not a durability guarantee -- shell
   # has no portable fsync, so a machine losing power at the wrong moment may
   # have neither. Atomicity is the property that matters here, and claiming the
   # other one would be the wrong kind of confident.
-  if ! tmp="$(mktemp "${target}.XXXXXX")"; then
-    warn "generated_doc_write: could not create a temporary file beside $target -- untouched"
-    return 1
-  fi
-  {
-    awk -v n="$bl" 'NR <= n' "$target"
-    printf '%s\n' "$block"
-    awk -v n="$el" 'NR >= n' "$target"
-  } >"$tmp" || {
-    rm -f "$tmp"
-    warn "generated_doc_write: could not assemble the new $target -- untouched"
-    return 1
-  }
-  if ! mv "$tmp" "$target"; then
-    rm -f "$tmp"
-    warn "generated_doc_write: could not replace $target -- untouched"
+  if ! replace_file "$target" _generated_doc_assemble "$target" "$bl" "$el" "$block"; then
+    warn "generated_doc_write: $target left untouched"
     return 1
   fi
   return 0
+}
+
+# _generated_doc_assemble <target> <begin-line> <end-line> <block> -- the new
+# document on stdout: the target through its begin marker, the block, and the
+# target from its end marker on.
+_generated_doc_assemble() {
+  awk -v n="$2" 'NR <= n' "$1" && printf '%s\n' "$4" && awk -v n="$3" 'NR >= n' "$1"
 }
 
 # MOVED HERE FROM lib/install AT THE UPDATE-NOTICE CHANGE. The dispatcher
@@ -1108,11 +1555,206 @@ _devbin_source_head() {
   # can carry `<sha> +dirty -- ...` or words instead of a sha. Compared whole,
   # those can never be equal to anything, so the notice would fire forever.
   sha="${sha%% *}"
-  case "$sha" in
-    *[!0-9a-f]* | "") return 2 ;;
-  esac
+  is_commit_sha "$sha" || return 2
   printf '%s\n' "$sha"
   return 0
+}
+
+# --- which way the source moved -------------------------------------------------
+#
+# MOVED HERE FROM lib/install (issue 0079). upgrade and vendor asked this and
+# the update notice, the offer and doctor did not: they compared two shas for
+# equality and called any difference "behind", so a source BEHIND the project
+# was offered as an update. The dispatcher loads lib/helpers and not lib/install
+# before it offers, so the one direction reader has to live where every asker
+# can reach it. install_ancestry, the PUBLISH half that writes the table, stays
+# in lib/install.
+
+# source_direction <dstroot> <srcroot> -- which way the source has moved since
+# these bytes were vendored:
+#
+#   same       the source is exactly the commit that was vendored
+#   forward    the recorded commit is an ancestor of the source's HEAD
+#   backward   the source's HEAD is an ancestor of the recorded commit
+#   unrelated  neither contains the other -- a different history
+#   unknown    the question cannot be answered from what is on disk
+#
+# UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are four
+# ways to reach it and none of them is exotic: the field is ABSENT on a manifest
+# written before b433988, it is PROSE when the source was not a checkout, it
+# carries `+dirty` when the bytes matched no commit, and a fresh clone may
+# simply not HAVE the recorded commit. Collapsing any of those into "fine" is
+# the direction that costs something -- upgrade syncs from source
+# unconditionally, so a downgrade prints `updated` per file and leaves doctor
+# green (issue 0021, measured at 11 files).
+#
+# Reads git in the SOURCE only. The target may not be a checkout at all, and
+# whether it is has no bearing on which devbin it received.
+#
+# AN INSTALL SOURCE IS ANSWERED FROM ITS ANCESTRY TABLE (issue 0059). An install
+# is not a git repository, so asking git there answered `unknown` for every
+# project vendoring from one -- the whole estate -- and `unknown` was silent. The
+# history the question needs was in the checkout the install was PUBLISHED
+# from, so that is where it is asked; see install_ancestry.
+#
+# `+dirty` IS `unknown`, AS THE FIRST PARAGRAPH SAYS -- and until 0059's review
+# the code did not do it. It took the first word and compared the sha, so bytes
+# vendored from `C` plus uncommitted work read `same` against a source holding
+# `C`, and upgrade dropped the work with no direction line. Measured by
+# critic-shell on 2026-09-16. The sha names where the bytes STARTED, not what
+# they are, so no direction follows from it.
+source_direction() {
+  local dstroot="$1" srcroot="$2" rec
+  rec="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+  case "$rec" in *' +dirty'*) printf 'unknown\n'; return 0 ;; esac
+  # The recorded value is a LINE, not a field: `<sha>` or a whole sentence.
+  # Taking the first word reduces both to something that either is a sha or
+  # visibly is not.
+  rec="${rec%% *}"
+  is_commit_sha "$rec" || { printf 'unknown\n'; return 0; }
+
+  if [ "$(manifest_field "$srcroot" kind 2>/dev/null || true)" = install ]; then
+    install_direction "$srcroot" "$rec"
+    return 0
+  fi
+  commit_direction "$srcroot" "$rec"
+}
+
+# is_commit_sha <word> -- true when <word> can name a commit: lowercase hex, at
+# least seven characters.
+#
+# ONE CHECK, because three copies of it had already drifted by the time 0059's
+# review read them: one dropped the length test. The length test is not
+# redundant with the charset one -- `a checkout with no HEAD` reduces to `a` by
+# first word, and `a` is valid hex.
+is_commit_sha() {
+  case "$1" in '' | *[!0-9a-f]*) return 1 ;; esac
+  [ "${#1}" -ge 7 ]
+}
+
+# commit_direction <checkout> <sha> [<to>] -- which way <to> (default: the
+# checkout's HEAD) has moved from <sha>: `same`, `forward`, `backward`,
+# `unrelated` or `unknown`.
+#
+# The git half of source_direction, separate because a PUBLISH asks the same
+# question of every commit an install has held (install_ancestry), and the
+# release core asks it of a remote's branch head (release_read_remote, which is
+# why <to> exists). Two copies of the ancestry rules would be two answers to
+# one question -- updatenotice.bats holds this as the only place ancestry is
+# asked.
+commit_direction() {
+  local srcroot="$1" rec="$2" head
+  git -C "$srcroot" rev-parse --git-dir >/dev/null 2>&1 ||
+    { printf 'unknown\n'; return 0; }
+  head="$(git -C "$srcroot" rev-parse -q --verify "${3:-HEAD}^{commit}" 2>/dev/null)" || head=""
+  [ -n "$head" ] || { printf 'unknown\n'; return 0; }
+  # ASKED BEFORE THE ANCESTRY TESTS, because `merge-base --is-ancestor` returns
+  # 1 both for "not an ancestor" and for a commit this repository has never
+  # heard of, and those are `unrelated` and `unknown` respectively.
+  git -C "$srcroot" cat-file -e "$rec^{commit}" 2>/dev/null ||
+    { printf 'unknown\n'; return 0; }
+
+  case "$head" in "$rec"*) printf 'same\n'; return 0 ;; esac
+  if git -C "$srcroot" merge-base --is-ancestor "$rec" "$head" 2>/dev/null; then
+    printf 'forward\n'
+  elif git -C "$srcroot" merge-base --is-ancestor "$head" "$rec" 2>/dev/null; then
+    printf 'backward\n'
+  else
+    printf 'unrelated\n'
+  fi
+  return 0
+}
+
+# manifest_ancestry <root> -- the ancestry table as `<sha><TAB><direction>` lines.
+#
+# Read by its own reader rather than manifest_field, which returns ONE value per
+# key and this key repeats. Header lines only: the table ends where the header
+# does, exactly as manifest_field's does.
+manifest_ancestry() {
+  local path
+  path="$(manifest_path "$1")"
+  [ -f "$path" ] || return 0
+  awk '
+    $0 !~ /^#/ { exit }
+    /^#[[:space:]]*ancestry:[[:space:]]/ {
+      line = $0
+      sub(/^#[[:space:]]*ancestry:[[:space:]]*/, "", line)
+      if (split(line, f, /[[:space:]]+/) == 2) printf "%s\t%s\n", f[1], f[2]
+    }
+  ' "$path"
+}
+
+# install_direction <install> <sha> -- source_direction's answer when the source
+# is an install: looked up, never computed, because nothing here has history.
+#
+# `same` when <sha> is the commit the install holds; the recorded direction when
+# the table has it; `unknown` otherwise. NOT FOUND IS UNKNOWN, never `forward`:
+# a commit the install never held is exactly the case nobody can vouch for.
+install_direction() {
+  local install="$1" rec="$2" head line sha dir
+  # The install's commit through the one reader of "which commit does this
+  # source hold", not a second parse of the same header.
+  head="$(_devbin_source_head "$install" 2>/dev/null)" || head=""
+  is_commit_sha "$head" || { printf 'unknown\n'; return 0; }
+  # EXACT MATCHES ONLY. Every writer records full shas; a short recorded value
+  # comes from a hand edit, and a prefix could match a row it does not name.
+  [ "$head" = "$rec" ] && { printf 'same\n'; return 0; }
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    sha="${line%%	*}"
+    dir="${line#*	}"
+    [ "$sha" = "$rec" ] || continue
+    case "$dir" in
+      forward | backward | unrelated) printf '%s\n' "$dir" ;;
+      *) printf 'unknown\n' ;;
+    esac
+    return 0
+  done <<EOF
+$(manifest_ancestry "$install")
+EOF
+  printf 'unknown\n'
+  return 0
+}
+
+# ask_person <question> -- ask a person at the terminal a yes/no question, from
+# inside a gate. Prints `<question> [y/N] ` and reads the answer from /dev/tty.
+#   0  the answer was y
+#   1  any other answer, end of input included
+#   2  nobody to ask: no readable /dev/tty, or the gate's stdin was not a terminal
+# The caller says what each means for it; 2 is never folded into 1, because
+# "declined" and "could not ask" are different answers (ST0007 AC-5.3 exits 2).
+#
+# THE ONE HOME FOR THE QUESTION (issue 0089; hv, option B): clean, fullcycle
+# and the release core's first-push confirmation all ask through here, so the
+# rule for "is a person here" is written once.
+#
+# READS /dev/tty, NEVER STDIN. run_gate hands every gated tool </dev/null
+# (issue 0088, row 2), so a gated function's stdin is empty and its stdout is a
+# pipe; an answer cannot come through that plumbing at all.
+#
+# "IS A PERSON HERE" IS THE GATE'S DEVBIN_GATE_TTY, NOT `-t 0`. Under a gate
+# stdin is never the terminal, and run_gate always sets the flag from its OWN
+# stdin, so the flag alone answers it. `-r /dev/tty` alone is not enough, which
+# is issue 0058: it holds for any process with a controlling terminal -- a test
+# suite, a script with its stdin redirected -- and the suite once printed a
+# prompt into bats's captured output and blocked on a keystroke nobody knew was
+# being asked for (2026-09-06). The `:-0` default answers "nobody" for a caller
+# outside a gate; every caller today is inside one, so no arm holds it.
+#
+# FOR A GATED CALLER ONLY. devbin_offer_upgrade, below, asks from OUTSIDE any
+# gate, where the flag is either unset or inherited from a parent gate and so
+# says nothing about this process; it keeps its own `-t 0` test for that reason.
+ask_person() {
+  local reply
+  if [ ! -r /dev/tty ] || [ "${DEVBIN_GATE_TTY:-0}" != 1 ]; then
+    return 2
+  fi
+  printf '%s [y/N] ' "$1"
+  IFS= read -r reply </dev/tty || reply=""
+  case "$reply" in
+    y | Y) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 # devbin_offer_upgrade <projroot> -- ask, on a real terminal, whether to
@@ -1137,7 +1779,7 @@ _devbin_source_head() {
 # `-t 2` as well, matching the notice: a sealed gate's stderr is a pipe, so this
 # cannot speak from inside one even if it were ever reached there.
 devbin_offer_upgrade() {
-  local root="${1:-}" state rest rec cur reply
+  local root="${1:-}" state word rec cur reply
   [ -n "$root" ] || return 0
   [ -n "${DEVBIN_NO_UPDATE_NOTICE:-}" ] && return 0
   # A DEVBIN LAUNCHED BY THIS OFFER NEVER OFFERS AGAIN.
@@ -1157,14 +1799,13 @@ devbin_offer_upgrade() {
   [ -t 0 ] || return 0
   [ -r /dev/tty ] || return 0
 
+  # ONLY `behind` -- the source moved FORWARD -- is an update (issue 0079). This
+  # matched on any difference, so a consumer AHEAD of a rewound install was told
+  # "An update to devbin is available", and a yes ran the upgrade that reverts
+  # it. upgrade's own BEHIND warning came after the person had already chosen.
   state="$(devbin_source_state "$root")"
-  case "$state" in
-    behind*) ;;
-    *) return 0 ;;
-  esac
-  rest="${state#* }"
-  rec="${rest%% *}"
-  cur="${rest##* }"
+  IFS=' ' read -r word rec cur _ <<<"$state"
+  [ "$word" = behind ] || return 0
 
   {
     printf 'An update to devbin is available.\n'
@@ -1195,11 +1836,34 @@ devbin_offer_upgrade() {
   return 0
 }
 
-# devbin_source_state <projroot> -- THREE states, on stdout, one word first.
+# devbin_source_state <projroot> -- FIVE states, on stdout, one word first.
 #
-#   level                    the vendored runtime matches what the source holds
-#   behind <recorded> <now>  the source has moved on
-#   unknown <reason>         it could not be established
+#   level                           the vendored runtime is what the source holds
+#   behind <recorded> <now>         the source has moved FORWARD past this project
+#   ahead <recorded> <now>          the source is BEHIND this project
+#   differs <recorded> <now> <why>  they differ, and in no direction anyone knows
+#   unknown <reason>                it could not be established
+#
+# ONLY `behind` IS AN UPDATE (issue 0079). This had three states and compared
+# two shas for equality, so every difference was `behind` -- and the notice, the
+# offer and doctor all told a project AHEAD of a rewound source to upgrade,
+# which is issue 0021's silent revert, measured at 11 files. The direction now
+# comes from source_direction, the answer upgrade and vendor already read, so
+# nothing here can call a move "an update" that upgrade would call a revert.
+#
+# `differs` IS NOT `unknown`. A record the source cannot place, or a source on
+# another history, is a REAL difference, and staying quiet about it hides one;
+# but nothing vouches the source is newer, so it is never called an update.
+# `unknown` is for when there was no difference to report: nothing to compare,
+# or the same commit on both sides with no direction established for it.
+#
+# `ahead` IS A CLAIM ABOUT HISTORY, NOT BYTES. The source holds an older commit
+# than the one this project vendored; whether any vendored FILE would change is
+# upgrade's question (seam_is_level, lib/install), and a source that moved only
+# outside the seam changes none. So the readers say which way the commits lie
+# and never that an upgrade would revert the runtime. `behind` has the mirror
+# limit, and has always had it: a forward move outside the seam is still
+# offered as an update.
 #
 # WHY THIS EXISTS SEPARATELY FROM THE NOTICE. `_devbin_update_line` prints or
 # stays quiet, and quiet is its answer for BOTH "level" and "cannot tell". That
@@ -1208,9 +1872,9 @@ devbin_offer_upgrade() {
 # clean; a check that cannot reach the source and reports nothing is read as
 # reporting currency it never established.
 #
-# The notice keeps its own contract and its own tests; this is what `doctor`
-# asks, and both go through `_devbin_source_head` so there is one answer to
-# "what does the source hold".
+# The notice, the offer and `doctor` all read this, and it asks
+# `_devbin_source_head` and source_direction, so there is one answer to "what
+# does the source hold" and one to "which way did it move".
 devbin_source_state() {
   local root="${1:-}" src rec cur
   [ -n "$root" ] || { printf 'unknown no project root given\n'; return 0; }
@@ -1222,22 +1886,30 @@ devbin_source_state() {
   [ -d "$src" ] || { printf 'unknown the source is not on this machine: %s\n' "$src"; return 0; }
 
   rec="${rec%% *}"
-  case "$rec" in
-    *[!0-9a-f]* | "")
-      printf 'unknown this project records bytes that name no commit\n'
-      return 0
-      ;;
-  esac
-
+  is_commit_sha "$rec" ||
+    { printf 'unknown this project records bytes that name no commit\n'; return 0; }
   if ! cur="$(_devbin_source_head "$src")"; then
     printf 'unknown the source names no commit: %s\n' "$src"
     return 0
   fi
-  if [ "$cur" = "$rec" ]; then
-    printf 'level\n'
-  else
-    printf 'behind %s %s\n' "$rec" "$cur"
-  fi
+
+  case "$(source_direction "$root" "$src")" in
+    same) printf 'level\n' ;;
+    forward) printf 'behind %s %s\n' "$rec" "$cur" ;;
+    backward) printf 'ahead %s %s\n' "$rec" "$cur" ;;
+    unrelated) printf 'differs %s %s the source is on a different history\n' "$rec" "$cur" ;;
+    *)
+      # EQUAL SHAS WITH NO DIRECTION. Today that is a `+dirty` record at the
+      # source's own commit: the bytes started there and are not it, and it read
+      # `level` until 0079 because the sha was stripped of its mark and then
+      # compared. The reason names what is known rather than inferring the mark.
+      if [ "$rec" = "$cur" ]; then
+        printf 'unknown this project records the commit the source holds, but no direction could be established for it (a +dirty record reads this way)\n'
+      else
+        printf 'differs %s %s which way the source moved cannot be told from what is on disk\n' "$rec" "$cur"
+      fi
+      ;;
+  esac
   return 0
 }
 
@@ -1266,57 +1938,45 @@ devbin_source_state() {
 # Prints to stdout; the caller decides where it goes. Empty output means there
 # is nothing to say.
 _devbin_update_line() {
-  local root="${1:-}" src rec cur
+  local root="${1:-}" state word rec cur why
   [ -n "$root" ] || return 0
 
-  src="$(manifest_source "$root" 2>/dev/null)" || return 0
-  rec="$(manifest_source_commit "$root" 2>/dev/null)" || return 0
-  [ -n "$src" ] && [ -n "$rec" ] || return 0
-  [ -d "$src" ] || return 0
-
-  # THE RECORDED FIELD IS NOT A BARE SHA, AND COMPARING THE WHOLE STRING IS THE
-  # DEFECT THIS LINE EXISTS TO AVOID. `source_commit_of` stamps
-  #
-  #     <sha> +dirty -- THESE BYTES MATCH NO COMMIT
-  #
-  # whenever devbin's own half is uncommitted -- the ordinary state of a source
-  # tree somebody is working in -- and words rather than a sha when the source
-  # is not a checkout at all. Compared whole against `git rev-parse HEAD` those
-  # can never be equal, so the notice fired on EVERY invocation and `upgrade`
-  # could not clear it: upgrade re-vendors and writes the same dirty stamp back.
-  # A permanently-red notice is the mirror of a false green -- both end with
-  # nobody reading it -- and this shipped that way to a consumer before a test
-  # caught it.
-  #
-  # Take the leading field and compare like with like. A record carrying no sha
-  # yields nothing and stays silent, which is correct: bytes that name no commit
-  # cannot be said to have fallen behind one.
-  rec="${rec%% *}"
-  case "$rec" in
-    *[!0-9a-f]* | "") return 0 ;;
-  esac
-
-  # ASKED OF THE SOURCE BY THE RIGHT INSTRUMENT FOR WHAT IT IS (ST0005). This
-  # was a bare `git rev-parse HEAD`, which is correct for a dev tree and returns
-  # nothing for an install -- so the notice went silent for every consumer the
-  # moment the estate was repointed at the install. See _devbin_source_head.
-  cur="$(_devbin_source_head "$src")" || return 0
-  [ -n "$cur" ] || return 0
-  [ "$cur" = "$rec" ] && return 0
+  # ONE READER OF THE STATE, NOT A SECOND COMPARISON (issue 0079). This kept its
+  # own sha check and its own equality test beside devbin_source_state's, so the
+  # two could disagree and both called any difference "moved on".
+  state="$(devbin_source_state "$root")"
+  IFS=' ' read -r word rec cur why <<<"$state"
 
   # Twelve characters, and only ever printed when the full shas differ. The
   # first version truncated BEFORE comparing like with like, so it printed two
   # identical-looking values as its evidence that they differed -- the
   # truncation did not merely fail to help, it hid the cause.
-  printf 'UPDATE: devbin has moved on since this project vendored it.\n'
-  printf '        vendored %s, source now %s\n' "${rec:0:12}" "${cur:0:12}"
-  printf '        run: %s upgrade      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
-    "${DEVBIN_INVOKE:-bin/devbin}"
+  case "$word" in
+    behind)
+      printf 'UPDATE: devbin has moved on since this project vendored it.\n'
+      printf '        vendored %s, source now %s\n' "${rec:0:12}" "${cur:0:12}"
+      printf '        run: %s upgrade      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
+        "${DEVBIN_INVOKE:-bin/devbin}"
+      ;;
+    ahead)
+      printf 'NOTE: the devbin this project came from is BEHIND this project.\n'
+      printf '      vendored %s, source now %s -- an older commit\n' "${rec:0:12}" "${cur:0:12}"
+      printf '      run: %s vendor, before any upgrade      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
+        "${DEVBIN_INVOKE:-bin/devbin}"
+      ;;
+    differs)
+      printf 'NOTE: the devbin this project came from differs from what it vendored: %s.\n' "$why"
+      printf '      vendored %s, source now %s\n' "${rec:0:12}" "${cur:0:12}"
+      printf '      it is not known to be newer; run: %s vendor      (silence: DEVBIN_NO_UPDATE_NOTICE=1)\n' \
+        "${DEVBIN_INVOKE:-bin/devbin}"
+      ;;
+  esac
   return 0
 }
 
 # devbin_update_notice <projroot> -- tell the user, ONCE A DAY AND ONLY ON A
-# TERMINAL, that the devbin this project vendored has moved on.
+# TERMINAL, that the devbin this project vendored has moved on, is behind it, or
+# differs from it in no known direction (issue 0079).
 #
 # THE POINT IS THAT A CONSUMING PROJECT LEARNS WITHOUT BEING ASKED. `vendor`
 # already answers "is this tree level with its SOURCE" -- the comparison is not

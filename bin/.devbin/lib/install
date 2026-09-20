@@ -180,12 +180,38 @@ die_install_prefix_unset() {
 # commit does not describe the checkout the bytes came out of.
 #
 # A tree that is not a git repository at all returns non-zero rather than empty:
-# "no changes" and "cannot tell" must not render as the same answer.
+# "no changes" and "cannot tell" must not render as the same answer. So does a
+# status git could not produce.
+#
+# AND DEVBIN'S HALF IS ASKED THE HARDENED QUESTION TOO (issue 0056). A plain
+# status lists no ignored file and reads no assume-unchanged mark, and those
+# are bytes that ship: an ignored `lib/.DS_Store` passed this gate and the
+# stamp, which asks seam_state_of, recorded `+dirty` on the install it let
+# through. The plain status still covers the rest of the tree; one extra line
+# names the seam's state whenever it is anything but committed, and the gate
+# refuses on it like any other.
 tree_dirty_paths() {
-  local root="$1"
-  git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || return 2
-  git -C "$root" status --porcelain 2>/dev/null
+  local root="$1" out state
+  git_readonly -C "$root" rev-parse --git-dir >/dev/null 2>&1 || return 2
+  out="$(git_readonly -C "$root" status --porcelain 2>/dev/null)" || return 2
+  state="$(seam_state_of "$root")"
+  if [ "$state" != committed ]; then
+    out="${out:+$out
+}seam: $state -- devbin's half is not exactly the committed bytes (an ignored file, a symlink, or a file git was told not to watch)"
+  fi
+  printf '%s' "$out"
   return 0
+}
+
+# fleet_preview_hint -- the one fleet command publish and publish-upgrade both
+# print, to preview a sweep of the estate they have just put behind.
+#
+# Both printed `bin/devbin fleet upgrade --dry-run` until issue 0073, and fleet has
+# no such flag: its dry run is the DEFAULT, and the strict parser refuses the
+# line as written. One home keeps the two sites from differing; what catches a
+# WRONG command is the test, which runs the printed line through the real parser.
+fleet_preview_hint() {
+  printf 'bin/devbin fleet upgrade'
 }
 
 # publish_install <srcroot> <dstroot> <version> -- write an install tree.
@@ -368,6 +394,170 @@ copy_vendored() {
 # The manifest readers live in lib/helpers -- see the note there. lib/install
 # remains their only heavy caller; the dispatcher needs two header lines.
 
+# git_readonly <args...> -- git, asked about a repository this process only reads.
+#
+# `--no-optional-locks` because a plain `git status` may refresh the index and
+# take its lock: a census could fail a peer's concurrent commit with
+# `index.lock exists`, and leave a write in a repository it only meant to read.
+#
+# EVERY ONE OF GIT'S LOCAL ENVIRONMENT VARIABLES IS CLEARED, IN A SUBSHELL, and
+# the list is asked of git rather than written here. A value inherited from the
+# caller -- GIT_DIR, GIT_COMMON_DIR, GIT_CONFIG_PARAMETERS from a `git -c` --
+# would point every repository's question at one repository or one setting and
+# answer it confidently for all of them. If git cannot list them, this refuses
+# rather than asking with the environment it could not clear.
+#
+# THE LIST IS CACHED IN THE SHELL THAT ASKS, AND A COMMAND SUBSTITUTION IS A
+# DIFFERENT SHELL. Every caller runs git_readonly inside `$(...)`, so a cache
+# filled there is gone before the next call -- the first cut claimed "once per
+# process" and asked three times per estate (vc, 2026-09-16, measured with a
+# counting git on PATH). git_readonly_prime fills it in the CURRENT shell, so a
+# caller that primes before its first substitution pays once for everything
+# beneath it. fleet's scan primes once for the whole fleet; source_commit_of and
+# tree_dirty_paths prime through their first, direct call.
+#
+# THE REPOSITORY'S OWN SETTINGS ARE NOT TRUSTED EITHER WHERE THEY CAN HIDE A
+# CHANGE OR RUN SOMETHING. `core.fsmonitor` names a hook the repository chose,
+# which would run here and could answer "nothing changed"; `core.untrackedCache`
+# is a cache of that same answer. Both are forced off for the one call.
+# (Moved here from `fleet`'s `_estate_git`, issue 0056.)
+_DEVBIN_GIT_LOCAL_VARS=""
+git_readonly_prime() {
+  [ -z "$_DEVBIN_GIT_LOCAL_VARS" ] || return 0
+  if ! _DEVBIN_GIT_LOCAL_VARS="$(git rev-parse --local-env-vars 2>/dev/null)"; then
+    _DEVBIN_GIT_LOCAL_VARS=""
+    return 1
+  fi
+  [ -n "$_DEVBIN_GIT_LOCAL_VARS" ]
+}
+
+git_readonly() {
+  local v
+  git_readonly_prime || return 1
+  (
+    while IFS= read -r v; do
+      [ -n "$v" ] && unset "$v"
+    done <<VARS
+$_DEVBIN_GIT_LOCAL_VARS
+VARS
+    exec git --no-optional-locks -c core.fsmonitor=false -c core.untrackedCache=false "$@"
+  )
+}
+
+# seam_git_verdict <status-porcelain> <ls-files-v> -- the state those two outputs
+# describe: committed, DIRTY, not watched or not tracked. Pure, so every line
+# shape is tested on strings rather than on a repository built to produce it.
+#
+# THE ORDER IS THE STRONGEST THING GIT CAN SAY FIRST. A changed, added, deleted
+# or untracked path is a fact about the bytes: DIRTY. A path marked
+# assume-unchanged (a lowercase tag) or skip-worktree (`S`) is one git was told
+# not to read, so its silence certifies nothing: not watched. An ignored path
+# (`!!`) is runtime bytes a clone does not get: not tracked. Only when none of
+# the three appears is it committed. DIRTY was once checked LAST, so one ignored
+# `.DS_Store` beside a real edit hid the edit (critic-shell, 2026-09-16).
+#
+# EVERY LINE IS READ, NOT ONLY THE FIRST. A test built with one offending file
+# puts it first by construction; the arms carry it on a later line as well.
+seam_git_verdict() {
+  local status="$1" tags="$2" line dirty="" ignored="" blind=""
+  while IFS= read -r line; do
+    case "$line" in
+      '') ;;
+      '!! '*) ignored=yes ;;
+      *) dirty=yes ;;
+    esac
+  done <<LINES
+$status
+LINES
+  while IFS= read -r line; do
+    case "$line" in
+      [a-z]' '* | 'S '*) blind=yes ;;
+    esac
+  done <<LINES
+$tags
+LINES
+  if [ -n "$dirty" ]; then
+    printf 'DIRTY\n'
+  elif [ -n "$blind" ]; then
+    printf 'not watched\n'
+  elif [ -n "$ignored" ]; then
+    printf 'not tracked\n'
+  else
+    printf 'committed\n'
+  fi
+}
+
+# seam_git_state <repo> <path>... -- is devbin's half, at these paths (absolute,
+# or relative to <repo>), committed in <repo>? One of committed, DIRTY, not watched, not tracked, UNREADABLE.
+#
+# THE ONE ANSWER TO THAT QUESTION (issue 0056). `install` stamps a vendor's
+# provenance with it (source_commit_of) and `fleet` reports each estate with it.
+# They were two implementations, and they already disagreed: the census had been
+# hardened and the stamp had not, so `install` could record a clean sha over
+# bytes the census called DIRTY.
+#
+# AN EMPTY `git status` MEANS COMMITTED ONLY WHEN GIT WAS LOOKING, so:
+#   - untracked files are listed whatever the repository says
+#     (`--untracked-files=all`), and ignored ones too (`--ignored=matching`);
+#   - a submodule's own `ignore` setting is overridden (`--ignore-submodules=none`);
+#   - assume-unchanged and skip-worktree marks are read (`ls-files -v`);
+#   - a SYMLINK anywhere in the paths is not tracked, because git records the
+#     link's text and never the bytes behind it, which are what a digest reads
+#     and what runs;
+#   - a path that does not exist is UNREADABLE: the caller named the half, and a
+#     half that is not there cannot be committed.
+#
+# The paths are DIRECTORY pathspecs where they are directories, so a vendored
+# file deleted and not committed still shows (see vendored_scope).
+seam_git_state() {
+  local repo="$1" p links out tags
+  shift
+  [ "$#" -gt 0 ] || { printf 'UNREADABLE\n'; return 0; }
+  for p in "$@"; do
+    # A relative path is a pathspec from <repo>, which is where git reads it.
+    case "$p" in /*) ;; *) p="$repo/$p" ;; esac
+    if [ -L "$p" ]; then
+      printf 'not tracked\n'
+      return 0
+    fi
+    [ -e "$p" ] || { printf 'UNREADABLE\n'; return 0; }
+    if [ -d "$p" ]; then
+      links="$(find "$p" -type l -print 2>/dev/null)" || { printf 'UNREADABLE\n'; return 0; }
+      [ -z "$links" ] || { printf 'not tracked\n'; return 0; }
+    fi
+  done
+  out="$(git_readonly -C "$repo" status --porcelain --untracked-files=all \
+    --ignored=matching --ignore-submodules=none -- "$@" 2>/dev/null)" ||
+    { printf 'UNREADABLE\n'; return 0; }
+  tags="$(git_readonly -C "$repo" ls-files -v -- "$@" 2>/dev/null)" ||
+    { printf 'UNREADABLE\n'; return 0; }
+  seam_git_verdict "$out" "$tags"
+}
+
+# seam_state_of <srcroot> -- seam_git_state over devbin's half of a SOURCE, as
+# vendored_scope locates it: the whole tree when the half cannot be located.
+#
+# THE ONE QUESTION BEHIND BOTH THE PUBLISH GATE AND THE STAMP (issue 0056). The
+# stamp was hardened and the gate was not, so a checkout holding an ignored
+# `lib/.DS_Store` passed the gate and was stamped `+dirty` -- an install D28
+# exists to refuse, published at exit 0 (vc, 2026-09-16). Asked through one
+# function, the gate and the stamp cannot disagree.
+seam_state_of() {
+  local root="$1" scope_lines p
+  local -a scope=()
+  # vendored_scope is read into a variable and checked, not through a process
+  # substitution, whose failure nothing would see.
+  if scope_lines="$(vendored_scope "$root")"; then
+    while IFS= read -r p; do
+      [ -n "$p" ] && scope+=("$p")
+    done <<SCOPE
+$scope_lines
+SCOPE
+  fi
+  [ "${#scope[@]}" -gt 0 ] || scope=("$root")
+  seam_git_state "$root" "${scope[@]}"
+}
+
 # source_commit_of <srcroot> -- WHICH devbin these bytes came from, as a line.
 #
 # PUBLIC, and named that way because a second file depends on it. `manifest_write`
@@ -420,8 +610,7 @@ copy_vendored() {
 # clean sha or an explicit refusal-shaped string; re-deriving it here is
 # impossible anyway, since the commit is not reachable from a tree with no .git.
 source_commit_of() {
-  local root="$1" sha p dirty forwarded
-  local -a scope=()
+  local root="$1" sha state forwarded
   if [ "$(manifest_field "$root" kind 2>/dev/null || true)" = install ]; then
     forwarded="$(manifest_field "$root" source_commit 2>/dev/null || true)"
     if [ -n "$forwarded" ]; then
@@ -431,20 +620,19 @@ source_commit_of() {
     printf 'an install with no recorded commit -- these bytes name no commit\n'
     return 0
   fi
-  git -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
+  # git_readonly for the sha as well as the state, so an inherited GIT_DIR cannot
+  # pair one repository's HEAD with another's status.
+  git_readonly -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
     { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
-  sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
+  sha="$(git_readonly -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
   [ -n "$sha" ] ||
     { printf 'a checkout with no HEAD -- these bytes name no commit\n'; return 0; }
-  while IFS= read -r p; do
-    [ -n "$p" ] && scope+=("$p")
-  done < <(vendored_scope "$root")
-  if [ "${#scope[@]}" -gt 0 ]; then
-    dirty="$(git -C "$root" status --porcelain -- "${scope[@]}" 2>/dev/null)"
-  else
-    dirty="$(git -C "$root" status --porcelain 2>/dev/null)"
-  fi
-  if [ -n "$dirty" ]; then
+  # Through seam_state_of, the one hardened answer to "is devbin's half
+  # committed" (issue 0056). ANYTHING BUT committed IS DIRTY HERE: not watched,
+  # not tracked and UNREADABLE are git declining to vouch for the bytes, and the
+  # stamp's one job is never to name a commit those bytes might not be.
+  state="$(seam_state_of "$root")"
+  if [ "$state" != committed ]; then
     printf '%s +dirty -- THESE BYTES MATCH NO COMMIT\n' "$sha"
   else
     printf '%s\n' "$sha"
@@ -491,10 +679,14 @@ _two_space_to_tab() {
 # intact" one line after `upgrade` said "edited in place", which is a false
 # green produced by two correct-looking steps in sequence.
 manifest_write() {
-  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" kind="${5:-}" path rel sum old old_sum line
+  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" kind="${5:-}" path rel sum old old_sum line ancestry
   path="$(manifest_path "$dstroot")"
   # Read the old entries BEFORE the redirect below truncates the file.
   old="$(manifest_entries "$dstroot" 2>/dev/null || true)"
+  # And the old ancestry, for the same reason: it is computed FROM the header
+  # that redirect is about to destroy (issue 0059).
+  ancestry=""
+  if [ "$kind" = install ]; then ancestry="$(install_ancestry "$dstroot" "$srcroot")"; fi
   mkdir -p "$(dirname "$path")" || return 1
   {
     printf '# devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.\n'
@@ -516,6 +708,14 @@ manifest_write() {
     # Relative to HOME when it lies under it -- see manifest_source (issue 0069).
     printf '# source: %s\n' "$(home_relative "$srcroot")"
     printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
+    # An install only: see install_ancestry. A consumer never writes one, because
+    # a consumer has no history to vouch for -- it received a commit, it did not
+    # publish one.
+    while IFS= read -r line; do
+      [ -n "$line" ] && printf '# ancestry: %s\n' "$line"
+    done <<EOF
+$ancestry
+EOF
     # Retabbed through the same filter manifest_check uses, so this file has ONE
     # parser for its own line format rather than a second one written inline --
     # and a path containing a space survives both.
@@ -644,56 +844,43 @@ EOF
   return 0
 }
 
-# source_direction <dstroot> <srcroot> -- which way the source has moved since
-# these bytes were vendored:
+# install_ancestry <install> <checkout> -- the `<sha> <direction>` table a publish
+# from <checkout> writes into <install>'s manifest, one line per commit.
 #
-#   same       the source is exactly the commit that was vendored
-#   forward    the recorded commit is an ancestor of the source's HEAD
-#   backward   the source's HEAD is an ancestor of the recorded commit
-#   unrelated  neither contains the other -- a different history
-#   unknown    the question cannot be answered from what is on disk
+# EVERY COMMIT THE INSTALL HAS HELD, placed against the commit it is about to
+# hold. The commits are the ones already in its table plus the one it holds now;
+# the directions are RECOMPUTED from git on every publish, never carried, because
+# a direction is relative to a head and the head is what a publish moves. Only
+# the list of commits is carried. So a rewind is seen however many publishes
+# later it happens, and a direction is never older than the install.
 #
-# UNKNOWN IS A REAL ANSWER AND MUST NEVER BE READ AS `forward`. There are four
-# ways to reach it and none of them is exotic: the field is ABSENT on a manifest
-# written before b433988, it is PROSE when the source was not a checkout, it
-# carries `+dirty` when the bytes matched no commit, and a fresh clone may
-# simply not HAVE the recorded commit. Collapsing any of those into "fine" is
-# the direction that costs something -- upgrade syncs from source
-# unconditionally, so a downgrade prints `updated` per file and leaves doctor
-# green (issue 0021, measured at 11 files).
+# The new head itself is left out: it is `same`, and source_commit already says
+# so. A commit this checkout does not have -- a publish from a different clone --
+# is kept as `unknown`, so a later publish from a checkout that has it can still
+# place it.
 #
-# Reads git in the SOURCE only. The target may not be a checkout at all, and
-# whether it is has no bearing on which devbin it received.
-source_direction() {
-  local dstroot="$1" srcroot="$2" rec head
-  rec="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
-  # The recorded value is a LINE, not a field: `<sha>`, `<sha> +dirty -- ...`,
-  # or a whole sentence. Taking the first word reduces all three to something
-  # that either is a sha or visibly is not -- `a checkout with no HEAD` reduces
-  # to `a`, which is valid hex and exactly why the length test below is not
-  # redundant with the charset one.
-  rec="${rec%% *}"
-  case "$rec" in '' | *[!0-9a-f]*) printf 'unknown\n'; return 0 ;; esac
-  [ "${#rec}" -ge 7 ] || { printf 'unknown\n'; return 0; }
-
-  git -C "$srcroot" rev-parse --git-dir >/dev/null 2>&1 ||
-    { printf 'unknown\n'; return 0; }
-  head="$(git -C "$srcroot" rev-parse HEAD 2>/dev/null)" || head=""
-  [ -n "$head" ] || { printf 'unknown\n'; return 0; }
-  # ASKED BEFORE THE ANCESTRY TESTS, because `merge-base --is-ancestor` returns
-  # 1 both for "not an ancestor" and for a commit this repository has never
-  # heard of, and those are `unrelated` and `unknown` respectively.
-  git -C "$srcroot" cat-file -e "$rec^{commit}" 2>/dev/null ||
-    { printf 'unknown\n'; return 0; }
-
-  case "$head" in "$rec"*) printf 'same\n'; return 0 ;; esac
-  if git -C "$srcroot" merge-base --is-ancestor "$rec" "$head" 2>/dev/null; then
-    printf 'forward\n'
-  elif git -C "$srcroot" merge-base --is-ancestor "$head" "$rec" 2>/dev/null; then
-    printf 'backward\n'
-  else
-    printf 'unrelated\n'
-  fi
+# TWO LIMITS, DECLARED BECAUSE THE PARAGRAPH ABOVE WOULD OTHERWISE OVERCLAIM
+# (critic-shell, 2026-09-16). The table begins at the first publish made by a
+# devbin carrying it: that publish learns only the one commit the install held
+# before it, so commits held earlier still are not in it. And a publish runs the
+# CHECKOUT's own lib, so rewinding the checkout to a commit from before 0059
+# rewinds the publisher too, and that publish writes no table at all -- the
+# history carried until then is gone, and every consumer reads `unknown`.
+# upgrade says so out loud when the bytes would change (lib/cmd/upgrade).
+install_ancestry() {
+  local install="$1" checkout="$2" head sha seen=""
+  head="$(git -C "$checkout" rev-parse HEAD 2>/dev/null)" || head=""
+  while IFS= read -r sha; do
+    is_commit_sha "$sha" || continue
+    [ "$sha" = "$head" ] && continue
+    list_contains "$seen" "$sha" && continue
+    seen="$seen$sha
+"
+    printf '%s %s\n' "$sha" "$(commit_direction "$checkout" "$sha")"
+  done <<EOF
+$(manifest_ancestry "$install" | cut -f1)
+$({ manifest_source_commit "$install" 2>/dev/null || true; } | awk '{ print $1 }')
+EOF
   return 0
 }
 
