@@ -7,8 +7,9 @@
 //! the verb about where the logs live by both being wrong the same way.
 
 use std::io::{BufRead, BufReader, Write};
+use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
-use std::process::{Child, ChildStdin, Command, Output, Stdio};
+use std::process::{Child, ChildStdin, Command, ExitStatus, Output, Stdio};
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -167,16 +168,56 @@ fn a_log_not_yet_written_is_named_as_absent() {
   );
 }
 
+/// Reap a spawned verb within a bound, failing by name rather than hanging.
+///
+/// **AN UNBOUNDED `wait()` IN A TEST REPORTS NOTHING** (issue 0491). A verb
+/// that never exits stalls the whole suite in silence -- measured at 3h46m on
+/// cc's run of 2026-09-19 -- and the one way out, killing the child by hand,
+/// turns the arm into a PASS. So a child still alive at the end of the bound
+/// is killed and named instead.
+///
+/// The bound is an ATTEMPT COUNT and never a clock: `one_clock` allows no
+/// `Instant::now` outside `daemon_log.rs`.
+fn reap_within(child: &mut Child, way: &str) -> ExitStatus {
+  for _ in 0..300 {
+    if let Some(status) = child.try_wait().expect("poll the verb") {
+      return status;
+    }
+    std::thread::sleep(Duration::from_millis(100));
+  }
+  let _ = child.kill();
+  let _ = child.wait();
+  panic!("{way}: the verb did not exit within the bound, so this arm would have hung")
+}
+
 /// Spawn `--follow` holding its stdin, as Intent.app's Console does, with
 /// its stdout read line by line on a thread.
+///
+/// **THE CHILD STARTS WITH SIGINT AT ITS DEFAULT, AND THAT IS NOT A DETAIL**
+/// (issue 0491). A signal disposition of `SIG_IGN` survives `exec`, so a suite
+/// launched as a background job -- a zsh `&!`, which starts with SIGINT
+/// ignored -- hands the verb an ignored SIGINT, and the INT way below then
+/// measures the environment rather than the verb: the signal is delivered,
+/// nothing happens, and the arm waits forever. Resetting it here keeps that
+/// way measuring the verb wherever the suite is run from.
 fn follow(home: &Path) -> (Child, ChildStdin, mpsc::Receiver<String>) {
-  let mut child = intent(home)
+  let mut cmd = intent(home);
+  cmd
     .args(["daemon", "logs", "--follow"])
     .stdin(Stdio::piped())
     .stdout(Stdio::piped())
-    .stderr(Stdio::null())
-    .spawn()
-    .expect("spawn intent daemon logs --follow");
+    .stderr(Stdio::null());
+  // SAFETY: `signal` is async-signal-safe, and the closure calls nothing else
+  // between `fork` and `exec`.
+  unsafe {
+    cmd.pre_exec(|| {
+      if libc::signal(libc::SIGINT, libc::SIG_DFL) == libc::SIG_ERR {
+        return Err(std::io::Error::last_os_error());
+      }
+      Ok(())
+    });
+  }
+  let mut child = cmd.spawn().expect("spawn intent daemon logs --follow");
   let stdin = child.stdin.take().expect("piped stdin");
   let stdout = child.stdout.take().expect("piped stdout");
   let (tx, rx) = mpsc::channel();
@@ -230,7 +271,7 @@ fn follow_prints_what_is_written_after_it_started() {
   assert_eq!(next(&rx), "err 1");
 
   drop(stdin);
-  let status = child.wait().expect("reap the follow");
+  let status = reap_within(&mut child, "a closed stdin");
   assert!(
     status.success(),
     "a closed stdin ends --follow cleanly, got {status}"
@@ -283,7 +324,7 @@ fn no_tail_survives_follow_however_it_ends() {
         .expect("signal the verb");
       std::mem::forget(stdin);
     }
-    child.wait().expect("reap the verb");
+    reap_within(&mut child, way);
 
     let mut gone = false;
     for _ in 0..200 {
