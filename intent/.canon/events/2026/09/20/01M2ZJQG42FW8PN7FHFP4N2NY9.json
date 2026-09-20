@@ -1,0 +1,14 @@
+{
+  "id": "01M2ZJQG42FW8PN7FHFP4N2NY9",
+  "ts": "2026-09-20T14:15:10.725Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0495"
+  },
+  "payload": {
+    "title": "doctor reads 0 findings while a board view is BEHIND the store, though it reports the same board when the file is ahead"
+  }
+}

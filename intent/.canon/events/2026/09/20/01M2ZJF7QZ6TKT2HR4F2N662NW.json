@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZJF7QZ6TKT2HR4F2N662NW",
+  "ts": "2026-09-20T14:10:40.002Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0495"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor reads 0 findings while a board view on disk differs from the store, and organize agrees, so a stale board is invisible to every checker"
+  }
+}

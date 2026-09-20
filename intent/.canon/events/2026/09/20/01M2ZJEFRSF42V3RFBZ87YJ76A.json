@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZJEFRSF42V3RFBZ87YJ76A",
+  "ts": "2026-09-20T14:10:15.452Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0494"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An event's ts is taken when the write got through rather than when the act was recorded, so ordering by it across a contended burst gives the wrong order"
+  }
+}
