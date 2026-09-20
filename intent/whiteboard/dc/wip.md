@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-19 20:08Z
+heartbeat_at: 2026-09-20 13:02Z
 status: active
 focus: "Issues line done: 0485, 0462-0474 and 0484 are on main, plus the clock fix; the pair is rebuilt at 3a734cde3 (intentd's restart is hv's). Todo 30 (the tap README push) is hv's. Holds 17, 18. Idle for vc. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
@@ -13,7 +13,7 @@ claims: [ST0056/11]
 
 ## DOING
 
-_(none)_
+- The whiteboard carry of dc's three hand-authored estates -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc), 9 nodes -- split with ic, who holds Baize, Molt, Riffle and arca_config and runs Riffle first as the rehearsal. PRECONDITIONS, all three: cc's 0488+0489 landed, the pair rebuilt after them (today's d26e86c85 rebuild is NOT that one), and ic's rehearsal report read. THE RUN, per estate: re-read `git status` in THAT estate immediately before starting because dc's 12:24Z clean read is a prior and not a permission; NEVER `intent wb status` on an estate before its carry, since on a store-less project it materialises intent/.cache/intent.db and so writes to the tree it was told to read -- the read-only discriminator is the presence of intent/.canon/whiteboard/; then argument-free `intent wb register`, then `intent wb migrate <node>` per node, alphabetically because none of dc's three has an hv node and the report says so; the uncarried report READ before `--drop-uncarried`, an empty report included, on vc's rule; doctor; organize; one commit by literal paths in that repo; NO PUSH. arca_cli has no intent/whiteboard/README.md: no carrier invents one, its commit message names the absence in a sentence, and whether it should gain a README and an hv node is hv's roster decision, put to hv with the report.
 
 ## TODO
 

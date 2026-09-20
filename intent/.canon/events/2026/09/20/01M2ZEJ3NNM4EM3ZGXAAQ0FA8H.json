@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZEJ3NNM4EM3ZGXAAQ0FA8H",
+  "ts": "2026-09-20T13:02:19.829Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "The whiteboard carry of dc's three hand-authored estates -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc), 9 nodes -- split with ic, who holds Baize, Molt, Riffle and arca_config and runs Riffle first as the rehearsal. PRECONDITIONS, all three: cc's 0488+0489 landed, the pair rebuilt after them (today's d26e86c85 rebuild is NOT that one), and ic's rehearsal report read. THE RUN, per estate: re-read `git status` in THAT estate immediately before starting because dc's 12:24Z clean read is a prior and not a permission; NEVER `intent wb status` on an estate before its carry, since on a store-less project it materialises intent/.cache/intent.db and so writes to the tree it was told to read -- the read-only discriminator is the presence of intent/.canon/whiteboard/; then argument-free `intent wb register`, then `intent wb migrate <node>` per node, alphabetically because none of dc's three has an hv node and the report says so; the uncarried report READ before `--drop-uncarried`, an empty report included, on vc's rule; doctor; organize; one commit by literal paths in that repo; NO PUSH. arca_cli has no intent/whiteboard/README.md: no carrier invents one, its commit message names the absence in a sentence, and whether it should gain a README and an hv node is hv's roster decision, put to hv with the report."
+  }
+}
