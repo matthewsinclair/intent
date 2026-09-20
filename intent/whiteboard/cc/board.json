@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "6551ed66-8c7f-4dbe-b512-eb5b65a0ca60",
-    "heartbeat_at": "2026-09-20T11:25:23.965Z",
+    "heartbeat_at": "2026-09-20T13:05:09.589Z",
     "status": "active",
-    "focus": "post-compact resume 2026-09-20 11:24Z: chain closed, T1-T4 all on main and the pair rebuilt at 3a734cde3 (T4 included); 0490 and 0491 open with no order; waiting on vc's word that hv restored the install pointer before the guard re-run; T5 (0460) waits on hv. NO RELEASE, NO PUSH.",
+    "focus": "localfold 2026-09-20 13:04Z: 0488+0489 banked and judged green on the read (96e15ee1dd on d26e86c85), the critical path for the seven carries, waiting on its two whole suites then vc's forward; 0490 landed and closed; 0487 then 0486 queued; T5 waits on hv. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1378,7 +1378,8 @@
       "kind": "hold",
       "seq": 24,
       "text": "**T5: issue 0460, verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** RELEASED BY hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Shares dispatch-table.json and render.rs with T1 (landed), so it builds fresh on main in a private worktree. Also queued, no order yet: 0490 (st attach naming gate), filed by cc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-20T13:04:32.844Z",
       "recorded_at": "2026-09-19T20:00:45.158Z"
     },
     {
@@ -1395,8 +1396,25 @@
       "kind": "doing",
       "seq": 41,
       "text": "**RESUME HERE (cc, 2026-09-19 20:0xZ read after 20:01Z, post-landing).** cc's T3/T4 chain is CLOSED. Landed today on vc's GO: T1 fb80369ab (0475, 0477), T2 fa4841fd3 (0453, 0476), T3 ad9de5fb6 (0458, 0478, live hooks) and T4 80d93de1c (0461), each with its closes; issue 0490 filed at 80675611b. THE PAIR LAGS MAIN BY T4 until dc's train D lands and rebuilds once for both (vc's order); intentd's restart is hv's. Waiting on vc for the next order. T5 (0460) waits for hv (the hold). 0490 has no order yet. A load-dependent hang, daemon_logs_prints_and_follows::no_tail_survives_follow_however_it_ends (3h46m under the suite, 0.42s alone), is named to vc as a candidate issue. Scratch worktrees wt-t1..wt-t4 and refs/bank/cc/t1..t4 remain until vc's call. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-20T13:04:31.660Z",
       "recorded_at": "2026-09-19T20:03:30.578Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 25,
+      "text": "**T5: issue 0460, the verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** CONDITION: hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Nothing else blocks it: it builds fresh on main in a private worktree.",
+      "state": "live",
+      "recorded_at": "2026-09-20T13:04:41.195Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 42,
+      "text": "**RESUME HERE (cc, 2026-09-20 13:0xZ, localfold before hv's compact).** 0488+0489 IS BANKED AND JUDGED GREEN ON THE READ, waiting only on its two whole suites and then vc's landing forward: refs/bank/cc/0488-0489/patch, blob b8cf2491f8, patch-id 96e15ee1dd, rebased onto d26e86c85 and reading back identical. It is the CRITICAL PATH -- the seven hand-authored boards migrate on it (hv, no yak-shaving, the fleet first) -- and a second pair rebuild follows its close, announced first, before dc and ic run the carries. Suites when the host drops: `cargo build -p intentd` FIRST, in-tree CARGO_TARGET_DIR, isolated HOME; at 13:03Z the host was 592.58 and intentsvcs was still mid-run, intent-cli not started. Landed today: 0490 at e8be15b0f closed 0642fe674, plus 0489's and 0490's body corrections (2ea40b7cc, 15a7a036a). Queued behind 0488+0489: 0487 (a)+(b) then 0486, both small and ruled; 0487's stamp defect (c) is vc's to file and stays next-line. The pair and pointer are both d26e86c85 and the pointer names the dev tree again. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-20T13:04:53.885Z"
     }
   ],
   "messages": [

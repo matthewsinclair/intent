@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZEPDQBCHNHDZ0ZFSRRM0PJ",
+  "ts": "2026-09-20T13:04:41.195Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**T5: issue 0460, the verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** CONDITION: hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Nothing else blocks it: it builds fresh on main in a private worktree."
+  }
+}

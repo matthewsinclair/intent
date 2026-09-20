@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZEPT3XHWQZD48FN4HGN8QB",
+  "ts": "2026-09-20T13:04:53.885Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-20 13:0xZ, localfold before hv's compact).** 0488+0489 IS BANKED AND JUDGED GREEN ON THE READ, waiting only on its two whole suites and then vc's landing forward: refs/bank/cc/0488-0489/patch, blob b8cf2491f8, patch-id 96e15ee1dd, rebased onto d26e86c85 and reading back identical. It is the CRITICAL PATH -- the seven hand-authored boards migrate on it (hv, no yak-shaving, the fleet first) -- and a second pair rebuild follows its close, announced first, before dc and ic run the carries. Suites when the host drops: `cargo build -p intentd` FIRST, in-tree CARGO_TARGET_DIR, isolated HOME; at 13:03Z the host was 592.58 and intentsvcs was still mid-run, intent-cli not started. Landed today: 0490 at e8be15b0f closed 0642fe674, plus 0489's and 0490's body corrections (2ea40b7cc, 15a7a036a). Queued behind 0488+0489: 0487 (a)+(b) then 0486, both small and ruled; 0487's stamp defect (c) is vc's to file and stays next-line. The pair and pointer are both d26e86c85 and the pointer names the dev tree again. NO RELEASE, NO PUSH."
+  }
+}
