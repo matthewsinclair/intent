@@ -256,3 +256,59 @@ fn detaching_an_attachment_the_thread_does_not_carry_is_refused_and_changes_noth
     "a refused detach changed the record"
   );
 }
+
+/// **`0490`: THE WRITE DOOR ASKS THE NAMING GATE, SO IT CANNOT ADMIT A NAME NO
+/// ADDRESS CAN REACH.**
+///
+/// Driven on the pair at `3a734cde3`: `intent st attach ST0001 todo.md`
+/// answered `ok:`, while the spelled door answered "`todo.md` is a VIEW, and
+/// views have no address". Canon held a row that `address::parse` refuses to
+/// name, by the door an operator actually uses -- `render.rs` builds the
+/// `Entity` rather than spelling a URL, so the parser's view check never saw
+/// it, and this door ran its own checks without asking the gate.
+///
+/// **The assertion is AGREEMENT rather than a list of bad names.** Comparing
+/// this door's verdict against `attachment_name`'s is what fails if either
+/// moves alone, which is the failure mode a hand-written list of refused
+/// basenames cannot see.
+#[test]
+fn a_root_view_name_is_refused_by_the_gate_the_spelled_door_uses() {
+  let (why, _remedy) = refused("todo.md");
+  assert!(
+    why.contains("addressed") || why.contains("VIEW") || why.contains("view"),
+    "the refusal does not say the name is unaddressable, so an operator cannot tell it from a \
+     permissions or a path fault: {why}"
+  );
+  assert!(
+    intentsvcs::project::attachment_name("ST0001", "todo.md").is_err(),
+    "the gate accepts a name this door refuses, so the two have drifted apart in the direction \
+     that admits what no address can reach"
+  );
+}
+
+/// **THE OTHER DIRECTION, AND IT IS THE ONE A TOO-WIDE FIX BREAKS.**
+///
+/// `T4` (`0461`, landed `80d93de1c`) made a view BASENAME below the thread root
+/// addressable when `Project::classify` does not call it a generated view. So
+/// `WP/_superseded/01/info.md` is a legal attachment name, it was accepted
+/// before `0490`'s fix, and it must still be accepted after it. A fix that
+/// refused every `VIEW_NAMES` basename anywhere would pass the arm above and
+/// fail here -- which is why this arm exists rather than being assumed from the
+/// positive control at the top of the file.
+#[test]
+fn a_view_basename_below_the_thread_root_is_still_written() {
+  let fx = fixture();
+  let mut f = fx.facade();
+  f.put_attachment(&address("WP/_superseded/01/info.md"), b"PROBE\n")
+    .expect("T4 made this name addressable, so the naming gate must accept it");
+  assert!(
+    paths(&mut f).contains(&"WP/_superseded/01/info.md".to_string()),
+    "the row must land: {:?}",
+    paths(&mut f)
+  );
+  assert!(
+    intentsvcs::project::attachment_name("ST0001", "WP/_superseded/01/info.md").is_ok(),
+    "the gate refuses a name this door accepts, so the two disagree in the direction that \
+     strands a legal attachment"
+  );
+}

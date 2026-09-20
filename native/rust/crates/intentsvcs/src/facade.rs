@@ -14503,6 +14503,23 @@ impl Facade {
         fault,
       });
     }
+    // **THE NAMING GATE, AND IT IS THE ONE `put` AND THE INGEST ALREADY USE**
+    // (`0490`). This door built its own set of checks and did not ask it, so
+    // `intent st attach <ID> todo.md` wrote an attachment that `address::parse`
+    // refuses to name: canon held a row no address could reach, by the door an
+    // operator actually uses. The checks below classify the FILE; this one asks
+    // whether the NAME is one the addressing layer will give back, which is a
+    // different question and the one that was missing.
+    //
+    // **ASKED AFTER `attachment_path_fault` AND BEFORE THE REST, WHICH IS
+    // `put`'s ORDER WITH `0262`'s MESSAGES KEPT.** An empty, absolute,
+    // `..`-bearing or repo-relative path has a better message there and
+    // `attachment_path_fault` says so in its own comment, so it keeps those; a
+    // well-formed path that the parser will not round-trip is this one's, and
+    // it precedes the view and canon refusals exactly as it does at `put`.
+    // Both doors now answer the same name the same way, which is the whole
+    // return on sharing the function rather than checking locally.
+    crate::project::attachment_name(thread, path).map_err(|bad| refuse(bad.to_string()))?;
     if let EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel) {
       return Err(refuse(format!(
         "`{path}` is generated from the model rather than authored on disk -- author it with {author_with}"
