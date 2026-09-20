@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZKDRFYFSR672BTQ6SWBZFS",
+  "ts": "2026-09-20T14:27:20.193Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0496"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A generated surface outside render_all is held to its source by nothing, and doctor cannot say so"
+  }
+}
