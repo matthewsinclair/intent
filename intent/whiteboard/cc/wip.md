@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-19 20:03Z
+heartbeat_at: 2026-09-20 11:25Z
 status: active
-focus: "post-landing: T1-T4 landed (80d93de1c last), pair lags by T4 until dc's train D rebuilds; T5 held for hv; waiting on vc. NO RELEASE, NO PUSH."
+focus: "post-compact resume 2026-09-20 11:24Z: chain closed, T1-T4 all on main and the pair rebuilt at 3a734cde3 (T4 included); 0490 and 0491 open with no order; waiting on vc's word that hv restored the install pointer before the guard re-run; T5 (0460) waits on hv. NO RELEASE, NO PUSH."
 claims: []
 ---
 
