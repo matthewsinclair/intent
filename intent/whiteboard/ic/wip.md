@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-19 20:00Z
+heartbeat_at: 2026-09-20 13:02Z
 status: active
 focus: "Waiting to land 0481 (test-only, stays open) on vc's forwarded hash after cc's T3/T4 and dc's train D. 0480/0479/0483 landed. NO RELEASE, NO PUSH."
 claims: []
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- 2026-09-19 20:00Z, localfold on hv's word while cc lands T3/T4. DONE today: wave two (17 silent estates at 3.1.0, each committed in its own repo, not pushed); 0480, 0479, 0483 landed and closed at cef51f171, 3cf143dcc, 35b902fd9, pair rebuilt at 35b902fd9. NEXT, on vc's forwarded hash (after cc's T3/T4 END, then dc's train D END with its pair rebuild): land 0481 TEST-ONLY, no rebuild, 0481 STAYS OPEN. Steps: git apply the bank (refs/bank/ic/0481/patch, blob bc0ff5384, patch-id b654c01e7; git apply --check first), `intent issues edit 0481 --from` scratchpad landmsg/0481.body (keeps vc's body + the 'Landed, not closed' paragraph), commit the 4 intentd test files + 0481 canon + its event files by literal paths with landmsg/0481.msg, under CHAIN START/END to cc, dc, vc. Carry ic/'s board render and events in that chain. Closing condition: the next real dvb build release gate passes the six arms first time. AFTER: remove worktrees wt-0480, wt-0479, wt-0483, wt-0481, wt-0481base, wt-land under ic's scratchpad on vc's call. NO RELEASE, NO PUSH.
+- RESUME HERE -- 2026-09-20 12:50Z. Next act: the whiteboard carry of my half of the seven hand-authored estates -- Baize (cc hv ic vc), Molt (hv vc), Riffle (cc), arca_config (cc vc), 9 nodes; dc has Conflab, Prolix, arca_cli. RIFFLE FIRST as the rehearsal, and its report carries two things for the next carrier: that `intent wb status` on a store-less estate can materialise intent/.cache/intent.db and is therefore forbidden before a carry (use the presence of intent/.canon/whiteboard/ as the discriminator instead), and what an uncarried report looks like on a one-node board. Per estate: `intent wb register` with no arguments, `intent wb migrate <node>` per node with hv first where an hv node exists and alphabetically where none does (Riffle and arca_config have none), read and judge the uncarried and coerced report, `--drop-uncarried` only after that, doctor, organize, one commit by literal paths in that repo, no push. Riffle and arca_config have no intent/whiteboard/README.md: a carrier does NOT invent one, each such commit message names the absence in a sentence, and the roster question goes to hv with the report. dc's census is the table for node names and header validity; `dirty=0` is perishable and I re-read `git status` in each estate immediately before its carry. WAITING ON: cc's 0488+0489 landing and the pair rebuild after it, then vc forwards the go.
 
 ## TODO
 
-- 0492 fix train, AFTER hv restores ~/.local/share/intent/home (hold on wt-0481base until vc says so) and 0481 lands on 49af28c0b: one bank, EVERY run under an isolated HOME (sentinel dir + real CARGO_HOME/RUSTUP_HOME). (1) ("bootstrap", &[Hazard::ActsOnAmbientUserState]) in dual_path_conformance's HAZARDS; (2) install::publish_home refuses a root that is a linked worktree (--git-dir != --git-common-dir) or under the system tmp dir, naming root + remedy, an arm per refusal against a fixture; (3) dry `claude upgrade` prints the different-install note whenever the pointer differs from this binary's root, with an arm. Whole intentsvcs + intent-cli suites; the bank states the sentinel's pointer file stayed empty. Rebuilds the pair on landing. M.
+- 0493 stays OPEN as next-line work on hv's no-yak-shaving ruling, NOT built now; dc stood down. An intent-cli test that spawns the binary without a fixture HOME runs the verb against the developer's own per-user state: 47 files set no HOME at all, and NONE of them names an ambient-state verb (my earlier claim of three was a superset scan that hit the retired `st bootstrap` and an `.arg("mcp")`; dc caught it, corrected forward at d26e86c85). So the whole population is latent, which is the argument for a mechanism over a sweep. vc's shape: helper in testkit beside fixture_home AND a census arm in intent-cli's suite, one bank, ~70 call sites. 0492 already closed the install pointer in publish_home whatever HOME a spawn inherits, so the subjects here are the registry, the state dir, the socket and the config -- not the pointer.
 
 ## Holds
 

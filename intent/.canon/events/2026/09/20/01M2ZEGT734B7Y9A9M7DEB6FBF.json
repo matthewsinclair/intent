@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZEGT734B7Y9A9M7DEB6FBF",
+  "ts": "2026-09-20T13:01:37.379Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 2026-09-20 12:50Z. Next act: the whiteboard carry of my half of the seven hand-authored estates -- Baize (cc hv ic vc), Molt (hv vc), Riffle (cc), arca_config (cc vc), 9 nodes; dc has Conflab, Prolix, arca_cli. RIFFLE FIRST as the rehearsal, and its report carries two things for the next carrier: that `intent wb status` on a store-less estate can materialise intent/.cache/intent.db and is therefore forbidden before a carry (use the presence of intent/.canon/whiteboard/ as the discriminator instead), and what an uncarried report looks like on a one-node board. Per estate: `intent wb register` with no arguments, `intent wb migrate <node>` per node with hv first where an hv node exists and alphabetically where none does (Riffle and arca_config have none), read and judge the uncarried and coerced report, `--drop-uncarried` only after that, doctor, organize, one commit by literal paths in that repo, no push. Riffle and arca_config have no intent/whiteboard/README.md: a carrier does NOT invent one, each such commit message names the absence in a sentence, and the roster question goes to hv with the report. dc's census is the table for node names and header validity; `dirty=0` is perishable and I re-read `git status` in each estate immediately before its carry. WAITING ON: cc's 0488+0489 landing and the pair rebuild after it, then vc forwards the go."
+  }
+}
