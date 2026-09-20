@@ -60,6 +60,14 @@ pub enum InstallError {
   Exe(#[source] std::io::Error),
   #[error("refusing to record {root} as the Intent install root: no {marker}/ there")]
   NotAnInstall { root: String, marker: &'static str },
+  #[error(
+    "refusing to replace the recorded Intent install root {existing} with {candidate}, which is {why}"
+  )]
+  WouldReplaceARealInstall {
+    existing: String,
+    candidate: String,
+    why: String,
+  },
   #[error("cannot write the install-root pointer: {0}")]
   Pointer(#[source] std::io::Error),
   #[error("{pointer} reads back as {read} after writing {wrote}")]
@@ -92,6 +100,15 @@ impl crate::remedy::Remedy for InstallError {
       // nothing to undo.
       Self::NotAnInstall { .. } => {
         "nothing was recorded -- the pointer is untouched. This binary resolved an install root that is not one, so reinstall Intent rather than editing the pointer by hand".to_string()
+      }
+      // **THE REMEDY IS NOT 'REINSTALL', AND IT NAMES THE DELIBERATE PATH.**
+      // Both roots are installs and the pointer is intact; what is refused is
+      // one REPLACING the other by accident. So the remedy says what was kept,
+      // and gives the two ways to mean it -- because a refusal with no way
+      // through is the kind an operator works around by editing the file,
+      // which is the one writer this pointer must not grow.
+      Self::WouldReplaceARealInstall { .. } => {
+        "nothing was recorded -- the pointer still names the install it did. This usually means a test suite or a build ran `intent bootstrap` from a scratch checkout in passing. If you MEANT to move this machine's install, remove the pointer (by default ~/.local/share/intent/home) and run `intent bootstrap` again, or run it from the root you mean to deliver from".to_string()
       }
       Self::Pointer(_) => {
         "the install-root pointer under $XDG_DATA_HOME/intent (by default ~/.local/share/intent) could not be written -- check that the directory is writable, then re-run".to_string()
@@ -225,6 +242,164 @@ pub fn publish_home() -> Result<Published, InstallError> {
   publish_home_at(&root, &pointer)
 }
 
+/// What makes a root a SCRATCH root: one that will not outlive the pointer
+/// naming it.
+///
+/// **THIS IS A CLASSIFICATION, NOT A VERDICT** (issue `0492`). Being scratch is
+/// not on its own a reason to refuse -- a fresh machine, a CI runner and
+/// `gyges` may each have nothing better to publish, and refusing there would
+/// leave them with no install pointer at all. What it decides is whether this
+/// candidate may REPLACE a pointer that already names a real one. See
+/// [`replacement_refused`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Scratch {
+  /// A linked `git worktree` -- deleted when its work is done.
+  LinkedWorktree { gitdir: String },
+  /// Under the system temporary directory -- does not survive a reboot.
+  UnderSystemTemp { temp: PathBuf },
+}
+
+impl std::fmt::Display for Scratch {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::LinkedWorktree { gitdir } => {
+        write!(f, "a linked git worktree, whose .git names {gitdir}")
+      }
+      Self::UnderSystemTemp { temp } => {
+        write!(
+          f,
+          "under this machine's temporary directory {}",
+          temp.display()
+        )
+      }
+    }
+  }
+}
+
+/// The system temporary directories a root is scratch for living under.
+///
+/// **`std::env::temp_dir()` ALONE IS NOT ENOUGH ON THIS PLATFORM, AND THE
+/// INCIDENT PROVES IT.** macOS gives each session a private `TMPDIR` under
+/// `/var/folders/`, so `temp_dir()` answers that and says nothing about
+/// `/tmp` -- and the worktree that redirected every gate on 2026-09-19 was
+/// under `/private/tmp`, which `temp_dir()` would have passed. The fixed roots
+/// are listed beside it rather than instead of it: `TMPDIR` is the one a
+/// caller can move, and the others are the ones a caller cannot.
+fn system_temp_roots() -> Vec<PathBuf> {
+  let mut roots = vec![std::env::temp_dir()];
+  for fixed in ["/tmp", "/private/tmp", "/var/tmp", "/private/var/tmp"] {
+    roots.push(PathBuf::from(fixed));
+  }
+  roots
+}
+
+/// The `gitdir:` target a linked worktree's `.git` FILE names, if it is one.
+///
+/// **READS `.git` RATHER THAN RUNNING `git`.** A linked worktree's `.git` is a
+/// FILE reading `gitdir: <path>/.git/worktrees/<name>`, where the main
+/// checkout's is a directory -- so the distinction is on disk and needs no
+/// subprocess, no `git` on `PATH`, and no repository to be readable.
+fn gitdir_target(root: &Path) -> Option<String> {
+  let dot_git = root.join(".git");
+  if !dot_git.is_file() {
+    return None;
+  }
+  let text = std::fs::read_to_string(&dot_git).ok()?;
+  let target = text.lines().next()?.strip_prefix("gitdir:")?.trim();
+  Some(target.to_string())
+}
+
+/// PURE. Whether a root is scratch, given everything that had to be read.
+///
+/// **EVERY INPUT IS A PARAMETER SO BOTH VERDICTS ARE REACHABLE WITHOUT A
+/// FILESYSTEM** -- the same split [`home`] and [`resolve`] already use. `root`
+/// and `temps` arrive canonicalised by [`scratch`]; `gitdir` is the line
+/// [`gitdir_target`] read, or `None`.
+///
+/// The `worktrees` component is what separates a linked worktree from a
+/// SUBMODULE, whose `.git` is also a file and whose target names `modules`.
+pub fn scratch_within(root: &Path, temps: &[PathBuf], gitdir: Option<&str>) -> Option<Scratch> {
+  if let Some(target) = gitdir
+    && Path::new(target)
+      .components()
+      .any(|c| c.as_os_str() == "worktrees")
+  {
+    return Some(Scratch::LinkedWorktree {
+      gitdir: target.to_string(),
+    });
+  }
+  temps
+    .iter()
+    .find(|temp| root.starts_with(temp))
+    .map(|temp| Scratch::UnderSystemTemp { temp: temp.clone() })
+}
+
+/// [`scratch_within`] with this machine's answers read for it.
+///
+/// **CANONICALISED ON BOTH SIDES, BECAUSE `/tmp` IS A SYMLINK HERE.** macOS
+/// resolves `/tmp` to `/private/tmp`, so a root named one way and a temporary
+/// root named the other are the same directory and a textual prefix test
+/// misses it. A path that cannot be canonicalised is compared as written -- it
+/// does not exist, so there is nothing to resolve and nothing to miss.
+pub fn scratch(root: &Path) -> Option<Scratch> {
+  let real = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
+  let temps: Vec<PathBuf> = system_temp_roots()
+    .into_iter()
+    .map(|t| std::fs::canonicalize(&t).unwrap_or(t))
+    .collect();
+  scratch_within(&real, &temps, gitdir_target(root).as_deref())
+}
+
+/// A publish that would point the machine at a tree that is about to vanish.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Replacement {
+  pub existing: PathBuf,
+  pub candidate: PathBuf,
+  pub why: Scratch,
+}
+
+/// PURE. Whether this candidate may replace what the pointer already names.
+///
+/// **THE SUBJECT IS THE REPLACEMENT, NOT THE ROOT** (vc's ruling, 2026-09-20,
+/// on issue `0492`). Refusing every scratch root outright was the first shape
+/// of this fix and it was wrong twice over: it would have refused a fresh
+/// machine, a CI runner and `gyges`, none of which has anything better to
+/// publish; and it made `intent bootstrap` refuse from ANY worktree checkout,
+/// which turned a suite's verdict into a function of where the checkout lives.
+///
+/// So the refusal is narrowed to the thing that actually happened: **a pointer
+/// naming a real install, silently replaced by a scratch one.** Everything else
+/// publishes as it always did --
+///
+///   - no pointer, or an empty one: a first install has nothing to lose;
+///   - a pointer naming a root that is GONE: it is already broken, and
+///     anything that resolves is an improvement;
+///   - a pointer already naming a scratch root: the machine is in the state
+///     this refusal exists to prevent, and refusing to move would trap it
+///     there. This is the clause that lets the 2026-09-19 pointer be repaired
+///     by an ordinary `intent bootstrap` from the tree it should have named.
+///
+/// `existing_exists` is passed rather than read so that both verdicts are
+/// reachable without conjuring a real install on disk.
+pub fn replacement_refused(
+  candidate: &Path,
+  candidate_scratch: Option<&Scratch>,
+  existing: Option<&Path>,
+  existing_scratch: Option<&Scratch>,
+  existing_exists: bool,
+) -> Option<Replacement> {
+  let why = candidate_scratch?;
+  let existing = existing?;
+  if !existing_exists || existing_scratch.is_some() {
+    return None;
+  }
+  Some(Replacement {
+    existing: existing.to_path_buf(),
+    candidate: candidate.to_path_buf(),
+    why: why.clone(),
+  })
+}
+
 /// The half with the paths handed in, so every arm can be driven against a
 /// fixture rather than against whatever tree the suite happens to run in --
 /// the same split [`home`] and [`resolve`] already use in this module.
@@ -243,6 +418,29 @@ pub fn publish_home_at(root: &Path, pointer: &Path) -> Result<Published, Install
     .ok()
     .map(|t| t.lines().next().unwrap_or_default().trim().to_string())
     .filter(|t| !t.is_empty());
+
+  // **AFTER `is_install` AND BEFORE THE WRITE.** After, because *not an
+  // install* is the more basic fault and must keep its own words; before,
+  // because the whole point is that nothing reaches the file -- the pointer a
+  // refused publish would overwrite is the one every gate on the machine is
+  // currently using, and it must still be there afterwards.
+  //
+  // The decision itself is [`replacement_refused`], which is pure; everything
+  // here is the reading it needs.
+  let existing = previous.as_deref().map(Path::new);
+  if let Some(refusal) = replacement_refused(
+    root,
+    scratch(root).as_ref(),
+    existing,
+    existing.and_then(scratch).as_ref(),
+    existing.is_some_and(is_install),
+  ) {
+    return Err(InstallError::WouldReplaceARealInstall {
+      existing: refusal.existing.display().to_string(),
+      candidate: refusal.candidate.display().to_string(),
+      why: refusal.why.to_string(),
+    });
+  }
 
   let line = root.display().to_string();
   if previous.as_deref() == Some(line.as_str()) {
@@ -417,6 +615,107 @@ mod tests {
   /// A tree shaped like an install, plus one that is not.
   fn install_at(root: &Path) {
     std::fs::create_dir_all(root.join(MARKER).join(".claude/scripts")).unwrap();
+  }
+
+  /// **THE CLASSIFIER, BOTH WAYS, WITH NO FILESYSTEM** (issue `0492`).
+  ///
+  /// A linked worktree and a submodule BOTH have a `.git` file, so the
+  /// submodule row is the control that makes the `worktrees` component
+  /// load-bearing rather than incidental: without it the classifier would
+  /// refuse a legitimate root and name a worktree that does not exist.
+  #[test]
+  fn a_root_is_scratch_for_being_a_linked_worktree_or_living_in_the_temp_dir() {
+    let temps = vec![PathBuf::from("/scratchtmp")];
+
+    assert_eq!(
+      scratch_within(
+        Path::new("/home/me/prj/Intent"),
+        &temps,
+        Some("/home/me/prj/Intent/.git/worktrees/wt-0481base"),
+      ),
+      Some(Scratch::LinkedWorktree {
+        gitdir: "/home/me/prj/Intent/.git/worktrees/wt-0481base".to_string(),
+      })
+    );
+
+    // The control: a submodule's `.git` is a file too, and it is NOT scratch.
+    assert_eq!(
+      scratch_within(
+        Path::new("/home/me/prj/Super/sub"),
+        &temps,
+        Some("/home/me/prj/Super/.git/modules/sub"),
+      ),
+      None
+    );
+
+    assert_eq!(
+      scratch_within(Path::new("/scratchtmp/build/Intent"), &temps, None),
+      Some(Scratch::UnderSystemTemp {
+        temp: PathBuf::from("/scratchtmp"),
+      })
+    );
+
+    // An ordinary checkout: `.git` is a directory, so no gitdir line, and it
+    // lives nowhere temporary.
+    assert_eq!(
+      scratch_within(Path::new("/home/me/prj/Intent"), &temps, None),
+      None
+    );
+  }
+
+  /// **THE DECISION, DRIVEN TO BOTH VERDICTS AND TO EVERY ALLOWING CLAUSE.**
+  ///
+  /// The refusing row is the 2026-09-19 incident in one line: a real install
+  /// replaced by a scratch worktree. The four allowing rows are the states that
+  /// MUST keep publishing -- a fresh machine, a pointer whose root is gone, a
+  /// machine already pointed at scratch (which is what makes the incident
+  /// repairable by an ordinary `bootstrap`), and a candidate that is not
+  /// scratch at all.
+  #[test]
+  fn only_a_scratch_root_replacing_a_live_real_one_is_refused() {
+    let worktree = Scratch::LinkedWorktree {
+      gitdir: "/repo/.git/worktrees/wt".to_string(),
+    };
+    let candidate = Path::new("/tmp/wt");
+    let real = Path::new("/home/me/prj/Intent");
+
+    // REFUSED: the incident.
+    assert_eq!(
+      replacement_refused(candidate, Some(&worktree), Some(real), None, true),
+      Some(Replacement {
+        existing: real.to_path_buf(),
+        candidate: candidate.to_path_buf(),
+        why: worktree.clone(),
+      })
+    );
+
+    // A fresh machine: no pointer at all.
+    assert_eq!(
+      replacement_refused(candidate, Some(&worktree), None, None, false),
+      None
+    );
+    // The pointer names a root that is gone: already broken.
+    assert_eq!(
+      replacement_refused(candidate, Some(&worktree), Some(real), None, false),
+      None
+    );
+    // Already pointed at scratch: refusing here would trap the machine in the
+    // very state this refusal exists to prevent.
+    assert_eq!(
+      replacement_refused(
+        candidate,
+        Some(&worktree),
+        Some(real),
+        Some(&worktree),
+        true
+      ),
+      None
+    );
+    // The candidate is an ordinary checkout: nothing to refuse.
+    assert_eq!(
+      replacement_refused(real, None, Some(real), None, true),
+      None
+    );
   }
 
   /// **REFUSES BEFORE WRITING, AND WRITES NOTHING.** The refusal is the point;

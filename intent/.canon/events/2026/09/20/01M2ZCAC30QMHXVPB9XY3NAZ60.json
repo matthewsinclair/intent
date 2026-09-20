@@ -1,0 +1,15 @@
+{
+  "id": "01M2ZCAC30QMHXVPB9XY3NAZ60",
+  "ts": "2026-09-20T12:23:09.156Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0493"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An intent-cli test that spawns the binary without a fixture HOME runs the verb against the developer's own per-user state, and nothing refuses one"
+  }
+}

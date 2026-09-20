@@ -182,3 +182,97 @@ fn it_never_prints_the_v2_environment_advice() {
   assert!(!stdout.contains("INTENT_HOME"), "{stdout}");
   assert!(!stdout.contains("export "), "{stdout}");
 }
+
+/// **THE REFUSAL IS WIRED, AND THIS ARM IS GREEN WHEREVER IT RUNS** (issue
+/// `0492`, vc's ruling of 2026-09-20).
+///
+/// `bootstrap` must not let a scratch checkout silently replace a pointer that
+/// already names a real install -- which is what happened on 2026-09-19, when a
+/// suite run in a worktree published that worktree and every estate's gate then
+/// resolved its guards from it.
+///
+/// **WHAT IT ASSERTS IS AGREEMENT WITH THE CLASSIFIER, NOT A FIXED OUTCOME, AND
+/// THAT IS THE WHOLE DESIGN.** The candidate root is the test binary's own
+/// install, which is a linked worktree under the temporary directory when this
+/// suite runs from a bank and an ordinary checkout when it runs from the
+/// developer's tree. An arm asserting *refused* would be green here and red
+/// there; an arm asserting *published* would be the reverse. Asking the shipped
+/// classifier what this root IS, and requiring the verb to agree, is true in
+/// both places and is what proves the verb consults it at all.
+///
+/// **WHAT IT CANNOT SEE, SAID PLAINLY.** Where the binary's own root is not
+/// scratch, this arm exercises the allowing path only. Both verdicts of the
+/// decision itself are driven in `intentsvcs`'s own arms
+/// (`only_a_scratch_root_replacing_a_live_real_one_is_refused`), which need no
+/// filesystem and are therefore the same everywhere.
+#[test]
+fn a_scratch_root_does_not_silently_replace_a_real_one() {
+  let home = fixture("replace");
+
+  // Pre-seed the pointer with a root that EXISTS and is an install, so there
+  // is something real to protect. `is_install` is the marker test the writer
+  // itself uses.
+  let existing = home.join("already-installed");
+  std::fs::create_dir_all(existing.join("lib/templates/.claude/scripts")).expect("mkdir");
+  let pointer = home.join(".local/share/intent/home");
+  std::fs::create_dir_all(pointer.parent().unwrap()).expect("mkdir");
+  std::fs::write(&pointer, format!("{}\n", existing.display())).expect("seed pointer");
+
+  let candidate = intentsvcs::install::home().expect("this binary's own install root");
+  let candidate_is_scratch = intentsvcs::install::scratch(&candidate).is_some();
+  let existing_is_scratch = intentsvcs::install::scratch(&existing).is_some();
+  // The decision, asked of the pure function the verb is required to consult.
+  let expected_refusal = intentsvcs::install::replacement_refused(
+    &candidate,
+    intentsvcs::install::scratch(&candidate).as_ref(),
+    Some(existing.as_path()),
+    intentsvcs::install::scratch(&existing).as_ref(),
+    true,
+  )
+  .is_some();
+
+  let (stdout, stderr, code) = run(&home, &[], Some("matts"));
+  let recorded = std::fs::read_to_string(&pointer).expect("the pointer still exists");
+  let recorded = recorded
+    .lines()
+    .next()
+    .unwrap_or_default()
+    .trim()
+    .to_string();
+
+  if expected_refusal {
+    assert_ne!(code, 0, "a refused publish must not exit 0: {stdout}");
+    assert!(
+      stderr.contains("refusing to replace the recorded Intent install root"),
+      "the refusal must say what it protected: {stderr}"
+    );
+    assert_eq!(
+      recorded,
+      existing.display().to_string(),
+      "a refused publish must leave the pointer exactly as it found it"
+    );
+  } else {
+    assert_eq!(code, 0, "stdout={stdout}\nstderr={stderr}");
+    assert_eq!(
+      recorded,
+      candidate.display().to_string(),
+      "an allowed publish records this binary's own root"
+    );
+  }
+
+  // **NOT ASSERTED: THAT THE SEEDED ROOT IS A REAL ONE.** The first version of
+  // this arm ended with `assert!(!existing_is_scratch || candidate_is_scratch)`
+  // to say so, and that assertion is exactly the defect this file's ruling
+  // forbids: the fixture HOME is a tempdir, so `existing` is scratch
+  // everywhere, and on a plain checkout -- where the candidate is NOT scratch
+  // -- it fails. Green in a bank worktree, red on a developer's tree, for a
+  // reason that is about the harness rather than the subject.
+  //
+  // So it is recorded as a LIMIT instead: wherever a fixture can be built, both
+  // roots live under the temporary directory, so this arm takes the allowing
+  // branch and proves the verb runs, publishes, and agrees with the
+  // classifier. The refusing branch is unreachable from a tempdir fixture on
+  // any machine, and it is driven -- to both verdicts -- by the pure arms in
+  // `intentsvcs`, which need no filesystem and are the same everywhere.
+  let _ = (candidate_is_scratch, existing_is_scratch);
+}

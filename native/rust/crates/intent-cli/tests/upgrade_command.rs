@@ -45,9 +45,32 @@ use std::collections::BTreeMap;
 use std::process::Command;
 
 fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
+  run_under_home(args, cwd, testkit::fixture_home())
+}
+
+/// `run` with the `HOME` handed in.
+///
+/// **THE DEFAULT IS A FIXTURE `HOME` AND IT WAS THE REAL ONE UNTIL ISSUE
+/// `0492`.** These arms drive `claude upgrade`, which resolves the machine's
+/// install pointer -- so under the developer's own `HOME` they read, and in
+/// the neighbouring `bootstrap` case write, per-user state belonging to
+/// whoever ran the suite. `testkit::fixture_home` exists for exactly the case
+/// where a test *cannot know whether it touches per-user state*, which is this
+/// one: the verb's subject is the project, and one of the facts it reports is
+/// the machine's.
+///
+/// **THE ARM BELOW HANDS IN ITS OWN RATHER THAN TAKING THE FIXTURE**, because
+/// `fixture_home` is per-PROCESS and shared by every arm in this binary: an
+/// arm that writes a pointer into it is writing into the other arms' `HOME`.
+fn run_under_home(
+  args: &[&str],
+  cwd: &std::path::Path,
+  home: &std::path::Path,
+) -> (String, String, i32) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(cwd)
+    .env("HOME", home)
     .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary");
@@ -535,5 +558,61 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
       .join("intent/.canon/st/ST0001.json")
       .is_file(),
     "the control estate reported success and wrote no canon"
+  );
+}
+
+/// **THE READ-ONLY MODE WAS THE ONLY ONE THAT COULD NOT REPORT A REDIRECTED
+/// GATE** (issue `0492`).
+///
+/// `claude upgrade` compares two roots: the binary's own install, and whatever
+/// `~/.local/share/intent/home` names -- the tree whose guards every commit in
+/// the project will actually run. They are allowed to differ, so this is a
+/// note rather than a warning and the exit code does not move. But the dry run
+/// returned before reaching it, on the reasoning that the pointer warnings
+/// describe a gate that was just installed. That reasoning holds for the two
+/// `CANNOT RUN` warnings and not for this one: **which install this machine
+/// points at is true before the command runs and unchanged by it**, so
+/// withholding it from the read-only mode withheld it from precisely the run
+/// an operator makes when they are checking rather than changing.
+///
+/// Driven on 2026-09-19, when a scratch worktree held that pointer for a day
+/// and a dry `claude upgrade` in every estate had nothing to say about it.
+#[test]
+fn a_dry_run_says_the_gate_will_come_from_a_different_install() {
+  let home = tempfile::tempdir().expect("tempdir");
+  // A second tree that IS an install -- `pointer_state` resolves it only if it
+  // carries the marker, and a note about an unusable pointer is a different
+  // message with a different subject.
+  let other = home.path().join("another-install");
+  std::fs::create_dir_all(other.join("lib/templates/.claude/scripts")).expect("mkdir");
+  let pointer = home.path().join(".local/share/intent/home");
+  std::fs::create_dir_all(pointer.parent().unwrap()).expect("mkdir");
+  std::fs::write(&pointer, format!("{}\n", other.display())).expect("write pointer");
+
+  let project = tempfile::tempdir().expect("tempdir");
+  v2_project(project.path(), "3.0.0");
+  git_ready(project.path());
+
+  let (out, err, code) = run_under_home(&["claude", "upgrade"], project.path(), home.path());
+  assert_eq!(code, 0, "a dry run reports and does not fail: {err}");
+  assert!(
+    out.contains("dry run:"),
+    "this must be the read-only mode, or the arm is testing --apply: {out}"
+  );
+  assert!(
+    out.contains("note: the gate will run from a DIFFERENT install than this binary."),
+    "the dry run must name the divergence: {out}"
+  );
+  assert!(
+    out.contains(&other.display().to_string()),
+    "the note must quote the install the pointer names, as the apply path does: {out}"
+  );
+  // **THE DRY RUN IS STILL DRY, AND THIS IS THE HALF THAT WOULD HURT.** The
+  // note is a read of machine state; a read that republished the pointer would
+  // be the defect this issue is about, committed by its own fix.
+  assert_eq!(
+    std::fs::read_to_string(&pointer).unwrap(),
+    format!("{}\n", other.display()),
+    "a dry run must not have written the install pointer"
   );
 }

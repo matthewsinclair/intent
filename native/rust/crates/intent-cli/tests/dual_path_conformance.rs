@@ -398,6 +398,28 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   ("explore", &[Hazard::ActsOnAmbientUserState]),
   ("daemon logs", &[Hazard::ActsOnAmbientUserState]),
   ("daemon status", &[Hazard::ActsOnAmbientUserState]),
+  // **THE SAME HAZARD, AND THIS ONE REDIRECTED EVERY GATE ON THE MACHINE**
+  // (issue `0492`, 2026-09-19). `bootstrap` calls `install::publish_home`,
+  // which writes `~/.local/share/intent/home` from the RUNNING binary's own
+  // root -- and in-process that binary is the test harness, whose root is
+  // whatever worktree the suite was built in. So a suite run in a scratch
+  // worktree published that worktree as the machine's install, and every
+  // estate's pre-commit gate then resolved its guards from a tree nobody
+  // develops in, silently, until somebody read the pointer by hand.
+  //
+  // **IT IS THE `discover` SHAPE WITH A WIDER BLAST RADIUS, AND THE SAME
+  // BLIND SPOT HID IT**: both routes exited alike, so the comparison stayed
+  // green while the damage was done -- a conformance check compares answers
+  // and cannot see a side effect. `discover` wrote one stale row into the
+  // developer's registry; this wrote the file every gate on the machine
+  // dereferences, so the consequence outlived the run by days.
+  //
+  // **DECLARED RATHER THAN FIXED BY A `HOME` FOR `via_library`**, for the
+  // reason `ActsOnAmbientUserState` gives above -- and note the fixture `HOME`
+  // that scopes `via_binary` is the ONLY thing that kept the binary route from
+  // doing it too. A row whose subject is the machine rather than the project
+  // has nothing a route comparison can be about.
+  ("bootstrap", &[Hazard::ActsOnAmbientUserState]),
   (
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],

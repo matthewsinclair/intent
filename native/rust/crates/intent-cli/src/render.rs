@@ -11154,8 +11154,21 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       applied.held.len(),
       applied.skipped.len()
     );
-    // The pointer warnings below describe a gate that was just INSTALLED; a
-    // run that installed nothing has nothing to qualify.
+    // **THE `CANNOT RUN` WARNINGS BELOW STAY ON THE APPLY PATH AND THE
+    // DIVERGENCE NOTE DOES NOT, AND THE SPLIT IS THE WHOLE CORRECTION** (issue
+    // `0492`). Those warnings qualify a gate that was just INSTALLED -- a run
+    // that installed nothing has nothing to qualify, which is what this comment
+    // said, and it was right about them.
+    //
+    // **IT WAS WRONG ABOUT THE NOTE, BECAUSE THE NOTE IS NOT ABOUT THE WRITE.**
+    // Which install this machine's pointer names is a fact about the MACHINE,
+    // true before the command ran and unchanged by it. Withholding it from the
+    // dry run made the read-only mode -- the one an operator reaches for when
+    // they are checking rather than changing -- the only mode that could not
+    // report that the guards about to run belong to a different tree. On
+    // 2026-09-19 a scratch worktree held that pointer and a dry `claude
+    // upgrade` had nothing to say about it.
+    report_pointer_divergence(&applied.gate_pointer, &home);
     return Ok(());
   }
   println!(
@@ -11213,21 +11226,34 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
-  // **TWO ROOTS, AND NOTHING COMPARED THEM UNTIL NOW.** The carrier's bytes
-  // came from `home` -- resolved from this binary's own location. The gate it
-  // will exec comes from whatever `~/.local/share/intent/home` names. Those are allowed to
-  // differ and there is no error in either, but the operator has then installed
-  // one install's shim to run another install's guards, which is the
-  // moving-route hazard that produced the shim in the first place.
-  if let Some(intentsvcs::install::PointerState::Resolves { root }) = &applied.gate_pointer
-    && root != &home
+  report_pointer_divergence(&applied.gate_pointer, &home);
+  Ok(())
+}
+
+/// **TWO ROOTS, AND NOTHING COMPARED THEM UNTIL NOW.** The carrier's bytes came
+/// from `home` -- resolved from this binary's own location. The gate it will
+/// exec comes from whatever `~/.local/share/intent/home` names. Those are
+/// allowed to differ and there is no error in either, but the operator has then
+/// installed one install's shim to run another install's guards, which is the
+/// moving-route hazard that produced the shim in the first place.
+///
+/// **ONE FUNCTION BECAUSE IT HAS TWO CALLERS NOW** (issue `0492`). The dry run
+/// reports this as well as the apply, and the note is a description of the
+/// machine rather than of what was written -- so the alternative was the same
+/// four lines in two branches of one function, which is the shape that drifts
+/// first.
+fn report_pointer_divergence(
+  gate_pointer: &Option<intentsvcs::install::PointerState>,
+  home: &std::path::Path,
+) {
+  if let Some(intentsvcs::install::PointerState::Resolves { root }) = gate_pointer
+    && root.as_path() != home
   {
     println!("note: the gate will run from a DIFFERENT install than this binary.");
     println!("  this binary:      {}", home.display());
     println!("  install pointer:  {}", root.display());
     println!("  neither is wrong, but the guards that run are the second one's.");
   }
-  Ok(())
 }
 
 /// A path relative to the project root, for reporting. Absolute paths in a
