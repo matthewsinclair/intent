@@ -1679,6 +1679,84 @@ fn a_wrapped_failure_renders_its_full_cause_chain() {
   );
 }
 
+/// A board write whose views did not land names the door that lands a BOARD,
+/// and names the two that do not (0487).
+///
+/// **THE TWO NEGATIVE ASSERTIONS ARE THE ARM.** The positive one -- that the
+/// text says `wb touch` -- would pass over the old remedy the day someone
+/// appended a sentence to it. What this exists to catch is the remedy sending
+/// a reader to a command that reports a clean run and leaves the board stale,
+/// which is what `intent st sync` did here for as long as this note existed,
+/// and what `intent organize` would do if the issue's own ask had been built
+/// as written: `.intentfiles` carries no whiteboard row and `organize.rs` no
+/// board code, so neither renders a board.
+///
+/// **WHAT IS NOT DRIVEN HERE:** the failure is injected as a read-only
+/// directory rather than as the contended store the defect was seen under
+/// (Lamplight, 2026-09-19, four peers running `pickup`). Both reach this note
+/// through the same arm of `land_board_write_noting`, and a lock is the
+/// expensive one to stage; the remedy TEXT is what this arm is about. The
+/// locked case was driven by hand against a real contended store.
+#[cfg(unix)]
+#[test]
+fn a_board_whose_views_did_not_land_names_the_board_door() {
+  let fx = Fixture::new();
+  let mut facade = fx.facade();
+  facade
+    .wb_register("cc", "Control Claude", "control")
+    .expect("register the node");
+
+  // **THE NODE'S OWN DIRECTORY, NOT THE WHITEBOARD ROOT.** `WriteSet` writes
+  // through a SIBLING temp file and a rename, so the directory that has to
+  // refuse is the one holding the target. A read-only `intent/whiteboard` was
+  // the first attempt here and it injected nothing at all: `cc/` already
+  // exists by then, the registration having rendered it, and a read-only
+  // parent does not stop a write inside a writable child. The arm passed
+  // vacuously -- no note, and `landed_note` panicking is what caught it.
+  let mode = fx.make_readonly("intent/whiteboard/cc");
+  let landed = facade.wb_touch("cc");
+  fx.restore_mode("intent/whiteboard/cc", mode);
+
+  // The row is committed before the views are landed (vc, ruled 2026-09-14),
+  // so the verb reports rather than refusing -- the same shape as the thread
+  // path above.
+  landed.expect("the row landed, so the verb reports the view failure as a note");
+  let (step, cause, _caused_by, remedy) = crate::common::landed_note(&facade.take_notes());
+  let rendered = format!("{step}\n{cause}\n{remedy}");
+  assert!(
+    step.contains("landing the board's views"),
+    "the step names what failed, so the note is about the board and not a thread: {rendered}"
+  );
+  assert!(
+    remedy.contains("intent wb touch --node"),
+    "it names the door that actually lands a board view -- a board write, and nothing else: {rendered}"
+  );
+  // **TESTED AS "DOES NOT RECOMMEND", NOT AS "DOES NOT MENTION", and the
+  // first draft of this arm got that wrong and was red for it.** The remedy
+  // names both wrong doors ON PURPOSE, because a reader who has read decision
+  // 16 reaches for organize and a reader of the old text reaches for `st
+  // sync`; warning them off by name is the whole point. So the property is
+  // that the only command it tells anyone to RUN is the board write -- the
+  // same shape the thread arm above uses to keep `intent sync` out of its own
+  // remedy while still naming it.
+  assert!(
+    !remedy.contains("run `intent st sync`"),
+    "it must not SEND anyone to the thread door, which rewrites a thread's views, reports success, and leaves the board exactly as stale as it found it: {rendered}"
+  );
+  assert!(
+    !remedy.contains("run `intent organize`"),
+    "nor to organize, for the same reason: no whiteboard row in .intentfiles and no board code in organize.rs, so it renders no board: {rendered}"
+  );
+  assert!(
+    remedy.contains("NOT `intent organize`") && remedy.contains("NOT `intent st sync`"),
+    "and it warns off both by name rather than leaving them looking untested: {rendered}"
+  );
+  assert!(
+    remedy.contains("safe in the store"),
+    "it leads with what SUCCEEDED, so the row is not written twice: {rendered}"
+  );
+}
+
 /// The gate's refusal carries the gate's own verdict line, so the operator
 /// sees WHICH criteria blocked rather than being told to go and look.
 #[test]

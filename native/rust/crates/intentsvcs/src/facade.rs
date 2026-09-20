@@ -2963,6 +2963,28 @@ impl Note {
 /// (0376).
 const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry it. Clear the filesystem cause, then run `intent st sync` to rewrite the files from the store. Do NOT reach for the disk -> db direction, which reads the FILES into the database and would overwrite the change with the stale copy";
 
+/// The remedy when the views a landed BOARD write renders could not be
+/// written (0487).
+///
+/// **SEPARATE FROM [`RERENDER_REMEDY`] BECAUSE A BOARD HAS A DIFFERENT DOOR,
+/// AND IT IS NOT A HIGHLANDER COPY.** Two view families, two doors, two
+/// remedies: `RERENDER_REMEDY` sends a reader to `intent st sync`, which is
+/// correct for a thread's or an issue's views and cannot land a board's. Driven
+/// 2026-09-20: `.intentfiles` carries no whiteboard row and `organize.rs`
+/// carries no board code, so `intent organize --apply` renders no board either
+/// -- it reports a clean run and leaves the tree behind the store, which is
+/// worse than saying nothing. A board view is landed by a BOARD WRITE and by
+/// nothing else: every one of [`Self::land_board_write_noting`]'s callers is a
+/// `wb_*` verb, and `wb touch` is the cheapest, being a heartbeat stamp that
+/// changes no content.
+///
+/// **SO THIS NAMES THE TWO NON-DOORS AS WELL AS THE DOOR.** A node that has
+/// read decision 16 -- "organize is the one door for stale views" -- reaches
+/// for organize here, and that ruling is true of thread and issue views and
+/// false of boards. Naming only the right command would leave the wrong one
+/// looking untested.
+const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
+
 /// The remedy when a landed write's views are on disk and the file index was not told.
 const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and its views are on disk. The file index was not told about them, so `intent sync --to-disk` records them; until then the daemon can read them back as an edit";
 
@@ -7080,10 +7102,14 @@ impl Facade {
         },
       ) => Err(torn),
       Err(cause) => {
+        // Issue 0487: this carried RERENDER_REMEDY, which names `intent st
+        // sync` -- a door that rewrites a thread's views and cannot land a
+        // board's. The board's own remedy says why, and names the two commands
+        // a reader would otherwise reach for.
         self.after_write.push(Note::after_write(
           "landing the board's views",
           &cause,
-          RERENDER_REMEDY,
+          BOARD_RERENDER_REMEDY,
         ));
         Ok(())
       }
