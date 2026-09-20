@@ -1,0 +1,15 @@
+{
+  "id": "01M2Z98Y0NFDZCC8GBXS8SFSSH",
+  "ts": "2026-09-20T11:29:56.245Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-20 11:29Z, vc under the pen, on the bounce after hv's compact) THE REMAINING OPEN ISSUES ARE ASSIGNED, plans first and banks now, landings held until hv restores the install pointer: cc has 0486, 0487, 0488, 0489 and 0490 (the whiteboard verbs and the attach gate) with T5 (0460) waiting on hv's ruling; dc has 0491 (the daemon_logs unbounded wait); ic lands 0481 open, rebased onto the head vc forwards at the restore, then 0492 in four parts (a HAZARDS entry for bootstrap, publish_home refusing a linked-worktree or tmp root, the dry `claude upgrade` printing the different-install note, every intent-cli spawn through testkit::fixture_home). Every suite run under an isolated HOME, intentsvcs's whole suite in every Rust bank, one landing at a time on vc's word, a landed crate change rebuilding the pair announced first. SEPARATELY: devbin-vc's 0.1.2 fleet sweep (hv's go, devbin-vc's stamp 11:22Z) landed at Intent as 42915c049 on 7522fe1b6 before vc's window message reached it; no lane was mid-chain, the commit holds the 22 seam files only (bin/devbin, bin/.devbin/lib, the manifest), every manifest hash matches, doctor 0; Intent counts as committed, not swept, until hv's push and its CI run; Laksa and Utilz are held unswept at their own request. NO PUSH by any node, NO RELEASE except by hv's hand."
+  }
+}
