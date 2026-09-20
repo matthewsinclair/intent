@@ -18,7 +18,7 @@
 
 use std::path::Path;
 
-use crate::common::{ATTEMPTS, PAUSE, RunningDaemon};
+use crate::common::{ARM_ATTEMPTS, ATTEMPTS, PAUSE, RunningDaemon};
 use intentsvcs::wire::{Op, Request, Response};
 
 /// The count of ingests the daemon has run for this project.
@@ -73,6 +73,24 @@ fn a_source_edit_reaches_the_index_and_costs_canon_nothing() {
     "the project did not register: {registered:?}"
   );
 
+  // **ARMED FIRST** (issue 0481): a sentinel source file must reach the index
+  // before the bounded wait below starts, because only a new watch's first
+  // event waits behind the host's filesystem backlog.
+  std::fs::create_dir_all(root.join("src")).expect("mkdir src");
+  std::fs::write(root.join("src/sentinel.rs"), b"\n").expect("write the sentinel");
+  let mut armed = false;
+  for _ in 0..ARM_ATTEMPTS {
+    if index_holds(&root, "src/sentinel.rs") {
+      armed = true;
+      break;
+    }
+    std::thread::sleep(PAUSE);
+  }
+  assert!(
+    armed,
+    "the index watch never delivered its first event in {ARM_ATTEMPTS} attempts, so the bounded wait below could measure nothing"
+  );
+
   // Let the project's own creation settle, so the baseline is a resting count
   // rather than one still climbing. Without this the zero-ingest claim below
   // would be measuring the fixture rather than the edit.
@@ -82,7 +100,6 @@ fn a_source_edit_reaches_the_index_and_costs_canon_nothing() {
   let before = ingested(&daemon, &root);
 
   // A file NO canon corpus contains: source, outside `intent/`, not a root file.
-  std::fs::create_dir_all(root.join("src")).expect("mkdir src");
   std::fs::write(root.join("src/lib.rs"), b"pub fn answer() -> u32 { 42 }\n").expect("write");
 
   let mut reached = false;

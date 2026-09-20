@@ -7,7 +7,7 @@
 
 use std::time::Duration;
 
-use crate::common::{RunningDaemon, project};
+use crate::common::{ARM_ATTEMPTS, PAUSE, RunningDaemon, project};
 use intentsvcs::projects::{self, AddedBy};
 use intentsvcs::userstate::{self, Dirs};
 use intentsvcs::wire::{Op, RegisteredProject, Request, Response};
@@ -32,6 +32,26 @@ fn a_project_added_to_the_registry_is_listed_without_a_restart() {
   );
 
   let file = userstate::project_registry_under(&Dirs::at_home(daemon.home()));
+
+  // **ARMED FIRST** (issue 0481): a sentinel project must be listed before the
+  // bounded wait below starts, because only the registry watch's first event
+  // waits behind the host's filesystem backlog.
+  let sentinel = project("Sentinel").canonicalize().expect("canonical root");
+  projects::add(&file, std::slice::from_ref(&sentinel), AddedBy::Discover)
+    .expect("register the sentinel");
+  let listed = (0..ARM_ATTEMPTS).any(|_| {
+    let found = registry(&daemon, &alpha).iter().any(|p| p.root == sentinel);
+    if !found {
+      std::thread::sleep(PAUSE);
+    }
+    found
+  });
+  let _ = std::fs::remove_dir_all(&sentinel);
+  assert!(
+    listed,
+    "the registry watch never delivered its first event in {ARM_ATTEMPTS} attempts, so the bounded wait below could measure nothing"
+  );
+
   projects::add(&file, std::slice::from_ref(&alpha), AddedBy::Discover).expect("register");
 
   let mut seen = Vec::new();

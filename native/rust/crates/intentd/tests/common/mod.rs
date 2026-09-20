@@ -35,6 +35,19 @@ pub const ATTEMPTS: u32 = 500;
 /// clock and answers no question about the time.
 pub const PAUSE: Duration = Duration::from_millis(20);
 
+/// How many [`PAUSE`]s an arm waits for a watcher to acknowledge its FIRST
+/// event, before any timed wait begins (issue 0481).
+///
+/// **THE FIRST EVENT IS WHERE THE FILESYSTEM'S BACKLOG IS PAID, AND ONLY
+/// THERE.** Inside the release gate these arms run seconds after a workspace
+/// build has written tens of thousands of files, and FSEvents delivers a new
+/// watch's first event behind that queue; the gate's own re-run of the same
+/// bytes passed once the queue had drained. So each arm first writes a
+/// sentinel and waits here -- generously, and by count, never by clock -- for
+/// the watcher to act on it. Every bound after that measures the watcher
+/// rather than the host.
+pub const ARM_ATTEMPTS: u32 = ATTEMPTS * 12;
+
 /// A short, unique directory under `/tmp`.
 ///
 /// **NOT `tempfile`, AND NOT FOR TIDINESS.** A unix socket address is a

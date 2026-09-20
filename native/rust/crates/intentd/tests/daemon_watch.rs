@@ -23,7 +23,7 @@
 
 use std::path::Path;
 
-use crate::common::{ATTEMPTS, PAUSE, RunningDaemon};
+use crate::common::{ARM_ATTEMPTS, ATTEMPTS, PAUSE, RunningDaemon};
 use intentsvcs::wire::{Op, Request, Response};
 
 /// The count of ingests the daemon has run for this project.
@@ -141,6 +141,30 @@ fn settle(daemon: &RunningDaemon, root: &Path) -> u64 {
   );
 }
 
+/// The id of the sentinel [`arm`] writes; no arm below uses it for anything
+/// else.
+const SENTINEL: &str = "ST0900";
+
+/// Prove the project's watch is delivering before any bounded wait begins,
+/// and return the resting ingest count after it (issue 0481).
+///
+/// A sentinel thread is written as an external editor would write one, and
+/// the arm waits up to [`ARM_ATTEMPTS`] for the daemon to hold it. Only the
+/// FIRST event of a new watch waits behind the host's filesystem backlog, so
+/// after this every [`ATTEMPTS`] bound below is a claim about the watcher.
+fn arm(daemon: &RunningDaemon, root: &Path) -> u64 {
+  write_thread(root, SENTINEL);
+  for _ in 0..ARM_ATTEMPTS {
+    if thread_ids(daemon, root).iter().any(|id| id == SENTINEL) {
+      return settle(daemon, root);
+    }
+    std::thread::sleep(PAUSE);
+  }
+  panic!(
+    "the watch never delivered its first event in {ARM_ATTEMPTS} attempts, so no bounded wait after it could measure anything"
+  );
+}
+
 #[test]
 fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
   let daemon = RunningDaemon::start();
@@ -154,6 +178,7 @@ fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
     1,
     "the fixture project should hold exactly its one minted thread: {before:?}"
   );
+  arm(&daemon, &root);
 
   write_thread(&root, "ST0042");
 
@@ -199,14 +224,16 @@ fn one_external_edit_costs_a_bounded_number_of_ingests() {
   let root = crate::common::project("Quiet");
 
   let _ = thread_ids(&daemon, &root);
+  let armed = arm(&daemon, &root);
   write_thread(&root, "ST0043");
-  until("the daemon ingested", || ingested(&daemon, &root) >= 1);
+  until("the daemon ingested", || ingested(&daemon, &root) > armed);
 
   // `settle` panics if the count never stops climbing, which IS the loop.
   let resting = settle(&daemon, &root);
+  let cost = resting - armed;
   assert!(
-    (1..=3).contains(&resting),
-    "one hand-written thread cost {resting} ingests. TWO is what this build does -- the edit, then the daemon noticing its own normalisation of it -- and more than that means the projection is not converging on a fixed point"
+    (1..=3).contains(&cost),
+    "one hand-written thread cost {cost} ingests. TWO is what this build does -- the edit, then the daemon noticing its own normalisation of it -- and more than that means the projection is not converging on a fixed point"
   );
 
   // And it stays put with nothing touching the tree.
@@ -230,6 +257,7 @@ fn a_change_to_a_path_outside_the_sync_scope_drives_no_ingest() {
   let root = crate::common::project("Scoped");
 
   let _ = thread_ids(&daemon, &root);
+  arm(&daemon, &root);
   write_thread(&root, "ST0044");
   until("the daemon ingested once", || ingested(&daemon, &root) >= 1);
   let resting = settle(&daemon, &root);
@@ -295,7 +323,7 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   let root = crate::common::project("Burst");
 
   let _ = thread_ids(&daemon, &root);
-  let before = settle(&daemon, &root);
+  let before = arm(&daemon, &root);
 
   for n in 0..WRITES {
     write_thread(&root, &format!("ST01{n:02}"));
