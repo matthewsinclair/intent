@@ -424,7 +424,11 @@ git_fixture() {
   for sub in "publish bogus extra" "app-build bogus extra" "app-verify bogus extra"; do
     # shellcheck disable=SC2086
     run "$INTENT_PROJECT_ROOT/bin/devbin" macos $sub
-    [ "$status" -ne 0 ]
-    [[ "$output" == *"takes at most one argument"* ]]
+    # Each failure prints what the dispatcher said. The bare assertions here
+    # reddened Ubuntu CI with no output twice, and a refusal the test cannot
+    # see is a cause nobody can name.
+    [ "$status" -ne 0 ] || fail "macos $sub exited 0: $output"
+    [[ "$output" == *"takes at most one argument"* ]] ||
+      fail "macos $sub (rc $status) did not refuse by name: $output"
   done
 }
