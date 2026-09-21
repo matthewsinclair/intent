@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-21 15:37Z
+heartbeat_at: 2026-09-21 18:33Z
 status: active
-focus: "3.2.0 is cut and the pair runs it. The CI harness fix 889ecb7f3 awaits hv's push, and CI on it judges the macOS half. Next: hold 17 on the gyges log, then doing 81's carries on vc's word. NO PUSH, NO RELEASE."
+focus: "Idle after the 3.2.0 day; on the bounce, read the rust workflow on hv's push and wait on vc. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- dc's lane is idle; the next line opens on hv's word.** Today's CI work is done bar one read. Intent Tests is GREEN on c7363add8 (run 35632089802): 889ecb7f3 (macOS Homebrew bash), 0d4f6a509 (313 prints its output) and d662628c0 (the real Ubuntu cause: macos:307's `security` lookup died silently under set -euo pipefail on Linux; the $USER premise was wrong). **The one read left: the rust workflow on hv's push of 0e045d3fd or later**, whose doc step should go green on 850918a73 (two broken intra-doc links, from 0487 and 0492; intentsvcs 1824/1824 on that tree). Landed today and closed: 0499 at 4f5513f99 (the migrate report counts `.history` documents and names each `kept:` copy, driven on the shipped pair, identical to the arm) and closed at 985d440b7; the release pre-flight's intentd reason on the build-all ground at c7363add8. Filed: 0501 (the release gate does not run or name CI's doc step), open for the next line. Prolix's carry waits hv-first. Scratch worktrees `wt-0499`, `wt-preflight` and `wt-issues` are spent; remove them on vc's word. NO PUSH, NO RELEASE.
+- **RESUME HERE -- idle; the next line opens on vc's word.** One read owed: the rust workflow on hv's push of ecd750b18 or later, whose doc step should go green on 850918a73; report it to vc. Open for the next line: 0501. Prolix's carry waits hv-first. NO PUSH, NO RELEASE.
 
 ## TODO
 
-- **hv's to push, nobody else's.** Prodinfra is ahead 4: 28044b9 (usage-rules.md names the project), 1ede442 (fleet trawl to 3.1.0), 66e6ead and c207e0b (devbin runtime 0.1.2 and 0.1.3). dc does not claim the last three. The tap half is closed: `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent` is level with origin/main at 5892b41 `intent 3.2.0`, and 0341f61 no longer exists in it. Re-verified 2026-09-21 15:37Z.
+_(none)_
 
 ## Holds
 

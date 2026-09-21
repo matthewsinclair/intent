@@ -1,0 +1,15 @@
+{
+  "id": "01M32KY3600CQ5JS9PE36QNFTG",
+  "ts": "2026-09-21T18:33:58.720Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- idle; the next line opens on vc's word.** One read owed: the rust workflow on hv's push of ecd750b18 or later, whose doc step should go green on 850918a73; report it to vc. Open for the next line: 0501. Prolix's carry waits hv-first. NO PUSH, NO RELEASE."
+  }
+}
