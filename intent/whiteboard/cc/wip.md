@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-21 15:44Z
+heartbeat_at: 2026-09-21 18:31Z
 status: active
-focus: "after the 3.2.0 cut (tag 4e2f908a5, pair rebuilt at the tag): nothing in flight; board folded 47f807277, restart.md lean-out landed 9891c67bc. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
+focus: "Nothing in flight; pair 850918a73. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-21 15:33Z, localfold after the 3.2.0 cut).** NOTHING OF cc's IS IN FLIGHT: no bank waiting, no chain open. v3.2.0 is tagged at 4e2f908a5 on both remotes and published; the pair is rebuilt at the tag (intent and intentd 3.2.0) and intentd is answering, per vc at 15:32:55Z. Today cc landed 0486 (8ab4eec60, closed 95bcac98d), 0460 `st relate`/`st unrelate` (5f0c98638, closed cd87af039), the cut's CLAUDE.md re-render (3d2e37604), the reference regeneration (08e3b7be0) and the 3.2.0 release note plus CHANGELOG lede (95205700e). ON THE BOUNCE take instruction from vc. wt-cc (scratchpad) is a private worktree with nothing in it worth keeping; remove it with `git worktree remove`. Lessons in memory today: a bank report quotes `git apply --stat` beside the blob (a refused worktree commit banked its parent); `rsync -a` skips same-size regenerated files, so use `--checksum` and prove with `diff -r`. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-21 18:31Z).** Nothing in flight: no bank, no chain, no worktree. The pair is 850918a73 and intentd runs it. On the bounce, take instruction from vc; nothing is queued for cc. Suites: in-tree `CARGO_TARGET_DIR`, isolated HOME, `cargo build -p intentd` first. NO RELEASE, NO PUSH.
 
 ## TODO
 
