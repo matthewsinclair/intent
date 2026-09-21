@@ -128,6 +128,27 @@ pub enum FindingClass {
   /// upgrade day in every project Intent ships to. Nothing is at risk here: by
   /// construction the only bytes that differ are ones the renderer owns.
   StaleRender,
+  /// A root file canon writes -- `AGENTS.md`, `CLAUDE.md`, the Claude Code
+  /// settings, a git hook's chain block or carrier -- is on disk and differs
+  /// from what the running Intent's templates would write (issue `0496`).
+  ///
+  /// **A CLASS OF ITS OWN, AND NOT `StoreStale`, BECAUSE THE NAME IS THE
+  /// FINDING.** That class says the store is behind committed canon; this one
+  /// says a file is behind a TEMPLATE, and a class whose name described the
+  /// wrong comparison would be the defect this issue is about, one layer up.
+  /// Nor is it `StaleRender`, which is about the views `organize` renders and
+  /// is repaired by a different verb.
+  ///
+  /// **NOT COUNTED, BECAUSE THE ESTATE USUALLY DID NOTHING.** The templates are
+  /// read from the installed Intent's `lib/templates` at run time and the
+  /// footer carries the running binary's version, so a newer install reads
+  /// every project behind until `claude upgrade --apply` runs there. And in
+  /// Intent's own repository the install IS the working copy, so a template
+  /// edit puts the tree's root files behind the moment it is saved: a counted
+  /// class would refuse the very commit that changes a template. **SHOWN BY
+  /// DEFAULT, BECAUSE THE DEFECT WAS A DOCTOR READING 0** while `CLAUDE.md` was
+  /// behind (driven 2026-09-21), and a line only `--verbose` prints restates it.
+  RootFileBehind,
   /// An ATTACHMENT on disk differs from the bytes canon records for it.
   ///
   /// **Not [`FindingClass::ViewSkew`], and the difference is what the operator
@@ -502,6 +523,11 @@ impl FindingClass {
         "stale-render",
         "these views were rendered by an older Intent and differ only in text the renderer owns -- the footer, or the Acceptance paragraph it writes -- so `intent sync --to-disk` brings them up to date, and there is no hand edit to lose",
       ),
+      Self::RootFileBehind => (
+        6,
+        "root-file-behind",
+        "run `intent claude upgrade --apply --skip-settings` -- or `intent claude upgrade --apply` for `.claude/settings.json` and `.mcp.json`, which `--skip-settings` leaves alone. Either run rewrites the file from the installed templates, so a hand edit in it is overwritten; `intent claude upgrade` without `--apply` lists what it would write. Not counted: a newer Intent reads every project behind until this runs there",
+      ),
       // **THE FIRST INSTRUCTION IS TO COPY THE FILE ASIDE, AND THAT IS NOT
       // padding.** Unlike `ViewSkew` above, neither side here is derivable:
       // both are authored bytes, and whichever one loses is gone. So the first
@@ -756,6 +782,7 @@ impl FindingClass {
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
+        | Self::RootFileBehind
     )
   }
 
@@ -776,7 +803,7 @@ impl FindingClass {
   /// tree, and its detail still says so. One advisory line is the cost of never
   /// again answering `no steel thread` after a pull.
   pub fn is_shown_by_default(&self) -> bool {
-    self.is_actionable() || matches!(self, Self::StoreStale)
+    self.is_actionable() || matches!(self, Self::StoreStale | Self::RootFileBehind)
   }
 
   /// The word a report leads with for this class.

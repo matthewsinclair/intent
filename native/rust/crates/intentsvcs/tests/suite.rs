@@ -172,6 +172,8 @@ mod doctor_checks;
 mod doctor_reads_the_search_index;
 #[path = "doctor_reports_a_board_row_its_file_lacks.rs"]
 mod doctor_reports_a_board_row_its_file_lacks;
+#[path = "doctor_reports_a_root_file_behind_its_template.rs"]
+mod doctor_reports_a_root_file_behind_its_template;
 #[path = "doctor_scope.rs"]
 mod doctor_scope;
 

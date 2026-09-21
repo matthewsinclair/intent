@@ -611,6 +611,10 @@ fn examine(
   // gate an operator most wants reported, and putting this inside would skip it
   // on precisely those estates.
   report.findings.extend(hook_findings(project));
+  // Beside the gate and for its reason: a root file behind its template is not
+  // a property of the store, and an estate whose canon will not read still has
+  // a `CLAUDE.md` worth comparing (issue `0496`).
+  report.findings.extend(root_file_findings(project, ctx));
 
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
@@ -1913,6 +1917,87 @@ pub fn gate_state(
     };
   }
   GateState::Current
+}
+
+/// The root files canon writes, compared with what the running Intent's
+/// templates would write (issue `0496`).
+///
+/// **ONE RENDERER, NOT TWO.** It asks [`crate::canon::apply`] in report mode --
+/// the path `intent claude upgrade` without `--apply` already takes -- so the
+/// comparison and the write cannot disagree about what is behind. It adds no
+/// view: `the_generator_is_not_a_view_and_must_not_become_one` keeps these
+/// files out of `render_all`, and this arm reads them beside it.
+///
+/// **ONLY A FILE THAT IS THERE.** Report mode also lists every seed and hook
+/// that was never installed, which on a fresh `intent init` is ten paths of
+/// twelve; reporting those would put a permanent advisory on every project
+/// that never ran `claude upgrade`. A held or preserved file is the project's
+/// and is never listed as written, so it is never reported.
+///
+/// **THE PRE-COMMIT CARRIER IS LEFT TO [`hook_findings`]**, which already
+/// reports it behind its template and knows which template it is compared
+/// with. Reporting it here too would be one fact under two classes.
+fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding> {
+  let root = project.root();
+  let unchecked = |cause: String| {
+    vec![Finding::new(
+      ".",
+      FindingClass::Advisory,
+      format!("the root files were not compared with their templates: {cause}"),
+    )]
+  };
+  let home = match crate::install::home() {
+    Ok(home) => home,
+    Err(e) => return unchecked(e.to_string()),
+  };
+  let hooks = crate::canon::hooks_dir(root);
+  let render = RenderContext {
+    version: ctx.version,
+    todo_watermark: None,
+  };
+  let opts = crate::canon::Options {
+    report: true,
+    ..crate::canon::Options::default()
+  };
+  let applied = match crate::canon::apply(
+    root,
+    &home,
+    project.config(),
+    &render,
+    hooks.as_deref(),
+    opts,
+  ) {
+    Ok(applied) => applied,
+    Err(e) => return unchecked(e.to_string()),
+  };
+  let carrier = hooks.map(|h| h.join("pre-commit.intent"));
+  applied
+    .written
+    .iter()
+    .filter(|path| path.exists() && Some(path.as_path()) != carrier.as_deref())
+    .map(|path| {
+      Finding::new(
+        project.relative(path),
+        FindingClass::RootFileBehind,
+        format!(
+          "differs from what the templates in {} would write -- {} rewrites it, and a hand edit in it is overwritten",
+          home.display(),
+          upgrade_door(root, path)
+        ),
+      )
+    })
+    .collect()
+}
+
+/// The `claude upgrade` spelling that rewrites `path`: `--skip-settings` leaves
+/// the two harness-wiring files alone, so naming it for them would be a remedy
+/// that runs clean and changes nothing.
+fn upgrade_door(root: &std::path::Path, path: &std::path::Path) -> &'static str {
+  if path == root.join(".claude/settings.json") || path == root.join(".mcp.json") {
+    "`intent claude upgrade --apply`"
+  } else {
+    "`intent claude upgrade --apply --skip-settings`"
+  }
 }
 
 /// **AN ESTATE HAS NO WAY TO LEARN THAT ITS COMMIT GATE IS NOT RUNNING** (vc,
