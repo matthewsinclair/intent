@@ -1,0 +1,15 @@
+{
+  "id": "01M32X67Q0HDVRX791RN71V7T1",
+  "ts": "2026-09-21T21:15:42.688Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0501, S, dc's hand, shape ruled by vc (the existing devbin twins, `-Dwarnings` in both homes).** Work in progress banked at refs/bank/dc/0501-wip/patch (blob 459c23e1f, base 341d48cdd). Owed: the release fixture's two dry-run arms, the whole bats suite in a private worktree, then the bank for judging and the close on vc's word. Steps are in the night fold. NO PUSH, NO RELEASE."
+  }
+}

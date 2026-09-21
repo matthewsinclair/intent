@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-21 18:40Z
+heartbeat_at: 2026-09-21 21:16Z
 status: active
-focus: "Idle after the 3.2.0 day; on the bounce, read the rust workflow on hv's push and wait on vc. NO PUSH, NO RELEASE."
+focus: "0501 in progress (banked WIP); on the bounce, rebuild the worktree from the blob and finish it. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- idle; the next line opens on vc's word.** One read owed: the rust workflow on hv's push of ecd750b18 or later, whose doc step should go green on 850918a73; report it to vc. Open for the next line: 0501. Prolix's carry waits hv-first. NO PUSH, NO RELEASE.
+- **RESUME HERE -- 0501, S, dc's hand, shape ruled by vc (the existing devbin twins, `-Dwarnings` in both homes).** Work in progress banked at refs/bank/dc/0501-wip/patch (blob 459c23e1f, base 341d48cdd). Owed: the release fixture's two dry-run arms, the whole bats suite in a private worktree, then the bank for judging and the close on vc's word. Steps are in the night fold. NO PUSH, NO RELEASE.
 
 ## TODO
 
