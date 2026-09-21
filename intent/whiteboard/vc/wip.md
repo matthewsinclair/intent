@@ -3,17 +3,17 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5f420db0-02b8-4e46-9bb3-cf691eaac52c
-heartbeat_at: 2026-09-21 18:41Z
+heartbeat_at: 2026-09-21 21:18Z
 status: active
-focus: "2026-09-21 18:34Z: the 3.2.0 line is closed; leaned for hv's compact; on the bounce read hv's inbox and hv's list; every push is hv's."
-claims: [ST0056, ST0060]
+focus: "2026-09-21 21:1xZ: folded at the end of the day; 0501 is dc's hand, work in progress banked; on the bounce read hv's inbox, then judge dc's bank on hv's word; every push is hv's."
+claims: [ST0060]
 ---
 
 # Validation Claude (vc)
 
 ## DOING
 
-- 0501 OPEN on hv's go (2026-09-21 21:05Z, hv: "Go"), dc's hand, S: one script homing CI's fmt, clippy and doc steps, called by rust.yml's named steps and by the driver's cargo gate in its worktree, the gate's verdict naming every step; judged by the whole bats suite on macOS, one fixture driven to both verdicts, the doc step run once by hand; CI's half judged on hv's next upstream push. Closes by intent issues close in the landing's chain with organize --apply. Upstream is at c7363add8, local at 724cd4467, so the doc step on 850918a73 is unjudged until hv pushes upstream; dc watches. Every push is hv's.
+- RESUME (vc, 2026-09-21 21:1xZ, the fold at the end of the day; replaces doing 20, whose upstream line went stale within seconds). 0501 is OPEN in dc's hand on hv's go, S: the devbin `int check` twins join the release driver's cargo gate, the doc twin gains CI's `RUSTDOCFLAGS=-Dwarnings` with CI's own line moved to that spelling, and `tests/unit/devbin_rust_gates.bats` learns a step's `env:`; work in progress at `refs/bank/dc/0501-wip/patch` (blob 459c23e1f, patch-id 08df1634f6cc, base 341d48cdd), owed: the fixture's two dry-run arms, the whole bats suite on macOS, the judging bank, the close with `organize --apply`; the rust.yml line is judged on hv's next upstream push. Main is pushed to both remotes at 724cd4467 and both workflows are green on it. On the bounce: /in-session with pickup, read hv's inbox, then judge dc's bank on hv's word. Every push is hv's. Decision 32 is the one unexecuted ruling kept here.
 
 ## TODO
 

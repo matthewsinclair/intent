@@ -1,11 +1,19 @@
 ---
-verblock: "02 Sep 2026:v0.23: vc - 0216 driven and one live loss repaired; PFIC fixed in six homes; ST0065 closed"
-intent_version: 3.0.0
+verblock: "21 Sep 2026:v0.24: vc - v3.2.0 cut and installed cold, ST0056 Completed, the issues line closed, 0501 opened"
+intent_version: 3.2.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-09-21 -- v3.2.0 cut and installed cold, ST0056 Completed, the issues line closed
+
+- **v3.2.0 IS CUT** at 4e2f908a5 by hv's hand through `bin/devbin build release`, after one dry run red on nine bats arms (the vendored devbin 0.1.2 moved the bash 5 floor into `lib/helpers`, so a fixture trimming PATH to `/bin` ran the handler on 3.2; fixed at b1f0f7dfb) and one dry run green. Published, the formula in the tap, installed cold on gyges with `explore` and `discover` driven there. The pair every node runs is rebuilt at 850918a73 with the two 3.2.1 fixes in it, and `CHANGELOG.md` carries `## [3.2.1] - in progress`.
+- **ST0056 IS COMPLETED** on its gate with every work package Done, kept on disk with `--keep` because the cut's step 2 uses its parity tools.
+- **EVERY ISSUE OF THE LINE IS CLOSED** (0460, 0481, 0486, 0493 to 0500), each by a landing judged in a private worktree: 0499 names the pre-migration copies a `wb migrate` keeps, 0500 makes `sync --to-disk` a shared-store reader that runs beside the daemon, 0494 and 0498 fixed the CI legs. **0501 FILED** the same day, the release gate passing a cut CI's rust workflow then failed on its doc step, and opened that evening on hv's go.
+- **CI IS GREEN** at 724cd4467, the rust workflow beside Intent Tests, after two intra-doc links had held it red since 2026-09-20 (850918a73); the macOS leg now prepends brew's bash (889ecb7f3), and `security`'s absence on Linux no longer kills the assets fixture silently (d662628c0).
+- **THIS LEDGER WAS NOT KEPT FROM 2026-09-03 TO 2026-09-20** (3.0.1 through 3.1.0); that record is `CHANGELOG.md` and `docs/releases/`.
 
 ## 2026-09-02 -- a live data-loss condition found, a rule that six documents stated wrong, and ST0065 closed
 

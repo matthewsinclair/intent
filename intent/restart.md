@@ -90,4 +90,4 @@
 
 - Commit conventions, house style and the banned-word list are in `CLAUDE.md` and `~/.claude/CLAUDE.md`. Local: em dashes in prose pages, `--` in generated reference pages; no hardcoded counts in any doc a reader reads.
 - Each project-wide document has one job: `.claude/restart.md` is the entry point and holds no state; `intent/wip.md` is DOING and TODO only; this file is rules.
-- The push gate runs no fmt or clippy; CI is their only home.
+- The push gate runs no fmt, clippy or doc: CI runs them, and devbin's `int check` twins mirror each CI line, held equal by `tests/unit/devbin_rust_gates.bats`. A parity test holds only the fields it reads: that test read `run:` and not `env:`, and the doc twin drifted (0501).
