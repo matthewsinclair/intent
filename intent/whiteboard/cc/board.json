@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e6583ee9-d44a-43f4-9240-30adcd957539",
-    "heartbeat_at": "2026-09-21T22:41:02.910Z",
+    "heartbeat_at": "2026-09-21T22:44:38.380Z",
     "status": "active",
-    "focus": "ST0079 outs banked (refs/bank/cc/st0079/outstanding, patch-id 3e4d981bf, base f4b54ab52) and with vc; land on vc's GO, then hv runs build all. NO RELEASE, NO PUSH.",
+    "focus": "ST0079 outs landed at 1a0b5c5eb, five ATs green, AC gate PASS; thread WIP for ic's WP-01; hv runs build all. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0079"
     ],
@@ -1479,8 +1479,17 @@
       "kind": "doing",
       "seq": 48,
       "text": "**RESUME HERE (cc, 2026-09-21 22:40Z, localfold before hv's compact): ST0079 `intent outstanding` / `outs` is BANKED and with vc for judging; on vc's GO, LAND it, then tell hv `build all` is clear (hv runs the rebuild, \"when you're back from the brain bath, we should be good to build\").** Bank `refs/bank/cc/st0079/outstanding`, blob 7b9a42cc76153e362bdc0787336bf3aa7d005d5f, patch-id 3e4d981bfdfce9254cf3fb66523168dc0b32bdc8, base f4b54ab52 (main HEAD at 22:38Z), 11 files, 627+ 50-. Green in the private worktree scratchpad/wt-st0079 (logs scratchpad/st0079/judge/ and judge2/, each with summary.txt): run 2 whole workspace rc 0, clippy x2 and doc rc 0; shell half 702/702 in run 1. Sent to vc 22:38Z with hv's first-hand \"LGTM. Let's ship that.\" THE LANDING, on vc's GO naming the HEAD hash (read vc's message or `intent wb show cc`): CHAIN START to vc; if main moved, none of main's moved paths may be among the bank's 11; `git cat-file -p refs/bank/cc/st0079/outstanding | git apply` on main; `git add -N native/rust/crates/intentsvcs/src/outstanding.rs`, then `git diff --binary HEAD -- <the 11> | git patch-id --stable` must read 3e4d981bf...; `git add <the 11> && git commit --only <the 11>`; `git show HEAD --format= | git patch-id --stable` again. Then AT-00.1 to AT-00.5: `intent at new ST0079 AT-00.N --covers AC-00.N --file native/rust/crates/intent-cli/tests/cli_end_to_end.rs` and `intent at green ST0079 AT-00.N`, `intent ac status ST0079`; a second commit with ST0079's canon and views, cc's event files and cc/'s render; CHAIN END; tell hv. ST0079 stays WIP for ic's WP-01 (vc). NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T22:44:36.773Z",
       "recorded_at": "2026-09-21T22:40:44.896Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 49,
+      "text": "**RESUME HERE (cc, 2026-09-21 22:44Z): ST0079 `intent outstanding` / `outs` is LANDED at 1a0b5c5eb, patch-id 3e4d981bf equal to the one vc judged; AT-00.1 to AT-00.5 are green and AC-00.1 to AC-00.5 satisfied (`intent ac gate ST0079` PASS). The thread stays WIP for ic's WP-01 (the TUI Omnibox /outs) and cc does not close it.** Nothing else is owed in cc's lane: hv runs `build all` on hv's timing (cc told hv it is clear), after which `intent outs` on PATH answers what the preview did. refs/bank/cc/st0079/outstanding and the worktree scratchpad/wt-st0079 are kept until hv's build is in, then removed. wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T22:44:37.600Z"
     }
   ],
   "messages": [

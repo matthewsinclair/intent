@@ -61,5 +61,57 @@
         "is": "computed"
       }
     }
+  ],
+  "tests": [
+    {
+      "id": "AT-00.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-00.1"
+      ],
+      "status": "green",
+      "note": "red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    },
+    {
+      "id": "AT-00.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-00.2"
+      ],
+      "status": "green",
+      "note": "red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    },
+    {
+      "id": "AT-00.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-00.3"
+      ],
+      "status": "green",
+      "note": "red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    },
+    {
+      "id": "AT-00.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-00.4"
+      ],
+      "status": "green",
+      "note": "red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    },
+    {
+      "id": "AT-00.5",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-00.5"
+      ],
+      "status": "green",
+      "note": "red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    }
   ]
 }

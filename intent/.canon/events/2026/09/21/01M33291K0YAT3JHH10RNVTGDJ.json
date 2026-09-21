@@ -1,0 +1,15 @@
+{
+  "id": "01M33291K0YAT3JHH10RNVTGDJ",
+  "ts": "2026-09-21T22:44:37.600Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-21 22:44Z): ST0079 `intent outstanding` / `outs` is LANDED at 1a0b5c5eb, patch-id 3e4d981bf equal to the one vc judged; AT-00.1 to AT-00.5 are green and AC-00.1 to AC-00.5 satisfied (`intent ac gate ST0079` PASS). The thread stays WIP for ic's WP-01 (the TUI Omnibox /outs) and cc does not close it.** Nothing else is owed in cc's lane: hv runs `build all` on hv's timing (cc told hv it is clear), after which `intent outs` on PATH answers what the preview did. refs/bank/cc/st0079/outstanding and the worktree scratchpad/wt-st0079 are kept until hv's build is in, then removed. wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH."
+  }
+}

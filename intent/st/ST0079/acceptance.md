@@ -15,17 +15,21 @@ title: Add 'outs[standing]' verb to show all outstanding items from a single ver
 
 ### ST-level
 
-- AC-00.1 `intent outstanding` and its alias `intent outs` print one table of every outstanding steel thread, work package and issue, through the list verbs' shared output layer (`--format`, `--width`, `--markdown`): the kind (ST, WP or Issue) in the leftmost column, then ID, Status and Title, with threads first, then work packages, then issues. -- satisfied: no (computed)
-- AC-00.2 The threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN. -- satisfied: no (computed)
-- AC-00.3 `--show` takes a comma-separated list of st, wp, is, issue, issues and all, all being the default, and the table shows those kinds and no other; any other value is refused with a remedy naming the accepted values. -- satisfied: no (computed)
-- AC-00.4 Below the table one line counts the rows of each kind shown against how many of that kind exist, and with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data. -- satisfied: no (computed)
-- AC-00.5 The same rows are served to agents as a read-only MCP tool. -- satisfied: no (computed)
+- AC-00.1 `intent outstanding` and its alias `intent outs` print one table of every outstanding steel thread, work package and issue, through the list verbs' shared output layer (`--format`, `--width`, `--markdown`): the kind (ST, WP or Issue) in the leftmost column, then ID, Status and Title, with threads first, then work packages, then issues. -- satisfied: yes (computed)
+- AC-00.2 The threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN. -- satisfied: yes (computed)
+- AC-00.3 `--show` takes a comma-separated list of st, wp, is, issue, issues and all, all being the default, and the table shows those kinds and no other; any other value is refused with a remedy naming the accepted values. -- satisfied: yes (computed)
+- AC-00.4 Below the table one line counts the rows of each kind shown against how many of that kind exist, and with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data. -- satisfied: yes (computed)
+- AC-00.5 The same rows are served to agents as a read-only MCP tool. -- satisfied: yes (computed)
 
 ## Acceptance Tests
 
 ### ST-level
 
-_(no tests in this group)_
+- AT-00.1 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.1 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-00.2 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.2 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-00.3 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.3 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-00.4 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.4 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-00.5 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.5 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 
 ---
 
