@@ -49,7 +49,6 @@
 //! refused". The enumeration only buys that if something refuses.
 
 use std::path::Path;
-use std::process::Command;
 
 use intent_cli::dispatch;
 use intentsvcs::model::{TShirt, enum_str};
@@ -514,7 +513,7 @@ fn the_rescope_row_declares_exactly_the_sizes_the_model_has() {
 }
 
 fn drive(root: &Path, argv: &[&str]) -> (Option<i32>, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())

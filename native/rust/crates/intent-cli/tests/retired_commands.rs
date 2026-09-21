@@ -16,7 +16,6 @@
 //! it is covered on the next run, by nobody's decision.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use intent_cli::dispatch;
 use testkit::workspace_root;
@@ -69,7 +68,7 @@ fn install_root() -> PathBuf {
 }
 
 fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())
@@ -89,7 +88,7 @@ fn run(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
 /// (INV-01). A name leaking into help text is a stdout question, and the two
 /// surfaces are checked for opposite reasons.
 fn run_stdout(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

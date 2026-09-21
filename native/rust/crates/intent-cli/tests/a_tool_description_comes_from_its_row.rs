@@ -17,7 +17,6 @@
 //! right words for a model to match on is REVIEW, and review is vc's.
 
 use std::path::Path;
-use std::process::Command;
 
 /// **EVERY DRIVE HERE FIXTURES ITS HOME**, because this file chooses which verbs
 /// to run from the dispatch table AT RUN TIME -- so a verb implemented later is
@@ -51,7 +50,7 @@ fn tools(root: &Path) -> Vec<serde_json::Value> {
 
 fn estate() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["init", "tool-description-fixture"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())

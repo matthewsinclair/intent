@@ -127,6 +127,8 @@ mod events_are_queryable;
 mod every_face_says_what_level_three_knows;
 #[path = "every_skill_has_a_live_caller.rs"]
 mod every_skill_has_a_live_caller;
+#[path = "every_spawn_has_a_fixture_home.rs"]
+mod every_spawn_has_a_fixture_home;
 #[path = "exit_code_consumers.rs"]
 mod exit_code_consumers;
 #[path = "exit_codes.rs"]
@@ -255,8 +257,6 @@ mod surface_is_declared;
 mod sync_plan_and_apply_from_the_command_line;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
 mod sync_to_store_does_not_contradict_itself;
-#[path = "table_driven_tests_fixture_their_home.rs"]
-mod table_driven_tests_fixture_their_home;
 #[path = "the_binary_under_test_is_the_one_cargo_built.rs"]
 mod the_binary_under_test_is_the_one_cargo_built;
 #[path = "the_canon_set_is_derived.rs"]

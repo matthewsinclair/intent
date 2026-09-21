@@ -43,7 +43,6 @@
 //! and the row.
 
 use std::collections::BTreeSet;
-use std::process::Command;
 
 use intent_cli::dispatch;
 
@@ -74,7 +73,7 @@ use intent_cli::dispatch;
 /// future arm that reads a project cannot quietly make this walk depend on
 /// where it was invoked.
 fn help_for(path: &[String]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(path)
     .arg("--help")
     .current_dir(std::env::temp_dir())

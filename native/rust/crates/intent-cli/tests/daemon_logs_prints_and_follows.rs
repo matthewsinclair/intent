@@ -17,12 +17,8 @@ use intentsvcs::userstate::{Dirs, daemon_error_log_under, daemon_log_under};
 
 use crate::common::{children_of, short_dir};
 
-fn bin() -> PathBuf {
-  PathBuf::from(env!("CARGO_BIN_EXE_intent"))
-}
-
 fn intent(home: &Path) -> Command {
-  let mut cmd = Command::new(bin());
+  let mut cmd = crate::common::intent();
   cmd
     .env("HOME", home)
     .env_remove("XDG_STATE_HOME")

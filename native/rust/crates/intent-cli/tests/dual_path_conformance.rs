@@ -74,9 +74,13 @@
 
 use std::collections::BTreeSet;
 use std::path::Path;
-use std::process::Command;
 
 use intent_cli::dispatch;
+
+// Its own `[[test]]` target, so it reaches the spawn door by declaring the
+// shared module rather than through the suite (issue 0493).
+#[path = "common/mod.rs"]
+mod common;
 
 /// One way of reaching the implementation.
 ///
@@ -176,7 +180,7 @@ fn project() -> tempfile::TempDir {
 }
 
 fn via_binary(root: &Path, argv: &[String]) -> Answer {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())

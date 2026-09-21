@@ -12,7 +12,6 @@
 //! someone else's words.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use crate::common::{mcp_session, short_dir};
 
@@ -49,7 +48,7 @@ fn estate() -> PathBuf {
 
 /// `intent <args>` in `root` under an isolated HOME: its stderr and exit code.
 fn cli(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(root)
     .env("HOME", home)

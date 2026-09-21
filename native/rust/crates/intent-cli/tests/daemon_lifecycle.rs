@@ -31,7 +31,7 @@
 //! `intentd --help`.
 
 use std::path::PathBuf;
-use std::process::{Command, Output};
+use std::process::Output;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 /// An isolated `HOME` with a project in it, torn down on drop.
@@ -63,7 +63,7 @@ impl Machine {
     ));
     let project = home.join("proj");
     std::fs::create_dir_all(&project).expect("create the fixture");
-    let made = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let made = crate::common::intent()
       .args(["init", "lifecycle"])
       .current_dir(&project)
       .env("HOME", &home)
@@ -78,7 +78,7 @@ impl Machine {
   }
 
   fn run(&self, argv: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_intent"))
+    crate::common::intent()
       .args(argv)
       .current_dir(&self.project)
       .env("HOME", &self.home)

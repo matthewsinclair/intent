@@ -42,7 +42,6 @@
 //! file was created for and is recorded above.
 
 use std::collections::BTreeMap;
-use std::process::Command;
 
 fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
   run_under_home(args, cwd, testkit::fixture_home())
@@ -67,7 +66,7 @@ fn run_under_home(
   cwd: &std::path::Path,
   home: &std::path::Path,
 ) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", home)

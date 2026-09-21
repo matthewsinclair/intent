@@ -77,7 +77,7 @@ fn fixture_home() -> &'static std::path::Path {
 /// `Command` inline: the previous shape put the isolation at five call sites
 /// and a sixth one added later inherits nothing.
 fn intent_cmd() -> Command {
-  let mut cmd = Command::new(env!("CARGO_BIN_EXE_intent"));
+  let mut cmd = crate::common::intent();
   cmd
     .current_dir(outside_any_project())
     .env("HOME", fixture_home());

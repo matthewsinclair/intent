@@ -24,7 +24,6 @@
 //! surface over.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use crate::common::{mcp_session, short_dir};
 use serde_json::{Value, json};
@@ -69,7 +68,7 @@ fn project() -> (Fixture, String, u32, u32) {
 
 /// The exact stdout of an `intent …` invocation in the project.
 fn cli(root: &Path, argv: &[&str]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(root)
     .stdin(testkit::lifeline_for(argv))

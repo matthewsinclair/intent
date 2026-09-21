@@ -29,7 +29,7 @@
 //! command that really is unwired.
 
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use testkit::workspace_root;
 
@@ -94,7 +94,7 @@ fn hook_invocations(root: &Path) -> Vec<Vec<String>> {
 /// Code's event JSON from it, and a hook inheriting the test harness's stdin
 /// would hang rather than fail.
 fn run(args: &[String], cwd: &Path) -> (Option<i32>, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .stdin(Stdio::null())
@@ -180,7 +180,7 @@ fn the_marker_is_the_message_an_unimplemented_command_actually_prints() {
 #[test]
 fn the_gates_own_block_still_reaches_the_caller_through_the_v3_binary() {
   let root = install_root();
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["claude", "hook", "require-in-session"])
     .current_dir(&root)
     // A session whose sentinel cannot exist: the gate must choose to block.
@@ -256,11 +256,11 @@ fn the_hook_door_never_answers_in_the_callers_refusal_code() {
 #[test]
 fn info_resolves_the_path_the_pre_commit_gate_builds_its_guards_from() {
   let root = install_root();
-  let out = Command::new("sh")
+  let out = testkit::fixtured_command("sh")
     .arg("-c")
     .arg(format!(
       "{} info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1",
-      env!("CARGO_BIN_EXE_intent")
+      crate::common::intent_path().display()
     ))
     .current_dir(&root)
     .output()

@@ -17,6 +17,25 @@
 
 pub mod level_three;
 
+/// The `intent` binary cargo built for these tests, as a path.
+///
+/// **THE ONLY PLACE IN THIS CRATE'S TESTS THAT NAMES `CARGO_BIN_EXE_intent`
+/// (issue 0493).** `every_spawn_has_a_fixture_home.rs` refuses the literal
+/// anywhere else. So a new file reaches the binary through here, and a spawn
+/// through here gets the fixture HOME without having to know it needs one.
+/// This is for a caller that needs the PATH: to copy the binary, link it, or
+/// hand it to a shell. It is not for spawning. A spawn goes through [`intent`],
+/// and a copy is spawned through `testkit::fixtured_command`.
+pub fn intent_path() -> &'static std::path::Path {
+  std::path::Path::new(env!("CARGO_BIN_EXE_intent"))
+}
+
+/// A `Command` for the `intent` binary with the fixture HOME and no XDG
+/// variables (`testkit::fixtured_command`). This is how a test spawns it.
+pub fn intent() -> std::process::Command {
+  testkit::fixtured_command(intent_path())
+}
+
 /// A connected pseudo-terminal pair, as owned files.
 ///
 /// **THE MASTER MUST OUTLIVE THE CHILD.** Dropping it closes the terminal's
@@ -135,7 +154,8 @@ pub const PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// Drive one `intent mcp` session against `root`: every frame written in
 /// order, stdin closed (an MCP host's goodbye), every stdout line parsed as a
 /// frame. `home` isolates daemon discovery exactly as the daemon fixtures do;
-/// `None` leaves the ambient one.
+/// `None` leaves the fixture HOME [`intent`] gives every spawn (issue 0493; it
+/// left the operator's own until then).
 ///
 /// **ONE DRIVER FOR EVERY TEST THAT SPEAKS TO THE SERVER**, so no test file
 /// owns its own opinion about how frames are written or when stdin closes --
@@ -147,7 +167,7 @@ pub fn mcp_session(
   frames: &[&str],
 ) -> (std::process::Output, Vec<serde_json::Value>) {
   use std::io::Write;
-  let mut cmd = Command::new(env!("CARGO_BIN_EXE_intent"));
+  let mut cmd = intent();
   cmd
     .arg("mcp")
     .current_dir(root)
@@ -478,7 +498,7 @@ fn spawn_under(home: &Path) -> Child {
   // stops being an exec, the daemon becomes a GRANDCHILD and this is the only
   // one of the two mechanisms that still reaches it, because the pipe is
   // inherited down the whole chain while a pid is not.
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  intent()
     .args(["daemon", "run"])
     .env("HOME", home)
     .stdin(Stdio::piped())
@@ -820,7 +840,7 @@ pub fn string_literals(code: &str) -> Vec<String> {
 /// sibling is left alone -- that case already has a better message one call
 /// down, and duplicating it here would give one failure two homes.
 pub fn refuse_a_stale_sibling_daemon() {
-  let intent = Path::new(env!("CARGO_BIN_EXE_intent"));
+  let intent = intent_path();
   let Some(sibling) = intent.parent().map(|dir| dir.join("intentd")) else {
     return;
   };
@@ -988,7 +1008,7 @@ pub fn fake_install(dir: &Path) -> PathBuf {
   std::fs::create_dir_all(dir.join(intentsvcs::install::MARKER)).expect("marker");
   std::fs::create_dir_all(dir.join("bin")).expect("bin");
   let exe = dir.join("bin/intent");
-  std::fs::copy(env!("CARGO_BIN_EXE_intent"), &exe).expect("copy the binary");
+  std::fs::copy(intent_path(), &exe).expect("copy the binary");
   exe
 }
 

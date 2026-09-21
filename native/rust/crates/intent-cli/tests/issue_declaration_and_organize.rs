@@ -26,10 +26,10 @@
 //! removes the file first -- the same move `organize_default_declaration.rs`
 //! makes, for the same reason.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn intent(dir: &std::path::Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .stdin(std::process::Stdio::null())

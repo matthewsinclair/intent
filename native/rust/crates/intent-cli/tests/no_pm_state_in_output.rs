@@ -185,7 +185,7 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
 /// leaks it exists to find would be indistinguishable from correct output about
 /// the project it was standing in.
 fn run(dir: &Path, args: &[&str]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(dir)
     .env("HOME", testkit::fixture_home())

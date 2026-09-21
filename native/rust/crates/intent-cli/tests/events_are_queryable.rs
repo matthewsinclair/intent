@@ -7,7 +7,6 @@
 //! which is why the file was the log's only reader-facing surface at all.
 
 use std::path::Path;
-use std::process::Command;
 
 fn project() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -22,7 +21,7 @@ fn project() -> tempfile::TempDir {
 }
 
 fn intent(root: &Path, args: &[&str]) -> String {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))

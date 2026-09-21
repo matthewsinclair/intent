@@ -380,8 +380,14 @@ const REACHES_INTENT: &[&[&str]] = &[&["doctor"], &["sync"], &["schema"], &["--v
 
 /// Build the command for one case. **One recipe, used by both the oracle and
 /// the real runs**, so what the oracle proves is what the runs did.
-fn command(program: &str, args: &[&str], home: &Path, cwd: &Path, case: Option<&str>) -> Command {
-  let mut cmd = Command::new(program);
+fn command(
+  program: impl AsRef<std::ffi::OsStr>,
+  args: &[&str],
+  home: &Path,
+  cwd: &Path,
+  case: Option<&str>,
+) -> Command {
+  let mut cmd = testkit::fixtured_command(program);
   cmd.args(args).current_dir(cwd).env("HOME", home);
   match case {
     Some(value) => cmd.env("INTENT_HOME", value),
@@ -426,7 +432,7 @@ fn intent_home_changes_nothing_a_user_can_see() {
     let mut results = Vec::new();
     for (label, value) in CASES {
       let out = command(
-        env!("CARGO_BIN_EXE_intent"),
+        crate::common::intent_path(),
         args,
         home.path(),
         cwd.path(),

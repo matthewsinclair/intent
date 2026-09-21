@@ -20,7 +20,7 @@
 //! the live one.
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 
 use crate::common::{RealDaemon, short_dir};
 use serde_json::Value;
@@ -53,7 +53,7 @@ fn project() -> (Fixture, String) {
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", home)

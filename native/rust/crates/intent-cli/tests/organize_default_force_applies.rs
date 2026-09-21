@@ -68,7 +68,7 @@
 use std::io::Write as _;
 
 use std::path::Path;
-use std::process::{Command, Output, Stdio};
+use std::process::{Output, Stdio};
 
 // ---------------------------------------------------------------------------
 // THE HARNESS
@@ -86,7 +86,7 @@ fn intent_on_a_tty(dir: &Path, args: &[&str], answer: &str) -> Output {
   master
     .write_all(answer.as_bytes())
     .expect("type the answer into the terminal");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(dir)
     .stdin(Stdio::from(slave))
@@ -99,7 +99,7 @@ fn intent_on_a_tty(dir: &Path, args: &[&str], answer: &str) -> Output {
 }
 
 fn intent(dir: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .stdin(Stdio::null())

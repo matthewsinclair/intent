@@ -119,6 +119,43 @@ pub fn fixture_home() -> &'static Path {
     .as_path()
 }
 
+/// The XDG base-directory variables, each of which moves a slice of per-user
+/// state out from under `HOME` when it is set.
+///
+/// Removed rather than pointed at the fixture: a variable the operator never
+/// set is absent in their shell, and absent is the state the binary's own
+/// fallback to `HOME` was written for.
+const XDG: &[&str] = &[
+  "XDG_CONFIG_HOME",
+  "XDG_DATA_HOME",
+  "XDG_STATE_HOME",
+  "XDG_CACHE_HOME",
+  "XDG_RUNTIME_DIR",
+];
+
+/// A `Command` for `program` whose per-user state is the fixture's, never the
+/// operator's: `HOME` at [`fixture_home`] and every `XDG` variable removed.
+///
+/// **THE ONE DOOR FOR SPAWNING A BINARY UNDER TEST (issue 0493).**
+/// [`fixture_home`] existed and a third of the spawns used it. The rest
+/// inherited the operator's `HOME`, a population that was latent, not
+/// demonstrated: none of its verbs reached per-user state on the day it was
+/// counted. So the fix is a door rather than a sweep. A helper that
+/// every spawn goes through cannot be forgotten by the next file, and the
+/// literal census in intent-cli's suite refuses a spawn that goes round it.
+///
+/// A caller that wants its own temp `HOME` sets it afterwards, and the later
+/// `env` wins. So a test that needs a HOME of its own still gets one, and a test
+/// that forgets gets the fixture rather than the operator's.
+pub fn fixtured_command(program: impl AsRef<std::ffi::OsStr>) -> Command {
+  let mut command = Command::new(program);
+  command.env("HOME", fixture_home());
+  for var in XDG {
+    command.env_remove(var);
+  }
+  command
+}
+
 /// The nearest ancestor of this crate's manifest directory satisfying `pred`.
 ///
 /// `CARGO_MANIFEST_DIR` is the compiling crate's directory, which cargo sets for

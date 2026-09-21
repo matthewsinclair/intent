@@ -8,7 +8,6 @@
 //! `st edit`, each with this project's own address and another project's.
 
 use std::path::PathBuf;
-use std::process::Command;
 
 use crate::common::{mcp_session, short_dir};
 
@@ -56,7 +55,7 @@ fn st_hydrate_and_dehydrate_refuse_an_address_whole() {
   for verb in ["hydrate", "dehydrate"] {
     for url in ADDRESSES {
       let args = ["st", verb, url];
-      let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      let out = crate::common::intent()
         .args(args)
         .current_dir(&root)
         .env("HOME", &home)

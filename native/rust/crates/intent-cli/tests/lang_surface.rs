@@ -15,10 +15,10 @@
 //! exemption from the project gate; taking one here would exempt precisely the
 //! two verbs that mutate.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn run(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .stdin(testkit::lifeline_for(args))
     .output()
@@ -27,7 +27,7 @@ fn run(args: &[&str]) -> Output {
 
 /// Run from a directory that is NOT inside an Intent project, for INV-03.
 fn run_outside(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(std::env::temp_dir())
     .stdin(testkit::lifeline_for(args))
@@ -257,7 +257,7 @@ fn a_language_command_does_not_migrate_a_v2_project_behind_the_operator() {
     vec!["lang", "init", "rust"],
     vec!["lang", "remove", "elixir"],
   ] {
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(&args)
       .current_dir(&dir)
       .output()

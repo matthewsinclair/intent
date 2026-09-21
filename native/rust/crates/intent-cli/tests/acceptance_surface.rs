@@ -40,7 +40,7 @@
 //! a register question for the ruled voice, not a defect in the split.
 
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn project() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -97,7 +97,7 @@ fn at_row(id: &str, covers: &str) -> String {
 }
 
 fn run(root: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))

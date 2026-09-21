@@ -9,10 +9,9 @@
 //! caller could see on their own command line, dropped without a word.
 
 use std::path::Path;
-use std::process::Command;
 
 fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

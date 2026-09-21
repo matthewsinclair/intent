@@ -30,7 +30,7 @@
 //! line to name that.
 
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
 use intentsvcs::model::{TShirt, enum_str};
 
@@ -87,7 +87,7 @@ fn seed(root: &Path) {
 }
 
 fn run(root: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))

@@ -54,7 +54,6 @@
 //! and a citation to a holder does not.
 
 use std::collections::BTreeSet;
-use std::process::Command;
 use std::sync::OnceLock;
 
 use intent_cli::dispatch;
@@ -428,7 +427,7 @@ fn probe_every_shipped_entry() -> Wiredness {
     // wired verb is settled by that verb and its later, possibly writing,
     // verbs are never reached.
     let every_answer_refused = invocations.iter().all(|argv| {
-      let output = Command::new(env!("CARGO_BIN_EXE_intent"))
+      let output = crate::common::intent()
         .args(argv)
         .current_dir(dir.path())
         .env("HOME", dir.path())
@@ -1199,7 +1198,7 @@ fn an_early_exit_flag_answers_without_the_positional_it_sits_beside() {
     .collect();
 
   let dir = tempfile::tempdir().expect("tempdir");
-  let bare = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let bare = crate::common::intent()
     .args(["critic", "--languages"])
     .current_dir(dir.path())
     .output()
@@ -1223,7 +1222,7 @@ fn an_early_exit_flag_answers_without_the_positional_it_sits_beside() {
   // before the language is read, so the language cannot change the answer.
   // Without this arm, dropping `lang` from the grammar entirely would satisfy
   // everything above.
-  let with_positional = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let with_positional = crate::common::intent()
     .args(["critic", "shell", "--languages"])
     .current_dir(dir.path())
     .output()

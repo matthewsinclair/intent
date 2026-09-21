@@ -19,14 +19,13 @@
 //! assumed.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 /// The binary, copied somewhere it has no install tree, with the fixture's
 /// isolation asserted rather than assumed.
 fn isolated_binary() -> (tempfile::TempDir, PathBuf) {
   let dir = tempfile::tempdir().expect("tempdir");
   let dest = dir.path().join("intent");
-  std::fs::copy(env!("CARGO_BIN_EXE_intent"), &dest).expect("copy the binary out of the repo");
+  std::fs::copy(crate::common::intent_path(), &dest).expect("copy the binary out of the repo");
 
   // THE CONTROL. Walk every ancestor of the copied binary and require that
   // none of them holds an Intent install. Without this the test passes on a
@@ -62,7 +61,7 @@ fn isolated_binary() -> (tempfile::TempDir, PathBuf) {
 fn run_isolated(bin: &Path, args: &[&str], cwd: &Path) -> (String, String, i32) {
   let out = testkit::output_retrying_busy(
     || {
-      let mut c = Command::new(bin);
+      let mut c = testkit::fixtured_command(bin);
       c.args(args).current_dir(cwd).env_remove("INTENT_HOME");
       c
     },

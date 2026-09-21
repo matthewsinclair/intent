@@ -201,7 +201,7 @@ fn git(root: &Path, args: &[&str]) {
 
 /// Run one door against the fixture, with every ambient input pinned.
 fn run_door(bin: &Path, name: &str, fx: &Path, stdin: &[u8]) -> Run {
-  let mut child = Command::new(bin)
+  let mut child = testkit::fixtured_command(bin)
     .args(["claude", "hook", name])
     .current_dir(fx)
     .env("CLAUDE_PROJECT_DIR", fx)
@@ -237,7 +237,7 @@ fn run_door(bin: &Path, name: &str, fx: &Path, stdin: &[u8]) -> Run {
 }
 
 fn v3() -> PathBuf {
-  PathBuf::from(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent_path().to_path_buf()
 }
 
 /// **Every hook the canon ships must be reachable through v3's door.**

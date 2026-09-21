@@ -46,7 +46,6 @@ use std::io::Write;
 use std::net::{Ipv4Addr, SocketAddr, TcpListener};
 use std::os::unix::net::UnixListener;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
@@ -692,7 +691,7 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
     // Held across the spawn: a `fork` here can leak a sibling test's listening
     // fd into the child and keep a released socket answering. See FORK_GUARD.
     let _no_forks = no_forks_here();
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(argv)
       .current_dir(project.path())
       .env("HOME", home.path())
@@ -842,7 +841,7 @@ fn the_shipped_cli_refuses_an_address_it_cannot_read() {
 
   let run = || {
     let _no_forks = no_forks_here();
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(["st", "list"])
       .current_dir(project.path())
       .env("HOME", home.path())

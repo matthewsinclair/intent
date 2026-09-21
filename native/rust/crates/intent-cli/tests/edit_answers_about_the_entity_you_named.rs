@@ -22,11 +22,6 @@
 //! of 69 on this estate** (vc). Common and silent, not rare and loud.
 
 use std::path::Path;
-use std::process::Command;
-
-fn bin() -> std::path::PathBuf {
-  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
-}
 
 /// A project with one thread and one issue **whose numbers collide** -- which
 /// is the only configuration in which the defect is observable at all.
@@ -39,7 +34,7 @@ fn seeded() -> tempfile::TempDir {
 }
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
-  let out = Command::new(bin())
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

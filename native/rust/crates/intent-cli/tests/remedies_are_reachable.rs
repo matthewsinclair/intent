@@ -48,7 +48,6 @@
 //! rather than remembered.
 
 use std::collections::BTreeSet;
-use std::process::Command;
 
 /// The unwired marker, **RE-TYPED AND NEVER IMPORTED**.
 ///
@@ -213,10 +212,6 @@ const FORBIDDEN: &[(&str, &str)] = &[
 /// at the moment it first had nothing to excuse.
 const INHERITED_UNREACHABLE: &[&str] = &[];
 
-fn binary() -> &'static str {
-  env!("CARGO_BIN_EXE_intent")
-}
-
 /// Whether a command path reaches a verb the binary actually implements.
 ///
 /// **ARGUMENTS ARE ADDED UNTIL CLAP STOPS COMPLAINING, WHICH IS dc's TRAP AS
@@ -330,7 +325,7 @@ impl Fixture {
     let dir = tempfile::tempdir().expect("tempdir");
     let home = tempfile::tempdir().expect("home");
     let (lifeline_read, _lifeline) = std::io::pipe().expect("a lifeline pipe");
-    let out = Command::new(binary())
+    let out = crate::common::intent()
       .args(["init", "R"])
       .current_dir(dir.path())
       .env("HOME", home.path())
@@ -358,7 +353,7 @@ impl Fixture {
     } else {
       std::process::Stdio::null()
     };
-    let out = Command::new(binary())
+    let out = crate::common::intent()
       .args(argv)
       .current_dir(self.dir.path())
       .env("HOME", self.home.path())
@@ -581,7 +576,7 @@ fn the_harvest_reaches_a_remedy_the_estate_asserts_elsewhere() {
     "{\"intent_version\":\"2.19.0\",\"project_name\":\"U\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
   )
   .expect("write config");
-  let out = Command::new(binary())
+  let out = crate::common::intent()
     .args(["st", "list"])
     .current_dir(unmigrated.path())
     .env("HOME", fx.home.path())

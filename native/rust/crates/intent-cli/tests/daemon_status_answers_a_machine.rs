@@ -24,16 +24,11 @@
 //! same source as the other two.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::common::RealDaemon;
 
-fn bin() -> std::path::PathBuf {
-  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
-}
-
 fn status_json(home: &Path) -> serde_json::Value {
-  let out = Command::new(bin())
+  let out = crate::common::intent()
     .args(["daemon", "status", "--format", "json"])
     .env("HOME", home)
     .output()

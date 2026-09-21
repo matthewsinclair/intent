@@ -39,7 +39,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixListener;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -169,7 +169,7 @@ fn project() -> PathBuf {
 
 /// Run the shipped `intent` binary in a project, with a chosen `HOME`.
 fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", home)
@@ -832,7 +832,7 @@ struct StopWhateverTheRemedyStarted {
 
 impl Drop for StopWhateverTheRemedyStarted {
   fn drop(&mut self) {
-    let _ = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let _ = crate::common::intent()
       .args(["daemon", "stop"])
       .env("HOME", &self.home)
       .output();

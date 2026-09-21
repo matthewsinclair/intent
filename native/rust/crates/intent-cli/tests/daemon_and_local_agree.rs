@@ -57,7 +57,7 @@
 //! amended by whoever was typing.**
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 
 use crate::common::{RealDaemon, seed_findable_text, servable_argv, short_dir};
 
@@ -126,7 +126,7 @@ fn project() -> Fixture {
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", home)

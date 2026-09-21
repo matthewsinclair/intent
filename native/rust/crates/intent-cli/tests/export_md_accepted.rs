@@ -17,10 +17,8 @@
 //! quietly grown an import path, which is precisely what AC-06.2 forbids and
 //! precisely the change a future contributor would think helpful.
 
-use std::process::Command;
-
 fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .stdin(testkit::lifeline_for(args))

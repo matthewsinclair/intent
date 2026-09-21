@@ -5,14 +5,13 @@
 //! reached a dead one with nothing to say so.
 
 use std::path::Path;
-use std::process::Command;
 
 const SESSION: &str = "0433-the-session-this-pickup-runs-in";
 
 /// `intent` with the session variable set to `session`, or removed, so a test
 /// run from inside a Claude Code session cannot lend the fixture its own id.
 fn run(cwd: &Path, args: &[&str], session: Option<&str>) -> (String, i32) {
-  let mut command = Command::new(env!("CARGO_BIN_EXE_intent"));
+  let mut command = crate::common::intent();
   command
     .args(args)
     .current_dir(cwd)

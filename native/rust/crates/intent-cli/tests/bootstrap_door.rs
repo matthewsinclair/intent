@@ -20,11 +20,6 @@
 //! setting `HOME` are the sanctioned way to build a controlled environment.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
-
-fn bin() -> PathBuf {
-  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
-}
 
 fn fixture(name: &str) -> PathBuf {
   let dir = std::env::temp_dir().join(format!("intent-bootstrap-door-{name}"));
@@ -35,7 +30,7 @@ fn fixture(name: &str) -> PathBuf {
 
 /// One run of `intent bootstrap` against a fixture home.
 fn run(home: &Path, args: &[&str], user: Option<&str>) -> (String, String, i32) {
-  let mut cmd = Command::new(bin());
+  let mut cmd = crate::common::intent();
   cmd.arg("bootstrap").args(args).env("HOME", home);
   match user {
     Some(u) => {

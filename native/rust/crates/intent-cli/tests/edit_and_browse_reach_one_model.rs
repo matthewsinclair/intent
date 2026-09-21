@@ -232,7 +232,7 @@ fn a_deep_link_gets_the_shell_and_only_on_get() {
 // ---------------------------------------------------------------------------
 
 fn cli(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
-  let out = std::process::Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(root)
     .env("HOME", home)

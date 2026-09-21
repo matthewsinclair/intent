@@ -18,10 +18,10 @@
 //! the index learned to carry it.
 
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn run(root: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))
@@ -58,7 +58,7 @@ fn ok(root: &Path, args: &[&str]) -> String {
 /// cleanup vc attached to AC-03.9, taken now that the flag exists -- and it is
 /// a better test for it, since the command is what a user runs.
 fn restore_from_disk(root: &Path) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["sync", "--to-store"])
     .current_dir(root)
     .output()

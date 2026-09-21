@@ -87,13 +87,21 @@ fn no_test_resolves_the_binary_by_a_hardcoded_path() {
 /// has now met from four directions. If the walk breaks, or `tests/` moves,
 /// the arm above goes green on nothing and says the same word it says when the
 /// estate is genuinely clean.
+///
+/// **THE DOOR COUNTS AS RESOLVING THROUGH CARGO (issue 0493).** intent-cli's
+/// tests reach the binary through `crate::common::intent()` and
+/// `intent_path()`, which are `env!("CARGO_BIN_EXE_intent")` in the one place
+/// allowed to name it, so a file spawning through them is in this population.
 #[test]
 fn the_census_sees_the_tests_that_actually_spawn_the_binary() {
   let root = workspace_root();
   let spawners: Vec<String> = test_sources(&root)
     .into_iter()
     .filter(|path| !is_this_file(path))
-    .filter(|path| code_of(path).contains("CARGO_BIN_EXE_"))
+    .filter(|path| {
+      let code = code_of(path);
+      code.contains("CARGO_BIN_EXE_") || code.contains("common::intent")
+    })
     .map(|path| shown(&root, &path))
     .collect();
 

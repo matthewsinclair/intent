@@ -9,7 +9,7 @@
 //! hv's pen, 2026-08-31): the mutation arm below is that bound, driven.
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 
 use crate::common::{RealDaemon, mcp_session, short_dir};
 use serde_json::Value;
@@ -42,7 +42,7 @@ fn project() -> (Fixture, String) {
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", home)

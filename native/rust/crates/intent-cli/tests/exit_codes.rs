@@ -77,7 +77,7 @@ fn run(args: &[&str]) -> Output {
 /// them quietly stops picking up `CARGO_BIN_EXE_intent` and starts measuring
 /// whatever `intent` is on PATH, which is the v2 binary on every machine here.
 fn run_in(dir: &std::path::Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .stdin(testkit::lifeline_for(args))
@@ -325,7 +325,7 @@ fn shipped_hook_in(intent_version: &str, language: &str) -> (Option<i32>, String
   let shim = root.join("shim");
   std::fs::create_dir_all(&shim).expect("mkdir shim");
   #[cfg(unix)]
-  std::os::unix::fs::symlink(env!("CARGO_BIN_EXE_intent"), shim.join("intent"))
+  std::os::unix::fs::symlink(crate::common::intent_path(), shim.join("intent"))
     .expect("put v3 first on PATH as `intent`");
 
   let path = format!(
@@ -351,7 +351,7 @@ fn shipped_hook_in(intent_version: &str, language: &str) -> (Option<i32>, String
   // That arm's estate is legitimately viewless, and `unmigrated` is advisory
   // precisely so it can still commit.
   if intent_version.starts_with('3') {
-    let synced = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let synced = crate::common::intent()
       .args(["sync", "--to-disk"])
       .current_dir(root)
       .output()
@@ -529,7 +529,7 @@ fn an_unmigrated_project_can_still_commit() {
     "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}\n",
   )
   .expect("write config");
-  let control = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let control = crate::common::intent()
     .args(["st", "list"])
     .current_dir(dir.path())
     .output()

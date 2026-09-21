@@ -18,14 +18,13 @@
 //! at rc 0.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::common::short_dir;
 
 fn doctor(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
   let mut argv = vec!["doctor"];
   argv.extend_from_slice(args);
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(&argv)
     .current_dir(root)
     .env("HOME", home)

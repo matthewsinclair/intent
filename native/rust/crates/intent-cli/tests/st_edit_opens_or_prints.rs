@@ -52,10 +52,10 @@
 //! reader.
 
 use std::path::Path;
-use std::process::{Command, Output, Stdio};
+use std::process::{Output, Stdio};
 
 fn intent(dir: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .env("HOME", testkit::fixture_home())
@@ -156,7 +156,7 @@ fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "edit", "ST0001", "design"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -230,7 +230,7 @@ fn path_forces_the_path_and_editor_forces_the_launch_off_a_terminal() {
     expected(dir.path())
   );
 
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "edit", "ST0001", "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -280,7 +280,7 @@ fn on_a_terminal(dir: &Path, args: &[&str], editor: Option<&str>) -> (bool, Stri
 
   let (master, slave) = crate::common::pty_pair();
   let mut child = {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_intent"));
+    let mut command = crate::common::intent();
     command
       .args(args)
       .current_dir(dir)
@@ -415,7 +415,7 @@ fn an_unset_editor_refuses_and_names_the_way_out() {
 #[test]
 fn an_editor_no_process_can_run_is_refused_by_name() {
   let dir = seeded();
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "edit", "ST0001", "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -446,7 +446,7 @@ fn visual_is_consulted_before_editor() {
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "edit", "ST0001", "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -475,7 +475,7 @@ fn visual_is_consulted_before_editor() {
 #[test]
 fn a_failing_editor_is_reported_rather_than_swallowed() {
   let dir = seeded();
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "edit", "ST0001", "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -551,7 +551,7 @@ fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_po
   // on the previous arm's evidence.
   let fallback = dir.path().join("fallback.log");
   let resolved = fake_editor(dir.path(), &fallback);
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["edit", "st", "ST0001", "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())

@@ -54,7 +54,7 @@ fn staged_outside_any_install() -> (tempfile::TempDir, PathBuf) {
   let bin = dir.path().join("bin");
   std::fs::create_dir_all(&bin).expect("mkdir bin");
   let dest = bin.join("intent");
-  std::fs::copy(env!("CARGO_BIN_EXE_intent"), &dest).expect("copy the binary out of its install");
+  std::fs::copy(crate::common::intent_path(), &dest).expect("copy the binary out of its install");
   #[cfg(unix)]
   {
     use std::os::unix::fs::PermissionsExt;
@@ -96,7 +96,7 @@ fn migrated_project(at: &Path) -> PathBuf {
 fn info(exe: &Path, cwd: &Path) -> (Option<i32>, String, String) {
   let out = testkit::output_retrying_busy(
     || {
-      let mut c = Command::new(exe);
+      let mut c = testkit::fixtured_command(exe);
       c.arg("info").current_dir(cwd).stdin(Stdio::null());
       c
     },
@@ -119,7 +119,7 @@ const NOT_SET: &str = "<not set>";
 #[test]
 fn a_resolvable_install_succeeds() {
   let root = install_root();
-  let (code, stdout, stderr) = info(Path::new(env!("CARGO_BIN_EXE_intent")), &root);
+  let (code, stdout, stderr) = info(crate::common::intent_path(), &root);
 
   assert_eq!(
     code,
@@ -232,7 +232,7 @@ fn the_failure_is_not_reported_in_the_code_consumers_read_as_fail_open() {
 /// `info` inherits the migration refusal.
 #[test]
 fn project_state_never_reaches_the_exit_code() {
-  let exe = Path::new(env!("CARGO_BIN_EXE_intent"));
+  let exe = crate::common::intent_path();
   let dir = tempfile::tempdir().expect("tempdir");
 
   let (code, stdout, stderr) = info(exe, dir.path());

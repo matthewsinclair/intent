@@ -73,7 +73,7 @@ fn intent_home() -> PathBuf {
 fn fake_install(base: &Path, repo: &Path) -> PathBuf {
   let install = base.join("install");
   fs::create_dir_all(install.join("bin")).expect("install bin");
-  fs::copy(env!("CARGO_BIN_EXE_intent"), install.join("bin/intent"))
+  fs::copy(crate::common::intent_path(), install.join("bin/intent"))
     .expect("copy the binary under test");
   std::os::unix::fs::symlink(repo.join("lib"), install.join("lib"))
     .expect("point at the shipped lib");
@@ -326,7 +326,7 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
   let install = fake_install(td.path(), &home);
   let info = testkit::output_retrying_busy(
     || {
-      let mut c = Command::new(install.join("bin/intent"));
+      let mut c = testkit::fixtured_command(install.join("bin/intent"));
       c.arg("info").current_dir(td.path());
       c
     },

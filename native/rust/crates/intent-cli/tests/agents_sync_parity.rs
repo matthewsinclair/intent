@@ -46,10 +46,9 @@
 //! asking the generator for its own output set.
 
 use std::path::Path;
-use std::process::Command;
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

@@ -32,10 +32,8 @@
 //! stdout. Two citations keep two assertions separately falsifiable; one wider
 //! row makes a green mean less.
 
-use std::process::Command;
-
 fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .stdin(testkit::lifeline_for(args))

@@ -32,10 +32,10 @@
 //! package version, and carrying the embedded commit. **Each of those three
 //! would independently fail if the answer went hollow.**
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn run(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .stdin(testkit::lifeline_for(args))
     .output()

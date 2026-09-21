@@ -116,7 +116,7 @@ impl ForegroundDaemon {
     // the argument for that check existing: three sites were armed
     // deliberately and a fourth was not, in the same hour, by the person who
     // wrote the fix.
-    let child = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let child = crate::common::intent()
       .args(["daemon", "run"])
       .env("HOME", &home)
       .stdin(Stdio::piped())

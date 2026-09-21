@@ -4,10 +4,9 @@
 //! "ADVISORY, not a refusal". This is the only arm that reads the rendered
 //! line, so it is the only arm a mutation of the renderer can red.
 use std::path::Path;
-use std::process::Command;
 
 fn intent(root: &Path, args: &[&str]) -> (bool, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))

@@ -110,15 +110,16 @@ impl Fixture {
   }
 
   /// Run a command with the temporary git config in force.
-  fn run(&self, program: &str, args: &[&str]) -> (bool, String) {
-    let out = Command::new(program)
+  fn run(&self, program: impl AsRef<std::ffi::OsStr>, args: &[&str]) -> (bool, String) {
+    let shown = program.as_ref().to_owned();
+    let out = testkit::fixtured_command(&shown)
       .args(args)
       .current_dir(self.root())
       .env("GIT_CONFIG_GLOBAL", self.home.path().join("gitconfig"))
       .env("HOME", self.home.path())
       .stdin(testkit::lifeline_for(args))
       .output()
-      .unwrap_or_else(|e| panic!("run {program}: {e}"));
+      .unwrap_or_else(|e| panic!("run {}: {e}", shown.to_string_lossy()));
     (
       out.status.success(),
       format!(
@@ -150,7 +151,7 @@ fn a_global_gitignore_rule_does_not_shrink_the_corpus() {
      temporary global config, so this test could not have failed"
   );
 
-  let (_, output) = fx.run(env!("CARGO_BIN_EXE_intent"), &["doctor"]);
+  let (_, output) = fx.run(crate::common::intent_path(), &["doctor"]);
 
   assert!(
     output.contains(PROBE),

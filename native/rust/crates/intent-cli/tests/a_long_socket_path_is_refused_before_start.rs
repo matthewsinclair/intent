@@ -7,7 +7,6 @@
 //! away from the person who needed it.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use intentsvcs::daemon::{DaemonError, socket_path_fits};
 
@@ -78,7 +77,7 @@ fn daemon_start_refuses_a_long_socket_path_before_it_spawns() {
   );
 
   let argv = ["daemon", "start"];
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(&home)
     .env("HOME", &home)

@@ -29,7 +29,6 @@
 //! making none of them run.
 
 use std::path::Path;
-use std::process::Command;
 
 use intent_cli::dispatch;
 
@@ -386,7 +385,7 @@ fn placeholder_args(entry: &dispatch::Entry) -> Vec<String> {
 }
 
 fn run(root: &Path, argv: &[String]) -> (i32, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
@@ -488,7 +487,7 @@ fn no_shipped_command_answers_from_an_unmigrated_project() {
 #[test]
 fn the_refusal_is_a_failure_on_stderr_not_output_on_stdout() {
   let dir = legacy_project();
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["st", "list"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())

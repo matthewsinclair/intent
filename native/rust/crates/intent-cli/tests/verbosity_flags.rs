@@ -20,11 +20,6 @@
 //! estate would notice: both spellings are accepted either way.
 
 use std::path::Path;
-use std::process::Command;
-
-fn bin() -> &'static Path {
-  Path::new(env!("CARGO_BIN_EXE_intent"))
-}
 
 /// Run `doctor` in THIS repository, which is a real v3 project.
 ///
@@ -41,7 +36,7 @@ fn doctor(args: &[&str]) -> String {
     .expect("the project root is four above crates/intent-cli");
   let mut argv = vec!["doctor"];
   argv.extend_from_slice(args);
-  let out = Command::new(bin())
+  let out = crate::common::intent()
     .args(&argv)
     .current_dir(root)
     .output()
@@ -128,7 +123,7 @@ fn quiet_is_strictly_less_than_the_default() {
   )
   .expect("write config");
 
-  let made = Command::new(bin())
+  let made = crate::common::intent()
     .args(["st", "new", "A thread"])
     .current_dir(root)
     .output()
@@ -154,7 +149,7 @@ fn quiet_is_strictly_less_than_the_default() {
   let at = |args: &[&str]| -> String {
     let mut argv = vec!["doctor"];
     argv.extend_from_slice(args);
-    let out = Command::new(bin())
+    let out = crate::common::intent()
       .args(&argv)
       .current_dir(root)
       .output()

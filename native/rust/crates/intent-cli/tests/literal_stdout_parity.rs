@@ -40,7 +40,6 @@
 //! handled here. Stated rather than half-generalised.
 
 use std::path::Path;
-use std::process::Command;
 
 use intent_cli::dispatch;
 
@@ -137,10 +136,6 @@ fn seed(root: &Path) {
   .expect("write issue");
 }
 
-fn bin() -> &'static str {
-  env!("CARGO_BIN_EXE_intent")
-}
-
 /// Returns the two channels SEPARATELY, and that separation is the point.
 ///
 /// **This used to concatenate stderr onto stdout and compare the merged string
@@ -162,7 +157,7 @@ fn bin() -> &'static str {
 /// the same stream as the answer and **the failure was well-formed input**.
 /// Same shape, one layer down.
 fn run(root: &Path, argv: &[String]) -> (String, String, bool) {
-  let out = Command::new(bin())
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(root)
     .stdin(testkit::lifeline_for(argv))

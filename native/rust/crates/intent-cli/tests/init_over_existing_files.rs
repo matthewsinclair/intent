@@ -15,10 +15,9 @@
 //! proves it did not write before saying it.
 
 use std::path::Path;
-use std::process::Command;
 
 fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .stdin(testkit::lifeline_for(args))

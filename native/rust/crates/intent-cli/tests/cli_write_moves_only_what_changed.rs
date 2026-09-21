@@ -71,7 +71,6 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::SystemTime;
 
 // ---------------------------------------------------------------------------
@@ -187,7 +186,7 @@ fn verdict(
 // ---------------------------------------------------------------------------
 
 fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .stdin(testkit::lifeline_for(args))

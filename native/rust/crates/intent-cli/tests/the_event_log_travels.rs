@@ -35,7 +35,7 @@ struct Clone {
 
 impl Clone {
   fn run(&self, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_intent"))
+    crate::common::intent()
       .args(args)
       .current_dir(&self.root)
       .env("HOME", &self.home)

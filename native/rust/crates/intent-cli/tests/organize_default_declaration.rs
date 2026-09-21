@@ -40,10 +40,10 @@
 //! it sees the prompt or does not -- while the covered half is the one that
 //! would let a script regenerate a declaration with nobody watching.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn intent(dir: &std::path::Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     // **stdin CLOSED, DELIBERATELY: that is what makes these runs non-tty.**

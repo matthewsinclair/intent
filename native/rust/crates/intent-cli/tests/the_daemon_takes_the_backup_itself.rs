@@ -23,7 +23,6 @@
 //! `intentd --help`.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::common::RealDaemon;
 
@@ -150,7 +149,7 @@ fn the_cli_can_see_what_the_daemon_backed_up() {
   // opt-in, so this is an ordinary in-process read of a store another process
   // has open -- which the store serialises, and which is the arrangement
   // `StoreNeed::Shared` exists to permit.
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["backup", "--list"])
     .current_dir(root)
     .env("HOME", daemon.home())

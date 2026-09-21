@@ -550,7 +550,7 @@ fn the_strip_removes_the_markers_and_the_prose_and_nothing_else() {
 }
 
 fn run(args: &[&str]) -> String {
-  let out = std::process::Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .stdin(testkit::lifeline_for(args))
     .output()

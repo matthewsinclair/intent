@@ -20,7 +20,7 @@
 //! unit tests: it is exercising the real binary against a real project.
 
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
 use intent_cli::dispatch;
 use intent_cli::spine::{EXIT_ERROR, EXIT_OK, EXIT_UNAVAILABLE};
@@ -85,7 +85,7 @@ fn seed_closeable_thread(root: &Path) {
 /// was written for: `dispatch_ssot` had already published this machine's
 /// install pointer to a scratch worktree that was then deleted.
 fn run(root: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
@@ -979,7 +979,7 @@ fn the_table_tracks_the_terminal_width_in_both_directions() {
   );
 
   let width_at = |cols: &str| -> usize {
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(["st", "list", "--status", "all"])
       .current_dir(root)
       .env("COLUMNS", cols)
@@ -1002,7 +1002,7 @@ fn the_table_tracks_the_terminal_width_in_both_directions() {
   // The clip is visible rather than silent: a reader must be able to tell a
   // shortened value from a short one.
   let narrow_text = {
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(["st", "list", "--status", "all"])
       .current_dir(root)
       .env("COLUMNS", "60")
@@ -1045,7 +1045,7 @@ fn width_is_overridable_and_markdown_is_width_independent() {
   );
 
   let run_at = |cols: &str, args: &[&str]| -> String {
-    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let out = crate::common::intent()
       .args(args)
       .current_dir(root)
       .env("COLUMNS", cols)

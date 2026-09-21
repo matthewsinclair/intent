@@ -12,8 +12,6 @@
 //! get right. So the corpus is the real command list, uniqueness is computed
 //! from it, and the assertions follow.
 
-use std::process::Command;
-
 use intent_cli::dispatch;
 
 /// Every top-level command name the SHIPPED surface carries.
@@ -58,7 +56,7 @@ fn top_level() -> Vec<String> {
 /// happen was anybody running it. **A guard that works and a loop nobody runs
 /// are indistinguishable from a green** (vc, 2026-08-30).
 fn run(argv: &[&str]) -> (i32, String, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .env("HOME", testkit::fixture_home())
     .stdin(testkit::lifeline_for(argv))

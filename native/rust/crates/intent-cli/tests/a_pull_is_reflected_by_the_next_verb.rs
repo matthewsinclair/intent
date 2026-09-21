@@ -79,14 +79,14 @@ impl Team {
 
   /// `PATH` with the binary under test first, so the hooks find THIS `intent`.
   fn path(&self) -> String {
-    let bin = Path::new(env!("CARGO_BIN_EXE_intent"))
+    let bin = crate::common::intent_path()
       .parent()
       .expect("the binary's directory");
     format!("{}:/usr/bin:/bin", bin.display())
   }
 
-  fn command(&self, program: &str, cwd: &Path, path: &str) -> Command {
-    let mut command = Command::new(program);
+  fn command(&self, program: impl AsRef<std::ffi::OsStr>, cwd: &Path, path: &str) -> Command {
+    let mut command = testkit::fixtured_command(program);
     command
       .current_dir(cwd)
       .env("HOME", &self.home)
@@ -114,7 +114,7 @@ impl Team {
   }
 
   fn intent(&self, cwd: &Path, args: &[&str]) -> Ran {
-    let mut command = self.command(env!("CARGO_BIN_EXE_intent"), cwd, &self.path());
+    let mut command = self.command(crate::common::intent_path(), cwd, &self.path());
     command.args(args).stdin(testkit::lifeline_for(args));
     self.ran(command)
   }

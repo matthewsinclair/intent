@@ -14,7 +14,6 @@ use intentsvcs::index::symbols::Symbol;
 use intentsvcs::model::sha256_hex;
 use std::collections::BTreeMap;
 use std::path::Path;
-use std::process::Command;
 
 /// `helper` is called on line 2 and defined on line 6; `other` is called on
 /// line 3 and defined nowhere in the project.
@@ -27,7 +26,7 @@ pub const HELPER: &str = "crate::helper()";
 
 /// The binary in `cwd`, under the fixture HOME: stdout, stderr and the code.
 pub fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = super::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

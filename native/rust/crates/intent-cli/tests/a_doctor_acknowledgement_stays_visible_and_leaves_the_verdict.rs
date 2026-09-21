@@ -21,10 +21,9 @@
 //! meet.
 
 use std::path::Path;
-use std::process::Command;
 
 fn intent(root: &Path, args: &[&str]) -> (bool, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .current_dir(root)
     .stdin(testkit::lifeline_for(args))

@@ -23,8 +23,6 @@
 //! saying *we do not parse the message* is worth nothing next to a function
 //! that cannot.
 
-use std::process::Command;
-
 use intent_cli::{dispatch, spine};
 
 /// Everything a caller can learn about a command it was refused.
@@ -60,7 +58,7 @@ fn classify(code: i32, roster: &[String], path: &str) -> Verdict {
 /// is very often standing outside one.
 fn run(argv: &[&str]) -> i32 {
   let dir = tempfile::tempdir().expect("tempdir");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(argv)
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -92,7 +90,7 @@ fn run_path(path: &str) -> i32 {
 fn run_saying(path: &str) -> (i32, String) {
   let argv: Vec<&str> = path.split_whitespace().collect();
   let dir = tempfile::tempdir().expect("tempdir");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(&argv)
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
@@ -134,7 +132,7 @@ const UNWIRED_MARKER: &str = "is a known command that is not implemented yet";
 /// The roster as a CALLER reads it: off stdout, as JSON, parsed.
 fn published_roster() -> Vec<String> {
   let dir = tempfile::tempdir().expect("tempdir");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["surface", "retired", "--format", "json"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())

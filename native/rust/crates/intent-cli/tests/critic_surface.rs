@@ -90,7 +90,7 @@ fn fixture(name: &str) -> PathBuf {
 /// Drive the shipped binary from the repository root, which is where its canon
 /// discovery finds the real rule library.
 fn critic(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .arg("critic")
     .args(args)
     .current_dir(repo_root())
@@ -342,7 +342,7 @@ fn json_carries_both_the_findings_and_the_denominator_the_bare_array_could_not()
 fn staged_is_refused_outside_a_repository_and_clean_inside_one_with_nothing_staged() {
   let dir = tempfile::tempdir().expect("tempdir");
 
-  let outside = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let outside = crate::common::intent()
     .args(["critic", "elixir", "--staged"])
     .current_dir(dir.path())
     .output()
@@ -388,7 +388,7 @@ fn staged_is_refused_outside_a_repository_and_clean_inside_one_with_nothing_stag
   )
   .expect("project marker");
 
-  let inside = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let inside = crate::common::intent()
     .args(["critic", "elixir", "--staged"])
     .current_dir(dir.path())
     .output()
@@ -427,7 +427,7 @@ fn a_disabled_rule_is_suppressed_and_disabling_another_leaves_it_firing() {
       format!("disabled:\n  - {disabled}\nseverity_min: critical\n"),
     )
     .expect("critic config");
-    Command::new(env!("CARGO_BIN_EXE_intent"))
+    crate::common::intent()
       .args([
         "critic",
         "elixir",
@@ -662,7 +662,7 @@ fn a_staged_rule_example_is_skipped_and_named_while_a_named_one_is_read() {
     let mut args = vec!["critic", "elixir", "--rules", rules.to_str().unwrap()];
     args.extend_from_slice(extra);
     args.extend_from_slice(&["--severity-min", "critical", "--format", "json"]);
-    Command::new(env!("CARGO_BIN_EXE_intent"))
+    crate::common::intent()
       .args(&args)
       .current_dir(root)
       .output()

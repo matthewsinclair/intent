@@ -47,14 +47,9 @@
 //! it lacked was unreachable, which is precisely how the gap survived.
 
 use std::path::Path;
-use std::process::Command;
-
-fn bin() -> std::path::PathBuf {
-  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
-}
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
-  let out = Command::new(bin())
+  let out = crate::common::intent()
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())

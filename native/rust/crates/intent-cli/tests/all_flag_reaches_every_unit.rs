@@ -34,10 +34,9 @@
 //! the one machine the flag exists for.
 
 use std::path::Path;
-use std::process::Command;
 
 fn run(home: &Path, args: &[&str]) -> (i32, String) {
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(args)
     .env("HOME", home)
     .stdin(testkit::lifeline_for(args))

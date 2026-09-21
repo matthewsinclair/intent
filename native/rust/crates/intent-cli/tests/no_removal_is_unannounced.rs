@@ -36,10 +36,10 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn intent(dir: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .env("HOME", testkit::fixture_home())
@@ -395,7 +395,7 @@ fn the_mcp_organize_tool_refuses_to_apply_a_plan_the_caller_was_not_shown() {
         r#"{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"intent_organize","arguments":{args}}}}}"#
       ),
     ];
-    let mut child = Command::new(env!("CARGO_BIN_EXE_intent"))
+    let mut child = crate::common::intent()
       .arg("mcp")
       .current_dir(root)
       .env("HOME", testkit::fixture_home())

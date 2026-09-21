@@ -19,10 +19,10 @@
 //! anything else the check could not fire, and a check that cannot fire reads
 //! exactly like one that passed.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn run(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .stdin(testkit::lifeline_for(args))
     .output()
@@ -30,7 +30,7 @@ fn run(args: &[&str]) -> Output {
 }
 
 fn run_in(dir: &std::path::Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .stdin(testkit::lifeline_for(args))

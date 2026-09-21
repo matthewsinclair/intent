@@ -33,10 +33,10 @@
 //! again**, which is the whole point of coupling the two halves. A test that
 //! only asserted the absence would keep passing after its own premise expired.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 fn run(args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .stdin(testkit::lifeline_for(args))
     .output()
@@ -199,7 +199,7 @@ fn an_unknown_plugin_is_refused_and_the_remedy_is_reachable() {
 #[test]
 fn plugin_answers_outside_a_project() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let out = crate::common::intent()
     .args(["plugin", "list"])
     .current_dir(dir.path())
     .output()

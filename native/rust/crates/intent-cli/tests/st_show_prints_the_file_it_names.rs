@@ -13,14 +13,14 @@
 //! could disagree about what "carried" means.
 
 use std::path::Path;
-use std::process::{Command, Output, Stdio};
+use std::process::{Output, Stdio};
 
 const DESIGN: &str = "# design\n\nthe design body\n";
 const TASKS: &str = "# tasks\n\n- one\n";
 const CRITERION: &str = "The verb prints the file it names";
 
 fn intent(dir: &Path, args: &[&str]) -> Output {
-  Command::new(env!("CARGO_BIN_EXE_intent"))
+  crate::common::intent()
     .args(args)
     .current_dir(dir)
     .env("HOME", testkit::fixture_home())

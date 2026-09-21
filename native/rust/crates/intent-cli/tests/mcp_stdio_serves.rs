@@ -4,12 +4,12 @@
 //! describes, driven instead of asserted.
 
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 #[test]
 fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let init = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let init = crate::common::intent()
     .arg("init")
     .arg("Fixture")
     .current_dir(dir.path())
@@ -21,7 +21,7 @@ fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
     String::from_utf8_lossy(&init.stderr)
   );
 
-  let mut child = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let mut child = crate::common::intent()
     .arg("mcp")
     .current_dir(dir.path())
     .stdin(Stdio::piped())
@@ -105,7 +105,7 @@ fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
 #[test]
 fn refusals_travel_on_their_declared_channels_and_never_kill_the_session() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let init = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let init = crate::common::intent()
     .arg("init")
     .arg("Fixture")
     .current_dir(dir.path())
@@ -113,7 +113,7 @@ fn refusals_travel_on_their_declared_channels_and_never_kill_the_session() {
     .expect("run intent init");
   assert!(init.status.success());
 
-  let mut child = Command::new(env!("CARGO_BIN_EXE_intent"))
+  let mut child = crate::common::intent()
     .arg("mcp")
     .current_dir(dir.path())
     .stdin(Stdio::piped())
