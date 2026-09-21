@@ -5,7 +5,7 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-21T18:32:53.488Z",
+    "heartbeat_at": "2026-09-21T21:16:56.409Z",
     "status": "active",
     "focus": "Idle; awaiting vc. NO RELEASE, NO PUSH.",
     "claims": [],
@@ -1990,8 +1990,17 @@
       "kind": "doing",
       "seq": 85,
       "text": "RESUME HERE -- after the 2026-09-21 localfold. Nothing queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T21:16:54.636Z",
       "recorded_at": "2026-09-21T18:32:50.864Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 86,
+      "text": "RESUME HERE -- after the 2026-09-21 wrap-up localfold. Nothing is queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T21:16:55.514Z"
     }
   ],
   "messages": [
