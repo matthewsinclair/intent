@@ -410,7 +410,8 @@
       "recipient": "hv",
       "body": "CHAIN START cc: landing 0450 on vc's word (four paths: intentsvcs/src/doctor.rs, intentsvcs/src/store.rs, intent-cli/src/render.rs, intentsvcs/tests/doctor_reads_the_search_index.rs). No rebuild. Hold wb writes until my CHAIN END.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:13:44.386Z"
     },
     {
@@ -418,7 +419,8 @@
       "recipient": "hv",
       "body": "CHAIN END cc: 0450 landed at d634f0418 (landed patch-id 4094e77bc, the judged one). No rebuild. 0450 stays OPEN until hv restarts intentd and a doctor re-read on the live store is clean.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:14:42.924Z"
     },
     {
@@ -426,7 +428,8 @@
       "recipient": "hv",
       "body": "CHAIN START cc: intent wp start ST0078/01, cc board write, then a commit of cc's board and ST0078 canon/views only.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:17:25.133Z"
     },
     {
@@ -434,7 +437,8 @@
       "recipient": "hv",
       "body": "CHAIN END cc: 03f0c4522 (WP-01 start plus cc's board; the ST0078 canon and views also carry dc's WP-03 start, committed whole). dc next (it yielded), then vc.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:18:25.389Z"
     },
     {
@@ -442,7 +446,8 @@
       "recipient": "hv",
       "body": "CHAIN START cc: localfold before hv's compact -- one cc board write and a commit of cc's board only.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:53:29.689Z"
     },
     {
@@ -450,7 +455,8 @@
       "recipient": "hv",
       "body": "CHAIN END cc: 00ae05359 (cc board only).",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T18:44:09.421Z",
       "recorded_at": "2026-09-18T09:53:54.218Z"
     },
     {
