@@ -1,0 +1,15 @@
+{
+  "id": "01M31EH0PHX9273JJ46M7VNWWK",
+  "ts": "2026-09-21T07:40:12.884Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0497"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb migrate writes the carry's instant into the carried node's heartbeat, so a board untouched for weeks reads as live at its carry and its reclaim clock resets, and the report does not say so"
+  }
+}
