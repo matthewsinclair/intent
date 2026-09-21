@@ -3005,7 +3005,7 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// for organize here, and that ruling is true of thread and issue views and
 /// false of boards. Naming only the right command would leave the wrong one
 /// looking untested.
-const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
+pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and the TREE is behind it -- do NOT retry the write. Clear the filesystem cause, then run `intent wb touch --node <you>`: a board's views are landed by a board write and by nothing else. NOT `intent organize`, which renders no board, and NOT `intent st sync`, which rewrites a thread's views only -- either one reports a clean run and leaves the board stale";
 
 /// The remedy when a landed write's views are on disk and the file index was not told.
 const UNINDEXED_REMEDY: &str = "do not retry the write: the store holds it and its views are on disk. The file index was not told about them, so `intent sync --to-disk` records them; until then the daemon can read them back as an edit";

@@ -37,7 +37,7 @@
 
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcKind, AcState, AtKind, AtStatus, Thread};
+use crate::model::{AcKind, AcState, AtKind, AtStatus, Board, Thread, board_changes};
 use crate::project::Project;
 use crate::remedy::Remedy;
 use crate::store::Store;
@@ -1400,6 +1400,35 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
     Ok(on_disk) => on_disk,
     Err(cause) => return unreadable(out, cause),
   };
+  let held_boards = match store.hydrate_boards() {
+    Ok(boards) => boards,
+    Err(cause) => return unreadable(out, cause),
+  };
+
+  // **THE BOARDS ARE COMPARED HERE AND NOT THROUGH THE DUMP BELOW** (issue
+  // 0495). The dump carries the thread and issue tables and no whiteboard row,
+  // so a board write whose render was refused left the row in the store and out
+  // of `board.json`, and this arm said nothing while the same failure on a
+  // thread was reported. The dump is the wrong instrument for a board: its rows
+  // carry an INTEGER id that a rebuild renumbers, so every estate whose nodes
+  // wrote interleaved would read as stale forever. `board_changes` is the keyed
+  // comparison a restore already applies, so this arm and the write cannot
+  // disagree about what differs. A store holding no board row is cold for the
+  // reason given below, and is skipped on the same terms.
+  if !held_boards.is_empty() {
+    let stale = stale_boards(&held_boards, &canon.boards);
+    if !stale.is_empty() {
+      out.push(Finding::new(
+        "intent/.cache/intent.db",
+        FindingClass::StoreStale,
+        format!(
+          "the runtime store's whiteboard rows do not match the board.json on disk for {} -- where the store is ahead, {}; where the file is ahead, the next ingest takes it. On a shared tree this is also the normal state for the duration of ANOTHER node's board write, so it is reported and never counted",
+          stale.join(", "),
+          crate::facade::BOARD_RERENDER_REMEDY
+        ),
+      ));
+    }
+  }
 
   // A COLD store is not a stale one. `intent/.cache/` is gitignored (D21), so
   // an empty store is the normal state of every fresh clone, and the extract
@@ -1434,6 +1463,34 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
       "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted",
     ));
   }
+}
+
+/// The migrated nodes whose boards differ between the store and `board.json`
+/// on disk, by moniker.
+///
+/// **A NODE NOT YET MIGRATED IS LEFT OUT ON BOTH SIDES**, for the reason
+/// `views::skew` skips it: its markdown is still the board, so it has no
+/// `board.json` to be behind. Each node is diffed on its own so the finding
+/// can name it.
+fn stale_boards(held: &[Board], on_disk: &[Board]) -> Vec<String> {
+  fn migrated(boards: &[Board]) -> std::collections::BTreeMap<&str, &Board> {
+    boards
+      .iter()
+      .filter(|b| b.node.migrated_at.is_some())
+      .map(|b| (b.node.moniker.as_str(), b))
+      .collect()
+  }
+  fn side<'a>(boards: &std::collections::BTreeMap<&str, &'a Board>, node: &str) -> &'a [Board] {
+    boards.get(node).map_or(&[], |b| std::slice::from_ref(*b))
+  }
+  let (held, on_disk) = (migrated(held), migrated(on_disk));
+  let nodes: std::collections::BTreeSet<&str> =
+    held.keys().chain(on_disk.keys()).copied().collect();
+  nodes
+    .into_iter()
+    .filter(|node| !board_changes(side(&held, node), side(&on_disk, node)).is_empty())
+    .map(str::to_string)
+    .collect()
 }
 
 /// The committed event files (ST0078 P1): each must read as an envelope under

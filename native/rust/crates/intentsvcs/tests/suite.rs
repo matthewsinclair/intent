@@ -170,6 +170,8 @@ mod init_keeps_the_store_out_of_git;
 mod doctor_checks;
 #[path = "doctor_reads_the_search_index.rs"]
 mod doctor_reads_the_search_index;
+#[path = "doctor_reports_a_board_row_its_file_lacks.rs"]
+mod doctor_reports_a_board_row_its_file_lacks;
 #[path = "doctor_scope.rs"]
 mod doctor_scope;
 
