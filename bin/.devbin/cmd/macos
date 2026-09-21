@@ -301,10 +301,16 @@ APPLE_TEAM_ID="$(kc_get APPLE_TEAM_ID)"
 # when no team id is stored yet -- which is the normal state before store-creds,
 # and is what lets `sign` work on a machine whose notary credentials are not yet
 # stored.
+#
+# This runs at load, under `set -euo pipefail`, for every subcommand, so a
+# missing `security` (any non-macOS host) must not fail the pipeline: it exited
+# 127 with its stderr discarded, and the handler died silently before any
+# refusal it owed could print (Ubuntu CI, test 313). `|| true` leaves IDENTITY
+# empty, which `require_identity` refuses by name where an identity is needed.
 if [ -n "$APPLE_TEAM_ID" ]; then
   IDENTITY="Developer ID Application: Geodica Pty Ltd ($APPLE_TEAM_ID)"
 else
-  IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null |
+  IDENTITY="$({ security find-identity -v -p codesigning 2>/dev/null || true; } |
     sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -1)"
 fi
 
