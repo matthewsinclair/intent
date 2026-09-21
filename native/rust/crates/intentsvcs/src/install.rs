@@ -314,7 +314,7 @@ fn gitdir_target(root: &Path) -> Option<String> {
 /// **EVERY INPUT IS A PARAMETER SO BOTH VERDICTS ARE REACHABLE WITHOUT A
 /// FILESYSTEM** -- the same split [`home`] and [`resolve`] already use. `root`
 /// and `temps` arrive canonicalised by [`scratch`]; `gitdir` is the line
-/// [`gitdir_target`] read, or `None`.
+/// `gitdir_target` read, or `None`.
 ///
 /// The `worktrees` component is what separates a linked worktree from a
 /// SUBMODULE, whose `.git` is also a file and whose target names `modules`.

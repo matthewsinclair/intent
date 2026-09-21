@@ -3022,7 +3022,7 @@ const RERENDER_REMEDY: &str = "the change is safe in the store -- do NOT retry i
 /// carries no board code, so `intent organize --apply` renders no board either
 /// -- it reports a clean run and leaves the tree behind the store, which is
 /// worse than saying nothing. A board view is landed by a BOARD WRITE and by
-/// nothing else: every one of [`Self::land_board_write_noting`]'s callers is a
+/// nothing else: every one of [`Facade::land_board_write_noting`]'s callers is a
 /// `wb_*` verb, and `wb touch` is the cheapest, being a heartbeat stamp that
 /// changes no content.
 ///
