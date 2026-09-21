@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-09-21T15:37:46.099Z",
     "status": "active",
     "focus": "3.2.0 is cut and the pair runs it. The CI harness fix 889ecb7f3 awaits hv's push, and CI on it judges the macOS half. Next: hold 17 on the gyges log, then doing 81's carries on vc's word. NO PUSH, NO RELEASE.",
-    "claims": [
-      "ST0056/11"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -1479,7 +1477,8 @@
       "kind": "hold",
       "seq": 17,
       "text": "**ST0056 AC-00.5 and AC-11.1** (claim ST0056/11). Released when hv has run intent/st/ST0056/gyges-brief.md on gyges and vc has judged `~/intent-clean-install.log`. Then dc runs `ac satisfy` for both.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T16:29:02.939Z",
       "recorded_at": "2026-09-18T06:00:55.901Z"
     },
     {
@@ -1675,7 +1674,8 @@
       "kind": "doing",
       "seq": 81,
       "text": "**The whiteboard carry of dc's three estates** -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc). Replaces doing 80, whose after-steps (\"then doctor, then organize\") fell short of vc's decision 57. ic carries Baize, Molt, Riffle and arca_config, Riffle first as the rehearsal. WAITS ON ic's Riffle report and vc's word. hv's intentd restart is DONE (2026-09-21, running 510409ccc). **MIGRATE ORDER (decision 54):** hv first wherever an hv node exists, otherwise alphabetical: Prolix hv, cc, vc; Conflab cc, dc, ic, vc; arca_cli cc, vc. **hv's BOARD ON PROLIX IS CARRIED BY dc's HAND, NEVER `--drop-uncarried` ON hv's ROWS.** An uncarried or coerced hv row: carry everything else, commit nothing that drops an hv row, send the report to hv through vc with the rows quoted; hv decides. On every other node READ the uncarried report before `--drop-uncarried`, an empty one included, and keep dropped rows in that node's pre-migration copy (decision 24 Part B). **BEFORE, PER ESTATE:** re-read `git status` there; NEVER `intent wb status` first (`intent/.cache/` is gitignored, so on a store-less copy the verb writes a db); the discriminator is `intent/.canon/whiteboard/`, read-only; hash the rendered boards. Doctor-clean before a carry is NOT evidence (`views.rs:2203` skips an unmigrated board). **THE CARRY:** argument-free `intent wb register`, then `intent wb migrate <node>` in the order above. **AFTER, decision 57's three checks for two holes:** `intent wb show <node>` against the rendered file item by item (the only check that reads the store); the rendered boards hashed again against the before; doctor's COUNTED skew now the boards are migrated, the output read whole, not its count. **NOT CHECKS, and the report says so:** doctor-clean before, and doctor's store-stale line (its dump carries no whiteboard rows, 0495). **Organize is no door for a board**: a stale board view is landed by a board write, `intent wb touch --node <n>` the cheapest. Then one commit by literal paths in that repo, `git status` read after as well as before. NO PUSH. ic's board on Conflab is dc's to carry. arca_cli has no whiteboard README: nobody invents one, the commit names the absence, and the roster question goes to hv with the report.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T16:29:03.794Z",
       "recorded_at": "2026-09-21T07:16:37.354Z"
     },
     {
@@ -1700,8 +1700,17 @@
       "kind": "doing",
       "seq": 83,
       "text": "**RESUME HERE -- the issues line is closed and 3.2.0 is cut.** 0495 landed at 46131238e and closed at 74f4c487a. 0496 landed at 2aceb6060 and closed at c4eca5d7e (a `root-file-behind` doctor advisory, shown and never counted). The CHANGELOG 3.2.0 census landed at 4b96fa588. 0494 closed under hv's option (a) at 63b44a9d9 by vc's hand, with dc's banked texts verbatim (verified 15:33Z); the anomaly is 0498, severity medium on vc's ruling, and hv may lower it. Tag v3.2.0 is at 4e2f908a5 and the pair runs 3.2.0 there. **The tag's CI run 35609868432 is red on two harness causes and no product defect:** macos's Keychain lookup read `$USER` under set -u at load, and the macOS job ran the suite under /bin/bash 3.2 against devbin's per-handler bash floor. dc's fix landed at 889ecb7f3 (patch-id 96beede9c). **NEXT: read CI on hv's push of 889ecb7f3**, which judges the macOS half; the tag commit's own run stays red on the record. Then hold 17 on the gyges log, then doing 81's carries on the 3.2.0 pair on vc's word. `scratchpad/wt-issues` is spent; remove it only on vc's word. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T16:29:04.682Z",
       "recorded_at": "2026-09-21T15:37:59.116Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 84,
+      "text": "**RESUME HERE -- dc's lane is idle, waiting on hv's push and its CI.** ST0056 is closed: AC-00.5 and AC-11.1 were satisfied from hv's gyges log (attached as intent/st/ST0056/gyges-install.md), gate PASS 131/131, WP-11 done, thread done --keep at 4ea05814d, and the stop half of the lifecycle was added at 2d0f7ead7. dc's carries are done bar Prolix: Conflab a0fc931c and arca_cli c99e21c, both unpushed, their pushes hv's. **Prolix waits hv-first** (hv's board first, carried by dc's hand, never --drop-uncarried on hv's rows), on vc's word. CI: the tag's two harness reds got 889ecb7f3 (the macOS leg is GREEN on 5c622c672's run 35622897615). Ubuntu test 313 is still red, cause unnamed; dc's $USER premise was wrong. 0d4f6a509 makes 313 print the dispatcher's output. **NEXT: read the Ubuntu log on hv's push and fix the cause it names** (the suspect, unmeasured, is mawk under devbin's awk config parser). 0499 (wb migrate's snapshot count) is filed and open. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-21T16:29:06.396Z"
     }
   ],
   "messages": [
