@@ -1988,6 +1988,17 @@ pub struct WbMigration {
   /// byte of them was written from rows. **NOT IN `offered`**, since a view the
   /// renderer wrote is the model's statement and not a line the board offered.
   pub rendered: Vec<String>,
+  /// The heartbeat the node's hand-authored header CLAIMED, verbatim, or `None`
+  /// where it claimed none: the row's `authored_at` after the carry.
+  pub heartbeat_authored: Option<String>,
+  /// The heartbeat the carry wrote, read back from the row.
+  ///
+  /// **A CARRY RESTAMPS THE NODE, AND THE REPORT SAYS SO** (issue 0497). The
+  /// store stamps `heartbeat_at` at the write and keeps the header's claim in
+  /// `authored_at` (`Store::carry_header`, AC-14.4 against AC-14.9). So a board
+  /// untouched for weeks reads as live at its carry. Both values are reported
+  /// because a reader of the board sees only this one.
+  pub heartbeat_at_carry: String,
   /// Every unit the source offered: item-shaped board lines, inbox entries and
   /// `.history/` files. **Counted where each unit is dispatched**, never
   /// re-derived by a second walk that would be free to disagree.
@@ -7768,8 +7779,14 @@ impl Facade {
     // board and its inboxes and leaves every unmigrated peer's markdown alone.
     // Issue 0380: this refreshed the index only, so the carried board stayed hand-authored and doctor refused every commit as skew.
     self.land_board_write_noting()?;
+    let (heartbeat_at_carry, heartbeat_authored) = self
+      .store
+      .wb_node_heartbeats(node)
+      .map_err(FacadeError::Store)?;
 
     Ok(WbMigration {
+      heartbeat_authored,
+      heartbeat_at_carry,
       node: node.to_string(),
       offered: source.source_items
         + messages.len()

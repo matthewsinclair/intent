@@ -5634,6 +5634,21 @@ impl Store {
     Ok(migrated > 0)
   }
 
+  /// A node's two liveness stamps: the `heartbeat_at` the store holds and the
+  /// `authored_at` its hand-authored header claimed, `None` where it claimed
+  /// none.
+  ///
+  /// **READ FROM THE ROW, SO NO CALLER HOLDS A TIME.** `wb migrate` reports
+  /// both after its carry (issue 0497), and both are the values the carry's own
+  /// write left, never a clock read on the side.
+  pub fn wb_node_heartbeats(&self, moniker: &str) -> Result<(String, Option<String>), StoreError> {
+    Ok(self.conn.query_row(
+      "SELECT heartbeat_at, authored_at FROM wb_node WHERE moniker = ?1",
+      params![moniker],
+      |row| Ok((row.get(0)?, row.get(1)?)),
+    )?)
+  }
+
   /// Is this moniker on the roster?
   pub fn wb_node_exists(&self, moniker: &str) -> Result<bool, StoreError> {
     let n: i64 = self.conn.query_row(

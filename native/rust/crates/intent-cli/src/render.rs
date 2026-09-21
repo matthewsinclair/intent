@@ -4701,6 +4701,15 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
   //
   // Every kind is printed, zeros included: a section that yielded nothing is
   // the case worth seeing, and printing only what appeared would hide it.
+  // **THE CARRY RESTAMPS THE NODE, SO THE REPORT NAMES BOTH STAMPS** (issue
+  // 0497). The board's view shows only the carry's, which reads a node nobody
+  // is running as live today; the header's claim is kept, and this line is
+  // where a reader learns there were two.
+  println!(
+    "heartbeat: {} as authored, {} at carry",
+    carried.heartbeat_authored.as_deref().unwrap_or("none"),
+    carried.heartbeat_at_carry
+  );
   {
     use intentsvcs::model::WbItemKind::*;
     let counts = [Doing, Todo, Hold, Watchout, Decision, Directive]
@@ -14528,6 +14537,8 @@ mod tests {
       uncarried: Vec::new(),
       left_in_place: Vec::new(),
       rendered: Vec::new(),
+      heartbeat_authored: None,
+      heartbeat_at_carry: "2026-09-21T07:33:50.693Z".to_string(),
       offered: 1,
     };
     assert_eq!(report_wb_migration(&reconciled), Ok(()));
