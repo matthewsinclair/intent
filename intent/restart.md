@@ -1,84 +1,91 @@
 # Intent -- traps and conventions
 
-**THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30), AND NOT STATE.** What nothing else enforces, one line each; anything held by a test, a guard, a generator or a shared memory has no prose home here. Prior contents are verbatim under `intent/history/`. Live work is `intent/wip.md`; the commands that regenerate any state are in `.claude/restart.md`; hv's rulings are `intent/history/20260915-hv-rulings.md` and hv's board. **NO RELEASE, NO PUSH without hv at the terminal; never `--no-confirm`; never `intent fc`.**
+**THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30), AND NOT STATE.** What nothing else enforces, one line each; anything held by a test, a guard, a generator or a shared memory has no prose home here. Earlier versions are in git and under `intent/history/`. Live work is `intent/wip.md`; the commands that regenerate any state are in `.claude/restart.md`; hv's rulings are `intent/history/20260915-hv-rulings.md` and hv's board. **NO RELEASE, NO PUSH without hv at the terminal; never `--no-confirm`; never `intent fc`.**
 
 ## Where you are standing
 
 - Measure the binary, never trust a line: `command -v intent && readlink "$(command -v intent)"`, `intent --version`, `intent info | sed -n 's/^ *INTENT_HOME: *//p'`.
-- The frozen v2 checkout is `~/Devel/prj/_Archive/Intentv2`, branch `v2-maintenance`, and is never written. It is NOT at `~/Devel/prj/Intentv2`, which two boot documents named until 2026-09-17 and which does not exist.
-- A build is the delivery: `bin/devbin build all` verifies the pair as a set and the PATH symlinks point into this tree; templates are compiled in, so a `lib/templates/` edit reaches `init` only after a rebuild. A bare `cargo build --release` is not the door.
-- During a rebuild no estate on this machine has `intent`, and commits block; the node rebuilding announces the start AND the end.
-- The marker is provenance, not identity, and it answers for the compiled half only; `.claude/restart.md` carries the currency measurement and its scope.
-- A general policy stated after a specific ruling does not vacate it: `config`, `ext` and `learn` ship declared-and-unbuilt (hv, 2026-08-31); building one reverses a ruling.
+- The frozen v2 checkout is `~/Devel/prj/_Archive/Intentv2`, branch `v2-maintenance`, never written; `~/Devel/prj/Intentv2` does not exist.
+- A build is the delivery: `bin/devbin build all` verifies the pair as a set and the PATH symlinks point into this tree; a bare `cargo build --release` is not the door. Templates are NOT compiled in: every `lib/templates/` file is read from the install root at run time, so an edit there is live on save.
+- During a rebuild no estate on this machine has `intent` and commits block; the rebuilding node announces the start and the end.
+- The marker is provenance, not identity, and answers for the compiled half only.
+- A general policy stated after a specific ruling does not vacate it: `config`, `ext` and `learn` ship declared-and-unbuilt (hv, 2026-08-31).
 - Strike "not in this one", "defer" and "after the tag" as a class; they are the scarcity move wearing a release number.
-- Monikers are estate-scoped and nothing marks them: write `laksa-cc`, never `cc`, when a moniker crosses an estate; a machine-wide `ps` shows every estate's `intent` processes.
+- Monikers are estate-scoped: write `laksa-cc`, never `cc`, when a moniker crosses an estate; a machine-wide `ps` shows every estate's `intent`.
 - `ListAgents`' started column is socket age; `/compact` does not rotate `CLAUDE_CODE_SESSION_ID`.
 
 ## Landing work
 
-- A bank is a patch blob on `refs/bank/<node>/<issue>` with its base named, recovered with `git cat-file -p <ref> | git apply`: never under `/private/tmp`, which a reboot clears, and never a worktree commit, which the gate refuses as GATE ABSENT. The policy, with the recipe and the incidents behind each rule, is `docs/banking.md` (hv, 2026-09-18).
-- One lane lands at a time on vc's word, rebased onto the hash vc sends, closing its issues with `organize --apply` and ending the turn with the report SENT. **The judged patch-id is what lands**; a gate refusal is re-banked before any commit. A register row with no canon behind it stops every landing.
-- Banks sharing a file land in the order they bank green, stacking so one run stands for the landing. One whole-suite judging run per train, in the warm worktree holding its stack, START and END to every lane; vc judges the logs, the diff, and that the worktree equals the bank.
-- **A "comments only" or "config only" change does not waive the suites** (vc, 2026-09-18: 0451's doc-comment edits drifted the committed schema faces and its CI line failed devbin's twin test, both red on main until the next lane's run). Any change under a crate, the CI configuration or a generator's source owes the whole crate suites and the shell half; the diff's shape is not evidence of its reach. The one bounded case: a change confined to one crate's `tests/` directory owes that crate's whole suite, because a `tests/*.rs` file compiles into that crate's test binary and nothing else, so its reach is bounded by construction (vc, 2026-09-18, dc's P5 re-run).
-- **Every Rust bank runs intentsvcs's whole suite whatever crate it touches** (vc, 2026-09-19): the workspace scanners live in intentsvcs and read every crate, so a bank that runs only the suite of the crate it changed has not been judged by them. ff9751d45's fixture wait in intent-cli's tests reached for `Instant::now`, the bank ran intent-cli's suite alone, and intentsvcs's one_clock guard went red on both CI legs of hv's push. A bank without intentsvcs's log is not judged.
-- A timing-sensitive control runs under a host hold vc announces; an event-wait red re-runs once and is judged by mechanism, never by a failing set. **The one re-run is authorised only with `uptime` at the host's floor in front of the director, and the authorising message cites that reading** (vc, 2026-09-19: the 3.1.0 family re-run was authorised at twenty times the floor, climbed past fifty, and its red could discriminate nothing).
-- **A landing chain that mints AT rows runs `intent ac status <ST>` before its commit** (vc, 2026-09-18: P1's landing left three rows whose cited test file did not carry their id literal, and doctor is silent on AT rows, so the thread's gate read BLOCKED only when the next chain happened to ask). The test file names each id it proves, in the house form `//! <ST> AT-NN.n (AC-NN.n): ...`, and the gate is asked in the chain that mints the row.
-- **A board commit also carries the event files its own acts wrote, selected by SUBJECT NODE and never by principal** (cc, 2026-09-18, the first board commit on the rebuilt pair): every node here acts under one git identity, so the principal on an event file says nothing about which node's chain wrote it; the untracked files under `intent/.canon/events/` whose subject is your node, written since your CHAIN START, are yours to name in the commit, and a peer's are left for the peer's chain. A list DERIVED from `git status` over the events directory and then spelled out literally is still a listing (ic, 2026-09-20: 90800546a carried dc's `issues.edit` event that way, under a message that called it ic's): a path is yours when the file's own `op` and `subject` say so, and that is what you read before you name it.
-- **A board commit carries the node's WHOLE directory render: `board.json`, `wip.md` and every `inbox.<sender>.md` in it** (vc, 2026-09-18: ic measured a fresh clone's `doctor` exiting 1 on two counted view-skew findings, `dc/inbox.cc.md` and `ic/inbox.cc.md`, because a fold had committed a board without the inbox renders of the same store state). The inboxes are renders of the same board the fold commits, so committing one without the others is the skew the doctor gate refuses on a clone, and the CI doctor job ST0078 P4 adds fails on it. vc commits `hv/`'s render.
-- **Two orders from the pen in flight cross exactly like two CHAIN STARTs, and the lanes cannot resolve it because each is obeying** (vc, 2026-09-18: cc and ic each yielded to the other twice and the host sat idle). One order per topic, to every lane it touches in one batch, and no second order until a lane reports the state; when the state has moved under the order, the order follows the state (the run that exists stands). Decision 23 governs the lanes; this governs the director.
-- **A source edit under somebody else's running suite silently unpins their verdict** (dc, 2026-09-17): the tree its verdict describes stops being the tree it started on. Bank exact hunks; `git apply` when the suite is off.
+- A bank is a patch blob on `refs/bank/<node>/<issue>` with its base named, built from `git diff --cached --binary` or write-tree and commit-tree, never from a worktree commit. Every bank report quotes `git cat-file -p <ref> | git apply --stat` beside the blob hash: the blob is what gets judged, and only reading it back shows which commit it holds. The policy is `docs/banking.md`.
+- One lane lands at a time on vc's word, rebased onto the hash vc sends; the judged patch-id is what lands, and a gate refusal is re-banked before any commit.
+- Banks sharing a file land in the order they bank green, stacked so one whole-suite run stands for the train; vc judges the logs, the diff, and that the worktree equals the bank.
+- A diff's shape is not evidence of its reach: any change under a crate, the CI configuration or a generator's source owes the whole crate suites and the shell half. The one bounded case is a change confined to one crate's `tests/`, which owes that crate's whole suite.
+- Every Rust bank runs intentsvcs's whole suite whatever crate it touches: the workspace scanners live there and read every crate.
+- A vendored devbin upgrade is judged by a macOS bats run before a cut; CI's Linux leg cannot see the `/bin/bash` 3.2 floor.
+- A timing-sensitive red re-runs once, judged by mechanism, and only with `uptime` at the host's floor (about 10) cited in the authorising message.
+- A chain that mints AT rows runs `intent ac status <ST>` before its commit; the test file names each id it proves.
+- A board commit carries the node's whole directory render (`board.json`, `wip.md`, every `inbox.<sender>.md`) and the event files its own acts wrote. An event file is yours when its own `op` and `subject` say so; read them before you name the path, never select by principal or by a `git status` listing.
+- Crossed CHAIN STARTs go alphabetically (cc < dc < ic < vc) and the rule orders whole chains: an earlier START stops your next write, the commit included.
+- A chain-less commit that lands clean is invisible to every node, its author included: START and END travel over the live channel and leave no durable record.
+- The director gives one order per topic, to every lane it touches in one batch, and no second order until a lane reports the state. An order withdrawn after it went out races its own withdrawal; when the state has moved under an order, the order follows the state.
+- A ruling that reaches one lane and not another costs a rebase: a ruling goes to every lane it touches.
+- A cut's hold names hv's other sessions too: a go given in one session can reach main while the cut runs in another.
+- The release driver deletes its gate logs on green, so the terminal is the only copy of the gate's verdict: read it there, and keep it.
+- A source edit under somebody else's running suite unpins their verdict: bank exact hunks and `git apply` when the suite is off.
 
 ## Measuring anything here
 
 - `int suite` measures HEAD in a single-writer clone: commit first, then measure.
-- Output to a file, then count: `> file 2>&1`; a negative from a partial read is not a result.
-- An exit code taken through a pipe is the pipe's: `cmd > f 2>&1; rc=$?`; zsh has `pipestatus`, not `PIPESTATUS`.
-- `--no-fail-fast` always; `cargo test --workspace` otherwise stops at the first failing target.
-- Every suite runs from a private worktree's own build, in-tree `CARGO_TARGET_DIR`, isolated `HOME=<dir>`, after `cargo build -p intentd`; a run writes the estate it lives in, so check `~/.local/share/intent/home` after any peer run.
-- A stale artefact is not a regression: rebuild before diagnosing; a detached worktree carries a STAGED copy across `git checkout --detach`.
-- Name the artefact you examined in every claim: `intent --version` answers for the compiled half only; `/bin/bash` is 3.2 while PATH bash is 5; `.claude/restart.md` and `intent/restart.md` are different files with opposite jobs.
-- A zero from your own instrument is a claim about the instrument; the population is the claim; a gate and any n-of-m is computed by a verb; silence and success are identical unless something distinguishes them; the failure path is the one a green run never exercises; a CI run's subject is the push; a diff is not evidence until its inputs are shown to be non-empty, empty against empty reading as agreement at exit 0; a change that would green your own work is the one to route; the revision, clock and dirty count are part of every finding.
-- A red arm must predate the fix and postdate the defect; a green on the fix counts only beside a red on the baseline; a fixture that discards what it is handed passes for a row its caller cannot produce.
-- **A positive control proves the instrument on the corpus you controlled against and says NOTHING about the corpus you point it at next** (dc, 2026-09-17). Draw the control from the target corpus and check it shares the target's SHAPE: a fence walk validated against a document built of fenced blocks reported clean over three documents that have none, every command in them inline.
-- **An instrument must fail toward a warning a reader discards, never toward an all-clear a reader believes** (ic, 2026-09-17). Prefer a structural test that over-reports to a filter typed from what you expect to find. The shared mechanism is NARROWED BY WHAT ITS AUTHOR EXPECTED and it wears several shapes -- a guessed alternation, an assumption that commands live in fences, a normaliser collapsing one run of characters but not another -- so a rule naming any one shape lets the rest through.
+- Output to a file, then count: `> file 2>&1; rc=$?`; an exit code taken through a pipe is the pipe's, and zsh has `pipestatus`, not `PIPESTATUS`.
+- `--no-fail-fast` always.
+- Every suite runs from a private worktree's own build: in-tree `CARGO_TARGET_DIR`, isolated `HOME`, `cargo build -p intentd` first. Check `~/.local/share/intent/home` after any peer run.
+- A stale artefact is not a regression: rebuild before diagnosing. A detached worktree carries a staged copy across `git checkout --detach`.
+- Name the artefact in every claim: `intent --version` answers for the compiled half only; `/bin/bash` is 3.2 while PATH bash is 5; `.claude/restart.md` and `intent/restart.md` are different files with opposite jobs.
+- A count is not an output: an advisory is printed and never counted, so `doctor: 0 finding(s)` can print directly under a finding. Read every verdict whole (doctor, the gate, a suite summary) and name the line that would have said so.
+- A measurement earns an explanation only after the instrument has been read against a known absence and a known presence of the defect. A staging that produced no defect reads exactly like a fix.
+- A zero from your own instrument is a claim about the instrument; silence and success are identical unless something distinguishes them; a diff is not evidence until its inputs are shown non-empty; the revision, clock and dirty count are part of every finding.
+- A red arm must predate the fix and postdate the defect; a green on the fix counts only beside a red on the baseline.
+- A positive control proves the instrument on the corpus it was drawn from and nothing else: draw it from the target corpus, in the target's shape.
+- An instrument fails toward a warning a reader discards, never toward an all-clear a reader believes; prefer a structural test that over-reports to a filter typed from what you expect.
+- Load reds a presence-asserting arm and never false-greens it; it inverts for an absence assertion within a time window.
 - Run bats through `tests/run_tests.sh`.
+
+## Asking and answering
+
+- An ask names what was seen and what was expected. The fixer names the mechanism, after reading the source.
 
 ## Shared checkout and shared store
 
-- Five sessions share one tree: `git add <literal paths> && git commit --only <the same literal paths>` in ONE call (`--only <dir>` omits a new file); wait on `.git/index.lock`; re-issue the SAME command on a lost race; never remove a peer's lock, unstage a peer's work, `--no-verify`, `git stash` (repository-wide across worktrees), or `cp` a shared source aside.
-- A shared aggregator (`CHANGELOG.md`, `intent/.intentfiles`, and each crate's own `native/rust/crates/*/tests/suite.rs`) takes every hunk a peer left in it: diff against HEAD before `git add`; `sync` has no unit narrower than a thread; order is format, sync, commit; the register never meets prettier.
-- The store lock is shared like the index: during a peer's landing chain no other lane runs any `intent wb` write, pickups included; a refused write gets ONE re-issue after `lsof -- intent/.cache/intent.db` lists intentd alone, never a loop; after a landing commit the daemon's ingest holds the lock invisibly, wait for it to cool; attribute a holder only by lsof on THIS store's path.
-- A canon write can report ok and be reverted by the daemon's ingest a second later: verify past the ingest. `sync --to-store` replaces the store from the extract; `intent edit --path` is a write; `st list --status all` (`--all` exits 1); no `cd` into the scratchpad before a store write; a correct refusal is not a save; a remedy is a promise.
-- Worktree results come back as a patch, never a whole-file copy; an attachment edited there goes through `st attach` with the worktree's own build after an unscoped `sync --to-store`.
-- A refused destructive write goes through a scratch clone and a proven patch, never to a peer. A socket message is not a delivery; the durable inbox is the record. FIXED is four states: worktree, index, HEAD, pushed.
-- A directory-granularity file event is a question, not an answer; the rulings gate and dehydration collide when a ratified ruling cites a thread file.
-- A board item's text goes in as `"$(cat <file>)"`, never inline in double quotes: a backticked phrase in item prose is the shell's command substitution.
+- Every session shares one tree: `git add <literal paths> && git commit --only <the same paths>` in one call (`--only <dir>` omits a new file); wait on `.git/index.lock` and re-issue the same command on a lost race; never remove a peer's lock, unstage a peer's work, `--no-verify`, `git stash` (repository-wide across worktrees), or `cp` a shared source aside.
+- A shared aggregator (`CHANGELOG.md`, `intent/.intentfiles`, each crate's `tests/suite.rs`) takes every hunk a peer left in it: diff against HEAD before `git add`. Order is format, sync, commit; the register never meets prettier.
+- The store lock is shared like the index: no `intent wb` write during a peer's chain, pickups included. A refused write gets one re-issue after `lsof -- intent/.cache/intent.db` lists intentd alone, never a loop.
+- A canon write can report ok and be reverted by the daemon's ingest a second later: verify past the ingest.
+- A board view is landed by a board write and nothing else (`intent wb touch --node <you>` is the cheapest); `organize` lands thread and issue views, never a board.
+- Worktree results come back as a patch, never a whole-file copy.
+- A refused destructive write goes through a scratch clone and a proven patch, never to a peer. A socket message is not a delivery; the durable inbox is the record.
+- A board item's text goes in as `"$(cat <file>)"`: a backticked phrase inline is the shell's command substitution.
 
 ## Design rules
 
 - Make the bad state unrepresentable rather than checked for.
-- Where a property belongs to a syscall or a dependency default, the outcome holds under any implementation.
-- A predicate is sound relative to what is done with the answer. **One predicate reused by two callers with opposite error contracts needs the reason written AT the call site**, or the next reader tidies them into agreement and silently reinstates the defect.
-- Highlander governs implementations, not witnesses: consolidating witnesses deletes the measurement. **And a witness that cannot see the event is not a witness** (the 0442 detector, 2026-09-17): prove a second instrument can observe the fault before counting it, because independence from a failure mode is sometimes exactly what blinds it. Where only witnesses sharing a blind spot exist, declare that; never add a decoy to make the principle read as met.
+- A predicate is sound relative to what is done with the answer: one predicate reused by callers with opposite error contracts needs the reason written at each call site.
+- Highlander governs implementations, not witnesses. A witness that cannot see the event is not a witness; where only witnesses sharing a blind spot exist, declare it.
 - Changing a published field's meaning without changing its shape is the worst version of that change.
 - A criterion is owned by whoever can satisfy it and must be able to fail.
 - Removing a swallow means finding out what it was swallowing, and the only way is to remove it.
-- A misattributed failure is worse than a swallowed one: silence gives the reader nothing, a wrong remedy gives them somewhere wrong to go and every attempt confirms the wrong diagnosis.
-- A rule that catches a failure mode it was not designed for is the strongest evidence for it.
-- The consolidation is the work rather than the shortening.
-- Read what the binary resolves, not what the list says; a subject written down beats a discipline.
-- **A COMMAND IN A DOCUMENT IS A CLAIM AND BEATS A SENTENCE ONLY ONCE SOMEBODY HAS RUN IT** (ic and dc, 2026-09-17, after a release page that landed hours earlier was found to carry four defects spread across most of its command blocks). Read-only ones get RUN; ones nobody can safely run -- `git tag`, a push, a publish -- get READ as control flow. **Say which way each was verified.** Enumerate them structurally in BOTH homes, fenced blocks and inline backticks: the documents every node reads at boot carry all of their commands inline and not one fenced block.
-- A pattern aimed at generated output is aimed at a RENDERING, and the renderer is a writer you did not consult.
+- A misattributed failure is worse than a swallowed one: a wrong remedy sends the reader somewhere wrong.
+- A command in a document is a claim until someone has run it: run the read-only ones, read the dangerous ones as control flow, and say which way each was verified. Look in both fenced blocks and inline backticks.
+- A pattern aimed at generated output is aimed at a rendering, and the renderer is a writer you did not consult.
 - An edit that matches nothing is indistinguishable from one that worked: verify the result, never the exit code.
 
 ## The clock
 
-- Every stamp is read from `date -u +'%Y-%m-%d %H:%MZ'` in the same turn; a stamp you did not read is fabricated. Three generators: arithmetic from one read, fabrication with the correct value present, a stale reference that only accuses the other party. `git log` prints local time; appending `Z` is an assertion. The commit guard catches a future stamp, a missing `Z` and an inbox going backwards; the live channel has no door.
-- **A message that cites a measurement goes out AFTER the measurement returns, never in the same batch** (vc, 2026-09-18: "they hash identical" was sent beside the comparison, which printed DIFFER; a second comparison happened to agree). A claim typed before its read is the clock fault in another field.
-- **A state named in a message carries the clock of its reading and says what would discharge it.** A warning that has expired still does its work if it provokes a measurement; the form to avoid is one that invites belief rather than a check.
+- Every stamp is read from `date -u +'%Y-%m-%d %H:%MZ'` in the same turn; a stamp you did not read is fabricated. `git log` prints local time.
+- A message that cites a measurement goes out after the measurement returns, never in the same batch.
+- A state named in a message carries the clock of its reading and says what would discharge it.
 
 ## Conventions
 
-- Commit conventions, house style and the banned-word list are in `CLAUDE.md` and `~/.claude/CLAUDE.md`, which every session receives; they are not restated here. What is local: em dashes in prose pages and `--` in generated reference pages; no hardcoded counts in any doc a reader reads; a surface claim travels with what makes it checkable.
+- Commit conventions, house style and the banned-word list are in `CLAUDE.md` and `~/.claude/CLAUDE.md`. Local: em dashes in prose pages, `--` in generated reference pages; no hardcoded counts in any doc a reader reads.
 - Each project-wide document has one job: `.claude/restart.md` is the entry point and holds no state; `intent/wip.md` is DOING and TODO only; this file is rules.
 - The push gate runs no fmt or clippy; CI is their only home.
