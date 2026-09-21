@@ -82,6 +82,7 @@ pub mod modules;
 pub mod nav;
 pub mod organize;
 pub mod output;
+pub mod outstanding;
 pub mod payload;
 pub mod plan;
 pub mod plugins;

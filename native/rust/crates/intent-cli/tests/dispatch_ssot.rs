@@ -894,23 +894,29 @@ fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
 
   for entry in dispatch::shipped_entries(&table) {
     for alias in entry.alias_verbs() {
+      // A top-level row's alias is the whole command (`outs` for
+      // `outstanding`, ST0079), so its family prefix is empty.
       let (head, verb) = entry
         .path
         .rsplit_once(' ')
-        .expect("an aliased entry sits inside a family");
+        .unwrap_or(("", entry.path.as_str()));
+      let alias_argv: Vec<&str> = head.split_whitespace().chain([alias]).collect();
+      let name_argv: Vec<&str> = head.split_whitespace().chain([verb]).collect();
+      let (spelled, named) = (alias_argv.join(" "), name_argv.join(" "));
 
-      let by_alias = run_raw(&[head, alias]);
-      let by_name = run_raw(&[head, verb]);
+      let by_alias = run_raw(&alias_argv);
+      let by_name = run_raw(&name_argv);
       // clap echoes the spelling it was invoked with into its usage line, so
       // the alias is normalised to the canonical name before comparing --
       // otherwise the test would demand that an alias lie about how it was
-      // called.
-      let normalised = by_alias.replace(&format!("{head} {alias}"), &format!("{head} {verb}"));
+      // called. Anchored on `intent ` and a trailing space, because a
+      // top-level alias can be a prefix of its own name.
+      let normalised = by_alias.replace(&format!("intent {spelled} "), &format!("intent {named} "));
 
       assert_eq!(
         normalised, by_name,
-        "`{head} {alias}` must be `{head} {verb}`; it is declared in the table as an alias on a \
-         shipped row, and v2 answers to it"
+        "`{spelled}` must be `{named}`; it is declared in the table as an alias on a shipped row, \
+         and v2 answers to it"
       );
       checked += 1;
     }

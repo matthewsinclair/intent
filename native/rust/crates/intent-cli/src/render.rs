@@ -99,6 +99,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
     Some(("issues", m)) => issues(m),
+    Some(("outstanding", m)) => outstanding(m),
     Some(("agents", m)) => agents(m),
     Some(("critic", m)) => critic(m),
     Some(("edit", m)) => edited(m),
@@ -852,6 +853,10 @@ const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
 /// v2's `intent issues list` columns (`bin/intent_issues:240`).
 const ISSUE_COLUMNS: &[&str] = &["ID", "Status", "Sev", "Title"];
 
+/// `intent outstanding`'s columns (ST0079): the kind leftmost, as hv asked,
+/// then the ones every kind carries. Severity is an issue's alone.
+const OUTSTANDING_COLUMNS: &[&str] = &["Type", "ID", "Status", "Title"];
+
 /// How wide to render, in v2's order of preference
 /// (`bin/intent_helpers:get_terminal_width`).
 ///
@@ -992,8 +997,9 @@ fn st_table_from(
 ) -> Result<String, Failure> {
   let wanted = match opt(a, "status")? {
     Some(spec) => status_filter(&spec)?,
-    // v2's default: WIP only. NOT the same as `--status all`.
-    None => Some(vec![ThreadStatus::Wip]),
+    // v2's default: WIP only. NOT the same as `--status all`. The one
+    // definition `intent outstanding` reads as well (ST0079).
+    None => Some(intentsvcs::outstanding::THREAD_STATUSES.to_vec()),
   };
   st_rows(threads, a, wanted, project)
 }
@@ -10345,6 +10351,86 @@ fn info_project(cwd: Option<&std::path::Path>) {
   println!();
 }
 
+/// `intent outstanding`, alias `outs` (ST0079): the outstanding threads, work
+/// packages and issues in one table, where a snapshot took three commands.
+///
+/// **THE MERGE IS [`intentsvcs::outstanding`]'s AND THIS PARSES AND RENDERS.**
+/// The table goes through the list verbs' own output layer, so `--format`,
+/// `--width` and `--markdown` mean here what they mean on `st list`.
+fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
+  use intentsvcs::outstanding::Kind;
+  let show = match opt(m, "show")? {
+    Some(spec) => show_filter(&spec)?,
+    None => Kind::ALL.to_vec(),
+  };
+  let found = open()?.outstanding(&show);
+  let rows: Vec<Vec<String>> = found
+    .rows
+    .iter()
+    .map(|r| {
+      vec![
+        r.kind.label().to_string(),
+        r.id.clone(),
+        r.status.to_string(),
+        r.title.clone(),
+      ]
+    })
+    .collect();
+  // Rendered BEFORE the empty case, for `st_rows`'s reason: `--format` is then
+  // honoured or refused whatever was found.
+  let table = table_out(&output_of(m)?, OUTSTANDING_COLUMNS, &rows)?;
+  let counts: Vec<String> = found
+    .counts
+    .iter()
+    .map(|c| {
+      format!(
+        "{} of {} {} ({})",
+        c.shown,
+        c.total,
+        c.kind.noun(),
+        c.statuses.join(", ")
+      )
+    })
+    .collect();
+  let counts = format!("outstanding: {}\n", counts.join(", "));
+  // Nothing outstanding prints the counts alone, as `st list` prints its note
+  // alone over an empty filter: none of N, never an empty table.
+  if rows.is_empty() {
+    print!("{counts}");
+  } else {
+    print!("{table}\n{counts}");
+  }
+  Ok(())
+}
+
+/// `--show`'s vocabulary (hv, 2026-09-21): a comma-separated list of kinds,
+/// `all` among them. An empty item is skipped, as `status_filter` skips one,
+/// but a list naming no kind at all is refused rather than rendering nothing.
+pub(crate) fn show_filter(spec: &str) -> Result<Vec<intentsvcs::outstanding::Kind>, String> {
+  use intentsvcs::outstanding::Kind;
+  const REMEDY: &str =
+    "remedy: use a comma-separated list of st, wp, is, issue, issues -- or `all`";
+  let mut kinds = Vec::new();
+  for raw in spec.split(',') {
+    match raw.trim().to_ascii_lowercase().as_str() {
+      "all" => kinds.extend(Kind::ALL),
+      "st" => kinds.push(Kind::Thread),
+      "wp" => kinds.push(Kind::WorkPackage),
+      "is" | "issue" | "issues" => kinds.push(Kind::Issue),
+      "" => continue,
+      other => {
+        return Err(format!(
+          "error: `{other}` is not a kind `--show` takes\n  {REMEDY}"
+        ));
+      }
+    }
+  }
+  if kinds.is_empty() {
+    return Err(format!("error: `--show` names no kind\n  {REMEDY}"));
+  }
+  Ok(kinds)
+}
+
 /// `intent issues` -- all six verbs, since hv ratified Machine 4.
 ///
 /// **`add`, `close` and `open` were blocked on a ratification, not on effort,
@@ -10369,12 +10455,14 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let a = m.subcommand().map(|(_, a)| a).unwrap_or(m);
       // Bare `issues` arrives with the family's own matches, which declare no
       // `kind`, so this read is the probe rather than `opt`.
-      let kind = probe_undeclared_ok(a, "kind")?.unwrap_or_else(|| "open".to_string());
-      let wanted = match kind.to_ascii_lowercase().as_str() {
-        "open" => Some(IssueStatus::Open),
-        "closed" => Some(IssueStatus::Closed),
-        "all" => None,
-        other => {
+      let kind = probe_undeclared_ok(a, "kind")?;
+      let wanted = match kind.as_deref().map(str::to_ascii_lowercase).as_deref() {
+        // The one definition `intent outstanding` reads as well (ST0079).
+        None => Some(intentsvcs::outstanding::ISSUE_STATUS),
+        Some("open") => Some(IssueStatus::Open),
+        Some("closed") => Some(IssueStatus::Closed),
+        Some("all") => None,
+        Some(other) => {
           return Err(Failure::Error(format!(
             "error: `{other}` is not an issue bucket\n  remedy: use one of open, closed, all"
           )));
@@ -10400,6 +10488,13 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         .collect();
 
       if rows.is_empty() {
+        // v2's sentence. Bare `issues` names the default's own status, so the
+        // sentence follows the definition rather than restating it.
+        let kind = kind.unwrap_or_else(|| {
+          intentsvcs::outstanding::ISSUE_STATUS
+            .display()
+            .to_ascii_lowercase()
+        });
         println!("no {kind} issues");
         return Ok(());
       }

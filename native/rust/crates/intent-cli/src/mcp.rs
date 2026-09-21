@@ -63,7 +63,7 @@ use intentsvcs::contract::{Scope, Verdict};
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, outcome_json,
 };
-use intentsvcs::model::{AcKind, AtStatus, IssueStatus, ThreadStatus};
+use intentsvcs::model::{AcKind, AtStatus, IssueStatus};
 use intentsvcs::remedy::Remedy;
 use serde_json::{Map, Value, json};
 
@@ -412,7 +412,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 73] = [
+pub const SERVED: [&str; 74] = [
   "st new",
   "st start",
   "st done",
@@ -464,6 +464,7 @@ pub const SERVED: [&str; 73] = [
   "issues show",
   "issues close",
   "issues open",
+  "outstanding",
   "todo",
   "todo list",
   "todo update",
@@ -652,10 +653,11 @@ pub fn serve(
     }
     "st list" => {
       // Absent means the CLI's bare default -- WIP only, which is NOT
-      // `status: "all"` (issue 0019's distinction, kept on this face).
+      // `status: "all"` (issue 0019's distinction, kept on this face). The one
+      // definition both faces and `outstanding` read (ST0079).
       let wanted = match opt_s(path, map, "status")? {
         Some(raw) => crate::render::status_filter(raw).map_err(|why| args_err(path, why))?,
-        None => Some(vec![ThreadStatus::Wip]),
+        None => Some(intentsvcs::outstanding::THREAD_STATUSES.to_vec()),
       };
       let rows: Vec<&intentsvcs::model::Thread> = f
         .st_list()
@@ -975,12 +977,14 @@ pub fn serve(
 
     // ----- issues -----
     "issues list" => {
-      let kind = opt_s(path, map, "kind")?.unwrap_or("open");
-      let wanted = match kind.to_ascii_lowercase().as_str() {
-        "open" => Some(IssueStatus::Open),
-        "closed" => Some(IssueStatus::Closed),
-        "all" => None,
-        other => {
+      let kind = opt_s(path, map, "kind")?;
+      let wanted = match kind.map(str::to_ascii_lowercase).as_deref() {
+        // The one definition both faces and `outstanding` read (ST0079).
+        None => Some(intentsvcs::outstanding::ISSUE_STATUS),
+        Some("open") => Some(IssueStatus::Open),
+        Some("closed") => Some(IssueStatus::Closed),
+        Some("all") => None,
+        Some(other) => {
           return Err(args_err(
             path,
             format!("`{other}` is not an issue bucket -- use one of open, closed, all"),
@@ -997,6 +1001,15 @@ pub fn serve(
     "issues show" => {
       let number = issue_number(path, need_s(path, map, "id")?)?;
       val(path, f.issue_show(number)?)
+    }
+    // ST0079: the CLI's rows and counts, structured; `show` is the CLI's
+    // vocabulary through the CLI's own parser.
+    "outstanding" => {
+      let show = match opt_s(path, map, "show")? {
+        Some(raw) => crate::render::show_filter(raw).map_err(|why| args_err(path, why))?,
+        None => intentsvcs::outstanding::Kind::ALL.to_vec(),
+      };
+      val(path, &f.outstanding(&show))
     }
     "issues add" => {
       let title = need_s(path, map, "title")?;

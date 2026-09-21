@@ -1597,3 +1597,210 @@ fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
     String::from_utf8_lossy(&gone.stderr)
   );
 }
+
+/// ST0079's estate, made through the real verbs: one outstanding row of each
+/// kind beside one that is not -- a WIP thread and an unstarted one, a WIP
+/// package under the UNSTARTED thread and an unstarted one under the WIP
+/// thread, an open issue and a closed one.
+fn seed_outstanding(root: &Path) {
+  ok(root, &["st", "new", "open thread"]);
+  ok(root, &["st", "start", "ST0001"]);
+  ok(root, &["st", "new", "idle thread"]);
+  ok(root, &["wp", "new", "ST0002", "busy package"]);
+  ok(root, &["wp", "start", "ST0002/01"]);
+  ok(root, &["wp", "new", "ST0001", "waiting package"]);
+  ok(root, &["issues", "add", "an open issue"]);
+  ok(root, &["issues", "add", "a closed issue"]);
+  ok(root, &["issues", "close", "2"]);
+}
+
+/// A terminal table's rows as their first two cells, in order: every line
+/// below the rule, up to the first blank line.
+fn first_two_cells(table: &str) -> Vec<(String, String)> {
+  table
+    .lines()
+    .skip_while(|line| !line.starts_with("--"))
+    .skip(1)
+    .take_while(|line| !line.trim().is_empty())
+    .map(|line| {
+      let mut cells = line.split('|').map(|cell| cell.trim().to_string());
+      (
+        cells.next().unwrap_or_default(),
+        cells.next().unwrap_or_default(),
+      )
+    })
+    .collect()
+}
+
+/// ST0079 AT-00.1 (AC-00.1): `outstanding` and its alias `outs` print one
+/// table, the kind leftmost and then the columns every kind carries, threads
+/// then work packages then issues, through the list verbs' output layer.
+#[test]
+fn outstanding_prints_one_table_with_the_kind_leftmost() {
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+
+  let table = ok(root, &["outstanding"]);
+  assert_eq!(ok(root, &["outs"]), table, "the alias is the verb");
+  let header: Vec<&str> = table
+    .lines()
+    .next()
+    .unwrap_or_default()
+    .split('|')
+    .map(str::trim)
+    .collect();
+  assert_eq!(header, ["Type", "ID", "Status", "Title"]);
+  let kinds: Vec<String> = first_two_cells(&table)
+    .into_iter()
+    .map(|(kind, _)| kind)
+    .collect();
+  assert_eq!(kinds, ["ST", "WP", "Issue"]);
+
+  let md = ok(root, &["outs", "--format", "md"]);
+  assert!(md.starts_with("| Type"), "`--format md` renders GFM: {md}");
+}
+
+/// ST0079 AT-00.2 (AC-00.2): its threads are bare `st list`'s rows and its
+/// issues bare `issues`'s, in their order; a work package is listed when it is
+/// WIP, whatever its thread's status.
+#[test]
+fn outstanding_lists_what_bare_st_list_and_issues_list() {
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+  ok(root, &["st", "new", "second open thread"]);
+  ok(root, &["st", "start", "ST0003"]);
+  ok(root, &["issues", "add", "a second open issue"]);
+
+  let rows = first_two_cells(&ok(root, &["outs"]));
+  let ids_of = |kind: &str| -> Vec<String> {
+    rows
+      .iter()
+      .filter(|(k, _)| k == kind)
+      .map(|(_, id)| id.clone())
+      .collect()
+  };
+  let st_list: Vec<String> = first_two_cells(&ok(root, &["st", "list"]))
+    .into_iter()
+    .map(|(id, _)| id)
+    .collect();
+  let issues: Vec<String> = first_two_cells(&ok(root, &["issues"]))
+    .into_iter()
+    .map(|(id, _)| id)
+    .collect();
+  assert_eq!(ids_of("ST"), st_list);
+  assert_eq!(ids_of("Issue"), issues);
+  assert_eq!(
+    ids_of("WP"),
+    ["ST0002/01"],
+    "the WIP package under the unstarted thread, never the unstarted one under the WIP thread"
+  );
+}
+
+/// ST0079 AT-00.3 (AC-00.3): `--show` takes a comma-separated list and shows
+/// those kinds and no other, and an unknown kind is refused with the values
+/// it accepts.
+#[test]
+fn show_narrows_to_the_kinds_named_and_refuses_an_unknown_one() {
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+
+  let kinds = |show: &str| -> Vec<String> {
+    first_two_cells(&ok(root, &["outs", "--show", show]))
+      .into_iter()
+      .map(|(kind, _)| kind)
+      .collect()
+  };
+  assert_eq!(kinds("issue,st"), ["ST", "Issue"]);
+  assert_eq!(kinds("wp"), ["WP"]);
+  assert_eq!(kinds("all"), ["ST", "WP", "Issue"]);
+
+  let refused = run(root, &["outs", "--show", "threads"]);
+  assert_eq!(refused.status.code(), Some(EXIT_ERROR));
+  let said = String::from_utf8_lossy(&refused.stderr);
+  assert!(
+    said.contains("st, wp, is, issue, issues"),
+    "the refusal names the accepted values: {said}"
+  );
+}
+
+/// ST0079 AT-00.4 (AC-00.4): one line counts each kind shown against how many
+/// exist, and with nothing outstanding it is printed alone.
+#[test]
+fn the_counts_line_says_none_of_n_rather_than_printing_an_empty_table() {
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+  assert_eq!(
+    ok(root, &["outs"]).lines().last(),
+    Some("outstanding: 1 of 2 threads (WIP), 1 of 2 work packages (WIP), 1 of 2 issues (OPEN)")
+  );
+
+  let quiet = project();
+  ok(quiet.path(), &["st", "new", "idle thread"]);
+  assert_eq!(
+    ok(quiet.path(), &["outs"]),
+    "outstanding: 0 of 1 threads (WIP), 0 of 0 work packages (WIP), 0 of 0 issues (OPEN)\n"
+  );
+}
+
+/// ST0079 AT-00.5 (AC-00.5): `intent_outstanding` serves the same rows to an
+/// agent, and describes itself as a read.
+#[test]
+fn outstanding_is_an_mcp_read_serving_the_same_rows() {
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+
+  let (out, frames) = crate::common::mcp_session(
+    root,
+    None,
+    &[
+      r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
+      r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"intent_outstanding","arguments":{"show":"all"}}}"#,
+      r#"{"jsonrpc":"2.0","id":3,"method":"tools/list"}"#,
+    ],
+  );
+  assert!(
+    out.status.success(),
+    "the MCP session failed: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let answer = frames
+    .iter()
+    .find(|f| f["id"] == 2)
+    .expect("a response to the call");
+  let body: serde_json::Value = serde_json::from_str(
+    answer["result"]["content"][0]["text"]
+      .as_str()
+      .expect("the tool answers text-wrapped JSON"),
+  )
+  .expect("the rows are JSON");
+  let ids: Vec<&str> = body["rows"]
+    .as_array()
+    .expect("a rows array")
+    .iter()
+    .map(|row| row["id"].as_str().unwrap_or_default())
+    .collect();
+  assert_eq!(ids, ["ST0001", "ST0002/01", "0001"]);
+
+  let listed = frames
+    .iter()
+    .find(|f| f["id"] == 3)
+    .expect("a response to tools/list");
+  let tool = listed["result"]["tools"]
+    .as_array()
+    .expect("a tools array")
+    .iter()
+    .find(|t| t["name"] == "intent_outstanding")
+    .expect("the tool is listed");
+  assert!(
+    tool["description"]
+      .as_str()
+      .unwrap_or_default()
+      .contains("`read` -- cannot change durable state"),
+    "{tool}"
+  );
+}

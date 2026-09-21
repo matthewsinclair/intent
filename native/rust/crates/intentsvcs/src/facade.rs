@@ -4189,6 +4189,13 @@ impl Facade {
     out
   }
 
+  /// The outstanding threads, work packages and issues of the kinds in `show`
+  /// (ST0079), read through [`Self::st_list`] and [`Self::issue_list`] so each
+  /// kind keeps the order its own list verb prints.
+  pub fn outstanding(&self, show: &[crate::outstanding::Kind]) -> crate::outstanding::Outstanding {
+    crate::outstanding::outstanding(&self.st_list(), &self.issue_list(), show)
+  }
+
   /// Every issue in the explorer's collection order: open first, then newest
   /// first ([`views::issue_index_order`]), beside [`Self::issue_list`]'s
   /// number order.

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.2.1] - in progress
 
+### Added
+
+- **`intent outstanding`, alias `intent outs`, shows everything open and in progress in one table** (ST0079). A snapshot of what was open took three commands -- `intent st list`, `intent issues`, and `intent wp list` once per thread -- and now takes one: a row for each thread bare `intent st list` shows, each work package in progress under any thread, and each issue bare `intent issues` shows, with the kind (ST, WP or Issue) in the leftmost column, then ID, status and title. `--show` takes a comma-separated list of `st`, `wp`, `is` (or `issue`, `issues`) and `all`, the default. The table renders through the list verbs' shared output layer (`--format terminal|md`, `--width`, `--markdown`), and a closing line counts each kind shown against how many exist, so an empty result reads as none of N rather than as missing data. It is offered on MCP as a read. **What counts as open is one definition**: `st list` and `issues` now read their bare defaults from the same place, on the CLI and on MCP, so the three verbs cannot disagree about it.
+
 ### Fixed
 
 - **`intent wb migrate` labels its `.history` count by what it counts, and names the copies that hold what it dropped** (issue 0499). The closing line said `N snapshot(s)` over every `.history` document the carry took in, fold archives included, while the refusal's remedy calls the pre-migration copies snapshots. So a node with one copy could read `29 snapshot(s)`. The line now reads `N .history document(s) carried`, and each pre-migration copy the carry keeps (the board always, and each inbox holding a unit the model cannot carry) is named on its own `kept:` line. A dropped unit is in one of those files.
