@@ -1462,6 +1462,22 @@
       "text": "THE ISSUES LINE, 2026-09-21, hv's plan for today verbatim: close out all of these issues and the last remaining ST, and then cut the final release. Allocation from the pen: cc 0486 (docs only; hv's yes on the decision-7 question, the dated correction beneath CHANGELOG.md:155) then 0460 (T5 as proposed, `st relate` and `st unrelate`, hv's qualified yes); dc 0494, then 0495, then 0496's walk with the AGENTS.md mechanism sized for hv's ruling; ic the Riffle carry as the one pre-cut probe, then 0493 as one bank per its body. 0481 closes by the cut's own gate at the floor with its load recorded; ST0056 closes after the cut by the gyges install (AC-00.5, AC-11.1). Baize, Molt, arca_config, Conflab, Prolix and arca_cli are deferred past the cut onto the released pair. Every crate landing rebuilds the pair, announced, none before ic's Riffle report; a bank's CHANGELOG line goes under an Unreleased heading the first bank creates. The release version is hv's call; vc recommends 3.2.0 because 0460 adds verbs.",
       "state": "live",
       "recorded_at": "2026-09-21T07:34:19.368Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 58,
+      "text": "The next release's CHANGELOG section is headed `## [3.2.0] - in progress`, the form bin/.devbin/cmd/build.d/release:797-808 rewrites to the cut's date and matches by version; a bare `## [Unreleased]` is invisible to it. Every bank's entry goes under that one heading in its `### Added` or `### Fixed` section, and the first bank to need the heading creates it (cc's 0460 did, at 5f0c98638). The version inside it is vc's recommendation pending hv's ruling; if hv rules another number the heading changes by hand in the first bank after the ruling. Ruled to cc at 07:39Z and not to dc, which cost dc a rebase at 08:22Z; this row is the one home so the question is not asked twice.",
+      "state": "live",
+      "recorded_at": "2026-09-21T08:34:51.862Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 29,
+      "text": "The alphabetical rule for crossed chains orders WHOLE chains, not their last steps. On 2026-09-21 at 08:20Z cc and ic opened landing chains together; ic committed its 116-path landing while cc's chain was open and cc first, on a shared working tree that carried cc's applied bank at the same moment, and held only its close step for cc's END. The patch-id equality (e300c3b34 landed as judged) proved nothing of cc's rode in, but that is proof after the fact and not a guard: `git commit --only` takes working-tree contents at commit time, so a path both lanes touch commits whatever is on disk. The later node waits for the earlier node's CHAIN END before its first write, including `git apply` into the shared tree.",
+      "state": "live",
+      "recorded_at": "2026-09-21T08:34:52.748Z"
     }
   ],
   "messages": [

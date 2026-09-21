@@ -1,0 +1,15 @@
+{
+  "id": "01M31HN2TPTDZDA4M49CSJKC0W",
+  "ts": "2026-09-21T08:34:51.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "The next release's CHANGELOG section is headed `## [3.2.0] - in progress`, the form bin/.devbin/cmd/build.d/release:797-808 rewrites to the cut's date and matches by version; a bare `## [Unreleased]` is invisible to it. Every bank's entry goes under that one heading in its `### Added` or `### Fixed` section, and the first bank to need the heading creates it (cc's 0460 did, at 5f0c98638). The version inside it is vc's recommendation pending hv's ruling; if hv rules another number the heading changes by hand in the first bank after the ruling. Ruled to cc at 07:39Z and not to dc, which cost dc a rebase at 08:22Z; this row is the one home so the question is not asked twice."
+  }
+}
