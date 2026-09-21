@@ -4,7 +4,17 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
+_(none)_
+
+## TODO
+
+- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
+- [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
+
+## DONE:2026-09-10T00:00:51Z
+
+- [~] ST0046: Add modules (properly) to the intent cli
+- [x] ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
   - [x] 01: Design canon: architecture, data model, migration and parity specs
   - [x] 02: Workspace and reified model: intentsvcs types, schema faces, store
   - [x] 03: Ingest, views and sync engine
@@ -15,7 +25,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 08: intentd daemon
   - [x] 09: MCP server and agent guide
   - [x] 10: Migration and fleet ingest harness
-  - [-] 11: Distribution: Homebrew tap, signing, notarisation
+  - [x] 11: Distribution: Homebrew tap, signing, notarisation
   - [x] 12: Cutover and v3.0.0 release
   - [~] 13: Project search: full-text, structural, and the agent search surface
   - [~] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
@@ -23,15 +33,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 16: Contract drift: a shipped field with no model row is refused
   - [x] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
-
-## TODO
-
-- [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
-- [?] ST0077: Level 3 stores the references only the toolchain sees, and a roster of the targets it defines
-
-## DONE:2026-09-10T00:00:51Z
-
-- [~] ST0046: Add modules (properly) to the intent cli
 - [x] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar

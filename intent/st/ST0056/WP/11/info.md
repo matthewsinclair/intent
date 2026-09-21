@@ -2,7 +2,7 @@
 wp_id: WP-11
 title: Distribution: Homebrew tap, signing, notarisation
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-11: Distribution: Homebrew tap, signing, notarisation

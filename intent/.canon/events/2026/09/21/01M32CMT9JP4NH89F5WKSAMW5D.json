@@ -1,0 +1,14 @@
+{
+  "id": "01M32CMT9JP4NH89F5WKSAMW5D",
+  "ts": "2026-09-21T16:26:34.679Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-00.5"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0056/gyges-install.md (hv's terminal on gyges, 2026-09-21, read by vc 16:24Z): brew install from the tap over the network, bootstrap, intent and intentd 3.2.0 at 4e2f908a5, daemon start and status, explore at 3.2.0"
+  }
+}

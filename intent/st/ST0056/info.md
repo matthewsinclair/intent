@@ -1,9 +1,9 @@
 ---
 st_id: ST0056
 title: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
-status: WIP
+status: Completed
 created: 2026-08-14
-completed:
+completed: 2026-09-21
 ---
 
 # ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
@@ -42,7 +42,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-08 | intentd daemon                                                                                          | XXL  | Done      |
 | WP-09 | MCP server and agent guide                                                                              | L    | Done      |
 | WP-10 | Migration and fleet ingest harness                                                                      | XL   | Done      |
-| WP-11 | Distribution: Homebrew tap, signing, notarisation                                                       | M    | WIP       |
+| WP-11 | Distribution: Homebrew tap, signing, notarisation                                                       | M    | Done      |
 | WP-12 | Cutover and v3.0.0 release                                                                              | L    | Done      |
 | WP-13 | Project search: full-text, structural, and the agent search surface                                     | XL   | Cancelled |
 | WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                             | L    | Cancelled |

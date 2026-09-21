@@ -1,0 +1,14 @@
+{
+  "id": "01M32CMV5EMZRTAKD07GA9WY92",
+  "ts": "2026-09-21T16:26:35.571Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0056/AC-11.1"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0056/gyges-install.md (hv's terminal on gyges, 2026-09-21, read by vc 16:24Z): the tap matthewsinclair/homebrew-intent cloned fresh by brew install, the formula intent 3.2.0 and both resources (intent--intentd, intent--support) fetched and verified from the v3.2.0 release, and the installed intent and intentd both answer at 4e2f908a5"
+  }
+}
