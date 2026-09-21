@@ -218,7 +218,12 @@ ledger_with() { # ledger_with <ledger> [rc label seal]...
 
   # The all-passed line also refuses a run that executed nothing, so the guard
   # carries `executed` first; the property is still one `if`, never an `elif`.
-  run grep -cE '^  if \[ "\$executed" -gt 0 \] && \[ -z "\$failed" \] && \[ -z "\$disagreed" \]; then' "${DEVBIN_LIB}/resolve"
+  # The guard's conjuncts may grow -- devbin 0.1.2 added the option-partition
+  # gap as a fourth -- so the pin admits further `&& [ -z "$name" ]` clauses and
+  # holds the shape: one `if`, `executed` first, `disagreed` among them. Pinned
+  # to the exact three-clause line, it went red in the 3.2.0 cut's dry run,
+  # 2026-09-21, against a runtime whose property had not changed.
+  run grep -cE '^  if \[ "\$executed" -gt 0 \] && \[ -z "\$failed" \] && \[ -z "\$disagreed" \]( && \[ -z "\$[a-z_]+" \])*; then' "${DEVBIN_LIB}/resolve"
   assert_success
   assert_output "1"
 }

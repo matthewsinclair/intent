@@ -57,8 +57,18 @@
 load "../lib/test_helper.bash"
 
 RUNNER="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/prepush"
-TRIMMED_PATH="/usr/bin:/bin"
 ZERO="0000000000000000000000000000000000000000"
+
+# THE TRIMMED PATH CARRIES ONE THING MORE THAN /usr/bin:/bin -- A BASH AT THE
+# FLOOR. devbin 0.1.2 refuses at load on any bash below 5 (helpers, issue 0076),
+# and macOS ships /bin/bash 3.2 permanently, so a PATH of /usr/bin:/bin alone
+# resolves `bash` to a runner that refuses before it reads a ref pair. Measured
+# in the 3.2.0 cut's dry run, 2026-09-21: every arm red, each with `int: bash >=
+# 5 is required; this is bash 3.2.57(1)-release (/bin/bash)`. The bash this
+# suite runs on clears the floor, but on this host it lives in the same
+# directory as cargo, so that directory cannot join the PATH without handing
+# back the lever. A private directory holding ONE link, `bash`, is what joins,
+# and `setup` asserts the floor the same way it asserts the lever.
 
 # Run the runner the way git's pre-push hook does: ref pairs on stdin, no argv.
 # Pass "" for stdin to exercise the by-hand path.
@@ -82,13 +92,18 @@ refpair() { printf 'refs/heads/main %s refs/heads/main %s' "$1" "$2"; }
 at() { git -C "$REPO" rev-parse "$1"; }
 
 setup() {
-  PATH="$TRIMMED_PATH" command -v git >/dev/null 2>&1 ||
-    skip "git is not on the trimmed PATH -- this fixture cannot run"
-  PATH="$TRIMMED_PATH" command -v cargo >/dev/null 2>&1 &&
-    skip "cargo IS on the trimmed PATH -- the lever that separates skipped from engaged does not take here, and a run that cannot distinguish them would pass for the wrong reason"
-
   TEST_TEMP_DIR="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/intent-prepush-XXXXXX")" && pwd)"
   REPO="$TEST_TEMP_DIR/repo"
+  mkdir "$TEST_TEMP_DIR/shim"
+  ln -s "$(command -v bash)" "$TEST_TEMP_DIR/shim/bash"
+  TRIMMED_PATH="$TEST_TEMP_DIR/shim:/usr/bin:/bin"
+
+  PATH="$TRIMMED_PATH" command -v git >/dev/null 2>&1 ||
+    skip "git is not on the trimmed PATH -- this fixture cannot run"
+  env -i PATH="$TRIMMED_PATH" bash -c '[ "${BASH_VERSINFO[0]}" -ge 5 ]' 2>/dev/null ||
+    skip "the bash on the trimmed PATH is below devbin's floor of 5 -- the runner would refuse at load, before it reads a ref pair, and every arm would fail for that reason alone"
+  PATH="$TRIMMED_PATH" command -v cargo >/dev/null 2>&1 &&
+    skip "cargo IS on the trimmed PATH -- the lever that separates skipped from engaged does not take here, and a run that cannot distinguish them would pass for the wrong reason"
 
   # TWO remotes, which is the whole point: one bare repo per remote, named the
   # way this project names them, with `upstream` tracked exactly as here.
