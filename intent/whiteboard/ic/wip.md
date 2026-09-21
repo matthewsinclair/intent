@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-20 13:02Z
+heartbeat_at: 2026-09-21 07:10Z
 status: active
-focus: "Waiting to land 0481 (test-only, stays open) on vc's forwarded hash after cc's T3/T4 and dc's train D. 0480/0479/0483 landed. NO RELEASE, NO PUSH."
+focus: "Next, on vc's go after the bounce: the whiteboard carry of Riffle (the rehearsal), then Baize, Molt, arca_config -- doing 82 holds the plan, the census and the after-check. Pair 510409ccc, restarted by hv 2026-09-21. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- 2026-09-20 12:50Z. Next act: the whiteboard carry of my half of the seven hand-authored estates -- Baize (cc hv ic vc), Molt (hv vc), Riffle (cc), arca_config (cc vc), 9 nodes; dc has Conflab, Prolix, arca_cli. RIFFLE FIRST as the rehearsal, and its report carries two things for the next carrier: that `intent wb status` on a store-less estate can materialise intent/.cache/intent.db and is therefore forbidden before a carry (use the presence of intent/.canon/whiteboard/ as the discriminator instead), and what an uncarried report looks like on a one-node board. Per estate: `intent wb register` with no arguments, `intent wb migrate <node>` per node with hv first where an hv node exists and alphabetically where none does (Riffle and arca_config have none), read and judge the uncarried and coerced report, `--drop-uncarried` only after that, doctor, organize, one commit by literal paths in that repo, no push. Riffle and arca_config have no intent/whiteboard/README.md: a carrier does NOT invent one, each such commit message names the absence in a sentence, and the roster question goes to hv with the report. dc's census is the table for node names and header validity; `dirty=0` is perishable and I re-read `git status` in each estate immediately before its carry. WAITING ON: cc's 0488+0489 landing and the pair rebuild after it, then vc forwards the go.
+- RESUME HERE -- 2026-09-21. On vc's go after the bounce: the whiteboard carry of my four estates, RIFFLE FIRST as the rehearsal, its report read before Baize, Molt and arca_config and before dc's Conflab, Prolix and arca_cli. PRE-STATE (ic's census 2026-09-20 14:50Z, filesystem reads only, agrees with dc's roster for roster): all seven have `intent/.canon/whiteboard/` absent and `intent/.cache/intent.db` present; mine are Baize cc hv ic vc, Molt hv vc, Riffle cc, arca_config cc vc; README absent in Riffle and arca_config. The cache db is a WORKING-COPY fact (gitignored), so re-read the census row and `git status` in each estate immediately before its carry. PER ESTATE: never `intent wb status` first, the discriminator is `intent/.canon/whiteboard/`; `intent wb register` with no arguments; `intent wb migrate <node>`, hv first where an hv node exists, alphabetical otherwise; read and judge the uncarried and coerced report before any `--drop-uncarried`; one commit by literal paths in that repo, no push; a README-less estate's commit names the absence in a sentence and a carrier does not invent one. AFTER-CHECK, three checks for two holes: `intent wb show <node>` against the rendered file item by item (the only check that reads the store); the rendered boards hashed before and after (a change the render cannot express); doctor's counted skew once migrated (symmetric: a hand edit or a stale render). NOT CHECKS, and the report says so: doctor-clean BEFORE a carry, since unmigrated boards are skipped by design; doctor's StoreStale line, since its dump carries no whiteboard rows. THE RIFFLE REPORT ALSO CARRIES what an uncarried report looks like on a one-node board and what doctor and organize cost at the load they ran at. HELD FOR hv, going with the Riffle report: the roster question for the README-less estates (Riffle, arca_config, dc's arca_cli). NO RELEASE, NO PUSH.
 
 ## TODO
 
