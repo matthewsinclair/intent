@@ -11,9 +11,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`intent st relate <ID> <TARGET> [--note <text>]` and `intent st unrelate <ID> <TARGET>` write a thread's `related` links, and `intent set` names them.** The list was readable, and writable by nothing: `set` hands every field a string and the list wants a sequence, so every value was refused, and the refusal sent the operator to a lifecycle verb or a member address, neither of which exists for this field. The only repair for a link naming a thread that had been adopted under a new id was a hand edit of the thread's canon file. `relate` refuses a target the project does not carry and a thread named as its own target; a link is a value, so relating a linked target replaces its note, a missing `--note` included, and the same note again writes nothing. `unrelate` drops a link whether or not its target still exists. Repointing a link is the drop and then the link. Each act writes the store, canon and the realised `info.md` under one `st.relate` or `st.unrelate` event, and both are offered on MCP. `set` now refuses `related` by name and names the two verbs, which also closes the daemon's field-write door to the list.
 
+### Changed
+
+- **The `CLAUDE.md` that `intent claude upgrade --apply` writes describes the verb as 3.1.0 built it** (the doc sweep, e12e071d1). It now says that `--skip-settings` also skips `.mcp.json`, that a `settings.json` with no `intent claude hook` in it is held rather than overwritten, and that `intent claude skills sync` reaches `~/.claude/skills`. A project's rendered `CLAUDE.md` picks this up at its next `claude upgrade --apply`.
+
 ### Fixed
 
 - **`intent doctor` reports a whiteboard row the store holds and its `board.json` does not** (issue 0495). Its store-versus-canon check rebuilt threads and issues and compared nothing on a board, so a board write whose render was refused left the row in the store and out of the file, and `doctor` said nothing while the same failure on a thread was reported. Each migrated node's board is now compared between the store and `board.json` by the keyed comparison a restore already applies, and a node that differs is named in the same `store-stale` advisory, with the door that lands a board's view. **It stays an advisory and is not counted in the verdict**, as the thread arm is, because on a shared tree it is also the normal state during another node's board write. A node not yet migrated is left out, since its markdown is still the board.
+
+- **`intent index rebuild` repairs an unreadable search-index table in place** (issue 0453). Every door opened the store through the damaged table, so the verb refused behind the damage it exists to repair. It now reads every other table first, refusing by name before any write if one of those is unreadable, then drops and recreates the two index tables from the store's own schema in one transaction. A store that cannot be opened at all refuses as before.
+
+- **The append-only guard protects `intent/.canon/events/`, not `intent/events.jsonl`** (issue 0458). No verb has written `events.jsonl` since 3.1.0 moved the log to one committed file per event. An edited or deleted event file is now refused at commit, with `git restore --staged --worktree --source=HEAD -- <path>` as the remedy.
+
+- **An authored `info.md` below a view's depth is an attachment that can be named** (issue 0461). An address refused a view's file name at any depth, so an author's `info.md` deeper than `WP/<nn>/` could not be reached. A view name is now refused only at a view's own depth: the thread root and directly under `WP/<nn>/`. A v2 file whose name still cannot be carried is withheld with the rename-and-`intent st attach` remedy.
+
+- **`intent claude rules index` is refused as retired, at exit 2, like every other retired spelling.** 3.1.0 answered it with clap's `unrecognized subcommand` at exit 1 -- which the 3.0.3 entry that retired it describes -- while `claude ws`, withdrawn the same way, got the retired refusal. It now has a row of its own in the register and prints "`intent claude rules index` was retired in Intent v3 and is not a command in this build".
+
+- **`intent init` lists its config file relative to the project, like every other path in its report.** It printed `intent/.config/config.json` as the one absolute path in the list.
+
+- **The advisory critic hook hands its findings to the model** (issue 0478). `post-tool-advisory.sh` printed them to plain stdout, which a PostToolUse hook's model never receives. It now emits them as `additionalContext`, as the symbol-context hook does. The hook is opt-in and wired by neither shipped `settings.json`.
+
+- **`intent daemon start` refuses a socket path the platform cannot bind, before it spawns `intentd`** (issue 0479). Under a long state directory it said only that `intentd` "was started and is not answering", and the cause was in the daemon's log. The refusal names the path, its length, the platform's limit, and the shorter `XDG_RUNTIME_DIR` or `XDG_STATE_HOME` to set.
+
+- **`intent at na`'s refusal on a test row names a flag that exists** (issue 0480). Its remedy said to recreate the row with `intent at new` "with no `--status`", a flag `at new` no longer accepts. It now says the row starts at its kind's entry, `n/a` with `--kind non-test`.
+
+- **`git worktree add` no longer builds a whole store in the new tree** (issue 0483). The post-checkout carrier ran `intent sync --apply` on a fresh checkout, which took 322s and wrote a 75 MB store on a large estate. It now skips a fresh checkout and prints one line saying the first `intent` verb builds the store. A branch switch inside a checkout still syncs.
+
+- **A search answer says whether it reconciled the index before it answered** (issue 0484). A search skips its reconcile beside a watching daemon, under `--no-reconcile` and through `--daemon`, and its `complete: true` could not be told from one over a tree just walked. The envelope carries `reconciled`, and the terminal prints one line on stderr when the answer did not reconcile first.
+
+- **`intent upgrade` keeps a project's flushed DONE list flushed** (issue 0485). A re-run on a v3 project rendered `todo.md` with every finished thread back in DONE, and `doctor` then reported the upgrade's own output as a hand edit. The upgrade now reads the watermark from the project's canon and carries it into the store it rebuilds, and an unreadable `project.json` refuses rather than rendering without it.
+
+- **A board write whose render failed names the door that lands a board** (issue 0487). The warning said to run `intent st sync`, which rewrites a thread's views and cannot land a board's. It now names `intent wb touch --node <you>`, and says that neither `intent organize` nor `intent st sync` does it.
+
+- **`intent wb migrate` carries a numbered list one item per line, and marks a unit that reads as state for a person to read** (issues 0488, 0489). A `1.` list was carried as one item, so a four-item TODO became a single row. The report now prints what each section yielded, zeros included, and puts a `READ THIS:` line on any uncarried or coerced unit that looks state-bearing. The mark decides nothing.
+
+- **`intent st attach` refuses a name no address can reach** (issue 0490). It skipped the naming gate that `intent set` runs, so `st attach ST0001 todo.md` answered ok while the address for the same file refused it as a view. Both doors now ask the same gate.
+
+- **A test run in a scratch tree cannot silently take over the machine's install pointer, and the dry `claude upgrade` says when the pre-commit gate comes from another install** (issue 0492). A suite run in a worktree published that worktree as the install root, and every project's gate then ran its guards from it. A linked worktree or temp-dir root no longer replaces a pointer that names a real install, and `intent bootstrap` still repairs one that was taken over.
 
 ## [3.1.0] - 2026-09-19
 
