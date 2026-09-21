@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-21 07:27Z
+heartbeat_at: 2026-09-21 15:34Z
 status: active
-focus: "Next, on vc's go after the bounce: the whiteboard carry of Riffle (the rehearsal), then Baize, Molt, arca_config -- doing 82 holds the plan, the census and the after-check. Pair 510409ccc, restarted by hv 2026-09-21. NO RELEASE, NO PUSH."
+focus: "After the 3.2.0 cut, on vc's word: carry Baize, Molt, arca_config on the released pair, the 0497 heartbeat line as the fourth after-check. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- 2026-09-21. On vc's go after the bounce: the whiteboard carry of my four estates, RIFFLE FIRST as the rehearsal, its report read before Baize, Molt and arca_config and before dc's Conflab, Prolix and arca_cli. PRE-STATE (ic's census 2026-09-20 14:50Z, filesystem reads only, agrees with dc's roster for roster): all seven have `intent/.canon/whiteboard/` absent and `intent/.cache/intent.db` present; mine are Baize cc hv ic vc, Molt hv vc, Riffle cc, arca_config cc vc; README absent in Riffle and arca_config. The cache db is a WORKING-COPY fact (gitignored), so re-read the census row and `git status` in each estate immediately before its carry. PER ESTATE: never `intent wb status` first, the discriminator is `intent/.canon/whiteboard/`; `intent wb register` with no arguments; `intent wb migrate <node>`, hv first where an hv node exists, alphabetical otherwise; read and judge the uncarried and coerced report before any `--drop-uncarried`; one commit by literal paths in that repo, no push; a README-less estate's commit names the absence in a sentence and a carrier does not invent one. AFTER-CHECK, three checks for two holes: `intent wb show <node>` against the rendered file item by item (the only check that reads the store); the rendered boards hashed before and after (a change the render cannot express); doctor's counted skew once migrated (symmetric: a hand edit or a stale render). NOT CHECKS, and the report says so: doctor-clean BEFORE a carry, since unmigrated boards are skipped by design; doctor's StoreStale line, since its dump carries no whiteboard rows. THE RIFFLE REPORT ALSO CARRIES what an uncarried report looks like on a one-node board and what doctor and organize cost at the load they ran at. HELD FOR hv, going with the Riffle report: the roster question for the README-less estates (Riffle, arca_config, dc's arca_cli). NO RELEASE, NO PUSH.
+- RESUME HERE -- 2026-09-21, after the 3.2.0 cut (tag v3.2.0 at 4e2f908a5; pair rebuilt at the tag, intentd back, read by vc 15:32:55Z). On vc's word: the whiteboard carry of Baize, Molt and arca_config on the released pair (Riffle carried at Riffle 02d1a8e; dc's Conflab, Prolix and arca_cli stay dc's lane). PER ESTATE: re-read git status and the census row immediately before (the cache db is a working-copy fact); never wb status first, the discriminator is intent/.canon/whiteboard/; wb register with no arguments; wb migrate <node>, hv first where one exists, alphabetical otherwise (Baize: hv then cc ic vc; Molt: hv then vc; arca_config: cc vc); judge the uncarried and coerced report before any --drop-uncarried; one commit by literal paths in that repo, no push; a README-less estate (arca_config) names the absence in its commit and no README is invented. AFTER-CHECK, four lines: wb show <node> against the rendered file item by item; the rendered boards hashed before and after; doctor's counted skew once migrated; and 0497's report line (heartbeat: <authored> as authored, <carry> at carry) read in each migrate's output. NOT CHECKS, and the report says so: doctor-clean before a carry, and doctor's StoreStale line. The roster question for README-less estates is with hv through vc (vc recommends none is owed). NO RELEASE, NO PUSH.
 
 ## TODO
 
-- 0493 stays OPEN as next-line work on hv's no-yak-shaving ruling, NOT built now; dc stood down. An intent-cli test that spawns the binary without a fixture HOME runs the verb against the developer's own per-user state: 47 files set no HOME at all, and NONE of them names an ambient-state verb (my earlier claim of three was a superset scan that hit the retired `st bootstrap` and an `.arg("mcp")`; dc caught it, corrected forward at d26e86c85). So the whole population is latent, which is the argument for a mechanism over a sweep. vc's shape: helper in testkit beside fixture_home AND a census arm in intent-cli's suite, one bank, ~70 call sites. 0492 already closed the install pointer in publish_home whatever HOME a spawn inherits, so the subjects here are the registry, the state dir, the socket and the config -- not the pointer.
+_(none)_
 
 ## Holds
 
@@ -25,7 +25,7 @@ _(none)_
 
 ## Watch-outs
 
-_(none)_
+- The crossed-chain rule orders WHOLE chains, not their last steps (vc, 2026-09-21). On a crossed START from an earlier moniker, stop before your next WRITE, the commit included. The 0493 landing commit ran with cc's 0460 START open and cc's apply landed in the working tree mid-commit; the patch-id matched (e300c3b34), but that is proof after the fact, not a guard, since commit --only takes working-tree content.
 
 ## Decisions
 

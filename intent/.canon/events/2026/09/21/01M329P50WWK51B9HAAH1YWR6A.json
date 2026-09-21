@@ -1,0 +1,15 @@
+{
+  "id": "01M329P50WWK51B9HAAH1YWR6A",
+  "ts": "2026-09-21T15:34:52.700Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "The crossed-chain rule orders WHOLE chains, not their last steps (vc, 2026-09-21). On a crossed START from an earlier moniker, stop before your next WRITE, the commit included. The 0493 landing commit ran with cc's 0460 START open and cc's apply landed in the working tree mid-commit; the patch-id matched (e300c3b34), but that is proof after the fact, not a guard, since commit --only takes working-tree content."
+  }
+}
