@@ -2768,6 +2768,24 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       print_renumbering(&done, &format!("{old} renumbered to {new}"), "thread");
       Ok(())
     }
+    // Issue 0460: the only doors to a thread's `related` links.
+    Some(("relate", a)) => {
+      let id = thread_arg(a, "id")?;
+      let target = thread_arg(a, "target")?;
+      let note = opt(a, "note")?;
+      let outcome = open()?
+        .st_relate(&id, &target, note.as_deref())
+        .map_err(fail)?;
+      reported(&outcome, &id, &format!("related to {target}"));
+      Ok(())
+    }
+    Some(("unrelate", a)) => {
+      let id = thread_arg(a, "id")?;
+      let target = thread_arg(a, "target")?;
+      let outcome = open()?.st_unrelate(&id, &target).map_err(fail)?;
+      reported(&outcome, &id, &format!("no longer related to {target}"));
+      Ok(())
+    }
     Some(("show", a)) => {
       let id = thread_arg(a, "id")?;
       // **`file` IS READ, AND A VALUE OUTSIDE ITS DECLARED SET IS REFUSED AT

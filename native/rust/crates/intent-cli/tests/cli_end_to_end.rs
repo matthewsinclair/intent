@@ -1544,3 +1544,56 @@ fn at_new_with_no_status_starts_a_non_test_row_at_n_a() {
     "a non-test row created with no status starts at n/a:\n{listed}"
   );
 }
+
+/// **Issue 0460 through the real binary: `st relate` and `st unrelate` are the
+/// doors to a thread's `related` links, and `set` names them.** The facade arms
+/// are in intentsvcs's `related_links_have_their_own_verbs.rs`; this drives the
+/// spellings, the id normalisation and the words an operator reads.
+#[test]
+fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "the thread that links"]);
+  ok(root, &["st", "new", "the thread it links to"]);
+
+  let said = ok(root, &["st", "relate", "1", "s2", "--note", "builds on it"]);
+  assert!(said.contains("ok: ST0001 related to ST0002"), "{said}");
+  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  assert!(
+    canon.contains("builds on it"),
+    "the link reached canon: {canon}"
+  );
+  let again = ok(
+    root,
+    &["st", "relate", "ST0001", "ST0002", "--note", "builds on it"],
+  );
+  assert!(
+    again.contains("ok: ST0001 already related to ST0002"),
+    "{again}"
+  );
+
+  let set = run(root, &["set", "intent:///threads/ST0001", "related", "[]"]);
+  assert_eq!(set.status.code(), Some(EXIT_ERROR));
+  let said = String::from_utf8_lossy(&set.stderr);
+  assert!(
+    said.contains("intent st relate") && said.contains("intent st unrelate"),
+    "set's refusal names the doors that exist: {said}"
+  );
+
+  let nowhere = run(root, &["st", "relate", "1", "9"]);
+  assert_eq!(nowhere.status.code(), Some(EXIT_ERROR));
+  assert!(String::from_utf8_lossy(&nowhere.stderr).contains("intent st list"));
+
+  let said = ok(root, &["st", "unrelate", "1", "2"]);
+  assert!(
+    said.contains("ok: ST0001 no longer related to ST0002"),
+    "{said}"
+  );
+  let gone = run(root, &["st", "unrelate", "1", "2"]);
+  assert_eq!(gone.status.code(), Some(EXIT_ERROR));
+  assert!(
+    String::from_utf8_lossy(&gone.stderr).contains("carries no related link to ST0002"),
+    "{}",
+    String::from_utf8_lossy(&gone.stderr)
+  );
+}

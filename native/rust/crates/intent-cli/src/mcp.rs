@@ -412,7 +412,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 71] = [
+pub const SERVED: [&str; 73] = [
   "st new",
   "st start",
   "st done",
@@ -427,6 +427,8 @@ pub const SERVED: [&str; 71] = [
   "st list",
   "st show",
   "st edit",
+  "st relate",
+  "st unrelate",
   "st sync",
   "wp new",
   "wp start",
@@ -570,6 +572,17 @@ pub fn serve(
     "st resume" => {
       let id = spec(path, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.st_resume(&id)?, &id))
+    }
+    "st relate" => {
+      let id = spec(path, need_s(path, map, "id")?)?;
+      let target = spec(path, need_s(path, map, "target")?)?;
+      let note = opt_s(path, map, "note")?;
+      Ok(outcome_json(&f.st_relate(&id, &target, note)?, &id))
+    }
+    "st unrelate" => {
+      let id = spec(path, need_s(path, map, "id")?)?;
+      let target = spec(path, need_s(path, map, "target")?)?;
+      Ok(outcome_json(&f.st_unrelate(&id, &target)?, &id))
     }
     "st hold" => {
       let id = spec(path, need_s(path, map, "id")?)?;

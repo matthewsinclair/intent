@@ -238,6 +238,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // the thread carries none at that path. Nothing was LEFT OUT; the remedy is
     // one of the paths the thread does carry.
     | FacadeError::NoSuchAttachment { .. }
+    // `0460`'s three refusals, the same argument: the caller named a target,
+    // and it is not a thread, is the thread itself, or is not linked. Nothing
+    // was LEFT OUT; the remedy is a different target.
+    | FacadeError::NoSuchRelatedTarget { .. }
+    | FacadeError::RelatedToItself { .. }
+    | FacadeError::NoSuchRelated { .. }
     // `0398`'s refusal, the same argument again: the caller named a document and
     // the thread carries none by that name. Nothing was LEFT OUT; the remedy is
     // the door that attaches one.

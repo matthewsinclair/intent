@@ -313,6 +313,16 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/mcp.rs",
+    "st relate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st unrelate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
     "st sync",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),

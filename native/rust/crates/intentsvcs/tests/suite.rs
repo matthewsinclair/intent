@@ -376,6 +376,8 @@ mod record_timestamps;
 mod refused_ingest_blocks_egest;
 #[path = "related_links.rs"]
 mod related_links;
+#[path = "related_links_have_their_own_verbs.rs"]
+mod related_links_have_their_own_verbs;
 #[path = "remedy_coverage.rs"]
 mod remedy_coverage;
 #[path = "renumber_moves_an_id_and_what_names_it.rs"]

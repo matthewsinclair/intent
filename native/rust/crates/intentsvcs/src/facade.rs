@@ -957,6 +957,19 @@ pub enum FacadeError {
     path: String,
     thread: String,
   },
+  /// `st relate` naming a target no thread in the project carries (issue 0460).
+  ///
+  /// **A LINK TO NOTHING IS THE DEFECT THIS VERB EXISTS TO REPAIR**, so the verb
+  /// that writes links does not write one. `st unrelate` does not ask the same
+  /// question, because dropping a dangling link is its whole reason to exist.
+  #[error("{target} is not a steel thread in this project, so {thread} cannot be related to it")]
+  NoSuchRelatedTarget { thread: String, target: String },
+  /// `st relate` naming the thread as its own target (issue 0460).
+  #[error("{thread} cannot be related to itself")]
+  RelatedToItself { thread: String },
+  /// `st unrelate` naming a link the thread does not carry (issue 0460).
+  #[error("{thread} carries no related link to {target}, so there is nothing to unrelate")]
+  NoSuchRelated { thread: String, target: String },
   /// A read naming a document the thread does not carry (issue 0398).
   ///
   /// **BESIDE `NoSuchAttachment` AND `NoSuchEditable`, AND NEITHER, BECAUSE THE
@@ -2232,6 +2245,15 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchAttachment { thread, .. } => format!(
         "the paths {thread} carries are its canon's `attachments`, in `intent/.canon/st/{thread}.json` -- name one of those, relative to the thread's own directory"
       ),
+      Self::NoSuchRelatedTarget { thread, .. } => format!(
+        "run `intent st list` to see the threads this project has, and relate {thread} to one of those -- a link to a thread that does not exist is the dangling reference `intent doctor` reports"
+      ),
+      Self::RelatedToItself { thread } => format!(
+        "name a different thread as the target -- {thread}'s links name the threads beside it"
+      ),
+      Self::NoSuchRelated { thread, .. } => format!(
+        "the links {thread} carries are its canon's `related`, in `intent/.canon/st/{thread}.json`, and its `info.md` lists them under `## Related Steel Threads` -- name one of those"
+      ),
       Self::NotCarried { thread, path } => format!(
         "a thread carries a document once it is attached -- `intent st attach {thread} {path} --from <file>` writes one into the store"
       ),
@@ -2313,7 +2335,7 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::FieldNotWritable { .. } => {
         "go to the door the refusal names: a lifecycle verb for a field a state machine owns, \
-         and the member's own address for a collection"
+         the member's own address for a collection, and the list's own verbs for a list that has them"
           .to_string()
       }
       Self::NoSuchThread { .. } => {
@@ -3402,6 +3424,9 @@ fn declared_list_edit(op: &str) -> Option<(Sigil, ListAction)> {
     // WP-02): the old id's line becomes the new id's, and only if it was there.
     // `land_renumber` does that edit itself, so this table has nothing to add.
     "st.renumber" | "issues.renumber" => None,
+    // **A LINK MOVES NO STATUS** (issue 0460): `st relate` and `st unrelate`
+    // change a thread's `related` list and nothing the declaration is keyed on.
+    "st.relate" | "st.unrelate" => None,
     // **AND THE WILDCARD NOW ANSWERS FOR OTHER ENTITIES ONLY.** `wp.*`, `ac.*`,
     // `at.*` and the rest never edit a thread's declaration, and
     // `every_st_op_has_a_declared_list_answer.rs` holds it to that: every
@@ -14114,7 +14139,8 @@ impl Facade {
         // have been told their write landed. **Each child has its own address
         // and that is where it is written**, so the refusal can say where to
         // go. `related` is deliberately NOT in this list: it has no address of
-        // its own, so the thread door is the only door it has.
+        // its own, so a whole-thread write carries it, and its one-link doors
+        // are `st relate` and `st unrelate` (issue 0460).
         // **THE FIELD NAME IS NOT THE ADDRESS SEGMENT, AND INTERPOLATING ONE
         // AS THE OTHER PRINTS A REMEDY THAT DOES NOT PARSE.** The model calls
         // them `wps`/`criteria`/`tests`; the grammar spells them `wp`/`ac`/`at`
@@ -14179,8 +14205,8 @@ impl Facade {
         // the children, and the nine scalars four lines away are not restored.
         //
         // **`related` IS THE SHARPEST AND THE ARM ABOVE SUPPLIES THE REASON** --
-        // it has no address of its own, so the thread door is its ONLY door, and
-        // it was the door that emptied it.
+        // it has no address of its own, so when this was measured the thread
+        // door was its ONLY door, and it was the door that emptied it.
         //
         // Refusing BY NAME rather than merging silently: a caller who omitted
         // `context` may have meant *leave it* or may have meant *clear it*, and
@@ -14621,6 +14647,93 @@ impl Facade {
           id: format!("{thread}/{path}"),
         },
         json!({ "via": "address" }),
+        next,
+      )
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
+  }
+
+  /// `intent st relate <ID> <TARGET> [--note <text>]` (issue 0460): link a
+  /// thread to another, or re-note a link it already carries.
+  ///
+  /// **A LINK IS A VALUE, THE TARGET AND ITS NOTE TOGETHER.** Relating a target
+  /// the thread already links replaces the note, a missing `--note` included,
+  /// and relating it with the note it already has writes nothing and records
+  /// nothing. Repointing a link is `st_unrelate` of the old target and
+  /// `st_relate` of the new one: two acts, two events.
+  ///
+  /// Written through the same `Facade::apply` as every other thread write, so
+  /// the store, canon, the realised `info.md` and the event log move together.
+  pub fn st_relate(
+    &mut self,
+    id: &str,
+    target: &str,
+    note: Option<&str>,
+  ) -> Result<Outcome, FacadeError> {
+    self.st_show(id)?;
+    if id == target {
+      return Err(FacadeError::RelatedToItself {
+        thread: id.to_string(),
+      });
+    }
+    if !self.canon.threads.iter().any(|t| t.id == target) {
+      return Err(FacadeError::NoSuchRelatedTarget {
+        thread: id.to_string(),
+        target: target.to_string(),
+      });
+    }
+    let note = note.map(str::to_string);
+    let mut next = self.canon.clone();
+    let holder = find_thread_mut(&mut next, id)?;
+    match holder.related.iter_mut().find(|r| r.id == target) {
+      Some(link) if link.note == note => {
+        return Ok(Outcome::AlreadyThere {
+          state: format!("related to {target}"),
+        });
+      }
+      Some(link) => link.note = note.clone(),
+      None => holder.related.push(crate::model::Related {
+        id: target.to_string(),
+        note: note.clone(),
+      }),
+    }
+    self
+      .apply(
+        "st.relate",
+        Subject {
+          kind: "thread".to_string(),
+          id: id.to_string(),
+        },
+        json!({ "target": target, "note": note }),
+        next,
+      )
+      .map(|foreign| Outcome::Moved.with_overwrites(foreign))
+  }
+
+  /// `intent st unrelate <ID> <TARGET>` (issue 0460): drop a thread's link.
+  ///
+  /// **THE TARGET NEED NOT EXIST**, because a link to a thread that is gone is
+  /// the case this verb is for: a thread adopted under a new id leaves links
+  /// naming the old one, and until this verb nothing could remove them but a
+  /// hand edit of canon.
+  pub fn st_unrelate(&mut self, id: &str, target: &str) -> Result<Outcome, FacadeError> {
+    let mut next = self.canon.clone();
+    let holder = find_thread_mut(&mut next, id)?;
+    let before = holder.related.len();
+    holder.related.retain(|r| r.id != target);
+    if holder.related.len() == before {
+      return Err(FacadeError::NoSuchRelated {
+        thread: id.to_string(),
+        target: target.to_string(),
+      });
+    }
+    self
+      .apply(
+        "st.unrelate",
+        Subject {
+          kind: "thread".to_string(),
+          id: id.to_string(),
+        },
+        json!({ "target": target }),
         next,
       )
       .map(|foreign| Outcome::Moved.with_overwrites(foreign))
@@ -16452,6 +16565,11 @@ enum Unsettable {
   Machine(&'static str),
   /// The field has an address of its own; the segment that reaches it.
   Child(&'static str),
+  /// **A LIST WITH VERBS OF ITS OWN**, which add and drop one member at a time
+  /// and check each one (issue 0460). Not `Child`: the members have no address,
+  /// so there is no URL to name. Not `Machine`: no state machine owns the list.
+  /// Carries the verbs.
+  OwnVerbs(&'static str),
   /// **COMPUTED FROM ANOTHER FIELD, so writing it independently is how a record
   /// comes to describe something it does not.** An attachment's `sha256` set by
   /// hand would correctly describe the wrong bytes -- the exact hazard `put`
@@ -16608,9 +16726,11 @@ impl Unsettable {
   fn kind(&self) -> UnsettableKind {
     match self {
       // A route exists and `explain` names it.
-      Self::Machine(_) | Self::Child(_) | Self::Derived(_) | Self::WholeBody { .. } => {
-        UnsettableKind::Elsewhere
-      }
+      Self::Machine(_)
+      | Self::Child(_)
+      | Self::OwnVerbs(_)
+      | Self::Derived(_)
+      | Self::WholeBody { .. } => UnsettableKind::Elsewhere,
       // Constitutive: the value IS the address, or the service owns the stamp.
       Self::Identity | Self::Stamped | Self::Immutable(_) => UnsettableKind::Never,
       // **NO CONSTRUCTOR REACHES THIS TODAY AND THE VARIANT STAYS.** `blob` was
@@ -16638,6 +16758,11 @@ impl Unsettable {
         "this collection has an address of its own -- set each member at `{url}/{segment}/<id>`, \
          because a write here would have to either apply the whole collection or drop it, and \
          both are silent about the other"
+      ),
+      Self::OwnVerbs(verbs) => format!(
+        "this list has verbs of its own -- `{verbs}` -- which change one link at a time, refuse \
+         a link to a thread that does not exist and record each change. A write here would \
+         replace the whole list with neither check"
       ),
       Self::Derived(from) => format!(
         "this field is COMPUTED from `{from}` -- write `{from}` at `{url}` and this follows. \
@@ -16720,6 +16845,9 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       // the edges that reaches `completed`, and a route list that named only the
       // gated one would send a reader to a verb that refuses them.
       "fiat" => Some(Unsettable::Machine("intent fc <ST-id> --because")),
+      "related" => Some(Unsettable::OwnVerbs(
+        "intent st relate <ST-id> <target> [--note <text>], intent st unrelate <ST-id> <target>",
+      )),
       // `completed` is deliberately NOT here -- see [`Unsettable::Stamped`].
       "created" => Some(Unsettable::Stamped),
       _ => None,

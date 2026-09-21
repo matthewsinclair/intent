@@ -899,6 +899,27 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       })
       .expect_err("ST0056 carries no attachment at never-attached.md"),
   ));
+  // **`0460`'s THREE REFUSALS, PROVOKED.** A link to a thread that does not
+  // exist, a link from a thread to itself, and the drop of a link the thread
+  // does not carry: nothing is written by any of them.
+  out.push((
+    "a relate naming a thread the project does not carry",
+    facade
+      .st_relate("ST0056", "ST9999", None)
+      .expect_err("ST9999 is not a thread here"),
+  ));
+  out.push((
+    "a relate of a thread to itself",
+    facade
+      .st_relate("ST0056", "ST0056", None)
+      .expect_err("a thread is not related to itself"),
+  ));
+  out.push((
+    "an unrelate of a link the thread does not carry",
+    facade
+      .st_unrelate("ST0056", "ST9999")
+      .expect_err("ST0056 carries no link to ST9999"),
+  ));
   // **ST0076 WP-05's REFUSAL, PROVOKED.** Level 3 asked of a build carrying no
   // resolver for any declared language: nothing runs, and the remedy says what
   // still answers.
@@ -1064,6 +1085,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::OpenWorkPackages { .. } => "OpenWorkPackages",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::NoSuchAttachment { .. } => "NoSuchAttachment",
+    FacadeError::NoSuchRelatedTarget { .. } => "NoSuchRelatedTarget",
+    FacadeError::RelatedToItself { .. } => "RelatedToItself",
+    FacadeError::NoSuchRelated { .. } => "NoSuchRelated",
     FacadeError::NotCarried { .. } => "NotCarried",
     FacadeError::CrossProjectAddress { .. } => "CrossProjectAddress",
     FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
@@ -1201,6 +1225,9 @@ const ALL_VARIANTS: &[&str] = &[
   "NotEditable",
   "NoSuchEditable",
   "NoSuchAttachment",
+  "NoSuchRelatedTarget",
+  "RelatedToItself",
+  "NoSuchRelated",
   "NotCarried",
   "CrossProjectAddress",
   "Organize",

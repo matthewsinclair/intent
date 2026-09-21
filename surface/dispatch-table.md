@@ -186,30 +186,32 @@ Manage steel threads for the project
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
 
-| command                             | args        | flags                                                                    | help                                                                                                                               | disposition |
-| ----------------------------------- | ----------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `st`                                | <command>   | help/--help/-h                                                           | Manage steel threads for the project                                                                                               | keep        |
-| `st new`                            | <title>     | -s/--start                                                               | Create a new steel thread                                                                                                          | keep        |
-| `st start`                          | <id>        | --                                                                       | Mark a steel thread as in progress                                                                                                 | keep        |
-| `st done`                           | <id>        | --keep, --date <YYYY-MM-DD>                                              | Mark a steel thread as complete                                                                                                    | keep        |
-| `st cancel`                         | <id>        | --reason <text>, --keep, --date <YYYY-MM-DD>                             | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
-| `st triage`                         | <id>        | --                                                                       | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
-| `st hold`                           | <id>        | --reason <text>                                                          | Put a thread on hold, with a reason                                                                                                | new-surface |
-| `st resume`                         | <id>        | --                                                                       | Take a thread off hold and back into Wip                                                                                           | new-surface |
-| `st reopen`                         | <id>        | --reason <text>                                                          | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
-| `st reinstate`                      | <id>        | --reason <text>                                                          | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
-| `st hydrate`                        | <id>        | --overwrite                                                              | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
-| `st dehydrate`                      | <id>        | --                                                                       | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
-| `st list`                           | --          | --status <status>, --width <n>, --markdown, --format terminal/md, --slug | List steel threads (default: in progress only)                                                                                     | keep        |
-| `st show`                           | <id> [file] | --                                                                       | Show details of a specific steel thread                                                                                            | keep        |
-| `st edit`                           | <id> [file] | --editor, --path                                                         | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
-| `st attach`                         | <id> <path> | --from <file>                                                            | Write an attachment's content from a local file                                                                                    | new-surface |
-| `st detach`                         | <id> <path> | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                     | new-surface |
-| `st renumber`                       | <old> <new> | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                       | new-surface |
-| `st sync`                           | --          | --write, --width <n>, --format terminal/md                               | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
-| `st repair`                         | [id]        | --write                                                                  | Repair malformed steel thread metadata                                                                                             | retire      |
-| `st organize` (alias `st organise`) | --          | --write                                                                  | Organize ST files in directories by status                                                                                         | retire      |
-| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id>                              | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | retire      |
+| command                             | args          | flags                                                                    | help                                                                                                                               | disposition |
+| ----------------------------------- | ------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `st`                                | <command>     | help/--help/-h                                                           | Manage steel threads for the project                                                                                               | keep        |
+| `st new`                            | <title>       | -s/--start                                                               | Create a new steel thread                                                                                                          | keep        |
+| `st start`                          | <id>          | --                                                                       | Mark a steel thread as in progress                                                                                                 | keep        |
+| `st done`                           | <id>          | --keep, --date <YYYY-MM-DD>                                              | Mark a steel thread as complete                                                                                                    | keep        |
+| `st cancel`                         | <id>          | --reason <text>, --keep, --date <YYYY-MM-DD>                             | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
+| `st triage`                         | <id>          | --                                                                       | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
+| `st hold`                           | <id>          | --reason <text>                                                          | Put a thread on hold, with a reason                                                                                                | new-surface |
+| `st resume`                         | <id>          | --                                                                       | Take a thread off hold and back into Wip                                                                                           | new-surface |
+| `st reopen`                         | <id>          | --reason <text>                                                          | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
+| `st reinstate`                      | <id>          | --reason <text>                                                          | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
+| `st hydrate`                        | <id>          | --overwrite                                                              | Add a steel thread to .intentfiles and write its files                                                                             | new-surface |
+| `st dehydrate`                      | <id>          | --                                                                       | Remove a steel thread from .intentfiles and delete its files                                                                       | new-surface |
+| `st list`                           | --            | --status <status>, --width <n>, --markdown, --format terminal/md, --slug | List steel threads (default: in progress only)                                                                                     | keep        |
+| `st show`                           | <id> [file]   | --                                                                       | Show details of a specific steel thread                                                                                            | keep        |
+| `st edit`                           | <id> [file]   | --editor, --path                                                         | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
+| `st attach`                         | <id> <path>   | --from <file>                                                            | Write an attachment's content from a local file                                                                                    | new-surface |
+| `st detach`                         | <id> <path>   | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                     | new-surface |
+| `st renumber`                       | <old> <new>   | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                       | new-surface |
+| `st relate`                         | <id> <target> | --note <text>                                                            | Link a thread to another, or replace the note on a link it already carries                                                         | new-surface |
+| `st unrelate`                       | <id> <target> | --                                                                       | Drop a thread's link to another, including a link to a thread that no longer exists                                                | new-surface |
+| `st sync`                           | --            | --write, --width <n>, --format terminal/md                               | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
+| `st repair`                         | [id]          | --write                                                                  | Repair malformed steel thread metadata                                                                                             | retire      |
+| `st organize` (alias `st organise`) | --            | --write                                                                  | Organize ST files in directories by status                                                                                         | retire      |
+| `st bootstrap`                      | --            | --audit-only, --dry-run, --deliverable <id>                              | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | retire      |
 
 ### `st`
 
@@ -661,6 +663,47 @@ Move a steel thread to a free id, with everything that names it structurally
 - **recoverability:** reversible
 - **recoverability anomaly:** Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).
 - **facade:** st_renumber
+
+### `st relate`
+
+Link a thread to another, or replace the note on a link it already carries
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+  - `target` (st-id, arity `1`)
+- **Flags:**
+  - `--note` `<text>` (string) -- Why the two threads are related; relating a linked target without it clears the note
+    - **disposition:** keep
+- **Exit codes:**
+  - `0` -- `<id>` links `<target>` with the note given, written to the store, canon and the realised `info.md` under one `st.relate` event -- or it already did, and nothing was written
+  - `1` -- `<id>` does not exist, `<target>` is not a thread in this project, or `<target>` is `<id>` -- in each case nothing is written
+- **stdout:** `ok: <id> related to <target>`, or `ok: <id> already related to <target>` when the link and its note were already there
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** Issue 0460, filed from Lamplight on 2026-09-18, ruled by hv on 2026-09-21 through vc. **`related` was readable as a descent and writable by nothing**: `intent set` hands every field a string and the list wants a sequence, so the refusal named a door that does not exist, and the only repair for a dangling or misdirected link was a hand edit of the thread's canon file. A link is a value, the target and its note together. Relating a target the thread already links replaces the note, a missing `--note` included, and the same note again changes nothing and records nothing. The target must be a thread the project carries, because a link to nothing is the defect the verb repairs. Repointing a link is `st unrelate` of the old target and `st relate` of the new one.
+- **recoverability:** reversible
+- **facade:** st_relate
+
+### `st unrelate`
+
+Drop a thread's link to another, including a link to a thread that no longer exists
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+  - `target` (st-id, arity `1`)
+- **Exit codes:**
+  - `0` -- the link is gone from the store, canon and the realised `info.md`, under one `st.unrelate` event
+  - `1` -- `<id>` does not exist, or carries no link to `<target>` -- nothing is written
+- **stdout:** `ok: <id> no longer related to <target>`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **basis:** Issue 0460, filed from Lamplight on 2026-09-18, ruled by hv on 2026-09-21 through vc. **`related` was readable as a descent and writable by nothing**: `intent set` hands every field a string and the list wants a sequence, so the refusal named a door that does not exist, and the only repair for a dangling or misdirected link was a hand edit of the thread's canon file. A link is a value, the target and its note together. The target need not exist: a link naming a thread that was adopted under a new id is the case the verb is for, and it is dropped like any other.
+- **recoverability:** reversible
+- **facade:** st_unrelate
 
 ### `st sync`
 

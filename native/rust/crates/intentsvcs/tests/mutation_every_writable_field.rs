@@ -1744,10 +1744,9 @@ fn a_different_legal_thread_value() -> Vec<(&'static str, Value)> {
     ("context", json!("Why this thread exists, re-authored.")),
     ("body", json!("A load-bearing paragraph, edited in place.")),
     ("preamble", json!("Front matter prose, edited in place.")),
-    (
-      "related",
-      json!([{ "id": "ST0057", "note": "disk as a sparse projection" }]),
-    ),
+    // **`related` IS DELIBERATELY ABSENT** (issue 0460): the list has verbs of
+    // its own, `st relate` and `st unrelate`, which refuse a link to a thread
+    // that does not exist, so `set` refuses it and names them.
   ]
 }
 

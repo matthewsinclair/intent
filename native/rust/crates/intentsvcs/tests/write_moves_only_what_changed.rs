@@ -514,6 +514,19 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      whole-row diff this file is built around does not describe it",
   ),
   (
+    "st relate",
+    "related_links_have_their_own_verbs.rs -- the link reaching the store, canon and the realised \
+     `info.md` under one `st.relate` event, the same note writing nothing and another replacing it, \
+     and every refusal writing nothing (0460). What it moves is one member of a list with no \
+     address of its own, so the whole-row diff this file is built around does not describe it",
+  ),
+  (
+    "st unrelate",
+    "related_links_have_their_own_verbs.rs `unrelate_drops_a_link_to_a_thread_the_project_no_longer_has` \
+     and `every_refusal_names_its_cause_and_writes_nothing` (0460) -- `st relate`'s inverse, driven \
+     beside it for `st relate`'s reason",
+  ),
+  (
     "st renumber",
     "renumber_moves_an_id_and_what_names_it.rs -- six arms drive the facade door: the record, its \
      canon file, its directory, the manifest row, `related` references, claims and the event all \
