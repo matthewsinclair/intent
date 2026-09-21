@@ -299,6 +299,8 @@ mod verbosity_flags;
 mod version_spellings_agree;
 #[path = "view_single_writer.rs"]
 mod view_single_writer;
+#[path = "wb_migrate_names_its_kept_copies.rs"]
+mod wb_migrate_names_its_kept_copies;
 #[path = "wb_migrate_reports_the_restamp.rs"]
 mod wb_migrate_reports_the_restamp;
 #[path = "wb_pickup_records_the_session_it_runs_in.rs"]

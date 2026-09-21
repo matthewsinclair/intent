@@ -4725,8 +4725,17 @@ fn report_wb_migration(carried: &intentsvcs::facade::WbMigration) -> Result<(), 
       .join(", ");
     println!("by section: {counts}");
   }
+  // **THE COUNT IS LABELLED BY WHAT IT COUNTS, AND THE COPIES ARE NAMED**
+  // (issue 0499). It read `snapshot(s)`, the word the refusal's remedy uses for
+  // the pre-migration copies, over every `.history` document the carry took in
+  // -- so `29 snapshot(s)` beside one copy read as 28 missing. Each pre-migration
+  // copy gets its own line, the board's always: a dropped unit is in one of
+  // these files and nowhere else, so this is where a carrier checks.
+  for file in &carried.kept {
+    println!("kept: {file} -- the file as the carry read it, byte for byte");
+  }
   println!(
-    "ok: {} carried {} item(s), {} message(s), {} snapshot(s){dropped}",
+    "ok: {} carried {} item(s), {} message(s), {} .history document(s) carried{dropped}",
     carried.node,
     carried.items.len(),
     carried.messages,
@@ -14534,6 +14543,7 @@ mod tests {
       items: Vec::new(),
       messages: 1,
       snapshots: Vec::new(),
+      kept: Vec::new(),
       uncarried: Vec::new(),
       left_in_place: Vec::new(),
       rendered: Vec::new(),

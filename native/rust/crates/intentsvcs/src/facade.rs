@@ -1970,8 +1970,23 @@ pub struct WbMigration {
   /// Inbox entries carried. They are not listed per item because each is
   /// already addressed by its own `authored_at` heading and lands whole.
   pub messages: usize,
-  /// The `.history/` documents carried, by project-relative path.
+  /// The `.history/` documents carried, by project-relative path: the node's
+  /// fold archives AND the pre-migration copies below, every `*.md` under its
+  /// `.history/`. A term in [`WbMigration::reconciles`], so it counts what it
+  /// counts; the report labels it by the directory (issue 0499).
   pub snapshots: Vec<String>,
+  /// The pre-migration copies this carry keeps, byte for byte, by
+  /// project-relative path: the board always, and each inbox holding a unit the
+  /// model cannot carry (issue 0438). Each was written by this run or was
+  /// already present with the same bytes from an earlier attempt.
+  ///
+  /// **NAMED ON THEIR OWN BECAUSE THEY ANSWER THE CARRIER'S QUESTION** (issue
+  /// 0499): a dropped unit is in one of these files and nowhere else. The report said `N snapshot(s)` for every `.history` document, while
+  /// the refusal's remedy calls these copies snapshots, so on Conflab a node
+  /// with one copy read `29 snapshot(s)` and nobody could tell where the
+  /// dropped units went. They are already inside `snapshots`, so they are not a
+  /// second term in the sum.
+  pub kept: Vec<String>,
   /// Everything the source offered and this did not carry, named. **Non-empty
   /// only when the drop was asked for**: without it these units refuse the carry
   /// through [`FacadeError::WbUncarried`] before anything is written.
@@ -7692,6 +7707,9 @@ impl Facade {
       });
     }
 
+    let mut kept: Vec<String> = keep.iter().map(|(_, rel, _)| rel.clone()).collect();
+    kept.sort();
+
     // **EVERY COPY IS CHECKED BEFORE ANY IS WRITTEN** (issue 0438). A copy
     // already there with these bytes is an earlier attempt and the walk above
     // has carried it; with other bytes it is refused rather than overwritten,
@@ -7796,6 +7814,7 @@ impl Facade {
       items: source.items,
       messages: messages.len(),
       snapshots,
+      kept,
       uncarried,
       left_in_place,
       rendered,

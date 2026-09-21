@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - in progress
+
+### Fixed
+
+- **`intent wb migrate` labels its `.history` count by what it counts, and names the copies that hold what it dropped** (issue 0499). The closing line said `N snapshot(s)` over every `.history` document the carry took in, fold archives included, while the refusal's remedy calls the pre-migration copies snapshots. So a node with one copy could read `29 snapshot(s)`. The line now reads `N .history document(s) carried`, and each pre-migration copy the carry keeps (the board always, and each inbox holding a unit the model cannot carry) is named on its own `kept:` line. A dropped unit is in one of those files.
+
 ## [3.2.0] - 2026-09-21
 
 **v3.2.0 makes a thread's related links writable, and makes `intent doctor` say what it used to stay silent about.** `intent st relate` and `intent st unrelate` are the first doors to a thread's `related` list, which until now could be repaired only by hand-editing canon; `doctor` gains two advisories, one for a whiteboard row the store holds and its board file does not, and one for a root file that has fallen behind the installed Intent's templates. Beside that is a sweep of the fixes that landed after the 3.1.0 tag, from `intent index rebuild` repairing the table it used to refuse behind to a fresh `git worktree add` no longer building a whole store. **There is no store migration: the schema is unchanged since 3.1.0 -- read the [release notes](docs/releases/3.2.0/RELEASE_NOTES.md) for the per-project step that brings the new hook carriers in.**
