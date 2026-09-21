@@ -859,6 +859,58 @@ sha256_of() {
 # `rerun-if-changed`, Elixir's `@external_resource`, a make prerequisite, a
 # Dockerfile COPY. That is what makes one function serve four toolchains.
 
+# git_readonly <args...> -- git, asked about a repository this process only reads.
+#
+# `--no-optional-locks` because a plain `git status` may refresh the index and
+# take its lock: a census could fail a peer's concurrent commit with
+# `index.lock exists`, and leave a write in a repository it only meant to read.
+#
+# EVERY ONE OF GIT'S LOCAL ENVIRONMENT VARIABLES IS CLEARED, IN A SUBSHELL, and
+# the list is asked of git rather than written here. A value inherited from the
+# caller -- GIT_DIR, GIT_COMMON_DIR, GIT_CONFIG_PARAMETERS from a `git -c` --
+# would point every repository's question at one repository or one setting and
+# answer it confidently for all of them. If git cannot list them, this refuses
+# rather than asking with the environment it could not clear.
+#
+# THE LIST IS CACHED IN THE SHELL THAT ASKS, AND A COMMAND SUBSTITUTION IS A
+# DIFFERENT SHELL. Every caller runs git_readonly inside `$(...)`, so a cache
+# filled there is gone before the next call -- the first cut claimed "once per
+# process" and asked three times per estate (vc, 2026-09-16, measured with a
+# counting git on PATH). git_readonly_prime fills it in the CURRENT shell, so a
+# caller that primes before its first substitution pays once for everything
+# beneath it. fleet's scan primes once for the whole fleet; source_commit_of and
+# tree_dirty_paths prime through their first, direct call.
+#
+# THE REPOSITORY'S OWN SETTINGS ARE NOT TRUSTED EITHER WHERE THEY CAN HIDE A
+# CHANGE OR RUN SOMETHING. `core.fsmonitor` names a hook the repository chose,
+# which would run here and could answer "nothing changed"; `core.untrackedCache`
+# is a cache of that same answer. Both are forced off for the one call.
+# (Moved from `fleet`'s `_estate_git` to lib/install, issue 0056, and from there
+# to lib/helpers, issue 0094: the dispatcher, `release` and `fullcycle` source
+# lib/helpers alone, and each has a read that must not write.)
+_DEVBIN_GIT_LOCAL_VARS=""
+git_readonly_prime() {
+  [ -z "$_DEVBIN_GIT_LOCAL_VARS" ] || return 0
+  if ! _DEVBIN_GIT_LOCAL_VARS="$(git rev-parse --local-env-vars 2>/dev/null)"; then
+    _DEVBIN_GIT_LOCAL_VARS=""
+    return 1
+  fi
+  [ -n "$_DEVBIN_GIT_LOCAL_VARS" ]
+}
+
+git_readonly() {
+  local v
+  git_readonly_prime || return 1
+  (
+    while IFS= read -r v; do
+      [ -n "$v" ] && unset "$v"
+    done <<VARS
+$_DEVBIN_GIT_LOCAL_VARS
+VARS
+    exec git --no-optional-locks -c core.fsmonitor=false -c core.untrackedCache=false "$@"
+  )
+}
+
 # git_head_sha [root] [short|full] -- the commit sha, or `unknown`.
 #
 # `unknown` rather than empty or a failure, because every caller in the corpus
@@ -871,10 +923,13 @@ sha256_of() {
 # moment either is touched. `short` stays the default so every existing caller
 # is unchanged.
 git_head_sha() {
+  # THROUGH git_readonly for the reason at git_head_identity (issue 0094): an
+  # inherited GIT_DIR outranks `-C`, and the identity's two halves must read one
+  # repository. rev-parse takes no lock, so the lock is not the reason.
   local root="${1:-${PROJECT_ROOT:-.}}" form="${2:-short}" sha
   case "$form" in
-    full) sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha="" ;;
-    *) sha="$(git -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha="" ;;
+    full) sha="$(git_readonly -C "$root" rev-parse HEAD 2>/dev/null)" || sha="" ;;
+    *) sha="$(git_readonly -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha="" ;;
   esac
   [ -n "$sha" ] || sha=unknown
   printf '%s\n' "$sha"
@@ -1006,7 +1061,12 @@ git_head_identity() {
     printf 'unknown\n'
     return 0
   fi
-  if [ -n "$(git -C "$root" status --porcelain 2>/dev/null)" ]; then
+  # THROUGH git_readonly, BOTH HALVES (issue 0094). A plain `git status` takes
+  # the optional index lock and rewrites a stale index, so `--version` wrote
+  # into the repository it describes. The sha goes the same way for a different
+  # reason: an inherited GIT_DIR outranks `-C`, and with only one half cleared
+  # the line would pair one repository's commit with another tree's `+dirty`.
+  if [ -n "$(git_readonly -C "$root" status --porcelain 2>/dev/null)" ]; then
     printf '%s +dirty\n' "$sha"
   else
     printf '%s\n' "$sha"

@@ -394,56 +394,6 @@ copy_vendored() {
 # The manifest readers live in lib/helpers -- see the note there. lib/install
 # remains their only heavy caller; the dispatcher needs two header lines.
 
-# git_readonly <args...> -- git, asked about a repository this process only reads.
-#
-# `--no-optional-locks` because a plain `git status` may refresh the index and
-# take its lock: a census could fail a peer's concurrent commit with
-# `index.lock exists`, and leave a write in a repository it only meant to read.
-#
-# EVERY ONE OF GIT'S LOCAL ENVIRONMENT VARIABLES IS CLEARED, IN A SUBSHELL, and
-# the list is asked of git rather than written here. A value inherited from the
-# caller -- GIT_DIR, GIT_COMMON_DIR, GIT_CONFIG_PARAMETERS from a `git -c` --
-# would point every repository's question at one repository or one setting and
-# answer it confidently for all of them. If git cannot list them, this refuses
-# rather than asking with the environment it could not clear.
-#
-# THE LIST IS CACHED IN THE SHELL THAT ASKS, AND A COMMAND SUBSTITUTION IS A
-# DIFFERENT SHELL. Every caller runs git_readonly inside `$(...)`, so a cache
-# filled there is gone before the next call -- the first cut claimed "once per
-# process" and asked three times per estate (vc, 2026-09-16, measured with a
-# counting git on PATH). git_readonly_prime fills it in the CURRENT shell, so a
-# caller that primes before its first substitution pays once for everything
-# beneath it. fleet's scan primes once for the whole fleet; source_commit_of and
-# tree_dirty_paths prime through their first, direct call.
-#
-# THE REPOSITORY'S OWN SETTINGS ARE NOT TRUSTED EITHER WHERE THEY CAN HIDE A
-# CHANGE OR RUN SOMETHING. `core.fsmonitor` names a hook the repository chose,
-# which would run here and could answer "nothing changed"; `core.untrackedCache`
-# is a cache of that same answer. Both are forced off for the one call.
-# (Moved here from `fleet`'s `_estate_git`, issue 0056.)
-_DEVBIN_GIT_LOCAL_VARS=""
-git_readonly_prime() {
-  [ -z "$_DEVBIN_GIT_LOCAL_VARS" ] || return 0
-  if ! _DEVBIN_GIT_LOCAL_VARS="$(git rev-parse --local-env-vars 2>/dev/null)"; then
-    _DEVBIN_GIT_LOCAL_VARS=""
-    return 1
-  fi
-  [ -n "$_DEVBIN_GIT_LOCAL_VARS" ]
-}
-
-git_readonly() {
-  local v
-  git_readonly_prime || return 1
-  (
-    while IFS= read -r v; do
-      [ -n "$v" ] && unset "$v"
-    done <<VARS
-$_DEVBIN_GIT_LOCAL_VARS
-VARS
-    exec git --no-optional-locks -c core.fsmonitor=false -c core.untrackedCache=false "$@"
-  )
-}
-
 # seam_git_verdict <status-porcelain> <ls-files-v> -- the state those two outputs
 # describe: committed, DIRTY, not watched or not tracked. Pure, so every line
 # shape is tested on strings rather than on a repository built to produce it.

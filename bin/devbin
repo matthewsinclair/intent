@@ -302,9 +302,17 @@ fi
 # parsing the ANSWER. The moment devbin can tell a sha from a hostname, the layer
 # ruling has been reversed by implementation rather than by decision, and nothing
 # in a diff would say so.
+#
+# A REFERENT IS A READ, SO IT RUNS WITH GIT_OPTIONAL_LOCKS=0 BY DEFAULT (issue
+# 0094). It is eval'd on EVERY invocation, and a plain `git status` in one takes
+# git's optional index lock and rewrites a stale index: the hold-16 sweep found
+# three estates whose referent did exactly that on every devbin command. The
+# export lives inside the `$(...)`, so it reaches the referent alone and never a
+# gate. The override is the referent's own: one that sets GIT_OPTIONAL_LOCKS=1
+# itself gets the lock back.
 _devbin_referent_cmd="$(cfg_get project.referent "")"
 if [ -n "$_devbin_referent_cmd" ]; then
-  DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
+  DEVBIN_RUN_REFERENT="$(cd "$PROJECT_ROOT" && export GIT_OPTIONAL_LOCKS=0 && eval "$_devbin_referent_cmd" 2>/dev/null)" ||
     DEVBIN_RUN_REFERENT=""
   # SC2089/SC2090 fire on the single quotes inside the message below, on the
   # theory that a variable holding quotes is about to be run as a command. This

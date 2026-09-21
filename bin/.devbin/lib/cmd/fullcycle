@@ -208,7 +208,8 @@ _fullcycle_header() {
   # git exiting 128 into `wc` takes the whole handler down with it.
   printf '    HEAD:  %s\n' "$(git_head_identity "$PROJECT_ROOT")"
   if git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
-    dirty="$(git -C "$PROJECT_ROOT" status --porcelain | wc -l | tr -d ' ')"
+    # git_readonly: a header that reads the tree must not rewrite its index (0094).
+    dirty="$(git_readonly -C "$PROJECT_ROOT" status --porcelain | wc -l | tr -d ' ')"
     printf '    dirty: %s file(s)\n' "$dirty"
   else
     printf '    dirty: not a checkout -- these bytes are not compared to anything\n'
@@ -319,7 +320,7 @@ _fullcycle_clean_phase() {
 # THE PREVIEW IS THE PHASE'S OWN COMMAND plus --dry-run, so what is shown is
 # what a y runs.
 _fullcycle_confirm() {
-  local launcher="$1" clean rc=0
+  local launcher="$1" clean rc=0 asked
   local -a pass=()
   clean="$(_fullcycle_clean_phase)"
   read -r -a pass <<<"$(_fullcycle_clean_flags)"
@@ -329,7 +330,9 @@ _fullcycle_confirm() {
     printf '    STOPPING: the preview of %s failed. Nothing was removed.\n' "$clean"
     return 1
   fi
+  asked="$(date +%s)"
   ask_person "    Remove these and run the full cycle?" || rc=$?
+  _FULLCYCLE_WAITED=$(($(date +%s) - asked))
   case "$rc" in
     0) return 0 ;;
     1)
@@ -364,7 +367,7 @@ _fullcycle_consent_notice() {
 }
 
 _fullcycle_run() {
-  local force="$1" launcher phase rc=0 prc start elapsed cleaned=0 rebuilt="" link broken=0 restore_cmd
+  local force="$1" waited="${2:-0}" launcher phase rc=0 prc start elapsed cleaned=0 rebuilt="" link broken=0 restore_cmd
   local -a restore_words
   local -a pass=()
   # ALWAYS `--force-blocked`, NEVER `--force` UNASKED (issue 0047, hv: option 3).
@@ -383,6 +386,21 @@ _fullcycle_run() {
   read -r -a pass <<<"$(_fullcycle_clean_flags)"
   launcher="$(_fullcycle_launcher)"
 
+  # THE CONSENT, FIRST, AND THE WAIT ON IT (issue 0096). The question was asked
+  # before this gate opened, so the time a person spent on it is outside the
+  # wall by construction. This line is what keeps it in the record: the log
+  # says what was consented to and how long the answer took. The overhead
+  # meter never reads it.
+  if [ "$force" = 1 ]; then
+    printf 'devbin: --force given -- nothing was asked, and nothing waited on a person\n'
+  else
+    # WHAT was consented to, from the same two sources the preview used, so the
+    # record cannot drift from what was shown: the notice and the preview print
+    # before this log exists (vc's review).
+    printf 'devbin: confirmed y to %s %s at the prompt after %ss -- before this gate'"'"'s wall began\n' \
+      "$(_fullcycle_clean_phase)" "$(_fullcycle_clean_flags)" "$waited"
+  fi
+
   _fullcycle_header
   # THE BEFORE-HALF, taken before anything is removed.
   local -a atrisk=()
@@ -400,37 +418,6 @@ _fullcycle_run() {
 
 
   printf '\n    FULLCYCLE STARTING -- this REMOVES the cargo build trees.\n'
-  # TWO REFUSALS LIVE IN clean AND THIS LINE NAMED THE WRONG ONE. The
-  # blocked-binaries `die` fires FIRST and has no tty test in it at all;
-  # `_clean_confirm`'s no-tty refusal is further down and is reached only when
-  # nothing is blocked. The old wording -- "clean will ask, or refuse if there
-  # is no terminal" -- described the second, so hv was refused WITH a terminal
-  # and sent hunting a tty problem that does not exist (intent/dc, 2026-09-01).
-  # A WRONG MECHANISM IN AN ERROR PATH IS WORSE THAN NO MECHANISM: it is
-  # actionable, in the wrong direction.
-  #
-  # It names both and predicts NEITHER on purpose. `atrisk` is in scope here and
-  # is tempting, but it is not clean's `blocked` set: atrisk is any live PATH
-  # link into this tree, blocked is a PATH binary inside a tree clean is about
-  # to remove. Predicting the refusal from the wider set would replace a false
-  # sentence with a differently false one.
-  # AND THE REACHABLE SET MOVED UNDER THIS NOTICE WHEN 0047 LANDED, WHICH
-  # intent/dc PREDICTED IN THE SAME BREATH AS PROPOSING THE SPLIT. Before it,
-  # a no---force cycle died at the blocked arm. Now this verb always passes
-  # `--force-blocked`, so that arm is pre-answered and the ONLY refusal an
-  # operator reaches here is the tty one. The old wording stayed literally true
-  # about clean and became false about THIS CALLER -- the same defect as the
-  # original, one layer out, arriving through its own fix.
-  #
-  # So it describes what the caller actually meets, and says plainly which
-  # consent has been given on the operator's behalf. A flag that answers a
-  # safety question for someone must say so where they will read it.
-  _fullcycle_consent_notice "$force"
-
-  if [ "$force" = 0 ] && ! _fullcycle_confirm "$launcher"; then
-    return 1
-  fi
-
   # THE PHASE LIST IS READ ON fd 3, AND CLOSED FOR EACH PHASE (issue 0089). It
   # was read on stdin, so every phase inherited the rest of the list as its
   # stdin: a phase that read input would have eaten the phases after it, and
@@ -835,10 +822,46 @@ cmd_fullcycle() {
     return 0
   fi
 
+  # ASKED HERE, BEFORE THE GATE OPENS ITS LOG (issue 0096). Inside the gate the
+  # overhead meter's clock was already running, so a person's think time was
+  # charged as apparatus overhead. The flag ask_person reads comes from the same
+  # rule run_gate uses (stdin_tty_flag, 0088), read from THIS process's stdin.
+  # An n or a missing tty now stops before any log exists: nothing ran.
+  _FULLCYCLE_WAITED=0
+  if [ "$force" = 0 ]; then
+    # TWO REFUSALS LIVE IN clean AND THIS LINE NAMED THE WRONG ONE. The
+    # blocked-binaries `die` fires FIRST and has no tty test in it at all;
+    # `_clean_confirm`'s no-tty refusal is further down and is reached only when
+    # nothing is blocked. The old wording -- "clean will ask, or refuse if there
+    # is no terminal" -- described the second, so hv was refused WITH a terminal
+    # and sent hunting a tty problem that does not exist (intent/dc, 2026-09-01).
+    # A WRONG MECHANISM IN AN ERROR PATH IS WORSE THAN NO MECHANISM: it is
+    # actionable, in the wrong direction.
+    #
+    # It names both and predicts NEITHER on purpose. `atrisk` is in scope here and
+    # is tempting, but it is not clean's `blocked` set: atrisk is any live PATH
+    # link into this tree, blocked is a PATH binary inside a tree clean is about
+    # to remove. Predicting the refusal from the wider set would replace a false
+    # sentence with a differently false one.
+    # AND THE REACHABLE SET MOVED UNDER THIS NOTICE WHEN 0047 LANDED, WHICH
+    # intent/dc PREDICTED IN THE SAME BREATH AS PROPOSING THE SPLIT. Before it,
+    # a no---force cycle died at the blocked arm. Now this verb always passes
+    # `--force-blocked`, so that arm is pre-answered and the ONLY refusal an
+    # operator reaches here is the tty one. The old wording stayed literally true
+    # about clean and became false about THIS CALLER -- the same defect as the
+    # original, one layer out, arriving through its own fix.
+    #
+    # So it describes what the caller actually meets, and says plainly which
+    # consent has been given on the operator's behalf. A flag that answers a
+    # safety question for someone must say so where they will read it.
+    _fullcycle_consent_notice "$force"
+    DEVBIN_GATE_TTY="$(stdin_tty_flag)" _fullcycle_confirm "$launcher" || return 1
+  fi
+
   run_gate --label fullcycle --suffix FULLCYC --grammar generic \
     --out-dir "$(gate_out_dir fullcycle)" \
     --source "devbin's own full cycle -- _fullcycle_run in this process, not a command line" \
-    -- _fullcycle_run "$force"
+    -- _fullcycle_run "$force" "$_FULLCYCLE_WAITED"
 }
 
 cmd_fullcycle "$@"

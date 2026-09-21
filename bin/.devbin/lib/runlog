@@ -187,6 +187,15 @@ seal_disagreement_reason() {
   fi
 }
 
+# stdin_tty_flag -- `1` when this process's stdin is a terminal, else `0`: the
+# ONE rule for DEVBIN_GATE_TTY (issue 0088). run_gate sets the flag from its own
+# stdin for the command it runs, so a stale inherited value cannot stand, and a
+# caller that must ask a person BEFORE its gate opens -- fullcycle (0096) --
+# reads the same rule here rather than writing a second copy of it.
+stdin_tty_flag() {
+  if [ -t 0 ]; then printf '1\n'; else printf '0\n'; fi
+}
+
 # open_run_log <keep_log 0|1> <out_dir> <suffix> -- set the `log` and `errors`
 # globals.
 #
@@ -1203,7 +1212,7 @@ note_referent() {
 # shasum note in lib/helpers). That is ample for a meter whose job is separating
 # 1x from 100x, and it is why very short runs are not reported.
 print_run_overhead() {
-  local log="${1:-}" wall parsed summed n
+  local log="${1:-}" wall parsed summed n zeros suites
   [ -n "${DEVBIN_RUN_T0:-}" ] || return 0
   [ -f "$log" ] || return 0
   wall=$(( $(date +%s) - DEVBIN_RUN_T0 ))
@@ -1211,25 +1220,36 @@ print_run_overhead() {
   [ "$wall" -ge 3 ] || return 0
   # Both spellings the corpus actually emits: cargo's `finished in 0.12s` and
   # ExUnit's `Finished in 1.2 seconds`. An unrecognised runner yields n=0.
+  #
+  # THE ZEROS ARE COUNTED, NOT DROPPED (issue 0095). cargo prints a line for
+  # every test binary and doc-test pass, empty ones included, so a bare count
+  # reads as more testing than happened -- laksa-dc saw "across 4 suite(s)"
+  # for 0.00, 0.00, 11.04 and 0.00. Skipping the zeros would be wrong the other
+  # way: cargo rounds to two places, so a binary running a few fast tests also
+  # reads 0.00s. So the count stays, and the line says how many read zero, in
+# words that are no one runner's spelling: ExUnit's zero is `0.0 seconds`.
   parsed="$(awk '
     {
       if (match($0, /[Ff]inished in [0-9]+(\.[0-9]+)?/)) {
         seg = substr($0, RSTART, RLENGTH)
         sub(/[Ff]inished in /, "", seg)
         s += seg + 0; n++
+        if (seg + 0 == 0) z++
       }
     }
-    END { if (n > 0) printf "%.2f %d", s, n }
+    END { if (n > 0) printf "%.2f %d %d", s, n, z }
   ' "$log" 2>/dev/null)"
   [ -n "$parsed" ] || return 0
-  summed="${parsed%% *}"; n="${parsed##* }"
-  awk -v w="$wall" -v s="$summed" -v n="$n" '
+  read -r summed n zeros <<<"$parsed"
+  suites="$n suite(s)"
+  [ "$zeros" -eq 0 ] || suites="$suites, $zeros of them reporting zero time"
+  awk -v w="$wall" -v s="$summed" -v suites="$suites" '
     BEGIN {
       if (s <= 0) exit 0
       if (w < s) {
-        printf "overhead: UNDEFINED -- wall %ds is BELOW the %ss the runner reports for %d suite(s), so the binaries are not running sequentially and this meter'"'"'s model does not hold.\n", w, s, n
+        printf "overhead: UNDEFINED -- wall %ds is BELOW the %ss the runner reports for %s, so the binaries are not running sequentially and this meter'"'"'s model does not hold.\n", w, s, suites
       } else {
-        printf "overhead: %.2fx -- %ds of GATE wall against %ss of reported test time across %d suite(s). The wall covers everything this gate ran, tests or not.\n", w / s, w, s, n
+        printf "overhead: %.2fx -- %ds of GATE wall against %ss of reported test time across %s. The wall covers everything this gate ran, tests or not.\n", w / s, w, s, suites
       }
     }'
 }
@@ -1719,8 +1739,8 @@ run_gate() {
   # the gate's first word. One rule at this one site is the only form that
   # covers a built-in not yet written. A tool that opens /dev/tty itself is
   # outside this either way.
-  local gate_tty=0
-  [ -t 0 ] && gate_tty=1
+  local gate_tty
+  gate_tty="$(stdin_tty_flag)"
   DEVBIN_GATE_TTY="$gate_tty" "$@" </dev/null 2>&1 | tee -a "$log"
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next

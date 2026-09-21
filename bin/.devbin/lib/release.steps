@@ -352,6 +352,12 @@ release_owned() {
 # READ WITH -z, so a path holding a space or a quote is the path and not git's
 # quoting of it: the owned-set test compares these with notes_paths' spelling.
 # The status is git's, through `wait` on the process substitution.
+#
+# WITHOUT THE OPTIONAL LOCK, AND NOTHING ELSE (issue 0094): `release check` is
+# read-only, and a plain `git status` rewrites a stale index under that lock. Not
+# through git_readonly, which also clears git's environment: release's WRITES --
+# `git add`, the commit, the tag -- honour an inherited GIT_DIR, so a read that
+# cleared it would check one repository and commit into another.
 release_dirt() {
   local entry second=no
   while IFS= read -r -d '' entry; do
@@ -362,7 +368,7 @@ release_dirt() {
     fi
     printf '%s\n' "${entry:3}"
     case "${entry:0:1}" in R | C) second=yes ;; esac
-  done < <(git status --porcelain=v1 -z --untracked-files=all)
+  done < <(git --no-optional-locks status --porcelain=v1 -z --untracked-files=all)
   wait "$!"
 }
 
