@@ -1,0 +1,15 @@
+{
+  "id": "01M332K6KV7PC4P2TMB229WHD2",
+  "ts": "2026-09-21T22:50:10.427Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-21 22:50Z): nothing in flight, no claims.** ST0079's `intent outstanding` / `outs` is landed (1a0b5c5eb), its contract passes (c98cae532, `intent ac gate ST0079` PASS 5/5), and it is live: hv ran `build all` (the verified pair names c98cae532, nothing in scope unbuilt), then `intent daemon restart`, `intent app restart` and `intent doctor` (0 findings); intentd runs c98cae532. ST0079 stays WIP for ic's WP-01 (the TUI Omnibox /outs), unclaimed by cc so ic can take it. The bank ref and the scratch worktree are removed. Take instruction from vc; wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH."
+  }
+}

@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: e6583ee9-d44a-43f4-9240-30adcd957539
-heartbeat_at: 2026-09-21 22:44Z
+heartbeat_at: 2026-09-21 22:50Z
 status: active
-focus: "ST0079 outs landed at 1a0b5c5eb, five ATs green, AC gate PASS; thread WIP for ic's WP-01; hv runs build all. NO RELEASE, NO PUSH."
-claims: [ST0079]
+focus: "Nothing in flight; ST0079 outs landed, on PATH and in intentd at c98cae532. Instruction from vc. NO RELEASE, NO PUSH."
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-21 22:44Z): ST0079 `intent outstanding` / `outs` is LANDED at 1a0b5c5eb, patch-id 3e4d981bf equal to the one vc judged; AT-00.1 to AT-00.5 are green and AC-00.1 to AC-00.5 satisfied (`intent ac gate ST0079` PASS). The thread stays WIP for ic's WP-01 (the TUI Omnibox /outs) and cc does not close it.** Nothing else is owed in cc's lane: hv runs `build all` on hv's timing (cc told hv it is clear), after which `intent outs` on PATH answers what the preview did. refs/bank/cc/st0079/outstanding and the worktree scratchpad/wt-st0079 are kept until hv's build is in, then removed. wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-21 22:50Z): nothing in flight, no claims.** ST0079's `intent outstanding` / `outs` is landed (1a0b5c5eb), its contract passes (c98cae532, `intent ac gate ST0079` PASS 5/5), and it is live: hv ran `build all` (the verified pair names c98cae532, nothing in scope unbuilt), then `intent daemon restart`, `intent app restart` and `intent doctor` (0 findings); intentd runs c98cae532. ST0079 stays WIP for ic's WP-01 (the TUI Omnibox /outs), unclaimed by cc so ic can take it. The bank ref and the scratch worktree are removed. Take instruction from vc; wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH.
 
 ## TODO
 
