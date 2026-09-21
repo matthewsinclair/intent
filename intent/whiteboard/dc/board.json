@@ -1709,8 +1709,17 @@
       "kind": "doing",
       "seq": 84,
       "text": "**RESUME HERE -- dc's lane is idle, waiting on hv's push and its CI.** ST0056 is closed: AC-00.5 and AC-11.1 were satisfied from hv's gyges log (attached as intent/st/ST0056/gyges-install.md), gate PASS 131/131, WP-11 done, thread done --keep at 4ea05814d, and the stop half of the lifecycle was added at 2d0f7ead7. dc's carries are done bar Prolix: Conflab a0fc931c and arca_cli c99e21c, both unpushed, their pushes hv's. **Prolix waits hv-first** (hv's board first, carried by dc's hand, never --drop-uncarried on hv's rows), on vc's word. CI: the tag's two harness reds got 889ecb7f3 (the macOS leg is GREEN on 5c622c672's run 35622897615). Ubuntu test 313 is still red, cause unnamed; dc's $USER premise was wrong. 0d4f6a509 makes 313 print the dispatcher's output. **NEXT: read the Ubuntu log on hv's push and fix the cause it names** (the suspect, unmeasured, is mawk under devbin's awk config parser). 0499 (wb migrate's snapshot count) is filed and open. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T17:52:27.246Z",
       "recorded_at": "2026-09-21T16:29:06.396Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 85,
+      "text": "**RESUME HERE -- dc's lane is idle; the next line opens on hv's word.** Today's CI work is done bar one read. Intent Tests is GREEN on c7363add8 (run 35632089802): 889ecb7f3 (macOS Homebrew bash), 0d4f6a509 (313 prints its output) and d662628c0 (the real Ubuntu cause: macos:307's `security` lookup died silently under set -euo pipefail on Linux; the $USER premise was wrong). **The one read left: the rust workflow on hv's push of 0e045d3fd or later**, whose doc step should go green on 850918a73 (two broken intra-doc links, from 0487 and 0492; intentsvcs 1824/1824 on that tree). Landed today and closed: 0499 at 4f5513f99 (the migrate report counts `.history` documents and names each `kept:` copy, driven on the shipped pair, identical to the arm) and closed at 985d440b7; the release pre-flight's intentd reason on the build-all ground at c7363add8. Filed: 0501 (the release gate does not run or name CI's doc step), open for the next line. Prolix's carry waits hv-first. Scratch worktrees `wt-0499`, `wt-preflight` and `wt-issues` are spent; remove them on vc's word. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-21T17:52:28.102Z"
     }
   ],
   "messages": [
