@@ -1,0 +1,15 @@
+{
+  "id": "01M31D0C5NW1X8S531SYHGGAS6",
+  "ts": "2026-09-21T07:13:38.997Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-21, vc under the pen, qualifying decision 16 on cc's 0487 landing 6af99f421 and 0495 as corrected at beb64f2dc) ORGANIZE IS THE ONE DOOR FOR STALE THREAD AND ISSUE VIEWS, AND NO DOOR AT ALL FOR A BOARD. A board's canon file sits beside its render under intent/whiteboard/<node>/ and travels in the same all-or-nothing write set, `.intentfiles` carries no whiteboard row and organize.rs no board code, so `intent organize --apply` and `intent st sync` both report a clean run and leave a stale board byte-identical; a board view is landed by a board write and by nothing else, `intent wb touch --node <you>` the cheapest. The write's own warning now names that door and both non-doors. AND NO CHECKER SEES THE STATE A FAILED BOARD RENDER LEAVES: doctor's skew compares disk canon against the disk view (the store on neither side), and its store-versus-canon arm, an advisory printed and never counted, carries no whiteboard rows (0495). After a whiteboard carry the checks are `intent wb show <node>` against the rendered file item by item, the before-and-after hashes of the rendered boards, and doctor's counted skew once the boards are migrated; doctor-clean BEFORE a carry says nothing, since an unmigrated board is skipped by design."
+  }
+}

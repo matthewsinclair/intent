@@ -1,0 +1,15 @@
+{
+  "id": "01M31D0D1H45G4R8T1T9Q4R5V7",
+  "ts": "2026-09-21T07:13:39.889Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A verdict count excludes classes, and an absence bound greens under load** (2026-09-20, cc, ic, dc; vc's 0481 clause at 608a17333 and 8bf8ccb9f): `doctor: 0 finding(s)` prints with a store-stale advisory directly above it, so a count is not an output and the line that would have said so is read whole, the same rule as `ac gate`'s exit. Load reds a presence-asserting arm and never false-greens it (the same intentsvcs suite green at load 592 and at 21), and inverts for an assertion that nothing happened within a window; every absence bound in intentd's watcher suite is a duration, settle included, so a green on those arms counts only at the floor, about 10 on this host."
+  }
+}
