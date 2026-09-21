@@ -287,8 +287,10 @@ host_triple() {
 
 # --- credentials -------------------------------------------------------------
 # Read from the login Keychain, never from the environment or a file. Silent on
-# a miss; the callers report presence.
-kc_get() { security find-generic-password -a "$USER" -s "$KC_PREFIX.$1" -w 2>/dev/null || true; }
+# a miss; the callers report presence. The account falls back to `id -un`
+# because this runs at load, under `set -u`, for every subcommand: a process
+# with no USER died here before any refusal it owed could run.
+kc_get() { security find-generic-password -a "${USER:-$(id -un)}" -s "$KC_PREFIX.$1" -w 2>/dev/null || true; }
 
 APPLE_ID="$(kc_get APPLE_ID)"
 APPLE_APP_PASSWORD="$(kc_get APPLE_APP_PASSWORD)"

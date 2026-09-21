@@ -189,6 +189,20 @@ jobs:
           # tool present, and the shipped pre-commit gate fails closed without it.
           brew install shellcheck
 
+      # devbin requires bash >= 5 in every handler, not only the dispatcher, and
+      # the suite starts handlers with a bare `bash`. On macos-latest that is
+      # /bin/bash 3.2, which each handler refuses, so Homebrew's bash goes first
+      # on PATH. $GITHUB_PATH prepends; the `PATH=` above appends and cannot.
+      - name: Put a current bash first on PATH
+        run: |
+          brew install bash
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+
+      - name: Show the bash the suite will run
+        run: |
+          command -v bash
+          bash -c 'echo "$BASH_VERSION"; [ "${BASH_VERSINFO[0]}" -ge 5 ]'
+
       - name: Set up test environment
         run: |
           cd tests
