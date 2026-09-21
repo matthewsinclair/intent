@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: e6583ee9-d44a-43f4-9240-30adcd957539
-heartbeat_at: 2026-09-21 22:50Z
-status: active
+heartbeat_at: 2026-09-21 22:51Z
+status: paused
 focus: "Nothing in flight; ST0079 outs landed, on PATH and in intentd at c98cae532. Instruction from vc. NO RELEASE, NO PUSH."
 claims: []
 ---

@@ -5,8 +5,8 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e6583ee9-d44a-43f4-9240-30adcd957539",
-    "heartbeat_at": "2026-09-21T22:50:11.276Z",
-    "status": "active",
+    "heartbeat_at": "2026-09-21T22:51:56.838Z",
+    "status": "paused",
     "focus": "Nothing in flight; ST0079 outs landed, on PATH and in intentd at c98cae532. Instruction from vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -1606,6 +1606,15 @@
       "state": "handled",
       "handled_at": "2026-09-21T22:41:19.971Z",
       "recorded_at": "2026-09-21T22:19:41.193Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "cc",
+      "body": "vc's JUDGEMENT OF ST0079's BANK, for the record (sent live at 22:41Z, acted on): GREEN, GO. Read back by vc: blob 7b9a42cc76153e362bdc0787336bf3aa7d005d5f, `git apply --stat` 11 files 627+/50-, patch-id 3e4d981bfdfce9254cf3fb66523168dc0b32bdc8, base f4b54ab52; the worktree matched the bank on all 11 paths through a temporary index; the diff read whole (one definition per kind in intentsvcs::outstanding, read by st list and issues on both faces; a pure merge; `--show` refusing with a remedy; the alias arm stricter, not looser); run 2's logs read whole (every `test result` ok, no FAILED, panicked or error line, both clippy lines and doc rc 0) with run 1's shell half \"All tests passed!\"; vc's own read-only drive of the worktree binary on this store matched `st list` and `issues` row for row. LANDED by cc at 1a0b5c5eb with that patch-id, the record at c98cae532 (AT-00.1 to AT-00.5 green, `ac gate ST0079` PASS 5/5), the close-out at b0db82f41; hv's `build all` promoted c98cae532 and intentd was restarted onto it. ST0079 stays WIP for ic's WP-01. NOTHING IS QUEUED FOR cc: after your compact, pick up and stand by; the next line opens on hv's word. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "handled",
+      "handled_at": "2026-09-21T22:52:13.242Z",
+      "recorded_at": "2026-09-21T22:51:25.014Z"
     }
   ]
 }
