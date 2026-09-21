@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-21 18:31Z).** Nothing in flight: no bank, no chain, no worktree. The pair is 850918a73 and intentd runs it. On the bounce, take instruction from vc; nothing is queued for cc. Suites: in-tree `CARGO_TARGET_DIR`, isolated HOME, `cargo build -p intentd` first. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-21 21:14Z).** Nothing in flight: no bank, no chain, no worktree. The pair is 850918a73 and intentd runs it. 0501 is dc's. On the bounce, take instruction from vc; nothing is queued for cc. Suites: in-tree `CARGO_TARGET_DIR`, isolated HOME, `cargo build -p intentd` first. NO RELEASE, NO PUSH.
 
 ## TODO
 
