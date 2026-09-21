@@ -14,6 +14,7 @@ claims: [ST0056, ST0060]
 ## DOING
 
 - THE CLOSE-OUT (hv, 2026-09-15): every open issue and thread closes on evidence or by ruling. Lanes and rules in intent/wip.md, rulings in intent/history/20260915-hv-rulings.md. vc: judge every bank, train and landing; impl.md and the ST0056 provisional markings; AC-07.6 reworded in the 0338 (i) landing; the quiet window on the word of hv. NO RELEASE, NO PUSH.
+- THE ISSUES LINE, 2026-09-21, hv's plan for today verbatim: close out all of these issues and the last remaining ST, and then cut the final release. Allocation from the pen: cc 0486 (docs only; hv's yes on the decision-7 question, the dated correction beneath CHANGELOG.md:155) then 0460 (T5 as proposed, `st relate` and `st unrelate`, hv's qualified yes); dc 0494, then 0495, then 0496's walk with the AGENTS.md mechanism sized for hv's ruling; ic the Riffle carry as the one pre-cut probe, then 0493 as one bank per its body. 0481 closes by the cut's own gate at the floor with its load recorded; ST0056 closes after the cut by the gyges install (AC-00.5, AC-11.1). Baize, Molt, arca_config, Conflab, Prolix and arca_cli are deferred past the cut onto the released pair. Every crate landing rebuilds the pair, announced, none before ic's Riffle report; a bank's CHANGELOG line goes under an Unreleased heading the first bank creates. The release version is hv's call; vc recommends 3.2.0 because 0460 adds verbs.
 
 ## TODO
 
