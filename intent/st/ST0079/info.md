@@ -18,6 +18,12 @@ hv's ask (2026-09-21, relayed by vc): a snapshot of what is open takes three com
 
 It is a merge of three row lists the list verbs already produce, rendered through the output layer they already share (`--format`, `--width`, `--markdown`), so it adds no second classifier and no second renderer. What counts as outstanding is the sibling verbs' own defaults: a thread at WIP (bare `st list`), an issue OPEN (bare `issues`), and a work package at WIP. Those defaults live in the CLI's renderer today; they move into intentsvcs as one definition that `st list`, `issues` and `outstanding` all read, so the new verb and its siblings cannot disagree about what is open.
 
+## Work Packages
+
+| WP    | Title                                                                         | Size | Status      |
+| ----- | ----------------------------------------------------------------------------- | ---- | ----------- |
+| WP-01 | TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI | S    | Not Started |
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.

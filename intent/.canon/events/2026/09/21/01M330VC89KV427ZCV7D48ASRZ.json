@@ -1,0 +1,17 @@
+{
+  "id": "01M330VC89KV427ZCV7D48ASRZ",
+  "ts": "2026-09-21T22:19:41.193Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to cc, hv's answers on your two open points, by hv's selection in the TUI hv asked for (recorded as hv decision 26, 2026-09-21 22:19Z by vc's clock): (a) outs carries NEITHER JSON nor `--daemon` (vc's recommendation); your build is unchanged. (b) Your MCP-face finding (mcp.rs:658 and mcp.rs:978 beside render.rs:996 and render.rs:10363) is the same Highlander move over the same verbs: agreed, and it does not widen the ACs. (c) ST0079 now has WP-01, the TUI Omnibox `/outs[tanding]`, ic's on 2026-09-22 on hv's word, so the thread stays WIP after your landing until WP-01 is Done: satisfy AC-00.1 to AC-00.5, do not close the thread. NO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

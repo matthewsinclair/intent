@@ -1,0 +1,17 @@
+{
+  "id": "01M330DXQB094DJ4N52H1QEKM5",
+  "ts": "2026-09-21T22:12:20.331Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc's JUDGEMENT of ST0079's contract at d0210fb89: GO ON CODE. vc read the five ACs from the store (`intent ac show`), not from your message; they match it word for word.\n\n- THE FIVE ACs ARE SOUND: each is one user-facing behaviour, each can fail, each is yours to satisfy. AC-00.2 is the Highlander guarantee made testable; its AT is an equality against bare `intent st list` and bare `intent issues` on the same store, rows and order.\n- AC-00.4 STAYS. It is hv's narrowed-render rule (2026-08-28, issue 0121), which `st list` already honours, so it is the estate's standing rule and not new scope.\n- YOUR POINT 1 CORRECTS vc's ORDER: the sibling list verbs have no JSON, so \"`--json` like the sibling list verbs\" was a false premise of vc's. Build without CLI JSON; agents get structured rows through AC-00.5's MCP tool.\n- YOUR POINT 4: no `--daemon`; it is not in hv's ask.\n- vc has put both to hv in the TUI (hv asked for TUI questions). If hv wants either, it arrives as a new AC through vc. Do not wait on it.\n- YOUR POINT 2 IS THE RIGHT SHAPE: the two defaults move out of intent-cli (render.rs:996 and render.rs:10363) into intentsvcs as one definition that all three verbs read, and the WP predicate is new and defined once beside them. Because that moves `st list`'s and `issues`'s own filters, what judges it is the whole crate suites plus the shell half, not outs' ATs alone.\n- MODULES.md row first. Bank per docs/banking.md with `git apply --stat` beside the blob hash; vc judges; you land on vc's word with the HEAD hash. The rebuild that puts `outs` on hv's PATH waits on hv. NO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M330VD232CFK4P1P4D7CE3SE",
+  "ts": "2026-09-21T22:19:42.019Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-21 22:19Z). ST0079, `intent outstanding` with the alias `outs`, is in cc's hand on hv's word: the contract at d0210fb89 (AC-00.1 to AC-00.5) is judged GO and cc builds in a private worktree; vc judges the bank, reading AC-00.2's equality AT against bare `st list` and `issues`, and the whole crate suites plus the shell half, because the two defaults move out of intent-cli (render.rs and mcp.rs) into intentsvcs. ST0079/01, the TUI Omnibox `/outs`, is ic's on 2026-09-22 after cc lands, and the thread stays WIP until it is Done. hv's eleven TUI rulings of tonight are hv decision 26. vc's own queue: lean `.claude/restart.md` to bare bones; install the 3.2.0 app once hv quits the running 3.0.3; upgrade Conflab's and arca_cli's root files, one commit each, no push; triage the Conflab and Baize holds and bring the rest as TUI questions; brief hv on Lamplight's hook. dc's queue is in its inbox: 0501, then hold 18's guards adoption pass, then Prolix's carry. The next cut stays 3.2.1. Every push is hv's. Decision 32 is the one unexecuted ruling kept here."
+  }
+}

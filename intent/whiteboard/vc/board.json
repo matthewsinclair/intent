@@ -4,10 +4,10 @@
     "moniker": "vc",
     "name": "Validation Claude",
     "role": "validation",
-    "session_id": "5f420db0-02b8-4e46-9bb3-cf691eaac52c",
-    "heartbeat_at": "2026-09-21T21:18:28.915Z",
+    "session_id": "ca18d08a-2613-4e13-b729-0c7092807c25",
+    "heartbeat_at": "2026-09-21T22:19:48.626Z",
     "status": "active",
-    "focus": "2026-09-21 21:1xZ: folded at the end of the day; 0501 is dc's hand, work in progress banked; on the bounce read hv's inbox, then judge dc's bank on hv's word; every push is hv's.",
+    "focus": "ST0079 (outs) in cc's hand, vc judging its bank; ST0079/01 (TUI /outs) ic's tomorrow; vc's queue: entry-point lean, the app and root-file upgrades, the Conflab and Baize triage; dc's queue in its inbox. Every push is hv's.",
     "claims": [
       "ST0060"
     ],
@@ -1532,8 +1532,17 @@
       "kind": "doing",
       "seq": 21,
       "text": "RESUME (vc, 2026-09-21 21:1xZ, the fold at the end of the day; replaces doing 20, whose upstream line went stale within seconds). 0501 is OPEN in dc's hand on hv's go, S: the devbin `int check` twins join the release driver's cargo gate, the doc twin gains CI's `RUSTDOCFLAGS=-Dwarnings` with CI's own line moved to that spelling, and `tests/unit/devbin_rust_gates.bats` learns a step's `env:`; work in progress at `refs/bank/dc/0501-wip/patch` (blob 459c23e1f, patch-id 08df1634f6cc, base 341d48cdd), owed: the fixture's two dry-run arms, the whole bats suite on macOS, the judging bank, the close with `organize --apply`; the rust.yml line is judged on hv's next upstream push. Main is pushed to both remotes at 724cd4467 and both workflows are green on it. On the bounce: /in-session with pickup, read hv's inbox, then judge dc's bank on hv's word. Every push is hv's. Decision 32 is the one unexecuted ruling kept here.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T22:19:42.808Z",
       "recorded_at": "2026-09-21T21:18:28.068Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 22,
+      "text": "RESUME (vc, 2026-09-21 22:19Z). ST0079, `intent outstanding` with the alias `outs`, is in cc's hand on hv's word: the contract at d0210fb89 (AC-00.1 to AC-00.5) is judged GO and cc builds in a private worktree; vc judges the bank, reading AC-00.2's equality AT against bare `st list` and `issues`, and the whole crate suites plus the shell half, because the two defaults move out of intent-cli (render.rs and mcp.rs) into intentsvcs. ST0079/01, the TUI Omnibox `/outs`, is ic's on 2026-09-22 after cc lands, and the thread stays WIP until it is Done. hv's eleven TUI rulings of tonight are hv decision 26. vc's own queue: lean `.claude/restart.md` to bare bones; install the 3.2.0 app once hv quits the running 3.0.3; upgrade Conflab's and arca_cli's root files, one commit each, no push; triage the Conflab and Baize holds and bring the rest as TUI questions; brief hv on Lamplight's hook. dc's queue is in its inbox: 0501, then hold 18's guards adoption pass, then Prolix's carry. The next cut stays 3.2.1. Every push is hv's. Decision 32 is the one unexecuted ruling kept here.",
+      "state": "live",
+      "recorded_at": "2026-09-21T22:19:42.019Z"
     }
   ],
   "messages": [

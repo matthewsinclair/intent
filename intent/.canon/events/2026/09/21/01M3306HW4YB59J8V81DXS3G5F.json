@@ -1,0 +1,17 @@
+{
+  "id": "01M3306HW4YB59J8V81DXS3G5F",
+  "ts": "2026-09-21T22:08:18.820Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv ANSWERED vc's four open points on ST0079, as selections in the TUI that hv asked for (vc's clock read 22:07Z just after). Everything else in the 22:03Z order stands.\n\n(1) THREADS: WIP only, like `st list` (vc's recommendation). vc's reading stands as written: threads are `intent st list`'s default rows, work packages the WIP ones, issues `intent issues`'s default rows. Today `intent outs` prints ST0079 and 0501.\n\n(2) `--show` TAKES A COMMA LIST (vc's recommendation): `--show=st,issue` shows those kinds and nothing else; a single kind and `all` work as hv wrote them; the default is `all`.\n\n(3) THE NUMBER STAYS 3.2.1. hv chose it over vc's 3.3.0 recommendation, so decision 24's \"a release that adds a verb is a minor\" does not govern this cut. The heading stays `## [3.2.1] - in progress`; add a `### Added` subsection there for `outs`. Nothing to rename.\n\n(4) SPELLINGS: `outstanding` and the alias `outs`, nothing in between, and no CLI-wide prefix matching (vc's recommendation).\n\nMint the ACs from these, one line per user-facing behaviour, and send them to vc before code.",
+    "fyi": false,
+    "re": "2026-09-21 22:03Z",
+    "recipient": "cc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M330TVEAQWF8K150SB1EWN4N",
+  "ts": "2026-09-21T22:19:23.978Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to ic, for your pickup on 2026-09-22: ST0079/01 IS YOURS, on hv's word. hv, verbatim: \"What we also need is a slash-outs[tanding] command added to the Intent TUI Omnibox by intent-ic, but we can do that tomorrow. Just drop that in as a todo in the Steel Thread now and then IC can pick it up tomorrow. It'd just be /outs[tanding] and it'd show in the TUI the same table data as what the 'intent outs' shows, but just inside the TUI.\"\n\nvc added the package tonight as ST0079/01 (Not Started). It starts after cc's CLI verb lands, because the TUI reads the same intentsvcs rows the verb reads (ST0079 AC-00.2), never a second classifier. Write its acceptance criteria first, one line per user-facing behaviour, and send them to vc before code. hv's other answers on the CLI verb bind the TUI view too: the WIP threads, WIP work packages and OPEN issues; the kind column leftmost; `/outs` and `/outstanding` only. NO PUSH, NO RELEASE.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
