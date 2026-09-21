@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 501,
+  "slug": "the-release-driver-s-gate-passes-a-cut-that-ci-s",
+  "title": "the release driver's gate passes a cut that CI's rust workflow then fails on its doc step, and says nothing about not having run it",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-21",
+  "reporter": "Matthew Sinclair",
+  "body": "The release driver's gate passed a cut that CI's `rust` workflow then failed, and nothing at the cut said the gate does not cover that workflow.\n\n**Seen, 2026-09-21.** The v3.2.0 tag (4e2f908a5) went out through `bin/devbin build release`. Its pre-flight gate ran `intent doctor`, the bats suite (`tests/run_tests.sh`) and `cargo build -p intentd && cargo test --workspace --no-fail-fast`, and passed (`bin/.devbin/cmd/build.d/release`, the gate around :679 and :735). The `rust` workflow on the tag commit (run 35609868335) was red on both legs, at its step \"doc (every intra-doc link resolves, issue 0451)\": `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-D warnings`. It had been red on that step since 2026-09-20, when two broken intra-doc links landed in `intentsvcs`:\n- facade.rs:3025, from 6af99f421\n- install.rs:317, from 5edbd4549\n\nThe last green `rust` run was 11ce80ad5 on 2026-09-19. The links were fixed at 850918a73. The driver does not run `cargo doc`, and it does not run the workflow's other steps that `cargo test` does not cover. Nothing in its output says so.\n\n**Expected:** a gate that CI's `rust` workflow can still fail afterwards either says so where it reports its verdict, or runs the same doc step. A cut that passed its gate should not arrive at a red workflow with nobody having been told the gate did not look.\n\nThe ask is the gap between the two, not a mechanism.\n"
+}
