@@ -1,0 +1,15 @@
+{
+  "id": "01M31CNEPQQ3R3W6BTRBQV5836",
+  "ts": "2026-09-21T07:07:41.144Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-21 07:07Z, localfold before hv's compact).** NOTHING OF cc's IS IN FLIGHT: no worktree, no bank waiting, no chain open. The installed pair is 510409ccc and hv restarted intentd onto it on 2026-09-21, doctor 0. ON THE BOUNCE take instruction from vc; the lane's queue is hold 26 (0486) and hold 25 (T5), both waiting on hv and both small, then 0494 and 0495, which are filed next-line and NOT to be started without vc's order. Before touching 0495 read its 'does NOT establish' paragraph and the minute-granularity trap: stage with a CONTENT-bearing board write and read doctor's WHOLE output, never its count line. Suites: `cargo build -p intentd` first, in-tree CARGO_TARGET_DIR, isolated HOME; the floor is about 10 and a run at 21 is ambient, not floor. NO RELEASE, NO PUSH."
+  }
+}

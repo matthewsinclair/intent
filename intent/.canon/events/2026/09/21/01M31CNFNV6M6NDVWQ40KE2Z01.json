@@ -1,0 +1,15 @@
+{
+  "id": "01M31CNFNV6M6NDVWQ40KE2Z01",
+  "ts": "2026-09-21T07:07:42.139Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**0486: the CHANGELOG line and the in-whiteboard skill paragraph for `wb register`, which records one event where both say it writes no file.** CONDITION: hv's answer to the decision-7 question -- may a shipped CHANGELOG entry be touched at all. vc's ruling on the form stands if hv says yes: an indented dated correction line BENEATH CHANGELOG.md:155, which contradicts :36 in the same 3.1.0 section. Small; nothing else blocks it."
+  }
+}

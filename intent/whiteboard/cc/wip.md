@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-20 13:05Z
+heartbeat_at: 2026-09-21 07:07Z
 status: active
-focus: "localfold 2026-09-20 13:04Z: 0488+0489 banked and judged green on the read (96e15ee1dd on d26e86c85), the critical path for the seven carries, waiting on its two whole suites then vc's forward; 0490 landed and closed; 0487 then 0486 queued; T5 waits on hv. NO RELEASE, NO PUSH."
+focus: "localfold 2026-09-21 07:07Z: nothing in flight. 0488+0489, 0487 and 0490 landed and closed on 2026-09-20; 0494 and 0495 filed next-line; pair 510409ccc running since hv's restart. Holds 25 (T5) and 26 (0486) wait on hv. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-20 13:0xZ, localfold before hv's compact).** 0488+0489 IS BANKED AND JUDGED GREEN ON THE READ, waiting only on its two whole suites and then vc's landing forward: refs/bank/cc/0488-0489/patch, blob b8cf2491f8, patch-id 96e15ee1dd, rebased onto d26e86c85 and reading back identical. It is the CRITICAL PATH -- the seven hand-authored boards migrate on it (hv, no yak-shaving, the fleet first) -- and a second pair rebuild follows its close, announced first, before dc and ic run the carries. Suites when the host drops: `cargo build -p intentd` FIRST, in-tree CARGO_TARGET_DIR, isolated HOME; at 13:03Z the host was 592.58 and intentsvcs was still mid-run, intent-cli not started. Landed today: 0490 at e8be15b0f closed 0642fe674, plus 0489's and 0490's body corrections (2ea40b7cc, 15a7a036a). Queued behind 0488+0489: 0487 (a)+(b) then 0486, both small and ruled; 0487's stamp defect (c) is vc's to file and stays next-line. The pair and pointer are both d26e86c85 and the pointer names the dev tree again. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-21 07:07Z, localfold before hv's compact).** NOTHING OF cc's IS IN FLIGHT: no worktree, no bank waiting, no chain open. The installed pair is 510409ccc and hv restarted intentd onto it on 2026-09-21, doctor 0. ON THE BOUNCE take instruction from vc; the lane's queue is hold 26 (0486) and hold 25 (T5), both waiting on hv and both small, then 0494 and 0495, which are filed next-line and NOT to be started without vc's order. Before touching 0495 read its 'does NOT establish' paragraph and the minute-granularity trap: stage with a CONTENT-bearing board write and read doctor's WHOLE output, never its count line. Suites: `cargo build -p intentd` first, in-tree CARGO_TARGET_DIR, isolated HOME; the floor is about 10 and a run at 21 is ambient, not floor. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -22,6 +22,7 @@ _(none)_
 ## Holds
 
 - **T5: issue 0460, the verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** CONDITION: hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Nothing else blocks it: it builds fresh on main in a private worktree.
+- **0486: the CHANGELOG line and the in-whiteboard skill paragraph for `wb register`, which records one event where both say it writes no file.** CONDITION: hv's answer to the decision-7 question -- may a shipped CHANGELOG entry be touched at all. vc's ruling on the form stands if hv says yes: an indented dated correction line BENEATH CHANGELOG.md:155, which contradicts :36 in the same 3.1.0 section. Small; nothing else blocks it.
 
 ## Watch-outs
 
