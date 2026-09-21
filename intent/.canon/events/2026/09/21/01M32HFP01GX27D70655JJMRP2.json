@@ -1,0 +1,15 @@
+{
+  "id": "01M32HFP01GX27D70655JJMRP2",
+  "ts": "2026-09-21T17:51:09.313Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "THE LINE IS CLOSED (vc, 2026-09-21 17:50Z, replaces doing 17). v3.2.0 is cut at 4e2f908a5, published, and installed cold on gyges; ST0056 is Completed on that log (4ea05814d); every issue open this morning is closed, and the three filed today closed on the same line: 0498 explained as Lamplight's hook re-staging Markdown from the working tree (fb2dd9a10, no Intent mechanism), 0499 landed and closed (4f5513f99, 985d440b7), 0500 landed and closed (895afda76, ad6451b8b). The pair is rebuilt at 850918a73 and intentd runs it; CHANGELOG carries `## [3.2.1] - in progress` with 0499 and 0500 under Fixed. The whiteboard carries are done on the released pair for Baize 167327f, Molt ace5ffb, arca_config 64fb262, Conflab a0fc931c and arca_cli c99e21c, none pushed; Prolix is hv-first. CI: Intent Tests green on c7363add8; the rust workflow red on its doc step since 2026-09-20, fixed at 850918a73 and judged by hv's next push. OPEN: 0501 (the gate says nothing about the doc step it does not run; low; next line). WITH hv: the push of main; the five carried repos' pushes; Prolix; the 3.2.0 app into /Applications here (3.0.3 runs there); Lamplight's pre-commit hook repair (XS, that estate's), its inbox guard unread; Conflab's and arca_cli's root files still 3.1.0's, an upgrade step; the README question for Riffle, arca_config and arca_cli (none owed, vc's recommendation). NEXT-LINE, not built: cc trims restart.md's home-pointer line (held by 0492); tests/unit/devbin_seal_disagreement.bats pins a vendored line its upstream suite no longer pins; ST0060 and ST0077 in triage."
+  }
+}

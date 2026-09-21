@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5f420db0-02b8-4e46-9bb3-cf691eaac52c
-heartbeat_at: 2026-09-21 15:42Z
+heartbeat_at: 2026-09-21 17:51Z
 status: active
-focus: "2026-09-21 15:41Z: the 3.2.0 cut is done and published; judging the carries on the released pair, 0481's close on hv's gate lines, ST0056's close on the gyges log; every push is hv's."
+focus: "2026-09-21 17:50Z: the 3.2.0 line is closed, release cut and installed cold, ST0056 Completed, no open issue but 0501; judging whatever hv opens next; every push is hv's."
 claims: [ST0056, ST0060]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0056, ST0060]
 
 ## DOING
 
-- AFTER THE CUT (vc, 2026-09-21 15:41Z, replaces doing 15, doing 16 and todo 60). v3.2.0 is tagged at 4e2f908a5 on both remotes, the GitHub release is published with its artefacts re-hashed from the published URL, the formula is live in the tap, the pair is rebuilt at the tag and intentd 3.2.0 is running, brew unlinked and pinned. Landed since the tag and unpushed until hv's hand: dc's CI harness fix 889ecb7f3 (the tag's own run 35609868432 is red on the macOS runner's bash floor and a USER read under set -u, and stays red by construction), the three lane folds, cc's restart.md lean-out 9891c67bc, this fold. OPEN: 0481 closes on hv's gate lines from the real run, the cargo gate green with no re-run beneath it; the load at the gate's opening was 10.67 at 13:54:44Z and none was read inside the cargo gate, which the closing note says. ST0056 closes on the gyges install log against AC-00.5 and AC-11.1, dc satisfies the rows, vc judges. THE CARRIES on the released pair: ic Baize 167327f done, Molt in chain, arca_config next; dc Conflab then arca_cli under the Baize rule (live escalations to hv rehomed as Holds with "until hv rules:" in front, text unchanged, proven carried on the first board before the rest; furniture dropped with the snapshot keeping its bytes); Prolix hv-first. WITH hv: the push of main at this fold's hash and its CI read; 0498's severity (medium by the verb's default, low was proposed); the README question for Riffle, arca_config and arca_cli (vc recommends none owed). NEXT-LINE: cc trims restart.md's home-pointer line, held by 0492; tests/unit/devbin_seal_disagreement.bats pins a vendored runtime's line its upstream suite no longer pins, a Highlander question; a vendored devbin upgrade is judged by a macOS bats run before a cut; ST0060 and ST0077 stay in triage. Filed today: 0498, the Lamplight inbox render anomaly. Closed today: 0486, 0460, 0493, 0495, 0497, 0496, 0494.
+- THE LINE IS CLOSED (vc, 2026-09-21 17:50Z, replaces doing 17). v3.2.0 is cut at 4e2f908a5, published, and installed cold on gyges; ST0056 is Completed on that log (4ea05814d); every issue open this morning is closed, and the three filed today closed on the same line: 0498 explained as Lamplight's hook re-staging Markdown from the working tree (fb2dd9a10, no Intent mechanism), 0499 landed and closed (4f5513f99, 985d440b7), 0500 landed and closed (895afda76, ad6451b8b). The pair is rebuilt at 850918a73 and intentd runs it; CHANGELOG carries `## [3.2.1] - in progress` with 0499 and 0500 under Fixed. The whiteboard carries are done on the released pair for Baize 167327f, Molt ace5ffb, arca_config 64fb262, Conflab a0fc931c and arca_cli c99e21c, none pushed; Prolix is hv-first. CI: Intent Tests green on c7363add8; the rust workflow red on its doc step since 2026-09-20, fixed at 850918a73 and judged by hv's next push. OPEN: 0501 (the gate says nothing about the doc step it does not run; low; next line). WITH hv: the push of main; the five carried repos' pushes; Prolix; the 3.2.0 app into /Applications here (3.0.3 runs there); Lamplight's pre-commit hook repair (XS, that estate's), its inbox guard unread; Conflab's and arca_cli's root files still 3.1.0's, an upgrade step; the README question for Riffle, arca_config and arca_cli (none owed, vc's recommendation). NEXT-LINE, not built: cc trims restart.md's home-pointer line (held by 0492); tests/unit/devbin_seal_disagreement.bats pins a vendored line its upstream suite no longer pins; ST0060 and ST0077 in triage.
 
 ## TODO
 
