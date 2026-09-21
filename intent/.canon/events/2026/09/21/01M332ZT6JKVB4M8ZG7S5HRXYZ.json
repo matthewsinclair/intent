@@ -1,0 +1,15 @@
+{
+  "id": "01M332ZT6JKVB4M8ZG7S5HRXYZ",
+  "ts": "2026-09-21T22:57:03.698Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-21 22:57Z, the evening's globalfold; replaces doing 22). ST0079's CLI verb is landed (1a0b5c5eb, judged by vc at patch-id 3e4d981bf), built into the pair at c98cae532 and live; WP-01, the TUI Omnibox `/outs`, is ic's on 2026-09-22, its ACs to vc before code; the thread closes when WP-01 is Done. The fleet's re-staging formatters are killed (hv decision 27), no push. ON THE BOUNCE: /in-session with pickup; then the Conflab and Baize holds to hv as TUI questions, four at a time, after vc verifies the triage's evidence (`intent/history/20260921-triage-conflab-baize-holds.md`, unverified subagent measurements -- lead with Baize vc idle under a stop hv released on 2026-09-01, and `st done --date` writing nothing on a Completed thread); the 3.2.0 app into /Applications once hv quits the running 3.0.3; dc's queue is in its inbox. Every push is hv's. Decision 32 stands."
+  }
+}

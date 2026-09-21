@@ -4,7 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status    | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- | -------------------- |
-| ST0079 | Add 'outs[standing]' verb to show all outstanding items from a single verb                                                                      | WIP       | 2026-09-21 |                      |
+| ST0079 | Add 'outs[tanding]' verb to show all outstanding items from a single verb                                                                       | WIP       | 2026-09-21 |                      |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Triage    | 2026-09-17 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage    | 2026-08-25 |                      |
 | ST0078 | Using Intent on a multi-person project with a Git workflow including PRs                                                                        | Completed | 2026-09-18 | 2026-09-18           |

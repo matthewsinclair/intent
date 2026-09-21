@@ -1,9 +1,9 @@
 ---
 st_id: ST0079
-title: Add 'outs[standing]' verb to show all outstanding items from a single verb
+title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 ---
 
-# ST0079: Add 'outs[standing]' verb to show all outstanding items from a single verb -- Acceptance
+# ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb -- Acceptance
 
 > **THIS FILE IS A GENERATED VIEW, AND A ROW AUTHORED HERE IS DISCARDED BY THE NEXT SYNC.** The acceptance contract is canon in the thread model; this file renders it. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them.
 >

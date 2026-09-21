@@ -1,11 +1,17 @@
 ---
-verblock: "21 Sep 2026:v0.24: vc - v3.2.0 cut and installed cold, ST0056 Completed, the issues line closed, 0501 opened"
+verblock: "21 Sep 2026:v0.25: vc - the evening: intent outs landed and built, the fleet's re-staging formatters killed, the entry point leaned"
 intent_version: 3.2.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-09-21 (evening) -- `intent outs` landed and built, the fleet's re-staging formatters killed, the entry point leaned
+
+- **`intent outstanding`, alias `outs`, IS LANDED AND LIVE** (ST0079, cc's hand on hv's word, judged by vc): one table of the WIP threads, WIP work packages and OPEN issues, the kind leftmost, `--show` as a comma list, one definition per kind in `intentsvcs::outstanding` read by `st list` and `issues` on both faces. Landed at 1a0b5c5eb (patch-id 3e4d981bf), record at c98cae532 (AC gate 5/5), built into the pair by hv's `build all`, intentd restarted onto it. ST0079 stays WIP for WP-01, the TUI Omnibox `/outs`.
+- **THE RE-STAGING FORMATTERS ARE GONE FROM THE FLEET** (hv decision 27): ten scripts formatted the worktree and `git add`-ed it, so a commit could carry unstaged bytes (0498's mechanism) -- eight untracked hooks (Conflab, Lamplight, MicroGPTEx, Molt, Molt-matts, Pplr, Prolix, Utilz) and the tracked handlers of Laksa (174352077) and Conflab (b4ac641f). All now check the staged bytes and refuse, the contract of Intent's own gate since 14dff1927: proven old-red and new-green under `/bin/bash` 3.2, and in each tracked tree against a temporary index. No push.
+- **ROOT FILES UPGRADED** from 3.1.0's in Conflab (837b789f) and arca_cli (f98b375); `.claude/restart.md` leaned to bare bones (f4b54ab52); hv's eleven TUI rulings recorded as hv decision 26 (c851211b9); the Conflab and Baize holds triaged, the evidence kept unverified at `intent/history/20260921-triage-conflab-baize-holds.md`.
 
 ## 2026-09-21 -- v3.2.0 cut and installed cold, ST0056 Completed, the issues line closed
 

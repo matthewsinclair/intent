@@ -1,0 +1,15 @@
+{
+  "id": "01M332ZSCZRV03R77DWTH90B91",
+  "ts": "2026-09-21T22:57:02.879Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-21, between vc's clock reads of 22:19Z and 22:41Z; hv first-hand in prose, then hv's selections in the TUI hv asked for, each taking vc's recommendation; wording vc's) THE RE-STAGING FORMATTERS ARE KILLED FLEET-WIDE, BY vc, TONIGHT, AND DECISION 26's ITEM 10 (Lamplight's hook left to Lamplight) IS SUPERSEDED BY IT. hv, verbatim, on learning the class was fleet-wide: \"What the hell is this? Surely we need to kill that with fire. From space. And quickly. What's the right answer here?\" A pre-commit that formats the WORKTREE and `git add`s the result commits bytes nobody staged (0498's mechanism). Ten scripts did it: eight untracked hooks (Conflab, Lamplight, MicroGPTEx, Molt, Molt-matts, Pplr, Prolix, Utilz) and the tracked handlers of Laksa and Conflab. Each now checks the staged bytes and refuses, never writes, which is the contract Intent's own gate has held since 14dff1927. THE DURABLE HALF IS dc's: the guards adoption pass (hold 18, released) makes the staged-blob format check a declared, tracked guard shipped from canon, so no estate hand-wires a formatter again; a check judges and refuses, so decision 32's objection to a formatter as a guard does not apply to it."
+  }
+}

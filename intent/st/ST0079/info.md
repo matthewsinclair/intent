@@ -1,12 +1,12 @@
 ---
 st_id: ST0079
-title: Add 'outs[standing]' verb to show all outstanding items from a single verb
+title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 status: WIP
 created: 2026-09-21
 completed:
 ---
 
-# ST0079: Add 'outs[standing]' verb to show all outstanding items from a single verb
+# ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 
 ## Objective
 

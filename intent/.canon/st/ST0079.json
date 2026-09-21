@@ -1,7 +1,7 @@
 {
   "schema": "intent/thread@3.0",
   "id": "ST0079",
-  "title": "Add 'outs[standing]' verb to show all outstanding items from a single verb",
+  "title": "Add 'outs[tanding]' verb to show all outstanding items from a single verb",
   "slug": "add-outs-standing-verb-to-show-all-outstanding-i",
   "status": "wip",
   "created": "2026-09-21",
