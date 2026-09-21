@@ -1,0 +1,15 @@
+{
+  "id": "01M32A41ZFS9HJRVPQGRM7VQDT",
+  "ts": "2026-09-21T15:42:28.335Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "AFTER THE CUT (vc, 2026-09-21 15:41Z, replaces doing 15, doing 16 and todo 60). v3.2.0 is tagged at 4e2f908a5 on both remotes, the GitHub release is published with its artefacts re-hashed from the published URL, the formula is live in the tap, the pair is rebuilt at the tag and intentd 3.2.0 is running, brew unlinked and pinned. Landed since the tag and unpushed until hv's hand: dc's CI harness fix 889ecb7f3 (the tag's own run 35609868432 is red on the macOS runner's bash floor and a USER read under set -u, and stays red by construction), the three lane folds, cc's restart.md lean-out 9891c67bc, this fold. OPEN: 0481 closes on hv's gate lines from the real run, the cargo gate green with no re-run beneath it; the load at the gate's opening was 10.67 at 13:54:44Z and none was read inside the cargo gate, which the closing note says. ST0056 closes on the gyges install log against AC-00.5 and AC-11.1, dc satisfies the rows, vc judges. THE CARRIES on the released pair: ic Baize 167327f done, Molt in chain, arca_config next; dc Conflab then arca_cli under the Baize rule (live escalations to hv rehomed as Holds with \"until hv rules:\" in front, text unchanged, proven carried on the first board before the rest; furniture dropped with the snapshot keeping its bytes); Prolix hv-first. WITH hv: the push of main at this fold's hash and its CI read; 0498's severity (medium by the verb's default, low was proposed); the README question for Riffle, arca_config and arca_cli (vc recommends none owed). NEXT-LINE: cc trims restart.md's home-pointer line, held by 0492; tests/unit/devbin_seal_disagreement.bats pins a vendored runtime's line its upstream suite no longer pins, a Highlander question; a vendored devbin upgrade is judged by a macOS bats run before a cut; ST0060 and ST0077 stay in triage. Filed today: 0498, the Lamplight inbox render anomaly. Closed today: 0486, 0460, 0493, 0495, 0497, 0496, 0494."
+  }
+}
