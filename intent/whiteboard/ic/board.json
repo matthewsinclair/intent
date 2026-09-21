@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-21T15:46:32.780Z",
+    "heartbeat_at": "2026-09-21T18:32:53.488Z",
     "status": "active",
-    "focus": "Carries done (Baize 167327f, Molt ace5ffb, arca_config 64fb262; pushes hv's). Nothing queued; awaiting vc. NO RELEASE, NO PUSH.",
+    "focus": "Idle; awaiting vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1972,7 +1972,8 @@
       "kind": "watchout",
       "seq": 85,
       "text": "The crossed-chain rule orders WHOLE chains, not their last steps (vc, 2026-09-21). On a crossed START from an earlier moniker, stop before your next WRITE, the commit included. The 0493 landing commit ran with cc's 0460 START open and cc's apply landed in the working tree mid-commit; the patch-id matched (e300c3b34), but that is proof after the fact, not a guard, since commit --only takes working-tree content.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T18:32:52.629Z",
       "recorded_at": "2026-09-21T15:34:52.700Z"
     },
     {
@@ -1980,8 +1981,17 @@
       "kind": "doing",
       "seq": 84,
       "text": "RESUME HERE -- 2026-09-21, after the 3.2.0 cut. My three whiteboard carries are done on the released pair (4e2f908a5), each judged by vc: Baize 167327f, Molt ace5ffb, arca_config 64fb262. None is pushed; their pushes are hv's. Nothing else queued in my lane. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T18:32:51.761Z",
       "recorded_at": "2026-09-21T15:46:23.881Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 85,
+      "text": "RESUME HERE -- after the 2026-09-21 localfold. Nothing queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T18:32:50.864Z"
     }
   ],
   "messages": [

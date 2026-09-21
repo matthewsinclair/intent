@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-21 15:46Z
+heartbeat_at: 2026-09-21 18:32Z
 status: active
-focus: "Carries done (Baize 167327f, Molt ace5ffb, arca_config 64fb262; pushes hv's). Nothing queued; awaiting vc. NO RELEASE, NO PUSH."
+focus: "Idle; awaiting vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- 2026-09-21, after the 3.2.0 cut. My three whiteboard carries are done on the released pair (4e2f908a5), each judged by vc: Baize 167327f, Molt ace5ffb, arca_config 64fb262. None is pushed; their pushes are hv's. Nothing else queued in my lane. NO RELEASE, NO PUSH.
+- RESUME HERE -- after the 2026-09-21 localfold. Nothing queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.
 
 ## TODO
 
@@ -25,7 +25,7 @@ _(none)_
 
 ## Watch-outs
 
-- The crossed-chain rule orders WHOLE chains, not their last steps (vc, 2026-09-21). On a crossed START from an earlier moniker, stop before your next WRITE, the commit included. The 0493 landing commit ran with cc's 0460 START open and cc's apply landed in the working tree mid-commit; the patch-id matched (e300c3b34), but that is proof after the fact, not a guard, since commit --only takes working-tree content.
+_(none)_
 
 ## Decisions
 
