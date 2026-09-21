@@ -51,4 +51,13 @@ note: it is running intentd 3.2.0 (4e2f908a5857c4ac878aa8f071c5f09b60753993), th
 
 `intent explore` was then opened over ssh: its status bar read `Intent 3.2.0 (4e2f908a)` and its projects pane said no project is registered and named `intent discover <dir>`, the right answer on a machine that has never run it.
 
-What the log does and does not show. It shows the network install path whole: the tap validates and clones, the formula and both resources are fetched and verified from the release, the keg installs, the caveat prints, bootstrap records the install root under the keg's libexec, and `intent`, `intentd` and the explorer answer at the tag. The machine was not bare: a `~/.intent` from an earlier Intent was found and moved into the XDG layout by bootstrap itself, and that is the move's own line above. `intent daemon stop` was not driven in this run.
+What the log does and does not show. It shows the network install path whole: the tap validates and clones, the formula and both resources are fetched and verified from the release, the keg installs, the caveat prints, bootstrap records the install root under the keg's libexec, and `intent`, `intentd` and the explorer answer at the tag. The machine was not bare: a `~/.intent` from an earlier Intent was found and moved into the XDG layout by bootstrap itself, and that is the move's own line above. The stop half of the lifecycle was then driven, read by vc at 16:27Z:
+
+```
+❯ intent daemon stop && intent daemon status
+ok: intentd stopped
+ok: no intentd is answering; commands run in-process
+note: not in an Intent project, so no project store was checked for holders
+```
+
+So the lifecycle shown is start, status and stop, and the explorer listed the three projects `intent discover` registered, Molt-matts, Molt and Utilz, at 3.2.0.
