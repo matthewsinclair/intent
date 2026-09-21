@@ -9,10 +9,12 @@
 //! each door.
 //!
 //! **THE DAEMON ARM HAS BOTH HALVES, BECAUSE THE CLAIM IS THAT THE FLAG
-//! DISCRIMINATES.** The two directions refuse where a daemon watches, since a
-//! second sync engine would watch and ingest beside it. `--apply` watches
-//! nothing and lands under the same hold-unless-moved lock, so it runs. The
-//! `--to-disk` refusal beside it is what proves the daemon was watching.
+//! DISCRIMINATES.** `--to-store` refuses where a daemon watches, since it
+//! replaces the store the daemon ingests into. `--apply` watches nothing and
+//! lands under the same hold-unless-moved lock, so it runs. The `--to-store`
+//! refusal beside it is what proves the daemon was watching. `--to-disk` also
+//! runs there since issue 0500, and `sync_to_disk_runs_beside_a_watching_daemon.rs`
+//! is its arm.
 
 use std::path::{Path, PathBuf};
 use std::process::Output;
@@ -163,7 +165,7 @@ fn apply_with_a_direction_is_refused() {
 }
 
 #[test]
-fn apply_runs_where_a_daemon_watches_and_the_directions_refuse() {
+fn apply_runs_where_a_daemon_watches_and_to_store_refuses() {
   let daemon = RealDaemon::start();
   let root = short_dir("apply-beside");
   intentsvcs::init::init(&root, "Beside", "test", env!("CARGO_PKG_VERSION"))
@@ -196,11 +198,14 @@ fn apply_runs_where_a_daemon_watches_and_the_directions_refuse() {
   let plan = run(daemon.home(), &root, &["sync"]);
   assert_eq!(plan.status.code(), Some(0), "{}", text(&plan));
 
-  let direction = run(daemon.home(), &root, &["sync", "--to-disk"]);
+  // **`--to-store` IS THE CONTROL, AND `--to-disk` NO LONGER IS** (issue 0500):
+  // `--to-disk` is a projection from the store and runs beside the watcher, so
+  // only the direction that replaces the store still refuses here.
+  let direction = run(daemon.home(), &root, &["sync", "--to-store"]);
   assert_eq!(
     direction.status.code(),
     Some(2),
-    "the control: a sync DIRECTION still refuses here, so the daemon was watching: {}",
+    "the control: `sync --to-store` still refuses here, so the daemon was watching: {}",
     text(&direction)
   );
 

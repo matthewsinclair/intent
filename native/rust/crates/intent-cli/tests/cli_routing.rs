@@ -704,7 +704,7 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
     )
   };
 
-  let run = || run_verb(&["sync", "--to-disk"]);
+  let run = || run_verb(&["sync", "--to-store"]);
 
   let absent = run();
   assert!(

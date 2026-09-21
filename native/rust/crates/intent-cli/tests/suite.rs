@@ -255,6 +255,8 @@ mod subagents_sync_takes_the_preview_skills_has;
 mod surface_is_declared;
 #[path = "sync_plan_and_apply_from_the_command_line.rs"]
 mod sync_plan_and_apply_from_the_command_line;
+#[path = "sync_to_disk_runs_beside_a_watching_daemon.rs"]
+mod sync_to_disk_runs_beside_a_watching_daemon;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
 mod sync_to_store_does_not_contradict_itself;
 #[path = "the_binary_under_test_is_the_one_cargo_built.rs"]

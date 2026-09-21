@@ -421,6 +421,23 @@ impl RealDaemon {
   /// that is **0 dispatches**, not an error -- it is the state every one of
   /// these brackets starts in.
   pub fn dispatched(&self, root: &Path) -> u64 {
+    self.registered(root).map(|p| p.dispatched).unwrap_or(0)
+  }
+
+  /// How many times this daemon has re-read the project at `root` from disk
+  /// because its tree changed (`AC-08.5`), read over `Op::Registry`, which is
+  /// uncounted, so polling it does not move it.
+  ///
+  /// `0` for a project this daemon has never opened, as [`Self::dispatched`].
+  pub fn ingested(&self, root: &Path) -> u64 {
+    self.registered(root).map(|p| p.ingested).unwrap_or(0)
+  }
+
+  /// This daemon's registry row for the project at `root`, if it has one.
+  ///
+  /// **ONE READ OF `Op::Registry` FOR THE THREE COUNTERS ABOVE AND BELOW**, so
+  /// they cannot drift about how a root is matched.
+  fn registered(&self, root: &Path) -> Option<wire::RegisteredProject> {
     let endpoint = self
       .endpoint()
       .expect("the daemon was answering when this test started");
@@ -443,10 +460,8 @@ impl RealDaemon {
     // about routing that would be entirely about a path.
     let wanted = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     projects
-      .iter()
+      .into_iter()
       .find(|p| p.root.canonicalize().unwrap_or_else(|_| p.root.clone()) == wanted)
-      .map(|p| p.dispatched)
-      .unwrap_or(0)
   }
 
   /// Is this daemon WATCHING the project at `root`?
@@ -463,26 +478,7 @@ impl RealDaemon {
   /// `false` for a project this daemon has never opened, which is the other
   /// half of the same question.
   pub fn watching(&self, root: &Path) -> bool {
-    let endpoint = self
-      .endpoint()
-      .expect("the daemon was answering when this test started");
-    let response = wire::ask(
-      &endpoint,
-      &Request {
-        root: root.to_path_buf(),
-        op: Op::Registry,
-      },
-    )
-    .expect("the shipped client completes a round trip to a live daemon");
-    let Response::Registry { projects } = response else {
-      panic!("intentd answered Op::Registry with something else: {response:?}");
-    };
-    let wanted = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
-    projects
-      .iter()
-      .find(|p| p.root.canonicalize().unwrap_or_else(|_| p.root.clone()) == wanted)
-      .map(|p| p.watched)
-      .unwrap_or(false)
+    self.registered(root).map(|p| p.watched).unwrap_or(false)
   }
 }
 

@@ -460,7 +460,7 @@ fn the_sync_carve_out_asks_about_this_project_not_about_this_machine() {
     "the daemon is watching a project nothing ever asked it about, so the two arms are not different cases"
   );
 
-  let refused = run(daemon.home(), &watched, &["sync", "--to-disk"]);
+  let refused = run(daemon.home(), &watched, &["sync", "--to-store"]);
   let seen = text(&refused);
   assert_eq!(
     refused.status.code(),
@@ -479,7 +479,7 @@ fn the_sync_carve_out_asks_about_this_project_not_about_this_machine() {
   // **THE HALF THE NARROWING EXISTS FOR.** Before it, this run was refused
   // because a daemon somewhere was alive -- a predicate answering a wider
   // question than its rule, declining work it had no reason to decline.
-  let allowed = run(daemon.home(), &untouched, &["sync", "--to-disk"]);
+  let allowed = run(daemon.home(), &untouched, &["sync", "--to-store"]);
   assert_eq!(
     allowed.status.code(),
     Some(0),
@@ -517,7 +517,7 @@ fn with_no_daemon_the_answers_are_the_same() {
     );
   }
 
-  let synced = run(&home, &root, &["sync", "--to-disk"]);
+  let synced = run(&home, &root, &["sync", "--to-store"]);
   assert_eq!(
     synced.status.code(),
     Some(0),
@@ -751,7 +751,7 @@ fn when_the_daemon_cannot_say_a_search_reconciles_where_sync_refuses() {
     text(&searched)
   );
 
-  let synced = run(daemon.home(), &root, &["sync", "--to-disk"]);
+  let synced = run(daemon.home(), &root, &["sync", "--to-store"]);
   assert_eq!(
     synced.status.code(),
     Some(2),

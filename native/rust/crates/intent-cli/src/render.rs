@@ -156,21 +156,25 @@ pub(crate) enum StoreNeed {
   /// and rc=2 is strictly worse for the operator than the real residual, which
   /// is duplicated ingest work.
   Shared,
-  /// The sync engine or the ingest walk, where the refuted parenthetical is
-  /// nonetheless literally true.
+  /// `sync --to-store`, the one verb that replaces the store from the extract,
+  /// where the refuted parenthetical is nonetheless literally true.
   ///
-  /// **THE CARVE-OUT IS NARROW BECAUSE THE PROHIBITION IS NARROW.** Two of
-  /// these really would both watch and both ingest, which is the case the line
-  /// was written about -- and under opt-in routing that case is the NORMAL one
-  /// rather than the failure one, since a daemon watching project A while an
-  /// operator syncs project A locally is two engines by design (`AC-08.5`).
+  /// **THE CARVE-OUT IS NARROW BECAUSE THE PROHIBITION IS NARROW.** A daemon
+  /// watching this tree ingests it into the store; a local `--to-store` rewrites
+  /// the same store from the same tree, so the two really would race, which is
+  /// the case the line was written about -- and under opt-in routing that case
+  /// is the NORMAL one rather than the failure one, since a daemon watching
+  /// project A while an operator syncs project A locally is two engines by design
+  /// (`AC-08.5`). The predicate asks about THIS project, never about the machine.
   ///
-  /// **THE PREDICATE IS WIDER THAN THE HAZARD AND THAT IS OPEN WITH vc.** It
-  /// fires on any answering daemon, not on one watching THIS project. The right
-  /// question is answerable -- the daemon has a registry and `AC-08.5` will have
-  /// a watch set -- and until that exists the honest answer is always *no*.
-  /// **Narrowing it is a ruling rather than an inversion, because refusing
-  /// preserves and running does not.**
+  /// **`sync --to-disk` WAS HERE UNTIL ISSUE 0500 AND IS [`StoreNeed::Shared`]
+  /// NOW.** It is a projection from the store: it writes only the paths whose
+  /// bytes differ and records every one of them as landed, which is what every
+  /// mutating verb's projection does beside a watching daemon. It runs no ingest
+  /// walk and watches nothing, so it had no second engine to race. What it
+  /// lands beside a watcher is generated views, which the watcher's scope leaves
+  /// alone -- `sync_to_disk_runs_beside_a_watching_daemon.rs` measures that the
+  /// landing costs the daemon no ingest.
   Exclusive,
   /// A [`StoreNeed::Shared`] verb whose store may be unreadable through the
   /// very index it is about to rebuild: `intent index rebuild`, and nothing
@@ -534,10 +538,11 @@ fn open() -> Result<Facade, Failure> {
   open_for(StoreNeed::Shared)
 }
 
-/// The door for the sync and ingest family.
+/// The door for `sync --to-store`, the one verb that rewrites the store a
+/// watching daemon ingests into.
 ///
 /// Spelled differently at the CALL SITE on purpose: the requirement is a
-/// property of these verbs, so it is visible where they are rather than
+/// property of this verb, so it is visible where it is rather than
 /// inferred from a list somewhere else.
 fn open_exclusive() -> Result<Facade, Failure> {
   open_for(StoreNeed::Exclusive)
@@ -605,7 +610,7 @@ pub(crate) fn engine(
     daemon::Route::Daemon(endpoint) => {
       if watching_this_project(&endpoint, project.root())? {
         return Err(Failure::Unavailable(format!(
-          "error: intentd is answering at {endpoint} and is WATCHING this project's tree, and `sync` and `ingest` are the two families that would genuinely run twice against it\n  remedy: stop the daemon process and run again. Unlike every other verb, these two drive the sync engine and the ingest walk, so a second one really would watch and ingest alongside the daemon"
+          "error: intentd is answering at {endpoint} and is WATCHING this project's tree, and `sync --to-store` replaces the store from the extract, which would race the daemon's own ingest of the same tree\n  remedy: stop the daemon process and run again. Unlike every other verb, this one rewrites the store the daemon is ingesting into, so it cannot run beside the daemon; `sync --to-disk`, which only writes the extract from the store, can"
         )));
       }
     }
@@ -1234,7 +1239,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         .into(),
     ),
     (true, false) => {
-      let mut f = open_exclusive()?;
+      let mut f = open()?;
       let count = f.sync_to_disk(&scope).map_err(fail)?;
       // **THE SENTENCE IS COMPOSED IN `intentsvcs::sync`, NEVER HERE.** What
       // an extract cannot carry is a fact about the projection, so a renderer

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`intent wb migrate` labels its `.history` count by what it counts, and names the copies that hold what it dropped** (issue 0499). The closing line said `N snapshot(s)` over every `.history` document the carry took in, fold archives included, while the refusal's remedy calls the pre-migration copies snapshots. So a node with one copy could read `29 snapshot(s)`. The line now reads `N .history document(s) carried`, and each pre-migration copy the carry keeps (the board always, and each inbox holding a unit the model cannot carry) is named on its own `kept:` line. A dropped unit is in one of those files.
+- **`intent sync --to-disk` runs beside an intentd that is watching the project** (issue 0500). It was refused with the reason that `sync` would run a second engine against the daemon's, and the remedy was to stop the daemon. That reason holds for `sync --to-store`, which replaces the store from the extract and would race the daemon's ingest, and it still refuses. `--to-disk` only writes the extract from the store, as every other writing verb does beside the daemon, and it costs the daemon no ingest.
 
 ## [3.2.0] - 2026-09-21
 
