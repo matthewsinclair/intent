@@ -1,0 +1,15 @@
+{
+  "id": "01M32M14NN36Y0S18CST9GBF6N",
+  "ts": "2026-09-21T18:35:38.550Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-21 18:3xZ, the lean before hv's compact; replaces doing 18). The 3.2.0 line is closed: release cut at 4e2f908a5 and installed cold on gyges, ST0056 Completed, no open issue but 0501, the pair at 850918a73 running, CHANGELOG at `## [3.2.1] - in progress`. On the bounce: /in-session with pickup, read hv's inbox, then hv's list (in hv/inbox.vc.md, this date) for what hv opens next. Every push is hv's. Decision 32 is the one unexecuted ruling kept here."
+  }
+}

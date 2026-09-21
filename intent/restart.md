@@ -23,6 +23,8 @@
 - Every Rust bank runs intentsvcs's whole suite whatever crate it touches: the workspace scanners live there and read every crate.
 - A vendored devbin upgrade is judged by a macOS bats run before a cut; CI's Linux leg cannot see the `/bin/bash` 3.2 floor.
 - A timing-sensitive red re-runs once, judged by mechanism, and only with `uptime` at the host's floor (about 10) cited in the authorising message.
+- hv's rule on delivery (2026-09-13, verbatim on the board until this line): no unnecessary overtesting, no testing tests, no yak-shaving; build the cheap fix and let the live system judge it, one run decides a question; ACs one line per user-facing behaviour, ATs the test that proves it once.
+- The next release's CHANGELOG section is headed `## [X.Y.Z] - in progress`, the form the release driver rewrites to the cut's date and matches by version; a bare `## [Unreleased]` is invisible to it, and the first bank to need the heading creates it.
 - A chain that mints AT rows runs `intent ac status <ST>` before its commit; the test file names each id it proves.
 - A board commit carries the node's whole directory render (`board.json`, `wip.md`, every `inbox.<sender>.md`) and the event files its own acts wrote. An event file is yours when its own `op` and `subject` say so; read them before you name the path, never select by principal or by a `git status` listing.
 - Crossed CHAIN STARTs go alphabetically (cc < dc < ic < vc) and the rule orders whole chains: an earlier START stops your next write, the commit included.
