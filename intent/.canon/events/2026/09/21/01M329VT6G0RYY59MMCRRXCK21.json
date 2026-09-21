@@ -1,0 +1,15 @@
+{
+  "id": "01M329VT6G0RYY59MMCRRXCK21",
+  "ts": "2026-09-21T15:37:58.224Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**hv's to push, nobody else's.** Prodinfra is ahead 4: 28044b9 (usage-rules.md names the project), 1ede442 (fleet trawl to 3.1.0), 66e6ead and c207e0b (devbin runtime 0.1.2 and 0.1.3). dc does not claim the last three. The tap half is closed: `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent` is level with origin/main at 5892b41 `intent 3.2.0`, and 0341f61 no longer exists in it. Re-verified 2026-09-21 15:37Z."
+  }
+}

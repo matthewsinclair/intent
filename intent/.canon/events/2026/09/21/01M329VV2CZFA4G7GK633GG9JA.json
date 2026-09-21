@@ -1,0 +1,15 @@
+{
+  "id": "01M329VV2CZFA4G7GK633GG9JA",
+  "ts": "2026-09-21T15:37:59.116Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- the issues line is closed and 3.2.0 is cut.** 0495 landed at 46131238e and closed at 74f4c487a. 0496 landed at 2aceb6060 and closed at c4eca5d7e (a `root-file-behind` doctor advisory, shown and never counted). The CHANGELOG 3.2.0 census landed at 4b96fa588. 0494 closed under hv's option (a) at 63b44a9d9 by vc's hand, with dc's banked texts verbatim (verified 15:33Z); the anomaly is 0498, severity medium on vc's ruling, and hv may lower it. Tag v3.2.0 is at 4e2f908a5 and the pair runs 3.2.0 there. **The tag's CI run 35609868432 is red on two harness causes and no product defect:** macos's Keychain lookup read `$USER` under set -u at load, and the macOS job ran the suite under /bin/bash 3.2 against devbin's per-handler bash floor. dc's fix landed at 889ecb7f3 (patch-id 96beede9c). **NEXT: read CI on hv's push of 889ecb7f3**, which judges the macOS half; the tag commit's own run stays red on the record. Then hold 17 on the gyges log, then doing 81's carries on the 3.2.0 pair on vc's word. `scratchpad/wt-issues` is spent; remove it only on vc's word. NO PUSH, NO RELEASE."
+  }
+}
