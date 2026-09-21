@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "e6583ee9-d44a-43f4-9240-30adcd957539",
-    "heartbeat_at": "2026-09-21T21:57:57.956Z",
+    "heartbeat_at": "2026-09-21T22:41:02.910Z",
     "status": "active",
-    "focus": "Nothing in flight; pair 850918a73. On the bounce, instruction from vc. NO RELEASE, NO PUSH.",
+    "focus": "ST0079 outs banked (refs/bank/cc/st0079/outstanding, patch-id 3e4d981bf, base f4b54ab52) and with vc; land on vc's GO, then hv runs build all. NO RELEASE, NO PUSH.",
     "claims": [
       "ST0079"
     ],
@@ -1470,8 +1470,17 @@
       "kind": "doing",
       "seq": 47,
       "text": "**ST0079, cc's hand (hv's word via vc, claimed 2026-09-21 22:08Z), S.** `intent outstanding` / `outs`: one table of the WIP threads, WIP work packages and OPEN issues, the kind column leftmost, through the list verbs' shared output layer; `--show` takes a comma list, default all; the sibling defaults move into intentsvcs as the one definition `st list`, `issues` and `outstanding` all read. CHANGELOG under `## [3.2.1] - in progress`, `### Added`. Now: the contract (objective, context, AC-00.1 to AC-00.5) goes to vc for judging BEFORE code. Then: the build in a private worktree (in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first), the whole suites, the bank, vc's word. The rebuild is hv's timing. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T22:40:44.030Z",
       "recorded_at": "2026-09-21T22:08:56.468Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 48,
+      "text": "**RESUME HERE (cc, 2026-09-21 22:40Z, localfold before hv's compact): ST0079 `intent outstanding` / `outs` is BANKED and with vc for judging; on vc's GO, LAND it, then tell hv `build all` is clear (hv runs the rebuild, \"when you're back from the brain bath, we should be good to build\").** Bank `refs/bank/cc/st0079/outstanding`, blob 7b9a42cc76153e362bdc0787336bf3aa7d005d5f, patch-id 3e4d981bfdfce9254cf3fb66523168dc0b32bdc8, base f4b54ab52 (main HEAD at 22:38Z), 11 files, 627+ 50-. Green in the private worktree scratchpad/wt-st0079 (logs scratchpad/st0079/judge/ and judge2/, each with summary.txt): run 2 whole workspace rc 0, clippy x2 and doc rc 0; shell half 702/702 in run 1. Sent to vc 22:38Z with hv's first-hand \"LGTM. Let's ship that.\" THE LANDING, on vc's GO naming the HEAD hash (read vc's message or `intent wb show cc`): CHAIN START to vc; if main moved, none of main's moved paths may be among the bank's 11; `git cat-file -p refs/bank/cc/st0079/outstanding | git apply` on main; `git add -N native/rust/crates/intentsvcs/src/outstanding.rs`, then `git diff --binary HEAD -- <the 11> | git patch-id --stable` must read 3e4d981bf...; `git add <the 11> && git commit --only <the 11>`; `git show HEAD --format= | git patch-id --stable` again. Then AT-00.1 to AT-00.5: `intent at new ST0079 AT-00.N --covers AC-00.N --file native/rust/crates/intent-cli/tests/cli_end_to_end.rs` and `intent at green ST0079 AT-00.N`, `intent ac status ST0079`; a second commit with ST0079's canon and views, cc's event files and cc/'s render; CHAIN END; tell hv. ST0079 stays WIP for ic's WP-01 (vc). NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T22:40:44.896Z"
     }
   ],
   "messages": [
@@ -1541,7 +1550,8 @@
       "recipient": "cc",
       "body": "ST0079 IS YOURS, on hv's word to vc: \"Please assign that to CC and get it done now.\" Claim it (`intent wb claim ST0079 --node cc`). S. NO PUSH, NO RELEASE.\n\nTHE ASK, hv verbatim, in two messages to vc:\n(1) \"I want to new 'outstsanding' verb that works like this: $ intent outs[tanding] --show=[st,wp,is[ssue],all] That shows all outstanding (ie open and being actively worked on) items in a single list that I can generate with one intent command. As it stands, I need to run three commands to get a snapshot of what is open, and it'd be better if that was just the one command.\"\n(2) \"I've been doing stuff like this: $ intent st list && echo \" \" && intent issues -- When I could be doing $ intent outs -- And I'd expect a single table with a type column at the far left. Then the columns that can work for ST, WP, and Issue.\"\n\nvc's READING, put to hv for confirmation at the same time as this order; build on it:\n- OUTSTANDING IS WHAT THE SIBLING VERBS ALREADY SHOW BY DEFAULT. Threads: exactly the rows `intent st list` prints with no flag (WIP). Issues: exactly the rows `intent issues` prints with no flag (OPEN). WPs: the WIP ones, across every thread, with ids as STxxxx/NN (the form the wp verbs take).\n- HIGHLANDER, the one constraint vc sets: each filter comes from the code that already applies it -- the `st list` default, the `issues` default, and the status predicate behind `intent todo`'s DOING bucket (`intentsvcs::views::todo`, views.rs:1564; `TodoBuckets`, views.rs:1406; index answer as of b8ecbf1ed) -- never a second classifier. `intent outs` and `intent st list` must be unable to disagree about what is open.\n- ONE TABLE, the type column at the far left (ST / WP / Issue, as hv wrote them), then only the columns all three kinds genuinely carry (id, status, title, and anything else all three have; severity is issue-only, so it is not a column). Threads, then WPs, then issues. `--json` like the sibling list verbs.\n- `outstanding` with the alias `outs`; `--show` takes st, wp, is / issue / issues, all; default all. No prefix-matching switch across every verb.\n- Offered on MCP if its row's recoverability says so; it is a read.\n- Logic in intentsvcs; the CLI parses, calls and renders (rule 2). A new module is registered in MODULES.md first (rule 5).\n\nOPEN WITH hv, not blocking code: whether `--show` takes several kinds at once (`--show=st,issue`); and the release number -- a new verb is new surface, so by hv's 3.1.0 ruling (decision 24) the next cut would be 3.3.0 and the in-progress CHANGELOG heading would move off 3.2.1. Write the CHANGELOG entry under Added in the existing in-progress section; vc relays the heading.\n\nTHE CREATION RESIDUE YOU FOUND IS hv's (hv: \"I've already made a new st for it\"), and it is yours to carry now that the thread is yours. vc read it at 22:03Z: intent/.canon/st/ST0079.json, intent/st/ST0079/, and four event files whose op and subject say so -- 01M32ZMZHQVYCSDJPF9CM2E48G (st.new), 01M32ZN08VTPJHB14P3XJY6W1M (st.triage), 01M32ZN100Y32FQC6V88DDJHSD (st.start), 01M32ZNCKNEGW685KQSDWNJVV4 (thread.set), all under intent/.canon/events/2026/09/21/, all subject ST0079. They go in your first ST0079 commit; the shared renders (intent/.intentfiles, intent/st/steel_threads.md, intent/todo.md) are diffed against HEAD before `git add`.\n\nTHE ORDER OF WORK: objective, context and ACs first, one line per user-facing behaviour (docs before code); then the build; then ATs, each proving one AC once. Private worktree, in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first; the whole crate suites with intentsvcs's whole suite, plus the shell half through tests/run_tests.sh; regenerate any reference or guide page the verb list feeds. Bank per docs/banking.md with `git apply --stat` beside the blob hash; vc judges; you land on vc's word with the HEAD hash. The rebuild that puts `outs` on hv's PATH runs on hv's timing, not yours: hv has devbin work running, and a rebuild takes `intent` away from every estate while it runs.\n\nYOUR (b) AND (c) WAIT: ST0079 is the one thing. vc has put the next line to hv. dc's 0501 is in flight on bin/.devbin/**, .github/workflows/rust.yml and tests/unit/devbin_rust_gates.bats; no file is shared with yours except CHANGELOG.md, if dc adds a line.\n\nSend vc the ACs before code, so the contract is judged before the build.",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T22:41:19.971Z",
       "recorded_at": "2026-09-21T22:03:38.424Z"
     },
     {
@@ -1550,8 +1560,27 @@
       "body": "hv ANSWERED vc's four open points on ST0079, as selections in the TUI that hv asked for (vc's clock read 22:07Z just after). Everything else in the 22:03Z order stands.\n\n(1) THREADS: WIP only, like `st list` (vc's recommendation). vc's reading stands as written: threads are `intent st list`'s default rows, work packages the WIP ones, issues `intent issues`'s default rows. Today `intent outs` prints ST0079 and 0501.\n\n(2) `--show` TAKES A COMMA LIST (vc's recommendation): `--show=st,issue` shows those kinds and nothing else; a single kind and `all` work as hv wrote them; the default is `all`.\n\n(3) THE NUMBER STAYS 3.2.1. hv chose it over vc's 3.3.0 recommendation, so decision 24's \"a release that adds a verb is a minor\" does not govern this cut. The heading stays `## [3.2.1] - in progress`; add a `### Added` subsection there for `outs`. Nothing to rename.\n\n(4) SPELLINGS: `outstanding` and the alias `outs`, nothing in between, and no CLI-wide prefix matching (vc's recommendation).\n\nMint the ACs from these, one line per user-facing behaviour, and send them to vc before code.",
       "re": "2026-09-21 22:03Z",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-21T22:41:19.971Z",
       "recorded_at": "2026-09-21T22:08:18.820Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "cc",
+      "body": "vc's JUDGEMENT of ST0079's contract at d0210fb89: GO ON CODE. vc read the five ACs from the store (`intent ac show`), not from your message; they match it word for word.\n\n- THE FIVE ACs ARE SOUND: each is one user-facing behaviour, each can fail, each is yours to satisfy. AC-00.2 is the Highlander guarantee made testable; its AT is an equality against bare `intent st list` and bare `intent issues` on the same store, rows and order.\n- AC-00.4 STAYS. It is hv's narrowed-render rule (2026-08-28, issue 0121), which `st list` already honours, so it is the estate's standing rule and not new scope.\n- YOUR POINT 1 CORRECTS vc's ORDER: the sibling list verbs have no JSON, so \"`--json` like the sibling list verbs\" was a false premise of vc's. Build without CLI JSON; agents get structured rows through AC-00.5's MCP tool.\n- YOUR POINT 4: no `--daemon`; it is not in hv's ask.\n- vc has put both to hv in the TUI (hv asked for TUI questions). If hv wants either, it arrives as a new AC through vc. Do not wait on it.\n- YOUR POINT 2 IS THE RIGHT SHAPE: the two defaults move out of intent-cli (render.rs:996 and render.rs:10363) into intentsvcs as one definition that all three verbs read, and the WP predicate is new and defined once beside them. Because that moves `st list`'s and `issues`'s own filters, what judges it is the whole crate suites plus the shell half, not outs' ATs alone.\n- MODULES.md row first. Bank per docs/banking.md with `git apply --stat` beside the blob hash; vc judges; you land on vc's word with the HEAD hash. The rebuild that puts `outs` on hv's PATH waits on hv. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "handled",
+      "handled_at": "2026-09-21T22:41:19.971Z",
+      "recorded_at": "2026-09-21T22:12:20.331Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "cc",
+      "body": "vc to cc, hv's answers on your two open points, by hv's selection in the TUI hv asked for (recorded as hv decision 26, 2026-09-21 22:19Z by vc's clock): (a) outs carries NEITHER JSON nor `--daemon` (vc's recommendation); your build is unchanged. (b) Your MCP-face finding (mcp.rs:658 and mcp.rs:978 beside render.rs:996 and render.rs:10363) is the same Highlander move over the same verbs: agreed, and it does not widen the ACs. (c) ST0079 now has WP-01, the TUI Omnibox `/outs[tanding]`, ic's on 2026-09-22 on hv's word, so the thread stays WIP after your landing until WP-01 is Done: satisfy AC-00.1 to AC-00.5, do not close the thread. NO PUSH, NO RELEASE.",
+      "fyi": false,
+      "state": "handled",
+      "handled_at": "2026-09-21T22:41:19.971Z",
+      "recorded_at": "2026-09-21T22:19:41.193Z"
     }
   ]
 }

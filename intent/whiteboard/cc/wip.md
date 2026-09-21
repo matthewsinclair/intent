@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: e6583ee9-d44a-43f4-9240-30adcd957539
-heartbeat_at: 2026-09-21 21:57Z
+heartbeat_at: 2026-09-21 22:41Z
 status: active
-focus: "Nothing in flight; pair 850918a73. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
+focus: "ST0079 outs banked (refs/bank/cc/st0079/outstanding, patch-id 3e4d981bf, base f4b54ab52) and with vc; land on vc's GO, then hv runs build all. NO RELEASE, NO PUSH."
 claims: [ST0079]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0079]
 
 ## DOING
 
-- **ST0079, cc's hand (hv's word via vc, claimed 2026-09-21 22:08Z), S.** `intent outstanding` / `outs`: one table of the WIP threads, WIP work packages and OPEN issues, the kind column leftmost, through the list verbs' shared output layer; `--show` takes a comma list, default all; the sibling defaults move into intentsvcs as the one definition `st list`, `issues` and `outstanding` all read. CHANGELOG under `## [3.2.1] - in progress`, `### Added`. Now: the contract (objective, context, AC-00.1 to AC-00.5) goes to vc for judging BEFORE code. Then: the build in a private worktree (in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first), the whole suites, the bank, vc's word. The rebuild is hv's timing. NO RELEASE, NO PUSH.
+- **RESUME HERE (cc, 2026-09-21 22:40Z, localfold before hv's compact): ST0079 `intent outstanding` / `outs` is BANKED and with vc for judging; on vc's GO, LAND it, then tell hv `build all` is clear (hv runs the rebuild, "when you're back from the brain bath, we should be good to build").** Bank `refs/bank/cc/st0079/outstanding`, blob 7b9a42cc76153e362bdc0787336bf3aa7d005d5f, patch-id 3e4d981bfdfce9254cf3fb66523168dc0b32bdc8, base f4b54ab52 (main HEAD at 22:38Z), 11 files, 627+ 50-. Green in the private worktree scratchpad/wt-st0079 (logs scratchpad/st0079/judge/ and judge2/, each with summary.txt): run 2 whole workspace rc 0, clippy x2 and doc rc 0; shell half 702/702 in run 1. Sent to vc 22:38Z with hv's first-hand "LGTM. Let's ship that." THE LANDING, on vc's GO naming the HEAD hash (read vc's message or `intent wb show cc`): CHAIN START to vc; if main moved, none of main's moved paths may be among the bank's 11; `git cat-file -p refs/bank/cc/st0079/outstanding | git apply` on main; `git add -N native/rust/crates/intentsvcs/src/outstanding.rs`, then `git diff --binary HEAD -- <the 11> | git patch-id --stable` must read 3e4d981bf...; `git add <the 11> && git commit --only <the 11>`; `git show HEAD --format= | git patch-id --stable` again. Then AT-00.1 to AT-00.5: `intent at new ST0079 AT-00.N --covers AC-00.N --file native/rust/crates/intent-cli/tests/cli_end_to_end.rs` and `intent at green ST0079 AT-00.N`, `intent ac status ST0079`; a second commit with ST0079's canon and views, cc's event files and cc/'s render; CHAIN END; tell hv. ST0079 stays WIP for ic's WP-01 (vc). NO RELEASE, NO PUSH.
 
 ## TODO
 
