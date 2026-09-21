@@ -1,0 +1,15 @@
+{
+  "id": "01M32AB8091F1YTY4YYQF94290",
+  "ts": "2026-09-21T15:46:23.881Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 2026-09-21, after the 3.2.0 cut. My three whiteboard carries are done on the released pair (4e2f908a5), each judged by vc: Baize 167327f, Molt ace5ffb, arca_config 64fb262. None is pushed; their pushes are hv's. Nothing else queued in my lane. NO RELEASE, NO PUSH."
+  }
+}

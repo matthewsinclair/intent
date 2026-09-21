@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-21T15:34:53.588Z",
+    "heartbeat_at": "2026-09-21T15:46:32.780Z",
     "status": "active",
-    "focus": "After the 3.2.0 cut, on vc's word: carry Baize, Molt, arca_config on the released pair, the 0497 heartbeat line as the fourth after-check. NO RELEASE, NO PUSH.",
+    "focus": "Carries done (Baize 167327f, Molt ace5ffb, arca_config 64fb262; pushes hv's). Nothing queued; awaiting vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1963,7 +1963,8 @@
       "kind": "doing",
       "seq": 83,
       "text": "RESUME HERE -- 2026-09-21, after the 3.2.0 cut (tag v3.2.0 at 4e2f908a5; pair rebuilt at the tag, intentd back, read by vc 15:32:55Z). On vc's word: the whiteboard carry of Baize, Molt and arca_config on the released pair (Riffle carried at Riffle 02d1a8e; dc's Conflab, Prolix and arca_cli stay dc's lane). PER ESTATE: re-read git status and the census row immediately before (the cache db is a working-copy fact); never wb status first, the discriminator is intent/.canon/whiteboard/; wb register with no arguments; wb migrate <node>, hv first where one exists, alphabetical otherwise (Baize: hv then cc ic vc; Molt: hv then vc; arca_config: cc vc); judge the uncarried and coerced report before any --drop-uncarried; one commit by literal paths in that repo, no push; a README-less estate (arca_config) names the absence in its commit and no README is invented. AFTER-CHECK, four lines: wb show <node> against the rendered file item by item; the rendered boards hashed before and after; doctor's counted skew once migrated; and 0497's report line (heartbeat: <authored> as authored, <carry> at carry) read in each migrate's output. NOT CHECKS, and the report says so: doctor-clean before a carry, and doctor's StoreStale line. The roster question for README-less estates is with hv through vc (vc recommends none is owed). NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T15:46:27.411Z",
       "recorded_at": "2026-09-21T15:34:50.037Z"
     },
     {
@@ -1973,6 +1974,14 @@
       "text": "The crossed-chain rule orders WHOLE chains, not their last steps (vc, 2026-09-21). On a crossed START from an earlier moniker, stop before your next WRITE, the commit included. The 0493 landing commit ran with cc's 0460 START open and cc's apply landed in the working tree mid-commit; the patch-id matched (e300c3b34), but that is proof after the fact, not a guard, since commit --only takes working-tree content.",
       "state": "live",
       "recorded_at": "2026-09-21T15:34:52.700Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 84,
+      "text": "RESUME HERE -- 2026-09-21, after the 3.2.0 cut. My three whiteboard carries are done on the released pair (4e2f908a5), each judged by vc: Baize 167327f, Molt ace5ffb, arca_config 64fb262. None is pushed; their pushes are hv's. Nothing else queued in my lane. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T15:46:23.881Z"
     }
   ],
   "messages": [
