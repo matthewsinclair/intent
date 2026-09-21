@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-21 07:07Z
+heartbeat_at: 2026-09-21 07:27Z
 status: active
 focus: "localfold 2026-09-21 07:07Z: nothing in flight. 0488+0489, 0487 and 0490 landed and closed on 2026-09-20; 0494 and 0495 filed next-line; pair 510409ccc running since hv's restart. Holds 25 (T5) and 26 (0486) wait on hv. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
 claims: []
