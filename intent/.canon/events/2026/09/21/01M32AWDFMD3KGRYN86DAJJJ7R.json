@@ -1,0 +1,15 @@
+{
+  "id": "01M32AWDFMD3KGRYN86DAJJJ7R",
+  "ts": "2026-09-21T15:55:46.551Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0499"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb migrate reports a snapshot count that does not match the snapshot files it leaves, so a carrier checking its dropped units were kept cannot read the line"
+  }
+}
