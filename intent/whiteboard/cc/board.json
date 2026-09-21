@@ -1405,7 +1405,8 @@
       "kind": "hold",
       "seq": 25,
       "text": "**T5: issue 0460, the verbs `intent st relate <ID> <TARGET> [--note]` and `intent st unrelate <ID> <TARGET>`, plus set's refusal naming them.** CONDITION: hv's word on the new surface, which vc took to hv with a recommendation to take the plan as written. Nothing else blocks it: it builds fresh on main in a private worktree.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T15:33:43.077Z",
       "recorded_at": "2026-09-20T13:04:41.195Z"
     },
     {
@@ -1422,7 +1423,8 @@
       "kind": "doing",
       "seq": 43,
       "text": "**RESUME HERE (cc, 2026-09-21 07:07Z, localfold before hv's compact).** NOTHING OF cc's IS IN FLIGHT: no worktree, no bank waiting, no chain open. The installed pair is 510409ccc and hv restarted intentd onto it on 2026-09-21, doctor 0. ON THE BOUNCE take instruction from vc; the lane's queue is hold 26 (0486) and hold 25 (T5), both waiting on hv and both small, then 0494 and 0495, which are filed next-line and NOT to be started without vc's order. Before touching 0495 read its 'does NOT establish' paragraph and the minute-granularity trap: stage with a CONTENT-bearing board write and read doctor's WHOLE output, never its count line. Suites: `cargo build -p intentd` first, in-tree CARGO_TARGET_DIR, isolated HOME; the floor is about 10 and a run at 21 is ambient, not floor. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T15:33:45.772Z",
       "recorded_at": "2026-09-21T07:07:41.144Z"
     },
     {
@@ -1430,8 +1432,17 @@
       "kind": "hold",
       "seq": 26,
       "text": "**0486: the CHANGELOG line and the in-whiteboard skill paragraph for `wb register`, which records one event where both say it writes no file.** CONDITION: hv's answer to the decision-7 question -- may a shipped CHANGELOG entry be touched at all. vc's ruling on the form stands if hv says yes: an indented dated correction line BENEATH CHANGELOG.md:155, which contradicts :36 in the same 3.1.0 section. Small; nothing else blocks it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T15:33:44.003Z",
       "recorded_at": "2026-09-21T07:07:42.139Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 44,
+      "text": "**RESUME HERE (cc, 2026-09-21 15:33Z, localfold after the 3.2.0 cut).** NOTHING OF cc's IS IN FLIGHT: no bank waiting, no chain open. v3.2.0 is tagged at 4e2f908a5 on both remotes and published; the pair is rebuilt at the tag (intent and intentd 3.2.0) and intentd is answering, per vc at 15:32:55Z. Today cc landed 0486 (8ab4eec60, closed 95bcac98d), 0460 `st relate`/`st unrelate` (5f0c98638, closed cd87af039), the cut's CLAUDE.md re-render (3d2e37604), the reference regeneration (08e3b7be0) and the 3.2.0 release note plus CHANGELOG lede (95205700e). ON THE BOUNCE take instruction from vc. wt-cc (scratchpad) is a private worktree with nothing in it worth keeping; remove it with `git worktree remove`. Lessons in memory today: a bank report quotes `git apply --stat` beside the blob (a refused worktree commit banked its parent); `rsync -a` skips same-size regenerated files, so use `--checksum` and prove with `diff -r`. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-21T15:33:44.869Z"
     }
   ],
   "messages": [
