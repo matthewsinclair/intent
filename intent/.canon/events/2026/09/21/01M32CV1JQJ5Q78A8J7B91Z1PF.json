@@ -1,0 +1,15 @@
+{
+  "id": "01M32CV1JQJ5Q78A8J7B91Z1PF",
+  "ts": "2026-09-21T16:29:58.746Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0500"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "sync --to-disk refuses beside a daemon watching the tree, though it runs no ingest and lands only a projection"
+  }
+}
