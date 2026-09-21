@@ -643,20 +643,21 @@ $frozen_list"
   log_info "gh CLI authenticated"
 
   # A LIVE intentd REFUSES THE CUT HERE, BEFORE ANYTHING IS STAMPED (issue 0468;
-  # vc's ruling, 2026-09-19). The stamp step runs `sync --to-disk` in-process,
-  # and sync refuses beside a daemon watching the project, which in the 3.1.0 cut
-  # meant hv stopping it by hand mid-release. This script never stops or starts
-  # the daemon itself: intentd's restart is the human's hand, and a release runs
-  # in the human's terminal on purpose. The predicate is "live" rather than
-  # "watching this project" because the CLI has no read-only question for the
-  # narrower one, and a live intentd watches this tree once it has opened it.
+  # vc's ruling, 2026-09-19). The ground is the binary swap: the cut is followed
+  # at the tag by `bin/devbin build all`, which replaces the pair in
+  # native/rust/target/release that a running intentd executes, so the daemon
+  # is stopped before the cut and started once that build has landed. It used
+  # to say the stamp step's `sync --to-disk` refused beside a watching daemon;
+  # issue 0500 removed that refusal, and the swap is the reason that remains.
+  # This script never stops or starts the daemon itself: intentd's restart is
+  # the human's hand, and a release runs in the human's terminal on purpose.
   require_intent_bin
   daemon_json="$("$INTENT_BIN" daemon status --format json 2>&1)" ||
     abort "cannot tell whether intentd is running: 'intent daemon status' failed. Its output:
 $daemon_json"
   case "$daemon_json" in
     *'"state":"live"'*)
-      abort "intentd is running, and the stamp step's \`intent sync --to-disk\` refuses beside a daemon watching this project. Nothing has been stamped. Run \`intent daemon stop\`, re-run this release, then \`intent daemon start\` once it has finished." ;;
+      abort "intentd is running, and the \`bin/devbin build all\` that follows this cut at the tag replaces the binary it executes. Nothing has been stamped. Run \`intent daemon stop\`, re-run this release, then \`intent daemon start\` once \`bin/devbin build all\` at the tag has finished." ;;
   esac
   log_info "no intentd is running"
 
