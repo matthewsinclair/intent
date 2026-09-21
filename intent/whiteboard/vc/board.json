@@ -1515,8 +1515,17 @@
       "kind": "doing",
       "seq": 19,
       "text": "RESUME (vc, 2026-09-21 18:3xZ, the lean before hv's compact; replaces doing 18). The 3.2.0 line is closed: release cut at 4e2f908a5 and installed cold on gyges, ST0056 Completed, no open issue but 0501, the pair at 850918a73 running, CHANGELOG at `## [3.2.1] - in progress`. On the bounce: /in-session with pickup, read hv's inbox, then hv's list (in hv/inbox.vc.md, this date) for what hv opens next. Every push is hv's. Decision 32 is the one unexecuted ruling kept here.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-21T21:07:25.913Z",
       "recorded_at": "2026-09-21T18:35:38.550Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 20,
+      "text": "0501 OPEN on hv's go (2026-09-21 21:05Z, hv: \"Go\"), dc's hand, S: one script homing CI's fmt, clippy and doc steps, called by rust.yml's named steps and by the driver's cargo gate in its worktree, the gate's verdict naming every step; judged by the whole bats suite on macOS, one fixture driven to both verdicts, the doc step run once by hand; CI's half judged on hv's next upstream push. Closes by intent issues close in the landing's chain with organize --apply. Upstream is at c7363add8, local at 724cd4467, so the doc step on 850918a73 is unjudged until hv pushes upstream; dc watches. Every push is hv's.",
+      "state": "live",
+      "recorded_at": "2026-09-21T21:07:24.706Z"
     }
   ],
   "messages": [
