@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-20 13:02Z
+heartbeat_at: 2026-09-21 07:09Z
 status: active
-focus: "Issues line done: 0485, 0462-0474 and 0484 are on main, plus the clock fix; the pair is rebuilt at 3a734cde3 (intentd's restart is hv's). Todo 30 (the tap README push) is hv's. Holds 17, 18. Idle for vc. NO RELEASE, NO PUSH."
+focus: "Idle for the bounce. Next: carry Conflab, Prolix and arca_cli after ic's Riffle report and vc's word -- hv's intentd restart is done. Holds 17 and 18 stand; the tap README and Prodinfra's three commits are hv's to push. NO RELEASE, NO PUSH."
 claims: [ST0056/11]
 ---
 
@@ -13,11 +13,11 @@ claims: [ST0056/11]
 
 ## DOING
 
-- The whiteboard carry of dc's three hand-authored estates -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc), 9 nodes -- split with ic, who holds Baize, Molt, Riffle and arca_config and runs Riffle first as the rehearsal. PRECONDITIONS, all three: cc's 0488+0489 landed, the pair rebuilt after them (today's d26e86c85 rebuild is NOT that one), and ic's rehearsal report read. THE RUN, per estate: re-read `git status` in THAT estate immediately before starting because dc's 12:24Z clean read is a prior and not a permission; NEVER `intent wb status` on an estate before its carry, since on a store-less project it materialises intent/.cache/intent.db and so writes to the tree it was told to read -- the read-only discriminator is the presence of intent/.canon/whiteboard/; then argument-free `intent wb register`, then `intent wb migrate <node>` per node, alphabetically because none of dc's three has an hv node and the report says so; the uncarried report READ before `--drop-uncarried`, an empty report included, on vc's rule; doctor; organize; one commit by literal paths in that repo; NO PUSH. arca_cli has no intent/whiteboard/README.md: no carrier invents one, its commit message names the absence in a sentence, and whether it should gain a README and an hv node is hv's roster decision, put to hv with the report.
+- **The whiteboard carry of dc's three estates** -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc). ic carries Baize, Molt, Riffle and arca_config, with Riffle first as the rehearsal. WAITS ON ic's Riffle report and vc's word. hv's intentd restart is DONE (2026-09-21, running 510409ccc). **MIGRATE ORDER, as vc ruled on 2026-09-21 under the pen (decision 54):** hv goes first wherever an hv node exists, otherwise the order is alphabetical. So Prolix is hv, cc, vc; Conflab is cc, dc, ic, vc; arca_cli is cc, vc. This item used to say all three were alphabetical, and that was false for Prolix. **hv's BOARD ON PROLIX IS CARRIED BY dc's HAND, BUT NEVER `--drop-uncarried` ON hv's ROWS.** If the report shows an uncarried or coerced row on hv's board, carry everything else, commit nothing that drops an hv row, and send the report to hv through vc with the rows quoted; hv decides. On every other node, READ the uncarried report before `--drop-uncarried`, an empty one included, and keep the dropped rows in that node's pre-migration copy (decision 24 Part B). PER ESTATE: re-read `git status` in that estate immediately before starting. NEVER run `intent wb status` before the carry: `intent/.cache/` is gitignored, so whether the db exists is a property of the working copy, and on a store-less copy the verb writes one. The discriminator is `intent/.canon/whiteboard/`, which is read-only by construction. A clean doctor beforehand is NOT evidence, because an unmigrated board is skipped by design (`views.rs:2203`). Then argument-free `intent wb register`, then `intent wb migrate <node>` in the order above, then doctor, then organize, then one commit by literal paths in that repo, with `git status` read AFTER the commit as well as before. NO PUSH. ic's board on Conflab is dc's to carry. arca_cli has no whiteboard README: no carrier invents one, the commit message names the absence, and whether it gains a README and an hv node is hv's roster decision, put to hv with the report.
 
 ## TODO
 
-- Push the tap README commit 0341f61 (homebrew-intent, local only, ahead 1): hv's call, or it rides the next int macos publish.
+- **hv's to push, nobody else's.** The tap README commit 0341f61 is ahead 1 in `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent` (not under ~/Devel); it is hv's call, or it rides the next `int macos publish`. Prodinfra is ahead 3: 28044b9 (usage-rules.md names the project), 1ede442 (fleet trawl to 3.1.0) and 66e6ead (devbin runtime 0.1.2). dc does not claim the second two. All re-verified 2026-09-21 07:06Z.
 
 ## Holds
 

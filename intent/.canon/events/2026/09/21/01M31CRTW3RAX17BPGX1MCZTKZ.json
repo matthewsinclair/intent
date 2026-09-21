@@ -1,0 +1,15 @@
+{
+  "id": "01M31CRTW3RAX17BPGX1MCZTKZ",
+  "ts": "2026-09-21T07:09:31.907Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**hv's to push, nobody else's.** The tap README commit 0341f61 is ahead 1 in `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent` (not under ~/Devel); it is hv's call, or it rides the next `int macos publish`. Prodinfra is ahead 3: 28044b9 (usage-rules.md names the project), 1ede442 (fleet trawl to 3.1.0) and 66e6ead (devbin runtime 0.1.2). dc does not claim the second two. All re-verified 2026-09-21 07:06Z."
+  }
+}
