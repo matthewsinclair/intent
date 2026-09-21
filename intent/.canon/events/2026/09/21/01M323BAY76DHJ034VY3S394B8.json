@@ -1,0 +1,15 @@
+{
+  "id": "01M323BAY76DHJ034VY3S394B8",
+  "ts": "2026-09-21T13:44:06.858Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0498"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A committed inbox render shows a message handled that its board.json and the event log say was live"
+  }
+}
