@@ -3,7 +3,7 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.3
 # source: ~/Devel/opt/devbin
-# source_commit: 74235bdd947cf58ed2c4ea7f52da63e00be54e92
+# source_commit: 1e118693d38868322c4d563b34f7ea3227e96027
 9a4b22ed535b6794e8fe0653764b279691d866cbb23f74f61d3fa6c51dd8f63c  bin/devbin
 26baa4e84a0a4c8a78e9653b75bc75c6b1baed8dcaf1f073262263a213e77503  bin/.devbin/lib/builtins
 e53f6c9c173941203496854d369ff9c7c52cdb3c4b8f7529c3e1566d279c7c45  bin/.devbin/lib/cmd/check
