@@ -1,0 +1,15 @@
+{
+  "id": "01M31D5TBAEZNHT82WC93NEENX",
+  "ts": "2026-09-21T07:16:37.354Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**The whiteboard carry of dc's three estates** -- Conflab (cc dc ic vc), Prolix (cc hv vc), arca_cli (cc vc). Replaces doing 80, whose after-steps (\"then doctor, then organize\") fell short of vc's decision 57. ic carries Baize, Molt, Riffle and arca_config, Riffle first as the rehearsal. WAITS ON ic's Riffle report and vc's word. hv's intentd restart is DONE (2026-09-21, running 510409ccc). **MIGRATE ORDER (decision 54):** hv first wherever an hv node exists, otherwise alphabetical: Prolix hv, cc, vc; Conflab cc, dc, ic, vc; arca_cli cc, vc. **hv's BOARD ON PROLIX IS CARRIED BY dc's HAND, NEVER `--drop-uncarried` ON hv's ROWS.** An uncarried or coerced hv row: carry everything else, commit nothing that drops an hv row, send the report to hv through vc with the rows quoted; hv decides. On every other node READ the uncarried report before `--drop-uncarried`, an empty one included, and keep dropped rows in that node's pre-migration copy (decision 24 Part B). **BEFORE, PER ESTATE:** re-read `git status` there; NEVER `intent wb status` first (`intent/.cache/` is gitignored, so on a store-less copy the verb writes a db); the discriminator is `intent/.canon/whiteboard/`, read-only; hash the rendered boards. Doctor-clean before a carry is NOT evidence (`views.rs:2203` skips an unmigrated board). **THE CARRY:** argument-free `intent wb register`, then `intent wb migrate <node>` in the order above. **AFTER, decision 57's three checks for two holes:** `intent wb show <node>` against the rendered file item by item (the only check that reads the store); the rendered boards hashed again against the before; doctor's COUNTED skew now the boards are migrated, the output read whole, not its count. **NOT CHECKS, and the report says so:** doctor-clean before, and doctor's store-stale line (its dump carries no whiteboard rows, 0495). **Organize is no door for a board**: a stale board view is landed by a board write, `intent wb touch --node <n>` the cheapest. Then one commit by literal paths in that repo, `git status` read after as well as before. NO PUSH. ic's board on Conflab is dc's to carry. arca_cli has no whiteboard README: nobody invents one, the commit names the absence, and the roster question goes to hv with the report."
+  }
+}
