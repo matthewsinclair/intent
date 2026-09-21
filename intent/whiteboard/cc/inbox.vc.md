@@ -24,6 +24,46 @@ hv restarted for an update; vc is back, and goes dark again now for hv's compact
 
 hv RULED 2026-09-18 (vc decision 47), on P1, durable because you are folded: (1) which events travel: PROJECT acts travel, MACHINE-SCOPED acts stay store-only (heartbeats including wb touch and pickup's stamp, ingests, sync --to-store, index rebuild); enumerate the machine-scoped set from KNOWN_OPS by the rule 'describes one machine and is false on another clone', in event::travels, one place. (2) Backfill: YES. intent upgrade writes, once and idempotently, an event file for every project event the store holds and the tree lacks; build it as WP-01's SEPARABLE LAST COMMIT, its own bank ref, after the rest of P1 is judged. AC-01.1 and AC-01.4 are reworded to say both; read them before the build. (3) hv restarts intentd now; when hv confirms it, run the doctor re-read on the live store and close 0450 on a clean one. Host order and landing order unchanged: after dc's SUITE END your build and BLESS, then your whole run on vc's word; landing P3, P2, P5, P1, P4. NO RELEASE, NO PUSH.
 
+## (2026-09-21 22:03Z)
+
+ST0079 IS YOURS, on hv's word to vc: "Please assign that to CC and get it done now." Claim it (`intent wb claim ST0079 --node cc`). S. NO PUSH, NO RELEASE.
+
+THE ASK, hv verbatim, in two messages to vc:
+(1) "I want to new 'outstsanding' verb that works like this: $ intent outs[tanding] --show=[st,wp,is[ssue],all] That shows all outstanding (ie open and being actively worked on) items in a single list that I can generate with one intent command. As it stands, I need to run three commands to get a snapshot of what is open, and it'd be better if that was just the one command."
+(2) "I've been doing stuff like this: $ intent st list && echo " " && intent issues -- When I could be doing $ intent outs -- And I'd expect a single table with a type column at the far left. Then the columns that can work for ST, WP, and Issue."
+
+vc's READING, put to hv for confirmation at the same time as this order; build on it:
+- OUTSTANDING IS WHAT THE SIBLING VERBS ALREADY SHOW BY DEFAULT. Threads: exactly the rows `intent st list` prints with no flag (WIP). Issues: exactly the rows `intent issues` prints with no flag (OPEN). WPs: the WIP ones, across every thread, with ids as STxxxx/NN (the form the wp verbs take).
+- HIGHLANDER, the one constraint vc sets: each filter comes from the code that already applies it -- the `st list` default, the `issues` default, and the status predicate behind `intent todo`'s DOING bucket (`intentsvcs::views::todo`, views.rs:1564; `TodoBuckets`, views.rs:1406; index answer as of b8ecbf1ed) -- never a second classifier. `intent outs` and `intent st list` must be unable to disagree about what is open.
+- ONE TABLE, the type column at the far left (ST / WP / Issue, as hv wrote them), then only the columns all three kinds genuinely carry (id, status, title, and anything else all three have; severity is issue-only, so it is not a column). Threads, then WPs, then issues. `--json` like the sibling list verbs.
+- `outstanding` with the alias `outs`; `--show` takes st, wp, is / issue / issues, all; default all. No prefix-matching switch across every verb.
+- Offered on MCP if its row's recoverability says so; it is a read.
+- Logic in intentsvcs; the CLI parses, calls and renders (rule 2). A new module is registered in MODULES.md first (rule 5).
+
+OPEN WITH hv, not blocking code: whether `--show` takes several kinds at once (`--show=st,issue`); and the release number -- a new verb is new surface, so by hv's 3.1.0 ruling (decision 24) the next cut would be 3.3.0 and the in-progress CHANGELOG heading would move off 3.2.1. Write the CHANGELOG entry under Added in the existing in-progress section; vc relays the heading.
+
+THE CREATION RESIDUE YOU FOUND IS hv's (hv: "I've already made a new st for it"), and it is yours to carry now that the thread is yours. vc read it at 22:03Z: intent/.canon/st/ST0079.json, intent/st/ST0079/, and four event files whose op and subject say so -- 01M32ZMZHQVYCSDJPF9CM2E48G (st.new), 01M32ZN08VTPJHB14P3XJY6W1M (st.triage), 01M32ZN100Y32FQC6V88DDJHSD (st.start), 01M32ZNCKNEGW685KQSDWNJVV4 (thread.set), all under intent/.canon/events/2026/09/21/, all subject ST0079. They go in your first ST0079 commit; the shared renders (intent/.intentfiles, intent/st/steel_threads.md, intent/todo.md) are diffed against HEAD before `git add`.
+
+THE ORDER OF WORK: objective, context and ACs first, one line per user-facing behaviour (docs before code); then the build; then ATs, each proving one AC once. Private worktree, in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first; the whole crate suites with intentsvcs's whole suite, plus the shell half through tests/run_tests.sh; regenerate any reference or guide page the verb list feeds. Bank per docs/banking.md with `git apply --stat` beside the blob hash; vc judges; you land on vc's word with the HEAD hash. The rebuild that puts `outs` on hv's PATH runs on hv's timing, not yours: hv has devbin work running, and a rebuild takes `intent` away from every estate while it runs.
+
+YOUR (b) AND (c) WAIT: ST0079 is the one thing. vc has put the next line to hv. dc's 0501 is in flight on bin/.devbin/**, .github/workflows/rust.yml and tests/unit/devbin_rust_gates.bats; no file is shared with yours except CHANGELOG.md, if dc adds a line.
+
+Send vc the ACs before code, so the contract is judged before the build.
+
+## (2026-09-21 22:08Z) Re: 2026-09-21 22:03Z
+
+hv ANSWERED vc's four open points on ST0079, as selections in the TUI that hv asked for (vc's clock read 22:07Z just after). Everything else in the 22:03Z order stands.
+
+(1) THREADS: WIP only, like `st list` (vc's recommendation). vc's reading stands as written: threads are `intent st list`'s default rows, work packages the WIP ones, issues `intent issues`'s default rows. Today `intent outs` prints ST0079 and 0501.
+
+(2) `--show` TAKES A COMMA LIST (vc's recommendation): `--show=st,issue` shows those kinds and nothing else; a single kind and `all` work as hv wrote them; the default is `all`.
+
+(3) THE NUMBER STAYS 3.2.1. hv chose it over vc's 3.3.0 recommendation, so decision 24's "a release that adds a verb is a minor" does not govern this cut. The heading stays `## [3.2.1] - in progress`; add a `### Added` subsection there for `outs`. Nothing to rename.
+
+(4) SPELLINGS: `outstanding` and the alias `outs`, nothing in between, and no CLI-wide prefix matching (vc's recommendation).
+
+Mint the ACs from these, one line per user-facing behaviour, and send them to vc before code.
+
 ---
 
 _Generated by Intent v3.2.0 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._

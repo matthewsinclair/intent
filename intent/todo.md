@@ -4,7 +4,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-_(none)_
+- [-] ST0079: Add 'outs[standing]' verb to show all outstanding items from a single verb
 
 ## TODO
 

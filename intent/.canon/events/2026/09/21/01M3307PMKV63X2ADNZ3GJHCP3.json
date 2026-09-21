@@ -1,0 +1,15 @@
+{
+  "id": "01M3307PMKV63X2ADNZ3GJHCP3",
+  "ts": "2026-09-21T22:08:56.468Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**ST0079, cc's hand (hv's word via vc, claimed 2026-09-21 22:08Z), S.** `intent outstanding` / `outs`: one table of the WIP threads, WIP work packages and OPEN issues, the kind column leftmost, through the list verbs' shared output layer; `--show` takes a comma list, default all; the sibling defaults move into intentsvcs as the one definition `st list`, `issues` and `outstanding` all read. CHANGELOG under `## [3.2.1] - in progress`, `### Added`. Now: the contract (objective, context, AC-00.1 to AC-00.5) goes to vc for judging BEFORE code. Then: the build in a private worktree (in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first), the whole suites, the bank, vc's word. The rebuild is hv's timing. NO RELEASE, NO PUSH."
+  }
+}

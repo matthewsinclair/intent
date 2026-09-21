@@ -1,0 +1,54 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0079",
+  "title": "Add 'outs[standing]' verb to show all outstanding items from a single verb",
+  "slug": "add-outs-standing-verb-to-show-all-outstanding-i",
+  "status": "wip",
+  "created": "2026-09-21",
+  "objective": "`intent outstanding`, with the alias `intent outs`, prints everything open and in progress in one table: the steel threads bare `intent st list` shows, the work packages in progress under any thread, and the issues bare `intent issues` shows. One row each, the kind (ST, WP or Issue) in the leftmost column, then the ID, status and title all three kinds carry. `--show` narrows the table to the kinds it names.",
+  "context": "hv's ask (2026-09-21, relayed by vc): a snapshot of what is open takes three commands today -- `intent st list && echo \" \" && intent issues`, plus `intent wp list` per thread for the packages -- and should take one, `intent outs[tanding] --show=[st,wp,is[sue],all]`: a single table with a type column at the far left, then the columns that work for ST, WP and Issue.\n\nIt is a merge of three row lists the list verbs already produce, rendered through the output layer they already share (`--format`, `--width`, `--markdown`), so it adds no second classifier and no second renderer. What counts as outstanding is the sibling verbs' own defaults: a thread at WIP (bare `st list`), an issue OPEN (bare `issues`), and a work package at WIP. Those defaults live in the CLI's renderer today; they move into intentsvcs as one definition that `st list`, `issues` and `outstanding` all read, so the new verb and its siblings cannot disagree about what is open.",
+  "body": "",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "`intent outstanding` and its alias `intent outs` print one table of every outstanding steel thread, work package and issue, through the list verbs' shared output layer (`--format`, `--width`, `--markdown`): the kind (ST, WP or Issue) in the leftmost column, then ID, Status and Title, with threads first, then work packages, then issues.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.2",
+      "text": "The threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.3",
+      "text": "`--show` takes a comma-separated list of st, wp, is, issue, issues and all, all being the default, and the table shows those kinds and no other; any other value is refused with a remedy naming the accepted values.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.4",
+      "text": "Below the table one line counts the rows of each kind shown against how many of that kind exist, and with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-00.5",
+      "text": "The same rows are served to agents as a read-only MCP tool.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    }
+  ]
+}

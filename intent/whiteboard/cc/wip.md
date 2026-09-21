@@ -2,18 +2,18 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 6551ed66-8c7f-4dbe-b512-eb5b65a0ca60
-heartbeat_at: 2026-09-21 18:34Z
+session_id: e6583ee9-d44a-43f4-9240-30adcd957539
+heartbeat_at: 2026-09-21 21:57Z
 status: active
 focus: "Nothing in flight; pair 850918a73. On the bounce, instruction from vc. NO RELEASE, NO PUSH."
-claims: []
+claims: [ST0079]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-21 21:14Z).** Nothing in flight: no bank, no chain, no worktree. The pair is 850918a73 and intentd runs it. 0501 is dc's. On the bounce, take instruction from vc; nothing is queued for cc. Suites: in-tree `CARGO_TARGET_DIR`, isolated HOME, `cargo build -p intentd` first. NO RELEASE, NO PUSH.
+- **ST0079, cc's hand (hv's word via vc, claimed 2026-09-21 22:08Z), S.** `intent outstanding` / `outs`: one table of the WIP threads, WIP work packages and OPEN issues, the kind column leftmost, through the list verbs' shared output layer; `--show` takes a comma list, default all; the sibling defaults move into intentsvcs as the one definition `st list`, `issues` and `outstanding` all read. CHANGELOG under `## [3.2.1] - in progress`, `### Added`. Now: the contract (objective, context, AC-00.1 to AC-00.5) goes to vc for judging BEFORE code. Then: the build in a private worktree (in-tree CARGO_TARGET_DIR, isolated HOME, `cargo build -p intentd` first), the whole suites, the bank, vc's word. The rebuild is hv's timing. NO RELEASE, NO PUSH.
 
 ## TODO
 
