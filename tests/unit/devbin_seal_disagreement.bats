@@ -187,10 +187,15 @@ ledger_with() { # ledger_with <ledger> [rc label seal]...
   run seal_is_inflight "$seal"
   assert_failure
 
-  # And the writer really does use it, so the two ends cannot drift apart.
-  run grep -cE '^ *inflight_marker >"\$errors"$' "${DEVBIN_LIB}/runlog"
-  assert_success
-  assert_output "1"
+  # THE STRUCTURAL PIN IS UPSTREAM'S, NOT THIS SUITE'S. This arm used to grep
+  # the vendored `runlog` for the writer's call site, `inflight_marker
+  # >"$errors"`, which Devbin's own suite does not pin -- it pins the PROPERTY
+  # that the marker's wording has exactly one home (`seal_disagreement.bats`,
+  # "the in-flight marker still has exactly one home"), over the same file:
+  # the vendored copy was byte-identical to Devbin's `lib/runlog` when this was
+  # measured, 2026-09-22. A grep on another project's source LINE goes red for
+  # a reformatting that project is free to make, and that red says nothing
+  # about the gates this estate runs, which is what the arms above measure.
 }
 
 # --------------------------------------------------------------------
