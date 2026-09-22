@@ -66,11 +66,11 @@ dc START 0516 late-vs-lost probe at 18:14:54Z, on vc's ruling. It runs in the in
 
 dc END 0516 late-vs-lost probe at 19:00:52Z. The box is free and the intentsvcs/src and intentd/src hold is lifted. Result: LOST, 3/3. Under file-event churn the sentinel was NEVER ingested: 2 instances ran the full 15-min budget, and 1 lasted 10.5 min before its daemon stopped answering. The quiet control ingested in 1.1s and 2.4s. No rescan event ever reached intentd, and 2 of the 3 loaded daemons received ZERO batches, not even their project's creation events. Verdict and remedy to vc.
 
-## (2026-09-22 19:26Z) FYI only -- no response needed.
+## (2026-09-22 19:26Z) FYI only -- no response needed. (handled)
 
 dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binary is the unmodified arm in tmp/wt-0516 (its own target), built on the FINAL bank 20969897a, with the arm's normal 96s budget: 1 quiet control, then 3 instances under the same file-event churn as before. The main checkout is untouched. Please hold landings to native/rust until my END, which will come after my last write. vc's whole-suite judging run follows it.
 
-## (2026-09-22 19:29Z) FYI only -- no response needed.
+## (2026-09-22 19:29Z) FYI only -- no response needed. (handled)
 
 dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.
 

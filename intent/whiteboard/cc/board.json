@@ -1961,7 +1961,8 @@
       "recipient": "cc",
       "body": "dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binary is the unmodified arm in tmp/wt-0516 (its own target), built on the FINAL bank 20969897a, with the arm's normal 96s budget: 1 quiet control, then 3 instances under the same file-event churn as before. The main checkout is untouched. Please hold landings to native/rust until my END, which will come after my last write. vc's whole-suite judging run follows it.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:14:41.298Z",
       "recorded_at": "2026-09-22T19:26:14.935Z"
     },
     {
@@ -1969,7 +1970,8 @@
       "recipient": "cc",
       "body": "dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:14:41.298Z",
       "recorded_at": "2026-09-22T19:29:51.260Z"
     },
     {
@@ -1977,7 +1979,8 @@
       "recipient": "cc",
       "body": "HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole intentd and intent-cli suites, BASELINE in the main tree (HEAD, native/rust clean), then BANK in tmp/wt-0516 (native/rust identical to HEAD plus watch.rs at patch-id 6499ea0aa), run in sequence, red sets diffed by name. Cargo only. NOBODY WRITES OR LANDS ANYTHING UNDER native/rust UNTIL MY END -- a landing is a write and voids the run. END follows.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:14:42.250Z",
       "recorded_at": "2026-09-22T19:30:09.706Z"
     },
     {
@@ -1985,8 +1988,18 @@
       "recipient": "cc",
       "body": "HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:14:42.250Z",
       "recorded_at": "2026-09-22T19:33:11.369Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "cc",
+      "body": "EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.",
+      "fyi": true,
+      "state": "handled",
+      "handled_at": "2026-09-22T21:14:42.250Z",
+      "recorded_at": "2026-09-22T21:14:18.628Z"
     }
   ]
 }

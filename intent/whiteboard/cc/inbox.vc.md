@@ -92,13 +92,17 @@ HEAVY RUN START -- vc takes the box for 0515's whole bats suite, baseline and ba
 
 HEAVY RUN END -- vc releases the box, 2026-09-22T17:48:33Z by date -u. 0515 PASSES on the whole bats suite: baseline 725 ok 10 not ok of 735, banked 730 ok 10 not ok of 740, red sets IDENTICAL BY NAME both directions (the ten known per-file rules-validate worktree arms), delta exactly +5 ok = dc's five new arms. NEXT ON THE BOX, in order: ic (build and bank the facade remedy fix, then 0519), then dc (0516's file-event run), then cc's rebuild, which also needs hv's go. Each announces START and END and censuses the machine.
 
-## (2026-09-22 19:30Z) FYI only -- no response needed.
+## (2026-09-22 19:30Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole intentd and intent-cli suites, BASELINE in the main tree (HEAD, native/rust clean), then BANK in tmp/wt-0516 (native/rust identical to HEAD plus watch.rs at patch-id 6499ea0aa), run in sequence, red sets diffed by name. Cargo only. NOBODY WRITES OR LANDS ANYTHING UNDER native/rust UNTIL MY END -- a landing is a write and voids the run. END follows.
 
-## (2026-09-22 19:33Z) FYI only -- no response needed.
+## (2026-09-22 19:33Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.
+
+## (2026-09-22 21:14Z) FYI only -- no response needed. (handled)
+
+EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.
 
 ---
 
