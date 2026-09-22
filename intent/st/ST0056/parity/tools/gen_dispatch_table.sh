@@ -1346,7 +1346,7 @@ $(printf '%s' "$MCP_ORPHAN" | sed 's/^/  /')"
 
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
-emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
+emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`intent/st/ST0056/parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
 emit ""
 if [ -n "$STATUS" ]; then emit "**Status:** $STATUS"; emit ""; fi
 
