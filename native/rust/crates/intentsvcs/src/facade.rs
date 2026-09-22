@@ -2672,17 +2672,24 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchEditable { present, .. } => {
         format!("this artefact carries: {}", present.join(", "))
       }
+      // **TWO ROUTES REACH THIS VARIANT AND THEY NEED OPPOSITE REMEDIES**
+      // (0514, found by ic driving `intent edit intent:///issues/0514 --path`,
+      // 2026-09-22). An ISSUE is an artefact -- `.intentfiles` names it and
+      // `hydrate` realises it -- so it arrives only from `edit`, which refuses
+      // it because its one file is a generated view. Sending it to "address an
+      // artefact instead" told the operator to type what they had just typed,
+      // and "has no files of its own" contradicted the `why` printed one line
+      // above. Every OTHER form arrives because it names no artefact at all --
+      // measured, the collection `threads`, a whiteboard `node` or `node-inbox`,
+      // and an `event`; a wp, a criterion or an attachment realises its thread
+      // and never reaches here, so the remedy must not speak to them.
+      //
+      // The remedy this replaced said an issue had NO realised form, and that
+      // was true until ST0069 AC-01 gave it one; it was written when the
+      // offered target was a thread alone.
+      Self::NotHydratable { form: "issue", .. } => "an issue's prose is changed through the record its view is rendered from: read it with `intent issues show <NNNN>`, and replace its body with `intent set intent:///issues/<NNNN> body --from <file>`".to_string(),
       Self::NotHydratable { form, .. } => format!(
-        // **`or an issue` CAME OUT, AND IT WAS WRONG FOR EVERY FORM ROUTED HERE
-        // RATHER THAN ONLY FOR AN ISSUE** (found by cc driving
-        // `intent edit issue 0164 --path`, diagnosed by ic, 2026-08-31). An
-        // issue has NO realised form at all -- the sibling refusals at the two
-        // `why` sites below say exactly that, in these words: *only an artefact
-        // -- a steel thread -- is named by `.intentfiles`*. So it was never a
-        // valid target, and offering it as the remedy sent the operator back to
-        // the thing that had just been refused. The issue case only made it
-        // glaring by naming its own subject.
-        "address an ARTEFACT instead -- a steel thread. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
+        "address an ARTEFACT instead -- a steel thread or an issue, the two things `.intentfiles` names. The form `{form}` names neither, so there is nothing for realisation to create."
       ),
       Self::NoManifestToUnlistFrom { path, .. } => format!(
         "write one first with `intent organize --default`, which declares the open threads; then re-run. Removing a thread's files is a change to a list that has to exist before it can be changed, and {path} does not."
