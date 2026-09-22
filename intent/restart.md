@@ -51,6 +51,7 @@
 - An instrument fails toward a warning a reader discards, never toward an all-clear a reader believes; prefer a structural test that over-reports to a filter typed from what you expect.
 - Load reds a presence-asserting arm and never false-greens it; it inverts for an absence assertion within a time window.
 - Run bats through `tests/run_tests.sh`.
+- `bash -n` REFUSES EVERY `.bats` FILE and its red says nothing about your edit: a `.bats` file is not bash until bats rewrites `@test "name" {` into a function. `bats -c` is the syntax check that fits, and it counts the arms, so it also says whether bats still sees them all.
 - A defect closed as one estate's is a census question first: 0498 closed as Lamplight's while nine more scripts across the fleet carried the same re-staging stanza. Grep every checkout's hooks and handlers, with the known case as the positive control, before calling it local.
 
 ## Asking and answering
