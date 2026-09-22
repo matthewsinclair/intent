@@ -2215,7 +2215,10 @@ impl crate::remedy::Remedy for FacadeError {
           .join(", ")
       ),
       Self::WbHeaderIncomplete { .. } => "nothing was registered. Give each named header the `key: value` line it lacks -- `node`, `name` and `role` are all read from the header block -- or move a directory that is not a node out of `intent/whiteboard/`, then re-run `intent wb register`".to_string(),
-      Self::WbClaimMalformed { .. } => "claim a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000` -- the spelling `.intentfiles` already uses. A claim names what the board can point at, so free text here would be a claim nothing can resolve".to_string(),
+      Self::WbClaimMalformed { .. } => format!(
+        "claim {} -- the spelling `.intentfiles` already uses. A claim names what the board can point at, so free text here would be a claim nothing can resolve",
+        crate::model::CLAIM_ADDRESS_FORMS
+      ),
       Self::WbRegisteredDifferently {
         node,
         name,

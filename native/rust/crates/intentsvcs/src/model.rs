@@ -155,6 +155,23 @@ pub fn issue_claim(seq: u32) -> String {
   format!("{CLAIM_ISSUE_PREFIX}{}", issue_id(seq))
 }
 
+/// The forms [`is_claim_address`] admits, as the sentence a refusal tells the
+/// user to type.
+///
+/// **ONE HOME FOR WHAT EVERY DOOR SAYS, BESIDE THE ONE HOME FOR WHAT IT
+/// ADMITS** (0519). `wb claim`'s `WbClaimMalformed` remedy and `wb migrate`'s
+/// `Uncarried` reason each stated these forms in their own words, and both
+/// were stale together until 0511 found and edited them one at a time. The
+/// validator already stopped the two doors disagreeing about what they
+/// ACCEPT; this stops them disagreeing about what they SAY.
+/// `every_form_the_refusal_names_is_one_the_validator_admits` holds each
+/// example here to the validator, so a sentence naming a form the validator
+/// refuses fails a test. **THE REVERSE IS NOT MECHANICAL**: a widening that
+/// teaches the validator a fourth kind fails nothing until someone edits this
+/// sentence and that test's exact list by hand, so the two change together.
+pub const CLAIM_ADDRESS_FORMS: &str =
+  "a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`";
+
 /// Is this a thing a board can claim: a steel thread, one of its work
 /// packages, or an issue?
 ///
@@ -2575,6 +2592,26 @@ mod claim_address_tests {
       format!("{}:", crate::intentfiles::Sigil::Issue.as_str()),
       "the claim prefix and the manifest sigil are one fact"
     );
+  }
+
+  #[test]
+  fn every_form_the_refusal_names_is_one_the_validator_admits() {
+    // The examples are read out of the sentence, never retyped here, so the
+    // next edit to it stays under this assertion.
+    let forms: Vec<&str> = CLAIM_ADDRESS_FORMS.split('`').skip(1).step_by(2).collect();
+    // A new kind lands in `is_claim_address`, in `CLAIM_ADDRESS_FORMS` and in
+    // this list TOGETHER; nothing here notices a validator widened alone.
+    assert_eq!(
+      forms,
+      ["ST0000", "ST0000/01", "ISSUE:0000"],
+      "one example per kind the validator admits: thread, work package, issue"
+    );
+    for form in forms {
+      assert!(
+        is_claim_address(form),
+        "the refusal tells the user to type `{form}` and the validator refuses it"
+      );
+    }
   }
 
   #[test]
