@@ -1,18 +1,18 @@
 # devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
 # Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
-# devbin_version: 0.1.6
+# devbin_version: 0.1.7
 # source: ~/Devel/opt/devbin
-# source_commit: 63e23f8940f1a3ca3ccece1713956ae475c1b806
+# source_commit: 142763dba160d89214ad0daa350bafad5105f888
 866c77d63b6432123af24f1d468c9ab90afa44941e4ff11fc8fa1cbe2f1ffee8  bin/devbin
 07387950f8d7a0671d564dbcee609e47785452b93cb263cc89a3a726e7f4764b  bin/.devbin/lib/builtins
 e53f6c9c173941203496854d369ff9c7c52cdb3c4b8f7529c3e1566d279c7c45  bin/.devbin/lib/cmd/check
 de6b542316fe6f83b741b8e6ae8908e06c305ab45fb4674e241885d7a1be7bc9  bin/.devbin/lib/cmd/clean
 5c3aa3fbdf34d087c88dfd4b1e1df869bae2e008788a4b7497f8ac85f2cfee34  bin/.devbin/lib/cmd/cli
 170a977dbcfe479fd81ae1b51b0bdff53cbfb8543d14e5040de2ca70e3597cae  bin/.devbin/lib/cmd/db
-07180affb69fb84d79a0190dcfe8b8714d27a9f02ab66e061756e3da61a70f39  bin/.devbin/lib/cmd/devbin
+43a219c40e3929e67663b0f10b2ea674cbf6372c7f8dd8cf01f371c3d5c7dc89  bin/.devbin/lib/cmd/devbin
 44333ff440e0db228e3abee832359896336623d3d6f07b1090b1f576b34e1bbe  bin/.devbin/lib/cmd/docs
-f0743b63148cd96c371cff5cdf5bf3150ffbb127d3667d91170079a5424241a9  bin/.devbin/lib/cmd/doctor
+8377010eefd6ec302529c0822affc262423475a47917128360813d0df48ae089  bin/.devbin/lib/cmd/doctor
 7c04b3203cca8bc1fb3a6e3e30e8d0682c661a61c64e0e3f09aba77b9b8da6f3  bin/.devbin/lib/cmd/dormancy
 3cdb7f8d8aea2d5a1021fc10d2756d39f61c8168646a9dd3316563b94fae12e5  bin/.devbin/lib/cmd/fmt
 a9d9800091517a5b26ea820c5526dba003088118315bab704e3b8bd3e188f862  bin/.devbin/lib/cmd/fullcycle
@@ -34,17 +34,17 @@ cc6054c9036f6b000f49df71ba859442cf6d003be85779edfaf2313b670d1de1  bin/.devbin/li
 5df1aabc978455ae14c12ba2696f93f7304c09ff3ff6a4260fc80d7872be30c6  bin/.devbin/lib/config
 eea6395edb812bad3ad80c4540346b1a7726e2db55e1bdb0f550e04e6b43638d  bin/.devbin/lib/config.reference.yaml
 e05c95d1675d1c191481f23df7585aabae633314ed90919fb7f35022d89a1cf2  bin/.devbin/lib/gatecmd
-035363cb55489697981fd94c2f87e86d39047c5e70e7051ef558c5876a3cc77e  bin/.devbin/lib/help
+7100766226e02281f6ce0f5ee0c0afe621149510c22044d6eae33a33bbb5691d  bin/.devbin/lib/help
 f2dc59f794c42e1ca0355cfad871e2249739a5ecad4ecb01ed20ede2a2011d2f  bin/.devbin/lib/helpers
 fa4da550bd0a9ce7e9c88d99a5584477b987c8699d374e19d2e220bfdda9d56c  bin/.devbin/lib/infra
 61dfbb45360709644aa27babbe01cd280b86b8e262834d76408930e204a0b1a1  bin/.devbin/lib/infra.check
 e50d97a230187f1a3396f84b8368baf48d7601b38e4a8a611373ddf13acfe25a  bin/.devbin/lib/infra.dns
 7cf8ee60972bb2d43720c1ef96395a366942281e72063cda9e8438ab68f6128e  bin/.devbin/lib/infra.init
-9ed605f9d410255bccdb171e5e135f82ddd240d441c243be627b970dfeae3cfa  bin/.devbin/lib/infra.reference.yaml
+8b1d106e5fd60d47526bf2535f6890264e27aa9a94015d0caa6b0ae004cd479c  bin/.devbin/lib/infra.reference.yaml
 3ba5d386b76b33c5e675b74e0439e033b49e468a72275a96bbcc36afa283bf9e  bin/.devbin/lib/install
 1ba4a306f31d4c73b4de159d3e9fbc039396460b930fdd66bbd947c575a490b4  bin/.devbin/lib/release.notes
 903d487e7e57b0451f37c918b01b5f46787423265d50e551f5f6af5248cbba7d  bin/.devbin/lib/release.steps
-1fed56109cfa1802a571237cf5aac4ce963ec7e50e86f24c75c618f12c6420a4  bin/.devbin/lib/resolve
+c2b5ae39c35f9d0fe2144644d0db923fb8f1393023fb47127c192b89253c937d  bin/.devbin/lib/resolve
 0b7584ab7a0d1e430aff98ae652534f9d31ec40cad9a823cc98056d787285bd9  bin/.devbin/lib/runlog
 82b14452bbfba93bfe6d3aa9658719160143cfabca182462c3f3ea7765dd6134  bin/.devbin/lib/tmpl/handler
 9f0ab5e7876d3cf5f1c568ce5aff8ae7126b32f4d09db5cfc471be601553051b  bin/.devbin/lib/tmpl/help.md

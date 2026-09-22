@@ -92,6 +92,17 @@ runtime_identity() {
   git_head_identity "${PROJECT_ROOT:-.}"
 }
 
+# lib_rel -- where devbin's runtime lives, relative to the project root.
+#
+# DERIVED FROM DEVBIN_LIB, NEVER SPELLED (issue 0112). The overview and the
+# templates listing named bin/.devbin/lib/ outright, which is right in every
+# estate and wrong in the devbin checkout, where D12 runs lib/ in place -- so in
+# the one tree that explains devbin, `devbin devbin` pointed at two paths that
+# did not exist, beneath a line announcing that this was the checkout.
+lib_rel() {
+  printf '%s' "${DEVBIN_LIB#"$PROJECT_ROOT"/}"
+}
+
 show_version() {
   local ver ident
   ver="$(runtime_version)" || exit 1
@@ -102,8 +113,8 @@ show_version() {
 show_templates() {
   # The backticks are prose -- markdown quoting -- and %s expands via its argument.
   # shellcheck disable=SC2016
-  printf 'Templates -- what `%s new <cmd>` scaffolds from, vendored at bin/.devbin/lib/tmpl/:\n\n' \
-    "${DEVBIN_INVOKE:-bin/devbin}"
+  printf 'Templates -- what `%s new <cmd>` scaffolds from, at %s/tmpl/:\n\n' \
+    "${DEVBIN_INVOKE:-bin/devbin}" "$(lib_rel)"
   printf '  handler      the command script: header block, usage, and an exit-3 placeholder\n'
   printf '               (resolving-but-unbuilt must never read as success)\n'
   printf '  help.md      the authored help topic, keyed on the command name\n'
@@ -120,17 +131,23 @@ show_overview() {
   # not abort the printf that holds it, so an unanswerable version would have
   # printed as a blank and read as an answer.
   ver="$(runtime_version)" || exit 1
+  src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
   printf 'devbin %s -- the framework under bin/\n\n' "$ver"
   printf 'This launcher is devbin, vendored at bin/.devbin/ and driven by\n'
   printf "bin/.devbin/config.yaml. Identity comes from config: this install\n"
   printf "answers as '%s'.\n\n" "${DEVBIN_NAME:-devbin}"
   printf 'The seam:\n'
-  printf "  bin/devbin, bin/.devbin/lib/   devbin's -- replaced wholesale by upgrade\n"
+  if [ -n "$src" ]; then
+    printf "  bin/devbin, %s/   devbin's -- replaced wholesale by upgrade\n" "$(lib_rel)"
+  else
+    # The checkout has no vendored copy to replace: lib/ IS the source, and
+    # upgrade here replaces the machine install instead (D12).
+    printf "  bin/devbin, %s/               devbin's source -- this tree; nothing vendored\n" "$(lib_rel)"
+  fi
   printf '  config.yaml, cmd/, help/       yours -- never written by install or upgrade\n\n'
   printf 'The framework surface here: %s install | upgrade | vendor | doctor | new | shell-init\n' "${DEVBIN_INVOKE:-bin/devbin}"
-  printf 'Reference config, every key annotated: bin/.devbin/lib/config.reference.yaml\n'
+  printf 'Reference config, every key annotated: %s/config.reference.yaml\n' "$(lib_rel)"
   printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_INVOKE:-bin/devbin}"
-  src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
   if [ -n "$src" ]; then
     printf '\nUpgrades come from: %s\n' "$src"
     printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'

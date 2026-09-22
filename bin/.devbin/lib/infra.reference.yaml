@@ -68,6 +68,24 @@ defaults:
   dmarc:
     policy: none
     rua: dmarc@example.com
+  # --- manual: what SHOULD be true and can never be verified -----------------
+  #
+  # A `manual:` entry is free text in its own namespace, inherited like anything
+  # else under `defaults:` and overridden by name under a domain's own `manual:`.
+  # EVERY ONE IS NAMED ON EVERY RUN AND NONE OF THEM IS EVER CHECKED, which is
+  # the whole reason the namespace exists: an entry records a state devbin has no
+  # way to observe, so it cannot detect that the state stopped being true. Keeping
+  # them apart from the checked keys is what stops a reader taking the block as a
+  # record of verification -- the same failure as a disarmed guard that reports
+  # nothing, arrived at from the other direction.
+  #
+  # Undocumented here until 2026-09-22 although `infra_manual_keys` has read both
+  # `defaults.manual` and `domains.<handle>.manual` throughout. An honoured key
+  # absent from the one annotated guide an operator has is the same defect as a
+  # documented key that does nothing, and this file is VENDORED, so the omission
+  # reached every estate.
+  manual:
+    registrar: locked at the registrar; transfer auth off
 
 # --- senders: a matched pair, declared once ---------------------------------
 #

@@ -170,8 +170,22 @@ check_languages() {
 }
 
 # check_devbin_version -- the constraint the project declared, enforced.
+#
+# IT RE-READS THE CONFIG FOR THE SAME REASON check_languages DOES, four lines
+# up, and until 2026-09-22 it did not. An empty cache means either "declares no
+# constraint" or "could not read the constraint it declares", and only the
+# first may be said. This check said it unconditionally, so a project whose
+# config does not parse was told `any runtime satisfies this project` -- the
+# most permissive verdict doctor can reach -- printed directly beneath a FAIL
+# naming that same file. 0062 wrote this guard for check_languages and it never
+# reached its neighbour, which is the whole defect: a fix applied to the case
+# that was reported rather than to the hazard that was found.
 check_devbin_version() {
   local want have
+  if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1; then
+    _note "devbin_version: not checked -- the config did not load (see config above)"
+    return 0
+  fi
   want="$(cfg_get devbin_version)"
   have="$(devbin_runtime_version)"
   if [ -z "$want" ]; then

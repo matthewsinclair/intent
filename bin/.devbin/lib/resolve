@@ -811,7 +811,7 @@ run_option() {
     # break `all`'s promise not to stop at the first breach (AC-04.6). The
     # direct path in bin/devbin does `exit $?`, so asking for a single option
     # still yields the right exit code.
-    report_not_yet "$DEVBIN_INVOKE $cmd $opt" "the built-in command library (ST0001/WP-08)"
+    report_unrunnable "$DEVBIN_INVOKE $cmd $opt" "$cmd" "$opt"
     return 3
   fi
 
@@ -962,10 +962,72 @@ run_command() {
     return 1
   fi
 
-  # The single not-yet site for commands. It lived in bin/devbin until this
+  # The single refusal site for commands. It lived in bin/devbin until this
   # function existed; keeping a copy there as well would be two answers to one
   # question, and they would drift the moment either grew a nuance.
-  not_yet "$DEVBIN_INVOKE $cmd" "the built-in command library (ST0001/WP-14)"
+  report_unrunnable "$DEVBIN_INVOKE $cmd" "$cmd" || exit 3
+}
+
+# unrunnable_why <command> [<option>] -- why something devbin knows resolves to
+# nothing runnable HERE, and what makes it run. One line, no trailing text.
+#
+# ONE SOURCE FOR TWO SURFACES (issue 0111). The dispatcher's refusal and `help
+# --why` answer the same question about the same command, and until 2026-09-22
+# they answered it differently: the refusal said `build` was "not built yet" and
+# "gated on" ST0001/WP-14 -- a thread closed on 2026-08-10, and the wrong work
+# package besides, since build is WP-15 -- while --why said the true thing. The
+# user meets the refusal, not --why, at exactly the moment they are blocked. So
+# --why's name-only line is printed by this function and so is the refusal's.
+#
+# TWO CASES, and the catalogue's run column is what tells them apart -- the same
+# distinction run_command already draws above. `-` is D18 tier 4 working as
+# designed: devbin ships the NAME and the project declares what it runs, so the
+# remedy is the project's. `@builtin` means devbin's own handler was meant to
+# take it and is absent from this install, so the remedy is to find out what
+# else is missing rather than to declare anything.
+#
+# `not_yet` in lib/helpers is NOT this and is deliberately left alone: it is the
+# refusal for a GENUINE stub, and project handlers call it for their own
+# unbuilt verbs (Baize and Laksa do). The defect was never the helper; it was
+# the dispatcher reaching for a stub's words where nothing was a stub.
+#
+# AN OPTION ROW IS ALWAYS SERVED THROUGH devbin's HANDLER FOR ITS COMMAND,
+# WHATEVER ITS RUN COLUMN SAYS -- `db.setup` carries `mix ecto.setup` and still
+# runs through lib/cmd/db. So an option reaching the refusal WITH a catalogue
+# row means that handler is missing, never that devbin shipped a bare name. The
+# first cut of this function tested only for `@builtin` and told a partial
+# install of `db` that devbin "ships the name only"; dispatch.bats's older arm
+# over `db all` caught it, and this function's own new arms, all over @builtin
+# rows, could not have.
+unrunnable_why() {
+  local cmd="$1" opt="${2:-}" run
+  if ! run="$(builtin_option_run "$cmd" "$opt" 2>/dev/null)"; then
+    run=""
+  elif [ -n "$opt" ]; then
+    run=@builtin
+  fi
+  if [ "$run" = @builtin ]; then
+    printf "devbin's handler for '%s' is missing from this install -- %s doctor names what else is missing\n" \
+      "$cmd" "$DEVBIN_INVOKE"
+  elif [ -n "$opt" ]; then
+    printf 'devbin ships the name only -- declare commands.%s.options.%s.run or add %s/cmd/%s\n' \
+      "$cmd" "$opt" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+  else
+    printf 'devbin ships the name only -- declare commands.%s.run or add %s/cmd/%s\n' \
+      "$cmd" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+  fi
+}
+
+# report_unrunnable <what> <command> [<option>] -- the refusal, returning 3.
+#
+# Exit 3 keeps its contract (docs/authoring-commands.md): it resolves, and
+# nothing here implements it. RETURNS rather than exits, for the same reason
+# report_not_yet does: run_all calls the option path in a loop, and `all` must
+# not stop at the first breach. The command site exits on the return.
+report_unrunnable() {
+  printf '%s: %s resolves, but nothing here runs it.\n' "$DEVBIN_NAME" "$1" >&2
+  printf '       %s\n' "$(unrunnable_why "$2" "${3:-}")" >&2
+  return 3
 }
 
 # --- shared options ---------------------------------------------------------

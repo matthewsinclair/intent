@@ -291,9 +291,10 @@ command_origin() {
   # broken declaration below. `build` reaching here is the design working: four
   # projects have four disjoint target lists, so devbin ships the NAME and the
   # project says what it runs. Reporting that as "unrunnable" reads as a defect.
+  # The sentence itself lives in unrunnable_why (lib/resolve), because the
+  # dispatcher's refusal says it too and the two drifted once (issue 0111).
   if is_builtin_command "$cmd"; then
-    printf 'devbin ships the name only -- declare commands.%s.run or add %s/cmd/%s\n' \
-      "$cmd" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+    unrunnable_why "$cmd"
     return 0
   fi
   printf 'nothing -- declared but unrunnable\n'
