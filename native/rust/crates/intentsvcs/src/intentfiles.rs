@@ -51,36 +51,41 @@ const RETIRED_MARKERS: [&str; 2] = ["# BEGIN INTENT", "# END INTENT"];
 
 /// What kind of artefact a manifest line names.
 ///
-/// **Exactly ONE as of 2026-08-20, closed, and still an enum.** A second sigil
-/// is a model change and must be one -- an open sigil space is the second
-/// enumeration AC-02.5 forbids, arriving through the vocabulary instead of
-/// through the grammar.
+/// **TWO, AND A THIRD IS A MODEL CHANGE.** A new sigil must arrive as a
+/// variant here -- an open sigil space is the second enumeration AC-02.5
+/// forbids, arriving through the vocabulary instead of through the grammar.
 ///
-/// # `ISSUE` was here and hv retired it
+/// # This block claimed arity ONE until 2026-09-22, thirty lines above the
+/// variant that disproved it
 ///
-/// **Issues are CANON-AND-STORE ONLY: an issue has no realised form in the
-/// estate, so a manifest line naming one could never be about a file.** Every
-/// issue path in `project.rs` is canon-side (`canon_issue_rel`, `issues_dir`,
-/// `issue_json`) and `views.rs` renders no issue view, so `Facade::hydrate`'s
-/// issue arm resolved into `intent/.canon/issues/` while its thread arm
-/// resolved into the estate -- **two arms of one match addressing two different
-/// layers.** Driven once before it was wired, `intent issues hydrate 0001`
-/// wrote `ISSUE:0001` into the live manifest and reported `ok` over 0 files.
+/// **It said `ISSUE` had been retired, that an issue has no realised form, and
+/// that `views.rs` renders no issue view. All three were false in this tree**
+/// (issue 0514): the enum has two variants, `intent/.intentfiles` carries one
+/// `ISSUE:` line per OPEN issue, and [`crate::views::issue`] is what renders
+/// them. It also carried a section headed "Why this stays an enum at arity
+/// one", arguing against a collapse that arity two had already made impossible.
 ///
-/// # Why this stays an enum at arity one, which is the part worth stating
+/// **THE FILE CONTRADICTED ITSELF ACROSS THIRTY LINES.** [`Sigil::Issue`]'s own
+/// doc, immediately below, has been correct and current the whole time: it
+/// records the restoration by ST0069 WP-01 and names the view the line resolves
+/// to. WP-01 updated the variant and not the type, so the two homes diverged
+/// inside one file, one screen apart -- the same shape as this module against
+/// `facade.rs`, at a distance short enough that nobody thought to look.
 ///
-/// A single-variant enum reads as ceremony, and deleting it in favour of a bare
-/// `&str` or an implicit STEELTHREAD would be the obvious tidy. **It would also
-/// be wrong, because the sigil space is about to GROW rather than disappear.**
-/// cc's partition of the 250-odd files under `intent/` that no store row owns
-/// finds 59 that are project content wanting an owner, and vc's reading of the
-/// same set is that *the blocker is ARITY, not policy* -- the ownable set is
-/// empty because nothing but a thread can be named here. That work lands as a
-/// new variant beside this one.
+/// # The extension-point argument survives, because it never depended on arity
 ///
-/// So the enum is the extension point, and collapsing it now would mean
-/// re-creating it. **Arity one is a fact about today's grammar, not evidence
-/// that the type has stopped earning its place.**
+/// A narrow enum reads as ceremony and collapsing it to a bare `&str` or an
+/// implicit STEELTHREAD is the obvious tidy. **It would still be wrong, because
+/// the sigil space grows rather than shrinks** -- WP-01 is the proof, having
+/// added the variant this block said would never come. cc's partition of the
+/// files under `intent/` that no store row owns finds a set that is project
+/// content wanting an owner, and vc's reading is that *the blocker is ARITY,
+/// not policy*. That work lands as a further variant beside these two.
+///
+/// So the enum is the extension point, and collapsing it would mean re-creating
+/// it. **Today's arity is a fact about today's grammar and never was evidence
+/// about the type's worth** -- which is why the argument outlived the number it
+/// was written around, and why stating it in terms of the number was the error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Sigil {
   SteelThread,
