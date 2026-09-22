@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 10:14Z
+heartbeat_at: 2026-09-22 14:24Z
 status: active
-focus: "Folded in hv's cycle: nothing queued, no claims, nothing in flight. ST0079 closed and confirmed by hv on both faces, the four NEXT-LINE items landed, Lamplight 0008 filed and that tree clean. Read intent/restart.md's six instrument rules before re-deriving any of them. Holding for vc. NO PUSH, NO RELEASE."
+focus: "Leaned on hv's word: nothing claimed, nothing in flight, no heavy run. The day is in cc's sixteen commits, not in a summary; the rules are in restart.md and the shared memory dir, and five proposals died today because the corpus already held them. Holding for vc. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,15 +13,11 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-22, cut in hv's estate-wide fold-and-compact cycle, cc first then dc then ic): nothing queued, no claims, nothing in flight, no heavy run started or waiting.** hv's TODO of the morning is delivered, landed, live and CONFIRMED BY hv ON BOTH FACES: ST0079 closed at ca08ce108 (WP-02's code 8d1103b3d at vc's judged patch-id 71717e948371, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart, AT-02.1 to AT-02.3 red on b14471926 and green on the landing), the pair vc built at 09:48Z is 36143de45 and carries it, hv drove the CLI and the TUI, restarted the daemon and the app, and `intent doctor -v` reads 0 findings. vc's own read of `intent outs` in Lamplight found exactly 14 parent rows, every one Completed or Cancelled, counts line "20 of 358 threads (WIP) and 14 as parents" -- cc's ids, ic's hand count and the live verb agree. All four NEXT-LINE items landed: (a) 805608686, (b) 3c5cb5191, (c) 069e6b227, (d) 84e1ce66f, live for every estate from that commit. The three banks are settled and removed; cc's other 31 bank refs stand. cc's localfold is 597a93e82 with its event files at 21d1d3bb9.
+- **RESUME HERE (cc, 2026-09-22, leaned on hv's word).** Nothing claimed, nothing in flight, no heavy run started or waiting. WAITING ON vc for the next line, and hv for the push, which vc holds as a list. NO PUSH, NO RELEASE.
 
-**LAMPLIGHT IS DONE AND ITS TREE IS CLEAN:** issue 0008 at 6b1ace627 (19 WIP packages under 14 Completed or Cancelled threads, measured against a COPY of Lamplight's store, its tree never opened), and the 265-view version-stamp re-render that the write produced in its own mechanical commit at 5a22c72ce on vc's ruling, 265 insertions and 265 deletions with the footer-excluded diff empty, doctor 0 findings.
+THE DAY IS IN THE RECORD RATHER THAN IN THIS ITEM. `git log --since=2026-09-22 --format='%h %s' | grep '(cc)'` returns cc's sixteen commits, ST0079 closed at ca08ce108 among them. Read those; a summary here would be a second copy that goes stale.
 
-**READ intent/restart.md RATHER THAN RE-DERIVING: it now carries six instrument rules today paid for, two of them cc's** -- a `git status` listing is not a claim about whose event file a path is (read each file's own `op` and `subject`), and `git ls-files --error-unmatch` answers whether a path is in the INDEX, which a staged-but-uncommitted file is, so `git diff --cached --name-only` is the question to ask. The other four: paths in a shell variable are ONE pathspec, so write them literally; an estate's first store write under a newer pair re-renders every view an older pair wrote, so a one-line change arrives with a mechanical commit beside it; a ruling that shapes a bank belongs in the unit's own record; and `bash -n` REFUSES every `.bats` file, so its red says nothing about the edit -- `bats -c` is the syntax check.
-
-**ALSO BINDING:** one heavy run at a time on this host, announced at both ends; an attachment edit cannot be banked and judged green in a worktree, so it lands live under vc's four conditions; an AT row's green note EXTENDS its red note; and after dc's 0501 (c62c22364) CI's doc step reads `RUSTDOCFLAGS: -Dwarnings` unspaced with `bin/int check doc` gating. cc's worktree wt-cc-train is clean at 069e6b227 and PREDATES the pair, so rebase it before the next run.
-
-**WAITING ON:** vc for the next line; hv for the push, which vc holds as a list. NO PUSH, NO RELEASE.
+READ RATHER THAN RE-DERIVE. `intent/restart.md` holds the instrument rules. The shared memory dir holds process counting (`pgrep -c` DOES NOT EXIST here and its empty stdout reads as zero -- use `ps -axo comm= | sed 's|.*/||' | grep -cx`, anchored), the shared-checkout rules and the bank rules. FIVE RULE PROPOSALS WERE REFUSED TODAY BECAUSE THE CORPUS ALREADY HELD THEM, two of them mine and already written in my own memory file two weeks earlier. Search BOTH homes at the moment you are stuck, not at the moment you are proposing -- by proposal time the cost is already paid.
 
 ## TODO
 
@@ -33,7 +29,6 @@ _(none)_
 
 ## Watch-outs
 
-- WHY DECISION 47 LETS `heartbeat_at` TRAVEL IN `board.json` WHEN IT KEEPS HEARTBEAT EVENTS STORE-ONLY, BECAUSE THE NEXT READER OF `store.rs:682-687` WILL OTHERWISE RE-DERIVE IT. The event half is implemented exactly as ruled: acts that describe one machine, heartbeats and restores among them, stay in `event_log` and get no committed `intent/.canon/events/**` file. `intent/whiteboard/<node>/board.json` is tracked and carries `heartbeat_at` and `session_id` regardless, which looks like the same fact travelling through git by another road. It is not leakage, and the reason is that a heartbeat is not machine-local the way an ingest is. "cc last reported at 10:14Z" is a true statement of the record on any clone; an ingest having happened is only true on the machine it happened on. A stale heartbeat in a clone therefore reads as stale, which is the 7-day reclaim rule working rather than a lie propagating. That is where decision 47 boundary falls and why. Measured and withdrawn by cc on 2026-09-22 before it reached vc synthesis.
 - SEVERAL DIRTY BOARD RENDERS AT ONCE IS NOT A CHURN PROBLEM. 10 of 307 board-touching commits in the week to 2026-09-22 have a whole-board diff that is `heartbeat_at` and nothing else -- about 3%, because a render is nearly always dirtied alongside content that was going to be committed anyway. Do not spend a design change on it. AND IF YOU WANT A RULE's HOLD RATE, COUNT OCCASIONS AND CLASSIFY THEM; incidents cannot give it, because a violation becomes a message to a peer and a correct application usually leaves nothing behind. Where a violation WOULD leave a persistent artefact the occasions are countable from git -- but classifying one needs OWNERSHIP, and git carries none here: every session commits as hv, and the only subject convention that names a node is `wb(<node>)`. Measured by ic on 2026-09-22: of 42 commits that day, 30 named a node and the 12 that did not were the substantive work. SO THE COUNT IS AVAILABLE FOR BOARD COMMITS AND MISSING FROM THE COMMITS THAT MATTER, and for work the owner is in the chain announcements, which are live-channel messages that die at a compact. CUT ON 2026-09-22 FROM THREE LONGER VERSIONS, on vc's rule that a caution needing this much care to state is close to the boundary where its precision stops being usable at the moment of use. The derivation, the worked example (zero violations in at least six occasions, one-sided at both ends) and what each revision cost are in archived watch-outs 52, 54 and 55 and in this board's commit messages.
 
 ## Decisions

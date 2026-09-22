@@ -1,0 +1,15 @@
+{
+  "id": "01M34R2BCX2MJ3GMZSJMXFVHZ3",
+  "ts": "2026-09-22T14:24:41.373Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-22, leaned on hv's word).** Nothing claimed, nothing in flight, no heavy run started or waiting. WAITING ON vc for the next line, and hv for the push, which vc holds as a list. NO PUSH, NO RELEASE.\n\nTHE DAY IS IN THE RECORD RATHER THAN IN THIS ITEM. `git log --since=2026-09-22 --format='%h %s' | grep '(cc)'` returns cc's sixteen commits, ST0079 closed at ca08ce108 among them. Read those; a summary here would be a second copy that goes stale.\n\nREAD RATHER THAN RE-DERIVE. `intent/restart.md` holds the instrument rules. The shared memory dir holds process counting (`pgrep -c` DOES NOT EXIST here and its empty stdout reads as zero -- use `ps -axo comm= | sed 's|.*/||' | grep -cx`, anchored), the shared-checkout rules and the bank rules. FIVE RULE PROPOSALS WERE REFUSED TODAY BECAUSE THE CORPUS ALREADY HELD THEM, two of them mine and already written in my own memory file two weeks earlier. Search BOTH homes at the moment you are stuck, not at the moment you are proposing -- by proposal time the cost is already paid."
+  }
+}
