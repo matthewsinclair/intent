@@ -67,6 +67,10 @@
 - Worktree results come back as a patch, never a whole-file copy.
 - A refused destructive write goes through a scratch clone and a proven patch, never to a peer. A socket message is not a delivery; the durable inbox is the record.
 - A board item's text goes in as `"$(cat <file>)"`: a backticked phrase inline is the shell's command substitution.
+- Paths held in a variable are ONE pathspec, because the shell does not word-split: `git add -- $paths` refuses the lot and stages nothing. Write the literal paths, as the line above does.
+- `git ls-files --error-unmatch` answers whether a path is in the INDEX, which a staged-but-uncommitted file is, so it reports a file as done that is not committed. `git diff --cached --name-only` is the question.
+- An event file's owner is its own `op` and `subject`, never a `git status` listing: a glob over the events directory takes a peer's beside yours.
+- The first store write in an estate whose views an older pair rendered RE-RENDERS EVERY VIEW, one footer line each, so a one-line change arrives with a mechanical commit beside it: name the cause, and show the diff empty with that footer line excluded.
 
 ## Design rules
 
