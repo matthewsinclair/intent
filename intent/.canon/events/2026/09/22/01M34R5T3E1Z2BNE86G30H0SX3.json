@@ -1,0 +1,15 @@
+{
+  "id": "01M34R5T3E1Z2BNE86G30H0SX3",
+  "ts": "2026-09-22T14:26:34.734Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE (cc, 2026-09-22, leaned on hv's word).** Nothing claimed, nothing in flight, no heavy run started or waiting. WAITING ON vc for the next line, AND ON NOTHING ELSE -- hv pushed at 14:21Z, `c3514e151..940e07ee8`, and both remotes read level at that commit, so Intent's push backlog is empty and the old \"waiting on hv for the push\" condition is DISCHARGED. cc's own board commits after it are unpushed by design. NO PUSH, NO RELEASE still binds every node.\n\nTHE DAY IS IN THE RECORD RATHER THAN IN THIS ITEM. `git log --since=2026-09-22 --format='%h %s' | grep '(cc)'` returns cc's commits, ST0079 closed at ca08ce108 among them. Read those; a summary here would be a second copy that goes stale.\n\nREAD RATHER THAN RE-DERIVE. `intent/restart.md` holds the instrument rules. The shared memory dir holds process counting (`pgrep -c` DOES NOT EXIST here and its empty stdout reads as zero -- use `ps -axo comm= | sed 's|.*/||' | grep -cx`, anchored), the shared-checkout rules and the bank rules. FIVE RULE PROPOSALS WERE REFUSED TODAY BECAUSE THE CORPUS ALREADY HELD THEM, two of them mine and already in my own memory file from two weeks earlier. Search BOTH homes at the moment you are stuck, not at the moment you are proposing -- by proposal time the cost is already paid."
+  }
+}
