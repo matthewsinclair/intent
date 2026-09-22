@@ -238,11 +238,33 @@ pub fn realised(path: &std::path::Path) -> Realised {
 /// the second is a second reader of the same rule. `realised` now delegates,
 /// so the two can never disagree.
 ///
-/// **THE SIGIL FILTER BELOW IS A NO-OP TODAY AND IS NOT DEAD.** hv retired
-/// `ISSUE:` on 2026-08-20, so every entry is a `SteelThread` and the filter
-/// excludes nothing. It stays because the sigil space is queued to grow, and
-/// deleting it would put the bug back the day it does. `intentfiles_is_the_
-/// list.rs` records that no fixture can currently catch its removal.
+/// **BOTH HALVES OF WHAT THIS COMMENT USED TO SAY WERE FALSE, AND THEY FAILED
+/// IN OPPOSITE DIRECTIONS** (issue 0514, found by vc 2026-09-22 while
+/// establishing whether `ISSUE:<NNNN>` is a live address form for `wb claim`).
+/// It read: "THE SIGIL FILTER BELOW IS A NO-OP TODAY AND IS NOT DEAD -- hv
+/// retired `ISSUE:` on 2026-08-20, so every entry is a `SteelThread` and the
+/// filter excludes nothing."
+///
+/// `ISSUE:` IS LIVE. ST0069 WP-01 gave an issue a realised form, and
+/// `organize --default` writes one `ISSUE:` entry per OPEN issue; the live
+/// manifest in this repository carries them right now, and this module's own
+/// header states the rule -- every WIP thread and every OPEN issue is
+/// declared, and nothing else.
+///
+/// AND THERE IS NO FILTER BELOW. `declared_set` maps every entry through
+/// `declared_key` and excludes nothing of any kind. The filter this comment
+/// defended was removed when the set stopped being keyed on bare ids, which
+/// `declared_key`'s own comment records a few lines down. So it argued for
+/// keeping a mechanism that had already gone, and cited a test as evidence
+/// that no fixture could catch its removal -- which was true, and was the
+/// reason nothing objected for a month.
+///
+/// **THE POINT IS NOT THE TWO FACTS BUT THAT A DOC COMMENT HAS NO CHECKER.**
+/// This sentence stated a POLICY -- that a sigil kind is retired -- in the
+/// module that owns the manifest's vocabulary, which is exactly the kind of
+/// sentence a reader takes as current instead of re-deriving. It was taken
+/// that way, and the live manifest is what corrected it. Nothing else could
+/// have.
 pub fn realised_from(text: &str) -> Realised {
   match parse(text) {
     Ok(manifest) => Realised::Declared(declared_set(&manifest)),
