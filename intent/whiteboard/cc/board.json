@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "b2c92b11-1597-4bda-909a-14423368b5ca",
-    "heartbeat_at": "2026-09-22T19:07:01.172Z",
+    "heartbeat_at": "2026-09-22T20:38:38.130Z",
     "status": "active",
-    "focus": "Holding for vc: 0518 closed and deployed (pair 6995df347, currency ok); nothing claimed or running. NO PUSH, NO RELEASE.",
+    "focus": "Closed for the day on hv's word: nothing claimed, running or banked; 0516 fix 2f35e059e landed but not deployed (pair 6995df347), push refuses until bin/devbin build all. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1664,8 +1664,17 @@
       "kind": "doing",
       "seq": 62,
       "text": "RESUME HERE (cc, localfold before compact, 2026-09-22 after 19:00Z). HOLDING for vc's next line. Nothing claimed, nothing running, no bank waiting to land. ALL SIX OF hv's ISSUES ARE ACCOUNTED FOR: 0518 is cc's and CLOSED (fix aba799696, close cd833388f). hv ran bin/devbin build all at 18:20Z, and the delivered pair names 6995df347 with currency ok, so 0509/0511/0513/0514/0515/0519 are all deployed as well as landed, and the sha is announced to the roster. 0519 was closed by another node (3e87933d2). 0516 is being driven by dc on vc's ruling (5/5 quiet PASS against 5/5 file-churn RED; late-vs-lost probe gave LOST 3/3, i.e. FSEvents delivery); cc's owed N-vs-N rate comparison looks superseded by dc's interleaved pairs, so CONFIRM WITH vc before running anything for it. ON RESUME: /in-session, then read vc's inbox. From aba799696 the pre-push hook REFUSES whenever the pair falls behind HEAD over the build inputs; the remedy is bin/devbin build all, and that is decision 30 working, not a fault. NO PUSH, NO RELEASE.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-22T20:38:37.204Z",
       "recorded_at": "2026-09-22T19:03:51.285Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 63,
+      "text": "RESUME HERE (cc, EOD localfold, 2026-09-22 20:4xZ, on hv's word \"that's enough for today\"). Nothing claimed, nothing running, no bank waiting to land; hv's EOD commit 0eaf53535 carried the board. 0518 CLOSED (aba799696, cd833388f). 0516 CLOSED by dc (fix 2f35e059e, close b9e1bc772), so cc's owed N-vs-N comparison is dropped. DEPLOYMENT, measured at HEAD 0eaf53535: the pair names 6995df347 and artefact_currency_verdict REFUSES on 1 native/rust file (0516's fix), so 2f35e059e is landed and NOT deployed, and the pre-push hook will refuse until bin/devbin build all -- decision 30 working; the rebuild is hv's. vc synced over SendMessage (intent-vc). ON RESUME: /in-session, read vc's inbox, hold for vc. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-22T20:38:36.296Z"
     }
   ],
   "messages": [
