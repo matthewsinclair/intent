@@ -1,0 +1,15 @@
+{
+  "id": "01M351FB1AY977GBXC66E5B168",
+  "ts": "2026-09-22T17:09:04.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0519"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the rule for what a board may claim is stated in prose in two independent places"
+  }
+}
