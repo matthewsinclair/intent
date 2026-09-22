@@ -111,6 +111,23 @@ A project's own guards are declared in `intent/.config/config.json`, and the run
 
 `intent doctor` reports three wiring states as advisories, printed and not counted: a line in an untracked pre-commit chain, outside Intent's chain block, that runs something no guard declares; a declared guard that the chain also runs by hand, so it runs twice; and a tracked `.githooks/pre-commit` or `bin/hooks/pre-commit` while `core.hooksPath` is unset, so git never runs it.
 
+## Declared formatters
+
+`staged-format-guard.sh` is a shipped guard that checks the formatting of the bytes a commit actually stages, for the formats a project declares:
+
+```json
+{
+  "formatters": ["markdown", "elixir", "rust"]
+}
+```
+
+- **The declaration is a project's; the body is canon's.** Unlike a `guards` entry, whose `run[0]` must be a tracked file inside the project, this guard's body is read live from the install like every other shipped guard. A project opts in by naming formats, and a project that names none is reported not applicable in the gate's output.
+- **The vocabulary is closed**: `markdown` (prettier), `elixir` (mix format), `rust` (rustfmt). A name outside it refuses the commit rather than being ignored, because a typo means the check its author intended is not running. A fourth format is a change to the guard in canon, never an estate-supplied command — a command a project supplies could be a formatter in write mode behind a door whose name promises a check.
+- **It judges and never writes.** No `git add`, no `--write`, and every probe it creates is removed on the passing, refusing and interrupted paths. The refusal names the files and prints that formatter's own command as the remedy, for a human to run.
+- **It reads the staged blob, not the working tree.** A hunk-scoped commit deliberately stages bytes the worktree does not hold; a check that read the worktree would refuse a tree that is not being committed, or pass a staged blob nobody checked.
+- **A missing formatter is UNENFORCED, not unformatted.** A declared formatter whose tool is not on PATH is named in the verdict and blocks nothing, and the same distinction is kept for a file the formatter could not parse: "I could not check" is never reported as "this is wrong".
+- **Staged deletions and binary blobs are skipped**, and the Rust edition is resolved from the `rustfmt.toml` or `Cargo.toml` above each file rather than assumed. When nothing declares one, the verdict says rustfmt's default was used, so nobody is left to assume it matched the crate.
+
 ## Language detection
 
 The hook reads the explicit `languages` array from `intent/.config/config.json` and dispatches one critic per entry:
@@ -189,4 +206,5 @@ The hook itself exits only `0` or `1`.
 - `lib/templates/hooks/pre-commit.sh` — the gate.
 - `lib/templates/hooks/pre-commit-shim.sh` — the carrier installed as `.git/hooks/pre-commit.intent`.
 - `lib/templates/hooks/pre-commit-guards.sh` — the guard runner and roster.
+- `lib/templates/hooks/staged-format-guard.sh` — the staged-blob format check, declared per project by `formatters`.
 - `lib/templates/_intent_critic.yml` — install default for per-project config.

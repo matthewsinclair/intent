@@ -87,6 +87,17 @@ GUARDS=(
   # file no verb writes since 0457. `.history/**` is untouched, every node
   # folds into it daily, and it is where the first loss happened.
   'intent|append-only-guard.sh|a write where an append was meant is UNCHECKED'
+  # THE APPLICABILITY IS THE CONFIG FILE AND THE REAL TEST IS INSIDE THE GUARD
+  # (issue 0505), for the reason the append-only row above states about itself:
+  # `applies-when` is a PATH test, and what makes this guard relevant is a
+  # DECLARATION -- `"formatters"` in that same config. Every Intent project has
+  # the file, so the row dispatches the guard everywhere and the guard reports
+  # NOT APPLICABLE, in its own verdict, wherever nothing is declared.
+  #
+  # NAMING THE CONFIG AND NOT `intent` IS WHAT MAKES THE ROW READ TRUE. A wider
+  # path would dispatch it in a project whose config had been removed, where it
+  # cannot answer at all, and `--list-guards` would report it applicable.
+  'intent/.config/config.json|staged-format-guard.sh|staged bytes are UNCHECKED against the declared formatters'
 )
 
 # THE GUARDS ARE THIS FILE'S SIBLINGS, BY CONSTRUCTION.
