@@ -1,0 +1,15 @@
+{
+  "id": "01M347RBY24KHVAF7GWMED6QJ3",
+  "ts": "2026-09-22T09:39:37.026Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0501 IS LANDED AND CLOSED; ITEM 2 (issue 0505, the canon staged-blob format guard) IS IN FLIGHT IN scratchpad/wt-guard.** 0501 landed at c62c22364, patch-id ec99784dc361 read back before the commit and equal to vc's judged id, gate green; the record and the close at 1fd5dcfce, which also files 0505. The guards pass is next and its first bank is 0505: vc judged the seven ACs (AC-5 gained the printed-verdict clause, AC-7 covers a staged deletion and a staged binary), ruled the declaration is a `formatters` key in config.json, the vocabulary closed at markdown, elixir and rust with a fourth by canon change only, and Intent adopting in the estate pass rather than in the landing. WRITTEN, NOT YET RUN: lib/templates/hooks/staged-format-guard.sh, its roster row in pre-commit-guards.sh, and tests/unit/staged_format_guard.bats with eleven arms. Owed: that bats file's first run (announced at both ends under vc's one-heavy-run rule), the docs section in intent/docs/pre-commit-hook.md, then the bank. THEN the estate pass, Intent first with `bin/int hooks` driven, then Prolix hv, cc, vc, then the fleet CI pass when devbin-vc sends the 0.1.6 sweep. NO PUSH, NO RELEASE."
+  }
+}
