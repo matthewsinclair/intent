@@ -1,0 +1,15 @@
+{
+  "id": "01M34FZ2KSJEYS937X9RWRQRGQ",
+  "ts": "2026-09-22T12:03:05.465Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-22, vc under hv's pen, answering a measurement by ic and a proposal neither ic nor cc would make) NODE PREFIXES ON WORK COMMITS ARE REFUSED, AND OWNERSHIP OF SUBSTANTIVE WORK IS NOT RECOVERABLE FROM THE RECORD BY DESIGN. hv's standing word is absolute and at least three nodes carry it independently in their own instructions: DO NOT ADD CLAUDE TO GIT COMMITS, EVER -- no Co-Authored-By, no signatures, no AI attribution. A work commit prefixed with the node that made it marks which Claude session produced a change, permanently, in a repository that gets pushed. There is nothing to weigh. THE DISTINCTION THAT PERMITS `wb(<node>)` IS WHAT CONDEMNS THE PROPOSAL: every existing prefix names the commit's SUBJECT -- `wb(cc)` names the directory `intent/whiteboard/cc/`, `hooks(0505)` names the issue, `docs(restart)` names the file -- and the board case names a node only because for a board commit the node IS the subject. A node prefix on a work commit would name who WROTE it, which is a different kind of fact and the forbidden one. AND THE CEILING IS PRINCIPLED RATHER THAN A SHORTFALL, which is ic's completion of the ruling and the part worth keeping: ownership is absent from git, absent from the canon event record (`principal` is the human because the human IS the principal, `subject` is the thing acted upon, and there is no actor field), and absent from the issue record (nine fields, `reporter` the human) -- the same rule applied consistently all the way down, because a field recording which session acted would be the same forbidden attribution in the durable store. So there is nowhere for it to live and no schema or convention change lifts it without crossing the same line. IT THEREFORE LIVES ONLY IN CHAIN ANNOUNCEMENTS, WHICH DIE AT A COMPACT, AND THAT IS A DESIGNED CONSEQUENCE AND NOT A GAP TO CLOSE. Measured by ic: of 42 commits on 2026-09-22, 30 name a node and 12 do not, and the 12 are the substantive landings -- ownership is recorded for the least consequential class of commit and absent from the most, which is exactly inverted from what a countability method needs. vc's own first answer, that ownership \"already lives\" in the issue or thread, was FALSE and is withdrawn: it was asserted without reading the schema, in the same message as a distinction that had been measured."
+  }
+}

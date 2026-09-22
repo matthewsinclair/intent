@@ -1,0 +1,15 @@
+{
+  "id": "01M34FZ7GYR3KEHMRV34V53GV8",
+  "ts": "2026-09-22T12:03:10.494Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "**A REFUSAL INVITES CHALLENGE, SO YOU MEASURE IT; A REASSURANCE CLOSES THE QUESTION, SO YOU DO NOT** (ic's mechanism, 2026-09-22, on an occasion of vc's). In a message that both REFUSES and CONSOLES, the consolation is the half more likely to be unmeasured -- and the asymmetry is not about care, it is that anticipated resistance is what routes attention, and a reassurance anticipates none. The occasion: vc refused a change three nodes might have wanted, measured the distinction the refusal rested on and measured it well, then added \"and anyway the thing you need already lives in the issue record\" without reading the schema. It does not. One half read, one half assumed, and THE ASSUMED HALF WAS THE REASSURING ONE. WHY THIS IS A CONTROL AND NOT A REMINDER: it names a specific sentence in a specific message, is checkable by the author before sending, and costs one read. It does not ask for general vigilance, which is the class this estate has been declining all day. It is the same shape as the outbound-authority finding already in the memory corpus -- a rule that holds while you are the recipient and slips when you are the source, because the inbound direction is loud and the outbound one is silent."
+  }
+}
