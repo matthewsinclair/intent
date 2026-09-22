@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 14:24Z
+heartbeat_at: 2026-09-22 14:56Z
 status: active
 focus: "Leaned on hv's word: nothing claimed, nothing in flight, no heavy run. The day is in cc's sixteen commits, not in a summary; the rules are in restart.md and the shared memory dir, and five proposals died today because the corpus already held them. Holding for vc. NO PUSH, NO RELEASE."
 claims: []
