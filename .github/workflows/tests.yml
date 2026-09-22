@@ -156,6 +156,32 @@ jobs:
       # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
       # built here first. Same toolchain and cache setup as `rust.yml`.
       - uses: dtolnay/rust-toolchain@stable
+        # `components: rustfmt` IS THE POINT OF THIS BLOCK, and it was missing
+        # from BOTH sites in this file while `rust.yml:75-77` has carried it
+        # since the job existed -- three lines under a comment here claiming
+        # "Same toolchain and cache setup as `rust.yml`" (issue 0512).
+        #
+        # WHAT WAS MEASURED, AND THE DISTINCTION IS THE WHOLE FINDING: arms 617
+        # and 626 of `staged_format_guard.bats` PASSED on both legs of run
+        # 35739715195, and neither can pass with rustfmt absent -- 617 asserts a
+        # refusal, 626 asserts the verdict names rustfmt's default edition. So
+        # rustfmt IS reaching these legs. That proves it is PRESENT; it proves
+        # nothing about anything DECLARING it, and what supplies it is the
+        # runner image, which this repository does not control.
+        #
+        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml:92-97,
+        # refusing a `rust-toolchain.toml`: "a pin that does not bind is worse
+        # than no pin: it does not refuse, and it misleads". This is that
+        # argument's mirror image -- a dependency not declared at all, satisfied
+        # from outside the repository, so the leg is green for a reason the
+        # repository does not own. The day an image drops rustfmt, those arms go
+        # red pointing at THEMSELVES, and whoever reads it starts by suspecting
+        # the arms, because nothing here ever said rustfmt was required.
+        #
+        # `clippy` rides along to match rust.yml exactly, so the two files stop
+        # differing by accident rather than by decision.
+        with:
+          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
@@ -333,6 +359,32 @@ jobs:
       # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
       # built here first. Same toolchain and cache setup as `rust.yml`.
       - uses: dtolnay/rust-toolchain@stable
+        # `components: rustfmt` IS THE POINT OF THIS BLOCK, and it was missing
+        # from BOTH sites in this file while `rust.yml:75-77` has carried it
+        # since the job existed -- three lines under a comment here claiming
+        # "Same toolchain and cache setup as `rust.yml`" (issue 0512).
+        #
+        # WHAT WAS MEASURED, AND THE DISTINCTION IS THE WHOLE FINDING: arms 617
+        # and 626 of `staged_format_guard.bats` PASSED on both legs of run
+        # 35739715195, and neither can pass with rustfmt absent -- 617 asserts a
+        # refusal, 626 asserts the verdict names rustfmt's default edition. So
+        # rustfmt IS reaching these legs. That proves it is PRESENT; it proves
+        # nothing about anything DECLARING it, and what supplies it is the
+        # runner image, which this repository does not control.
+        #
+        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml:92-97,
+        # refusing a `rust-toolchain.toml`: "a pin that does not bind is worse
+        # than no pin: it does not refuse, and it misleads". This is that
+        # argument's mirror image -- a dependency not declared at all, satisfied
+        # from outside the repository, so the leg is green for a reason the
+        # repository does not own. The day an image drops rustfmt, those arms go
+        # red pointing at THEMSELVES, and whoever reads it starts by suspecting
+        # the arms, because nothing here ever said rustfmt was required.
+        #
+        # `clippy` rides along to match rust.yml exactly, so the two files stop
+        # differing by accident rather than by decision.
+        with:
+          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust

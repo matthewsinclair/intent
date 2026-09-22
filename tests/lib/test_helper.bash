@@ -254,3 +254,168 @@ get_intent_version() {
 # Load bats libraries if available
 # Note: bats libraries can be installed globally or added to tests/lib/
 # For now, we rely on the basic assert functions defined above
+# ============================================================================
+# ARMED TOOLS -- one home for "this arm needs a tool that may not be here"
+# (issue 0512)
+# ============================================================================
+#
+# THIS REPOSITORY HAD THREE BEHAVIOURS FOR ONE SITUATION and the worst was the
+# default. `require_prettier()` in
+# `native/rust/crates/intent-cli/tests/view_single_writer.rs` panics; an arm in
+# `devbin_fmt_md.bats` skipped and reported `ok`; and the guard arms asserted
+# `[ "$status" -eq 1 ]` and failed saying nothing but that, from which a reader
+# cannot tell a broken guard from an absent tool. Three homes, disagreeing
+# about whether a missing tool is fatal, invisible, or a test failure.
+#
+# `require_tool` is the bats side of the PANIC form. It cannot be the same CODE
+# as the Rust one -- different language -- so the two are bound by VOCABULARY
+# instead: both honour `INTENT_ALLOW_MISSING_<TOOL>`, so a contributor working
+# without prettier sets `INTENT_ALLOW_MISSING_PRETTIER=1` once and both suites
+# read it. That is the part that would silently diverge, so that is the part
+# made identical.
+#
+# **THE WAIVER IS AN ENV VAR RATHER THAN A SILENT PROBE BECAUSE SOMEONE HAS TO
+# HAVE DECIDED**, which is the Rust file's own reasoning and is not restated
+# further here.
+
+# Fail the calling arm unless `$1` is on PATH, naming the tool and what went
+# unmeasured. `$2` is that subject, in the arm's own words.
+#
+# A bare `require_tool prettier "..."` line is enough to fail the arm: measured
+# under Bats 1.14.0, a helper returning 1 fails the test and its output is
+# shown. It is NOT `|| fail`, because the whole point is that the arm stops
+# before asserting anything about an instrument that is not there.
+require_tool() {
+  local tool="$1" subject="$2" waiver
+  command -v "$tool" >/dev/null 2>&1 && return 0
+
+  waiver="INTENT_ALLOW_MISSING_$(printf '%s' "$tool" | tr '[:lower:]-' '[:upper:]_')"
+  if [ -n "${!waiver:-}" ]; then
+    echo "WAIVED: $tool is absent and $waiver is set, so ${subject} was NOT"
+    echo "measured on this machine. This is a waiver, not a pass."
+    return 0
+  fi
+
+  echo "$tool is not on PATH, so ${subject} cannot be measured."
+  echo "This arm FAILS rather than skipping: a skip here is a green that means"
+  echo "nothing, on an arm whose subject is an instrument's own verdict."
+  echo "Install $tool, or set $waiver=1 to waive it deliberately."
+  return 1
+}
+
+# The tools this repository ARMS, discovered rather than listed.
+#
+# Two surfaces declare arming and both are read, because a list written here
+# would go stale the first time either moved:
+#   * the rule library's `critic_tool:` frontmatter -- the critic fails CLOSED
+#     when an armed rule's tool is missing;
+#   * `staged-format-guard.sh`'s own `UNENFORCED <lang>(<tool>)` lines, which
+#     are the guard naming the formatters it enforces with.
+armed_tools() {
+  {
+    find "${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules" -name RULE.md \
+      -exec sed -n 's/^critic_tool: *//p' {} +
+    sed -n 's/.*UNENFORCED [a-z]*(\([a-z]*\)).*/\1/p' \
+      "${INTENT_PROJECT_ROOT}/lib/templates/hooks/staged-format-guard.sh"
+  } | sort -u
+}
+
+# Build a PATH in `$1` that resolves everything on the current PATH EXCEPT the
+# tool named in `$2`, and verify it both ways before returning.
+#
+# MOVED HERE FROM `critic_arming_census.bats` (issue 0512), which is where it
+# was written and where its reasoning was earned. Generalising it past one
+# hardcoded tool name was cheaper than writing a second one, and a second one
+# would have been the very shape this change exists to remove.
+#
+# (That sentence does not open a line with the linter's own name: a comment
+# beginning `# shellcheck ...` is parsed as a DIRECTIVE, and SC1072/SC1073 fired
+# on the first draft of it.)
+#
+# ITS ORIGINAL COMMENT, KEPT BECAUSE IT IS THE REASON THE FUNCTION LOOKS LIKE
+# THIS. The previous form was a hardcoded list whose own comment named the
+# assumption it rested on: `/opt/homebrew/bin` is where shellcheck lives *on
+# this machine*. That is a macOS-with-Homebrew fact, and the list it left
+# behind -- `/usr/bin:/bin:/usr/sbin:/sbin` -- is precisely where shellcheck
+# lives on Linux, so on `ubuntu-latest` the absent-tool arms ran with the tool
+# PRESENT and asserted an absence that never happened. It was green on exactly
+# one machine: the one the constant was written for. Dropping whichever
+# directory the tool lives in does not generalise either: on Linux `/bin` is a
+# symlink to `/usr/bin`, and removing both takes `sed`, `grep` and `awk` with
+# it -- and a critic that cannot run proves nothing about arming.
+#
+# **BOTH DIRECTIONS ARE CHECKED HERE RATHER THAN BY THE CALLER, BECAUSE EACH
+# FAILS SILENTLY ON ITS OWN.** A farm that still resolves the tool turns an
+# absent-tool arm into a second copy of the present-tool arm -- a test
+# asserting nothing, reporting green. A farm that lost the coreutils makes the
+# subject fail for a reason that has nothing to do with the tool. The first is
+# the bug this replaces; the second is the bug the obvious fix introduces.
+build_no_tool_path() {
+  local farm="$1" absent="$2" dir entry base saved_ifs tool
+  mkdir -p "$farm"
+  saved_ifs="$IFS"
+  IFS=:
+  # shellcheck disable=SC2086 # deliberate splitting of PATH on IFS=:, which is
+  # the only way to walk its entries in bash 3.2 without an array; quoting it
+  # would make the whole PATH one positional and the loop below would look for
+  # a single directory named "/usr/bin:/bin:...".
+  set -- $PATH
+  IFS="$saved_ifs"
+  for dir in "$@"; do
+    [ -d "$dir" ] || continue
+    for entry in "$dir"/*; do
+      [ -f "$entry" ] && [ -x "$entry" ] || continue
+      base="${entry##*/}"
+      [ "$base" = "$absent" ] && continue
+      [ -e "$farm/$base" ] && continue
+      ln -s "$entry" "$farm/$base" 2>/dev/null || true
+    done
+  done
+
+  if ( PATH="$farm"; command -v "$absent" >/dev/null 2>&1 ); then
+    printf 'the constructed PATH still resolves `%s`: %s\n' "$absent" "$farm" >&2
+    return 1
+  fi
+  for tool in sed grep awk git; do
+    [ "$tool" = "$absent" ] && continue
+    if ! ( PATH="$farm"; command -v "$tool" >/dev/null 2>&1 ); then
+      printf 'the constructed PATH lost `%s` -- the subject cannot run under it\n' "$tool" >&2
+      return 1
+    fi
+  done
+}
+
+# ---------------------------------------------------------------------------
+# THE OTHER TWO CLASSES OF SKIP, TAGGED SO THEY ARE TELLABLE APART (issue 0512)
+# ---------------------------------------------------------------------------
+#
+# A CENSUS OF THE GREEN RUN 35743714571 FOUND ELEVEN SKIPS PER LEG AND THEY ARE
+# NOT ONE PROBLEM. They are three, and every one of them printed `# skip` and
+# read as `ok`, which is why the first framing of 0512 saw only the one class
+# it had an instance of:
+#
+#   ARMED TOOL ABSENT   `require_tool` -- FAILS, names the tool. Not a skip at
+#                       all, because the arm's subject is an instrument's own
+#                       verdict and there is nothing to report.
+#   NO WITNESS          the corpus holds no member the claim could be shown on,
+#                       so the arm cannot fail whatever the code does. Vacuous,
+#                       and the honest answers are to plant a witness or delete
+#                       the arm -- a tag is the marker, not the fix.
+#   OTHER SYSTEM        the arm describes a system this machine is not (a 3.2
+#                       `/bin/bash` on a 5.x host; a fixture PATH the host
+#                       cannot supply). A skip here can be correct.
+#
+# THE TAG IS THE WHOLE POINT. `# skip` on its own tells a reader nothing about
+# which of the three they are looking at, so the one that is a defect hides
+# behind the two that are not.
+
+# The corpus holds nothing this arm could be witnessed on. `$1` says what is
+# missing from the population, not what the arm wanted.
+skip_no_witness() {
+  skip "NO WITNESS: $1"
+}
+
+# This machine is not the system the arm describes. `$1` names the system.
+skip_other_system() {
+  skip "OTHER SYSTEM: $1"
+}

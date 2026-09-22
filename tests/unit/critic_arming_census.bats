@@ -37,72 +37,22 @@ load "../lib/test_helper.bash"
 # `intent_bin_retarget_guard.bats` caught it rather than any care of mine.
 CRITIC="$INTENT_BIN"
 
-# **A PATH THAT GENUINELY LACKS shellcheck ON ANY PLATFORM -- CONSTRUCTED, AND
-# THEN VERIFIED.**
+# THE ABSENCE IS CONSTRUCTED AND VERIFIED BY `build_no_tool_path` IN
+# `tests/lib/test_helper.bash`, WHICH IS WHERE IT NOW LIVES (issue 0512).
 #
-# THE PREVIOUS FORM WAS A HARDCODED LIST, AND ITS OWN COMMENT NAMED THE
-# ASSUMPTION IT RESTED ON: `/opt/homebrew/bin` is where shellcheck lives *on
-# this machine*. That is a macOS-with-Homebrew fact, and the list it left
-# behind -- `/usr/bin:/bin:/usr/sbin:/sbin` -- is precisely where shellcheck
-# lives on Linux. So on a GitHub `ubuntu-latest` runner, which ships shellcheck
-# preinstalled in `/usr/bin`, the three absent-tool arms below ran with the
-# tool PRESENT and asserted an absence that never happened.
+# It was written here and its reasoning moved with it: why a hardcoded PATH
+# constant was green on exactly one machine, why dropping a directory does not
+# generalise, and why the farm is checked BOTH ways before any arm uses it.
+# Summarising it in two places is how the two copies start disagreeing, so it
+# is stated once, there.
 #
-# **IT WAS GREEN ON EXACTLY ONE MACHINE: the one the constant was written for.**
-# The Linux leg has been red since it existed and the primary dev machine could
-# not reproduce it, because on that machine the assumption is TRUE.
-#
-# DROPPING WHICHEVER DIRECTORY SHELLCHECK LIVES IN DOES NOT GENERALISE EITHER:
-# on Linux `/bin` is a symlink to `/usr/bin`, so removing one leaves the other
-# resolving the same binary, and removing both takes `sed`, `grep` and `awk`
-# with it. **A critic that cannot run proves nothing about arming**, so an
-# absence built that way trades a false green for a meaningless red.
-#
-# So the absence is BUILT -- a directory of symlinks to everything on PATH
-# except shellcheck -- and then CHECKED BOTH WAYS before any test uses it.
-# **The old constant asserted an absence and never once asked `command -v`**,
-# which is exactly how it stayed wrong through every local run.
-build_no_tool_path() {
-  local farm="$1" dir entry base saved_ifs
-  mkdir -p "$farm"
-  saved_ifs="$IFS"
-  IFS=:
-  set -- $PATH
-  IFS="$saved_ifs"
-  for dir in "$@"; do
-    [ -d "$dir" ] || continue
-    for entry in "$dir"/*; do
-      [ -f "$entry" ] && [ -x "$entry" ] || continue
-      base="${entry##*/}"
-      [ "$base" = "shellcheck" ] && continue
-      [ -e "$farm/$base" ] && continue
-      ln -s "$entry" "$farm/$base" 2>/dev/null || true
-    done
-  done
-}
+# `armed_tool_preconditions.bats` is the other caller, which is what
+# generalising it past shellcheck was for.
 
 setup_file() {
   NO_TOOL_PATH="${BATS_FILE_TMPDIR}/no-shellcheck-bin"
-  build_no_tool_path "$NO_TOOL_PATH"
+  build_no_tool_path "$NO_TOOL_PATH" shellcheck
   export NO_TOOL_PATH
-
-  # **BOTH DIRECTIONS, BECAUSE EACH FAILS SILENTLY ON ITS OWN.** A farm that
-  # still resolves shellcheck turns the absent-tool arms into a second copy of
-  # the present-tool arms -- three tests asserting nothing, reporting green.
-  # A farm that lost the coreutils makes the critic fail for a reason that has
-  # nothing to do with arming. The first is the bug this replaces; the second
-  # is the bug the obvious fix would have introduced.
-  if ( PATH="$NO_TOOL_PATH"; command -v shellcheck >/dev/null 2>&1 ); then
-    printf 'the constructed PATH still resolves shellcheck: %s\n' "$NO_TOOL_PATH" >&2
-    return 1
-  fi
-  local tool
-  for tool in sed grep awk git; do
-    if ! ( PATH="$NO_TOOL_PATH"; command -v "$tool" >/dev/null 2>&1 ); then
-      printf 'the constructed PATH lost `%s` -- the critic cannot run under it\n' "$tool" >&2
-      return 1
-    fi
-  done
 }
 
 setup() {
@@ -180,7 +130,13 @@ teardown() {
 @test "absent tool: an armed rule whose tool is gone REFUSES with exit 3" {
   # AC-07.4(b), hv's ruling: a project that armed a rule and then lost the tool
   # is REFUSED, not silently passed. Driven under a PATH that genuinely lacks
-  # shellcheck -- a code read cannot tell `refuses` from `would refuse`.
+  # the tool, because a code read cannot tell `refuses` from `would refuse`.
+  #
+  # THE LINE ABOVE USED TO BEGIN `# shellcheck -- a code read ...`, WHICH IS
+  # DIRECTIVE SYNTAX (issue 0507). It parsed as a malformed directive, SC1073
+  # and SC1072, and by SC1073's own text the checker STOPS READING THE FILE
+  # THERE -- roughly seventy lines of this one, since 2026-08-27. Reworded so
+  # the tool's name does not open the line.
   #
   # 3 is the refusal code, not a generic error: v2 gates it on CRITIC_REFUSED
   # (`bin/intent_critic`), and the run still prints its census and an `ok:` line

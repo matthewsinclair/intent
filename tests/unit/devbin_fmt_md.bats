@@ -66,12 +66,29 @@ fenced_root_md() {
 }
 
 @test "a fmt sweep leaves every fenced root markdown byte-identical" {
-  # The behavioural check. Skipped rather than failed where prettier cannot be
-  # reached, because a guard that reds on a missing toolchain is a guard someone
-  # disables -- and the structural assertions above still run everywhere.
-  command -v npx >/dev/null 2>&1 || skip "npx unavailable"
-  npx --yes --no-install prettier --version >/dev/null 2>&1 ||
-    skip "prettier unavailable offline"
+  # The behavioural check, and it REQUIRES its formatter rather than skipping
+  # without one (issue 0512).
+  #
+  # THE ARGUMENT THIS ARM USED TO SKIP ON IS NAMED HERE RATHER THAN DELETED:
+  # "Skipped rather than failed where prettier cannot be reached, because a
+  # guard that reds on a missing toolchain is a guard someone disables -- and
+  # the structural assertions above still run everywhere." The second clause is
+  # true. The first is a trade this repository has now declined, because what
+  # the skip actually emitted was `ok 160 a fmt sweep leaves every fenced root
+  # markdown byte-identical # skip prettier unavailable offline` -- the word
+  # `ok`, in the pass column, on an arm whose subject is a FORMATTER'S OWN
+  # OUTPUT. The Rust suite settled this for the same tool and its sentence is
+  # the one that governs: a skip here is a green that means nothing, on a
+  # criterion about instruments that pass without measuring.
+  #
+  # BOTH TOOLS, BECAUSE THE GATE USES BOTH AND `sweep()` BELOW MIRRORS ITS
+  # LINE EXACTLY. `bin/.devbin/lib/cmd/fmt:83` runs `npx --yes prettier
+  # --write`, so npx has to be here for the gate's own invocation to be the
+  # thing driven; and prettier has to be ON PATH so npx resolves it locally
+  # rather than reaching for the network -- which is precisely what
+  # "unavailable offline" was reporting.
+  require_tool npx "whether a fmt sweep reaches inside a fenced block (the gate runs prettier through npx)"
+  require_tool prettier "whether a fmt sweep reaches inside a fenced block"
 
   # The gate's own flags, from lib/cmd/fmt. Run WITHOUT --write, so the check
   # cannot itself be the thing that damages the file.
@@ -124,5 +141,5 @@ fenced_root_md() {
     return 1
   fi
   [ -n "$demonstrable" ] ||
-    skip "no root fence currently holds content prettier would reformat (```bash has no formatter, the one ```yaml block is already canonical) -- the config is still correct and this arm cannot witness it today"
+    skip_no_witness "no root fence currently holds content prettier would reformat (```bash has no formatter, the one ```yaml block is already canonical) -- the config is still correct and this arm cannot witness it today"
 }

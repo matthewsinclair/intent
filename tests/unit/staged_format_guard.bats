@@ -47,6 +47,36 @@
 # reader's aid, not a gate -- an arm renamed or a clause reworded leaves it
 # stale and silent, and only a reader catches that.
 
+# WHICH ARM NEEDS WHICH TOOL PRESENT, DECLARED RATHER THAN LEFT TO THE RUNNER
+# (issue 0512). EVERY arm here drives a real formatter, so an arm whose subject
+# is the guard's VERDICT cannot be measured with that formatter absent -- the
+# guard takes its `command -v` branch, records the language UNENFORCED and
+# refuses nothing, which is correct behaviour and makes the arm meaningless.
+# Nine of the twelve arms carry such a precondition: four on prettier, five on
+# rustfmt. They now say so with `require_tool`, and FAIL naming the tool.
+#
+# **THE ASYMMETRY IS WHAT MAKES THIS WORTH DECLARING, AND IT WAS MEASURED IN
+# ONE RUN RATHER THAN REASONED ABOUT.** In run 35739715195, with prettier
+# absent on both legs, the four markdown arms split two ways in the same file:
+#
+#   not ok 624  unformatted staged Markdown is refused        <- red, unintelligibly
+#   not ok 627  prettier judges the blob under the config     <- red, unintelligibly
+#   ok     620  a staged deletion passes                      <- GREEN, VACUOUSLY
+#   ok     621  a staged binary blob is skipped               <- GREEN, VACUOUSLY
+#
+# 620 and 621 assert that the verdict does NOT say "not formatted". With
+# prettier absent the markdown branch never iterates a file at all, so that
+# held for a reason unrelated to anything either arm is about. The two arms
+# that asserted a REFUSAL went red and got reported; the two that asserted an
+# ABSENCE went green and got no attention. **An arm asserting the absence of an
+# output is the one a missing tool satisfies for free**, which is why the
+# preconditions are declared on all nine and not only on the two CI named.
+#
+# AND THE ONE THAT NEEDS NO TOOL, SO THE POPULATION IS NOT JUST "ALL OF THEM":
+# arm 7 asserts what the guard does when rustfmt is ABSENT, and constructs that
+# absence itself; arm 1 (no formatters declared) and arm 8 (an unrecognised
+# formatter name) are answered from config before any tool is consulted.
+
 load "../lib/test_helper.bash"
 
 GUARD="${INTENT_PROJECT_ROOT}/lib/templates/hooks/staged-format-guard.sh"
@@ -104,6 +134,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # stdin and returns 0 whatever it finds, so a guard that piped the staged blob
 # would pass here and its green would be indistinguishable from a working one.
 @test "unformatted staged Rust is refused, naming the file, the remedy, and that nothing was rewritten" {
+  require_tool rustfmt "whether the guard refuses unformatted staged Rust"
   scratch_repo '"rust"'
   unformatted_rust > main.rs
   git add main.rs
@@ -119,6 +150,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # check is for: the hunk-scoped commit, where worktree and index deliberately
 # differ, is exactly the technique the no-writing ruling exists to protect.
 @test "the verdict follows the staged bytes and not the worktree, both ways" {
+  require_tool rustfmt "whether the verdict follows the staged bytes rather than the worktree"
   scratch_repo '"rust"'
   formatted_rust > main.rs
   git add main.rs
@@ -136,6 +168,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 }
 
 @test "nothing is written across a refusal: index, worktree and probes are untouched" {
+  require_tool rustfmt "whether a refusal writes anything"
   scratch_repo '"rust"'
   unformatted_rust > main.rs
   git add main.rs
@@ -156,6 +189,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # would refuse a commit for a file that is not there. The filter carries it and
 # this arm holds the filter in place.
 @test "a staged deletion passes" {
+  require_tool prettier "whether the staged-deletion filter carries a deletion"
   scratch_repo '"markdown"'
   printf '# Title\n' > doc.md
   git add doc.md
@@ -167,6 +201,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 }
 
 @test "a staged binary blob is skipped rather than handed to a text formatter" {
+  require_tool prettier "whether a staged binary blob reaches a text formatter"
   scratch_repo '"markdown"'
   printf 'PNG\000\001\002binary\000bytes\n' > logo.md
   git add logo.md
@@ -205,6 +240,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 }
 
 @test "unformatted staged Markdown is refused, with prettier's own command as the remedy" {
+  require_tool prettier "whether the guard refuses unformatted staged Markdown"
   scratch_repo '"markdown"'
   printf '# Title\n\n*  one\n*  two\n' > doc.md
   git add doc.md
@@ -221,6 +257,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # reports as "not formatted", refusing correct files with a remedy that runs
 # clean and changes nothing. Beside the original, resolution is the file's own.
 @test "a probed Rust file resolves its modules, so a correct file is not refused" {
+  require_tool rustfmt "whether a probed Rust file resolves its modules"
   scratch_repo '"rust"'
   mkdir -p tests
   printf 'pub fn helper() -> i32 {\n    1\n}\n' > tests/common.rs
@@ -238,6 +275,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # baked in would refuse another's correct code; and a reader must never be left
 # to assume the edition matched the crate when nothing declared one.
 @test "the verdict discloses a default edition, and stays silent when a manifest declares one" {
+  require_tool rustfmt "what edition the verdict discloses"
   scratch_repo '"rust"'
   formatted_rust > main.rs
   git add main.rs
@@ -263,6 +301,7 @@ formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n
 # line is formatted under the root's config and unformatted under its own, and
 # the verdict flips with the config the path resolves.
 @test "prettier judges the blob under the config the file's OWN path resolves" {
+  require_tool prettier "which .prettierrc the staged blob is judged under"
   scratch_repo '"markdown"'
   printf '{"proseWrap":"preserve"}\n' > .prettierrc
   mkdir -p docs

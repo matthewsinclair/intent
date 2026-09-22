@@ -76,7 +76,7 @@ require_bin_bash_3() {
   local major
   major="$(/bin/bash -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)"
   if [ "$major" != "3" ]; then
-    skip "/bin/bash is ${major:-unreadable}.x -- these controls describe 3.2 behaviour and cannot be driven here"
+    skip_other_system "/bin/bash is ${major:-unreadable}.x -- these controls describe 3.2 behaviour and cannot be driven here"
   fi
 }
 
