@@ -188,9 +188,26 @@ jobs:
         # a real risk, since the two runners lay out their npm prefix
         # differently -- this STEP fails, naming the tool, instead of surfacing
         # later as a guard arm that looks like the defect being fixed here.
+        #
+        # A USER-OWNED PREFIX, NOT THE AMBIENT ONE, AND THAT IS THE WHOLE FIX.
+        # The first attempt was a bare `npm install -g prettier@3`, copied from
+        # rust.yml where it works. It went EACCES on Ubuntu and passed on macOS,
+        # and the asymmetry is this file's own doing: the Ubuntu bats step writes
+        # `PATH=/usr/local/bin:$PATH` into GITHUB_ENV -- PREPENDING -- so `npm`
+        # resolves to the system npm whose prefix is root-owned /usr/local. The
+        # macOS step APPENDS the same directory, so the tool-cache npm still wins
+        # there and its prefix is writable. rust.yml never touches PATH at all,
+        # which is why the identical line succeeds on both of its legs.
+        #
+        # Naming a prefix under $HOME makes the step independent of which npm is
+        # first on PATH, so the two legs stop differing by accident. $GITHUB_PATH
+        # applies to LATER steps, so the check below calls the binary by absolute
+        # path -- it must verify THIS step's install, not a later step's PATH.
         run: |
+          npm config set prefix "$HOME/.npm-global"
           npm install -g prettier@3
-          prettier --version
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+          "$HOME/.npm-global/bin/prettier" --version
 
       - name: Build the v3 binaries the suite drives
         run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
@@ -348,9 +365,26 @@ jobs:
         # a real risk, since the two runners lay out their npm prefix
         # differently -- this STEP fails, naming the tool, instead of surfacing
         # later as a guard arm that looks like the defect being fixed here.
+        #
+        # A USER-OWNED PREFIX, NOT THE AMBIENT ONE, AND THAT IS THE WHOLE FIX.
+        # The first attempt was a bare `npm install -g prettier@3`, copied from
+        # rust.yml where it works. It went EACCES on Ubuntu and passed on macOS,
+        # and the asymmetry is this file's own doing: the Ubuntu bats step writes
+        # `PATH=/usr/local/bin:$PATH` into GITHUB_ENV -- PREPENDING -- so `npm`
+        # resolves to the system npm whose prefix is root-owned /usr/local. The
+        # macOS step APPENDS the same directory, so the tool-cache npm still wins
+        # there and its prefix is writable. rust.yml never touches PATH at all,
+        # which is why the identical line succeeds on both of its legs.
+        #
+        # Naming a prefix under $HOME makes the step independent of which npm is
+        # first on PATH, so the two legs stop differing by accident. $GITHUB_PATH
+        # applies to LATER steps, so the check below calls the binary by absolute
+        # path -- it must verify THIS step's install, not a later step's PATH.
         run: |
+          npm config set prefix "$HOME/.npm-global"
           npm install -g prettier@3
-          prettier --version
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+          "$HOME/.npm-global/bin/prettier" --version
 
       - name: Build the v3 binaries the suite drives
         run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
