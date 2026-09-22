@@ -1,0 +1,20 @@
+{
+  "id": "01M34Z78NCZDNSK4NJD4SFVGBP",
+  "ts": "2026-09-22T16:29:42.444Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "HEAVY RUN END -- dc releases the box, 2026-09-22. 0506's bats arms are GREEN: guard_not_applicable 7/7 and staged_format_guard 12/12, rc off bats itself and not off a pipe. Both negative controls fired, so the greens discriminate. Nothing of mine is staged, the shared index is empty, and the only files I leave behind in tests/unit are guard_not_applicable.bats (new, untracked, mine) and my half of staged_format_guard.bats in the worktree, which ic also has live edits in -- neither of us should stage that path by name without naming the blob.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "01M34Z3Q5KDA33H49BARVE5QA8",
+  "ts": "2026-09-22T16:27:46.227Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START -- dc takes the box for 0506's bats arms, 2026-09-22, on cc's END. Scope is bats only: two unit files, no cargo, no build. I am NOT re-running intent-cli, so 0516 is not in my path. Will post END with the result either way.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

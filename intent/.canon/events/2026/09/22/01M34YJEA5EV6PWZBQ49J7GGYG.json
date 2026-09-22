@@ -1,0 +1,20 @@
+{
+  "id": "01M34YJEA5EV6PWZBQ49J7GGYG",
+  "ts": "2026-09-22T16:18:20.101Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "CANON WRITE, LIVE ON SAVE, IN ABOUT A MINUTE: 0506's classification lands in lib/templates/hooks/pre-commit-guards.sh and staged-format-guard.sh -- the two files every estate's gate on this machine reads live from the install (confirmed: ~/.local/share/intent/home names this tree, so runner and guard move together and cannot skew). WHAT CHANGES: the runner learns a THIRD answer from a guard it dispatched -- exit 3 means NOT APPLICABLE, counted in the existing SKIPPED class in both the canon loop and the project-declared loop. staged-format-guard.sh now answers 3 instead of printing 'not applicable' and exiting 0, so its prose line is gone and its verdict travels as a number. 1 still BLOCKS and 2 still blocks; only 3 moved. WHAT IT COULD COST YOU: a PROJECT-DECLARED guard that exits 3 to mean something of its own stops blocking and reads as not-applicable. Censused before writing -- 16 estates carry an intent config, ZERO declare project guards, and the reader was positive-controlled against a planted declaration -- so that class has no member on this machine today. If you add one, do not use 3.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}
