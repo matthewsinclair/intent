@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "f26851d2-6a69-428e-be9e-aec68ad85c28",
-    "heartbeat_at": "2026-09-22T09:42:44.566Z",
+    "heartbeat_at": "2026-09-22T10:15:14.106Z",
     "status": "active",
-    "focus": "0503 and 0504 landed at 8fb55015b and closed; ST0079/01 landed earlier. Nothing in flight; holding for vc. NO RELEASE, NO PUSH.",
+    "focus": "ST0079 closed and confirmed on both faces; 0502/0503/0504 closed and live in the pair at 36143de45. Nothing queued: no bank, no run, no claim. Holding for vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2035,8 +2035,17 @@
       "kind": "doing",
       "seq": 90,
       "text": "RESUME HERE -- 0503 and 0504 landed at 8fb55015b (patch-id f2c5fa627 as vc judged, base 57dc00fae) and both issues are CLOSED: a thread completion date now passes one rule at every door, and the self-loop answers a stated date instead of dropping it. Earlier today ST0079/01 landed at 52cd8b55d with issue 0502, and ST0079 is closed. Nothing is in flight in ic lane: no bank, no run, no claim. vc rebuilds the pair after its own commit, carrying cc nesting, ic WP-01, these two fixes and 0501 in one pass; hv can then re-check Lamplight for WPs nested under their STs. Hold for vc instruction. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-22T10:15:07.041Z",
       "recorded_at": "2026-09-22T09:42:42.811Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 91,
+      "text": "RESUME HERE -- ST0079 IS CLOSED AND CONFIRMED ON BOTH FACES, and ic's lane is empty. hv checked `intent outs` and the TUI independently and told vc to close it out; the thread reads Completed with WP-01 (the Omnibox `/outstanding`, landed 52cd8b55d) and cc's WP-02 (packages nested under their own thread) both Done. The last evidence is ic's own drive of the SHIPPED binary at 36143de45, in a pty against a seeded scratch project under an isolated HOME, read-only, accepted by vc: the CLI verb and the `/outstanding` view print the same six rows in the same order under the same counts line, which is the two extracted helpers rendering twice; every door opens, read off the trail rather than inferred -- a package under a live thread to /thread/ST0001/wps/1, the Cancelled parent to /thread/ST0002, the package under the closed thread to /thread/ST0002/wps/1, the issue to /issue/0001, each trail reading `/outstanding < ...` so back returns to the table; the package sequence renders as `1` as the `wps` descent names it, which is the WpRef carry earning its place. Two things no AT could reach are live too: the resting palette lists NINE acts with `outstanding` first, hv's 8->9 cap ruling, and the counts label row reads `7/7  up/down browse . / menu . backspace back . type to find` with NO open verb on it, which is 0502's fix watched on the shipped binary. The seed was built to be awkward: a Cancelled parent, a Triage thread that must not appear and a closed issue that must not either, so the exclusions are measured rather than assumed.\n\nALSO LIVE IN THE PAIR AT 36143de45: ic's 0503 and 0504, the completion-date rule with one home that every door runs, landed at 8fb55015b and both issues CLOSED. That discharges the precondition on hv decision 28 item (2) -- Conflab's 49 Completed and 1 Cancelled undated threads take their dates through a then-validated `intent set <ST> completed` -- which is vc's to place cross-estate, not ic's to start.\n\nNOTHING IS QUEUED IN ic's LANE: no bank, no run, no claim, no worktree.\n\nTHREE METHOD CORRECTIONS FROM TODAY, each caught by a peer or by re-driving, kept because the transcript dies at a compact. (1) `back` RESETS THE EXPLORER'S CURSOR TO ROW 1, so a door's row is measured from the footer's own `n/7` before Enter rather than counted from where you think you are; ic's first door pass counted moves from the wrong origin and landed on row 2 twice while believing it was on rows 5 and 6. (2) AN rc TAKEN THROUGH A PIPE IS THE PIPE'S -- already a rule in intent/restart.md, recurred here as a seeding step reporting rc=0 through `sed` when the command had refused. (3) A CLOCK VALUE IS QUOTED VERBATIM AND NEVER AGED FORWARD: ic read `date -u` at 09:52Z and then wrote \"09:57Z by my clock\" into a message, advancing the read by feel; dc caught it by ordering it against its own reads, and ic's fresh read was 09:56:51Z, behind the claimed stamp. The rule ic held -- a clock value only from this turn's `date -u` -- tests PROVENANCE and not the VALUE, which is why it passed while the stamp was still invented. A turn is not an instant.\n\nTHE DAY'S GENERALISATION, which dc took and used: ask not \"did it pass\" but WHAT INPUT WOULD HAVE MADE IT FAIL, and if the answer is none, the pass is not evidence. Three costumes in one day -- ic's piped rc, vc's grep truncated at twelve lines, and dc's measurement that `prettier --check` on stdin with no `--stdin-filepath` exits 0 on ANY bytes, the same vacuous green `rustfmt --check` has on stdin. ic's own fmt green is positively controlled by accident: `cargo fmt --check` went RED on ic's new assert_eq! and was cleared by a real `cargo fmt`, so the instrument had demonstrated it can refuse before it was trusted to pass.\n\nHOLD FOR vc's WORD. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-22T10:15:06.135Z"
     }
   ],
   "messages": [
