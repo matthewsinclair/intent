@@ -1,0 +1,15 @@
+{
+  "id": "01M34R1NB03M6HGBSQVQZK7JWV",
+  "ts": "2026-09-22T14:24:18.784Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- dc IS IDLE: nothing running, no claim, one live bank.** TODAY LANDED, and the detail is in the records rather than here: **0505**, canon's staged-blob format guard, code at `f6ad0f990` and closed at `5f89358a4`; **0506** filed and evidenced from three production observations at `8d2e6cdb6` and `9bee1ff36`; the **adoption pass's Intent half** at `1eee70980`, where Intent declares `formatters` and `.githooks/pre-commit` loses the 241 hand-wired lines that had no bats coverage at all, with the board at `cc1e3dd80`. READ THE RECORDS, DO NOT RE-DERIVE THEM: 0505's and 0506's bodies carry the acceptance, both verdicts and what each does NOT claim; `1eee70980`'s message carries the parity result; the retirement note inside `.githooks/pre-commit` carries the two mechanisms every other estate's copy will have. THE ONE LIVE BANK IS `refs/bank/dc/adopt-intent/patch` -- SPENT, landed at `1eee70980`, and kept only until the fleet half is decided. WAITING ON hv, all three: Half A (its own hold, which carries the census findings); Prolix's carry, hv's board first and dc's hand; and the upstream push that lets 0501's `rust.yml` half be judged -- the only thing dc still owes on 0501, which is otherwise CLOSED at `c62c22364`. NO PUSH, NO RELEASE."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M34R1KP8VFGDBJA5NFCPJRZR",
+  "ts": "2026-09-22T14:24:17.096Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**HALF A OF THE GUARDS ADOPTION PASS -- THE FOURTEEN UNWIRED ESTATES.** RELEASED WHEN hv RULES THE ORDERING of vc's decision-27 in-place repairs against canon adoption: wiring an estate SUPERSEDES the repair vc made there, so starting would settle hv's open question by doing it (vc, 2026-09-22). SCOPE, measured read-only 2026-09-22: TWO estates route hooks through the canon `.githooks/pre-commit.intent` shim -- Intent, adopted at `1eee70980`, and Gtools; FOURTEEN have `core.hooksPath` unset and run an untracked `.git/hooks/pre-commit` canon never reaches; Laksa points `hooksPath` at `bin/hooks`, UNINSPECTED by dc or vc. Adoption is `bin/int hooks --install` plus a tracked `.githooks/`, one commit per estate, doctor after each, vc sequencing any estate with a live session. THREE FINDINGS THIS HOLD IS THE ONLY DURABLE HOME FOR, since the censuses that produced them closed with nothing to file. (1) BOTH FLEET SWEEPS CAME BACK ZERO: no hook on this machine pipes a staged blob into bare `prettier --check`, and none pipes into `rustfmt` at all -- in fact no estate's hook invokes rustfmt, the arm being Intent-only from 2026-08-20. Each sweep's SEARCH was positive-controlled against planted defects, not merely its subject, so the zeros are measurements. The seven estates that do check markdown all carry `--stdin-filepath`: those are vc's decision-27 repairs and they are uniformly correct. (2) TWO MECHANISMS TO GREP FOR in every estate's copy of the block Intent retired, both found by DRIVING it rather than reading it -- `git ls-files '*rustfmt.toml' | head -1` selects the alphabetically first config in the WHOLE repository and so refuses correct code under a config governing nothing; and `--edition 2024` is hardcoded where the canon guard resolves the edition, so a crate on any other edition holds files that commit before adoption and are refused after. (3) `.githooks/pre-commit.intent` IS GITIGNORED, so a fresh clone or worktree has NO gate at all and the hook says so loudly; the installer must produce it, and until it does canon reaches nothing in that estate (vc's judging, 2026-09-22)."
+  }
+}
