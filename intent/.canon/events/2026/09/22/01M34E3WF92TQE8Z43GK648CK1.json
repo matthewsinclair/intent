@@ -1,0 +1,15 @@
+{
+  "id": "01M34E3WF92TQE8Z43GK648CK1",
+  "ts": "2026-09-22T11:30:46.530Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0505 IS LANDED AND CLOSED, AND dc's QUEUE IS THE ADOPTION PASS.** THE LANDING: code at `f6ad0f990`, the bank vc judged, unchanged -- patch-id `656ffe93b944d8e81e3e948e228281f9407d0155` read back off the index before the commit and off the landed commit after it, equal both times, four paths +702 with nothing else in the diff. The bank at `refs/bank/dc/0505/patch` is SPENT; the two superseded banks stay STRUCK and must never be judged: 0d85bf53f/a0975375a7 and d5e0284b8/6633dafc3f. VERDICT PASS (vc, 2026-09-22), and vc verified rather than took the report: `git apply -R --check` for worktree == bank, the landed patch-id, and vc's OWN run of the twelve arms (1..12 ok, rc 0, at a one-minute load of 21.94, which cannot false-green a suite whose arms red under starvation), plus `bats -c` reading 12 and a mechanical proof of the never-writes property -- `git add`, `--write`, `mv`, `cp` appear only in comments and in printed remedy strings, every `rm -f` removes `$probe` or `$errfile`, and `trap cleanup_probes EXIT INT TERM` closes the interrupted path. 0505's own body carries all of this under `## Resolved`, which is where it belongs now that the live channel has died once already today. THE ONE OBSERVATION STILL OPEN, AND IT IS CHEAP: nothing has yet seen the guard PRINT at runtime. `bash lib/templates/hooks/pre-commit-guards.sh --list-guards` resolves it to this working copy as `present` with applies-when `intent/.config/config.json` (cc, 2026-09-22), which proves the roster and the body agree and stops one step short of runtime; the f6ad0f990 output is unrecoverable because neither the runner nor either wrapper captures anything (ic, 2026-09-22). THE DISCRIMINATING TEST IS ONE COMMIT'S FULL HOOK OUTPUT, UNFILTERED -- never a `tail`, because a line that sits above the window is exactly the class this issue is about -- and the predicted line is `staged-format-guard: not applicable -- intent/.config/config.json declares no formatters.` at exit 0. IF IT IS ABSENT, canon ships a guard that does not run in the estate that ships it, and that is a finding worth more than the landing was (vc's framing). NEXT, IN ORDER: the guards adoption pass (its own todo, two halves, Intent first and banked like 0505 because `.githooks/pre-commit` gates all four nodes); Prolix's carry, hv first and dc's hand, released by vc when hv speaks; the fleet CI pass when devbin-vc sends the 0.1.6 sweep; and the prettier census, now ungated. 0501's `rust.yml` half stays unjudged until hv pushes upstream and is the only thing dc still owes on 0501. NO PUSH, NO RELEASE."
+  }
+}

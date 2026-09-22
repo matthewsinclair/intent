@@ -1,0 +1,15 @@
+{
+  "id": "01M34E3Q94R4B58RJFRJ73PQF2",
+  "ts": "2026-09-22T11:30:41.122Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**The guards adoption pass** (was hold 18, archived on its release: hv chose it in decision 26 item 4, `bin/int hooks` reported the gate WIRED through `.githooks/pre-commit.intent` when vc drove it, and 0505 landed the guard at f6ad0f990). IT IS TWO JOBS AND NOT ONE, measured read-only on 2026-09-22 and carried into hv's round-up. HALF A, WIRING: exactly TWO estates route git hooks through a `.githooks` dir carrying the canon shim -- Intent and Gtools -- while FOURTEEN have `core.hooksPath` unset and run an untracked `.git/hooks/pre-commit` that canon never reaches; Laksa points `hooksPath` at `bin/hooks`, UNINSPECTED by dc or vc. Adoption there is `bin/int hooks --install` plus a tracked `.githooks/`, and it SUPERSEDES the hand-wired scripts vc repaired in place under decision 27, so that ordering is hv's to rule and not dc's to assume. HALF B, DECLARATION: not one of the sixteen estates carrying an Intent config declares `formatters`, Intent included, so the guard gates nothing anywhere until each estate declares its own -- and in a wired estate the hand-wired arms it replaces are then retired, which in Intent is `.githooks/pre-commit`'s formatter block from :88. That file gates all four nodes' commits, so Intent's step is built in a private worktree, bats-driven and banked for vc, exactly as 0505 was. Intent first to meet the hold's own condition, then the rest, one commit per estate, doctor after each, vc sequencing any estate that has a live session. Size M for Intent, L for the fleet."
+  }
+}
