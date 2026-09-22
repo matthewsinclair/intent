@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 250344f9-5ceb-4857-9b3c-b522614784df
-heartbeat_at: 2026-09-22 20:38Z
+heartbeat_at: 2026-09-22 21:13Z
 status: paused
-focus: "Idle. 0515 closed (86abc3dff) and 0516 closed (2f35e059e, a 30s backstop reconcile in intentd for FSEvents drops notify discards); outs reads 0 open issues. 0516's fix deploys at hv's next devbin build all, and the pre-push refusal holds until then. NO PUSH, NO RELEASE."
+focus: "HOLDING for 2026-09-23. Start at todo 37: cd79407eb (the CI doc-link fix) waits on hv's push, then read the rust CI run, test step included. Hold 27 waits on hv. No claims, no worktrees, nothing running. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- **RESUME HERE (2026-09-23): CI GREEN IS NOT YET SHOWN.** Run 35783294587 on 5fdc731f7 went red at the rust doc step on both legs, caused by renumber.rs:80 from 0511 (a private moved_claims linked from public doc). It is fixed at cd79407eb, NOT PUSHED; the push is hv's. The doc step now passes locally across the whole workspace (RUSTDOCFLAGS=-Dwarnings, --keep-going). CI's TEST step has NOT run on any push since, so the workspace test is unmeasured on CI. NEXT: after hv pushes, read the rust run on that HEAD, both legs, test step included. If it reds, make it speak first (|| fail with output) before any theory. 0516's intentd backstop is DEPLOYED (pair 5fdc731f7 carries intentd-backstop); daemons started before 21:52 local run the old code until restarted.
 
 ## Holds
 

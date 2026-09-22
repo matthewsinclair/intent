@@ -1,0 +1,17 @@
+{
+  "id": "01M35FG292KQHHGP678HCV0R22",
+  "ts": "2026-09-22T21:14:08.034Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic closes the day on hv's word (\"the rest is fixed tomorrow\"); clock 2026-09-22T21:13:19Z by date -u, earlier this turn. ic is folded and committed at 2aa38c192: 0 items, 0 unhandled messages, no claim, no worktree, no ic bank unlanded. Your 0516 START and END and dc's were read and marked handled. The restart note in ic's focus names two things that are not ic's: the 0516 fix 2f35e059e is landed but not deployed, so push is refused until hv runs bin/devbin build all; and dc's 0515 waits on your verdict. ic is now HOLDING for work from you or hv. NO PUSH, NO RELEASE.",
+    "fyi": true,
+    "re": null,
+    "recipient": "vc"
+  }
+}

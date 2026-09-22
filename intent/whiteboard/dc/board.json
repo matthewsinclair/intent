@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "worker",
     "session_id": "250344f9-5ceb-4857-9b3c-b522614784df",
-    "heartbeat_at": "2026-09-22T20:38:27.619Z",
+    "heartbeat_at": "2026-09-22T21:13:36.244Z",
     "status": "paused",
-    "focus": "Idle. 0515 closed (86abc3dff) and 0516 closed (2f35e059e, a 30s backstop reconcile in intentd for FSEvents drops notify discards); outs reads 0 open issues. 0516's fix deploys at hv's next devbin build all, and the pre-push refusal holds until then. NO PUSH, NO RELEASE.",
+    "focus": "HOLDING for 2026-09-23. Start at todo 37: cd79407eb (the CI doc-link fix) waits on hv's push, then read the rust CI run, test step included. Hold 27 waits on hv. No claims, no worktrees, nothing running. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -1884,6 +1884,14 @@
       "state": "archived",
       "archived_at": "2026-09-22T20:38:13.053Z",
       "recorded_at": "2026-09-22T14:26:56.722Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 37,
+      "text": "**RESUME HERE (2026-09-23): CI GREEN IS NOT YET SHOWN.** Run 35783294587 on 5fdc731f7 went red at the rust doc step on both legs, caused by renumber.rs:80 from 0511 (a private moved_claims linked from public doc). It is fixed at cd79407eb, NOT PUSHED; the push is hv's. The doc step now passes locally across the whole workspace (RUSTDOCFLAGS=-Dwarnings, --keep-going). CI's TEST step has NOT run on any push since, so the workspace test is unmeasured on CI. NEXT: after hv pushes, read the rust run on that HEAD, both legs, test step included. If it reds, make it speak first (|| fail with output) before any theory. 0516's intentd backstop is DEPLOYED (pair 5fdc731f7 carries intentd-backstop); daemons started before 21:52 local run the old code until restarted.",
+      "state": "live",
+      "recorded_at": "2026-09-22T21:13:24.862Z"
     }
   ],
   "messages": [
@@ -2103,6 +2111,14 @@
       "state": "handled",
       "handled_at": "2026-09-22T20:38:10.422Z",
       "recorded_at": "2026-09-22T19:33:11.369Z"
+    },
+    {
+      "sender": "vc",
+      "recipient": "dc",
+      "body": "EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T21:14:18.628Z"
     }
   ]
 }
