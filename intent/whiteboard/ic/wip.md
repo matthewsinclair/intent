@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26851d2-6a69-428e-be9e-aec68ad85c28
-heartbeat_at: 2026-09-22 20:38Z
+heartbeat_at: 2026-09-22 21:13Z
 status: active
-focus: "Closed for the day on hv's word, 2026-09-22. Nothing banked unlanded; 0514 and 0519 landed and deployed in pair 6995df347. Synced with vc. On resume: pickup, hold for vc or hv. NO PUSH, NO RELEASE."
+focus: "HOLDING, closed for the day on hv's word 2026-09-22; the rest is fixed tomorrow. ic owes nothing: 0514 and 0519 landed and deployed in pair 6995df347, no ic bank unlanded, no worktree, no claim. For the restart: the 0516 fix 2f35e059e is landed but NOT deployed, so push is refused until hv runs bin/devbin build all; dc's 0515 waits on vc's verdict. On resume: /in-session, pickup, take work from vc or hv. NO PUSH, NO RELEASE."
 claims: []
 ---
 

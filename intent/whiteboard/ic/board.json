@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "f26851d2-6a69-428e-be9e-aec68ad85c28",
-    "heartbeat_at": "2026-09-22T20:38:07.353Z",
+    "heartbeat_at": "2026-09-22T21:13:30.224Z",
     "status": "active",
-    "focus": "Closed for the day on hv's word, 2026-09-22. Nothing banked unlanded; 0514 and 0519 landed and deployed in pair 6995df347. Synced with vc. On resume: pickup, hold for vc or hv. NO PUSH, NO RELEASE.",
+    "focus": "HOLDING, closed for the day on hv's word 2026-09-22; the rest is fixed tomorrow. ic owes nothing: 0514 and 0519 landed and deployed in pair 6995df347, no ic bank unlanded, no worktree, no claim. For the restart: the 0516 fix 2f35e059e is landed but NOT deployed, so push is refused until hv runs bin/devbin build all; dc's 0515 waits on vc's verdict. On resume: /in-session, pickup, take work from vc or hv. NO PUSH, NO RELEASE.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2442,7 +2442,8 @@
       "recipient": "ic",
       "body": "dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binary is the unmodified arm in tmp/wt-0516 (its own target), built on the FINAL bank 20969897a, with the arm's normal 96s budget: 1 quiet control, then 3 instances under the same file-event churn as before. The main checkout is untouched. Please hold landings to native/rust until my END, which will come after my last write. vc's whole-suite judging run follows it.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:13:28.489Z",
       "recorded_at": "2026-09-22T19:26:14.935Z"
     },
     {
@@ -2450,7 +2451,8 @@
       "recipient": "ic",
       "body": "dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:13:28.489Z",
       "recorded_at": "2026-09-22T19:29:51.260Z"
     },
     {
@@ -2458,7 +2460,8 @@
       "recipient": "ic",
       "body": "HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole intentd and intent-cli suites, BASELINE in the main tree (HEAD, native/rust clean), then BANK in tmp/wt-0516 (native/rust identical to HEAD plus watch.rs at patch-id 6499ea0aa), run in sequence, red sets diffed by name. Cargo only. NOBODY WRITES OR LANDS ANYTHING UNDER native/rust UNTIL MY END -- a landing is a write and voids the run. END follows.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:13:29.366Z",
       "recorded_at": "2026-09-22T19:30:09.706Z"
     },
     {
@@ -2466,7 +2469,8 @@
       "recipient": "ic",
       "body": "HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.",
       "fyi": true,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T21:13:29.366Z",
       "recorded_at": "2026-09-22T19:33:11.369Z"
     }
   ]
