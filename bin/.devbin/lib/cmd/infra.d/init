@@ -37,7 +37,7 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-usage: $DEVBIN_NAME infra init [--name <estate>] <domain>... > infra.yaml
+usage: ${DEVBIN_INVOKE:-bin/devbin} infra init [--name <estate>] <domain>... > infra.yaml
 
 Measure each domain's authoritative DNS and print a profile proposing its
 target. A value reaches the target only when the RFCs or the estate's own
@@ -63,7 +63,7 @@ while [ $# -gt 0 ]; do
       domains+=("${more[@]}")
       shift 2
       ;;
-    -*) die "infra init: unknown option \`$1\` (try: $DEVBIN_NAME infra init --help)" ;;
+    -*) die "infra init: unknown option \`$1\` (try: ${DEVBIN_INVOKE:-bin/devbin} infra init --help)" ;;
     *) domains+=("$1"); shift ;;
   esac
 done

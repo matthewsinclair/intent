@@ -244,7 +244,10 @@ if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
         printf '\nTo UPGRADE a project that already has one:\n'
         printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$PROJECT_ROOT"
       } >&2
-      exit 3
+      # 5, ITS OWN CODE (issue 0099). It exited 3, which the contract reserves
+      # for "resolves but not implemented", so a test asserting that refusal was
+      # satisfied by this one -- the reason the wrong-tree guard above has 4.
+      exit 5
     fi
     unset _devbin_install_ok
   else

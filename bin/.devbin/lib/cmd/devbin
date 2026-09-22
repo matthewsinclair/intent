@@ -126,14 +126,15 @@ show_overview() {
   printf "answers as '%s'.\n\n" "${DEVBIN_NAME:-devbin}"
   printf 'The seam:\n'
   printf "  bin/devbin, bin/.devbin/lib/   devbin's -- replaced wholesale by upgrade\n"
-  printf '  config.yaml, cmd/, help/       yours -- never written after install\n\n'
-  printf 'The framework surface here: %s install | upgrade | doctor | new\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  printf '  config.yaml, cmd/, help/       yours -- never written by install or upgrade\n\n'
+  printf 'The framework surface here: %s install | upgrade | vendor | doctor | new | shell-init\n' "${DEVBIN_INVOKE:-bin/devbin}"
   printf 'Reference config, every key annotated: bin/.devbin/lib/config.reference.yaml\n'
   printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_INVOKE:-bin/devbin}"
   src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
   if [ -n "$src" ]; then
     printf '\nUpgrades come from: %s\n' "$src"
-    printf 'Its docs/ holds the long-form guides: authoring-commands, configuration, migration.\n'
+    printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'
+    printf 'are in docs/ of the devbin source checkout; an install carries none.\n'
   else
     printf '\nThis IS the devbin checkout (design D12) -- the long-form guides are in docs/.\n'
   fi

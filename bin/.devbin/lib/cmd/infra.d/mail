@@ -15,7 +15,7 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-usage: $DEVBIN_NAME infra mail <family> ...
+usage: ${DEVBIN_INVOKE:-bin/devbin} infra mail <family> ...
 
   dmarc    DMARC aggregate reports: parse them into JSON rows
 
@@ -36,5 +36,5 @@ case "${1:-}" in
     usage >&2
     die "infra mail: no family given. Nothing ran."
     ;;
-  *) die "infra mail: unknown family \`$1\` (try: $DEVBIN_NAME infra mail --help)" ;;
+  *) die "infra mail: unknown family \`$1\` (try: ${DEVBIN_INVOKE:-bin/devbin} infra mail --help)" ;;
 esac

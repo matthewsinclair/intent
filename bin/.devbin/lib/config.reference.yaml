@@ -1,7 +1,9 @@
 # devbin config.yaml -- annotated reference
 #
 # Lives at bin/.devbin/config.yaml in a project. Every key below is shown with
-# its default. Only `project.name` is required.
+# its default where it has one; a key whose default is absent (`install.prefix`
+# has none at all) shows an example value, and its comment says so. Only
+# `project.name` is required.
 #
 # GRAMMAR. This is a restricted subset of YAML, enforced, with errors that name
 # the file and line (design D7):
@@ -13,6 +15,12 @@
 #
 # A file outside the subset is REFUSED rather than half-read. That is deliberate:
 # every project's config stays readable in the same shape.
+#
+# An unknown key is an error, not a warning. A BOOLEAN key -- `enabled`,
+# `in_all`, an option's `flag` -- takes `true`, `yes` or `1`, or `false`, `no`
+# or `0`, and nothing else (issue 0080): `enabled: off` is neither, and only
+# `devbin doctor` says so, because the command you run does not validate the
+# file (the `release` verbs aside). Run doctor after editing it.
 
 # --- project identity ------------------------------------------------------
 
@@ -46,7 +54,9 @@ project:
   cli_task: conflab.cli
 
   # Optional. Environment variable carrying the project root, exported for
-  # handlers. Default: <NAME>_ROOT, upper-cased.
+  # handlers. Default: <NAME>_ROOT, upper-cased. It must be a shell variable
+  # name, and may not be one the shell needs (PATH, IFS, HOME and the like) or
+  # one devbin exports to handlers itself (issue 0081).
   root_var: CONFLAB_ROOT
 
   # Optional. A COMMAND devbin runs once per invocation, whose stdout it prints
@@ -62,6 +72,12 @@ project:
   # WHY IT EXISTS: a human reading `FAILED: rust` in a summary had no way to know
   # which tree it described. Every verdict now carries the project's own answer
   # to "what was measured".
+  #
+  # It runs from the project root with its stderr discarded and
+  # GIT_OPTIONAL_LOCKS=0 in its environment (issue 0094): a referent is a read,
+  # and a `git status` in one otherwise takes git's optional index lock on every
+  # devbin command. One that sets GIT_OPTIONAL_LOCKS=1 itself gets the lock
+  # back; the setting never reaches a gate.
   #
   # Declared and unanswering is LOUD, never silent: a command that fails or
   # prints nothing yields `REFERENT UNAVAILABLE -- 'project.referent' is declared
@@ -107,9 +123,10 @@ project:
     - native/cli/Cargo.toml
     - native/macos/App/Info.plist
 
-  # What this project IS. Drives which built-ins are active by default: every
-  # built-in option devbin ships declares the language it belongs to, and is
-  # active exactly when that language is declared here (design D11).
+  # GATE SCOPE: the languages devbin offers gates for here. Drives which
+  # built-ins are active by default: every language-scoped built-in option
+  # declares the language it belongs to, and is active exactly when that
+  # language is declared here (design D11); one scoped to `any` always is.
   #
   # This is why `devbin test mix` does not exist in a shell project and
   # `devbin test shell` does not exist in an Elixir one -- neither has to be
@@ -155,21 +172,13 @@ project:
 # pins every project to a patch series and makes `devbin upgrade` a lie.
 devbin_version: "^1.0.0"
 
-# --- help ------------------------------------------------------------------
+# --- install ---------------------------------------------------------------
 #
-# `devbin help` is GENERATED from what actually resolves (design D4), so there
-# is no command list to maintain here and none anywhere else. What this section
-# supplies is the wording around it.
-#
-# `devbin help <cmd>` is AUTHORED, and does not come from this file at all: it
-# is markdown at bin/.devbin/help/<cmd>.md, with sub-topics at
-# bin/.devbin/help/<cmd>.d/<sub>.md resolving by the same rule the handlers use
-# (D3). Absent a file, help generates an answer from the summary, the options
-# and where the command resolved from -- never an empty page.
-
 # WHERE `devbin install` PUBLISHES TO, when run inside devbin's OWN source tree
-# (ST0005). Read by nothing else, and harmless in a consumer -- a project that
-# sets it is describing a publish it will never perform.
+# (ST0005). `upgrade` and `fleet upgrade` read it there too. In a consumer the
+# one reader is `shell-init`, which writes it into `dvb` as the machine-install
+# fallback -- otherwise a project that sets it is describing a publish it will
+# never perform.
 #
 # REQUIRED TO PUBLISH, AND THERE IS NO DEFAULT. `lib/install` carried
 # `$HOME/Devel/opt/devbin` until 2026-09-07 -- one operator's directory layout,
@@ -191,6 +200,18 @@ devbin_version: "^1.0.0"
 # every later command would find an install exactly where it looked.
 install:
   prefix: ~/opt/devbin
+
+# --- help ------------------------------------------------------------------
+#
+# `devbin help` is GENERATED from what actually resolves (design D4), so there
+# is no command list to maintain here and none anywhere else. What this section
+# supplies is the wording around it.
+#
+# `devbin help <cmd>` is AUTHORED, and does not come from this file at all: it
+# is markdown at bin/.devbin/help/<cmd>.md, with sub-topics at
+# bin/.devbin/help/<cmd>.d/<sub>.md resolving by the same rule the handlers use
+# (D3). Absent a file, help generates an answer from the summary, the options
+# and where the command resolved from -- never an empty page.
 
 help:
   # Optional. Completes the first line: `<project name> -- <tagline>`.
@@ -236,6 +257,10 @@ help:
 # This section replaces the corpus's hand-written `_set_env`, `_set_bin` and
 # `_set_fidelity`: three copies of one function differing only in the answers.
 # A project adds `--fidelity` by declaring it here, not by writing bash.
+#
+# An `export:` name is held to project.root_var's rule when the option is
+# parsed: not a shell variable name, one the shell needs, or one devbin exports
+# to handlers itself, and it is refused by name (issue 0081).
 
 options:
   # A valued option. A value outside `values:` is refused, naming what was
@@ -275,7 +300,7 @@ options:
     #       commands:
     #         - wrighter
     #
-    # Without the entry, `lamplight wrighter --iex` is REFUSED, because issue
+    # Without the entry, `bin/devbin wrighter --iex` is REFUSED, because issue
     # 0009 made a framework option that no offered command reads an error rather
     # than a silent no-op. Adding a command here extends the set; it never
     # replaces devbin's own.
@@ -366,7 +391,9 @@ commands:
     # root, or for release.notes.run the root it answers about. `bats opt/*/test`
     # becomes one word per match; a word matching nothing is passed as written;
     # quotes, `$` and `;` stay literal, so an argument cannot contain a space.
-    # A `run:` holding no words is refused, naming its key (issue 0082).
+    # A `run:` holding no words is refused, naming its key (issue 0082). The
+    # release: block's command lines -- derived, gates, after, ci.query -- are
+    # read the same way.
     run: mix phx.server
 
   # A multi-option command. `all` is NOT declared: the framework synthesises it
@@ -457,7 +484,8 @@ commands:
   # An OPT-IN built-in, switched on. `which`, `macos`, `precommit`, `publish`,
   # `content` and `release` are absent until a project asks for them (design
   # D22) -- they are language-agnostic, so D11's language scoping cannot hide
-  # them, and most projects should never see them.
+  # them, and most projects should never see them. Asking is `enabled: true`,
+  # or a `run:` or options declared here, or a handler of that name in cmd/.
   #
   # `release` is the one devbin implements itself (ST0007; see `release:`
   # below). It ships no command line for the other five: each is one or two of the
@@ -501,7 +529,7 @@ release:
   branch: main
   notes:
     kind: changelog          # changelog | releases | command
-    # run: bin/release-notes # notes.kind: command only -- receives the verb and the version
+    # run: bin/release-notes # notes.kind: command only -- receives a verb (state, date, body, paths, views, views-check) and that verb's arguments, run at the root
   # derived:                 # commands that regenerate derived files, each printing the paths it wrote
   #   - cargo update --workspace
   gates:                     # devbin verbs, run in order on the release commit; each must exit 0
@@ -512,7 +540,7 @@ release:
   #   wait: 20m              # how long the post-release verdict waits on pending or none
   object: local              # local | ci | none -- who makes the release object
   title: "{tag}"             # object: local only. {tag} and {version} expand.
-  # repo: owner/name         # object: local or ci. Undeclared: read off the first push remote's url
+  # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote
   # object_wait: 20m         # object: ci only -- how long to wait for the workflow's release object
   # after:                   # commands run after the release object, reported, outside the core's guarantees
   #   - bin/announce

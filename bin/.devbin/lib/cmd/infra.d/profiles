@@ -34,7 +34,7 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-usage: $DEVBIN_NAME infra profiles <dir>
+usage: ${DEVBIN_INVOKE:-bin/devbin} infra profiles <dir>
 
 Validate every infra.yaml under <dir> and refuse a domain claimed by more than
 one profile. Searches three levels down, so profiles/<name>/infra.yaml is found.

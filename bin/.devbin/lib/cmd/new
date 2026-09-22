@@ -81,7 +81,9 @@ render() {
     _subst "$line" '{{NAME}}' "$NEW_NAME"
     _subst "$SUBST" '{{SUMMARY}}' "$NEW_SUMMARY"
     _subst "$SUBST" '{{GROUP}}' "$NEW_GROUP"
-    _subst "$SUBST" '{{DEVBIN}}' "$DEVBIN_INVOKE"
+    # bin/devbin, never DEVBIN_INVOKE (issue 0105): that is an absolute path when
+    # devbin is called from below the root, and these files are tracked.
+    _subst "$SUBST" '{{DEVBIN}}' "bin/devbin"
     printf '%s\n' "$SUBST"
   done <"$tmpl"
   return 0

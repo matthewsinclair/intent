@@ -720,7 +720,15 @@ _cfg_path_command_line() {
   case "${#p[@]}:${p[0]}" in
     3:commands) case "${p[2]}" in run | restore) return 0 ;; *) return 1 ;; esac ;;
     5:commands) [ "${p[2]}" = options ] && [ "${p[4]}" = run ] ;;
-    3:release) [ "${p[1]}" = notes ] && [ "${p[2]}" = run ] ;;
+    # The release core's command lines (issue 0104): notes.run, ci.query, and
+    # every derived:, after: and gates: item, which are read as `<key>.<n>`.
+    3:release)
+      case "${p[1]}.${p[2]}" in
+        notes.run | ci.query) return 0 ;;
+        derived.* | after.* | gates.*) [[ "${p[2]}" =~ ^[0-9]+$ ]] ;;
+        *) return 1 ;;
+      esac
+      ;;
     *) return 1 ;;
   esac
 }

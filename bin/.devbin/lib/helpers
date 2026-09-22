@@ -886,8 +886,8 @@ sha256_of() {
 # which would run here and could answer "nothing changed"; `core.untrackedCache`
 # is a cache of that same answer. Both are forced off for the one call.
 # (Moved from `fleet`'s `_estate_git` to lib/install, issue 0056, and from there
-# to lib/helpers, issue 0094: the dispatcher, `release` and `fullcycle` source
-# lib/helpers alone, and each has a read that must not write.)
+# to lib/helpers, issue 0094: the dispatcher, `release` and `fullcycle` do not
+# source lib/install, and each has a read that must not write.)
 _DEVBIN_GIT_LOCAL_VARS=""
 git_readonly_prime() {
   [ -z "$_DEVBIN_GIT_LOCAL_VARS" ] || return 0
@@ -1513,11 +1513,14 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # no conversion at all.
 #
 # AN EMPTY HOME ENCODES NOTHING AND EXPANDS NOTHING. With HOME empty, "$HOME/"
-# is "/", which every absolute path starts with: the writer would record
-# `~/Users/...` and the reader would expand `~/opt` to `/opt`, a real directory
-# that is not the one meant -- and a publish would write into it. Verbatim is
-# refused downstream BY NAME; a wrong absolute path is not. A HOME of `/` trims
-# to empty and is treated the same way.
+# is "/", which every absolute path starts with: the writer would record a `~`
+# followed by the whole absolute path, and the reader would expand `~/opt` to
+# `/opt`, a real directory that is not the one meant -- and a publish would
+# write into it. Verbatim is refused downstream BY NAME; a wrong absolute path
+# is not. A HOME of `/` trims to empty and is treated the same way. That example
+# is described rather than written out: a consumer's guard refuses any tracked
+# file carrying a home-shaped path, and no pattern can tell prose from a path
+# (issue 0109).
 #
 # THE PREFIX TEST IS "$home"/ AND NEVER "$home" ALONE. `/x/Devbi` is a string
 # prefix of `/x/Devbin` and not its parent, and stripping it would write `~n`.
@@ -2045,7 +2048,7 @@ _devbin_update_line() {
 #
 # FOUR CONSTRAINTS, AND THE FIRST IS NOT OBVIOUS.
 #
-#   STDERR, NEVER STDOUT. devbin seals gate output and six extraction grammars
+#   STDERR, NEVER STDOUT. devbin seals gate output and seven extraction grammars
 #   parse it; two print on unanchored patterns. A version notice on stdout lands
 #   INSIDE a run log and is read as tool output -- issue 0025's class exactly.
 #

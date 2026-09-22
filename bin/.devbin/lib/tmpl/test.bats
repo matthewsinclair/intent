@@ -20,9 +20,9 @@ setup() {
       DEVBIN_HOME="$(cd "$DEVBIN_HOME/.." && pwd)"
     done
   fi
-  # The project-named launcher when it exists, the dispatcher otherwise. During
-  # a migration the project name is still the old launcher and devbin declines
-  # to take it (design D10), so bin/devbin is the name always present.
+  # bin/devbin, the launcher every project has: `new` renders it as that name
+  # wherever it was run from. The fallback covers a stub from a devbin that
+  # rendered an absolute path, which fails -x here.
   DEVBIN="$DEVBIN_HOME/{{DEVBIN}}"
   [ -x "$DEVBIN" ] || DEVBIN="$DEVBIN_HOME/bin/devbin"
   # STAND IN THE PROJECT. The dispatcher refuses to run when the caller's

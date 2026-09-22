@@ -43,7 +43,7 @@ version_file="${DEVBIN_VERSION_FILE:-VERSION}"
 
 usage() {
   printf 'usage: %s version [show|set <version>|bump <major|minor|patch>|sync|check]\n' \
-    "${DEVBIN_NAME:-devbin}"
+    "${DEVBIN_INVOKE:-bin/devbin}"
 }
 
 # sidecars -- the declared mirror files, one per line, absent ones included so

@@ -5,8 +5,10 @@
 # Sourced, not executed. Depends on lib/helpers ALONE, which is deliberate: the
 # three commands built on it (`install`, `upgrade`, `doctor`) each operate on a
 # project that is not necessarily the one whose config is loaded, so a function
-# here must never reach for `cfg_get`. Everything it needs about a tree is
-# passed in or read off that tree.
+# here reads no config for the tree it is handed. Everything it needs about a
+# tree is passed in or read off that tree. The one `cfg_get` here,
+# `install_prefix_configured`, reads devbin's OWN config, which its caller has
+# loaded, for the publish prefix -- never a target's.
 #
 # THE SEAM, which is the whole of design D5 in one sentence: everything under
 # `bin/.devbin/lib/` plus `bin/devbin` is DEVBIN's and is replaced wholesale;

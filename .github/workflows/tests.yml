@@ -25,10 +25,22 @@ on:
     # workflow when any changed path is outside the ignore list.
     paths-ignore:
       - "intent/whiteboard/**"
+      # BOTH PATHS OR NEITHER (devbin#0110): GitHub skips a push only when EVERY
+      # changed path matches, and `intent wb` writes a canon event beside the
+      # board view it renders -- so the whiteboard line ALONE suppresses nothing
+      # a node actually does. Justified by what no job READS, not by a hit rate:
+      # no job here opens either tree, and that stays true as habits change.
+      - "intent/.canon/**"
   pull_request:
     branches: [main]
     paths-ignore:
       - "intent/whiteboard/**"
+      # BOTH PATHS OR NEITHER (devbin#0110): GitHub skips a push only when EVERY
+      # changed path matches, and `intent wb` writes a canon event beside the
+      # board view it renders -- so the whiteboard line ALONE suppresses nothing
+      # a node actually does. Justified by what no job READS, not by a hit rate:
+      # no job here opens either tree, and that stays true as habits change.
+      - "intent/.canon/**"
 
 jobs:
   test-linux:
@@ -58,7 +70,7 @@ jobs:
           cd bats-core-1.12.0
           sudo ./install.sh /usr/local
           # Make sure bats is in PATH
-          echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=/usr/local/bin:$PATH" >> "$GITHUB_ENV"
           which bats
           bats --version
 
@@ -88,10 +100,10 @@ jobs:
           # tests would fail on that refusal instead of on the critic's
           # verdict. The `intent` it resolves is the v3 binary on the second
           # line below; bin/ carries the dev tooling (devbin, int).
-          echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/bin" >> "$GITHUB_PATH"
           # Issue 0335: the v3 `intent` the suite builds below, so a test that
           # resolves `intent` from PATH runs the built binary rather than nothing.
-          echo "${{ github.workspace }}/native/rust/target/release" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/native/rust/target/release" >> "$GITHUB_PATH"
 
       - name: Configure git identity
         run: |
@@ -172,7 +184,7 @@ jobs:
           # Install bats with Homebrew
           brew install bats-core
           # Make sure bats is in PATH
-          echo "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin" >> $GITHUB_ENV
+          echo "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin" >> "$GITHUB_ENV"
           which bats
           bats --version
 
@@ -180,7 +192,13 @@ jobs:
         run: |
           # Install jq
           brew install jq
-          # shellcheck IS AN ARMED TOOL FOR THIS PROJECT, not an optional extra.
+          # NOTE: ShellCheck IS AN ARMED TOOL FOR THIS PROJECT, not an optional
+          # extra. THIS LINE MUST NOT BEGIN `# shellcheck`: that is the directive
+          # syntax, so the sentence below was read as an unparseable directive
+          # and shellcheck answered by SKIPPING the rest of this script's checks
+          # (SC1072/SC1073) -- silently, since the comment was written, in the
+          # one project that arms shellcheck as a critic. Found 2026-09-22 in
+          # the devbin 0.1.6 fleet sweep.
           # This project declares `shell`, the shell rule pack arms IN-SH-CODE-001
           # and IN-SH-CODE-002 on shellcheck (`critic_tool` in each RULE.md), and
           # the critic REFUSES rather than passing quietly when an armed rule
@@ -232,10 +250,10 @@ jobs:
         run: |
           # See ubuntu job for rationale -- pre_commit_hook.bats needs
           # `intent` resolvable for the critic gate to fire.
-          echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/bin" >> "$GITHUB_PATH"
           # Issue 0335: the v3 `intent` the suite builds below, so a test that
           # resolves `intent` from PATH runs the built binary rather than nothing.
-          echo "${{ github.workspace }}/native/rust/target/release" >> $GITHUB_PATH
+          echo "${{ github.workspace }}/native/rust/target/release" >> "$GITHUB_PATH"
 
       - name: Configure git identity
         run: |

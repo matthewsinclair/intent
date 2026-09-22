@@ -16,6 +16,7 @@
 #   PROJECT_ROOT     the project root, whichever directory you were called from
 #   DEVBIN_LIB       the devbin runtime, for sourcing helpers
 #   DEVBIN_COMMAND   the name this was invoked as
+#   DEVBIN_INVOKE    how to invoke this devbin from where you were called
 #
 # Sub-commands: drop an executable at cmd/{{NAME}}.d/<word> and devbin routes
 # `{{DEVBIN}} {{NAME}} <word>` to it, at any depth. A word with no handler behind

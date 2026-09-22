@@ -2,14 +2,14 @@
 #
 # The profile: one file holding everything `devbin infra` knows about an estate.
 # devbin ships no estate of its own and never will -- a profile is data you
-# supply, and the profile is an ARGUMENT rather than a location, so `infra`
-# works inside a project, outside one, or in CI.
+# supply, and the profile is an ARGUMENT rather than a location, so it can
+# live inside a project, outside one, or be handed in by CI.
 #
 # WHERE IT IS LOOKED FOR, in this order:
 #
 #   --profile <path>
 #   $DEVBIN_INFRA_PROFILE
-#   ./infra.yaml
+#   <project root>/infra.yaml
 #   ~/.config/devbin/infra.yaml
 #
 # A MISS IS A HARD FAILURE NAMING EVERY PATH TRIED. Never a default, never an
@@ -50,10 +50,12 @@
 # belong`, which also deletes `ttl`, every SPF include and the DMARC policy.
 # Discoverability was never the discriminator. Being checkable is.
 
-# Required. The schema version, so a later shape can be told from this one.
+# The schema version, so a later shape can be told from this one. `infra init`
+# writes 1; nothing reads it yet, so a profile without it is not refused.
 version: 1
 
-# Required. A label for the estate. Two profiles are two files with two names.
+# A label for the estate, printed by `show` and `check` -- `(unnamed)` when
+# absent. Two profiles are two files with two names.
 name: example
 
 # --- defaults, inherited by every domain ------------------------------------
@@ -117,6 +119,9 @@ domains:
     dmarc: none
 
 # --- runtime: omitted entirely by an estate that does not use Fly ------------
+#
+# No command reads this block yet: `check` covers DNS and mail only, and the
+# Fly runtime leg is ST0006, not built.
 runtime:
   fly:
     example-app:

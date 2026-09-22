@@ -32,7 +32,7 @@ usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE vendor [--from <dir>] [--all]
 
-  --from <dir>   the devbin to compare against (default: the source recorded at install)
+  --from <dir>   the devbin to compare against (default: the source the manifest records)
   --all          list every file, including the ones that are level
 
 Reports how the vendored runtime differs from the devbin it came from, and what

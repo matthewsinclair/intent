@@ -92,20 +92,32 @@ release_tag_name() {
 # X.Y.Z where `{version}` stands; `v1.2`, `v1.2.3-rc1` and another project's
 # `x-1.2.3` do not, so they can neither be the newest release nor be bumped.
 release_versions() {
-  local tpl="$1" pre post tags t v
+  local tpl="$1" pre post tags t v versions
   pre="${tpl%%\{version\}*}"
   post="${tpl#*\{version\}}"
   if ! tags="$(git tag --list 2>&1)"; then
     warn "release: cannot list this repository's tags: ${tags//$'\n'/ }"
     return 1
   fi
-  while IFS= read -r t; do
-    [ -n "$t" ] || continue
-    [[ "$t" == "$pre"*"$post" ]] || continue
-    v="${t#"$pre"}"
-    v="${v%"$post"}"
-    is_semver "$v" && printf '%s\n' "$v"
-  done <<<"$tags" | LC_ALL=C sort -t. -k1,1nr -k2,2nr -k3,3nr
+  # THE TEST IS AN `if`, NEVER `is_semver && printf`, and issue 0106 is why: the
+  # loop's status is its last body's, so a tag listed last that matches the
+  # template and names no version failed the loop, pipefail made that the
+  # pipeline's, and step 1 stopped with nothing said. git lists tags in byte
+  # order, so which tag is last is an accident of spelling (Utilz: tag
+  # `{version}`, its old `v2.6.1` listed after every `2.x.y`).
+  if ! versions="$(
+    while IFS= read -r t; do
+      [ -n "$t" ] || continue
+      [[ "$t" == "$pre"*"$post" ]] || continue
+      v="${t#"$pre"}"
+      v="${v%"$post"}"
+      if is_semver "$v"; then printf '%s\n' "$v"; fi
+    done <<<"$tags" | LC_ALL=C sort -t. -k1,1nr -k2,2nr -k3,3nr
+  )"; then
+    warn "release: cannot sort the versions named by the tags matching $tpl"
+    return 1
+  fi
+  [ -z "$versions" ] || printf '%s\n' "$versions"
 }
 
 # release_resolve <template> <target> -- step 1 (D36, D38): the version a cut of

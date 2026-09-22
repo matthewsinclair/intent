@@ -28,7 +28,7 @@ usage() {
 usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
        $DEVBIN_INVOKE upgrade [--prefix <dir>]          (inside devbin's own tree)
 
-  --from <dir>   the devbin to upgrade from (default: the source recorded at install)
+  --from <dir>   the devbin to upgrade from (default: the source the manifest records)
   --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
                  (default: install.prefix in devbin's own config. There is no
                  built-in default -- the location is configuration, D32)
@@ -132,6 +132,9 @@ _upgrade_the_install() {
 main() {
   local from="" force="" prefix="" dstroot srcroot version states paths rel src state
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
+  # Released files are counted inside `skipped`, whose summary line fleet
+  # parses across devbin versions, AND apart, because their remedy differs.
+  local released=0
   local prev_source now_source
   # Every path this run REFUSED to replace. Passed to manifest_write so each
   # keeps its install-time checksum: re-checksumming a file we declined to
@@ -171,10 +174,20 @@ main() {
   # deliberately fails that test -- it runs lib/ in place (D12) and has nothing
   # vendored. What used to happen here was a refusal saying exactly that; the
   # refusal was correct and there is now something to do instead.
+  # A FLAG FROM THE OTHER MODE IS A USAGE ERROR, as it is in `install` (issue
+  # 0103). Each was dropped in silence here: --prefix in a project upgraded from
+  # the manifest's source while the operator believed they had named another,
+  # and --from or --force in devbin's own tree did nothing at all.
   if is_devbin_dev_tree "$dstroot"; then
+    [ -z "$from" ] || die "--from applies only when upgrading a project
+       you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
+    [ -z "$force" ] || die "--force applies only when upgrading a project
+       you are in devbin's own source tree, which PUBLISH-UPGRADEs the machine install"
     _upgrade_the_install "$dstroot" "$prefix"
     return $?
   fi
+  [ -z "$prefix" ] || die "--prefix applies only when publishing from devbin's own source tree
+       you are upgrading a project; its source is --from <dir> or the manifest's"
 
   is_devbin_installed "$dstroot" || {
     # Two un-installed shapes, and only one of them wants an install. The D12
@@ -345,6 +358,7 @@ EOF
           printf '             left with the project and no longer tracked. Delete it if it\n'
           printf '             is dead, or move it out of bin/.devbin/lib/ if it is yours.\n'
           skipped=$((skipped + 1))
+          released=$((released + 1))
           continue
         fi
         ;;
@@ -429,9 +443,16 @@ EOF
   if [ "$converged" -gt 0 ]; then
     printf '\n%d file(s) you had edited now match the source and are tracked again.\n' "$converged"
   fi
-  if [ "$skipped" -gt 0 ]; then
-    printf '\n%d file(s) left alone because they differ from what was installed.\n' "$skipped"
+  # TWO REMEDIES, SO TWO COUNTS (issue 0102). One line offered --force for
+  # both, and --force never reaches a released file: the manifest no longer
+  # lists it, so the next upgrade has no entry to replace.
+  if [ "$((skipped - released))" -gt 0 ]; then
+    printf '\n%d file(s) edited in place were left alone because they differ from what was installed.\n' "$((skipped - released))"
     printf 'Re-run with --force to replace them, or diff them against %s first.\n' "$srcroot"
+  fi
+  if [ "$released" -gt 0 ]; then
+    printf '\n%d file(s) devbin no longer ships were released to the project; --force will not\n' "$released"
+    printf 'touch them again. Delete each if it is dead, or move it out of bin/.devbin/lib/.\n'
   fi
   # THE EXIT STATUS IS A RULING, NOT A DEFAULT (issue 0021). It stays 0 when
   # files were refused, because this command's status answers "did I complete",

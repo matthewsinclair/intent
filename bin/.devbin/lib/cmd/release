@@ -40,9 +40,11 @@ usage() {
   printf '       %s status <vX.Y.Z>\n' "$me"
   printf '       %s notes\n' "$me"
   printf '       %s check\n\n' "$me"
-  printf '  Cut a release: stamp, commit, gate, tag, push, and the release object,\n'
-  printf '  each step checked first so a re-run continues. Declared in the release:\n'
-  printf '  block of bin/.devbin/config.yaml; see docs/configuration.md.\n'
+  printf '  Cut a release: stamp, commit, gate, confirm, tag, push, the release object,\n'
+  printf '  then after: and the CI verdict. Each step with a postcondition reads it\n'
+  printf '  first, so a re-run continues. --dry-run makes no commit, tag, push or\n'
+  printf '  release object, but runs the gates. Declared in the release: block of\n'
+  printf '  bin/.devbin/config.yaml; see docs/configuration.md.\n'
 }
 
 # refuse <message> -- a usage refusal: usage on stderr, the reason, exit 1.
@@ -337,7 +339,7 @@ cut_summary() {
 cut_fail() {
   cut_row "$1" FAILED "$2"
   cut_summary
-  printf '\nrelease: stopped at step %s (%s). %s. Fix it and run the same release again.\n' \
+  printf '\nrelease: stopped at step %s (%s). %s. Fix what the row names, then run again.\n' \
     "$1" "${_RELEASE_STEP_NAMES[$(($1 - 1))]}" "$(cut_outward)"
   exit "${3:-1}"
 }
@@ -470,7 +472,7 @@ cut_run() {
   [ -x "$launcher" ] || die "release: no launcher at $launcher -- the cut runs this project's own verbs through it"
   open_scratch release
   local dry_note=""
-  [ "$dry_run" = 0 ] || dry_note=" (DRY RUN: nothing is written)"
+  [ "$dry_run" = 0 ] || dry_note=" (DRY RUN: no commit, tag, push or release object; the gates run)"
   CUT_HEAD="release: $target$dry_note"
 
   # --- step 1: resolve -----------------------------------------------------

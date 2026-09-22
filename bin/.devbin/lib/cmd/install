@@ -33,7 +33,7 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
   --alias <a>    a short name this project may keep, eg 'cf' for conflab.
                  RECORDED ONLY -- devbin creates no symlink for it
   --lang <l>     a language the project declares; repeatable, or comma-separated
-  --force        re-vendor over an existing install
+  --force        VENDOR mode only: re-vendor over an existing install
 
 Writes bin/devbin and bin/.devbin/lib/, scaffolds bin/.devbin/{cmd,help}, and
 writes a starter config.yaml IF THERE IS NONE. Your config, handlers and
@@ -99,7 +99,7 @@ starter_config() {
 
 main() {
   local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
-  local rel src count=0 config mode dirty
+  local rel src count=0 config mode dirty vendor_only=""
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -112,6 +112,7 @@ main() {
         shift 2 || die "--into needs a directory"
         ;;
       --name)
+        vendor_only="$vendor_only --name"
         name="${2:-}"
         case "$name" in
           *[A-Z]*) die "project name must be lower case: --name $name
@@ -121,6 +122,7 @@ main() {
         shift 2 || die "--name needs a value"
         ;;
       --alias)
+        vendor_only="$vendor_only --alias"
         alias="${2:-}"
         case "$alias" in
           *[A-Z]*) die "alias must be lower case: --alias $alias
@@ -130,6 +132,7 @@ main() {
         shift 2 || die "--alias needs a value"
         ;;
       --lang)
+        vendor_only="$vendor_only --lang"
         langs="$langs $(printf '%s' "${2:-}" | tr ',' ' ')"
         shift 2 || die "--lang needs a value"
         ;;
@@ -138,6 +141,7 @@ main() {
         shift 2 || die "--prefix needs a directory"
         ;;
       --force)
+        vendor_only="$vendor_only --force"
         force=yes
         shift
         ;;
@@ -176,6 +180,14 @@ main() {
     die "--prefix applies only when publishing from devbin's own source tree
        you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')
        to publish:  cd <the devbin source tree> && bin/devbin install"
+  fi
+  # AND THE MIRROR (issue 0103): a VENDOR flag while publishing was dropped in
+  # silence. Publishing writes no config and never re-vendors over an install,
+  # so --name, --alias, --lang and --force have nothing to act on.
+  if [ -n "$vendor_only" ] && [ "$mode" = publish ]; then
+    die "${vendor_only# } applies only when vendoring into a project
+       you are in PUBLISH mode, in devbin's own source tree with no --into
+       to vendor:  $DEVBIN_INVOKE install --into <project>${vendor_only}"
   fi
 
   if [ "$mode" = publish ]; then

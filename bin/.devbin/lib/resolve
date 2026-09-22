@@ -401,6 +401,10 @@ EOF
       cmd="${cmd##*/}"
       case "$cmd" in *.yaml) continue ;; esac
       case " $seen " in *" $cmd "*) continue ;; esac
+      # A handler's presence declares the command, but `enabled: false` still
+      # wins over it, as it does at dispatch: listing it here offered in help a
+      # command the dispatcher refuses.
+      command_active "$cmd" || continue
       seen="$seen $cmd"
       printf '%s\n' "$cmd"
     done

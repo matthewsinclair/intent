@@ -38,7 +38,9 @@ set -euo pipefail
 _fullcycle_usage() {
   printf 'usage: %s fullcycle [--dry-run] [--force]\n\n' "${DEVBIN_INVOKE:-bin/devbin}"
   printf '  From a total clean: remove the cargo target trees, rebuild, test.\n'
-  printf '  DESTRUCTIVE. --dry-run shows what would run and executes nothing.\n'
+  printf '  DESTRUCTIVE. It shows what clean would remove and asks once at the\n'
+  printf '  terminal; --force skips the question. --dry-run shows what would run,\n'
+  printf '  asks nothing and executes nothing.\n'
 }
 
 # _fullcycle_phases -- THE PHASE LIST, DEFINED EXACTLY ONCE.
@@ -390,15 +392,16 @@ _fullcycle_run() {
   # before this gate opened, so the time a person spent on it is outside the
   # wall by construction. This line is what keeps it in the record: the log
   # says what was consented to and how long the answer took. The overhead
-  # meter never reads it.
+  # meter never reads it. TAGGED as devbin's own line (issue 0100), so the
+  # seal's extraction strips it before any grammar reads the log.
   if [ "$force" = 1 ]; then
-    printf 'devbin: --force given -- nothing was asked, and nothing waited on a person\n'
+    printf '%s--force given -- nothing was asked, and nothing waited on a person\n' "$_DEVBIN_INVOKE_TAG"
   else
     # WHAT was consented to, from the same two sources the preview used, so the
     # record cannot drift from what was shown: the notice and the preview print
     # before this log exists (vc's review).
-    printf 'devbin: confirmed y to %s %s at the prompt after %ss -- before this gate'"'"'s wall began\n' \
-      "$(_fullcycle_clean_phase)" "$(_fullcycle_clean_flags)" "$waited"
+    printf '%sconfirmed y to %s %s at the prompt after %ss -- before this gate'"'"'s wall began\n' \
+      "$_DEVBIN_INVOKE_TAG" "$(_fullcycle_clean_phase)" "$(_fullcycle_clean_flags)" "$waited"
   fi
 
   _fullcycle_header

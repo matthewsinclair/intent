@@ -42,19 +42,22 @@ set -euo pipefail
 # shellcheck source=lib/infra.check
 . "$DEVBIN_LIB/infra.check"
 
-# THE HEREDOC IS UNQUOTED SO $DEVBIN_NAME RENDERS, AND $DEVBIN_INFRA_PROFILE IS
-# ESCAPED SO IT DOES NOT. Both halves are load-bearing and the second is the one
-# that bites: unquoting alone substitutes the env var too, which is unset, so the
-# help silently drops a resolution step and prints `--profile <path>, ,
-# ./infra.yaml`. Measured on 2026-09-07 before this edit, not reasoned about.
+# THE HEREDOC IS UNQUOTED SO THE DISPATCHER'S NAME RENDERS, AND
+# $DEVBIN_INFRA_PROFILE IS ESCAPED SO IT DOES NOT. Both halves are load-bearing
+# and the second is the one that bites: unquoting alone substitutes the env var
+# too, which is unset, so the help silently drops a resolution step and prints
+# `--profile <path>, , ./infra.yaml`. Measured on 2026-09-07, not reasoned
+# about.
 #
-# Why the literal was here at all: inside this repository $DEVBIN_NAME IS
-# `devbin`, so the hardcoded form and the rendered form are byte-identical and
-# nothing here could tell them apart. In Lamplight the dispatcher is `lamplight`
-# and `devbin` resolves to nothing, so this block told the reader to type a
-# command that does not exist -- while this command's OWN children, infra.d/mail
-# and infra.d/mail.d/dmarc, already rendered the name correctly. Found on the
-# first run of `infra` in a consuming estate.
+# THE NAME IS ${DEVBIN_INVOKE:-bin/devbin}, AS IN EVERY OTHER BUILT-IN (issue
+# 0107, hv's ruling K8). From 2026-09-07 it was $DEVBIN_NAME, which replaced a
+# literal `devbin` that resolved to nothing in an estate: in Lamplight, whose
+# dispatcher was then `lamplight`, it rendered `lamplight infra`. That launcher
+# is retired and bin/devbin is how every estate is typed, so $DEVBIN_NAME named
+# a command that no longer exists -- the defect the 2026-09-07 fix closed, come
+# back. The infra.d children carry the same form. $DEVBIN_NAME stays the
+# diagnostic prefix `die` and `warn` print.
+#
 # THE VERB LIST WAS HALF THE SURFACE UNTIL 2026-09-07. `profiles` and `mail`
 # are routed by devbin's `.d/` descent BEFORE this file is reached, which is the
 # right mechanism and exactly why they were missing here: nothing in the
@@ -64,12 +67,13 @@ set -euo pipefail
 # already knowing to look.
 #
 # The lines below carry NO BACKTICKS on purpose. This heredoc is unquoted so
-# $DEVBIN_NAME renders, which makes a backtick live command substitution: the
-# first draft of this change put `.d/` in the help text and shellcheck refused
-# it as a command ending in `/`. The comment is where prose goes.
+# the dispatcher's name renders, which makes a backtick live command
+# substitution: the first draft of this change put `.d/` in the help text, and
+# it was refused by shellcheck as a command ending in `/`. The comment is where
+# prose goes.
 usage() {
   cat <<USAGE
-usage: $DEVBIN_NAME infra <verb> [--profile <path>]
+usage: ${DEVBIN_INVOKE:-bin/devbin} infra <verb> [--profile <path>]
 
   init      measure live domains and print a profile to review (no --profile)
   show      print the resolved profile and where it was found
@@ -78,7 +82,7 @@ usage: $DEVBIN_NAME infra <verb> [--profile <path>]
   mail      DMARC report handling: mail dmarc parse|report
 
 The profile is searched for in this order, and a miss names every path:
-  --profile <path>, \$DEVBIN_INFRA_PROFILE, ./infra.yaml, ~/.config/devbin/infra.yaml
+  --profile <path>, \$DEVBIN_INFRA_PROFILE, <project root>/infra.yaml, ~/.config/devbin/infra.yaml
 
 The annotated worked example is VENDORED INTO THIS PROJECT -- read it, copy it:
   bin/.devbin/lib/infra.reference.yaml
@@ -103,7 +107,7 @@ case "$verb" in
     # Sub-families (mail, dns, runtime) are routed by devbin's own `.d/`
     # dispatch before ever reaching here, so an unknown verb at this point is
     # genuinely unknown rather than merely unrouted.
-    die "infra: unknown verb \`$verb\` (try: $DEVBIN_NAME infra --help)"
+    die "infra: unknown verb \`$verb\` (try: ${DEVBIN_INVOKE:-bin/devbin} infra --help)"
     ;;
 esac
 

@@ -53,7 +53,7 @@ FS='|'
 
 usage() {
   cat <<EOF
-usage: $DEVBIN_NAME infra mail dmarc <verb>
+usage: ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc <verb>
 
   parse <report|dir>   one JSON object per <record>, on stdout. Accepts .xml,
                        .xml.gz and .zip -- every real report is a container, and
@@ -66,7 +66,7 @@ usage: $DEVBIN_NAME infra mail dmarc <verb>
 Both read no profile and make no network call. Neither judges the estate:
 that is \`infra mail dmarc check\`, which has a profile to judge it against.
 
-  $DEVBIN_NAME infra mail dmarc parse r.xml | $DEVBIN_NAME infra mail dmarc report
+  ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc parse r.xml | ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc report
 EOF
 }
 
@@ -547,7 +547,7 @@ parse_dir() {
 
 parse() {
   SRC="${1:-}"
-  [ -n "$SRC" ] || die "dmarc parse: needs a report path or a directory of them (try: $DEVBIN_NAME infra mail dmarc --help)"
+  [ -n "$SRC" ] || die "dmarc parse: needs a report path or a directory of them (try: ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc --help)"
 
   require_tool xmllint "Install libxml2. There is deliberately no text-extraction fallback -- one would report every message as unsigned, which is what a forgery looks like."
   require_tool jq "Install jq. Rows are emitted as JSON Lines."
@@ -607,7 +607,7 @@ main() {
       report "$@"
       ;;
     *)
-      die "infra mail dmarc: unknown verb \`$1\` (try: $DEVBIN_NAME infra mail dmarc --help)"
+      die "infra mail dmarc: unknown verb \`$1\` (try: ${DEVBIN_INVOKE:-bin/devbin} infra mail dmarc --help)"
       ;;
   esac
 }

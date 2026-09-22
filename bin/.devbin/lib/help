@@ -407,10 +407,16 @@ _print_shared_options() {
 # project where `test mix` is inactive shows nothing at all, so D11's language
 # scoping and D22's opt-in axis read as devbin being broken rather than as
 # configuration doing its job.
+#
+# Config's commands and options are walked as well as the catalogue's: `all`'s
+# count line promises that `help --why` names every inactive option, and an
+# option a project declared and switched off is one of them.
 _print_unavailable() {
-  local cmd opt reason shown=""
+  local cmd opt reason shown="" seen=" "
   while IFS= read -r cmd; do
     [ -n "$cmd" ] || continue
+    case "$seen" in *" $cmd "*) continue ;; esac
+    seen="$seen$cmd "
     if reason="$(command_unavailable_reason "$cmd")"; then
       [ -z "$shown" ] && printf '\nNot offered here:\n'
       shown=yes
@@ -426,10 +432,11 @@ _print_unavailable() {
         _print_row '  ' "$cmd $opt" "$reason"
       fi
     done <<EOF
-$(builtin_options_for "$cmd")
+$(command_option_candidates "$cmd")
 EOF
   done <<EOF
 $(builtin_commands)
+$(cfg_list commands)
 EOF
   [ -z "$shown" ] && printf '\nEverything devbin ships is offered here.\n'
   return 0
@@ -493,7 +500,7 @@ EOF
   printf '\nGlobal:\n'
   _print_row '  ' 'help [command]' 'This help, or detail for one command'
   _print_row '  ' 'help --why' 'The listing, plus what is not here and why'
-  _print_row '  ' '-v, --version' 'Print the project version'
+  _print_row '  ' '-v, --version' 'Print the project version, its commit and the runtime digest'
 
   _print_shared_options
 

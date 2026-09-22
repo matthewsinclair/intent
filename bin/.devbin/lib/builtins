@@ -87,16 +87,16 @@ test             any     -           -          Test      - | Run this project's
 check            any     -           -          Check     - | Read-only gates; each exits non-zero on a breach
 precommit        opt-in  -           -          Check     - | The pre-commit gate
 db               elixir  -           -          Data      - | Database lifecycle
-docs             any     -           -          Docs      @builtin | Generate and publish documentation
+docs             any     -           -          Docs      @builtin | Regenerate generated documentation (AGENTS.md, through Intent)
 content          opt-in  -           -          Docs      - | Content pipeline tasks
-version          any     -           -          Ship      @builtin | Show, set and bump the project version
-release          opt-in  -           -          Ship      @builtin | Cut a release: stamp, commit, gate, tag, push, and the release object
+version          any     -           -          Ship      @builtin | Show, set, bump, sync and check the project version
+release          opt-in  -           -          Ship      @builtin | Cut a release: stamp, commit, gate, confirm, tag, push, the release object, after: and the CI verdict
 publish          opt-in  -           -          Ship      - | Publish a release artifact
 macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
-infra            any     -           -          Infra     @builtin | Resolve, check and apply this estate's DNS, mail and runtime configuration
-install          any     -           -          Devbin    @builtin | Vendor this devbin into a project
-upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime from where it came from
+infra            any     -           -          Infra     @builtin | Profile and check this estate's DNS and mail configuration
+install          any     -           -          Devbin    @builtin | Vendor devbin into a project, or in devbin's own tree publish the machine install
+upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime, or in devbin's own tree replace the machine install
 vendor           any     -           -          Devbin    @builtin | Compare the vendored runtime against the devbin it came from
 doctor           any     -           -          Devbin    @builtin | Check this install and report what is wrong with it
 new              any     -           -          Devbin    @builtin | Scaffold a new project command, ready to run
