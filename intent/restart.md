@@ -34,6 +34,10 @@
 - A cut's hold names hv's other sessions too: a go given in one session can reach main while the cut runs in another.
 - The release driver deletes its gate logs on green, so the terminal is the only copy of the gate's verdict: read it there, and keep it.
 - A source edit under somebody else's running suite unpins their verdict: bank exact hunks and `git apply` when the suite is off.
+- A landing is a write: a judged bank landed under `native/rust` inside a peer's announced run voids that run exactly as an edit does, so a judge who passes a bank during a live run says "land after <node>'s END".
+- A bank that adds or changes an intra-doc link owes CI's doc command, read from `rust.yml` and not retyped, before PASS: no suite, clippy or pre-commit arm runs rustdoc, and 0511 passed its suites and reddened CI on both legs.
+- `lib/templates/` work is built in a detached worktree (hv decision 30): the install root is this tree, so a save in the main tree is live in every estate before any judgement.
+- Any landing under `native/rust` makes the next push refuse until `bin/devbin build all` (decision 30), and the build refuses to install if HEAD moves while it runs: no node commits during a rebuild, board folds included.
 
 ## Measuring anything here
 
@@ -51,6 +55,8 @@
 - An instrument fails toward a warning a reader discards, never toward an all-clear a reader believes; prefer a structural test that over-reports to a filter typed from what you expect.
 - Load reds a presence-asserting arm and never false-greens it; it inverts for an absence assertion within a time window.
 - Run bats through `tests/run_tests.sh`.
+- The heavy-run protocol coordinates the roster and the box is a machine: census every estate before a run and at its ends, `ps -axo args= | grep -E '[b]ats-exec|[c]argo test|[r]ustc' | grep -oE '/Users/matts/Devel/prj/[A-Za-z_]+' | sort | uniq -c`. A delta between two runs survives foreign load; a timing does not.
+- A test that waits on a watching daemon is exposed to host-wide FSEvents pressure, not only CPU: synthetic CPU load left the 0516 arm green while file-event churn elsewhere on the volume made FSEvents lose events outright.
 - `bash -n` REFUSES EVERY `.bats` FILE and its red says nothing about your edit: a `.bats` file is not bash until bats rewrites `@test "name" {` into a function. `bats -c` is the syntax check that fits, and it counts the arms, so it also says whether bats still sees them all.
 - A defect closed as one estate's is a census question first: 0498 closed as Lamplight's while nine more scripts across the fleet carried the same re-staging stanza. Grep every checkout's hooks and handlers, with the known case as the positive control, before calling it local.
 

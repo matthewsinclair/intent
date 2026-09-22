@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 8b585ac1-903e-41e1-887f-4ebeb676440d
-heartbeat_at: 2026-09-22 20:38Z
-status: active
+heartbeat_at: 2026-09-22 21:15Z
+status: paused
 focus: "EOD: hv's five issues all CLOSED and judged; 0516's backstop awaits hv's build all (push refuses until then). NO PUSH, NO RELEASE."
 claims: []
 ---
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-22 EOD, replaces doing 27; localfold on hv calling the day). hv's order "ALL of these MUST be closed" is DISCHARGED: `intent outstanding` reads 0 of 498 issues OPEN, 0 WIP threads, 0 WIP work packages. Every close was judged by vc, and every landing was checked at its judged patch-id. 0515 86abc3dff (whole bats suite, red sets identical by name, +5 = the new arms). 0516 2f35e059e (LOST not late; notify drops a rescan whose path is outside the root; a 30s backstop; both exposures, the 0216 revert class and a joining drop, DRIVEN; churn regression 3/3 green; intentd and intent-cli whole suites 1118/0 on both sides). 0517 closed as recorded under decision 30 (79c1491ca). 0518 aba799696 (pre-push refuses a stale pair, driven both ways; deployed at pair 6995df347). 0519 3e87933d2. 0514's stale-reason residue: 234f46f1e, 55bba72fb, 116f6f7ff. OWED, AND IT IS hv's HAND: `bin/devbin build all` to deploy 0516's backstop. The pair names 6995df347, with 1 non-test file behind, and until the rebuild the pre-push hook REFUSES every push, which is decision 30 working. STILL OWED FROM BEFORE, unexecuted: hv decision 28's ten Conflab/Baize rulings; the 3.2.0 app into /Applications (hv's hand, or a permission); the Finding C census. AWAITING hv: whether Gtools' wb-correct request (todo 61) becomes an Intent issue. NO PUSH, NO RELEASE.
+- RESUME (vc, 2026-09-22 EOD globalfold, replaces doing 28). hv's five issues are CLOSED and judged, and `intent outs` reads 0 open. The line's TODO is `intent/wip.md` and is not restated here. The first item: hv pushes `cd79407eb` (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 at the doc step on both legs), then reads the rust run on that HEAD, both legs, test step included. The installed pair already names cd79407eb. vc's own queue: hv decision 28's ten rulings, the Finding C census, and todo 61 (Gtools' wb-correct request, awaiting hv). The rules learned today are in `intent/restart.md` and the shared memory. NO PUSH, NO RELEASE.
 
 ## TODO
 
