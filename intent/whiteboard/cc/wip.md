@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 09:29Z
+heartbeat_at: 2026-09-22 09:50Z
 status: active
-focus: "Nothing queued, no claims: ST0079 closed and all four NEXT-LINE items landed (805608686, 3c5cb5191, 84e1ce66f, 069e6b227). Waiting on vc for the next line. NO PUSH, NO RELEASE."
+focus: "Nothing queued, no claims, nothing in flight: ST0079 closed and live in the pair 36143de45, the four NEXT-LINE items landed, Lamplight 0008 filed and that tree clean. Holding for vc's next line. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,13 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-22): nothing queued, no claims.** The day's work is landed: ST0079 CLOSED on WP-02 (code 8d1103b3d at vc's judged patch-id 71717e948371, record ca08ce108, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart), and all four NEXT-LINE items down -- (a) restart.md:43 at 805608686, (b) the seal test's vendored pin at 3c5cb5191, (d) the header guard's wording at 84e1ce66f (live for every estate from that commit), (c) the dispatch-table header at 069e6b227, edited live under vc's four conditions because the generator is an ST0056 attachment. vc rebuilds after ic's landing so one build carries both. WAITING ON: vc for the next line; hv for anything else. The banks refs/bank/cc/{st0079-02,nextline-b,nextline-d}/patch can be removed once vc says the landings are settled. NO PUSH, NO RELEASE.
+- **RESUME HERE (cc, 2026-09-22, after a localfold and compact): nothing queued, no claims, nothing in flight, no heavy run started or waiting.** hv's TODO of the morning is delivered, landed and LIVE: ST0079 is CLOSED (WP-02's code 8d1103b3d at vc's judged patch-id 71717e948371, record ca08ce108, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart, AT-02.1 to AT-02.3 red on b14471926 and green on the landing), and the pair vc built at 09:48Z is 36143de45, which carries it -- vc drove `intent outs` in Lamplight read-only and got exactly 14 parent rows, every one Completed or Cancelled, and the counts line "20 of 358 threads (WIP) and 14 as parents", so cc's ids, ic's hand count and the live verb agree. All four NEXT-LINE items landed: (a) 805608686, (b) 3c5cb5191, (c) 069e6b227, (d) 84e1ce66f, whose guard wording is live for every estate from that commit. The three banks are settled and removed; cc's other 31 bank refs stand. cc's worktree wt-cc-train is clean at 069e6b227 with its own in-tree target, kept on vc's word for the next line -- note it predates the pair, so rebase it before the next run.
+
+**LAMPLIGHT IS DONE AND ITS TREE IS CLEAN:** hv routed the finding to cc, filed as issue 0008 at 6b1ace627 (19 WIP packages under 14 Completed or Cancelled threads, measured against a COPY of Lamplight's store, its tree never opened), and the 265-view version-stamp re-render that the write produced went in its own mechanical commit at 5a22c72ce on vc's ruling, 265 insertions and 265 deletions with the footer-excluded diff empty. doctor there: 0 findings.
+
+**THE RULES THAT CHANGED TODAY AND BIND cc NEXT:** one heavy run at a time on this host, announced at both ends (vc, from ic's red at a five-minute load of 182); an attachment edit cannot be banked and judged green in a worktree, so it lands live under vc's four conditions; an AT row's green note EXTENDS its red note, because the verb refuses one that would drop it; `git add -- $paths` from a shell variable is one pathspec under zsh, so the literal form is the form; an estate's FIRST store write under a newer pair re-renders every view an older pair wrote, so a one-line change arrives with a mechanical commit beside it; and after dc's 0501 (c62c22364) CI's doc step reads `RUSTDOCFLAGS: -Dwarnings` unspaced with `bin/int check doc` gating, so a judging run matches CI in that form.
+
+**WAITING ON:** vc for the next line; hv for the push, which vc holds as a list. NO PUSH, NO RELEASE.
 
 ## TODO
 
