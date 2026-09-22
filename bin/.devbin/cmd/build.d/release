@@ -715,7 +715,7 @@ $daemon_json"
     # a_source_edit_reaches_the_index_and_costs_canon_nothing. An arm joins the
     # pattern below because it waits on such an event, never because its name
     # looks like one of these.
-    log_info "running cargo test --workspace in a private worktree at HEAD (this may take several minutes)"
+    log_info "running the rust gate, every cargo step of .github/workflows/rust.yml, in a private worktree at HEAD (this may take several minutes)"
     local cargo_log gate_dir gate_native gate_rc reds
     local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
     cargo_log="$(release_log_dir)/cargo-test.log"
@@ -731,15 +731,60 @@ $daemon_json"
       (cd "$gate_native" && HOME="$gate_dir/home" CARGO_HOME="$real_cargo_home" \
         RUSTUP_HOME="$real_rustup_home" CARGO_TARGET_DIR="$gate_native/target" cargo "$@")
     }
+    # THE CARGO STEPS OF .github/workflows/rust.yml THAT `cargo test` DOES NOT
+    # COVER RUN HERE TOO, BETWEEN THE BUILD AND THE TESTS, IN THE WORKFLOW'S ORDER
+    # (issue 0501). The 3.2.0 tag passed this gate while CI's doc step was red on
+    # it, because the gate ran build and test and nothing else, and said nothing
+    # about what it had left out. It does not restate those steps: it runs their
+    # devbin twins, `bin/int check <name>`, which tests/unit/devbin_rust_gates.bats
+    # holds equal to rust.yml flag for flag and env for env, so there is still
+    # one pair of homes and one test between them.
+    #
+    # CARGO STEPS, NOT STEPS. The workflow's other three steps -- the toolchain
+    # record, shellcheck and prettier -- set up the runner and do not run here, so
+    # no line this gate prints claims every step of rust.yml.
+    #
+    # THEY INHERIT gate_cargo's ENVIRONMENT, exported the same way: the isolated
+    # HOME, the real CARGO_HOME and RUSTUP_HOME, and this worktree's own target
+    # dir as CARGO_TARGET_DIR. Each twin names the manifest, so the target dir is
+    # the one the build above filled and no second one is written.
+    gate_twin() {
+      (cd "$gate_dir/tree" && HOME="$gate_dir/home" CARGO_HOME="$real_cargo_home" \
+        RUSTUP_HOME="$real_rustup_home" CARGO_TARGET_DIR="$gate_native/target" bin/int check "$1")
+    }
+    # THE ABORT NAMES THE STEP THAT FAILED, WHICH IS WHY `gate_step` EXISTS
+    # (issue 0501, vc's ruling). Both cargo steps share one log and one rc, and
+    # the refusal used to say "cargo test --workspace failed" whichever of them
+    # had failed -- so a build break sent the reader to the tests, which had not
+    # run. A misattributed failure is worse than a swallowed one: the reader gets
+    # a remedy for the wrong step, and this gate exists to stop exactly that
+    # class of silence about what did and did not run.
+    local twin twin_log twin_red="" gate_step=""
     gate_rc=0
-    if ! { gate_cargo build -p intentd && gate_cargo test --workspace --no-fail-fast; } > "$cargo_log" 2>&1; then
+    if gate_cargo build -p intentd > "$cargo_log" 2>&1; then
+      for twin in format clippy panics doc; do
+        log_info "running bin/int check $twin in the gate's worktree"
+        twin_log="$(release_log_dir)/check-$twin.log"
+        if ! gate_twin "$twin" > "$twin_log" 2>&1; then
+          twin_red="$twin"
+          break
+        fi
+        rm -f "$twin_log"
+      done
+    else
       gate_rc=1
+      gate_step="cargo build -p intentd"
+    fi
+    if [ "$gate_rc" = 0 ] && [ -z "$twin_red" ] && ! gate_cargo test --workspace --no-fail-fast >> "$cargo_log" 2>&1; then
+      gate_rc=1
+      gate_step="cargo test --workspace"
       reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$cargo_log")"
       if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E 'daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing|the_daemon_lists_the_project_registry|a_daemon_outlives_nobody' | grep -q .; then
         log_warn "cargo test --workspace red only in the load-sensitive daemon family -- re-running intentd's tests once:"
         printf '%s\n' "$reds" | sed 's/^/  /' >&2
         if gate_cargo test -p intentd --no-fail-fast >> "$cargo_log" 2>&1; then
           gate_rc=0
+          gate_step=""
         fi
       fi
     fi
@@ -749,10 +794,13 @@ $daemon_json"
       log_warn "could not remove the test gate's worktree at $gate_dir/tree -- remove it with \`git -C '$PROJECT_ROOT' worktree remove --force '$gate_dir/tree'\`"
     rm -rf "$gate_dir"
     if [ "$gate_rc" != 0 ]; then
-      abort_with_log "cargo test --workspace failed -- fix before releasing" "$cargo_log" '^test .* FAILED|^test result: FAILED'
+      abort_with_log "$gate_step failed -- fix before releasing" "$cargo_log" '^test .* FAILED|^test result: FAILED|^error'
+    fi
+    if [ -n "$twin_red" ]; then
+      abort_with_log "bin/int check $twin_red failed in the gate's worktree -- CI's rust workflow runs the same step, so fix before releasing" "$twin_log" '^error|^Diff in|^warning'
     fi
     rm -f "$cargo_log"
-    log_info "cargo test green"
+    log_info "rust gate green: cargo build -p intentd, bin/int check format, clippy, panics and doc, then cargo test --workspace -- every cargo step of .github/workflows/rust.yml"
   fi
 
 }

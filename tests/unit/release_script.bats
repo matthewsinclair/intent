@@ -682,3 +682,113 @@ STUB
   [[ "$output" == *"cannot tell whether intentd is running"* ]]
   [[ "$output" == *"the state dir is unreadable"* ]]
 }
+
+# --------------------------------------------------------------------
+# the rust gate runs every cargo step of rust.yml (issue 0501)
+# --------------------------------------------------------------------
+
+# The 3.2.0 tag passed this gate while CI's rust workflow was red on its doc
+# step: the gate ran build and test, and doc is one of the cargo steps `cargo
+# test` does not cover. The gate now runs each such step's devbin twin, `bin/int
+# check <name>`, in its private worktree between the build and the tests. A
+# cargo shim and a bin/int stub stand in for the toolchain, so what is under
+# test is the release script's handling of the twins -- which run, in what
+# order, under what environment, and what a red one does -- never cargo's own
+# findings. Both log OUTSIDE the repo, because pre-flight refuses a dirty tree,
+# and the stub answers pre-flight's `prepush --list-frozen` with an empty list.
+shim_rust_gate() {
+  local repo="$1"
+  local shim_dir="$TEST_TEMP_DIR/cargo-shim"
+  mkdir -p "$shim_dir"
+  cat > "$shim_dir/cargo" <<'EOF'
+#!/usr/bin/env bash
+echo "cargo $*" >> "$RUST_GATE_LOG"
+if [ "$1" = "${CARGO_STUB_FAIL:-}" ]; then
+  echo "error: the cargo $1 step failed" >&2
+  exit 1
+fi
+exit 0
+EOF
+  chmod +x "$shim_dir/cargo"
+  export PATH="$shim_dir:$PATH"
+  export RUST_GATE_LOG="$TEST_TEMP_DIR/rust-gate.log"
+  : > "$RUST_GATE_LOG"
+  cd "$repo" || return 1
+  printf '[workspace]\n' > native/rust/Cargo.toml
+  cat > bin/int <<'EOF'
+#!/usr/bin/env bash
+if [ "$1" = "check" ]; then
+  echo "int check $2 HOME=$HOME CARGO_TARGET_DIR=$CARGO_TARGET_DIR" >> "$RUST_GATE_LOG"
+  if [ "$2" = "${INT_STUB_FAIL:-}" ]; then
+    echo "error: the $2 check found something" >&2
+    exit 1
+  fi
+fi
+exit 0
+EOF
+  chmod +x bin/int
+  git add -A && git commit -q -m "a native manifest and a bin/int stub"
+}
+
+@test "the release gate refuses on a red devbin twin, names it, and never reaches cargo test" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  shim_rust_gate "$repo"
+  export INT_STUB_FAIL=doc
+  run_release --dry-run --patch
+  unset INT_STUB_FAIL
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"bin/int check doc failed in the gate's worktree -- CI's rust workflow runs the same step"* ]]
+  [[ "$output" == *"error: the doc check found something"* ]]
+  [[ "$output" == *"check-doc.log"* ]]
+  [[ "$output" != *"would create tag"* ]]
+  local log
+  log="$(cat "$RUST_GATE_LOG")"
+  [[ "$log" == *"int check doc "* ]]
+  [[ "$log" != *"cargo test"* ]]
+}
+
+@test "the release gate runs every cargo step of rust.yml in the workflow's order, under its own HOME and target dir" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  shim_rust_gate "$repo"
+  run_release --dry-run --patch
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"rust gate green: cargo build -p intentd, bin/int check format, clippy, panics and doc, then cargo test --workspace -- every cargo step of .github/workflows/rust.yml"* ]]
+  [[ "$output" == *"would create tag v2.10.1"* ]]
+  [ "$(sed 's/ HOME=.*//' "$RUST_GATE_LOG")" = "cargo build -p intentd
+int check format
+int check clippy
+int check panics
+int check doc
+cargo test --workspace --no-fail-fast" ]
+  run grep -c -E '^int check [a-z]+ HOME=[^ ]*/intent-release-gate\.[^/ ]+/home CARGO_TARGET_DIR=[^ ]*/intent-release-gate\.[^/ ]+/tree/native/rust/target$' "$RUST_GATE_LOG"
+  [ "$output" = "4" ]
+}
+
+# The refusal names the step that failed (issue 0501, vc's ruling). The gate's
+# two cargo steps share one log and one rc, and the abort used to say "cargo
+# test --workspace failed" whichever had failed -- so a build break sent the
+# reader to the tests, which had not run. A misattributed failure is worse than
+# a swallowed one, and a gate whose whole subject is saying what it ran is the
+# last place to carry one.
+@test "the release gate names the cargo step that actually failed, not the one that never ran" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
+  shim_gh
+  shim_rust_gate "$repo"
+  export CARGO_STUB_FAIL=build
+  run_release --dry-run --patch
+  unset CARGO_STUB_FAIL
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"cargo build -p intentd failed -- fix before releasing"* ]]
+  [[ "$output" != *"cargo test --workspace failed"* ]]
+  [[ "$output" == *"error: the cargo build step failed"* ]]
+  [[ "$output" != *"would create tag"* ]]
+  local log
+  log="$(cat "$RUST_GATE_LOG")"
+  [[ "$log" != *"int check"* ]]
+  [[ "$log" != *"cargo test"* ]]
+}

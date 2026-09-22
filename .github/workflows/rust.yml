@@ -129,8 +129,13 @@ jobs:
         # (devbin_rust_gates.bats pins every CI cargo line to a devbin twin), so
         # `--document-private-items`: the maintainers' docs, private items
         # included, which is also the stricter of the two renderings.
+        #
+        # `-Dwarnings`, NOT `-D warnings`, AND THE SPACE IS THE REASON (issue
+        # 0501). The twin test compares this env with the devbin line's own, and
+        # a devbin `run:` line is word-split and never eval'd, so it cannot carry
+        # a value with a space. rustdoc reads both spellings as one flag.
         env:
-          RUSTDOCFLAGS: -D warnings
+          RUSTDOCFLAGS: -Dwarnings
         run: cargo doc --no-deps --document-private-items
       - name: test (includes the schema-face drift check and the dep-graph guard)
         run: cargo test --workspace --no-fail-fast

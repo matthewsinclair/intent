@@ -40,10 +40,13 @@ WORKFLOW="${ROOT}/.github/workflows/rust.yml"
 # that when the wrapper first landed.
 DEVBIN_RUN_WRAPPER="bin/.devbin/cmd/measured --exec "
 
+#
+# A LINE MAY OPEN WITH `env NAME=value`, and it is kept, because the value is
+# part of the check: the doc twin gates only under RUSTDOCFLAGS (issue 0501).
 devbin_cargo_lines() {
   sed -n 's/^ *run: \(.*\)$/\1/p' "$CONFIG" |
     sed "s|^${DEVBIN_RUN_WRAPPER}||" |
-    grep '^cargo ' || true
+    grep -E '^(env ([A-Z_][A-Z0-9_]*=[^ ]* )+)?cargo ' || true
 }
 
 # Every `run:` line, wrapper prefix intact, for the pin below.
@@ -53,8 +56,33 @@ devbin_run_lines() {
 
 # The cargo command lines CI runs. `rust.yml` is the only workflow that stands
 # in the workspace, so it is the only one whose bare `cargo` lines are comparable.
+#
+# EACH LINE CARRIES ITS STEP'S OWN `env:`, WRITTEN AS `env NAME=value cargo ...`,
+# which is the one form a devbin `run:` line can take. Until issue 0501 this read
+# `run:` alone, and CI's doc step gated under RUSTDOCFLAGS while its devbin twin
+# ran bare and reported: the same command, two verdicts, and this test green over
+# both. The 3.2.0 tag passed `int check doc` with CI's doc step red on it.
+#
+# THE JOB'S `env:` IS NOT READ, DELIBERATELY. It blanks the XDG_* variables so the
+# fixtures stay off the runner's own directories; that is the runner's
+# isolation, not a flag of any check, and a devbin gate runs on a machine whose
+# XDG paths are the user's.
 ci_cargo_lines() {
-  sed -n 's/^ *run: \(cargo .*\)$/\1/p' "$WORKFLOW"
+  awk '
+    /^      - name:/ { env = ""; inenv = 0; next }
+    /^        env:[[:space:]]*$/ { inenv = 1; next }
+    inenv && /^          [A-Z_][A-Z0-9_]*: / {
+      k = $1; sub(/:$/, "", k)
+      v = $0; sub(/^          [A-Z_][A-Z0-9_]*: /, "", v)
+      env = env k "=" v " "
+      next
+    }
+    /^        [a-z]/ { inenv = 0 }
+    /^ *run: cargo / {
+      l = $0; sub(/^ *run: /, "", l)
+      print (env == "" ? "" : "env " env) l
+    }
+  ' "$WORKFLOW"
 }
 
 # Strip the two compensators that exist ONLY because devbin does not stand in

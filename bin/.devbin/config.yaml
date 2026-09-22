@@ -262,48 +262,32 @@ commands:
         summary: rustfmt over the workspace, non-mutating
         run: bin/.devbin/cmd/measured --exec cargo fmt --all --manifest-path native/rust/Cargo.toml --check
 
-      # REPORT-ONLY BY MEASUREMENT, NOT BY CHOICE OF FLAG: `cargo doc` warns on a
-      # broken intra-doc link and STILL EXITS 0. Driven both ways on a throwaway
-      # crate rather than assumed -- no broken link: 0 warnings, rc 0; one broken
-      # link planted: 1 warning naming it, rc 0. So this option reports, and it
-      # can never be the thing that turns `check all` red.
+      # GATES, AS CI DOES, AND IT WAS REPORT-ONLY UNTIL ISSUE 0501. Bare `cargo
+      # doc` warns on a broken intra-doc link and still exits 0, so this option
+      # ran without RUSTDOCFLAGS and reported. CI's doc step gated from issue
+      # 0451 on, under `-D warnings`, and the twin test compared `run:`
+      # lines only, so the two homes disagreed with nothing reporting it: the
+      # 3.2.0 tag passed `int check doc` while CI's doc step was red on it.
       #
-      # SO IT DEVIATES FROM THIS GROUP'S OWN CONTRACT, AND THAT IS WORTH SAYING
-      # OUT LOUD RATHER THAN LEAVING FOR SOMEONE TO FIND. `check` declares itself
-      # as "read-only gates; each exits non-zero on a breach", and this one does
-      # not: it exits 0 over every broken intra-doc link it reports. `toolchain`
-      # does NOT bend the same rule -- it reports that no pin is declared, which
-      # is an absence of breach rather than a breach it forgives.
-      # The deviation ends when the -D flip below lands. Until then the option's
-      # own summary line says report-only, so nobody has to read this far.
+      # `env RUSTDOCFLAGS=-Dwarnings`, THE SAME BYTES AS rust.yml's `env:`. A
+      # `run:` line is word-split and never eval'd, so `-D warnings` with its
+      # space cannot be written here; CI moved to the spelling this line can
+      # carry, rustdoc reads both as one flag, and tests/unit/devbin_rust_gates.bats
+      # now compares the env as well as the command.
       #
-      # WHY IT DOES NOT GATE, WHICH IS A FACT ABOUT WHOSE FILES THESE ARE. The
-      # census on 2026-08-27 found warnings of the kinds below, and only the first
-      # is what this option is for:
-      #     unresolved intra-doc link
-      #     public documentation links to a private item
-      #     unclosed HTML tag
-      #     `todo` is both a function and a macro
-      # The unresolved links lived in crates/intentsvcs and crates/intent-cli --
-      # other lanes' files. Turning this red would fail their commits on a gate
-      # declared here, so it reports until they are cleared. `int check doc`
-      # prints the current warnings; nothing here records how many there are.
+      # THE BLANKET -D IS CI'S DECISION, NOT THIS FILE'S. This comment used to
+      # argue for denying only `rustdoc::broken_intra_doc_links`; a twin that is
+      # narrower than CI is the drift the test exists to catch, so the scope of
+      # the flag is ruled in rust.yml and followed here.
       #
-      # THE GATEABLE FORM IS ONE ENV VAR, AND IT IS MEASURED RATHER THAN ASSERTED:
-      # RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links" returns rc 101 on the
-      # planted link and rc 0 once that same link is repaired. Flip to it when
-      # `int check doc` reports no unresolved intra-doc link. THE OTHER CLASSES
-      # MUST NOT BE SWEPT IN WITH THEM -- a blanket -D over rustdoc's lints would
-      # gate on findings this option was never about, and it would arrive
-      # looking like the same decision.
-      #
-      # THE COST, STATED BECAUSE THE toolchain COMMENT BELOW IS RIGHT ABOUT NOISE:
-      # this adds every rustdoc warning to every `check all`. That is the
-      # harmless kind of noise -- it cannot hide a red, because it cannot
-      # produce one.
+      # THE RELEASE GATE RUNS IT (bin/.devbin/cmd/build.d/release, issue 0501),
+      # with `format`, `clippy` and `panics` above, so a cut that passes its gate
+      # has passed every cargo step of rust.yml. The workflow's three setup steps
+      # (the toolchain record, shellcheck, prettier) are not cargo steps, and the
+      # gate does not run them.
       doc:
-        summary: rustdoc over the workspace, report-only (intra-doc links)
-        run: bin/.devbin/cmd/measured --exec cargo doc --no-deps --document-private-items --manifest-path native/rust/Cargo.toml
+        summary: rustdoc over the workspace, warnings as errors (as CI's doc step)
+        run: bin/.devbin/cmd/measured --exec env RUSTDOCFLAGS=-Dwarnings cargo doc --no-deps --document-private-items --manifest-path native/rust/Cargo.toml
 
       # ON, AND GREEN FOR A STATED REASON RATHER THAN OFF. hv ruled 2026-08-19:
       # Intent does NOT pin its toolchain -- "we're not using asdf, mise, or
