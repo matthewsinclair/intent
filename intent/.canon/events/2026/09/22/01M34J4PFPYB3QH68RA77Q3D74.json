@@ -1,0 +1,15 @@
+{
+  "id": "01M34J4PFPYB3QH68RA77Q3D74",
+  "ts": "2026-09-22T12:41:06.809Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0510"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "the pre-commit gate reports N of N languages enforced when a project has disabled every rule for one"
+  }
+}

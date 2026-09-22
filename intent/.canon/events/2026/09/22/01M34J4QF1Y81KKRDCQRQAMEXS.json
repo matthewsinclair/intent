@@ -1,0 +1,15 @@
+{
+  "id": "01M34J4QF1Y81KKRDCQRQAMEXS",
+  "ts": "2026-09-22T12:41:08.377Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0511"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "wb claim admits only ST addresses, so issue and maintenance work can never be claimed"
+  }
+}
