@@ -28,7 +28,8 @@ pub const WP_STATUS: WpStatus = WpStatus::Wip;
 /// The issue status bare `intent issues` shows.
 pub const ISSUE_STATUS: IssueStatus = IssueStatus::Open;
 
-/// The three kinds, declared in the order the list shows them.
+/// The three kinds, in the order the counts line names them. The rows put
+/// each thread's work packages directly under it, and the issues last.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Kind {
@@ -85,9 +86,11 @@ pub struct WpRef {
   pub seq: u32,
 }
 
-/// How many of one kind are shown, of how many exist, and the statuses that
-/// made them outstanding -- so an empty kind reads as none of N (hv's
-/// narrowed-render rule, 2026-08-28, issue 0121) rather than as missing data.
+/// How many of one kind are outstanding and shown, of how many exist, and the
+/// statuses that made them outstanding -- so an empty kind reads as none of N
+/// (hv's narrowed-render rule, 2026-08-28, issue 0121) rather than as missing
+/// data. A thread shown only as a work package's parent is not outstanding and
+/// is not counted here; [`Outstanding::parents`] counts it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Count {
   pub kind: Kind,
@@ -100,82 +103,102 @@ pub struct Count {
 pub struct Outstanding {
   pub rows: Vec<Row>,
   pub counts: Vec<Count>,
+  /// The threads shown only as a work package's parent: thread rows that no
+  /// status of their own put in the list.
+  pub parents: usize,
 }
 
-/// The outstanding rows of the kinds in `show`: threads, then work packages,
-/// then issues, whatever order `show` names them in.
+/// The outstanding rows of the kinds in `show`, and a count of each kind.
 ///
-/// **EACH KIND IN ITS SIBLING'S ORDER.** `threads` and `issues` arrive as
-/// [`crate::facade::Facade::st_list`] and [`crate::facade::Facade::issue_list`]
-/// return them, which is the order `st list` and `issues` print; work packages
-/// follow their threads in that order, each thread's in sequence order.
+/// **EVERY WORK PACKAGE DIRECTLY UNDER ITS OWN THREAD** (hv, 2026-09-22, ST0079
+/// WP-02). `threads` arrive as [`crate::facade::Facade::st_list`] returns them,
+/// which is the order `st list` prints, and each thread is followed by its WIP
+/// packages in sequence order; the issues follow the last thread, as
+/// [`crate::facade::Facade::issue_list`] returns them. A package always belongs
+/// to a thread, so a WIP package whose thread is not outstanding brings that
+/// thread in as its parent row, with the thread's own status, where `st list`
+/// orders it. With threads not in `show`, the packages are listed alone, in the
+/// same order.
 pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Outstanding {
+  let with_threads = show.contains(&Kind::Thread);
+  let with_packages = show.contains(&Kind::WorkPackage);
   let mut rows = Vec::new();
-  let mut counts = Vec::new();
-  for kind in Kind::ALL.into_iter().filter(|k| show.contains(k)) {
-    let before = rows.len();
-    let (total, statuses) = match kind {
-      Kind::Thread => {
-        rows.extend(
-          threads
-            .iter()
-            .filter(|t| THREAD_STATUSES.contains(&t.status))
-            .map(|t| Row {
-              kind,
-              id: t.id.clone(),
-              status: t.status.display(),
-              title: t.title.clone(),
-              wp: None,
-            }),
-        );
-        (
+  let (mut open, mut parents, mut packages) = (0, 0, 0);
+  for t in threads {
+    let wip: Vec<Row> = t
+      .wps
+      .iter()
+      .filter(|w| with_packages && w.status == WP_STATUS)
+      .map(|w| Row {
+        kind: Kind::WorkPackage,
+        id: format!("{}/{:02}", t.id, w.seq),
+        status: w.status.display(),
+        title: w.title.clone(),
+        wp: Some(WpRef {
+          thread: t.id.clone(),
+          seq: w.seq,
+        }),
+      })
+      .collect();
+    let outstanding = THREAD_STATUSES.contains(&t.status);
+    if with_threads && (outstanding || !wip.is_empty()) {
+      rows.push(Row {
+        kind: Kind::Thread,
+        id: t.id.clone(),
+        status: t.status.display(),
+        title: t.title.clone(),
+        wp: None,
+      });
+      if outstanding {
+        open += 1;
+      } else {
+        parents += 1;
+      }
+    }
+    packages += wip.len();
+    rows.extend(wip);
+  }
+  let open_issues: Vec<Row> = issues
+    .iter()
+    .filter(|i| show.contains(&Kind::Issue) && i.status == ISSUE_STATUS)
+    .map(|i| Row {
+      kind: Kind::Issue,
+      id: format!("{:04}", i.number),
+      status: i.status.display(),
+      title: i.title.clone(),
+      wp: None,
+    })
+    .collect();
+  let issues_shown = open_issues.len();
+  rows.extend(open_issues);
+  let counts = Kind::ALL
+    .into_iter()
+    .filter(|k| show.contains(k))
+    .map(|kind| {
+      let (shown, total, statuses) = match kind {
+        Kind::Thread => (
+          open,
           threads.len(),
           THREAD_STATUSES.iter().map(|s| s.display()).collect(),
-        )
-      }
-      Kind::WorkPackage => {
-        rows.extend(threads.iter().flat_map(|t| {
-          t.wps
-            .iter()
-            .filter(|w| w.status == WP_STATUS)
-            .map(move |w| Row {
-              kind,
-              id: format!("{}/{:02}", t.id, w.seq),
-              status: w.status.display(),
-              title: w.title.clone(),
-              wp: Some(WpRef {
-                thread: t.id.clone(),
-                seq: w.seq,
-              }),
-            })
-        }));
-        (
+        ),
+        Kind::WorkPackage => (
+          packages,
           threads.iter().map(|t| t.wps.len()).sum(),
           vec![WP_STATUS.display()],
-        )
+        ),
+        Kind::Issue => (issues_shown, issues.len(), vec![ISSUE_STATUS.display()]),
+      };
+      Count {
+        kind,
+        shown,
+        total,
+        statuses,
       }
-      Kind::Issue => {
-        rows.extend(
-          issues
-            .iter()
-            .filter(|i| i.status == ISSUE_STATUS)
-            .map(|i| Row {
-              kind,
-              id: format!("{:04}", i.number),
-              status: i.status.display(),
-              title: i.title.clone(),
-              wp: None,
-            }),
-        );
-        (issues.len(), vec![ISSUE_STATUS.display()])
-      }
-    };
-    counts.push(Count {
-      kind,
-      shown: rows.len() - before,
-      total,
-      statuses,
-    });
+    })
+    .collect();
+  Outstanding {
+    rows,
+    counts,
+    parents,
   }
-  Outstanding { rows, counts }
 }

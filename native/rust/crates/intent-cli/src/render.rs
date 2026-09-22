@@ -10388,7 +10388,7 @@ fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
 }
 
 /// One outstanding row's four cells, in hv's column order: Type, ID, Status,
-/// Title (ST0079 `AC-00.1`).
+/// Title (ST0079 `AC-02.1`).
 ///
 /// **ONE HOME FOR BOTH FACES.** `intent outs` prints these as its table and the
 /// explorer's `/outstanding` view lays them into its two columns (`AC-01.1`),
@@ -10402,16 +10402,26 @@ pub fn outstanding_cells(r: &intentsvcs::outstanding::Row) -> [String; 4] {
   ]
 }
 
-/// The counts under the table, one clause per kind shown (ST0079 `AC-00.4`).
+/// The counts under the table, one clause per kind shown (ST0079 `AC-02.3`).
 /// The verb prints them after `outstanding: `, and the explorer's view ends
 /// with them (`AC-01.2`), so both faces count in the same words.
+///
+/// **A PARENT IS COUNTED APART FROM THE OUTSTANDING THREADS.** A thread shown
+/// only because a work package under it is WIP carries its own status, so
+/// counting it inside `threads (WIP)` would say something false about it.
 pub fn outstanding_counts(found: &intentsvcs::outstanding::Outstanding) -> String {
+  use intentsvcs::outstanding::Kind;
   found
     .counts
     .iter()
     .map(|c| {
+      let parents = match (c.kind, found.parents) {
+        (Kind::Thread, 1) => " and 1 as a parent".to_string(),
+        (Kind::Thread, n) if n > 1 => format!(" and {n} as parents"),
+        _ => String::new(),
+      };
       format!(
-        "{} of {} {} ({})",
+        "{} of {} {} ({}){parents}",
         c.shown,
         c.total,
         c.kind.noun(),
@@ -10427,7 +10437,7 @@ pub fn outstanding_counts(found: &intentsvcs::outstanding::Outstanding) -> Strin
 /// bare verb reads them, written through the verb's own cells and counts, each
 /// opening what it names.
 ///
-/// **NOTHING HERE SORTS, GROUPS OR FILTERS**, and that is `AC-00.2`'s *never a
+/// **NOTHING HERE SORTS, GROUPS OR FILTERS**, and that is `AC-02.2`'s *never a
 /// second classifier* one face over: the rows arrive in the order
 /// [`intentsvcs::outstanding`] gives them and are laid out in it.
 pub fn outstanding_view(facade: &Facade) -> Vec<tui::layout::Row> {

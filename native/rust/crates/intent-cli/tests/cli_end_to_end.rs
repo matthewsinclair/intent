@@ -1614,16 +1614,29 @@ fn seed_outstanding(root: &Path) {
   ok(root, &["issues", "close", "2"]);
 }
 
-/// A terminal table's rows as their first two cells, in order: every line
-/// below the rule, up to the first blank line.
-fn first_two_cells(table: &str) -> Vec<(String, String)> {
+/// A terminal table's rows as their cells, in order: every line below the
+/// rule, up to the first blank line.
+fn table_rows(table: &str) -> Vec<Vec<String>> {
   table
     .lines()
     .skip_while(|line| !line.starts_with("--"))
     .skip(1)
     .take_while(|line| !line.trim().is_empty())
     .map(|line| {
-      let mut cells = line.split('|').map(|cell| cell.trim().to_string());
+      line
+        .split('|')
+        .map(|cell| cell.trim().to_string())
+        .collect()
+    })
+    .collect()
+}
+
+/// A terminal table's rows as their first two cells, in order.
+fn first_two_cells(table: &str) -> Vec<(String, String)> {
+  table_rows(table)
+    .into_iter()
+    .map(|cells| {
+      let mut cells = cells.into_iter();
       (
         cells.next().unwrap_or_default(),
         cells.next().unwrap_or_default(),
@@ -1632,9 +1645,27 @@ fn first_two_cells(table: &str) -> Vec<(String, String)> {
     .collect()
 }
 
-/// ST0079 AT-00.1 (AC-00.1): `outstanding` and its alias `outs` print one
-/// table, the kind leftmost and then the columns every kind carries, threads
-/// then work packages then issues, through the list verbs' output layer.
+/// An `intent outs` table's rows as (kind, id, status), in order.
+fn kind_id_status(table: &str) -> Vec<(String, String, String)> {
+  table_rows(table)
+    .into_iter()
+    .map(|cells| {
+      let mut cells = cells.into_iter();
+      (
+        cells.next().unwrap_or_default(),
+        cells.next().unwrap_or_default(),
+        cells.next().unwrap_or_default(),
+      )
+    })
+    .collect()
+}
+
+/// ST0079 AT-02.1 (AC-02.1, which replaced AC-00.1 and its AT-00.1 on
+/// 2026-09-22): `outstanding` and its alias `outs` print one table, the kind
+/// leftmost and then the columns every kind carries, each thread followed
+/// directly by its WIP work packages and the issues after the last thread,
+/// through the list verbs' output layer. The seed's WIP package sits under a
+/// thread still in triage, which comes in as its parent.
 #[test]
 fn outstanding_prints_one_table_with_the_kind_leftmost() {
   let dir = project();
@@ -1655,15 +1686,17 @@ fn outstanding_prints_one_table_with_the_kind_leftmost() {
     .into_iter()
     .map(|(kind, _)| kind)
     .collect();
-  assert_eq!(kinds, ["ST", "WP", "Issue"]);
+  assert_eq!(kinds, ["ST", "WP", "ST", "Issue"]);
 
   let md = ok(root, &["outs", "--format", "md"]);
   assert!(md.starts_with("| Type"), "`--format md` renders GFM: {md}");
 }
 
-/// ST0079 AT-00.2 (AC-00.2): its threads are bare `st list`'s rows and its
+/// ST0079 AT-02.2 (AC-02.2, which replaced AC-00.2 and its AT-00.2 on
+/// 2026-09-22): its outstanding threads are bare `st list`'s rows and its
 /// issues bare `issues`'s, in their order; a work package is listed when it is
-/// WIP, whatever its thread's status.
+/// WIP, whatever its thread's status, and a thread `st list` does not list
+/// comes in as that package's parent row, with its own status.
 #[test]
 fn outstanding_lists_what_bare_st_list_and_issues_list() {
   let dir = project();
@@ -1673,12 +1706,12 @@ fn outstanding_lists_what_bare_st_list_and_issues_list() {
   ok(root, &["st", "start", "ST0003"]);
   ok(root, &["issues", "add", "a second open issue"]);
 
-  let rows = first_two_cells(&ok(root, &["outs"]));
-  let ids_of = |kind: &str| -> Vec<String> {
+  let rows = kind_id_status(&ok(root, &["outs"]));
+  let ids_where = |keep: fn(&(String, String, String)) -> bool| -> Vec<String> {
     rows
       .iter()
-      .filter(|(k, _)| k == kind)
-      .map(|(_, id)| id.clone())
+      .filter(|row| keep(row))
+      .map(|(_, id, _)| id.clone())
       .collect()
   };
   let st_list: Vec<String> = first_two_cells(&ok(root, &["st", "list"]))
@@ -1689,33 +1722,43 @@ fn outstanding_lists_what_bare_st_list_and_issues_list() {
     .into_iter()
     .map(|(id, _)| id)
     .collect();
-  assert_eq!(ids_of("ST"), st_list);
-  assert_eq!(ids_of("Issue"), issues);
   assert_eq!(
-    ids_of("WP"),
+    ids_where(|(kind, _, status)| kind == "ST" && status == "WIP"),
+    st_list
+  );
+  assert_eq!(ids_where(|(kind, _, _)| kind == "Issue"), issues);
+  assert_eq!(
+    ids_where(|(kind, _, _)| kind == "WP"),
     ["ST0002/01"],
-    "the WIP package under the unstarted thread, never the unstarted one under the WIP thread"
+    "the WIP package under the thread in triage, never the unstarted one under the WIP thread"
+  );
+  assert_eq!(
+    ids_where(|(kind, _, status)| kind == "ST" && status == "Triage"),
+    ["ST0002"],
+    "the thread `st list` hides comes in as its WIP package's parent, with its own status"
   );
 }
 
 /// ST0079 AT-00.3 (AC-00.3): `--show` takes a comma-separated list and shows
 /// those kinds and no other, and an unknown kind is refused with the values
-/// it accepts.
+/// it accepts. Which kinds, never their order: the order is AT-02.1's.
 #[test]
 fn show_narrows_to_the_kinds_named_and_refuses_an_unknown_one() {
+  use std::collections::BTreeSet;
   let dir = project();
   let root = dir.path();
   seed_outstanding(root);
 
-  let kinds = |show: &str| -> Vec<String> {
+  let kinds = |show: &str| -> BTreeSet<String> {
     first_two_cells(&ok(root, &["outs", "--show", show]))
       .into_iter()
       .map(|(kind, _)| kind)
       .collect()
   };
-  assert_eq!(kinds("issue,st"), ["ST", "Issue"]);
-  assert_eq!(kinds("wp"), ["WP"]);
-  assert_eq!(kinds("all"), ["ST", "WP", "Issue"]);
+  let set = |kinds: &[&str]| -> BTreeSet<String> { kinds.iter().map(|k| k.to_string()).collect() };
+  assert_eq!(kinds("issue,st"), set(&["ST", "Issue"]));
+  assert_eq!(kinds("wp"), set(&["WP"]));
+  assert_eq!(kinds("all"), set(&["ST", "WP", "Issue"]));
 
   let refused = run(root, &["outs", "--show", "threads"]);
   assert_eq!(refused.status.code(), Some(EXIT_ERROR));
@@ -1726,8 +1769,10 @@ fn show_narrows_to_the_kinds_named_and_refuses_an_unknown_one() {
   );
 }
 
-/// ST0079 AT-00.4 (AC-00.4): one line counts each kind shown against how many
-/// exist, and with nothing outstanding it is printed alone.
+/// ST0079 AT-02.3 (AC-02.3, which replaced AC-00.4 and its AT-00.4 on
+/// 2026-09-22): one line counts each kind shown against how many exist, a
+/// thread shown only as a work package's parent counted apart from the
+/// outstanding threads, and with nothing outstanding it is printed alone.
 #[test]
 fn the_counts_line_says_none_of_n_rather_than_printing_an_empty_table() {
   let dir = project();
@@ -1735,7 +1780,9 @@ fn the_counts_line_says_none_of_n_rather_than_printing_an_empty_table() {
   seed_outstanding(root);
   assert_eq!(
     ok(root, &["outs"]).lines().last(),
-    Some("outstanding: 1 of 2 threads (WIP), 1 of 2 work packages (WIP), 1 of 2 issues (OPEN)")
+    Some(
+      "outstanding: 1 of 2 threads (WIP) and 1 as a parent, 1 of 2 work packages (WIP), 1 of 2 issues (OPEN)"
+    )
   );
 
   let quiet = project();
@@ -1743,6 +1790,66 @@ fn the_counts_line_says_none_of_n_rather_than_printing_an_empty_table() {
   assert_eq!(
     ok(quiet.path(), &["outs"]),
     "outstanding: 0 of 1 threads (WIP), 0 of 0 work packages (WIP), 0 of 0 issues (OPEN)\n"
+  );
+}
+
+/// ST0079 AT-02.1, AT-02.2 and AT-02.3 on the fixture vc judged (2026-09-22):
+/// a HELD thread between two WIP ones, a WIP package under each, and an open
+/// issue. Each package sits directly under its own thread; the held thread
+/// comes in as its package's parent with its own status, where
+/// `st list --status all` places it rather than after the WIP threads, which
+/// is why it is held and in the middle; and the counts line counts it apart.
+#[test]
+fn a_work_package_is_listed_directly_under_its_own_thread() {
+  let dir = project();
+  let root = dir.path();
+  for title in ["first open thread", "held thread", "second open thread"] {
+    ok(root, &["st", "new", title]);
+  }
+  for st in ["ST0001", "ST0002", "ST0003"] {
+    ok(root, &["st", "start", st]);
+    ok(root, &["wp", "new", st, "busy package"]);
+    ok(root, &["wp", "start", &format!("{st}/01")]);
+  }
+  ok(
+    root,
+    &["st", "hold", "ST0002", "--reason", "waiting on a ruling"],
+  );
+  ok(root, &["issues", "add", "an open issue"]);
+
+  let table = ok(root, &["outs"]);
+  let row =
+    |kind: &str, id: &str, status: &str| (kind.to_string(), id.to_string(), status.to_string());
+  assert_eq!(
+    kind_id_status(&table),
+    [
+      row("ST", "ST0003", "WIP"),
+      row("WP", "ST0003/01", "WIP"),
+      row("ST", "ST0002", "On Hold"),
+      row("WP", "ST0002/01", "WIP"),
+      row("ST", "ST0001", "WIP"),
+      row("WP", "ST0001/01", "WIP"),
+      row("Issue", "0001", "OPEN"),
+    ]
+  );
+  let threads_listed: Vec<String> = first_two_cells(&table)
+    .into_iter()
+    .filter(|(kind, _)| kind == "ST")
+    .map(|(_, id)| id)
+    .collect();
+  let st_list_all: Vec<String> = first_two_cells(&ok(root, &["st", "list", "--status", "all"]))
+    .into_iter()
+    .map(|(id, _)| id)
+    .collect();
+  assert_eq!(
+    threads_listed, st_list_all,
+    "the held parent sits where `st list` puts it"
+  );
+  assert_eq!(
+    table.lines().last(),
+    Some(
+      "outstanding: 2 of 3 threads (WIP) and 1 as a parent, 3 of 3 work packages (WIP), 1 of 1 issues (OPEN)"
+    )
   );
 }
 
@@ -1784,7 +1891,11 @@ fn outstanding_is_an_mcp_read_serving_the_same_rows() {
     .iter()
     .map(|row| row["id"].as_str().unwrap_or_default())
     .collect();
-  assert_eq!(ids, ["ST0001", "ST0002/01", "0001"]);
+  let printed: Vec<String> = first_two_cells(&ok(root, &["outs"]))
+    .into_iter()
+    .map(|(_, id)| id)
+    .collect();
+  assert_eq!(ids, printed, "the rows the verb prints, in its order");
 
   let listed = frames
     .iter()

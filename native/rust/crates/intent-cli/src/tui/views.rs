@@ -246,7 +246,7 @@ pub fn nearest_project(rows: &[Row], here: &std::path::Path) -> Option<usize> {
 /// opens, so Enter goes where it would from `/threads` or `/issues`.
 ///
 /// **THE COUNTS END THE VIEW, AND WITH NO ROWS THEY ARE THE VIEW** -- none of N
-/// rather than an empty body, as the verb prints them (`AC-00.4`).
+/// rather than an empty body, as the verb prints them (`AC-02.3`).
 pub fn outstanding_rows(rows: &[([String; 4], Option<View>)], counts: &str) -> Vec<Row> {
   let widest = |at: usize| {
     rows
