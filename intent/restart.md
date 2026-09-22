@@ -56,6 +56,7 @@
 ## Asking and answering
 
 - An ask names what was seen and what was expected. The fixer names the mechanism, after reading the source.
+- A ruling that SHAPES A BANK goes into the unit's own record before the work starts -- an issue's body, a thread's AC rows -- because a ruling that lives only in the live channel dies at the next compact, on either side, and the node that loses it cannot tell what it is missing.
 
 ## Shared checkout and shared store
 
