@@ -1,9 +1,9 @@
 ---
 st_id: ST0079
 title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
-status: WIP
+status: Completed
 created: 2026-09-21
-completed:
+completed: 2026-09-22
 ---
 
 # ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb
@@ -23,7 +23,7 @@ It is a merge of three row lists the list verbs already produce, rendered throug
 | WP    | Title                                                                         | Size | Status |
 | ----- | ----------------------------------------------------------------------------- | ---- | ------ |
 | WP-01 | TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI | S    | Done   |
-| WP-02 | outs shows each open WP directly underneath its own ST                        | S    | WIP    |
+| WP-02 | outs shows each open WP directly underneath its own ST                        | S    | Done   |
 
 ## Acceptance
 

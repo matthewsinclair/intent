@@ -4,9 +4,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb
-  - [x] 01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
-  - [-] 02: outs shows each open WP directly underneath its own ST
+_(none)_
 
 ## TODO
 
@@ -107,6 +105,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 03: P3: the store after a pull -- store-stale shown on a default doctor run, a CLI door for the non-destructive ingest, post-merge/post-checkout/post-rewrite hooks wired by claude upgrade --apply
   - [x] 04: P4: working in a team -- the docs/concepts page written from driven commands, the-store.md corrections, a CI doctor job on the merge result
   - [x] 05: P5: one command after a pull -- bare intent sync prints the plan for this clone, --apply applies it, --to-disk and --to-store keep their meanings; quiet, reversible and non-reversible steps, --yes for the reversible asks, the hooks run the quiet subset
+- [x] ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb
+  - [x] 01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
+  - [x] 02: outs shows each open WP directly underneath its own ST
 
 ---
 

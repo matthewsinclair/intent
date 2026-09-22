@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: outs shows each open WP directly underneath its own ST
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: outs shows each open WP directly underneath its own ST

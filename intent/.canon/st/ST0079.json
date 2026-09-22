@@ -3,8 +3,9 @@
   "id": "ST0079",
   "title": "Add 'outs[tanding]' verb to show all outstanding items from a single verb",
   "slug": "add-outs-standing-verb-to-show-all-outstanding-i",
-  "status": "wip",
+  "status": "completed",
   "created": "2026-09-21",
+  "completed": "2026-09-22",
   "objective": "`intent outstanding`, with the alias `intent outs`, prints everything open and in progress in one table: the steel threads bare `intent st list` shows, the work packages in progress under any thread, and the issues bare `intent issues` shows. One row each, the kind (ST, WP or Issue) in the leftmost column, then the ID, status and title all three kinds carry. `--show` narrows the table to the kinds it names.",
   "context": "hv's ask (2026-09-21, relayed by vc): a snapshot of what is open takes three commands today -- `intent st list && echo \" \" && intent issues`, plus `intent wp list` per thread for the packages -- and should take one, `intent outs[tanding] --show=[st,wp,is[sue],all]`: a single table with a type column at the far left, then the columns that work for ST, WP and Issue.\n\nIt is a merge of three row lists the list verbs already produce, rendered through the output layer they already share (`--format`, `--width`, `--markdown`), so it adds no second classifier and no second renderer. What counts as outstanding is the sibling verbs' own defaults: a thread at WIP (bare `st list`), an issue OPEN (bare `issues`), and a work package at WIP. Those defaults live in the CLI's renderer today; they move into intentsvcs as one definition that `st list`, `issues` and `outstanding` all read, so the new verb and its siblings cannot disagree about what is open.",
   "body": "",
@@ -23,7 +24,7 @@
       "seq": 2,
       "title": "outs shows each open WP directly underneath its own ST",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "hv's TODO of 2026-09-22, verbatim: \"TODO: In the verb 'intent outs' we need to ensure that any open WPs are shown merged in directly underneath their own ST. At the moment, we are just showing STs then WPs then Issues. The WPs are relevant as WPs for a particular ST and should be show underneath each ST to which they belong.\"\n\nhv's ruling on a WIP work package under a thread bare `intent st list` does not show, in prose the same morning: \"That is fine. But there is never a case where a WP exists that is not part of an ST. So that distinction is clear and should be trivially catered for.\"\n\nSo each thread is followed directly by its WIP work packages, in sequence order, and the issues follow the last thread. A thread `st list` hides comes in as its package's parent row, with the thread's own status, where `intent st list --status all` places it, and the counts line counts it apart from the outstanding threads. The order has one home, `intentsvcs::outstanding`, so `intent outs`, the MCP tool and the explorer's `/outstanding` all follow it.",
       "body": "",
       "preamble": ""
@@ -223,6 +224,36 @@
       ],
       "status": "green",
       "note": "red on the base by its shared test crate: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile (six errors, in AT-01.1 to AT-01.3), so this test cannot run there (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "green",
+      "note": "red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "green",
+      "note": "red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0"
     }
   ]
 }

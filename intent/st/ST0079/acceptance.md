@@ -28,11 +28,11 @@ title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 - AC-01.3 Enter on a row opens that thread, work package or issue, and Backspace returns to the view. -- satisfied: yes (computed)
 - AC-01.4 An argument after the command is refused on the info row, and nothing runs. -- satisfied: yes (computed)
 
-### WP-02 -- outs shows each open WP directly underneath its own ST (status: WIP)
+### WP-02 -- outs shows each open WP directly underneath its own ST (status: Done)
 
-- AC-02.1 `intent outstanding` and its alias `intent outs` print one table of every outstanding steel thread, work package and issue, through the list verbs' shared output layer (`--format`, `--width`, `--markdown`): the kind (ST, WP or Issue) in the leftmost column, then ID, Status and Title, each thread followed directly by its WIP work packages in sequence order, and the issues after the last thread. -- satisfied: no (computed)
-- AC-02.2 The outstanding threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN, and a thread bare `intent st list` does not list is shown as that work package's parent row, with the thread's own status, placed among the threads where `intent st list --status all` places it. -- satisfied: no (computed)
-- AC-02.3 Below the table one line counts the rows of each kind shown against how many of that kind exist, and a thread shown only as a work package's parent is counted apart from the outstanding threads; with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data. -- satisfied: no (computed)
+- AC-02.1 `intent outstanding` and its alias `intent outs` print one table of every outstanding steel thread, work package and issue, through the list verbs' shared output layer (`--format`, `--width`, `--markdown`): the kind (ST, WP or Issue) in the leftmost column, then ID, Status and Title, each thread followed directly by its WIP work packages in sequence order, and the issues after the last thread. -- satisfied: yes (computed)
+- AC-02.2 The outstanding threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN, and a thread bare `intent st list` does not list is shown as that work package's parent row, with the thread's own status, placed among the threads where `intent st list --status all` places it. -- satisfied: yes (computed)
+- AC-02.3 Below the table one line counts the rows of each kind shown against how many of that kind exist, and a thread shown only as a work package's parent is counted apart from the outstanding threads; with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data. -- satisfied: yes (computed)
 
 ## Acceptance Tests
 
@@ -51,9 +51,11 @@ title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 - AT-01.3 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.3 -- status: green -- red on the base: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile: E0425 no `render::outstanding_view` at cli_end_to_end.rs:1943 and E0599 no `View::Outstanding` at :1980 (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 - AT-01.4 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.4 -- status: green -- red on the base by its shared test crate: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile (six errors, in AT-01.1 to AT-01.3), so this test cannot run there (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 
-### WP-02 -- outs shows each open WP directly underneath its own ST (status: WIP)
+### WP-02 -- outs shows each open WP directly underneath its own ST (status: Done)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-02.1 -- status: green -- red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0
+- AT-02.2 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-02.2 -- status: green -- red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0
+- AT-02.3 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-02.3 -- status: green -- red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0
 
 ---
 

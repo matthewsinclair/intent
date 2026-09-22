@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 07:51Z
+heartbeat_at: 2026-09-22 09:16Z
 status: active
-focus: "ST0079/02 (outs nests each WIP WP under its own thread): chain open, code in cc's worktree wt-cc-train; then the four NEXT-LINE items. NO PUSH, NO RELEASE."
-claims: [ST0079/02]
+focus: "ST0079 closed on WP-02's landing (8d1103b3d). Next: nextline-b, then nextline-d (announced), then (c) live under vc's four conditions. NO PUSH, NO RELEASE."
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- **ST0079/02 (S), cc's, on hv's go through vc (2026-09-22 07:35Z).** `intent outs` lists each WIP work package directly under its own thread; a thread bare `st list` hides is shown as its package's parent with its own status, placed where `st list --status all` places it; the counts line counts parents apart. AC-00.1, AC-00.2 and AC-00.4 withdrawn with hv's TODO as the reason, AC-02.1 to AC-02.3 minted under WP-02. Code built in cc's scratchpad worktree wt-cc-train on 6b7d38a4d; one whole-suite run, then the bank to vc. THEN the four NEXT-LINE items in vc's order: restart.md:43's sentence, the seal test's vendored pin, the dispatch-table header through its generator, the header guard's re-stage text. NO PUSH, NO RELEASE.
+- **RESUME HERE (cc, 2026-09-22).** ST0079 is CLOSED: WP-02 landed at 8d1103b3d (patch-id 71717e948371, as vc judged), AT-02.1 to AT-02.3 minted red on b14471926 and green on the landing, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart. NEXT, in vc's order: land nextline-b (refs/bank/cc/nextline-b/patch, patch-id 69e9ab9056eb) and nextline-d (refs/bank/cc/nextline-d/patch, patch-id a373321a610c, announced because lib/templates is read live), each its own chain on vc's word; then (c), the dispatch-table header, in its own chain under vc's four conditions, using scratchpad/next-c/edit-and-verify.sh. vc rebuilds after the landings so hv's CLI and explorer both show the nesting. NO PUSH, NO RELEASE.
 
 ## TODO
 
