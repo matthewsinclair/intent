@@ -97,8 +97,40 @@ GUARDS=(
   # NAMING THE CONFIG AND NOT `intent` IS WHAT MAKES THE ROW READ TRUE. A wider
   # path would dispatch it in a project whose config had been removed, where it
   # cannot answer at all, and `--list-guards` would report it applicable.
-  'intent/.config/config.json|staged-format-guard.sh|staged bytes are UNCHECKED against the declared formatters'
+  'intent/.config/config.json|staged-format-guard.sh|staged bytes are UNCHECKED against the declared formatters|self'
 )
+
+# ---- THE ROSTER ROW'S SHAPE HAS ONE HOME, AND THESE TWO FUNCTIONS ARE IT ----
+#
+# A row is `applies-when|guard|unchecked-prose` with an OPTIONAL fourth field,
+# `self`, declaring that the guard settles its own applicability (issue 0515).
+# Both loops below need to read it and neither may spell the split itself: the
+# prose field used to be `${g_rest#*|}`, which takes the REST OF THE LINE, so a
+# fourth field would have landed silently inside the prose in one loop and been
+# invisible in the other. **That is the same defect as `int hooks` reading five
+# tab columns where a sixth would land inside the fifth** -- the shape below
+# records it once so a fifth roster field cannot reintroduce it.
+#
+# THE PROSE FIELD MUST NOT CONTAIN A PIPE. It does not today, measured across
+# the whole roster before this split was written, and the cost of one appearing
+# is that its tail would read as a flag. A row is authored here and nowhere
+# else, so this is a rule for whoever adds the next one rather than a parse to
+# harden -- stated because an unstated invariant is how the next reader breaks it.
+
+# The unchecked-prose field: everything after the guard name, minus any flags.
+roster_unchecked() {  # roster_unchecked "<guard>|<prose>[|<flag>]"
+  local tail="${1#*|}"
+  printf '%s' "${tail%%|*}"
+}
+
+# The self-classification flag, empty when the row does not declare one.
+roster_self() {  # roster_self "<guard>|<prose>[|<flag>]"
+  local tail="${1#*|}"
+  case "$tail" in
+    *\|*) printf '%s' "${tail#*|}" ;;
+    *) printf '' ;;
+  esac
+}
 
 # THE GUARDS ARE THIS FILE'S SIBLINGS, BY CONSTRUCTION.
 #
@@ -220,6 +252,7 @@ if [ "${1:-}" = "--list-guards" ]; then
     g_when="${g_entry%%|*}"
     g_rest="${g_entry#*|}"
     g_name="${g_rest%%|*}"
+    g_self="$(roster_self "$g_rest")"
     if [ ! -f "$GUARD_HOME/$g_name" ]; then
       g_state="MISSING"
     elif [ ! -e "$g_when" ]; then
@@ -227,25 +260,22 @@ if [ "${1:-}" = "--list-guards" ]; then
       # the same reason the dispatch loop keeps them apart: a project with a
       # board and no canon has no hole where the canon guard would be.
       #
-      # **AND THIS COLUMN CANNOT CARRY THE OTHER KIND OF NOT-APPLICABLE, WHICH
-      # IS A LIMIT AND NOT AN OVERSIGHT** (issue 0506, whose expected fix asked
-      # for it here). A guard that settles its own applicability -- from a
-      # DECLARATION rather than a path -- can only be asked by being RUN, and
-      # this arm returns before any dispatch on purpose: the header above
-      # records what it cost the last time a read-only report answered a
-      # question by running the thing. So a self-classifying guard reads
-      # `present` here, meaning the roster's path test says yes and nothing was
-      # asked beyond that, and its real answer appears in the RUN's tally where
-      # it was paid for.
-      #
-      # WHAT IT WOULD TAKE, so the next reader does not re-derive it: the
-      # roster row would have to DECLARE that a guard self-classifies, which
-      # means a fourth field. `g_unchecked` is `${g_rest#*|}` and takes the rest
-      # of the line, so a fourth field lands inside it -- the parse moves, every
-      # row moves, and readers that split this output move with them. That is a
-      # roster-format change and it is deliberately not smuggled in under a
-      # classification fix.
+      # **AND THE OTHER KIND OF NOT-APPLICABLE NOW HAS A WORD HERE TOO, ONE
+      # ARM DOWN** (issue 0515, closing what 0506 could not). A guard whose
+      # applicability is a DECLARATION rather than a path cannot be asked
+      # without being RUN, and this arm returns before any dispatch on purpose:
+      # the header above records what it cost the last time a read-only report
+      # answered a question by running the thing. So the roster DECLARES it and
+      # nothing is executed to find out.
       g_state="not-applicable"
+    elif [ -n "$g_self" ]; then
+      # **THIS SAYS THE GUARD DECIDES, NOT WHAT IT DECIDED**, and the
+      # distinction is the whole honesty of the column. The roster's path test
+      # says yes; whether the guard then finds itself applicable is a fact
+      # about THIS COMMIT, which only the run knows. A reader learns WHICH
+      # guards settle their own applicability and must read the run's tally to
+      # learn what any of them answered.
+      g_state="self-classifying"
     else
       g_state="present"
     fi
@@ -283,7 +313,7 @@ for g_entry in "${GUARDS[@]}"; do
   g_when="${g_entry%%|*}"
   g_rest="${g_entry#*|}"
   g_name="${g_rest%%|*}"
-  g_unchecked="${g_rest#*|}"
+  g_unchecked="$(roster_unchecked "$g_rest")"
 
   # NOT APPLICABLE IS SILENT, AND ABSENT IS LOUD. A project with a board and no
   # canon must not be told a canon guard did not run -- it has nothing to guard,

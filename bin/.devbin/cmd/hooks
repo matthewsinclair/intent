@@ -415,6 +415,10 @@ shipped_guards() {
         fi
         ;;
       not-applicable) printf '                 %s: %s  -- NOT APPLICABLE here (%s is absent), so nothing goes unchecked\n' "$owner" "$name" "$when" ;;
+      # THE GUARD DECIDES, PER COMMIT, WHETHER IT APPLIES (issue 0515). Not a
+      # fault, so not the `<-` arm below: this row is as installed as `present`,
+      # and what it answered for any one commit is in that run's tally, not here.
+      self-classifying) printf '                 %s: %s  (%s exists; the guard settles per commit whether it applies)\n' "$owner" "$name" "$when" ;;
       MISSING) printf '                 %s: %s  <- MISSING at %s\n' "$owner" "$name" "$path" ;;
       *) printf '                 %s: %s  <- %s (%s)\n' "$owner" "$name" "$state" "$path" ;;
     esac

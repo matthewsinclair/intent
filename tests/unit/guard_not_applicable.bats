@@ -146,3 +146,102 @@ scratch_repo() {
   [ "$d_skip" -eq $((u_skip - 1)) ]
   [ $((u_ran + u_skip)) -eq $((d_ran + d_skip)) ]
 }
+
+# ---------------------------------------------------------------------------
+# `--list-guards` carries the fourth answer as a DECLARED state (issue 0515)
+# ---------------------------------------------------------------------------
+
+@test "--list-guards names a self-classifying guard as such, without running it" {
+  # 0506 left this column unable to say it, because the arm returns before any
+  # dispatch on purpose. The roster now DECLARES it, so nothing is executed.
+  #
+  # **THE REPO IS BUILT RATHER THAN INHERITED, and the first version of this arm
+  # did not do that and was wrong.** `--list-guards` settles the roster's PATH
+  # test before it reads the declaration, so in a directory without
+  # `intent/.config/config.json` every row reads `not-applicable` and the
+  # declaration is never reached. Run from the source tree it passed; run by
+  # bats in a temp CWD it failed, and the arm was measuring the directory it
+  # happened to be given. A test decides its own environment or it measures the
+  # machine it runs on.
+  scratch_repo ""
+  run bash "$RUNNER" --list-guards
+  [ "$status" -eq 0 ]
+  local row
+  row="$(printf '%s\n' "$output" | grep 'staged-format-guard.sh')"
+  [ -n "$row" ]
+  [ "$(printf '%s' "$row" | awk -F'\t' '{print $4}')" = "self-classifying" ]
+}
+
+@test "THE CONTROL: an applicable guard that does NOT self-declare reads present" {
+  # The discriminator is the roster's fourth field and nothing else, so the
+  # control must be a guard whose path test ALSO passes here -- otherwise it
+  # reads `not-applicable` and agrees with the arm above for the wrong reason.
+  # `append-only-guard.sh` applies when `intent` exists, which `scratch_repo`
+  # creates. Without this, a runner printing `self-classifying` on every row
+  # would satisfy the arm above.
+  scratch_repo ""
+  run bash "$RUNNER" --list-guards
+  [ "$status" -eq 0 ]
+  local row
+  row="$(printf '%s\n' "$output" | grep 'append-only-guard.sh')"
+  [ -n "$row" ]
+  [ "$(printf '%s' "$row" | awk -F'\t' '{print $4}')" = "present" ]
+}
+
+@test "every row still carries exactly FIVE tab columns" {
+  # **THE ARM THAT PROTECTS THE CONSUMERS**, and the reason 0515 added a state
+  # VALUE rather than a sixth column. `bin/.devbin/cmd/hooks` reads five fields
+  # with `read -r name path when state owner`, so a sixth would land inside
+  # `owner` and silently flip every row from `declared` to `shipped`; and
+  # `migrated_guards_still_refuse.rs` asserts `r.len() == 5` and would fail
+  # loudly. One consumer breaks silently and one breaks loudly, which is the
+  # worst possible pair, so the column count is pinned here too.
+  run bash "$RUNNER" --list-guards
+  [ "$status" -eq 0 ]
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    [ "$(printf '%s' "$line" | awk -F'\t' '{print NF}')" -eq 5 ]
+  done <<< "$output"
+}
+
+@test "the roster row's shape has ONE home, and it reads both arities" {
+  # The prose field was `${g_rest#*|}` -- the REST of the line -- in one loop
+  # and unread in the other, so a fourth field would have landed inside the
+  # prose silently. Both loops now go through these, and the arm drives them on
+  # a three-field row and a four-field row rather than asserting the source.
+  # shellcheck disable=SC1090
+  source <(sed -n '/^roster_unchecked()/,/^}/p;/^roster_self()/,/^}/p' "$RUNNER")
+  [ "$(roster_unchecked 'g.sh|timestamps are UNCHECKED')" = "timestamps are UNCHECKED" ]
+  [ -z "$(roster_self 'g.sh|timestamps are UNCHECKED')" ]
+  [ "$(roster_unchecked 'g.sh|staged bytes are UNCHECKED|self')" = "staged bytes are UNCHECKED" ]
+  [ "$(roster_self 'g.sh|staged bytes are UNCHECKED|self')" = "self" ]
+}
+
+@test "int hooks renders self-classifying as its own state, not through the fault arm" {
+  # vc's ruling on 0515: `cmd/hooks` is the project's, not devbin's (the
+  # manifest header lists `cmd/` as the project's), so the state gets a real
+  # arm. The `<-` arm is how MISSING and every unknown state render, and a
+  # declared state reading like a fault is the collapse that arm exists to catch.
+  # The runner is planted, so the arm judges the RENDER and nothing else.
+  local home="$TEST_TEMP_DIR/home"
+  mkdir -p "$home/lib/templates/hooks"
+  cat > "$home/lib/templates/hooks/pre-commit-guards.sh" <<'RUNNER'
+if [ "${1:-}" = "--list-guards" ]; then
+  printf 'sfg.sh\t/x/sfg.sh\tcfg.json\tself-classifying\tintent\n'
+  printf 'odd.sh\t/x/odd.sh\tcfg.json\tbogus-state\tintent\n'
+fi
+RUNNER
+  # shellcheck disable=SC1090
+  source <(sed -n '/^shipped_guards()/,/^}/p' "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/hooks")
+  # `shipped_guards` declares its own `local home`, so the stub must not read
+  # that name: bash scopes dynamically and would hand it the empty local.
+  FAKE_HOME="$home"
+  resolve_guard_home() { GUARD_HOME="$FAKE_HOME"; GUARD_HOME_FROM="test"; }
+  run shipped_guards
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -q 'shipped: sfg.sh  (cfg.json exists; the guard settles per commit whether it applies)'
+  [[ "$output" != *"sfg.sh  <-"* ]]
+  # THE CONTROL: an unknown state still reaches the fault arm, so the arm above
+  # is not green because the fault arm stopped rendering anything.
+  printf '%s\n' "$output" | grep -q 'shipped: odd.sh  <- bogus-state (/x/odd.sh)'
+}
