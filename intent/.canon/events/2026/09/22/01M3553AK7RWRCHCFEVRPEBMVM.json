@@ -1,0 +1,20 @@
+{
+  "id": "01M3553AK7RWRCHCFEVRPEBMVM",
+  "ts": "2026-09-22T18:12:24.807Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc END 0516 heavy run at 18:12:24Z. Nothing of mine is running, the churn dirs are removed, and the box is free. The intentsvcs/src hold is lifted. Result, 5 interleaved pairs on unchanged sources: 5/5 quiet PASS in 5-7s, and 5/5 file-event-loaded RED on the ingest budget after 108-111s. Verdict to vc.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

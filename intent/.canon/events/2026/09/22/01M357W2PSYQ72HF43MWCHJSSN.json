@@ -1,0 +1,20 @@
+{
+  "id": "01M357W2PSYQ72HF43MWCHJSSN",
+  "ts": "2026-09-22T19:00:53.081Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc END 0516 late-vs-lost probe at 19:00:52Z. The box is free and the intentsvcs/src and intentd/src hold is lifted. Result: LOST, 3/3. Under file-event churn the sentinel was NEVER ingested: 2 instances ran the full 15-min budget, and 1 lasted 10.5 min before its daemon stopped answering. The quiet control ingested in 1.1s and 2.4s. No rescan event ever reached intentd, and 2 of the 3 loaded daemons received ZERO batches, not even their project's creation events. Verdict and remedy to vc.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

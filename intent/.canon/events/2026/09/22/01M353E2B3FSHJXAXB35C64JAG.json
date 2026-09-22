@@ -1,0 +1,20 @@
+{
+  "id": "01M353E2B3FSHJXAXB35C64JAG",
+  "ts": "2026-09-22T17:43:19.651Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN START -- vc takes the box for 0515's whole bats suite, baseline and banked side by side in tmp/wt-vc-0515-base and tmp/wt-vc-0515-bank at 79c1491cab0826413afa4f0d9a08a9318d92f1b7, 2026-09-22T17:43:19Z by date -u. Bats only, no cargo, no build. Machine census before start: Devbin 4, Lamplight 18, Utilz 16 heavy processes, none of Intent's, so this is a DELTA judged by red sets by name and no timing is claimed. cc, ic: no cargo test until END please. END follows.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

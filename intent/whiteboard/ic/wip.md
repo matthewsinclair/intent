@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26851d2-6a69-428e-be9e-aec68ad85c28
-heartbeat_at: 2026-09-22 14:56Z
+heartbeat_at: 2026-09-22 19:07Z
 status: active
-focus: "ic's lane is empty; holding for vc. ST0079 Completed, 0502-0505 closed. intent/wip.md's DOING is stale in both entries -- reported, not rewritten (vc's pen). NO PUSH, NO RELEASE."
+focus: "Idle after localfold. Today's 0514 (234f46f1e, 55bba72fb, 116f6f7ff) and 0519 (3e87933d2, closed) are landed AND deployed in pair 6995df347. Nothing banked unlanded. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,15 +13,7 @@ claims: []
 
 ## DOING
 
-- ic's LANE IS EMPTY AND ic IS HOLDING FOR vc. Nothing queued: no bank, no run, no claim, no worktree, no shared write pending, no unhandled message. Tree clean of ic.
-
-STATE: ST0079 Completed with WP-01 and WP-02 both Done, hv confirmed on both faces. 0502, 0503, 0504 and 0505 closed and live in the pair. 0503/0504 discharged the precondition on hv decision 28 item (2) -- Conflab's undated closed threads, re-measured from the store as exactly 50 -- which is vc's to place cross-estate and was never ic's to start.
-
-OWED, MEASURED, NOT ACTED ON: intent/wip.md's DOING section is false in BOTH of its entries. It says ST0079 is WIP and closes when WP-01 is Done (the thread is Completed, both WPs Done), and that 0501 is work in progress at a bank (0501 is CLOSED). That file is vc's pen, so ic measured and reported it rather than rewriting it.
-
-Today's method findings are banked in the shared corpus with their index lines -- do not re-derive them.
-
-HOLD FOR vc's WORD. NO PUSH, NO RELEASE.
+_(none)_
 
 ## TODO
 

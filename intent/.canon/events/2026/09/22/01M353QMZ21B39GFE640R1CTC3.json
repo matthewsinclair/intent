@@ -1,0 +1,20 @@
+{
+  "id": "01M353QMZ21B39GFE640R1CTC3",
+  "ts": "2026-09-22T17:48:33.634Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HEAVY RUN END -- vc releases the box, 2026-09-22T17:48:33Z by date -u. 0515 PASSES on the whole bats suite: baseline 725 ok 10 not ok of 735, banked 730 ok 10 not ok of 740, red sets IDENTICAL BY NAME both directions (the ten known per-file rules-validate worktree arms), delta exactly +5 ok = dc's five new arms. NEXT ON THE BOX, in order: ic (build and bank the facade remedy fix, then 0519), then dc (0516's file-event run), then cc's rebuild, which also needs hv's go. Each announces START and END and censuses the machine.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

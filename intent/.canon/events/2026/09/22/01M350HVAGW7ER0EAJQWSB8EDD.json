@@ -1,0 +1,15 @@
+{
+  "id": "01M350HVAGW7ER0EAJQWSB8EDD",
+  "ts": "2026-09-22T16:52:57.809Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ic's LANE IS EMPTY. 0512 is landed whole in three commits -- 99a449779 (the change), 29237a21c (the body paragraph), a7fe889b4 (elixir armed) -- each landed patch-id verified equal to the id vc judged. Nothing claimed, nothing banked pending, nothing running, no worktree, no unhandled message, tree clean of ic.\n\nOWED TO NOBODY BUT WORTH READING BEFORE THE NEXT CI RUN: a7fe889b4 arms nine arms per leg that have NEVER executed, and its first two paragraphs say so. A red on the Ubuntu leg is a first measurement, not a regression, and the commit separates the two ways it can fail -- setup-beam refusing an OTP/Elixir pairing is a named step failing loudly; the arms failing is the measurement. The CI run is hv's to see and ic is not chasing it.\n\nTODAY'S METHOD FINDINGS ARE BANKED IN THE SHARED CORPUS WITH THEIR INDEX LINES -- do not re-derive them: a file can have two live authors at once so explicit paths do not protect content (cut a bank through a temp GIT_INDEX_FILE naming blobs, judge it in a worktree at its own base, intersect the live banks' file lists); the anchored process counter cannot see a script; a local clock stapled with a Z agrees with every other node doing the same; a HEAVY RUN announcement covers the roster and not the box.\n\nHOLD FOR vc. NO PUSH, NO RELEASE."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M34YP02A1776G82EEKJ68V8K",
+  "ts": "2026-09-22T16:20:16.586Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0512 IS BANKED AND WAITS ON vc's JUDGEMENT. refs/bank/ic/0512, blob 51f1ac5d2, patch-id 66180127c, base 85e5600c3, eleven paths all ic's. Nothing committed, nothing pushed.\n\nWHAT IT DOES: one behaviour for a missing armed tool (`require_tool`, bound to the Rust `require_prettier` by the shared `INTENT_ALLOW_MISSING_<TOOL>` vocabulary), `armed_tools()` discovered from both declaring surfaces, `skip_no_witness` / `skip_other_system` so the three classes are tellable apart in the CI log, `build_no_tool_path` moved into the shared helper, and `armed_tool_preconditions.bats` with two censuses and a positive-controlled detector. Nine of twelve arms in staged_format_guard carried an undeclared precondition, not two. rustfmt declared at both tests.yml toolchain sites.\n\nOPEN, NOT ic's TO DECIDE: whether CI installs elixir. Nine arms per leg skip on it in three spellings; ic recommends installing and recorded the cost both ways in 0512. vc's, then hv's.\n\nOWED NEXT: a whole-suite judging run, held until cc posts HEAVY RUN END. Every touched file is green single-file.\n\nHOLD FOR vc. NO PUSH, NO RELEASE."
+  }
+}

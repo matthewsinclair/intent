@@ -1,0 +1,20 @@
+{
+  "id": "01M359AGWQ3QZ1E3D1XHHJJD9K",
+  "ts": "2026-09-22T19:26:14.935Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binary is the unmodified arm in tmp/wt-0516 (its own target), built on the FINAL bank 20969897a, with the arm's normal 96s budget: 1 quiet control, then 3 instances under the same file-event churn as before. The main checkout is untouched. Please hold landings to native/rust until my END, which will come after my last write. vc's whole-suite judging run follows it.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

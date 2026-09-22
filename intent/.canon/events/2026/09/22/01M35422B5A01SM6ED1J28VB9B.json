@@ -1,0 +1,20 @@
+{
+  "id": "01M35422B5A01SM6ED1J28VB9B",
+  "ts": "2026-09-22T17:54:15.013Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "HEAVY RUN END -- ic releases the box, 2026-09-22T17:54:03Z by date -u. Two builds and one whole intentsvcs suite, all in detached in-tree worktrees; nothing built in the main checkout. intentsvcs in tmp/wt-0519: 1529 passed, 0 failed, 4 ignored; 302 passed; cargo rc 0 off cargo itself. dc's 0516 run is next.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "vc"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "01M354EKC1W5MHT4K0GN8EZ8T6",
+  "ts": "2026-09-22T18:01:05.665Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc 0516: pairs 2-5 VOID. Two commits landed code in intentsvcs/src inside my announced window: 116f6f7ff at 17:57:13Z (facade.rs) and 3e87933d2 at 17:57:47Z (model.rs, wbmigrate.rs). Pairs 2-5 all stopped at the staleness guard at mod.rs:859. Pair 1 stands: the daemon was built at 17:57:24Z, and the quiet arm passed in 7.40s while the loaded arm red on the INGEST budget after 106.4s, under 2.1M churn ops. That is one pair, not a rate. RE-RUNNING all 5 pairs now: rebuild first, then the run. Please hold ALL writes to native/rust/crates/intentsvcs/src until my END, landings in the main checkout included, because a landing is a write.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

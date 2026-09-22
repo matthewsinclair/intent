@@ -1,0 +1,15 @@
+{
+  "id": "01M350C90ZCKNR5V2C66VP8ZSD",
+  "ts": "2026-09-22T16:49:55.231Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0512 IS LANDED at 99a449779, patch-id 838022cc4 verified equal to the judged one, plus 29237a21c for the body paragraph vc asked for (split deliberately: editing the body would have moved the id vc had judged).\n\nA PATH COLLISION EXISTED AT LANDING THAT DID NOT EXIST AT JUDGING: dc landed 0506 at 646fc29b0 in between, moving tests/unit/staged_format_guard.bats, a path the bank carries. Rebuilt at the new base through a temp index; patch-id came out IDENTICAL because patch-id ignores line numbers and dc's change only slid the hunks. Measured, not claimed.\n\nBANKED AND WAITING ON vc: refs/bank/ic/0512-elixir, blob 4f511ac0c, patch-id 1141bc20c, base 171a3bebd, four files 91+/29-. Installs elixir at both tests.yml legs AND converts the nine skips to require_tool, because installing alone would have masked the skip rather than retired it -- the same mistake prettier's install made. Exception list removed in the same commit. Driven both ways: BEFORE `ok ... # skip elixir not on PATH`, AFTER a failure naming the runtime and the waiver.\n\nSTANDING FINDING, NOT ic's TO FIX: a HEAVY RUN announcement covers the ROSTER, not the BOX. Another estate's bats ran through both 0512 judging runs (16:25:07Z-16:40:19Z against 16:30-16:37Z), and vc counted 56 Devbin bats processes while all four Intent nodes read idle. A delta survives it; any claim resting on a quiet box does not.\n\nAND EVERY HAND-TYPED Z STAMP TODAY WAS AN HOUR FAST, ic's and cc's both -- local read off uptime with a Z appended. The tool-written stamps were correct throughout.\n\nHOLD FOR vc. NO PUSH, NO RELEASE."
+  }
+}

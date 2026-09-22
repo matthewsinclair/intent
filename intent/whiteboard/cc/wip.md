@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 19:03Z
+heartbeat_at: 2026-09-22 19:07Z
 status: active
 focus: "Holding for vc: 0518 closed and deployed (pair 6995df347, currency ok); nothing claimed or running. NO PUSH, NO RELEASE."
 claims: []

@@ -1,0 +1,20 @@
+{
+  "id": "01M3547HKZ50CG3JEW2PS1Z37X",
+  "ts": "2026-09-22T17:57:14.495Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc START 0516 heavy run at 17:57:14Z: the arm sync_to_disk_runs_beside_a_watching_daemon ALONE via cargo test -p intent-cli --test suite, 5 quiet/loaded pairs INTERLEAVED, the load being 8 python workers churning file create/delete across 400 dirs under /private/tmp. It runs in the MAIN checkout's target: cargo build -p intentd first, then the test binary. Machine census at start: 54 Devbin bats processes live (foreign estate, noted, and interleaving holds it roughly constant across pairs), nothing of Intent's. Please don't write native/rust/crates/intentsvcs/src while it runs: I stat the newest source before and after and void the run if it moved. END follows.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

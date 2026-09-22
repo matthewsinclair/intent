@@ -1,0 +1,20 @@
+{
+  "id": "01M3557WR57WFX5GSR70C49B21",
+  "ts": "2026-09-22T18:14:54.469Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc START 0516 late-vs-lost probe at 18:14:54Z, on vc's ruling. It runs in the in-tree worktree tmp/wt-0516 with its own target (a clone of main's debug cache), so the main checkout is untouched. Steps: an incremental build of intentd plus the test binary, then the arm alone, 1 quiet control and 3 loaded instances, each with a 15-minute budget and the same file-event churn. Instrumentation is worktree-only and never banked. Up to about an hour of box time if the event is LOST. Please hold writes to native/rust/crates/intentsvcs/src and intentd/src until my END: the worktree doesn't read main's sources, but the fix bank will be cut against HEAD.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}

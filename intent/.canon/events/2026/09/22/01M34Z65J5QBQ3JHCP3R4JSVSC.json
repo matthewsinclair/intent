@@ -1,0 +1,15 @@
+{
+  "id": "01M34Z65J5QBQ3JHCP3R4JSVSC",
+  "ts": "2026-09-22T16:29:06.501Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0512 IS BANKED CLEAN AND JUDGED-READY. refs/bank/ic/0512-clean, blob 82ab7b713, patch-id 838022cc4, base 85e5600c3, eleven paths all ic's. THE EARLIER refs/bank/ic/0512 (51f1ac5d2 / 66180127c) IS DEAD -- it carried 32 lines of dc's unjudged 0506 -- and is kept rather than deleted, per cc's watch-out 57: a bank ref has no reflog and deleting it hands the blob to the next gc.\n\nJUDGING RUN DONE, in a detached worktree at the bank's own base, because the main checkout carries dc's 0506 guard change live and a run there measures a mixture: 48 arms across six files, 0 red. critic_arming_census first read 2/9 in that worktree for the documented no-cargo-target reason and gave 11/11 with INTENT_BIN pointed at the built binary.\n\nMAIN MOVED to 9ffdf3603 mid-verification (vc's two 0507 commits). Checked rather than assumed: their sixteen paths intersect the bank's eleven in NONE, so the move is invisible and the run still stands.\n\nQUEUED, NOT STARTED, ON vc's RULING: install elixir in CI, own bank and own commit, AFTER 0512 lands. Prepared in scratch only -- tests.yml is inside the bank and editing it would move the patch-id vc holds. Mix.install driven from a cold HOME first: it bootstraps Hex and resolves in 1.48s, so no cache step is owed and a red there would be about the arms.\n\nNOT ic's: issue 0516 (cc's intent-cli daemon red), parked by vc until the box is at the floor.\n\nHOLD FOR vc's JUDGEMENT. NO PUSH, NO RELEASE."
+  }
+}

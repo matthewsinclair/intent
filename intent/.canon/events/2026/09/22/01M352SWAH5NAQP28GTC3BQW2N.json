@@ -1,0 +1,15 @@
+{
+  "id": "01M352SWAH5NAQP28GTC3BQW2N",
+  "ts": "2026-09-22T17:32:18.129Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "HELD FOR hv's RESTART. NOTHING IN FLIGHT BUT ONE UNJUDGED BANK.\n\n0514 THIRD FILE, BANKED, NOT JUDGED: refs/bank/ic/0514-address, blob 579ed2172, patch-id 0a53f1ee8, base f75d5bd42, address.rs one file 24+/7-. Address::artefact()'s doc listed an ISSUE among the None answers while the match arm sixteen lines below returns Some -- the doc described the opposite of its own function. Found only by censusing what the claim ASSERTS (\"no realised form\": 8 sites, 3 files) rather than the word \"retired\" (2 files). Written into 0514's body so it survives the bounce.\n\n0514 READS CLOSED WHILE THIS FIX IS UNJUDGED -- deliberately NOT reopened by ic during a hold; the status is vc's to reconcile. Two further sites (the edit-refusal tests, stale in reason and correct in conclusion) are out of scope pending vc's ruling.\n\nOWED BY vc ON RESUME: the verdict on the bank, and the ruling on the two edit sites. Do not re-cut; bank refs survive a restart.\n\nHOLD. NO PUSH, NO RELEASE."
+  }
+}
