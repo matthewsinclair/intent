@@ -541,6 +541,11 @@ AGGREGATE=0
 # Languages whose critic did not run. Collected rather than counted so the
 # digest below can NAME them -- see the summary block after the loop.
 UNENFORCED=()
+# Rules the PROJECT disabled in `.intent_critic.yml`, summed across languages
+# (issue 0510, ruled by hv 2026-09-22). A COUNT and not the ids, matching what
+# the critic itself prints: the ids are in the project's own committed file and
+# the JSON carries them, so a second copy here would be a second home.
+DISABLED_RULES=0
 # Length-guard the loop. Under `set -u` (set above), expanding "${LANGS[@]}"
 # on an empty array errors as "unbound variable" on some bash versions
 # (notably the CI macOS runner). v2.11.0 introduced the empty-array path
@@ -573,7 +578,27 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # remedies the developer owns -- install the tool, or disarm the rule. **A
     # gate should fail open on its own breakage and closed on yours.**
     case "$rc" in
-      0) ;;
+      0)
+        # **THE CRITIC'S DISABLED CENSUS WAS ALREADY IN `$out` HERE AND THIS ARM
+        # THREW IT AWAY** (issue 0510, hv 2026-09-22). `CriticReport::exit_code`
+        # returns 0 for a project with a non-empty `disabled` and no findings --
+        # deliberately, because the opt-out is the project's own committed
+        # decision (critic.rs:336-341, and that ruling is NOT reopened here).
+        # The critic then prints the count precisely so "a run the project
+        # disabled wholesale" cannot read "as a clean pass over rules it never
+        # put" (render.rs:13491). Discarding `$out` on success deleted that
+        # sentence before the one person who acts on it, at the one checkpoint
+        # every commit passes. **A DENOMINATOR NOBODY PRINTS IS A DENOMINATOR
+        # NOBODY CHECKS**, which is why the count below is printed ALWAYS and
+        # not only when it is non-zero: a reader who never sees the field has no
+        # way to notice the run where it stops being zero.
+        #
+        # Parsed from the critic's own line rather than re-derived, so the gate
+        # keeps no language knowledge of its own and cannot drift from the CLI
+        # (issue 0003, the same argument as the `intent critic` call above).
+        disabled_here="$(printf '%s\n' "$out" | sed -n 's/^[[:space:]]*\([0-9][0-9]*\) rule(s) disabled by .*/\1/p' | head -1)"
+        [ -n "$disabled_here" ] && DISABLED_RULES=$((DISABLED_RULES + disabled_here))
+        ;;
       1)
         printf '%s\n' "$out" >&2
         AGGREGATE=1
@@ -653,7 +678,11 @@ elif [ "${#UNENFORCED[@]}" -gt 0 ]; then
   echo "  the commit is NOT blocked by this -- the gate fails open on its own breakage by design." >&2
   echo "  nothing else reports this, so if it persists the gate is not protecting what you think it is." >&2
 else
-  echo "intent critic gate: ${#LANGS[@]} of ${#LANGS[@]} declared language(s) enforced (${LANGS[*]})." >&2
+  # The disabled count rides the ENFORCED line and only that one (issue 0510).
+  # The two arms above already say a critic did not run or went unenforced, and
+  # a reader of either is not being told rules were enforced -- this line is the
+  # one that makes that claim, so it is the one that owes its denominator.
+  echo "intent critic gate: ${#LANGS[@]} of ${#LANGS[@]} declared language(s) enforced (${LANGS[*]}), ${DISABLED_RULES} rule(s) disabled by this project." >&2
 fi
 
 # ---- Estate health: `intent doctor` ----
