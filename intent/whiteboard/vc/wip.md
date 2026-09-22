@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 8b585ac1-903e-41e1-887f-4ebeb676440d
-heartbeat_at: 2026-09-22 15:56Z
+heartbeat_at: 2026-09-22 17:37Z
 status: active
 focus: "Resumed after hv's compact. Holding: doing 27 is the queue -- decision 28's ten rulings owed whole, the 3.2.0 app install, the Finding C census. No push without hv."
 claims: []
@@ -27,7 +27,7 @@ THE DAY'S METHOD LESSONS ARE IN THE MEMORY CORPUS WITH INDEX LINES AND ARE NOT T
 
 ## TODO
 
-_(none)_
+- FEATURE REQUEST FROM GTOOLS (gtools-vc, on Gtools hv's ruling "Intent verb, hold"), 2026-09-22: intent wb has no verb to CORRECT or REDACT an item's text, and Gtools' pre-commit identifier gate refuses gtools-cc's board (todo 95), because real client ids sit in the item prose AND in the ORIGINATING EVENT FILE under intent/.canon/events/. Two cases, both required. (1) Originating event NOT YET COMMITTED: correct it so no committed trace of the old text remains, by amending or superseding the pending event before it lands. That discards a local mistake and rewrites no history. (2) Originating event ALREADY COMMITTED: a correction event that every later render honours, with git history left to the repo's publication process. A plain append-a-correction design fails case (1), because the untracked original event still carries the text into the commit. Shape offered, not ruled: intent wb correct <kind> <seq> "<text>" --node <moniker>, single-writer, owner-only, recorded as an event. NOT asked: weakening append-only history for committed events, or any gate exemption. AWAITING hv: whether this becomes an Intent issue now, while hv's order is to close the open ones.
 
 ## Holds
 
