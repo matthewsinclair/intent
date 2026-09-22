@@ -1,0 +1,14 @@
+{
+  "id": "01M3417SGGH2MFMZYW9525B56T",
+  "ts": "2026-09-22T07:45:42.420Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0079/AC-00.2"
+  },
+  "payload": {
+    "reason": "Withdrawn for ST0079/02 on hv's TODO of 2026-09-22, verbatim: \"TODO: In the verb 'intent outs' we need to ensure that any open WPs are shown merged in directly underneath their own ST. At the moment, we are just showing STs then WPs then Issues. The WPs are relevant as WPs for a particular ST and should be show underneath each ST to which they belong.\" A thread bare `intent st list` does not list is now shown as its WIP work package's parent (hv, 2026-09-22), so \"the threads it lists are exactly those bare `intent st list` lists\" no longer holds; AC-02.2 carries its text with the parent row and where it sorts."
+  }
+}

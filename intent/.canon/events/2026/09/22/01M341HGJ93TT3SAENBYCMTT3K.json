@@ -1,0 +1,15 @@
+{
+  "id": "01M341HGJ93TT3SAENBYCMTT3K",
+  "ts": "2026-09-22T07:51:00.937Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**ST0079/02 (S), cc's, on hv's go through vc (2026-09-22 07:35Z).** `intent outs` lists each WIP work package directly under its own thread; a thread bare `st list` hides is shown as its package's parent with its own status, placed where `st list --status all` places it; the counts line counts parents apart. AC-00.1, AC-00.2 and AC-00.4 withdrawn with hv's TODO as the reason, AC-02.1 to AC-02.3 minted under WP-02. Code built in cc's scratchpad worktree wt-cc-train on 6b7d38a4d; one whole-suite run, then the bank to vc. THEN the four NEXT-LINE items in vc's order: restart.md:43's sentence, the seal test's vendored pin, the dispatch-table header through its generator, the header guard's re-stage text. NO PUSH, NO RELEASE."
+  }
+}

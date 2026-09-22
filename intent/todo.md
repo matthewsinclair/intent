@@ -6,6 +6,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 - [-] ST0079: Add 'outs[tanding]' verb to show all outstanding items from a single verb
   - [x] 01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
+  - [-] 02: outs shows each open WP directly underneath its own ST
 
 ## TODO
 

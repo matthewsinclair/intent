@@ -23,6 +23,7 @@ It is a merge of three row lists the list verbs already produce, rendered throug
 | WP    | Title                                                                         | Size | Status |
 | ----- | ----------------------------------------------------------------------------- | ---- | ------ |
 | WP-01 | TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI | S    | Done   |
+| WP-02 | outs shows each open WP directly underneath its own ST                        | S    | WIP    |
 
 ## Acceptance
 

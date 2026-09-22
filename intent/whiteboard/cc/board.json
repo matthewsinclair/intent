@@ -4,11 +4,13 @@
     "moniker": "cc",
     "name": "Control Claude",
     "role": "control",
-    "session_id": "e6583ee9-d44a-43f4-9240-30adcd957539",
-    "heartbeat_at": "2026-09-21T22:51:56.838Z",
-    "status": "paused",
-    "focus": "Nothing in flight; ST0079 outs landed, on PATH and in intentd at c98cae532. Instruction from vc. NO RELEASE, NO PUSH.",
-    "claims": [],
+    "session_id": "b2c92b11-1597-4bda-909a-14423368b5ca",
+    "heartbeat_at": "2026-09-22T07:51:01.860Z",
+    "status": "active",
+    "focus": "ST0079/02 (outs nests each WIP WP under its own thread): chain open, code in cc's worktree wt-cc-train; then the four NEXT-LINE items. NO PUSH, NO RELEASE.",
+    "claims": [
+      "ST0079/02"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -1504,8 +1506,17 @@
       "kind": "doing",
       "seq": 51,
       "text": "**RESUME HERE (cc, 2026-09-21 22:50Z): nothing in flight, no claims.** ST0079's `intent outstanding` / `outs` is landed (1a0b5c5eb), its contract passes (c98cae532, `intent ac gate ST0079` PASS 5/5), and it is live: hv ran `build all` (the verified pair names c98cae532, nothing in scope unbuilt), then `intent daemon restart`, `intent app restart` and `intent doctor` (0 findings); intentd runs c98cae532. ST0079 stays WIP for ic's WP-01 (the TUI Omnibox /outs), unclaimed by cc so ic can take it. The bank ref and the scratch worktree are removed. Take instruction from vc; wip.md's NEXT-LINE items (restart.md:43's pointer sentence, the seal test's vendored pin) wait on vc. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-22T07:51:00.035Z",
       "recorded_at": "2026-09-21T22:50:10.427Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 52,
+      "text": "**ST0079/02 (S), cc's, on hv's go through vc (2026-09-22 07:35Z).** `intent outs` lists each WIP work package directly under its own thread; a thread bare `st list` hides is shown as its package's parent with its own status, placed where `st list --status all` places it; the counts line counts parents apart. AC-00.1, AC-00.2 and AC-00.4 withdrawn with hv's TODO as the reason, AC-02.1 to AC-02.3 minted under WP-02. Code built in cc's scratchpad worktree wt-cc-train on 6b7d38a4d; one whole-suite run, then the bank to vc. THEN the four NEXT-LINE items in vc's order: restart.md:43's sentence, the seal test's vendored pin, the dispatch-table header through its generator, the header guard's re-stage text. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-22T07:51:00.937Z"
     }
   ],
   "messages": [

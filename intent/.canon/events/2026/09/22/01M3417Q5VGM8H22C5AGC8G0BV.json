@@ -1,0 +1,15 @@
+{
+  "id": "01M3417Q5VGM8H22C5AGC8G0BV",
+  "ts": "2026-09-22T07:45:40.031Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0079/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "outs shows each open WP directly underneath its own ST"
+  }
+}

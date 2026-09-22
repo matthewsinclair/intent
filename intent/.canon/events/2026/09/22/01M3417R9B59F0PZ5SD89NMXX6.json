@@ -1,0 +1,14 @@
+{
+  "id": "01M3417R9B59F0PZ5SD89NMXX6",
+  "ts": "2026-09-22T07:45:41.167Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0079/AC-00.1"
+  },
+  "payload": {
+    "reason": "Withdrawn for ST0079/02 on hv's TODO of 2026-09-22, verbatim: \"TODO: In the verb 'intent outs' we need to ensure that any open WPs are shown merged in directly underneath their own ST. At the moment, we are just showing STs then WPs then Issues. The WPs are relevant as WPs for a particular ST and should be show underneath each ST to which they belong.\" Its order clause (threads first, then work packages, then issues) is what changes; AC-02.1 carries its text with the new order."
+  }
+}

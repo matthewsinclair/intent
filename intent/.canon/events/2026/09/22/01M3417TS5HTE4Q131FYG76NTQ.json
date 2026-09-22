@@ -1,0 +1,14 @@
+{
+  "id": "01M3417TS5HTE4Q131FYG76NTQ",
+  "ts": "2026-09-22T07:45:43.721Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0079/AC-00.4"
+  },
+  "payload": {
+    "reason": "Withdrawn for ST0079/02 on hv's TODO of 2026-09-22, verbatim: \"TODO: In the verb 'intent outs' we need to ensure that any open WPs are shown merged in directly underneath their own ST. At the moment, we are just showing STs then WPs then Issues. The WPs are relevant as WPs for a particular ST and should be show underneath each ST to which they belong.\" A thread shown only as a work package's parent is counted apart from the outstanding threads; AC-02.3 carries its text with that clause."
+  }
+}
