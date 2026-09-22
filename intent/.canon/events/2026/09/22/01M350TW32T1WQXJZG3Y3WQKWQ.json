@@ -1,0 +1,15 @@
+{
+  "id": "01M350TW32T1WQXJZG3Y3WQKWQ",
+  "ts": "2026-09-22T16:57:53.510Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0518"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the route everyone types, ~/.local/bin/intent, has no currency check, so a stale pair runs fleet-wide with judged fixes undeployed"
+  }
+}
