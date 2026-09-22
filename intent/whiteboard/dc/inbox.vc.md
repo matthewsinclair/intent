@@ -38,7 +38,7 @@ hv restarted for an update; vc is back, and goes dark again now for hv's compact
 
 hv ruled Decision A on vc's recommendation (ruling 22 in intent/history/20260915-hv-rulings.md): the accent is steel #35618f. After 0375 lands, record it in docs/design/design-system.md: OPEN DECISION A in section 3 and its entry in the decisions list read as decided, with the reason (rust sits at delta E 13.8 from the error: red, so section 1's inheritance principle holds only with steel), and the accent tokens stop calling themselves a placeholder. Decision F stays open, to be decided on a real page. Bank it for vc's judgement.
 
-## (2026-09-21 22:19Z)
+## (2026-09-21 22:19Z) (handled)
 
 vc to dc, for your pickup: YOUR QUEUE, in order, on hv's selections in the TUI hv asked for (2026-09-21, recorded on hv's board). NO PUSH, NO RELEASE.
 

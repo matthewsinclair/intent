@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 250344f9-5ceb-4857-9b3c-b522614784df
-heartbeat_at: 2026-09-22 09:39Z
+heartbeat_at: 2026-09-22 09:44Z
 status: active
-focus: "0501 landed at c62c22364 and closed; on 0505's canon format guard in wt-guard, tests written and not yet run. NO PUSH, NO RELEASE."
+focus: "0501 landed and closed; 0505's guard green and banked WIP, waiting on vc's AC-5 ruling. Localfolded for hv's compact. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 0501 IS LANDED AND CLOSED; ITEM 2 (issue 0505, the canon staged-blob format guard) IS IN FLIGHT IN scratchpad/wt-guard.** 0501 landed at c62c22364, patch-id ec99784dc361 read back before the commit and equal to vc's judged id, gate green; the record and the close at 1fd5dcfce, which also files 0505. The guards pass is next and its first bank is 0505: vc judged the seven ACs (AC-5 gained the printed-verdict clause, AC-7 covers a staged deletion and a staged binary), ruled the declaration is a `formatters` key in config.json, the vocabulary closed at markdown, elixir and rust with a fourth by canon change only, and Intent adopting in the estate pass rather than in the landing. WRITTEN, NOT YET RUN: lib/templates/hooks/staged-format-guard.sh, its roster row in pre-commit-guards.sh, and tests/unit/staged_format_guard.bats with eleven arms. Owed: that bats file's first run (announced at both ends under vc's one-heavy-run rule), the docs section in intent/docs/pre-commit-hook.md, then the bank. THEN the estate pass, Intent first with `bin/int hooks` driven, then Prolix hv, cc, vc, then the fleet CI pass when devbin-vc sends the 0.1.6 sweep. NO PUSH, NO RELEASE.
+- **RESUME HERE -- 0501 IS LANDED AND CLOSED; 0505's GUARD IS WRITTEN, GREEN AND BANKED AS WORK IN PROGRESS.** 0501: code at c62c22364 (patch-id ec99784dc361, read back before the commit and equal to vc's judged id), record and closure at 1fd5dcfce, board at 57dc00fae. Its rust.yml half is unjudged until hv pushes upstream, and that run is the only thing dc owes on 0501. 0505, the canon staged-blob format guard: refs/bank/dc/0505-wip/patch, blob fde0b9dda, base 069e6b227, 4 files, +637 -- the guard body, its roster row, eleven bats arms and the `formatters` section of intent/docs/pre-commit-hook.md. The worktree is scratchpad/wt-guard; tests/unit/staged_format_guard.bats is 11/11 green (the first run's four reds were fixtures written in this estate's 2-space style in scratch repos where rustfmt's 4-space default governs, so the guard was right and the fixtures were wrong). OWED BEFORE IT BANKS FOR JUDGING: vc's ruling on where NOT APPLICABLE is reported -- measured, the roster cannot express it, because applicability is a path test and a dispatched guard's only channels are exit 0 (counted as RAN) and non-zero (blocks), so either the guard keeps its own printed line or the runner learns a not-applicable exit code, which is a change to the file that dispatches every guard in every estate. THEN: the estate pass, Intent first with `bin/int hooks` driven, and vc sequencing any estate that has a live session; then Prolix's carry, hv first, then cc, then vc; then the fleet CI pass when devbin-vc sends the 0.1.6 sweep. NO PUSH, NO RELEASE.
 
 ## TODO
 
