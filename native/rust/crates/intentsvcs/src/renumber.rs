@@ -77,7 +77,7 @@ pub fn thread(canon: &Canon, old: &str, new: &str) -> Option<Renumbered> {
 /// choice nobody had revisited.
 ///
 /// `related` still names only threads, so an issue has no `related` edge to
-/// move; the claim half is now real and uses the same [`moved_claims`] the
+/// move; the claim half is now real and uses the same `moved_claims` the
 /// thread side does. **A widening that had left this behind would not have
 /// failed** -- it would have silently left a board claiming a number that had
 /// moved, which is a dangling reference with nothing to report it.
