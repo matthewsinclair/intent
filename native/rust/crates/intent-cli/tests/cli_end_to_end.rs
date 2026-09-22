@@ -1804,3 +1804,202 @@ fn outstanding_is_an_mcp_read_serving_the_same_rows() {
     "{tool}"
   );
 }
+
+/// The explorer as its loop builds it, with the REAL palette. A bare `App`
+/// carries none -- the loop fills it -- so `/outs` against an empty palette
+/// would prove only that Enter does nothing.
+fn explorer() -> intent_cli::tui::app::App {
+  let mut app = intent_cli::tui::app::App::explore();
+  app.commands =
+    intent_cli::tui::commands::vocabulary(&intent_cli::spine::build(&dispatch::table()));
+  app
+}
+
+/// Type `line` into the composer and press Enter, as the operator does.
+fn enter(app: &mut intent_cli::tui::app::App, line: &str) -> intent_cli::tui::app::Step {
+  use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+  for c in line.chars() {
+    app.on_key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE), &[]);
+  }
+  app.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE), &[])
+}
+
+/// The project's facade, opened in this process as the explorer opens it.
+fn facade_of(root: &Path) -> intentsvcs::facade::Facade {
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext {
+    principal: "test".to_string(),
+    project_id: String::new(),
+    version: env!("CARGO_PKG_VERSION").to_string(),
+  };
+  intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens")
+}
+
+/// ST0079 AT-01.1 (AC-01.1): in the explorer `/outstanding` and `/outs` each
+/// open the outstanding view, and its rows are the rows `intent outs` prints,
+/// read from `Facade::outstanding` in the order it returns them, each with its
+/// kind leftmost and then ID, Status and Title.
+#[test]
+fn slash_outs_and_slash_outstanding_open_the_verbs_table_in_the_explorer() {
+  use intent_cli::tui::app::Step;
+  use intent_cli::tui::nav::View;
+  for spelling in ["/outstanding", "/outs"] {
+    let mut app = explorer();
+    let step = enter(&mut app, spelling);
+    assert!(
+      matches!(step, Step::Continue),
+      "`{spelling}` is a push, not a lend: {step:?}"
+    );
+    assert_eq!(
+      app.stack.current(),
+      &View::Outstanding,
+      "`{spelling}` did not open the outstanding view"
+    );
+  }
+
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+  let printed = first_two_cells(&ok(root, &["outs"]));
+  assert!(
+    !printed.is_empty(),
+    "the seed left nothing outstanding, so the loop below would assert nothing"
+  );
+  let facade = facade_of(root);
+  let found = facade.outstanding(&intentsvcs::outstanding::Kind::ALL);
+  let view = intent_cli::render::outstanding_view(&facade);
+  let table: Vec<_> = view.iter().take_while(|row| !row.is_rule()).collect();
+  assert_eq!(
+    table.len(),
+    printed.len(),
+    "one view row per row the verb prints: {view:?}"
+  );
+  for ((row, (kind, id)), read) in table.iter().zip(&printed).zip(&found.rows) {
+    let left: Vec<&str> = row.title.split_whitespace().collect();
+    assert_eq!(
+      left,
+      [kind.as_str(), id.as_str()],
+      "the kind leftmost, then the ID, in the verb's order"
+    );
+    let right = row
+      .value
+      .split_once("  ")
+      .map(|(status, title)| (status.trim(), title.trim()));
+    assert_eq!(
+      right,
+      Some((read.status, read.title.as_str())),
+      "then Status and Title, as the facade read them"
+    );
+  }
+}
+
+/// ST0079 AT-01.2 (AC-01.2): the view ends with the counts line `intent outs`
+/// prints, and with nothing outstanding that line is the whole view.
+#[test]
+fn the_outstanding_view_ends_with_the_verbs_counts_and_is_them_alone_when_nothing_is() {
+  let counts_of = |root: &Path| -> String {
+    ok(root, &["outs"])
+      .lines()
+      .last()
+      .and_then(|line| line.strip_prefix("outstanding: "))
+      .expect("the verb ends with its counts line")
+      .to_string()
+  };
+
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+  let view = intent_cli::render::outstanding_view(&facade_of(root));
+  let last = view.last().expect("the view is never empty");
+  assert_eq!(
+    (last.title.as_str(), last.value.clone()),
+    ("outstanding", counts_of(root)),
+    "the view ends with the verb's counts"
+  );
+
+  let quiet = project();
+  ok(quiet.path(), &["st", "new", "idle thread"]);
+  let alone = intent_cli::render::outstanding_view(&facade_of(quiet.path()));
+  assert_eq!(
+    alone.len(),
+    1,
+    "nothing outstanding is the counts line alone, never a table or a rule: {alone:?}"
+  );
+  assert_eq!(alone[0].value, counts_of(quiet.path()));
+}
+
+/// ST0079 AT-01.3 (AC-01.3): Enter on a row of the outstanding view opens the
+/// thread, work package or issue it names, at the view its own list opens, and
+/// Backspace returns to the table.
+#[test]
+fn enter_on_an_outstanding_row_opens_what_it_names_and_backspace_returns() {
+  use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+  use intent_cli::tui::nav::View;
+  let key = |code| KeyEvent::new(code, KeyModifiers::NONE);
+
+  let dir = project();
+  let root = dir.path();
+  seed_outstanding(root);
+  let rows = intent_cli::render::outstanding_view(&facade_of(root));
+  let item = |kind: &str, id: &str| View::Item {
+    kind: kind.into(),
+    id: id.into(),
+  };
+  // `1`, the name the thread's own `wps` list gives the package, never `01`:
+  // the child view finds a package by that name.
+  let package = View::Child {
+    kind: "thread".into(),
+    id: "ST0002".into(),
+    field: "wps".into(),
+    item: "1".into(),
+  };
+  for (name, opens) in [
+    ("ST0001", item("thread", "ST0001")),
+    ("ST0002/01", package),
+    ("0001", item("issue", "0001")),
+  ] {
+    let at = rows
+      .iter()
+      .position(|row| row.name == name)
+      .unwrap_or_else(|| panic!("the view has no `{name}` row: {rows:?}"));
+    let mut app = explorer();
+    enter(&mut app, "/outs");
+    intent_cli::tui::run::arrive(&mut app, &rows, None, None);
+    for _ in 0..at {
+      app.on_key(key(KeyCode::Down), &rows);
+    }
+    app.on_key(key(KeyCode::Enter), &rows);
+    assert_eq!(
+      app.stack.current(),
+      &opens,
+      "Enter on `{name}` did not open it"
+    );
+    app.on_key(key(KeyCode::Backspace), &[]);
+    assert_eq!(
+      app.stack.current(),
+      &View::Outstanding,
+      "Backspace from `{name}` did not return to the table"
+    );
+  }
+}
+
+/// ST0079 AT-01.4 (AC-01.4): an argument after the command is refused on the
+/// info row, and nothing runs.
+#[test]
+fn an_argument_after_slash_outs_is_refused_on_the_info_row_and_nothing_runs() {
+  use intent_cli::tui::app::Step;
+  let mut app = explorer();
+  let before = app.stack.current().clone();
+  let step = enter(&mut app, "/outs wp");
+  assert!(matches!(step, Step::Continue), "nothing runs: {step:?}");
+  assert_eq!(
+    app.stack.current(),
+    &before,
+    "the refused command moved the view"
+  );
+  assert!(
+    app.notice.contains("takes no argument"),
+    "the refusal is on the info row: {:?}",
+    app.notice
+  );
+}

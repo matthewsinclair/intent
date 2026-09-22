@@ -124,6 +124,7 @@ mod tests {
       View::Project {
         root: "/Users/someone/Devel/prj/Laksa".into(),
       },
+      View::Outstanding,
     ];
     for kind in kinds(&l) {
       out.push(View::Collection { kind: kind.clone() });

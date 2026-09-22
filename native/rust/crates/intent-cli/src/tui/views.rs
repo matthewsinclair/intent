@@ -227,6 +227,81 @@ pub fn nearest_project(rows: &[Row], here: &std::path::Path) -> Option<usize> {
   best.map(|(at, _)| at)
 }
 
+/// The table `intent outs` prints, as rows (ST0079 `AC-01.1`, `AC-01.2`).
+///
+/// **THE ROWS LEAVE IN THE ORDER THEY ARRIVE.** Nothing here sorts, groups or
+/// filters: what is outstanding, and in what order, is
+/// [`intentsvcs::outstanding`]'s, so a change there reaches this view with no
+/// change here (hv, 2026-09-22: *the list of items should come out of the
+/// intentsvcs layer from the same functions*).
+///
+/// **FOUR CELLS IN THE TWO COLUMNS THE ROW MODEL HAS** ([`Row`]'s note): the
+/// kind and ID on the left, the status and title on the right, each padded to
+/// its widest so the four read as the verb's columns. The cells arrive already
+/// written, by the helper the verb prints its own table through, so the two
+/// faces cannot disagree about what a row says or in which column.
+///
+/// **EACH ROW OPENS WHAT IT NAMES** (`AC-01.3`, hv 2026-09-22): its door is
+/// [`outstanding_door`]'s, the view the thread, package or issue's own list
+/// opens, so Enter goes where it would from `/threads` or `/issues`.
+///
+/// **THE COUNTS END THE VIEW, AND WITH NO ROWS THEY ARE THE VIEW** -- none of N
+/// rather than an empty body, as the verb prints them (`AC-00.4`).
+pub fn outstanding_rows(rows: &[([String; 4], Option<View>)], counts: &str) -> Vec<Row> {
+  let widest = |at: usize| {
+    rows
+      .iter()
+      .map(|(cells, _)| cells[at].chars().count())
+      .max()
+      .unwrap_or(0)
+  };
+  let (kinds, statuses) = (widest(0), widest(2));
+  let mut rows: Vec<Row> = rows
+    .iter()
+    .map(|([kind, id, status, title], door)| {
+      let mut row = Row::named(
+        id.clone(),
+        format!("{kind:<kinds$}  {id}"),
+        format!("{status:<statuses$}  {title}"),
+        "button",
+      );
+      row.door = door.clone();
+      row
+    })
+    .collect();
+  if !rows.is_empty() {
+    rows.push(Row::rule());
+  }
+  rows.push(Row::new("outstanding", counts, "label"));
+  rows
+}
+
+/// Where Enter on an outstanding row goes (ST0079 `AC-01.3`): the view of the
+/// thread, work package or issue the row names, through
+/// [`intentsvcs::nav::view_for`], the one mapping from an entity to its view.
+///
+/// **A WORK PACKAGE IS OPENED BY ITS FIELDS, NEVER BY ITS RENDERED ID.** The
+/// row carries the package's thread and sequence
+/// ([`intentsvcs::outstanding::WpRef`]), and the sequence goes in as the number
+/// the `wps` descent names its rows by (`1`, never `01`), or the door would
+/// open onto a package the child view cannot find.
+pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
+  use intentsvcs::address::Entity;
+  use intentsvcs::outstanding::Kind;
+  let entity = match row.kind {
+    Kind::Thread => Entity::Thread { id: row.id.clone() },
+    Kind::Issue => Entity::Issue { id: row.id.clone() },
+    Kind::WorkPackage => {
+      let wp = row.wp.as_ref()?;
+      Entity::Wp {
+        thread: wp.thread.clone(),
+        wp: wp.seq.to_string(),
+      }
+    }
+  };
+  intentsvcs::nav::view_for(&entity)
+}
+
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
@@ -248,6 +323,7 @@ pub fn app_line(view: &View) -> String {
     View::Search { query } => format!("search  {query}"),
     View::Projects => "projects".to_string(),
     View::Project { root } => format!("project  {root}"),
+    View::Outstanding => "outstanding".to_string(),
   }
 }
 

@@ -5799,6 +5799,9 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // operator back to the root with no way to see that the search ran -- which
     // is the silent-empty defect wearing navigation's clothes.
     View::Search { .. } => true,
+    // **THE OUTSTANDING TABLE IS ALWAYS PRESENT**, for the search pane's
+    // reason: nothing outstanding is the counts line alone, which is an answer.
+    View::Outstanding => true,
     // **THE PROJECTS LIST IS ALWAYS PRESENT, AND SO IS A PROJECT CHOSEN FROM
     // IT** (issue 0418): whether a root can be entered is answered by
     // `tui::views::switch_to`, in words that say why, rather than here as a
@@ -6381,6 +6384,7 @@ fn rows_for(
     View::Help { .. } | View::Settings | View::Projects | View::Project { .. } => {
       unprojected_rows(table, view).unwrap_or_default()
     }
+    View::Outstanding => outstanding_view(facade),
     // **THE ORDER WAS ALREADY RIGHT AND THE SEAM WAS INVISIBLE** (hv,
     // 2026-09-03, asking for open threads at the top with a line under them).
     // `index_order` has sorted open-before-closed all along, so nothing here
@@ -10367,19 +10371,42 @@ fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
   let rows: Vec<Vec<String>> = found
     .rows
     .iter()
-    .map(|r| {
-      vec![
-        r.kind.label().to_string(),
-        r.id.clone(),
-        r.status.to_string(),
-        r.title.clone(),
-      ]
-    })
+    .map(|r| outstanding_cells(r).to_vec())
     .collect();
   // Rendered BEFORE the empty case, for `st_rows`'s reason: `--format` is then
   // honoured or refused whatever was found.
   let table = table_out(&output_of(m)?, OUTSTANDING_COLUMNS, &rows)?;
-  let counts: Vec<String> = found
+  let counts = format!("outstanding: {}\n", outstanding_counts(&found));
+  // Nothing outstanding prints the counts alone, as `st list` prints its note
+  // alone over an empty filter: none of N, never an empty table.
+  if rows.is_empty() {
+    print!("{counts}");
+  } else {
+    print!("{table}\n{counts}");
+  }
+  Ok(())
+}
+
+/// One outstanding row's four cells, in hv's column order: Type, ID, Status,
+/// Title (ST0079 `AC-00.1`).
+///
+/// **ONE HOME FOR BOTH FACES.** `intent outs` prints these as its table and the
+/// explorer's `/outstanding` view lays them into its two columns (`AC-01.1`),
+/// so neither face can reorder or respell a cell.
+pub fn outstanding_cells(r: &intentsvcs::outstanding::Row) -> [String; 4] {
+  [
+    r.kind.label().to_string(),
+    r.id.clone(),
+    r.status.to_string(),
+    r.title.clone(),
+  ]
+}
+
+/// The counts under the table, one clause per kind shown (ST0079 `AC-00.4`).
+/// The verb prints them after `outstanding: `, and the explorer's view ends
+/// with them (`AC-01.2`), so both faces count in the same words.
+pub fn outstanding_counts(found: &intentsvcs::outstanding::Outstanding) -> String {
+  found
     .counts
     .iter()
     .map(|c| {
@@ -10391,16 +10418,26 @@ fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
         c.statuses.join(", ")
       )
     })
+    .collect::<Vec<_>>()
+    .join(", ")
+}
+
+/// The explorer's `/outstanding` view (ST0079 `AC-01.1` to `AC-01.3`): the rows
+/// `intent outs` prints, from the same facade call with every kind, as the
+/// bare verb reads them, written through the verb's own cells and counts, each
+/// opening what it names.
+///
+/// **NOTHING HERE SORTS, GROUPS OR FILTERS**, and that is `AC-00.2`'s *never a
+/// second classifier* one face over: the rows arrive in the order
+/// [`intentsvcs::outstanding`] gives them and are laid out in it.
+pub fn outstanding_view(facade: &Facade) -> Vec<tui::layout::Row> {
+  let found = facade.outstanding(&intentsvcs::outstanding::Kind::ALL);
+  let rows: Vec<([String; 4], Option<intentsvcs::nav::View>)> = found
+    .rows
+    .iter()
+    .map(|r| (outstanding_cells(r), tui::views::outstanding_door(r)))
     .collect();
-  let counts = format!("outstanding: {}\n", counts.join(", "));
-  // Nothing outstanding prints the counts alone, as `st list` prints its note
-  // alone over an empty filter: none of N, never an empty table.
-  if rows.is_empty() {
-    print!("{counts}");
-  } else {
-    print!("{table}\n{counts}");
-  }
-  Ok(())
+  tui::views::outstanding_rows(&rows, &outstanding_counts(&found))
 }
 
 /// `--show`'s vocabulary (hv, 2026-09-21): a comma-separated list of kinds,

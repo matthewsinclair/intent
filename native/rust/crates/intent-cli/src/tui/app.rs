@@ -44,9 +44,13 @@ use super::mode::{self, Mode};
 use super::nav::{Stack, View};
 use super::omnibox::{Entry, Go, Omnibox};
 
-/// How many matches the omnibox offers at once. Eight: enough to show a
-/// collision, few enough that the dropdown never eats the body.
-pub const MATCH_CAP: usize = 8;
+/// How many matches the omnibox offers at once: enough to show a collision, few
+/// enough that the dropdown never eats the body. **It is also the resting
+/// palette, which must offer every act**
+/// (`an_empty_query_offers_the_top_of_the_vocabulary_in_declared_order`), so it
+/// went from eight to nine when `/outstanding` became the ninth act (ST0079
+/// WP-01).
+pub const MATCH_CAP: usize = 9;
 
 /// What the loop should do next.
 ///
@@ -670,6 +674,24 @@ impl App {
             Act::Collection { cli: None, .. } => {
               self.notice = format!(
                 "`/{}` opens the list and takes no argument",
+                self.commands[at].name
+              );
+              Step::Continue
+            }
+            // **THE TABLE `intent outs` PRINTS, AS A VIEW** (ST0079 `AC-01.1`):
+            // a push for `/search`'s reason, and already being there is not a
+            // push, for `/threads`'. **AN ARGUMENT IS REFUSED, NEVER GUESSED AT**
+            // (`AC-01.4`): the view is the bare verb, and running it narrowed
+            // by something the operator did not name is worse than saying no.
+            Act::Outstanding if argument.is_empty() => {
+              if self.stack.current() != &View::Outstanding {
+                self.push(View::Outstanding);
+              }
+              Step::Continue
+            }
+            Act::Outstanding => {
+              self.notice = format!(
+                "`/{}` opens the table and takes no argument",
                 self.commands[at].name
               );
               Step::Continue

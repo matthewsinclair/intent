@@ -112,6 +112,15 @@ pub enum Act {
   /// `every_collection_act_opens_a_declared_kind_and_runs_a_real_verb` fails
   /// the suite when a form is renamed underneath it.
   Collection { kind: String, cli: Option<String> },
+  /// `/outstanding`: the table `intent outs` prints, as a view (ST0079
+  /// `AC-01.1`).
+  ///
+  /// **A PUSH, NOT A LEND, FOR [`Act::Search`]'s REASON**: through the roster
+  /// the verb would print its table onto the real screen, and the next repaint
+  /// would take it away. **`/outs` REACHES IT BECAUSE IT IS HOW THE NAME
+  /// STARTS**, so one act and one palette entry answer both of hv's spellings
+  /// (`/outs[tanding]`), and a second entry would only list it twice.
+  Outstanding,
 }
 
 /// The `intent` verbs the palette will run: **AN ALLOW-LIST, AND THE ONLY
@@ -154,6 +163,9 @@ pub enum Act {
 ///   which runs `intent issues ...` whenever it is given arguments. The verb is
 ///   still one keystroke away and has exactly one entry; [`runs_cli`] is how
 ///   the help page knows that.
+/// - `outstanding` -- claimed by [`Act::Outstanding`] (ST0079 WP-01), for
+///   `search`'s reason: a lend prints the table onto the real screen and the
+///   next repaint takes it away.
 pub const CLI_ROSTER: &[&str] = &[
   "st", "wp", "ac", "at", "todo", "info", "config", "doctor", "agents", "claude", "critic", "lang",
   "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema", "export", "ingest",
@@ -273,6 +285,11 @@ fn acts() -> Vec<Command> {
         kind: "issue".into(),
         cli: Some("issues".into()),
       },
+    },
+    Command {
+      name: "outstanding".into(),
+      blurb: "what is outstanding -- the table `intent outs` prints".into(),
+      act: Act::Outstanding,
     },
   ]
 }

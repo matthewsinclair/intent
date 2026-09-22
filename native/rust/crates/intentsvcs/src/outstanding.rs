@@ -66,6 +66,23 @@ pub struct Row {
   pub id: String,
   pub status: &'static str,
   pub title: String,
+  /// A work package's thread and sequence, as fields; `None` on a thread or an
+  /// issue, and then absent from the JSON.
+  ///
+  /// **CARRIED SO NO FACE READS THEM BACK OUT OF `id`** (ST0079 WP-01, vc
+  /// 2026-09-22). `id` is the package RENDERED, `STxxxx/NN`, and the explorer
+  /// opens a package by its thread and its sequence as the number the `wps`
+  /// descent names it by. Re-parsing the rendering would be a second home for
+  /// its spelling, which breaks in silence when the rendering changes.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub wp: Option<WpRef>,
+}
+
+/// Where a work package sits: its thread, and its sequence under that thread.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct WpRef {
+  pub thread: String,
+  pub seq: u32,
 }
 
 /// How many of one kind are shown, of how many exist, and the statuses that
@@ -108,6 +125,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
               id: t.id.clone(),
               status: t.status.display(),
               title: t.title.clone(),
+              wp: None,
             }),
         );
         (
@@ -125,6 +143,10 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
               id: format!("{}/{:02}", t.id, w.seq),
               status: w.status.display(),
               title: w.title.clone(),
+              wp: Some(WpRef {
+                thread: t.id.clone(),
+                seq: w.seq,
+              }),
             })
         }));
         (
@@ -142,6 +164,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
               id: format!("{:04}", i.number),
               status: i.status.display(),
               title: i.title.clone(),
+              wp: None,
             }),
         );
         (issues.len(), vec![ISSUE_STATUS.display()])

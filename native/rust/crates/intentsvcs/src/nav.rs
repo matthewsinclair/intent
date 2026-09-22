@@ -53,6 +53,7 @@ pub const SETTINGS_SEGMENT: &str = "settings";
 pub const HELP_SEGMENT: &str = "help";
 pub const SEARCH_SEGMENT: &str = "search";
 pub const PROJECTS_SEGMENT: &str = "projects";
+pub const OUTSTANDING_SEGMENT: &str = "outstanding";
 
 /// Every segment the entity namespace may not use.
 ///
@@ -65,6 +66,7 @@ pub const RESERVED: &[&str] = &[
   HELP_SEGMENT,
   SEARCH_SEGMENT,
   PROJECTS_SEGMENT,
+  OUTSTANDING_SEGMENT,
 ];
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
@@ -173,6 +175,15 @@ pub enum View {
   /// root is an absolute path and carries separators, so it is taken verbatim
   /// after the segment and put back unchanged.
   Project { root: String },
+  /// Everything outstanding: the rows `intent outstanding` prints (ST0079
+  /// `AC-01.1`).
+  ///
+  /// **A VIEW OF THE VERB'S OWN ROWS, NOT A SECOND LIST.** A face reads
+  /// [`crate::facade::Facade::outstanding`] and lays the rows out in the order
+  /// they arrive, so what is outstanding, and in what order, has one home in
+  /// [`crate::outstanding`]. Its segment is reserved for [`View::Settings`]'
+  /// reason.
+  Outstanding,
 }
 
 impl View {
@@ -196,6 +207,7 @@ impl View {
       View::Help { of: Some(name) } => format!("/{HELP_SEGMENT}/{name}"),
       View::Projects => format!("/{PROJECTS_SEGMENT}"),
       View::Project { root } => format!("/{PROJECTS_SEGMENT}/{root}"),
+      View::Outstanding => format!("/{OUTSTANDING_SEGMENT}"),
     }
   }
 
@@ -239,6 +251,7 @@ impl View {
       // WHAT MAKES IT A RESERVATION.** Checking it after would make the winner
       // depend on whether a form happened to be declared with this name.
       [seg] if *seg == SETTINGS_SEGMENT => Some(View::Settings),
+      [seg] if *seg == OUTSTANDING_SEGMENT => Some(View::Outstanding),
       [seg] if *seg == HELP_SEGMENT => Some(View::Help { of: None }),
       // **THE RESERVATION REACHES THE SECOND SEGMENT TOO**, or `/help/st`
       // would parse as the ITEM `st` of an entity kind called `help` -- the

@@ -433,6 +433,10 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
           "artefact" => "\u{23ce} open file",
           "button" if row.door.is_some() => "\u{23ce} open",
           "button" => "",
+          // **A LABEL OPENS NOTHING, SO THE HINT NAMES NOTHING** (issue 0502):
+          // Enter on one is a declared no-op, and without this arm it fell
+          // through to `edit`, which every `/help` row then promised.
+          "label" => "",
           "select" | "text" | "number" if !row.editable => "",
           "select" => "\u{23ce} choose",
           _ => "\u{23ce} edit",
@@ -1750,6 +1754,35 @@ mod tests {
     assert!(
       hint.contains("title saved"),
       "the notice did not reach the hint line: {hint:?}"
+    );
+  }
+
+  /// Issue 0502: **ENTER ON A `label` IS A DECLARED NO-OP, SO THE HINT NAMES NO
+  /// ENTER VERB ON ONE.** A label fell through to `edit`, so the `/help` page,
+  /// and every screen ending on a label row, promised an edit Enter never made.
+  /// The editable text row is the control: it shows the instrument can see a
+  /// verb when there is one to see.
+  #[test]
+  fn the_hint_names_no_enter_verb_on_a_label_row() {
+    let hint_on = |rows: &[Row]| {
+      let mut app = App::explore();
+      app.mode = Mode::Omni;
+      arrive(&mut app, rows, None, None);
+      screen_for(&app, rows, 120).hint
+    };
+    let control = hint_on(&[Row::new("title", "a title", "text")]);
+    assert!(
+      control.contains("\u{23ce} edit"),
+      "the control: an editable text row names its edit: {control:?}"
+    );
+    let label = hint_on(&[Row::new("keys", "Enter opens a row", "label")]);
+    assert!(
+      label.contains("1/1"),
+      "the cursor is not on the label row: {label:?}"
+    );
+    assert!(
+      !label.contains('\u{23ce}'),
+      "the hint names an Enter verb on a row where Enter does nothing: {label:?}"
     );
   }
 
