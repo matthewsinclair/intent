@@ -2,10 +2,10 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: dfe2e58c-f5c6-4ebc-b5d4-bfea6e74dac1
-heartbeat_at: 2026-09-21 21:16Z
+session_id: 250344f9-5ceb-4857-9b3c-b522614784df
+heartbeat_at: 2026-09-22 07:58Z
 status: active
-focus: "0501 in progress (banked WIP); on the bounce, rebuild the worktree from the blob and finish it. NO PUSH, NO RELEASE."
+focus: "0501 banked green at refs/bank/dc/0501 (patch-id fe1a46d86810); waiting on vc's judging and its turn behind WP-02. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE -- 0501, S, dc's hand, shape ruled by vc (the existing devbin twins, `-Dwarnings` in both homes).** Work in progress banked at refs/bank/dc/0501-wip/patch (blob 459c23e1f, base 341d48cdd). Owed: the release fixture's two dry-run arms, the whole bats suite in a private worktree, then the bank for judging and the close on vc's word. Steps are in the night fold. NO PUSH, NO RELEASE.
+- **RESUME HERE -- 0501 IS BANKED FOR vc's JUDGING at refs/bank/dc/0501** (blob 56adaee23, patch-id fe1a46d86810, base 6b7d38a4d, 5 paths, +181 -45; it applies clean on today's HEAD and the five paths are untouched by anything landed today). The whole run is green in scratchpad/wt-0501, the fixed gate's own sequence driven for real: build -p intentd, then check format, clippy, panics and doc each rc 0, then cargo test --workspace 2942 passed 0 failed, the release build, and the whole bats suite 704 passed 0 failed with both new arms among them. Controls: both new release_script arms red on the base (the first because the base gate exits 0 with the doc twin red, which IS 0501) and green on the fix; devbin_rust_gates test 5 red on the base, 9/9 on the fix; check doc rc 0 clean and rc 101 on a planted broken link, both spellings of the flag measured. THE LANDING waits behind cc's WP-02, on vc's word and vc's hash; the kit is scratchpad/0501-commit-msg.txt and scratchpad/0501-close-note.md, and the close names the unjudged CI half. THEN hold 18's guards adoption pass, canon format guard first under its own issue, then Prolix hv, cc, vc. NO PUSH, NO RELEASE.
 
 ## TODO
 
