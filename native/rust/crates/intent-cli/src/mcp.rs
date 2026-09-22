@@ -1443,8 +1443,18 @@ pub fn serve(
       let applied = mode == intentsvcs::organize::Mode::Apply;
       let report = f.organize_as_shown(mode, shown)?;
       let notes = intentsvcs::facade::notes_json(&f.take_notes());
+      // **THROUGH THE PROJECT'S OWN ANSWER, like every other `rel` in this
+      // file** (issue 0513). Until 2026-09-22 this one closure's body was
+      // `p.display().to_string()`, so the door emitted absolute filesystem
+      // paths under field names promising project-relative ones -- one wrong
+      // spelling between the two correct ones in the `st hydrate` and
+      // `st dehydrate` doors above, under the same name. THE NAME IS WHY IT
+      // SURVIVED: a closure called `rel` reads as correct at every call site,
+      // because the call sites are `rel(&report.hydrated)` and disclose
+      // nothing, so the next field added to this payload would have inherited
+      // the defect silently.
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
-        paths.iter().map(|p| p.display().to_string()).collect()
+        paths.iter().map(|p| f.project().relative(p)).collect()
       };
       Ok(json!({
         "applied": applied,

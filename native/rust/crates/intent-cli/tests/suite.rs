@@ -175,6 +175,7 @@ mod mcp_bridge_restart;
 mod mcp_resources;
 #[path = "mcp_stdio_serves.rs"]
 mod mcp_stdio_serves;
+
 #[path = "mcp_surface.rs"]
 mod mcp_surface;
 #[path = "migrated_guards_still_refuse.rs"]
@@ -195,6 +196,8 @@ mod no_removal_is_unannounced;
 mod no_skill_names_an_unshipped_verb;
 #[path = "one_daemon_predicate_across_both_trees.rs"]
 mod one_daemon_predicate_across_both_trees;
+#[path = "the_mcp_organize_door_answers_in_project_relative_paths.rs"]
+mod the_mcp_organize_door_answers_in_project_relative_paths;
 
 #[path = "one_dispatch_home.rs"]
 mod one_dispatch_home;
