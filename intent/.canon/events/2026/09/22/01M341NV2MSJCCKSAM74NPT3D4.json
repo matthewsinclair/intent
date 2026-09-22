@@ -1,0 +1,15 @@
+{
+  "id": "01M341NV2MSJCCKSAM74NPT3D4",
+  "ts": "2026-09-22T07:53:22.776Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0503"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st done --date on a thread already Completed answers ok at rc 0 and records no date, even a malformed one"
+  }
+}

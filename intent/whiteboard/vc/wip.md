@@ -2,18 +2,18 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: ca18d08a-2613-4e13-b729-0c7092807c25
-heartbeat_at: 2026-09-21 22:57Z
-status: paused
-focus: "Folded at the end of the evening. On the bounce: the Conflab and Baize triage to hv as TUI questions; ST0079/01 is ic's; dc's queue in its inbox. Every push is hv's."
-claims: [ST0060]
+session_id: 8b585ac1-903e-41e1-887f-4ebeb676440d
+heartbeat_at: 2026-09-22 07:54Z
+status: active
+focus: "ST0079 half closed: WP-01 landed and live, WP-02 is cc's and the thread closes on it. 0503 and 0504 filed and ic's. The Conflab and Baize triage is re-measured; the open rows go to hv four at a time."
+claims: []
 ---
 
 # Validation Claude (vc)
 
 ## DOING
 
-- RESUME (vc, 2026-09-21 22:57Z, the evening's globalfold; replaces doing 22). ST0079's CLI verb is landed (1a0b5c5eb, judged by vc at patch-id 3e4d981bf), built into the pair at c98cae532 and live; WP-01, the TUI Omnibox `/outs`, is ic's on 2026-09-22, its ACs to vc before code; the thread closes when WP-01 is Done. The fleet's re-staging formatters are killed (hv decision 27), no push. ON THE BOUNCE: /in-session with pickup; then the Conflab and Baize holds to hv as TUI questions, four at a time, after vc verifies the triage's evidence (`intent/history/20260921-triage-conflab-baize-holds.md`, unverified subagent measurements -- lead with Baize vc idle under a stop hv released on 2026-09-01, and `st done --date` writing nothing on a Completed thread); the 3.2.0 app into /Applications once hv quits the running 3.0.3; dc's queue is in its inbox. Every push is hv's. Decision 32 stands.
+- RESUME (vc, 2026-09-22 07:55Z, replaces doing 23). ST0079 IS HALF CLOSED: WP-01 landed at 52cd8b55d on vc's word (judged patch-id cbf0c5180e, worktree equal to the bank, whole workspace suite 2942/0 and bats 702/702 in ic's private worktree, red on the base by compile), its record at 6b7d38a4d, ST0079/01 Done, issue 0502 closed by the same landing; hv rebuilt the pair to 6b7d38a4d (both binaries 07:46:5xZ, daemon on it, doctor 0 findings) and confirmed `/outstanding` live in Lamplight's explorer. WP-02, hv's TODO of 2026-09-22 that each WIP work package shows under its own thread, is cc's: AC-00.1, AC-00.2 and AC-00.4 withdrawn and AC-02.1 to AC-02.3 minted at 35bb002b8, code written, its whole-suite run waiting for the load floor. THE THREAD CLOSES WHEN WP-02 LANDS, and vc rebuilds after it. 0501 is dc's: cargo half green at 6b7d38a4d, bats half running, bank owed. ISSUES 0503 AND 0504 are filed from the C6 re-drive and are ic's to fix in one bank, under vc's ruling (A): a stated date on a self-loop is validated by one home and refused when it differs, with `intent set` named as the remedy, and `set` becomes status-aware. THE CONFLAB AND BAIZE TRIAGE IS RE-MEASURED against today's trees (Conflab: C2, C4, C4a, C5, C7 and C12 resolved, C1, C3, C6, C8, C9, C10, C11, C13, C14, C15 and C16 open; Baize: B1 to B5, B10, B12 and B13 resolved, B9 confirmed as stated, B6, B7, B8 and B11 open, B14 vc's own unmeasured item and B15 information only), and the open rows go to hv as TUI questions four at a time, B7 and C6 first. Owed in Baize whatever hv rules: AC-01.2's rationale corrected to 98/95/92 (hv decision 26 item 9, and Held-11 of 2026-08-24, never executed) and Held-1's narrowing of AC-01.3 with AC-02.3's stale "PENDING hv" text. The 3.2.0 app is downloaded and verified (sha256 matches GitHub's published digest, Developer ID Geodica, notarized, stapled, 3.2.0 build 7772) and waits only on the install into /Applications, which this session's permission classifier refuses. NO PUSH, NO RELEASE.
 
 ## TODO
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M341NW29GP9XCMPV5EBBQC9B",
+  "ts": "2026-09-22T07:53:23.788Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0504"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent set <ST> completed records a value that is not a date, and a completion date on a thread that is not closed"
+  }
+}

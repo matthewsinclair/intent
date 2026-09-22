@@ -1,0 +1,15 @@
+{
+  "id": "01M341R5N2QFKS2VF138SZ9H6Z",
+  "ts": "2026-09-22T07:54:39.138Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-22 07:55Z, replaces doing 23). ST0079 IS HALF CLOSED: WP-01 landed at 52cd8b55d on vc's word (judged patch-id cbf0c5180e, worktree equal to the bank, whole workspace suite 2942/0 and bats 702/702 in ic's private worktree, red on the base by compile), its record at 6b7d38a4d, ST0079/01 Done, issue 0502 closed by the same landing; hv rebuilt the pair to 6b7d38a4d (both binaries 07:46:5xZ, daemon on it, doctor 0 findings) and confirmed `/outstanding` live in Lamplight's explorer. WP-02, hv's TODO of 2026-09-22 that each WIP work package shows under its own thread, is cc's: AC-00.1, AC-00.2 and AC-00.4 withdrawn and AC-02.1 to AC-02.3 minted at 35bb002b8, code written, its whole-suite run waiting for the load floor. THE THREAD CLOSES WHEN WP-02 LANDS, and vc rebuilds after it. 0501 is dc's: cargo half green at 6b7d38a4d, bats half running, bank owed. ISSUES 0503 AND 0504 are filed from the C6 re-drive and are ic's to fix in one bank, under vc's ruling (A): a stated date on a self-loop is validated by one home and refused when it differs, with `intent set` named as the remedy, and `set` becomes status-aware. THE CONFLAB AND BAIZE TRIAGE IS RE-MEASURED against today's trees (Conflab: C2, C4, C4a, C5, C7 and C12 resolved, C1, C3, C6, C8, C9, C10, C11, C13, C14, C15 and C16 open; Baize: B1 to B5, B10, B12 and B13 resolved, B9 confirmed as stated, B6, B7, B8 and B11 open, B14 vc's own unmeasured item and B15 information only), and the open rows go to hv as TUI questions four at a time, B7 and C6 first. Owed in Baize whatever hv rules: AC-01.2's rationale corrected to 98/95/92 (hv decision 26 item 9, and Held-11 of 2026-08-24, never executed) and Held-1's narrowing of AC-01.3 with AC-02.3's stale \"PENDING hv\" text. The 3.2.0 app is downloaded and verified (sha256 matches GitHub's published digest, Developer ID Geodica, notarized, stapled, 3.2.0 build 7772) and waits only on the install into /Applications, which this session's permission classifier refuses. NO PUSH, NO RELEASE."
+  }
+}
