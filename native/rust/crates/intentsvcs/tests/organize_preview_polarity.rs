@@ -387,9 +387,13 @@ fn the_unclaimed_digest_moves_on_membership_and_not_on_order() {
   // byte-identical, with the changed entry at position 2 of 199. Grouping the
   // report by directory -- the first fix -- fails that swap for the same reason
   // the count does: same directory, same cardinality.
-  let path = |p: &str| std::path::PathBuf::from(p);
+  // **ROOT-PREFIXED, BECAUSE THAT IS THE SHAPE THE WALK PRODUCES.** `Step.path`
+  // is built from `self.root.join(..)`, so a fixture of bare relative literals
+  // was testing a `Report` production never builds -- which is how it could
+  // assert both halves below and still miss issue 0509 entirely.
+  let root = std::path::PathBuf::from("/estate");
   let report = |paths: &[&str]| Report {
-    unclaimed: paths.iter().map(|p| path(p)).collect(),
+    unclaimed: paths.iter().map(|p| root.join(p)).collect(),
     ..Default::default()
   };
 
@@ -404,8 +408,8 @@ fn the_unclaimed_digest_moves_on_membership_and_not_on_order() {
     "the fixture must hold cardinality constant, or it is testing the count"
   );
   assert_ne!(
-    before.unclaimed_digest(),
-    swapped.unclaimed_digest(),
+    before.unclaimed_digest(&root),
+    swapped.unclaimed_digest(&root),
     "a same-directory swap must move the digest -- it is the only thing that can see it"
   );
 
@@ -413,16 +417,111 @@ fn the_unclaimed_digest_moves_on_membership_and_not_on_order() {
   // instrument.** If walk order moved it, the detector would fire on the walk
   // instead of on the estate and a reader would learn to ignore it in a day.
   assert_eq!(
-    before.unclaimed_digest(),
-    reordered.unclaimed_digest(),
+    before.unclaimed_digest(&root),
+    reordered.unclaimed_digest(&root),
     "the same SET in a different order is the same set"
   );
 
   // Twelve hex characters, so the summary line stays readable.
-  let d = before.unclaimed_digest();
+  let d = before.unclaimed_digest(&root);
   assert_eq!(d.len(), 12, "digest should be 12 chars, got {d}");
   assert!(
     d.chars().all(|c| c.is_ascii_hexdigit()),
     "digest should be hex: {d}"
+  );
+}
+
+/// A real `Report` from a real project at a real root, carrying exactly the
+/// unclaimed files named.
+///
+/// **BUILT THROUGH `plan` AND `run` RATHER THAN CONSTRUCTED**, because the
+/// question below is about what the WALK puts in the report, and a hand-built
+/// `Report` is free to hold whatever shape the test wants it to.
+fn unclaimed_report(fx: &Fixture, names: &[&str]) -> (std::path::PathBuf, Report) {
+  let project = fx.project();
+  let present: std::collections::BTreeSet<std::path::PathBuf> = names
+    .iter()
+    .map(|n| project.st_dir().join("ST0002").join(n))
+    .collect();
+  let p = plan(
+    &project,
+    &canon_of(vec![sample_thread("ST0002")]),
+    &intentfiles::realised_for_action(MANIFEST).expect("manifest parses"),
+    &ctx(),
+    &TreeState {
+      present,
+      ..Default::default()
+    },
+    "digest".to_string(),
+  );
+  let report = p
+    .run(Mode::Preview, &|| "digest".to_string())
+    .expect("a preview returns");
+  assert_eq!(
+    report.unclaimed.len(),
+    names.len(),
+    "the fixture must put every named file in the unclaimed set, or the digest below is over the wrong population: {:?}",
+    report.unclaimed
+  );
+  (project.root().to_path_buf(), report)
+}
+
+#[test]
+fn the_unclaimed_digest_does_not_move_when_the_tree_does() {
+  // **THIS IS THE ARM THAT WOULD HAVE FAILED BEFORE ISSUE 0509 WAS FIXED, and
+  // its absence is why the defect survived.** The membership-and-order test
+  // above builds its `Report` from string literals, so it never holds a project
+  // root and cannot move a tree; it can assert both of its halves forever while
+  // the digest silently answers a second question nobody asked it.
+  //
+  // The digest's job is "did this SET change". A project that is COPIED or
+  // MOVED has the same set. Hashing the paths as stored -- root-prefixed --
+  // made the digest change on the move, so a reader could not tell an estate
+  // that had gained a file from one that had merely been relocated.
+  let a = Fixture::new();
+  let b = Fixture::new();
+  let files = ["diagram.png", "notes.tap", "sub/extra.png"];
+
+  let (root_a, report_a) = unclaimed_report(&a, &files);
+  let (root_b, report_b) = unclaimed_report(&b, &files);
+
+  // **THE VACUITY GUARD, and it is not ceremony here.** `Fixture::new` is a
+  // `tempfile::tempdir()`, so two fixtures are two different roots -- but if
+  // that ever stopped being true the assertion below would pass for the one
+  // reason that proves nothing, and it would pass quietly.
+  assert_ne!(
+    root_a, root_b,
+    "the two fixtures must sit at DIFFERENT roots, or 'the digest survived the move' is true because nothing moved"
+  );
+  assert_ne!(
+    report_a.unclaimed, report_b.unclaimed,
+    "the stored paths must differ between the two roots -- if they are equal the digest cannot distinguish the shapes and this test is measuring nothing"
+  );
+  // **AND THE DENOMINATOR, which is the guard the root check does not give**
+  // (vc, 2026-09-22). Two digests over two EMPTY sets are also equal, so a
+  // fixture whose `Unclaimed` rows stopped materialising -- for any reason
+  // having nothing to do with this digest -- would satisfy the assertion below
+  // for the one reason that proves nothing, and would do it quietly.
+  assert!(
+    !report_a.unclaimed.is_empty() && !report_b.unclaimed.is_empty(),
+    "both reports must carry unclaimed files: a=[{:?}] b=[{:?}]",
+    report_a.unclaimed,
+    report_b.unclaimed
+  );
+
+  assert_eq!(
+    report_a.unclaimed_digest(&root_a),
+    report_b.unclaimed_digest(&root_b),
+    "THE SAME SET AT A DIFFERENT ROOT IS THE SAME SET. A digest that moves when the project moves answers 'did this set change, or did the tree move', and nothing on the summary line distinguishes the two"
+  );
+
+  // **AND THE OTHER POLARITY, at a real root rather than a constructed one**,
+  // so relativising cannot have been bought by flattening every path to
+  // something that no longer discriminates -- a basename, say.
+  let (root_c, report_c) = unclaimed_report(&b, &["diagram.png", "notes.tap", "sub/other.png"]);
+  assert_ne!(
+    report_a.unclaimed_digest(&root_a),
+    report_c.unclaimed_digest(&root_c),
+    "CONTROL FAILED: a changed member must still move the digest once the root is stripped"
   );
 }

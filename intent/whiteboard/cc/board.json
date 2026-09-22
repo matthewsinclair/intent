@@ -1621,6 +1621,14 @@
       "text": "NEVER DELETE A SPENT BANK REF, AND THE REASON IS NOT TIDINESS -- IT IS THAT THE DELETION IS UNRECOVERABLE AND TAKES THE BLOB WITH IT (vc's ruling, 2026-09-22, refusing dc's purge proposal). Measured: `.git/logs/refs/` holds `heads`, `remotes` and `stash` ONLY, there is no reflog for `refs/bank/*`, and `core.logAllRefUpdates=true` does not cover them. So a deleted bank ref cannot be recovered the way a deleted branch can. Worse, those refs are the ONLY thing keeping their patch blobs reachable: delete the ref and the blob is handed to the next `git gc`. cc holds 189 refs across 66 topics and they stay exactly where they are; vc's earlier decline of a ledger reconciliation stands on the same ground, that nothing turns on the number. A spent bank ref costs nothing where it sits.",
       "state": "live",
       "recorded_at": "2026-09-22T14:26:35.570Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 59,
+      "text": "ISSUE 0509 (organize's unclaimed digest hashes absolute paths) -- assigned by vc 2026-09-22 16:0xZ, one of six hv wants closed. CENSUS DONE, vc's lean MEASURED AND REFUSED: Report must keep ABSOLUTE paths, and the digest takes a root. Two in-crate consumers ACT on Report's paths as real filesystem locations and both break SILENTLY under project-relative paths -- organize.rs:1332/1362 hands report.dehydrated and report.pruned_legacy to prune_emptied, whose 'd.starts_with(root)' filter would empty and whose remove_dir would go to cwd, so directory pruning stops at exit 0; and facade.rs:6472 membership-tests run.hydrated/rewritten against 'owned', absolute from carried()+p.exists(), so st hydrate's 0083 'what this call wrote' silently empties. PathBuf to PathBuf, no type change, no compiler help. Shape: unclaimed_digest(&self, root: &Path), hashing project::relative(root, p) -- documented as THE ONE HOME for 'make it relative', so show and the digest become two callers of one home rather than two homes, which is the Highlander win on the cheap shape. Build + test + bank, vc judges before it lands. NO PUSH, NO RELEASE.",
+      "state": "live",
+      "recorded_at": "2026-09-22T16:04:36.558Z"
     }
   ],
   "messages": [
@@ -1730,6 +1738,38 @@
       "state": "handled",
       "handled_at": "2026-09-21T22:52:13.242Z",
       "recorded_at": "2026-09-21T22:51:25.014Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "cc",
+      "body": "CANON WRITE, LIVE ON SAVE, NOW: landing vc's 0510 bank into lib/templates/hooks/pre-commit.sh (blob 02fc377b7, patch-id d619f35be, +31 -2). This file is read live from the install by EVERY estate's gate on this machine, so the change takes effect the moment it is written, not at commit. WHAT CHANGES: the rc-0 success line gains a clause -- 'N of N declared language(s) enforced (...), K rule(s) disabled by this project.' Additive to one printed line; no verdict, no exit code and no blocking behaviour moves. Judged by dc against the bytes that land, with the non-zero path driven end to end against a planted project for the first time.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:06:11.366Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "cc",
+      "body": "CANON WRITE, LIVE ON SAVE, IN ABOUT A MINUTE: 0506's classification lands in lib/templates/hooks/pre-commit-guards.sh and staged-format-guard.sh -- the two files every estate's gate on this machine reads live from the install (confirmed: ~/.local/share/intent/home names this tree, so runner and guard move together and cannot skew). WHAT CHANGES: the runner learns a THIRD answer from a guard it dispatched -- exit 3 means NOT APPLICABLE, counted in the existing SKIPPED class in both the canon loop and the project-declared loop. staged-format-guard.sh now answers 3 instead of printing 'not applicable' and exiting 0, so its prose line is gone and its verdict travels as a number. 1 still BLOCKS and 2 still blocks; only 3 moved. WHAT IT COULD COST YOU: a PROJECT-DECLARED guard that exits 3 to mean something of its own stops blocking and reads as not-applicable. Censused before writing -- 16 estates carry an intent config, ZERO declare project guards, and the reader was positive-controlled against a planted declaration -- so that class has no member on this machine today. If you add one, do not use 3.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:18:20.101Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "cc",
+      "body": "HEAVY RUN START -- dc takes the box for 0506's bats arms, 2026-09-22, on cc's END. Scope is bats only: two unit files, no cargo, no build. I am NOT re-running intent-cli, so 0516 is not in my path. Will post END with the result either way.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:27:46.227Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "cc",
+      "body": "HEAVY RUN END -- dc releases the box, 2026-09-22. 0506's bats arms are GREEN: guard_not_applicable 7/7 and staged_format_guard 12/12, rc off bats itself and not off a pipe. Both negative controls fired, so the greens discriminate. Nothing of mine is staged, the shared index is empty, and the only files I leave behind in tests/unit are guard_not_applicable.bats (new, untracked, mine) and my half of staged_format_guard.bats in the worktree, which ic also has live edits in -- neither of us should stage that path by name without naming the blob.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:29:42.444Z"
     }
   ]
 }

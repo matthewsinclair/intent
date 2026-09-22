@@ -1,0 +1,15 @@
+{
+  "id": "01M34XSA2EFP3FMAR21C1NQE52",
+  "ts": "2026-09-22T16:04:36.558Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0509 (organize's unclaimed digest hashes absolute paths) -- assigned by vc 2026-09-22 16:0xZ, one of six hv wants closed. CENSUS DONE, vc's lean MEASURED AND REFUSED: Report must keep ABSOLUTE paths, and the digest takes a root. Two in-crate consumers ACT on Report's paths as real filesystem locations and both break SILENTLY under project-relative paths -- organize.rs:1332/1362 hands report.dehydrated and report.pruned_legacy to prune_emptied, whose 'd.starts_with(root)' filter would empty and whose remove_dir would go to cwd, so directory pruning stops at exit 0; and facade.rs:6472 membership-tests run.hydrated/rewritten against 'owned', absolute from carried()+p.exists(), so st hydrate's 0083 'what this call wrote' silently empties. PathBuf to PathBuf, no type change, no compiler help. Shape: unclaimed_digest(&self, root: &Path), hashing project::relative(root, p) -- documented as THE ONE HOME for 'make it relative', so show and the digest become two callers of one home rather than two homes, which is the Highlander win on the cheap shape. Build + test + bank, vc judges before it lands. NO PUSH, NO RELEASE."
+  }
+}

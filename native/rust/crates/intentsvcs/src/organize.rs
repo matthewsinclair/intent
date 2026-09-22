@@ -1098,11 +1098,46 @@ impl Report {
   /// habit: this is a CHANGE DETECTOR for a human reading one line, not an
   /// identity anyone pins against, so collision resistance past "did this set
   /// move" buys nothing and costs the readability the whole change is for.
-  pub fn unclaimed_digest(&self) -> String {
+  ///
+  /// **`root` IS A PARAMETER BECAUSE THIS DIGEST ANSWERS A PROJECT-RELATIVE
+  /// QUESTION AND `Report` CARRIES ABSOLUTE PATHS** (issue 0509). Until
+  /// 2026-09-22 it hashed each path exactly as stored, and the stored paths are
+  /// root-prefixed -- `Step.path` is built from `self.root.join(..)` -- while
+  /// the renderer relativised only the DISPLAY and appended the raw digest to
+  /// the same summary line. Two values on one line disagreed about what a path
+  /// is, and a digest whose job is "did this set change" answered "did this set
+  /// change, OR DID THE TREE MOVE", with nothing on the line distinguishing the
+  /// two.
+  ///
+  /// **THE FIX IS NOT TO MAKE `Report` CARRY RELATIVE PATHS, AND THE REASON IS
+  /// MEASURED RATHER THAN STYLISTIC.** Absolute is CORRECT for the fields:
+  /// `Report` is the record of acts performed on a real filesystem, and this
+  /// crate consumes it as one. `prune_emptied` is handed `&report.dehydrated`
+  /// and `&report.pruned_legacy` directly and filters candidates by
+  /// `d.starts_with(root)` before `remove_dir`, so relative paths there would
+  /// drop every candidate and the directory prune would remove nothing AT EXIT
+  /// 0; and the `hydration` door membership-tests `report.hydrated` against an
+  /// absolute `carried()` set, which would silently empty. Both breakages are
+  /// `PathBuf` to `PathBuf` -- no type change, no compiler help.
+  ///
+  /// **SO THE ROOT COMES IN AND [`crate::project::relative`] DOES THE WORK**,
+  /// which is the Highlander point: that function is documented as the one home
+  /// for "name this path as Intent names it", so the renderer's `show` and this
+  /// digest become two CALLERS OF ONE HOME rather than two homes for one
+  /// question. It forward-slashes on every platform, so the digest stops
+  /// depending on the separator as well.
+  ///
+  /// **AND IT IS A PARAMETER RATHER THAN A FIELD ON `Report`.** A `root` field
+  /// would have to survive `Report::default()`, and a defaulted empty root
+  /// makes `strip_prefix` fall through to the path unchanged -- which is
+  /// exactly the old behaviour, restored silently, in the one construction a
+  /// test is most likely to reach for. A parameter makes every caller say which
+  /// root it means.
+  pub fn unclaimed_digest(&self, root: &Path) -> String {
     let mut sorted: Vec<String> = self
       .unclaimed
       .iter()
-      .map(|p| p.to_string_lossy().to_string())
+      .map(|p| crate::project::relative(root, p))
       .collect();
     // **SORTED HERE RATHER THAN TRUSTED FROM THE WALK.** The digest must answer
     // *is this the same SET*, so a report whose paths arrived in a different

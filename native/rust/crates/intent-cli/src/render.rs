@@ -7027,7 +7027,7 @@ fn render_organize_report(
   let unclaimed_digest = if report.unclaimed.is_empty() {
     String::new()
   } else {
-    format!(" ({})", report.unclaimed_digest())
+    format!(" ({})", report.unclaimed_digest(project.root()))
   };
   let blocked = report.blocked();
   let blocked = if blocked == 0 {
