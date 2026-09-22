@@ -16,7 +16,8 @@
 #   INTENT_ALLOW_FROZEN_PUSH=1  let one push reach a frozen remote
 #
 # Exits 0 when the clone builds and its binaries run (or when no build input
-# changed), 1 on a frozen remote or any failure.
+# changed), 1 on a frozen remote, a delivered pair the currency verdict refuses,
+# or any failure.
 #
 # THE FAILURE THIS EXISTS FOR, and it is not hypothetical. On 2026-08-15 a
 # commit titled "all native code moves to native/rust/" committed the additions
@@ -60,6 +61,18 @@ set -euo pipefail
 # lived inside a command about pushing. See the file for why that is its own
 # defect class.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
+
+# THE CURRENCY VERDICT'S OWN SOURCES, in the order `currency.lib` demands:
+# `artefact.lib` then `sharedtarget.lib`, then the verdict. `releasebuild.lib`
+# is here for `RELEASE_DIR` alone, so the delivered pair has one spelling. A
+# HARD DEPENDENCY for the reason `cmd/cli` gives: a gate that drops its check
+# when a file goes missing still looks like a gate.
+for lib in artefact sharedtarget currency releasebuild; do
+  libpath="$(dirname "${BASH_SOURCE[0]}")/shared/$lib.lib"
+  [ -r "$libpath" ] || die "cannot read $libpath -- refusing to push without the currency check"
+  # shellcheck disable=SC1090
+  . "$libpath"
+done
 
 ROOT="${PROJECT_ROOT:?}"
 
@@ -154,6 +167,60 @@ EOF
     exit 1
   done
 fi
+
+# ---------------------------------------------------------------------------
+# A STALE DELIVERED PAIR IS REFUSED HERE (issue 0518, hv decision 30).
+#
+# `~/.local/bin/intent` is a symlink into `RELEASE_DIR`, so what every estate on
+# this machine runs is whatever `bin/devbin build all` last wrote there, and a
+# landing under `native/rust/` changes none of it. On 2026-09-22 two judged and
+# landed fixes (0509, 0513) ran nowhere for hours while the pre-commit gate
+# printed `currency REFUSING` on every commit and nobody acted on it. A REPORT
+# ALREADY EXISTED AND FAILED; this moves the same verdict to where it refuses.
+#
+# WHY PUSH (hv's ruling, not a default). A push is hv's own hand and a batch
+# boundary, so one `build all` covers every Rust change since the last push and
+# the refusal reaches the person who can act on it. At COMMIT it would force a
+# heavy rebuild with no dry run between every bank and its landing; a wrapper on
+# the symlink would put a check in front of every invocation in every estate,
+# the session hooks included.
+#
+# THE VERDICT IS `artefact_currency_verdict`, NOT A SECOND STALENESS TEST. Its
+# range is the pair's commit to HEAD over the marker's build-input scope, so a
+# whiteboard-only push over a source-clean range passes, and a whiteboard-only
+# push over a pair that is provably behind REFUSES -- the push's own contents
+# are not the question; whether the pair describes what is being published is.
+#
+# WARN PASSES, PRINTED. The one `warn:` a present git gives is a `dirty-` marker
+# over a source-clean range, which `currency.lib` calls uncleartable at exec
+# time. At push it would be clearable only by a rebuild from a tree clean under
+# the whole dirt scope, and this checkout is shared by several nodes and is
+# almost never that. A refusal nobody can discharge gets `--no-verify`d, which
+# disarms the REFUSE rows with it. The other `warn:` is no git, which is a fact
+# about the environment and not the pair.
+#
+# RUN BEFORE THE PATH TRIGGER BELOW, deliberately: that trigger exits early on a
+# push with no native/ change, and a stale pair is exactly as stale then.
+currency="$(artefact_currency_verdict "$RELEASE_DIR" "$ROOT")"
+case "$currency" in
+  ok) ;;
+  warn:*)
+    printf 'prepush: currency WARN (target/release) -- %s\n' "${currency#warn:}" >&2
+    ;;
+  refuse:*)
+    printf '\nBLOCKED: the delivered pair under native/rust/target/release does not describe this tree.\n\n  %s\n\n' "${currency#refuse:}" >&2
+    # A rebuild fixes a stale marker and cannot fix a pair `strings` could not
+    # read; that refusal names its own remedy, as it does in `cmd/cli`.
+    case "$currency" in
+      "refuse:${ARTEFACT_CURRENCY_UNREAD}"*) ;;
+      *) printf '  remedy: bin/devbin build all   (rebuilds and verifies the pair; then push again)\n\n' >&2 ;;
+    esac
+    exit 1
+    ;;
+  *)
+    die "unrecognised currency verdict '$currency' -- refusing rather than guessing"
+    ;;
+esac
 
 # What is about to be pushed -- and "about to be pushed" is a property of THIS
 # PUSH, not of the tracked remote.
