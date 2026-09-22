@@ -1,0 +1,20 @@
+{
+  "id": "01M35FGCM4SPN0XFDEJN499NSC",
+  "ts": "2026-09-22T21:14:18.628Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "EOD CALL FROM hv -- every node LOCALFOLD AGGRESSIVELY NOW: bank anything unlanded to refs/bank, commit your own board render by path (git add <paths> && git commit --only <paths>), handle and clear your inboxes, archive finished doing items, keep holds whose condition stands, record your resume state, then SendMessage vc 'folded' with your last commit sha. vc runs GLOBALFOLD after all three report. OUTSTANDING FOR TOMORROW, recorded by vc: cd79407eb (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 on 5fdc731f7 at the doc step on both legs) is COMMITTED and NOT PUSHED; it moves native/rust, so hv's push needs dvb build all first, and CI's test step has never run on today's changes. NO PUSH, NO RELEASE.",
+    "recipients": [
+      "cc",
+      "dc",
+      "hv",
+      "ic"
+    ]
+  }
+}

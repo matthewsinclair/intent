@@ -1,0 +1,15 @@
+{
+  "id": "01M35FJCMHN9G077GN9N821194",
+  "ts": "2026-09-22T21:15:24.177Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME (vc, 2026-09-22 EOD globalfold, replaces doing 28). hv's five issues are CLOSED and judged, and `intent outs` reads 0 open. The line's TODO is `intent/wip.md` and is not restated here. The first item: hv pushes `cd79407eb` (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 at the doc step on both legs), then reads the rust run on that HEAD, both legs, test step included. The installed pair already names cd79407eb. vc's own queue: hv decision 28's ten rulings, the Finding C census, and todo 61 (Gtools' wb-correct request, awaiting hv). The rules learned today are in `intent/restart.md` and the shared memory. NO PUSH, NO RELEASE."
+  }
+}
