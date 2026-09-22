@@ -143,7 +143,7 @@ teardown() {
 # ====================================================================
 
 @test "autopsy.exs --help shows usage" {
-  skip_if_no_elixir
+  require_elixir "the autopsy detector's behaviour on a real transcript"
   run elixir "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs" --help
   assert_success
   assert_output_contains "autopsy.exs"
@@ -207,10 +207,13 @@ teardown() {
 # Helpers
 # ====================================================================
 
-skip_if_no_elixir() {
-  if ! command -v elixir >/dev/null 2>&1; then
-    skip "Elixir not installed"
-  fi
+# WAS `skip_if_no_elixir`, AND THE RENAME IS THE CHANGE (issue 0512). These
+# arms drive `autopsy.exs` -- a shipped script whose detector has a measured
+# precision story -- so with elixir absent they reported `ok` having measured
+# nothing, nine times per CI leg, in three spellings. CI installs elixir now,
+# so the honest answer to an absent runtime is a failure naming it.
+require_elixir() {
+  require_tool elixir "$1"
 }
 
 # --- FENCES (2026-08-24 config sweep) -------------------------------------
@@ -240,7 +243,7 @@ _autopsy_fixture() {
 
 @test "autopsy emits one record per OCCURRENCE, not one per (text, pattern)" {
   local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
-  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  require_elixir "whether autopsy emits one record per occurrence"
   _autopsy_fixture >/dev/null
   local out="$TEST_TEMP_DIR/f.json"
 
@@ -256,7 +259,7 @@ _autopsy_fixture() {
 
 @test "autopsy tags turn_kind so a record can be classified from itself" {
   local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
-  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  require_elixir "whether autopsy tags turn_kind on every record"
   _autopsy_fixture >/dev/null
   local out="$TEST_TEMP_DIR/f.json"
 
@@ -273,7 +276,7 @@ _autopsy_fixture() {
 
 @test "autopsy does not treat a bare 'not' as a negation cue" {
   local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
-  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  require_elixir "whether autopsy treats a bare 'not' as a negation cue"
   _autopsy_fixture >/dev/null
   local out="$TEST_TEMP_DIR/f.json"
 
@@ -295,7 +298,7 @@ _autopsy_fixture() {
 
 @test "autopsy summary prints the funnel, not the raw total alone" {
   local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
-  command -v elixir >/dev/null 2>&1 || skip "elixir not installed"
+  require_elixir "what autopsy's summary prints"
   _autopsy_fixture >/dev/null
 
   run elixir "$script" --days 3650 --project fixture -o "$TEST_TEMP_DIR/f.json"

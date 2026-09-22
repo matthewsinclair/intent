@@ -138,14 +138,15 @@ teardown() {
   # an arm could not reach its tool, could not find a witness in the corpus, or
   # is describing a system this machine is not. Each now carries its own tag.
   #
-  # THE EXCEPTION LIST IS THE OPEN QUESTION, WRITTEN DOWN RATHER THAN SETTLED.
-  # Nine arms per leg skip because elixir is absent, in three spellings, two of
-  # which differ only in capitalisation -- measured in run 35743714571. Whether
-  # CI should install elixir and let those nine run, or whether they are
-  # legitimately environment-gated, is a fork with a real cost on each side and
-  # it is not this file's to pick. Until it is ruled they are listed here BY
-  # NAME, so the question stays visible and cannot quietly grow a tenth member.
-  local exceptions="tests/unit/test_autopsy.bats tests/unit/rule_pack_elixir_runnable.bats"
+  # THE EXCEPTION LIST IS GONE AND THAT IS THE POINT. It held
+  # `test_autopsy.bats` and `rule_pack_elixir_runnable.bats` while the elixir
+  # fork was open -- nine arms per leg skipping on an absent runtime, in three
+  # spellings. vc ruled on 2026-09-22 that CI installs elixir, so those arms
+  # now require it by name and the exception has nothing left to except. **An
+  # exception list that outlives the fork it records is the next reader's false
+  # finding**, so it is removed in the same commit that settles the fork rather
+  # than left as a tidy-up.
+  local exceptions=""
 
   local untagged="" hit file
   while IFS= read -r hit; do

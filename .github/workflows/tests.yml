@@ -185,6 +185,34 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
+      - uses: erlef/setup-beam@v1
+        # ELIXIR IS AN ARMED RUNTIME HERE, NOT AN OPTIONAL EXTRA -- the third
+        # in this file after shellcheck and prettier, and the one that went
+        # unnoticed longest (issue 0512).
+        #
+        # NINE ARMS PER LEG HAVE NEVER EXECUTED. Five in `test_autopsy.bats`
+        # drive `autopsy.exs`; four in `rule_pack_elixir_runnable.bats` run each
+        # elixir rule's `good.exs` under standalone elixir. Neither workflow has
+        # ever installed a runtime, so every one of them reported `# skip` and
+        # counted as `ok`, in THREE spellings -- `elixir not on PATH`, `elixir
+        # not installed` and `Elixir not installed`, two differing only in case,
+        # which is why a census of the class kept missing most of it.
+        #
+        # PINNED TO THE MINOR, matching the prettier step's reasoning above and
+        # taken from the machine those arms are green on: OTP 29 (erts-17.1),
+        # Elixir 1.20.4. The major binds the contract the arms rely on and
+        # leaves the dev machine floating in the same regime.
+        #
+        # `Mix.install` NEEDS NO CACHE STEP, DRIVEN RATHER THAN ASSUMED.
+        # `autopsy.exs` and every `good.exs` call it, and `test_autopsy.bats`
+        # redirects HOME per test -- which this estate's corpus says hides Hex.
+        # Driven from an empty `mktemp -d` HOME: Mix.install bootstraps Hex
+        # itself and resolves jason over the network in 1.48s. The recorded
+        # failure mode is a HOME that HIDES an existing install, not one that
+        # never had it.
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
       - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
         # NEITHER RUNNER SHIPS PRETTIER, so this needs no `if:` -- unlike the
         # shellcheck step, which is macOS-only because ubuntu-latest ships it.
@@ -388,6 +416,34 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
+      - uses: erlef/setup-beam@v1
+        # ELIXIR IS AN ARMED RUNTIME HERE, NOT AN OPTIONAL EXTRA -- the third
+        # in this file after shellcheck and prettier, and the one that went
+        # unnoticed longest (issue 0512).
+        #
+        # NINE ARMS PER LEG HAVE NEVER EXECUTED. Five in `test_autopsy.bats`
+        # drive `autopsy.exs`; four in `rule_pack_elixir_runnable.bats` run each
+        # elixir rule's `good.exs` under standalone elixir. Neither workflow has
+        # ever installed a runtime, so every one of them reported `# skip` and
+        # counted as `ok`, in THREE spellings -- `elixir not on PATH`, `elixir
+        # not installed` and `Elixir not installed`, two differing only in case,
+        # which is why a census of the class kept missing most of it.
+        #
+        # PINNED TO THE MINOR, matching the prettier step's reasoning above and
+        # taken from the machine those arms are green on: OTP 29 (erts-17.1),
+        # Elixir 1.20.4. The major binds the contract the arms rely on and
+        # leaves the dev machine floating in the same regime.
+        #
+        # `Mix.install` NEEDS NO CACHE STEP, DRIVEN RATHER THAN ASSUMED.
+        # `autopsy.exs` and every `good.exs` call it, and `test_autopsy.bats`
+        # redirects HOME per test -- which this estate's corpus says hides Hex.
+        # Driven from an empty `mktemp -d` HOME: Mix.install bootstraps Hex
+        # itself and resolves jason over the network in 1.48s. The recorded
+        # failure mode is a HOME that HIDES an existing install, not one that
+        # never had it.
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
       - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
         # NEITHER RUNNER SHIPS PRETTIER, so this needs no `if:` -- unlike the
         # shellcheck step, which is macOS-only because ubuntu-latest ships it.

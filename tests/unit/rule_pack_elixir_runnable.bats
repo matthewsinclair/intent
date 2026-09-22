@@ -10,18 +10,20 @@
 # and runs them. Ash/Phoenix/LiveView rules are inline-only (Mix-project deps)
 # and are deliberately excluded from this test.
 #
-# Skipped when Elixir is not on PATH — CI environments without Elixir get a
-# graceful skip rather than a failure. Local dev should always have Elixir.
+# THIS HEADER SAID "CI environments without Elixir get a graceful skip rather
+# than a failure" UNTIL 2026-09-22, AND THAT SENTENCE WAS THE DEFECT (issue
+# 0512). The skip was graceful and it was also the whole of what CI ever did
+# here: neither workflow installed elixir, so these arms reported `ok` on every
+# run they have ever had, having executed nothing. A green that means nothing,
+# on arms whose subject is whether a rule pack's exemplars actually run.
+#
+# CI installs elixir now, so an absent runtime FAILS naming itself, and a
+# contributor who has chosen to work without it sets INTENT_ALLOW_MISSING_ELIXIR
+# deliberately rather than getting a silent pass by default.
 
 load "../lib/test_helper.bash"
 
 ELIXIR_ROOT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir"
-
-setup_file() {
-  if ! command -v elixir >/dev/null 2>&1; then
-    export ELIXIR_MISSING=1
-  fi
-}
 
 # Rules with runnable examples. Ash/Phoenix/LV rules are INTENTIONALLY ABSENT —
 # they rely on Mix projects with framework dependencies and cannot run under
@@ -54,7 +56,7 @@ EOF
 # ====================================================================
 
 @test "every code-rule good.exs exits 0 under standalone elixir" {
-  [ -n "${ELIXIR_MISSING:-}" ] && skip "elixir not on PATH"
+  require_tool elixir "whether this rule pack's exemplars run under standalone elixir"
   local slug path
   while read -r slug; do
     [ -z "$slug" ] && continue
@@ -69,7 +71,7 @@ EOF
 }
 
 @test "every test-rule good_test.exs exits 0 under standalone elixir" {
-  [ -n "${ELIXIR_MISSING:-}" ] && skip "elixir not on PATH"
+  require_tool elixir "whether this rule pack's exemplars run under standalone elixir"
   local slug path
   while read -r slug; do
     [ -z "$slug" ] && continue
@@ -89,7 +91,7 @@ EOF
 # ====================================================================
 
 @test "every code-rule bad.exs exits 0 (antipattern still runs cleanly)" {
-  [ -n "${ELIXIR_MISSING:-}" ] && skip "elixir not on PATH"
+  require_tool elixir "whether this rule pack's exemplars run under standalone elixir"
   local slug path
   while read -r slug; do
     [ -z "$slug" ] && continue
@@ -104,7 +106,7 @@ EOF
 }
 
 @test "every test-rule bad_test.exs exits 0 (antipattern still runs cleanly)" {
-  [ -n "${ELIXIR_MISSING:-}" ] && skip "elixir not on PATH"
+  require_tool elixir "whether this rule pack's exemplars run under standalone elixir"
   local slug path
   while read -r slug; do
     [ -z "$slug" ] && continue
