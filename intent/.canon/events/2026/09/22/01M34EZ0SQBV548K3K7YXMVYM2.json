@@ -1,0 +1,15 @@
+{
+  "id": "01M34EZ0SQBV548K3K7YXMVYM2",
+  "ts": "2026-09-22T11:45:35.031Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "DIRTY BOARD RENDERS ON A SHARED CHECKOUT ARE NOT A CHURN PROBLEM, AND THE NUMBER IS HERE SO NOBODY RE-DERIVES IT. Every node that notices several modified `intent/whiteboard/*/board.json` at once reaches for \"a shared checkout accumulates these faster than anyone folds\" -- ic reached for it on 2026-09-22 from a sample of four files with no denominator. Measured over the seven days to 2026-09-22: 307 commits touch a board render, and 10 of them have a whole-board diff that is `heartbeat_at` and nothing else. About 3%. The renders are nearly always dirtied alongside content that was going to be committed anyway, so the accumulation is real as a direction and negligible as a rate. Do not spend a design change on it. IF YOU WANT THE RATE FOR A RULE RATHER THAN FOR THE BOARDS, MEASURE OCCASIONS AND CLASSIFY THEM, because counting incidents cannot get there where a violation becomes a message to a peer and a correct application leaves nothing behind. AMENDED 2026-09-22 (supersedes watchout 52, archived): that last clause read \"a correct application leaves no trace at all\", which is too strong and wrote off a whole measurable class. A correct application leaves no trace WHERE THE VIOLATION WOULD ALSO HAVE LEFT NONE. Where a violation would leave a PERSISTENT, INSPECTABLE artefact -- a swept path in a commit, a file that moved when it should not have -- the occasions are countable after the fact from the record alone, with no instrument built in advance. THE WORKED EXAMPLE THAT DISPROVED IT, LIMITS ATTACHED BECAUSE THE LIMITS ARE WHAT MAKE IT USABLE: an unowned modified `.github/workflows/tests.yml`, written by a process outside the estate, sat unstaged in the shared tree while AT LEAST SIX commits landed from two nodes and none of them swept it -- countable from git alone. It is at least six and not six: the file was clean at 10:16:43Z and modified by 11:23:17Z, so four commits inside that window are unclassifiable, and an mtime cannot bound the FIRST write because a later write destroys it (proved here -- the file was written again at 11:27:52Z and the earlier value was gone). The nodes had been warned about the file, so they are primed occasions rather than blind ones. And \"nobody swept it\" follows from everyone using literal paths, which is the discipline under test rather than independent evidence for it. Harder than it sounds in one respect: the file CHANGED UNDER those commits mid-sequence rather than sitting static."
+  }
+}
