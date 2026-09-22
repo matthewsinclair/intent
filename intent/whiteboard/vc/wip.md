@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 8b585ac1-903e-41e1-887f-4ebeb676440d
-heartbeat_at: 2026-09-22 09:50Z
+heartbeat_at: 2026-09-22 10:19Z
 status: active
-focus: "Folded for a compact. The day's Intent work is down and live at 36143de45; hv's Lamplight check confirmed. Owed: the app install (hv's hand or a permission), hv's ten rulings executed cross-estate, the Finding C census. Every push is hv's."
+focus: "Back from the compact: first act is judging dc's 0505 bank (patch-id 656ffe93b9 at base 84d4b0507). Then the app install (hv's hand), hv's ten rulings cross-estate, the Finding C census. Every push is hv's."
 claims: []
 ---
 
