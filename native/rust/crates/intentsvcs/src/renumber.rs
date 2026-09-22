@@ -67,8 +67,20 @@ pub fn thread(canon: &Canon, old: &str, new: &str) -> Option<Renumbered> {
 
 /// Move issue `old` to `new`, or `None` when the model holds no `old`.
 ///
-/// Nothing structured refers to an issue -- `related` and claims both name
-/// threads -- so the only references it can have are prose.
+/// **THIS SAID "NOTHING STRUCTURED REFERS TO AN ISSUE -- `related` AND CLAIMS
+/// BOTH NAME THREADS -- SO THE ONLY REFERENCES IT CAN HAVE ARE PROSE", AND
+/// THAT SENTENCE IS NOW FALSE** (hv, decision 29, 2026-09-22). A BOARD CAN
+/// CLAIM AN ISSUE, as `ISSUE:0512`. The sentence is rewritten rather than
+/// deleted because it was the stated REASON this function rewrote nothing, and
+/// a reason that has stopped holding is the thing a later reader most needs to
+/// see move: deleting it quietly would leave the behaviour looking like a
+/// choice nobody had revisited.
+///
+/// `related` still names only threads, so an issue has no `related` edge to
+/// move; the claim half is now real and uses the same [`moved_claims`] the
+/// thread side does. **A widening that had left this behind would not have
+/// failed** -- it would have silently left a board claiming a number that had
+/// moved, which is a dangling reference with nothing to report it.
 pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
   if !canon.issues.iter().any(|i| i.number == old) {
     return None;
@@ -80,14 +92,32 @@ pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
     }
   }
   next.issues.sort_by_key(|i| i.number);
+  // **THROUGH THE MODEL'S OWN FORMATTER, NEVER `format!("ISSUE:{old:04}")`
+  // HERE.** The width and the prefix are one fact each, owned by `model`; a
+  // second spelling of either in this file agrees until one of them moves.
+  let mut rewritten = Vec::new();
+  let claims = moved_claims(
+    &canon.boards,
+    &crate::model::issue_claim(old),
+    &crate::model::issue_claim(new),
+    &mut rewritten,
+  );
   Some(Renumbered {
     canon: next,
-    rewritten: Vec::new(),
-    claims: Vec::new(),
+    rewritten,
+    claims,
   })
 }
 
-/// The claim lists that change, a claim being a thread or one of its packages.
+/// The claim lists that change, a claim being a thread, one of its packages,
+/// or an issue.
+///
+/// **THE MATCH IS BY WHOLE ADDRESS OR BY ADDRESS-PLUS-`/`, WHICH IS WHY IT
+/// TOOK THE ISSUE FORM WITHOUT A LINE OF CHANGE.** `moved_claim` refuses a
+/// merely-longer id -- `ST00031` is not `ST0003` -- by requiring a `/` after
+/// the prefix, and that guard holds identically for `ISSUE:0051` against
+/// `ISSUE:0005`. Issue ids are fixed width besides, so the case cannot arise;
+/// the guard is what makes that a belt rather than the only reason.
 fn moved_claims(
   boards: &[Board],
   old: &str,

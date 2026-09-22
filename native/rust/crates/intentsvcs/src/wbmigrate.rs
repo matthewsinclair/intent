@@ -248,8 +248,8 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
     out.uncarried.push(Uncarried {
       at: format!("{file}:{claims_line}"),
       reason: format!(
-        "not a claim address: `wb claim` takes a thread as `ST0000` or a work package as \
-         `ST0000/01`{spelled}"
+        "not a claim address: `wb claim` takes a thread as `ST0000`, a work package as \
+         `ST0000/01`, or an issue as `ISSUE:0000`{spelled}"
       ),
       text: claim,
     });

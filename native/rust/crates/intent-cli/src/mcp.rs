@@ -239,6 +239,21 @@ fn schema(entry: &Entry) -> Result<Value, Undeclarable> {
           json!("a steel thread id, optionally scoped to a work package, eg ST0000 or ST0000/01"),
         );
       }
+      // **ITS OWN TYPE RATHER THAN `st-id[/NN]`, BECAUSE THE DOOR ADMITS A
+      // THIRD SHAPE AND EIGHT OTHER VERBS DO NOT** (hv, decision 29). Widening
+      // the shared type would have told `st start` and `wp done` that they take
+      // an issue, which they do not; leaving `wb claim` on it would have told an
+      // agent the door refuses a form it accepts. An undeclared type is refused
+      // at line 272, so a surface row naming this cannot half-land.
+      "claim-address" => {
+        prop.insert("type".into(), json!("string"));
+        prop.insert(
+          "description".into(),
+          json!(
+            "what a board can claim: a steel thread as ST0000, a work package as ST0000/01, or an issue as ISSUE:0000"
+          ),
+        );
+      }
       "ac-id" => {
         prop.insert("type".into(), json!("string"));
         prop.insert(

@@ -137,15 +137,54 @@ pub fn is_thread_id(name: &str) -> bool {
       .all(|b| b.is_ascii_digit())
 }
 
-/// Is this a thing a board can claim: a steel thread, or one of its work
-/// packages?
+/// How a claim names an ISSUE, as [`crate::intentfiles::Sigil::Issue`] spells
+/// it in the manifest, with its separator.
+///
+/// **DECLARED HERE RATHER THAN READ FROM `intentfiles`, AND THAT IS A LAYERING
+/// CHOICE WITH A TEST BEHIND IT.** This module owns identity and depends on
+/// nothing in the crate -- `intentfiles` depends on IT, calling
+/// [`is_issue_id`] from `Sigil::accepts`. Reaching the other way for the token
+/// would invert that, so the token is declared here and
+/// `the_claim_prefix_is_the_manifests_own_spelling` holds the two identical.
+/// A copy a test cannot let drift is not the failure Highlander names; drift
+/// is.
+pub const CLAIM_ISSUE_PREFIX: &str = "ISSUE:";
+
+/// How a board claims issue `seq`.
+pub fn issue_claim(seq: u32) -> String {
+  format!("{CLAIM_ISSUE_PREFIX}{}", issue_id(seq))
+}
+
+/// Is this a thing a board can claim: a steel thread, one of its work
+/// packages, or an issue?
 ///
 /// **ONE HOME FOR EVERY DOOR THAT ADMITS A CLAIM.** `wb claim` asks it of a
 /// value typed at the verb and `wb migrate` of a value read off a board's
 /// header, and a second spelling at either door would be the one that admits
 /// what the other refuses. The thread half is [`is_thread_id`], not a second
-/// spelling of it.
+/// spelling of it, and the issue half is [`is_issue_id`].
+///
+/// **THE ISSUE FORM IS `ISSUE:0512` AND IT IS THE MANIFEST'S OWN SPELLING**
+/// (hv, decision 29, 2026-09-22). `organize --default` already writes
+/// `ISSUE:<NNNN>` per open issue into `intent/.intentfiles`, so the system
+/// records this address kind elsewhere and refused it only at this door --
+/// which left `claims:` EMPTY BY CONSTRUCTION for exactly the work that fills
+/// the time between releases, and therefore silent precisely where two
+/// concurrent sessions would collide. The bare `0512` form is refused: two
+/// spellings of one address is the drift Highlander names, it saves nothing,
+/// and it carries the same renumber consequence either way. Free text is
+/// refused because two claims could then be compared only by string equality,
+/// and the field would stop answering the collision question it exists for.
+///
+/// **ADMITTING THIS FALSIFIED A SENTENCE IN [`crate::renumber::issue`]** --
+/// that nothing structured refers to an issue -- so that function gained the
+/// claim rewriting `renumber::thread` already had. A widening that leaves a
+/// renumber behind does not fail; it silently leaves a board claiming a number
+/// that has moved.
 pub fn is_claim_address(claim: &str) -> bool {
+  if let Some(seq) = claim.strip_prefix(CLAIM_ISSUE_PREFIX) {
+    return is_issue_id(seq);
+  }
   match claim.split_once('/') {
     None => is_thread_id(claim),
     Some((thread, seq)) => {
@@ -2518,4 +2557,59 @@ pub enum WbItemState {
 pub enum WbMessageState {
   Live,
   Handled,
+}
+
+#[cfg(test)]
+mod claim_address_tests {
+  use super::*;
+
+  #[test]
+  fn the_claim_prefix_is_the_manifests_own_spelling() {
+    // **THE TEST THAT MAKES THE COPY LEGITIMATE.** `CLAIM_ISSUE_PREFIX` is
+    // declared here rather than read from `intentfiles`, because this module is
+    // a leaf that `intentfiles` depends on and reaching back would invert the
+    // layering. A copy a test holds identical cannot drift; a copy held by
+    // discipline does, and then two doors disagree about how an issue is named.
+    assert_eq!(
+      CLAIM_ISSUE_PREFIX,
+      format!("{}:", crate::intentfiles::Sigil::Issue.as_str()),
+      "the claim prefix and the manifest sigil are one fact"
+    );
+  }
+
+  #[test]
+  fn a_board_claims_an_issue_by_the_manifest_form_and_by_nothing_else() {
+    assert!(is_claim_address("ISSUE:0512"), "hv's decision 29 form");
+    assert_eq!(issue_claim(512), "ISSUE:0512");
+    assert!(is_claim_address(&issue_claim(1)), "the formatter agrees");
+
+    // **REFUSED, EACH FOR ITS OWN STATED REASON**, so a later widening has to
+    // argue with the reason rather than notice a gap.
+    assert!(
+      !is_claim_address("0512"),
+      "the bare form: two spellings of one address is the drift Highlander names"
+    );
+    assert!(
+      !is_claim_address("the pre-commit gate"),
+      "free text: two claims could then be compared only by string equality"
+    );
+    assert!(
+      !is_claim_address("ISSUE:512"),
+      "four digits, derived from ISSUE_DIGITS"
+    );
+    assert!(!is_claim_address("ISSUE:00512"), "five is not four");
+    assert!(!is_claim_address("ISSUE:"), "a prefix is not an address");
+    assert!(!is_claim_address("ISSUE:abcd"), "digits, not a width alone");
+    assert!(
+      !is_claim_address("issue:0512"),
+      "the manifest is case-SENSITIVE"
+    );
+
+    // The thread forms are untouched by the widening, which is the half a
+    // change like this breaks silently.
+    assert!(is_claim_address("ST0079"));
+    assert!(is_claim_address("ST0079/01"));
+    assert!(!is_claim_address("ST0079/1"));
+    assert!(!is_claim_address("ST0079/WP-01"));
+  }
 }

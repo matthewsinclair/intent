@@ -229,3 +229,53 @@ fn an_issue_renumber_moves_its_canon_and_view_and_reports_its_own_heading() {
       .any(|e| e.op == "issues.renumber" && e.subject.id == "0022")
   );
 }
+
+#[test]
+fn an_issue_renumber_moves_the_board_claims_that_name_it() {
+  // **THE ARM THAT WOULD HAVE FAILED BEFORE hv's DECISION 29 WAS BUILT, and it
+  // could not have been written before it either.** `renumber::issue` returned
+  // empty `rewritten` and `claims` vectors on the stated ground that nothing
+  // structured refers to an issue. Admitting `ISSUE:0021` as a claim falsified
+  // that sentence, and a widening that had left the renumber behind would not
+  // have FAILED -- it would have left `ic` claiming an issue number that had
+  // moved, with nothing reporting it.
+  let fx = Fixture::new();
+  fx.write_issue(&sample_issue(21));
+  let mut f = fx.facade_on_disk();
+  f.wb_register("ic", "Interface", "interface")
+    .expect("register ic");
+  f.wb_register("dc", "Delivery", "worker")
+    .expect("register dc");
+  assert!(
+    f.wb_claim("ic", "ISSUE:0021")
+      .expect("an issue is claimable"),
+    "the claim must be a WRITE, or the renumber below has nothing to move"
+  );
+  // **A CLAIM THAT MUST NOT MOVE, on a second board**, so the assertion below
+  // is about matching the address rather than about rewriting every claim in
+  // sight. A renumber that replaced all claims would pass a one-board fixture.
+  fx.write_issue(&sample_issue(90));
+  f.wb_claim("dc", "ISSUE:0090")
+    .expect("a second board claims a different issue");
+
+  let done = f.issue_renumber(21, 22).expect("renumber");
+
+  assert_eq!(
+    f.store().wb_claims("ic").expect("ic's claims"),
+    vec!["ISSUE:0022".to_string()],
+    "the claim must follow the issue to its new number"
+  );
+  assert_eq!(
+    f.store().wb_claims("dc").expect("dc's claims"),
+    vec!["ISSUE:0090".to_string()],
+    "a claim on a DIFFERENT issue must be left exactly where it was"
+  );
+  assert!(
+    done
+      .rewritten
+      .iter()
+      .any(|m| m == "ic's claims: ISSUE:0021 -> ISSUE:0022"),
+    "the move must be REPORTED and not merely performed: {:?}",
+    done.rewritten
+  );
+}

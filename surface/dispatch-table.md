@@ -4057,8 +4057,8 @@ The whiteboard: read the node boards, and send between them
 | `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                      | new-surface |
 | `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                        | new-surface |
 | `wb decide`   | <text>             | --node                                    | Record a decision on the acting node's own board                                                       | new-surface |
-| `wb claim`    | <id>               | --node                                    | Add a steel thread or work package to the acting node's claims                                         | new-surface |
-| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread or work package from the acting node's claims                                      | new-surface |
+| `wb claim`    | <id>               | --node                                    | Add a steel thread, work package or issue to the acting node's claims                                  | new-surface |
+| `wb unclaim`  | <id>               | --node                                    | Drop a steel thread, work package or issue from the acting node's claims                               | new-surface |
 | `wb clear`    | <sender>           | --node                                    | Mark every live message one sender sent the acting node handled                                        | new-surface |
 | `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                    | new-surface |
 | `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                    | new-surface |
@@ -4319,11 +4319,11 @@ Record a decision on the acting node's own board
 
 ### `wb claim`
 
-Add a steel thread or work package to the acting node's claims
+Add a steel thread, work package or issue to the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (st-id[/NN], arity `1`)
+  - `id` (claim-address, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
@@ -4331,7 +4331,7 @@ Add a steel thread or work package to the acting node's claims
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000` or `ST0000/01` and refuses anything else. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.
+- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. THE ISSUE FORM IS THE MANIFEST'S OWN SPELLING, the one `organize --default` writes into `intent/.intentfiles`, and it exists because `claims:` was otherwise EMPTY BY CONSTRUCTION for the work that fills the time between releases -- silent precisely where two concurrent sessions would collide (hv, decision 29). It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `claim` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4341,11 +4341,11 @@ Add a steel thread or work package to the acting node's claims
 
 ### `wb unclaim`
 
-Drop a steel thread or work package from the acting node's claims
+Drop a steel thread, work package or issue from the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (st-id[/NN], arity `1`)
+  - `id` (claim-address, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
