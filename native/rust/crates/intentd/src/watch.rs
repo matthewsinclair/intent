@@ -33,7 +33,8 @@
 
 use crate::daemon_log::elogln;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::mpsc::{self, RecvTimeoutError};
+use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use notify_debouncer_full::notify::RecursiveMode;
@@ -51,6 +52,28 @@ use crate::store::ProjectHandle;
 /// side of this. A quarter of a second clears the first with room and is below
 /// the threshold where a UI feels stale.
 const QUIET: Duration = Duration::from_millis(250);
+
+/// How often the whole canon scope is reconciled whether or not an event came.
+///
+/// **FSEVENTS LOSES EVENTS UNDER PRESSURE AND DOES NOT ALWAYS SAY SO HERE**
+/// (issue 0516). Measured 2026-09-22 under file-event churn elsewhere on the
+/// volume: in 3 of 3 runs a sentinel written into a watched project was
+/// never ingested within fifteen minutes, where the same arm quiet ingested
+/// in one to two seconds. Two of the three daemons received no batch at all,
+/// and none received a rescan. FSEvents reports a drop as `MustScanSubDirs`,
+/// but `notify` hands an event on only when its path lies under a watched
+/// root, so a drop reported against any other path never reaches this
+/// module. **A rescan handler alone therefore cannot close this**, and the
+/// only remedy that does not trust the event stream is to stop trusting it
+/// on a timer.
+///
+/// **THIRTY SECONDS IS BOUNDED BY BOTH SIDES.** Below it, a pass reads and
+/// hashes every in-scope file (about 1,500 on this repository) more often
+/// than any person edits. Above it, an edit the stream lost waits longer to
+/// reach the store than the daemon-watch arms allow. A pass that finds
+/// nothing changed does not ingest, so an idle project costs a read and no
+/// store write.
+const BACKSTOP: Duration = Duration::from_secs(30);
 
 /// A running watch on one project, stopped when this value is dropped.
 ///
@@ -71,6 +94,23 @@ pub struct Watch {
   /// stream's cost buys the property WP-18 promised: the canon path is
   /// untouched by the index.
   _index_debouncer: Debouncer<notify_debouncer_full::notify::RecommendedWatcher, NoCache>,
+  /// The timer that reconciles the canon scope when the event stream did not
+  /// (issue 0516, see [`BACKSTOP`]).
+  _backstop: Backstop,
+}
+
+/// The backstop's stop signal: dropping this value ends the backstop thread.
+///
+/// **DROPPING THE SENDER IS THE SIGNAL, AND THE DROP DOES NOT JOIN**, which is
+/// how the debouncers beside it stop too (`notify-debouncer-full`'s `Drop` sets
+/// a flag and returns; only its `stop()` joins, and nothing here calls it). A
+/// joining drop would wait on a thread that may be inside [`reconcile`],
+/// waiting on a round trip to the store thread, from whatever thread happens to
+/// drop the `Watch` -- a wait nothing needs. The thread wakes on the disconnect
+/// at once, or finishes the pass it is in, and ends; the `ProjectHandle` it
+/// holds keeps the store thread answering until then.
+struct Backstop {
+  _stop: mpsc::Sender<()>,
 }
 
 /// Start watching a project, driving ingest through its store handle.
@@ -101,7 +141,16 @@ pub struct Watch {
 /// would quietly cost.
 pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response> {
   let handle_for_index = Arc::clone(&handle);
+  let handle_for_backstop = Arc::clone(&handle);
   let watched_root = root.to_path_buf();
+  // **ONE RECONCILE AT A TIME PER PROJECT, WATCHER AND BACKSTOP ALIKE.** Both
+  // read the store's file index and then send an ingest down the same FIFO
+  // queue. Held across both steps, this lock puts the second reader's index
+  // request BEHIND the first one's ingest, so it sees the store already caught
+  // up and does not ingest the same edit twice. Without it, two readers
+  // racing would each see the edit and ingest it once apiece.
+  let pass = Arc::new(Mutex::new(()));
+  let pass_for_backstop = Arc::clone(&pass);
   // **NO FILE-ID CACHE ON THE CANON REGISTRATION EITHER** (vc's ruling on issue
   // 0377, 2026-09-15). The default cache walked what every Create named, a stat
   // per entry and before any ignore rule applied, and a commit's gate and
@@ -114,7 +163,7 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
   let mut debouncer = new_debouncer_opt::<_, notify_debouncer_full::notify::RecommendedWatcher, NoCache>(
     QUIET,
     None,
-    move |result: DebounceEventResult| on_batch(&watched_root, &handle, result),
+    move |result: DebounceEventResult| on_batch(&watched_root, &handle, &pass, result),
     NoCache::new(),
     notify_debouncer_full::notify::Config::default(),
   )
@@ -197,10 +246,42 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
       )
     })?;
 
+  let backstop = start_backstop(root, handle_for_backstop, pass_for_backstop)?;
+
   Ok(Watch {
     _debouncer: debouncer,
     _index_debouncer: index_debouncer,
+    _backstop: backstop,
   })
+}
+
+/// Reconcile the whole canon scope every [`BACKSTOP`], until the `Watch` drops.
+fn start_backstop(
+  root: &Path,
+  handle: Arc<ProjectHandle>,
+  pass: Arc<Mutex<()>>,
+) -> Result<Backstop, Response> {
+  let (stop, stopped) = mpsc::channel::<()>();
+  let shown = root.display().to_string();
+  let root = root.to_path_buf();
+  std::thread::Builder::new()
+    .name("intentd-backstop".to_string())
+    .spawn(move || {
+      loop {
+        match stopped.recv_timeout(BACKSTOP) {
+          Err(RecvTimeoutError::Timeout) => reconcile(&root, &handle, &pass, &[root.as_path()]),
+          // Disconnected is the stop signal; nothing is ever sent.
+          Ok(()) | Err(RecvTimeoutError::Disconnected) => return,
+        }
+      }
+    })
+    .map_err(|e| {
+      Response::error(
+        format!("the backstop reconcile for `{shown}` could not start: {e}"),
+        "an external edit the platform watcher drops will not reach the store until the next one it delivers. Restart the daemon to retry, or run `intent sync --to-store` when you need the store caught up.",
+      )
+    })?;
+  Ok(Backstop { _stop: stop })
 }
 
 /// Which paths an index-scope batch should have reconciled, with the root bound
@@ -381,7 +462,12 @@ fn files_that_changed(
 /// stale answer across the one edit most likely to change it -- somebody
 /// editing `.gitignore`. That file is itself in scope, so the batch carrying
 /// its change is the batch whose ignore rules have just moved.
-fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResult) {
+fn on_batch(
+  root: &Path,
+  handle: &Arc<ProjectHandle>,
+  pass: &Mutex<()>,
+  result: DebounceEventResult,
+) {
   let events = match result {
     Ok(events) => events,
     // **REPORTED, NEVER SWALLOWED** (`IN-AG-NO-SILENT-001`). A watcher that
@@ -420,12 +506,30 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
   // because the skip list speaks at the leaf as the walk descends -- so the
   // loop is closed by the shape of the answer rather than by whether the OS
   // reported the leaf.
-  let paths: Vec<&Path> = events
+  let mut paths: Vec<&Path> = events
     .iter()
     .flat_map(|event| event.paths.iter())
     .map(|p| p.as_path())
     .collect();
-  let changed = files_that_changed(root, &paths, &mut || handle.file_index());
+  // **A RESCAN IS THE STREAM SAYING IT LOST EVENTS, SO THE WHOLE SCOPE IS THE
+  // QUESTION** (issue 0516). The path it names is where FSEvents noticed the
+  // drop, not where the lost edits were, so the root is reconciled as well.
+  if events.iter().any(|event| event.need_rescan()) {
+    paths.push(root);
+  }
+  reconcile(root, handle, pass, &paths);
+}
+
+/// Reconcile `paths` against the store, and publish and ingest what changed.
+///
+/// **THE ONE PATH FROM "SOMETHING MAY HAVE MOVED" TO AN INGEST**, shared by the
+/// watcher's batches and the [`BACKSTOP`] timer, so the two cannot disagree
+/// about what a change is or how it is delivered. `pass` serialises them; see
+/// where it is made in [`start`].
+fn reconcile(root: &Path, handle: &Arc<ProjectHandle>, pass: &Mutex<()>, paths: &[&Path]) {
+  // A poisoned lock guards no data, only ordering, so its guard is still good.
+  let _one_at_a_time = pass.lock().unwrap_or_else(PoisonError::into_inner);
+  let changed = files_that_changed(root, paths, &mut || handle.file_index());
   if changed.is_empty() {
     return;
   }
