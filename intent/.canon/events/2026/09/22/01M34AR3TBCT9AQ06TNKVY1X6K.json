@@ -1,0 +1,15 @@
+{
+  "id": "01M34AR3TBCT9AQ06TNKVY1X6K",
+  "ts": "2026-09-22T10:31:54.443Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "WHY DECISION 47 LETS `heartbeat_at` TRAVEL IN `board.json` WHEN IT KEEPS HEARTBEAT EVENTS STORE-ONLY, BECAUSE THE NEXT READER OF `store.rs:682-687` WILL OTHERWISE RE-DERIVE IT. The event half is implemented exactly as ruled: acts that describe one machine, heartbeats and restores among them, stay in `event_log` and get no committed `intent/.canon/events/**` file. `intent/whiteboard/<node>/board.json` is tracked and carries `heartbeat_at` and `session_id` regardless, which looks like the same fact travelling through git by another road. It is not leakage, and the reason is that a heartbeat is not machine-local the way an ingest is. \"cc last reported at 10:14Z\" is a true statement of the record on any clone; an ingest having happened is only true on the machine it happened on. A stale heartbeat in a clone therefore reads as stale, which is the 7-day reclaim rule working rather than a lie propagating. That is where decision 47 boundary falls and why. Measured and withdrawn by cc on 2026-09-22 before it reached vc synthesis."
+  }
+}

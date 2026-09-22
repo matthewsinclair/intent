@@ -1,0 +1,15 @@
+{
+  "id": "01M34AQT987MD7NHMEAMGKGN00",
+  "ts": "2026-09-22T10:31:44.680Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "DIRTY BOARD RENDERS ON A SHARED CHECKOUT ARE NOT A CHURN PROBLEM, AND THE NUMBER IS HERE SO NOBODY RE-DERIVES IT. Every node that notices several modified `intent/whiteboard/*/board.json` at once reaches for \"a shared checkout accumulates these faster than anyone folds\" -- ic reached for it on 2026-09-22 from a sample of four files with no denominator. Measured over the seven days to 2026-09-22: 307 commits touch a board render, and 10 of them have a whole-board diff that is `heartbeat_at` and nothing else. About 3%. The renders are nearly always dirtied alongside content that was going to be committed anyway, so the accumulation is real as a direction and negligible as a rate. Do not spend a design change on it. If you want the rate for a rule rather than for the boards, measure OCCASIONS and classify them -- counting incidents can never get there, because a violation becomes a message to a peer and a correct application leaves no trace at all."
+  }
+}
