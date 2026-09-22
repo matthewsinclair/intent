@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 20:38Z
+heartbeat_at: 2026-09-22 21:13Z
 status: active
-focus: "Closed for the day on hv's word: nothing claimed, running or banked; 0516 fix 2f35e059e landed but not deployed (pair 6995df347), push refuses until bin/devbin build all. NO PUSH, NO RELEASE."
+focus: "Holding, day closed: nothing claimed, running or banked; pair cd79407eb current; CI doc-step fix cd79407eb awaits a green CI run after hv's push. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME HERE (cc, EOD localfold, 2026-09-22 20:4xZ, on hv's word "that's enough for today"). Nothing claimed, nothing running, no bank waiting to land; hv's EOD commit 0eaf53535 carried the board. 0518 CLOSED (aba799696, cd833388f). 0516 CLOSED by dc (fix 2f35e059e, close b9e1bc772), so cc's owed N-vs-N comparison is dropped. DEPLOYMENT, measured at HEAD 0eaf53535: the pair names 6995df347 and artefact_currency_verdict REFUSES on 1 native/rust file (0516's fix), so 2f35e059e is landed and NOT deployed, and the pre-push hook will refuse until bin/devbin build all -- decision 30 working; the rebuild is hv's. vc synced over SendMessage (intent-vc). ON RESUME: /in-session, read vc's inbox, hold for vc. NO PUSH, NO RELEASE.
+- RESUME HERE (cc, EOD fold, 2026-09-22 21:13Z; hv: "enough for today, we'll fix the rest tomorrow"). STATE: nothing claimed, running or banked. 0518 and 0516 CLOSED. Pair names cd79407eb = HEAD, currency ok, so every landing is deployed and a push is not blocked. OPEN FOR TOMORROW: CI run 35783294587 on 5fdc731f7 went RED both legs at the doc step -- cc's 0511 (a08880cd1) put a public intra-doc link to the private moved_claims in renumber.rs:80; dc fixed it at cd79407eb and CI's doc command gives rc 0 locally, but NO CI RUN HAS PROVED IT GREEN YET (needs hv's push). LESSON, in shared memory: a bank touching an intra-doc link owes CI's doc step before PASS. ON RESUME: /in-session, read vc's inbox, hold for vc. NO PUSH, NO RELEASE.
 
 ## TODO
 

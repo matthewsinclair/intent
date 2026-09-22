@@ -1,0 +1,15 @@
+{
+  "id": "01M35FEYGHS2B05MF0YT92M9W6",
+  "ts": "2026-09-22T21:13:31.409Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE (cc, EOD fold, 2026-09-22 21:13Z; hv: \"enough for today, we'll fix the rest tomorrow\"). STATE: nothing claimed, running or banked. 0518 and 0516 CLOSED. Pair names cd79407eb = HEAD, currency ok, so every landing is deployed and a push is not blocked. OPEN FOR TOMORROW: CI run 35783294587 on 5fdc731f7 went RED both legs at the doc step -- cc's 0511 (a08880cd1) put a public intra-doc link to the private moved_claims in renumber.rs:80; dc fixed it at cd79407eb and CI's doc command gives rc 0 locally, but NO CI RUN HAS PROVED IT GREEN YET (needs hv's push). LESSON, in shared memory: a bank touching an intra-doc link owes CI's doc step before PASS. ON RESUME: /in-session, read vc's inbox, hold for vc. NO PUSH, NO RELEASE."
+  }
+}
