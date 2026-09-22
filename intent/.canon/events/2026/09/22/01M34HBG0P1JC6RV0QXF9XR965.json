@@ -1,0 +1,15 @@
+{
+  "id": "01M34HBG0P1JC6RV0QXF9XR965",
+  "ts": "2026-09-22T12:27:20.985Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0508"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "rust.yml selects with a paths: allow-list, the form tests.yml's own comment names as this project's false-green class"
+  }
+}
