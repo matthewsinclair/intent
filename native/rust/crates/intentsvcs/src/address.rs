@@ -209,15 +209,32 @@ impl Entity {
   ///
   /// `None` is the honest answer for the rest, and each is `None` for its own
   /// reason: a COLLECTION is not a thing with files; a whiteboard node and its
-  /// inbox are authored by hand and outside the manifest's vocabulary; an event
-  /// has no file form at all; and **an ISSUE lives only in canon and the store,
-  /// so it has no realised form for the manifest to name** (hv, 2026-08-20).
+  /// inbox are authored by hand and outside the manifest's vocabulary; and an
+  /// event has no file form at all.
   ///
-  /// **The issue arm used to answer `Some`, and that was the bug.** It handed
-  /// `Facade::hydrate` a sigil, which resolved the realisation home through
+  /// # The ISSUE arm answers `Some` again, and this block said `None` until 2026-09-22
+  ///
+  /// **THIS DOC DESCRIBED THE OPPOSITE OF THE CODE SIXTEEN LINES BELOW IT**
+  /// (issue 0514). It listed an ISSUE among the `None` answers, on hv's
+  /// 2026-08-20 reason that an issue "lives only in canon and the store, so it
+  /// has no realised form for the manifest to name", while the match arm has
+  /// returned `Some((Sigil::Issue, id))` since ST0069 WP-01 and its own inline
+  /// comment says why. The two disagreed inside one function.
+  ///
+  /// **The retirement was right on its facts and this is not a reversal of it:
+  /// the facts changed first** -- the same reading
+  /// [`crate::intentfiles::Sigil`] carries, where the identical claim went
+  /// stale in the identical way.
+  ///
+  /// **The issue arm answering `Some` was once the BUG, which is why the
+  /// history is kept rather than deleted.** Before WP-01 it handed
+  /// `Facade::hydrate` a sigil that resolved the realisation home through
   /// `issues_dir()` -- `intent/.canon/issues/`, CANON -- while the thread arm
-  /// resolved into the estate. `None` here is what makes the hydrate arm a
-  /// refusal at the door rather than a walk into the wrong layer.
+  /// resolved into the estate, so one match addressed two layers. `None` was
+  /// what made the hydrate arm a refusal at the door rather than a walk into
+  /// the wrong layer. An issue now renders to `intent/issues/<nnnn>.md`
+  /// through [`crate::views::issue`], so the sigil addresses the estate like
+  /// every other artefact's and the two arms are back in one layer.
   pub fn artefact(&self) -> Option<(crate::intentfiles::Sigil, &str)> {
     use crate::intentfiles::Sigil;
     match self {
