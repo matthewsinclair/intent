@@ -1,0 +1,15 @@
+{
+  "id": "01M3410N4Z7247WEADPQH20TYG",
+  "ts": "2026-09-22T07:41:48.575Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- ST0079/01 landed at 52cd8b55d (patch-id cbf0c5180 as vc judged, base c3514e151): /outstanding (reached by /outs) in the explorer, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, and issue 0502 fixed and closed. AT-01.1 to AT-01.4 green, gate PASS 9/9, WP-01 Done; ST0079 stays WIP for cc 02. Nothing is in flight in ic lane; hold for vc instruction. NO RELEASE, NO PUSH."
+  }
+}

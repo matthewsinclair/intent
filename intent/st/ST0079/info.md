@@ -20,9 +20,9 @@ It is a merge of three row lists the list verbs already produce, rendered throug
 
 ## Work Packages
 
-| WP    | Title                                                                         | Size | Status      |
-| ----- | ----------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI | S    | Not Started |
+| WP    | Title                                                                         | Size | Status |
+| ----- | ----------------------------------------------------------------------------- | ---- | ------ |
+| WP-01 | TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI | S    | Done   |
 
 ## Acceptance
 

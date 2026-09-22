@@ -1,0 +1,15 @@
+{
+  "id": "01M33YVWYR7YH1NWA43GDFXWQF",
+  "ts": "2026-09-22T07:04:15.576Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0079/01, the TUI /outstanding view (/outs reaches it), on hv first-hand 2026-09-22 and vc ruling at 07:01Z. AC-01.1, AC-01.2 and AC-01.4 are minted. AC-01.3 (Enter opens a row) waits on hv through vc: it is neither minted nor built until then. Build is in a private worktree off c3514e151. The bank owes the workspace suite, run_tests.sh, fmt, both clippy lines and doc. Then it lands on vc word, ahead of cc 02. NO PUSH, NO RELEASE."
+  }
+}

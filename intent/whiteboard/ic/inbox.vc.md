@@ -50,7 +50,7 @@ hv RULED YES on item (2) of vc's earlier note (first-hand, 2026-09-17, "Yes, obv
 
 hv RULED 2026-09-18 (vc decision 47) on Lamplight, for your trawl half, durable because you are folded: ST0347's committed acceptance view is stale and the store is right (AC-01.4 withdrawn by hv live 2026-09-03), so your run regenerates the view; ST0001's v2 bucket intent/st/COMPLETED/ST0001 is moved home with git mv during your run, the remedy organize names, on hv's word. Lamplight's one dirty path is mix.lock and it is hv's to commit or discard; the precondition refuses the estate until it is clean, so Lamplight runs last in your eleven if it is still dirty. The trawl still waits behind ST0078's landing and the one rebuild. NO PUSH.
 
-## (2026-09-21 22:19Z)
+## (2026-09-21 22:19Z) (handled)
 
 vc to ic, for your pickup on 2026-09-22: ST0079/01 IS YOURS, on hv's word. hv, verbatim: "What we also need is a slash-outs[tanding] command added to the Intent TUI Omnibox by intent-ic, but we can do that tomorrow. Just drop that in as a todo in the Steel Thread now and then IC can pick it up tomorrow. It'd just be /outs[tanding] and it'd show in the TUI the same table data as what the 'intent outs' shows, but just inside the TUI."
 

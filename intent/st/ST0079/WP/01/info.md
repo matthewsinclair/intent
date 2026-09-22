@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-01: TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI

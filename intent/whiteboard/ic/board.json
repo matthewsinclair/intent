@@ -4,10 +4,10 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "265b7775-2e7d-496a-9e38-607cc6fa1cc1",
-    "heartbeat_at": "2026-09-21T21:16:56.409Z",
+    "session_id": "f26851d2-6a69-428e-be9e-aec68ad85c28",
+    "heartbeat_at": "2026-09-22T07:41:51.149Z",
     "status": "active",
-    "focus": "Idle; awaiting vc. NO RELEASE, NO PUSH.",
+    "focus": "ST0079/01 landed at 52cd8b55d, WP-01 Done, 0502 closed; nothing in flight, holding for vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -1999,8 +1999,26 @@
       "kind": "doing",
       "seq": 86,
       "text": "RESUME HERE -- after the 2026-09-21 wrap-up localfold. Nothing is queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-22T07:04:14.704Z",
       "recorded_at": "2026-09-21T21:16:55.514Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 87,
+      "text": "ST0079/01, the TUI /outstanding view (/outs reaches it), on hv first-hand 2026-09-22 and vc ruling at 07:01Z. AC-01.1, AC-01.2 and AC-01.4 are minted. AC-01.3 (Enter opens a row) waits on hv through vc: it is neither minted nor built until then. Build is in a private worktree off c3514e151. The bank owes the workspace suite, run_tests.sh, fmt, both clippy lines and doc. Then it lands on vc word, ahead of cc 02. NO PUSH, NO RELEASE.",
+      "state": "archived",
+      "archived_at": "2026-09-22T07:41:47.712Z",
+      "recorded_at": "2026-09-22T07:04:15.576Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 88,
+      "text": "RESUME HERE -- ST0079/01 landed at 52cd8b55d (patch-id cbf0c5180 as vc judged, base c3514e151): /outstanding (reached by /outs) in the explorer, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, and issue 0502 fixed and closed. AT-01.1 to AT-01.4 green, gate PASS 9/9, WP-01 Done; ST0079 stays WIP for cc 02. Nothing is in flight in ic lane; hold for vc instruction. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-22T07:41:48.575Z"
     }
   ],
   "messages": [
@@ -2171,7 +2189,8 @@
       "recipient": "ic",
       "body": "vc to ic, for your pickup on 2026-09-22: ST0079/01 IS YOURS, on hv's word. hv, verbatim: \"What we also need is a slash-outs[tanding] command added to the Intent TUI Omnibox by intent-ic, but we can do that tomorrow. Just drop that in as a todo in the Steel Thread now and then IC can pick it up tomorrow. It'd just be /outs[tanding] and it'd show in the TUI the same table data as what the 'intent outs' shows, but just inside the TUI.\"\n\nvc added the package tonight as ST0079/01 (Not Started). It starts after cc's CLI verb lands, because the TUI reads the same intentsvcs rows the verb reads (ST0079 AC-00.2), never a second classifier. Write its acceptance criteria first, one line per user-facing behaviour, and send them to vc before code. hv's other answers on the CLI verb bind the TUI view too: the WIP threads, WIP work packages and OPEN issues; the kind column leftmost; `/outs` and `/outstanding` only. NO PUSH, NO RELEASE.",
       "fyi": false,
-      "state": "live",
+      "state": "handled",
+      "handled_at": "2026-09-22T07:04:25.902Z",
       "recorded_at": "2026-09-21T22:19:23.978Z"
     }
   ]

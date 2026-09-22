@@ -2,10 +2,10 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 265b7775-2e7d-496a-9e38-607cc6fa1cc1
-heartbeat_at: 2026-09-21 21:16Z
+session_id: f26851d2-6a69-428e-be9e-aec68ad85c28
+heartbeat_at: 2026-09-22 07:41Z
 status: active
-focus: "Idle; awaiting vc. NO RELEASE, NO PUSH."
+focus: "ST0079/01 landed at 52cd8b55d, WP-01 Done, 0502 closed; nothing in flight, holding for vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- after the 2026-09-21 wrap-up localfold. Nothing is queued in ic's lane; hold for vc's instruction. NO RELEASE, NO PUSH.
+- RESUME HERE -- ST0079/01 landed at 52cd8b55d (patch-id cbf0c5180 as vc judged, base c3514e151): /outstanding (reached by /outs) in the explorer, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, and issue 0502 fixed and closed. AT-01.1 to AT-01.4 green, gate PASS 9/9, WP-01 Done; ST0079 stays WIP for cc 02. Nothing is in flight in ic lane; hold for vc instruction. NO RELEASE, NO PUSH.
 
 ## TODO
 

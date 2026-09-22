@@ -21,6 +21,13 @@ title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 - AC-00.4 Below the table one line counts the rows of each kind shown against how many of that kind exist, and with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data. -- satisfied: yes (computed)
 - AC-00.5 The same rows are served to agents as a read-only MCP tool. -- satisfied: yes (computed)
 
+### WP-01 -- TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI (status: Done)
+
+- AC-01.1 In the explorer, `/outstanding` and `/outs` each open a view of the rows `intent outs` prints, read from `Facade::outstanding` and laid out in the order it returns them, each row with its kind (ST, WP or Issue) leftmost, then ID, Status and Title. -- satisfied: yes (computed)
+- AC-01.2 The view ends with the counts line `intent outs` prints, and with nothing outstanding it shows that line alone. -- satisfied: yes (computed)
+- AC-01.3 Enter on a row opens that thread, work package or issue, and Backspace returns to the view. -- satisfied: yes (computed)
+- AC-01.4 An argument after the command is refused on the info row, and nothing runs. -- satisfied: yes (computed)
+
 ## Acceptance Tests
 
 ### ST-level
@@ -30,6 +37,13 @@ title: Add 'outs[tanding]' verb to show all outstanding items from a single verb
 - AT-00.3 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.3 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 - AT-00.4 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.4 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 - AT-00.5 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-00.5 -- status: green -- red on the base: the installed pair 850918a73, whose compiled half equals base f4b54ab52, answers `intent outs` with 'unrecognized subcommand' at rc 1 (measured 2026-09-21 22:4xZ); then green at 1a0b5c5eb: vc judged the bank at patch-id 3e4d981bf, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+
+### WP-01 -- TUI Omnibox /outs[tanding]: the same table intent outs prints, inside the TUI (status: Done)
+
+- AT-01.1 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.1 -- status: green -- red on the base: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile: E0599 no `View::Outstanding` at cli_end_to_end.rs:1855 and E0425 no `render::outstanding_view` at :1870 (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-01.2 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.2 -- status: green -- red on the base: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile: E0425 no `render::outstanding_view` at cli_end_to_end.rs:1912 and :1922 (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-01.3 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.3 -- status: green -- red on the base: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile: E0425 no `render::outstanding_view` at cli_end_to_end.rs:1943 and E0599 no `View::Outstanding` at :1980 (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
+- AT-01.4 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs` -- covers AC-01.4 -- status: green -- red on the base by its shared test crate: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile (six errors, in AT-01.1 to AT-01.3), so this test cannot run there (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it
 
 ---
 
