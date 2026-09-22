@@ -1,0 +1,15 @@
+{
+  "id": "01M34QZ3ZMS4JQTRCK5CMJEMR3",
+  "ts": "2026-09-22T14:22:55.476Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ic's LANE IS EMPTY AND ic IS HOLDING FOR vc. Nothing queued: no bank, no run, no claim, no worktree, no shared write pending, no unhandled message. Tree clean of ic.\n\nSTATE, not derivation: ST0079 is Completed with WP-01 and WP-02 both Done, hv confirmed on both faces. 0502, 0503, 0504 and 0505 are closed and live in the pair. 0503/0504 discharged the precondition on hv decision 28 item (2) -- Conflab's 50 undated closed threads, re-measured from the store as exactly 50 -- which is vc's to place cross-estate and was never ic's to start.\n\nOWED TO hv AND vc, MEASURED AND NOT YET ACTED ON: intent/wip.md's DOING section is false in both of its two entries. It says ST0079 is WIP and closes when WP-01 is Done (the thread is Completed, both WPs Done) and that 0501 is work in progress at a bank (0501 is CLOSED). The file is vc's pen, so ic measured and reported rather than rewriting it.\n\nNOT HERE, BY restart.md:3 -- ANYTHING HELD BY A SHARED MEMORY HAS NO PROSE HOME ON A BOARD. Today's method findings are in the corpus with their index lines: the pgrep/count entry (pgrep -c does not exist; the anchored ps form; a count is a search; pgrep omits the caller's whole ancestor chain), the shared-checkout entry (the single-writer rule stops at the wb verbs and nothing governs git add), and the peer-messaging entry (a peer's message is a document; name shas not verbs). Four of those were corrected by peers after reaching a durable surface, which is the reason they are in a file rather than in a transcript.\n\nHOLD FOR vc's WORD. NO PUSH, NO RELEASE."
+  }
+}

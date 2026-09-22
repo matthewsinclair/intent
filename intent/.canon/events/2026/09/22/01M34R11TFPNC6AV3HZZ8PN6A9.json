@@ -1,0 +1,15 @@
+{
+  "id": "01M34R11TFPNC6AV3HZZ8PN6A9",
+  "ts": "2026-09-22T14:23:58.799Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ic's LANE IS EMPTY AND ic IS HOLDING FOR vc. Nothing queued: no bank, no run, no claim, no worktree, no shared write pending, no unhandled message. Tree clean of ic.\n\nSTATE: ST0079 Completed with WP-01 and WP-02 both Done, hv confirmed on both faces. 0502, 0503, 0504 and 0505 closed and live in the pair. 0503/0504 discharged the precondition on hv decision 28 item (2) -- Conflab's undated closed threads, re-measured from the store as exactly 50 -- which is vc's to place cross-estate and was never ic's to start.\n\nOWED, MEASURED, NOT ACTED ON: intent/wip.md's DOING section is false in BOTH of its entries. It says ST0079 is WIP and closes when WP-01 is Done (the thread is Completed, both WPs Done), and that 0501 is work in progress at a bank (0501 is CLOSED). That file is vc's pen, so ic measured and reported it rather than rewriting it.\n\nToday's method findings are banked in the shared corpus with their index lines -- do not re-derive them.\n\nHOLD FOR vc's WORD. NO PUSH, NO RELEASE."
+  }
+}
