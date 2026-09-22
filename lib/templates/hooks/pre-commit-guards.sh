@@ -226,6 +226,25 @@ if [ "${1:-}" = "--list-guards" ]; then
       # NOT APPLICABLE IS NOT A FAULT, and it is reported as its own word for
       # the same reason the dispatch loop keeps them apart: a project with a
       # board and no canon has no hole where the canon guard would be.
+      #
+      # **AND THIS COLUMN CANNOT CARRY THE OTHER KIND OF NOT-APPLICABLE, WHICH
+      # IS A LIMIT AND NOT AN OVERSIGHT** (issue 0506, whose expected fix asked
+      # for it here). A guard that settles its own applicability -- from a
+      # DECLARATION rather than a path -- can only be asked by being RUN, and
+      # this arm returns before any dispatch on purpose: the header above
+      # records what it cost the last time a read-only report answered a
+      # question by running the thing. So a self-classifying guard reads
+      # `present` here, meaning the roster's path test says yes and nothing was
+      # asked beyond that, and its real answer appears in the RUN's tally where
+      # it was paid for.
+      #
+      # WHAT IT WOULD TAKE, so the next reader does not re-derive it: the
+      # roster row would have to DECLARE that a guard self-classifies, which
+      # means a fourth field. `g_unchecked` is `${g_rest#*|}` and takes the rest
+      # of the line, so a fourth field lands inside it -- the parse moves, every
+      # row moves, and readers that split this output move with them. That is a
+      # roster-format change and it is deliberately not smuggled in under a
+      # classification fix.
       g_state="not-applicable"
     else
       g_state="present"
@@ -276,8 +295,42 @@ for g_entry in "${GUARDS[@]}"; do
 
   g_path="${GUARD_HOME}/${g_name}"
   if [ -f "$g_path" ]; then
-    RAN=$((RAN + 1))
-    bash "$g_path" || BLOCKED=1
+    # **THE THIRD ANSWER, AND THE COUNTER IT FEEDS ALREADY EXISTED** (issue
+    # 0506). Applicability is settled two ways, not one: by the PATH test above
+    # for a guard whose subject is a file, and by the GUARD ITSELF for a guard
+    # whose subject is a DECLARATION -- every Intent project carries
+    # `intent/.config/config.json`, so a path test on it can only ever say yes.
+    # Until now the runner read two answers from a guard it dispatched, 0 and
+    # non-zero, so the second kind had nowhere to put its verdict and printed
+    # prose instead. Prose reaches no summary, no `--list-guards` and no tally.
+    #
+    # 3 IS FREE AND THE OTHERS ARE NOT: 1 is BLOCKED, 2 is the shell's own error
+    # (a `bash` that cannot run the file), and 0 already means ran-and-passed.
+    # Censused before it was claimed: no shipped guard can reach 3 today --
+    # every `exit` in the roster is a literal 0 or 1 except
+    # `staged-format-guard.sh`'s `exit "$REFUSE"`, and `REFUSE` is only ever
+    # assigned 0 or 1. So nothing silently changes meaning under this.
+    #
+    # **THE ONE PLACE IT CAN BITE IS A PROJECT-DECLARED GUARD, AND IT IS NAMED
+    # RATHER THAN HIDDEN.** The loop below runs guards this runner did not ship
+    # and cannot census. A project guard already exiting 3 to mean something of
+    # its own stops blocking and starts reading as not-applicable. That is a
+    # real behaviour change for a consumer, it is the cost of giving the class a
+    # code at all, and a reader meeting it deserves to find it written down
+    # here rather than to derive it from a tally that went quiet.
+    bash "$g_path"
+    g_rc=$?
+    case "$g_rc" in
+      3) SKIPPED=$((SKIPPED + 1)) ;;
+      0) RAN=$((RAN + 1)) ;;
+      *)
+        # STILL COUNTED AS RAN, DELIBERATELY. A guard that blocked did run, and
+        # it is the BLOCKED flag that carries the verdict; moving it out of RAN
+        # would make the tally disagree with what happened.
+        RAN=$((RAN + 1))
+        BLOCKED=1
+        ;;
+    esac
   else
     MISSING=$((MISSING + 1))
     # Reached only with the runner located, so this really is one hole and the
@@ -302,6 +355,25 @@ done
 # open -- did anything happen. `skipped` is the not-applicable population and is
 # a normal, healthy number: a project with no canon skips the canon guard and
 # owes nothing.
+#
+# **THAT SENTENCE WAS FALSE BETWEEN 2026-09-22 AND THIS COMMIT, AND THE REPAIR
+# IS WHAT MAKES IT TRUE AGAIN RATHER THAN A REWORDING OF IT** (issue 0506).
+# When `staged-format-guard.sh` landed, the not-applicable population split
+# across two counters: guards this runner settled BEFORE dispatch, counted in
+# SKIPPED, and guards that settled it THEMSELVES after dispatch, counted in RAN.
+# The printed gloss `(not applicable)` then admitted two readings at once --
+# "this count IS the not-applicable population", which the line above asserts
+# and which had stopped being true, and "skipped means not-applicable AND not
+# dispatched", which was true. NEITHER PRINTED LINE EVER LIED and no count ever
+# excluded anything; three sharper framings of that evidence were written and
+# all three were withdrawn. The defect was that the file asserted the reading
+# that had become false, which is why the fix is a CLASSIFICATION -- exit 3
+# above -- and not a correction to any printed number.
+#
+# THE CLASS HAS NOW GIVEN WAY TWICE FOR UNRELATED REASONS, which is what makes
+# it a soft spot rather than an accident: once above, where a TAB collapsed an
+# empty `when` field and a guard was skipped as not-applicable silently, and
+# once here. A third instance should be read as structural.
 #
 # `missing` is reported separately and never folded into `skipped`, because
 # they are opposite facts: skipped means there was nothing to guard, missing
@@ -347,9 +419,21 @@ while IFS="$P_SEP" read -r p_index p_when p_run; do
     echo "  remedy: restore the guard (tracked, with its execute bit), or remove guards[${p_index}] from ${PROJECT_CONFIG}; then commit again." >&2
     continue
   fi
-  P_RAN=$((P_RAN + 1))
+  # The same three answers as the shipped loop, for the same reason: a project
+  # guard whose subject is a declaration rather than a path has the same claim
+  # on the class. See the note above for the one case this changes for an
+  # existing consumer.
   p_argv[0]="$PWD/$p_first"
-  "${p_argv[@]}" || BLOCKED=1
+  "${p_argv[@]}"
+  p_rc=$?
+  case "$p_rc" in
+    3) P_SKIPPED=$((P_SKIPPED + 1)) ;;
+    0) P_RAN=$((P_RAN + 1)) ;;
+    *)
+      P_RAN=$((P_RAN + 1))
+      BLOCKED=1
+      ;;
+  esac
 done < <(project_guard_rows)
 
 printf 'guards: %d ran, %d skipped (not applicable)' "$RAN" "$SKIPPED"

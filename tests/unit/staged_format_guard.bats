@@ -24,8 +24,15 @@
 #         on the printed NOTHING WAS REWRITTEN
 #   AC-3  staged bytes decide, not the worktree .......... arm 3, both ways
 #   AC-4  no declaration is not applicable ............... arm 1
-#   AC-5  an absent tool is UNENFORCED by name, and both
-#         it and not-applicable reach a human ........... arms 7 and 1
+#         (as an EXIT CODE since 0506, not as prose)
+#   AC-5  an absent tool is UNENFORCED by name .......... arm 7
+#         ...and not-applicable reaches a human ......... NO LONGER HERE:
+#         it reaches them as the runner's `N skipped` tally, which this suite
+#         cannot see and `guard_not_applicable.bats` asserts. **THE CLAUSE IS
+#         WEAKER THAN IT WAS AND THAT IS RECORDED RATHER THAN GLOSSED**: a
+#         named line became an anonymous increment, so a human still learns
+#         that something did not apply and no longer learns WHICH from this
+#         guard alone. 0506 ruled the line goes; the cost is this.
 #   AC-6  the three inherited mechanics, one arm each:
 #           rustfmt reads a FILE, never stdin ............ arm 2
 #           the probe is named so modules resolve ........ arm 10
@@ -70,14 +77,27 @@ scratch_repo() {
 unformatted_rust() { printf 'fn  main( ) {let x=1;println!("{}",x);}\n'; }
 formatted_rust() { printf 'fn main() {\n    let x = 1;\n    println!("{}", x);\n}\n'; }
 
-@test "a project that declares no formatters is not applicable and says so in its verdict" {
+@test "a project that declares no formatters answers NOT-APPLICABLE and prints nothing" {
+  # **THIS ARM ASSERTED A PRINTED LINE AND AN EXIT 0 UNTIL ISSUE 0506 LANDED**,
+  # and both were correct for a runner that could read only two answers from a
+  # guard it had dispatched. The guard therefore said "not applicable" in prose,
+  # which reached a human reading the hook's output and reached no summary, no
+  # `--list-guards` and no tally. The runner now reads 3 as not-applicable and
+  # counts it in SKIPPED, so the verdict travels as a number a script can read
+  # and the line has nothing left to do.
+  #
+  # THE SILENCE IS ASSERTED, NOT ASSUMED. An arm that merely stopped checking
+  # for the line would pass against a guard still printing it, and the line
+  # outliving its reason is the exact failure this change exists to avoid.
+  #
+  # That the RUNNER then counts this as skipped rather than ran is a different
+  # subject with its own home: `tests/unit/guard_not_applicable.bats`.
   scratch_repo ""
   printf 'x\n' > a.md
   git add a.md
   run bash "$GUARD"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"not applicable"* ]]
-  [[ "$output" == *"declares no formatters"* ]]
+  [ "$status" -eq 3 ]
+  [ -z "$output" ]
 }
 
 # THIS ARM IS ALSO THE STDIN MECHANIC'S ONLY WITNESS. `rustfmt --check` reads

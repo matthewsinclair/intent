@@ -28,20 +28,22 @@
 #
 # THE DECLARATION IS PER PROJECT AND THE BODY IS THIS FILE. `intent/.config/
 # config.json` carries `"formatters": ["markdown", "elixir", "rust"]`, and a
-# project that declares none is NOT APPLICABLE and says so in its verdict. The
+# project that declares none is NOT APPLICABLE and ANSWERS 3 to say so. The
 # roster's own `applies-when` is a PATH test, and every Intent project has a
 # config.json, so the declaration test lives here rather than in the roster row
-# -- which is also why this guard prints "not applicable" itself instead of
-# being skipped silently by the loop.
+# -- which is why this guard classifies itself instead of being settled by the
+# loop before dispatch.
 #
-# AND THAT PRINTED LINE IS AN INTERIM, RULED ON THE MEASUREMENT (vc, 2026-09-22,
-# issue 0506). The runner settles applicability with its path test BEFORE it
-# dispatches, and reads two answers from the guard it dispatched: exit 0,
-# counted in RAN, and non-zero, which blocks. Its SKIPPED class exists and
-# nothing dispatched can reach it, so this line reaches no summary, no
-# `--list-guards` and no tally -- it is prose for a human reading the hook's
-# output. When 0506 teaches the runner a not-applicable answer, this guard
-# returns it and the line goes, or the line outlives its reason.
+# THE INTERIM IS OVER AND THE PROSE LINE IS GONE (issue 0506, landed). This
+# guard used to PRINT `not applicable -- <config> declares no formatters.` and
+# exit 0, because the runner read only two answers from a guard it dispatched
+# and its SKIPPED class was unreachable from inside one. The printed line
+# therefore reached no summary, no `--list-guards` and no tally: it was prose
+# for a human reading the hook's output, and it was recorded as an interim at
+# the time rather than discovered to be one later. The runner now reads 3 as
+# not-applicable and counts it in SKIPPED, so the verdict travels as a number
+# a script can read and the line has nothing left to do. A line kept past its
+# reason is how a file comes to describe a system it no longer matches.
 #
 # THE VOCABULARY IS CLOSED AND A FOURTH FORMAT IS A CHANGE TO THIS FILE, never
 # an estate-supplied command (vc, 2026-09-22). An estate-supplied command would
@@ -95,10 +97,9 @@ note() { printf '%s: %s\n' "$NAME" "$*" >&2; }
 # The missing CONFIG is the one silent exit, and it stays silent because the
 # roster's own applies-when names that file: reaching here without it means the
 # guard was dispatched by something other than the roster.
-[ -f "$CONFIG" ] || exit 0
+[ -f "$CONFIG" ] || exit 3
 if ! grep -q '"formatters"' "$CONFIG" 2>/dev/null; then
-  note "not applicable -- $CONFIG declares no formatters."
-  exit 0
+  exit 3
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -125,8 +126,7 @@ case "$DECLARED" in
 esac
 
 if [ -z "$DECLARED" ]; then
-  note "not applicable -- $CONFIG declares no formatters."
-  exit 0
+  exit 3
 fi
 
 # ---- WHAT IS STAGED ----
