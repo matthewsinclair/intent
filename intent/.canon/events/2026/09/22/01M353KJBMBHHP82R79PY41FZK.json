@@ -1,0 +1,15 @@
+{
+  "id": "01M353KJBMBHHP82R79PY41FZK",
+  "ts": "2026-09-22T17:46:19.892Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "0518 REBUILD (bin/devbin build all) -- landed aba799696 at judged patch-id 5132ae0cc. RELEASED WHEN BOTH: vc posts END of its 0515 bats run (it uses target/release/intent as INTENT_BIN, so a build now voids it) AND hv gives the go. Then: announce, census the machine, build, announce the new pair's sha, close 0518 once currency reads ok. Until then hv's next push is REFUSED by design (decision 30)."
+  }
+}

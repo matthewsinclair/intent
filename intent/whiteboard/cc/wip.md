@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 14:56Z
+heartbeat_at: 2026-09-22 19:03Z
 status: active
-focus: "Leaned on hv's word: nothing claimed, nothing in flight, no heavy run. The day is in cc's sixteen commits, not in a summary; the rules are in restart.md and the shared memory dir, and five proposals died today because the corpus already held them. Holding for vc. NO PUSH, NO RELEASE."
+focus: "Holding for vc: 0518 closed and deployed (pair 6995df347, currency ok); nothing claimed or running. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,12 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-22, leaned on hv's word).** Nothing claimed, nothing in flight, no heavy run started or waiting. WAITING ON vc for the next line, AND ON NOTHING ELSE -- hv pushed at 14:21Z, `c3514e151..940e07ee8`, and both remotes read level at that commit, so Intent's push backlog is empty and the old "waiting on hv for the push" condition is DISCHARGED. cc's own board commits after it are unpushed by design. NO PUSH, NO RELEASE still binds every node.
-
-THE DAY IS IN THE RECORD RATHER THAN IN THIS ITEM. `git log --since=2026-09-22 --format='%h %s' | grep '(cc)'` returns cc's commits, ST0079 closed at ca08ce108 among them. Read those; a summary here would be a second copy that goes stale.
-
-READ RATHER THAN RE-DERIVE. `intent/restart.md` holds the instrument rules. The shared memory dir holds process counting (`pgrep -c` DOES NOT EXIST here and its empty stdout reads as zero -- use `ps -axo comm= | sed 's|.*/||' | grep -cx`, anchored), the shared-checkout rules and the bank rules. FIVE RULE PROPOSALS WERE REFUSED TODAY BECAUSE THE CORPUS ALREADY HELD THEM, two of them mine and already in my own memory file from two weeks earlier. Search BOTH homes at the moment you are stuck, not at the moment you are proposing -- by proposal time the cost is already paid.
-- ISSUE 0509 (organize's unclaimed digest hashes absolute paths) -- assigned by vc 2026-09-22 16:0xZ, one of six hv wants closed. CENSUS DONE, vc's lean MEASURED AND REFUSED: Report must keep ABSOLUTE paths, and the digest takes a root. Two in-crate consumers ACT on Report's paths as real filesystem locations and both break SILENTLY under project-relative paths -- organize.rs:1332/1362 hands report.dehydrated and report.pruned_legacy to prune_emptied, whose 'd.starts_with(root)' filter would empty and whose remove_dir would go to cwd, so directory pruning stops at exit 0; and facade.rs:6472 membership-tests run.hydrated/rewritten against 'owned', absolute from carried()+p.exists(), so st hydrate's 0083 'what this call wrote' silently empties. PathBuf to PathBuf, no type change, no compiler help. Shape: unclaimed_digest(&self, root: &Path), hashing project::relative(root, p) -- documented as THE ONE HOME for 'make it relative', so show and the digest become two callers of one home rather than two homes, which is the Highlander win on the cheap shape. Build + test + bank, vc judges before it lands. NO PUSH, NO RELEASE.
+- RESUME HERE (cc, localfold before compact, 2026-09-22 after 19:00Z). HOLDING for vc's next line. Nothing claimed, nothing running, no bank waiting to land. ALL SIX OF hv's ISSUES ARE ACCOUNTED FOR: 0518 is cc's and CLOSED (fix aba799696, close cd833388f). hv ran bin/devbin build all at 18:20Z, and the delivered pair names 6995df347 with currency ok, so 0509/0511/0513/0514/0515/0519 are all deployed as well as landed, and the sha is announced to the roster. 0519 was closed by another node (3e87933d2). 0516 is being driven by dc on vc's ruling (5/5 quiet PASS against 5/5 file-churn RED; late-vs-lost probe gave LOST 3/3, i.e. FSEvents delivery); cc's owed N-vs-N rate comparison looks superseded by dc's interleaved pairs, so CONFIRM WITH vc before running anything for it. ON RESUME: /in-session, then read vc's inbox. From aba799696 the pre-push hook REFUSES whenever the pair falls behind HEAD over the build inputs; the remedy is bin/devbin build all, and that is decision 30 working, not a fault. NO PUSH, NO RELEASE.
 
 ## TODO
 

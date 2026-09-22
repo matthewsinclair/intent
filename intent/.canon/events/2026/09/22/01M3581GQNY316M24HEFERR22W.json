@@ -1,0 +1,15 @@
+{
+  "id": "01M3581GQNY316M24HEFERR22W",
+  "ts": "2026-09-22T19:03:51.285Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE (cc, localfold before compact, 2026-09-22 after 19:00Z). HOLDING for vc's next line. Nothing claimed, nothing running, no bank waiting to land. ALL SIX OF hv's ISSUES ARE ACCOUNTED FOR: 0518 is cc's and CLOSED (fix aba799696, close cd833388f). hv ran bin/devbin build all at 18:20Z, and the delivered pair names 6995df347 with currency ok, so 0509/0511/0513/0514/0515/0519 are all deployed as well as landed, and the sha is announced to the roster. 0519 was closed by another node (3e87933d2). 0516 is being driven by dc on vc's ruling (5/5 quiet PASS against 5/5 file-churn RED; late-vs-lost probe gave LOST 3/3, i.e. FSEvents delivery); cc's owed N-vs-N rate comparison looks superseded by dc's interleaved pairs, so CONFIRM WITH vc before running anything for it. ON RESUME: /in-session, then read vc's inbox. From aba799696 the pre-push hook REFUSES whenever the pair falls behind HEAD over the build inputs; the remedy is bin/devbin build all, and that is decision 30 working, not a fault. NO PUSH, NO RELEASE."
+  }
+}

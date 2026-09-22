@@ -1,0 +1,15 @@
+{
+  "id": "01M352SMF32XYQ28C7NZMYN88A",
+  "ts": "2026-09-22T17:32:10.083Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE (cc, after hv's restart, 2026-09-22). HOLDING -- vc said HOLD for the restart; nothing claimed, nothing running (positive-controlled check at 17:31:52Z: no shell at a core, no cargo/rustc/suite). LANDED AND CLOSED today: 0509 (a545dea6f), 0513 (171a3bebd), 0511 (a08880cd1) -- each landed patch-id equals the judged one restricted to its bank's paths. OPEN AND MINE: 0516 (records at 3c027331a -- Run A closed the CPU branch, arm passed 4.78s at 5x over-subscription; Run B green but cannot bear weight while the arm is intermittent; a rate comparison of N against N is still OWED and must NOT run across a restart) and 0519 (two prose homes for the claim rule, filed only). NEXT ON RESUME: 0518's build is cc's per vc, on hv decision 30 (committed 7ebe998fc) -- read decision 30 on hv's board FIRST, and remember landed is not deployed: 0509/0511/0513 are live nowhere until that build. NO PUSH, NO RELEASE."
+  }
+}
