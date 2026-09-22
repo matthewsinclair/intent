@@ -1,0 +1,15 @@
+{
+  "id": "01M34Z0N52AMK4W75E2FKEGHRD",
+  "ts": "2026-09-22T16:26:05.861Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0516"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a whole-suite intent-cli run reds one daemon ingest arm that passes alone, against a 96-second budget"
+  }
+}
