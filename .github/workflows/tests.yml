@@ -159,6 +159,39 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
+      - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
+        # NEITHER RUNNER SHIPS PRETTIER, so this needs no `if:` -- unlike the
+        # shellcheck step, which is macOS-only because ubuntu-latest ships it.
+        #
+        # `staged_format_guard.bats` drives the REAL binary through the shipped
+        # guard. With prettier absent the guard takes its `command -v` branch,
+        # records `markdown(prettier)` as UNENFORCED and refuses nothing -- which
+        # is correct behaviour -- so the arms asserting a refusal fail while the
+        # guard is working exactly as designed. That is what reddened run
+        # 35739715195 on both legs: `not ok 624` and `not ok 627`, each
+        # `[ "$status" -eq 1 ]' failed`, with `ok 622` passing in the same run
+        # BECAUSE the tool was absent.
+        #
+        # `rust.yml` has installed prettier since 2026-08 under this same title,
+        # its comment saying in capitals that neither runner ships it. That
+        # lesson never travelled the twelve lines into this file, and the guard
+        # arms landed in f6ad0f990 without it -- a fix applied to the case that
+        # was reported rather than to the hazard that was found.
+        #
+        # PINNED TO THE MAJOR, NOT THE PATCH, matching rust.yml: `@3` binds the
+        # contract the tests rely on and leaves the dev machine's Homebrew
+        # prettier in the same floating regime, rather than binding one side of
+        # a two-sided gate.
+        #
+        # THE `--version` LINE IS THE INSTALL'S OWN CHECK, which is why it is
+        # not `npm ls`. If the global install does not put the binary on PATH --
+        # a real risk, since the two runners lay out their npm prefix
+        # differently -- this STEP fails, naming the tool, instead of surfacing
+        # later as a guard arm that looks like the defect being fixed here.
+        run: |
+          npm install -g prettier@3
+          prettier --version
+
       - name: Build the v3 binaries the suite drives
         run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
 
@@ -286,6 +319,39 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
+      - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
+        # NEITHER RUNNER SHIPS PRETTIER, so this needs no `if:` -- unlike the
+        # shellcheck step, which is macOS-only because ubuntu-latest ships it.
+        #
+        # `staged_format_guard.bats` drives the REAL binary through the shipped
+        # guard. With prettier absent the guard takes its `command -v` branch,
+        # records `markdown(prettier)` as UNENFORCED and refuses nothing -- which
+        # is correct behaviour -- so the arms asserting a refusal fail while the
+        # guard is working exactly as designed. That is what reddened run
+        # 35739715195 on both legs: `not ok 624` and `not ok 627`, each
+        # `[ "$status" -eq 1 ]' failed`, with `ok 622` passing in the same run
+        # BECAUSE the tool was absent.
+        #
+        # `rust.yml` has installed prettier since 2026-08 under this same title,
+        # its comment saying in capitals that neither runner ships it. That
+        # lesson never travelled the twelve lines into this file, and the guard
+        # arms landed in f6ad0f990 without it -- a fix applied to the case that
+        # was reported rather than to the hazard that was found.
+        #
+        # PINNED TO THE MAJOR, NOT THE PATCH, matching rust.yml: `@3` binds the
+        # contract the tests rely on and leaves the dev machine's Homebrew
+        # prettier in the same floating regime, rather than binding one side of
+        # a two-sided gate.
+        #
+        # THE `--version` LINE IS THE INSTALL'S OWN CHECK, which is why it is
+        # not `npm ls`. If the global install does not put the binary on PATH --
+        # a real risk, since the two runners lay out their npm prefix
+        # differently -- this STEP fails, naming the tool, instead of surfacing
+        # later as a guard arm that looks like the defect being fixed here.
+        run: |
+          npm install -g prettier@3
+          prettier --version
+
       - name: Build the v3 binaries the suite drives
         run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
 
