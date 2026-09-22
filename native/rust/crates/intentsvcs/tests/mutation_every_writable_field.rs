@@ -68,7 +68,9 @@
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, parse};
 use intentsvcs::facade::Facade;
-use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, FiatRecord, Invoker, Legacy, Thread};
+use intentsvcs::model::{
+  AcceptanceTest, AtKind, AtStatus, FiatRecord, Invoker, Legacy, Thread, ThreadStatus,
+};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
@@ -1805,7 +1807,17 @@ fn the_setter_value_maps_cover_exactly_what_the_setter_declares_settable() {
 fn every_settable_thread_field_moves_and_takes_nothing_with_it() {
   for (field, new_value) in a_different_legal_thread_value() {
     let fx = Fixture::new();
-    fx.write_thread(&fully_populated_thread("ST0001"));
+    // **`completed` IS THE ONE FIELD WHOSE LEGALITY IS A FACT ABOUT THE ROW**
+    // (issue 0504): a thread records a completion date only where it closed,
+    // and the fixture is `wip` carrying one, which is the state that defect
+    // let in. So this case is driven on the thread CLOSED, which is where the
+    // field is settable at all. Every other field is status-blind and takes
+    // the fixture as it stands.
+    let mut thread = fully_populated_thread("ST0001");
+    if field == "completed" {
+      thread.status = ThreadStatus::Completed;
+    }
+    fx.write_thread(&thread);
     let mut facade = fx.facade();
     let address = parse("intent:///threads/ST0001").expect("resolves");
 
@@ -2023,6 +2035,100 @@ fn null_clears_an_optional_field_and_is_refused_on_a_required_one() {
   assert!(
     format!("{err}").contains("title"),
     "clearing a required field must be refused BY NAME"
+  );
+}
+
+/// Issue 0504: **`completed` IS OPTIONAL AND ITS NULL IS NOT ALWAYS A CLEAR.**
+/// A thread that closed keeps the date it closed on -- clearing it is how
+/// ST0011's NULL-completed row came about, and this door exists to repair that
+/// row rather than to make another. Under any other status the date should
+/// never have been there, and clearing it is the repair this door owes.
+#[test]
+fn a_null_completed_clears_a_stray_date_and_is_refused_on_a_thread_that_closed() {
+  let fx = Fixture::new();
+  // The state the defect let in: `wip`, carrying a completion date.
+  fx.write_thread(&fully_populated_thread("ST0001"));
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+
+  facade
+    .set(&address, "completed", Value::Null)
+    .expect("a stray date clears from a thread that closed nothing");
+  assert_eq!(
+    entity_json(&facade, "intent:///threads/ST0001").get("completed"),
+    None,
+    "`completed` did not clear"
+  );
+
+  // A second fixture, and the same id: `entity_json` reads `ST0001` whatever
+  // the url names, and each fixture is its own store.
+  let closed = Fixture::new();
+  let mut thread = fully_populated_thread("ST0001");
+  thread.status = ThreadStatus::Completed;
+  closed.write_thread(&thread);
+  let mut facade = closed.facade();
+  let err = facade
+    .set(&address, "completed", Value::Null)
+    .expect_err("a closed thread keeps its completion date");
+  assert!(
+    format!("{err}").contains("completed"),
+    "the refusal names the field: {err}"
+  );
+  assert_eq!(
+    entity_json(&facade, "intent:///threads/ST0001")
+      .get("completed")
+      .and_then(Value::as_str),
+    Some("2026-08-20"),
+    "the refusal wrote nothing"
+  );
+}
+
+/// Issue 0504: **the setter refuses what the status writer refuses**, because
+/// the rule has one home. The value that is not a date and the date on a thread
+/// that closed nothing are the two the CLI drove.
+#[test]
+fn the_setter_refuses_a_completed_value_the_status_writer_would_refuse() {
+  let fx = Fixture::new();
+  let mut thread = fully_populated_thread("ST0001");
+  thread.status = ThreadStatus::Completed;
+  fx.write_thread(&thread);
+  let mut facade = fx.facade();
+  let address = parse("intent:///threads/ST0001").expect("resolves");
+
+  let err = facade
+    .set(&address, "completed", json!("not-a-date"))
+    .expect_err("a value that is not a date is refused");
+  assert!(
+    format!("{err}").contains("not-a-date") && format!("{err}").contains("ISO 8601"),
+    "the refusal names the value and the form: {err}"
+  );
+
+  // 2026-02-30 is shape-valid and not a day. A checker matching `YYYY-MM-DD`
+  // alone admits it, which is the half the status writer's own arm records.
+  let err = facade
+    .set(&address, "completed", json!("2026-02-30"))
+    .expect_err("the thirtieth of February is not a day");
+  assert!(
+    format!("{err}").contains("2026-02-30"),
+    "the refusal names the value: {err}"
+  );
+
+  // The same id again, for `entity_json`'s reason, in its own store: a thread
+  // in flight, which `sample_thread` leaves `wip` with no date.
+  let open = Fixture::new();
+  open.write_thread(&sample_thread("ST0001"));
+  let mut facade = open.facade();
+  let err = facade
+    .set(&address, "completed", json!("2026-03-03"))
+    .expect_err("a thread that closed nothing records no completion date");
+  assert!(
+    format!("{err}").contains("records no completion date"),
+    "the refusal names the status rule: {err}"
+  );
+  assert_eq!(
+    entity_json(&facade, "intent:///threads/ST0001").get("completed"),
+    None,
+    "the refusal wrote nothing"
   );
 }
 

@@ -81,6 +81,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::RowBreaksContract { .. }
     | FacadeError::VerdictWrongForKind { .. }
     | FacadeError::OpenWorkPackages { .. }
+    // Issue 0503: the caller gave the date, and the refusal is that a closed
+    // thread's date is restated through `intent set` rather than through a
+    // close. No field was left out of the call.
+    | FacadeError::CompletionDateNotRestated { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

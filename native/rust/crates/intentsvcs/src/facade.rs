@@ -1054,6 +1054,26 @@ pub enum FacadeError {
   /// `st done` on a thread whose work packages are not all settled (issue 0324).
   #[error("{st} cannot close while work packages are still open: {}", .open.join(", "))]
   OpenWorkPackages { st: String, open: Vec<String> },
+  /// A `--date` on a thread already in the state the closing verb moves to
+  /// (issue 0503).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE VALUE IS FINE AND THE DOOR IS NOT**, which
+  /// is [`FacadeError::NoteWouldBeLost`]'s distinction two variants down:
+  /// `ValueNotRecordable` says the field cannot hold that value, and this says
+  /// it can, and that a self-loop is not where it is written. A self-loop means
+  /// *nothing to do*, so a date that differs from the one on record would be a
+  /// RESTATEMENT of a close that already happened, and `intent set` is the door
+  /// that restates a field. The remedy names it; this says what is on record.
+  #[error(
+    "{st} is already {state} and records {}, so `--date {given}` would restate the completion date rather than record it",
+    match .recorded { Some(on) => on.clone(), None => "no completion date".to_string() }
+  )]
+  CompletionDateNotRestated {
+    st: String,
+    state: String,
+    recorded: Option<String>,
+    given: String,
+  },
   /// A `--note` that would DESTROY an existing note rather than extend it.
   ///
   /// **DISTINCT FROM [`FacadeError::ValueNotRecordable`], and the difference is
@@ -2343,6 +2363,13 @@ impl crate::remedy::Remedy for FacadeError {
          and nothing was written"
           .to_string()
       }
+      // **THE DOOR, NOT THE VALUE** (issue 0503): the date is recordable and
+      // the closing verb is not where a closed thread's date is restated, so
+      // the remedy is the setter, with the date the caller already typed.
+      Self::CompletionDateNotRestated { st, given, .. } => format!(
+        "`intent set {st} completed {given}` restates the date on a thread that is already closed \
+         -- a closing verb records one only on the move that closes it, and nothing was written"
+      ),
       Self::VerdictWrongForKind { st, at, .. } => {
         format!(
           "a test row holds to-write, red or green and a non-test row holds n/a. Creating it, `intent at new` \
@@ -11649,6 +11676,43 @@ impl Facade {
   /// `id_refusal`.** The model states what is wrong; a caller says it in the
   /// terms of the field it was asked about, and a second caller with a different
   /// field would need different words for the same fact.
+  /// The completion date a thread may record, for every door that writes one
+  /// (issues 0503 and 0504).
+  ///
+  /// **ONE HOME, BECAUSE EVERY DOOR OWES THE SAME TWO CHECKS.** A stated date
+  /// is ISO 8601 `YYYY-MM-DD`: a malformed one reaching canon is unrecoverable
+  /// by inspection, because the field has no time component, so `2026-02-30`
+  /// reads as data rather than as an error for as long as it sits there. And a
+  /// thread records a completion date only where it is Completed or Cancelled:
+  /// a date under any other status is a claim about a close that never
+  /// happened. The status writer's arm had both checks, [`Facade::set`] had
+  /// neither, and the self-loop reached neither -- three doors, one rule, and
+  /// this is where it lives.
+  ///
+  /// **THE REFUSAL NAMES THE STATUS RATHER THAN THE MOVE**, which is the one
+  /// wording this cost: the status writer said *a move to wip records no
+  /// completion date*, and one sentence has to serve a door that moves a thread
+  /// and a door that edits one standing still.
+  fn recordable_completion(
+    status: crate::model::ThreadStatus,
+    stated: &str,
+  ) -> Result<String, FacadeError> {
+    let refuse = |why: String| FacadeError::ValueNotRecordable {
+      field: "completed".to_string(),
+      given: stated.to_string(),
+      why,
+    };
+    match status {
+      ThreadStatus::Completed | ThreadStatus::Cancelled => {
+        crate::model::parse_domain_date(stated).map_err(|e| refuse(Self::date_refusal(e)))
+      }
+      _ => Err(refuse(format!(
+        "a {} thread records no completion date",
+        crate::model::enum_str(&status)
+      ))),
+    }
+  }
+
   fn date_refusal(e: crate::model::DateError) -> String {
     match e {
       crate::model::DateError::NotADate => {
@@ -11736,7 +11800,28 @@ impl Facade {
     // AC-04.6 was added under closed units in this very thread. A self-loop must
     // not be able to fail for a reason that did not exist when the state was
     // entered.
+    //
+    // **A STATED DATE IS ANSWERED HERE, AND THE GATE STILL STAYS OUT** (issue
+    // 0503, ruled by vc under hv's pen, 2026-09-22). That ruling is about the
+    // GATE, and a date the caller has just typed is not "a reason that did not
+    // exist when the state was entered" -- it is this call's own argument.
+    // Dropping it under an `ok:` line was the silent default this estate
+    // refuses everywhere else. So the date is validated exactly as a close
+    // validates it; the same date as the one on record is still nothing to do;
+    // and any other date is a RESTATEMENT, which `intent set` is the door for.
     if from == status {
+      if let Some(stated) = on {
+        let stated = Self::recordable_completion(status, stated)?;
+        let recorded = self.st_show(id)?.completed.clone();
+        if recorded.as_deref() != Some(stated.as_str()) {
+          return Err(FacadeError::CompletionDateNotRestated {
+            st: id.to_string(),
+            state: from.display().to_string(),
+            recorded,
+            given: stated,
+          });
+        }
+      }
       return Ok(Outcome::AlreadyThere {
         state: from.display().to_string(),
       });
@@ -11825,28 +11910,18 @@ impl Facade {
     // error for as long as it sits there.
     thread.completed = match status {
       ThreadStatus::Completed | ThreadStatus::Cancelled => Some(match on {
-        Some(stated) => {
-          crate::model::parse_domain_date(stated).map_err(|e| FacadeError::ValueNotRecordable {
-            field: "completed".to_string(),
-            given: stated.to_string(),
-            why: Self::date_refusal(e),
-          })?
-        }
+        Some(stated) => Self::recordable_completion(status, stated)?,
         None => String::new(),
       }),
       // **A NON-TERMINAL MOVE WITH A DATE IS A MISTAKE WORTH NAMING.** Silently
       // dropping it would let `st start --date` read as accepted and change
       // nothing, which is the shape of every silent default in this estate.
+      // The refusal is [`Facade::recordable_completion`]'s, which is why the
+      // `?` below is the whole arm: on any status but the two terminal ones it
+      // never returns a date, so nothing reaches the `None`.
       _ => {
         if let Some(stated) = on {
-          return Err(FacadeError::ValueNotRecordable {
-            field: "completed".to_string(),
-            given: stated.to_string(),
-            why: format!(
-              "a move to {} records no completion date",
-              crate::model::enum_str(&status)
-            ),
-          });
+          Self::recordable_completion(status, stated)?;
         }
         None
       }
@@ -14857,11 +14932,42 @@ impl Facade {
     let (op, subject) = match &address.entity {
       AddrEntity::Thread { id } => {
         let existing = find_thread_mut(&mut next, id)?;
-        let Some(row) = Self::splice_one_field(existing, field, value, &refuse)? else {
+        let Some(mut row) = Self::splice_one_field(existing, field, value, &refuse)? else {
           return Ok(Outcome::AlreadyThere {
             state: "unchanged".to_string(),
           });
         };
+        // **THE COMPLETION DATE OBEYS THE STATUS WRITER'S RULE AT THIS DOOR
+        // TOO** (issue 0504). The splice re-parses the row by the model's own
+        // types, and `completed` is declared a string, so every string passed
+        // and nothing here read the thread's status: `not-a-date` landed in
+        // canon, and so did a completion date on a thread in Triage. This is
+        // the Ac arm's post-splice shape, one field over.
+        if field == "completed" {
+          match row.completed.as_deref() {
+            Some(stated) => row.completed = Some(Self::recordable_completion(row.status, stated)?),
+            // **A NULL CLEARS A STRAY DATE AND NEVER A REAL ONE.** On a thread
+            // that closed, clearing is how ST0011's NULL-completed row came
+            // about, and this door exists to repair that row rather than to
+            // make another; under any other status the date should never have
+            // been there, and clearing it is the repair.
+            None
+              if matches!(
+                row.status,
+                ThreadStatus::Completed | ThreadStatus::Cancelled
+              ) =>
+            {
+              return Err(refuse(
+                field,
+                format!(
+                  "a {} thread keeps its completion date -- restate it with a date rather than clearing it",
+                  crate::model::enum_str(&row.status)
+                ),
+              ));
+            }
+            None => {}
+          }
+        }
         *existing = row;
         (
           "thread.set",

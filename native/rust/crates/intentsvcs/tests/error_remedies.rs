@@ -467,6 +467,20 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .st_done("ST0056")
       .expect_err("st done with an open work package is refused")
   }));
+  // Issue 0503: a date on a thread that is already Completed is a RESTATEMENT,
+  // and the closing verb is not that door. Its own fixture, for the reason the
+  // one above has its own: the calls around it see the facade they always did.
+  out.push(("a completion date restated through the closing verb", {
+    let closed = Fixture::new();
+    let mut thread = sample_thread("ST0056");
+    thread.status = intentsvcs::model::ThreadStatus::Completed;
+    thread.completed = Some("2026-02-14".to_string());
+    closed.write_thread(&thread);
+    closed
+      .facade()
+      .st_done_listing("ST0056", ListEdit::AsDeclared, Some("2026-01-15"))
+      .expect_err("a date differing from the one on record is refused")
+  }));
   // Issue 0325: a row covering a criterion that does not exist breaks the
   // contract, and the refusal carries its own remedy rather than the `put`
   // door's.
@@ -1083,6 +1097,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::RowBreaksContract { .. } => "RowBreaksContract",
     FacadeError::VerdictWrongForKind { .. } => "VerdictWrongForKind",
     FacadeError::OpenWorkPackages { .. } => "OpenWorkPackages",
+    FacadeError::CompletionDateNotRestated { .. } => "CompletionDateNotRestated",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::NoSuchAttachment { .. } => "NoSuchAttachment",
     FacadeError::NoSuchRelatedTarget { .. } => "NoSuchRelatedTarget",
@@ -1278,6 +1293,7 @@ const ALL_VARIANTS: &[&str] = &[
   "RowBreaksContract",
   "VerdictWrongForKind",
   "OpenWorkPackages",
+  "CompletionDateNotRestated",
   "ExportRoundTripFailed",
   "NoSuchIssue",
   "MalformedIssueId",
