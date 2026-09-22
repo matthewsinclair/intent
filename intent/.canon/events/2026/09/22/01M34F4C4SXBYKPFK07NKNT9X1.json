@@ -1,0 +1,15 @@
+{
+  "id": "01M34F4C4SXBYKPFK07NKNT9X1",
+  "ts": "2026-09-22T11:48:30.493Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0507"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "a prose comment in shellcheck directive position silently disarms the checker for the rest of the script"
+  }
+}
