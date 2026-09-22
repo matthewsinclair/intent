@@ -40,7 +40,7 @@
 - `int suite` measures HEAD in a single-writer clone: commit first, then measure.
 - Output to a file, then count: `> file 2>&1; rc=$?`; an exit code taken through a pipe is the pipe's, and zsh has `pipestatus`, not `PIPESTATUS`.
 - `--no-fail-fast` always.
-- Every suite runs from a private worktree's own build: in-tree `CARGO_TARGET_DIR`, isolated `HOME`, `cargo build -p intentd` first. Check `~/.local/share/intent/home` after any peer run.
+- Every suite runs from a private worktree's own build: in-tree `CARGO_TARGET_DIR`, isolated `HOME`, `cargo build -p intentd` first.
 - A stale artefact is not a regression: rebuild before diagnosing. A detached worktree carries a staged copy across `git checkout --detach`.
 - Name the artefact in every claim: `intent --version` answers for the compiled half only; `/bin/bash` is 3.2 while PATH bash is 5; `.claude/restart.md` and `intent/restart.md` are different files with opposite jobs.
 - A count is not an output: an advisory is printed and never counted, so `doctor: 0 finding(s)` can print directly under a finding. Read every verdict whole (doctor, the gate, a suite summary) and name the line that would have said so.
