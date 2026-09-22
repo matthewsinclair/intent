@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 10:11Z
+heartbeat_at: 2026-09-22 10:14Z
 status: active
 focus: "Folded in hv's cycle: nothing queued, no claims, nothing in flight. ST0079 closed and confirmed by hv on both faces, the four NEXT-LINE items landed, Lamplight 0008 filed and that tree clean. Read intent/restart.md's six instrument rules before re-deriving any of them. Holding for vc. NO PUSH, NO RELEASE."
 claims: []
