@@ -1,0 +1,15 @@
+{
+  "id": "01M352MH18RANS3M97FJ3C8KGC",
+  "ts": "2026-09-22T17:29:22.728Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-22, hv's selections in the TUI vc asked, recorded at 2026-09-22T17:29:22Z by vc's clock; wording vc's, each choice hv's; vc's recommendation taken on both) TWO RULINGS ON THE DEPLOYMENT PAIR, 0517 AND 0518. (1) A STALE DELIVERED PAIR IS REFUSED AT **PUSH**, NOT AT COMMIT AND NOT AT EVERY INVOCATION. The pre-push hook refuses when the pair's embedded commit is behind HEAD. The decisive evidence against the cheap option is that THE CHEAP OPTION HAS ALREADY BEEN TRIED AND FAILED: the pre-commit gate's `self-provenance: currency` arm already REPORTS this, in full, on every commit, and four nodes and vc read past it for an entire afternoon while two judged and landed fixes -- 0509's and 0513's -- ran in no estate on the machine. A push is a batch boundary and is hv's own hand, so one `build all` covers every Rust change since the last push, the refusal reaches the person who can act on it, and it cannot fire inside a node's judging run. Refusing at COMMIT was rejected because it forces a heavy rebuild, which has no dry run, between every bank and its landing; a WRAPPER on `~/.local/bin/intent` was rejected because it puts latency and a new failure mode in front of every tool call in every estate, including the hooks that run `intent` in every Claude session. (2) 0517 CLOSES AS RECORDED, WITH THE PROTOCOL AS ITS REMEDY: all `lib/templates/` work is built in a DETACHED WORKTREE, which is the only containment, because the install root pointer file contains this tree's path and THE AUTHOR'S SAVE IS THE DEPLOYMENT -- a hold on such a bank controls the record and not the running behaviour. Repointing the install root at a committed copy was rejected as the 2026-09-19 `publish_home` incident, where a scratch tree's root reached every estate's gate for hours; and the save-is-deployment property is deliberate and useful, since a template fix reaches every estate at once. THE HONEST COST, RECORDED RATHER THAN SOFTENED: this rests on discipline, and discipline failed twice on 2026-09-22 -- dc landed across a halt twice in one day. What makes it survivable is that the blast-radius check moved to the FRONT of judging for this directory, since it is the only thing bounding live-but-unjudged bytes while a suite is owed."
+  }
+}
