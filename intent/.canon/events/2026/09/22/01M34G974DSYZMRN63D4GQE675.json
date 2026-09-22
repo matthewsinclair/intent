@@ -1,0 +1,15 @@
+{
+  "id": "01M34G974DSYZMRN63D4GQE675",
+  "ts": "2026-09-22T12:08:37.773Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "**HALF A OF THE GUARDS ADOPTION PASS -- THE FOURTEEN UNWIRED ESTATES.** RELEASED WHEN hv RULES THE ORDERING of vc's decision-27 in-place repairs against canon adoption: wiring an estate SUPERSEDES the hand-wired repair vc made there, so starting would settle hv's open question by doing it (vc, 2026-09-22). Measured read-only 2026-09-22: exactly TWO estates route git hooks through a `.githooks` dir carrying the canon `pre-commit.intent` shim -- Intent, now adopted, and Gtools; FOURTEEN have `core.hooksPath` unset and run an untracked `.git/hooks/pre-commit` that canon never reaches; Laksa points `hooksPath` at `bin/hooks`, UNINSPECTED by dc or vc. Adoption there is `bin/int hooks --install` plus a tracked `.githooks/`, one commit per estate, doctor after each, vc sequencing any estate with a live session. TWO MECHANISMS TO GREP FOR, both found by DRIVING Intent's copy rather than reading it, and both will be in every estate's copy because they are copies of this one: `git ls-files '*rustfmt.toml' | head -1` selects the alphabetically first config in the WHOLE repository and so refuses correct code under a config governing nothing; and `--edition 2024` is hardcoded, so a crate on any other edition holds files that commit before adoption and are refused after. AND A THIRD FACT FOR THE CENSUS, from vc's judging: `.githooks/pre-commit.intent` is gitignored on purpose, so a fresh clone or worktree has NO gate at all -- the installer must produce it, and until it does canon reaches nothing in that estate."
+  }
+}
