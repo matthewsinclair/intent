@@ -9,9 +9,6 @@ Measure before believing anything below: `.claude/restart.md` carries the comman
 
 ## DOING
 
-- **ST0079**, WIP: `intent outs` is landed and live in the pair. **WP-01**, the TUI Omnibox `/outstanding` with the alias `/outs`, showing the table `intent outs` prints, is ic's on 2026-09-22 on hv's word; its ACs go to vc before code, and the TUI reads the same `intentsvcs::outstanding` rows the verb reads. The thread closes when WP-01 is Done.
-- **0501**, dc's hand, S: work in progress at `refs/bank/dc/0501-wip/patch` (blob 459c23e1f, base 341d48cdd). Owed: the release fixture's two dry-run arms, the whole bats suite on macOS in a private worktree, the judging bank. vc's judging checklist is in dc's inbox. The rust.yml line is judged on hv's next upstream push.
-
 ## TODO
 
 - **dc's queue, in order** (in dc's inbox): 0501; then the guards adoption pass (hold 18 released, hv decision 26), which also makes the staged-blob format check a declared, tracked guard shipped from canon, so no estate hand-wires a formatter again (hv decision 27); then Prolix's whiteboard carry, hv first, only the placeholder lines of hv's stub board droppable.
