@@ -1,0 +1,15 @@
+{
+  "id": "01M34Y7D97F2FX7AZYAJ4SYF51",
+  "ts": "2026-09-22T16:12:18.600Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-09-22, hv's selection in the TUI vc asked, recorded at 2026-09-22T16:12:18Z by vc's clock; wording vc's, the choice hv's; vc's recommendation taken) A BOARD MAY CLAIM AN ISSUE, IN THE FORM `ISSUE:0512`, AND THE WIDENING IS NOT ONE-SIDED. `is_claim_address` (model.rs) admits only ST0079 and ST0079/01 and never calls `is_issue_id`, which has existed unused beside it, so `claims:` is empty BY CONSTRUCTION for exactly the work that fills the time between releases -- and it is therefore silent precisely where two concurrent sessions would collide. The live case is the afternoon this was ruled: four nodes were dispatched onto four different issues and not one could say so on its board. THE SPELLING IS THE MANIFEST'S OWN, not a new one: `organize --default` writes `ISSUE:<NNNN>` per OPEN issue into `intent/.intentfiles` and this repository's own manifest carries them, so the system already records this address kind elsewhere and refused it only at this door. THE SECOND HALF, WHICH THE ISSUE BODY DOES NOT CARRY AND WHICH VC MEASURED BEFORE ASKING: `renumber::issue` deliberately rewrites NOTHING, on the stated ground that \"nothing structured refers to an issue -- `related` and claims both name threads -- so the only references it can have are prose\". Admitting issue claims FALSIFIES that sentence, so `issues renumber` must gain the claim-rewriting `renumber::thread` already has, or a renumber silently leaves a board claiming a number that moved; the comment stating the old reason is part of the change rather than a leftover. `moved_claims` is the implementation to copy, so the cost is bounded. WHAT WAS REFUSED AND WHY: free-text claims, because two claims could then be compared only by string equality and the field would stop answering the collision question it exists for; and the bare `0512` form, because the manifest already writes the prefixed one and two spellings of one address is the drift Highlander names, while saving nothing -- it carries the same renumber consequence either way."
+  }
+}

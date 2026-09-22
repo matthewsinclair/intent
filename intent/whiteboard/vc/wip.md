@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 8b585ac1-903e-41e1-887f-4ebeb676440d
-heartbeat_at: 2026-09-22 14:56Z
+heartbeat_at: 2026-09-22 15:56Z
 status: active
-focus: "Folded for hv's compact, not released. DOING is empty and measured. Owed: hv decision 28's ten rulings whole, the 3.2.0 app install, the Finding C census. 0510 banked for dc. 0511 needs hv's design ruling. Every push is hv's."
+focus: "Resumed after hv's compact. Holding: doing 27 is the queue -- decision 28's ten rulings owed whole, the 3.2.0 app install, the Finding C census. No push without hv."
 claims: []
 ---
 

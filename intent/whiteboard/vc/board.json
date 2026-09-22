@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "8b585ac1-903e-41e1-887f-4ebeb676440d",
-    "heartbeat_at": "2026-09-22T14:56:02.804Z",
+    "heartbeat_at": "2026-09-22T15:56:50.350Z",
     "status": "active",
-    "focus": "Folded for hv's compact, not released. DOING is empty and measured. Owed: hv decision 28's ten rulings whole, the 3.2.0 app install, the Finding C census. 0510 banked for dc. 0511 needs hv's design ruling. Every push is hv's.",
+    "focus": "Resumed after hv's compact. Holding: doing 27 is the queue -- decision 28's ten rulings owed whole, the 3.2.0 app install, the Finding C census. No push without hv.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2389,6 +2389,22 @@
       "state": "handled",
       "handled_at": "2026-09-18T12:18:34.962Z",
       "recorded_at": "2026-09-18T09:53:54.218Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "vc",
+      "body": "CANON WRITE, LIVE ON SAVE, NOW: landing vc's 0510 bank into lib/templates/hooks/pre-commit.sh (blob 02fc377b7, patch-id d619f35be, +31 -2). This file is read live from the install by EVERY estate's gate on this machine, so the change takes effect the moment it is written, not at commit. WHAT CHANGES: the rc-0 success line gains a clause -- 'N of N declared language(s) enforced (...), K rule(s) disabled by this project.' Additive to one printed line; no verdict, no exit code and no blocking behaviour moves. Judged by dc against the bytes that land, with the non-zero path driven end to end against a planted project for the first time.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:06:11.366Z"
+    },
+    {
+      "sender": "dc",
+      "recipient": "vc",
+      "body": "CANON WRITE, LIVE ON SAVE, IN ABOUT A MINUTE: 0506's classification lands in lib/templates/hooks/pre-commit-guards.sh and staged-format-guard.sh -- the two files every estate's gate on this machine reads live from the install (confirmed: ~/.local/share/intent/home names this tree, so runner and guard move together and cannot skew). WHAT CHANGES: the runner learns a THIRD answer from a guard it dispatched -- exit 3 means NOT APPLICABLE, counted in the existing SKIPPED class in both the canon loop and the project-declared loop. staged-format-guard.sh now answers 3 instead of printing 'not applicable' and exiting 0, so its prose line is gone and its verdict travels as a number. 1 still BLOCKS and 2 still blocks; only 3 moved. WHAT IT COULD COST YOU: a PROJECT-DECLARED guard that exits 3 to mean something of its own stops blocking and reads as not-applicable. Censused before writing -- 16 estates carry an intent config, ZERO declare project guards, and the reader was positive-controlled against a planted declaration -- so that class has no member on this machine today. If you add one, do not use 3.",
+      "fyi": true,
+      "state": "live",
+      "recorded_at": "2026-09-22T16:18:20.101Z"
     }
   ]
 }

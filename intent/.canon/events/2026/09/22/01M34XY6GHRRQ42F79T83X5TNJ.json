@@ -1,0 +1,15 @@
+{
+  "id": "01M34XY6GHRRQ42F79T83X5TNJ",
+  "ts": "2026-09-22T16:07:16.756Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0513"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the MCP organize door emits absolute paths from a closure named rel, under field names that promise relative ones"
+  }
+}

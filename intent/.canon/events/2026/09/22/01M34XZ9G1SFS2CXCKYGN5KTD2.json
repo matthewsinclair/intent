@@ -1,0 +1,15 @@
+{
+  "id": "01M34XZ9G1SFS2CXCKYGN5KTD2",
+  "ts": "2026-09-22T16:07:52.581Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0514"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the manifest module's doc comment says ISSUE: is retired and defends a sigil filter that no longer exists"
+  }
+}
