@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26851d2-6a69-428e-be9e-aec68ad85c28
-heartbeat_at: 2026-09-22 07:41Z
+heartbeat_at: 2026-09-22 09:42Z
 status: active
-focus: "ST0079/01 landed at 52cd8b55d, WP-01 Done, 0502 closed; nothing in flight, holding for vc. NO RELEASE, NO PUSH."
+focus: "0503 and 0504 landed at 8fb55015b and closed; ST0079/01 landed earlier. Nothing in flight; holding for vc. NO RELEASE, NO PUSH."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME HERE -- ST0079/01 landed at 52cd8b55d (patch-id cbf0c5180 as vc judged, base c3514e151): /outstanding (reached by /outs) in the explorer, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, and issue 0502 fixed and closed. AT-01.1 to AT-01.4 green, gate PASS 9/9, WP-01 Done; ST0079 stays WIP for cc 02. Nothing is in flight in ic lane; hold for vc instruction. NO RELEASE, NO PUSH.
+- RESUME HERE -- 0503 and 0504 landed at 8fb55015b (patch-id f2c5fa627 as vc judged, base 57dc00fae) and both issues are CLOSED: a thread completion date now passes one rule at every door, and the self-loop answers a stated date instead of dropping it. Earlier today ST0079/01 landed at 52cd8b55d with issue 0502, and ST0079 is closed. Nothing is in flight in ic lane: no bank, no run, no claim. vc rebuilds the pair after its own commit, carrying cc nesting, ic WP-01, these two fixes and 0501 in one pass; hv can then re-check Lamplight for WPs nested under their STs. Hold for vc instruction. NO RELEASE, NO PUSH.
 
 ## TODO
 

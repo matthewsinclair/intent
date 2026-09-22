@@ -1,0 +1,15 @@
+{
+  "id": "01M347Y1BVYHMC2GGZ49DJGMF3",
+  "ts": "2026-09-22T09:42:42.811Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "RESUME HERE -- 0503 and 0504 landed at 8fb55015b (patch-id f2c5fa627 as vc judged, base 57dc00fae) and both issues are CLOSED: a thread completion date now passes one rule at every door, and the self-loop answers a stated date instead of dropping it. Earlier today ST0079/01 landed at 52cd8b55d with issue 0502, and ST0079 is closed. Nothing is in flight in ic lane: no bank, no run, no claim. vc rebuilds the pair after its own commit, carrying cc nesting, ic WP-01, these two fixes and 0501 in one pass; hv can then re-check Lamplight for WPs nested under their STs. Hold for vc instruction. NO RELEASE, NO PUSH."
+  }
+}

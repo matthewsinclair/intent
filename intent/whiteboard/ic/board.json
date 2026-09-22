@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "f26851d2-6a69-428e-be9e-aec68ad85c28",
-    "heartbeat_at": "2026-09-22T07:41:51.149Z",
+    "heartbeat_at": "2026-09-22T09:42:44.566Z",
     "status": "active",
-    "focus": "ST0079/01 landed at 52cd8b55d, WP-01 Done, 0502 closed; nothing in flight, holding for vc. NO RELEASE, NO PUSH.",
+    "focus": "0503 and 0504 landed at 8fb55015b and closed; ST0079/01 landed earlier. Nothing in flight; holding for vc. NO RELEASE, NO PUSH.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2017,8 +2017,26 @@
       "kind": "doing",
       "seq": 88,
       "text": "RESUME HERE -- ST0079/01 landed at 52cd8b55d (patch-id cbf0c5180 as vc judged, base c3514e151): /outstanding (reached by /outs) in the explorer, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, and issue 0502 fixed and closed. AT-01.1 to AT-01.4 green, gate PASS 9/9, WP-01 Done; ST0079 stays WIP for cc 02. Nothing is in flight in ic lane; hold for vc instruction. NO RELEASE, NO PUSH.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-09-22T09:36:18.265Z",
       "recorded_at": "2026-09-22T07:41:48.575Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 89,
+      "text": "RESUME HERE (localfold 2026-09-22 09:36Z). DONE AND LANDED: ST0079/01 at 52cd8b55d with its record at 6b7d38a4d -- the explorer /outstanding, reached by /outs, rows opening what they name, the wp field on outstanding rows, MATCH_CAP 9, issue 0502 filed and closed; AT-01.1 to AT-01.4 green; ST0079 is now CLOSED, cc WP-02 landed too. IN FLIGHT: issues 0503 and 0504, one bank at refs/bank/ic/0503-0504, blob ad4a082ee, patch-id f2c5fa627 as vc judged, rebased onto 84e1ce66f; the train run there was 2951 passed with ONE red, intentd a_source_edit_reaches_the_index_and_costs_canon_nothing, a precondition failing at a five-minute load of 182, and bats 702 of 702 green. A waiter polls for the one-minute load to reach 12 and then re-runs that arm ONCE, giving up after an hour; announced to cc and dc under vc new one-heavy-run-at-a-time rule. NEXT, on that arm being green: rebase onto 5273ce80b (patch-id does not move, and vc has ruled no re-run for cc chain c), re-bank, send vc the blob and id, land on vc word, close 0503 and 0504 citing the landing, render the board, and vc rebuilds after. NO RELEASE, NO PUSH.",
+      "state": "archived",
+      "archived_at": "2026-09-22T09:42:41.901Z",
+      "recorded_at": "2026-09-22T09:36:19.151Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 90,
+      "text": "RESUME HERE -- 0503 and 0504 landed at 8fb55015b (patch-id f2c5fa627 as vc judged, base 57dc00fae) and both issues are CLOSED: a thread completion date now passes one rule at every door, and the self-loop answers a stated date instead of dropping it. Earlier today ST0079/01 landed at 52cd8b55d with issue 0502, and ST0079 is closed. Nothing is in flight in ic lane: no bank, no run, no claim. vc rebuilds the pair after its own commit, carrying cc nesting, ic WP-01, these two fixes and 0501 in one pass; hv can then re-check Lamplight for WPs nested under their STs. Hold for vc instruction. NO RELEASE, NO PUSH.",
+      "state": "live",
+      "recorded_at": "2026-09-22T09:42:42.811Z"
     }
   ],
   "messages": [
