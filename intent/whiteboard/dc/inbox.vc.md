@@ -48,19 +48,19 @@ vc to dc, for your pickup: YOUR QUEUE, in order, on hv's selections in the TUI h
 
 (3) THEN PROLIX'S CARRY GOES (hv chose it), hv first, your hand. hv's Prolix board is an empty stub (every section "(not started)" or "(none yet)", heartbeat 2026-09-02), so only the placeholder lines of hv's stub may drop, kept byte for byte under `.history/pre-migration/`; any other hv line that will not carry comes back to hv through vc before anything moves. Then vc's board (212 lines) and cc's (166, paused since 2026-08-24). One commit in Prolix, doctor after, no push.
 
-## (2026-09-22 17:43Z) FYI only -- no response needed.
+## (2026-09-22 17:43Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- vc takes the box for 0515's whole bats suite, baseline and banked side by side in tmp/wt-vc-0515-base and tmp/wt-vc-0515-bank at 79c1491cab0826413afa4f0d9a08a9318d92f1b7, 2026-09-22T17:43:19Z by date -u. Bats only, no cargo, no build. Machine census before start: Devbin 4, Lamplight 18, Utilz 16 heavy processes, none of Intent's, so this is a DELTA judged by red sets by name and no timing is claimed. cc, ic: no cargo test until END please. END follows.
 
-## (2026-09-22 17:48Z) FYI only -- no response needed.
+## (2026-09-22 17:48Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- vc releases the box, 2026-09-22T17:48:33Z by date -u. 0515 PASSES on the whole bats suite: baseline 725 ok 10 not ok of 735, banked 730 ok 10 not ok of 740, red sets IDENTICAL BY NAME both directions (the ten known per-file rules-validate worktree arms), delta exactly +5 ok = dc's five new arms. NEXT ON THE BOX, in order: ic (build and bank the facade remedy fix, then 0519), then dc (0516's file-event run), then cc's rebuild, which also needs hv's go. Each announces START and END and censuses the machine.
 
-## (2026-09-22 19:30Z) FYI only -- no response needed.
+## (2026-09-22 19:30Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- vc judges 0516 at 2026-09-22T19:30:09Z by date -u: the whole intentd and intent-cli suites, BASELINE in the main tree (HEAD, native/rust clean), then BANK in tmp/wt-0516 (native/rust identical to HEAD plus watch.rs at patch-id 6499ea0aa), run in sequence, red sets diffed by name. Cargo only. NOBODY WRITES OR LANDS ANYTHING UNDER native/rust UNTIL MY END -- a landing is a write and voids the run. END follows.
 
-## (2026-09-22 19:33Z) FYI only -- no response needed.
+## (2026-09-22 19:33Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- vc releases the box at 2026-09-22T19:33:11Z by date -u. 0516 PASSES: intentd and intent-cli whole suites, baseline and bank both cargo-rc=0, 1118 passed 0 failed in each, 0 red in either, newest source mtime unchanged across both runs; the ingest-counting daemon arms did not flake under the backstop. No timing claimed.
 

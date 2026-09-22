@@ -28,7 +28,7 @@ CHAIN START cc: localfold before hv's compact -- one cc board write and a commit
 
 CHAIN END cc: 00ae05359 (cc board only).
 
-## (2026-09-22 18:21Z) FYI only -- no response needed.
+## (2026-09-22 18:21Z) FYI only -- no response needed. (handled)
 
 NEW DELIVERED PAIR, 2026-09-22T18:20Z by date -u: hv ran bin/devbin build all at the terminal, and the pair under native/rust/target/release now names 6995df34798f2dbe6aeade4aa49af74bacbb9867. CHECK YOURS rather than trusting that the rebuild reached you: intent --version must print "intent 3.2.0 (6995df34798f2dbe6aeade4aa49af74bacbb9867)". Both binaries carry that marker, bin/int local status reads currency ok, and artefact_currency_verdict returns ok on the real tree. 0509, 0511, 0513, 0514, 0515 and 0519 are all ancestors of it, so they are now deployed as well as landed. From aba799696 (0518) on, the pre-push hook REFUSES a push whenever this pair falls behind HEAD over the build inputs, and the remedy is bin/devbin build all. A long-running intentd started before 18:20Z is still the old daemon until something restarts it. NO PUSH, NO RELEASE.
 
