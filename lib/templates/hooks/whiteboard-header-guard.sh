@@ -158,12 +158,15 @@
 #
 # THE USUAL AUTHOR IS THE FORMATTER, NOT A NODE. prettier formats the block as
 # YAML frontmatter, and a bracketed flow sequence longer than printWidth is
-# broken across lines. It reaches a commit two ways: a gate that runs `prettier
-# --write` and re-stages BEFORE its guards (devbin's `gate_markdown`, where Laksa
-# found this) hands the guards the reflowed bytes; a gate that only runs
-# `prettier --check` (Intent's own) refuses the long line, and the `prettier
-# --write` a node runs to clear that refusal is what detaches the value. Either
-# way the bytes this guard reads are the formatter's.
+# broken across lines. It reached a commit two ways until 2026-09-21: a gate
+# that ran `prettier --write` and re-staged BEFORE its guards (devbin's
+# `gate_markdown`, where Laksa found this) handed the guards bytes nobody
+# staged. THAT WAY IS CLOSED -- hv's decision 27 killed the re-staging
+# formatters across the fleet, and each of them now judges the staged bytes and
+# refuses rather than writing. What remains is the other way: a gate that only
+# runs `prettier --check` (Intent's own) refuses the long line, and the
+# `prettier --write` a node runs to clear that refusal is what detaches the
+# value. The bytes this guard reads are still the formatter's.
 #
 # MEASURED in Laksa, not inherited (2026-09-12, prettier 3.9.6, printWidth at
 # its default 80):
@@ -364,7 +367,7 @@ $key"
         if [ "${#rejoined}" -gt "$PRINTWIDTH" ]; then
           printf '    *** %s chars, over printWidth %s -- REJOINING IS NOT THE FIX.\n' \
             "${#rejoined}" "$PRINTWIDTH" >&2
-          printf '        The formatter runs before this guard and will break it again.\n' >&2
+          printf '        The next `prettier --write` over this file breaks it again.\n' >&2
           printf '        SHORTEN the value to %s chars or fewer, key and all.\n' "$PRINTWIDTH" >&2
         else
           printf '    (%s chars, inside printWidth %s -- safe to paste back.)\n' \
@@ -412,13 +415,14 @@ if [ "$detached_count" -gt 0 ]; then
 
   YOU PROBABLY DID NOT WRITE THIS. prettier formats this block as YAML, and a
   bracketed `claims:` list longer than its printWidth is broken across lines --
-  by a gate that runs `prettier --write` before its guards, or by the `prettier
-  --write` run to clear a `--check` refusal. Measured at printWidth 80: 80 chars
-  survives, 81 breaks. A QUOTED value such as `focus:` is never broken however
-  long, because a quoted scalar is not a breakable construct.
+  by the `prettier --write` run to clear a `--check` refusal. Measured at
+  printWidth 80: 80 chars survives, 81 breaks. A QUOTED value such as `focus:`
+  is never broken however long, because a quoted scalar is not a breakable
+  construct.
 
   SO SHORTEN THE VALUE; DO NOT JUST REJOIN IT. A rejoined line over printWidth
-  is broken again by the next commit and the board is wedged by its own repair.
+  is refused again at the next commit, and the `prettier --write` that clears
+  that refusal breaks it once more, so the board is wedged by its own repair.
   The `rejoined:` line above carries its length and says which case it is.
 
   Rule: the `in-whiteboard` skill, "The header block is NOT YAML" -- one line
