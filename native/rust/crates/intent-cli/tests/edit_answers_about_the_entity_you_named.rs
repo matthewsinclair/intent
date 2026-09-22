@@ -63,9 +63,11 @@ fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
 
   let (issue, rc) = run(dir.path(), &["edit", "issue", "0001", "--path"]);
   // **THE ASSERTION IS THAT IT IS NOT THE THREAD'S ANSWER**, not that it is any
-  // particular refusal. An issue has no realised form, so refusing is correct
-  // here -- but the DEFECT was answering about something else, and that is what
-  // must not come back whatever the refusal later says.
+  // particular refusal. An issue's one file is a view rendered from the store,
+  // so `edit` has nothing to open and refusing is correct here (`render.rs`,
+  // the `issue` arm of `edit`'s argument match) -- but the DEFECT was
+  // answering about something else, and that is what must not come back
+  // whatever the refusal later says.
   assert!(
     !issue.contains("ST0001/info.md"),
     "naming `issue` returned the THREAD's file -- 0189, the wrong subject at rc={rc}: {issue}"
@@ -266,8 +268,11 @@ fn a_bare_id_is_told_what_it_is_ambiguous_between() {
 ///
 /// The refusal for a spelling that names nothing is one text shared by `edit`,
 /// `set` and `browse`, and it recommended an issue id -- a form `edit` refuses
-/// in every spelling, because an issue has no realised form. The operator was
-/// told what to type, typed it, and was refused again.
+/// in every spelling, because an issue's one file is a view rendered from the
+/// store and so there is nothing for `edit` to open (the kind spelling is
+/// refused by `render.rs`'s `issue` arm, the address spelling by the
+/// `NotHydratable` guard in `facade.rs`). The operator was told what to type,
+/// typed it, and was refused again.
 ///
 /// **THE FORMS ARE READ FROM THE RENDERED REMEDY, NEVER RETYPED HERE**, so the
 /// next edit to that text stays under this assertion. Its placeholder ids are
