@@ -15,6 +15,18 @@ on:
       - "surface/**"
       - ".github/workflows/rust.yml"
 
+# SUPERSEDED RUNS ARE CANCELLED (hv's ruling of 2026-09-21, devbin#0108: every
+# repository cancels superseded runs on push). This file carried no concurrency
+# block until 2026-09-22; the ruling went out across the fleet and did not land
+# in either of this repository's push-triggered workflows, and an absent block
+# is indistinguishable from a repository nobody reached.
+#
+# Keyed on the event as well as the ref, so this group matches the one in
+# tests.yml and in every other estate rather than being a second shape.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   rust:
     strategy:

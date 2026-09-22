@@ -42,6 +42,22 @@ on:
       # no job here opens either tree, and that stays true as habits change.
       - "intent/.canon/**"
 
+# SUPERSEDED RUNS ARE CANCELLED (hv's ruling of 2026-09-21, devbin#0108: every
+# repository cancels superseded runs on push, not only the ones with macOS
+# legs). THIS FILE CARRIED NO CONCURRENCY BLOCK AT ALL until 2026-09-22 -- the
+# ruling went out across the fleet and did not land here, and nothing reported
+# the gap because an absent block looks exactly like a repository nobody got to.
+# Found by intent-vc when a warning about `always()` interacting with
+# cancellation turned out to rest on a premise this repository did not meet.
+#
+# The EVENT is part of the group key. Nothing here dispatches today, so a push
+# and a pull_request already differ by ref -- but the fleet's other workflows
+# key on the event because a push and a workflow_dispatch on main share a ref,
+# and a group that differs between estates is one nobody can reason about once.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-linux:
     name: Test on Ubuntu
