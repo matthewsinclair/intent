@@ -5,6 +5,11 @@
   },
   "created": "2025-07-16",
   "dft_width": 120,
+  "formatters": [
+    "markdown",
+    "elixir",
+    "rust"
+  ],
   "intent_dir": "intent",
   "intent_version": "3.2.0",
   "languages": [
