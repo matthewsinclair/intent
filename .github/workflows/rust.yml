@@ -1,5 +1,28 @@
 name: rust
 
+# AN ALLOW-LIST, DELIBERATELY, AND THE FILE NEXT DOOR ARGUES AGAINST ONE (issue
+# 0508, ruled by hv 2026-09-22). `tests.yml:6-10` makes the case for
+# `paths-ignore` over `paths:` at length, and names `paths:` as "the false-green
+# class this project keeps closing": forget an entry and the workflow stops
+# running while reporting nothing, which is indistinguishable from a workflow
+# that ran and passed. That argument is sound and this file uses the form it
+# argues against, so the two workflows hold opposite positions on one question.
+#
+# IT STAYS, FOR A COST REASON AND A COVERAGE ONE, AND THE COVERAGE ONE IS WHY
+# THE COST REASON IS ALLOWED TO WIN. This is the expensive workflow -- a full
+# Rust build on two platforms -- and converting it to `paths-ignore` would run
+# it on every push including documentation-only ones. That alone would not
+# settle it, because a cost argument never outranks a silent gap. What settles
+# it is that the gap is covered elsewhere: `tests.yml` uses `paths-ignore`, so
+# it runs on everything except `intent/whiteboard/**` and `intent/.canon/**`,
+# and it BUILDS THE PAIR. The one class this allow-list plausibly omits is
+# build tooling outside `native/rust/` -- a change under `bin/.devbin/` that
+# breaks the Rust build -- and such a change reaches `tests.yml`, which builds.
+#
+# SO THE EXPOSURE IS SHAPE RATHER THAN SUBSTANCE, and it is recorded here
+# rather than fixed because the next person to notice the contradiction should
+# find the reasoning instead of re-deriving it. If `tests.yml` ever narrows its
+# own triggers, this reasoning expires with it and the conversion is owed.
 on:
   push:
     branches: [main]

@@ -1,0 +1,15 @@
+{
+  "id": "01M34S39C0X62CE05K9EM9DK7W",
+  "ts": "2026-09-22T14:42:40.643Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0512"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "the bats suite has three behaviours for a missing armed tool, and the default one fails unintelligibly"
+  }
+}
