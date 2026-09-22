@@ -1,0 +1,15 @@
+{
+  "id": "01M3492F75RYGP43E3RA61NDYA",
+  "ts": "2026-09-22T10:02:36.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "**The fleet census of hooks that pipe a staged blob into bare `prettier --check`.** Read-only, after the bounce, on vc's word (2026-09-22). Measured on this runner: `prettier --check` reading stdin with no `--stdin-filepath` exits 0 on ANY bytes, so such a hook is a check that cannot refuse and its green says only that prettier is installed. Intent's own `.githooks/pre-commit:96` is the POSITIVE CONTROL and is SAFE -- `git show \":$f\" | prettier --stdin-filepath \"$f\" --check`, with the measurement for both formatters in the comment at :64-75 (vc, 2026-09-22). Report it as a CENSUS with the estates named, never as a fix; vc and hv then decide whether it is one issue per estate or one finding routed to the fleet. It is 0498's shape again: correct here, hand-wired and wrong elsewhere."
+  }
+}

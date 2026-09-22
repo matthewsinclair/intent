@@ -1,0 +1,15 @@
+{
+  "id": "01M34915DCNEK3ENGGA8868ZEC",
+  "ts": "2026-09-22T10:01:53.836Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0505 IS BANKED FOR JUDGING AND dc IS HOLDING FOR vc'S VERDICT.** `refs/bank/dc/0505/patch`, blob d5e0284b8, base 84d4b0507, patch-id 6633dafc3f, 4 files +676: the guard, its roster row, TWELVE bats arms and the `formatters` section of intent/docs/pre-commit-hook.md. (The earlier bank 0d85bf53f / patch-id a0975375a7 is superseded.) Driven on the banked bytes: 12/12 green (log scratchpad/guard-bats-4.log, at this host's floor, load 7.72/9.67/31.94); `shellcheck -x` rc 0 on the guard and the runner; `prettier --check` clean on the doc; `--list-guards` prints the new row; `git apply -R --check` passes against the worktree and `git apply --check` at HEAD. vc's SEVEN ACCEPTANCE CRITERIA ARE NOW IN 0505's BODY (`## Acceptance (vc, 2026-09-22)`, written by `intent issues edit`, store write riding the landing commit), because a live-channel ruling dies at a compact. ARM 12 IS NEW AND CLOSES AC-6's THIRD MECHANIC: `prettier --check` reading stdin with NO `--stdin-filepath` exits 0 on any bytes at all, the same vacuous green `rustfmt --check` has on stdin, and a WRONG filepath resolves a different .prettierrc; the arm splits a root `proseWrap: preserve` from a `docs/` `always`/printWidth 40 so the verdict flips with the config the path resolves, and it was driven RED twice against a mutated guard (flag dropped, flag as `basename`) before the guard was restored from the index and `cmp`'d byte-identical. vc RULED AC-5 (a): the guard keeps its printed \"not applicable\" line, its comment carries the measurement (the runner settles applicability by a path test BEFORE dispatch and reads only exit 0 as RAN or non-zero as BLOCKED) and names 0506 as what retires it. 0506 IS FILED (medium). ON vc's WORD: land 0505 -- code, then the record that closes the issue and carries the ACs, then the board -- reading the patch-id back before the commit. THEN: the estate pass, Intent first with `bin/int hooks` driven and vc sequencing any estate with a live session; then Prolix's carry, hv first, then cc, then vc; then the fleet CI pass when devbin-vc sends the 0.1.6 sweep. OFFERED TO vc AND NOT TAKEN UP: a read-only fleet census of hooks piping a blob into bare `prettier --check`, after the bounce. 0501's rust.yml half stays unjudged until hv pushes upstream. NO PUSH, NO RELEASE."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M348RCW87VG0MYF5N915D7FG",
+  "ts": "2026-09-22T09:57:06.568Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "**RESUME HERE -- 0505 IS BANKED FOR JUDGING AND dc IS HOLDING FOR vc'S VERDICT.** `refs/bank/dc/0505/patch`, blob 0d85bf53f, base 21d1d3bb9, patch-id a0975375a7, 4 files +646: the guard, its roster row, eleven bats arms and the `formatters` section of intent/docs/pre-commit-hook.md. Driven on the banked bytes: 11/11 green (`./tests/run_tests.sh tests/unit/staged_format_guard.bats`, log scratchpad/guard-bats-3.log, at this host's floor -- ic read 9.24 at 09:52Z); `shellcheck -x` rc 0 on the guard and the runner; `prettier --check` clean on the doc; `--list-guards` prints the new row with applies-when `intent/.config/config.json`; `git apply -R --check` passes against the worktree and `git apply --check` at HEAD. vc RULED AC-5 (a) FOR THIS BANK: the guard keeps its own printed \"not applicable\" line and its comment block now carries the measurement that is the reason -- the runner settles applicability by a path test BEFORE dispatch and then reads only exit 0, counted in RAN, or non-zero, which blocks, so the line reaches no summary, no `--list-guards` and no tally -- and the comment names 0506 as what retires it. 0506 IS FILED (medium): the runner learns a not-applicable answer counted in the SKIPPED class that already exists, built after the bounce and never inside 0505. ON vc's WORD: land 0505 -- code, then the record that closes the issue, then the board -- reading the patch-id back before the commit. THEN: the estate pass, Intent first with `bin/int hooks` driven and vc sequencing any estate with a live session; then Prolix's carry, hv first, then cc, then vc; then the fleet CI pass when devbin-vc sends the 0.1.6 sweep. 0501's rust.yml half stays unjudged until hv pushes upstream, and that run is the only thing dc still owes on 0501. NO PUSH, NO RELEASE."
+  }
+}
