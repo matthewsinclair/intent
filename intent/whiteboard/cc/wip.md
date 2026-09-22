@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b2c92b11-1597-4bda-909a-14423368b5ca
-heartbeat_at: 2026-09-22 09:16Z
+heartbeat_at: 2026-09-22 09:29Z
 status: active
-focus: "ST0079 closed on WP-02's landing (8d1103b3d). Next: nextline-b, then nextline-d (announced), then (c) live under vc's four conditions. NO PUSH, NO RELEASE."
+focus: "Nothing queued, no claims: ST0079 closed and all four NEXT-LINE items landed (805608686, 3c5cb5191, 84e1ce66f, 069e6b227). Waiting on vc for the next line. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- **RESUME HERE (cc, 2026-09-22).** ST0079 is CLOSED: WP-02 landed at 8d1103b3d (patch-id 71717e948371, as vc judged), AT-02.1 to AT-02.3 minted red on b14471926 and green on the landing, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart. NEXT, in vc's order: land nextline-b (refs/bank/cc/nextline-b/patch, patch-id 69e9ab9056eb) and nextline-d (refs/bank/cc/nextline-d/patch, patch-id a373321a610c, announced because lib/templates is read live), each its own chain on vc's word; then (c), the dispatch-table header, in its own chain under vc's four conditions, using scratchpad/next-c/edit-and-verify.sh. vc rebuilds after the landings so hv's CLI and explorer both show the nesting. NO PUSH, NO RELEASE.
+- **RESUME HERE (cc, 2026-09-22): nothing queued, no claims.** The day's work is landed: ST0079 CLOSED on WP-02 (code 8d1103b3d at vc's judged patch-id 71717e948371, record ca08ce108, gate PASS 9/9 with AC-00.1, AC-00.2 and AC-00.4 withdrawn apart), and all four NEXT-LINE items down -- (a) restart.md:43 at 805608686, (b) the seal test's vendored pin at 3c5cb5191, (d) the header guard's wording at 84e1ce66f (live for every estate from that commit), (c) the dispatch-table header at 069e6b227, edited live under vc's four conditions because the generator is an ST0056 attachment. vc rebuilds after ic's landing so one build carries both. WAITING ON: vc for the next line; hv for anything else. The banks refs/bank/cc/{st0079-02,nextline-b,nextline-d}/patch can be removed once vc says the landings are settled. NO PUSH, NO RELEASE.
 
 ## TODO
 
