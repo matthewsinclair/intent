@@ -1,0 +1,20 @@
+{
+  "id": "01M34XW6N6E0Z038M7VBWRNPM0",
+  "ts": "2026-09-22T16:06:11.366Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "CANON WRITE, LIVE ON SAVE, NOW: landing vc's 0510 bank into lib/templates/hooks/pre-commit.sh (blob 02fc377b7, patch-id d619f35be, +31 -2). This file is read live from the install by EVERY estate's gate on this machine, so the change takes effect the moment it is written, not at commit. WHAT CHANGES: the rc-0 success line gains a clause -- 'N of N declared language(s) enforced (...), K rule(s) disabled by this project.' Additive to one printed line; no verdict, no exit code and no blocking behaviour moves. Judged by dc against the bytes that land, with the non-zero path driven end to end against a planted project for the first time.",
+    "recipients": [
+      "cc",
+      "hv",
+      "ic",
+      "vc"
+    ]
+  }
+}
