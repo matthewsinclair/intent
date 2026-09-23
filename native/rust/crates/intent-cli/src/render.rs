@@ -13525,13 +13525,25 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
     }
   };
 
-  let mut files: Vec<std::path::PathBuf> = m
+  // `--files` reads the named files from disk; `--staged` judges each staged
+  // path by the bytes the index holds for it (issue 0537), which the service
+  // reads out of the index `GIT_INDEX_FILE` names.
+  let mut files: Vec<intentsvcs::critic::Subject> = m
     .get_many::<String>("files")
-    .map(|v| v.map(std::path::PathBuf::from).collect())
+    .map(|v| {
+      v.map(|f| intentsvcs::critic::Subject {
+        path: std::path::PathBuf::from(f),
+        held: intentsvcs::critic::Held::Disk,
+      })
+      .collect()
+    })
     .unwrap_or_default();
 
   if m.get_flag("staged") {
-    files.extend(staged_files()?);
+    files.extend(
+      intentsvcs::critic::staged_subjects()
+        .map_err(|e| Failure::Unavailable(format!("error: {e}")))?,
+    );
   }
 
   // **OUTSIDE A PROJECT THIS VERB REFUSES, LIKE EVERY OTHER VERB** (vc's ruling).
@@ -13583,15 +13595,8 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
     }
     None => library()?,
   };
-  let report = intentsvcs::critic::run(
-    &lib,
-    lang,
-    &files,
-    severity_min,
-    &disabled,
-    m.get_flag("staged"),
-  )
-  .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+  let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
+    .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
   if json {
     render_critic_json(&report);
@@ -13633,29 +13638,6 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
     1 => Err(Failure::Verdict),
     _ => Ok(()),
   }
-}
-
-/// The staged set, as the gate sees it.
-///
-/// `--diff-filter=ACM` deliberately: a DELETED file cannot be critiqued and a
-/// runner that tried would report "cannot read" for an ordinary, correct commit.
-fn staged_files() -> Result<Vec<std::path::PathBuf>, Failure> {
-  let out = std::process::Command::new("git")
-    .args(["diff", "--cached", "--name-only", "--diff-filter=ACM"])
-    .output()
-    .map_err(|e| Failure::Unavailable(format!("error: cannot run git: {e}")))?;
-  if !out.status.success() {
-    return Err(Failure::Unavailable(
-      "error: `git diff --cached` failed\n  remedy: run this inside a git repository".into(),
-    ));
-  }
-  Ok(
-    String::from_utf8_lossy(&out.stdout)
-      .lines()
-      .filter(|l| !l.trim().is_empty())
-      .map(std::path::PathBuf::from)
-      .collect(),
-  )
 }
 
 /// The human face: findings first, then the census.
@@ -13718,6 +13700,17 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
       "  {} file(s) under the rule library not checked, because they are its rules' own examples: {}",
       report.skipped_library.len(),
       report.skipped_library.join(" ")
+    );
+  }
+  // Files no rule this run put was asked of are NAMED beside the verdict and
+  // never counted inside it (issue 0536): the count said `across 1 file(s)` for
+  // a script no rule reached, under a headline of rules ASKED.
+  if !report.unasked.is_empty() {
+    println!(
+      "  {} file(s) asked nothing, because no {} rule this run put reaches them or they are not text: {}",
+      report.unasked.len(),
+      report.lang,
+      report.unasked.join(" ")
     );
   }
 
@@ -13866,9 +13859,21 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     if verdict != 0 {
       return;
     }
+    // **AND THE COUNT IS THE FILES SOMETHING WAS ASKED OF, NOT THE FILES GIVEN**
+    // (issue 0536). Where nothing was asked of any of them there is no `ok:` to
+    // print, only the statement that nothing was asked: an `ok:` there would be
+    // the green-over-nothing this census exists to deny. Exit 0 either way, which
+    // the gate reads for a commit carrying no file of this language.
+    if report.files_asked == 0 {
+      println!(
+        "no {} rule was asked of any of the {} file(s) given",
+        report.lang, files
+      );
+      return;
+    }
     println!(
       "ok: no {} findings at severity >= {} across {} file(s)",
-      report.lang, severity_min, files
+      report.lang, severity_min, report.files_asked
     );
     return;
   }
@@ -14199,6 +14204,8 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
     "refused": report.refused,
     "disabled": report.disabled,
     "skipped_library": report.skipped_library,
+    "files_asked": report.files_asked,
+    "unasked": report.unasked,
   });
   println!("{}", serde_json::to_string_pretty(&doc).unwrap_or_default());
 }

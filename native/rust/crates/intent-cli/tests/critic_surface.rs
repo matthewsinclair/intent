@@ -46,11 +46,13 @@
 //! **(1) A BARE `intent critic <lang>` REPORTS CLEAN OVER ZERO FILES AT EXIT
 //! 0.** v2 exited 2 with _no files specified_ rather than guess a population.
 //! Measured in this repository, which tracks many `.rs`, `.sh` and Elixir
-//! files: `critic rust`, `critic shell` and `critic elixir` each print `ok: no
-//! <lang> findings ... across 0 file(s)` and exit 0. **The population is not
-//! empty; the run examined none of it.** The stdout line does carry the `0
-//! file(s)` denominator, so this is not a silent zero to a human reading it --
-//! but the EXIT CODE is what a caller branches on, and it says clean. The
+//! files: `critic rust`, `critic shell` and `critic elixir` each exit 0, and
+//! print `no <lang> rule was asked of any of the 0 file(s) given` -- until
+//! issue 0536 the line was `ok: no <lang> findings ... across 0 file(s)`, an
+//! `ok:` over nothing asked. **The population is not empty; the run examined
+//! none of it.** The stdout line says so, so this is not a silent zero to a
+//! human reading it -- but the EXIT CODE is what a caller branches on, and it
+//! says clean. The
 //! shipped gate is unaffected: `lib/templates/hooks/pre-commit.sh` invokes
 //! `--staged`, where an empty population genuinely means nothing to check.
 //!
@@ -560,9 +562,11 @@ fn a_bare_language_answers_clean_and_an_undeclared_format_is_refused() {
      header is CLOSED -- update the header and delete this half."
   );
   assert!(
-    out(&bare).contains("across 0 file(s)"),
+    out(&bare).contains("no rust rule was asked of any of the 0 file(s) given")
+      && !out(&bare).contains("ok:"),
     "the run examined nothing and the line that says so is the only thing \
-     distinguishing it from a real clean run: {}",
+     distinguishing it from a real clean run, so it carries no `ok:` (issue \
+     0536): {}",
     out(&bare)
   );
 
@@ -739,4 +743,257 @@ fn a_string_closing_a_generic_inside_a_result_is_not_its_error_type() {
      `Box<dyn Error>` error still fires; and a first parameter carrying a generic (line 5) \
      is the stated false negative, pinned so that widening the pattern is a decision: {v}"
   );
+}
+
+/// A project, which `critic` needs, and a synthetic rules root in it holding one
+/// grep-armed shell rule per `(id, applies_to)`, each firing on `PLANTED`. The
+/// arms below that use it prove the RUNNER, so they need no shellcheck.
+fn planted_rules(root: &std::path::Path, rules: &[(&str, &[&str])]) -> PathBuf {
+  std::fs::create_dir_all(root.join("intent/.config")).expect("config dir");
+  std::fs::write(
+    root.join("intent/.config/config.json"),
+    r#"{"intent_version":"3.0.0","project_name":"CriticReach","author":"t","created_date":"2026-09-23T00:00:00Z"}"#,
+  )
+  .expect("project marker");
+  let lib = root.join("rules");
+  for (id, globs) in rules {
+    let dir = lib.join("shell/code").join(id.to_lowercase());
+    std::fs::create_dir_all(&dir).expect("rule dir");
+    let applies: String = globs.iter().map(|g| format!("  - \"{g}\"\n")).collect();
+    std::fs::write(
+      dir.join("RULE.md"),
+      format!(
+        "---\nid: {id}\ntitle: \"Planted\"\nlanguage: shell\ncategory: code\nseverity: warning\napplies_to:\n{applies}---\n\n# Planted\n\n## Problem\n\nN/A\n\n## Detection\n\nGreppable proxy (not authoritative):\n\n```bash\ngrep -nE 'PLANTED'\n```\n\n## Bad\n\nN/A\n\n## Good\n\nN/A\n\n## When This Applies\n\nAlways.\n\n## When This Does Not Apply\n\nNever.\n\n## Further Reading\n\nN/A\n"
+      ),
+    )
+    .expect("rule");
+  }
+  lib
+}
+
+fn git_in(root: &std::path::Path, args: &[&str]) {
+  let st = Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .status()
+    .expect("git");
+  assert!(st.success(), "fixture setup failed: git {args:?}");
+}
+
+/// Issue 0536: a script is reached by its SHEBANG wherever it sits, under the
+/// dialect each rule declares, and a clean verdict counts only the files a rule
+/// was asked of. `IN-SH-TEST-951` declares `**/*.sh` and `IN-SH-TEST-952`
+/// declares `**/*.zsh`; no file below carries either extension.
+#[test]
+fn a_script_is_reached_by_its_shebang_and_a_file_nothing_asked_is_named() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let rules = planted_rules(
+    root,
+    &[
+      ("IN-SH-TEST-951", &["**/*.sh"]),
+      ("IN-SH-TEST-952", &["**/*.zsh"]),
+    ],
+  );
+  let write = |rel: &str, body: &str| {
+    let p = root.join(rel);
+    std::fs::create_dir_all(p.parent().expect("a parent")).expect("mkdir");
+    std::fs::write(&p, body).expect("write");
+  };
+  write("tools/nested/plant", "#!/usr/bin/env bash\necho PLANTED\n");
+  write(".githooks/pre-commit", "#!/bin/sh\necho PLANTED\n");
+  write("tools/zplant", "#!/usr/bin/env zsh\necho PLANTED\n");
+  write("tools/clean", "#!/bin/bash\necho fine\n");
+  write("notes.md", "PLANTED, and no shebang\n");
+  let drive = |files: &[&str], format: &str| {
+    let mut args = vec![
+      "critic",
+      "shell",
+      "--rules",
+      rules.to_str().expect("utf-8 path"),
+      "--format",
+      format,
+    ];
+    for f in files {
+      args.extend(["--files", f]);
+    }
+    crate::common::intent()
+      .args(&args)
+      .current_dir(root)
+      .output()
+      .expect("run the v3 binary")
+  };
+
+  let all = drive(
+    &[
+      "tools/nested/plant",
+      ".githooks/pre-commit",
+      "tools/zplant",
+      "notes.md",
+    ],
+    "json",
+  );
+  assert_eq!(all.status.code(), Some(1), "{}{}", out(&all), err(&all));
+  let v: serde_json::Value = serde_json::from_str(&out(&all)).expect("json");
+  let mut hits: Vec<String> = v["findings"]
+    .as_array()
+    .expect("a findings array")
+    .iter()
+    .map(|f| {
+      format!(
+        "{} {}:{}",
+        f["rule"].as_str().unwrap_or_default(),
+        f["file"].as_str().unwrap_or_default(),
+        f["line"]
+      )
+    })
+    .collect();
+  hits.sort();
+  assert_eq!(
+    hits,
+    vec![
+      "IN-SH-TEST-951 .githooks/pre-commit:2",
+      "IN-SH-TEST-951 tools/nested/plant:2",
+      "IN-SH-TEST-952 tools/zplant:2",
+    ],
+    "bash and sh scripts meet the .sh rule, the zsh script only the .zsh rule, \
+     and the markdown file, which carries the marker and no shebang, neither: {v}"
+  );
+  assert_eq!(v["files_asked"], 3, "{v}");
+  assert_eq!(v["unasked"], serde_json::json!(["notes.md"]), "{v}");
+
+  // NOTHING ASKED IS NOT `ok`, AND THE FILE IS NAMED.
+  let none = drive(&["notes.md"], "text");
+  assert_eq!(none.status.code(), Some(0), "{}", err(&none));
+  assert!(
+    out(&none).contains("no shell rule was asked of any of the 1 file(s) given")
+      && !out(&none).contains("ok:"),
+    "{}",
+    out(&none)
+  );
+  assert!(
+    out(&none).contains("1 file(s) asked nothing") && out(&none).contains("notes.md"),
+    "{}",
+    out(&none)
+  );
+
+  // AND A CLEAN RUN COUNTS ONLY WHAT WAS ASKED.
+  let clean = drive(&["tools/clean", "notes.md"], "text");
+  assert_eq!(clean.status.code(), Some(0), "{}", err(&clean));
+  assert!(
+    out(&clean).contains("ok: no shell findings at severity >= warning across 1 file(s)"),
+    "{}",
+    out(&clean)
+  );
+}
+
+/// Issue 0537: `--staged` judges the bytes the INDEX holds, in the three cases
+/// gtools-vc drove on Gtools -- planted in the index only, planted in the work
+/// tree only, and staged but gone from the work tree.
+#[test]
+fn staged_judges_the_bytes_the_index_holds_and_not_the_work_tree() {
+  let planted = "#!/bin/bash\necho PLANTED\n";
+  let clean = "#!/bin/bash\necho fine\n";
+  let case = |staged: &str, work_tree: Option<&str>| -> Output {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    let rules = planted_rules(root, &[("IN-SH-TEST-951", &["**/*.sh"])]);
+    git_in(root, &["init", "-q", "."]);
+    std::fs::write(root.join("s.sh"), staged).expect("the bytes to stage");
+    git_in(root, &["add", "s.sh"]);
+    match work_tree {
+      Some(bytes) => std::fs::write(root.join("s.sh"), bytes).expect("the work tree's bytes"),
+      None => std::fs::remove_file(root.join("s.sh")).expect("remove from the work tree"),
+    }
+    crate::common::intent()
+      .args([
+        "critic",
+        "shell",
+        "--rules",
+        rules.to_str().expect("utf-8 path"),
+        "--staged",
+        "--format",
+        "json",
+      ])
+      .current_dir(root)
+      .output()
+      .expect("run the v3 binary")
+  };
+
+  let index_only = case(planted, Some(clean));
+  assert_eq!(
+    index_only.status.code(),
+    Some(1),
+    "a violation staged under a clean work tree is what gets committed: {}{}",
+    out(&index_only),
+    err(&index_only)
+  );
+  let work_tree_only = case(clean, Some(planted));
+  assert_eq!(
+    work_tree_only.status.code(),
+    Some(0),
+    "a clean stage under a dirty work tree commits clean bytes: {}{}",
+    out(&work_tree_only),
+    err(&work_tree_only)
+  );
+  let gone = case(planted, None);
+  assert_eq!(
+    gone.status.code(),
+    Some(1),
+    "a staged file missing from the work tree is judged by its blob, not refused: {}{}",
+    out(&gone),
+    err(&gone)
+  );
+  let v: serde_json::Value = serde_json::from_str(&out(&gone)).expect("json");
+  assert_eq!(v["findings"][0]["file"], "s.sh", "{v}");
+}
+
+/// Issue 0537, vc's ruling: under `--staged` shellcheck reads a copy of the
+/// STAGED blob under the file's own name, and the finding names the staged
+/// path, never the copy. Where shellcheck is absent the rule is armed and
+/// absent and the run refuses at 3, so this never reads as a pass by skipping.
+#[test]
+fn staged_shellcheck_reads_a_copy_of_the_blob_and_names_the_staged_path() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let rules = planted_rules(root, &[]);
+  let rule_dir = rules.join("shell/code/quote-expansions");
+  std::fs::create_dir_all(&rule_dir).expect("rule dir");
+  std::fs::copy(
+    repo_root().join("intent/plugins/claude/rules/shell/code/quote-expansions/RULE.md"),
+    rule_dir.join("RULE.md"),
+  )
+  .expect("copy the shipped shellcheck-armed rule");
+  git_in(root, &["init", "-q", "."]);
+  std::fs::write(root.join("plant.sh"), "#!/usr/bin/env bash\necho $x\n").expect("stage bytes");
+  git_in(root, &["add", "plant.sh"]);
+  std::fs::write(root.join("plant.sh"), "#!/usr/bin/env bash\necho \"$x\"\n")
+    .expect("clean work tree");
+
+  let o = crate::common::intent()
+    .args([
+      "critic",
+      "shell",
+      "--rules",
+      rules.to_str().expect("utf-8 path"),
+      "--staged",
+      "--format",
+      "json",
+    ])
+    .current_dir(root)
+    .output()
+    .expect("run the v3 binary");
+  let have_shellcheck = Command::new("shellcheck")
+    .arg("--version")
+    .output()
+    .is_ok_and(|o| o.status.success());
+  if !have_shellcheck {
+    assert_eq!(o.status.code(), Some(3), "{}{}", out(&o), err(&o));
+    return;
+  }
+  assert_eq!(o.status.code(), Some(1), "{}{}", out(&o), err(&o));
+  let v: serde_json::Value = serde_json::from_str(&out(&o)).expect("json");
+  assert_eq!(v["findings"][0]["rule"], "IN-SH-CODE-001", "{v}");
+  assert_eq!(v["findings"][0]["file"], "plant.sh", "{v}");
+  assert_eq!(v["findings"][0]["line"], 2, "{v}");
 }

@@ -399,6 +399,10 @@ unclassified_artefacts() {
 support_tree_drift() {
   local archive="$STAGE_DIR/$SUPPORT_ASSET"
   [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
+  # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
+  # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
+  # intentional splitting with a comment; issue 0536).
+  # shellcheck disable=SC2086
   comm -3 \
     <(cd "$ROOT" && find $SUPPORT_PATHS -type f ! -name '.DS_Store' | sort) \
     <(tar -tzf "$archive" | grep -v '/$' | grep -v '\.DS_Store$' |
@@ -550,6 +554,10 @@ provenance_blockers() {
   # Narrow first, because this one is certain: these paths are archived from the
   # working tree, so dirt here is not a risk of shipping uncommitted bytes, it IS
   # shipping them.
+  # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
+  # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
+  # intentional splitting with a comment; issue 0536).
+  # shellcheck disable=SC2086
   dirt="$(git -C "$root" status --porcelain -- $SUPPORT_PATHS 2>/dev/null)"
   [ -z "$dirt" ] ||
     printf 'the support tree is dirty and is archived VERBATIM from the working tree, so these WOULD ship:\n%s\n' "$dirt"
@@ -1164,6 +1172,10 @@ $uncovered
        rule library on the fleet: every critic gate armed 0 of 0 and passed."
   printf '    %-34s %s\n' "resolver coverage" "every install-root path v3 reads is carried"
 
+  # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
+  # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
+  # intentional splitting with a comment; issue 0536).
+  # shellcheck disable=SC2086
   tar -czf "$STAGE_DIR/$SUPPORT_ASSET" -C "$ROOT" -s "#^#$SUPPORT_PREFIX/#" \
     --exclude '.DS_Store' $SUPPORT_PATHS ||
     die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS"

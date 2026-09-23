@@ -30,6 +30,10 @@ thiserror.workspace = true
 sha2.workspace = true
 ignore.workspace = true
 regex.workspace = true
+# The critic copies a STAGED file under its own name, in a private directory,
+# for a tool that reads a file rather than bytes (issue 0537). The rationale is
+# beside the pin in the workspace manifest.
+tempfile.workspace = true
 # **THE STRUCTURAL TIER, EACH GRAMMAR OPTIONAL AND BEHIND ITS OWN FEATURE**
 # (ST0069 WP-20). The runtime is not optional -- `index::symbols` compiles
 # either way and simply knows no languages -- while each grammar is, so a build
@@ -71,7 +75,6 @@ lang-bash = ["dep:tree-sitter-bash"]
 [dev-dependencies]
 testkit = { path = "../testkit" }
 proptest.workspace = true
-tempfile.workspace = true
 # **TEST-ONLY, AND IT ADDS NO THIRD-PARTY CODE:** `rusqlite` is already a
 # normal dependency of this crate, so this only makes it reachable from
 # `tests/`, which cannot see a crate's own dependencies. AC-14.7's proof needs

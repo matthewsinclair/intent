@@ -274,6 +274,19 @@ pub struct Report {
   /// rules, and a gate that linted them refused the library's own commits; they
   /// are named here so the skip is never silent.
   pub skipped_library: Vec<String>,
+  /// Files the run was given and asked NOTHING of, sorted (issue 0536): no rule
+  /// the run put applies to them, or they are not text a rule can read -- a
+  /// binary, or a symlink or submodule staged as one.
+  ///
+  /// **A CLEAN VERDICT COVERS ONLY THE FILES SOMETHING WAS ASKED OF.** The run
+  /// counted every file it was given, so an extensionless script no glob reached
+  /// was reported `ok ... across 1 file(s)` under a headline of rules ASKED,
+  /// examined by nothing. These are named beside the verdict instead of inside
+  /// its count.
+  pub unasked: Vec<String>,
+  /// How many files at least one rule this run put was asked of: the count a
+  /// clean verdict covers.
+  pub files_asked: usize,
 }
 
 impl Report {
@@ -385,6 +398,18 @@ pub enum CriticError {
   /// -- a pattern silently dropped is a rule silently unenforced.
   #[error("rule `{rule_id}` publishes a proxy this build cannot compile: {detail}")]
   Uncompilable { rule_id: String, detail: String },
+  /// The staged set could not be read out of the index (issue 0537).
+  #[error("{0}")]
+  Index(String),
+  /// A staged file could not be copied for a tool that reads a file rather than
+  /// bytes. **Our breakage, not the operator's**: the rule cannot be put to the
+  /// staged bytes, and a run that went on without it would seal a clean verdict
+  /// over a question it never asked.
+  #[error("cannot copy the staged bytes of `{path}` for its tool: {source}")]
+  Copy {
+    path: PathBuf,
+    source: std::io::Error,
+  },
 }
 
 /// True iff the line is a single, simple `grep` invocation the headless runner
@@ -766,6 +791,65 @@ pub fn applies_to_file(globs: &[String], file: &Path) -> bool {
   })
 }
 
+/// Interpreters whose `#!` line makes a file one of a language's wherever it
+/// sits, and the extensions each one stands for (issue 0536, vc's ruling (A)).
+///
+/// **BEING A SHELL FILE IS A FACT ABOUT THE FILE, NOT A CHOICE EACH RULE MAKES.**
+/// The shell rules declare `bin/*`, `**/*.sh`, `**/*.zsh` and `**/*.bash`, so an
+/// extensionless script anywhere but directly inside a directory named `bin` was
+/// asked no rule: in this repository, the tracked `.githooks/` and every script
+/// nested under `bin/.devbin/`. A file whose shebang names one of these is tested
+/// against the SAME globs as though it carried the extension, so each rule's
+/// dialect holds exactly as it declares it for named files: `IN-SH-CODE-004`
+/// (`**/*.zsh`) reaches zsh scripts and no others, and `IN-SH-CODE-003` (`.sh`,
+/// `.bash`) reaches bash and sh scripts and never a zsh one. Bash stands for
+/// `.sh` as well as `.bash` because that is the name bash scripts conventionally
+/// carry, and the rules already read it that way. No rule file names a shebang.
+const SHEBANG_DIALECTS: &[(&str, &str, &[&str])] = &[
+  ("shell", "sh", &["sh"]),
+  ("shell", "bash", &["bash", "sh"]),
+  ("shell", "zsh", &["zsh"]),
+];
+
+/// The interpreter a file's first line names, by its last path component:
+/// `#!/bin/bash` and `#!/usr/bin/env bash` are both `bash`. `env`'s own options
+/// and `NAME=value` assignments are passed over, so `#!/usr/bin/env -S bash -e`
+/// is `bash`. `None` when the first line is not a shebang.
+fn shebang_interpreter(text: &str) -> Option<&str> {
+  let first = text.lines().next()?;
+  let mut words = first.strip_prefix("#!")?.split_whitespace();
+  let program = words.next()?.rsplit('/').next()?;
+  if program != "env" {
+    return Some(program);
+  }
+  words
+    .find(|w| !w.starts_with('-') && !w.contains('='))
+    .and_then(|w| w.rsplit('/').next())
+}
+
+/// Does this rule reach this file? By its `applies_to` globs, or, for a file
+/// whose shebang names one of the language's interpreters, by the same globs
+/// tested with that interpreter's extensions appended ([`SHEBANG_DIALECTS`]).
+/// The shebang is read from the bytes the run judges, so under `--staged` it is
+/// the staged file's.
+fn admits(globs: &[String], path: &Path, text: &str, lang: &str) -> bool {
+  if applies_to_file(globs, path) {
+    return true;
+  }
+  let Some(interpreter) = shebang_interpreter(text) else {
+    return false;
+  };
+  SHEBANG_DIALECTS
+    .iter()
+    .filter(|(l, i, _)| *l == lang && *i == interpreter)
+    .flat_map(|(_, _, extensions)| extensions.iter())
+    .any(|extension| {
+      let mut as_named = path.as_os_str().to_os_string();
+      as_named.push(format!(".{extension}"));
+      applies_to_file(globs, Path::new(&as_named))
+    })
+}
+
 /// Drive `shellcheck` for one rule over one file.
 ///
 /// **THE RULE'S DECLARED CODES SELECT WHICH FINDINGS ARE ITS BUSINESS.** Without
@@ -781,8 +865,13 @@ pub fn applies_to_file(globs: &[String], file: &Path) -> bool {
 /// COLUMN, so one line carrying two defects this rule owns arrives twice and
 /// renders as the same line printed twice -- two identical lines read as two
 /// defects and any count taken off them overstates.
+///
+/// **IT READS `read` AND REPORTS `named`, AND THE TWO DIFFER ONLY UNDER
+/// `--staged`** (issue 0537): there `read` is a same-named copy of the STAGED
+/// bytes ([`Copies`]), and every finding names the staged path, never the copy.
 fn shellcheck_findings(
-  file: &Path,
+  read: &Path,
+  named: &Path,
   text: &str,
   rule_id: &str,
   severity: Severity,
@@ -793,7 +882,7 @@ fn shellcheck_findings(
   }
   let Ok(out) = std::process::Command::new("shellcheck")
     .arg("--format=gcc")
-    .arg(file)
+    .arg(read)
     .output()
   else {
     // **A TOOL THAT WILL NOT LAUNCH IS NOT A FILE THE TOOL DECLINED.**
@@ -827,7 +916,7 @@ fn shellcheck_findings(
     findings.push(Finding {
       rule_id: rule_id.to_string(),
       severity,
-      path: file.to_path_buf(),
+      path: named.to_path_buf(),
       line_no,
       line: truncate_content(content),
     });
@@ -968,6 +1057,231 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>, bool) {
   }
 }
 
+/// One file a run judges, and where the bytes it judges come from.
+#[derive(Debug, Clone)]
+pub struct Subject {
+  /// The path as the caller named it, or as the index lists it.
+  pub path: PathBuf,
+  pub held: Held,
+}
+
+/// Where a [`Subject`]'s bytes come from.
+#[derive(Debug, Clone)]
+pub enum Held {
+  /// The file at the path, read from disk: `--files`.
+  Disk,
+  /// The blob the index holds for the path: `--staged` (issue 0537).
+  Staged(Vec<u8>),
+  /// Staged, and not a file a rule can read: a symlink or a submodule. Named
+  /// among the files asked nothing rather than dropped.
+  NotAFile,
+}
+
+/// The staged set, as the gate sees it: each path the index holds as added or
+/// modified, with the bytes the INDEX holds for it (issue 0537).
+///
+/// **THE BYTES ARE THE INDEX'S, NOT THE WORK TREE'S.** The paths always came from
+/// the index -- `git diff --cached` honours `GIT_INDEX_FILE` -- and every file was
+/// then read from disk, so the gate judged bytes other than the ones being
+/// committed whenever the two differed: after `git add -p`, or after any edit
+/// made once a file was staged. Driven on Gtools by gtools-vc (2026-09-23): a
+/// violation staged under a clean work tree passed at 0, a clean stage under a
+/// dirty work tree was refused at 1, and a staged file missing from the work
+/// tree stopped the run at 2. This estate's `commit --only` stages the work
+/// tree's bytes, which made the two agree and hid it.
+///
+/// **ONE SNAPSHOT OF THE INDEX.** `diff --raw` names each path WITH its staged
+/// blob, and the blobs are read by id through one `cat-file --batch`, so no path
+/// is paired with bytes from a later index.
+///
+/// `--diff-filter=ACM` deliberately: a DELETED file cannot be critiqued.
+/// `--no-renames`, so a file renamed and edited is listed ADDED at its new path;
+/// with rename detection it was `R`, the filter dropped it, and it was committed
+/// unexamined.
+pub fn staged_subjects() -> Result<Vec<Subject>, CriticError> {
+  use std::os::unix::ffi::OsStrExt;
+  let out = std::process::Command::new("git")
+    .args([
+      "diff",
+      "--cached",
+      "--raw",
+      "-z",
+      "--no-abbrev",
+      "--no-renames",
+      "--diff-filter=ACM",
+    ])
+    .output()
+    .map_err(|e| CriticError::Index(format!("cannot run git: {e}")))?;
+  if !out.status.success() {
+    return Err(CriticError::Index(
+      "`git diff --cached` failed\n  remedy: run this inside a git repository".into(),
+    ));
+  }
+  // `:<old mode> <new mode> <old id> <new id> <status>` NUL `<path>` NUL, per path.
+  let mut subjects = Vec::new();
+  let mut wanted: Vec<(usize, String)> = Vec::new();
+  let mut fields = out.stdout.split(|b| *b == 0).filter(|f| !f.is_empty());
+  while let Some(meta) = fields.next() {
+    let meta = String::from_utf8_lossy(meta);
+    let parts: Vec<&str> = meta.trim_start_matches(':').split(' ').collect();
+    let (Some(mode), Some(id), Some(path)) = (parts.get(1), parts.get(3), fields.next()) else {
+      return Err(CriticError::Index(format!(
+        "`git diff --cached --raw` printed a record this runner cannot read: `{meta}`"
+      )));
+    };
+    let path = PathBuf::from(std::ffi::OsStr::from_bytes(path));
+    // 100644 and 100755 are files; 120000 is a symlink and 160000 a submodule,
+    // whose staged object is a link target or a commit rather than text.
+    if mode.starts_with("100") {
+      wanted.push((subjects.len(), (*id).to_string()));
+      subjects.push(Subject {
+        path,
+        held: Held::Staged(Vec::new()),
+      });
+    } else {
+      subjects.push(Subject {
+        path,
+        held: Held::NotAFile,
+      });
+    }
+  }
+  let blobs = read_blobs(wanted.iter().map(|(_, id)| id.as_str()))?;
+  // A short answer would leave a file judged as EMPTY, which reads as clean.
+  if blobs.len() != wanted.len() {
+    return Err(CriticError::Index(format!(
+      "git cat-file --batch answered {} of the {} staged blobs asked for",
+      blobs.len(),
+      wanted.len()
+    )));
+  }
+  for ((at, _), bytes) in wanted.into_iter().zip(blobs) {
+    if let Some(subject) = subjects.get_mut(at) {
+      subject.held = Held::Staged(bytes);
+    }
+  }
+  Ok(subjects)
+}
+
+/// The blobs these ids name, in order, through one `git cat-file --batch`.
+fn read_blobs<'a>(ids: impl Iterator<Item = &'a str>) -> Result<Vec<Vec<u8>>, CriticError> {
+  use std::io::Write;
+  let request: String = ids.map(|id| format!("{id}\n")).collect();
+  if request.is_empty() {
+    return Ok(Vec::new());
+  }
+  let cannot = |e: std::io::Error| CriticError::Index(format!("cannot read the staged blobs: {e}"));
+  let mut child = std::process::Command::new("git")
+    .args(["cat-file", "--batch"])
+    .stdin(std::process::Stdio::piped())
+    .stdout(std::process::Stdio::piped())
+    .stderr(std::process::Stdio::piped())
+    .spawn()
+    .map_err(cannot)?;
+  let mut stdin = child
+    .stdin
+    .take()
+    .ok_or_else(|| CriticError::Index("git cat-file was started without a stdin".into()))?;
+  // Written from a thread: the reply streams while the request is still being
+  // written, and a large staged set would fill both pipes if either side waited.
+  let writer = std::thread::spawn(move || stdin.write_all(request.as_bytes()));
+  let out = child.wait_with_output().map_err(cannot)?;
+  writer
+    .join()
+    .map_err(|_| CriticError::Index("the request to git cat-file was abandoned".into()))?
+    .map_err(cannot)?;
+  if !out.status.success() {
+    return Err(CriticError::Index(format!(
+      "git cat-file --batch failed: {}",
+      String::from_utf8_lossy(&out.stderr).trim()
+    )));
+  }
+  parse_batch(&out.stdout)
+}
+
+/// `<id> blob <size>` LF `<size bytes>` LF, per object requested.
+fn parse_batch(mut rest: &[u8]) -> Result<Vec<Vec<u8>>, CriticError> {
+  let mut blobs = Vec::new();
+  while !rest.is_empty() {
+    let bad = |what: &str| CriticError::Index(format!("git cat-file --batch answered {what}"));
+    let eol = rest
+      .iter()
+      .position(|b| *b == b'\n')
+      .ok_or_else(|| bad("a header with no end"))?;
+    let header = String::from_utf8_lossy(rest.get(..eol).unwrap_or_default()).to_string();
+    let mut words = header.split(' ');
+    let (Some(_), Some("blob"), Some(size)) = (words.next(), words.next(), words.next()) else {
+      return Err(bad(&format!(
+        "`{header}` where a staged blob was asked for"
+      )));
+    };
+    let size: usize = size
+      .parse()
+      .map_err(|_| bad(&format!("a size it cannot read in `{header}`")))?;
+    let start = eol + 1;
+    let blob = rest
+      .get(start..start + size)
+      .ok_or_else(|| bad("fewer bytes than its header claims"))?;
+    blobs.push(blob.to_vec());
+    rest = rest.get(start + size + 1..).unwrap_or_default();
+  }
+  Ok(blobs)
+}
+
+/// One subject's bytes as the run holds them, read once.
+struct Text {
+  path: PathBuf,
+  text: String,
+  staged: bool,
+}
+
+/// Same-named copies of STAGED files, for a tool that reads a file rather than
+/// bytes (issue 0537, vc's ruling).
+///
+/// **THE TOOL JUDGES THE HELD BYTES UNDER THE FILE'S OWN NAME, BECAUSE THE NAME
+/// CAN DECIDE THE ANSWER.** shellcheck takes a shebang-less `t.bash`'s dialect
+/// from its extension: as a file it is analysed as bash, and on stdin as an
+/// unknown shell, which adds `SC2148`. Stdin agreed only because no armed rule
+/// claims a code the name decides, and it would diverge silently the day one
+/// did; a copy carrying the same basename agrees by construction. Each copy sits
+/// in its own slot of one private directory, so two staged files with one
+/// basename never share a name, and the directory goes when the run does.
+#[derive(Default)]
+struct Copies {
+  dir: Option<tempfile::TempDir>,
+  made: std::collections::BTreeMap<PathBuf, PathBuf>,
+}
+
+impl Copies {
+  fn of(&mut self, t: &Text) -> Result<PathBuf, CriticError> {
+    if let Some(copy) = self.made.get(&t.path) {
+      return Ok(copy.clone());
+    }
+    let fail = |source: std::io::Error| CriticError::Copy {
+      path: t.path.clone(),
+      source,
+    };
+    let held = match self.dir.take() {
+      Some(held) => held,
+      None => tempfile::Builder::new()
+        .prefix("intent-critic-")
+        .tempdir()
+        .map_err(fail)?,
+    };
+    let dir = held.path().to_path_buf();
+    self.dir = Some(held);
+    let slot = dir.join(self.made.len().to_string());
+    std::fs::create_dir(&slot).map_err(fail)?;
+    let copy = slot.join(
+      t.path
+        .file_name()
+        .unwrap_or_else(|| std::ffi::OsStr::new("staged")),
+    );
+    std::fs::write(&copy, &t.text).map_err(fail)?;
+    self.made.insert(t.path.clone(), copy.clone());
+    Ok(copy)
+  }
+}
+
 /// Run the mechanical critic for one language over an explicit file list.
 ///
 /// **THE FILE LIST IS EXPLICIT AND THERE IS NO DEFAULT SCAN.** v2 scans nothing
@@ -982,10 +1296,9 @@ fn classify(body: &str) -> (Arming, Disposition, String, Vec<String>, bool) {
 pub fn run(
   lib: &Library,
   lang: &str,
-  files: &[PathBuf],
+  subjects: &[Subject],
   severity_min: Severity,
   disabled: &BTreeSet<String>,
-  staged: bool,
 ) -> Result<Report, CriticError> {
   let all = lib.rules()?;
   let mut census = Vec::new();
@@ -1004,31 +1317,51 @@ pub fn run(
     .filter_map(|root| std::fs::canonicalize(root).ok())
     .collect();
   let mut skipped_library: Vec<String> = Vec::new();
-  let mut contents: Vec<(PathBuf, String)> = Vec::new();
-  for f in files {
+  let mut unasked: BTreeSet<String> = BTreeSet::new();
+  let mut contents: Vec<Text> = Vec::new();
+  for s in subjects {
+    let staged = !matches!(s.held, Held::Disk);
     let under_library = staged
-      && std::fs::canonicalize(f)
+      && std::fs::canonicalize(&s.path)
         .map(|real| library_roots.iter().any(|root| real.starts_with(root)))
         .unwrap_or(false);
     if under_library {
-      skipped_library.push(f.display().to_string());
+      skipped_library.push(s.path.display().to_string());
       continue;
     }
-    match std::fs::read_to_string(f) {
-      Ok(text) => contents.push((f.clone(), text)),
-      // **A FILE THAT IS NOT UTF-8 IS SKIPPED, NOT AN ERROR.** A staged binary
-      // is an ordinary thing to commit and refusing the whole run over one
-      // would make the gate unusable; a rule cannot match bytes it cannot read
-      // and says nothing about them either way.
-      Err(e) if e.kind() == std::io::ErrorKind::InvalidData => continue,
-      Err(source) => {
-        return Err(CriticError::Read {
-          path: f.clone(),
-          source,
-        });
+    // **A FILE THAT IS NOT UTF-8 IS NOT READ, AND THAT IS NOT AN ERROR.** A
+    // staged binary is an ordinary thing to commit and refusing the whole run
+    // over one would make the gate unusable; a rule cannot match bytes it cannot
+    // read. It is named among the files asked nothing (issue 0536), where it was
+    // once counted among the files a clean verdict covered.
+    let text = match &s.held {
+      Held::Disk => match std::fs::read_to_string(&s.path) {
+        Ok(text) => Some(text),
+        Err(e) if e.kind() == std::io::ErrorKind::InvalidData => None,
+        Err(source) => {
+          return Err(CriticError::Read {
+            path: s.path.clone(),
+            source,
+          });
+        }
+      },
+      Held::Staged(bytes) => std::str::from_utf8(bytes).ok().map(str::to_string),
+      Held::NotAFile => None,
+    };
+    match text {
+      Some(text) => contents.push(Text {
+        path: s.path.clone(),
+        text,
+        staged,
+      }),
+      None => {
+        unasked.insert(s.path.display().to_string());
       }
     }
   }
+  // The files some rule this run put was asked of: what a clean verdict covers.
+  let mut asked: BTreeSet<PathBuf> = BTreeSet::new();
+  let mut copies = Copies::default();
 
   for rule in all
     .iter()
@@ -1060,10 +1393,11 @@ pub fn run(
     // **`applies_to` IS A PER-FILE FILTER, SO IT CANNOT LIVE IN `classify`.**
     // An absent declaration means UNIVERSAL, which is why failing to read one
     // fires the rule everywhere rather than nowhere -- the dangerous direction.
+    // A file's shebang can admit it as well (issue 0536): see `admits`.
     let globs = frontmatter_list(&body, "applies_to");
-    let applicable: Vec<&(PathBuf, String)> = contents
+    let applicable: Vec<&Text> = contents
       .iter()
-      .filter(|(path, _)| applies_to_file(&globs, path))
+      .filter(|t| admits(&globs, &t.path, &t.text, lang))
       .collect();
 
     // **A TOOL-ARMED RULE MUST ACTUALLY RUN ITS TOOL, OR THE CENSUS LIES.**
@@ -1093,12 +1427,21 @@ pub fn run(
         "shellcheck" => {
           if severity.clears(severity_min) {
             let mut declined = Vec::new();
-            for (path, text) in &applicable {
+            for t in &applicable {
+              // Under `--staged` the tool reads a same-named copy of the staged
+              // bytes, never the work tree's file (issue 0537).
+              let read = if t.staged {
+                copies.of(t)?
+              } else {
+                t.path.clone()
+              };
               let (hits, refused_file) =
-                shellcheck_findings(path, text, &rule.id, severity, &codes);
+                shellcheck_findings(&read, &t.path, &t.text, &rule.id, severity, &codes);
               findings.extend(hits);
               if refused_file {
-                declined.push(path.display().to_string());
+                declined.push(t.path.display().to_string());
+              } else {
+                asked.insert(t.path.clone());
               }
             }
             // **THE CENSUS ROW IS AMENDED BY WHAT THE RUN ACTUALLY DID.**
@@ -1164,19 +1507,20 @@ pub fn run(
             rule_id: rule.id.clone(),
             detail: e.to_string(),
           })?;
-          for (path, text) in &applicable {
-            for (i, line) in text.lines().enumerate() {
+          for t in &applicable {
+            for (i, line) in t.text.lines().enumerate() {
               if re.is_match(line) {
-                hits.insert((path.clone(), i + 1));
+                hits.insert((t.path.clone(), i + 1));
               }
             }
           }
         }
+        asked.extend(applicable.iter().map(|t| t.path.clone()));
         for (path, line_no) in hits {
           let line = applicable
             .iter()
-            .find(|(p, _)| *p == path)
-            .and_then(|(_, t)| t.lines().nth(line_no - 1))
+            .find(|t| t.path == path)
+            .and_then(|t| t.text.lines().nth(line_no - 1))
             .unwrap_or_default();
           findings.push(Finding {
             rule_id: rule.id.clone(),
@@ -1203,6 +1547,15 @@ pub fn run(
     .map(|r| r.id.clone())
     .collect();
 
+  // A file read as text that no rule this run put was asked of is named with the
+  // rest (issue 0536): a rule whose severity the minimum filtered out, or whose
+  // tool declined the file, did not ask it anything.
+  for t in &contents {
+    if !asked.contains(&t.path) {
+      unasked.insert(t.path.display().to_string());
+    }
+  }
+
   Ok(Report {
     lang: lang.to_string(),
     findings,
@@ -1213,6 +1566,8 @@ pub fn run(
       skipped_library.sort();
       skipped_library
     },
+    unasked: unasked.into_iter().collect(),
+    files_asked: asked.len(),
   })
 }
 
@@ -1331,6 +1686,91 @@ mod tests {
   #[test]
   fn no_applies_to_means_universal() {
     assert!(applies_to_file(&[], Path::new("anything/at/all.txt")));
+  }
+
+  /// Issue 0536: a shebang names its interpreter by its last path component,
+  /// through `env` and past env's own options and assignments.
+  #[test]
+  fn a_shebang_names_its_interpreter_through_env_and_past_its_options() {
+    assert_eq!(shebang_interpreter("#!/bin/bash\necho\n"), Some("bash"));
+    assert_eq!(shebang_interpreter("#!/usr/bin/env bash\n"), Some("bash"));
+    assert_eq!(shebang_interpreter("#! /bin/sh -e\n"), Some("sh"));
+    assert_eq!(
+      shebang_interpreter("#!/usr/bin/env -S zsh -f\n"),
+      Some("zsh")
+    );
+    assert_eq!(
+      shebang_interpreter("#!/usr/bin/env LC_ALL=C bash\n"),
+      Some("bash")
+    );
+    assert_eq!(shebang_interpreter("echo first\n#!/bin/bash\n"), None);
+    assert_eq!(shebang_interpreter(""), None);
+  }
+
+  /// Issue 0536, vc's ruling (A): a script meets each rule's OWN globs under
+  /// its dialect's extension, so the dialect every rule declares still holds.
+  /// The glob lists are the shipped shell rules' own.
+  #[test]
+  fn a_shebang_script_meets_each_rules_globs_under_its_dialects_extension() {
+    let globs = |g: &[&str]| g.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+    let quote = globs(&["**/*.sh", "**/*.bash", "**/*.zsh", "bin/*"]); // IN-SH-CODE-001
+    let pipefail = globs(&["**/*.sh", "**/*.bash", "bin/*"]); // IN-SH-CODE-003
+    let zsh_only = globs(&["**/*.zsh"]); // IN-SH-CODE-004
+    let bash = "#!/usr/bin/env bash\necho $x\n";
+    let zsh = "#!/bin/zsh\necho $x\n";
+    let nested = Path::new("bin/.devbin/cmd/macos");
+    let hook = Path::new(".githooks/pre-commit");
+
+    assert!(
+      admits(&quote, nested, bash, "shell"),
+      "a nested bash script"
+    );
+    assert!(admits(&quote, hook, bash, "shell"), "a git hook");
+    assert!(
+      admits(&pipefail, hook, bash, "shell"),
+      "bash stands for .bash and .sh"
+    );
+    assert!(
+      !admits(&zsh_only, hook, bash, "shell"),
+      "a zsh rule never reaches a bash script"
+    );
+    assert!(admits(&zsh_only, hook, zsh, "shell"), "and does reach zsh");
+    assert!(
+      !admits(&pipefail, hook, zsh, "shell"),
+      "a bash rule never reaches a zsh script"
+    );
+
+    // THE CONTROLS: no shebang, another interpreter, another language.
+    assert!(!admits(&quote, hook, "echo $x\n", "shell"), "no shebang");
+    assert!(
+      !admits(&quote, hook, "#!/usr/bin/env python3\n", "shell"),
+      "python is not shell"
+    );
+    assert!(
+      !admits(&globs(&["src/**/*.rs"]), hook, bash, "rust"),
+      "only shell has a shebang table"
+    );
+    assert!(
+      admits(&quote, Path::new("x/plant.sh"), "echo\n", "shell"),
+      "a file its name admits is unchanged"
+    );
+  }
+
+  /// Issue 0537: a `cat-file --batch` reply is split by the size each header
+  /// states, so a blob carrying newlines or a header-shaped line comes back
+  /// whole, and a missing or short object is an error rather than an empty file.
+  #[test]
+  fn a_batch_reply_is_split_by_the_sizes_its_headers_state() {
+    let reply = b"aaaa blob 10\nx\ny blob 1\nbbbb blob 0\n\n";
+    assert_eq!(
+      parse_batch(reply).expect("a well-formed reply"),
+      vec![b"x\ny blob 1".to_vec(), Vec::new()]
+    );
+    assert!(parse_batch(b"cccc missing\n").is_err(), "a missing object");
+    assert!(
+      parse_batch(b"dddd blob 9\nshort\n").is_err(),
+      "fewer bytes than claimed"
+    );
   }
 
   #[test]
@@ -1539,6 +1979,8 @@ mod tests {
       refused: Vec::new(),
       disabled: Vec::new(),
       skipped_library: Vec::new(),
+      unasked: Vec::new(),
+      files_asked: 0,
     };
 
     let absent = Report {
@@ -1623,6 +2065,8 @@ mod tests {
       refused: Vec::new(),
       disabled: Vec::new(),
       skipped_library: Vec::new(),
+      unasked: Vec::new(),
+      files_asked: 0,
     };
     assert_eq!(base.exit_code(), 0);
 

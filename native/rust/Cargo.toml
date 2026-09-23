@@ -221,7 +221,11 @@ proptest = "1"
 # filesystem. `intentd`'s watcher decides from what is a directory, what the
 # skip list prunes as the walk descends, and which bytes differ -- so a fake
 # filesystem would be exercising a different function from the one that broke.
-# Test-only: it is a dev-dependency everywhere it is used.
+# A dev-dependency everywhere but `intentsvcs`, which ships it for one job: the
+# critic hands shellcheck a same-named copy of a STAGED file in a private
+# directory, because the tool reads a file and its name can decide the dialect
+# (issue 0537). A hand-rolled directory would be the part most likely to be
+# wrong -- a name that collides, a mode that is too open, a copy left behind.
 tempfile = "3"
 
 # Release profile for the SHIPPED binaries (WP-11, dc 2026-08-15). Measured on
