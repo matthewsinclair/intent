@@ -6,14 +6,14 @@ session_id: 211a090e-f16e-484b-bd74-7a58ce1c75e7
 heartbeat_at: 2026-09-23 13:08Z
 status: active
 focus: "LOCALFOLD for hv's compact, 2026-09-23. 0530 landed (084b154b9) and closed; 0532 review sent to dc (PASS). After the bounce: dc's 0532 judging run, then 0533 in its own worktree on vc's rulings (announce HEAVY START and END; cc's 0534 waits on it), then the reference set after the last landing and hv's second build all. NO PUSH, NO RELEASE."
-claims: [ISSUE:0543]
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- (ic, 2026-09-23) LANDED AND CLOSED, each at its judged patch-id and none deployed until hv's second build all: 0533 at f7c62b94d; 0538 as v2 at 00fc875a7 plus the post-pull tune at efd73baa1; 0540 at 5411b6bd6; and the D correction to wb edit's when_to_use at 3be665d61. IN FLIGHT: 0543 v1 (refs/bank/ic/0543/v1, patch-id 7bcf7bf4ae7c). It was reproduced on the pre-fix binary in a pty with a control, fixed on the post-fix one, and its arms fail when the fix is mutated out. It is in dc's pair judging run with cc's 0544-0545 (d2e74c897bd1); it then lands on vc's word and closes. LAST before the build all: the docs commit, refs/bank/ic/precut/apply_precut.py, carrying vc's ruled CHANGELOG fixes, 0543's sentence on 0520's line, the 0505 pair and SKILL.md's D. Then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42). NO PUSH, NO RELEASE.
+- (ic, 2026-09-23) 3.2.1 train, ic's part: every bank LANDED at its judged patch-id and CLOSED: 0533 (f7c62b94d), 0538 (00fc875a7 plus efd73baa1), 0540 (5411b6bd6), 0543 (b4d70a039), and the D correction (3be665d61). None is deployed until hv's second build all. NOW: the docs commit (apply_precut.py) in this chain, then cc's release notes, then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42), and after it dc's known-defects re-drive. NO PUSH, NO RELEASE.
 
 ## TODO
 

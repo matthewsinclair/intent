@@ -1,0 +1,15 @@
+{
+  "id": "01M37MQ65D6B8X72CK2WASASGE",
+  "ts": "2026-09-23T17:23:53.724Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "(ic, 2026-09-23) 3.2.1 train, ic's part: every bank LANDED at its judged patch-id and CLOSED: 0533 (f7c62b94d), 0538 (00fc875a7 plus efd73baa1), 0540 (5411b6bd6), 0543 (b4d70a039), and the D correction (3be665d61). None is deployed until hv's second build all. NOW: the docs commit (apply_precut.py) in this chain, then cc's release notes, then hv's second build all (warn gtools-vc before and after, then intent daemon restart), then the pre-cut reference pass (todo 42), and after it dc's known-defects re-drive. NO PUSH, NO RELEASE."
+  }
+}
