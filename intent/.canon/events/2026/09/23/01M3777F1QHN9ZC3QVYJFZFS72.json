@@ -1,0 +1,15 @@
+{
+  "id": "01M3777F1QHN9ZC3QVYJFZFS72",
+  "ts": "2026-09-23T13:28:06.487Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0536"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The shell critic asks no rule of an extensionless script outside the top of bin/, and still reports it clean"
+  }
+}

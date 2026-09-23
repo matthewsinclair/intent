@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 538,
+  "slug": "the-chain-block-claude-upgrade-writes-has-no-els",
+  "title": "The chain block claude upgrade writes has no else, so an absent carrier skips every gate in silence",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported by gtools-vc on 2026-09-23 as a low-severity point about a failing `git rev-parse`. vc widened it from `canon.rs` at 615d86a8a.\n\n**What happens.** `canon::chain_block` writes the same block into every hook that `intent claude upgrade` wires:\n\n```\n_intent_chain=\"$(git rev-parse --git-path hooks 2>/dev/null)/<hook>.intent\"\nif [ -x \"$_intent_chain\" ]; then\n  \"$_intent_chain\" \"$@\" || exit $?\nfi\n```\n\nWhen the carrier is absent or not executable, or `git rev-parse` fails, the block does nothing and prints nothing. The commit then goes ahead with no guard and no critic. Canon's own comment on installing the carrier names this shape as the defect: a project that \"passes every commit at rc=0 while every report anyone reads says the gate is wired\". The shim's contract is refusing, not skipping (hv ruling 4). Installing the carrier made the absent case rarer, but the block is still silent when it happens. The carrier is gitignored by design, so a fresh worktree of an estate that reaches its hooks through `core.hooksPath` gets the block without the carrier.\n\nIntent's own `.githooks/pre-commit` has a different block between the same markers:\n\n- an `elif` that refuses a carrier with no execute bit;\n- an `else` that prints `GATE ABSENT -- the critic and every shipped guard did NOT run` and exits 1.\n\nNothing in canon writes that form, and `GATE ABSENT` appears nowhere under `native/rust` or `lib/templates`. So the estate that ships the gate protects itself, and ships every other estate the silent block.\n\n**What the fix has to do.** `chain_block` emits the refusing form from one home, and Intent's own hook carries the same bytes. The change also settles whether a post-pull hook, whose carrier always exits 0, refuses or warns when its carrier is absent. The drive covers an absent carrier, a carrier without its execute bit, and a failing `rev-parse`.\n"
+}

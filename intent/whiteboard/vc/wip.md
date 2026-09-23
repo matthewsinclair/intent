@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 13:19:08Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23, after hv's third compact; rewritten at 13:28:55Z by date -u). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
 DEPLOYED (the pair c5cca7e26, from hv's build all of 12:05Z to 12:07Z): 0520 through 0528.
 
@@ -24,13 +24,17 @@ LANDED AND CLOSED, NOT DEPLOYED until the second build all:
 
 hv decision 32: everything found goes into 3.2.1. OPEN, IN ORDER:
 (1) 0532 (dc). Its judging run has been in flight since dc's HEAVY START at 13:12:14Z. It runs on v2: refs/bank/dc/0532/v2, blob 2c6442c07, patch-id 89d23af2d, 8 files +613/-12. vc verified that it applies cleanly on HEAD 6a4d0fef9 and that v1 to v2 is ic's note (b) alone. The base is HEAD 6a4d0fef9. vc judges from the END.
-(2) 0533 (ic), 0534 (cc) and 0535 (dc) are each authored with no cargo while another node holds the box. Each node then takes a compile-and-own-arms loop in the heavy slot, in order of readiness, alphabetical on a tie. ONE stacked judging run then takes all three banks, run by cc and including `bin/int macos app-test`. vc judges it from the END, and each bank lands at its judged patch-id. Compose the banks in both orders first: they share CHANGELOG's 3.2.1 section, dispatch-table.json and .md, and suite.rs's `mod` list.
+(2) 0533 and 0538 (ic), 0534, 0536 and 0537 (cc), and 0535 (dc) are each authored with no cargo while another node holds the box. Each node then takes a compile-and-own-arms loop in the heavy slot, in order of readiness, alphabetical on a tie. ONE stacked judging run then takes every bank, run by cc and including `bin/int macos app-test`. vc judges it from the END, and each bank lands at its judged patch-id. Compose the banks in both orders first: they share CHANGELOG's 3.2.1 section, dispatch-table.json and .md, and suite.rs's `mod` list.
   - 0533 (ic) is built on vc's rulings: `intent bootstrap --check` on the shim's --where contract; a `Gate root:` line in `intent info`; install::gate_resolution rendered by every door, with upgrade --apply byte-identical.
   - 0534 (cc) adds ` release` or ` dev` to the version line and leaves the value unchanged. It comes with riders 1 to 5; its tag drives run in a scratch clone inside cc's heavy window.
   - 0535 (dc, high) was filed by vc between 13:17:20Z and 13:19:08Z by date -u, from gtools-dc's finding, and driven on Intent at 6a4d0fef9. A cold store's warm carries threads and issues and no board. The remedies it prints, `wb register` and then `wb migrate vc`, emptied every node's tracked board.json at rc 0 (10258 lines deleted). The fix has three parts:
     - the cold warm carries boards;
     - `wb migrate`, and `wb register` too if dc measures that path, refuses a node whose board.json on disk records it as migrated;
     - the `wb` reads name `intent sync --to-store`.
+    A second symptom was added from gtools-vc and gtools-dc: on a cold store, doctor's remedy for inbox view skew, `sync --to-disk`, exits 0 and changes nothing.
+  - 0536 (cc, medium), filed from gtools-vc's finding. The shell rules' globs admit no extensionless script outside the top of bin/, and the run still prints ok. Intent has 67 such tracked scripts: 7 .githooks, 58 nested under bin/.devbin, and 2 .history archives. Linting them raises 3 CRITICAL findings in bin/.devbin/cmd/macos. The fix: an honest verdict, shebang-admitted shell files, and Intent's own findings fixed or exempted in the same change.
+  - 0537 (cc, medium), from gtools-vc. `critic --staged` takes its paths from the index and reads their bytes from the work tree. The fix reads the staged blob.
+  - 0538 (ic, medium), from gtools-vc, widened by vc. canon::chain_block has no else, so an absent carrier skips every gate in silence. Intent's own pre-commit carries a hand-written refusing form that canon does not write. The fix: one refusing form, from one home.
 (3) The second build all after the last landing, then `intent daemon restart`. Warn gtools-vc before and after, and no commit lands in any path while it runs.
 (4) hv pushes. vc reads both CI workflows on both legs, which closes 0521 (cc's).
 (5) The pre-cut pass. ic regenerates the reference set and re-reads every 3.2.1 entry, and dc re-drives known-defects.md whole on ic's brief.

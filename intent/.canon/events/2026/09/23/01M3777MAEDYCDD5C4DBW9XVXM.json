@@ -1,0 +1,15 @@
+{
+  "id": "01M3777MAEDYCDD5C4DBW9XVXM",
+  "ts": "2026-09-23T13:28:11.863Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0537"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent critic --staged lists the index's paths and judges the work tree's bytes"
+  }
+}
