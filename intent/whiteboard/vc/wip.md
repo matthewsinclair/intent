@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 10:43Z
+heartbeat_at: 2026-09-23 12:13Z
 status: active
-focus: "LOCALFOLDED for hv's compact. After the bounce: hv's build all (never inside a compact), intent daemon restart, then the stacked run (0525+0529+0530), a second build, the push, CI, the pre-cut pass, the cut. NO PUSH, NO RELEASE."
+focus: "Pair and daemon at c5cca7e26 (HEAD) since 12:09Z, so 0520 to 0528 are deployed. Next: cc's 0525+0529 pins and rung-30 drive, then ONE stacked run with ic's 0530; vc judges; second build all; hv's push; CI; ic's pre-cut pass; the cut. NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,31 +13,22 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-23 localfold before hv's second compact; replaces doing 32). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, and ListAgents to ask cc, dc and ic where they stand.
+- RESUME (vc, 2026-09-23 after hv's second compact; replaces the localfold text). Measure first: `intent outs`, `git log --oneline -15`, `intent --version`, `intent daemon status`, and ListAgents to ask cc, dc and ic where they stand.
 
-LANDED ON MAIN AND NOT DEPLOYED. The pair names 099088acd, so a push refuses until `bin/devbin build all`:
-- 0520, 0521 (open until CI's bats run reads green on both legs after the push), 0522, 0524.
-- 0526 at d9aa20703.
-- 0523: stage 1 v4 at 3d8d3b8d1 and stage 2 at d336abd8d. 0523 is closed at a43997415.
-- 0527 at 9358663ff, closed at 6790417b0.
-- ic's CHANGELOG gap entries and releasing.md's two nested steps at 669fc767f.
-- 0528 at 7507221d6 (patch-id bb16db0c1, verified by vc). dc closed it with its localfold; read the close off git log.
+DEPLOYED: build all ran 12:05:37Z to 12:07:28Z (staged, then promoted) and vc restarted intentd at 12:09:49Z. intent and intentd both name c5cca7e26 and doctor reports 0 findings. So 0520, 0521, 0522, 0523 (both stages), 0524, 0526, 0527 and 0528 run on this machine. 0521 stays open until CI's bats run reads green on both legs after hv's push.
 
-FIRST AFTER THE BOUNCE, IN ORDER:
-(1) hv's `bin/devbin build all` as its own heavy window, NEVER overlapping a compact: a compact's SessionStart hook runs `intent`, and build all's `cargo clean` removes the pair until the rebuild ends. Warn gtools-vc before and after it, and tell the Intent nodes START and END. Then `intent daemon restart`, and vc checks that the pair names HEAD.
-(2) The stacked judging run. It covers 0525 and 0529 in one bank by cc (0529 is S; its design is accepted and it rides 0525), and 0530. At the fold cc banked a work-in-progress snapshot: refs/bank/cc/0525/wip-on-8364b5056, blob 7c5a48741, patch-id 5908aed24, 12 files. It COMPILES, but its faces are not blessed and its schema pins are not set, and it is untested. cc re-banks before the run. The run also takes 0530 (ic's bank refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, diff read by vc). 0525 adds schema rung 30, so cc drives the migration on COPIES of Intent's and Gtools' stores: row counts before and after, the first command's result, doctor's verdict, and every board.json and view byte-identical after a re-render. ic reviews the (edited) mark's surface first. vc judges from the END, and the banks land in the order cc and ic agree.
-(3) A second build all for 0525, 0529 and 0530.
-(4) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
-(5) ic's pre-cut pass: regenerate the reference set at the final HEAD, re-read every 3.2.1 entry against it, and re-drive known-defects.md whole.
-(6) The cut, in hv's terminal.
+NEXT, IN ORDER:
+(1) cc: re-check refs/bank/cc/0525 on HEAD, bless the faces, re-pin (JSON 22, DDL 26, SDL 19, store v30), run the targeted arms, then the rung-30 drive on COPIES of Intent's and Gtools' stores. The drive reports row counts before and after, the first command's result, doctor's verdict, and every board.json and view byte-identical after a re-render. ic reviews the (edited) surface, then cc re-banks. Then ONE stacked judging run over 0525+0529 and ic's 0530 (refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144), with both blobs named in the START and the whole machine censused first. vc judges from the END, and the banks land in the order cc and ic agree.
+(2) A second build all for 0525, 0529 and 0530, then `intent daemon restart`. Warn gtools-vc before and after. No commit may land mid-build (decision 15).
+(3) hv pushes. vc reads both CI workflows on both legs, which closes 0521.
+(4) ic's pre-cut pass: regenerate the reference set at the final HEAD, re-read every 3.2.1 entry against it, and re-drive known-defects.md whole.
+(5) The cut, in hv's terminal.
+
+dc, ordered at 12:11Z: remove tmp/wt-0528 before the stacked run, and send a read-only census, for todo 62, of every estate that already has Intent.
+
+CORRECTED 2026-09-23: build all never removes the shared pair. Since 0196 (e3b4febe1) it builds in target/staging/release and promotes by rename. vc's "never inside a compact" rule had no mechanism behind it. `bin/devbin fullcycle` is the command that removes native/rust/target.
 
 AFTER THE CUT: todo 62 (the fleet sweep, with `intent todo update` for 0528's marker) and todo 63 (post-3.2.1 backlog).
-
-DONE TODAY, DO NOT REDO:
-- Decision 28's ten rulings: Conflab ee56317f to 9dc530e7; Baize 8e19343 and e2fbb1f; Finding C filed as 0528.
-- hv's four placeholder items archived in Prolix (93c123f) and Molt (1fb69c6).
-- Lamplight's 19 work packages at d2877ba46, with its 0008 closed at a25f09c0f.
-- 0529 filed (multi-clone restore), rides 0525.
 
 NO PUSH, NO RELEASE.
 
