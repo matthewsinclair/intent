@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 302a2f4f-f054-4037-a411-d4f6d7b7df7e
-heartbeat_at: 2026-09-23 07:10Z
+heartbeat_at: 2026-09-23 08:51Z
 status: active
-focus: "EOD: hv's five issues all CLOSED and judged; 0516's backstop awaits hv's build all (push refuses until then). NO PUSH, NO RELEASE."
+focus: "3.2.1 train: 0520, 0521, 0522, 0524 landed, not deployed; 0523 stage 1 v3 banked, awaiting cc's re-run and vc's verdict; then build all on hv's go (warn gtools-vc). NO PUSH, NO RELEASE."
 claims: []
 ---
 
@@ -13,11 +13,27 @@ claims: []
 
 ## DOING
 
-- RESUME (vc, 2026-09-22 EOD globalfold, replaces doing 28). hv's five issues are CLOSED and judged, and `intent outs` reads 0 open. The line's TODO is `intent/wip.md` and is not restated here. The first item: hv pushes `cd79407eb` (dc's rustdoc fix for 0511's private intra-doc link, which reddened CI run 35783294587 at the doc step on both legs), then reads the rust run on that HEAD, both legs, test step included. The installed pair already names cd79407eb. vc's own queue: hv decision 28's ten rulings, the Finding C census, and todo 61 (Gtools' wb-correct request, awaiting hv). The rules learned today are in `intent/restart.md` and the shared memory. NO PUSH, NO RELEASE.
+- RESUME (vc, 2026-09-23 localfold before a compact, replaces doing 29). Measure first: `intent outs`, `git log --oneline -12`, `intent --version`. This item says where each line of work stood at the fold.
+
+THE 3.2.1 TRAIN. hv: "I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap."
+- LANDED, NOT DEPLOYED (the pair names 099088acd, so a push refuses until `bin/devbin build all`): 0521 at 38db27487, OPEN until CI's bats run reads green on both legs after the next push (cc todo 37); 0522 at 987268553; 0520 at 89015b037; the guard exit-code doc line at f5b3daa7d. At the fold, dc was landing 0524 (refs/bank/dc/0524, patch-id 2f475e2c1) onto aec0c3721 on vc's word.
+- 0523 STAGE 1: v2 was HELD by vc on one source-read finding. wb_text_carrier could match a carrier-less item (migrated, or written before board events) to a LATER draft wb.add with the same kind and text, and amend that event. v3 IS BANKED: refs/bank/cc/0523-stage1/v3, blob 36776c993, patch-id 5c04d79c2, base 987268553, 18 files, +1125 -30. The creator is now the ONE matching event in the first instant at or after the row's stamp, across the whole log, with no tie-break; none or several means Recorded. It has the planted arm (a migrated item plus a later draft in the same words, asserting Recorded and the later wb.add byte-identical). cc's re-run of both suites on 987268553 + 0520 + 0524 + v3 is FIRST on its bounce: JUDGE v3 from that END, reading its diff against v2's facade.rs and store.rs. ic's witness drives passed v2 on cases A, N and R, and under a watching intentd (no revert, positive-controlled), and v3 leaves case 1 unchanged. Stage 2 takes the same rule for message_origin.
+- AFTER 0523 STAGE 1: stage 2 (messages addressed `message <anchor>#<n>`, plus a focus test) and 0525 (the (edited) mark, hv: in 3.2.1) are cc's; 0526 (the empty-contract remedy, XS) is ic's.
+- THEN: build all on hv's go, warning gtools-vc BEFORE and AFTER it (gtools-vc asked); hv pushes; vc reads both workflows on both legs; ic's pre-cut surface pass; the cut, in hv's terminal.
+
+RULED TODAY, NOT YET EXECUTED:
+- Prolix carry, GO to dc: hv's board carried as it is, then VC archives the four placeholder items on hv's board in Prolix AND in Molt, under hv's pen. Prolix cc: --drop-uncarried plus three holds "released when hv rules". Prolix vc: two coerced prose lines archived.
+- Lamplight: its 19 WIP work packages under 14 closed threads, fixed by vc from here. Done where the record shows the work landed, cancelled with a note otherwise. One commit, no push.
+- Fleet upgrade sweep: RIGHT AFTER the 3.2.1 cut. Hold 27's remaining wiring rides it (the MicroGPTEx pilot, 80d4c13, passed).
+- Open question for hv: Cards/Design and cfg/Gtools-geodica have no Intent. Adopt, or leave (vc recommends leave).
+
+STILL OWED BY vc: hv decision 28's ten Conflab and Baize rulings (0503 and 0504 are closed, so the dating is unblocked), and the Finding C census. At the globalfold: restart.md gains ic's machine-census form and the 0518 lesson (a runner change under bin/ owes the test file that drives it: 0518 was judged by a two-sided drive and never ran prepush_push_range.bats, which reds on every machine); wip.md's TODO drops the done push, the rust CI read and the intentd restart.
+
+ON RECORD: vc's "08:14Z by date -u" on the 0521 and 0522 verdicts and on the ic box message was read from no clock. The true bound is 08:07Z to 08:10Z, and it was corrected forward in cc's and dc's inboxes. NO PUSH, NO RELEASE.
 
 ## TODO
 
-- FEATURE REQUEST FROM GTOOLS (gtools-vc, on Gtools hv's ruling "Intent verb, hold"), 2026-09-22: intent wb has no verb to CORRECT or REDACT an item's text, and Gtools' pre-commit identifier gate refuses gtools-cc's board (todo 95), because real client ids sit in the item prose AND in the ORIGINATING EVENT FILE under intent/.canon/events/. Two cases, both required. (1) Originating event NOT YET COMMITTED: correct it so no committed trace of the old text remains, by amending or superseding the pending event before it lands. That discards a local mistake and rewrites no history. (2) Originating event ALREADY COMMITTED: a correction event that every later render honours, with git history left to the repo's publication process. A plain append-a-correction design fails case (1), because the untracked original event still carries the text into the commit. Shape offered, not ruled: intent wb correct <kind> <seq> "<text>" --node <moniker>, single-writer, owner-only, recorded as an event. NOT asked: weakening append-only history for committed events, or any gate exemption. AWAITING hv: whether this becomes an Intent issue now, while hv's order is to close the open ones.
+_(none)_
 
 ## Holds
 

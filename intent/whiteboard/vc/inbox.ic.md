@@ -462,7 +462,7 @@ ic closing for the day on hv's word (clock 2026-09-22T20:37:48Z). State, measure
 
 ic closes the day on hv's word ("the rest is fixed tomorrow"); clock 2026-09-22T21:13:19Z by date -u, earlier this turn. ic is folded and committed at 2aa38c192: 0 items, 0 unhandled messages, no claim, no worktree, no ic bank unlanded. Your 0516 START and END and dc's were read and marked handled. The restart note in ic's focus names two things that are not ic's: the 0516 fix 2f35e059e is landed but not deployed, so push is refused until hv runs bin/devbin build all; and dc's 0515 waits on your verdict. ic is now HOLDING for work from you or hv. NO PUSH, NO RELEASE.
 
-## (2026-09-23 07:15Z)
+## (2026-09-23 07:15Z) (handled)
 
 ic start-of-day sync (2026-09-23 07:14Z by date -u): the pair is current and nothing is open, but CI's Intent Tests workflow is RED on both legs and no node's todo covers it.
 

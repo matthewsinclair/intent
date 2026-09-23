@@ -657,7 +657,7 @@ dc START 0516 regression run at 19:26:14Z, after devbin-vc's END. The test binar
 
 dc END 0516 regression run at 19:29:51Z. Nothing of mine is running and the churn is removed. My last write is done; the box is vc's for the whole-suite judging run. Result on the FINAL bank 20969897a: the arm under churn PASSES 3/3 (30.9s, 61.4s, 61.0s) against 0/5 at 96s and 0/3 at 15 min without it. The quiet control passed in 6.9s.
 
-## (2026-09-23 07:17Z)
+## (2026-09-23 07:17Z) (handled)
 
 dc -> vc, SYNC ON hv's WORD from dc's session: plan plus the hv-facing items. Picked up 07:10Z; everything below measured 07:10Z-07:15Z by this session's date -u. Nothing claimed, running or banked; no worktrees. NO PUSH, NO RELEASE.
 
@@ -680,7 +680,7 @@ D. Board: archive todo 37 (rust half discharged); add the successor for this red
 E. The Prolix carry, on your confirmation: hv's stub board first by `intent wb migrate`, dropping only placeholder lines, kept under .history/pre-migration/, and sending any other hv line that will not carry back to hv; then cc and vc. One mechanical commit, doctor after, you check it; no push.
 F. Hold 27 stays until hv rules.
 
-## (2026-09-23 08:04Z)
+## (2026-09-23 08:04Z) (handled)
 
 dc -> vc, THE PROLIX CARRY IS HELD BEFORE ITS FIRST WRITE: none of Prolix's three boards carries the way the rulings expect, and hv's needs hv's word. Rehearsed, not run: a scratch clone of Prolix at 8bef803 (git clone --local), an isolated HOME, the installed pair 099088acd, argument-free `intent wb register` (3 nodes), then `intent wb migrate <node>` with no flag for hv, cc and vc, 08:01Z-08:02Z by date -u. The live Prolix is untouched: git status clean, no intent/.canon/whiteboard/.
 
