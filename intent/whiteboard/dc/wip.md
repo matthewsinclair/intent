@@ -3,28 +3,24 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1a8e4fe7-0650-45f6-a619-84fc0c380145
-heartbeat_at: 2026-09-23 12:56Z
+heartbeat_at: 2026-09-23 13:36Z
 status: active
-focus: "LOCALFOLD for hv's compact, 2026-09-23. RESUME at the RESUME HERE doing item: 0532 banked (60e20ebfc, patch-id c10efbc0d), its judging run after ic's review, then landing and close; then the known-defects re-drive. Hold 29. NO PUSH, NO RELEASE."
-claims: [ISSUE:0532]
+focus: "0532 landed at 2e588c7cd and closed. Building 0535 (vc's rulings a to d) in tmp/wt-0535 for cc's stacked run; the known-defects re-drive follows the second build all. Hold 29. NO PUSH, NO RELEASE."
+claims: [ISSUE:0535]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- **RESUME HERE (dc localfold for hv's compact, 2026-09-23 12:57Z by date -u; on hv's word, continue on the bounce). NO PUSH, NO RELEASE.**
-- 0532 IS BANKED, NOT JUDGED, NOT LANDED: refs/bank/dc/0532/v1, blob 60e20ebfc, patch-id c10efbc0d, 8 files +613/-12. It applies clean on the landed pair 084b154b9 (0525 at d3b2250b6, 0530 at 084b154b9), and vc READ it. tmp/wt-0532 holds it staged on the stack (index patch-id c10efbc0d) with its own warm target. The scripts are banked beside it under refs/bank/dc/0532/: setup, warm, dev, compose, prep_judge, judge, surface, close_draft.
-- ic's SURFACE REVIEW PASSED, driven by ic on the worktree binary: pandoc reads every heading, sub-bullets nest, pickup's hv standing block is covered, doctor's --verbose note is as sent, and sync --to-disk restores the board. It carried three notes, none blocking:
-  - (a) A fifth spelling, unindented with the mark. vc had already ruled it unneeded, because 0525 and 0532 deploy in one build all; it matters only if 0532 misses that build.
-  - (b) The doctor note reads "differs, with any text the renderer owns". Make it "differs, and any text the renderer owns".
-  - (c) For hold 29: prettier 3.9.8 rewrites board views in both shapes, so the recipe's "declare formatters" step must carry the prettier-ignore lines for the generated board and inbox views, as Intent's .prettierignore does.
-- The judging run was NOT started: vc said not before the compact.
-- NEXT 1: apply (b) in tmp/wt-0532, run cargo fmt, re-cut the bank as refs/bank/dc/0532/v2, and give vc the new blob and patch-id. Then run the judging run on vc's approved terms. Baseline HEAD (084b154b9, or the HEAD then if only canon moved); bank HEAD + 0532 v2. cargo build -p intentd first; the whole intentsvcs, intent-cli and intentd suites, then the whole bats suite, both sides, red sets diffed by name both ways. Run cargo clean -p for the four members in any cloned target, then the rlib grep for the other worktree's path with a control that can see it (judge.sh's rlib_check). The START names the base, the blob with its patch-id and git apply --stat, the tree and the census. END goes to cc, ic and vc; cc asked to be told. Update prep_judge.sh's bank to v2, run it with that HEAD, then judge.sh.
-- NEXT 2: land on vc's word, reading the judged patch-id back off the landed commit, then close 0532 from close_draft.md. It names the 0525 re-edit gap the fourth spelling closes, and intent sync --to-disk as the driven verb.
-- NEXT 3: the known-defects re-drive (todo 44) after the last landing and the second build all.
-- The heavy order after dc's END: ic's 0533, then cc's 0534. After the landing, remove tmp/wt-0532 and tmp/wt-0532-base (cd out of them first).
-- Hold 29 stands, with ic's note (c) as its rider.
+- **0532 LANDED at 2e588c7cd on vc's PASS and CLOSED (patch-id 89d23af2d on the blob, the staged paths and the landed commit); not deployed until hv's second build all. NOW: 0535, ruled by vc under hv's decision 32 (2026-09-23). NO PUSH, NO RELEASE.**
+- THE DEFECT: a fresh clone's store holds no whiteboard, and the remedies it prints end in `wb migrate` or `sync --to-disk` emptying every board.json. dc's drive (refs/bank/dc/0535/measured.txt): `wb register` writes nothing, but `sync --to-disk` after it empties every board.json at rc 0, naming no board.
+- (a) The cold warm carries the boards under the same write lock. "Cold" counts wb_node rows, in load_fresh's unlocked check and in warm_if_cold's check under the lock.
+- (b) One predicate refuses three verbs before they write, each naming `sync --to-store`: `wb migrate <node>`, `wb register` (both forms, for that node) and `sync --to-disk`. The predicate is: the node's board.json on disk records migrated_at, and the store holds no migrated node of that name.
+- (c) The wb reads name `sync --to-store` when the store holds no node and board.json files sit on disk.
+- (d) doctor.rs:1421 skips a store holding no board row as cold. After (a), a store holding threads but no board, beside board.json files recording migrated nodes, is the lost-boards state, reported as StoreStale naming `sync --to-store`.
+- DRIVE vc's second symptom: a skewed inbox on a cold store, then `sync --to-disk`, then doctor.
+- PLAN: write it in tmp/wt-0535 on HEAD, with no cargo, while cc's 0534 and ic's 0533 loops hold the box. Then take a compile-and-own-arms loop in the heavy slot by readiness, and bank it for cc's stacked run of six banks (0533, 0534, 0535, 0536, 0537, 0538).
 
 ## TODO
 
