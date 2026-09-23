@@ -1,0 +1,15 @@
+{
+  "id": "01M36VNTTWX822SJ381TS2QJ5Q",
+  "ts": "2026-09-23T10:06:14.368Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0528"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "v3's todo view dropped the generator marker, so Utilz's todo overwrites Intent's intent/todo.md instead of refusing it (Finding C)"
+  }
+}
