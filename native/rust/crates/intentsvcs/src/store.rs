@@ -2843,6 +2843,20 @@ pub struct WbOrphans {
   pub messages: usize,
 }
 
+/// One message as `wb edit message` addresses it (issue 0523): the row it is,
+/// what it says, and the stamp its inbox heading renders.
+///
+/// **`id` IS THIS STORE'S ROW NUMBER AND NEVER LEAVES IT.** It names the row a
+/// write updates inside one call, and nothing records it: a message's durable
+/// address is its recipient, its heading's minute and its place within that
+/// minute, all of which a rebuilt store gives back unchanged.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MessageRow {
+  pub id: i64,
+  pub body: String,
+  pub recorded_at: String,
+}
+
 /// One whiteboard verb's writes, inside the transaction that records it.
 ///
 /// **THE ONLY DOOR A BOARD ROW IS WRITTEN THROUGH** (issues 0411 and 0415).
@@ -3057,6 +3071,21 @@ impl WbWrite<'_> {
     )?;
     self.moved += moved;
     Ok(moved > 0)
+  }
+
+  /// Replace the body of each of these messages, handled or live, and say how
+  /// many moved (issue 0523). One edit of an announce names every copy.
+  pub fn set_message_body(&mut self, ids: &[i64], body: &str) -> Result<usize, StoreError> {
+    let mut moved = 0;
+    for id in ids {
+      moved += self.tx.execute(
+        "UPDATE wb_message SET body = ?2, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+         WHERE id = ?1 AND body <> ?2",
+        params![id, body],
+      )?;
+    }
+    self.moved += moved;
+    Ok(moved)
   }
 
   /// Append one item to a node's board, and say which `seq` it was given.
@@ -5721,12 +5750,13 @@ impl Store {
     }
   }
 
-  /// The events that can carry the text of a node's items -- its `wb.add`,
-  /// `wb.decide` and `wb.edit` -- oldest first (issue 0523).
+  /// The events that can carry the text a node wrote -- its `wb.add`,
+  /// `wb.decide`, `wb.ask`, `wb.announce` and `wb.edit` -- oldest first (issue
+  /// 0523).
   pub fn wb_text_events(&self, node: &str) -> Result<Vec<Envelope>, StoreError> {
     self.envelopes(
       "WHERE subject_type = 'node' AND subject_id = ?1 \
-       AND op IN ('wb.add', 'wb.decide', 'wb.edit') ORDER BY id",
+       AND op IN ('wb.add', 'wb.decide', 'wb.ask', 'wb.announce', 'wb.edit') ORDER BY id",
       params![node],
     )
   }
@@ -5750,6 +5780,28 @@ impl Store {
       Some(row) => Ok(Some(row.get(0)?)),
       None => Ok(None),
     }
+  }
+
+  /// Every message `sender` sent `recipient`, handled or live, in the order
+  /// they were sent (issue 0523). The order is the inbox's own, so a message's
+  /// position among those headed with one minute never changes.
+  pub fn wb_messages_between(
+    &self,
+    sender: &str,
+    recipient: &str,
+  ) -> Result<Vec<MessageRow>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, body, recorded_at FROM wb_message WHERE sender = ?1 AND recipient = ?2 \
+       ORDER BY id",
+    )?;
+    let rows = stmt.query_map(params![sender, recipient], |row| {
+      Ok(MessageRow {
+        id: row.get(0)?,
+        body: row.get(1)?,
+        recorded_at: row.get(2)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
   /// Is this node's board the model's, rather than its markdown on disk?

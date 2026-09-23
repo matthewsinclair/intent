@@ -425,6 +425,86 @@ fn holds_text(bytes: &[u8], spellings: &[String; 2]) -> bool {
     .any(|s| !s.is_empty() && bytes.windows(s.len()).any(|w| w == s.as_bytes()))
 }
 
+/// A message's address as `wb edit message` takes it (issue 0523): the stamp
+/// its inbox heading shows, and the `#<n>` that names one of several in that
+/// minute. A suffix that is not a number is part of the stamp, and matches
+/// nothing.
+fn message_address(id: &str) -> (&str, Option<u32>) {
+  match id.rsplit_once('#') {
+    Some((anchor, n)) => match n.parse::<u32>() {
+      Ok(n) => (anchor, Some(n)),
+      Err(_) => (id, None),
+    },
+    None => (id, None),
+  }
+}
+
+/// A message's first words on one line, for a refusal that lists several.
+fn first_words(body: &str) -> String {
+  let words: Vec<&str> = body.split_whitespace().collect();
+  let shown = words.iter().take(8).copied().collect::<Vec<_>>().join(" ");
+  if words.len() > 8 {
+    format!("{shown} ...")
+  } else {
+    shown
+  }
+}
+
+/// Is `e` a correction of the message the event `origin` sent?
+fn edits_message(e: &Envelope, origin: &str) -> bool {
+  e.op == "wb.edit" && e.payload["kind"] == "message" && e.payload["event"] == origin
+}
+
+/// The event that sent one message, if exactly one did (issue 0523).
+///
+/// **A MESSAGE ROW NAMES NO EVENT, SO THIS READS THE TRANSACTION THEY SHARED**,
+/// by the rule an item's creator is found by (vc's ruling on v4). A send
+/// stamps its rows and then its event in one transaction, and the next message
+/// to the same recipient is stamped at or after that event, so the sending
+/// event is addressed to this recipient, stamped at or after the row and
+/// strictly before the next row, and still says, itself or through its latest
+/// correction, exactly what the row says. Exactly one may qualify: none or
+/// several is no origin, and the edit is keyed by the message's address
+/// instead. So a row with no event of its own -- one `wb migrate` carried, or
+/// one sent before board verbs recorded events -- never takes a later
+/// message's event.
+fn message_origin(
+  events: &[Envelope],
+  recipient: &str,
+  rows: &[crate::store::MessageRow],
+  at: usize,
+) -> Option<Envelope> {
+  let row = rows.get(at)?;
+  let until = rows.get(at + 1).map(|next| next.recorded_at.as_str());
+  let mut sent = events.iter().filter(|e| {
+    let addressed = match e.op.as_str() {
+      "wb.ask" => e.payload["recipient"] == recipient,
+      "wb.announce" => e.payload["recipients"]
+        .as_array()
+        .is_some_and(|all| all.iter().any(|r| r == recipient)),
+      _ => false,
+    };
+    addressed
+      && e.ts.as_str() >= row.recorded_at.as_str()
+      && until.is_none_or(|u| e.ts.as_str() < u)
+      && *message_says(events, e) == row.body.as_str()
+  });
+  match (sent.next(), sent.next()) {
+    (Some(origin), None) => Some(origin.clone()),
+    _ => None,
+  }
+}
+
+/// What the message an event sent says now: its latest correction's text, or
+/// else its own body.
+fn message_says<'a>(events: &'a [Envelope], origin: &'a Envelope) -> &'a serde_json::Value {
+  events
+    .iter()
+    .rev()
+    .find(|e| edits_message(e, &origin.id))
+    .map_or(&origin.payload["body"], |e| &e.payload["text"])
+}
+
 /// Write a committed file for every PROJECT event the store holds and the tree
 /// lacks, and return how many were written (ST0078 P1's backfill, AC-01.4).
 ///
@@ -1872,6 +1952,27 @@ pub enum FacadeError {
     kind: String,
     seq: u32,
   },
+  /// No message from the sender to the recipient is headed with this anchor
+  /// (issue 0523). `anchor` is what the call named, `#<n>` included.
+  #[error("no message from `{sender}` to `{recipient}` is headed {anchor}")]
+  WbNoSuchMessage {
+    sender: String,
+    recipient: String,
+    anchor: String,
+  },
+  /// Several messages share one heading minute and the call did not say which
+  /// (issue 0523). `listing` is one line per message: `<anchor>#<n>` and its
+  /// first words.
+  #[error(
+    "{count} messages from `{sender}` to `{recipient}` are headed {anchor} -- name one:\n{listing}"
+  )]
+  WbMessageAmbiguous {
+    sender: String,
+    recipient: String,
+    anchor: String,
+    count: usize,
+    listing: String,
+  },
   /// A claim that is not a steel thread or work package address.
   #[error("`{claim}` is not a steel thread or work package address")]
   WbClaimMalformed { claim: String },
@@ -2084,9 +2185,9 @@ pub struct WbMigration {
   pub offered: usize,
 }
 
-/// What `wb edit` did to one item's text (issue 0523): which record now
-/// carries the new text, every file HEAD holds the old text in, and every file
-/// the next commit would or could carry holding it.
+/// What `wb edit` did to one item's text or one message's body (issue 0523):
+/// which record now carries the new text, every file HEAD holds the old text
+/// in, and every file the next commit would or could carry holding it.
 ///
 /// **BOTH LISTS ARE MEASURED, NOT INFERRED, AND BOTH COVER ALL OF `intent/`**
 /// (ic's reviews, and vc's rulings on v3 and v4). `still_at_head` reads every
@@ -2107,7 +2208,7 @@ pub struct WbMigration {
 /// an edit that only adds to what an item said.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WbEdit {
-  /// The item already read that text: nothing moved and nothing is recorded.
+  /// It already read that text: nothing moved and nothing is recorded.
   Unchanged,
   /// No commit held the event carrying the old text, so it was amended in
   /// place, keeping its id and stamp.
@@ -2145,6 +2246,15 @@ impl NextCommit {
   pub fn is_empty(&self) -> bool {
     self.would.is_empty() && self.could.is_empty()
   }
+}
+
+/// What `wb edit message` did (issue 0523): the edit, and every recipient
+/// whose copy now reads the new body -- one for an `ask`, each copy for an
+/// `announce`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbMessageEdit {
+  pub edit: WbEdit,
+  pub recipients: Vec<String>,
 }
 
 impl WbMigration {
@@ -2312,6 +2422,19 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbNoSuchItem { node, .. } => format!(
         "`intent wb show {node}` prints each live item as `[kind] seq text`. An archived item keeps its number, and `intent/whiteboard/{node}/board.json` lists every item with it. An item on another node's board is edited by that node"
+      ),
+      Self::WbNoSuchMessage {
+        sender, recipient, ..
+      } => format!(
+        "the anchor is the first stamp in a heading of `intent/whiteboard/{recipient}/inbox.{sender}.md`; a `claimed` stamp is the markdown's and is not an anchor. Several messages in one minute are told apart as `<anchor>#<n>`, counting from 1 in send order"
+      ),
+      Self::WbMessageAmbiguous {
+        sender,
+        recipient,
+        anchor,
+        ..
+      } => format!(
+        "`intent wb edit message '{anchor}#<n>' <text> --to {recipient} --node {sender}` names one. `#<n>` counts from 1 in send order, and an inbox only grows, so a number never moves"
       ),
       Self::WbAlreadyCarried { node, .. } => format!(
         "read what is there first -- `intent wb show {node}` -- because this refuses rather than guessing whether those rows are an earlier carry or work written since. A board carried by mistake is emptied by rebuilding the store from canon; one carrying real work is already past the markdown era and needs no migration"
@@ -8284,6 +8407,238 @@ impl Facade {
       *next_commit = scanned;
     }
     Ok(edited)
+  }
+
+  /// Change the body of one message the acting node sent, handled or live,
+  /// and say which record now carries it and whose copies changed (issue 0523,
+  /// stage 2).
+  ///
+  /// **A MESSAGE IS ADDRESSED THE WAY `wb ask --re` ADDRESSES ONE**: by its
+  /// recipient and the stamp its inbox heading shows, with `#<n>` -- counting
+  /// from 1 in send order -- naming one of several in a minute. An inbox only
+  /// grows, so that address never moves.
+  ///
+  /// **THE TWO CASES ARE [`Self::wb_edit`]'s**, decided by whether a commit
+  /// holds the event carrying the current body, and both lists are measured as
+  /// that verb measures them, over all of `intent/`. A correction is keyed by
+  /// the ORIGINATING event (ic's review), the one identity every copy of a
+  /// message shares; a message with none -- carried by `wb migrate`, or sent
+  /// before board verbs recorded events -- is keyed by its address instead,
+  /// which is exact for the reason above, and so is an announce whose copies
+  /// cannot be told apart.
+  ///
+  /// **AN ANNOUNCE IS ONE EVENT WITH ONE BODY**, so editing any copy edits
+  /// every copy: amending the event for one recipient would leave the other
+  /// rows saying what the record no longer does.
+  pub fn wb_edit_message(
+    &mut self,
+    sender: &str,
+    recipient: &str,
+    id: &str,
+    text: &str,
+  ) -> Result<WbMessageEdit, FacadeError> {
+    self.require_registered(sender)?;
+    self.require_migrated(recipient)?;
+    self.check_body_bound(sender, text)?;
+    let (anchor, nth) = message_address(id);
+    let rows = self
+      .store
+      .wb_messages_between(sender, recipient)
+      .map_err(FacadeError::Store)?;
+    let headed: Vec<usize> = rows
+      .iter()
+      .enumerate()
+      .filter(|(_, r)| crate::views::board_stamp(&r.recorded_at) == anchor)
+      .map(|(i, _)| i)
+      .collect();
+    let no_such = || FacadeError::WbNoSuchMessage {
+      sender: sender.to_string(),
+      recipient: recipient.to_string(),
+      anchor: id.to_string(),
+    };
+    let n = match (nth, headed.len()) {
+      (Some(n), count) if n >= 1 && n as usize <= count => n,
+      (Some(_), _) | (None, 0) => return Err(no_such()),
+      (None, 1) => 1,
+      (None, count) => {
+        return Err(FacadeError::WbMessageAmbiguous {
+          sender: sender.to_string(),
+          recipient: recipient.to_string(),
+          anchor: anchor.to_string(),
+          count,
+          listing: headed
+            .iter()
+            .enumerate()
+            .map(|(k, &i)| format!("  {anchor}#{}  \"{}\"", k + 1, first_words(&rows[i].body)))
+            .collect::<Vec<_>>()
+            .join("\n"),
+        });
+      }
+    };
+    let row = &rows[headed[n as usize - 1]];
+    if row.body == text {
+      return Ok(WbMessageEdit {
+        edit: WbEdit::Unchanged,
+        recipients: vec![recipient.to_string()],
+      });
+    }
+    let events = self
+      .store
+      .wb_text_events(sender)
+      .map_err(FacadeError::Store)?;
+    let mut origin = message_origin(&events, recipient, &rows, headed[n as usize - 1]);
+    let announced = match origin.as_ref().filter(|o| o.op == "wb.announce") {
+      Some(announce) => Some(self.announce_copies(sender, &events, announce, &row.body)?),
+      None => None,
+    };
+    let copies = match announced {
+      Some(Some(all)) => all,
+      // A copy cannot be told apart, so this message is keyed by its own
+      // address and changed alone, rather than guessed at.
+      Some(None) => {
+        origin = None;
+        vec![(recipient.to_string(), row.id)]
+      }
+      None => vec![(recipient.to_string(), row.id)],
+    };
+    let carrier = match &origin {
+      Some(o) => Some(
+        events
+          .iter()
+          .rev()
+          .find(|e| edits_message(e, &o.id))
+          .unwrap_or(o)
+          .clone(),
+      ),
+      None => events
+        .iter()
+        .rev()
+        .find(|e| {
+          e.op == "wb.edit"
+            && e.payload["kind"] == "message"
+            && e.payload["event"].is_null()
+            && e.payload["to"] == recipient
+            && e.payload["anchor"] == anchor
+            && e.payload["n"] == n
+        })
+        .filter(|e| e.payload["text"] == row.body.as_str())
+        .cloned(),
+    };
+    let committed = match &carrier {
+      Some(event) => self.event_committed(event)?,
+      None => false,
+    };
+    // Asked before the write, as `wb_edit` asks it.
+    let still_at_head = self.text_at_head(&row.body)?;
+    let new_holds_old = text.contains(row.body.as_str());
+    let mut rewritten = Vec::new();
+    for (to, _) in &copies {
+      let dir = self.project.whiteboard_dir().join(to);
+      rewritten.push(self.project.relative(&dir.join("board.json")));
+      rewritten.push(
+        self
+          .project
+          .relative(&dir.join(format!("inbox.{sender}.md"))),
+      );
+    }
+    let ids: Vec<i64> = copies.iter().map(|(_, id)| *id).collect();
+    let mut edit = match carrier {
+      Some(mut draft) if !committed => {
+        let field = if draft.op == "wb.edit" {
+          "text"
+        } else {
+          "body"
+        };
+        draft.payload[field] = json!(text);
+        self
+          .store
+          .wb_amend(&draft, |w| w.set_message_body(&ids, text))
+          .map_err(FacadeError::Store)?;
+        let (path, _) = event_file_write(&self.project, &draft)?;
+        rewritten.push(self.project.relative(&path));
+        WbEdit::Amended {
+          event: draft.id,
+          still_at_head,
+          next_commit: None,
+          new_holds_old,
+        }
+      }
+      _ => {
+        let event = self.wb_event(
+          "wb.edit",
+          sender,
+          json!({
+            "kind": "message",
+            "event": origin.as_ref().map(|o| o.id.clone()),
+            "to": recipient,
+            "anchor": anchor,
+            "n": n,
+            "text": text,
+          }),
+        );
+        self
+          .store
+          .wb_write(&event, |w| w.set_message_body(&ids, text))
+          .map_err(FacadeError::Store)?;
+        WbEdit::Recorded {
+          event: event.id,
+          still_at_head,
+          next_commit: None,
+          new_holds_old,
+        }
+      }
+    };
+    self.land_board_write_noting()?;
+    self.note_staged(&rewritten);
+    let scanned = self.scan_next_commit(&row.body);
+    if let WbEdit::Amended { next_commit, .. } | WbEdit::Recorded { next_commit, .. } = &mut edit {
+      *next_commit = scanned;
+    }
+    Ok(WbMessageEdit {
+      edit,
+      recipients: copies.into_iter().map(|(to, _)| to).collect(),
+    })
+  }
+
+  /// Every copy one announce left, as (recipient, row), or `None` when a copy
+  /// cannot be told apart (issue 0523).
+  ///
+  /// **A COPY IS A ROW WHOSE ORIGIN IS THIS ANNOUNCE**, by [`message_origin`]'s
+  /// own rule, so the copies and the addressed message are found the same way,
+  /// and a later message saying the same thing is never taken for one. Exactly
+  /// one row per recipient may qualify. Where one does not, the copies are not
+  /// established, and the caller edits the addressed copy alone, keyed by its
+  /// address, rather than guess. Every edit of an announce edits every copy, so
+  /// the copies read one body for as long as they exist.
+  fn announce_copies(
+    &self,
+    sender: &str,
+    events: &[Envelope],
+    announce: &Envelope,
+    body: &str,
+  ) -> Result<Option<Vec<(String, i64)>>, FacadeError> {
+    let mut copies = Vec::new();
+    let recipients = announce.payload["recipients"]
+      .as_array()
+      .into_iter()
+      .flatten()
+      .filter_map(|r| r.as_str());
+    for to in recipients {
+      let rows = self
+        .store
+        .wb_messages_between(sender, to)
+        .map_err(FacadeError::Store)?;
+      let mut sent = rows.iter().enumerate().filter(|(i, m)| {
+        m.body == body
+          && m.recorded_at.as_str() <= announce.ts.as_str()
+          && message_origin(events, to, &rows, *i).is_some_and(|o| o.id == announce.id)
+      });
+      match (sent.next(), sent.next()) {
+        (Some((_, copy)), None) => copies.push((to.to_string(), copy.id)),
+        _ => return Ok(None),
+      }
+    }
+    Ok(Some(copies))
   }
 
   /// Name any of `rewritten` that was staged before an edit, as a note.

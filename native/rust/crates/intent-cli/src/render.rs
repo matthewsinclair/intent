@@ -4415,13 +4415,41 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("edit", m)) => {
       let me = acting_node(m)?;
-      let kind = wb_item_kind(enum_arg(m, "wb edit", "kind")?.as_str())?;
-      let seq = item_seq(m, "id")?;
+      let kind = enum_arg(m, "wb edit", "kind")?;
+      let to = opt(m, "to")?;
       let text = arg(m, "text")?;
-      let mut f = open()?;
-      let edited = f.wb_edit(&me, kind, seq, &text).map_err(fail)?;
-      print_notes(&f.take_notes(), &me);
-      let word = item_kind_word(&kind);
+      // **AN ITEM AND A MESSAGE ARE TWO ADDRESSES ON ONE VERB** (issue 0523): an
+      // item is a number on your own board, a message is one you sent, found by
+      // its recipient and its inbox heading. `--to` is what tells them apart, so
+      // it is required for one and refused for the other, and both refusals show
+      // both forms.
+      let (said, edited) = if kind == "message" {
+        let Some(to) = to else {
+          return Err(edit_forms(
+            "`wb edit message` edits a message you sent, so it needs `--to <recipient>`",
+          ));
+        };
+        let id = arg(m, "id")?;
+        let mut f = open()?;
+        let edited = f.wb_edit_message(&me, &to, &id, &text).map_err(fail)?;
+        print_notes(&f.take_notes(), &me);
+        (
+          format!("message {id} for {}", edited.recipients.join(", ")),
+          edited.edit,
+        )
+      } else {
+        if to.is_some() {
+          return Err(edit_forms(&format!(
+            "`--to` names the recipient of a message, and a `{kind}` is an item on your own board"
+          )));
+        }
+        let kind = wb_item_kind(&kind)?;
+        let seq = item_seq(m, "id")?;
+        let mut f = open()?;
+        let edited = f.wb_edit(&me, kind, seq, &text).map_err(fail)?;
+        print_notes(&f.take_notes(), &me);
+        (format!("{} {seq}", item_kind_word(&kind)), edited)
+      };
       // **IT SAYS WHERE THE OLD TEXT IS, BECAUSE THAT IS WHAT THE VERB IS FOR**
       // (issue 0523), and what it says is what HEAD and the next commit were
       // searched and found to hold under `intent/`, never what the case
@@ -4429,7 +4457,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       // back empty, and it says what was searched (vc's ruling on v4).
       let (how, still_at_head, next_commit, new_holds_old) = match edited {
         WbEdit::Unchanged => {
-          println!("ok: {me} {word} {seq} unchanged -- it already reads that");
+          println!("ok: {me} {said} unchanged -- it already reads that");
           return Ok(());
         }
         WbEdit::Amended {
@@ -4461,10 +4489,10 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         still_at_head.is_empty() && next_commit.as_ref().is_some_and(NextCommit::is_empty);
       if all_clear {
         println!(
-          "ok: {me} {word} {seq} edited {how}, and no file under intent/ holds the old text, at HEAD or in the next commit"
+          "ok: {me} {said} edited {how}, and no file under intent/ holds the old text, at HEAD or in the next commit"
         );
       } else {
-        println!("ok: {me} {word} {seq} edited {how}");
+        println!("ok: {me} {said} edited {how}");
       }
       if !still_at_head.is_empty() {
         println!(
@@ -4735,6 +4763,17 @@ pub(crate) fn wb_item_kind(wire: &str) -> Result<intentsvcs::model::WbItemKind, 
       "error: the table declares `{other}` as an item kind and this build has no arm for it"
     ))),
   }
+}
+
+/// A `wb edit` refusal that shows both of the verb's forms (issue 0523): the
+/// caller mixed the item address and the message address, and one remedy
+/// line that named only one form would leave them guessing at the other.
+fn edit_forms(why: &str) -> Failure {
+  Failure::Error(format!(
+    "error: {why}\n  remedy: `intent wb edit <kind> <id> <text> --node <you>` edits one of your \
+     items; `intent wb edit message <anchor> <text> --to <recipient> --node <you>` edits a \
+     message you sent"
+  ))
 }
 
 /// An item's number on its board, from the positional that carries it: `seq`

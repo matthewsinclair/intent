@@ -260,6 +260,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("an edit never creates an item"),
   ));
   out.push((
+    "an edit of a message no inbox heading shows",
+    facade
+      .wb_edit_message("cc", "hv", "1999-01-01 00:00Z", "the new text")
+      .expect_err("an edit never creates a message"),
+  ));
+  out.push((
     "a claim that is not an address",
     facade
       .wb_claim("cc", "the whole of ST0069")
@@ -1204,6 +1210,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbInboxFull { .. } => "WbInboxFull",
     FacadeError::WbItemsFull { .. } => "WbItemsFull",
     FacadeError::WbNoSuchItem { .. } => "WbNoSuchItem",
+    FacadeError::WbNoSuchMessage { .. } => "WbNoSuchMessage",
+    FacadeError::WbMessageAmbiguous { .. } => "WbMessageAmbiguous",
     FacadeError::WbClaimMalformed { .. } => "WbClaimMalformed",
     FacadeError::WbAlreadyCarried { .. } => "WbAlreadyCarried",
     FacadeError::WbSendersNotRegistered { .. } => "WbSendersNotRegistered",
@@ -1326,6 +1334,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbInboxFull",
   "WbItemsFull",
   "WbNoSuchItem",
+  "WbNoSuchMessage",
   "WbClaimMalformed",
   "WbAlreadyCarried",
   "WbSendersNotRegistered",
@@ -1348,6 +1357,11 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **PROVOKED WHERE A CARRIED INBOX IS** (issue 0523). Two messages share a
+  // heading minute without depending on the clock only when a carry stamps
+  // them with its one instant, so `wb_edit_keeps_the_old_text_out_of_a_commit.rs`
+  // builds that inbox and drives this refusal and the `#<n>` that answers it.
+  "WbMessageAmbiguous",
   // **RAISED BY THE RENDERER AND BY NOTHING ON THE FACADE.** `WbNoActingNode`
   // answers "nothing said which node is writing", and the facade's whiteboard
   // doors all TAKE the acting node as a parameter -- it is the CLI's

@@ -498,3 +498,270 @@ fn a_peers_committed_copy_of_the_text_is_named_at_head() {
     "the store is never named, even where this fixture committed it: {still_at_head:?}"
   );
 }
+
+// STAGE 2: MESSAGES (issue 0523). A message is addressed by its recipient and
+// the stamp its inbox heading shows, and its correction is keyed by the event
+// that sent it (ic's review).
+
+/// The stamp an inbox heading shows for a message sent at `recorded_at`.
+fn heading_stamp(recorded_at: &str) -> String {
+  format!("{} {}Z", &recorded_at[..10], &recorded_at[11..16])
+}
+
+/// A board as `board` builds it, with `vc` registered beside `cc`.
+fn two_nodes(fx: &Fixture) -> Facade {
+  let mut f = board(fx);
+  f.wb_register("vc", "Validation Claude", "validation")
+    .expect("register vc");
+  f
+}
+
+/// The anchor of the first message `vc` holds.
+fn first_anchor(f: &Facade) -> String {
+  heading_stamp(&f.board("vc").expect("vc's board").messages[0].recorded_at)
+}
+
+#[test]
+fn an_uncommitted_ask_is_amended_and_its_old_body_is_in_no_file() {
+  let fx = Fixture::new();
+  let mut f = two_nodes(&fx);
+  f.wb_ask("cc", "vc", OLD, None, false).expect("ask");
+  let anchor = first_anchor(&f);
+
+  let edited = f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
+
+  assert!(matches!(edited.edit, WbEdit::Amended { .. }), "{edited:?}");
+  assert_eq!(edited.recipients, vec!["vc".to_string()]);
+  assert_eq!(files_holding(&fx, OLD), Vec::<String>::new());
+}
+
+#[test]
+fn a_committed_ask_is_corrected_by_an_event_keyed_to_the_one_that_sent_it() {
+  let fx = Fixture::new();
+  let mut f = two_nodes(&fx);
+  f.wb_ask("cc", "vc", OLD, None, false).expect("ask");
+  fx.git_commit_all();
+  let asked: serde_json::Value =
+    serde_json::from_str(&event_files(&fx, "wb.ask")[0]).expect("the ask's event file");
+  let anchor = first_anchor(&f);
+
+  let edited = f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
+
+  let WbEdit::Recorded { still_at_head, .. } = &edited.edit else {
+    panic!("a committed ask is recorded, not amended: {edited:?}");
+  };
+  assert!(
+    still_at_head.contains(&"intent/whiteboard/vc/inbox.cc.md".to_string()),
+    "{still_at_head:?}"
+  );
+  let keyed = format!("\"event\": {}", asked["id"]);
+  assert!(
+    event_files(&fx, "wb.edit")
+      .iter()
+      .any(|e| e.contains(&keyed) && e.contains(NEW) && !e.contains(OLD)),
+    "the correction names the event that sent the message, and carries only the new body"
+  );
+}
+
+#[test]
+fn an_announce_is_edited_in_every_copy_and_names_each_recipient() {
+  // One event, one body, one row per recipient: editing one copy alone would
+  // leave the other rows saying what the amended event no longer does.
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  f.wb_register("dc", "DevX Claude", "worker")
+    .expect("register dc");
+  f.wb_register("vc", "Validation Claude", "validation")
+    .expect("register vc");
+  f.wb_announce("cc", OLD).expect("announce");
+  let anchor = first_anchor(&f);
+
+  let edited = f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
+
+  assert_eq!(edited.recipients, vec!["dc".to_string(), "vc".to_string()]);
+  assert_eq!(files_holding(&fx, OLD), Vec::<String>::new());
+}
+
+/// A hand-authored `vc` board holding two messages from `cc`, carried by `wb
+/// migrate`: a carry stamps every row it writes with its one instant, so the
+/// two share a heading minute without depending on the clock, and neither has
+/// an event that sent it.
+fn carried_inbox(fx: &Fixture) -> Facade {
+  let vc = fx.root().join("intent/whiteboard/vc");
+  std::fs::create_dir_all(&vc).expect("vc's directory");
+  std::fs::write(
+    vc.join("wip.md"),
+    "---\nnode: vc\nname: Validation Claude\nrole: validation\nstatus: active\n---\n\n# Validation Claude (vc)\n",
+  )
+  .expect("vc's board");
+  std::fs::write(
+    vc.join("inbox.cc.md"),
+    "# inbox: cc -> vc\n\n## (2026-09-12 09:00Z)\n\nthe first carried message\n\n## (2026-09-12 09:05Z)\n\nthe second carried message\n",
+  )
+  .expect("an inbox from cc");
+  let cc = fx.root().join("intent/whiteboard/cc");
+  std::fs::create_dir_all(&cc).expect("cc's directory");
+  std::fs::write(
+    cc.join("wip.md"),
+    "---\nnode: cc\nname: Control Claude\nrole: control\nstatus: active\n---\n",
+  )
+  .expect("cc's header, so the roster carries the sender");
+  let mut f = fx.facade_on_disk();
+  f.register_roster().expect("register the roster");
+  f.wb_migrate("vc", false).expect("carry vc's board");
+  f
+}
+
+#[test]
+fn two_messages_in_one_minute_are_refused_by_name_and_n_picks_one() {
+  let fx = Fixture::new();
+  let mut f = carried_inbox(&fx);
+  let anchor = first_anchor(&f);
+
+  let refused = f.wb_edit_message("cc", "vc", &anchor, NEW);
+
+  assert!(
+    matches!(
+      &refused,
+      Err(FacadeError::WbMessageAmbiguous { count: 2, .. })
+    ),
+    "{refused:?}"
+  );
+  let listing = refused.expect_err("refused").to_string();
+  assert!(
+    listing.contains(&format!("{anchor}#2")) && listing.contains("the second carried message"),
+    "{listing}"
+  );
+
+  let edited = f
+    .wb_edit_message("cc", "vc", &format!("{anchor}#2"), NEW)
+    .expect("#2 names one");
+
+  assert_eq!(edited.recipients, vec!["vc".to_string()]);
+  let bodies: Vec<String> = f
+    .board("vc")
+    .expect("vc's board")
+    .messages
+    .into_iter()
+    .map(|m| m.body)
+    .collect();
+  assert!(
+    bodies[0].contains("the first carried message") && bodies[1] == NEW,
+    "only the second moved: {bodies:?}"
+  );
+}
+
+#[test]
+fn an_anchor_no_heading_shows_is_refused_naming_where_anchors_are() {
+  let fx = Fixture::new();
+  let mut f = two_nodes(&fx);
+  f.wb_ask("cc", "vc", OLD, None, false).expect("ask");
+
+  let refused = f.wb_edit_message("cc", "vc", "1999-01-01 00:00Z", NEW);
+
+  assert!(
+    matches!(&refused, Err(FacadeError::WbNoSuchMessage { .. })),
+    "{refused:?}"
+  );
+  let remedy = refused.expect_err("refused").remedy();
+  assert!(
+    remedy.contains("intent/whiteboard/vc/inbox.cc.md") && remedy.contains("claimed"),
+    "{remedy}"
+  );
+}
+
+#[test]
+fn a_new_focus_leaves_the_old_one_in_no_file() {
+  // vc's ruling: the focus's door stays `wb pickup --focus`. The act never
+  // travels as an event file, so the renders are the only files that carry
+  // it, and the pickup that replaces it rewrites both.
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  f.wb_pickup("cc", None, Some(OLD), false).expect("pickup");
+  assert!(
+    !files_holding(&fx, OLD).is_empty(),
+    "the rig holds the old focus before the change"
+  );
+
+  f.wb_pickup("cc", None, Some(NEW), false).expect("pickup");
+
+  assert_eq!(files_holding(&fx, OLD), Vec::<String>::new());
+}
+
+#[test]
+fn a_carried_message_never_borrows_a_later_messages_event() {
+  // The item rule, applied to messages (vc's ruling on v4): a carried message
+  // has no event of its own, and a later ask saying the same thing to the same
+  // recipient sends its own row, which closes the carried one's window. So the
+  // carried message is keyed by its address, and the later message's record
+  // is left byte for byte.
+  let fx = Fixture::new();
+  let mut f = carried_inbox(&fx);
+  let (body, recorded_at) = {
+    let board = f.board("vc").expect("vc's board");
+    (
+      board.messages[1].body.clone(),
+      board.messages[1].recorded_at.clone(),
+    )
+  };
+  f.wb_ask("cc", "vc", &body, None, false)
+    .expect("a later ask in the same words");
+  let before = event_files(&fx, "wb.ask");
+  let anchor = heading_stamp(&recorded_at);
+
+  let edited = f
+    .wb_edit_message("cc", "vc", &format!("{anchor}#2"), NEW)
+    .expect("edit the carried message");
+
+  assert!(matches!(edited.edit, WbEdit::Recorded { .. }), "{edited:?}");
+  assert_eq!(
+    event_files(&fx, "wb.ask"),
+    before,
+    "the later ask's event is untouched"
+  );
+  let bodies: Vec<String> = f
+    .board("vc")
+    .expect("vc's board")
+    .messages
+    .into_iter()
+    .map(|m| m.body)
+    .collect();
+  assert_eq!(
+    (bodies[1].as_str(), bodies[2].as_str()),
+    (NEW, body.as_str()),
+    "the carried message changed and the later one kept its words"
+  );
+}
+
+#[test]
+fn an_announce_whose_copies_cannot_be_told_apart_edits_the_addressed_copy_alone() {
+  // A copy is a row whose origin is the announce, by the same rule. When one
+  // recipient's copy no longer reads what the announce said, the copies are
+  // not established, so the edit changes the addressed copy alone, keyed by
+  // its address, and leaves the announce's record as it was.
+  let fx = Fixture::new();
+  let mut f = board(&fx);
+  f.wb_register("dc", "DevX Claude", "worker")
+    .expect("register dc");
+  f.wb_register("vc", "Validation Claude", "validation")
+    .expect("register vc");
+  f.wb_announce("cc", OLD).expect("announce");
+  let db = rusqlite::Connection::open(fx.project().db_path()).expect("a second connection");
+  db.execute(
+    "UPDATE wb_message SET body = 'a copy that no longer reads the same' WHERE recipient = 'dc'",
+    [],
+  )
+  .expect("plant a copy that diverged");
+  let anchor = first_anchor(&f);
+  let announced = event_files(&fx, "wb.announce");
+
+  let edited = f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
+
+  assert_eq!(edited.recipients, vec!["vc".to_string()]);
+  assert!(matches!(edited.edit, WbEdit::Recorded { .. }), "{edited:?}");
+  assert_eq!(
+    event_files(&fx, "wb.announce"),
+    announced,
+    "the announce's record is left as it was"
+  );
+}

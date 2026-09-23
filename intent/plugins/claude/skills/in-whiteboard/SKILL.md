@@ -50,7 +50,7 @@ Intent's own roster names the validation node, in the human's words: _the workst
 | Record a cross-node decision                         | `intent wb decide <text>`           |
 | Take or drop a thread                                | `intent wb claim` / `unclaim <id>`  |
 | Retire one of your own items                         | `intent wb archive <kind> <seq>`    |
-| Change or redact what one of your own items says     | `intent wb edit <kind> <id> <text>` |
+| Change or redact your item or a message you sent     | `intent wb edit <kind> <id> <text>` |
 | Mark one sender's messages handled                   | `intent wb clear <sender>`          |
 | Say you are still alive                              | `intent wb touch`                   |
 | End a session                                        | `intent wb release`                 |
@@ -307,11 +307,13 @@ Use it for 1-to-all signals: a shared platform layer you are about to touch, a p
 
 `intent wb edit <doing|todo|decision|watchout|hold|directive> <id> "<text>" --node <you>` -- one item of your own, live or archived, gets new text; `<id>` is the item's number, as `wb show` prints it.
 
+`intent wb edit message "<anchor>" "<text>" --to <recipient> --node <you>` -- one message you sent, handled or live, gets a new body. `<anchor>` is the first stamp in its heading in the recipient's inbox view, the value `wb ask --re` takes, and `<anchor>#<n>` picks one of several sent in one minute; a minute holding several is refused with each of them listed. `--to` is required for a message and refused for an item. **AN ANNOUNCE IS ONE MESSAGE TO EVERY PEER**, so editing any copy edits every copy, and the answer names each recipient; where one copy no longer reads what the announce said, only the addressed copy changes.
+
 **WHERE THE OLD TEXT GOES IS THE POINT, AND THE ANSWER SAYS WHICH.** If no commit holds the event that carries it, that event is amended in place. If a commit holds it, a `wb.edit` event records the change and git history keeps the old text: rewriting history is the repository's decision, never this verb's. Either way the answer names, each on a line of its own, every file under `intent/` that HEAD already carries the old text in, every staged file the next commit would carry it in, and every unstaged or untracked file the next commit could carry it in, all read rather than assumed. Committed means present at HEAD -- a file you staged is not committed, and the verb names any board or event file staged before the edit, because a plain `git commit` carries the index, not the disk. `git add` restages the corrected file.
 
 **THE ALL-CLEAR IS SAID ONLY WHEN BOTH SEARCHES RAN AND FOUND NOTHING, AND IT SAYS WHAT WAS SEARCHED**: _no file under intent/ holds the old text, at HEAD or in the next commit_. A peer's committed item quoting the text, a copy `wb migrate` kept under `.history/pre-migration/`, a draft the edit could not match to the item, and another item that says the same thing all leave the text where a commit carries it, so the answer names each of them rather than assuming them away. The lines name what holds the text, not whose it is. When the new text contains the old text, every file holding the new text holds the old text as well, and the answer says so on a line of its own rather than shortening the lists. Outside `intent/`, and in commits before HEAD, nothing is searched.
 
-**THE ADDRESS IS YOUR OWN BOARD.** A peer's item is the peer's to edit, exactly as it is the peer's to archive.
+**THE ADDRESS IS YOUR OWN BOARD, OR A MESSAGE YOU SENT.** A peer's item is the peer's to edit, exactly as it is the peer's to archive, and a message is its sender's to edit.
 
 ### `touch`
 

@@ -279,6 +279,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // Issue 0523: an edit names a kind and a number the board does not carry.
     // Every field was supplied, and the remedy is a number the board does hold.
     | FacadeError::WbNoSuchItem { .. }
+    // Its stage 2 reading for a message: an anchor no heading shows, or one
+    // minute holding several messages with no `#<n>` to pick one. Every field
+    // was supplied; the remedy names where anchors are read and how one is
+    // picked.
+    | FacadeError::WbNoSuchMessage { .. }
+    | FacadeError::WbMessageAmbiguous { .. }
     | FacadeError::WbAlreadyCarried { .. }
     | FacadeError::WbSendersNotRegistered { .. }
     // Issue 0424's refusal: the call takes no fields at all. What is missing is

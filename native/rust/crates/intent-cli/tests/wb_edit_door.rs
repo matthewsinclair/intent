@@ -365,3 +365,101 @@ fn a_clean_head_and_an_amended_draft_give_the_all_clear() {
   );
   assert!(!said.contains("HEAD already carries"), "{said}");
 }
+
+#[test]
+fn to_is_refused_on_an_item_and_required_for_a_message() {
+  // `--to` is what tells an item from a message, so each form refuses the
+  // other's shape, and each refusal shows both forms.
+  let dir = seeded();
+
+  let (said, code) = run(
+    dir.path(),
+    &[
+      "wb",
+      "edit",
+      "todo",
+      "1",
+      "a client owes",
+      "--to",
+      "vc",
+      "--node",
+      "cc",
+    ],
+  );
+  assert_eq!(code, 1, "{said}");
+  assert!(
+    said.contains("`--to` names the recipient of a message"),
+    "{said}"
+  );
+
+  let (said, code) = run(
+    dir.path(),
+    &[
+      "wb",
+      "edit",
+      "message",
+      "2026-09-23 09:00Z",
+      "a client owes",
+      "--node",
+      "cc",
+    ],
+  );
+  assert_eq!(code, 1, "{said}");
+  assert!(said.contains("needs `--to <recipient>`"), "{said}");
+}
+
+#[test]
+fn a_message_you_sent_is_edited_by_its_heading_and_names_its_recipient() {
+  let dir = seeded();
+  ok(
+    dir.path(),
+    &[
+      "wb",
+      "register",
+      "vc",
+      "--name",
+      "Validation Claude",
+      "--role",
+      "validation",
+    ],
+  );
+  ok(
+    dir.path(),
+    &["wb", "ask", "vc", "client ACME-4471 owes", "--node", "cc"],
+  );
+  let inbox = std::fs::read_to_string(dir.path().join("intent/whiteboard/vc/inbox.cc.md"))
+    .expect("vc's inbox from cc");
+  let anchor = inbox
+    .lines()
+    .find_map(|l| l.strip_prefix("## ("))
+    .and_then(|l| l.split(')').next())
+    .expect("a heading")
+    .to_string();
+
+  let said = ok(
+    dir.path(),
+    &[
+      "wb",
+      "edit",
+      "message",
+      &anchor,
+      "a client owes",
+      "--to",
+      "vc",
+      "--node",
+      "cc",
+    ],
+  );
+
+  assert!(
+    said.contains(&format!(
+      "ok: cc message {anchor} for vc edited in its uncommitted event"
+    )),
+    "{said}"
+  );
+  let shown = ok(dir.path(), &["wb", "show", "vc"]);
+  assert!(
+    shown.contains("a client owes") && !shown.contains("ACME-4471"),
+    "{shown}"
+  );
+}

@@ -4053,7 +4053,7 @@ The whiteboard: read the node boards, and send between them
 | `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                               | new-surface |
 | `wb add`      | <kind> <text>      | --node                                    | Add an item to the acting node's own board                                                             | new-surface |
 | `wb archive`  | <kind> <seq>       | --node                                    | Move one of the acting node's live items to archived                                                   | new-surface |
-| `wb edit`     | <kind> <id> <text> | --node                                    | Change the text of one of the acting node's items, live or archived                                    | new-surface |
+| `wb edit`     | <kind> <id> <text> | --node, --to                              | Change the text of one of the acting node's items, live or archived, or of a message it sent           | new-surface |
 | `wb pickup`   | --                 | --node, --session, --focus, --all, --json | Start a session: mark this node active, then its board and its peers' state                            | new-surface |
 | `wb touch`    | --                 | --node                                    | Stamp the acting node's heartbeat                                                                      | new-surface |
 | `wb release`  | --                 | --node                                    | Pause the acting node, stamping when it stopped                                                        | new-surface |
@@ -4224,25 +4224,28 @@ Move one of the acting node's live items to archived
 
 ### `wb edit`
 
-Change the text of one of the acting node's items, live or archived
+Change the text of one of the acting node's items, live or archived, or of a message it sent
 
 - **v2:** new-surface
 - **Arguments:**
-  - `kind` (enum, arity `1`) -- The item's kind: the section of the board it sits in -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`
-  - `id` (string, arity `1`) -- The item's number within its kind, as `intent wb show <node>` prints it
-  - `text` (string, arity `1`) -- The item's new text, whole
+  - `kind` (enum, arity `1`) -- The item's kind, the section of the board it sits in, or `message` for a message you sent -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`, `message`
+  - `id` (string, arity `1`) -- The item's number within its kind, as `intent wb show <node>` prints it; for `message`, the first stamp in its inbox heading, with `#<n>` (from 1, in send order) to pick one of several in a minute
+  - `text` (string, arity `1`) -- The new text, whole
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
+    - **disposition:** keep
+    - **exposed on mcp:** false
+  - `--to` (string) -- The recipient of the message being edited, with `message` and nothing else
     - **disposition:** keep
     - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT to correct what one of your own items says, or to take out text that must not be committed -- a client identifier, a secret, a name. Where no commit holds the event carrying the old text, that event is rewritten in place; where a commit holds it, a new event records the change and git history keeps the old text, which is the repository's to publish or rewrite and never this verb's. The answer names, each on a line of its own, every file under `intent/` that HEAD already carries the old text in -- a board committed without its event file, or a peer's committed item quoting the text, included -- and every file the next commit would carry it in (staged) or could carry it in (unstaged or untracked), whoever wrote the text there, all read rather than assumed. It says no file under `intent/` holds the old text, at HEAD or in the next commit, only when both searches ran and found nothing, and when the new text contains the old text it says so, because every file holding the new text then holds the old text as well. It also names any file that was staged before the edit, because a plain `git commit` carries what the index holds rather than what is on disk. DO NOT USE IT on another node's item, which is that node's to edit, or on a message, which is not an item. The same text again changes nothing.
+- **when to use:** USE IT to correct what one of your own items or sent messages says, or to take out text that must not be committed -- a client identifier, a secret, a name. Where no commit holds the event carrying the old text, that event is rewritten in place; where a commit holds it, a new event records the change and git history keeps the old text, which is the repository's to publish or rewrite and never this verb's. The answer names, each on a line of its own, every file under `intent/` that HEAD already carries the old text in -- a board committed without its event file, or a peer's committed item quoting the text, included -- and every file the next commit would carry it in (staged) or could carry it in (unstaged or untracked), whoever wrote the text there, all read rather than assumed. It says no file under `intent/` holds the old text, at HEAD or in the next commit, only when both searches ran and found nothing, and when the new text contains the old text it says so, because every file holding the new text then holds the old text as well. It also names any file that was staged before the edit, because a plain `git commit` carries what the index holds rather than what is on disk. A MESSAGE is `wb edit message <anchor> <text> --to <recipient>`: the anchor is the first stamp in its heading in the recipient's inbox view, the value `wb ask --re` takes, and `<anchor>#<n>` picks one of several in a minute. An announce is one message to everyone, so editing any copy edits every copy, and the answer names each recipient. DO NOT USE IT on another node's item or on a message you did not send: each is its writer's to edit. The same text again changes nothing.
 - **basis:** Issue 0523 (hv, 2026-09-23: "I need that fixed right now, please"), requested by gtools-vc on Gtools hv's ruling after Gtools' identifier gate refused a board whose item text and originating event file both carried client identifiers. There is no v2 antecedent.
 - **recoverability:** one-way
 - **facade:** wb_edit
-- **note:** **ONE-WAY IN BOTH OF ITS CASES, AND OFF MCP FOR THE REASON EVERY TEXT-WRITING `wb` VERB IS.** Amending an uncommitted event discards the old text for good, which is the point of it, and recording a committed one appends an event that never leaves the log; either way nothing the tool holds can put the prior state back, and `wb add`, `wb decide`, `wb ask`, `wb announce` and `wb migrate` are `one-way` and withheld on the same reading. **"COMMITTED" IS PRESENT AT HEAD, NEVER THE INDEX**: a commit a gate refused leaves its paths staged, and a staged event is still a draft that can be amended. **THE NAME IS `edit`, NOT `correct`**, because `wb register --correct` already names a node's name and role; `edit` is the verb `ac edit`, `at edit` and `issues edit` use for changing a stored record's text.
+- **note:** **A MESSAGE'S CORRECTION IS KEYED BY THE EVENT THAT SENT IT** (ic's review, issue 0523): the `wb.ask` or `wb.announce`, the one identity every copy of a message shares, so replaying one names exactly what it corrects; a message with none, carried by `wb migrate`, is keyed by its recipient, anchor and place in the minute, which an inbox that only grows never changes. The facade's door for it is `wb_edit_message`. **ONE-WAY IN BOTH OF ITS CASES, AND OFF MCP FOR THE REASON EVERY TEXT-WRITING `wb` VERB IS.** Amending an uncommitted event discards the old text for good, which is the point of it, and recording a committed one appends an event that never leaves the log; either way nothing the tool holds can put the prior state back, and `wb add`, `wb decide`, `wb ask`, `wb announce` and `wb migrate` are `one-way` and withheld on the same reading. **"COMMITTED" IS PRESENT AT HEAD, NEVER THE INDEX**: a commit a gate refused leaves its paths staged, and a staged event is still a draft that can be amended. **THE NAME IS `edit`, NOT `correct`**, because `wb register --correct` already names a node's name and role; `edit` is the verb `ac edit`, `at edit` and `issues edit` use for changing a stored record's text.
 
 ### `wb pickup`
 

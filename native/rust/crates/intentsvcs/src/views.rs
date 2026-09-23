@@ -1800,7 +1800,11 @@ pub(crate) fn is_whiteboard_written(project: &Project, path: &std::path::Path) -
 /// carries what a migrated board's markdown claimed, including stamps known to
 /// be invented, and a renderer that silently normalised those would be laundering
 /// them into a form indistinguishable from a real reading.
-fn board_stamp(iso: &str) -> String {
+///
+/// **IT IS ALSO A MESSAGE'S ANCHOR** (issue 0523): `wb edit message` finds a
+/// message by the stamp its inbox heading shows, so it asks this function
+/// rather than spelling the format a second time.
+pub(crate) fn board_stamp(iso: &str) -> String {
   match (iso.find('T'), iso.len() >= 16) {
     (Some(10), true) => format!("{} {}Z", &iso[..10], &iso[11..16]),
     _ => iso.to_string(),
