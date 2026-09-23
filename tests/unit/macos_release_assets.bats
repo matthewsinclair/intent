@@ -403,6 +403,43 @@ git_fixture() {
   assert_output_contains "dist-provenance.txt"
 }
 
+# Render the formula through the script's own cmd_formula against a planted
+# stage: a stand-in binary that reports a version, and a SHA256SUMS.txt naming
+# the three artefacts. host_triple is stubbed so no toolchain is asked, and die
+# is the only other helper the function calls. Nothing leaves TEST_TEMP_DIR.
+render_formula() {
+  local fns="${TEST_TEMP_DIR}/formulafns.sh" t="aarch64-apple-darwin"
+  sed -n '/^SUPPORT_ASSET=/p' "$MACOS" >"$fns"
+  sed -n '/^require_sums() {/,/^}/p;/^staged_version() {/,/^}/p;/^cmd_formula() {/,/^}/p' "$MACOS" >>"$fns"
+  # shellcheck disable=SC1090
+  . "$fns"
+  host_triple() { printf 'aarch64-apple-darwin'; }
+  die() {
+    printf 'die: %s\n' "$*" >&2
+    return 1
+  }
+  STAGE_DIR="${TEST_TEMP_DIR}/dist"
+  mkdir -p "$STAGE_DIR"
+  printf '#!/bin/sh\necho "intent 9.9.9 (0000000)"\n' >"$STAGE_DIR/intent-$t"
+  chmod +x "$STAGE_DIR/intent-$t"
+  printf 'aaa  intent-%s\nbbb  intentd-%s\nccc  %s\n' "$t" "$t" "$SUPPORT_ASSET" >"$STAGE_DIR/SHA256SUMS.txt"
+  cmd_formula
+}
+
+@test "the rendered caveat names the upgrade case and stays conditional (issue 0527)" {
+  run render_formula
+  assert_success
+  # The upgrade case: a pointer naming a keg that is no longer installed.
+  assert_output_contains "if it names an Intent under Cellar/intent/ that is"
+  assert_output_contains "no longer installed"
+  # Still conditional, so a pointer naming a source checkout is never moved.
+  assert_output_contains "if that file does not exist yet"
+  assert_output_contains "such as a source checkout, needs nothing"
+  # The heredoc is unquoted, so an unescaped backtick would have RUN rather than rendered.
+  assert_output_contains 'only `intent bootstrap` writes'
+  assert_output_contains '`brew upgrade` removes'
+}
+
 @test "the formula's install block is agnostic about what the archive carries" {
   # Rooted at the install root, so a shipped set that grows -- `intent critic` and
   # `intent claude rules` are unimplemented today and will need the rule library,

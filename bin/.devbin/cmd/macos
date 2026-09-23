@@ -1600,13 +1600,24 @@ ${revline}
   # sandbox temp directory; a write to the real home failed with EPERM). The
   # caveat is conditional because bootstrap REPOINTS an existing pointer, and a
   # machine already set up -- a source checkout, say -- should not be moved.
+  #
+  # THE UPGRADE CASE (issue 0527, 2026-09-23). Intent 3.2.0 and earlier recorded
+  # the versioned keg, Cellar/intent/<version>/libexec, and \`brew upgrade\`
+  # deletes that keg, so the pointer names nothing and every gated commit is
+  # refused. From 3.2.1, bootstrap records opt/intent/libexec, which follows
+  # every upgrade. No 3.2.1 code runs before the old pointer breaks, so this
+  # caveat is the one lever that reaches such a machine at its upgrade. It stays
+  # conditional: a pointer naming anything else is left as it is.
   def caveats
     <<~EOS
       Intent's pre-commit gate finds this install through ~/.local/share/intent/home, which
-      only \`intent bootstrap\` writes. If that file does not exist yet, run:
+      only \`intent bootstrap\` writes. Run
         intent bootstrap
-      Until it exists, every commit in a project with the gate installed is
-      refused.
+      if that file does not exist yet, or if it names an Intent under Cellar/intent/ that is
+      no longer installed: Intent 3.2.0 and earlier recorded the versioned keg, which
+      \`brew upgrade\` removes. Until then, every commit in a project with the gate
+      installed is refused. Later versions record a path that survives upgrades, and a
+      file naming anything else, such as a source checkout, needs nothing.
     EOS
   end
 

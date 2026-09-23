@@ -11622,12 +11622,16 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
 /// machine rather than of what was written -- so the alternative was the same
 /// four lines in two branches of one function, which is the shape that drifts
 /// first.
+///
+/// **COMPARED AS INSTALLS, NOT AS STRINGS** (issue `0527`). On a Homebrew
+/// install the pointer names the `opt` link and `home` is the keg it links, so
+/// a textual comparison would report every brew machine as running two installs.
 fn report_pointer_divergence(
   gate_pointer: &Option<intentsvcs::install::PointerState>,
   home: &std::path::Path,
 ) {
   if let Some(intentsvcs::install::PointerState::Resolves { root }) = gate_pointer
-    && root.as_path() != home
+    && !intentsvcs::install::same_install(root, home)
   {
     println!("note: the gate will run from a DIFFERENT install than this binary.");
     println!("  this binary:      {}", home.display());

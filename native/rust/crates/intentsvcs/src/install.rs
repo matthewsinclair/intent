@@ -169,6 +169,62 @@ fn canonical(p: &Path) -> PathBuf {
   std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf())
 }
 
+/// The Homebrew formula this project ships as, which names its keg directory
+/// under `Cellar/` and its link under `opt/`.
+const BREW_FORMULA: &str = "intent";
+
+/// The path to RECORD for an install root. On a Homebrew install that is not
+/// the root [`resolve`] finds (issue `0527`).
+///
+/// **A HOMEBREW KEG IS VERSIONED, AND `brew upgrade` DELETES THE OLD ONE.**
+/// [`resolve`] canonicalises the executable, as it must, so on a brew install
+/// the root it finds is `<prefix>/Cellar/intent/<version>/libexec`. A pointer
+/// recording that names a directory the next upgrade's cleanup removes, and
+/// from then on the project shim refuses every gated commit until `intent
+/// bootstrap` runs again. `<prefix>/opt/intent` is Homebrew's link to whichever
+/// keg is current, so a pointer through it survives every upgrade.
+///
+/// **THE STABLE PATH IS RECORDED ONLY WHEN IT RESOLVES TO THIS SAME KEG.** A
+/// keg run directly while `opt` links a different version is recorded as it
+/// is, because the pointer must name the install this binary belongs to. So is
+/// every root outside a Cellar: a source checkout, a release build, a CI runner.
+///
+/// PURE in the sense [`resolve`] is: the only reads are of the paths it is
+/// handed, so a planted Cellar-and-opt tree drives every arm. `root` is taken
+/// as [`resolve`] returns it, already canonical.
+pub fn stable_root(root: &Path) -> PathBuf {
+  for keg in root.ancestors() {
+    let (Some(formula), Some(cellar)) = (keg.parent(), keg.parent().and_then(Path::parent)) else {
+      break;
+    };
+    if formula.file_name() != Some(std::ffi::OsStr::new(BREW_FORMULA))
+      || cellar.file_name() != Some(std::ffi::OsStr::new("Cellar"))
+    {
+      continue;
+    }
+    let Some(prefix) = cellar.parent() else {
+      break;
+    };
+    let opt = prefix.join("opt").join(BREW_FORMULA);
+    if canonical(&opt) != keg {
+      break;
+    }
+    return match root.strip_prefix(keg) {
+      Ok(rest) if !rest.as_os_str().is_empty() => opt.join(rest),
+      _ => opt,
+    };
+  }
+  root.to_path_buf()
+}
+
+/// Whether two paths name the same install: compared by what they resolve to,
+/// never by how they are spelled (issue `0527`). The pointer records
+/// [`stable_root`] while [`home`] answers the canonical keg, so on a brew
+/// install one directory arrives as two different strings.
+pub fn same_install(a: &Path, b: &Path) -> bool {
+  canonical(a) == canonical(b)
+}
+
 /// The shipped Claude Code lifecycle hooks, by name (`intent claude hook`).
 ///
 /// **One array, three readers** -- the acceptance check, the usage block and
@@ -223,6 +279,8 @@ pub enum Published {
 /// root in, and that is the signature doing the enforcing rather than a comment
 /// asking politely: the source publishes its own cache, so there is one
 /// computation of "where is Intent installed" and one place it is recorded.
+/// It is recorded through [`stable_root`], which names the same directory by a
+/// path a Homebrew upgrade does not delete (issue `0527`).
 ///
 /// **REFUSES BEFORE WRITING, AND ASSERTS AFTER.** Both, and they answer
 /// different questions. Before: is this root actually an install -- because
@@ -236,7 +294,7 @@ pub enum Published {
 /// **IDEMPOTENT.** An unchanged value does not rewrite the file, so its mtime
 /// does not move and a caller can run this as often as it likes.
 pub fn publish_home() -> Result<Published, InstallError> {
-  let root = home()?;
+  let root = stable_root(&home()?);
   let pointer = crate::userstate::home_pointer()
     .map_err(|e| InstallError::Pointer(std::io::Error::other(e.to_string())))?;
   publish_home_at(&root, &pointer)
@@ -936,6 +994,143 @@ mod tests {
 
     let err = resolve(&exe).expect_err("nothing above this is an install");
     assert!(err.to_string().contains("bin/intent"), "{err}");
+  }
+
+  /// A planted Homebrew layout, as `brew install` leaves one: the keg at
+  /// `<prefix>/Cellar/intent/<version>/libexec` carrying the marker and the
+  /// binary, `<prefix>/bin/intent` linked into it, and `<prefix>/opt/intent`
+  /// linked to the keg. Planting a second version moves both links to it, which
+  /// is `brew link`'s half of an upgrade.
+  fn plant_keg(prefix: &Path, version: &str) {
+    let libexec = prefix
+      .join("Cellar")
+      .join(BREW_FORMULA)
+      .join(version)
+      .join("libexec");
+    install_at(&libexec);
+    std::fs::create_dir_all(libexec.join("bin")).unwrap();
+    std::fs::write(libexec.join("bin/intent"), b"").unwrap();
+    link(
+      prefix,
+      "bin/intent",
+      &format!("../Cellar/intent/{version}/libexec/bin/intent"),
+    );
+    link(prefix, "opt/intent", &format!("../Cellar/intent/{version}"));
+  }
+
+  /// Point `<prefix>/<name>` at `target`, replacing a link already there.
+  fn link(prefix: &Path, name: &str, target: &str) {
+    let at = prefix.join(name);
+    std::fs::create_dir_all(at.parent().unwrap()).unwrap();
+    if at.symlink_metadata().is_ok() {
+      std::fs::remove_file(&at).unwrap();
+    }
+    std::os::unix::fs::symlink(target, &at).unwrap();
+  }
+
+  /// **ISSUE `0527`: ON A BREW LAYOUT THE POINTER NAMES THE `opt` LINK.**
+  /// Resolved through the `bin` link, as a user's `intent` is, the walk finds
+  /// the versioned keg, and what is recorded is `opt`'s path to that keg.
+  #[test]
+  fn a_brew_keg_is_recorded_by_its_opt_link() {
+    let dir = tmp("brew");
+    let prefix = canonical(dir.path());
+    plant_keg(&prefix, "9.9.9");
+
+    let root = resolve(&prefix.join("bin/intent")).unwrap();
+    assert_eq!(root, prefix.join("Cellar/intent/9.9.9/libexec"));
+    let recorded = stable_root(&root);
+    assert_eq!(recorded, prefix.join("opt/intent/libexec"));
+
+    let pointer = prefix.join("share/intent/home");
+    assert_eq!(
+      publish_home_at(&recorded, &pointer).unwrap(),
+      Published::Written {
+        root: recorded.clone()
+      }
+    );
+  }
+
+  /// **ISSUE `0527`: AN UPGRADE LEAVES THE POINTER WORKING.** The upgrade is
+  /// driven as brew performs it: a new keg, the links moved to it, and the old
+  /// keg deleted by the cleanup. The pointer an older bootstrap wrote is the
+  /// control -- it names the versioned keg, so the same upgrade breaks it.
+  #[test]
+  fn after_an_upgrade_the_recorded_path_is_unchanged_and_still_an_install() {
+    let dir = tmp("brew-upgrade");
+    let prefix = canonical(dir.path());
+    plant_keg(&prefix, "9.9.9");
+    let pointer = prefix.join("share/intent/home");
+    let before = stable_root(&resolve(&prefix.join("bin/intent")).unwrap());
+    publish_home_at(&before, &pointer).unwrap();
+    let old = prefix.join("Cellar/intent/9.9.9/libexec");
+    let versioned = prefix.join("share/intent/versioned");
+    std::fs::write(&versioned, format!("{}\n", old.display())).unwrap();
+
+    plant_keg(&prefix, "9.9.10");
+    std::fs::remove_dir_all(prefix.join("Cellar/intent/9.9.9")).unwrap();
+
+    assert_eq!(
+      pointer_state_at(&versioned),
+      PointerState::Unusable {
+        root: old.display().to_string()
+      },
+      "the control: a pointer naming the versioned keg stops resolving at the upgrade"
+    );
+    let after = stable_root(&resolve(&prefix.join("bin/intent")).unwrap());
+    assert_eq!(after, before);
+    assert_eq!(
+      publish_home_at(&after, &pointer).unwrap(),
+      Published::Unchanged {
+        root: after.clone()
+      }
+    );
+    assert_eq!(
+      pointer_state_at(&pointer),
+      PointerState::Resolves { root: after }
+    );
+  }
+
+  /// **ISSUE `0527`: EVERY OTHER ROOT IS RECORDED EXACTLY AS IT IS.** A source
+  /// checkout; a keg run directly while `opt` links another version, which must
+  /// not be recorded as the version it is not; a keg with no `opt` link; and
+  /// another formula's keg.
+  #[test]
+  fn a_root_that_opt_does_not_resolve_to_is_recorded_as_it_is() {
+    let dir = tmp("not-brew");
+    let base = canonical(dir.path());
+
+    let checkout = base.join("src/intent");
+    install_at(&checkout);
+    assert_eq!(stable_root(&checkout), checkout);
+
+    plant_keg(&base, "9.9.9");
+    plant_keg(&base, "9.9.10");
+    let older = base.join("Cellar/intent/9.9.9/libexec");
+    assert_eq!(stable_root(&older), older, "opt links 9.9.10, not 9.9.9");
+
+    let unlinked = base.join("unlinked/Cellar/intent/1.0.0/libexec");
+    install_at(&unlinked);
+    assert_eq!(stable_root(&unlinked), unlinked, "no opt link at all");
+
+    let other = base.join("Cellar/other/1.0.0/libexec");
+    install_at(&other);
+    link(&base, "opt/other", "../Cellar/other/1.0.0");
+    assert_eq!(stable_root(&other), other, "another formula's keg");
+  }
+
+  /// The `opt` path and the keg it links are one install, and two kegs are two:
+  /// the comparison the CLI's divergence note makes (issue `0527`).
+  #[test]
+  fn two_spellings_of_one_install_are_the_same_install() {
+    let dir = tmp("same");
+    let prefix = canonical(dir.path());
+    plant_keg(&prefix, "9.9.9");
+    let keg = prefix.join("Cellar/intent/9.9.9/libexec");
+    assert!(same_install(&prefix.join("opt/intent/libexec"), &keg));
+
+    plant_keg(&prefix, "9.9.10");
+    assert!(!same_install(&prefix.join("opt/intent/libexec"), &keg));
   }
 
   /// **The roster and the filesystem agree -- in the DECLARED -> SHIPPED

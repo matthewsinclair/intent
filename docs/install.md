@@ -97,6 +97,8 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **Views an older build rendered report as `stale-render` in `intent doctor`.** This is advisory and does not block a commit, and `intent sync --to-disk` brings the views up to date.
 
+**From v3.2.0 or earlier, run `intent bootstrap` once after the upgrade.** Those builds recorded the versioned keg, `<prefix>/Cellar/intent/<version>/libexec`, as the install pointer, and `brew upgrade` deletes that keg, so until you run it every commit in a project with the gate installed is refused, and the refusal names the command. From v3.2.1, `intent bootstrap` records `<prefix>/opt/intent/libexec`, Homebrew's link to whichever version is current, so later upgrades need nothing.
+
 **From v3.0.1 or earlier,** the first command of v3.0.2 or later moves your per-user files out of `~/.intent/` (see [Per-user files](#per-user-files)). A pre-commit gate installed by the older build still reads the old pointer, so run `intent claude upgrade --apply --skip-settings` in each project, and run `intent bootstrap` if `~/.local/share/intent/home` does not exist.
 
 **From v3.0.0,** note that the v3.0.0 keg shipped without the rule library, the skills and `intent_claude_cwi`. The [v3.0.1 release notes](releases/3.0.1/RELEASE_NOTES.md) cover that migration.

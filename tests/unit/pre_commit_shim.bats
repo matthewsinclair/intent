@@ -127,6 +127,24 @@ GATE
   assert_output_contains "cannot locate the Intent install"
 }
 
+@test "a pointer through Homebrew's opt link finds the gate after an upgrade replaces the keg (issue 0527)" {
+  # From 3.2.1 bootstrap records <prefix>/opt/intent/libexec rather than the
+  # versioned keg, which `brew upgrade` deletes. The upgrade is driven as brew
+  # performs it: a new keg, the opt link moved to it, the old keg cleaned up.
+  local prefix="${TEST_TEMP_DIR}/brew"
+  make_install "${prefix}/Cellar/intent/9.9.9/libexec"
+  mkdir -p "${prefix}/opt"
+  ln -s ../Cellar/intent/9.9.9 "${prefix}/opt/intent"
+  echo "${prefix}/opt/intent/libexec" > "${FAKE_HOME}/.local/share/intent/home"
+  make_install "${prefix}/Cellar/intent/9.9.10/libexec"
+  rm "${prefix}/opt/intent"
+  ln -s ../Cellar/intent/9.9.10 "${prefix}/opt/intent"
+  rm -rf "${prefix}/Cellar/intent/9.9.9"
+  HOME="${FAKE_HOME}" run bash "$SHIM" --after-upgrade
+  assert_success
+  assert_output_contains "REAL GATE RAN: --after-upgrade"
+}
+
 @test "--where reports what it resolved, and runs no gate" {
   make_install "${TEST_TEMP_DIR}/install"
   echo "${TEST_TEMP_DIR}/install" > "${FAKE_HOME}/.local/share/intent/home"
