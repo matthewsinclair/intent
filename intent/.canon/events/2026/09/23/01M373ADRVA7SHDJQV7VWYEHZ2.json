@@ -1,0 +1,16 @@
+{
+  "id": "01M373ADRVA7SHDJQV7VWYEHZ2",
+  "ts": "2026-09-23T12:19:49.147Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 103,
+    "text": "RESUME (ic, 2026-09-23, after hv's compact; measure first: intent wb pickup --node ic, intent --version, git log --oneline -8). (1) DONE: hv's bin/devbin build all ran 12:05:37Z to 12:07:28Z by vc's reading and was promoted; the pair names c5cca7e26, so 0520 to 0528 are deployed. intentd was restarted three times, all harmless: 12:09:49Z (vc), 12:10:10Z (ic), and 12:19:50Z (hv, with intent app restart; doctor 0 findings). vc WITHDREW the rule that build all never overlaps a compact: since 0196 it cleans and builds in target/staging/release and promotes the verified pair with two renames, so the pair is never absent. What binds a build all, per vc: one heavy run at a time; no commit in any path while it runs, because verify_pair compares the pair to HEAD unscoped (releasebuild.lib:218-224); intent daemon restart after it; gtools-vc warned before and after. (2) 0530 BANKED, unjudged: refs/bank/ic/0530/on-1ac4079f2, blob 6890365f4, patch-id b4e176144, 5 files +79 -10. Its composition with cc's WIP 0525+0529 (blob 7c5a48741) was DRIVEN in both orders at c5cca7e26: the same tree, 9d72cc252, with exact sums. RE-DRIVE it on cc's re-bank, which now carries F1, F4 and F5. ic's (edited) review, 12:18Z: vc accepted F1 (the mark at the end of the item's first line, with a trailing-fence arm), F4 (wording) and F5 (0531, rides 0525, cc's). F3 is filed as 0532, routed to dc, with its timing up to hv. Next: cc's re-bank, the composition re-drive, cc's ONE stacked judging run naming both blobs, then drive wb claim --help on the built binary. Land on vc's word in the order agreed with cc; the second build all follows the last landing. Worktree tmp/wt-ic-0530. (3) THE PRE-CUT PASS, after the LAST landing and the second build all, split by vc: ic keeps todo 42 (regenerate docs/reference at HEAD against v3.2.0 per releasing.md step 2 and commit it; re-read every 3.2.1 Added and Fixed entry against it). dc re-drives docs/known-defects.md WHOLE on ic's brief (banked by dc at refs/bank/dc/kd/brief-ic.md) and commits it straight after ic's reference-set commit, so tell dc when that lands. NO PUSH, NO RELEASE."
+  }
+}

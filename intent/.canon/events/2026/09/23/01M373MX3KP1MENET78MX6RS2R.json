@@ -1,0 +1,15 @@
+{
+  "id": "01M373MX3KP1MENET78MX6RS2R",
+  "ts": "2026-09-23T12:25:32.535Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0532"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A board view does not indent a multi-line item's continuation lines: its sub-bullets render as sibling items, and a fenced block in an item can swallow the rest of the board"
+  }
+}
