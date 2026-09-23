@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 526,
+  "slug": "the-empty-contract-refusal-says-to-add-a-criteri",
+  "title": "The empty-contract refusal says to add a criterion but not to satisfy it, so its remedy leads to a second refusal",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Seen (laksa-vc, 2026-09-23, upgrading Laksa to the installed 3.2.0 build): the done gate refused `intent wp done` on three finished work packages under completed threads that predate acceptance criteria, with \"the thread has zero acceptance criteria (empty contract). Define ACs with `intent ac new`, or cancel the unit with `intent st cancel` or `intent wp cancel`.\" (`native/rust/crates/intentsvcs/src/contract.rs:596`). laksa-vc closed them by adding one non-test criterion each, satisfying it by named evidence (`intent ac satisfy --evidence <ref> <STID> <ACID>`), and then running `wp done`.\n\nThe remedy names half the path. A criterion added with `ac new` is unsatisfied, so following the remedy leads straight to a second refusal. For historical work, satisfying the new criterion by named evidence is the step that makes the close honest, and the remedy never names it.\n\nExpected: the refusal names the whole path. Add a criterion with `intent ac new`, then satisfy it with `intent ac satisfy --evidence <ref> <STID> <ACID>` (or prove a test criterion green), or cancel the unit.\n\nIt is XS and a 3.2.1 item. Routing (vc): ic, as remedy wording; vc judges.\n"
+}

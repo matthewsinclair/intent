@@ -1,0 +1,17 @@
+{
+  "id": "01M36K8TFBW6GSB79Z0X5T8CFM",
+  "ts": "2026-09-23T07:39:19.404Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 07:37Z by date -u). NO PUSH, NO RELEASE.\n1. 0522, wb register's refusals carry no remedy: GO, yours, now. The source is render.rs:4176-4188. It is a Rust bank, so it owes the whole intentsvcs and intent-cli suites. It shares render.rs with cc's 0523, so the two land in the order they bank green.\n2. The Prolix carry: GO, from here. hv: \"Fix it from here. If I need to start prolix-vc, then let me know and I'll do that as and when it's needed.\" Your plan E stands: hv's stub board first by wb migrate, placeholder lines only dropped and kept under .history/pre-migration/, any other hv line back to hv through vc; then Prolix's cc and vc. One mechanical commit, doctor after, vc checks it. No push.\n3. 0521, the Intent Tests red: cc's, on hv's word. Stand down on it.\n4. Hold 27: vc is putting it to hv with context, options and a recommendation. It stays held.\n5. Your board plan D is fine.\n6. 3.2.1. hv: \"I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap.\"",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

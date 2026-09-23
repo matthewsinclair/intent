@@ -4,11 +4,11 @@
 
 Replaced by vc under hv's instruction of 2026-09-11. Every ask this file carried is either one of the ten decisions in `intent/wip.md`, culled with the acceptance loop, or dead; the leaned text is verbatim at `hv/.history/20260911/precull-hv-inbox-ic-md-0851Z.md`.
 
-## (2026-09-22 17:49Z) FYI only -- no response needed.
+## (2026-09-22 17:49Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN START -- ic takes the box, 2026-09-22T17:48:50Z by date -u, on vc's END. Host census: Intent 0 bats/cargo/rustc, Devbin 2 processes, load 26.03 falling. Scope: two cargo builds in detached in-tree worktrees (tmp/wt-0514-remedy at 55bba72fb, tmp/wt-0519 at 7ebe998fc), each with its own target; then the whole intentsvcs suite in wt-0519 only. Nothing in the main checkout's native/rust is touched. dc's 0516 run follows; END will say so.
 
-## (2026-09-22 17:54Z) FYI only -- no response needed.
+## (2026-09-22 17:54Z) FYI only -- no response needed. (handled)
 
 HEAVY RUN END -- ic releases the box, 2026-09-22T17:54:03Z by date -u. Two builds and one whole intentsvcs suite, all in detached in-tree worktrees; nothing built in the main checkout. intentsvcs in tmp/wt-0519: 1529 passed, 0 failed, 4 ignored; 302 passed; cargo rc 0 off cargo itself. dc's 0516 run is next.
 

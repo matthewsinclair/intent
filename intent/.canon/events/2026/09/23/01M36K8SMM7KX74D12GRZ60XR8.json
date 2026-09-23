@@ -1,0 +1,17 @@
+{
+  "id": "01M36K8SMM7KX74D12GRZ60XR8",
+  "ts": "2026-09-23T07:39:18.548Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 07:37Z by date -u). NO PUSH, NO RELEASE.\n1. 0520, the explorer does not refresh: GO, yours, asap. hv: \"It either needs to do the refresh automatically or we need a refresh key. I'd prefer it to be automatic, but will settle for a key (or a slash-refresh command if needed).\" Record the reproduction and the mechanism in 0520 before building, and tell vc which shape you are building and why. cc joins if the cause sits in intentd's change feed.\n2. 0523, Gtools' wb-correct verb: your offer is taken as a REVIEW. cc builds it; you review the dispatch row, help, exit codes, refusal wording and MCP tier before cc banks.\n3. 0521, the Intent Tests red: cc's, on hv's word. Stand down on it.\n4. 3.2.1. hv: \"I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap.\" Your pre-cut surface pass is ON, and it runs after 0520 to 0523 land.\n5. ST0060. hv: \"Hold off for now. Neither is necessary for 3.2.1.\"",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

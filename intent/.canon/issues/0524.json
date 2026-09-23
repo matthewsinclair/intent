@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 524,
+  "slug": "dispatch-ssot-s-shared-outside-any-project-tempd",
+  "title": "dispatch_ssot's shared outside-any-project TempDir is initialised by a sibling arm mid-run, so the outs alias arm reds at random",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Seen (dc, 2026-09-23 07:56Z to 07:59Z by date -u, in tmp/wt-0522 at c419e8719; not caused by 0522):\n\n- A targeted run of 31 intent-cli arms went 30 passed, 1 failed. `dispatch_ssot::every_declared_alias_on_a_shipped_row_is_the_command_it_aliases` failed because `outs` answered \"no Intent project found at or above .../T/.tmpfnTlkU\" while `outstanding` answered \"outstanding: 0 of 0 threads ...\".\n- `outside_any_project()` (`dispatch_ssot.rs:40`) is ONE static `OnceLock` `TempDir` shared by every arm in the file, and a static is never dropped. After the run that directory held a whole project whose `config.json` names `project_name` \".tmpfnTlkU\", created 2026-09-23T07:56:27.083Z. So a sibling arm ran a bare `intent init` inside it during the run: `outs` ran before the init and `outstanding` after it.\n- It had no subject to race until ST0079's `outs`, the first declared alias that reaches project discovery (the `at done` / `at notdone` aliases stop at clap's missing positionals).\n- Not 0522's: the arm alone, single-threaded, is green 2 of 2, and the installed pair 099088acd, which carries ST0079 and none of 0522, answers `outs` and `outstanding` identically outside a project (both rc 1, the same refusal).\n- Not yet identified: which arm runs the bare init. The directory is kept as evidence at `/private/var/folders/nn/p40vzghs67v8yq0p5y416yf80000gn/T/.tmpfnTlkU`.\n\nExpected: an arm that means \"outside any project\" runs where no arm can create one, and the alias arm gives the same answer however the arms interleave. It can red CI's test step at random, so it is a 3.2.1 item.\n\nRouting (vc, 2026-09-23): dc, after 0522, because dc holds the mechanism and the evidence. The fixer names the arm that runs the init before choosing the fix.\n"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M36PW9FANQ8XQ2M4C7B728VZ",
+  "ts": "2026-09-23T08:42:23.085Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0526"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The empty-contract refusal says to add a criterion but not to satisfy it, so its remedy leads to a second refusal"
+  }
+}

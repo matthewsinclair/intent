@@ -1,0 +1,15 @@
+{
+  "id": "01M36K5WHTXXG6YNWMANZZZACS",
+  "ts": "2026-09-23T07:37:43.798Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0523"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "intent wb has no verb to correct or redact an item's text, and the old text survives in its originating event file"
+  }
+}

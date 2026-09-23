@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 522,
+  "slug": "wb-register-s-two-argument-refusals-carry-no-rem",
+  "title": "wb register's two argument refusals carry no remedy, so the form that works is never shown",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Seen (hv, 2026-09-23, in ~/Devel/prj/Gtools, hv's terminal as pasted to vc):\n\n- `intent claude start dc` refused, correctly, and its remedy showed the form that works: `intent wb register dc --name \"<display name>\" --role <role>`.\n- `intent wb register dc --role dc` printed ``error: a node named on the command line needs both `--name <display>` and `--role <role>` `` and nothing else.\n- `intent wb register --name dc --role dc` and `intent wb register --name dc` printed ``error: `--name` and `--role` describe the node named as `<moniker>`; with no moniker, `wb register` reads every node's own header`` and nothing else.\n- Neither refusal prints a remedy. hv could not get from either one to the command that works, and had to ask why dc could not be registered.\n- `intent wb register --help` gives `[MONIKER]` no description, and `--name` reads \"The node's display name, with `<moniker>`\".\n- Source: `native/rust/crates/intent-cli/src/render.rs:4176-4188` returns both refusals as bare `Failure::Error` strings. Project rule 3 says every error path carries a remedy.\n- A second casualty of the same surface: Gtools' `ic` is registered with name `gtools-ic` and role `ic`, which are the session name and the moniker, the thing the `claude start` remedy warns against.\n\nExpected:\n\n- Each refusal carries a remedy printing the whole form, `intent wb register <moniker> --name \"<display>\" --role <role>`, with the moniker filled in where one was typed, and naming `intent wb status` for the nodes that exist.\n- The flags-without-moniker refusal says the moniker is missing and that it comes first, as a positional.\n- `--help` describes MONIKER (the node's handle, eg `dc`), `--name` (a display name, eg \"DevX Claude\") and `--role` (one word, eg `worker`).\n\nRuling (hv, 2026-09-23): fix it now. It is a 3.2.1 item.\n"
+}

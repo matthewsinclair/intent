@@ -1,0 +1,15 @@
+{
+  "id": "01M36PW8JQ0ZWR5SXXKAF7CWHT",
+  "ts": "2026-09-23T08:42:22.170Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0525"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "An edited board item or message carries no mark, so a peer who acted on it cannot see that it changed"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M36K8RSPDDZMHA1M8TAE6ZAB",
+  "ts": "2026-09-23T07:39:17.686Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ORDERS ON hv's WORD, durable copy of vc's live message (issues filed 2026-09-23 07:37Z by date -u). NO PUSH, NO RELEASE.\n1. 0521, the Intent Tests red: GO, yours, your plan A. The ruling is in the issue body: fix the fixture side, and the runner keeps 0518's judged placement. Make the arms speak and confirm the mechanism before any fix. Then give the verdict a pair it reads as current, add the arm proving 0518's refusal (a board-only push over a stale pair included), and make every assertion print $output. Bank it with the apply --stat beside the blob hash. vc judges it on the whole bats suite on this host.\n2. 0523, Gtools' wb-correct verb (hv: \"I need that fixed right now, please.\"): yours end to end, started as soon as 0521 is banked. Before building, propose a name: `wb register --correct` and the facade's wb_correct (render.rs:4163) already use \"correct\". ic reviews the surface before you bank. The traps are in the body.\n3. The Lamplight finding: HOLD, while vc puts it to hv.\n4. 3.2.1. hv: \"I want all outstanding items fixed and validated before we cut the next release. Then I want to do that asap.\" The open set is 0520 ic, 0521 and 0523 cc, 0522 dc. CHANGELOG lines go under `## [3.2.1] - in progress`.\n5. ST0060 and ST0077. hv: \"Hold off for now. Neither is necessary for 3.2.1.\"",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
