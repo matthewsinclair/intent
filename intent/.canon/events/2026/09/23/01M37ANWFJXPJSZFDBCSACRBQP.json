@@ -1,0 +1,15 @@
+{
+  "id": "01M37ANWFJXPJSZFDBCSACRBQP",
+  "ts": "2026-09-23T14:28:24.695Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0536"
+  },
+  "payload": {
+    "bytes": 4293,
+    "title": "The shell critic asks no rule of an extensionless script outside a directory named bin, and still reports it clean"
+  }
+}

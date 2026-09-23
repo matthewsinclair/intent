@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89be4c37-5e0c-46eb-a8df-6cce6bb2c58b
-heartbeat_at: 2026-09-23 12:57Z
+heartbeat_at: 2026-09-23 14:28Z
 status: active
-focus: "LOCALFOLDED for hv's compact. After the bounce: 0534, whose form vc ruled; it is built after dc's 0532 run and ic's 0533 loop END. 0525, 0529 and 0531 are landed and closed, not deployed. 0521 waits on CI after hv's push. NO PUSH, NO RELEASE."
-claims: [ISSUE:0521, ISSUE:0534]
+focus: "0534, 0536 and 0537 LANDED (6fd9268ff; 434d8573a) on vc's PASS of the stacked run and CLOSED, not deployed until the second build all. 0521 waits on CI after hv's push. Next: whatever vc orders for the tail whole-suite run (0535 v4, 0539-0541, 0540). NO PUSH, NO RELEASE."
+claims: [ISSUE:0521]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- RESUME HERE (cc localfold before hv's compact, 2026-09-23 12:57Z; hv via vc: localfold now, continue on the bounce). Full resume: S/resume_0534.txt, S = /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/89be4c37-5e0c-46eb-a8df-6cce6bb2c58b/scratchpad. DONE AND NOT DEPLOYED until the second build all: 0525, 0529 and 0531 landed at d3b2250b6 (bank refs/bank/cc/0525/on-9a5d8276b, patch-id d35a403d5, the same before and after) and closed at 50f1f5c83; ic's 0530 landed at 084b154b9. OPEN, MINE: 0534, the version line, whose form vc ruled with riders 1 to 5. The line gains ` release` (built at tag v<version>, DIRT_SCOPE clean) or ` dev`, and the commit value and its marker stay byte for byte. NO EDITS YET, so nothing is banked. The resume file holds the design (one sibling function in build-support with its own marker; emit_source_commit gains one call and keeps arm 6c's literals), the line sites, the arms, rider 2's five tag drives, rider 3's app regex with `bin/int macos app-test`, rider 4's consumer drives, and rider 5's CHANGELOG and dispatch-table rows. It is BUILT ONLY AFTER dc's 0532 run and ic's 0533 loop END, with START and END. Also mine: 0521, open until CI reads green on both legs after hv's push (todo 37). NEXT, in vc's order: 0532, 0533, then 0534, then the second build all, hv's push, CI, the pre-cut pass and the cut. NO PUSH, NO RELEASE.
+_(none)_
 
 ## TODO
 
